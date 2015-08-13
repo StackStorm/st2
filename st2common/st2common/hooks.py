@@ -136,15 +136,25 @@ class AuthHook(PecanHook):
 
     @staticmethod
     def _abort_unauthorized():
-        return webob.Response(json_encode({
+        body = json_encode({
             'faultstring': 'Unauthorized'
-        }), status=401)
+        })
+        headers = {}
+        headers['Content-Type'] = 'application/json'
+        status = httplib.UNAUTHORIZED
+
+        return webob.Response(body=body, status=status, headers=headers)
 
     @staticmethod
     def _abort_other_errors():
-        return webob.Response(json_encode({
+        body = json_encode({
             'faultstring': 'Internal Server Error'
-        }), status=500)
+        })
+        headers = {}
+        headers['Content-Type'] = 'application/json'
+        status = httplib.INTERNAL_SERVER_ERROR
+
+        return webob.Response(body=body, status=status, headers=headers)
 
     @staticmethod
     def _validate_token(request):

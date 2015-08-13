@@ -24,8 +24,12 @@ in development
 * Fix key name for error message in liveaction result. (bug-fix)
 * Fix 500 API response when rule with no pack info is supplied. (bug-fix)
 * Fix bug in trigger-instance re-emit (extra kwargs passed to manager is now handled). (bug-fix)
+* Rename notification "channels" to "routes". (improvement)
+* Make sure auth hook and middleware returns JSON and "Content-Type: application/json" header
+  in every response. (improvement, bug-fix)
 * Fix bug in triggers emitted on key value pair changes and sensor spawn/exit. When
-  dispatching   those triggers, the reference used didn't contain the pack names which meant it was invalid and lookups in the rules engine would fail. (bug-fix)
+  dispatching those triggers, the reference used didn't contain the pack names
+  which meant it was invalid and lookups in the rules engine would fail. (bug-fix)
 
 0.12.1 - July 31, 2015
 ----------------------
