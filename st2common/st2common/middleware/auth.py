@@ -16,6 +16,7 @@
 from six.moves.urllib import parse as urlparse
 
 from st2common.util import isotime
+from st2common.util.jsonify import json_encode
 from st2common.exceptions import auth as exceptions
 from st2common import log as logging
 from st2common.util.auth import validate_token
@@ -56,12 +57,22 @@ class AuthMiddleware(object):
             return self.app(environ, start_response)
 
     def _abort_other_errors(self, environ, start_response):
-        start_response('500 INTERNAL SERVER ERROR', [('Content-Type', 'text/plain')])
-        return ['Internal Server Error']
+        body = json_encode({
+            'faultstring': 'Internal Server Error'
+        })
+        headers = [('Content-Type', 'application/json')]
+
+        start_response('500 INTERNAL SERVER ERROR', headers)
+        return [body]
 
     def _abort_unauthorized(self, environ, start_response):
-        start_response('401 UNAUTHORIZED', [('Content-Type', 'text/plain')])
-        return ['Unauthorized']
+        body = json_encode({
+            'faultstring': 'Unauthorized'
+        })
+        headers = [('Content-Type', 'application/json')]
+
+        start_response('401 UNAUTHORIZED', headers)
+        return [body]
 
     def _remove_auth_headers(self, env):
         """Remove middleware generated auth headers to prevent user from supplying them."""

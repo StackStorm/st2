@@ -42,6 +42,7 @@ class TestTokenValidation(AuthMiddlewareTest):
     def test_token_validation_token_in_headers(self):
         response = self.app.get('/v1/actions', headers={'X-Auth-Token': TOKEN},
                                 expect_errors=False)
+        self.assertTrue('application/json' in response.headers['content-type'])
         self.assertEqual(response.status_int, 200)
 
     @mock.patch.object(
@@ -49,6 +50,7 @@ class TestTokenValidation(AuthMiddlewareTest):
         mock.Mock(return_value=TokenDB(id=OBJ_ID, user=USER, token=TOKEN, expiry=FUTURE)))
     def test_token_validation_token_in_query_params(self):
         response = self.app.get('/v1/actions?x-auth-token=%s' % (TOKEN), expect_errors=False)
+        self.assertTrue('application/json' in response.headers['content-type'])
         self.assertEqual(response.status_int, 200)
 
     @mock.patch.object(
@@ -57,6 +59,7 @@ class TestTokenValidation(AuthMiddlewareTest):
     def test_token_expired(self):
         response = self.app.get('/v1/actions', headers={'X-Auth-Token': TOKEN},
                                 expect_errors=True)
+        self.assertTrue('application/json' in response.headers['content-type'])
         self.assertEqual(response.status_int, 401)
 
     @mock.patch.object(
@@ -64,8 +67,10 @@ class TestTokenValidation(AuthMiddlewareTest):
     def test_token_not_found(self):
         response = self.app.get('/v1/actions', headers={'X-Auth-Token': TOKEN},
                                 expect_errors=True)
+        self.assertTrue('application/json' in response.headers['content-type'])
         self.assertEqual(response.status_int, 401)
 
     def test_token_not_provided(self):
         response = self.app.get('/v1/actions', expect_errors=True)
+        self.assertTrue('application/json' in response.headers['content-type'])
         self.assertEqual(response.status_int, 401)
