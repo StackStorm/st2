@@ -48,6 +48,8 @@ class TriggerInstanceDispatcher(consumers.MessageHandler):
 
             if trigger_instance:
                 self.rules_engine.handle_trigger_instance(trigger_instance)
+            else:
+                LOG.info('No trigger found in db for instance. %s', instance)
         except:
             # This could be a large message but at least in case of an exception
             # we get to see more context.

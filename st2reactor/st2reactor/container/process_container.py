@@ -25,11 +25,13 @@ import eventlet
 from eventlet.support import greenlets as greenlet
 
 from st2common import log as logging
-from st2common.transport.reactor import TriggerDispatcher
+from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
-from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
+from st2common.constants.triggers import (SENSOR_SPAWN_TRIGGER, SENSOR_EXIT_TRIGGER)
+from st2common.models.system.common import ResourceReference
 from st2common.services.access import create_token
+from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.api import get_full_public_api_url
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
@@ -69,7 +71,7 @@ class ProcessSensorContainer(object):
     Sensor container which runs sensors in a separate process.
     """
 
-    def __init__(self, sensors, poll_interval=5):
+    def __init__(self, sensors, poll_interval=5, dispatcher=None):
         """
         :param sensors: A list of sensor dicts.
         :type sensors: ``list`` of ``dict``
@@ -82,7 +84,10 @@ class ProcessSensorContainer(object):
         self._sensors = {}  # maps sensor_id -> sensor object
         self._processes = {}  # maps sensor_id -> sensor process
 
-        self._dispatcher = TriggerDispatcher(LOG)
+        if not dispatcher:
+            dispatcher = TriggerDispatcher(LOG)
+        self._dispatcher = dispatcher
+
         self._stopped = False
 
         sensors = sensors or []
@@ -394,7 +399,9 @@ class ProcessSensorContainer(object):
         return sensor_id
 
     def _dispatch_trigger_for_sensor_spawn(self, sensor, process, cmd):
-        trigger = 'st2.sensor.process_spawn'
+        trigger = ResourceReference.to_string_reference(
+            name=SENSOR_SPAWN_TRIGGER['name'],
+            pack=SENSOR_SPAWN_TRIGGER['pack'])
         now = int(time.time())
         payload = {
             'id': sensor['class_name'],
@@ -405,7 +412,9 @@ class ProcessSensorContainer(object):
         self._dispatcher.dispatch(trigger, payload=payload)
 
     def _dispatch_trigger_for_sensor_exit(self, sensor, exit_code):
-        trigger = 'st2.sensor.process_exit'
+        trigger = ResourceReference.to_string_reference(
+            name=SENSOR_EXIT_TRIGGER['name'],
+            pack=SENSOR_EXIT_TRIGGER['pack'])
         now = int(time.time())
         payload = {
             'id': sensor['class_name'],
