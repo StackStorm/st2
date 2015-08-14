@@ -38,6 +38,21 @@ In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following se
 
 .. note:: The #RMQ_VHOST property is optional and can be left blank.
 
+StackStorm also supports RabbitMQ cluster.
+
+In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following section :
+
+.. code-block:: bash
+
+    [messaging]
+    cluster_urls = <amqp://#RMQ_USER:#RMQ_PASSWD@#RMQ_NODE_1:#RMQ_PORT/#RMQ_VHOST>,
+                   <amqp://#RMQ_USER:#RMQ_PASSWD@#RMQ_NODE_2:#RMQ_PORT/#RMQ_VHOST>,
+                   <amqp://#RMQ_USER:#RMQ_PASSWD@#RMQ_NODE_3:#RMQ_PORT/#RMQ_VHOST>
+
+
+* To understand more about setting up a RabbitMQ cluster - https://www.rabbitmq.com/clustering.html
+* RabbitMQ HA guide - https://www.rabbitmq.com/ha.html
+
 SUDO Access
 -----------
 
@@ -105,6 +120,19 @@ SSH Troubleshooting
     .. code-block:: bash
 
         sudo ssh -i /home/stanley/.ssh/stanley_rsa -t stanley@host.example.com uname -a
+
+Using SSH config
+~~~~~~~~~~~~~~~~
+
+StackStorm allows loading of the SSH config file local to the system user. This is a configurable option and to
+enable add following to ``/etc/st2/st2.conf``
+
+.. code-block:: bash
+
+    [ssh_runner]
+    use_ssh_config = True
+    ...
+
 
 Configure Logging
 -----------------

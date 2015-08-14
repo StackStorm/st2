@@ -5,7 +5,7 @@ entry_point: ''
 name: local-notify
 notify:
   on-complete:
-    channels:
+    routes:
     - slack
     message: '"@channel: Action succeeded."'
 parameters:

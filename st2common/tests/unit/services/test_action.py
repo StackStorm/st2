@@ -57,7 +57,7 @@ ACTION = {
     'notify': {
         'on-complete': {
             'message': 'My awesome action is complete. Party time!!!',
-            'channels': ['notify.slack']
+            'routes': ['notify.slack']
         }
     }
 }

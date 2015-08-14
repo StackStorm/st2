@@ -70,7 +70,8 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             {'fields': ['start_timestamp']},
             {'fields': ['end_timestamp']},
             {'fields': ['status']},
-            {'fields': ['parent']}
+            {'fields': ['parent']},
+            {'fields': ['-start_timestamp', 'action.ref', 'status']}
         ]
     }
 

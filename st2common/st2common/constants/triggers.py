@@ -84,6 +84,31 @@ NOTIFY_TRIGGER = {
     }
 }
 
+# Sensor spawn/exit triggers.
+SENSOR_SPAWN_TRIGGER = {
+    'name': 'st2.sensor.process_spawn',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger indicating sensor process is started up.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'object': {}
+        }
+    }
+}
+
+SENSOR_EXIT_TRIGGER = {
+    'name': 'st2.sensor.process_exit',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger indicating sensor process is stopped.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'object': {}
+        }
+    }
+}
+
 # KeyValuePair resource triggers
 KEY_VALUE_PAIR_CREATE_TRIGGER = {
     'name': 'st2.key_value_pair.create',
@@ -142,33 +167,8 @@ INTERNAL_TRIGGER_TYPES = {
         ACTION_FILE_WRITTEN_TRIGGER
     ],
     'sensor': [
-        {
-            'name': 'st2.sensor.process_spawn',
-            'pack': SYSTEM_PACK_NAME,
-            'description': 'Trigger encapsulating spawning of a sensor process.',
-            'payload_schema': {
-                'type': 'object',
-                'properties': {
-                    'id': {},
-                    'timestamp': {},
-                    'pid': {},
-                    'cmd': {}
-                }
-            }
-        },
-        {
-            'name': 'st2.sensor.process_exit',
-            'pack': SYSTEM_PACK_NAME,
-            'description': 'Trigger encapsulating exit of a sensor process.',
-            'payload_schema': {
-                'type': 'object',
-                'properties': {
-                    'id': {},
-                    'timestamp': {},
-                    'exit_code': {}
-                }
-            }
-        }
+        SENSOR_SPAWN_TRIGGER,
+        SENSOR_EXIT_TRIGGER
     ],
     'key_value_pair': [
         KEY_VALUE_PAIR_CREATE_TRIGGER,

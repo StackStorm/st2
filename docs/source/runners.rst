@@ -56,6 +56,14 @@ Runner parameters
 
 .. include:: _includes/runner_parameters/remote_shell_script.rst
 
+.. note::
+
+    Remote script runner and remote command runner uses fabric to remote to boxes.
+    Fabric turned out to be really buggy in eventlet environment and therefore a
+    Paramiko SSH runner with eventlets is now in place. This is not enabled by default as
+    it is in experimental stage. If you want to use this runner instead, set
+    ``use_paramiko_ssh_runner = True`` in ``ssh_runner`` section in /etc/st2/st2.conf.
+
 Windows command runner (windows-cmd)
 ------------------------------------
 
