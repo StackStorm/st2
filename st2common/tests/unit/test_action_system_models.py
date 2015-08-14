@@ -62,7 +62,7 @@ class RemoteScriptActionTestCase(unittest2.TestCase):
         self.assertEqual(action.script_local_dir, '/tmp/sc')
         self.assertEqual(action.script_name, 'ma_script.sh')
         self.assertEqual(action.remote_script, '/home/mauser/ma_script.sh')
-        self.assertEqual(action.command, '/home/mauser/ma_script.sh')
+        self.assertEqual(action.command, 'sudo -E -- bash -c /home/mauser/ma_script.sh')
 
 
 class FabricRemoteActionTestCase(unittest2.TestCase):
