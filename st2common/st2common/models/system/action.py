@@ -41,7 +41,6 @@ __all__ = [
     'ShellScriptAction',
     'RemoteAction',
     'RemoteScriptAction',
-    'ParamikoSSHCommandAction',
     'FabricRemoteAction',
     'FabricRemoteScriptAction',
     'ResolvedActionParameters'
@@ -148,34 +147,7 @@ class ShellScriptAction(ShellCommandAction):
         return self._format_command()
 
     def _format_command(self):
-        script_arguments = self._get_script_arguments(named_args=self.named_args,
-                                                      positional_args=self.positional_args)
-        if self.sudo:
-            if script_arguments:
-                command = quote_unix('%s %s' % (self.script_local_path_abs, script_arguments))
-            else:
-                command = quote_unix(self.script_local_path_abs)
-
-            command = 'sudo -E -- bash -c %s' % (command)
-        else:
-            if self.user and self.user != LOGGED_USER_USERNAME:
-                # Need to use sudo to run as a different user
-                user = quote_unix(self.user)
-
-                if script_arguments:
-                    command = quote_unix('%s %s' % (self.script_local_path_abs, script_arguments))
-                else:
-                    command = quote_unix(self.script_local_path_abs)
-
-                command = 'sudo -E -u %s -- bash -c %s' % (user, command)
-            else:
-                script_path = quote_unix(self.script_local_path_abs)
-
-                if script_arguments:
-                    command = '%s %s' % (script_path, script_arguments)
-                else:
-                    command = script_path
-        return command
+        pass
 
     def _get_script_arguments(self, named_args=None, positional_args=None):
         """
@@ -209,6 +181,37 @@ class ShellScriptAction(ShellCommandAction):
         if positional_args:
             command_parts.append(positional_args)
         return ' '.join(command_parts)
+
+    @staticmethod
+    def _generate_command_string(script_path_abs, script_arguments, is_sudo=False,
+                                 user=None):
+        cmd_format = None
+        command = ShellScriptAction._get_quoted_command_string(script_path_abs, script_arguments)
+        args = []
+
+        if is_sudo:
+            if not user:
+                cmd_format = 'sudo -E -- bash -c %s'
+                args = (command)
+            else:
+                cmd_format = 'sudo -E -u %s -- bash -c %s'
+                args = (user, command)
+        else:
+            cmd_format = '%s'
+            args = (command)
+
+        return cmd_format % args
+
+    @staticmethod
+    def _get_quoted_command_string(script_path_abs, script_arguments):
+        script_path = quote_unix(script_path_abs)
+
+        if script_arguments:
+            command = '%s %s' % (script_path, script_arguments)
+        else:
+            command = script_path
+
+        return command
 
 
 class SSHCommandAction(ShellCommandAction):
@@ -289,6 +292,21 @@ class RemoteAction(SSHCommandAction):
         return ', '.join(str_rep)
 
 
+class LocalScriptAction(ShellScriptAction):
+    def _format_command(self):
+        script_arguments = self._get_script_arguments(named_args=self.named_args,
+                                                      positional_args=self.positional_args)
+        sudo = self.sudo
+        user = LOGGED_USER_USERNAME
+
+        if self.user and self.user != LOGGED_USER_USERNAME:
+            sudo = True
+            user = self.user
+
+        return self._generate_command_string(self.script_local_path_abs, script_arguments,
+                                             user=user, is_sudo=sudo)
+
+
 class RemoteScriptAction(ShellScriptAction):
     def __init__(self, name, action_exec_id, script_local_path_abs, script_local_libs_path_abs,
                  named_args=None, positional_args=None, env_vars=None, on_behalf_user=None,
@@ -332,12 +350,8 @@ class RemoteScriptAction(ShellScriptAction):
         script_arguments = self._get_script_arguments(named_args=self.named_args,
                                                       positional_args=self.positional_args)
 
-        if script_arguments:
-            command = '%s %s' % (self.remote_script, script_arguments)
-        else:
-            command = self.remote_script
-
-        return command
+        return self._generate_command_string(self.remote_script, script_arguments,
+                                             user=self.user, is_sudo=self.sudo)
 
     def __str__(self):
         str_rep = []
@@ -356,10 +370,6 @@ class RemoteScriptAction(ShellScriptAction):
         str_rep.append('hosts: %s)' % self.hosts)
 
         return ', '.join(str_rep)
-
-
-class ParamikoSSHCommandAction(SSHCommandAction):
-    pass
 
 
 class FabricRemoteAction(RemoteAction):
