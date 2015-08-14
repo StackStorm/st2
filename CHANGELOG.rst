@@ -30,6 +30,10 @@ in development
 * Fix bug in triggers emitted on key value pair changes and sensor spawn/exit. When
   dispatching those triggers, the reference used didn't contain the pack names
   which meant it was invalid and lookups in the rules engine would fail. (bug-fix)
+* Allow user to include files which are written on disk inside the action create API payload.
+  (new feature)
+* Allow user to retrieve content of a file inside a pack by using the new
+  ``/packs/views/files/`` API endpoint. (new feature)
 
 0.12.1 - July 31, 2015
 ----------------------

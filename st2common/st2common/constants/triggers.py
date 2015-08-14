@@ -26,6 +26,7 @@ __all__ = [
 
     'ACTION_SENSOR_TRIGGER',
     'NOTIFY_TRIGGER',
+    'ACTION_FILE_WRITTEN_TRIGGER',
 
     'TIMER_TRIGGER_TYPES',
     'INTERNAL_TRIGGER_TYPES',
@@ -46,6 +47,20 @@ ACTION_SENSOR_TRIGGER = {
             'action_name': {},
             'parameters': {},
             'result': {}
+        }
+    }
+}
+ACTION_FILE_WRITTEN_TRIGGER = {
+    'name': 'st2.action.file_writen',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating action file being written on disk.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'ref': {},
+            'file_path': {},
+            'content': {},
+            'host_info': {}
         }
     }
 }
@@ -148,7 +163,8 @@ KEY_VALUE_PAIR_DELETE_TRIGGER = {
 INTERNAL_TRIGGER_TYPES = {
     'action': [
         ACTION_SENSOR_TRIGGER,
-        NOTIFY_TRIGGER
+        NOTIFY_TRIGGER,
+        ACTION_FILE_WRITTEN_TRIGGER
     ],
     'sensor': [
         SENSOR_SPAWN_TRIGGER,
