@@ -34,6 +34,7 @@ in development
   (new feature)
 * Allow user to retrieve content of a file inside a pack by using the new
   ``/packs/views/files/`` API endpoint. (new feature)
+* Handle sudo in paramiko remote script runner. (bug-fix)
 
 0.12.2 - August 11, 2015.
 -------------------------
