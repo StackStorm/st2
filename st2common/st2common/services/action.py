@@ -41,20 +41,6 @@ def _get_immutable_params(parameters):
     return [k for k, v in six.iteritems(parameters) if v.get('immutable', False)]
 
 
-def _get_trace_context(liveaction, actionexecution):
-    # 1. Try to get trace_context from context.
-    trace_context = liveaction.context.get(TRACE_CONTEXT, None)
-    # 2. If not found then check if parent context contains the trace_context.
-    #    This cover case for child execution of a workflow.
-    if not trace_context and 'parent' in liveaction.context:
-        trace_context = liveaction.context['parent'].get(TRACE_CONTEXT, None)
-    # 3. No trace_context found, therefore create one. This typically happens
-    #    when execution is run by hand.
-    if not trace_context:
-        trace_context = {TRACE_ID: str(actionexecution.id)}
-    return trace_context
-
-
 def request(liveaction):
     """
     Request an action execution.
@@ -112,9 +98,9 @@ def request(liveaction):
     execution = executions.create_execution_object(liveaction, publish=False)
 
     # Update or create trace before publishing the execution
-    trace_context = _get_trace_context(liveaction, execution)
-    trace_service.add_or_update_given_trace_context(
-        trace_context=trace_context,
+    trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
+    trace_service.add_or_update_given_trace_db(
+        trace_db=trace_db,
         action_executions=[str(execution.id)])
 
     # Assume that this is a creation.

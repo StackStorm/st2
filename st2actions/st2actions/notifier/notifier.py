@@ -29,6 +29,7 @@ from st2common.persistence.policy import Policy
 from st2common import policies
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
+from st2common.services import trace as trace_service
 from st2common.transport import consumers, liveaction, publishers
 from st2common.transport import utils as transport_utils
 from st2common.transport.reactor import TriggerDispatcher
@@ -157,9 +158,9 @@ class Notifier(consumers.MessageHandler):
                 raise Exception('Failed notifications to routes: %s' % ', '.join(failed_routes))
 
     def _get_trace_context(self, liveaction):
-        trace_context = liveaction.context.get(TRACE_CONTEXT, None)
-        if trace_context:
-            return TraceContext(**trace_context)
+        trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
+        if trace_db:
+            return TraceContext(id_=str(trace_db.id), trace_id=trace_db.trace_id)
         # If no trace_context is found then do not create a new one here. If necessary
         # it shall be created downstream. Sure this is impl leakage of some sort.
         return None
