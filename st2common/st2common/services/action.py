@@ -17,9 +17,11 @@ import six
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
+from st2common.constants.trace import TRACE_CONTEXT, TRACE_ID
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
+from st2common.services import trace as trace_service
 from st2common.util import date as date_utils
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
@@ -37,6 +39,20 @@ def _get_immutable_params(parameters):
     if not parameters:
         return []
     return [k for k, v in six.iteritems(parameters) if v.get('immutable', False)]
+
+
+def _get_trace_context(liveaction, actionexecution):
+    # 1. Try to get trace_context from context.
+    trace_context = liveaction.context.get(TRACE_CONTEXT, None)
+    # 2. If not found then check if parent context contains the trace_context.
+    #    This cover case for child execution of a workflow.
+    if not trace_context and 'parent' in liveaction.context:
+        trace_context = liveaction.context['parent'].get(TRACE_CONTEXT, None)
+    # 3. No trace_context found, therefore create one. This typically happens
+    #    when execution is run by hand.
+    if not trace_context:
+        trace_context = {TRACE_ID: str(actionexecution.id)}
+    return trace_context
 
 
 def request(liveaction):
@@ -94,6 +110,12 @@ def request(liveaction):
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
     execution = executions.create_execution_object(liveaction, publish=False)
+
+    # Update or create trace before publishing the execution
+    trace_context = _get_trace_context(liveaction, execution)
+    trace_service.add_or_update_given_trace_context(
+        trace_context=trace_context,
+        action_executions=[str(execution.id)])
 
     # Assume that this is a creation.
     LiveAction.publish_create(liveaction)

@@ -16,10 +16,13 @@
 import json
 
 from st2common import log as logging
+from st2common.constants.trace import TRACE_CONTEXT
 from st2common.util import reference
 from st2common.util import action_db as action_db_util
 from st2reactor.rules.datatransform import get_transformer
 from st2common.services import action as action_service
+from st2common.services import trace as trace_service
+from st2common.models.api.trace import TraceContext
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.utils import action_param_utils
 from st2common.constants import action as action_constants
@@ -55,10 +58,15 @@ class RuleEnforcer(object):
                  self.rule.action.ref, self.trigger_instance.id,
                  json.dumps(data))
 
+        # update trace before invoking the action.
+        trace_context = self._update_trace()
+        LOG.debug('Updated trace %s with rule %s.', trace_context, self.rule.id)
+
         context = {
             'trigger_instance': reference.get_ref_from_model(self.trigger_instance),
             'rule': reference.get_ref_from_model(self.rule),
-            'user': get_system_username()
+            'user': get_system_username(),
+            TRACE_CONTEXT: trace_context
         }
 
         liveaction_db = RuleEnforcer._invoke_action(self.rule.action, data, context)
@@ -76,6 +84,24 @@ class RuleEnforcer(object):
                   liveaction_db, self.trigger_instance, self.rule, extra=extra)
 
         return liveaction_db
+
+    def _update_trace(self):
+        """
+        :rtype: ``dict`` trace_context as a dict; could be None
+        """
+        trace_db = None
+        try:
+            trace_db = trace_service.get_trace_db_by_trigger_instance(self.trigger_instance)
+        except:
+            LOG.exception('No Trace found for TriggerInstance %s.', self.trigger_instance.id)
+            return None
+
+        # This would signify some sort of coding error so assert.
+        assert trace_db
+
+        trace_db = trace_service.add_or_update_given_trace_db(trace_db=trace_db,
+                                                              rules=[str(self.rule.id)])
+        return vars(TraceContext(id_=str(trace_db.id), trace_id=trace_db.trace_id))
 
     @staticmethod
     def _invoke_action(action_exec_spec, params, context=None):

@@ -16,6 +16,7 @@
 from kombu import Exchange, Queue
 
 from st2common import log as logging
+from st2common.constants.trace import TRACE_CONTEXT
 from st2common.models.api.trace import TraceContext
 from st2common.transport import publishers
 from st2common.transport import utils as transport_utils
@@ -98,7 +99,7 @@ class TriggerDispatcher(object):
         payload = {
             'trigger': trigger,
             'payload': payload,
-            'trace_context': trace_context
+            TRACE_CONTEXT: trace_context
         }
         routing_key = 'trigger_instance'
 
