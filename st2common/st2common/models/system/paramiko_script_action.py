@@ -30,18 +30,19 @@ class ParamikoRemoteScriptAction(RemoteScriptAction):
         script_arguments = self._get_script_arguments(named_args=self.named_args,
                                                       positional_args=self.positional_args)
 
-        command = self._get_quoted_command_string(self.remote_script, script_arguments)
-
         if self.sudo:
-            command = 'sudo -E -- bash -c %s' % command
+            if script_arguments:
+                command = quote_unix('%s %s' % (self.remote_script, script_arguments))
+            else:
+                command = quote_unix(self.remote_script)
 
-        return command
-
-    @staticmethod
-    def _get_quoted_command_string(remote_script_path, script_arguments):
-        if script_arguments:
-            command = quote_unix('%s %s' % (remote_script_path, script_arguments))
+            command = 'sudo -E -- bash -c %s' % (command)
         else:
-            command = quote_unix(remote_script_path)
+            script_path = quote_unix(self.remote_script)
+
+            if script_arguments:
+                command = '%s %s' % (script_path, script_arguments)
+            else:
+                command = script_path
 
         return command
