@@ -16,10 +16,12 @@
 from mongoengine import ValidationError
 
 from st2common import log as logging
+from st2common.constants.trace import TRACE_CONTEXT
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.trace import UniqueTraceNotFoundException
 from st2common.models.api.trace import TraceContext
 from st2common.models.db.trace import TraceDB, TraceComponentDB
+from st2common.persistence.execution import ActionExecution
 from st2common.persistence.trace import Trace
 
 LOG = logging.getLogger(__name__)
@@ -62,17 +64,23 @@ def _get_single_trace_by_component(**component_filter):
     return traces[0]
 
 
-def get_trace_db_by_action_execution(action_execution):
-    return _get_single_trace_by_component(action_executions__object_id=str(action_execution.id))
+def get_trace_db_by_action_execution(action_execution=None, action_execution_id=None):
+    if action_execution:
+        action_execution_id = str(action_execution.id)
+    return _get_single_trace_by_component(action_executions__object_id=action_execution_id)
 
 
-def get_trace_db_by_rule(rule):
+def get_trace_db_by_rule(rule=None, rule_id=None):
+    if rule:
+        rule_id = str(rule.id)
     # by rule could return multiple traces
-    return Trace.query(rules__object_id=str(rule.id))
+    return Trace.query(rules__object_id=rule_id)
 
 
-def get_trace_db_by_trigger_instance(trigger_instance):
-    return _get_single_trace_by_component(trigger_instances__object_id=str(trigger_instance.id))
+def get_trace_db_by_trigger_instance(trigger_instance=None, trigger_instance_id=None):
+    if trigger_instance:
+        trigger_instance_id = str(trigger_instance.id)
+    return _get_single_trace_by_component(trigger_instances__object_id=trigger_instance_id)
 
 
 def get_trace(trace_context, ignore_trace_id=False):
@@ -111,6 +119,54 @@ def get_trace(trace_context, ignore_trace_id=False):
             'More than 1 Trace matching %s found.' % trace_context.trace_id)
 
     return traces[0]
+
+
+def get_trace_db_by_live_action(liveaction):
+    """
+    Given a liveaction does the best attempt to return a TraceDB.
+    1. From trace_context in liveaction.context
+    2. From parent in liveaction.context
+    3. From action_execution associated with provided liveaction
+    4. Creates a new TraceDB (which calling method is on the hook to persist).
+
+    :param liveaction: liveaction from which to figure out a TraceDB.
+    :type liveaction: ``LiveActionDB``
+
+    :rtype: ``TraceDB``
+    """
+    trace_db = None
+    # 1. Try to get trace_db from liveaction context.
+    #    via trigger_instance + rule or via user specified trace_context
+    trace_context = liveaction.context.get(TRACE_CONTEXT, None)
+    if trace_context:
+        trace_context = _get_valid_trace_context(trace_context)
+        trace_db = get_trace(trace_context=trace_context, ignore_trace_id=True)
+        # found a trace_context but no trace_db. This implies a user supplied
+        # trace_id so create a new trace_db
+        if not trace_db:
+            trace_db = TraceDB(trace_id=trace_context.trace_id)
+        return trace_db
+    # 2. If not found then check if parent context contains an execution_id.
+    #    This cover case for child execution of a workflow.
+    if not trace_context and 'parent' in liveaction.context:
+        parent_execution_id = liveaction.context['parent'].get('execution_id', None)
+        if parent_execution_id:
+            # go straight to a trace_db. If there is a parent execution then that must
+            # be associated with a Trace.
+            trace_db = get_trace_db_by_action_execution(action_execution_id=parent_execution_id)
+            if not trace_db:
+                raise StackStormDBObjectNotFoundError('No trace found for execution %s' %
+                                                      parent_execution_id)
+            return trace_db
+    # 3. Check if the action_execution associated with liveaction leads to a trace_db
+    execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+    if execution:
+        trace_db = get_trace_db_by_action_execution(action_execution=execution)
+    # 4. No trace_db found, therefore create one. This typically happens
+    #    when execution is run by hand.
+    if not trace_db:
+        trace_db = TraceDB(trace_id='execution-%s' % str(liveaction.id))
+    return trace_db
 
 
 def add_or_update_given_trace_context(trace_context, action_executions=None, rules=None,

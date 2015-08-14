@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import bson
+import copy
 
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.trace import UniqueTraceNotFoundException
@@ -27,11 +28,14 @@ from st2tests import DbTestCase
 FIXTURES_PACK = 'traces'
 
 TEST_MODELS = {
+    'executions': ['traceable_execution.yaml'],
+    'liveactions': ['traceable_liveaction.yaml'],
     'traces': [
         'trace_empty.yaml',
         'trace_multiple_components.yaml',
         'trace_one_each.yaml',
-        'trace_one_each_dup.yaml'
+        'trace_one_each_dup.yaml',
+        'trace_execution.yaml'
     ]
 }
 
@@ -48,6 +52,9 @@ class TestTraceService(DbTestCase):
     trace2 = None
     trace3 = None
     trace_empty = None
+    trace_execution = None
+    traceable_liveaction = None
+    traceable_execution = None
 
     @classmethod
     def setUpClass(cls):
@@ -58,6 +65,10 @@ class TestTraceService(DbTestCase):
         cls.trace2 = cls.models['traces']['trace_one_each.yaml']
         cls.trace3 = cls.models['traces']['trace_one_each_dup.yaml']
         cls.trace_empty = cls.models['traces']['trace_empty.yaml']
+        cls.trace_execution = cls.models['traces']['trace_execution.yaml']
+
+        cls.traceable_liveaction = cls.models['liveactions']['traceable_liveaction.yaml']
+        cls.traceable_execution = cls.models['executions']['traceable_execution.yaml']
 
     def test_get_trace_db_by_action_execution(self):
         action_execution = DummyComponent(id_=self.trace1.action_executions[0].object_id)
@@ -131,6 +142,52 @@ class TestTraceService(DbTestCase):
     def test_get_trace_fail_multi_match(self):
         trace_context = {'trace_id': self.trace2.trace_id}
         self.assertRaises(UniqueTraceNotFoundException, trace_service.get_trace, trace_context)
+
+    def test_get_trace_db_by_live_action_valid_id_context(self):
+        traceable_liveaction = copy.copy(self.traceable_liveaction)
+        traceable_liveaction.context['trace_context'] = {'id_': str(self.trace_execution.id)}
+        trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        self.assertEqual(trace_db.id, self.trace_execution.id)
+
+    def test_get_trace_db_by_live_action_trace_id_context(self):
+        traceable_liveaction = copy.copy(self.traceable_liveaction)
+        traceable_liveaction.context['trace_context'] = {
+            'trace_id': str(self.trace_execution.trace_id)
+        }
+        trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        self.assertEqual(trace_db.id, None, 'Expected to be None')
+        self.assertEqual(trace_db.trace_id, str(self.trace_execution.trace_id))
+
+    def test_get_trace_db_by_live_action_parent(self):
+        traceable_liveaction = copy.copy(self.traceable_liveaction)
+        traceable_liveaction.context['parent'] = {
+            'execution_id': str(self.trace1.action_executions[0].object_id)
+        }
+        trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        self.assertEqual(trace_db.id, self.trace1.id)
+
+    def test_get_trace_db_by_live_action_parent_fail(self):
+        traceable_liveaction = copy.copy(self.traceable_liveaction)
+        traceable_liveaction.context['parent'] = {
+            'execution_id': str(bson.ObjectId())
+        }
+        self.assertRaises(StackStormDBObjectNotFoundError,
+                          trace_service.get_trace_db_by_live_action,
+                          traceable_liveaction)
+
+    def test_get_trace_db_by_live_action_from_execution(self):
+        traceable_liveaction = copy.copy(self.traceable_liveaction)
+        # fixtures id value in liveaction is not persisted in DB.
+        traceable_liveaction.id = bson.ObjectId(self.traceable_execution.liveaction['id'])
+        trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        self.assertEqual(trace_db.id, self.trace_execution.id)
+
+    def test_get_trace_db_by_live_action_new_trace(self):
+        traceable_liveaction = copy.copy(self.traceable_liveaction)
+        # a liveaction without any associated ActionExecution
+        traceable_liveaction.id = bson.ObjectId()
+        trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        self.assertEqual(trace_db.id, None, 'Should be None.')
 
     def test_add_or_update_given_trace_context(self):
         trace_context = {'id_': str(self.trace_empty.id)}
