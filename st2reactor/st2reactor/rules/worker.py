@@ -59,8 +59,9 @@ class TriggerInstanceDispatcher(consumers.MessageHandler):
             try:
                 # Use trace_context from the instance and if not found create a new context
                 # and use the trigger_instance.id as trace_id.
-                trace_context = instance.get(TRACE_CONTEXT,
-                                             {TRACE_ID: str(trigger_instance.id)})
+                trace_context = instance.get(TRACE_CONTEXT, {
+                    TRACE_ID: 'trigger_instance-' % str(trigger_instance.id)
+                })
                 # add a trace or update an existing trace with trigger_instance
                 add_or_update_given_trace_context(trace_context=trace_context,
                                                   trigger_instances=[str(trigger_instance.id)])

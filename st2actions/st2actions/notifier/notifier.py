@@ -20,7 +20,6 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
-from st2common.constants.trace import TRACE_CONTEXT
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.api.trace import TraceContext
 from st2common.models.db.liveaction import LiveActionDB
