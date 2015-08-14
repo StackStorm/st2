@@ -147,11 +147,7 @@ class ShellScriptAction(ShellCommandAction):
         return self._format_command()
 
     def _format_command(self):
-        script_arguments = self._get_script_arguments(named_args=self.named_args,
-                                                      positional_args=self.positional_args)
-
-        return self._generate_command_string(self.script_local_path_abs, script_arguments,
-                                             user=self.user, is_sudo=self.sudo)
+        pass
 
     def _get_script_arguments(self, named_args=None, positional_args=None):
         """
@@ -188,32 +184,33 @@ class ShellScriptAction(ShellCommandAction):
 
     @staticmethod
     def _generate_command_string(script_path_abs, script_arguments, is_sudo=False,
-                                 user=LOGGED_USER_USERNAME):
+                                 user=None):
+        cmd_format = None
+        command = ShellScriptAction._get_quoted_command_string(script_path_abs, script_arguments)
+        args = []
+
         if is_sudo:
-            if script_arguments:
-                command = quote_unix('%s %s' % (script_path_abs, script_arguments))
+            if not user:
+                cmd_format = 'sudo -E -- bash -c %s'
+                args = (command)
             else:
-                command = quote_unix(script_path_abs)
-
-            command = 'sudo -E -- bash -c %s' % (command)
+                cmd_format = 'sudo -E -u %s -- bash -c %s'
+                args = (user, command)
         else:
-            if user and user != LOGGED_USER_USERNAME:
-                # Need to use sudo to run as a different user
-                user = quote_unix(user)
+            cmd_format = '%s'
+            args = (command)
 
-                if script_arguments:
-                    command = quote_unix('%s %s' % (script_path_abs, script_arguments))
-                else:
-                    command = quote_unix(script_path_abs)
+        return cmd_format % args
 
-                command = 'sudo -E -u %s -- bash -c %s' % (user, command)
-            else:
-                script_path = quote_unix(script_path_abs)
+    @staticmethod
+    def _get_quoted_command_string(script_path_abs, script_arguments):
+        script_path = quote_unix(script_path_abs)
 
-                if script_arguments:
-                    command = '%s %s' % (script_path, script_arguments)
-                else:
-                    command = script_path
+        if script_arguments:
+            command = '%s %s' % (script_path, script_arguments)
+        else:
+            command = script_path
+
         return command
 
 
@@ -293,6 +290,21 @@ class RemoteAction(SSHCommandAction):
         str_rep.append('timeout: %s)' % str(self.timeout))
 
         return ', '.join(str_rep)
+
+
+class LocalScriptAction(ShellScriptAction):
+    def _format_command(self):
+        script_arguments = self._get_script_arguments(named_args=self.named_args,
+                                                      positional_args=self.positional_args)
+        sudo = self.sudo
+        user = LOGGED_USER_USERNAME
+
+        if self.user and self.user != LOGGED_USER_USERNAME:
+            sudo = True
+            user = self.user
+
+        return self._generate_command_string(self.script_local_path_abs, script_arguments,
+                                             user=user, is_sudo=sudo)
 
 
 class RemoteScriptAction(ShellScriptAction):
