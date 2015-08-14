@@ -1,0 +1,11 @@
+---
+trace_id : test-trace-2
+action_executions :
+    - object_id: '1'
+      updated_at: '2014-09-01T00:00:02.000000Z'
+rules :
+    - object_id: '2'
+      updated_at: '2014-09-01T00:00:02.000000Z'
+trigger_instances :
+    - object_id: '3'
+      updated_at: '2014-09-01T00:00:02.000000Z'
