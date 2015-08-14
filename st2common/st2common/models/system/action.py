@@ -41,7 +41,6 @@ __all__ = [
     'ShellScriptAction',
     'RemoteAction',
     'RemoteScriptAction',
-    'ParamikoSSHCommandAction',
     'FabricRemoteAction',
     'FabricRemoteScriptAction',
     'ResolvedActionParameters'
@@ -356,10 +355,6 @@ class RemoteScriptAction(ShellScriptAction):
         str_rep.append('hosts: %s)' % self.hosts)
 
         return ', '.join(str_rep)
-
-
-class ParamikoSSHCommandAction(SSHCommandAction):
-    pass
 
 
 class FabricRemoteAction(RemoteAction):
