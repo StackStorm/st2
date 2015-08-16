@@ -13,30 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABCMeta
 
-from st2pyclient.exceptions.models import InvalidModelTypeException
+from st2pyclient.resources.base import Resource
 
 
-class Resource(object):
-    __metaclass__ = ABCMeta
+class SensorType(Resource):
 
-    def __init__(self, name, model_class, client=None):
-        self.name = name
-        self.model_class = model_class
-        self.client = client
-
-    def create(self, model_instance):
-        if not isinstance(model_instance, self.model_class):
-            raise InvalidModelTypeException('Resource %s requires a model type %s.' % (
-                                            self.name, self.model_class))
-        pass
-
-    def get(self, ref_or_id):
-        pass
-
-    def update(self, ref_or_id, model_instance):
-        pass
-
-    def delete(self, ref_or_id):
-        pass
+    def __init__(self):
+        super(SensorType, self).__init__('sensor_type')

@@ -20,6 +20,3 @@ class Action(Resource):
 
     def __init__(self):
         super(Action, self).__init__('action')
-
-    def execute(self):
-        pass

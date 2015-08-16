@@ -33,17 +33,25 @@ class AuthedClient(BaseClient):
         self._token = self._negotiate_auth_token()
         self._debug = debug
 
-    def post(self, relative_url, payload):
-        super(AuthedClient, self).post(relative_url, payload, headers=self._get_auth_headers())
+    def post(self, relative_url, payload, debug=False):
+        super(AuthedClient, self).post(relative_url, payload,
+                                       headers=self._get_auth_headers(),
+                                       debug=self._debug or debug)
 
-    def get(self, relative_url, payload=None):
-        super(AuthedClient, self).get(relative_url, payload=payload, headers=self._get_auth_headers())
+    def get(self, relative_url, payload=None, debug=False):
+        super(AuthedClient, self).get(relative_url, payload=payload,
+                                      headers=self._get_auth_headers(),
+                                      debug=self._debug or debug)
 
-    def put(self, relative_url, payload):
-        super(AuthedClient, self).put(relative_url, payload, headers=self._get_auth_headers())
+    def put(self, relative_url, payload, debug=False):
+        super(AuthedClient, self).put(relative_url, payload,
+                                      headers=self._get_auth_headers(),
+                                      debug=self._debug or debug)
 
-    def delete(self, relative_url):
-        super(AuthedClient, self).delete(relative_url, headers=self._get_auth_headers())
+    def delete(self, relative_url, debug=False):
+        super(AuthedClient, self).delete(relative_url,
+                                         headers=self._get_auth_headers(),
+                                         debug=self._debug or debug)
 
     def _negotiate_auth_token(self):
         pass
