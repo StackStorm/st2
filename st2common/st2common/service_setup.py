@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """
-This module contains common service setup code.
+This module contains common service setup and teardown code.
 """
 
 from __future__ import absolute_import
