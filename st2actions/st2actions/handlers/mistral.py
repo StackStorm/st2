@@ -43,6 +43,15 @@ def get_handler():
     return MistralCallbackHandler
 
 
+def get_action_execution_id_from_url(url):
+    match = re.search('(.+)/action_executions/(.+)', url)
+    if not match or len(match.groups()) != 2:
+        raise ValueError('Unable to extract the action execution ID '
+                         'from the callback URL (%s).' % url)
+
+    return match.group(2)
+
+
 class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
 
     @staticmethod
@@ -57,12 +66,7 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
                 if type(value) in [dict, list]:
                     result = value
 
-            match = re.search('(.*)/action_executions/(.*)', url)
-            if not match or len(match.groups()) != 2:
-                raise Exception('Unable to extract the action execution ID '
-                                'from the callback URL (%s).' % url)
-
-            action_execution_id = match.group(2)
+            action_execution_id = get_action_execution_id_from_url(url)
             output = json.dumps(result) if type(result) in [dict, list] else str(result)
             data = {'state': STATUS_MAP[status], 'output': output}
 
