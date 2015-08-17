@@ -19,14 +19,15 @@ import sys
 from oslo_config import cfg
 
 from st2common import config
-from st2common.service_setup import db_setup
-from st2common.service_setup import db_teardown
-from st2common.logging.filters import LogLevelFilter
-from st2common.transport.bootstrap_utils import register_exchanges
+from st2common.script_setup import setup as common_setup
+from st2common.script_setup import teardown as common_teardown
 
+__all__ = [
+    'main'
+]
 
 LOG = logging.getLogger('st2common.content.bootstrap')
-cfg.CONF.register_cli_opt(cfg.BoolOpt('verbose', short='v', default=False))
+
 cfg.CONF.register_cli_opt(cfg.BoolOpt('experimental', default=False))
 
 
@@ -177,32 +178,18 @@ def register_content():
         register_policies()
 
 
-def _setup(argv):
-    config.parse_args()
-
-    log_level = logging.DEBUG
-    logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s', level=log_level)
-
-    if not cfg.CONF.verbose:
-        # Note: We still want to print things at the following log levels: INFO, ERROR, CRITICAL
-        exclude_log_levels = [logging.AUDIT, logging.DEBUG]
-        handlers = logging.getLoggerClass().manager.root.handlers
-
-        for handler in handlers:
-            handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
-
-    db_setup()
-    register_exchanges()
+def setup(argv):
+    common_setup(config=config, setup_db=True, register_mq_exchanges=True)
 
 
-def _teardown():
-    db_teardown()
+def teardown():
+    common_teardown()
 
 
 def main(argv):
-    _setup(argv)
+    setup(argv)
     register_content()
-    _teardown()
+    teardown()
 
 
 # This script registers actions and rules from content-packs.
