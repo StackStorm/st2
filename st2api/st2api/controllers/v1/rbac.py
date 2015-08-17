@@ -19,6 +19,7 @@ from st2api.controllers.resource import ResourceController
 from st2common.models.api.base import jsexpose
 from st2common.models.api.rbac import RoleAPI
 from st2common.persistence.rbac import Role
+from st2common.rbac.decorators import request_user_is_admin
 
 __all__ = [
     'RBACController',
@@ -42,6 +43,7 @@ class RolesController(ResourceController):
         'sort': ['name']
     }
 
+    @request_user_is_admin()
     @jsexpose(arg_types=[str])
     def get_one(self, name_or_id):
         return self._get_one_by_name_or_id(name_or_id=name_or_id)
