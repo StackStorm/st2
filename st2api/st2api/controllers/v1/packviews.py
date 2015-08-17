@@ -26,6 +26,9 @@ from st2common.models.api.base import jsexpose
 from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 from st2common.content.utils import get_pack_file_abs_path
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_permission
 
 http_client = six.moves.http_client
 
@@ -54,6 +57,7 @@ class FilesController(BaseFileController):
     Controller which allows user to retrieve content of all the files inside the pack.
     """
 
+    @request_user_has_resource_permission(permission_type=PermissionType.PACK_VIEW)
     @jsexpose(arg_types=[str], status_code=http_client.OK)
     def get_one(self, name_or_id):
         """
@@ -88,6 +92,8 @@ class FileController(BaseFileController):
     """
     Controller which allows user to retrieve content of a specific file in a pack.
     """
+
+    @request_user_has_resource_permission(permission_type=PermissionType.PACK_VIEW)
     @jsexpose(content_type='text/plain', status_code=http_client.OK)
     def get_one(self, name_or_id, *file_path_components):
         """
