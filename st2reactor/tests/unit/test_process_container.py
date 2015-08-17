@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
+
 import eventlet
+from mock import (MagicMock, Mock, patch)
 import unittest2
 
 from st2reactor.container.process_container import ProcessSensorContainer
@@ -32,3 +35,34 @@ class ProcessContainerTests(unittest2.TestCase):
         self.assertEqual(process_container.stopped(), False)
         process_container.shutdown()
         process_container_thread.kill()
+
+    @patch.object(time, 'time', MagicMock(return_value=1439441533))
+    def test_dispatch_triggers_on_spawn_exit(self):
+        mock_dispatcher = Mock()
+        process_container = ProcessSensorContainer(None, poll_interval=0.1,
+                                                   dispatcher=mock_dispatcher)
+        sensor = {
+            'class_name': 'pack.StupidSensor'
+        }
+        process = Mock()
+        process_attrs = {'pid': 1234}
+        process.configure_mock(**process_attrs)
+        cmd = 'sensor_wrapper.py --class-name pack.StupidSensor'
+
+        process_container._dispatch_trigger_for_sensor_spawn(sensor, process, cmd)
+        mock_dispatcher.dispatch.assert_called_with(
+            'core.st2.sensor.process_spawn',
+            payload={
+                'timestamp': 1439441533,
+                'cmd': 'sensor_wrapper.py --class-name pack.StupidSensor',
+                'pid': 1234,
+                'id': 'pack.StupidSensor'})
+
+        process_container._dispatch_trigger_for_sensor_exit(sensor, 1)
+        mock_dispatcher.dispatch.assert_called_with(
+            'core.st2.sensor.process_exit',
+            payload={
+                'id': 'pack.StupidSensor',
+                'timestamp': 1439441533,
+                'exit_code': 1
+            })

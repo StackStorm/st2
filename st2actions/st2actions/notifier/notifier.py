@@ -113,7 +113,10 @@ class Notifier(consumers.MessageHandler):
     def _post_notify_subsection_triggers(self, liveaction=None, execution_id=None,
                                          notify_subsection=None,
                                          default_message_suffix=None):
-        if notify_subsection.channels and len(notify_subsection.channels) >= 1:
+        routes = (getattr(notify_subsection, 'routes') or
+                  getattr(notify_subsection, 'channels', None))
+
+        if routes and len(routes) >= 1:
             payload = {}
             message = notify_subsection.message or (
                 'Action ' + liveaction.action + ' ' + default_message_suffix)
@@ -136,18 +139,20 @@ class Notifier(consumers.MessageHandler):
             payload['action_ref'] = liveaction.action
             payload['runner_ref'] = self._get_runner_ref(liveaction.action)
 
-            failed_channels = []
-            for channel in notify_subsection.channels:
+            failed_routes = []
+            for route in routes:
                 try:
-                    payload['channel'] = channel
+                    payload['route'] = route
+                    # Deprecated. Only for backward compatibility reasons.
+                    payload['channel'] = route
                     LOG.debug('POSTing %s for %s. Payload - %s.', NOTIFY_TRIGGER_TYPE['name'],
                               liveaction.id, payload)
                     self._trigger_dispatcher.dispatch(self._notify_trigger, payload=payload)
                 except:
-                    failed_channels.append(channel)
+                    failed_routes.append(route)
 
-            if len(failed_channels) > 0:
-                raise Exception('Failed notifications to channels: %s' % ', '.join(failed_channels))
+            if len(failed_routes) > 0:
+                raise Exception('Failed notifications to routes: %s' % ', '.join(failed_routes))
 
     def _post_generic_trigger(self, liveaction=None, execution_id=None):
         if not ACTION_SENSOR_ENABLED:

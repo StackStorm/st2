@@ -22,6 +22,26 @@ in development
 * Introduce a Paramiko SSH runner that uses eventlets to run scripts or commands in parallel. (improvement) (experimental)
 * Add action parameters validation to Mistral workflow on invocation. (improvement)
 * Fix key name for error message in liveaction result. (bug-fix)
+* Fix 500 API response when rule with no pack info is supplied. (bug-fix)
+* Fix bug in trigger-instance re-emit (extra kwargs passed to manager is now handled). (bug-fix)
+* Rename notification "channels" to "routes". (improvement)
+* Make sure auth hook and middleware returns JSON and "Content-Type: application/json" header
+  in every response. (improvement, bug-fix)
+* Fix bug in triggers emitted on key value pair changes and sensor spawn/exit. When
+  dispatching those triggers, the reference used didn't contain the pack names
+  which meant it was invalid and lookups in the rules engine would fail. (bug-fix)
+* Allow user to include files which are written on disk inside the action create API payload.
+  (new feature)
+* Allow user to retrieve content of a file inside a pack by using the new
+  ``/packs/views/files/`` API endpoint. (new feature)
+* Handle sudo in paramiko remote script runner. (bug-fix)
+
+0.12.2 - August 11, 2015.
+-------------------------
+
+* Support local ssh config file in remote runners. (feature)
+* Changes to htpasswd file used in `flat_file` auth backend do not require
+  a restart of st2auth and consequently StackStorm. (feature)
 
 0.12.1 - July 31, 2015
 ----------------------

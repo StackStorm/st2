@@ -243,11 +243,11 @@ class ContentPackResourceController(ResourceController):
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
-    def _get_one(self, ref_or_id):
+    def _get_one(self, ref_or_id, exclude_fields=None):
         LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
 
         try:
-            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
         except Exception as e:
             LOG.exception(e.message)
             pecan.abort(http_client.NOT_FOUND, e.message)
@@ -276,7 +276,7 @@ class ContentPackResourceController(ResourceController):
 
         return result
 
-    def _get_by_ref_or_id(self, ref_or_id):
+    def _get_by_ref_or_id(self, ref_or_id, exclude_fields=None):
         """
         Retrieve resource object by an id of a reference.
 
@@ -291,9 +291,9 @@ class ContentPackResourceController(ResourceController):
             is_reference = False
 
         if is_reference:
-            resource_db = self._get_by_ref(resource_ref=ref_or_id)
+            resource_db = self._get_by_ref(resource_ref=ref_or_id, exclude_fields=exclude_fields)
         else:
-            resource_db = self._get_by_id(resource_id=ref_or_id)
+            resource_db = self._get_by_id(resource_id=ref_or_id, exclude_fields=exclude_fields)
 
         if not resource_db:
             msg = 'Resource with a reference or id "%s" not found' % (ref_or_id)
@@ -301,21 +301,14 @@ class ContentPackResourceController(ResourceController):
 
         return resource_db
 
-    def _get_by_id(self, resource_id):
-        try:
-            resource_db = self.access.get_by_id(resource_id)
-        except Exception:
-            resource_db = None
-
-        return resource_db
-
-    def _get_by_ref(self, resource_ref):
+    def _get_by_ref(self, resource_ref, exclude_fields=None):
         try:
             ref = ResourceReference.from_string_reference(ref=resource_ref)
         except Exception:
             return None
 
-        resource_db = self.access.query(name=ref.name, pack=ref.pack).first()
+        resource_db = self.access.query(name=ref.name, pack=ref.pack,
+                                        exclude_fields=exclude_fields).first()
         return resource_db
 
     def _get_filters(self, **kwargs):

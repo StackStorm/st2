@@ -39,6 +39,7 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     version = me.StringField(required=True)  # TODO: Enforce format
     author = me.StringField(required=True)
     email = me.EmailField(required=True)
+    files = me.ListField(field=me.StringField())
 
     def __init__(self, *args, **values):
         super(PackDB, self).__init__(*args, **values)

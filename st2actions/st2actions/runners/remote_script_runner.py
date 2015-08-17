@@ -24,7 +24,8 @@ from st2common import log as logging
 from st2actions.runners.ssh.fabric_runner import BaseFabricRunner
 from st2actions.runners.ssh.fabric_runner import RUNNER_REMOTE_DIR
 from st2actions.runners.ssh.paramiko_ssh_runner import BaseParallelSSHRunner
-from st2common.models.system.action import (FabricRemoteScriptAction, RemoteScriptAction)
+from st2common.models.system.action import FabricRemoteScriptAction
+from st2common.models.system.paramiko_script_action import ParamikoRemoteScriptAction
 
 __all__ = [
     'get_runner',
@@ -177,23 +178,23 @@ class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):
         remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
                                                 cfg.CONF.ssh_runner.remote_dir)
         remote_dir = os.path.join(remote_dir, self.liveaction_id)
-        return RemoteScriptAction(self.action_name,
-                                  str(self.liveaction_id),
-                                  script_local_path_abs,
-                                  self.libs_dir_path,
-                                  named_args=named_args,
-                                  positional_args=pos_args,
-                                  env_vars=env_vars,
-                                  on_behalf_user=self._on_behalf_user,
-                                  user=self._username,
-                                  password=self._password,
-                                  private_key=self._private_key,
-                                  remote_dir=remote_dir,
-                                  hosts=self._hosts,
-                                  parallel=self._parallel,
-                                  sudo=self._sudo,
-                                  timeout=self._timeout,
-                                  cwd=self._cwd)
+        return ParamikoRemoteScriptAction(self.action_name,
+                                          str(self.liveaction_id),
+                                          script_local_path_abs,
+                                          self.libs_dir_path,
+                                          named_args=named_args,
+                                          positional_args=pos_args,
+                                          env_vars=env_vars,
+                                          on_behalf_user=self._on_behalf_user,
+                                          user=self._username,
+                                          password=self._password,
+                                          private_key=self._private_key,
+                                          remote_dir=remote_dir,
+                                          hosts=self._hosts,
+                                          parallel=self._parallel,
+                                          sudo=self._sudo,
+                                          timeout=self._timeout,
+                                          cwd=self._cwd)
 
     @staticmethod
     def _generate_error_results(error, tb):

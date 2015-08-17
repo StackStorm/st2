@@ -40,20 +40,29 @@ class TriggerInstanceDispatcher(consumers.MessageHandler):
         trigger = instance['trigger']
         payload = instance['payload']
 
+        trigger_instance = None
         try:
             trigger_instance = container_utils.create_trigger_instance(
                 trigger,
                 payload or {},
-                date_utils.get_datetime_utc_now())
-
-            if trigger_instance:
-                self.rules_engine.handle_trigger_instance(trigger_instance)
+                date_utils.get_datetime_utc_now(),
+                raise_on_no_trigger=True)
         except:
-            # This could be a large message but at least in case of an exception
-            # we get to see more context.
-            # Beyond this point code cannot really handle the exception anyway so
-            # eating up the exception.
-            LOG.exception('Failed to handle trigger_instance %s.', instance)
+            # We got a trigger ref but we were unable to create a trigger instance.
+            # This could be because a trigger object wasn't found in db for the ref.
+            LOG.exception('Failed to create trigger_instance %s.', instance)
+            return
+
+        if trigger_instance:
+            try:
+                self.rules_engine.handle_trigger_instance(trigger_instance)
+            except:
+                # This could be a large message but at least in case of an exception
+                # we get to see more context.
+                # Beyond this point code cannot really handle the exception anyway so
+                # eating up the exception.
+                LOG.exception('Failed to handle trigger_instance %s.', instance)
+                return
 
 
 def get_worker():

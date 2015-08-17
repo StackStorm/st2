@@ -15,6 +15,7 @@
 
 from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
+from st2api.controllers.v1.packviews import PackViewsController
 from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
@@ -37,6 +38,9 @@ class PacksController(ResourceController):
     query_options = {
         'sort': ['ref']
     }
+
+    # Nested controllers
+    views = PackViewsController()
 
     @request_user_has_permission(permission_type=PermissionType.PACK_VIEW)
     @jsexpose()
