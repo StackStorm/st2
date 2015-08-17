@@ -28,6 +28,7 @@ __all__ = [
     'get_all_roles',
     'get_system_roles',
     'get_roles_for_user',
+    'get_role_assignments_for_user',
     'get_role_by_name',
 
     'create_role',
@@ -38,17 +39,25 @@ __all__ = [
 
     'get_all_permission_grants_for_user',
     'create_permission_grant',
+    'create_permission_grant_for_resource_db',
     'remove_permission_grant'
 ]
 
 
-def get_all_roles():
+def get_all_roles(exclude_system=False):
     """
     Retrieve all the available roles.
 
+    :param exclude_system: True to exclude system roles.
+    :type exclude_system: ``bool``
+
     :rtype: ``list`` of :class:`RoleDB`
     """
-    result = Role.get_all()
+    if exclude_system:
+        result = Role.query(system=False)
+    else:
+        result = Role.get_all()
+
     return result
 
 
@@ -64,7 +73,7 @@ def get_system_roles():
 
 def get_roles_for_user(user_db):
     """
-    Retrieve all the roles assignment to the provided user.
+    Retrieve all the roles assigned to the provided user.
 
     :param user_db: User to retrieve the roles for.
     :type user_db: :class:`UserDB`
@@ -76,9 +85,24 @@ def get_roles_for_user(user_db):
     return result
 
 
+def get_role_assignments_for_user(user_db):
+    """
+    Retrieve all the UserRoleAssignmentDB objects for a particular user.
+
+    :param user_db: User to retrieve the role assignments for.
+    :type user_db: :class:`UserDB`
+
+    :rtype: ``list`` of :class:`UserRoleAssignmentDB`
+    """
+    result = UserRoleAssignment.query(user=user_db.name)
+    return result
+
+
 def get_role_by_name(name):
     """
     Retrieve role by name.
+
+    :rtype: ``list`` of :class:`RoleDB`
     """
     result = Role.get(name=name)
     return result
@@ -120,7 +144,7 @@ def assign_role_to_user(role_db, user_db):
     """
     role_assignment_db = UserRoleAssignmentDB(user=user_db.name, role=role_db.name)
     role_assignment_db = UserRoleAssignment.add_or_update(role_assignment_db)
-    return role_db
+    return role_assignment_db
 
 
 def revoke_role_from_user(role_db, user_db):
@@ -165,9 +189,9 @@ def get_all_permission_grants_for_user(user_db, resource_types=None, permission_
     return permission_grant_dbs
 
 
-def create_permission_grant(role_db, resource_db, permission_types):
+def create_permission_grant_for_resource_db(role_db, resource_db, permission_types):
     """
-    Add a permission grant to the provided role.
+    Create a new permission grant for a resource and add it to the provided role.
 
     :param role_db: Role to add the permission assignment to.
     :type role_db: :class:`RoleDB`
@@ -175,11 +199,22 @@ def create_permission_grant(role_db, resource_db, permission_types):
     :param resource_db: Resource to create the permission assignment for.
     :type resource_db: :class:`StormFoundationDB`
     """
-    permission_types = _validate_permission_types(resource_db=resource_db,
-                                                  permission_types=permission_types)
     resource_uid = resource_db.get_uid()
     resource_type = resource_db.get_resource_type()
 
+    result = create_permission_grant(role_db=role_db, resource_uid=resource_uid,
+                                     resource_type=resource_type,
+                                     permission_types=permission_types)
+    return result
+
+
+def create_permission_grant(role_db, resource_uid, resource_type, permission_types):
+    """
+    Create a new permission grant and add it to the provided role.
+
+    :param role_db: Role to add the permission assignment to.
+    :type role_db: :class:`RoleDB`
+    """
     # Create or update the PermissionGrantDB
     permission_grant_db = PermissionGrantDB(resource_uid=resource_uid,
                                             resource_type=resource_type,
