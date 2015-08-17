@@ -17,8 +17,6 @@
 Module for syncing RBAC definitions in the database with the ones from the filesystem.
 """
 
-from oslo_config import cfg
-
 from st2common import log as logging
 from st2common.persistence.auth import User
 from st2common.persistence.rbac import Role
@@ -139,7 +137,8 @@ class RBACDefinitionsDBSyncer(object):
         # Create new roles
         created_role_dbs = []
         for role_api in role_apis_to_create:
-            role_db = rbac_services.create_role(name=role_api.name, description=role_api.description)
+            role_db = rbac_services.create_role(name=role_api.name,
+                                                description=role_api.description)
             created_role_dbs.append(role_db)
 
             # Create associated permission grants
@@ -235,9 +234,9 @@ class RBACDefinitionsDBSyncer(object):
         created_role_assignment_dbs = []
         for role_db in role_dbs_to_assign:
             assignment_db = rbac_services.assign_role_to_user(role_db=role_db, user_db=user_db)
+            created_role_assignment_dbs.append(assignment_db)
 
         LOG.debug('Created %s new assignments for user "%s"' % (len(role_dbs_to_assign),
                                                                 user_db.name))
 
         return (created_role_assignment_dbs, role_assignment_dbs_to_delete)
-
