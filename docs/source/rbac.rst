@@ -72,7 +72,7 @@ Defining roles and permission grants
 ------------------------------------
 
 Roles and permission grants are defined in YAML files which are located in on a file system in the
-following directory: ``/opt/stackstorm/TBD``.
+following directory: ``/opt/stackstorm/rbac/``.
 
 TBD - File names and format + examples.
 
@@ -80,3 +80,40 @@ Maybe?
 
 - rbac/<role_name>_role.yaml
 - rbac/<username>_grants.yaml
+
+Synchronizing RBAC information in the database with the one from disk
+---------------------------------------------------------------------
+
+As described above, RBAC definitions are defined in YAML files located in the
+``/opt/stackstorm/rbac/`` directory. For those definitions to take an effect,
+you need to apply them using ``st2-apply-rbac-definitions``.
+
+Usually you will want to run this script every time you want the RBAC
+definitions you have written to take an effect.
+
+- note on infra as a code approach
+- those files can and should be version controlled 
+- only ppl who have access to git can write them
+
+For example:
+
+.. code-block:: bash
+
+    st2-apply-rbac-definitions
+
+    2015-08-12 22:30:18,439 - INFO - Synchronizing roles...
+    2015-08-12 22:30:18,441 - DEBUG - New roles: set([])
+    2015-08-12 22:30:18,442 - DEBUG - Updated roles: set(['role_two', 'role_one', 'role_three'])
+    2015-08-12 22:30:18,442 - DEBUG - Removed roles: set([])
+    2015-08-12 22:30:18,443 - DEBUG - Deleting 3 stale roles
+    2015-08-12 22:30:18,444 - DEBUG - Deleted 3 stale roles
+    2015-08-12 22:30:18,446 - DEBUG - Deleting 5 stale permission grants
+    2015-08-12 22:30:18,447 - DEBUG - Deleted 5 stale permission grants
+    2015-08-12 22:30:18,448 - DEBUG - Creating 3 new roles
+    2015-08-12 22:30:18,454 - DEBUG - Created 3 new roles
+    2015-08-12 22:30:18,458 - INFO - Synchronizing users role assignments...
+    2015-08-12 22:30:18,460 - DEBUG - New assignments for user "user1": set([])
+    2015-08-12 22:30:18,461 - DEBUG - Updated assignments for user "user1": set(['role_two', 'role_one'])
+    2015-08-12 22:30:18,461 - DEBUG - Removed assignments for user "user1": set([])
+    2015-08-12 22:30:18,462 - DEBUG - Removed 2 assignments for user "user1"
+    2015-08-12 22:30:18,464 - DEBUG - Created 2 new assignments for user "user1"
