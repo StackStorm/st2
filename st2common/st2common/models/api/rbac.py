@@ -42,10 +42,29 @@ class RoleAPI(BaseAPI):
             },
             'description': {
                 'type': 'string'
+            },
+            'description': {
+                'type': 'boolean'
+            },
+            'permission_grants': {
+                'type': 'array',
+                'items': {
+                    'type': 'string'
+                }
             }
         },
         'additionalProperties': False
     }
+
+    @classmethod
+    def from_model(cls, model, mask_secrets=False):
+        role = cls._from_model(model, mask_secrets=mask_secrets)
+
+        # Convert ObjectIDs to strings
+        role['permission_grants'] = [str(permission_grant) for permission_grant in
+                                     model.permission_grants]
+
+        return cls(**role)
 
 
 class RoleDefinitionFileFormatAPI(BaseAPI):
