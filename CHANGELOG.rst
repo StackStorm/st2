@@ -35,6 +35,8 @@ in development
 * Allow user to retrieve content of a file inside a pack by using the new
   ``/packs/views/files/`` API endpoint. (new feature)
 * Handle sudo in paramiko remote script runner. (bug-fix)
+* Turn on paramiko ssh runner as the default ssh runner in prod configuration.
+  To switch to fabric runner, set ``use_paramiko_ssh_runner`` to false in st2.conf. (improvement)
 
 0.12.2 - August 11, 2015.
 -------------------------
