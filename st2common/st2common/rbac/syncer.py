@@ -151,6 +151,8 @@ class RBACDefinitionsDBSyncer(object):
                                                       permission_types=permission_types)
 
         LOG.debug('Created %s new roles' % (len(created_role_dbs)))
+        LOG.info('Roles synchronized (%s created, %s updated, %s removed)' %
+                 (len(new_role_names), len(updated_role_names), len(removed_role_names)))
 
         return [created_role_dbs, role_dbs_to_delete]
 
@@ -182,6 +184,7 @@ class RBACDefinitionsDBSyncer(object):
                                                       role_assignment_api=role_assignment_api)
             results[username] = result
 
+        LOG.info('User role assignments synchronized')
         return results
 
     def _sync_user_role_assignments(self, user_db, role_assignment_dbs, role_assignment_api):
