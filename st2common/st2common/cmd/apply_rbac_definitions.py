@@ -17,9 +17,14 @@
 A script which applies RBAC definitions and role assignments stored on disk.
 """
 
+import logging
+
+from oslo_config import cfg
+
 from st2common import config
 from st2common.service_setup import db_setup
 from st2common.service_setup import db_teardown
+from st2common.logging.filters import LogLevelFilter
 from st2common.transport.bootstrap_utils import register_exchanges
 from st2common.rbac.loader import RBACDefinitionsLoader
 from st2common.rbac.syncer import RBACDefinitionsDBSyncer
@@ -28,9 +33,23 @@ __all__ = [
     'main'
 ]
 
+cfg.CONF.register_cli_opt(cfg.BoolOpt('verbose', short='v', default=False))
+
 
 def setup(argv):
     config.parse_args()
+
+    # TODO: Refactor into script_setup module
+    log_level = logging.DEBUG
+    logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s', level=log_level)
+
+    if not cfg.CONF.verbose:
+        # Note: We still want to print things at the following log levels: INFO, ERROR, CRITICAL
+        exclude_log_levels = [logging.AUDIT, logging.DEBUG]
+        handlers = logging.getLoggerClass().manager.root.handlers
+
+        for handler in handlers:
+            handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
 
     db_setup()
     register_exchanges()
