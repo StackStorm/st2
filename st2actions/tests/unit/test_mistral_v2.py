@@ -17,6 +17,7 @@ import copy
 import uuid
 
 import mock
+from mock import call
 import requests
 import six
 import yaml
@@ -26,6 +27,7 @@ from mistralclient.api.v2 import action_executions
 from mistralclient.api.v2 import executions
 from mistralclient.api.v2 import workbooks
 from mistralclient.api.v2 import workflows
+from oslo_config import cfg
 
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
@@ -152,6 +154,11 @@ class MistralRunnerTest(DbTestCase):
         for _, fixture in six.iteritems(FIXTURES['actions']):
             instance = ActionAPI(**fixture)
             Action.add_or_update(ActionAPI.to_model(instance))
+
+    def tearDown(self):
+        super(MistralRunnerTest, self).tearDown()
+        cfg.CONF.set_default('max_attempts', 2, group='mistral')
+        cfg.CONF.set_default('retry_wait', 1, group='mistral')
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -593,6 +600,60 @@ class MistralRunnerTest(DbTestCase):
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         action_executions.ActionExecutionManager.update.assert_called_with(
             '12345', state='SUCCESS', output=NON_EMPTY_RESULT)
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(side_effect=[
+            requests.exceptions.ConnectionError(),
+            None]))
+    def test_callback_retry(self):
+        cfg.CONF.set_default('max_attempts', 3, group='mistral')
+        cfg.CONF.set_default('retry_wait', 0, group='mistral')
+
+        liveaction = LiveActionDB(
+            action='core.local', parameters={'cmd': 'uname -a'},
+            callback={
+                'source': 'mistral',
+                'url': 'http://localhost:8989/v2/action_executions/12345'
+            }
+        )
+
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+
+        calls = [call('12345', state='SUCCESS', output=NON_EMPTY_RESULT) for i in range(0, 2)]
+        action_executions.ActionExecutionManager.update.assert_has_calls(calls)
+
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(side_effect=[
+            requests.exceptions.ConnectionError(),
+            requests.exceptions.ConnectionError(),
+            requests.exceptions.ConnectionError(),
+            requests.exceptions.ConnectionError(),
+            None]))
+    def test_callback_retry_exhausted(self):
+        cfg.CONF.set_default('max_attempts', 3, group='mistral')
+        cfg.CONF.set_default('retry_wait', 0, group='mistral')
+
+        liveaction = LiveActionDB(
+            action='core.local', parameters={'cmd': 'uname -a'},
+            callback={
+                'source': 'mistral',
+                'url': 'http://localhost:8989/v2/action_executions/12345'
+            }
+        )
+
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+
+        # This test initially setup mock for action_executions.ActionExecutionManager.update
+        # to fail the first 4 times and return success on the 5th times. The max attempts
+        # is set to 3. We expect only 3 calls to pass thru the update method.
+        calls = [call('12345', state='SUCCESS', output=NON_EMPTY_RESULT) for i in range(0, 3)]
+        action_executions.ActionExecutionManager.update.assert_has_calls(calls)
 
     def test_build_context(self):
         parent = {

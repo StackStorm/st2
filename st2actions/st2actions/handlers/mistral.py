@@ -85,8 +85,11 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
                     manager.update(action_execution_id, **data)
                     break
                 except requests.exceptions.ConnectionError as conn_exc:
-                    LOG.exception(conn_exc)
-                    if i < cfg.CONF.mistral.max_attempts:
+                    if i == cfg.CONF.mistral.max_attempts - 1:
+                        raise conn_exc
+                    else:
+                        LOG.exception(conn_exc)
                         eventlet.sleep(cfg.CONF.mistral.retry_wait)
+
         except Exception as e:
             LOG.exception(e)
