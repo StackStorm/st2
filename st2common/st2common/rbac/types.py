@@ -19,7 +19,9 @@ from st2common.constants.types import ResourceType as SystemResourceType
 __all__ = [
     'SystemRole',
     'PermissionType',
-    'ResourceType'
+    'ResourceType',
+
+    'RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP'
 ]
 
 
