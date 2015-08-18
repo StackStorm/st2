@@ -47,7 +47,7 @@ def get_action_execution_id_from_url(url):
     match = re.search('(.+)/action_executions/(.+)', url)
     if not match or len(match.groups()) != 2:
         raise ValueError('Unable to extract the action execution ID '
-                         'from the callback URL (%s).' % url)
+                         'from the callback URL (%s).' % (url))
 
     return match.group(2)
 
