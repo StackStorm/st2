@@ -201,7 +201,7 @@ and uploaded to StackStorm.
 Running Self-Verification
 -------------------------
 
-|st2| package-based installations come with a script, that allows to verify |st2| installation, using |st2| itself. 
+|st2| package-based installations come with a script, that allows to verify |st2| installation, using |st2| itself.
 Currently script covers the following aspects of |st2|:
 
 * Basic ``st2`` commands (similar to the commands outlined in *Manual Verification* section)
@@ -218,7 +218,7 @@ To run the self-verification:
 
     sudo su
     export ST2_AUTH_TOKEN=`st2 auth testu -p testp -t`
-    
+
 2. Run ``st2-self-check`` script:
 
 On Ubuntu / Debian:
@@ -226,9 +226,32 @@ On Ubuntu / Debian:
 .. code-block:: bash
 
     /usr/lib/python2.7/dist-packages/st2common/bin/st2-self-check
-    
+
 On RedHat / Fedora:
 
 .. code-block:: bash
 
     /usr/lib/python2.7/site-packages/st2common/bin/st2-self-check
+
+
+Support
+-------
+
+Support is available to you via `email <support@stackstorm.com/>`_ or via
+`slack-community <https://stackstorm.typeform.com/to/K76GRP)/>`_.
+
+Before asking for help, please have the following list ready.
+
+1. st2 version. (``st2 --version``)
+2. st2client version. (``pip show st2client``)
+3. OS version. (Cent OS 7. ``uname -a``)
+4. Python version. (``python --version``)
+5. A brief description of the problem.
+6. Any logs you have collected. (Please use `Pastebin <http://pastebin.com/>`_ or `gists <https://gists.github.com/>`_.)
+
+
+If you are sure there is a st2 bug after your research, file an `issue
+<https://github.com/StackStorm/st2/issues/>`_ in st2 repo.
+
+A good bug report should contain all the items listed above. You can also provide steps to
+reproduce the bug on our end. More information you provide us, easier it is for us.
