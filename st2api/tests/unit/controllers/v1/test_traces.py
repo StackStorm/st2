@@ -69,7 +69,8 @@ class TestTraces(FunctionalTest):
                          'Correct trace not returned.')
 
     def test_query_by_action_execution(self):
-        resp = self.app.get('/v1/traces/?execution=action_execution_2')
+        execution_id = self.trace3['action_executions'][0].object_id
+        resp = self.app.get('/v1/traces/?execution=%s' % execution_id)
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1,
@@ -78,7 +79,8 @@ class TestTraces(FunctionalTest):
                          'Correct trace not returned.')
 
     def test_query_by_rule(self):
-        resp = self.app.get('/v1/traces/?rule=rule_2')
+        rule_id = self.trace3['rules'][0].object_id
+        resp = self.app.get('/v1/traces/?rule=%s' % rule_id)
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1, '/v1/traces?rule=x did not return correct trace.')
@@ -86,7 +88,8 @@ class TestTraces(FunctionalTest):
                          'Correct trace not returned.')
 
     def test_query_by_trigger_instance(self):
-        resp = self.app.get('/v1/traces/?trigger_instance=trigger_instance_4')
+        trigger_instance_id = self.trace3['trigger_instances'][0].object_id
+        resp = self.app.get('/v1/traces/?trigger_instance=%s' % trigger_instance_id)
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1,
