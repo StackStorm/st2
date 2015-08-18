@@ -57,11 +57,6 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
                 if type(value) in [dict, list]:
                     result = value
 
-            if isinstance(result, dict):
-                # Remove the list of tasks created by the results
-                # tracker before sending the output.
-                result.pop('tasks', None)
-
             output = json.dumps(result) if type(result) in [dict, list] else str(result)
             data = {'state': STATUS_MAP[status], 'output': output}
 

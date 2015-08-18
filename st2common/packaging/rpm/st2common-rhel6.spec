@@ -31,11 +31,8 @@ mkdir -p %{buildroot}/var/log/st2
 mkdir -p %{buildroot}/etc/st2
 mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/opt/stackstorm/packs
-mkdir -p %{buildroot}/opt/stackstorm/packs/default
-mkdir -p %{buildroot}/opt/stackstorm/packs/default/actions
-mkdir -p %{buildroot}/opt/stackstorm/packs/default/sensors
-mkdir -p %{buildroot}/opt/stackstorm/packs/default/rules
 mkdir -p %{buildroot}/usr/share/doc/st2
+cp -R contrib/default %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/core %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/packs %{buildroot}/opt/stackstorm/packs/
 cp -R contrib/linux %{buildroot}/opt/stackstorm/packs/
