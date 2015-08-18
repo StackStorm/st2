@@ -88,7 +88,7 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
                     if i == cfg.CONF.mistral.max_attempts - 1:
                         raise conn_exc
                     else:
-                        LOG.exception(conn_exc)
+                        LOG.warn(conn_exc)
                         eventlet.sleep(cfg.CONF.mistral.retry_wait)
 
         except Exception as e:
