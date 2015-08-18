@@ -42,6 +42,7 @@ from st2client.commands import keyvalue
 from st2client.commands import policy
 from st2client.commands import resource
 from st2client.commands import sensor
+from st2client.commands import trace
 from st2client.commands import trigger
 from st2client.commands import triggerinstance
 from st2client.commands import webhook
@@ -219,7 +220,11 @@ class Shell(object):
             self, self.subparsers, read_only=True)
 
         self.commands['sensor'] = sensor.SensorBranch(
-            'An adapter which allows you to integrate Stanley with external system ',
+            'An adapter which allows you to integrate StackStorm with external system ',
+            self, self.subparsers)
+
+        self.commands['trace'] = trace.TraceBranch(
+            'A group of executions, rules and triggerinstances that are related.',
             self, self.subparsers)
 
         self.commands['trigger'] = trigger.TriggerTypeBranch(
