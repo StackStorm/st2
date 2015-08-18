@@ -37,7 +37,7 @@ Below is the list of variables you can redefine in your playbook to customize st
 | ``st2_version``        | ``stable``      | StackStorm version to install. Latest ``stable``, ``unstable``           |
 |                        |                 | to get automatic updates or pin it to numeric version like ``0.12.1``.   |
 +------------------------+-----------------+--------------------------------------------------------------------------+
-| ``st2_revision``       | ``current``     | :: StackStorm revision to install. ``current`` to get the                |
+| ``st2_revision``       | ``current``     | StackStorm revision to install. ``current`` to get the                |
 |                        |                 | latest build (autoupdating) or pin it to numeric build like ``6``.       |
 +------------------------+-----------------+--------------------------------------------------------------------------+
 | ``st2_action_runners`` | # vCPUs         | Number of action runner workers to start.                                |
