@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
+import time
+
 import paramiko
-import argparse
+
 from st2actions.runners.pythonrunner import Action
-import os, yaml, json, time
+
 
 class BaseAction(Action):
     def run(self, keyfile, username, hostname, ssh_timeout, retries):
@@ -15,7 +17,7 @@ class BaseAction(Action):
             try:
                 client.connect(hostname=hostname, username=username, pkey=key)
                 return True
-            except Exception, e: 
+            except Exception, e:
                 self.logger.info(e)
                 time.sleep(ssh_timeout)
             time.sleep(20)
