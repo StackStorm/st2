@@ -114,6 +114,25 @@ class TraceAPI(BaseAPI):
             values['start_timestamp'] = isotime.parse(start_timestamp)
         return cls.model(**values)
 
+    @classmethod
+    def from_component_model(cls, component_model):
+        return {'object_id': component_model.object_id,
+                'updated_at': isotime.format(component_model.updated_at, offset=False)}
+
+    @classmethod
+    def from_model(cls, model, mask_secrets=False):
+        instance = cls._from_model(model, mask_secrets=mask_secrets)
+        instance['start_timestamp'] = isotime.format(model.start_timestamp, offset=False)
+        if model.action_executions:
+            instance['action_executions'] = [cls.from_component_model(action_execution)
+                                             for action_execution in model.action_executions]
+        if model.rules:
+            instance['rules'] = [cls.from_component_model(rule) for rule in model.rules]
+        if model.trigger_instances:
+            instance['trigger_instances'] = [cls.from_component_model(trigger_instance)
+                                             for trigger_instance in model.trigger_instances]
+        return cls(**instance)
+
 
 class TraceContext(object):
     """
