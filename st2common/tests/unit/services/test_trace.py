@@ -146,7 +146,8 @@ class TestTraceService(DbTestCase):
     def test_get_trace_db_by_live_action_valid_id_context(self):
         traceable_liveaction = copy.copy(self.traceable_liveaction)
         traceable_liveaction.context['trace_context'] = {'id_': str(self.trace_execution.id)}
-        trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        created, trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        self.assertFalse(created)
         self.assertEqual(trace_db.id, self.trace_execution.id)
 
     def test_get_trace_db_by_live_action_trace_tag_context(self):
@@ -154,7 +155,8 @@ class TestTraceService(DbTestCase):
         traceable_liveaction.context['trace_context'] = {
             'trace_tag': str(self.trace_execution.trace_tag)
         }
-        trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        created, trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        self.assertTrue(created)
         self.assertEqual(trace_db.id, None, 'Expected to be None')
         self.assertEqual(trace_db.trace_tag, str(self.trace_execution.trace_tag))
 
@@ -163,7 +165,8 @@ class TestTraceService(DbTestCase):
         traceable_liveaction.context['parent'] = {
             'execution_id': str(self.trace1.action_executions[0].object_id)
         }
-        trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        created, trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        self.assertFalse(created)
         self.assertEqual(trace_db.id, self.trace1.id)
 
     def test_get_trace_db_by_live_action_parent_fail(self):
@@ -179,14 +182,16 @@ class TestTraceService(DbTestCase):
         traceable_liveaction = copy.copy(self.traceable_liveaction)
         # fixtures id value in liveaction is not persisted in DB.
         traceable_liveaction.id = bson.ObjectId(self.traceable_execution.liveaction['id'])
-        trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        created, trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        self.assertFalse(created)
         self.assertEqual(trace_db.id, self.trace_execution.id)
 
     def test_get_trace_db_by_live_action_new_trace(self):
         traceable_liveaction = copy.copy(self.traceable_liveaction)
         # a liveaction without any associated ActionExecution
         traceable_liveaction.id = bson.ObjectId()
-        trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        created, trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
+        self.assertTrue(created)
         self.assertEqual(trace_db.id, None, 'Should be None.')
 
     def test_add_or_update_given_trace_context(self):

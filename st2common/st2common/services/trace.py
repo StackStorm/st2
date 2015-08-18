@@ -132,9 +132,12 @@ def get_trace_db_by_live_action(liveaction):
     :param liveaction: liveaction from which to figure out a TraceDB.
     :type liveaction: ``LiveActionDB``
 
-    :rtype: ``TraceDB``
+    :returns: (boolean, TraceDB) if the TraceDB was created(but not saved to DB) or
+               retrieved from the DB and the TraceDB itself.
+    :rtype: ``tuple``
     """
     trace_db = None
+    created = False
     # 1. Try to get trace_db from liveaction context.
     #    via trigger_instance + rule or via user specified trace_context
     trace_context = liveaction.context.get(TRACE_CONTEXT, None)
@@ -145,7 +148,8 @@ def get_trace_db_by_live_action(liveaction):
         # trace_tag so create a new trace_db
         if not trace_db:
             trace_db = TraceDB(trace_tag=trace_context.trace_tag)
-        return trace_db
+            created = True
+        return (created, trace_db)
     # 2. If not found then check if parent context contains an execution_id.
     #    This cover case for child execution of a workflow.
     if not trace_context and 'parent' in liveaction.context:
@@ -157,7 +161,7 @@ def get_trace_db_by_live_action(liveaction):
             if not trace_db:
                 raise StackStormDBObjectNotFoundError('No trace found for execution %s' %
                                                       parent_execution_id)
-            return trace_db
+            return (created, trace_db)
     # 3. Check if the action_execution associated with liveaction leads to a trace_db
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
     if execution:
@@ -166,7 +170,8 @@ def get_trace_db_by_live_action(liveaction):
     #    when execution is run by hand.
     if not trace_db:
         trace_db = TraceDB(trace_tag='execution-%s' % str(liveaction.id))
-    return trace_db
+        created = True
+    return (created, trace_db)
 
 
 def add_or_update_given_trace_context(trace_context, action_executions=None, rules=None,

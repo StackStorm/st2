@@ -97,7 +97,7 @@ def request(liveaction):
     execution = executions.create_execution_object(liveaction, publish=False)
 
     # Update or create trace before publishing the execution
-    trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
+    _, trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
     trace_service.add_or_update_given_trace_db(
         trace_db=trace_db,
         action_executions=[str(execution.id)])

@@ -157,7 +157,7 @@ class Notifier(consumers.MessageHandler):
                 raise Exception('Failed notifications to routes: %s' % ', '.join(failed_routes))
 
     def _get_trace_context(self, liveaction):
-        trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
+        _, trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
         if trace_db:
             return TraceContext(id_=str(trace_db.id), trace_tag=trace_db.trace_tag)
         # If no trace_context is found then do not create a new one here. If necessary
