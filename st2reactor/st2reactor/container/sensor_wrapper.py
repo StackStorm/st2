@@ -24,6 +24,7 @@ from oslo_config import cfg
 from st2client.client import Client
 
 from st2common import log as logging
+from st2common.models.api.trace import TraceContext
 from st2common.models.db import db_setup
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
@@ -72,7 +73,24 @@ class SensorService(object):
         logger.propagate = True
         return logger
 
-    def dispatch(self, trigger, payload=None, trace_context=None):
+    def dispatch(self, trigger, payload=None, trace_tag=None):
+        """
+        Method which dispatches the trigger.
+
+        :param trigger: Full name / reference of the trigger.
+        :type trigger: ``str``
+
+        :param payload: Trigger payload.
+        :type payload: ``dict``
+
+        :param trace_tag: Tracer to track the triggerinstance.
+        :type trace_tags: ``str``
+        """
+        # empty strings
+        trace_context = TraceContext(trace_id=trace_tag) if trace_tag else None
+        self.dispatch_with_context(trigger, payload=payload, trace_context=trace_context)
+
+    def dispatch_with_context(self, trigger, payload=None, trace_context=None):
         """
         Method which dispatches the trigger.
 
