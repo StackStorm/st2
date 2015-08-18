@@ -54,6 +54,12 @@ class TestTraces(FunctionalTest):
                          [self.trace1.trace_tag, self.trace2.trace_tag, self.trace3.trace_tag],
                          'Incorrect traces retrieved.')
 
+    def test_get_by_id(self):
+        resp = self.app.get('/v1/traces/%s' % self.trace1.id)
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json['id'], str(self.trace1.id),
+                         'Incorrect trace retrieved.')
+
     def test_query_by_trace_tag(self):
         resp = self.app.get('/v1/traces/?trace_tag=test-trace-1')
         self.assertEqual(resp.status_int, 200)
