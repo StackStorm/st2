@@ -30,6 +30,21 @@ in development
 * Fix bug in triggers emitted on key value pair changes and sensor spawn/exit. When
   dispatching those triggers, the reference used didn't contain the pack names
   which meant it was invalid and lookups in the rules engine would fail. (bug-fix)
+* Allow user to include files which are written on disk inside the action create API payload.
+  (new feature)
+* Allow user to retrieve content of a file inside a pack by using the new
+  ``/packs/views/files/`` API endpoint. (new feature)
+* Handle sudo in paramiko remote script runner. (bug-fix)
+* Turn on paramiko ssh runner as the default ssh runner in prod configuration.
+  To switch to fabric runner, set ``use_paramiko_ssh_runner`` to false in st2.conf. (improvement)
+* Add OpenStack Keystone authentication configuration for Mistral. (improvement)
+
+0.12.2 - August 11, 2015.
+-------------------------
+
+* Support local ssh config file in remote runners. (feature)
+* Changes to htpasswd file used in `flat_file` auth backend do not require
+  a restart of st2auth and consequently StackStorm. (feature)
 
 0.12.1 - July 31, 2015
 ----------------------

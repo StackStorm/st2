@@ -55,7 +55,7 @@ Vagrant / VirtualBox / VMWare Workstation
 
 ::
 
-   git clone https://github.com/|st2|/st2workroom.git ~/st2workroom
+   git clone https://github.com/StackStorm/st2workroom.git ~/st2workroom
    cd ~/st2workroom
    vagrant up st2express
 

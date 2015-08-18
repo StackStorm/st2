@@ -34,6 +34,7 @@ class PackDB(stormbase.StormFoundationDB):
     version = me.StringField(required=True)  # TODO: Enforce format
     author = me.StringField(required=True)
     email = me.EmailField(required=True)
+    files = me.ListField(field=me.StringField())
 
 # specialized access objects
 pack_access = MongoDBAccess(PackDB)

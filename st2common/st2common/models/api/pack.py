@@ -54,6 +54,11 @@ class PackAPI(BaseAPI):
             },
             'email': {
                 'type': 'string'
+            },
+            'files': {
+                'type': 'array',
+                'items': {'type': 'string'},
+                'default': []
             }
         },
         'additionalProperties': False
@@ -68,8 +73,9 @@ class PackAPI(BaseAPI):
         version = str(pack.version)
         author = pack.author
         email = pack.email
+        files = getattr(pack, 'files', [])
 
         model = cls.model(name=name, description=description, ref=ref, keywords=keywords,
-                          version=version, author=author, email=email)
+                          version=version, author=author, email=email, files=files)
 
         return model
