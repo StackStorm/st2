@@ -27,7 +27,7 @@ class TracesController(ResourceController):
     access = Trace
     supported_filters = {
         'trace_tag': 'trace_tag',
-        'action_execution': 'action_executions.object_id',
+        'execution': 'action_executions.object_id',
         'rule': 'rules.object_id',
         'trigger_instance': 'trigger_instances.object_id',
     }

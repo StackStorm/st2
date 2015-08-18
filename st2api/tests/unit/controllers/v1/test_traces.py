@@ -63,11 +63,11 @@ class TestTraces(FunctionalTest):
                          'Correct trace not returned.')
 
     def test_query_by_action_execution(self):
-        resp = self.app.get('/v1/traces/?action_execution=action_execution_2')
+        resp = self.app.get('/v1/traces/?execution=action_execution_2')
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1,
-                         '/v1/traces?action_execution=x did not return correct trace.')
+                         '/v1/traces?execution=x did not return correct trace.')
         self.assertEqual(resp.json[0]['trace_tag'], self.trace3['trace_tag'],
                          'Correct trace not returned.')
 

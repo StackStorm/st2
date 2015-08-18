@@ -83,7 +83,7 @@ class TraceListCommand(resource.ResourceCommand):
         if args.trigger_instance:
             kwargs['trigger_instance'] = args.trigger_instance
         if args.execution:
-            kwargs['action_execution'] = args.execution
+            kwargs['execution'] = args.execution
         if args.rule:
             kwargs['rule'] = args.rule
 
