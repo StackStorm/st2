@@ -60,7 +60,7 @@ class TraceListCommand(resource.ResourceCommand):
                                        resource.get_plural_display_name().lower()))
 
         # Filter options
-        self.group.add_argument('-i', '--trace-tag', help='Trace-id to filter the list.')
+        self.group.add_argument('-c', '--trace-tag', help='Trace-tag to filter the list.')
         self.group.add_argument('-e', '--execution', help='Execution to filter the list.')
         self.group.add_argument('-r', '--rule', help='Rule to filter the list.')
         self.group.add_argument('-g', '--trigger-instance',
