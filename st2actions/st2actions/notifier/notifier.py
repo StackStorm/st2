@@ -21,12 +21,14 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
+from st2common.models.api.trace import TraceContext
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.action import Action
 from st2common.persistence.policy import Policy
 from st2common import policies
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
+from st2common.services import trace as trace_service
 from st2common.transport import consumers, liveaction, publishers
 from st2common.transport import utils as transport_utils
 from st2common.transport.reactor import TriggerDispatcher
@@ -154,6 +156,14 @@ class Notifier(consumers.MessageHandler):
             if len(failed_routes) > 0:
                 raise Exception('Failed notifications to routes: %s' % ', '.join(failed_routes))
 
+    def _get_trace_context(self, liveaction):
+        _, trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
+        if trace_db:
+            return TraceContext(id_=str(trace_db.id), trace_tag=trace_db.trace_tag)
+        # If no trace_context is found then do not create a new one here. If necessary
+        # it shall be created downstream. Sure this is impl leakage of some sort.
+        return None
+
     def _post_generic_trigger(self, liveaction=None, execution_id=None):
         if not ACTION_SENSOR_ENABLED:
             LOG.debug('Action trigger is disabled, skipping trigger dispatch...')
@@ -168,9 +178,11 @@ class Notifier(consumers.MessageHandler):
                    'runner_ref': self._get_runner_ref(liveaction.action),
                    'parameters': liveaction.get_masked_parameters(),
                    'result': liveaction.result}
+        trace_context = self._get_trace_context(liveaction=liveaction)
         LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
                   liveaction.id, payload)
-        self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload)
+        self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload,
+                                          trace_context=trace_context)
 
     def _apply_post_run_policies(self, liveaction=None, execution_id=None):
         # Apply policies defined for the action.

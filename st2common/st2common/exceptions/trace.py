@@ -13,12 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models.core import *         # noqa
-from st2client.models.auth import *       # noqa
-from st2client.models.action import *       # noqa
-from st2client.models.action_alias import *  # noqa
-from st2client.models.keyvalue import *    # noqa
-from st2client.models.policy import *       # noqa
-from st2client.models.reactor import *      # noqa
-from st2client.models.trace import *      # noqa
-from st2client.models.webhook import *      # noqa
+from st2common.exceptions import StackStormBaseException
+
+
+class UniqueTraceNotFoundException(StackStormBaseException):
+    pass

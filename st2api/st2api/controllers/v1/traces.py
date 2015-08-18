@@ -13,12 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models.core import *         # noqa
-from st2client.models.auth import *       # noqa
-from st2client.models.action import *       # noqa
-from st2client.models.action_alias import *  # noqa
-from st2client.models.keyvalue import *    # noqa
-from st2client.models.policy import *       # noqa
-from st2client.models.reactor import *      # noqa
-from st2client.models.trace import *      # noqa
-from st2client.models.webhook import *      # noqa
+from st2api.controllers.resource import ResourceController
+from st2common.models.api.trace import TraceAPI
+from st2common.persistence.trace import Trace
+
+__all__ = [
+    'TracesController'
+]
+
+
+class TracesController(ResourceController):
+    model = TraceAPI
+    access = Trace
+    supported_filters = {
+        'trace_tag': 'trace_tag',
+        'execution': 'action_executions.object_id',
+        'rule': 'rules.object_id',
+        'trigger_instance': 'trigger_instances.object_id',
+    }
+
+    query_options = {
+        'sort': ['trace_tag']
+    }

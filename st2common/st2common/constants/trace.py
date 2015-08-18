@@ -13,12 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models.core import *         # noqa
-from st2client.models.auth import *       # noqa
-from st2client.models.action import *       # noqa
-from st2client.models.action_alias import *  # noqa
-from st2client.models.keyvalue import *    # noqa
-from st2client.models.policy import *       # noqa
-from st2client.models.reactor import *      # noqa
-from st2client.models.trace import *      # noqa
-from st2client.models.webhook import *      # noqa
+__all__ = ['TRACE_CONTEXT', 'TRACE_ID']
+
+
+TRACE_CONTEXT = 'trace_context'
+TRACE_ID = 'trace_tag'

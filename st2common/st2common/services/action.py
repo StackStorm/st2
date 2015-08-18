@@ -20,6 +20,7 @@ from st2common.constants import action as action_constants
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
+from st2common.services import trace as trace_service
 from st2common.util import date as date_utils
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
@@ -94,6 +95,12 @@ def request(liveaction):
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
     execution = executions.create_execution_object(liveaction, publish=False)
+
+    # Update or create trace before publishing the execution
+    _, trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
+    trace_service.add_or_update_given_trace_db(
+        trace_db=trace_db,
+        action_executions=[str(execution.id)])
 
     # Assume that this is a creation.
     LiveAction.publish_create(liveaction)
