@@ -49,7 +49,7 @@ class TraceDB(stormbase.StormFoundationDB):
     nature of StackStorm this implies a Trace can comprise of multiple
     TriggerInstances, Rules and ActionExecutions.
 
-    :param trace_id: A user specified reference to the trace.
+    :param trace_tag: A user specified reference to the trace.
 
     :param trigger_instances: TriggerInstances associated with this trace.
 
@@ -57,7 +57,7 @@ class TraceDB(stormbase.StormFoundationDB):
 
     :param action_executions: ActionExecutions associated with this trace.
     """
-    trace_id = me.StringField(required=True,
+    trace_tag = me.StringField(required=True,
                               help_text='A user specified reference to the trace.')
     trigger_instances = me.ListField(field=me.EmbeddedDocumentField(TraceComponentDB),
                                      required=False,
@@ -73,7 +73,7 @@ class TraceDB(stormbase.StormFoundationDB):
 
     meta = {
         'indexes': [
-            {'fields': ['trace_id']},
+            {'fields': ['trace_tag']},
             {'fields': ['start_timestamp']},
             {'fields': ['action_executions.object_id']},
             {'fields': ['trigger_instances.object_id']},

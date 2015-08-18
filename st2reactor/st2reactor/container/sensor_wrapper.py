@@ -87,7 +87,7 @@ class SensorService(object):
         :type trace_tags: ``str``
         """
         # empty strings
-        trace_context = TraceContext(trace_id=trace_tag) if trace_tag else None
+        trace_context = TraceContext(trace_tag=trace_tag) if trace_tag else None
         self.dispatch_with_context(trigger, payload=payload, trace_context=trace_context)
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):

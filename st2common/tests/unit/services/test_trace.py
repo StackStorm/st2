@@ -113,7 +113,7 @@ class TestTraceService(DbTestCase):
         trace_context = {'id_': str(bson.ObjectId())}
         self.assertRaises(StackStormDBObjectNotFoundError, trace_service.get_trace, trace_context)
 
-        trace_context = {'trace_id': self.trace1.trace_id}
+        trace_context = {'trace_tag': self.trace1.trace_tag}
         trace_db = trace_service.get_trace(trace_context)
         self.assertEqual(trace_db.id, self.trace1.id, 'Incorrect trace_db returned.')
 
@@ -122,17 +122,17 @@ class TestTraceService(DbTestCase):
         trace_db = trace_service.get_trace(trace_context)
         self.assertEqual(trace_db.id, self.trace1.id, 'Incorrect trace_db returned.')
 
-        trace_context = TraceContext(**{'trace_id': self.trace1.trace_id})
+        trace_context = TraceContext(**{'trace_tag': self.trace1.trace_tag})
         trace_db = trace_service.get_trace(trace_context)
         self.assertEqual(trace_db.id, self.trace1.id, 'Incorrect trace_db returned.')
 
-    def test_get_trace_ignore_trace_id(self):
-        trace_context = {'trace_id': self.trace1.trace_id}
+    def test_get_trace_ignore_trace_tag(self):
+        trace_context = {'trace_tag': self.trace1.trace_tag}
         trace_db = trace_service.get_trace(trace_context)
         self.assertEqual(trace_db.id, self.trace1.id, 'Incorrect trace_db returned.')
 
-        trace_context = {'trace_id': self.trace1.trace_id}
-        trace_db = trace_service.get_trace(trace_context, ignore_trace_id=True)
+        trace_context = {'trace_tag': self.trace1.trace_tag}
+        trace_db = trace_service.get_trace(trace_context, ignore_trace_tag=True)
         self.assertEqual(trace_db, None, 'Should be None.')
 
     def test_get_trace_fail_empty_context(self):
@@ -140,7 +140,7 @@ class TestTraceService(DbTestCase):
         self.assertRaises(ValueError, trace_service.get_trace, trace_context)
 
     def test_get_trace_fail_multi_match(self):
-        trace_context = {'trace_id': self.trace2.trace_id}
+        trace_context = {'trace_tag': self.trace2.trace_tag}
         self.assertRaises(UniqueTraceNotFoundException, trace_service.get_trace, trace_context)
 
     def test_get_trace_db_by_live_action_valid_id_context(self):
@@ -149,14 +149,14 @@ class TestTraceService(DbTestCase):
         trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
         self.assertEqual(trace_db.id, self.trace_execution.id)
 
-    def test_get_trace_db_by_live_action_trace_id_context(self):
+    def test_get_trace_db_by_live_action_trace_tag_context(self):
         traceable_liveaction = copy.copy(self.traceable_liveaction)
         traceable_liveaction.context['trace_context'] = {
-            'trace_id': str(self.trace_execution.trace_id)
+            'trace_tag': str(self.trace_execution.trace_tag)
         }
         trace_db = trace_service.get_trace_db_by_live_action(traceable_liveaction)
         self.assertEqual(trace_db.id, None, 'Expected to be None')
-        self.assertEqual(trace_db.trace_id, str(self.trace_execution.trace_id))
+        self.assertEqual(trace_db.trace_tag, str(self.trace_execution.trace_tag))
 
     def test_get_trace_db_by_live_action_parent(self):
         traceable_liveaction = copy.copy(self.traceable_liveaction)
@@ -248,7 +248,7 @@ class TestTraceService(DbTestCase):
         self.assertRaises(ValueError, trace_service.add_or_update_given_trace_db, None)
 
     def test_add_or_update_given_trace_context_new(self):
-        trace_context = {'trace_id': 'awesome_test_trace'}
+        trace_context = {'trace_tag': 'awesome_test_trace'}
         action_execution_id = 'action_execution_1'
         rule_id = 'rule_1'
         trigger_instance_id = 'trigger_instance_1'

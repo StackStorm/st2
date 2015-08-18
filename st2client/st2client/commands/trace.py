@@ -19,7 +19,7 @@ from st2client.commands import resource
 from st2client.utils.date import format_isodate
 
 
-TRACE_ATTRIBUTE_DISPLAY_ORDER = ['id', 'trace_id', 'action_executions', 'rules',
+TRACE_ATTRIBUTE_DISPLAY_ORDER = ['id', 'trace_tag', 'action_executions', 'rules',
                                  'triggerinstances', 'start_timestamp']
 
 TRACE_DISPLAY_ATTRIBUTES = ['all']
@@ -38,7 +38,7 @@ class TraceBranch(resource.ResourceBranch):
 
 
 class TraceListCommand(resource.ResourceCommand):
-    display_attributes = ['id', 'trace_id', 'start_timestamp']
+    display_attributes = ['id', 'trace_tag', 'start_timestamp']
 
     attribute_transform_functions = {
         'start_timestamp': format_isodate
@@ -60,7 +60,7 @@ class TraceListCommand(resource.ResourceCommand):
                                        resource.get_plural_display_name().lower()))
 
         # Filter options
-        self.group.add_argument('-i', '--trace-id', help='Trace-id to filter the list.')
+        self.group.add_argument('-i', '--trace-tag', help='Trace-id to filter the list.')
         self.group.add_argument('-e', '--execution', help='Execution to filter the list.')
         self.group.add_argument('-r', '--rule', help='Rule to filter the list.')
         self.group.add_argument('-g', '--trigger-instance',
@@ -78,8 +78,8 @@ class TraceListCommand(resource.ResourceCommand):
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         # Filtering options
-        if args.trace_id:
-            kwargs['trace_id'] = args.trace_id
+        if args.trace_tag:
+            kwargs['trace_tag'] = args.trace_tag
         if args.trigger_instance:
             kwargs['trigger_instance'] = args.trigger_instance
         if args.execution:

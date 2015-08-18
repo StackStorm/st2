@@ -17,4 +17,4 @@ __all__ = ['TRACE_CONTEXT', 'TRACE_ID']
 
 
 TRACE_CONTEXT = 'trace_context'
-TRACE_ID = 'trace_id'
+TRACE_ID = 'trace_tag'

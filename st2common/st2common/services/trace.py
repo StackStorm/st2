@@ -83,21 +83,21 @@ def get_trace_db_by_trigger_instance(trigger_instance=None, trigger_instance_id=
     return _get_single_trace_by_component(trigger_instances__object_id=trigger_instance_id)
 
 
-def get_trace(trace_context, ignore_trace_id=False):
+def get_trace(trace_context, ignore_trace_tag=False):
     """
     :param trace_context: context object using which a trace can be found.
     :type trace_context: ``dict`` or ``TraceContext``
 
-    :param ignore_trace_id: Even if a trace_id is provided will be ignored.
-    :type ignore_trace_id: ``str``
+    :param ignore_trace_tag: Even if a trace_tag is provided will be ignored.
+    :type ignore_trace_tag: ``str``
 
     :rtype: ``TraceDB``
     """
 
     trace_context = _get_valid_trace_context(trace_context)
 
-    if not trace_context.id_ and not trace_context.trace_id:
-        raise ValueError('Atleast one of id_ or trace_id should be specified.')
+    if not trace_context.id_ and not trace_context.trace_tag:
+        raise ValueError('Atleast one of id_ or trace_tag should be specified.')
 
     if trace_context.id_:
         try:
@@ -108,15 +108,15 @@ def get_trace(trace_context, ignore_trace_id=False):
             raise StackStormDBObjectNotFoundError(
                 'Unable to find Trace with id="%s"' % trace_context.id_)
 
-    if ignore_trace_id:
+    if ignore_trace_tag:
         return None
 
-    traces = Trace.query(trace_id=trace_context.trace_id)
+    traces = Trace.query(trace_tag=trace_context.trace_tag)
 
     # Assume this method only handles 1 trace.
     if len(traces) > 1:
         raise UniqueTraceNotFoundException(
-            'More than 1 Trace matching %s found.' % trace_context.trace_id)
+            'More than 1 Trace matching %s found.' % trace_context.trace_tag)
 
     return traces[0]
 
@@ -140,11 +140,11 @@ def get_trace_db_by_live_action(liveaction):
     trace_context = liveaction.context.get(TRACE_CONTEXT, None)
     if trace_context:
         trace_context = _get_valid_trace_context(trace_context)
-        trace_db = get_trace(trace_context=trace_context, ignore_trace_id=True)
+        trace_db = get_trace(trace_context=trace_context, ignore_trace_tag=True)
         # found a trace_context but no trace_db. This implies a user supplied
-        # trace_id so create a new trace_db
+        # trace_tag so create a new trace_db
         if not trace_db:
-            trace_db = TraceDB(trace_id=trace_context.trace_id)
+            trace_db = TraceDB(trace_tag=trace_context.trace_tag)
         return trace_db
     # 2. If not found then check if parent context contains an execution_id.
     #    This cover case for child execution of a workflow.
@@ -165,7 +165,7 @@ def get_trace_db_by_live_action(liveaction):
     # 4. No trace_db found, therefore create one. This typically happens
     #    when execution is run by hand.
     if not trace_db:
-        trace_db = TraceDB(trace_id='execution-%s' % str(liveaction.id))
+        trace_db = TraceDB(trace_tag='execution-%s' % str(liveaction.id))
     return trace_db
 
 
@@ -173,14 +173,14 @@ def add_or_update_given_trace_context(trace_context, action_executions=None, rul
                                       trigger_instances=None):
     """
     Will update an existing Trace or add a new Trace. This method will only look for exact
-    Trace as identified by the trace_context. Even if the trace_context contain a trace_id
+    Trace as identified by the trace_context. Even if the trace_context contain a trace_tag
     it shall not be used to lookup a Trace.
 
     * If an exact matching Trace is not found a new Trace is created
-    * Whenever only a trace_id is supplied a new Trace is created.
+    * Whenever only a trace_tag is supplied a new Trace is created.
 
     :param trace_context: context object using which a trace can be found. If not found
-                          trace_context.trace_id is used to start new trace.
+                          trace_context.trace_tag is used to start new trace.
     :type trace_context: ``dict`` or ``TraceContext``
 
     :param action_executions: The action_execution to be added to the Trace. Should a list
@@ -196,11 +196,11 @@ def add_or_update_given_trace_context(trace_context, action_executions=None, rul
 
     :rtype: ``TraceDB``
     """
-    trace_db = get_trace(trace_context=trace_context, ignore_trace_id=True)
+    trace_db = get_trace(trace_context=trace_context, ignore_trace_tag=True)
     if not trace_db:
         # since trace_db is None need to end up with a valid trace_context
         trace_context = _get_valid_trace_context(trace_context)
-        trace_db = TraceDB(trace_id=trace_context.trace_id)
+        trace_db = TraceDB(trace_tag=trace_context.trace_tag)
     return add_or_update_given_trace_db(trace_db=trace_db,
                                         action_executions=action_executions,
                                         rules=rules,

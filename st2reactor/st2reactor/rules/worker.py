@@ -58,7 +58,7 @@ class TriggerInstanceDispatcher(consumers.MessageHandler):
         if trigger_instance:
             try:
                 # Use trace_context from the instance and if not found create a new context
-                # and use the trigger_instance.id as trace_id.
+                # and use the trigger_instance.id as trace_tag.
                 trace_context = instance.get(TRACE_CONTEXT, None)
                 if not trace_context:
                     trace_context = {

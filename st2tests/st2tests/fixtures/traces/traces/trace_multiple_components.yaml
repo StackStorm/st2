@@ -1,5 +1,5 @@
 ---
-trace_id : test-trace-3
+trace_tag : test-trace-3
 action_executions :
     - object_id: 'action_execution_1'
       updated_at: '2014-09-01T00:00:02.000000Z'

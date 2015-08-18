@@ -143,7 +143,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         trigger_instance = TriggerInstance.add_or_update(
             TriggerInstanceAPI.to_model(TriggerInstanceAPI(**docs['trigger_instance'])))
         trace_service.add_or_update_given_trace_context(
-            trace_context={'trace_id': 'test_triggered_execution_trace'},
+            trace_context={'trace_tag': 'test_triggered_execution_trace'},
             trigger_instances=[str(trigger_instance.id)])
         enforcer = RuleEnforcer(trigger_instance, rule)
         enforcer.enforce()

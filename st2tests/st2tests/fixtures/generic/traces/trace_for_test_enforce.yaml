@@ -1,5 +1,5 @@
 ---
-trace_id : trace_for_test_enforce
+trace_tag : trace_for_test_enforce
 action_executions : []
 rules : []
 trigger_instances :

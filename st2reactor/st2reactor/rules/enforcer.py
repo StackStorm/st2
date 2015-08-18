@@ -101,7 +101,7 @@ class RuleEnforcer(object):
 
         trace_db = trace_service.add_or_update_given_trace_db(trace_db=trace_db,
                                                               rules=[str(self.rule.id)])
-        return vars(TraceContext(id_=str(trace_db.id), trace_id=trace_db.trace_id))
+        return vars(TraceContext(id_=str(trace_db.id), trace_tag=trace_db.trace_tag))
 
     @staticmethod
     def _invoke_action(action_exec_spec, params, context=None):

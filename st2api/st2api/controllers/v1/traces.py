@@ -26,12 +26,12 @@ class TracesController(ResourceController):
     model = TraceAPI
     access = Trace
     supported_filters = {
-        'trace_id': 'trace_id',
+        'trace_tag': 'trace_tag',
         'action_execution': 'action_executions.object_id',
         'rule': 'rules.object_id',
         'trigger_instance': 'trigger_instances.object_id',
     }
 
     query_options = {
-        'sort': ['trace_id']
+        'sort': ['trace_tag']
     }

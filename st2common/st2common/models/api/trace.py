@@ -51,7 +51,7 @@ class TraceAPI(BaseAPI):
                 'type': 'string',
                 'default': None
             },
-            'trace_id': {
+            'trace_tag': {
                 'description': 'User assigned identifier for each Trace.',
                 'type': 'string',
                 'required': True
@@ -93,7 +93,7 @@ class TraceAPI(BaseAPI):
     @classmethod
     def to_model(cls, instance):
         values = {
-            'trace_id': instance.trace_id
+            'trace_tag': instance.trace_tag
         }
         action_executions = getattr(instance, 'action_executions', [])
         action_executions = [TraceAPI.to_component_model(component=action_execution)
@@ -144,10 +144,10 @@ class TraceContext(object):
                 Optional property.
     :type id_: ``str``
 
-    :param trace_id: User assigned value which may or may not be unique.
+    :param trace_tag: User assigned value which may or may not be unique.
                      Optional property.
-    :type trace_id: ``str``
+    :type trace_tag: ``str``
     """
-    def __init__(self, id_=None, trace_id=None):
+    def __init__(self, id_=None, trace_tag=None):
         self.id_ = id_
-        self.trace_id = trace_id
+        self.trace_tag = trace_tag

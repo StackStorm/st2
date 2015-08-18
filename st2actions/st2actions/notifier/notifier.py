@@ -159,7 +159,7 @@ class Notifier(consumers.MessageHandler):
     def _get_trace_context(self, liveaction):
         trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
         if trace_db:
-            return TraceContext(id_=str(trace_db.id), trace_id=trace_db.trace_id)
+            return TraceContext(id_=str(trace_db.id), trace_tag=trace_db.trace_tag)
         # If no trace_context is found then do not create a new one here. If necessary
         # it shall be created downstream. Sure this is impl leakage of some sort.
         return None

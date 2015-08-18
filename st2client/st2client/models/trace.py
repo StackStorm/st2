@@ -22,4 +22,4 @@ class Trace(core.Resource):
     _display_name = 'Trace'
     _plural = 'Traces'
     _plural_display_name = 'Traces'
-    _repr_attributes = ['id', 'trace_id']
+    _repr_attributes = ['id', 'trace_tag']
