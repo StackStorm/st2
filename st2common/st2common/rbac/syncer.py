@@ -139,16 +139,20 @@ class RBACDefinitionsDBSyncer(object):
         for role_api in role_apis_to_create:
             role_db = rbac_services.create_role(name=role_api.name,
                                                 description=role_api.description)
-            created_role_dbs.append(role_db)
 
             # Create associated permission grants
             for permission_grant in role_api.permission_grants:
                 resource_uid = permission_grant['resource_uid']
                 resource_type, _ = parse_uid(resource_uid)
                 permission_types = permission_grant['permission_types']
-                rbac_services.create_permission_grant(role_db=role_db, resource_uid=resource_uid,
-                                                      resource_type=resource_type,
-                                                      permission_types=permission_types)
+                assignment_db = rbac_services.create_permission_grant(
+                    role_db=role_db,
+                    resource_uid=resource_uid,
+                    resource_type=resource_type,
+                    permission_types=permission_types)
+
+                role_db.permission_grants.append(str(assignment_db.id))
+            created_role_dbs.append(role_db)
 
         LOG.debug('Created %s new roles' % (len(created_role_dbs)))
         LOG.info('Roles synchronized (%s created, %s updated, %s removed)' %
