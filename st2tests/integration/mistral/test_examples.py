@@ -21,12 +21,14 @@ class ExamplesTest(base.TestWorkflowExecution):
     def test_workbook_multiple_subflows(self):
         execution = self._execute_workflow('examples.mistral-workbook-multiple-subflows')
         execution = self._wait_for_completion(execution)
-        self.assertEqual(execution.status, 'succeeded')
+        self._assert_success(execution, num_tasks=4)
 
     def test_handle_error(self):
         execution = self._execute_workflow('examples.mistral-handle-error')
         execution = self._wait_for_completion(execution)
         self.assertEqual(execution.status, 'failed')
+        self.assertIn('tasks', execution.result)
+        self.assertEqual(2, len(execution.result['tasks']))
         tasks = {t['name']: t for t in execution.result['tasks']}
         self.assertEqual(tasks['task1']['state'], 'ERROR')
         self.assertIn(tasks['notify_on_error']['state'], ['RUNNING', 'SUCCESS'])
@@ -34,13 +36,13 @@ class ExamplesTest(base.TestWorkflowExecution):
     def test_handle_retry(self):
         execution = self._execute_workflow('examples.mistral-handle-retry')
         execution = self._wait_for_completion(execution)
-        self.assertEqual(execution.status, 'succeeded')
+        self._assert_success(execution, num_tasks=4)
 
     def test_repeat(self):
         inputs = {'cmd': 'echo "Yo!"'}
         execution = self._execute_workflow('examples.mistral-repeat', parameters=inputs)
         execution = self._wait_for_completion(execution)
-        self.assertEqual(execution.status, 'succeeded')
+        self._assert_success(execution, num_tasks=1)
         self.assertEqual(len(execution.result['result']), 3)
         self.assertListEqual(execution.result['result'], ['Yo!\n', 'Yo!\n', 'Yo!\n'])
 
@@ -48,6 +50,6 @@ class ExamplesTest(base.TestWorkflowExecution):
         inputs = {'cmds': ['echo "a"', 'echo "b"', 'echo "c"']}
         execution = self._execute_workflow('examples.mistral-repeat-with-items', parameters=inputs)
         execution = self._wait_for_completion(execution)
-        self.assertEqual(execution.status, 'succeeded')
+        self._assert_success(execution, num_tasks=1)
         self.assertEqual(len(execution.result['result']), 3)
         self.assertListEqual(sorted(execution.result['result']), ['a\n', 'b\n', 'c\n'])
