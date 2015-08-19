@@ -97,7 +97,8 @@ def request(liveaction):
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
 
-    # Get trace_db if it exists. This could throw.
+    # Get trace_db if it exists. This could throw. If it throws, we have to cleanup
+    # liveaction object so we don't see things in requested mode.
     trace_db = None
     try:
         _, trace_db = trace_service.get_trace_db_by_live_action(liveaction)
@@ -106,6 +107,7 @@ def request(liveaction):
         raise TraceNotFoundException(str(e))
 
     execution = executions.create_execution_object(liveaction, publish=False)
+
     if trace_db:
         trace_service.add_or_update_given_trace_db(
             trace_db=trace_db,

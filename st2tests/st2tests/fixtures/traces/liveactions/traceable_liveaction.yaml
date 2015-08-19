@@ -1,5 +1,5 @@
 ---
-  action: core.someworkflow
+  action: traces.someworkflow
   callback: {}
   context:
     user: system

@@ -3,16 +3,21 @@ action:
   enabled: true
   entry_point: ''
   id: 54c6bb640640fd5211edef0c
-  name: local
-  pack: core
+  name: someworkflow
+  pack: traces
   parameters:
-    sudo:
+    actionimmutable:
+      default: actionimmutable
       immutable: true
-  runner_type: run-local
+      type: string
+    actionint:
+      default: 10
+      type: number
+  runner_type: action-chain
 end_timestamp: '2014-09-01T00:00:05.000000Z'
 id: 54c6bb640640fd5211edef0d
 liveaction:
-  action: core.someworkflow
+  action: traces.someworkflow
   callback: {}
   context:
     user: system
