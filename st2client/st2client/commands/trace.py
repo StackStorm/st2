@@ -58,17 +58,17 @@ class SingleTraceDisplayMixin(object):
 
         if any(attr in args.attr for attr in ['all', 'trigger_instances']):
             components.extend([Resource(**{'id': trigger_instance['object_id'],
-                                           'type': TriggerInstance.get_alias().lower(),
+                                           'type': TriggerInstance._alias.lower(),
                                            'updated_at': trigger_instance['updated_at']})
                                for trigger_instance in trace.trigger_instances])
         if any(attr in args.attr for attr in ['all', 'rules']):
             components.extend([Resource(**{'id': rule['object_id'],
-                                           'type': Rule.get_alias().lower(),
+                                           'type': Rule._alias.lower(),
                                            'updated_at': rule['updated_at']})
                                for rule in trace.rules])
         if any(attr in args.attr for attr in ['all', 'action_executions', 'executions']):
             components.extend([Resource(**{'id': execution['object_id'],
-                                           'type': LiveAction.get_alias().lower(),
+                                           'type': LiveAction._alias.lower(),
                                            'updated_at': execution['updated_at']})
                                for execution in trace.action_executions])
         if components:
