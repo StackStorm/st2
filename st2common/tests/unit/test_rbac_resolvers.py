@@ -48,15 +48,24 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
     def setUp(self):
         super(BasePermissionsResolverTestCase, self).setUp()
 
-        insert_system_roles()
-
         # Make sure RBAC is enabeld
         cfg.CONF.set_override(name='enable', override=True, group='rbac')
 
-        # TODO: Share mocks
         self.users = {}
         self.roles = {}
         self.resources = {}
+
+        # Run role "migrations"
+        insert_system_roles()
+
+        # Insert common mock objects
+        self._insert_common_mocks()
+
+    def _insert_common_mocks(self):
+        self._insert_common_mock_users()
+        self._insert_common_mock_resources()
+        self._insert_common_mock_roles()
+        self._insert_common_mock_role_assignments()
 
     def _insert_common_mock_users(self):
         # Insert common mock users
@@ -127,14 +136,16 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
                                                  role=self.roles['custom_role_1'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
+        user_db = self.users['custom_role_pack_grant']
+        role_assignment_db = UserRoleAssignmentDB(user=user_db.name,
+                                                 role=self.roles['custom_role_pack_grant'].name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
 
 class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
     def setUp(self):
         super(ActionPermissionsResolverTestCase, self).setUp()
 
         # Create some mock users
-        self._insert_common_mock_users()
-
         user_6_db = UserDB(name='1_role_action_pack_grant')
         user_6_db = User.add_or_update(user_6_db)
         self.users['custom_role_action_pack_grant'] = user_6_db
@@ -144,17 +155,15 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.users['custom_role_action_grant'] = user_7_db
 
         # Create some mock resources on which permissions can be granted
-        self._insert_common_mock_resources()
-
         action_1_db = ActionDB(pack='test_pack_1', name='action1', entry_point='',
                                runner_type={'name': 'run-local'})
         action_1_db = Action.add_or_update(action_1_db)
         self.resources['action_1'] = action_1_db
 
-        action_1_db = ActionDB(pack='test_pack_1', name='action2', entry_point='',
+        action_2_db = ActionDB(pack='test_pack_1', name='action2', entry_point='',
                                runner_type={'name': 'run-local'})
-        action_1_db = Action.add_or_update(action_1_db)
-        self.resources['action_2'] = action_1_db
+        action_2_db = Action.add_or_update(action_1_db)
+        self.resources['action_2'] = action_2_db
 
         action_3_db = ActionDB(pack='test_pack_2', name='action3', entry_point='',
                                runner_type={'name': 'run-local'})
@@ -162,8 +171,6 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.resources['action_3'] = action_3_db
 
         # Create some mock roles with associated permission grants
-        self._insert_common_mock_roles()
-
         # Custom role 2 - one grant on parent pack
         # "action_view" on pack_1
         grant_db = PermissionGrantDB(resource_uid=self.resources['pack_1'].get_uid(),
@@ -187,8 +194,6 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.roles['custom_role_action_grant'] = role_4_db
 
         # Create some mock role assignments
-        self._insert_common_mock_role_assignments()
-
         user_db = self.users['custom_role_action_pack_grant']
         role_assignment_db = UserRoleAssignmentDB(user=user_db.name,
                                                  role=self.roles['custom_role_action_pack_grant'].name)
