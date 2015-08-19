@@ -30,6 +30,23 @@ TRACE_COMPONENT_DISPLAY_LABELS = ['id', 'type', 'updated_at']
 
 TRACE_DISPLAY_ATTRIBUTES = ['all']
 
+TRIGGER_INSTANCE_DISPLAY_OPTIONS = [
+    'all',
+    'trigger-instances',
+    'trigger_instances',
+    'triggerinstances',
+    'triggers'
+]
+
+ACTION_EXECUTION_DISPLAY_OPTIONS = [
+    'all',
+    'executions',
+    'action-executions',
+    'action_executions',
+    'actionexecutions',
+    'actions'
+]
+
 
 class TraceBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
@@ -55,8 +72,7 @@ class SingleTraceDisplayMixin(object):
         self.print_output(trace, formatter, **options)
 
         components = []
-
-        if any(attr in args.attr for attr in ['all', 'trigger_instances']):
+        if any(attr in args.attr for attr in TRIGGER_INSTANCE_DISPLAY_OPTIONS):
             components.extend([Resource(**{'id': trigger_instance['object_id'],
                                            'type': TriggerInstance._alias.lower(),
                                            'updated_at': trigger_instance['updated_at']})
@@ -66,7 +82,7 @@ class SingleTraceDisplayMixin(object):
                                            'type': Rule._alias.lower(),
                                            'updated_at': rule['updated_at']})
                                for rule in trace.rules])
-        if any(attr in args.attr for attr in ['all', 'action_executions', 'executions']):
+        if any(attr in args.attr for attr in ACTION_EXECUTION_DISPLAY_OPTIONS):
             components.extend([Resource(**{'id': execution['object_id'],
                                            'type': LiveAction._alias.lower(),
                                            'updated_at': execution['updated_at']})
@@ -133,6 +149,10 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
         if instances and len(instances) == 1:
+            # For a single Trace we must include the components unless
+            # user has overriden the attributes to display
+            if args.attr == self.display_attributes:
+                args.attr = ['all']
             self.print_trace_details(trace=instances[0], args=args)
         else:
             self.print_output(reversed(instances), table.MultiColumnTable,
