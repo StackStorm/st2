@@ -17,6 +17,10 @@ import six
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
+from st2common.constants.trace import TRACE_CONTEXT
+from st2common.exceptions.api import InternalServerErrorException
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.exceptions.trace import UniqueTraceNotFoundException
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
@@ -97,10 +101,22 @@ def request(liveaction):
     execution = executions.create_execution_object(liveaction, publish=False)
 
     # Update or create trace before publishing the execution
-    _, trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
-    trace_service.add_or_update_given_trace_db(
-        trace_db=trace_db,
-        action_executions=[str(execution.id)])
+    if getattr(liveaction, 'context', None) and TRACE_CONTEXT in liveaction['context']:
+        trace_context = liveaction['context'][TRACE_CONTEXT]
+        try:
+            _, trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
+        except StackStormDBObjectNotFoundError:
+            msg = 'No trace object found in db for context %s.' % trace_context
+            LOG.exception(msg)
+            raise UniqueTraceNotFoundException(msg)
+        except Exception as e:
+            msg = 'Unable to find trace object for action execution request. ' + str(e)
+            LOG.exception(msg)
+            raise InternalServerErrorException(msg)
+        else:
+            trace_service.add_or_update_given_trace_db(
+                trace_db=trace_db,
+                action_executions=[str(execution.id)])
 
     # Assume that this is a creation.
     LiveAction.publish_create(liveaction)
