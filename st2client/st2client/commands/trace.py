@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models import Resource
-from st2client.models import Trace
+from st2client.models import Resource, Trace, TriggerInstance, Rule, LiveAction
 from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
@@ -23,7 +22,7 @@ from st2client.utils.date import format_isodate
 
 
 TRACE_ATTRIBUTE_DISPLAY_ORDER = ['id', 'trace_tag', 'action_executions', 'rules',
-                                 'triggerinstances', 'start_timestamp']
+                                 'trigger_instances', 'start_timestamp']
 
 TRACE_HEADER_DISPLAY_ORDER = ['id', 'trace_tag', 'start_timestamp']
 
@@ -55,18 +54,23 @@ class SingleTraceDisplayMixin(object):
 
         self.print_output(trace, formatter, **options)
 
-        components = [Resource(**{'id': trigger_instance['object_id'],
-                                  'type': 'triggerinstance',
-                                  'updated_at': trigger_instance['updated_at']})
-                      for trigger_instance in trace.trigger_instances]
-        components.extend([Resource(**{'id': rule['object_id'],
-                                       'type': 'rule',
-                                       'updated_at': rule['updated_at']})
-                           for rule in trace.rules])
-        components.extend([Resource(**{'id': execution['object_id'],
-                                       'type': 'execution',
-                                       'updated_at': execution['updated_at']})
-                           for execution in trace.action_executions])
+        components = []
+
+        if any(attr in args.attr for attr in ['all', 'trigger_instances']):
+            components.extend([Resource(**{'id': trigger_instance['object_id'],
+                                           'type': TriggerInstance.get_alias().lower(),
+                                           'updated_at': trigger_instance['updated_at']})
+                               for trigger_instance in trace.trigger_instances])
+        if any(attr in args.attr for attr in ['all', 'rules']):
+            components.extend([Resource(**{'id': rule['object_id'],
+                                           'type': Rule.get_alias().lower(),
+                                           'updated_at': rule['updated_at']})
+                               for rule in trace.rules])
+        if any(attr in args.attr for attr in ['all', 'action_executions', 'executions']):
+            components.extend([Resource(**{'id': execution['object_id'],
+                                           'type': LiveAction.get_alias().lower(),
+                                           'updated_at': execution['updated_at']})
+                               for execution in trace.action_executions])
         if components:
             components.sort(key=lambda resource: resource.updated_at)
             self.print_output(components, table.MultiColumnTable,
