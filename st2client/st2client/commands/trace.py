@@ -13,14 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models import Trace
+from st2client.models import Resource, Trace, TriggerInstance, Rule, LiveAction
+from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
+from st2client.formatters import execution as execution_formatter
 from st2client.commands import resource
 from st2client.utils.date import format_isodate
 
 
 TRACE_ATTRIBUTE_DISPLAY_ORDER = ['id', 'trace_tag', 'action_executions', 'rules',
-                                 'triggerinstances', 'start_timestamp']
+                                 'trigger_instances', 'start_timestamp']
+
+TRACE_HEADER_DISPLAY_ORDER = ['id', 'trace_tag', 'start_timestamp']
+
+TRACE_COMPONENT_DISPLAY_LABELS = ['id', 'type', 'updated_at']
 
 TRACE_DISPLAY_ATTRIBUTES = ['all']
 
@@ -37,7 +43,42 @@ class TraceBranch(resource.ResourceBranch):
             })
 
 
-class TraceListCommand(resource.ResourceCommand):
+class SingleTraceDisplayMixin(object):
+
+    def print_trace_details(self, trace, args, **kwargs):
+        options = {'attributes': TRACE_HEADER_DISPLAY_ORDER}
+        options['json'] = args.json
+        options['attribute_transform_functions'] = self.attribute_transform_functions
+
+        formatter = execution_formatter.ExecutionResult
+
+        self.print_output(trace, formatter, **options)
+
+        components = []
+
+        if any(attr in args.attr for attr in ['all', 'trigger_instances']):
+            components.extend([Resource(**{'id': trigger_instance['object_id'],
+                                           'type': TriggerInstance._alias.lower(),
+                                           'updated_at': trigger_instance['updated_at']})
+                               for trigger_instance in trace.trigger_instances])
+        if any(attr in args.attr for attr in ['all', 'rules']):
+            components.extend([Resource(**{'id': rule['object_id'],
+                                           'type': Rule._alias.lower(),
+                                           'updated_at': rule['updated_at']})
+                               for rule in trace.rules])
+        if any(attr in args.attr for attr in ['all', 'action_executions', 'executions']):
+            components.extend([Resource(**{'id': execution['object_id'],
+                                           'type': LiveAction._alias.lower(),
+                                           'updated_at': execution['updated_at']})
+                               for execution in trace.action_executions])
+        if components:
+            components.sort(key=lambda resource: resource.updated_at)
+            self.print_output(components, table.MultiColumnTable,
+                              attributes=TRACE_COMPONENT_DISPLAY_LABELS,
+                              json=args.json)
+
+
+class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
     display_attributes = ['id', 'trace_tag', 'start_timestamp']
 
     attribute_transform_functions = {
@@ -92,14 +133,7 @@ class TraceListCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
         if instances and len(instances) == 1:
-            # If there is an attribute override from the CLI use that value else
-            # use TRACE_DISPLAY_ATTRIBUTES as those are preferred for a single trace.
-            attributes = args.attr
-            if args.attr == self.display_attributes:
-                attributes = TRACE_DISPLAY_ATTRIBUTES
-            self.print_output(instances[0], table.PropertyValueTable,
-                              attributes=attributes, json=args.json,
-                              attribute_display_order=self.attribute_display_order)
+            self.print_trace_details(trace=instances[0], args=args)
         else:
             self.print_output(reversed(instances), table.MultiColumnTable,
                               attributes=args.attr, widths=args.width,
@@ -107,7 +141,7 @@ class TraceListCommand(resource.ResourceCommand):
                               attribute_transform_functions=self.attribute_transform_functions)
 
 
-class TraceGetCommand(resource.ResourceGetCommand):
+class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
     display_attributes = ['all']
     attribute_display_order = TRACE_ATTRIBUTE_DISPLAY_ORDER
     attribute_transform_functions = {
@@ -120,3 +154,13 @@ class TraceGetCommand(resource.ResourceGetCommand):
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         return self.get_resource_by_id(resource_id, **kwargs)
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        trace = None
+        try:
+            trace = self.run(args, **kwargs)
+        except resource.ResourceNotFoundError:
+            self.print_not_found(args.id)
+            raise OperationFailureException('Trace %s not found.' % (args.id))
+        return self.print_trace_details(trace=trace, args=args)
