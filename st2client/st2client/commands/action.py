@@ -723,7 +723,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         self._add_common_options()
 
         if self.name in ['run', 'execute']:
-            self.parser.add_argument('--trace_tag',
+            self.parser.add_argument('--trace-tag', '--trace_tag',
                                      help='A trace tag string to track execution later.',
                                      dest='trace_tag', required=False)
             self.parser.add_argument('-a', '--async',
