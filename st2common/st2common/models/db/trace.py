@@ -58,7 +58,7 @@ class TraceDB(stormbase.StormFoundationDB):
     :param action_executions: ActionExecutions associated with this trace.
     """
     trace_tag = me.StringField(required=True,
-                              help_text='A user specified reference to the trace.')
+                               help_text='A user specified reference to the trace.')
     trigger_instances = me.ListField(field=me.EmbeddedDocumentField(TraceComponentDB),
                                      required=False,
                                      help_text='Associated TriggerInstances.')

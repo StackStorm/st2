@@ -17,10 +17,8 @@ import six
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
-from st2common.constants.trace import TRACE_CONTEXT
-from st2common.exceptions.api import InternalServerErrorException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.exceptions.trace import UniqueTraceNotFoundException
+from st2common.exceptions.trace import TraceNotFoundException
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
@@ -98,25 +96,20 @@ def request(liveaction):
 
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
-    execution = executions.create_execution_object(liveaction, publish=False)
 
-    # Update or create trace before publishing the execution
-    if getattr(liveaction, 'context', None) and TRACE_CONTEXT in liveaction['context']:
-        trace_context = liveaction['context'][TRACE_CONTEXT]
-        try:
-            _, trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
-        except StackStormDBObjectNotFoundError:
-            msg = 'No trace object found in db for context %s.' % trace_context
-            LOG.exception(msg)
-            raise UniqueTraceNotFoundException(msg)
-        except Exception as e:
-            msg = 'Unable to find trace object for action execution request. ' + str(e)
-            LOG.exception(msg)
-            raise InternalServerErrorException(msg)
-        else:
-            trace_service.add_or_update_given_trace_db(
-                trace_db=trace_db,
-                action_executions=[str(execution.id)])
+    # Get trace_db if it exists. This could throw.
+    trace_db = None
+    try:
+        _, trace_db = trace_service.get_trace_db_by_live_action(liveaction)
+    except StackStormDBObjectNotFoundError as e:
+        _cleanup_liveaction(liveaction)
+        raise TraceNotFoundException(str(e))
+
+    execution = executions.create_execution_object(liveaction, publish=False)
+    if trace_db:
+        trace_service.add_or_update_given_trace_db(
+            trace_db=trace_db,
+            action_executions=[str(execution.id)])
 
     # Assume that this is a creation.
     LiveAction.publish_create(liveaction)
@@ -162,3 +155,11 @@ def update_status(liveaction, new_status, publish=True):
 def is_action_canceled(liveaction_id):
     liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
     return liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELED
+
+
+def _cleanup_liveaction(liveaction):
+    try:
+        LiveAction.delete(liveaction)
+    except:
+        LOG.exception('Failed cleaning up LiveAction: %s.', liveaction)
+        pass
