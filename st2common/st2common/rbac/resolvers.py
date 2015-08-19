@@ -26,9 +26,9 @@ from st2common.services.rbac import get_all_permission_grants_for_user
 
 __all__ = [
     'PackPermissionsResolver',
+    'SensorPermissionsResolver',
     'ActionPermissionsResolver',
     'RulePermissionsResolver',
-    'SensorPermissionsResolver',
 
     'get_resolver_for_resource_type',
     'get_resolver_for_permission_type'
@@ -129,6 +129,49 @@ class PackPermissionsResolver(PermissionsResolver):
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=resource_uid,
                                                                resource_types=resource_types)
+
+        if len(permission_grants) >= 1:
+            return True
+
+        return False
+
+
+class SensorPermissionsResolver(PermissionsResolver):
+    """
+    Permission resolver for "sensor" resource type.
+    """
+
+    def user_has_permission(self, user_db, permission_type):
+        # TODO
+        raise NotImplementedError()
+
+    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            return True
+
+        # Check custom roles
+        sensor_uid = resource_db.get_uid()
+        pack_uid = resource_db.get_pack_uid()
+
+        # Check direct grants on the specified resource
+        resource_types = [ResourceType.SENSOR]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=sensor_uid,
+                                                               resource_types=resource_types,
+                                                               permission_type=permission_type)
+        if len(permission_grants) >= 1:
+            return True
+
+        # Check grants on the parent pack
+        resource_types = [ResourceType.PACK]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=pack_uid,
+                                                               resource_types=resource_types,
+                                                               permission_type=permission_type)
 
         if len(permission_grants) >= 1:
             return True
@@ -237,48 +280,6 @@ class RulePermissionsResolver(PermissionsResolver):
 
         return False
 
-
-class SensorPermissionsResolver(PermissionsResolver):
-    """
-    Permission resolver for "sensor" resource type.
-    """
-
-    def user_has_permission(self, user_db, permission_type):
-        # TODO
-        raise NotImplementedError()
-
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
-        # First check the system role permissions
-        has_system_role_permission = self._user_has_system_role_permission(
-            user_db=user_db, permission_type=permission_type)
-
-        if has_system_role_permission:
-            return True
-
-        # Check custom roles
-        sensor_uid = resource_db.get_uid()
-        pack_uid = resource_db.get_pack_uid()
-
-        # Check direct grants on the specified resource
-        resource_types = [ResourceType.SENSOR]
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_uid=sensor_uid,
-                                                               resource_types=resource_types,
-                                                               permission_type=permission_type)
-        if len(permission_grants) >= 1:
-            return True
-
-        # Check grants on the parent pack
-        resource_types = [ResourceType.PACK]
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_uid=pack_uid,
-                                                               resource_types=resource_types,
-                                                               permission_type=permission_type)
-
-        if len(permission_grants) >= 1:
-            return True
-
-        return False
 
 
 def get_resolver_for_resource_type(resource_type):
