@@ -14,12 +14,10 @@
 # limitations under the License.
 
 from st2common.exceptions import StackStormBaseException
-from st2common.exceptions.db import StackStormDBObjectNotFoundError
+
+__all__ = [
+]
 
 
-class UniqueTraceNotFoundException(StackStormBaseException):
-    pass
-
-
-class TraceNotFoundException(StackStormDBObjectNotFoundError):
+class InternalServerErrorException(StackStormBaseException):
     pass

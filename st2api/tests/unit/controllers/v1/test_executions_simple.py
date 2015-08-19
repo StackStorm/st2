@@ -31,6 +31,7 @@ from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.models.db.auth import TokenDB
 from st2common.persistence.auth import Token
+from st2common.persistence.trace import Trace
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest, AuthMiddlewareTest
@@ -228,6 +229,26 @@ class TestActionExecutionController(FunctionalTest):
 
     def test_post_delete(self):
         post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
+        self.assertEqual(delete_resp.status_int, 200)
+        self.assertEqual(delete_resp.json['status'], 'canceled')
+
+    def test_post_delete_trace(self):
+        """
+        Validate that the API controller doesn't blow up on specifying
+        trace_context.
+        """
+        LIVE_ACTION_TRACE = copy.copy(LIVE_ACTION_1)
+        LIVE_ACTION_TRACE['context'] = {'trace_context': {'trace_tag': 'balleilaka'}}
+        post_resp = self._do_post(LIVE_ACTION_TRACE)
+        self.assertEqual(post_resp.status_int, 201)
+        delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
+        self.assertEqual(delete_resp.status_int, 200)
+        self.assertEqual(delete_resp.json['status'], 'canceled')
+        trace_id = str(Trace.get_all()[0].id)
+        LIVE_ACTION_TRACE['context'] = {'trace_context': {'id_': trace_id}}
+        post_resp = self._do_post(LIVE_ACTION_TRACE)
         self.assertEqual(post_resp.status_int, 201)
         delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
         self.assertEqual(delete_resp.status_int, 200)
