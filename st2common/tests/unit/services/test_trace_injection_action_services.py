@@ -51,7 +51,8 @@ class TraceInjectionTests(DbTestCase):
         self.traceable_liveaction['context']['trace_context'] = {'trace_tag': 'OohLaLaLa'}
         action_services.request(self.traceable_liveaction)
         traces = Trace.get_all()
-        self.assertTrue(len(traces), 1)
+        self.assertEqual(len(traces), 1)
+        self.assertEqual(len(traces[0]['action_executions']), 1)
 
         # Let's use existing trace id in trace context.
         # We shouldn't create new trace object.
@@ -59,13 +60,16 @@ class TraceInjectionTests(DbTestCase):
         self.traceable_liveaction['context']['trace_context'] = {'id_': trace_id}
         action_services.request(self.traceable_liveaction)
         traces = Trace.get_all()
-        self.assertTrue(len(traces), 1)
+        self.assertEqual(len(traces), 1)
+        self.assertEqual(len(traces[0]['action_executions']), 2)
 
-        # Let's use same trace tag again and we should see two trace objects in db.
-        self.traceable_liveaction['context']['trace_context'] = {'trace_tag': 'OohLaLaLa'}
+    def test_trace_tag_resuse(self):
+        self.traceable_liveaction['context']['trace_context'] = {'trace_tag': 'blank space'}
         action_services.request(self.traceable_liveaction)
-        traces = Trace.get_all()
-        self.assertTrue(len(traces), 2)
+        # Let's use same trace tag again and we should see two trace objects in db.
+        action_services.request(self.traceable_liveaction)
+        traces = Trace.query(**{'trace_tag': 'blank space'})
+        self.assertEqual(len(traces), 2)
 
     def test_invalid_trace_id_provided(self):
         liveactions = LiveAction.get_all()

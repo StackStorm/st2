@@ -235,6 +235,10 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(delete_resp.json['status'], 'canceled')
 
     def test_post_delete_trace(self):
+        """
+        Validate that the API controller doesn't blow up on specifying
+        trace_context.
+        """
         LIVE_ACTION_TRACE = copy.copy(LIVE_ACTION_1)
         LIVE_ACTION_TRACE['context'] = {'trace_context': {'trace_tag': 'balleilaka'}}
         post_resp = self._do_post(LIVE_ACTION_TRACE)
