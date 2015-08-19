@@ -138,12 +138,12 @@ class ActionBranch(resource.ResourceBranch):
 
 
 class ActionListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'pack', 'name', 'description']
+    display_attributes = ['uid', 'ref', 'pack', 'name', 'description']
 
 
 class ActionGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
-    attribute_display_order = ['id', 'ref', 'pack', 'name', 'description',
+    attribute_display_order = ['id', 'uid', 'ref', 'pack', 'name', 'description',
                                'enabled', 'entry_point', 'runner_type',
                                'parameters']
 

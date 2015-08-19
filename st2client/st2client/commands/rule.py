@@ -32,12 +32,12 @@ class RuleBranch(resource.ResourceBranch):
 
 
 class RuleListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'pack', 'name', 'description']
+    display_attributes = ['uid', 'ref', 'pack', 'name', 'description']
 
 
 class RuleGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
-    attribute_display_order = ['id', 'ref', 'pack', 'name', 'description',
+    attribute_display_order = ['id', 'uid', 'ref', 'pack', 'name', 'description',
                                'enabled']
 
 

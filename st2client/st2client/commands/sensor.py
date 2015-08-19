@@ -30,10 +30,10 @@ class SensorBranch(resource.ResourceBranch):
 
 
 class SensorListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'pack', 'name', 'trigger_types']
+    display_attributes = ['uid', 'ref', 'pack', 'name', 'trigger_types']
 
 
 class SensorGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
-    attribute_display_order = ['id', 'ref', 'pack', 'name', 'entry_point',
+    attribute_display_order = ['id', 'uid', 'ref', 'pack', 'name', 'entry_point',
                                'artifact_uri', 'trigger_types']
