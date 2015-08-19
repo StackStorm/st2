@@ -24,6 +24,7 @@ from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import PermissionGrant
 from st2common.persistence.pack import Pack
+from st2common.persistence.sensor import SensorType
 from st2common.persistence.action import Action
 from st2common.persistence.rule import Rule
 from st2common.models.db.auth import UserDB
@@ -31,16 +32,18 @@ from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rbac import PermissionGrantDB
 from st2common.models.db.pack import PackDB
+from st2common.models.db.sensor import SensorTypeDB
 from st2common.models.db.action import ActionDB
 from st2common.models.db.rule import RuleDB
-from st2common.models.db.runner import RunnerTypeDB
 from st2common.rbac.resolvers import SensorPermissionsResolver
 from st2common.rbac.resolvers import ActionPermissionsResolver
 from st2common.rbac.migrations import insert_system_roles
 from st2tests.base import CleanDbTestCase
 
 __all__ = [
-    'BasePermissionsResolverTestCase'
+    'SensorPermissionsResolverTestCase',
+    'ActionPermissionsResolverTestCase',
+    'RulePermissionsResolverTestCase'
 ]
 
 
@@ -140,6 +143,47 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
         role_assignment_db = UserRoleAssignmentDB(user=user_db.name,
                                                  role=self.roles['custom_role_pack_grant'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
+
+
+class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
+    def setUp(self):
+        super(SensorPermissionsResolverTestCase, self).setUp()
+
+        # Create some mock resources on which permissions can be granted
+        sensor_1_db = SensorTypeDB(pack='test_pack_1', name='sensor1')
+        sensor_1_db = SensorType.add_or_update(sensor_1_db)
+        self.resources['sensor_1'] = sensor_1_db
+
+        sensor_2_db = SensorTypeDB(pack='test_pack_1', name='sensor2')
+        sensor_2_db = SensorType.add_or_update(sensor_2_db)
+        self.resources['sensor_2'] = sensor_2_db
+
+        sensor_2_db = SensorTypeDB(pack='test_pack_2', name='sensor2')
+        sensor_2_db = SensorType.add_or_update(sensor_2_db)
+        self.resources['sensor_2'] = sensor_2_db
+
+    def test_user_has_resource_permission(self):
+        resolver = SensorPermissionsResolver()
+
+        # Admin user, should always return true
+        resource_db = self.resources['sensor_1']
+        user_db = self.users['admin']
+        self.assertTrue(resolver.user_has_resource_permission(user_db=user_db,
+            resource_db=resource_db,
+            permission_type=PermissionType.SENSOR_ALL))
+        self.assertTrue(resolver.user_has_resource_permission(user_db=user_db,
+            resource_db=resource_db,
+            permission_type=PermissionType.SENSOR_VIEW))
+
+        # Observer, should always return true for VIEW permission
+        user_db = self.users['observer']
+        self.assertTrue(resolver.user_has_resource_permission(user_db=user_db,
+            resource_db=self.resources['sensor_1'],
+            permission_type=PermissionType.SENSOR_VIEW))
+        self.assertTrue(resolver.user_has_resource_permission(user_db=user_db,
+            resource_db=self.resources['sensor_2'],
+            permission_type=PermissionType.SENSOR_VIEW))
+
 
 class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
     def setUp(self):
@@ -297,3 +341,50 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.assertFalse(resolver.user_has_resource_permission(user_db=user_db,
             resource_db=self.resources['action_3'],
             permission_type=PermissionType.ACTION_EXECUTE))
+
+
+class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
+    def setUp(self):
+        super(RulePermissionsResolverTestCase, self).setUp()
+
+        # Create some mock resources on which permissions can be granted
+        rule_1_db = RuleDB(pack='test_pack_1', name='rule1')
+        rule_1_db = Rule.add_or_update(rule_1_db)
+        self.resources['rule_1'] = rule_1_db
+
+        rule_2_db = RuleDB(pack='test_pack_1', name='rule2')
+        rule_2_db = Rule.add_or_update(rule_1_db)
+        self.resources['rule_2'] = rule_2_db
+
+        rule_3_db = RuleDB(pack='test_pack_2', name='rule3')
+        rule_3_db = Rule.add_or_update(rule_1_db)
+        self.resources['rule_3'] = rule_3_db
+
+    def test_user_has_resource_permission(self):
+        resolver = SensorPermissionsResolver()
+
+        # Admin user, should always return true
+        resource_db = self.resources['rule_1']
+        user_db = self.users['admin']
+        self.assertTrue(resolver.user_has_resource_permission(user_db=user_db,
+            resource_db=resource_db,
+            permission_type=PermissionType.RULE_MODIFY))
+        self.assertTrue(resolver.user_has_resource_permission(user_db=user_db,
+            resource_db=resource_db,
+            permission_type=PermissionType.RULE_DELETE))
+
+        # Observer, should always return true for VIEW permission
+        user_db = self.users['observer']
+        self.assertTrue(resolver.user_has_resource_permission(user_db=user_db,
+            resource_db=self.resources['rule_1'],
+            permission_type=PermissionType.RULE_VIEW))
+        self.assertTrue(resolver.user_has_resource_permission(user_db=user_db,
+            resource_db=self.resources['rule_2'],
+            permission_type=PermissionType.RULE_VIEW))
+
+        self.assertFalse(resolver.user_has_resource_permission(user_db=user_db,
+            resource_db=self.resources['rule_1'],
+            permission_type=PermissionType.RULE_MODIFY))
+        self.assertFalse(resolver.user_has_resource_permission(user_db=user_db,
+            resource_db=self.resources['rule_2'],
+            permission_type=PermissionType.RULE_DELETE))
