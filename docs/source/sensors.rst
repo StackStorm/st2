@@ -54,13 +54,14 @@ sensor should generate triggers of the form (python dict):
     payload = {
         'executed_at': '2014-08-01T00:00:00.000000Z'
     }
+    trace_tag = external_event_id
 
 The sensor would inject such triggers by using the sensor\_service
 passed into the sensor on instantiation.
 
 .. code:: python
 
-    self._sensor_service.dispatch(trigger=trigger, payload=payload)
+    self._sensor_service.dispatch(trigger=trigger, payload=payload, trace_tag=trace_tag)
 
 If you want a sensor that polls an external system at regular intervals, you
 would use a PollingSensor instead of Sensor as the base class.
@@ -85,7 +86,7 @@ All public methods are described below.
 Common operations
 -----------------
 
-1. dispatch(trigger, payload)
+1. dispatch(trigger, payload, trace_tag)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This method allows sensor to inject triggers into the system.
@@ -98,8 +99,9 @@ For example:
     payload = {
         'executed_at': '2014-08-01T00:00:00.000000Z'
     }
+    trace_tag = uuid.uuid4().hex
 
-    self._sensor_service.dispatch(trigger=trigger, payload=payload)
+    self._sensor_service.dispatch(trigger=trigger, payload=payload, trace_tag=trace_tag)
 
 2. get_logger(name)
 ~~~~~~~~~~~~~~~~~~~
