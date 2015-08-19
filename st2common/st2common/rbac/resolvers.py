@@ -27,7 +27,8 @@ from st2common.services.rbac import get_all_permission_grants_for_user
 __all__ = [
     'PackPermissionsResolver',
     'ActionPermissionsResolver',
-    'RulePermissionResolver',
+    'RulePermissionsResolver',
+    'SensorPermissionsResolver',
 
     'get_resolver_for_resource_type',
     'get_resolver_for_permission_type'
@@ -194,25 +195,14 @@ class ActionPermissionsResolver(PermissionsResolver):
         return False
 
 
-class RulePermissionResolver(PermissionsResolver):
+class RulePermissionsResolver(PermissionsResolver):
+    """
+    Permission resolver for "rule" resource type.
+    """
+
     def user_has_permission(self, user_db, permission_type):
-        # First check the system role permissions
-        has_system_role_permission = self._user_has_system_role_permission(
-            user_db=user_db, permission_type=permission_type)
-
-        if has_system_role_permission:
-            return True
-
-        # Check custom roles
-        resource_types = [ResourceType.PACK, ResourceType.RULE]
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_types=resource_types,
-                                                               permission_type=permission_type)
-
-        if len(permission_grants) >= 1:
-            return True
-
-        return False
+        # TODO
+        raise NotImplementedError()
 
     def user_has_resource_permission(self, user_db, resource_db, permission_type):
         # First check the system role permissions
@@ -223,28 +213,70 @@ class RulePermissionResolver(PermissionsResolver):
             return True
 
         # Check custom roles
-        resource_types = [ResourceType.PACK, ResourceType.RULE]
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_types=resource_types)
-
         rule_uid = resource_db.get_uid()
         pack_uid = resource_db.get_pack_uid()
 
-        for permission_grant in permission_grants:
-            matches_pack_grant = self._matches_permission_grant(resource_db=resource_db,
-                                                                permission_grant=permission_grant,
-                                                                permission_type=permission_type,
-                                                                all_permission_type=PermissionType.PACK_ALL)
-            matches_rule_grant = self._matches_permission_grant(resource_db=resource_db,
-                                                                permission_grant=permission_grant,
-                                                                permission_type=permission_type,
-                                                                all_permission_type=PermissionType.RULE_ALL)
+        # Check direct grants on the specified resource
+        resource_types = [ResourceType.RULE]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=rule_uid,
+                                                               resource_types=resource_types,
+                                                               permission_type=permission_type)
+        if len(permission_grants) >= 1:
+            return True
 
-            # Permissions assigned to the pack are inherited by all the pack resources
-            if permission_grant.resource_uid == pack_uid and matches_pack_grant:
-                return True
-            elif permission_grant.resource_uid == rule_uid and matches_rule_grant:
-                return True
+        # Check grants on the parent pack
+        resource_types = [ResourceType.PACK]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=pack_uid,
+                                                               resource_types=resource_types,
+                                                               permission_type=permission_type)
+
+        if len(permission_grants) >= 1:
+            return True
+
+        return False
+
+
+class SensorPermissionsResolver(PermissionsResolver):
+    """
+    Permission resolver for "sensor" resource type.
+    """
+
+    def user_has_permission(self, user_db, permission_type):
+        # TODO
+        raise NotImplementedError()
+
+    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            return True
+
+        # Check custom roles
+        sensor_uid = resource_db.get_uid()
+        pack_uid = resource_db.get_pack_uid()
+
+        # Check direct grants on the specified resource
+        resource_types = [ResourceType.SENSOR]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=sensor_uid,
+                                                               resource_types=resource_types,
+                                                               permission_type=permission_type)
+        if len(permission_grants) >= 1:
+            return True
+
+        # Check grants on the parent pack
+        resource_types = [ResourceType.PACK]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=pack_uid,
+                                                               resource_types=resource_types,
+                                                               permission_type=permission_type)
+
+        if len(permission_grants) >= 1:
+            return True
 
         return False
 
