@@ -726,6 +726,9 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
             self.parser.add_argument('--trace-tag', '--trace_tag',
                                      help='A trace tag string to track execution later.',
                                      dest='trace_tag', required=False)
+            self.parser.add_argument('--trace-id',
+                                     help='Existing trace id for this execution.',
+                                     dest='trace_id', required=False)
             self.parser.add_argument('-a', '--async',
                                      action='store_true', dest='async',
                                      help='Do not wait for action to finish.')
@@ -765,8 +768,11 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         execution.action = action_ref
         execution.parameters = action_parameters
 
-        if args.trace_tag:
+        if not args.trace_id and args.trace_tag:
             execution.context = {'trace_context': {'trace_tag': args.trace_tag}}
+
+        if args.trace_id:
+            execution.context = {'trace_context': {'id_': args.trace_id}}
 
         action_exec_mgr = self.app.client.managers['LiveAction']
 
