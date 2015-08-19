@@ -15,6 +15,7 @@
 
 import httplib
 import traceback
+import uuid
 
 import webob
 from oslo_config import cfg
@@ -29,6 +30,7 @@ from st2common.exceptions import db as db_exceptions
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.util.jsonify import json_encode
 from st2common.util.auth import validate_token
+from st2common.constants.api import REQUEST_ID_HEADER
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
 from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 
@@ -80,8 +82,10 @@ class CorsHook(PecanHook):
             origin_allowed = list(origins)[0]
 
         methods_allowed = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-        request_headers_allowed = ['Content-Type', 'Authorization', 'X-Auth-Token']
-        response_headers_allowed = ['Content-Type', 'X-Limit', 'X-Total-Count']
+        request_headers_allowed = ['Content-Type', 'Authorization', 'X-Auth-Token',
+                                   REQUEST_ID_HEADER]
+        response_headers_allowed = ['Content-Type', 'X-Limit', 'X-Total-Count',
+                                    REQUEST_ID_HEADER]
 
         headers['Access-Control-Allow-Origin'] = origin_allowed
         headers['Access-Control-Allow-Methods'] = ','.join(methods_allowed)
@@ -242,7 +246,12 @@ class LoggingHook(PecanHook):
         # Log the incoming request
         values = {'method': method, 'path': path, 'remote_addr': remote_addr}
         values['filters'] = state.arguments.keywords
-        LOG.info('%(method)s %(path)s with filters=%(filters)s' % values, extra=values)
+
+        request_id = state.request.headers.get(REQUEST_ID_HEADER, None)
+        values['request_id'] = request_id
+
+        LOG.info('%(request_id)s -  %(method)s %(path)s with filters=%(filters)s' %
+                 values, extra=values)
 
     def after(self, state):
         # Note: We use getattr since in some places (tests) request is mocked
@@ -273,3 +282,28 @@ class LoggingHook(PecanHook):
             log_msg = '%(method)s %(path)s' % values
 
         LOG.info(log_msg, extra=values)
+
+
+class RequestIDHook(PecanHook):
+    """
+    If request id header isn't present, this hooks adds one.
+    """
+
+    def before(self, state):
+        headers = getattr(state.request, 'headers', None)
+
+        if headers:
+            req_id_header = getattr(headers, REQUEST_ID_HEADER, None)
+
+            if not req_id_header:
+                req_id = str(uuid.uuid4())
+                state.request.headers[REQUEST_ID_HEADER] = req_id
+
+    def after(self, state):
+        req_headers = getattr(state.request, 'headers', None)
+        resp_headers = getattr(state.response, 'headers', None)
+
+        if req_headers and resp_headers:
+            req_id_header = req_headers.get(REQUEST_ID_HEADER, None)
+            if req_id_header:
+                resp_headers[REQUEST_ID_HEADER] = req_id_header
