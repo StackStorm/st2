@@ -40,6 +40,7 @@ in development
 * Add OpenStack Keystone authentication configuration for Mistral. (improvement)
 * Add ability to add trace tag in ``st2 run`` CLI command. (feature)
 * Add ability to specify trace id in ``st2 run`` CLI command. (feature)
+* Add X-Request-ID header to all API calls for easier debugging. (improvement)
 
 0.12.2 - August 11, 2015.
 -------------------------
