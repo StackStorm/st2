@@ -38,6 +38,8 @@ in development
 * Turn on paramiko ssh runner as the default ssh runner in prod configuration.
   To switch to fabric runner, set ``use_paramiko_ssh_runner`` to false in st2.conf. (improvement)
 * Add OpenStack Keystone authentication configuration for Mistral. (improvement)
+* Abiltiy to add trace tag to TriggerInstance from Sensor. (feature)
+* Ability to view trace in CLI with list and get commands. (feature)
 * Add ability to add trace tag to ``st2 run`` CLI command. (feature)
 * Add ability to specify trace id in ``st2 run`` CLI command. (feature)
 * Update ``st2ctl`` to correctly start ``st2web`` even if even if Mistral is no installed.
