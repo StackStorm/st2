@@ -34,11 +34,44 @@ Permission grant
 ~~~~~~~~~~~~~~~~
 
 Permission grant grants a particular permission (permission type) to a particular resource. For
-example, you could grant an execute permission (``ACTION_EXECUTE``) to an action ``core.local``.
+example, you could grant an execute permission (``action_execute``) to an action ``core.local``.
 
 The table below contains a list of all the available permission types.
 
 .. include:: _includes/available_permission_types.rst
+
+Resource
+~~~~~~~~
+
+In the context of RBAC, resource refers to the resource to which the permission grant applies to.
+Currently permission grants can be applied to the following resource types:
+
+* pack
+* execution
+* action
+* sensor
+* rule
+
+Resource is identified by and you refer to it in the permission grants using ``uid``. UID is a
+identifier which is unique for each resource in the StackStorm installation. UIDs follow this
+format: ``<resource type>:<resourc specific identifier value>`` (e.g. ``pack:libcloud``,
+``action:libcloud:list_vms``, etc.).
+
+You can retrieve UID of a particular resource by listing all the resources of a particular type or
+by retrieving details of a single resource using either an API or CLI.
+
+For example:
+
+.. sourcecode:: bash
+
+    st2 action list
+    +-------------------------+-------------------------+-----------+-------------------------+-------------------------+
+    | uid                     | ref                     | pack      | name                    | description             |
+    +-------------------------+-------------------------+-----------+-------------------------+-------------------------+
+    | action:core:remote      | core.remote             | core      | remote                  | Action to execute       |
+    |                         |                         |           |                         | arbitrary linux command |
+    |                         |                         |           |                         | remotely.               |
+    +-------------------------+-------------------------+-----------+-------------------------+-------------------------+
 
 System roles
 ------------
@@ -68,32 +101,60 @@ grant "execute" permission to a pack, user will be able to execute all the actio
 pack. Similarly, if you grant "delete" permission to a pack, user will be able to delete all the
 resources in a pack (action, rule).
 
+Defining roles and user role assignments
+----------------------------------------
+
+To follow infrastructure as code approach, roles and user role assignments are defined in YAML
+files which are stored on a filesystem in the following directory: ``/opt/stackstorm/rbac/``.
+
+Those definitions being simple YAML files means you can (and should) version control and manage
+them in the same way you version control and manage other source code and infrastructure artifacts.
+
+Both, roles and user role assignments are loaded in lexicographical order based on the filename.
+For example, if you have two role definitions in the files named ``role_b.yaml`` and
+``role_a.yaml``, ``role_a.yaml`` will be loaded before ``role_b.yaml``.
+
 Defining roles and permission grants
-------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Roles and permission grants are defined in YAML files which are located in on a file system in the
-following directory: ``/opt/stackstorm/rbac/``.
+Roles and permission grants are defined in YAML files which are located on a filesystem in the
+following directory: ``/opt/stackstorm/rbac/roles/``. Each file defines role information and
+associated permission grants for a single role which means that if you want to define **n** roles
+you will need **n** files.
 
-TBD - File names and format + examples.
+Example role definition (``/opt/stackstorm/rbac/roles/role_four.yaml``) is shown below:
 
-Maybe?
+.. literalinclude:: ../../st2tests/st2tests/fixtures/rbac/roles/role_four.yaml
+    :language: yaml
 
-- rbac/<role_name>_role.yaml
-- rbac/<username>_grants.yaml
+The example above contains a variety of permission grants with the corresponding explanation
+(comments).
+
+Defining user role assignments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+User role assignments are defined in YAML files which are located on a filesystem in the following
+directory: ``/opt/stackstorm/rbac/assignments/``. Each file defines assignments for a single user
+which means that if you want to define assignments for **n** users, you will need **n** files.
+
+Example role definition (``/opt/stackstorm/rbac/assignments/user4.yaml``) is shown below:
+
+.. literalinclude:: ../../st2tests/st2tests/fixtures/rbac/assignments/user4.yaml
+    :language: yaml
+
+In the example above we assign user with the username ``user4`` two roles -
+``role_one`` (a custom role which needs to be defined as described above) and
+``observer`` (system role).
 
 Synchronizing RBAC information in the database with the one from disk
 ---------------------------------------------------------------------
 
 As described above, RBAC definitions are defined in YAML files located in the
 ``/opt/stackstorm/rbac/`` directory. For those definitions to take an effect,
-you need to apply them using ``st2-apply-rbac-definitions``.
+you need to apply them using ``st2-apply-rbac-definitions`` script.
 
 Usually you will want to run this script every time you want the RBAC
 definitions you have written to take an effect.
-
-- note on infra as a code approach
-- those files can and should be version controlled 
-- only ppl who have access to git can write them
 
 For example:
 
