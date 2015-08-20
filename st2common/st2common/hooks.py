@@ -258,10 +258,12 @@ class LoggingHook(PecanHook):
         method = getattr(state.request, 'method', None)
         path = getattr(state.request, 'path', None)
         remote_addr = getattr(state.request, 'remote_addr', None)
+        request_id = state.request.headers.get(REQUEST_ID_HEADER, None)
 
         # Log the outgoing response
         values = {'method': method, 'path': path, 'remote_addr': remote_addr}
         values['status_code'] = state.response.status
+        values['request_id'] = request_id
 
         if hasattr(state.controller, 'im_self'):
             function_name = state.controller.im_func.__name__
@@ -275,11 +277,11 @@ class LoggingHook(PecanHook):
 
         if log_result:
             values['result'] = state.response.body
-            log_msg = '%(method)s %(path)s result=%(result)s' % values
+            log_msg = '%(request_id)s - %(method)s %(path)s result=%(result)s' % values
         else:
             # Note: We don't want to include a result for some
             # methods which have a large result
-            log_msg = '%(method)s %(path)s' % values
+            log_msg = '%(request_id)s - %(method)s %(path)s' % values
 
         LOG.info(log_msg, extra=values)
 
