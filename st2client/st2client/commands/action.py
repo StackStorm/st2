@@ -132,6 +132,8 @@ class ActionBranch(resource.ResourceBranch):
             })
 
         # Registers extended commands
+        self.commands['enable'] = ActionEnableCommand(self.resource, self.app, self.subparsers)
+        self.commands['disable'] = ActionDisableCommand(self.resource, self.app, self.subparsers)
         self.commands['execute'] = ActionRunCommand(
             self.resource, self.app, self.subparsers,
             add_help=False)
@@ -150,6 +152,20 @@ class ActionGetCommand(resource.ContentPackResourceGetCommand):
 
 class ActionUpdateCommand(resource.ContentPackResourceUpdateCommand):
     pass
+
+
+class ActionEnableCommand(resource.ContentPackResourceEnableCommand):
+    display_attributes = ['all']
+    attribute_display_order = ['id', 'ref', 'pack', 'name', 'description',
+                               'enabled', 'entry_point', 'runner_type',
+                               'parameters']
+
+
+class ActionDisableCommand(resource.ContentPackResourceDisableCommand):
+    display_attributes = ['all']
+    attribute_display_order = ['id', 'ref', 'pack', 'name', 'description',
+                               'enabled', 'entry_point', 'runner_type',
+                               'parameters']
 
 
 class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):

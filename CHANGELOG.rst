@@ -45,6 +45,8 @@ in development
 * Update ``st2ctl`` to correctly start ``st2web`` even if even if Mistral is no installed.
   (bug-fix, improvement)
 * Add X-Request-ID header to all API calls for easier debugging. (improvement)
+* Add new CLI commands for disabling and enabling content pack resources
+  (``{sensor,action,rule} {enable, disable} <ref or id>``) (feature)
 
 0.12.2 - August 11, 2015.
 -------------------------
