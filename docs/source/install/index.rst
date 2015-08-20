@@ -59,6 +59,7 @@ and WebUI url:
     Vagrant <vagrant>
     Docker <docker>
     Puppet <puppet>
+    Ansible <ansible>
     sources
     config
     webui
