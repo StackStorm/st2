@@ -44,6 +44,7 @@ in development
 * Add ability to specify trace id in ``st2 run`` CLI command. (feature)
 * Update ``st2ctl`` to correctly start ``st2web`` even if even if Mistral is no installed.
   (bug-fix, improvement)
+* Add X-Request-ID header to all API calls for easier debugging. (improvement)
 
 0.12.2 - August 11, 2015.
 -------------------------
