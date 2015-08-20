@@ -258,4 +258,4 @@ If you are sure there is a st2 bug after your research, file an `issue
 <https://github.com/StackStorm/st2/issues/>`_ in st2 repo.
 
 A good bug report should contain all the items listed above. You can also provide steps to
-reproduce the bug on our end. More information you provide us, easier it is for us.
+reproduce the bug on our end. More information you provide us, faster we can resolve your issue!
