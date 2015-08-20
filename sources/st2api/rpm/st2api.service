@@ -1,0 +1,16 @@
+[Unit]
+Description=StackStorm service st2api
+After=network.target
+
+[Service]
+Type=simple
+User=st2
+Group=st2
+ExecStart=/usr/bin/st2api --config-file /etc/st2/st2.conf
+TimeoutSec=60
+PrivateTmp=true
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
