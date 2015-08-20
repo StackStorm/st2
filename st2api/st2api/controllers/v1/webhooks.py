@@ -37,7 +37,7 @@ http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
-TRACE_TAG_HEADER = 'ST2-Trace-Tag'
+TRACE_TAG_HEADER = 'St2-Trace-Tag'
 
 
 class WebhooksController(RestController):
@@ -82,8 +82,13 @@ class WebhooksController(RestController):
             msg = 'Invalid JSON body: %s' % (body)
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
+        headers = self._get_headers_as_dict(pecan.request.headers)
+        # If webhook contains a trace-tag use that else create create a unique trace-tag.
+        trace_context = self._create_trace_context(trace_tag=headers.pop(TRACE_TAG_HEADER, None),
+                                                   hook=hook)
+
         if hook == 'st2' or hook == 'st2/':
-            return self._handle_st2_webhook(body)
+            return self._handle_st2_webhook(body, trace_context=trace_context)
 
         if not self._is_valid_hook(hook):
             self._log_request('Invalid hook.', pecan.request)
@@ -92,23 +97,20 @@ class WebhooksController(RestController):
 
         trigger = self._get_trigger_for_hook(hook)
         payload = {}
-        headers = self._get_headers_as_dict(pecan.request.headers)
-        # If webhook contains a trace-tag use that else create create a unique trace-tag.
-        trace_context = self._create_trace_context(trace_tag=headers.pop(TRACE_TAG_HEADER, None),
-                                                   hook=hook)
+
         payload['headers'] = headers
         payload['body'] = body
         self._trigger_dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
         return body
 
-    def _handle_st2_webhook(self, body):
+    def _handle_st2_webhook(self, body, trace_context):
         trigger = body.get('trigger', None)
         payload = body.get('payload', None)
         if not trigger:
             msg = 'Trigger not specified.'
             return pecan.abort(http_client.BAD_REQUEST, msg)
-        self._trigger_dispatcher.dispatch(trigger, payload=payload)
+        self._trigger_dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
         return body
 

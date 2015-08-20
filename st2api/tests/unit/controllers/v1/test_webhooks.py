@@ -48,9 +48,24 @@ class TestTriggerTypeController(FunctionalTest):
         return_value=True))
     @mock.patch.object(WebhooksController, '_get_trigger_for_hook', mock.MagicMock(
         return_value=DUMMY_TRIGGER))
-    def test_post(self):
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    def test_post(self, dispatch_mock):
         post_resp = self.__do_post('git', WEBHOOK_1, expect_errors=False)
         self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
+        self.assertTrue(dispatch_mock.call_args[1]['trace_context'].trace_tag)
+
+    @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(WebhooksController, '_get_trigger_for_hook', mock.MagicMock(
+        return_value=DUMMY_TRIGGER))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    def test_post_with_trace(self, dispatch_mock):
+        post_resp = self.__do_post('git', WEBHOOK_1, expect_errors=False,
+                                   headers={'St2-Trace-Tag': 'tag1'})
+        self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
+        self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag, 'tag1')
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
@@ -60,12 +75,22 @@ class TestTriggerTypeController(FunctionalTest):
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
-    def test_st2_webhook_success(self):
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    def test_st2_webhook_success(self, dispatch_mock):
         post_resp = self.__do_post('st2', ST2_WEBHOOK)
         self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
+        self.assertTrue(dispatch_mock.call_args[1]['trace_context'].trace_tag)
 
         post_resp = self.__do_post('st2/', ST2_WEBHOOK)
         self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
+
+    @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
+        return_value=True))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    def test_st2_webhook_with_trace(self, dispatch_mock):
+        post_resp = self.__do_post('st2', ST2_WEBHOOK, headers={'St2-Trace-Tag': 'tag1'})
+        self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
+        self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag, 'tag1')
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
@@ -74,5 +99,8 @@ class TestTriggerTypeController(FunctionalTest):
         self.assertTrue('Trigger not specified.' in post_resp)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
-    def __do_post(self, hook, webhook, expect_errors=False):
-        return self.app.post_json('/v1/webhooks/' + hook, webhook, expect_errors=expect_errors)
+    def __do_post(self, hook, webhook, expect_errors=False, headers=None):
+        return self.app.post_json('/v1/webhooks/' + hook,
+                                  params=webhook,
+                                  expect_errors=expect_errors,
+                                  headers=headers)
