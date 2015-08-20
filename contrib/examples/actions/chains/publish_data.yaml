@@ -1,0 +1,50 @@
+---
+vars:
+    domain: "{{ system.domain }}" # `system` references DataStore key-values. Null if not set.
+    api_port: 9101
+    webui_port: 8080
+chain:
+    -
+        name: "get_host"
+        ref: "core.local"
+        params:
+            cmd: hostname | tr -d ' \n'
+        publish:
+            # Publish a variable to shortcut a long expression
+            api_url: "http://{{ get_host.stdout }}:{{ api_port }}"
+            webui_url: "http://{{ get_host.stdout }}:{{ webui_port }}"
+            host: "{{ get_host.stdout }}"
+            # Jinja woodoo used for basic logic
+            fqdn: "{{ get_host.stdout }}{% if domain %}.{{ domain }}{% endif %}"
+            # A complex object can be published
+            paths:
+                api: [ "v1/actions", "v1/triggers"]
+                webui: "/"
+                auth_port: "{{ api_port + 1 }}"
+                # This variable references "system_info_path" variable which is an action parameter
+                system_info: "{{ system_info_path }}"
+
+        on-success: say_the_names
+    -
+        name: say_the_names
+        description: Print out all the interesting stuff. In real life we post to chatops.
+        ref: "core.local"
+        params:
+            cmd: "echo host={{host}}, domain={{domain}}, fqdn={{fqdn}}, api_url={{api_url}}, webui_url={{webui_url}}"
+        on-success: call_api
+    -
+        name: call_api
+        description: Check the API endpoint
+        ref: "core.http"
+        params:
+            method: GET
+            url: "{{ api_url }}/{{paths.api[0]}}"
+        on-success: call_webui
+    -
+        name: call_webui
+        description: Check that WebUI is serving
+        ref: "core.http"
+        params:
+            method: GET
+            url: "{{ webui_url }}/{{paths.webui}}"
+            allow_redirects: True

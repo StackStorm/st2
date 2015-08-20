@@ -1,9 +1,0 @@
-{
-    "name": "greet",
-    "pack": "mistral",
-    "runner_type": "run-local",
-    "description": "Say a greeting x number of times.",
-    "enabled": true,
-    "entry_point":"greet.sh",
-    "parameters": {}
-}

@@ -1,0 +1,15 @@
+---
+action:
+  parameters:
+    cmd: echo "{{trigger.executed_at}}"
+  ref: core.local
+criteria: {}
+description: Sample rule using an Interval Timer.
+enabled: false
+name: sample.with_timer
+pack: "examples"
+trigger:
+  parameters:
+    delta: 5
+    unit: seconds
+  type: core.st2.IntervalTimer

@@ -15,8 +15,15 @@
         - "*"
     repo_url:
       type: "string"
-      default: "https://github.com/StackStorm/st2contrib.git"
+      default: "StackStorm/st2contrib"
+    branch:
+      type: "string"
+      default: "master"
+    subtree:
+      type: "boolean"
+      description: "Set to true if packs are located in a packs/ directory and not in the repository root"
+      default: false
     register:
       type: "string"
-      default: "actions"
-      description: "Possible options are all, sensors, actions, rules."
+      default: "actions,aliases,sensors"
+      description: "Possible options are all, sensors, actions, rules, aliases."

@@ -1,0 +1,16 @@
+version: '2.0'
+
+examples.mistral-repeat:
+    description: >
+        A sample workflow that demonstrates how to repeat a task
+        x number of times with the same inputs.
+    type: direct
+    input:
+        - cmd
+        - count
+    tasks:
+        repeat:
+            with-items: i in <% range(0, $.count).list() %>
+            action: core.local cmd=<% $.cmd %>
+            publish:
+                result: <% $.repeat.stdout %>

@@ -1,0 +1,25 @@
+---
+  name: "rm"
+  runner_type: "remote-shell-cmd"
+  description: "Remove file(s)"
+  enabled: true
+  entry_point: ""
+  parameters:
+      target:
+          type: "string"
+          description: "List of files/directories to to be removed"
+          required: true
+      recursive:
+          type: "boolean"
+          description: "Boolean flag for recursive rm"
+          default: false
+      force:
+          type: "boolean"
+          description: "Boolean flag for force"
+          default: false
+      cmd:
+          immutable: true
+          default: "rm {{args}} {{target}}"
+      args:
+          description: "Command line arguments passed to rm"
+          default: "-v{% if recursive == true %} -r{% endif %}{% if force == true %} -f{% endif %}"

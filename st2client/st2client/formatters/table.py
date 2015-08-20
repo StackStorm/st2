@@ -29,7 +29,7 @@ LOG = logging.getLogger(__name__)
 
 # Minimum width for the ID to make sure the ID column doesn't wrap across
 # multiple lines
-MIN_ID_COL_WIDTH = 24
+MIN_ID_COL_WIDTH = 26
 DEFAULT_ATTRIBUTE_DISPLAY_ORDER = ['id', 'name', 'pack', 'description']
 
 
@@ -47,10 +47,13 @@ class MultiColumnTable(formatters.Formatter):
             lines, cols = get_terminal_size()
 
             if attributes[0] == 'id':
+                # consume iterator and save as entries so collection is accessible later.
+                entries = [e for e in entries]
                 # first column contains id, make sure it's not broken up
-                cols = (cols - MIN_ID_COL_WIDTH)
+                first_col_width = cls._get_required_column_width(values=[e.id for e in entries],
+                                                                 minimum_width=MIN_ID_COL_WIDTH)
+                cols = (cols - first_col_width)
                 col_width = int(math.floor((cols / len(attributes))))
-                first_col_width = MIN_ID_COL_WIDTH
             else:
                 col_width = int(math.floor((cols / len(attributes))))
                 first_col_width = col_width
@@ -100,9 +103,9 @@ class MultiColumnTable(formatters.Formatter):
                     values.append(value)
                 else:
                     value = cls._get_simple_field_value(entry, field_name)
-                    transfor_function = attribute_transform_functions.get(field_name,
+                    transform_function = attribute_transform_functions.get(field_name,
                                                                           lambda value: value)
-                    value = transfor_function(value=value)
+                    value = transform_function(value=value)
                     value = strutil.unescape(value)
                     values.append(value)
             table.add_row(values)
@@ -114,7 +117,6 @@ class MultiColumnTable(formatters.Formatter):
         Format a value for a simple field.
         """
         value = getattr(entry, field_name, '')
-
         if isinstance(value, (list, tuple)):
             if len(value) == 0:
                 value = ''
@@ -143,6 +145,11 @@ class MultiColumnTable(formatters.Formatter):
         friendly_name = name.replace('_', ' ').replace('.', ' ').capitalize()
         return friendly_name
 
+    @staticmethod
+    def _get_required_column_width(values, minimum_width=0):
+        max_width = len(max(values, key=len)) if values else minimum_width
+        return max_width if max_width > minimum_width else minimum_width
+
 
 class PropertyValueTable(formatters.Formatter):
 
@@ -168,20 +175,35 @@ class PropertyValueTable(formatters.Formatter):
         table.padding_width = 1
         table.align = 'l'
         table.valign = 't'
+
         for attribute in attributes:
-            value = cls._get_attribute_value(subject, attribute)
+            if '.' in attribute:
+                field_names = attribute.split('.')
+                value = cls._get_attribute_value(subject, field_names.pop(0))
+                for name in field_names:
+                    value = cls._get_attribute_value(value, name)
+                    if type(value) is str:
+                        break
+            else:
+                value = cls._get_attribute_value(subject, attribute)
+
+            transform_function = attribute_transform_functions.get(attribute,
+                                                                   lambda value: value)
+            value = transform_function(value=value)
+
             if type(value) is dict or type(value) is list:
                 value = json.dumps(value, indent=4)
+
             value = strutil.unescape(value)
-            transfor_function = attribute_transform_functions.get(attribute,
-                                                                  lambda value: value)
-            value = transfor_function(value=value)
             table.add_row([attribute, value])
         return table
 
     @staticmethod
     def _get_attribute_value(subject, attribute):
-        r_val = getattr(subject, attribute, None)
+        if isinstance(subject, dict):
+            r_val = subject.get(attribute, None)
+        else:
+            r_val = getattr(subject, attribute, None)
         if r_val is None:
             return ''
         if isinstance(r_val, list) or isinstance(r_val, dict):

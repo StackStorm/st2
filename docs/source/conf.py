@@ -14,11 +14,13 @@
 
 import sys
 import os
+import itertools
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../st2common'))
+sys.path.insert(0, os.path.abspath('./_themes'))
 
 from st2common import __version__
 
@@ -34,6 +36,9 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
     'sphinx.ext.extlinks',
+
+    # Add theme as extension so sitemap.xml is generated
+    'sphinx_rtd_theme'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -56,10 +61,25 @@ copyright = u'2014, StackStorm Inc'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-# The short X.Y version.
-version = '0.6'
+# the __version__ is 0.8.1 or 0.9dev
+# the version is short 0.8 version, to refer docs.
+version = '.'.join(__version__.split('.')[:2])
 # The full version, including alpha/beta/rc tags.
 release = __version__
+
+
+def previous_version(ver):
+    # XXX: on incrementing major version, minor version counter is lost!
+    major, minor = ver.split('.')
+    minor = int("".join(itertools.takewhile(str.isdigit, minor)))
+    prev = minor - 1
+    # Note(dzimine): work around CI/CD bug on v 0.10
+    prev = 9 if prev == 10 else prev
+    return ".".join([major, str(prev)])
+
+# The short versions of two previous releases, e.g. 0.8 and 0.7
+version_minus_1 = previous_version(version)
+version_minus_2 = previous_version(version_minus_1)
 
 # extlink configurator sphinx.ext.extlinks
 extlinks = {
@@ -67,7 +87,10 @@ extlinks = {
     'github_mistral': ('https://github.com/StackStorm/mistral/blob/master/%s', None),
     'github_contrib':
         ('https://github.com/StackStorm/st2contrib/blob/master/%s', None),
-    'github_devenv': ('https://github.com/StackStorm/devenv/blob/master/%s', None)
+    'github_devenv': ('https://github.com/StackStorm/devenv/blob/master/%s', None),
+    'github_st2web': ('https://github.com/StackStorm/st2web/blob/master/%s', None),
+    'ops_latest':
+        ('https://downloads.stackstorm.net/releases/st2/' + release + '/%s/', None)
 }
 
 # Inserted at the bottom of all rst files.
@@ -75,6 +98,7 @@ extlinks = {
 rst_epilog = """
 .. |st2| replace:: StackStorm
 .. _st2contrib: http://www.github.com/stackstorm/st2contrib
+.. _st2incubator: http://www.github.com/stackstorm/st2incubator
 """
 
 # Show or hide TODOs. See http://sphinx-doc.org/ext/todo.html
@@ -96,9 +120,11 @@ todo_include_todos = True
 exclude_patterns = [
     '**/._*',
     'engage.rst',  # included file
-    'install/on_complete.rst',  # included file
-    'todo.rst',  # included file
-    'authentication.rst'  # not included right now
+    'install/on_complete.rst', # included file
+    'auth_usage.rst',
+    'todo.rst',  # included file,
+    '_includes/*',  # includes files
+
 ]
 
 # The reST default role (used for this markup: `text`) to use for all
@@ -136,7 +162,9 @@ html_theme = "sphinx_rtd_theme"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+html_theme_options = {
+    'base_url': 'http://docs.stackstorm.com/'
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -156,7 +184,7 @@ html_theme_path = ["_themes", ]
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-# html_favicon = None
+# html_favicon = "favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -221,10 +249,11 @@ html_context = {
     'source_suffix': source_suffix,
     'versions': [
         ('latest', 'http://docs.stackstorm.com/latest'),
-        ('0.6.0', 'http://docs.stackstorm.com/0.6.0'),
-        ('0.5.1', 'http://docs.stackstorm.com/0.5.1'),
+        (version, 'http://docs.stackstorm.com/latest'),
+        (version_minus_1, 'http://docs.stackstorm.com/%s' % version_minus_1),
+        (version_minus_2, 'http://docs.stackstorm.com/%s' % version_minus_2),
     ],
-    'current_version': release
+    'current_version': version
 }
 
 

@@ -1,147 +1,129 @@
 Mistral
 =======
-`Mistral <https://wiki.openstack.org/wiki/Mistral>`_ is an OpenStack project that manages and executes workflows as a service. Mistral is installed as a separate service named "mistral" along with |st2|. A Mistral workflow can be defined as an |st2| action in a Mistral workbook using the `DSL v2 <https://wiki.openstack.org/wiki/Mistral/DSLv2>`_. On action execution, |st2| writes the workbook to Mistral and executes the workflow in the workbook. The workflow can invoke other |st2| actions as subtasks. There're custom actions in Mistral responsible for handling calls and context for |st2|. Subtasks in the workflow that are |st2| actions are tracked under the parent workflow in |st2|. On completion of the workflow, Mistral will communicate the status of the workflow execution back to |st2|.
-
-Custom Mistral Actions
-++++++++++++++++++++++
-|st2| introduces two custom actions in Mistral: **st2.action** and **st2.callback**. These custom actions are used for a unit of work or subtask in a workflow. **st2.action** should be used to schedule a st2 action and **st2.callback** should be used to update the status of the parent action execution in |st2| on workflow completion in Mistral.
+`Mistral <https://wiki.openstack.org/wiki/Mistral>`_ is an OpenStack project that manages and executes workflows as a service. Mistral is installed as a separate service named "mistral" along with |st2|. A Mistral workflow can be defined as a |st2| action in a Mistral workbook using the `v2 DSL <https://wiki.openstack.org/wiki/Mistral/DSLv2>`_. Both workbook and workflow definitions are supported. On action execution, |st2| writes the definition to Mistral and executes the workflow. Workflow can invoke other |st2| actions natively as subtasks. |st2| handles the translations and calls transparently in Mistral and actively polls Mistral for execution results.  |st2| actions in the workflow can be traced back to the original parent action that invoked the workflow.
 
 Basic Workflow
 ++++++++++++++
-Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under /usr/share/doc/st2/examples if |st2| is already installed. The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. A st2.action takes two input arguments: ref (or name) of the |st2| action and a list of input parameters for the |st2| action. In this case, the run-cmd task is calling **core.local** and passing the cmd as input. On success, the task **callback-on-success** returns the stdout of the shell to |st2|. On error, the task **callback-on-error** notifies |st2| an error has occurred. Let's save this as mistral-basic.yaml at /opt/stackstorm/packs/examples/actions/ where |st2| is installed.
+Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under :github_st2:`/usr/share/doc/st2/examples </contrib/examples>` if |st2| is already installed (and you can :ref:`deploy examples <start-deploy-examples>`).
+The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. A task can reference any registered |st2| action directly. In this example, the run-cmd task is calling **core.local** and passing the cmd as input. **core.local** is an action that comes installed with |st2|. When the workflow is invoked, |st2| will translate the workflow definition appropriately before sending it to Mistral. Let's save this as mistral-basic.yaml at **/opt/stackstorm/packs/examples/actions/workflows** where |st2| is installed.
+
+.. literalinclude:: /../../contrib/examples/actions/workflows/mistral-basic.yaml
+
+The following is the corresponding |st2| action metadata for example above. The |st2| pack for this workflow action is named "examples". Please note that the workflow is named fully qualified as "<pack>.<action>" in the definition above. The |st2| action runner is "mistral-v2". The entry point for the |st2| action refers to the YAML file of the workflow definition. Let's save this metadata as mistral-basic.yaml at /opt/stackstorm/packs/examples/actions/.
 
 .. literalinclude:: /../../contrib/examples/actions/mistral-basic.yaml
 
-The following is the corresponding |st2| action metadata for example above. The |st2| pack for this workflow action is named "examples". Please note that the workbook is named fully qualified as "<pack>.<action>" in the workbook definition above. The |st2| action runner is "mistral-v2". The entry point for the |st2| action refers to the YAML file of the workbook definition. Under the parameters section, we added an immutable parameter that specifies which workflow in the workbook to execute and a second parameter that takes the command to execute. Let's save this metadata as mistral-basic.json at /opt/stackstorm/packs/examples/actions/.
+The following table list optional parameters that can be defined in the workflow action. In the example, these optional parameters are set to immutable. It is good practice to set them to immutable even if they are empty since these are mistral specific parameters for workflow author.
 
-.. literalinclude:: /../../contrib/examples/actions/mistral-basic.json
++------------+--------------------------------------------------------+
+| options    | description                                            |
++============+========================================================+
+| workflow   | If definition is a workbook containing many workflows, |
+|            | this specifics the main workflow to execute.           |
++------------+--------------------------------------------------------+
+| task       | If the type of workflow is "reverse" , this specifies  |
+|            | the task to invoke.                                    |
++------------+--------------------------------------------------------+
+| context    | A dictionary containing additional workflow start up   |
+|            | parameters.                                            |
++------------+--------------------------------------------------------+
 
-Next, run the following |st2| command to create this workflow action. This will register the workflow as examples.mistral-basic in |st2|. ::
+Next, run ``st2 action create /opt/stackstorm/packs/examples/actions/mistral-basic.yaml`` to create this workflow action. This will register the workflow as examples.mistral-basic in |st2|. Then to execute the workflow, run ``st2 run examples.mistral-basic cmd=date -a`` where -a tells the command to return and not wait for the workflow to complete. If the workflow completed successfully, both the workflow **examples.mistral-basic** and the action **core.local** would have a **succeeded** status in the |st2| action execution list. By default, ``st2 execution list`` only returns top level executions. This means subtasks are not displayed.
 
-    st2 action create /opt/stackstorm/packs/examples/actions/mistral-basic.json
++--------------------------+--------------+--------------+-----------+-----------------+---------------+
+| id                       | action.ref   | context.user | status    | start_timestamp | end_timestamp |
++--------------------------+--------------+--------------+-----------+-----------------+---------------+
+| 54ee54c61e2e24152b769a47 | examples     | stanley      | succeeded | Wed, 25 Feb     | Wed, 25 Feb   |
+|                          | .mistral-    |              |           | 2015 23:03:34   | 2015 23:03:34 |
+|                          | basic        |              |           | UTC             | UTC           |
++--------------------------+--------------+--------------+-----------+-----------------+---------------+
 
-To execute the workflow, run the following command where -a tells the command to return and not wait for the workflow to complete. ::
+To display subtasks, run ``st2 execution get <execution-id> --tasks``.
 
-    st2 run examples.mistral-basic cmd=date -a
++--------------------------+------------+--------------+-----------+------------------------------+------------------------------+
+| id                       | action.ref | context.user | status    | start_timestamp              | end_timestamp                |
++--------------------------+------------+--------------+-----------+------------------------------+------------------------------+
+| 54ee54c91e2e24152b769a49 | core.local | stanley      | succeeded | Wed, 25 Feb 2015 23:03:37    | Wed, 25 Feb 2015 23:03:37    |
+|                          |            |              |           | UTC                          | UTC                          |
++--------------------------+------------+--------------+-----------+------------------------------+------------------------------+
 
-If the workflow completed successfully, both the workflow **examples.mistral-basic** and the action **core.http** would have a **succeeded** status in the |st2| action execution list. ::
+Publishing variables in mistral workflows
++++++++++++++++++++++++++++++++++++++++++
 
-    +--------------------------+------------------------+--------------+-----------+-----------------------------+
-    | id                       | action                 | context.user | status    | start_timestamp             |
-    +--------------------------+------------------------+--------------+-----------+-----------------------------+
-    | 545169bf9c99383e585e2934 | examples.mistral-basic |              | succeeded | 2014-11-03T10:00:11.808000Z |
-    | 545169c09c99383e585e2935 | core.local             |              | succeeded | 2014-11-03T10:00:12.084000Z |
-    +--------------------------+------------------------+--------------+-----------+-----------------------------+
+A mistral task can publish results from a task as variables that can be consumed in other tasks.
+
+A simple examples is show below:
+
+.. sourcecode:: YAML
+
+    tasks:
+        get_hostname:
+            action: core.local
+            input:
+                cmd: "hostname"
+            publish:
+                hostname: <% $.get_hostname.stdout %>
+
+In the above example, get_hostname is a core.local action which runs the command hostname.
+core.local action produces an output consisting of fields ``stdout``, ``stderr``, ``exit_code`` etc.
+We just want to publish the variable ``stdout`` from it so rest of tasks can consume.
+
+Another example is shown below:
+
+.. sourcecode:: YAML
+
+    tasks:
+        create_new_node:
+            action: rackspace.create_vm
+            input:
+              name: <% $.hostname %>
+              flavor_id: <% $.vm_size_id %>
+              image_id: <% $.vm_image_id %>
+              key_material: <% $.ssh_pub_key %>
+              metadata:
+                asg: <% $.asg %>
+            publish:
+              ipv4_address: '<% $.create_new_node.result.public_ips[1] %>'
+              ipv6_address: '<% $.create_new_node.result.public_ips[0] %>'
+
+In the above example, action rackspace.create_vm produces a results object. We just want to publish
+the IP addresses from ``public_ips`` list field in results object.
+
+Such published variables are accessible as input parameters to other tasks in the workflow. An
+example of using ``ipv4_address`` from the above example in another task is shown below:
+
+.. sourcecode:: YAML
+
+    tasks:
+        # ... <snap>
+
+        setup_ipv4_dns:
+            action: rackspace.create_dns_record
+            wait-before: 1 # delay, in seconds
+            input:
+              name: '<% $.hostname %>.<% $.asg %>.<% $.domain %>'
+              zone_id: <% $.dns_zone_id %>
+              type: 'A'
+              data: <% $.ipv4_address %>
+
+        # .... </snap>
 
 Stitching a more Complex Workflow
 +++++++++++++++++++++++++++++++++
-Let's say we need to upgrade and reboot all the members of a MongoDB replica set in production. In this mockup, the workflow orchestrates a rolling upgrade. A member node is upgraded first and then becomes the primary before upgrading the remaining nodes of the replica set. Part of this example here references the MongoDB `tutorial <http://docs.mongodb.org/manual/tutorial/force-member-to-be-primary/>`_ on forcing a member to be a primary in a replica set. The workflow takes two input arguments: primary server and the member servers. Then the workflow executes the following tasks. If on any error, the workflow runs the task **callback-on-error** and exit.
+The following is a mock up of a more complex workflow. In this mock up running simple printf and sleep commands, the workflow demonstrates nested workflows, fork, and join.
 
-#. Checks the status of the replica set.
-#. Select a new primary from the list of members and outputs the candidate and the other secondary.
-#. Upgrade the candidate node.
-#. Freeze the secondary node for x seconds. During this duration, the secondary node will not attempt to become the primary.
-#. Step down the current primary node for x seconds so it is not eligible.
-#. Wait for the candidate node to become primary.
-#. Upgrade the remaining nodes.
+.. literalinclude:: /../../contrib/examples/actions/workflows/mistral-workbook-complex.yaml
 
-::
+Since there are multiple workflows defined in this workbook, workflow author has to specify which workflow to execute in the metadata as shown in the workflow parameters below.
 
-    name: 'mongdb.rolling-upgrade'
-    version: '2.0'
-    workflows:
-        main:
-            type: direct
-            input:
-                - primary
-                - members
-                - duration
-            tasks:
-                replica-set-check-status:
-                    action: st2.action
-                    input:
-                        ref: mongodb.rs-check-status
-                        parameters:
-                            primary: $.primary
-                    on-error:
-                        - callback-on-error
-                    on-success:
-                        - elect-primary
-                elect-primary:
-                    action: st2.action
-                    input:
-                        ref: mongodb.elect-primary
-                        parameters:
-                            members: $.members
-                    publish:
-                        candidate: $.candidate
-                        secondary: $.secondary
-                    on-error:
-                        - callback-on-error
-                    on-success:
-                        - update-candidate
-                update-candidate:
-                    action: st2.action
-                    input:
-                        ref: mongodb.run-update-xyz
-                        parameters:
-                            node: $.candidate
-                    on-error:
-                        - callback-on-error
-                    on-success:
-                        - freeze-secondary
-                freeze-secondary:
-                    action: st2.action
-                    input:
-                        ref: mongodb.freeze
-                        parameters:
-                            node: $.secondary
-                            duration: $.duration
-                    on-error:
-                        - callback-on-error
-                    on-success:
-                        - step-down-primary
-                step-down-primary:
-                    action: st2.action
-                    input:
-                        ref: mongodb.step-down
-                        parameters:
-                            primary: $.primary
-                            duration: $.duration
-                    policies:
-                        wait-after: $.duration
-                    on-error:
-                        - callback-on-error
-                    on-success:
-                        - update-primary
-                update-primary:
-                    action: st2.action
-                    input:
-                        ref: mongodb.run-update-xyz
-                        parameters:
-                            node: $.primary
-                    on-error:
-                        - callback-on-error
-                    on-success:
-                        - update-secondary
-                update-secondary:
-                    action: st2.action
-                    input:
-                        ref: mongodb.run-update-xyz
-                        parameters:
-                            node: $.secondary
-                    on-error:
-                        - callback-on-error
-                    on-success:
-                        - callback-on-success
-                callback-on-error:
-                    action: st2.callback
-                    input:
-                        state: "ERROR"
-                        result: "Unexpected failure."
-                callback-on-success:
-                    action: st2.callback
-                    input:
-                        state: "SUCCESS"
-                        result: "Replica set upgraded. Promoted {$.candidate} to primary."
+.. literalinclude:: /../../contrib/examples/actions/mistral-workbook-complex.yaml
 
+To test out this workflow, save the metadata file to /opt/stackstorm/packs/examples/actions/ and the workflow file to /opt/stackstorm/packs/examples/actions/workflows. Run ``st2 action create /opt/stackstorm/packs/examples/actions/mistral-workbook-complex.yaml`` to create the action and run ``st2 run examples.mistral-workbook-complex vm_name="vmtest1" -a`` to test.
+
+More Examples
++++++++++++++++++++
+There are more workflow examples under :github_st2:`/usr/share/doc/st2/examples </contrib/examples/actions/workflows/>` such as error handling, repeat, and retries.
+
+Check out this step-by-step tutorial on building a workflow in |st2| http://stackstorm.com/2015/07/08/automating-with-mistral-workflow/
+
+And more details on Mistral workflow syntax on https://wiki.openstack.org/wiki/Mistral/DSLv2

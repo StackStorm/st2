@@ -1,6 +1,6 @@
 ---
   name: "restart_component"
-  runner_type: "run-local"
+  runner_type: "local-shell-cmd"
   description: "Action that restarts st2 service."
   enabled: true
   entry_point: ""
@@ -15,6 +15,4 @@
       type: "string"
       required: true
     kwarg_op:
-      immutable: true
-    dir:
       immutable: true

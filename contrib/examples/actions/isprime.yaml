@@ -1,0 +1,9 @@
+---
+description: Check if an integer is prime.
+enabled: true
+entry_point: pythonactions/isprime.py
+name: isprime
+parameters:
+  value:
+    type: integer
+runner_type: "python-script"

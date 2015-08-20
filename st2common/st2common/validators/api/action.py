@@ -13,15 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
-from oslo.config import cfg
 import six
 
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
 from st2common.util.action_db import get_runnertype_by_name
+from st2common.content.utils import get_packs_base_paths
+from st2common.content.utils import check_pack_content_directory_exists
 
 
 LOG = logging.getLogger(__name__)
@@ -32,9 +31,11 @@ def validate_action(action_api):
 
     # Check if pack is valid.
     if not _is_valid_pack(action_api.pack):
-        msg = 'Content pack %s does not exist in %s.' % (
-            action_api.pack,
-            cfg.CONF.content.packs_base_path)
+        packs_base_paths = get_packs_base_paths()
+        packs_base_paths = ','.join(packs_base_paths)
+        msg = ('Content pack "%s" is not found or doesn\'t contain actions directory. '
+               'Searched in: %s' %
+               (action_api.pack, packs_base_paths))
         raise ValueValidationException(msg)
 
     # Check if parameters defined are valid.
@@ -53,8 +54,7 @@ def _get_runner_model(action_api):
 
 
 def _is_valid_pack(pack):
-    base_path = cfg.CONF.content.packs_base_path
-    return os.path.exists(os.path.join(base_path, pack, 'actions'))
+    return check_pack_content_directory_exists(pack=pack, content_type='actions')
 
 
 def _validate_parameters(action_params=None, runner_params=None):

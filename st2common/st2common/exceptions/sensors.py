@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.exceptions import StackStormBaseException
 from st2common.exceptions import StackStormPluginException
 
 
@@ -21,4 +22,16 @@ class SensorPluginException(StackStormPluginException):
 
 
 class TriggerTypeRegistrationException(SensorPluginException):
+    pass
+
+
+class SensorNotFoundException(StackStormBaseException):
+    pass
+
+
+class SensorPartitionerNotSupportedException(StackStormBaseException):
+    pass
+
+
+class SensorPartitionMapMissingException(StackStormBaseException):
     pass

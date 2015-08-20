@@ -14,8 +14,8 @@
 # limitations under the License.
 
 from st2common import log as logging
-from st2common.persistence.reactor import Rule
-from st2common.services.triggers import get_trigger_db
+from st2common.persistence.rule import Rule
+from st2common.services.triggers import get_trigger_db_by_ref
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.matcher import RulesMatcher
 
@@ -34,18 +34,26 @@ class RulesEngine(object):
         self.enforce_rules(enforcers)
 
     def get_matching_rules_for_trigger(self, trigger_instance):
-        trigger = get_trigger_db(trigger=trigger_instance.trigger)
+        trigger = trigger_instance.trigger
+        trigger = get_trigger_db_by_ref(trigger_instance.trigger)
         rules = Rule.query(trigger=trigger_instance.trigger, enabled=True)
-        LOG.info('Found %d rules defined for trigger %s', len(rules), trigger['name'])
+        LOG.info('Found %d rules defined for trigger %s (type=%s)', len(rules), trigger['name'],
+                 trigger['type'])
         matcher = RulesMatcher(trigger_instance=trigger_instance,
                                trigger=trigger, rules=rules)
 
         matching_rules = matcher.get_matching_rules()
-        LOG.info('Matched %s rule(s) for trigger_instance %s.', len(matching_rules),
-                 trigger['name'])
+        LOG.info('Matched %s rule(s) for trigger_instance %s (type=%s)', len(matching_rules),
+                 trigger['name'], trigger['type'])
         return matching_rules
 
     def create_rule_enforcers(self, trigger_instance, matching_rules):
+        """
+        Creates a RuleEnforcer matching to each rule.
+
+        This method is trigger_instance specific therefore if creation of 1 RuleEnforcer
+        fails it is likely that all wil be broken.
+        """
         enforcers = []
         for matching_rule in matching_rules:
             enforcers.append(RuleEnforcer(trigger_instance, matching_rule))
@@ -55,5 +63,5 @@ class RulesEngine(object):
         for enforcer in enforcers:
             try:
                 enforcer.enforce()  # Should this happen in an eventlet pool?
-            except Exception as e:
-                LOG.error('Exception enforcing rule %s: %s', enforcer.rule, e, exc_info=True)
+            except:
+                LOG.exception('Exception enforcing rule %s.', enforcer.rule)

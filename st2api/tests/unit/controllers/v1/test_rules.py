@@ -15,6 +15,9 @@
 
 import mock
 import six
+
+from st2common.constants.pack import DEFAULT_PACK_NAME
+from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
@@ -22,10 +25,10 @@ from tests import FunctionalTest
 http_client = six.moves.http_client
 
 TEST_FIXTURES = {
-    'runners': ['testrunner1.json'],
-    'actions': ['action1.json'],
-    'triggers': ['trigger1.json'],
-    'triggertypes': ['triggertype1.json']
+    'runners': ['testrunner1.yaml'],
+    'actions': ['action1.yaml'],
+    'triggers': ['trigger1.yaml'],
+    'triggertypes': ['triggertype1.yaml']
 }
 
 FIXTURES_PACK = 'generic'
@@ -41,14 +44,20 @@ class TestRuleController(FunctionalTest):
         super(TestRuleController, cls).setUpClass()
         models = TestRuleController.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
-        TestRuleController.RUNNER_TYPE = models['runners']['testrunner1.json']
-        TestRuleController.ACTION = models['actions']['action1.json']
-        TestRuleController.TRIGGER = models['triggers']['trigger1.json']
+        TestRuleController.RUNNER_TYPE = models['runners']['testrunner1.yaml']
+        TestRuleController.ACTION = models['actions']['action1.yaml']
+        TestRuleController.TRIGGER = models['triggers']['trigger1.yaml']
 
         # Don't load rule into DB as that is what is being tested.
+        file_name = 'rule1.yaml'
         TestRuleController.RULE_1 = TestRuleController.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
-            fixtures_dict={'rules': ['rule1.json']})['rules']['rule1.json']
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+        file_name = 'cron_timer_rule_invalid_parameters.yaml'
+        TestRuleController.RULE_2 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
     @classmethod
     def tearDownClass(cls):
@@ -60,12 +69,23 @@ class TestRuleController(FunctionalTest):
         resp = self.app.get('/v1/rules')
         self.assertEqual(resp.status_int, http_client.OK)
 
-    def test_get_one(self):
+    def test_get_one_by_id(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)
         rule_id = self.__get_rule_id(post_resp)
         get_resp = self.__do_get_one(rule_id)
         self.assertEqual(get_resp.status_int, http_client.OK)
         self.assertEqual(self.__get_rule_id(get_resp), rule_id)
+        self.__do_delete(rule_id)
+
+    def test_get_one_by_ref(self):
+        post_resp = self.__do_post(TestRuleController.RULE_1)
+        rule_name = post_resp.json['name']
+        rule_pack = post_resp.json['pack']
+        ref = ResourceReference.to_string_reference(name=rule_name, pack=rule_pack)
+        rule_id = post_resp.json['id']
+        get_resp = self.__do_get_one(ref)
+        self.assertEqual(get_resp.json['name'], rule_name)
+        self.assertEqual(get_resp.status_int, http_client.OK)
         self.__do_delete(rule_id)
 
     def test_get_one_fail(self):
@@ -79,16 +99,36 @@ class TestRuleController(FunctionalTest):
 
     def test_post_duplicate(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)
+        org_id = self.__get_rule_id(post_resp)
         self.assertEqual(post_resp.status_int, http_client.CREATED)
         post_resp_2 = self.__do_post(TestRuleController.RULE_1)
         self.assertEqual(post_resp_2.status_int, http_client.CONFLICT)
-        self.__do_delete(self.__get_rule_id(post_resp))
+        self.assertEqual(post_resp_2.json['conflict-id'], org_id)
+        self.__do_delete(org_id)
+
+    def test_post_trigger_parameter_schema_validation_fails(self):
+        post_resp = self.__do_post(TestRuleController.RULE_2)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+
+        expected_msg = 'Additional properties are not allowed (u\'minutex\' was unexpected)'
+        self.assertTrue(expected_msg in post_resp.body)
 
     def test_put(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)
         update_input = post_resp.json
         update_input['enabled'] = not update_input['enabled']
         put_resp = self.__do_put(self.__get_rule_id(post_resp), update_input)
+        self.assertEqual(put_resp.status_int, http_client.OK)
+        self.__do_delete(self.__get_rule_id(put_resp))
+
+    def test_put_no_pack_info(self):
+        post_resp = self.__do_post(TestRuleController.RULE_1)
+        test_rule = post_resp.json
+        if 'pack' in test_rule:
+            del test_rule['pack']
+        self.assertTrue('pack' not in test_rule)
+        put_resp = self.__do_put(self.__get_rule_id(post_resp), test_rule)
+        self.assertEqual(put_resp.json['pack'], DEFAULT_PACK_NAME)
         self.assertEqual(put_resp.status_int, http_client.OK)
         self.__do_delete(self.__get_rule_id(put_resp))
 
@@ -104,6 +144,15 @@ class TestRuleController(FunctionalTest):
         post_resp = self.__do_post(TestRuleController.RULE_1)
         del_resp = self.__do_delete(self.__get_rule_id(post_resp))
         self.assertEqual(del_resp.status_int, http_client.NO_CONTENT)
+
+    def test_rule_with_tags(self):
+        post_resp = self.__do_post(TestRuleController.RULE_1)
+        rule_id = self.__get_rule_id(post_resp)
+        get_resp = self.__do_get_one(rule_id)
+        self.assertEqual(get_resp.status_int, http_client.OK)
+        self.assertEqual(self.__get_rule_id(get_resp), rule_id)
+        self.assertEqual(get_resp.json['tags'], TestRuleController.RULE_1['tags'])
+        self.__do_delete(rule_id)
 
     @staticmethod
     def __get_rule_id(resp):

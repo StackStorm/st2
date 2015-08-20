@@ -1,63 +1,64 @@
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 import sys
 
-from oslo.config import cfg
+import eventlet
 
 from st2common import log as logging
-from st2common.models.db import db_setup
-from st2common.models.db import db_teardown
-from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
+from st2common.service_setup import setup as common_setup
+from st2common.service_setup import teardown as common_teardown
+from st2common.exceptions.sensors import SensorNotFoundException
 from st2reactor.sensor import config
-from st2common.persistence.reactor import SensorType
 from st2reactor.container.manager import SensorContainerManager
+from st2reactor.container.partitioner_lookup import get_sensors_partitioner
+
+eventlet.monkey_patch(
+    os=True,
+    select=True,
+    socket=True,
+    thread=False if '--use-debugger' in sys.argv else True,
+    time=True)
+
 
 LOG = logging.getLogger('st2reactor.bin.sensors_manager')
 
 
 def _setup():
-    # Set up logger which logs everything which happens during and before config
-    # parsing to sys.stdout
-    logging.setup(DEFAULT_LOGGING_CONF_PATH)
-
-    # 1. parse config args
-    config.parse_args()
-
-    # 2. setup logging.
-    logging.setup(cfg.CONF.sensorcontainer.logging)
-
-    # 3. all other setup which requires config to be parsed and logging to
-    # be correctly setup.
-    username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
-    password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-             username=username, password=password)
+    common_setup(service='sensorcontainer', config=config, setup_db=True,
+                 register_mq_exchanges=True, register_signal_handlers=True)
 
 
 def _teardown():
-    db_teardown()
-
-
-def _get_all_sensors():
-    sensors = SensorType.get_all()
-    LOG.info('Found %d sensors.', len(sensors))
-    return sensors
+    common_teardown()
 
 
 def main():
     try:
         _setup()
-        container_manager = SensorContainerManager()
-        sensors = _get_all_sensors()
-
-        if cfg.CONF.sensor_name:
-            # Only run a single sensor
-            sensors = [sensor for sensor in sensors if
-                       sensor.name == cfg.CONF.sensor_name]
-        return container_manager.run_sensors(sensors=sensors)
+        sensors_partitioner = get_sensors_partitioner()
+        container_manager = SensorContainerManager(sensors_partitioner=sensors_partitioner)
+        return container_manager.run_sensors()
     except SystemExit as exit_code:
-        sys.exit(exit_code)
+        return exit_code
+    except SensorNotFoundException as e:
+        LOG.exception(e)
+        return 1
     except:
         LOG.exception('(PID:%s) SensorContainer quit due to exception.', os.getpid())
-        return 1
+        return 2
     finally:
         _teardown()

@@ -44,6 +44,8 @@ class TestHttps(base.BaseCLITestCase):
 
         # Setup environment.
         os.environ['ST2_BASE_URL'] = 'http://localhost'
+        os.environ['ST2_AUTH_URL'] = 'https://localhost:9100'
+
         if 'ST2_CACERT' in os.environ:
             del os.environ['ST2_CACERT']
 

@@ -1,0 +1,28 @@
+---
+  name: "check_processes"
+  runner_type: "remote-shell-script"
+  description: "Check Interesting Processes"
+  enabled: true
+  entry_point: "checks/check_processes.py"
+  parameters:
+    search:
+      enum:
+        - "state"
+        - "name"
+        - "pid"
+      description: "Which field to search: state, name, or PID"
+      default: "name"
+      position: 0
+    criteria:
+      type: "string"
+      description: "search criteria.  Can be a regular expression."
+      position: 1
+    args:
+      type: "string"
+      description: "Additional arguments"
+      position: 2
+    kwarg_op:
+      immutable: true
+    sudo:
+      immutable: true
+

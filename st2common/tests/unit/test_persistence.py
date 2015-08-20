@@ -17,28 +17,10 @@ import uuid
 import datetime
 
 import bson
-import mongoengine
 
 from st2tests import DbTestCase
-from st2common.util import isotime
-from st2common.models import db
-from st2common import persistence
-from st2common.models.db import stormbase
-
-
-class FakeModelDB(stormbase.StormBaseDB):
-    context = stormbase.EscapedDictField()
-    index = mongoengine.IntField(min_value=0)
-    category = mongoengine.StringField()
-    timestamp = mongoengine.DateTimeField()
-
-
-class FakeModel(persistence.Access):
-    impl = db.MongoDBAccess(FakeModelDB)
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
+from st2common.util import date as date_utils
+from tests.unit.base import FakeModel, FakeModelDB
 
 
 class TestPersistence(DbTestCase):
@@ -139,7 +121,7 @@ class TestPersistence(DbTestCase):
         self.assertIsNone(getattr(obj1, 'index', None))
 
     def test_datetime_range(self):
-        base = isotime.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        base = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(60):
             timestamp = base + datetime.timedelta(seconds=i)
             obj = FakeModelDB(name=uuid.uuid4().hex, timestamp=timestamp)
@@ -181,7 +163,7 @@ class TestPersistence(DbTestCase):
 
     def test_sort_multiple(self):
         count = 60
-        base = isotime.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
+        base = date_utils.add_utc_tz(datetime.datetime(2014, 12, 25, 0, 0, 0))
         for i in range(count):
             category = 'type1' if i % 2 else 'type2'
             timestamp = base + datetime.timedelta(seconds=i)
@@ -196,3 +178,21 @@ class TestPersistence(DbTestCase):
         self.assertLess(objs[0].timestamp, objs[(count / 2) - 1].timestamp)
         self.assertLess(objs[count / 2].timestamp, objs[(count / 2) - 1].timestamp)
         self.assertLess(objs[count / 2].timestamp, objs[count - 1].timestamp)
+
+    def test_escaped_field(self):
+        context = {'a.b.c': 'abc'}
+        obj1 = FakeModelDB(name=uuid.uuid4().hex, context=context)
+        obj2 = self.access.add_or_update(obj1)
+
+        # Check that the original dict has not been altered.
+        self.assertIn('a.b.c', context.keys())
+        self.assertNotIn('a\uff0eb\uff0ec', context.keys())
+
+        # Check to_python has run and context is not left escaped.
+        self.assertDictEqual(obj2.context, context)
+
+        # Check field is not escaped when retrieving from persistence.
+        obj3 = self.access.get(name=obj2.name)
+        self.assertIsNotNone(obj3)
+        self.assertEqual(obj3.id, obj2.id)
+        self.assertDictEqual(obj3.context, context)

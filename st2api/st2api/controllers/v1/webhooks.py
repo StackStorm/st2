@@ -18,14 +18,16 @@ try:
 except ImportError:
     import json
 
-import pecan
 import six
+import pecan
+from pecan import abort
 from pecan.rest import RestController
-from urlparse import urljoin
+from six.moves.urllib import parse as urlparse
+urljoin = urlparse.urljoin
 
 from st2common import log as logging
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
-from st2common.models.base import jsexpose
+from st2common.models.api.base import jsexpose
 import st2common.services.triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
@@ -55,10 +57,19 @@ class WebhooksController(RestController):
         # Return only the hooks known by this controller.
         return [trigger for trigger in six.itervalues(self._hooks)]
 
-    @jsexpose(str, status_code=http_client.ACCEPTED)
+    @jsexpose()
+    def get_one(self, name):
+        hook = self._hooks.get(name, None)
+
+        if not hook:
+            abort(http_client.NOT_FOUND)
+            return
+
+        return hook
+
+    @jsexpose(arg_types=[str], status_code=http_client.ACCEPTED)
     def post(self, *args, **kwargs):
         hook = '/'.join(args)  # TODO: There must be a better way to do this.
-        LOG.info('POST /webhooks/ with hook=%s', hook)
         body = pecan.request.body
         try:
             body = json.loads(body)

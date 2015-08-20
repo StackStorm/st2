@@ -13,21 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from jsonpath_rw import parse
+
 
 def get_value(doc, key):
     if not key or not isinstance(doc, dict):
         raise ValueError()
-    if '.' not in key:
-        if key not in doc:
-            return None
-        return doc[key]
-    else:
-        name = key[:key.index('.')]
-        value = doc[name] if name else None
-        attr = key[key.index('.') + 1:]
-        if not isinstance(value, dict):
-            return None
-        return get_value(value, attr)
+    jsonpath_expr = parse(key)
+    matches = jsonpath_expr.find(doc)
+    value = None if len(matches) < 1 else matches[0].value
+    return value
 
 
 def get_kvps(doc, keys):

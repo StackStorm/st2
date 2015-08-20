@@ -1,0 +1,46 @@
+---
+description: Action that performs an http request.
+enabled: true
+entry_point: ''
+name: http
+parameters:
+  auth:
+    description: Auth string to be used. This can be like 'x-auth-token=XYZ'.
+    type: string
+  body:
+    description: Body to send with the request
+    type: string
+  file_content:
+    description: Magic attribute which is automatically populated when file_path is
+      specified
+    type: string
+  file_content_type:
+    description: Optional content type for the uploaded file
+    type: string
+  file_name:
+    description: Magic attribute which is automatically populated when file_path is
+      specified
+    type: string
+  file_path:
+    description: Path to the file to upload
+    type: string
+  headers:
+    description: 'HTTP headers to use with the request. Example: ''content-type=application/json&x-foo=bar''.'
+    type: string
+  method:
+    description: HTTP method to use.
+    enum:
+    - HEAD
+    - GET
+    - POST
+    - PUT
+    - DELETE
+  params:
+    description: Query params to be used with the HTTP request. This can be of the
+      form 'foo=bar&baz=1'.
+    type: string
+  timeout:
+    default: 60
+    description: Timeout for the HTTP request.
+    type: integer
+runner_type: "http-request"

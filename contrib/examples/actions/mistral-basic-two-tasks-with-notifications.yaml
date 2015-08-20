@@ -1,0 +1,28 @@
+---
+name: mistral-basic-two-tasks-with-notifications
+pack: examples
+description: Run mistral workflow with two tasks.
+runner_type: mistral-v2
+entry_point: workflows/mistral-basic-two-tasks-with-notifications.yaml
+enabled: true
+parameters:
+  skip_notify:
+    default:
+      - "task2"
+  context:
+    default: {}
+    immutable: true
+    type: object
+  task:
+    default: null
+    immutable: true
+    type: string
+  workflow:
+    default: null
+    immutable: true
+    type: string
+notify:
+  on-complete:
+    message: "\"@channel: Action succeeded.\""
+    routes:
+      - "slack"

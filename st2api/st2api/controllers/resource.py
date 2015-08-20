@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pylint: disable=no-member
+
 import abc
 import copy
 
@@ -22,11 +24,11 @@ from pecan import rest
 import six
 from six.moves import http_client
 
-from st2common.models.base import jsexpose
+from st2common.models.api.base import jsexpose
 from st2common import log as logging
 from st2common.models.system.common import InvalidResourceReferenceError
 from st2common.models.system.common import ResourceReference
-
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 LOG = logging.getLogger(__name__)
 
@@ -43,10 +45,18 @@ class ResourceController(rest.RestController):
     access = abc.abstractproperty
     supported_filters = abc.abstractproperty
 
-    query_options = {   # Do not use options.
+    # Default kwargs passed to "APIClass.from_model" method
+    from_model_kwargs = {}
+
+    # Maximum value of limit which can be specified by user
+    max_limit = 100
+
+    query_options = {
         'sort': []
     }
-    max_limit = 100
+
+    # A list of optional transformation functions for user provided filter values
+    filter_transform_functions = {}
 
     def __init__(self):
         self.supported_filters = copy.deepcopy(self.__class__.supported_filters)
@@ -56,26 +66,17 @@ class ResourceController(rest.RestController):
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, id):
-        LOG.info('GET %s with id=%s', pecan.request.path, id)
+        return self._get_one_by_id(id=id)
 
-        instance = None
-        try:
-            instance = self.access.get(id=id)
-        except ValidationError:
-            instance = None  # Someone supplied a mongo non-comformant id.
+    def _get_all(self, exclude_fields=None, **kwargs):
+        """
+        :param exclude_fields: A list of object fields to exclude.
+        :type exclude_fields: ``list``
+        """
+        exclude_fields = exclude_fields or []
 
-        if not instance:
-            msg = 'Unable to identify resource with id "%s".' % id
-            pecan.abort(http_client.NOT_FOUND, msg)
-
-        result = self.model.from_model(instance)
-        LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
-
-        return result
-
-    def _get_all(self, **kwargs):
         # TODO: Why do we use comma delimited string, user can just specify
         # multiple values using ?sort=foo&sort=bar and we get a list back
         sort = kwargs.get('sort').split(',') if kwargs.get('sort') else []
@@ -104,6 +105,7 @@ class ResourceController(rest.RestController):
         # TODO: To protect us from DoS, we need to make max_limit mandatory
         offset = int(kwargs.pop('offset', 0))
         limit = kwargs.pop('limit', None)
+
         if limit and int(limit) > self.max_limit:
             limit = self.max_limit
         eop = offset + int(limit) if limit else None
@@ -111,24 +113,121 @@ class ResourceController(rest.RestController):
         filters = {}
 
         for k, v in six.iteritems(self.supported_filters):
-            if kwargs.get(k):
-                filters['__'.join(v.split('.'))] = kwargs[k]
+            filter_value = kwargs.get(k, None)
+
+            if not filter_value:
+                continue
+
+            value_transform_function = self.filter_transform_functions.get(k, None)
+            value_transform_function = value_transform_function or (lambda value: value)
+            filter_value = value_transform_function(value=filter_value)
+
+            filters['__'.join(v.split('.'))] = filter_value
 
         LOG.info('GET all %s with filters=%s', pecan.request.path, filters)
 
-        instances = self.access.query(**filters)
+        instances = self.access.query(exclude_fields=exclude_fields, **filters)
 
         if limit:
             pecan.response.headers['X-Limit'] = str(limit)
-        pecan.response.headers['X-Total-Count'] = str(len(instances))
+        pecan.response.headers['X-Total-Count'] = str(instances.count())
 
-        return [self.model.from_model(instance) for instance in instances[offset:eop]]
+        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+
+        result = []
+        for instance in instances[offset:eop]:
+            item = self.model.from_model(instance, **from_model_kwargs)
+            result.append(item)
+
+        return result
+
+    def _get_one(self, id, exclude_fields=None):
+        # Note: This is here for backward compatibility reasons
+        return self._get_one_by_id(id=id, exclude_fields=exclude_fields)
+
+    def _get_one_by_id(self, id, exclude_fields=None):
+        """
+        :param exclude_fields: A list of object fields to exclude.
+        :type exclude_fields: ``list``
+        """
+
+        LOG.info('GET %s with id=%s', pecan.request.path, id)
+
+        instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields)
+
+        if not instance:
+            msg = 'Unable to identify resource with id "%s".' % id
+            pecan.abort(http_client.NOT_FOUND, msg)
+
+        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        result = self.model.from_model(instance, **from_model_kwargs)
+        LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
+
+        return result
+
+    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None):
+        """
+        :param exclude_fields: A list of object fields to exclude.
+        :type exclude_fields: ``list``
+        """
+
+        LOG.info('GET %s with name_or_id=%s', pecan.request.path, name_or_id)
+
+        instance = self._get_by_name_or_id(name_or_id=name_or_id, exclude_fields=exclude_fields)
+
+        if not instance:
+            msg = 'Unable to identify resource with name_or_id "%s".' % (name_or_id)
+            pecan.abort(http_client.NOT_FOUND, msg)
+
+        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        result = self.model.from_model(instance, **from_model_kwargs)
+        LOG.debug('GET %s with name_or_id=%s, client_result=%s', pecan.request.path, id, result)
+
+        return result
+
+    def _get_by_id(self, resource_id, exclude_fields=None):
+        try:
+            resource_db = self.access.get(id=resource_id, exclude_fields=exclude_fields)
+        except ValidationError:
+            resource_db = None
+
+        return resource_db
+
+    def _get_by_name(self, resource_name, exclude_fields=None):
+        try:
+            resource_db = self.access.get(name=resource_name, exclude_fields=exclude_fields)
+        except Exception:
+            resource_db = None
+
+        return resource_db
+
+    def _get_by_name_or_id(self, name_or_id, exclude_fields=None):
+        """
+        Retrieve resource object by an id of a name.
+        """
+        resource_db = self._get_by_id(resource_id=name_or_id, exclude_fields=exclude_fields)
+
+        if not resource_db:
+            # Try name
+            resource_db = self._get_by_name(resource_name=name_or_id, exclude_fields=exclude_fields)
+
+        return resource_db
+
+    def _get_from_model_kwargs_for_request(self, request):
+        """
+        Retrieve kwargs which are passed to "LiveActionAPI.model" method.
+
+        :param request: Pecan request object.
+
+        :rtype: ``dict``
+        """
+        return self.from_model_kwargs
 
 
-class ContentPackResourceControler(ResourceController):
+class ContentPackResourceController(ResourceController):
     include_reference = False
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return self._get_one(ref_or_id)
 
@@ -136,21 +235,22 @@ class ContentPackResourceControler(ResourceController):
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
-    def _get_one(self, ref_or_id):
+    def _get_one(self, ref_or_id, exclude_fields=None):
         LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
 
         try:
-            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
         except Exception as e:
             LOG.exception(e.message)
             pecan.abort(http_client.NOT_FOUND, e.message)
             return
 
-        result = self.model.from_model(instance)
+        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        result = self.model.from_model(instance, **from_model_kwargs)
         if result and self.include_reference:
-                pack = getattr(result, 'pack', None)
-                name = getattr(result, 'name', None)
-                result.ref = ResourceReference(pack=pack, name=name).ref
+            pack = getattr(result, 'pack', None)
+            name = getattr(result, 'name', None)
+            result.ref = ResourceReference(pack=pack, name=name).ref
 
         LOG.debug('GET %s with ref_or_id=%s, client_result=%s',
                   pecan.request.path, ref_or_id, result)
@@ -158,7 +258,7 @@ class ContentPackResourceControler(ResourceController):
         return result
 
     def _get_all(self, **kwargs):
-        result = super(ContentPackResourceControler, self)._get_all(**kwargs)
+        result = super(ContentPackResourceController, self)._get_all(**kwargs)
 
         if self.include_reference:
             for item in result:
@@ -168,9 +268,12 @@ class ContentPackResourceControler(ResourceController):
 
         return result
 
-    def _get_by_ref_or_id(self, ref_or_id):
+    def _get_by_ref_or_id(self, ref_or_id, exclude_fields=None):
         """
         Retrieve resource object by an id of a reference.
+
+        Note: This method throws StackStormDBObjectNotFoundError exception if the object is not
+        found in the database.
         """
 
         if ResourceReference.is_resource_reference(ref_or_id):
@@ -180,31 +283,24 @@ class ContentPackResourceControler(ResourceController):
             is_reference = False
 
         if is_reference:
-            resource_db = self._get_by_ref(resource_ref=ref_or_id)
+            resource_db = self._get_by_ref(resource_ref=ref_or_id, exclude_fields=exclude_fields)
         else:
-            resource_db = self._get_by_id(resource_id=ref_or_id)
+            resource_db = self._get_by_id(resource_id=ref_or_id, exclude_fields=exclude_fields)
 
         if not resource_db:
-            msg = 'Resource with a reference of id "%s" not found' % (ref_or_id)
-            raise Exception(msg)
+            msg = 'Resource with a reference or id "%s" not found' % (ref_or_id)
+            raise StackStormDBObjectNotFoundError(msg)
 
         return resource_db
 
-    def _get_by_id(self, resource_id):
-        try:
-            resource_db = self.access.get_by_id(resource_id)
-        except Exception:
-            resource_db = None
-
-        return resource_db
-
-    def _get_by_ref(self, resource_ref):
+    def _get_by_ref(self, resource_ref, exclude_fields=None):
         try:
             ref = ResourceReference.from_string_reference(ref=resource_ref)
         except Exception:
             return None
 
-        resource_db = self.access.query(name=ref.name, pack=ref.pack).first()
+        resource_db = self.access.query(name=ref.name, pack=ref.pack,
+                                        exclude_fields=exclude_fields).first()
         return resource_db
 
     def _get_filters(self, **kwargs):

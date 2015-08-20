@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
+from oslo_config import cfg
 from tests import FunctionalTest
 
 
@@ -22,13 +22,13 @@ class TestBase(FunctionalTest):
         response = self.app.get('/')
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.headers['Access-Control-Allow-Origin'],
-                         'http://localhost:3000')
+                         'http://localhost')
         self.assertEqual(response.headers['Access-Control-Allow-Methods'],
                          'GET,POST,PUT,DELETE,OPTIONS')
         self.assertEqual(response.headers['Access-Control-Allow-Headers'],
-                         'Content-Type,Authorization,X-Auth-Token')
+                         'Content-Type,Authorization,X-Auth-Token,X-Request-ID')
         self.assertEqual(response.headers['Access-Control-Expose-Headers'],
-                         'Content-Type,X-Limit,X-Total-Count')
+                         'Content-Type,X-Limit,X-Total-Count,X-Request-ID')
 
     def test_origin(self):
         response = self.app.get('/', headers={

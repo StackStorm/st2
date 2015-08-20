@@ -13,52 +13,90 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
+from __future__ import absolute_import
+
+import sys
 import logging
 import logging.config
 import logging.handlers
-import os
-import six
-import sys
 import traceback
+from functools import wraps
 
-from oslo.config import cfg
+import six
+from oslo_config import cfg
+
+from st2common.logging.filters import ExclusionFilter
+
+# Those are here for backward compatibility reasons
+from st2common.logging.handlers import FormatNamedFileHandler
+from st2common.logging.handlers import ConfigurableSyslogHandler
+from st2common.util.misc import prefix_dict_keys
+
+__all__ = [
+    'getLogger',
+    'setup',
+
+    'FormatNamedFileHandler',
+    'ConfigurableSyslogHandler',
+
+    'LoggingStream'
+]
 
 logging.AUDIT = logging.CRITICAL + 10
 logging.addLevelName(logging.AUDIT, 'AUDIT')
 
+LOGGER_KEYS = [
+    'debug',
+    'info',
+    'warning',
+    'error',
+    'critical',
+    'exception',
+    'log',
 
-class FormatNamedFileHandler(logging.FileHandler):
-    def __init__(self, filename, mode='a', encoding=None, delay=False):
-        # Include timestamp in the name.
-        filename = filename.format(ts=str(datetime.datetime.utcnow()).replace(' ', '_'),
-                                   pid=os.getpid())
-        super(FormatNamedFileHandler, self).__init__(filename, mode, encoding, delay)
-
-
-class ConfigurableSyslogHandler(logging.handlers.SysLogHandler):
-    def __init__(self, address=None, facility=None, socktype=None):
-        if not address:
-            address = (cfg.CONF.syslog.host, cfg.CONF.syslog.port)
-        if not facility:
-            facility = cfg.CONF.syslog.facility
-        if socktype:
-            super(ConfigurableSyslogHandler, self).__init__(address, facility, socktype)
-        else:
-            super(ConfigurableSyslogHandler, self).__init__(address, facility)
+    'audit'
+]
 
 
-class ExclusionFilter(object):
+def decorate_log_method(func):
+    @wraps(func)
+    def func_wrapper(*args, **kwargs):
+        # Prefix extra keys with underscore
+        if 'extra' in kwargs:
+            kwargs['extra'] = prefix_dict_keys(dictionary=kwargs['extra'], prefix='_')
+        return func(*args, **kwargs)
+    return func_wrapper
 
-    def __init__(self, exclusions):
-        self._exclusions = set(exclusions)
 
-    def filter(self, record):
-        if len(self._exclusions) < 1:
-            return True
-        module_decomposition = record.name.split('.')
-        exclude = len(module_decomposition) > 0 and module_decomposition[0] in self._exclusions
-        return not exclude
+def decorate_logger_methods(logger):
+    """
+    Decorate all the logger methods so all the keys in the extra dictionary are
+    automatically prefixed with an underscore to avoid clashes with standard log
+    record attributes.
+    """
+    for key in LOGGER_KEYS:
+        log_method = getattr(logger, key)
+        log_method = decorate_log_method(log_method)
+        setattr(logger, key, log_method)
+
+    return logger
+
+
+def getLogger(name):
+    logger_name = 'st2.{}'.format(name)
+    logger = logging.getLogger(logger_name)
+    logger = decorate_logger_methods(logger=logger)
+    return logger
+
+
+class LoggingStream(object):
+
+    def __init__(self, name, level=logging.ERROR):
+        self._logger = getLogger(name)
+        self._level = level
+
+    def write(self, message):
+        self._logger._log(self._level, message, None)
 
 
 def _audit(logger, msg, *args, **kwargs):
@@ -70,11 +108,18 @@ logging.Logger.audit = _audit
 
 def _add_exclusion_filters(handlers):
     for h in handlers:
-            h.addFilter(ExclusionFilter(cfg.CONF.log.excludes))
+        h.addFilter(ExclusionFilter(cfg.CONF.log.excludes))
+
+
+def _redirect_stderr():
+    # It is ok to redirect stderr as none of the st2 handlers write to stderr.
+    if cfg.CONF.log.redirect_stderr:
+        sys.stderr = LoggingStream('STDERR')
 
 
 def setup(config_file, disable_existing_loggers=False):
-    """Configure logging from file.
+    """
+    Configure logging from file.
     """
     try:
         logging.config.fileConfig(config_file,
@@ -82,12 +127,10 @@ def setup(config_file, disable_existing_loggers=False):
                                   disable_existing_loggers=disable_existing_loggers)
         handlers = logging.getLoggerClass().manager.root.handlers
         _add_exclusion_filters(handlers)
+        _redirect_stderr()
     except Exception as exc:
+        # revert stderr redirection since there is no logger in place.
+        sys.stderr = sys.__stderr__
         # No logger yet therefore write to stderr
         sys.stderr.write('ERROR: %s' % traceback.format_exc())
         raise Exception(six.text_type(exc))
-
-
-def getLogger(name):
-    logger_name = 'st2.{}'.format(name)
-    return logging.getLogger(logger_name)

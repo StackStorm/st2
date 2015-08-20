@@ -1,0 +1,8 @@
+---
+    name: "alias1"
+    pack: "dummy_pack_1"
+    description: "DON'T CARE"
+    action_ref: "core.local"
+    formats:
+        - "format1"
+        - "format2"

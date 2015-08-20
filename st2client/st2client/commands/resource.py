@@ -18,10 +18,13 @@ import abc
 import six
 import json
 import logging
+import httplib
+from functools import wraps
 
 import yaml
 
 from st2client import commands
+from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 
 ALLOWED_EXTS = ['.json', '.yaml', '.yml']
@@ -30,6 +33,7 @@ LOG = logging.getLogger(__name__)
 
 
 def add_auth_token_to_kwargs_from_cli(func):
+    @wraps(func)
     def decorate(*args, **kwargs):
         ns = args[1]
         if getattr(ns, 'token', None):
@@ -49,7 +53,7 @@ class ResourceNotFoundError(Exception):
 class ResourceBranch(commands.Branch):
 
     def __init__(self, resource, description, app, subparsers,
-                 parent_parser=None, read_only=False, commands={}):
+                 parent_parser=None, read_only=False, commands=None):
 
         self.resource = resource
         super(ResourceBranch, self).__init__(
@@ -62,6 +66,7 @@ class ResourceBranch(commands.Branch):
                   self.resource.get_plural_display_name().lower()))
 
         # Resolves if commands need to be overridden.
+        commands = commands or {}
         if 'list' not in commands:
             commands['list'] = ResourceListCommand
         if 'get' not in commands:
@@ -85,6 +90,7 @@ class ResourceBranch(commands.Branch):
 
 @six.add_metaclass(abc.ABCMeta)
 class ResourceCommand(commands.Command):
+    pk_argument_name = None
 
     def __init__(self, resource, *args, **kwargs):
 
@@ -118,15 +124,54 @@ class ResourceCommand(commands.Command):
                (self.resource.get_display_name(), name))
 
     def get_resource(self, name_or_id, **kwargs):
-        return self.get_resource_by_name_or_id(name_or_id=name_or_id, **kwargs)
+        pk_argument_name = self.pk_argument_name
+
+        if pk_argument_name == 'name_or_id':
+            instance = self.get_resource_by_name_or_id(name_or_id=name_or_id, **kwargs)
+        elif pk_argument_name == 'ref_or_id':
+            instance = self.get_resource_by_ref_or_id(ref_or_id=name_or_id, **kwargs)
+        else:
+            instance = self.get_resource_by_pk(pk=name_or_id, **kwargs)
+
+        return instance
+
+    def get_resource_by_pk(self, pk, **kwargs):
+        """
+        Retrieve resource by a primary key.
+        """
+        try:
+            instance = self.manager.get_by_id(pk, **kwargs)
+        except Exception as e:
+            # Hack for "Unauthorized" exceptions, we do want to propagate those
+            response = getattr(e, 'response', None)
+            status_code = getattr(response, 'status_code', None)
+            if status_code and status_code == httplib.UNAUTHORIZED:
+                raise e
+
+            instance = None
+
+        return instance
+
+    def get_resource_by_id(self, id, **kwargs):
+        instance = self.get_resource_by_pk(pk=id, **kwargs)
+
+        if not instance:
+            message = ('Resource with id "%s" doesn\'t exist.' % (id))
+            raise ResourceNotFoundError(message)
+        return instance
+
+    def get_resource_by_name(self, name, **kwargs):
+        """
+        Retrieve resource by name.
+        """
+        instance = self.manager.get_by_name(name, **kwargs)
+        return instance
 
     def get_resource_by_name_or_id(self, name_or_id, **kwargs):
-        instance = self.manager.get_by_name(name_or_id, **kwargs)
+        instance = self.get_resource_by_name(name=name_or_id, **kwargs)
         if not instance:
-            try:
-                instance = self.manager.get_by_id(name_or_id, **kwargs)
-            except:
-                pass
+            instance = self.get_resource_by_pk(pk=name_or_id, **kwargs)
+
         if not instance:
             message = ('Resource with id or name "%s" doesn\'t exist.' %
                        (name_or_id))
@@ -154,12 +199,15 @@ class ResourceCommand(commands.Command):
         return argument.replace('_', '-')
 
     def _get_help_for_argument(self, resource, argument):
+        argument_display_name = argument.title()
         resource_display_name = resource.get_display_name().lower()
 
         if 'ref' in argument:
-            result = ('Reference or ID of the %s.' % resource_display_name)
+            result = ('Reference or ID of the %s.' % (resource_display_name))
+        elif 'name_or_id' in argument:
+            result = ('Name or ID of the %s.' % (resource_display_name))
         else:
-            result = ('Name or ID of the %s.' % resource_display_name)
+            result = ('%s of the %s.' % (argument_display_name, resource_display_name))
 
         return result
 
@@ -207,6 +255,7 @@ class ContentPackResourceListCommand(ResourceListCommand):
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         filters = {'pack': args.pack}
+        filters.update(**kwargs)
         return self.manager.get_all(**filters)
 
 
@@ -249,6 +298,7 @@ class ResourceGetCommand(ResourceCommand):
         except ResourceNotFoundError:
             resource_id = getattr(args, self.pk_argument_name, None)
             self.print_not_found(resource_id)
+            raise OperationFailureException('Resource %s not found.' % resource_id)
 
 
 class ContentPackResourceGetCommand(ResourceGetCommand):
@@ -285,9 +335,16 @@ class ResourceCreateCommand(ResourceCommand):
         return self.manager.create(instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
-        instance = self.run(args, **kwargs)
-        self.print_output(instance, table.PropertyValueTable,
-                          attributes=['all'], json=args.json)
+        try:
+            instance = self.run(args, **kwargs)
+            if not instance:
+                raise Exception('Server did not create instance.')
+            self.print_output(instance, table.PropertyValueTable,
+                              attributes=['all'], json=args.json)
+        except Exception as e:
+            message = e.message or str(e)
+            print('ERROR: %s' % (message))
+            raise OperationFailureException(message)
 
 
 class ResourceUpdateCommand(ResourceCommand):
@@ -329,8 +386,12 @@ class ResourceUpdateCommand(ResourceCommand):
 
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
-        self.print_output(instance, table.PropertyValueTable,
-                          attributes=['all'], json=args.json)
+        try:
+            self.print_output(instance, table.PropertyValueTable,
+                              attributes=['all'], json=args.json)
+        except Exception as e:
+            print('ERROR: %s' % e.message)
+            raise OperationFailureException(e.message)
 
 
 class ContentPackResourceUpdateCommand(ResourceUpdateCommand):
@@ -445,11 +506,14 @@ class ResourceDeleteCommand(ResourceCommand):
         self.manager.delete(instance, **kwargs)
 
     def run_and_print(self, args, **kwargs):
+        resource_id = getattr(args, self.pk_argument_name, None)
+
         try:
             self.run(args, **kwargs)
+            print('Resource with id "%s" has been successfully deleted.' % (resource_id))
         except ResourceNotFoundError:
-            resource_id = getattr(args, self.pk_argument_name, None)
             self.print_not_found(resource_id)
+            raise OperationFailureException('Resource %s not found.' % resource_id)
 
 
 class ContentPackResourceDeleteCommand(ResourceDeleteCommand):

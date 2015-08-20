@@ -1,0 +1,14 @@
+---
+description: Action to execute arbitrary linux command remotely.
+enabled: true
+entry_point: ''
+name: remote_sudo
+parameters:
+  cmd:
+    description: Arbitrary Linux command to be executed on the remote host(s).
+    required: true
+    type: string
+  sudo:
+    default: true
+    immutable: true
+runner_type: "remote-shell-cmd"

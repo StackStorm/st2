@@ -1,3 +1,3 @@
 #!/bin/bash
 
-echo ${st2_auth_token}
+echo ${ST2_ACTION_AUTH_TOKEN}

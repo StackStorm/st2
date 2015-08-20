@@ -1,0 +1,15 @@
+---
+  name: "service"
+  runner_type: "remote-shell-script"
+  description: "Stops, Starts, or Restarts a service"
+  enabled: true
+  entry_point: "service.py"
+  parameters:
+    act:
+      type: "string"
+      description: "Action to perform on service"
+      position: 0
+    service:
+      type: "string"
+      description: "Name of service"
+      position: 1

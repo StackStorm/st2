@@ -17,70 +17,86 @@
 Configuration options registration and useful routines.
 """
 
-from oslo.config import cfg
+import sys
+
+from oslo_config import cfg
 
 import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
-common_config.register_opts()
 
 CONF = cfg.CONF
-
-logging_opts = [
-    cfg.StrOpt('logging', default='conf/logging.conf',
-               help='location of the logging.conf file')
-]
-CONF.register_opts(logging_opts, group='actionrunner')
-
-db_opts = [
-    cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
-    cfg.IntOpt('port', default=27017, help='port of db server'),
-    cfg.StrOpt('db_name', default='st2', help='name of database')
-]
-CONF.register_opts(db_opts, group='database')
-
-ssh_runner_opts = [
-    cfg.StrOpt('remote_dir',
-               default='/tmp',
-               help='Location of the script on the remote filesystem.'),
-    cfg.BoolOpt('allow_partial_failure',
-                default=False,
-                help='How partial success of actions run on multiple nodes should be treated.')
-]
-CONF.register_opts(ssh_runner_opts, group='ssh_runner')
-
-action_sensor_opts = [
-    cfg.BoolOpt('enable', default=True,
-                help='Whether to enable or disable the ability to post a trigger on action.'),
-    cfg.StrOpt('triggers_base_url', default='http://localhost:9101/v1/triggertypes/',
-               help='URL for action sensor to post TriggerType.'),
-    cfg.StrOpt('webhook_sensor_base_url', default='http://localhost:9101/v1/webhooks/st2/',
-               help='URL for action sensor to post TriggerInstances.'),
-    cfg.IntOpt('request_timeout', default=1,
-               help='Timeout value of all httprequests made by action sensor.'),
-    cfg.IntOpt('max_attempts', default=10,
-               help='No. of times to retry registration.'),
-    cfg.IntOpt('retry_wait', default=1,
-               help='Amount of time to wait prior to retrying a request.')
-]
-CONF.register_opts(action_sensor_opts, group='action_sensor')
-
-api_opts = [
-    cfg.StrOpt('host', default='0.0.0.0', help='ST2 API server host.'),
-    cfg.IntOpt('port', default=9101, help='ST2 API server port.')
-]
-CONF.register_opts(api_opts, group='api')
-
-workflow_opts = [
-    cfg.StrOpt('url', default='http://localhost:8989', help='Mistral API server root endpoint.')
-]
-CONF.register_opts(workflow_opts, group='workflow')
-
-history_opts = [
-    cfg.StrOpt('logging', default='conf/logging.history.conf',
-               help='Location of the logging configuration file.')
-]
-CONF.register_opts(history_opts, group='history')
 
 
 def parse_args(args=None):
     CONF(args=args, version=VERSION_STRING)
+
+
+def register_opts():
+    _register_common_opts()
+    _register_action_runner_opts()
+
+
+def _register_common_opts():
+    common_config.register_opts()
+
+
+def _register_action_runner_opts():
+    logging_opts = [
+        cfg.StrOpt('logging', default='conf/logging.conf',
+                   help='location of the logging.conf file'),
+        cfg.StrOpt('python_binary', default=sys.executable,
+                   help='Python binary which will be used by Python actions.')
+    ]
+    CONF.register_opts(logging_opts, group='actionrunner')
+
+    db_opts = [
+        cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
+        cfg.IntOpt('port', default=27017, help='port of db server'),
+        cfg.StrOpt('db_name', default='st2', help='name of database')
+    ]
+    CONF.register_opts(db_opts, group='database')
+
+    ssh_runner_opts = [
+        cfg.StrOpt('remote_dir',
+                   default='/tmp',
+                   help='Location of the script on the remote filesystem.'),
+        cfg.BoolOpt('allow_partial_failure',
+                    default=False,
+                    help='How partial success of actions run on multiple nodes ' +
+                         'should be treated.'),
+        cfg.BoolOpt('use_paramiko_ssh_runner',
+                    default=False,
+                    help='Use Paramiko based SSH runner as the default remote runner. ' +
+                         'EXPERIMENTAL!!! USE AT YOUR OWN RISK.'),
+        cfg.IntOpt('max_parallel_actions', default=50,
+                   help='Max number of parallel remote SSH actions that should be run.  ' +
+                        'Works only with Paramiko SSH runner.'),
+        cfg.BoolOpt('use_ssh_config',
+                    default=False,
+                    help='Use the .ssh/config file. Useful to override ports etc.')
+    ]
+    CONF.register_opts(ssh_runner_opts, group='ssh_runner')
+
+    mistral_opts = [
+        cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2', help='v2 API root endpoint.'),
+        cfg.IntOpt('max_attempts', default=180, help='Max attempts to reconnect.'),
+        cfg.IntOpt('retry_wait', default=5, help='Seconds to wait before reconnecting.'),
+        cfg.StrOpt('keystone_username', default=None, help='Username for authentication.'),
+        cfg.StrOpt('keystone_password', default=None, help='Password for authentication.'),
+        cfg.StrOpt('keystone_project_name', default=None, help='OpenStack project scope.'),
+        cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.')
+    ]
+    CONF.register_opts(mistral_opts, group='mistral')
+
+    cloudslang_opts = [
+        cfg.StrOpt('home_dir', default='/opt/cslang',
+                   help='CloudSlang home directory.'),
+    ]
+    CONF.register_opts(cloudslang_opts, group='cloudslang')
+
+
+def get_logging_config_path():
+    return CONF.actionrunner.logging
+
+
+register_opts()

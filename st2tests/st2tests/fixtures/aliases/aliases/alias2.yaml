@@ -1,0 +1,7 @@
+---
+    name: "alias2"
+    pack: "aliases"
+    description: "DON'T CARE"
+    action_ref: "wolfpack.action1"
+    formats:
+        - "Lorem ipsum {{param1}} dolor sit {{param3}} amet."

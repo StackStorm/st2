@@ -5,7 +5,9 @@
       ref: "packs.download"
       params:
         repo_url: "{{repo_url}}"
+        branch: "{{branch}}"
         packs: "{{packs}}"
+        subtree: "{{subtree}}"
       on-success: "virtualenv_prerun"
     -
       name: "virtualenv_prerun"
@@ -22,11 +24,12 @@
     -
       name: "reload"
       ref: "packs.load"
-      params: {}
+      params:
+        register: "{{register}}"
       on-success: "restart-sensor-container"
     -
       name: "restart-sensor-container"
       ref: "packs.restart_component"
       params:
-        servicename: "sensor_container"
+        servicename: "st2sensorcontainer"
   default: "download"

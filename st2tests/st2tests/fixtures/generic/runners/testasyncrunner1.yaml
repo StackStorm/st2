@@ -1,0 +1,23 @@
+---
+description: A test async runner.
+enabled: true
+name: test-async-runner-1
+query_module: tests.unit.test_querier
+runner_module: tests.unit.test_async_runner
+runner_parameters:
+  runnerdummy:
+    default: runnerdummy
+    description: Dummy param.
+    type: string
+  runnerimmutable:
+    default: runnerimmutable
+    description: Immutable param.
+    immutable: true
+    type: string
+  runnerint:
+    description: Foo int param.
+    type: number
+  runnerstr:
+    default: defaultfoo
+    description: Foo str param.
+    type: string

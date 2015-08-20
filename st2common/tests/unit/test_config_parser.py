@@ -15,10 +15,7 @@
 
 from unittest2 import TestCase
 
-from oslo.config import cfg
-
 from st2common.util.config_parser import ContentPackConfigParser
-import st2tests.base as tests_base
 import st2tests.config as tests_config
 
 
@@ -26,10 +23,6 @@ class ContentPackConfigParserTestCase(TestCase):
     def setUp(self):
         super(ContentPackConfigParserTestCase, self).setUp()
         tests_config.parse_args()
-
-        # Mock the packs_base_path
-        mock_path = tests_base.get_fixtures_path()
-        cfg.CONF.content.packs_base_path = mock_path
 
     def test_get_action_config_inexistent_pack(self):
         parser = ContentPackConfigParser(pack_name='inexistent')

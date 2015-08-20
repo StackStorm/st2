@@ -1,0 +1,26 @@
+---
+description: Repeat a local linux command for given number of times.
+enabled: true
+entry_point: workflows/mistral-repeat.yaml
+name: mistral-repeat
+pack: examples
+parameters:
+  cmd:
+    required: true
+    type: string
+  context:
+    default: {}
+    immutable: true
+    type: object
+  count:
+    default: 3
+    type: integer
+  task:
+    default: null
+    immutable: true
+    type: string
+  workflow:
+    default: null
+    immutable: true
+    type: string
+runner_type: mistral-v2

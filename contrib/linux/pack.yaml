@@ -1,0 +1,21 @@
+---
+name : linux
+description : Generic linux actions
+keywords:
+  - linux
+  - nmap
+  - lsof
+  - traceroute
+  - loadavg
+  - cp
+  - scp
+  - dig
+  - netstat
+  - rsync
+  - vmstat
+  - open ports
+  - processes
+  - ps
+version : 0.1
+author : st2-dev
+email : info@stackstorm.com

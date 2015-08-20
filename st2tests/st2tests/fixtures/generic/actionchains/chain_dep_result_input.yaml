@@ -1,0 +1,17 @@
+---
+chain:
+- name: c1
+  on-success: c2
+  params:
+    p1: '{{s1}}'
+  ref: wolfpack.a1
+- name: c2
+  on-success: c3
+  params:
+    p1: '{{c1.o1}}'
+  ref: wolfpack.a2
+- name: c3
+  params:
+    out: '{{__results}}'
+  ref: wolfpack.a3
+default: c1

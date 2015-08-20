@@ -18,14 +18,15 @@ from pecan import abort
 from pecan.rest import RestController
 import six
 
-import st2actions.utils.param_utils as param_utils
-from st2actions.container.service import RunnerContainerService
 from st2api.controllers import resource
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
+from st2common.content import utils
 from st2common.models.api.action import ActionAPI
-from st2common.models.base import jsexpose
-from st2common.persistence.action import (Action, RunnerType)
+from st2common.models.api.base import jsexpose
+from st2common.models.utils import action_param_utils
+from st2common.persistence.action import Action
+from st2common.persistence.runner import RunnerType
 
 http_client = six.moves.http_client
 
@@ -64,7 +65,7 @@ class LookupUtils(object):
 
 class ParametersViewController(RestController):
 
-    @jsexpose(str, status_code=http_client.OK)
+    @jsexpose(arg_types=[str], status_code=http_client.OK)
     def get_one(self, action_id):
         return self._get_one(action_id)
 
@@ -80,13 +81,13 @@ class ParametersViewController(RestController):
         LOG.info('Found action: %s, runner: %s', action_db, action_db.runner_type['name'])
         runner_db = LookupUtils._get_runner_by_name(action_db.runner_type['name'])
 
-        all_params = param_utils.get_params_view(
+        all_params = action_param_utils.get_params_view(
             action_db=action_db, runner_db=runner_db, merged_only=True)
 
         return {'parameters': all_params}
 
 
-class OverviewController(resource.ContentPackResourceControler):
+class OverviewController(resource.ContentPackResourceController):
     model = ActionAPI
     access = Action
     supported_filters = {}
@@ -97,7 +98,7 @@ class OverviewController(resource.ContentPackResourceControler):
 
     include_reference = True
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         """
             List action by id.
@@ -108,7 +109,7 @@ class OverviewController(resource.ContentPackResourceControler):
         action_api = super(OverviewController, self)._get_one(ref_or_id)
         return self._transform_action_api(action_api)
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_all(self, **kwargs):
         """
             List all actions.
@@ -126,7 +127,7 @@ class OverviewController(resource.ContentPackResourceControler):
         return action_api
 
 
-class EntryPointController(resource.ContentPackResourceControler):
+class EntryPointController(resource.ContentPackResourceController):
     model = ActionAPI
     access = Action
 
@@ -136,7 +137,7 @@ class EntryPointController(resource.ContentPackResourceControler):
     def get_all(self, **kwargs):
         return abort(404)
 
-    @jsexpose(str, content_type='text/plain', status_code=http_client.OK)
+    @jsexpose(arg_types=[str], content_type='text/plain', status_code=http_client.OK)
     def get_one(self, ref_or_id):
         """
             Outputs the file associated with action entry_point
@@ -150,7 +151,7 @@ class EntryPointController(resource.ContentPackResourceControler):
         pack = getattr(action_db, 'pack', None)
         entry_point = getattr(action_db, 'entry_point', None)
 
-        abs_path = RunnerContainerService.get_entry_point_abs_path(pack, entry_point)
+        abs_path = utils.get_entry_point_abs_path(pack, entry_point)
 
         if not abs_path:
             raise StackStormDBObjectNotFoundError('Action ref_or_id=%s has no entry_point to output'

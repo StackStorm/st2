@@ -14,74 +14,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-import datetime
 import mock
 
 import st2actions.utils.param_utils as param_utils
 from st2common.exceptions import actionrunner
 from st2common.models.system.common import ResourceReference
-from st2common.models.db.action import (ActionDB, ActionExecutionDB)
-from st2common.models.api.action import RunnerTypeAPI
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.persistence.keyvalue import KeyValuePair
 from st2common.transport.publishers import PoolPublisher
-from unittest2 import TestCase
+from st2common.util import date as date_utils
+from st2tests import DbTestCase
+from st2tests.fixturesloader import FixturesLoader
+
+
+FIXTURES_PACK = 'generic'
+
+TEST_MODELS = {
+    'actions': ['action_4_action_context_param.yaml', 'action_system_default.yaml'],
+    'runners': ['testrunner1.yaml']
+}
+
+FIXTURES = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
+                                        fixtures_dict=TEST_MODELS)
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class ParamsUtilsTest(TestCase):
-    action_db = None
-    runnertype_db = None
-
-    @classmethod
-    def setUpClass(cls):
-        super(ParamsUtilsTest, cls).setUpClass()
-        ParamsUtilsTest._setup_test_models()
-
-    def test_merge_action_runner_params_meta(self):
-        required, optional, immutable = param_utils.get_params_view(
-            action_db=ParamsUtilsTest.action_db,
-            runner_db=ParamsUtilsTest.runnertype_db)
-        merged = {}
-        merged.update(required)
-        merged.update(optional)
-        merged.update(immutable)
-
-        consolidated = param_utils.get_params_view(
-            action_db=ParamsUtilsTest.action_db,
-            runner_db=ParamsUtilsTest.runnertype_db,
-            merged_only=True)
-
-        # Validate that merged_only view works.
-        self.assertEqual(merged, consolidated)
-
-        # Validate required params.
-        self.assertEqual(len(required), 1, 'Required should contain only one param.')
-        self.assertTrue('actionstr' in required, 'actionstr param is a required param.')
-        self.assertTrue('actionstr' not in optional and 'actionstr' not in immutable and
-                        'actionstr' in merged)
-
-        # Validate immutable params.
-        self.assertTrue('runnerimmutable' in immutable, 'runnerimmutable should be in immutable.')
-        self.assertTrue('actionimmutable' in immutable, 'actionimmutable should be in immutable.')
-
-        # Validate optional params.
-        for opt in optional:
-            self.assertTrue(opt not in required and opt not in immutable and opt in merged,
-                            'Optional parameter %s failed validation.' % opt)
-
-    def test_merge_param_meta_values(self):
-
-        runner_meta = copy.deepcopy(ParamsUtilsTest.runnertype_db.runner_parameters['runnerdummy'])
-        action_meta = copy.deepcopy(ParamsUtilsTest.action_db.parameters['runnerdummy'])
-        merged_meta = param_utils._merge_param_meta_values(action_meta=action_meta,
-                                                           runner_meta=runner_meta)
-
-        # Description is in runner meta but not in action meta.
-        self.assertEqual(merged_meta['description'], runner_meta['description'])
-        # Default value is overridden in action.
-        self.assertEqual(merged_meta['default'], action_meta['default'])
-        # Immutability is set in action.
-        self.assertEqual(merged_meta['immutable'], action_meta['immutable'])
+class ParamsUtilsTest(DbTestCase):
+    action_db = FIXTURES['actions']['action_4_action_context_param.yaml']
+    action_system_default_db = FIXTURES['actions']['action_system_default.yaml']
+    runnertype_db = FIXTURES['runners']['testrunner1.yaml']
 
     def test_get_resolved_params(self):
         params = {
@@ -89,25 +51,31 @@ class ParamsUtilsTest(TestCase):
             'some_key_that_aint_exist_in_action_or_runner': 'bar',
             'runnerint': 555,
             'runnerimmutable': 'failed_override',
-            'actionimmutable': 'failed_override'
+            'actionimmutable': 'failed_override',
+            'defaults_ovverriden_by_execution': 0,
         }
-        actionexec_db = self._get_action_exec_db_model(params)
+        liveaction_db = self._get_liveaction_model(params)
 
         runner_params, action_params = param_utils.get_resolved_params(
             ParamsUtilsTest.runnertype_db.runner_parameters,
             ParamsUtilsTest.action_db.parameters,
-            actionexec_db.parameters)
+            liveaction_db.parameters)
 
         # Asserts for runner params.
         # Assert that default values for runner params are resolved.
         self.assertEqual(runner_params.get('runnerstr'), 'defaultfoo')
         # Assert that a runner param from action exec is picked up.
         self.assertEqual(runner_params.get('runnerint'), 555)
-        # Assert that a runner param can be overriden by action param default.
+        # Assert that a runner param can be overridden by action param default.
         self.assertEqual(runner_params.get('runnerdummy'), 'actiondummy')
-        # Asser that runner param made immutable in action can use default value in runner.
+        # Assert that a runner param default can be overridden by 'falsey' action param default,
+        # (timeout: 0 case).
+        self.assertEqual(runner_params.get('runnerdefaultint'), 0)
+        # Assert that execution param overrides both runner and action params defaults.
+        self.assertEqual(runner_params.get('defaults_ovverriden_by_execution'), 0)
+        # Assert that runner param made immutable in action can use default value in runner.
         self.assertEqual(runner_params.get('runnerfoo'), 'FOO')
-        # Assert that an immutable param cannot be overriden by action param or execution param.
+        # Assert that an immutable param cannot be overridden by action param or execution param.
         self.assertEqual(runner_params.get('runnerimmutable'), 'runnerimmutable')
 
         # Asserts for action params.
@@ -115,7 +83,7 @@ class ParamsUtilsTest(TestCase):
         # Assert that a param that is provided in action exec that isn't in action or runner params
         # isn't in resolved params.
         self.assertEqual(action_params.get('some_key_that_aint_exist_in_action_or_runner'), None)
-        # Assert that an immutable param cannot be overriden by execution param.
+        # Assert that an immutable param cannot be overridden by execution param.
         self.assertEqual(action_params.get('actionimmutable'), 'actionimmutable')
         # Assert that none of runner params are present in action_params.
         for k in action_params:
@@ -129,21 +97,22 @@ class ParamsUtilsTest(TestCase):
             'runnerimmutable': 'failed_override',
             'actionimmutable': 'failed_override'
         }
-        actionexec_db = self._get_action_exec_db_model(params)
+        liveaction_db = self._get_liveaction_model(params)
 
         runner_params, action_params = param_utils.get_finalized_params(
             ParamsUtilsTest.runnertype_db.runner_parameters,
             ParamsUtilsTest.action_db.parameters,
-            actionexec_db.parameters)
+            liveaction_db.parameters,
+            liveaction_db.context)
 
         # Asserts for runner params.
         # Assert that default values for runner params are resolved.
         self.assertEqual(runner_params.get('runnerstr'), 'defaultfoo')
         # Assert that a runner param from action exec is picked up.
         self.assertEqual(runner_params.get('runnerint'), 555)
-        # Assert that a runner param can be overriden by action param default.
+        # Assert that a runner param can be overridden by action param default.
         self.assertEqual(runner_params.get('runnerdummy'), 'actiondummy')
-        # Assert that an immutable param cannot be overriden by action param or execution param.
+        # Assert that an immutable param cannot be overridden by action param or execution param.
         self.assertEqual(runner_params.get('runnerimmutable'), 'runnerimmutable')
 
         # Asserts for action params.
@@ -151,11 +120,39 @@ class ParamsUtilsTest(TestCase):
         # Assert that a param that is provided in action exec that isn't in action or runner params
         # isn't in resolved params.
         self.assertEqual(action_params.get('some_key_that_aint_exist_in_action_or_runner'), None)
-        # Assert that an immutable param cannot be overriden by execution param.
+        # Assert that an immutable param cannot be overridden by execution param.
         self.assertEqual(action_params.get('actionimmutable'), 'actionimmutable')
+        # Assert that an action context param is set correctly.
+        self.assertEqual(action_params.get('action_api_user'), 'noob')
         # Assert that none of runner params are present in action_params.
         for k in action_params:
             self.assertTrue(k not in runner_params, 'Param ' + k + ' is a runner param.')
+
+    def test_get_finalized_params_system_values(self):
+        KeyValuePair.add_or_update(KeyValuePairDB(name='actionstr', value='foo'))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='actionnumber', value='1.0'))
+        params = {
+            'runnerint': 555
+        }
+        liveaction_db = self._get_liveaction_model(params)
+
+        runner_params, action_params = param_utils.get_finalized_params(
+            ParamsUtilsTest.runnertype_db.runner_parameters,
+            ParamsUtilsTest.action_system_default_db.parameters,
+            liveaction_db.parameters,
+            liveaction_db.context)
+
+        # Asserts for runner params.
+        # Assert that default values for runner params are resolved.
+        self.assertEqual(runner_params.get('runnerstr'), 'defaultfoo')
+        # Assert that a runner param from action exec is picked up.
+        self.assertEqual(runner_params.get('runnerint'), 555)
+        # Assert that an immutable param cannot be overridden by action param or execution param.
+        self.assertEqual(runner_params.get('runnerimmutable'), 'runnerimmutable')
+
+        # Asserts for action params.
+        self.assertEqual(action_params.get('actionstr'), 'foo')
+        self.assertEqual(action_params.get('actionnumber'), 1.0)
 
     def test_get_resolved_params_action_immutable(self):
         params = {
@@ -164,19 +161,19 @@ class ParamsUtilsTest(TestCase):
             'runnerint': 555,
             'actionimmutable': 'failed_override'
         }
-        actionexec_db = self._get_action_exec_db_model(params)
+        liveaction_db = self._get_liveaction_model(params)
 
         runner_params, action_params = param_utils.get_resolved_params(
             ParamsUtilsTest.runnertype_db.runner_parameters,
             ParamsUtilsTest.action_db.parameters,
-            actionexec_db.parameters)
+            liveaction_db.parameters)
 
         # Asserts for runner params.
         # Assert that default values for runner params are resolved.
         self.assertEqual(runner_params.get('runnerstr'), 'defaultfoo')
         # Assert that a runner param from action exec is picked up.
         self.assertEqual(runner_params.get('runnerint'), 555)
-        # Assert that a runner param can be overriden by action param default.
+        # Assert that a runner param can be overridden by action param default.
         self.assertEqual(runner_params.get('runnerdummy'), 'actiondummy')
 
         # Asserts for action params.
@@ -190,8 +187,9 @@ class ParamsUtilsTest(TestCase):
         action_params = {}
         runner_param_info = {}
         action_param_info = {}
+        action_context = {}
         r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, runner_param_info, action_param_info)
+            runner_params, action_params, action_context, runner_param_info, action_param_info)
         self.assertEqual(r_runner_params, runner_params)
         self.assertEqual(r_action_params, action_params)
 
@@ -200,32 +198,52 @@ class ParamsUtilsTest(TestCase):
         action_params = {'a1': None}
         runner_param_info = {'r1': {}}
         action_param_info = {'a1': {}}
+        action_context = {'api_user': None}
         r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, runner_param_info, action_param_info)
+            runner_params, action_params, action_context, runner_param_info, action_param_info)
         self.assertEqual(r_runner_params, runner_params)
         self.assertEqual(r_action_params, action_params)
 
     def test_get_rendered_params_no_cast(self):
         runner_params = {'r1': '{{r2}}', 'r2': 1}
-        action_params = {'a1': True, 'a2': '{{r1}} {{a1}}'}
+        action_params = {'a1': True, 'a2': '{{r1}} {{a1}}', 'a3': '{{action_context.api_user}}'}
         runner_param_info = {'r1': {}, 'r2': {}}
-        action_param_info = {'a1': {}, 'a2': {}}
+        action_param_info = {'a1': {}, 'a2': {}, 'a3': {}}
+        action_context = {'api_user': 'noob'}
         r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, runner_param_info, action_param_info)
+            runner_params, action_params, action_context, runner_param_info, action_param_info)
         self.assertEqual(r_runner_params, {'r1': u'1', 'r2': 1})
-        self.assertEqual(r_action_params, {'a1': True, 'a2': u'1 True'})
+        self.assertEqual(r_action_params, {'a1': True, 'a2': u'1 True', 'a3': 'noob'})
 
     def test_get_rendered_params_with_cast(self):
         # Note : In this test runner_params.r1 has a string value. However per runner_param_info the
         # type is an integer. The expected type is considered and cast is performed accordingly.
         runner_params = {'r1': '{{r2}}', 'r2': 1}
-        action_params = {'a1': True, 'a2': '{{a1}}'}
+        action_params = {'a1': True, 'a2': '{{a1}}', 'a3': '{{action_context.api_user}}'}
         runner_param_info = {'r1': {'type': 'integer'}, 'r2': {'type': 'integer'}}
-        action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'boolean'}}
+        action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'boolean'}, 'a3': {}}
+        action_context = {'api_user': 'noob'}
         r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, runner_param_info, action_param_info)
+            runner_params, action_params, action_context, runner_param_info, action_param_info)
         self.assertEqual(r_runner_params, {'r1': 1, 'r2': 1})
-        self.assertEqual(r_action_params, {'a1': True, 'a2': True})
+        self.assertEqual(r_action_params, {'a1': True, 'a2': True, 'a3': 'noob'})
+
+    def test_get_rendered_params_non_existent_template_key_in_action_context(self):
+        runner_params = {'r1': 'foo', 'r2': 2}
+        action_params = {'a1': 'i love tests', 'a2': '{{action_context.lorem_ipsum}}'}
+        runner_param_info = {'r1': {'type': 'string'}, 'r2': {'type': 'integer'}}
+        action_param_info = {'a1': {'type': 'string'}, 'a2': {'type': 'string'}}
+        action_context = {'api_user': 'noob', 'source_channel': 'reddit'}
+        try:
+            r_runner_params, r_action_params = param_utils.get_rendered_params(
+                runner_params, action_params, action_context, runner_param_info, action_param_info)
+            self.fail('This should have thrown because we are trying to deref a key in ' +
+                      'action context that ain\'t exist.')
+        except actionrunner.ActionRunnerException as e:
+            error_msg = 'Failed to render parameter "a2": \'dict object\' ' + \
+                        'has no attribute \'lorem_ipsum\''
+            self.assertTrue(error_msg in e.message)
+            pass
 
     def test_unicode_value_casting(self):
         rendered = {'a1': 'unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2'}
@@ -246,8 +264,10 @@ class ParamsUtilsTest(TestCase):
         runner_param_info = {}
         action_param_info = {'a1': {'type': 'string'}}
 
+        action_context = {}
+
         r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, runner_param_info, action_param_info)
+            runner_params, action_params, action_context, runner_param_info, action_param_info)
 
         expected_action_params = {
             'a1': (u'unicode1 \xd9\xa9(\xcc\xbe\xe2\x97\x8f\xcc\xae\xcc\xae\xcc'
@@ -264,7 +284,7 @@ class ParamsUtilsTest(TestCase):
         runner_param_info = {'r1': {'type': 'object'}, 'r2': {'type': 'object'}}
         action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'boolean'}}
         r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, runner_param_info, action_param_info)
+            runner_params, action_params, {}, runner_param_info, action_param_info)
         self.assertEqual(r_runner_params, {'r1': {'r2.1': 1}, 'r2': {'r2.1': 1}})
         self.assertEqual(r_action_params, {'a1': True, 'a2': True})
 
@@ -276,7 +296,7 @@ class ParamsUtilsTest(TestCase):
         runner_param_info = {'r1': {'type': 'array'}, 'r2': {'type': 'array'}}
         action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'boolean'}}
         r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, runner_param_info, action_param_info)
+            runner_params, action_params, {}, runner_param_info, action_param_info)
         self.assertEqual(r_runner_params, {'r1': ['1', '2'], 'r2': ['1', '2']})
         self.assertEqual(r_action_params, {'a1': True, 'a2': True})
 
@@ -284,7 +304,7 @@ class ParamsUtilsTest(TestCase):
         runner_params = {'r1': '{{r2}}', 'r2': '{{r1}}'}
         test_pass = True
         try:
-            param_utils.get_rendered_params(runner_params, {}, {}, {})
+            param_utils.get_rendered_params(runner_params, {}, {}, {}, {})
             test_pass = False
         except actionrunner.ActionRunnerException as e:
             test_pass = e.message.find('Cyclic') == 0
@@ -294,78 +314,33 @@ class ParamsUtilsTest(TestCase):
         runner_params = {'r1': '{{r3}}', 'r2': '{{r3}}'}
         test_pass = True
         try:
-            param_utils.get_rendered_params(runner_params, {}, {}, {})
+            param_utils.get_rendered_params(runner_params, {}, {}, {}, {})
             test_pass = False
         except actionrunner.ActionRunnerException as e:
             test_pass = e.message.find('Dependecy') == 0
         self.assertTrue(test_pass)
 
-    def _get_action_exec_db_model(self, params):
-        actionexec_db = ActionExecutionDB()
-        actionexec_db.status = 'initializing'
-        actionexec_db.start_timestamp = datetime.datetime.utcnow()
-        actionexec_db.action = ResourceReference(name=ParamsUtilsTest.action_db.name,
-                                                 pack=ParamsUtilsTest.action_db.pack).ref
-        actionexec_db.parameters = params
-        return actionexec_db
+    def test_get_rendered_params_param_rendering_failure(self):
+        runner_params = {}
+        action_params = {'cmd': '{{a2.foo}}', 'a2': 'test'}
 
-    @classmethod
-    def _setup_test_models(cls):
-        ParamsUtilsTest._setup_runner_models()
-        ParamsUtilsTest._setup_action_models()
+        expected_msg = 'Failed to render parameter "cmd": .*'
+        self.assertRaisesRegexp(actionrunner.ActionRunnerException,
+                                expected_msg,
+                                param_utils.get_rendered_params,
+                                runner_parameters=runner_params,
+                                action_parameters=action_params,
+                                action_context={},
+                                runnertype_parameter_info={},
+                                action_parameter_info={})
 
-    @classmethod
-    def _setup_runner_models(cls):
-        test_runner = {
-            'name': 'test-runner',
-            'description': 'A test runner.',
-            'enabled': True,
-            'runner_parameters': {
-                'runnerstr': {
-                    'description': 'Foo str param.',
-                    'type': 'string',
-                    'default': 'defaultfoo'
-                },
-                'runnerint': {
-                    'description': 'Foo int param.',
-                    'type': 'number'
-                },
-                'runnerfoo': {
-                    'description': 'Some foo param.',
-                    'default': 'FOO'
-                },
-                'runnerdummy': {
-                    'description': 'Dummy param.',
-                    'type': 'string',
-                    'default': 'runnerdummy'
-                },
-                'runnerimmutable': {
-                    'description': 'Immutable param.',
-                    'type': 'string',
-                    'default': 'runnerimmutable',
-                    'immutable': True
-                }
-            },
-            'runner_module': 'tests.test_runner'
-        }
-        runnertype_api = RunnerTypeAPI(**test_runner)
-        ParamsUtilsTest.runnertype_db = RunnerTypeAPI.to_model(runnertype_api)
+    def _get_liveaction_model(self, params):
+        status = 'initializing'
+        start_timestamp = date_utils.get_datetime_utc_now()
+        action_ref = ResourceReference(name=ParamsUtilsTest.action_db.name,
+                                       pack=ParamsUtilsTest.action_db.pack).ref
+        liveaction_db = LiveActionDB(status=status, start_timestamp=start_timestamp,
+                                     action=action_ref, parameters=params)
+        liveaction_db.context = {'source_channel': 'awesome', 'api_user': 'noob'}
 
-    @classmethod
-    def _setup_action_models(cls):
-        action_db = ActionDB()
-        action_db.name = 'action-1'
-        action_db.description = 'awesomeness'
-        action_db.enabled = True
-        action_db.pack = 'wolfpack'
-        action_db.entry_point = ''
-        action_db.runner_type = {'name': 'test-runner'}
-        action_db.parameters = {
-            'actionstr': {'type': 'string', 'required': True},
-            'actionint': {'type': 'number', 'default': 10},
-            'runnerdummy': {'type': 'string', 'default': 'actiondummy', 'immutable': True},
-            'runnerfoo': {'type': 'string', 'immutable': True},
-            'runnerimmutable': {'type': 'string', 'default': 'failed_override'},
-            'actionimmutable': {'type': 'string', 'default': 'actionimmutable', 'immutable': True}
-        }
-        ParamsUtilsTest.action_db = action_db
+        return liveaction_db

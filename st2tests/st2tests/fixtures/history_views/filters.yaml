@@ -1,0 +1,15 @@
+---
+action:
+- executions.local
+- executions.chain
+rule:
+- st2.person.joe
+runner:
+- run-local
+- action-chain
+trigger:
+- 46f67652-20cd-4bab-94e2-4615baa846d0
+trigger_type:
+- st2.webhook
+user:
+- system

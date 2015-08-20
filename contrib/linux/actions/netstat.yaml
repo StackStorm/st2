@@ -1,0 +1,14 @@
+---
+  name: "netstat"
+  runner_type: "remote-shell-cmd"
+  description: "Run netstat"
+  enabled: true
+  entry_point: ""
+  parameters:
+    cmd:
+      immutable: true
+      default: "netstat {{args}}"
+      position: 0
+    args:
+      description: "Command line arguments"
+      default: " "

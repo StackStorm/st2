@@ -1,0 +1,20 @@
+description: 'Dig action'
+enabled: true
+entry_point: dig.py
+name: dig
+parameters:
+  queryopts:
+    default: 'short'
+    type: string
+  rand:
+    default: False
+    type: boolean
+  nameserver:
+    type: string
+  hostname:
+    required: true
+    type: string
+  count:
+    type: integer
+    default: 0
+runner_type: "python-script"

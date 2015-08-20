@@ -13,18 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mongoengine import ValidationError, NotUniqueError
+import copy
+
+from mongoengine import ValidationError
 from pecan import abort
 from pecan.rest import RestController
 import six
 
-from st2common import log as logging
-from st2common.models.api.reactor import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
-from st2common.models.base import jsexpose
-from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance
-from st2common.services import triggers as TriggerService
 from st2api.controllers import resource
+from st2common import log as logging
+from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
+from st2common.models.api.base import jsexpose
+from st2common.models.system.common import ResourceReference
+from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
+from st2common.services import triggers as TriggerService
 from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.exceptions.db import StackStormDBObjectConflictError
+from st2common.transport.reactor import TriggerDispatcher
+from st2common.util import isotime
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 
 http_client = six.moves.http_client
@@ -32,7 +38,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class TriggerTypeController(resource.ContentPackResourceControler):
+class TriggerTypeController(resource.ContentPackResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of TriggerTypes in the system.
@@ -50,7 +56,7 @@ class TriggerTypeController(resource.ContentPackResourceControler):
 
     include_reference = True
 
-    @jsexpose(body=TriggerTypeAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=TriggerTypeAPI, status_code=http_client.CREATED)
     def post(self, triggertype):
         """
             Create a new triggertype.
@@ -58,7 +64,7 @@ class TriggerTypeController(resource.ContentPackResourceControler):
             Handles requests:
                 POST /triggertypes/
         """
-        LOG.info('POST /triggertypes/ with triggertype data=%s', triggertype)
+
         try:
             triggertype_db = TriggerTypeAPI.to_model(triggertype)
             triggertype_db = TriggerType.add_or_update(triggertype_db)
@@ -66,33 +72,19 @@ class TriggerTypeController(resource.ContentPackResourceControler):
             LOG.exception('Validation failed for triggertype data=%s.', triggertype)
             abort(http_client.BAD_REQUEST, str(e))
             return
-        except NotUniqueError as e:
-            LOG.warn('TriggerType creation of %s failed with uniqueness conflict. Exception : %s',
-                     triggertype, str(e))
-            abort(http_client.CONFLICT, str(e))
-            return
         else:
-            LOG.audit('TriggerType created. TriggerType=%s', triggertype_db)
+            extra = {'triggertype_db': triggertype_db}
+            LOG.audit('TriggerType created. TriggerType.id=%s' % (triggertype_db.id), extra=extra)
             if not triggertype_db.parameters_schema:
                 TriggerTypeController._create_shadow_trigger(triggertype_db)
 
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
-        LOG.debug('POST /triggertypes/ client_result=%s', triggertype_api)
 
         return triggertype_api
 
-    @jsexpose(str, body=TriggerTypeAPI)
+    @jsexpose(arg_types=[str], body_cls=TriggerTypeAPI)
     def put(self, triggertype_ref_or_id, triggertype):
-        LOG.info('PUT /triggertypes/ with triggertype ref_or_id=%s and data=%s',
-                 triggertype_ref_or_id, triggertype)
-
-        try:
-            triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
         triggertype_id = triggertype_db.id
 
         try:
@@ -114,14 +106,13 @@ class TriggerTypeController(resource.ContentPackResourceControler):
             abort(http_client.BAD_REQUEST, str(e))
             return
 
-        LOG.audit('TriggerType updated. TriggerType=%s and original TriggerType=%s',
-                  triggertype_db, old_triggertype_db)
-        triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
-        LOG.debug('PUT /triggertypes/ client_result=%s', triggertype_api)
+        extra = {'old_triggertype_db': old_triggertype_db, 'new_triggertype_db': triggertype_db}
+        LOG.audit('TriggerType updated. TriggerType.id=%s' % (triggertype_db.id), extra=extra)
 
+        triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
         return triggertype_api
 
-    @jsexpose(str, status_code=http_client.NO_CONTENT)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, triggertype_ref_or_id):
         """
             Delete a triggertype.
@@ -131,15 +122,9 @@ class TriggerTypeController(resource.ContentPackResourceControler):
                 DELETE /triggertypes/pack.name
         """
         LOG.info('DELETE /triggertypes/ with ref_or_id=%s',
-                triggertype_ref_or_id)
+                 triggertype_ref_or_id)
 
-        try:
-            triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
-        except Exception as e:
-            LOG.exception(e.message)
-            abort(http_client.NOT_FOUND, e.message)
-            return
-
+        triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
         triggertype_id = triggertype_db.id
 
         try:
@@ -155,7 +140,8 @@ class TriggerTypeController(resource.ContentPackResourceControler):
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
         else:
-            LOG.audit('TriggerType deleted. TriggerType=%s', triggertype_db)
+            extra = {'triggertype': triggertype_db}
+            LOG.audit('TriggerType deleted. TriggerType.id=%s' % (triggertype_db.id), extra=extra)
             if not triggertype_db.parameters_schema:
                 TriggerTypeController._delete_shadow_trigger(triggertype_db)
 
@@ -167,15 +153,17 @@ class TriggerTypeController(resource.ContentPackResourceControler):
                        'pack': triggertype_db.pack,
                        'type': trigger_type_ref,
                        'parameters': {}}
-            trigger_db = TriggerService.create_trigger_db(trigger)
-            LOG.audit('Trigger created for parameter-less TriggerType. Trigger=%s',
-                      trigger_db)
+            trigger_db = TriggerService.create_or_update_trigger_db(trigger)
+
+            extra = {'trigger_db': trigger_db}
+            LOG.audit('Trigger created for parameter-less TriggerType. Trigger.id=%s' %
+                      (trigger_db.id), extra=extra)
         except (ValidationError, ValueError) as e:
-                LOG.exception('Validation failed for trigger data=%s.', trigger)
-                # Not aborting as this is convenience.
-                return
-        except NotUniqueError as e:
-            LOG.warn('Trigger creation of %s failed with uniqueness conflict. Exception %s',
+            LOG.exception('Validation failed for trigger data=%s.', trigger)
+            # Not aborting as this is convenience.
+            return
+        except StackStormDBObjectConflictError as e:
+            LOG.warn('Trigger creation of "%s" failed with uniqueness conflict. Exception: %s',
                      trigger, str(e))
             # Not aborting as this is convenience.
             return
@@ -183,7 +171,8 @@ class TriggerTypeController(resource.ContentPackResourceControler):
     @staticmethod
     def _delete_shadow_trigger(triggertype_db):
         # shadow Trigger's have the same name as the shadowed TriggerType.
-        trigger_db = TriggerService.get_trigger_db(triggertype_db.name)
+        triggertype_ref = ResourceReference(name=triggertype_db.name, pack=triggertype_db.pack)
+        trigger_db = TriggerService.get_trigger_db_by_ref(triggertype_ref.ref)
         if not trigger_db:
             LOG.warn('No shadow trigger found for %s. Will skip delete.', triggertype_db)
             return
@@ -192,7 +181,9 @@ class TriggerTypeController(resource.ContentPackResourceControler):
         except Exception:
             LOG.exception('Database delete encountered exception during delete of id="%s". ',
                           trigger_db.id)
-        LOG.audit('Trigger deleted. Trigger=%s', trigger_db)
+
+        extra = {'trigger_db': trigger_db}
+        LOG.audit('Trigger deleted. Trigger.id=%s' % (trigger_db.id), extra=extra)
 
 
 class TriggerController(RestController):
@@ -200,7 +191,7 @@ class TriggerController(RestController):
         Implements the RESTful web endpoint that handles
         the lifecycle of Triggers in the system.
     """
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_one(self, trigger_id):
 
         """
@@ -209,13 +200,11 @@ class TriggerController(RestController):
             Handle:
                 GET /triggers/1
         """
-        LOG.info('GET /triggers/ with id=%s', id)
         trigger_db = TriggerController.__get_by_id(trigger_id)
         trigger_api = TriggerAPI.from_model(trigger_db)
-        LOG.debug('GET /triggers/ with id=%s, client_result=%s', id, trigger_api)
         return trigger_api
 
-    @jsexpose(str)
+    @jsexpose(arg_types=[str])
     def get_all(self, **kw):
         """
             List all triggers.
@@ -223,12 +212,11 @@ class TriggerController(RestController):
             Handles requests:
                 GET /triggers/
         """
-        LOG.info('GET all /triggers/ with filters=%s', kw)
         trigger_dbs = Trigger.get_all(**kw)
         trigger_apis = [TriggerAPI.from_model(trigger_db) for trigger_db in trigger_dbs]
         return trigger_apis
 
-    @jsexpose(body=TriggerAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=TriggerAPI, status_code=http_client.CREATED)
     def post(self, trigger):
         """
             Create a new trigger.
@@ -236,29 +224,21 @@ class TriggerController(RestController):
             Handles requests:
                 POST /triggers/
         """
-        LOG.info('POST /triggers/ with trigger data=%s', trigger)
-
         try:
             trigger_db = TriggerService.create_trigger_db(trigger)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for trigger data=%s.', trigger)
             abort(http_client.BAD_REQUEST, str(e))
             return
-        except NotUniqueError as e:
-            LOG.warn('Trigger creation of %s failed with uniqueness conflict. Exception %s',
-                     trigger, str(e))
-            abort(http_client.CONFLICT, str(e))
-            return
 
-        LOG.audit('Trigger created. Trigger=%s', trigger_db)
+        extra = {'trigger': trigger_db}
+        LOG.audit('Trigger created. Trigger.id=%s' % (trigger_db.id), extra=extra)
         trigger_api = TriggerAPI.from_model(trigger_db)
-        LOG.debug('POST /triggers/ client_result=%s', trigger_api)
 
         return trigger_api
 
-    @jsexpose(str, body=TriggerAPI)
+    @jsexpose(arg_types=[str], body_cls=TriggerAPI)
     def put(self, trigger_id, trigger):
-        LOG.info('PUT /triggers/ with trigger id=%s and data=%s', trigger_id, trigger)
         trigger_db = TriggerController.__get_by_id(trigger_id)
         try:
             if trigger.id is not None and trigger.id is not '' and trigger.id != trigger_id:
@@ -272,13 +252,13 @@ class TriggerController(RestController):
             abort(http_client.BAD_REQUEST, str(e))
             return
 
-        LOG.audit('Trigger updated. Trigger=%s and original Trigger=%s.', trigger, trigger_db)
+        extra = {'old_trigger_db': trigger, 'new_trigger_db': trigger_db}
+        LOG.audit('Trigger updated. Trigger.id=%s' % (trigger.id), extra=extra)
         trigger_api = TriggerAPI.from_model(trigger_db)
-        LOG.debug('PUT /triggers/ client_result=%s', trigger_api)
 
         return trigger_api
 
-    @jsexpose(str, status_code=http_client.NO_CONTENT)
+    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, trigger_id):
         """
             Delete a trigger.
@@ -296,7 +276,8 @@ class TriggerController(RestController):
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
 
-        LOG.audit('Trigger deleted. Trigger=%s', trigger_db)
+        extra = {'trigger_db': trigger_db}
+        LOG.audit('Trigger deleted. Trigger.id=%s' % (trigger_db.id), extra=extra)
 
     @staticmethod
     def __get_by_id(trigger_id):
@@ -315,33 +296,91 @@ class TriggerController(RestController):
             return []
 
 
-class TriggerInstanceController(RestController):
+class TriggerInstanceControllerMixin(RestController):
+    model = TriggerInstanceAPI
+    access = TriggerInstance
+
+
+class TriggerInstanceResendController(TriggerInstanceControllerMixin, resource.ResourceController):
+    supported_filters = {}
+
+    def __init__(self, *args, **kwargs):
+        super(TriggerInstanceResendController, self).__init__(*args, **kwargs)
+        self.trigger_dispatcher = TriggerDispatcher(LOG)
+
+    class TriggerInstancePayload(object):
+        def __init__(self, payload=None):
+            self.payload = payload or {}
+
+        def validate(self):
+            if self.payload:
+                assert isinstance(self.payload, dict)
+
+            return True
+
+    @jsexpose(status_code=http_client.OK)
+    def post(self, trigger_instance_id):
+        """
+        Re-send the provided trigger instance optionally specifying override parameters.
+
+        Handles requests:
+
+            POST /triggerinstance/<id>/re_emit
+            POST /triggerinstance/<id>/re_send
+        """
+        # Note: We only really need parameters here
+        existing_trigger_instance = self._get_one(id=trigger_instance_id)
+
+        new_payload = copy.deepcopy(existing_trigger_instance.payload)
+        new_payload['__context'] = {
+            'original_id': trigger_instance_id
+        }
+
+        try:
+            self.trigger_dispatcher.dispatch(existing_trigger_instance.trigger,
+                                             new_payload)
+            return {
+                'message': 'Trigger instance %s succesfully re-sent.' % trigger_instance_id,
+                'payload': new_payload
+            }
+        except Exception as e:
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+
+
+class TriggerInstanceController(TriggerInstanceControllerMixin, resource.ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of TriggerInstances in the system.
     """
+    re_emit = TriggerInstanceResendController()
 
-    @jsexpose(str)
-    def get_one(self, id):
+    supported_filters = {
+        'trigger': 'trigger',
+        'timestamp_gt': 'occurrence_time.gt',
+        'timestamp_lt': 'occurrence_time.lt'
+    }
+
+    filter_transform_functions = {
+        'timestamp_gt': lambda value: isotime.parse(value=value),
+        'timestamp_lt': lambda value: isotime.parse(value=value)
+    }
+
+    query_options = {
+        'sort': ['-occurrence_time', 'trigger']
+    }
+
+    def __init__(self):
+        super(TriggerInstanceController, self).__init__()
+
+    @jsexpose(arg_types=[str])
+    def get_one(self, instance_id):
         """
-            List triggerinstance by id.
+            List triggerinstance by instance_id.
 
             Handle:
                 GET /triggerinstances/1
         """
-        LOG.info('GET /triggerinstances/ with id=%s', id)
-
-        try:
-            trigger_instance_db = TriggerInstance.get_by_id(id)
-        except (ValueError, ValidationError):
-            LOG.exception('Database lookup for id="%s" resulted in exception.', id)
-            abort(http_client.NOT_FOUND)
-            return
-
-        trigger_instance_api = TriggerInstanceAPI.from_model(trigger_instance_db)
-        LOG.debug('GET /triggerinstances/ with id=%s, client_result=%s', id, trigger_instance_api)
-
-        return trigger_instance_api
+        return self._get_one(instance_id)
 
     @jsexpose()
     def get_all(self, **kw):
@@ -351,7 +390,11 @@ class TriggerInstanceController(RestController):
             Handles requests:
                 GET /triggerinstances/
         """
-        LOG.info('GET all /triggerinstances/')
-        trigger_instance_apis = [TriggerInstanceAPI.from_model(trigger_instance_db)
-                                 for trigger_instance_db in TriggerInstance.get_all(**kw)]
-        return trigger_instance_apis
+        trigger_instances = self._get_trigger_instances(**kw)
+        return trigger_instances
+
+    def _get_trigger_instances(self, **kw):
+        kw['limit'] = int(kw.get('limit', 100))
+
+        LOG.debug('Retrieving all trigger instances with filters=%s', kw)
+        return super(TriggerInstanceController, self)._get_all(**kw)

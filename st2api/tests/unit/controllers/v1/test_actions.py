@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import os.path
 import copy
+
 try:
     import simplejson as json
 except ImportError:
@@ -25,6 +28,9 @@ import unittest2
 from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
 from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.persistence.pack import Pack
+from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.base import CleanFilesTestCase
 
 from tests import FunctionalTest
 
@@ -35,11 +41,15 @@ ACTION_1 = {
     'enabled': True,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
-    }
+    },
+    'tags': [
+        {'name': 'tag1', 'value': 'dont-care'},
+        {'name': 'tag2', 'value': 'dont-care'}
+    ]
 }
 
 # ACTION_2: Good action definition. No content pack.
@@ -48,7 +58,7 @@ ACTION_2 = {
     'description': 'test description',
     'enabled': True,
     'entry_point': '/tmp/test/action2.py',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'c': {'type': 'string', 'default': 'C1', 'position': 0},
         'd': {'type': 'string', 'default': 'D1', 'immutable': True}
@@ -61,7 +71,7 @@ ACTION_3 = {
     'description': 'test description',
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -75,7 +85,7 @@ ACTION_4 = {
     'enabled': False,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -102,7 +112,7 @@ ACTION_6 = {
     'enabled': False,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -117,7 +127,7 @@ ACTION_7 = {
     'enabled': False,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -131,7 +141,7 @@ ACTION_8 = {
     'enabled': True,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'cmd': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -145,7 +155,7 @@ ACTION_9 = {
     'enabled': True,
     'pack': 'wolfpack',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1', 'dummyfield': True},  # dummyfield is invalid.
         'b': {'type': 'string', 'default': 'B1'}
@@ -159,7 +169,7 @@ ACTION_10 = {
     'enabled': True,
     'pack': 'wolfpack1',
     'entry_point': '/tmp/test/action1.sh',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'}
@@ -173,15 +183,38 @@ ACTION_11 = {
     'description': 'test description',
     'enabled': True,
     'entry_point': '/tmp/test/action2.py',
-    'runner_type': 'run-local',
+    'runner_type': 'local-shell-script',
     'parameters': {
         'c': {'type': 'string', 'default': 'C1', 'position': 0},
         'd': {'type': 'string', 'default': 'D1', 'immutable': True}
     }
 }
 
+# Good action inside dummy pack
+ACTION_12 = {
+    'name': 'st2.dummy.action1',
+    'description': 'test description',
+    'enabled': True,
+    'pack': 'dummy_pack_1',
+    'entry_point': '/tmp/test/action1.sh',
+    'runner_type': 'local-shell-script',
+    'parameters': {
+        'a': {'type': 'string', 'default': 'A1'},
+        'b': {'type': 'string', 'default': 'B1'}
+    },
+    'tags': [
+        {'name': 'tag1', 'value': 'dont-care'},
+        {'name': 'tag2', 'value': 'dont-care'}
+    ]
+}
 
-class TestActionController(FunctionalTest):
+
+class TestActionController(FunctionalTest, CleanFilesTestCase):
+    register_packs = True
+    to_delete_files = [
+        os.path.join(get_fixtures_base_path(), 'dummy_pack_1/actions/filea.txt')
+    ]
+
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_one_using_id(self):
@@ -317,6 +350,7 @@ class TestActionController(FunctionalTest):
         post_resp = self.__do_post(ACTION_1, expect_errors=True)
         # Verify name conflict
         self.assertEqual(post_resp.status_int, 409)
+        self.assertEqual(post_resp.json['conflict-id'], action_ids[0])
 
         post_resp = self.__do_post(ACTION_10)
         action_ids.append(self.__get_action_id(post_resp))
@@ -325,6 +359,31 @@ class TestActionController(FunctionalTest):
 
         for i in action_ids:
             self.__do_delete(i)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_post_include_files(self):
+        # Verify initial state
+        pack_db = Pack.get_by_ref(ACTION_12['pack'])
+        self.assertTrue('actions/filea.txt' not in pack_db.files)
+
+        action = copy.deepcopy(ACTION_12)
+        action['data_files'] = [
+            {
+                'file_path': 'filea.txt',
+                'content': 'test content'
+            }
+        ]
+        post_resp = self.__do_post(action)
+
+        # Verify file has been written on disk
+        for file_path in self.to_delete_files:
+            self.assertTrue(os.path.exists(file_path))
+
+        # Verify PackDB.files has been updated
+        pack_db = Pack.get_by_ref(ACTION_12['pack'])
+        self.assertTrue('actions/filea.txt' in pack_db.files)
+        self.__do_delete(self.__get_action_id(post_resp))
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
@@ -357,6 +416,17 @@ class TestActionController(FunctionalTest):
         post_resp = self.__do_post(ACTION_1)
         del_resp = self.__do_delete(self.__get_action_id(post_resp))
         self.assertEqual(del_resp.status_int, 204)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_action_with_tags(self):
+        post_resp = self.__do_post(ACTION_1)
+        action_id = self.__get_action_id(post_resp)
+        get_resp = self.__do_get_one(action_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self.__get_action_id(get_resp), action_id)
+        self.assertEqual(get_resp.json['tags'], ACTION_1['tags'])
+        self.__do_delete(action_id)
 
     # TODO: Re-enable those tests after we ensure DB is flushed in setUp
     # and each test starts in a clean state

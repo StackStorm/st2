@@ -1,8 +1,0 @@
-{
-    "name": "remote-fib",
-    "runner_type": "run-remote",
-    "description": "Action that returns fibonacci numbers in a range.",
-    "enabled": true,
-    "entry_point": "pythonactions/fibonacci.py",
-    "parameters": {}
-}

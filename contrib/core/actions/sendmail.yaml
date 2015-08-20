@@ -1,0 +1,39 @@
+---
+description: This sends an email
+enabled: true
+entry_point: send_mail/send_mail
+name: sendmail
+parameters:
+  to:
+    description: Recipient email address.
+    position: 0
+    required: true
+    type: string
+  subject:
+    description: Subject of the email.
+    position: 1
+    required: true
+    type: string
+  send_empty_body:
+    description: Send a message even if the body is empty.
+    position: 2
+    required: false
+    type: boolean
+    default: True
+  body:
+    description: Body of the email.
+    position: 3
+    required: true
+    type: string
+  content_type:
+    type: string
+    description: Content type of message to be sent
+    enum:
+      - "text/plain"
+      - "text/html"
+    default: "text/html"
+    position: 4
+  sudo:
+    immutable: true
+
+runner_type: "local-shell-script"

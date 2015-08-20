@@ -22,3 +22,13 @@ class StackStormDBObjectNotFoundError(StackStormBaseException):
 
 class StackStormDBObjectMalformedError(StackStormBaseException):
     pass
+
+
+class StackStormDBObjectConflictError(StackStormBaseException):
+    """
+    Exception that captures a DB object conflict error.
+    """
+    def __init__(self, message, conflict_id, model_object):
+        super(StackStormDBObjectConflictError, self).__init__(message)
+        self.conflict_id = conflict_id
+        self.model_object = model_object

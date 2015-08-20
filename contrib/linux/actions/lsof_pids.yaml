@@ -1,0 +1,16 @@
+---
+  name: "lsof_pids"
+  runner_type: "remote-shell-cmd"
+  description: "Run lsof for a group of PIDs"
+  enabled: true
+  entry_point: ""
+  parameters:
+    cmd:
+      immutable: true
+      default: "for pid in {{pids}}; do lsof -p $pid; done"
+      position: 0
+    pids:
+      description: "List of pids"
+      required: true
+    sudo:
+      default: true

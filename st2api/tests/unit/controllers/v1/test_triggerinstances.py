@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import mock
 import six
 
 from st2common.transport.publishers import PoolPublisher
-from st2common.persistence.reactor import TriggerInstance
-from st2common.models.db.reactor import TriggerInstanceDB
+from st2common.persistence.trigger import TriggerInstance
+from st2common.models.db.trigger import TriggerInstanceDB
+from st2common.util import date as date_utils
 from tests import FunctionalTest
 
 http_client = six.moves.http_client
@@ -39,6 +39,42 @@ class TestTriggerController(FunctionalTest):
         resp = self.app.get('/v1/triggerinstances')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), self.triggerinstance_count, 'Get all failure.')
+
+    def test_get_all_limit(self):
+        limit = 1
+        resp = self.app.get('/v1/triggerinstances?limit=%d' % limit)
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), limit, 'Get all failure. Length doesn\'t match limit.')
+
+    def test_get_all_filter_by_trigger(self):
+        trigger = 'dummy_pack_1.st2.test.trigger0'
+        resp = self.app.get('/v1/triggerinstances?trigger=%s' % trigger)
+        self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 1, 'Get all failure. Must get only one such instance.')
+
+    def test_get_all_filter_by_timestamp(self):
+        resp = self.app.get('/v1/triggerinstances')
+        self.assertEqual(resp.status_int, http_client.OK)
+        timestamp_largest = resp.json[0]['occurrence_time']
+        timestamp_middle = resp.json[1]['occurrence_time']
+        resp = self.app.get('/v1/triggerinstances?timestamp_gt=%s' % timestamp_largest)
+        # Since we sort trigger instances by time (latest first), the previous
+        # get should return no trigger instances.
+        self.assertEqual(len(resp.json), 0)
+        resp = self.app.get('/v1/triggerinstances?timestamp_lt=%s' % timestamp_middle)
+        self.assertEqual(len(resp.json), 1)
+
+    def test_reemit_trigger_instance(self):
+        resp = self.app.get('/v1/triggerinstances')
+        self.assertEqual(resp.status_int, http_client.OK)
+        instance_id = resp.json[0]['id']
+        resp = self.app.post('/v1/triggerinstances/%s/re_emit' % instance_id)
+        self.assertEqual(resp.status_int, http_client.OK)
+        resent_message = resp.json['message']
+        resent_payload = resp.json['payload']
+        self.assertTrue(instance_id in resent_message)
+        self.assertTrue('__context' in resent_payload)
+        self.assertEqual(resent_payload['__context']['original_id'], instance_id)
 
     def test_get_one(self):
         triggerinstance_id = str(self.triggerinstance_1.id)
@@ -137,7 +173,7 @@ class TestTriggerController(FunctionalTest):
         trigger_instance = TriggerInstanceDB()
         trigger_instance.trigger = trigger_ref
         trigger_instance.payload = payload
-        trigger_instance.occurrence_time = datetime.datetime.utcnow()
+        trigger_instance.occurrence_time = date_utils.get_datetime_utc_now()
         created = TriggerInstance.add_or_update(trigger_instance)
         cls.triggerinstance_count += 1
         return created

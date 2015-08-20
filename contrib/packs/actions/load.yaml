@@ -1,6 +1,6 @@
 ---
   name: "load"
-  runner_type: "run-local"
+  runner_type: "local-shell-cmd"
   description: "Action that reloads all st2 content."
   enabled: true
   entry_point: ""
@@ -9,12 +9,10 @@
       immutable: true
     cmd:
       immutable: true
-      default: "st2ctl reload --register-{{register}}"
+      default: "st2ctl reload{% for item in register.split(',') %} --register-{{ item|trim }}{% endfor %}"
     register:
       type: "string"
-      default: "actions"
-      description: "Possible options are all, sensors, actions, rules."
+      default: "actions,aliases,sensors"
+      description: "Possible options are all, sensors, actions, rules, aliases."
     kwarg_op:
-      immutable: true
-    dir:
       immutable: true

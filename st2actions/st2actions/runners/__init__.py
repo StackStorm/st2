@@ -14,15 +14,21 @@
 # limitations under the License.
 
 import abc
+import importlib
 
 import six
 
 from st2actions import handlers
 from st2common import log as logging
+from st2common.exceptions.actionrunner import ActionRunnerCreateError
+from st2common.util.api import get_full_public_api_url
 import st2common.util.action_db as action_utils
+from st2common.constants.pack import DEFAULT_PACK_NAME
+
 
 __all__ = [
     'ActionRunner',
+    'AsyncActionRunner',
     'ShellRunnerMixin'
 ]
 
@@ -31,6 +37,23 @@ LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters
 RUNNER_COMMAND = 'cmd'
+
+
+def get_runner(module_name):
+    """Load the module and return an instance of the runner."""
+
+    LOG.debug('Runner loading python module: %s', module_name)
+    try:
+        module = importlib.import_module(module_name, package=None)
+    except Exception as e:
+        LOG.exception('Failed to import module %s.', module_name)
+        raise ActionRunnerCreateError(e)
+
+    LOG.debug('Instance of runner module: %s', module)
+
+    runner = module.get_runner()
+    LOG.debug('Instance of runner: %s', runner)
+    return runner
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -51,7 +74,10 @@ class ActionRunner(object):
         self.runner_parameters = None
         self.action = None
         self.action_name = None
-        self.action_execution_id = None
+        self.liveaction = None
+        self.liveaction_id = None
+        self.execution = None
+        self.execution_id = None
         self.entry_point = None
         self.libs_dir_path = None
         self.context = None
@@ -68,17 +94,52 @@ class ActionRunner(object):
     def run(self, action_parameters):
         raise NotImplementedError()
 
-    def post_run(self):
+    def post_run(self, status, result):
         if self.callback and not (set(['url', 'source']) - set(self.callback.keys())):
             handler = handlers.get_handler(self.callback['source'])
             handler.callback(self.callback['url'],
                              self.context,
-                             self.container_service.get_status(),
-                             self.container_service.get_result())
+                             status,
+                             result)
+
+    def get_pack_name(self):
+        """
+        Retrieve pack name for the action which is being currently executed.
+
+        :rtype: ``str``
+        """
+        if self.action:
+            return self.action.pack
+
+        return DEFAULT_PACK_NAME
+
+    def _get_common_action_env_variables(self):
+        """
+        Retrieve common ST2_ACTION_ environment variables which will be available to the action.
+
+        Note: Environment variables are prefixed with ST2_ACTION_* so they don't clash with CLI
+        environment variables.
+
+        :rtype: ``dict``
+        """
+        result = {}
+        result['ST2_ACTION_PACK_NAME'] = self.get_pack_name()
+        result['ST2_ACTION_EXECUTION_ID'] = str(self.liveaction_id)
+        result['ST2_ACTION_API_URL'] = get_full_public_api_url()
+
+        if self.auth_token:
+            result['ST2_ACTION_AUTH_TOKEN'] = self.auth_token.token
+
+        return result
 
     def __str__(self):
         attrs = ', '.join(['%s=%s' % (k, v) for k, v in six.iteritems(self.__dict__)])
         return '%s@%s(%s)' % (self.__class__.__name__, str(id(self)), attrs)
+
+
+@six.add_metaclass(abc.ABCMeta)
+class AsyncActionRunner(ActionRunner):
+    pass
 
 
 class ShellRunnerMixin(object):

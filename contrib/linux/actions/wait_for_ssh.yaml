@@ -1,0 +1,23 @@
+---
+  name: "wait_for_ssh"
+  runner_type: "python-script"
+  description: "Wait for SSH"
+  enabled: true
+  entry_point: "wait_for_ssh.py"
+  parameters: 
+    keyfile: 
+      default: "/home/stanley/.ssh/stanley_rsa"
+      required: true
+    username: 
+      description: "Command line arguments"
+      required: true
+      default: "stanley"
+    hostname: 
+      type: "string"
+      required: true
+    ssh_timeout: 
+      type: "integer"
+      default: 30
+    retries: 
+      type: "integer"
+      default: 10

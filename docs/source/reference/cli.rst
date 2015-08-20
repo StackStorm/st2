@@ -20,7 +20,7 @@ client will assume localhost and default ports.
    server URL is provided, it will override the base URL and default
    port.
 -  ST2\_API\_URL - Endpoint for the Action REST API (i.e.
-   http://localhost:9101/v1) for managing actions, executions, triggers,
+   http://localhost:9101/v1) for managing actions, liveactions, triggers,
    rules and reusable configuration data.
 
 The default endpoint configuration can be explicitly specified at the
@@ -81,14 +81,14 @@ Python Client
     >>> from st2client import models
     >>> client = Client(base_url='http://localhost')
     >>> rules = client.rules.get_all()
-    >>> key_value_pair = client.keys.create(models.KeyValuePair(name='k1', value='v1'))
+    >>> key_value_pair = client.keys.update(models.KeyValuePair(name='k1', value='v1'))
 
 The models Trigger, Rule, Action, Execution, and KeyValuePair are
 defined under st2client.models. Please refer to the respective README
 section for these models for their schema.
 
 The resource managers for the models are instantiated under the client
-as **triggers**, **rules**, **actions**, **executions**, and **keys**.
+as **triggers**, **rules**, **actions**, **liveactions**, and **keys**.
 The operations get\_all, get\_by\_name, get\_by\_id, create, update, and
 delete are generally implemented for these resource managers.
 

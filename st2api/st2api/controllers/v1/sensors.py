@@ -18,9 +18,9 @@ from pecan import abort
 from mongoengine import ValidationError
 
 from st2common import log as logging
-from st2common.models.base import jsexpose
-from st2common.persistence.reactor import SensorType
-from st2common.models.api.reactor import SensorTypeAPI
+from st2common.models.api.base import jsexpose
+from st2common.persistence.sensor import SensorType
+from st2common.models.api.sensor import SensorTypeAPI
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2api.controllers import resource
@@ -30,7 +30,7 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class SensorTypeController(resource.ContentPackResourceControler):
+class SensorTypeController(resource.ContentPackResourceController):
     model = SensorTypeAPI
     access = SensorType
     supported_filters = {
@@ -44,7 +44,7 @@ class SensorTypeController(resource.ContentPackResourceControler):
 
     include_reference = True
 
-    @jsexpose(str, body=SensorTypeAPI)
+    @jsexpose(str, body_cls=SensorTypeAPI)
     def put(self, ref_or_id, sensor_type):
         try:
             sensor_type_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)

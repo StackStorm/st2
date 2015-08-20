@@ -1,0 +1,18 @@
+---
+description: Action that executes an arbitrary Linux command on the localhost.
+enabled: true
+entry_point: ''
+name: local-notify
+notify:
+  on-complete:
+    routes:
+    - slack
+    message: '"@channel: Action succeeded."'
+parameters:
+  cmd:
+    description: Arbitrary Linux command to be executed on the remote host(s).
+    required: true
+    type: string
+  sudo:
+    immutable: true
+runner_type: "local-shell-cmd"

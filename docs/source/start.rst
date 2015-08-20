@@ -16,6 +16,8 @@ The best way to explore |st2| is to use CLI. Start by firing a few commands:
     st2 --version
     # Get help. It's a lot. Explore.
     st2 -h
+    # Authenticate and export the token
+    export ST2_AUTH_TOKEN=`st2 auth -t -p testp testu`
     # List the actions from a 'core' pack
     st2 action list --pack=core
     st2 trigger list
@@ -29,8 +31,23 @@ The best way to explore |st2| is to use CLI. Start by firing a few commands:
 
 The default “all-in-one” installation deploys the CLI along with the |st2|
 services. CLI can be used to access |st2| service remotely. All |st2|
-operations are also available via REST API and Python bindings.
+operations are also available via REST API, Python, and JavaScript bindings.
 Check the :doc:`CLI and Python Client </reference/cli>` reference for details.
+
+From v0.8, |st2| ships with WebUI. With the default "all-in-one" installation, you can access it at
+http://hostname:8080/.
+
+Authenticate
+----------------
+If :doc:`authentication </authentication>` enabled, obtain authentication token with ``st2 auth <username>``,
+and supply it with each command using ``--token`` parameter. For convenience,
+keep credentials in CLI config file, or put it to environment variable ``ST2_AUTH_TOKEN``.
+:ref:`Details here <authentication-usage>`, a nice shortcut for now is:
+
+.. code-block:: bash
+
+    export ST2_AUTH_TOKEN=`st2 auth -t -p testp testu`
+
 
 Work with Actions
 ---------------------
@@ -67,11 +84,11 @@ To run the action from the CLI, do
 
 Use ``core.remote`` action to run linux command on multiple hosts over ssh.
 This assumes that passwordless SSH access is configured for the hosts,
-as described in `Configure SSH </install/config.rst#configure-ssh>`__ section.
+as described in :ref:`config-configure-ssh` section.
 
 .. code-block:: bash
 
-    st2 run core.remote host='abc.example.com, cde.example.com' user='mysshuser' -- ls -l
+    st2 run core.remote hosts='abc.example.com, cde.example.com' username='mysshuser' -- ls -l
 
 .. note::
 
@@ -123,7 +140,7 @@ Sample rule: :github_st2:`sample_rule_with_webhook.yaml
     :language: yaml
 
 
-The rule definition is a YAML spec with thee sections: trigger, criteria, and action.
+The rule definition is a YAML spec with three sections: trigger, criteria, and action.
 It configures the webhook trigger with url, applies filtering criteria based trigger
 parameters. This one configures a webhook with ``sample`` sub-url so it listens
 on ``http://{host}:9101/v1/webhooks/sample``.
@@ -133,16 +150,6 @@ value in payload is ``st2``. See :doc:`rules` for detailed rule anatomy.
 Trigger payload is referred with ``{{trigger}}``. If trigger payload is valid JSON,
 it is parsed and can be accessed like ``{{trigger.path.to.parameter}}`` (it's
 `Jinja template syntax <http://jinja.pocoo.org/docs/dev/templates/>`__).
-
-While the most data are retrieved as needed by |st2|, you may need to
-store and share some common variables. Use |st2| datastore service to store
-the values and reference them in rules and workflows
-as ``{{system.my_parameter}}``. This creates ``user=stanley`` key-value pair:
-
-.. code-block:: bash
-
-    st2 key create user stanley
-    st2 key list
 
 What are the triggers availabe to use in rules? Just like with actions,
 use the CLI to browse triggers, learn what the trigger does,
@@ -159,6 +166,21 @@ how to configure it, and what is it’s payload structure:
     # Check details on the Webhook trigger
     st2 trigger get core.st2.webhook
 
+
+Datastore
+-------------------------
+
+While the most data are retrieved as needed by |st2|, you may need to
+store and share some common variables. Use |st2| datastore service to store
+the values and reference them in rules and workflows
+as ``{{system.my_parameter}}``. This creates ``user=stanley`` key-value pair:
+
+.. code-block:: bash
+
+    st2 key set user stanley
+    st2 key list
+
+For more information on datastore, check :doc:`datastore`
 
 Deploy a Rule
 -------------------------
@@ -191,10 +213,26 @@ the file and see that it appends the payload if the name=Joe.
 
 Congratulations, your first |st2| rule is up and running!
 
-Basic examples of rules, along with sample actions and sensors can be
-found at ``/usr/share/doc/st2/examples/``. To get them deployed, copy them
-to /opt/stackstorm/packs/ and reload the content by running ``st2 run packs.load``.
-For more content examples checkout `st2contrib`_ community repo on GitHub.
+ .. _start-deploy-examples:
+
+Deploy Examples
+-------------------------
+Examples of rules, custom sensors, actions, and workflows are installed with |st2| and located
+at :github_st2:`/usr/share/doc/st2/examples <contrib/examples/>`. To deploy, copy them
+to /opt/stackstorm/packs/, setup, and reload the content:
+
+.. code-block:: bash
+
+    # Copy examples to st2 content directory
+    sudo cp -r /usr/share/doc/st2/examples/ /opt/stackstorm/packs/
+
+    # Run setup
+    st2 run packs.setup_virtualenv packs=examples
+
+    # Reload stackstorm context
+    st2ctl reload --register-all
+
+For more content - actions, sensors, rules - checkout `st2contrib`_ community repo on GitHub.
 
 
 Troubleshooting
@@ -202,9 +240,10 @@ Troubleshooting
 If something goes wrong:
 
 * Check recent executions: ``st2 execution list``
-* Check the logs at ``/var/log/st2.``
 * Use service control ``st2ctl`` to check service status, restart services, reload packs, or clean the db.
-* `Engage with developers <http://webchat.freenode.net/?channels=stackstorm>`__
+* Inspect the logs at ``/var/log/st2/``
+* Follow :doc:`/troubleshooting` guide
+* Engage with developers at `#stackstorm on irc.freenode.org <http://webchat.freenode.net/?channels=stackstorm>`__
 
 
 -------------------------------
@@ -220,7 +259,7 @@ If something goes wrong:
 
 * Connect with your monitoring system: - :doc:`resources/monitoring`.
 * Configure SSH for `remote` actions  - :ref:`config-configure-ssh`.
-* Use worklows to stitch actions into higher level automations - :doc:`/workflows`.
+* Use workflows to stitch actions into higher level automations - :doc:`/workflows`.
 
 
 .. include:: engage.rst

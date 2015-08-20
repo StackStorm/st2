@@ -1,0 +1,6 @@
+---
+name: "echochain_task_failure"
+description: "Simple Action Chain workflow with task failure"
+runner_type: "action-chain"
+entry_point: "chains/echochain_task_failure.yaml"
+enabled: true

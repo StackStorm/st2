@@ -15,14 +15,28 @@
 
 import os
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.constants.system import VERSION_STRING
 
 
-def _do_register_opts(opts, group, ignore_errors):
+def do_register_opts(opts, group=None, ignore_errors=False):
     try:
         cfg.CONF.register_opts(opts, group=group)
+    except:
+        if not ignore_errors:
+            raise
+
+
+def do_register_cli_opts(opt, ignore_errors=False):
+    # TODO: This function has broken name, it should work with lists :/
+    if not isinstance(opt, (list, tuple)):
+        opts = [opt]
+    else:
+        opts = opt
+
+    try:
+        cfg.CONF.register_cli_opts(opts)
     except:
         if not ignore_errors:
             raise
@@ -33,7 +47,7 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt('enable', default=True, help='Enable authentication middleware.'),
         cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.')
     ]
-    _do_register_opts(auth_opts, 'auth', ignore_errors)
+    do_register_opts(auth_opts, 'auth', ignore_errors)
 
     system_user_opts = [
         cfg.StrOpt('user',
@@ -43,29 +57,31 @@ def register_opts(ignore_errors=False):
                    default='/home/vagrant/.ssh/stanley_rsa',
                    help='SSH private key for the system user.')
     ]
-    _do_register_opts(system_user_opts, 'system_user', ignore_errors)
+    do_register_opts(system_user_opts, 'system_user', ignore_errors)
 
     schema_opts = [
         cfg.IntOpt('version', default=4, help='Version of JSON schema to use.'),
         cfg.StrOpt('draft', default='http://json-schema.org/draft-04/schema#',
                    help='URL to the JSON schema draft.')
     ]
-    _do_register_opts(schema_opts, 'schema', ignore_errors)
+    do_register_opts(schema_opts, 'schema', ignore_errors)
 
     system_opts = [
-        cfg.StrOpt('base_path', default='/opt/stackstorm/',
+        cfg.StrOpt('base_path', default='/opt/stackstorm',
                    help='Base path to all st2 artifacts.'),
+        cfg.ListOpt('admin_users', default=[],
+                    help='A list of usernames for users which should have admin privileges')
     ]
-    _do_register_opts(system_opts, 'system', ignore_errors)
+    do_register_opts(system_opts, 'system', ignore_errors)
 
-    packs_default_base = os.path.join(cfg.CONF.system.base_path, 'packs')
+    system_packs_base_path = os.path.join(cfg.CONF.system.base_path, 'packs')
     content_opts = [
-        cfg.StrOpt('packs_base_path', default=packs_default_base,
-                   help='path to place content packs in.'),
-        cfg.StrOpt('system_path', default='st2reactor/st2reactor/contrib/sensors',
-                   help='path to load system sensor modules from')
+        cfg.StrOpt('system_packs_base_path', default=system_packs_base_path,
+                   help='Path to the directory which contains system packs.'),
+        cfg.StrOpt('packs_base_paths', default=None,
+                   help='Paths which will be searched for integration packs.')
     ]
-    _do_register_opts(content_opts, 'content', ignore_errors)
+    do_register_opts(content_opts, 'content', ignore_errors)
 
     db_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
@@ -74,13 +90,17 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('username', help='username for db login'),
         cfg.StrOpt('password', help='password for db login'),
     ]
-    _do_register_opts(db_opts, 'database', ignore_errors)
+    do_register_opts(db_opts, 'database', ignore_errors)
 
     messaging_opts = [
+        # It would be nice to be able to deprecate url and completely switch to using
+        # url. However, this will be a breaking change and will have impact so allowing both.
         cfg.StrOpt('url', default='amqp://guest:guest@localhost:5672//',
-                   help='URL of the messaging server.')
+                   help='URL of the messaging server.'),
+        cfg.ListOpt('cluster_urls', default=[],
+                    help='URL of all the nodes in a messaging service cluster.')
     ]
-    _do_register_opts(messaging_opts, 'messaging', ignore_errors)
+    do_register_opts(messaging_opts, 'messaging', ignore_errors)
 
     syslog_opts = [
         cfg.StrOpt('host', default='localhost',
@@ -88,23 +108,60 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt('port', default=514,
                    help='Port for the syslog server.'),
         cfg.StrOpt('facility', default='local7',
-                   help='Syslog facility level.')
+                   help='Syslog facility level.'),
+        cfg.StrOpt('protocol', default='udp',
+                   help='Transport protocol to use (udp / tcp).')
     ]
-    _do_register_opts(syslog_opts, 'syslog', ignore_errors)
+    do_register_opts(syslog_opts, 'syslog', ignore_errors)
 
     log_opts = [
         cfg.ListOpt('excludes', default='',
-                    help='Exclusion list of loggers to omit.')
+                    help='Exclusion list of loggers to omit.'),
+        cfg.BoolOpt('redirect_stderr', default=False,
+                    help='Controls if stderr should be redirected to the logs.'),
+        cfg.BoolOpt('mask_secrets', default=True,
+                    help='True to mask secrets in the log files.')
     ]
-    _do_register_opts(log_opts, 'log', ignore_errors)
+    do_register_opts(log_opts, 'log', ignore_errors)
 
-    use_debugger = cfg.BoolOpt(
-        'use-debugger', default=True,
+    # Common API options
+    api_opts = [
+        cfg.StrOpt('host', default='0.0.0.0', help='StackStorm API server host'),
+        cfg.IntOpt('port', default=9101, help='StackStorm API server port')
+    ]
+    do_register_opts(api_opts, 'api', ignore_errors)
+
+    # Common auth options
+    auth_opts = [
+        cfg.StrOpt('api_url', default=None,
+                   help='Base URL to the API endpoint excluding the version')
+    ]
+    do_register_opts(auth_opts, 'auth', ignore_errors)
+
+    # Common options (used by action runner and sensor container)
+    action_sensor_opts = [
+        cfg.BoolOpt('enable', default=True,
+                    help='Whether to enable or disable the ability to post a trigger on action.'),
+    ]
+    do_register_opts(action_sensor_opts, group='action_sensor')
+
+    # Coordination options
+    coord_opts = [
+        cfg.StrOpt('url', default=None, help='Endpoint for the coordination server.'),
+        cfg.IntOpt('lock_timeout', default=60, help='TTL for the lock if backend suports it.')
+    ]
+    do_register_opts(coord_opts, 'coordination', ignore_errors)
+
+    # Common CLI options
+    debug = cfg.BoolOpt('debug', default=False,
+        help='Enable debug mode. By default this will set all log levels to DEBUG.')
+    use_debugger = cfg.BoolOpt('use-debugger', default=True,
         help='Enables debugger. Note that using this option changes how the '
              'eventlet library is used to support async IO. This could result in '
-             'failures that do not occur under normal operation.'
-    )
-    cfg.CONF.register_cli_opt(use_debugger)
+             'failures that do not occur under normal operation.')
+
+    cli_opts = [debug, use_debugger]
+    do_register_cli_opts(cli_opts, ignore_errors=ignore_errors)
 
 
 def parse_args(args=None):

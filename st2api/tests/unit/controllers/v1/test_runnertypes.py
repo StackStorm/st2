@@ -35,7 +35,7 @@ class TestRunnerTypesController(FunctionalTest):
         self.assertTrue(len(resp.json) > 0, '/v1/runnertypes did not return correct runnertypes.')
 
     def test_get_one_fail(self):
-        resp = self.app.get('/v1/runnertype/1', expect_errors=True)
+        resp = self.app.get('/v1/runnertypes/1', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
 
     @staticmethod

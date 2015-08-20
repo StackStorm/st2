@@ -16,19 +16,44 @@
 import uuid
 import datetime
 
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.util import isotime
-from st2common.models.db.access import TokenDB, UserDB
-from st2common.persistence.access import Token, User
+from st2common.util import date as date_utils
+from st2common.exceptions.auth import TokenNotFoundError
+from st2common.exceptions.auth import TTLTooLargeException
+from st2common.models.db.auth import TokenDB, UserDB
+from st2common.persistence.auth import Token, User
 from st2common import log as logging
 
+__all__ = [
+    'create_token',
+    'delete_token'
+]
 
 LOG = logging.getLogger(__name__)
 
 
-def create_token(username, ttl=None):
-    if not ttl or ttl > cfg.CONF.auth.token_ttl:
+def create_token(username, ttl=None, metadata=None):
+    """
+    :param username: Username of the user to create the token for. If the account for this user
+                     doesn't exist yet it will be created.
+    :type username: ``str``
+
+    :param ttl: Token TTL (in seconds).
+    :type ttl: ``int``
+
+    :param metadata: Optional metadata to associate with the token.
+    :type metadata: ``dict``
+    """
+
+    if ttl:
+        if ttl > cfg.CONF.auth.token_ttl:
+            msg = 'TTL specified %s is greater than max allowed %s.' % (
+                ttl, cfg.CONF.auth.token_ttl
+            )
+            raise TTLTooLargeException(msg)
+    else:
         ttl = cfg.CONF.auth.token_ttl
 
     if username:
@@ -37,20 +62,30 @@ def create_token(username, ttl=None):
         except:
             user = UserDB(name=username)
             User.add_or_update(user)
-            LOG.audit('Registered new user "%s".' % username)
+
+            extra = {'username': username, 'user': user}
+            LOG.audit('Registered new user "%s".' % (username), extra=extra)
 
     token = uuid.uuid4().hex
-    expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
-    expiry = isotime.add_utc_tz(expiry)
-    token = TokenDB(user=username, token=token, expiry=expiry)
+    expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
+    token = TokenDB(user=username, token=token, expiry=expiry, metadata=metadata)
     Token.add_or_update(token)
-    LOG.audit('Access granted to %s with the token set to expire at "%s".' %
-              ('user "%s"' % username if username else "an anonymous user",
-               isotime.format(expiry, offset=False)))
+
+    username_string = username if username else 'an anonymous user'
+    token_expire_string = isotime.format(expiry, offset=False)
+    extra = {'username': username, 'token_expiration': token_expire_string}
+
+    LOG.audit('Access granted to "%s" with the token set to expire at "%s".' %
+              (username_string, token_expire_string), extra=extra)
 
     return token
 
 
 def delete_token(token):
-    token_db = Token.get(token)
-    return Token.delete(token_db)
+    try:
+        token_db = Token.get(token)
+        return Token.delete(token_db)
+    except TokenNotFoundError:
+        pass
+    except Exception:
+        raise

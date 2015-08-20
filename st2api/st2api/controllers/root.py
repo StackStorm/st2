@@ -18,6 +18,11 @@ from pecan import expose
 from st2common import __version__
 from st2common import log as logging
 import st2api.controllers.v1.root as v1_root
+import st2api.controllers.exp.root as exp_root
+
+__all__ = [
+    'RootController'
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -25,18 +30,24 @@ LOG = logging.getLogger(__name__)
 class RootController(object):
 
     def __init__(self):
-        v1 = v1_root.RootController()
-        self.controllers = {'v1': v1}
-        self.default_controller = v1
+        v1_controller = v1_root.RootController()
+        exp_controller = exp_root.RootController()
+        self.controllers = {
+            'v1': v1_controller,
+            'exp': exp_controller
+        }
+
+        self.default_controller = v1_controller
 
     @expose(generic=True, template='index.html')
     def index(self):
         data = {}
 
-        if '-dev' in __version__:
+        if 'dev' in __version__:
             docs_url = 'http://docs.stackstorm.com/latest'
         else:
-            docs_url = 'http://docs.stackstorm.com/%s' % (__version__)
+            docs_version = '.'.join(__version__.split('.')[:2])
+            docs_url = 'http://docs.stackstorm.com/%s' % docs_version
 
         data['version'] = __version__
         data['docs_url'] = docs_url
@@ -47,6 +58,7 @@ class RootController(object):
         version = ''
         if len(remainder) > 0:
             version = remainder[0]
+
             if remainder[len(remainder) - 1] == '':
                 # If the url has a trailing '/' remainder will contain an empty string.
                 # In order for further pecan routing to work this method needs to remove

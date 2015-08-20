@@ -14,24 +14,27 @@
 # limitations under the License.
 
 import mock
-import six
-
-from unittest2 import TestCase
 
 from st2actions.runners import actionchainrunner as acr
 from st2actions.container.service import RunnerContainerService
 from st2common.exceptions import actionrunner as runnerexceptions
-from st2common.constants.action import ACTIONEXEC_STATUS_RUNNING
-from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED
-from st2common.constants.action import ACTIONEXEC_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_RUNNING
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.models.api.notification import NotificationsHelper
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.models.system.common import ResourceReference
+from st2common.persistence.keyvalue import KeyValuePair
+from st2common.persistence.runner import RunnerType
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
-import st2tests.config as tests_config
+from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
 
 class DummyActionExecution(object):
-    def __init__(self, status=ACTIONEXEC_STATUS_SUCCEEDED, result=''):
+    def __init__(self, status=LIVEACTION_STATUS_SUCCEEDED, result=''):
         self.id = None
         self.status = status
         self.result = result
@@ -39,101 +42,60 @@ class DummyActionExecution(object):
 
 FIXTURES_PACK = 'generic'
 
-TEST_FIXTURES = {
-    'actionchains': ['chain1.json']
-}
-
 TEST_MODELS = {
-    'actions': ['a1.json', 'a2.json'],
-    'runners': ['testrunner1.json']
+    'actions': ['a1.yaml', 'a2.yaml', 'action_4_action_context_param.yaml'],
+    'runners': ['testrunner1.yaml']
 }
-
-FIXTURES = FixturesLoader().load_fixtures(fixtures_pack=FIXTURES_PACK,
-                                          fixtures_dict=TEST_FIXTURES)
-CHAIN_1 = FIXTURES['actionchains']['chain1.json']
 
 MODELS = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
                                       fixtures_dict=TEST_MODELS)
-ACTION_1 = MODELS['actions']['a1.json']
-ACTION_2 = MODELS['actions']['a2.json']
-RUNNER = MODELS['runners']['testrunner1.json']
+ACTION_1 = MODELS['actions']['a1.yaml']
+ACTION_2 = MODELS['actions']['a2.yaml']
+ACTION_3 = MODELS['actions']['action_4_action_context_param.yaml']
+RUNNER = MODELS['runners']['testrunner1.yaml']
 
 CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain1.json')
-CHAIN_STR_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_str_template.json')
+    FIXTURES_PACK, 'actionchains', 'chain1.yaml')
+CHAIN_NO_DEFAULT = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'no_default_chain.yaml')
+CHAIN_NO_DEFAULT_2 = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'no_default_chain_2.yaml')
+CHAIN_BROKEN_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_broken_paths.yaml')
+CHAIN_FIRST_TASK_RENDER_FAIL_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_first_task_parameter_render_fail.yaml')
+CHAIN_SECOND_TASK_RENDER_FAIL_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_second_task_parameter_render_fail.yaml')
 CHAIN_LIST_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_list_template.json')
+    FIXTURES_PACK, 'actionchains', 'chain_list_template.yaml')
 CHAIN_DICT_TEMP_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_dict_template.json')
+    FIXTURES_PACK, 'actionchains', 'chain_dict_template.yaml')
 CHAIN_DEP_INPUT = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_dependent_input.json')
+    FIXTURES_PACK, 'actionchains', 'chain_dependent_input.yaml')
 CHAIN_DEP_RESULTS_INPUT = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_dep_result_input.json')
+    FIXTURES_PACK, 'actionchains', 'chain_dep_result_input.yaml')
 MALFORMED_CHAIN_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'malformedchain.json')
+    FIXTURES_PACK, 'actionchains', 'malformedchain.yaml')
 CHAIN_TYPED_PARAMS = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_typed_params.json')
+    FIXTURES_PACK, 'actionchains', 'chain_typed_params.yaml')
+CHAIN_SYSTEM_PARAMS = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_typed_system_params.yaml')
+CHAIN_WITH_ACTIONPARAM_VARS = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_with_actionparam_vars.yaml')
+CHAIN_WITH_SYSTEM_VARS = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_with_system_vars.yaml')
+CHAIN_WITH_PUBLISH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_with_publish.yaml')
+CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_with_invalid_action.yaml')
 
-CHAIN_EMPTY = {}
-
-
-class TestActionChain(TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        tests_config.parse_args()
-
-    def test_chain_creation_basic(self):
-        action_chain = acr.ActionChain(CHAIN_1)
-
-        expected_node_count = 0
-        expected_link_count = 0
-        for node in CHAIN_1['chain']:
-            expected_node_count += 1
-            if 'on-success' in node:
-                expected_link_count += 1
-            if 'on-failure' in node:
-                expected_link_count += 1
-
-        self.assertEqual(len(action_chain.nodes), expected_node_count)
-
-        link_count = 0
-        for _, links in six.iteritems(action_chain.links):
-            link_count += len(links)
-        self.assertEqual(link_count, expected_link_count)
-
-        self.assertEqual(action_chain.default, CHAIN_1['default'])
-
-    def test_chain_iteration(self):
-        action_chain = acr.ActionChain(CHAIN_1)
-
-        for node in CHAIN_1['chain']:
-            if 'on-success' in node:
-                next_node = action_chain.get_next_node(node['name'], 'on-success')
-                self.assertEqual(next_node.name, node['on-success'])
-            if 'on-failure' in node:
-                next_node = action_chain.get_next_node(node['name'], 'on-failure')
-                self.assertEqual(next_node.name, node['on-failure'])
-
-        default = action_chain.get_next_node()
-        self.assertEqual(type(default), acr.ActionChain.Node)
-        self.assertEqual(default.name, CHAIN_1['default'])
-
-    def test_empty_chain(self):
-        action_chain = acr.ActionChain(CHAIN_EMPTY)
-        self.assertEqual(len(action_chain.nodes), 0)
-        self.assertEqual(len(action_chain.links), 0)
-        self.assertEqual(action_chain.default, '')
+CHAIN_NOTIFY_API = {'notify': {'on-complete': {'message': 'foo happened.'}}}
+CHAIN_NOTIFY_DB = NotificationsHelper.to_model(CHAIN_NOTIFY_API)
 
 
 @mock.patch.object(action_db_util, 'get_runnertype_by_name',
                    mock.MagicMock(return_value=RUNNER))
-class TestActionChainRunner(TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        tests_config.parse_args()
+class TestActionChainRunner(DbTestCase):
 
     def test_runner_creation(self):
         runner = acr.get_runner()
@@ -151,179 +113,318 @@ class TestActionChainRunner(TestCase):
         except runnerexceptions.ActionRunnerPreRunError:
             self.assertTrue(True)
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
-    def test_chain_runner_success_path(self, schedule):
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_success_path(self, request):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
+        chain_runner.action = ACTION_1
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
+                                                           pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
+        chain_runner.liveaction.notify = CHAIN_NOTIFY_DB
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        chain_runner.run({})
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # based on the chain the callcount is known to be 3. Not great but works.
+        self.assertEqual(request.call_count, 3)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_no_default(self, request):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_NO_DEFAULT
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # In case of this chain default_node is the first_node.
+        default_node = chain_runner.chain_holder.actionchain.default
+        first_node = chain_runner.chain_holder.actionchain.chain[0]
+        self.assertEqual(default_node, first_node.name)
         # based on the chain the callcount is known to be 3. Not great but works.
-        self.assertEqual(schedule.call_count, 3)
+        self.assertEqual(request.call_count, 3)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_no_default_multiple_options(self, request):
+        # subtle difference is that when there are multiple possible default nodes
+        # the order per chain definition may not be preseved. This is really a
+        # poorly formatted chain but we still the best attempt to work.
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_NO_DEFAULT_2
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        chain_runner.run({})
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # In case of this chain default_node is the first_node.
+        default_node = chain_runner.chain_holder.actionchain.default
+        first_node = chain_runner.chain_holder.actionchain.chain[0]
+        self.assertEqual(default_node, first_node.name)
+        # based on the chain the callcount is known to be 2.
+        self.assertEqual(request.call_count, 2)
 
     @mock.patch('eventlet.sleep', mock.MagicMock())
-    @mock.patch.object(action_db_util, 'get_actionexec_by_id', mock.MagicMock(
+    @mock.patch.object(action_db_util, 'get_liveaction_by_id', mock.MagicMock(
         return_value=DummyActionExecution()))
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule',
-                       return_value=DummyActionExecution(status=ACTIONEXEC_STATUS_RUNNING))
-    def test_chain_runner_success_path_with_wait(self, schedule):
+    @mock.patch.object(action_service, 'request',
+                       return_value=(DummyActionExecution(status=LIVEACTION_STATUS_RUNNING), None))
+    def test_chain_runner_success_path_with_wait(self, request):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         # based on the chain the callcount is known to be 3. Not great but works.
-        self.assertEqual(schedule.call_count, 3)
+        self.assertEqual(request.call_count, 3)
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule',
-                       return_value=DummyActionExecution(status=ACTIONEXEC_STATUS_FAILED))
-    def test_chain_runner_failure_path(self, schedule):
+    @mock.patch.object(action_service, 'request',
+                       return_value=(DummyActionExecution(status=LIVEACTION_STATUS_FAILED), None))
+    def test_chain_runner_failure_path(self, request):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        success = chain_runner.run({})
-        self.assertFalse(success)
-        self.assertEqual(chain_runner.container_service.get_status(),
-                         ACTIONEXEC_STATUS_FAILED)
-        self.assertNotEqual(chain_runner.action_chain, None)
+        status, _, _ = chain_runner.run({})
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         # based on the chain the callcount is known to be 2. Not great but works.
-        self.assertEqual(schedule.call_count, 2)
+        self.assertEqual(request.call_count, 2)
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', side_effect=RuntimeError('Test Failure.'))
-    def test_chain_runner_action_exception(self, schedule):
+    @mock.patch.object(action_service, 'request',
+                       return_value=(DummyActionExecution(), None))
+    def test_chain_runner_broken_success_path(self, request):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_BROKEN_PATH
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, result, _ = chain_runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+
+        self.assertTrue('Failed to get next node "c1". Lookup failed:' in result['error'])
+        self.assertTrue('Unable to find node with name "c2"' in result['error'])
+        self.assertTrue('Traceback (most recent call last):' in result['traceback'])
+
+        # based on the chain the callcount is known to be 1. Not great but works.
+        self.assertEqual(request.call_count, 1)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request',
+                       return_value=(DummyActionExecution(status=LIVEACTION_STATUS_FAILED), None))
+    def test_chain_runner_broken_fail_path(self, request):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_BROKEN_PATH
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, result, _ = chain_runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+
+        self.assertTrue('Failed to get next node "c1". Lookup failed:' in result['error'])
+        self.assertTrue('Unable to find node with name "c4"' in result['error'])
+        self.assertTrue('Traceback (most recent call last):' in result['traceback'])
+
+        # based on the chain the callcount is known to be 1. Not great but works.
+        self.assertEqual(request.call_count, 1)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', side_effect=RuntimeError('Test Failure.'))
+    def test_chain_runner_action_exception(self, request):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
-        chain_runner.run({})
-        self.assertNotEqual(chain_runner.action_chain, None)
-        # based on the chain the callcount is known to be 2. Not great but works.
-        self.assertEqual(schedule.call_count, 2)
+        status, results, _ = chain_runner.run({})
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+        # based on the chain the callcount is known to be 2. Not great but works.
+        self.assertEqual(request.call_count, 2)
+
+        error_count = 0
+        for task_result in results['tasks']:
+            if task_result['result'].get('error', None):
+                error_count += 1
+
+        self.assertEqual(error_count, 2)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
-    def test_chain_runner_str_param_temp(self, schedule):
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_str_param_temp(self, request):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = CHAIN_STR_TEMP_PATH
+        chain_runner.entry_point = CHAIN_FIRST_TASK_RENDER_FAIL_PATH
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
-        self.assertNotEqual(chain_runner.action_chain, None)
-        mock_args, _ = schedule.call_args
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        mock_args, _ = request.call_args
         self.assertEqual(mock_args[0].parameters, {"p1": "1"})
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
-    def test_chain_runner_list_param_temp(self, schedule):
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_list_param_temp(self, request):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_LIST_TEMP_PATH
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
-        self.assertNotEqual(chain_runner.action_chain, None)
-        mock_args, _ = schedule.call_args
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        mock_args, _ = request.call_args
         self.assertEqual(mock_args[0].parameters, {"p1": "[2, 3, 4]"})
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
-    def test_chain_runner_dict_param_temp(self, schedule):
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_dict_param_temp(self, request):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DICT_TEMP_PATH
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         expected_value = {"p1": {"p1.3": "[3, 4]", "p1.2": "2", "p1.1": "1"}}
-        mock_args, _ = schedule.call_args
+        mock_args, _ = request.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule',
-                       return_value=DummyActionExecution(result={'o1': '1'}))
-    def test_chain_runner_dependent_param_temp(self, schedule):
+    @mock.patch.object(action_service, 'request',
+                       return_value=(DummyActionExecution(result={'o1': '1'}), None))
+    def test_chain_runner_dependent_param_temp(self, request):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DEP_INPUT
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 2, 's3': 3, 's4': 4})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         expected_values = [{u'p1': u'1'},
                            {u'p1': u'1'},
                            {u'p2': u'1', u'p3': u'1', u'p1': u'1'}]
         # Each of the call_args must be one of
-        for call_args in schedule.call_args_list:
+        for call_args in request.call_args_list:
             self.assertTrue(call_args[0][0].parameters in expected_values)
             expected_values.remove(call_args[0][0].parameters)
         self.assertEqual(len(expected_values), 0, 'Not all expected values received.')
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule',
-                       return_value=DummyActionExecution(result={'o1': '1'}))
-    def test_chain_runner_dependent_results_param(self, schedule):
+    @mock.patch.object(action_service, 'request',
+                       return_value=(DummyActionExecution(result={'o1': '1'}), None))
+    def test_chain_runner_dependent_results_param(self, request):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_DEP_RESULTS_INPUT
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         expected_values = [{u'p1': u'1'},
                            {u'p1': u'1'},
-                           {u'out': u"{u'c2': {'o1': '1'}, u'c1': {'o1': '1'}}"}]
+                           {u'out': u"{'c2': {'o1': '1'}, 'c1': {'o1': '1'}}"}]
         # Each of the call_args must be one of
-        self.assertEqual(schedule.call_count, 3)
-        for call_args in schedule.call_args_list:
+        self.assertEqual(request.call_count, 3)
+        for call_args in request.call_args_list:
             self.assertTrue(call_args[0][0].parameters in expected_values)
             expected_values.remove(call_args[0][0].parameters)
         self.assertEqual(len(expected_values), 0, 'Not all expected values received.')
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
-    def test_chain_runner_missing_param_temp(self, schedule):
+    @mock.patch.object(RunnerType, 'get_by_name',
+                       mock.MagicMock(return_value=RUNNER))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_missing_param_temp(self, request):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = CHAIN_STR_TEMP_PATH
+        chain_runner.entry_point = CHAIN_FIRST_TASK_RENDER_FAIL_PATH
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
-        self.assertEqual(schedule.call_count, 0, 'No call expected.')
+        self.assertEqual(request.call_count, 0, 'No call expected.')
 
-    @mock.patch.object(action_db_util, '_get_action_by_pack_and_name',
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_failure_during_param_rendering_single_task(self, request):
+        # Parameter rendering should result in a top level error which aborts
+        # the whole chain
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_FIRST_TASK_RENDER_FAIL_PATH
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, result, _ = chain_runner.run({})
+
+        # No tasks ran because rendering of parameters for the first task failed
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertEqual(result['tasks'], [])
+        self.assertTrue('error' in result)
+        self.assertTrue('traceback' in result)
+        self.assertTrue('Failed to run task "c1". Parameter rendering failed' in result['error'])
+        self.assertTrue('Traceback' in result['traceback'])
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_failure_during_param_rendering_multiple_tasks(self, request):
+        # Parameter rendering should result in a top level error which aborts
+        # the whole chain
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_SECOND_TASK_RENDER_FAIL_PATH
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, result, _ = chain_runner.run({})
+
+        # Verify that only first task has ran
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertEqual(len(result['tasks']), 1)
+        self.assertEqual(result['tasks'][0]['name'], 'c1')
+        self.assertTrue('error' in result)
+        self.assertTrue('traceback' in result)
+        self.assertTrue('Failed to run task "c2". Parameter rendering failed' in result['error'])
+        self.assertTrue('Traceback' in result['traceback'])
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_2))
-    @mock.patch.object(action_service, 'schedule', return_value=DummyActionExecution())
-    def test_chain_runner_typed_params(self, schedule):
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_typed_params(self, request):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_TYPED_PARAMS
         chain_runner.action = ACTION_2
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({'s1': 1, 's2': 'two', 's3': 3.14})
-        self.assertNotEqual(chain_runner.action_chain, None)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         expected_value = {'booltype': True,
                           'inttype': 1,
                           'numbertype': 3.14,
@@ -331,8 +432,116 @@ class TestActionChainRunner(TestCase):
                           'arrtype': ['1', 'two'],
                           'objtype': {'s2': 'two',
                                       'k1': '1'}}
-        mock_args, _ = schedule.call_args
+        mock_args, _ = request.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_2))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_typed_system_params(self, request):
+        kvps = []
+        try:
+            kvps.append(KeyValuePair.add_or_update(KeyValuePairDB(name='a', value='1')))
+            kvps.append(KeyValuePair.add_or_update(KeyValuePairDB(name='a.b.c', value='two')))
+            chain_runner = acr.get_runner()
+            chain_runner.entry_point = CHAIN_SYSTEM_PARAMS
+            chain_runner.action = ACTION_2
+            chain_runner.container_service = RunnerContainerService()
+            chain_runner.pre_run()
+            chain_runner.run({})
+            self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+            expected_value = {'inttype': 1,
+                              'strtype': 'two'}
+            mock_args, _ = request.call_args
+            self.assertEqual(mock_args[0].parameters, expected_value)
+        finally:
+            for kvp in kvps:
+                KeyValuePair.delete(kvp)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_2))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_vars_system_params(self, request):
+        kvps = []
+        try:
+            kvps.append(KeyValuePair.add_or_update(KeyValuePairDB(name='a', value='two')))
+            chain_runner = acr.get_runner()
+            chain_runner.entry_point = CHAIN_WITH_SYSTEM_VARS
+            chain_runner.action = ACTION_2
+            chain_runner.container_service = RunnerContainerService()
+            chain_runner.pre_run()
+            chain_runner.run({})
+            self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+            expected_value = {'inttype': 1,
+                              'strtype': 'two',
+                              'booltype': True}
+            mock_args, _ = request.call_args
+            self.assertEqual(mock_args[0].parameters, expected_value)
+        finally:
+            for kvp in kvps:
+                KeyValuePair.delete(kvp)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_2))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_vars_action_params(self, request):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_ACTIONPARAM_VARS
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        chain_runner.run({'input_a': 'two'})
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        expected_value = {'inttype': 1,
+                          'strtype': 'two',
+                          'booltype': True}
+        mock_args, _ = request.call_args
+        self.assertEqual(mock_args[0].parameters, expected_value)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_2))
+    @mock.patch.object(action_service, 'request',
+                       return_value=(DummyActionExecution(result={'raw_out': 'published'}), None))
+    def test_chain_runner_publish(self, request):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_PUBLISH
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+
+        action_parameters = {'action_param_1': 'test value 1'}
+        chain_runner.run(action_parameters=action_parameters)
+
+        # We also assert that the action parameters are available in the
+        # "publish" scope
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        expected_value = {'inttype': 1,
+                          'strtype': 'published',
+                          'booltype': True,
+                          'published_action_param': action_parameters['action_param_1']}
+        mock_args, _ = request.call_args
+        self.assertEqual(mock_args[0].parameters, expected_value)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=None))
+    @mock.patch.object(action_service, 'request',
+                       return_value=(DummyActionExecution(result={'raw_out': 'published'}), None))
+    def test_action_chain_runner_referenced_action_doesnt_exist(self, mock_request):
+        # Action referenced by a task doesn't exist, should result in a top level error
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_INVALID_ACTION
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+
+        action_parameters = {}
+        status, output, _ = chain_runner.run(action_parameters=action_parameters)
+
+        expected_error = ('Failed to run task "c1". Action with reference "wolfpack.a2" '
+                          'doesn\'t exist.')
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertTrue(expected_error in output['error'])
+        self.assertTrue('Traceback' in output['traceback'], output['traceback'])
 
     @classmethod
     def tearDownClass(cls):

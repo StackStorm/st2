@@ -1,9 +1,0 @@
-{
-    "payload_info": [
-        "host", 
-        "event_id", 
-        "timestamp"
-    ], 
-    "description": "Sample Event Sensor", 
-    "name": "st2.event" 
-}

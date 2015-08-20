@@ -27,12 +27,14 @@ mkdir -p %{buildroot}/etc/st2reactor
 mkdir -p %{buildroot}/usr/bin/
 cp -R st2reactor %{buildroot}%{python2_sitelib}/
 cp -R conf/* %{buildroot}/etc/st2reactor
-install -m755 bin/sensor_container %{buildroot}/usr/bin/sensor_container
-install -m755 bin/rules_engine %{buildroot}/usr/bin/rules_engine
+install -m755 bin/st2sensorcontainer %{buildroot}/usr/bin/st2sensorcontainer
+install -m755 bin/st2rulesengine %{buildroot}/usr/bin/st2rulesengine
+install -m755 bin/st2-rule-tester %{buildroot}/usr/bin/st2-rule-tester
 
 %files
 
 /usr/lib/python2.7/site-packages/st2reactor*
-/usr/bin/sensor_container
-/usr/bin/rules_engine
+/usr/bin/st2sensorcontainer
+/usr/bin/st2rulesengine
+/usr/bin/st2-rule-tester
 /etc/st2reactor*

@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
+from oslo_config import cfg, types
 
 from st2common import log as logging
 import st2common.config as common_config
+from st2common.constants.sensors import DEFAULT_PARTITION_LOADER
+from st2tests.fixturesloader import get_fixtures_base_path
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -29,12 +31,20 @@ def parse_args():
 
 def _setup_config_opts():
     cfg.CONF.reset()
-    _register_config_opts()
+
+    try:
+        _register_config_opts()
+    except Exception as e:
+        print(e)
+        # Some scripts register the options themselves which means registering them again will
+        # cause a non-fatal exception
+        return
     _override_config_opts()
 
 
 def _override_config_opts():
     _override_db_opts()
+    _override_common_opts()
 
 
 def _register_config_opts():
@@ -42,11 +52,26 @@ def _register_config_opts():
     _register_api_opts()
     _register_auth_opts()
     _register_action_sensor_opts()
-    _register_workflow_opts()
+    _register_mistral_opts()
+    _register_cloudslang_opts()
+    _register_scheduler_opts()
+    _register_exporter_opts()
+    _register_sensor_container_opts()
 
 
 def _override_db_opts():
     CONF.set_override(name='db_name', override='st2-test', group='database')
+
+
+def _override_common_opts():
+    packs_base_path = get_fixtures_base_path()
+    CONF.set_override(name='system_packs_base_path', override=packs_base_path, group='content')
+    CONF.set_override(name='packs_base_paths', override=packs_base_path, group='content')
+    CONF.set_override(name='api_url', override='http://localhost', group='auth')
+    CONF.set_override(name='admin_users', override=['admin_user'], group='system')
+    CONF.set_override(name='mask_secrets', override=True, group='log')
+    CONF.set_override(name='url', override='zake://', group='coordination')
+    CONF.set_override(name='lock_timeout', override=1, group='coordination')
 
 
 def _register_common_opts():
@@ -58,12 +83,12 @@ def _register_common_opts():
 
 def _register_api_opts():
     api_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='action API server host'),
-        cfg.IntOpt('port', default=9101, help='action API server port'),
         cfg.ListOpt('allow_origin', default=['http://localhost:3000', 'http://dev'],
                     help='List of origins allowed'),
         cfg.IntOpt('heartbeat', default=25,
-                   help='Send empty message every N seconds to keep connection open')
+                   help='Send empty message every N seconds to keep connection open'),
+        cfg.BoolOpt('mask_secrets', default=True,
+                    help='True to mask secrets in API responses')
     ]
     _register_opts(api_opts, group='api')
 
@@ -84,7 +109,9 @@ def _register_api_opts():
 
     messaging_opts = [
         cfg.StrOpt('url', default='amqp://guest:guest@localhost:5672//',
-                   help='URL of the messaging server.')
+                   help='URL of the messaging server.'),
+        cfg.ListOpt('cluster_urls', default=[],
+                    help='URL of all the nodes in a messaging service cluster.')
     ]
     _register_opts(messaging_opts, group='messaging')
 
@@ -94,7 +121,10 @@ def _register_api_opts():
                    help='Location of the script on the remote filesystem.'),
         cfg.BoolOpt('allow_partial_failure',
                     default=False,
-                    help='How partial success of actions run on multiple nodes should be treated.')
+                    help='How partial success of actions run on multiple nodes should be treated.'),
+        cfg.BoolOpt('use_ssh_config',
+                    default=False,
+                    help='Use the .ssh/config file. Useful to override ports etc.')
     ]
     _register_opts(ssh_runner_opts, group='ssh_runner')
 
@@ -119,8 +149,6 @@ def _register_action_sensor_opts():
                          'to post a trigger on action.'),
         cfg.StrOpt('triggers_base_url', default='http://localhost:9101/v1/triggertypes/',
                    help='URL for action sensor to post TriggerType.'),
-        cfg.StrOpt('webhook_sensor_base_url', default='http://localhost:9101/v1/webhooks/st2/',
-                   help='URL for action sensor to post TriggerInstances.'),
         cfg.IntOpt('request_timeout', default=1,
                    help='Timeout value of all httprequests made by action sensor.'),
         cfg.IntOpt('max_attempts', default=10,
@@ -131,12 +159,63 @@ def _register_action_sensor_opts():
     _register_opts(action_sensor_opts, group='action_sensor')
 
 
-def _register_workflow_opts():
-    workflow_opts = [
-        cfg.StrOpt('url', default='http://localhost:8989', help='Mistral API server root endpoint.')
+def _register_mistral_opts():
+    mistral_opts = [
+        cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2', help='v2 API root endpoint.'),
+        cfg.IntOpt('max_attempts', default=2, help='Max attempts to reconnect.'),
+        cfg.IntOpt('retry_wait', default=1, help='Seconds to wait before reconnecting.'),
+        cfg.StrOpt('keystone_username', default=None, help='Username for authentication.'),
+        cfg.StrOpt('keystone_password', default=None, help='Password for authentication.'),
+        cfg.StrOpt('keystone_project_name', default=None, help='OpenStack project scope.'),
+        cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.')
     ]
-    _register_opts(workflow_opts, group='workflow')
+    _register_opts(mistral_opts, group='mistral')
+
+
+def _register_cloudslang_opts():
+    cloudslang_opts = [
+        cfg.StrOpt('home_dir', default='/opt/cslang',
+                   help='CloudSlang home directory.')
+    ]
+    _register_opts(cloudslang_opts, group='cloudslang')
+
+
+def _register_scheduler_opts():
+    scheduler_opts = [
+        cfg.IntOpt('delayed_execution_recovery', default=600,
+                   help='The time in seconds to wait before recovering delayed action executions.'),
+        cfg.IntOpt('rescheduling_interval', default=300,
+                   help='The frequency for rescheduling action executions.')
+    ]
+    _register_opts(scheduler_opts, group='scheduler')
+
+
+def _register_exporter_opts():
+    exporter_opts = [
+        cfg.StrOpt('dump_dir', default='/opt/stackstorm/exports/',
+                   help='Directory to dump data to.')
+    ]
+    _register_opts(exporter_opts, group='exporter')
+
+
+def _register_sensor_container_opts():
+    partition_opts = [
+        cfg.StrOpt('sensor_node_name', default='sensornode1',
+                   help='name of the sensor node.'),
+        cfg.Opt('partition_provider', type=types.Dict(value_type=types.String()),
+                default={'name': DEFAULT_PARTITION_LOADER},
+                help='Provider of sensor node partition config.')
+    ]
+    _register_opts(partition_opts, group='sensorcontainer')
+
+    sensor_test_opt = cfg.StrOpt('sensor-ref', help='Only run sensor with the provided reference. \
+        Value is of the form pack.sensor-name.')
+    _register_cli_opts([sensor_test_opt])
 
 
 def _register_opts(opts, group=None):
     CONF.register_opts(opts, group)
+
+
+def _register_cli_opts(opts):
+    cfg.CONF.register_cli_opts(opts)

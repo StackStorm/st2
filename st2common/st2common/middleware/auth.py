@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
+from six.moves.urllib import parse as urlparse
 
 from st2common.util import isotime
-from st2common.persistence.access import Token
-from st2common.exceptions import access as exceptions
+from st2common.util.jsonify import json_encode
+from st2common.exceptions import auth as exceptions
 from st2common import log as logging
+from st2common.util.auth import validate_token
+from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 
 
 LOG = logging.getLogger(__name__)
@@ -55,12 +57,22 @@ class AuthMiddleware(object):
             return self.app(environ, start_response)
 
     def _abort_other_errors(self, environ, start_response):
-        start_response('500 INTERNAL SERVER ERROR', [('Content-Type', 'text/plain')])
-        return ['Internal Server Error']
+        body = json_encode({
+            'faultstring': 'Internal Server Error'
+        })
+        headers = [('Content-Type', 'application/json')]
+
+        start_response('500 INTERNAL SERVER ERROR', headers)
+        return [body]
 
     def _abort_unauthorized(self, environ, start_response):
-        start_response('401 UNAUTHORIZED', [('Content-Type', 'text/plain')])
-        return ['Unauthorized']
+        body = json_encode({
+            'faultstring': 'Unauthorized'
+        })
+        headers = [('Content-Type', 'application/json')]
+
+        start_response('401 UNAUTHORIZED', headers)
+        return [body]
 
     def _remove_auth_headers(self, env):
         """Remove middleware generated auth headers to prevent user from supplying them."""
@@ -70,15 +82,15 @@ class AuthMiddleware(object):
 
     def _validate_token(self, env):
         """Validate token"""
-        if 'HTTP_X_AUTH_TOKEN' not in env:
-            LOG.audit('Token is not found in header.')
-            raise exceptions.TokenNotProvidedError('Token is not provided.')
-        token = Token.get(env['HTTP_X_AUTH_TOKEN'])
-        if token.expiry <= isotime.add_utc_tz(datetime.datetime.utcnow()):
-            LOG.audit('Token "%s" has expired.' % env['HTTP_X_AUTH_TOKEN'])
-            raise exceptions.TokenExpiredError('Token has expired.')
-        LOG.audit('Token "%s" is validated.' % env['HTTP_X_AUTH_TOKEN'])
-        return token
+        query_string = env.get('QUERY_STRING', '')
+        query_params = dict(urlparse.parse_qsl(query_string))
+
+        # Note: This is a WSGI environment variable name
+        token_in_headers = env.get('HTTP_X_AUTH_TOKEN', None)
+        token_in_query_params = query_params.get(QUERY_PARAM_ATTRIBUTE_NAME, None)
+
+        return validate_token(token_in_headers=token_in_headers,
+                              token_in_query_params=token_in_query_params)
 
     def _add_auth_headers(self, env, token):
         """Write authenticated user data to headers

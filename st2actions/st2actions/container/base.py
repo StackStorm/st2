@@ -13,163 +13,171 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import importlib
 import json
 import sys
 import traceback
-import datetime
 
 from st2common import log as logging
-from st2common.util import isotime
-from st2common.exceptions.actionrunner import ActionRunnerCreateError
-from st2common.constants.action import (ACTIONEXEC_STATUS_SUCCEEDED,
-                                        ACTIONEXEC_STATUS_FAILED)
-from st2common.models.system.common import ResourceReference
-from st2common.services import access
-from st2common.util.action_db import (get_action_by_dict, get_runnertype_by_name)
-from st2common.util.action_db import (update_actionexecution_status, get_actionexec_by_id)
+from st2common.util import date as date_utils
+from st2common.constants import action as action_constants
+from st2common.models.db.executionstate import ActionExecutionStateDB
+from st2common.models.system.action import ResolvedActionParameters
+from st2common.persistence.execution import ActionExecution
+from st2common.persistence.executionstate import ActionExecutionState
+from st2common.services import access, executions
+from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
+from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
 
-from st2actions.container import actionsensor
 from st2actions.container.service import RunnerContainerService
+from st2actions.runners import get_runner, AsyncActionRunner
 from st2actions.utils import param_utils
 
 LOG = logging.getLogger(__name__)
 
+__all__ = [
+    'RunnerContainer',
+    'get_runner_container'
+]
+
 
 class RunnerContainer(object):
+    def dispatch(self, liveaction_db):
+        action_db = get_action_by_ref(liveaction_db.action)
+        if not action_db:
+            raise Exception('Action %s not found in DB.' % (liveaction_db.action))
 
-    def __init__(self):
-        LOG.info('Action RunnerContainer instantiated.')
-        self._pending = []
-
-    def _get_runner(self, runnertype_db):
-        """
-            Load the module specified by the runnertype_db.runner_module field and
-            return an instance of the runner.
-        """
-
-        module_name = runnertype_db.runner_module
-        LOG.debug('Runner loading python module: %s', module_name)
-        try:
-            module = importlib.import_module(module_name, package=None)
-        except Exception as e:
-            LOG.exception('Failed to import module %s.', module_name)
-            raise ActionRunnerCreateError(e)
-
-        LOG.debug('Instance of runner module: %s', module)
-
-        runner = module.get_runner()
-        LOG.debug('Instance of runner: %s', runner)
-        return runner
-
-    def dispatch(self, actionexec_db):
-        action_ref = ResourceReference.from_string_reference(ref=actionexec_db.action)
-        (action_db, _) = get_action_by_dict(
-            {'name': action_ref.name, 'pack': action_ref.pack})
         runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
-        runner_type = runnertype_db.name
 
-        LOG.info('Dispatching Action to runner \n%s',
-                 json.dumps(actionexec_db.to_serializable_dict(), indent=4))
-        LOG.debug('    liverunner_type: %s', runner_type)
-        LOG.debug('    RunnerType: %s', runnertype_db)
+        extra = {'liveaction_db': liveaction_db, 'runnertype_db': runnertype_db}
+        LOG.info('Dispatching Action to a runner', extra=extra)
 
         # Get runner instance.
-        runner = self._get_runner(runnertype_db)
+        runner = get_runner(runnertype_db.runner_module)
         LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Invoke pre_run, run, post_run cycle.
-        result, actionexec_db = self._do_run(runner, runnertype_db, action_db, actionexec_db)
-        LOG.debug('runner do_run result: %s', result)
+        liveaction_db = self._do_run(runner, runnertype_db, action_db, liveaction_db)
 
-        actionsensor.post_trigger(actionexec_db)
-        actionexec_serializable = actionexec_db.to_serializable_dict()
-        LOG.audit('ActionExecution complete.',
-                  extra={'actionexecution': actionexec_serializable})
-        LOG.info('result :\n%s.', json.dumps(actionexec_serializable.get('result', None), indent=4))
+        extra = {'result': liveaction_db.result}
+        LOG.debug('Runner do_run result', extra=extra)
 
-        return result
+        extra = {'liveaction_db': liveaction_db}
+        LOG.audit('Liveaction completed', extra=extra)
 
-    def _do_run(self, runner, runnertype_db, action_db, actionexec_db):
-        # Finalized parameters are resolved and then rendered.
-        runner_params, action_params = param_utils.get_finalized_params(
-            runnertype_db.runner_parameters, action_db.parameters, actionexec_db.parameters)
+        return liveaction_db.result
 
+    def _do_run(self, runner, runnertype_db, action_db, liveaction_db):
         resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
                                                               action_db.entry_point)
         runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
-        runner.action_execution_id = str(actionexec_db.id)
+        runner.liveaction = liveaction_db
+        runner.liveaction_id = str(liveaction_db.id)
+        runner.execution = ActionExecution.get(liveaction__id=runner.liveaction_id)
+        runner.execution_id = str(runner.execution.id)
         runner.entry_point = resolved_entry_point
-        runner.runner_parameters = runner_params
-        runner.context = getattr(actionexec_db, 'context', dict())
-        runner.callback = getattr(actionexec_db, 'callback', dict())
+        runner.context = getattr(liveaction_db, 'context', dict())
+        runner.callback = getattr(liveaction_db, 'callback', dict())
         runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
                                                               action_db.entry_point)
+
+        # Create a temporary auth token which will be available during duration of the action
+        # execution
         runner.auth_token = self._create_auth_token(runner.context)
 
+        updated_liveaction_db = None
         try:
-            LOG.debug('Performing pre-run for runner: %s', runner)
+            # Finalized parameters are resolved and then rendered. This process could
+            # fail. Handle the exception and report the error correctly.
+            runner_params, action_params = param_utils.get_finalized_params(
+                runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
+                liveaction_db.context)
+            runner.runner_parameters = runner_params
+
+            LOG.debug('Performing pre-run for runner: %s', runner.runner_id)
             runner.pre_run()
 
-            LOG.debug('Performing run for runner: %s', runner)
-            run_result = runner.run(action_params)
-            LOG.debug('Result of run: %s', run_result)
+            # Mask secret parameters in the log context
+            resolved_action_params = ResolvedActionParameters(action_db=action_db,
+                                                              runner_type_db=runnertype_db,
+                                                              runner_parameters=runner_params,
+                                                              action_parameters=action_params)
+            extra = {'runner': runner, 'parameters': resolved_action_params}
+            LOG.debug('Performing run for runner: %s' % (runner.runner_id), extra=extra)
+            (status, result, context) = runner.run(action_params)
+
+            try:
+                result = json.loads(result)
+            except:
+                pass
+
+            action_completed = status in action_constants.COMPLETED_STATES
+            if isinstance(runner, AsyncActionRunner) and not action_completed:
+                self._setup_async_query(liveaction_db.id, runnertype_db, context)
         except:
             LOG.exception('Failed to run action.')
             _, ex, tb = sys.exc_info()
             # mark execution as failed.
-            runner.container_service.report_status(ACTIONEXEC_STATUS_FAILED)
+            status = action_constants.LIVEACTION_STATUS_FAILED
             # include the error message and traceback to try and provide some hints.
-            runner.container_service.report_result(
-                {'message': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))})
+            result = {'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
+            context = None
         finally:
+            # Log action completion
+            extra = {'result': result, 'status': status}
+            LOG.debug('Action "%s" completed.' % (action_db.name), extra=extra)
+
             # Always clean-up the auth_token
             try:
-                self._delete_auth_token(runner.auth_token)
+                LOG.debug('Setting status: %s for liveaction: %s', status, liveaction_db.id)
+                updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
+                                                                    result, context)
             except:
-                LOG.warn('Unable to clean-up auth_token.')
+                error = 'Cannot update LiveAction object for id: %s, status: %s, result: %s.' % (
+                    liveaction_db.id, status, result)
+                LOG.exception(error)
+                raise
 
-        # Re-load Action Execution from DB:
-        actionexec_db = get_actionexec_by_id(actionexec_db.id)
+            executions.update_execution(updated_liveaction_db)
+            extra = {'liveaction_db': updated_liveaction_db}
+            LOG.debug('Updated liveaction after run', extra=extra)
 
-        # TODO: Store payload when DB model can hold payload data
-        action_result = runner.container_service.get_result()
-        actionexec_status = runner.container_service.get_status()
-        LOG.debug('Result as reporter to container service: %s', action_result)
+            # Deletion of the runner generated auth token is delayed until the token expires.
+            # Async actions such as Mistral workflows uses the auth token to launch other
+            # actions in the workflow. If the auth token is deleted here, then the actions
+            # in the workflow will fail with unauthorized exception.
+            is_async_runner = isinstance(runner, AsyncActionRunner)
+            action_completed = status in action_constants.COMPLETED_STATES
 
-        if action_result is None:
-            # If the runner didn't set an exit code then the action didn't complete.
-            # Therefore, the action produced an error.
-            result = False
-            if not actionexec_status:
-                actionexec_status = ACTIONEXEC_STATUS_FAILED
-                runner.container_service.report_status(actionexec_status)
-        else:
-            # So long as the runner produced an exit code, we can assume that the
-            # Live Action ran to completion.
-            result = True
-            actionexec_db.result = action_result
-            if not actionexec_status:
-                actionexec_status = ACTIONEXEC_STATUS_SUCCEEDED
-                runner.container_service.report_status(actionexec_status)
+            if not is_async_runner or (is_async_runner and action_completed):
+                try:
+                    self._delete_auth_token(runner.auth_token)
+                except:
+                    LOG.exception('Unable to clean-up auth_token.')
 
-        if actionexec_status in [ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED]:
-            end_timestamp = isotime.add_utc_tz(datetime.datetime.utcnow())
+        LOG.debug('Performing post_run for runner: %s', runner.runner_id)
+        runner.post_run(status, result)
+        runner.container_service = None
+
+        return updated_liveaction_db
+
+    def _update_live_action_db(self, liveaction_id, status, result, context):
+        """
+        Update LiveActionDB object for the provided liveaction id.
+        """
+        liveaction_db = get_liveaction_by_id(liveaction_id)
+        if status in action_constants.COMPLETED_STATES:
+            end_timestamp = date_utils.get_datetime_utc_now()
         else:
             end_timestamp = None
 
-        # Push result data and updated status to ActionExecution DB
-        actionexec_db = update_actionexecution_status(new_status=actionexec_status,
-                                                      end_timestamp=end_timestamp,
-                                                      actionexec_db=actionexec_db)
-
-        LOG.debug('Performing post_run for runner: %s', runner)
-        runner.post_run()
-        runner.container_service = None
-
-        return result, actionexec_db
+        liveaction_db = update_liveaction_status(status=status,
+                                                 result=result,
+                                                 context=context,
+                                                 end_timestamp=end_timestamp,
+                                                 liveaction_db=liveaction_db)
+        return liveaction_db
 
     def _get_entry_point_abs_path(self, pack, entry_point):
         return RunnerContainerService.get_entry_point_abs_path(pack=pack,
@@ -190,6 +198,29 @@ class RunnerContainer(object):
     def _delete_auth_token(self, auth_token):
         if auth_token:
             access.delete_token(auth_token.token)
+
+    def _setup_async_query(self, liveaction_id, runnertype_db, query_context):
+        query_module = getattr(runnertype_db, 'query_module', None)
+        if not query_module:
+            LOG.error('No query module specified for runner %s.', runnertype_db)
+            return
+        try:
+            self._create_execution_state(liveaction_id, runnertype_db, query_context)
+        except:
+            LOG.exception('Unable to create action execution state db model ' +
+                          'for liveaction_id %s', liveaction_id)
+
+    def _create_execution_state(self, liveaction_id, runnertype_db, query_context):
+        state_db = ActionExecutionStateDB(
+            execution_id=liveaction_id,
+            query_module=runnertype_db.query_module,
+            query_context=query_context)
+        try:
+            return ActionExecutionState.add_or_update(state_db)
+        except:
+            LOG.exception('Unable to create execution state db for liveaction_id %s.'
+                          % liveaction_id)
+            return None
 
 
 def get_runner_container():

@@ -1,0 +1,42 @@
+---
+    name: 'scp'
+    runner_type: 'run-remote'
+    description: 'Secure copy file(s)'
+    enabled: true
+    entry_point: ''
+    parameters:
+        source:
+            type: 'string'
+            description: 'List of files/directories to to be copied'
+            required: true
+        destination:
+            type: 'string'
+            description: 'Destination of files/directories'
+            required: true
+        dest_server:
+            type: 'string'
+            description: 'Destination of files/directories'
+            required: true
+        recursive:
+            type: 'boolean'
+            description: 'Boolean flag for recursive copy'
+            default: false
+        force:
+            type: 'boolean'
+            description: 'Boolean flag for force'
+            default: false
+        username:
+            type: 'string'
+            description: 'User to scp as'
+            default: 'stanley'
+        keyfile:
+            type: 'string'
+            description: 'SSH key to connect with'
+            default: '/home/stanley/.ssh/stanley_rsa'
+        cmd:
+            immutable: true
+            default: 'scp {{args}} -i {{keyfile}} {{source}} {{dest_server}}:{{destination}}'
+            position: 0
+        args:
+            description: 'Command line arguments passed to cp'
+            default: '-o stricthostkeychecking=no -v{% if recursive == true %} -r{% endif %}{% if force == true %} -f{% endif %}'

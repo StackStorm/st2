@@ -1,0 +1,16 @@
+
+---
+  name: "sample.with_the_same_timer"
+  pack: "pack_with_rules"
+  description: "Sample rule using an Interval Timer."
+  trigger:
+    type: "core.st2.IntervalTimer"
+    parameters:
+      delta: 5
+      unit: "seconds"
+  criteria: {}
+  action:
+    ref: "core.local"
+    parameters:
+      cmd: "echo \"{{trigger.executed_at}}\""
+  enabled: true

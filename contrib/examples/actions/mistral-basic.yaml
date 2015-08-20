@@ -1,32 +1,23 @@
-name: 'examples.mistral-basic'
-version: '2.0'
-description: 'Basic mistral workflow example'
-workflows:
-    demo:
-        type: direct
-        input:
-            - cmd
-        tasks:
-            run-cmd:
-                action: st2.action
-                input:
-                    ref: core.local
-                    parameters:
-                        cmd: $.cmd
-                publish:
-                    stdout: $.stdout
-                    stderr: $.stderr
-                on-error:
-                    - callback-on-error
-                on-success:
-                    - callback-on-success
-            callback-on-error:
-                action: st2.callback
-                input:
-                    state: "ERROR"
-                    result: $.stderr
-            callback-on-success:
-                action: st2.callback
-                input:
-                    state: "SUCCESS"
-                    result: $.stdout
+---
+description: Run a local linux command
+enabled: true
+entry_point: workflows/mistral-basic.yaml
+name: mistral-basic
+pack: examples
+parameters:
+  cmd:
+    required: true
+    type: string
+  context:
+    default: {}
+    immutable: true
+    type: object
+  task:
+    default: null
+    immutable: true
+    type: string
+  workflow:
+    default: null
+    immutable: true
+    type: string
+runner_type: mistral-v2

@@ -1,0 +1,17 @@
+---
+  class_name: "FileWatchSensor"
+  entry_point: "file_watch_sensor.py"
+  description: "Sensor which monitors files for new lines"
+  trigger_types:
+    -
+      name: "file_watch.line"
+      description: "Trigger which indicates a new line has been detected"
+      payload_schema:
+        type: "object"
+        properties:
+          file_path:
+            type: "string"
+          file_name:
+            type: "string"
+          line:
+            type: "string"

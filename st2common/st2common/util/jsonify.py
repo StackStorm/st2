@@ -20,6 +20,7 @@ except ImportError:
 
 
 from pecan.jsonify import GenericJSON
+import six
 
 
 __all__ = [
@@ -34,3 +35,37 @@ def json_encode(obj, indent=4):
 def load_file(path):
     with open(path, 'r') as fd:
         return json.load(fd)
+
+
+def json_loads(obj, keys=None):
+    """
+    Given an object, this method tries to json.loads() the value of each of the keys. If json.loads
+    fails, the original value stays in the object.
+
+    :param obj: Original object whose values should be converted to json.
+    :type obj: ``dict``
+
+    :param keys: Optional List of keys whose values should be transformed.
+    :type keys: ``list``
+
+    :rtype ``dict`` or ``None``
+    """
+    if not obj:
+        return None
+
+    if not keys:
+        keys = obj.keys()
+
+    for key in keys:
+        try:
+            obj[key] = json.loads(obj[key])
+        except:
+            pass
+    return obj
+
+
+def try_loads(s):
+    try:
+        return json.loads(s) if s and isinstance(s, six.string_types) else s
+    except:
+        return s

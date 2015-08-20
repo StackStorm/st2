@@ -14,13 +14,16 @@
 # limitations under the License.
 
 from pecan import load_app
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2auth import config  # noqa
+from st2common import log as logging
 from st2common.models import db
 
 
 cfg.CONF(args=['--config-file', '/etc/st2/st2.conf'])
+
+logging.setup(cfg.CONF.auth.logging)
 
 username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
 password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None

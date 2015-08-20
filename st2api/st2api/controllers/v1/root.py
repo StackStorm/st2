@@ -13,24 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pecan import expose
-
 from st2api.controllers.v1.actions import ActionsController
+from st2api.controllers.v1.actionalias import ActionAliasController
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
-from st2api.controllers.v1.datastore import KeyValuePairController
-from st2api.controllers.v1.history import HistoryController
+from st2api.controllers.v1.aliasexecution import ActionAliasExecutionController
+from st2api.controllers.v1.keyvalue import KeyValuePairController
+from st2api.controllers.v1.packs import PacksController
+from st2api.controllers.v1.policies import PolicyTypeController, PolicyController
 from st2api.controllers.v1.rules import RuleController
 from st2api.controllers.v1.runnertypes import RunnerTypesController
 from st2api.controllers.v1.sensors import SensorTypeController
 from st2api.controllers.v1.stream import StreamController
+from st2api.controllers.v1.traces import TracesController
 from st2api.controllers.v1.triggers import TriggerTypeController, TriggerController, \
     TriggerInstanceController
 from st2api.controllers.v1.webhooks import WebhooksController
 
 
 class RootController(object):
+    packs = PacksController()
     actions = ActionsController()
     actionexecutions = ActionExecutionsController()
+    executions = actionexecutions  # We should deprecate actionexecutions.
+    policies = PolicyController()
+    policytypes = PolicyTypeController()
     runnertypes = RunnerTypesController()
     sensortypes = SensorTypeController()
     triggertypes = TriggerTypeController()
@@ -38,10 +44,8 @@ class RootController(object):
     triggerinstances = TriggerInstanceController()
     rules = RuleController()
     keys = KeyValuePairController()
-    history = HistoryController()
     webhooks = WebhooksController()
     stream = StreamController()
-
-    @expose(generic=True, template='index.html')
-    def index(self):
-        return dict()
+    actionalias = ActionAliasController()
+    aliasexecution = ActionAliasExecutionController()
+    traces = TracesController()

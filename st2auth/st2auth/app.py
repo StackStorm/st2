@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import pecan
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common import hooks
 from st2common import log as logging
@@ -47,6 +47,6 @@ def setup_app(config=None):
     return pecan.make_app(
         app_conf.pop('root'),
         logging=getattr(config, 'logging', {}),
-        hooks=[hooks.CorsHook()],
+        hooks=[hooks.JSONErrorResponseHook(), hooks.CorsHook()],
         **app_conf
     )

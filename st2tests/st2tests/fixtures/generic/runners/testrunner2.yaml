@@ -1,0 +1,6 @@
+---
+description: A test runner.
+enabled: true
+name: test-runner-2
+runner_module: tests.unit.test_runner
+runner_parameters: {}

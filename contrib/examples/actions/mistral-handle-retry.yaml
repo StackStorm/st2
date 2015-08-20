@@ -1,0 +1,20 @@
+---
+description: Workflow example for error, rollback, and retry.
+enabled: true
+entry_point: workflows/mistral-handle-retry.yaml
+name: mistral-handle-retry
+pack: examples
+parameters:
+  context:
+    default: {}
+    immutable: true
+    type: object
+  task:
+    default: null
+    immutable: true
+    type: string
+  workflow:
+    default: examples.mistral-handle-retry.main
+    immutable: true
+    type: string
+runner_type: mistral-v2

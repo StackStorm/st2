@@ -17,9 +17,11 @@ __all__ = [
     'PACKS_PACK_NAME',
     'SYSTEM_PACK_NAME',
     'PACKS_PACK_NAME',
+    'LINUX_PACK_NAME',
     'SYSTEM_PACK_NAMES',
     'USER_PACK_NAME_BLACKLIST',
-    'BASE_PACK_REQUIREMENTS'
+    'BASE_PACK_REQUIREMENTS',
+    'MANIFEST_FILE_NAME'
 ]
 
 # A list of allowed characters for the pack name
@@ -31,6 +33,9 @@ SYSTEM_PACK_NAME = 'core'
 # Name used for pack management pack
 PACKS_PACK_NAME = 'packs'
 
+# Name used for linux pack
+LINUX_PACK_NAME = 'linux'
+
 # Name of the default pack
 DEFAULT_PACK_NAME = 'default'
 
@@ -38,6 +43,7 @@ DEFAULT_PACK_NAME = 'default'
 SYSTEM_PACK_NAMES = [
     SYSTEM_PACK_NAME,
     PACKS_PACK_NAME,
+    LINUX_PACK_NAME
 ]
 
 # A list of pack names which can't be used by user-supplied packs
@@ -46,9 +52,11 @@ USER_PACK_NAME_BLACKLIST = [
     PACKS_PACK_NAME
 ]
 
-# Requirements which are common to all the packs
+# Python requirements which are common to all the packs and are installed into the Python pack
+# sandbox (virtualenv)
 BASE_PACK_REQUIREMENTS = [
-    # Note: We don't currently handle .pth files corectly so los.config
-    # needs to be installed inside virtualenv
-    'oslo.config'
+    'six>=1.9.0,<2.0'
 ]
+
+# Name of the pack manifest file
+MANIFEST_FILE_NAME = 'pack.yaml'

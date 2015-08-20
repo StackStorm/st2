@@ -13,17 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
-
 import jsonschema
 import mock
 import mongoengine.connection
-from oslo.config import cfg
+from oslo_config import cfg
 
 from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import schema as util_schema
 from st2common.util import reference
+from st2common.util import date as date_utils
 from st2tests import DbTestCase
 
 SKIP_DELETE = False
@@ -44,9 +43,10 @@ class DbConnectionTest(DbTestCase):
                          'Not connected to desired port.')
 
 
-from st2common.models.db.reactor import TriggerTypeDB, TriggerDB, TriggerInstanceDB, \
-    RuleDB, ActionExecutionSpecDB
-from st2common.persistence.reactor import TriggerType, Trigger, TriggerInstance, Rule
+from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
+from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
+from st2common.persistence.rule import Rule
+from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
@@ -177,36 +177,28 @@ class ReactorModelTest(DbTestCase):
 
     @staticmethod
     def _create_save_triggertype():
-        created = TriggerTypeDB()
-        created.pack = 'dummy_pack_1'
-        created.name = 'triggertype-1'
-        created.description = ''
-        created.payload_schema = {}
-        created.parameters_schema = {}
+        created = TriggerTypeDB(pack='dummy_pack_1', name='triggertype-1', description='',
+                                payload_schema={}, parameters_schema={})
         return Trigger.add_or_update(created)
 
     @staticmethod
     def _create_save_trigger(triggertype):
-        created = TriggerDB()
-        created.name = 'trigger-1'
-        created.pack = 'dummy_pack_1'
-        created.description = ''
-        created.type = triggertype.get_reference().ref
-        created.parameters = {}
+        created = TriggerDB(pack='dummy_pack_1', name='trigger-1', description='',
+                            type=triggertype.get_reference().ref, parameters={})
         return Trigger.add_or_update(created)
 
     @staticmethod
     def _create_save_triggerinstance(trigger):
-        created = TriggerInstanceDB()
-        created.trigger = trigger.get_reference().ref
-        created.payload = {}
-        created.occurrence_time = datetime.datetime.utcnow()
+        created = TriggerInstanceDB(trigger=trigger.get_reference().ref, payload={},
+                                    occurrence_time=date_utils.get_datetime_utc_now())
         return TriggerInstance.add_or_update(created)
 
     @staticmethod
     def _create_save_rule(trigger, action=None, enabled=True):
-        created = RuleDB()
-        created.name = 'rule-1'
+        name = 'rule-1'
+        pack = 'default'
+        ref = ResourceReference.to_string_reference(name=name, pack=pack)
+        created = RuleDB(name=name, pack=pack, ref=ref)
         created.description = ''
         created.enabled = enabled
         created.trigger = reference.get_str_resource_ref_from_model(trigger)
@@ -227,8 +219,11 @@ class ReactorModelTest(DbTestCase):
             model_object.delete()
 
 
-from st2common.models.db.action import ActionDB, RunnerTypeDB
-from st2common.persistence.action import Action, RunnerType
+from st2common.models.db.action import ActionDB
+from st2common.models.db.runner import RunnerTypeDB
+from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
+from st2common.persistence.action import Action
+from st2common.persistence.runner import RunnerType
 
 
 PARAM_SCHEMA = {
@@ -295,6 +290,27 @@ class ActionModelTest(DbTestCase):
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
+    def test_action_with_notify_crud(self):
+        runnertype = self._create_save_runnertype(metadata=False)
+        saved = self._create_save_action(runnertype, metadata=False)
+
+        # Update action with notification settings
+        on_complete = NotificationSubSchema(message='Action complete.')
+        saved.notify = NotificationSchema(on_complete=on_complete)
+        saved = Action.add_or_update(saved)
+
+        # Check if notification settings were set correctly.
+        retrieved = Action.get_by_id(saved.id)
+        self.assertEqual(retrieved.notify.on_complete.message, on_complete.message)
+
+        # cleanup
+        self._delete([retrieved])
+        try:
+            retrieved = Action.get_by_id(saved.id)
+        except ValueError:
+            retrieved = None
+        self.assertIsNone(retrieved, 'managed to retrieve after failure.')
+
     def test_parameter_schema(self):
         runnertype = self._create_save_runnertype(metadata=True)
         saved = self._create_save_action(runnertype, metadata=True)
@@ -342,13 +358,14 @@ class ActionModelTest(DbTestCase):
 
     @staticmethod
     def _create_save_action(runnertype, metadata=False):
-        created = ActionDB()
-        created.name = 'action-1'
-        created.description = 'awesomeness'
-        created.enabled = True
-        created.entry_point = '/tmp/action.py'
-        created.pack = 'wolfpack'
-        created.runner_type = {'name': runnertype.name}
+        name = 'action-1'
+        pack = 'wolfpack'
+        ref = ResourceReference(pack=pack, name=name).ref
+        created = ActionDB(name=name, description='awesomeness', enabled=True,
+                           entry_point='/tmp/action.py', pack=pack,
+                           ref=ref,
+                           runner_type={'name': runnertype.name})
+
         if not metadata:
             created.parameters = {'p1': None, 'p2': None, 'p3': None}
         else:
@@ -368,8 +385,8 @@ class ActionModelTest(DbTestCase):
             model_object.delete()
 
 
-from st2common.models.db.datastore import KeyValuePairDB
-from st2common.persistence.datastore import KeyValuePair
+from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.persistence.keyvalue import KeyValuePair
 
 
 class KeyValuePairModelTest(DbTestCase):

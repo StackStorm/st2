@@ -8,6 +8,11 @@ from jsonschema.validators import create
 
 from st2common.util import jsonify
 
+__all__ = [
+    'get_validator',
+    'get_parameter_schema',
+    'validate'
+]
 
 # https://github.com/json-schema/json-schema/blob/master/draft-04/schema
 # The source material is licensed under the AFL or BSD license.
@@ -90,6 +95,33 @@ CustomValidator = create(
 )
 
 
+def validate(instance, schema, cls=None, use_default=True, *args, **kwargs):
+    """
+    Custom validate function which supports default arguments combined with the "required"
+    property.
+
+    :param use_default: True to support the use of the optional default property.
+    :type use_default: ``bool``
+    """
+    instance = copy.deepcopy(instance)
+    schema_type = schema.get('type', None)
+    instance_is_dict = isinstance(instance, dict)
+
+    if use_default and schema_type == 'object' and instance_is_dict:
+        properties = schema.get('properties', {})
+        for property_name, property_data in six.iteritems(properties):
+            default_value = property_data.get('default', None)
+
+            # Assign default value on the instance so the validation doesn't fail if requires is
+            # true but the value is not provided
+            if default_value is not None and instance.get(property_name, None) is None:
+                instance[property_name] = default_value
+
+    # pylint: disable=assignment-from-no-return
+    result = jsonschema.validate(instance=instance, schema=schema, cls=cls, *args, **kwargs)
+    return result
+
+
 VALIDATORS = {
     'draft4': jsonschema.Draft4Validator,
     'custom': CustomValidator
@@ -103,10 +135,13 @@ def get_validator(version='custom', assign_property_default=False):
 
 def get_parameter_schema(model):
     # Dynamically construct JSON schema from the parameters metadata.
+    def normalize(x):
+        return {k: v if v else SCHEMA_ANY_TYPE for k, v in six.iteritems(x)}
+
     schema = {}
     from st2common.util.action_db import get_runnertype_by_name
     runner_type = get_runnertype_by_name(model.runner_type['name'])
-    normalize = lambda x: {k: v if v else SCHEMA_ANY_TYPE for k, v in six.iteritems(x)}
+
     properties = normalize(runner_type.runner_parameters)
     properties.update(normalize(model.parameters))
     if properties:

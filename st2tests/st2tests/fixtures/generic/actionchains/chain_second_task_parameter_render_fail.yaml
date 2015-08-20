@@ -1,0 +1,11 @@
+---
+chain:
+- name: c1
+  on-success: c2
+  params: {}
+  ref: wolfpack.a1
+- name: c2
+  params:
+    p1: '{{s1}}'
+  ref: wolfpack.a1
+default: c1

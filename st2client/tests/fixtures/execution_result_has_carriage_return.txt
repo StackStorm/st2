@@ -2,16 +2,16 @@
 | Property        | Value                                                        |
 +-----------------+--------------------------------------------------------------+
 | id              | 548235439c993840e690d710                                     |
-| action          | packs.uninstall                                              |
-| callback        |                                                              |
-| context         | {                                                            |
-|                 |     "user": "stanley"                                        |
-|                 | }                                                            |
+| action.ref      | packs.uninstall                                              |
+| context.user    | stanley                                                      |
 | parameters      | {                                                            |
 |                 |     "packs": [                                               |
 |                 |         "sensu"                                              |
 |                 |     ]                                                        |
 |                 | }                                                            |
+| status          | succeeded                                                    |
+| start_timestamp | Fri, 05 Dec 2014 22:44:19 UTC                                |
+| end_timestamp   |                                                              |
 | result          | {                                                            |
 |                 |     "unregister": {                                          |
 |                 |         "result": null,                                      |
@@ -64,6 +64,8 @@
 |                 |         "stdout": ""                                         |
 |                 |     }                                                        |
 |                 | }                                                            |
-| start_timestamp | Fri, 05 Dec 2014 22:44:19 UTC                                |
-| status          | succeeded                                                    |
+| liveaction      | {                                                            |
+|                 |     "callback": {},                                          |
+|                 |     "id": "1"                                                |
+|                 | }                                                            |
 +-----------------+--------------------------------------------------------------+

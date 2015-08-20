@@ -1,11 +1,14 @@
 ---
 # Action definition metadata
-    name: "echochain-param"
-    runner_type: "action-chain"
-    description: "Action Chain workflow passing variables"
-    enabled: true
-    entry_point: "echochain_param.yaml"
-    parameters: 
-      input1: 
+name: "echochain-param"
+description: "Action Chain workflow passing variables"
+# `runner_type` identifies the runner
+runner_type: "action-chain"
+# `entry_point` path to the ActionChain definition file, relative to the pack's action directory.
+entry_point: "chains/echochain_param.yaml"
+enabled: true
+parameters:
+    input1:
         type: "string"
         required: true
+        description: "Any string to pass down"

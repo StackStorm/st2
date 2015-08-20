@@ -1,0 +1,9 @@
+---
+description: A ping host action.
+enabled: true
+entry_point: bash_ping/bash_ping.sh
+name: ping
+parameters:
+  count:
+    type: integer
+runner_type: "local-shell-cmd"

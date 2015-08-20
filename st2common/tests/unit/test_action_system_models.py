@@ -92,7 +92,7 @@ class FabricRemoteActionTestCase(unittest2.TestCase):
         self.assertEqual(remote_action.get_on_behalf_user(), 'stan')
         fabric_task = remote_action.get_fabric_task()
         self.assertTrue(fabric_task is not None)
-        self.assertTrue(fabric_task.wrapped == remote_action._run_script)
+        self.assertTrue(fabric_task.wrapped == remote_action._run_script_with_settings)
 
     def test_remote_dir_script_action_method_default(self):
         remote_action = FabricRemoteScriptAction('foo', 'foo-id', '/tmp/st2.py',
@@ -111,3 +111,27 @@ class FabricRemoteActionTestCase(unittest2.TestCase):
         self.assertEqual(remote_action.get_on_behalf_user(), 'stan')
         self.assertEqual(remote_action.remote_dir, '/foo')
         self.assertEqual(remote_action.remote_script, '/foo/st2.py')
+
+    def test_get_settings(self):
+        # no password and private_key
+        remote_action = FabricRemoteAction(name='foo', action_exec_id='foo-id',
+                                           command='ls -lrth', on_behalf_user='stan',
+                                           parallel=True, sudo=True,
+                                           user='user')
+
+        settings = remote_action._get_settings()
+        self.assertEqual(settings['user'], 'user')
+        self.assertTrue('password' not in settings)
+        self.assertTrue('key_filename' not in settings)
+
+        # password and private_key
+        remote_action = FabricRemoteAction(name='foo', action_exec_id='foo-id',
+                                           command='ls -lrth', on_behalf_user='stan',
+                                           parallel=True, sudo=True,
+                                           user='test1', password='testpass1',
+                                           private_key='key_material')
+
+        settings = remote_action._get_settings()
+        self.assertEqual(settings['user'], 'test1')
+        self.assertEqual(settings['password'], 'testpass1')
+        self.assertTrue('/tmp/' in settings['key_filename'])

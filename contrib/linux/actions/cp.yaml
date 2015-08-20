@@ -1,0 +1,30 @@
+---
+    name: 'cp'
+    runner_type: 'run-remote'
+    description: 'Copy file(s)'
+    enabled: true
+    entry_point: ''
+    parameters:
+        source:
+            type: 'string'
+            description: 'List of files/directories to to be copied'
+            required: true
+        destination:
+            type: 'string'
+            description: 'Destination of files/directories'
+            required: true
+        recursive:
+            type: 'boolean'
+            description: 'Boolean flag for recursive copy'
+            default: false
+        force:
+            type: 'boolean'
+            description: 'Boolean flag for force'
+            default: false
+        cmd:
+            immutable: true
+            default: 'cp {{args}} {{source}} {{destination}}'
+            position: 0
+        args:
+            description: 'Command line arguments passed to cp'
+            default: '-v{% if recursive == true %} -r{% endif %}{% if force == true %} -f{% endif %}'

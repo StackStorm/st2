@@ -1,0 +1,25 @@
+---
+    name: 'mv'
+    runner_type: 'run-remote'
+    description: 'Move file(s)'
+    enabled: true
+    entry_point: ''
+    parameters:
+        source:
+            type: 'string'
+            description: 'List of files/directories to to be moved'
+            required: true
+        destination:
+            type: 'string'
+            description: 'Destination of files/directories'
+            required: true
+        force:
+            type: 'boolean'
+            description: 'Boolean flag for force'
+            default: false
+        cmd:
+            immutable: true
+            default: 'mv {{args}} {{source}} {{destination}}'
+        args:
+            description: 'Command line arguments passed to mv'
+            default: '-v{% if force == true %} -f{% endif %}'

@@ -1,0 +1,57 @@
+#!/bin/bash
+
+echo -e "Installer for tests packs..."
+
+if [ -z $1 ]; then
+  echo "Must specify test pack to install!"
+  exit 2
+fi
+
+TESTSREPO='https://github.com/StackStorm/st2tests.git'
+PACK=$1
+TESTSPATH="/opt/stackstorm/packs"
+TMPPATH='/tmp/st2tests'
+
+if [ -d ${TMPPATH} ]; then
+  echo -e "Deleting ${TMPPATH}..."
+  rm -Rf ${TMPPATH}
+fi
+
+echo -e "Cloning st2tests to ${TMPPATH}..."
+git clone ${TESTSREPO} ${TMPPATH}
+
+echo -e "Checking if ${PACK} pack is installed..."
+CHECK=`st2 action list | grep '${PACK}.' &> /dev/null`
+
+if [ "$?" == 0 ]; then
+  echo -e "Uninstalling existing ${PACK} pack..."
+    st2 run packs.uninstall packs=${PACK}
+fi
+
+if [ -d ${TESTSPATH}/${PACK} ]; then
+  echo -e "Deleting ${TESTSPATH}/${PACK}..."
+  rm -Rf ${TESTSPATH}/${PACK}
+fi
+
+echo -e "Copying ${PACK} to ${TESTSPATH}..."
+cp -Rf ${TMPPATH}/packs/${PACK} ${TESTSPATH}/
+
+echo -e "Reloading St2 content..."
+st2ctl reload
+
+echo -e "Bootstrapping virtualenv for ${PACK} pack..."
+if [ -f ${TESTSPATH}/${PACK}/requirements.txt ]; then
+    echo "Creating virtualenv for ${PACK}..."
+    mkdir -p /opt/stackstorm/virtualenvs
+    virtualenv --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
+    echo "Installing requirements.txt for ${PACK}..."
+    source /opt/stackstorm/virtualenvs/${PACK}/bin/activate
+    pip install -r ${TESTSPATH}/${PACK}/requirements.txt
+    deactivate
+fi
+
+
+if [ -d ${TMPPATH} ]; then
+  echo -e "Cleaning temporary directory..."
+  rm -Rf ${TMPPATH}
+fi

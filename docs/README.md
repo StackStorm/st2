@@ -1,7 +1,7 @@
 # Writing the Docs
 
-## Build and Run the Docs. 
-The docs are build with Sphinx. It's integrated with the main project Makefile. 
+## Build and Run the Docs.
+The docs are build with Sphinx. It's integrated with the main project Makefile.
 `make livedocs` builds the docs and runs the doc site live at [http://localhost:8000](http://localhost:8000)
 
 ## Sphinx Tricks
@@ -9,24 +9,38 @@ The docs are build with Sphinx. It's integrated with the main project Makefile.
 * TODO (Use [http://localhost:8000/todo.html](http://localhost:8000/todo.html) for full TODO list (must be empty when we ship)
 :
 
-		.. todo:: Hers is all TODO 
+		.. todo:: Here is a TODO
 
 * Code fragment:
 
 		.. code-block: bash
-		
+
 			# List all available triggers
     		st2 trigger list
-    			
+
 * Reference the document
 
 		:doc:`/start`
+		:doc:`in the Rules doc </rules>`
 
-* External links: 
+* Referencing an arbitrary section: for instance, there's examples section in sensors.rst. Define a reference on `examples` section in sensors.rst:
 
-		`External link <http://webchat.freenode.net/?channels=stackstorm>`_ 
+         .. _sensors-examples:
 
-Inlcude a document
+    and point to it as from this, or from other documensts as:
+
+           :ref:`sensors-examples`
+           :ref:`My examples <sensors-examples>`
+
+    Note that the leading `_` underscore is gone, and the reference is quoted.
+
+    Name convention for references is `_filename-refname` (because they are unique across the docs).  Note that there is no way to reference just a point in the docs. See http://sphinx-doc.org/markup/inline.html#cross-referencing-syntax
+
+* External links:
+
+		`External link <http://webchat.freenode.net/?channels=stackstorm>`_
+
+* Inlcude a document, full body:
 
 		.. include:: /engage.rst
 
@@ -34,23 +48,22 @@ Inlcude a document
 
  		:github_st2:`st2/st2common/st2common/operators.py </st2common/st2common/operators.py>`
 
-* Link  to Github st2contrib repo: 
- 
+* Link  to Github st2contrib repo:
+
 		:github_contrib:`Link to docker README on st2contrib<packs/docker/README.md>`
 
-* Link to st2contrib repo on Github (using a global we set up in source/conf.py)
+* Link to st2contrib and st2incubator repos on Github (using a global we set up in source/conf.py)
 
-		`st2contrib`_ or `st2contrib community repo <st2contrib>`_ 
+		`st2contrib`_
+		`st2incubator`_
 
 * The pattern to include an example from `/contrib/examples`: make example file name a reference on github. may say that it is deployed to `/usr/share/doc/st2/examples/`, and auto-include the file:
 
-		Sample rule: :github_st2:`sample-rule-with-webhook.json 
-		</contrib/examples/rules/sample-rule-with-webhook.json>` : 
-		
-		.. literalinclude:: /../../contrib/examples/rules/sample_rule_with_webhook.json
+		Sample rule: :github_st2:`sample-rule-with-webhook.yaml
+		</contrib/examples/rules/sample-rule-with-webhook.yaml>` :
+
+		.. literalinclude:: /../../contrib/examples/rules/sample_rule_with_webhook.yaml
     		:language: json
-    		
-* Referencing an arbitrary section: mark examples as reference: define reference as `.. _sensors-examples` and point to it as :ref:`sensors-examples`. Name convention for references is `_filename-refname` (because they are unique across the docs). Works across the docs, too. Note that there is no way to reference just a point in the docs. See http://sphinx-doc.org/markup/inline.html#cross-referencing-syntax
 
 
 ## Pandoc - convert md <-> rst and more
@@ -62,7 +75,7 @@ pandoc - a super-tool to convert between formats. Sample for markdown conversion
 
 ## Misc
 
-It's ironic that I use Markdown to write about rST tricks. 
+It's ironic that I use Markdown to write about rST tricks.
 
 
 

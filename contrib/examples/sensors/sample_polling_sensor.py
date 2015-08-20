@@ -9,7 +9,7 @@ class SimplePollingSensor(PollingSensor):
             dispatch() for dispatching triggers into the system.
     * self._config
         - contains configuration that was specified as
-          config.yml in the pack.
+          config.yaml in the pack.
     * self._poll_interval
         - indicates the interval between two successive poll() calls.
     """
@@ -35,9 +35,23 @@ class SimplePollingSensor(PollingSensor):
         #   # or just simply by reference as string.
         #   # i.e. dispatch(${trigger_pack}.${trigger_name}, payload)
         #   # E.g.: dispatch('examples.foo_sensor', {'k1': 'stuff', 'k2': 'foo'})
+        #   # trace_tag is a tag you would like to associate with the dispacthed TriggerInstance
+        #   # Typically the trace_tag is unique and a reference to an external event.
         pass
 
     def cleanup(self):
         # This is called when the st2 system goes down. You can perform cleanup operations like
         # closing the connections to external system here.
+        pass
+
+    def add_trigger(self, trigger):
+        # This method is called when trigger is created
+        pass
+
+    def update_trigger(self, trigger):
+        # This method is called when trigger is updated
+        pass
+
+    def remove_trigger(self, trigger):
+        # This method is called when trigger is deleted
         pass

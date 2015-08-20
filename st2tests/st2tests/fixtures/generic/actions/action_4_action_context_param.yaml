@@ -1,0 +1,42 @@
+---
+description: Awesome action that uses a parameter from action context.
+enabled: true
+entry_point: ''
+name: action-4-action-context-param
+pack: wolfpack
+parameters:
+  actionimmutable:
+    default: actionimmutable
+    immutable: true
+    type: string
+  actionint:
+    default: 10
+    type: number
+  actionstr:
+    required: true
+    type: string
+  action_api_user:
+    default: "{{action_context.api_user}}"
+  async_test:
+    default: false
+    type: boolean
+  runnerdummy:
+    default: actiondummy
+    immutable: true
+    type: string
+  runnerfoo:
+    default: FOO
+    immutable: true
+    type: string
+  runnerimmutable:
+    default: failed_override
+    type: string
+  runnerdefaultint:
+    default: 0
+    description: Falsey integer param, overrides runner default. Covers timeout 0 issue
+    type: integer
+  defaults_ovverriden_by_execution:
+    default: 1
+    description: Overrides runner default. Will be overriden by live action
+    type: integer
+runner_type: test-runner-1

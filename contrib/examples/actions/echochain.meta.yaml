@@ -1,8 +1,21 @@
 ---
 # Action definition metadata
-    name: "echochain"
-    runner_type: "action-chain"
-    description: "Simple Action Chain workflow"
-    enabled: true
-    entry_point: "echochain.yaml"
-    parameters: {}
+name: "echochain"
+description: "Simple Action Chain workflow"
+
+# `runner_type` has value `action-chain` to identify that action is an ActionChain.
+runner_type: "action-chain"
+
+# `entry_point` path to the ActionChain definition file, relative to the pack's action directory.
+entry_point: "chains/echochain.yaml"
+
+enabled: true
+parameters:
+  skip_notify:
+    default:
+      - c2
+notify:
+  on-complete:
+    message: "\"@channel: Action succeeded.\""
+    routes:
+      - "slack"

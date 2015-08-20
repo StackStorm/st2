@@ -1,7 +1,0 @@
-{
-    "type": "st2.trigger",
-    "payload": {
-        "work": "done",
-        "result": 10
-    }
-}

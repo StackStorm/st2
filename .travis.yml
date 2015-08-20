@@ -1,8 +1,37 @@
+# Used old infrastructure, needed for integration tests:
+# http://docs.travis-ci.com/user/workers/standard-infrastructure/
+sudo: true
 language: python
 python:
-  - "2.6"
-  - "2.7"
-script: make tests
+  - 2.7
+
+env:
+  - TASK=unit
+  - TASK=integration
+  - TASK=mistral
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: TASK=mistral
+
 services:
   - mongodb
+  - postgresql
   - rabbitmq
+
+cache:
+  directories:
+    - $HOME/.cache/pip/
+
+install:
+  - pip install python-coveralls
+  - make requirements
+  - if [ ${TASK} = 'integration' ] || [ ${TASK} = 'mistral' ]; then sudo ./scripts/travis/prepare-integration.sh; fi
+  - if [ ${TASK} = 'mistral' ]; then sudo ./scripts/travis/setup-mistral.sh; fi
+
+script:
+  - ./scripts/travis/build.sh
+
+after_success:
+  - coveralls

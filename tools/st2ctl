@@ -1,11 +1,22 @@
 #!/bin/bash
+
+set -e
+
 LOGFILE="/tmp/st2_startup.log"
-COMPONENTS="actionrunner st2api sensor_container history rules_engine mistral"
+WEBUI_LOG_FILE="/var/log/st2/st2web.log"
+COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine st2web mistral st2resultstracker st2notifier"
 STANCONF="/etc/st2/st2.conf"
-PYTHON=`which python`
+PYTHON=`which python2.7`
+
+# AR is assumed to be an environment variable.
 if [ -z "$AR" ];
  then
    AR=10
+fi
+
+if [ -z "$WEBUI_PORT" ];
+ then
+   WEBUI_PORT=8080
 fi
 
 DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
@@ -21,15 +32,157 @@ else
   exit 2
 fi
 
-function st2start(){
+function print_usage() {
+    echo "usage: st2ctl {start, stop, restart, status}"
+    echo
+    echo "usage: st2ctl {restart-component}"
+    echo "positional arguments:"
+    echo "  component           Name of the st2 service to restart."
+    echo "                      ${COMPONENTS}"
+    echo
+    echo "usage: st2ctl {reopen-log-files}"
+    echo "positional arguments:"
+    echo "  component           Name of the st2 service to reopen the log files for."
+    echo "                      ${COMPONENTS}"
+    echo
+    echo "usage: st2ctl {reload, clean}"
+    echo "optional arguments:"
+    echo "  --register-all      Register all."
+    echo "  --register-sensors  Register all sensors."
+    echo "  --register-rules    Register all rules."
+    echo "  --register-actions  Register all actions."
+    echo "  --register-aliases  Register all aliases."
+    echo "  --register-policies Register all policies."
+    echo "  --verbose           Output additional debug and informational messages."
+}
+
+function service_map() {
+  COM=$1
+  case $COM in
+  st2actionrunner)
+    ALT_COM="actionrunner"
+    ;;
+  st2sensorcontainer)
+    ALT_COM="sensor_container"
+    ;;
+  st2rulesengine)
+    ALT_COM="rules_engine"
+    ;;
+  *)
+    ALT_COM=$COM
+    ;;
+  esac
+
+  echo $ALT_COM
+}
+
+
+if [ -z ${1} ] || [ ${1} != "start" -a ${1} != "stop" -a ${1} != "restart" -a ${1} != "status" -a ${1} != "restart-component" -a ${1} != "reopen-log-files" -a ${1} != "-component" -a ${1} != "reload" -a ${1} != "clean" ]
+then
+    print_usage
+    exit 1
+fi
+
+if [ ${1} == "restart-component" ]
+then
+    if  [ -z ${2} ] || [ ${2} != "st2actionrunner" -a ${2} != "st2api" -a ${2} != "st2sensorcontainer" -a ${2} != "st2rulesengine" -a ${2} != "mistral" -a ${2} != "st2resultstracker" -a ${2} != "st2notifier" -a ${2} != "st2web" -a ${2} != "st2auth" ]
+    then
+        print_usage
+        exit 1
+    fi
+fi
+
+# Note: Scripts already call reload with "--register-<content>"
+if [ ${1} == "reload" -o ${1} == "clean" ]; then
+    ALLOWED_REGISTER_FLAGS=(--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --verbose)
+    DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors'
+
+    if [ ! -z ${2} ]; then
+        for arg in ${@:2}; do
+            if [[ " ${ALLOWED_REGISTER_FLAGS[*]} " != *" $arg "* ]]; then # argument not allowed
+                echo -e "\e[31mError: Invalid argument provided: ${arg} \e[0m\n"
+                print_usage
+                exit 1
+            fi
+        done
+    fi
+
+    if [ -z ${2} ]; then
+        REGISTER_FLAGS=${DEFAULT_REGISTER_FLAGS}
+    elif [ ${2} == '--verbose' ] && [ -z ${3} ]; then
+        REGISTER_FLAGS="$DEFAULT_REGISTER_FLAGS ${2}"
+    elif [ ! -z ${2} ]; then
+        REGISTER_FLAGS=${@:2}
+    else
+        print_usage
+        exit 1
+    fi
+fi
+
+# Adapter to start services for transition to init scripts
+function st2start() {
+  if [ "${NG_INIT}" = true ]; then
+    st2start_ng
+  else
+    st2start_classic
+  fi
+}
+
+# Adapter to start services for transition to init scripts
+function st2stop() {
+  if [ "${NG_INIT}" = true ]; then
+    st2stop_ng
+  else
+    st2stop_classic
+  fi
+}
+
+# Adapter to restart_compontent for transition to init scripts
+function restart_component() {
+  if [ "${NG_INIT}" = true ]; then
+    restart_component_ng $1
+  else
+    restart_component_classic $1
+  fi
+}
+
+function st2start_ng() {
+  for COM in $COMPONENTS
+  do
+    service $COM start
+  done
+}
+
+function st2stop_ng() {
+  for COM in $COMPONENTS
+  do
+    service $COM stop
+  done
+}
+
+function restart_component_ng() {
+  COM=${1}
+  service $COM restart
+}
+
+function st2start_classic(){
   for i in `seq 1 ${AR}`
   do
-    nohup actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
+    nohup st2actionrunner --config-file ${STANCONF} &>> ${LOGFILE} &
   done
+
+  nohup st2auth --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup st2api --config-file ${STANCONF} &>> ${LOGFILE} &
-  nohup sensor_container --config-file ${STANCONF} &>> ${LOGFILE} &
-  nohup /usr/bin/history --config-file ${STANCONF} &>> ${LOGFILE} &
-  nohup rules_engine --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup st2sensorcontainer --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup st2resultstracker --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup st2notifier --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup st2rulesengine --config-file ${STANCONF} &>> ${LOGFILE} &
+
+  # Only run WebUI HTTP Server if flag is not set
+  if [ -z "${ST2_DISABLE_HTTPSERVER}" ]; then
+    (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
+  fi
+
   if [[ "${CONTAINER}" == "DOCKER" ]]
   then
     /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
@@ -38,7 +191,7 @@ function st2start(){
   fi
 }
 
-function st2stop(){
+function st2stop_classic(){
   for COM in $COMPONENTS
   do
     if [[ "${COM}" == "mistral" ]]
@@ -59,8 +212,29 @@ function st2stop(){
       else
         echo "${COM} is not running"
       fi
+    elif [[ "${COM}" == "st2web" ]]
+    then
+      if [ -z "${ST2_DISABLE_HTTPSERVER}" ]; then
+        PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
+        if [[ ! -z $PID ]]
+        then
+          for p in $PID
+          do
+             echo "Killing ${COM} PID: ${p}"
+             kill $p
+          done
+        else
+          echo "${COM} is not running"
+        fi
+      else
+        echo "*Built-in WebUI HTTP Server has been disabled*"
+      fi
     else
-      PID=`ps ax | grep -v grep | grep ${COM} | awk '{print $1}'`
+      ALT_COM=`service_map $COM`
+
+      echo "Stopping $COM | $ALT_COM."
+
+      PID=`ps ax | grep -v grep | egrep "${COM}|${ALT_COM}" | awk '{print $1}'`
       if [[ ! -z $PID ]]
       then
         for p in $PID
@@ -75,17 +249,19 @@ function st2stop(){
   done
 }
 
-function restart_component() {
+function restart_component_classic() {
   COM=${1}
+  ALT_COM=`service_map $COM`
+
   if [[ ! -z $COM ]]
   then
-    if [[ "${COM}" == "actionrunner" ]]
+    if [[ "${COM}" == "st2actionrunner" ]]
     then
       PROC_COUNT=${AR}
     else
       PROC_COUNT=1
     fi
-    echo "restarting service ${COM} with ${PROC_COUNT} process(es)."
+    echo "Restarting service ${COM}|${ALT_COM} with ${PROC_COUNT} process(es)."
     if [[ "${COM}" == "mistral" ]]
     then
       if [[ "${CONTAINER}" == "DOCKER" ]]
@@ -96,8 +272,26 @@ function restart_component() {
       else
         service mistral restart
       fi
+    elif [[ "${COM}" == "st2web" ]]
+    then
+      if [ -z "${ST2_DISABLE_HTTPSERVER}" ]; then
+        PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
+        if [[ ! -z $PID ]]
+        then
+          for p in $PID
+          do
+             kill $p
+             sleep 1
+             (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
+          done
+        else
+          echo "${COM} is not running"
+        fi
+      else
+        echo "*Built-in WebUI HTTP Server has been disabled*"
+      fi
     else
-      PID=`ps ax | grep -v grep | grep -v st2ctl | grep ${COM} | awk '{print $1}'`
+      PID=`ps ax | grep -v grep | grep -v st2ctl | egrep "${COM}|${ALT_COM}" | awk '{print $1}'`
       if [[ ! -z $PID ]]
       then
         for p in $PID
@@ -118,16 +312,40 @@ function restart_component() {
   fi
 }
 
-function register_content() {
-  echo "Registering content..."
+function reopen_component_log_files() {
+  COM=${1}
+  ALT_COM=`service_map $COM`
 
-  if [ ! ${1} ]; then
-      REGISTER_FLAGS="--register-sensors --register-actions"
+  if [[ ! -z $COM ]]
+  then
+    if [[ "${COM}" == "st2actionrunner" ]]
+    then
+      PROC_COUNT=${AR}
+    else
+      PROC_COUNT=1
+    fi
+
+    echo "Sending SIGUSR1 to service ${COM}|${ALT_COM} with ${PROC_COUNT} process(es)."
+
+    PID=`ps ax | grep -v grep | grep -v st2ctl | egrep "${COM}|${ALT_COM}" | awk '{print $1}'`
+    if [[ ! -z $PID ]]
+    then
+      for p in $PID
+      do
+        echo "Sending SIGUSR1 to ${COM} PID: ${p}"
+        kill -USR1 $p
+      done
+    else
+      echo "${COM} is not running"
+    fi
   else
-      REGISTER_FLAGS="--register-${1}"
+    echo "No component specified to reopen the log files for."
   fi
+}
 
-  $PYTHON ${PYTHONPACK}/st2common/bin/registercontent.py --config-file ${STANCONF} ${REGISTER_FLAGS}
+function register_content() {
+  echo "Registering content...[flags = ${REGISTER_FLAGS}]"
+  $PYTHON ${PYTHONPACK}/st2common/bin/st2-register-content --config-file ${STANCONF} ${REGISTER_FLAGS}
 }
 
 clean_db() {
@@ -141,9 +359,16 @@ clean_logs() {
 }
 
 function getpids(){
+  echo "##### st2 components status #####"
+
   for COM in $COMPONENTS
   do
-    PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
+    if [[ "${COM}" == "st2web" && -z "${ST2_DISABLE_HTTPSERVER}" ]]
+    then
+      PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
+    else
+      PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
+    fi
     if [[ ! -z $PID ]]
     then
       for p in $PID
@@ -151,15 +376,24 @@ function getpids(){
         echo "${COM} PID: ${p}"
       done
     else
-      echo "${COM} is not running"
+      echo "${COM} is not running."
     fi
   done
+}
+
+function geturl(){
+if [ ${WEBUI_PORT} == "80" ]; then
+  echo "WebUI at http://`hostname`/"
+else
+  echo "WebUI at http://`hostname`:$WEBUI_PORT/"
+fi
 }
 
 case ${1} in
   start)
     st2start
     getpids
+    geturl
     ;;
   stop)
     st2stop
@@ -169,14 +403,20 @@ case ${1} in
     sleep 1
     st2start
     getpids
+    geturl
     ;;
   restart-component)
     restart_component ${2}
     sleep 1
     getpids
     ;;
+  reopen-log-files)
+    reopen_component_log_files ${2}
+    sleep 1
+    getpids
+    ;;
   reload)
-    register_content ${2}
+    register_content
     getpids
     ;;
   clean)
@@ -186,7 +426,7 @@ case ${1} in
       st2stop
       clean_db
       clean_logs
-      register_content ${2}
+      register_content
       st2start
       getpids
     else
@@ -197,6 +437,6 @@ case ${1} in
     getpids
     ;;
   *)
-    echo "Valid actions: start|stop|restart|restart-component|reload|clean|status"
+    echo "Valid actions: start|stop|restart|restart-component|reopen-log-files|reload|clean|status"
     ;;
 esac

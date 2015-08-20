@@ -13,39 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo.config import cfg
-from st2common.persistence import Access
-from st2common.models.db.action import (runnertype_access, action_access, actionexec_access)
-from st2common import transport
+from st2common.models.db.action import action_access
+from st2common.persistence import base as persistence
+from st2common.persistence.actionalias import ActionAlias
+from st2common.persistence.execution import ActionExecution
+from st2common.persistence.executionstate import ActionExecutionState
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.runner import RunnerType
+
+__all__ = [
+    'Action',
+    'ActionAlias',
+    'ActionExecution',
+    'ActionExecutionState',
+    'LiveAction',
+    'RunnerType'
+]
 
 
-class RunnerType(Access):
-    impl = runnertype_access
-
-    @classmethod
-    def _get_impl(kls):
-        return kls.impl
-
-
-class Action(Access):
+class Action(persistence.ContentPackResource):
     impl = action_access
 
     @classmethod
-    def _get_impl(kls):
-        return kls.impl
-
-
-class ActionExecution(Access):
-    impl = actionexec_access
-    publisher = None
-
-    @classmethod
-    def _get_impl(kls):
-        return kls.impl
-
-    @classmethod
-    def _get_publisher(kls):
-        if not kls.publisher:
-            kls.publisher = transport.actionexecution.ActionExecutionPublisher(
-                cfg.CONF.messaging.url)
-        return kls.publisher
+    def _get_impl(cls):
+        return cls.impl

@@ -4050,10 +4050,11 @@ div[class^='highlight'] pre {
   padding-left: 1.618em -4px;
 }
 .wy-menu-vertical li.on a:hover, .wy-menu-vertical li.current > a:hover {
-  background: #fcfcfc;
+  background: #fb8225;
 }
 .wy-menu-vertical li.toctree-l2.current > a {
-  background: #fcd531;
+  background: #fb8225;
+  color:#FFF;
   padding: 0.4045em 2.427em;
 }
 .wy-menu-vertical li.current ul {

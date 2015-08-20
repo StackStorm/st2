@@ -20,21 +20,18 @@ A utility script which sends test messages to a queue.
 
 import argparse
 
-from kombu import Connection, Exchange
-from oslo.config import cfg
+from kombu import Exchange
 
 from st2common import config
 
+from st2common.transport import utils as transport_utils
 from st2common.transport.publishers import PoolPublisher
 
 
 def main(exchange, routing_key, payload):
     exchange = Exchange(exchange, type='topic')
-    publisher = PoolPublisher(cfg.CONF.messaging.url)
-
-    with Connection(cfg.CONF.messaging.url):
-        publisher.publish(payload=payload, exchange=exchange,
-                          routing_key=routing_key)
+    publisher = PoolPublisher(urls=transport_utils.get_messaging_urls())
+    publisher.publish(payload=payload, exchange=exchange, routing_key=routing_key)
 
 
 if __name__ == '__main__':

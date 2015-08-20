@@ -13,6 +13,7 @@ Prerequisites
 
 Instructions
 ^^^^^^^^^^^^
+
 1. Install `StackStorm sensu integration pack <https://github.com/StackStorm/st2contrib/tree/master/packs/sensu>`_. If you have already installed all the packs, skip this step.
 
 ::
@@ -20,10 +21,42 @@ Instructions
     st2 run packs.install packs=sensu
 
 2. A sample sensu rule is shown below.
-Copy the sample rule to /opt/stackstorm/packs/sensu/rules/sensu_action_runners_rule.json.
 
-.. literalinclude:: /../../contrib/examples/rules/sensu_action_runners_rule.json
-    :language: json
+.. sourcecode:: json
+
+    {
+       "name": "sensu.action-runners-rule",
+       "description": "Sample rule that dogfoods st2.",
+
+       "trigger": {
+           "type": "sensu.event_handler",
+           "parameters": {
+           }
+       },
+
+       "criteria": {
+           "trigger.check.name": {
+               "pattern": "cron_check",
+               "type": "equals"
+           },
+           "trigger.check.output": {
+               "pattern": "CheckProcs CRITICAL*",
+               "type": "matchregex"
+           }
+       },
+
+       "action": {
+           "ref": "core.local",
+           "parameters": {
+               "cmd": "echo \"{{trigger}}\" >> /tmp/sensu.webhook-sample.out"
+           }
+       },
+
+       "enabled": true
+    }
+
+Copy the content of the sample rule to
+``/opt/stackstorm/packs/sensu/rules/sensu_action_runners_rule.json``.
 
 3. Now create the rule.
 
@@ -53,7 +86,7 @@ You should see sensu.action-runners-rule listed.
     +--------------------------+--------------------------------+--------------------------------+
 
 5. Create a sensu check json like below in the exact path specified.
-(The sensu check monitors for exactly 10 |st2| actionrunners and alerts if the number of runners is less than 10.)
+(The sensu check monitors for exactly 10 |st2| action runners and alerts if the number of runners is less than 10.)
 
 ::
 
@@ -62,7 +95,7 @@ You should see sensu.action-runners-rule listed.
       "checks": {
         "cron_check": {
           "handlers": ["default", "st2"],
-          "command": "/etc/sensu/plugins/check-procs.rb -p actionrunner -C 10 ",
+          "command": "/etc/sensu/plugins/check-procs.rb -p st2actionrunner -C 10 ",
           "interval": 60,
           "subscribers": [ "webservers" ]
         }
@@ -107,7 +140,19 @@ You should see sensu.action-runners-rule listed.
     sudo cp /opt/stackstorm/packs/sensu/etc/st2_handler.py /etc/sensu/handlers/st2_handler.py
     sudo chmod +x /etc/sensu/handlers/st2_handler.py
 
-9. Now restart sensu server and client.
+9. The handler file now requires a configuration file (./config.yaml) to get st2 auth parameters.
+Set the st2 credentials (username and password) in the config file. This is required for the
+handler to work. The configuration file looks like below:
+
+.. code-block:: yaml
+
+  ---
+    st2_username: "testu"
+    st2_password: ""
+    st2_api_base_url: "http://localhost:9101/v1"
+    st2_auth_base_url: "http://localhost:9100"
+
+10. Now restart sensu server and client.
 
 ::
 
@@ -118,7 +163,7 @@ You should see sensu.action-runners-rule listed.
 
 ::
 
-    ps auxww | grep actionrunner
+    ps auxww | grep st2actionrunner
 
 Pick any pid. Kill it like so.
 
@@ -126,7 +171,7 @@ Pick any pid. Kill it like so.
 
     sudo kill ${pid}
 
-11. Wait for sensu event to be triggered. You can tail sensu-server logs like so:
+12. Wait for sensu event to be triggered. You can tail sensu-server logs like so:
 
 ::
 
@@ -138,7 +183,7 @@ You'll see something like
 
     {"timestamp":"2014-10-29T17:21:11.941081+0000","level":"info","message":"handler output","handler":{"type":"pipe","command":"/etc/sensu/handlers/st2_handler.py","name":"st2"},"output":"Sent sensu event to |st2|. HTTP_CODE: 202\n"}
 
-12. You can also check whether a trigger was registered by the handler with |st2|.
+13. You can also check whether a trigger was registered by the handler with |st2|.
 
 ::
 
@@ -146,20 +191,20 @@ You'll see something like
 
 You should see sensu.event_handler in the output.
 
-13. You can see the list of sensu checks by invoking the |st2| check_list action.
+14. You can see the list of sensu checks by invoking the |st2| check_list action.
 
 ::
 
     st2 run sensu.check_list
 
-14. Now to verify whether an action has been invoked, cat the output file.
+15. Now to verify whether an action has been invoked, cat the output file.
 
 ::
 
     cat /tmp/sensu.webhook-sample.out
-    {u'action': u'create', u'check': {u'status': 2, u'executed': 1414603271, u'name': u'cron_check', u'handlers': [u'default', u'st2'], u'issued': 1414603271, u'interval': 60, u'command': u'/etc/sensu/plugins/check-procs.rb -p actionrunner -C 10 ', u'subscribers': [u'webservers'], u'duration': 0.046, u'output': u'CheckProcs CRITICAL: Found 9 matching processes; cmd /actionrunner/\n', u'history': [u'0', u'0', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2']}, u'client': {u'timestamp': 1414603261, u'version': u'0.14.0', u'name': u'st2express', u'subscriptions': [u'all', u'webservers'], u'address': u'172.168.90.50'}, u'occurrences': 1, u'id': u'e056509c-9728-48cd-95cc-c41a4b62ae0e'}
+    {u'action': u'create', u'check': {u'status': 2, u'executed': 1414603271, u'name': u'cron_check', u'handlers': [u'default', u'st2'], u'issued': 1414603271, u'interval': 60, u'command': u'/etc/sensu/plugins/check-procs.rb -p st2actionrunner -C 10 ', u'subscribers': [u'webservers'], u'duration': 0.046, u'output': u'CheckProcs CRITICAL: Found 9 matching processes; cmd /st2actionrunner/\n', u'history': [u'0', u'0', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2', u'2']}, u'client': {u'timestamp': 1414603261, u'version': u'0.14.0', u'name': u'st2express', u'subscriptions': [u'all', u'webservers'], u'address': u'172.168.90.50'}, u'occurrences': 1, u'id': u'e056509c-9728-48cd-95cc-c41a4b62ae0e'}
 
-15. Reset |st2| so you can bring back all the runners.
+16. Reset |st2| so you can bring back all the runners.
 
 ::
 

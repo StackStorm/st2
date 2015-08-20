@@ -1,0 +1,18 @@
+---
+description: Say hi to friend!
+enabled: true
+entry_point: workbook_v2_many_workflows.yaml
+name: workbook_v2_many_workflows
+pack: generic
+parameters:
+  count:
+    default: '3'
+    type: string
+  friend:
+    required: true
+    type: string
+  workflow:
+    default: generic.workbook_v2_many_workflows.main
+    immutable: true
+    type: string
+runner_type: mistral-v2

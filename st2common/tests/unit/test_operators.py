@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import unittest2
 
 from st2common import operators
+from st2common.util import date as date_utils
 
 
 class OperatorTest(unittest2.TestCase):
@@ -42,10 +42,22 @@ class OperatorTest(unittest2.TestCase):
     def test_equals_string(self):
         op = operators.get_operator('equals')
         self.assertTrue(op('1', '1'), 'Failed equals.')
+        self.assertTrue(op('', ''), 'Failed equals.')
 
     def test_equals_fail(self):
         op = operators.get_operator('equals')
         self.assertFalse(op('1', '2'), 'Passed equals.')
+
+    def test_nequals(self):
+        op = operators.get_operator('nequals')
+        self.assertTrue(op('foo', 'bar'))
+        self.assertTrue(op('foo', 'foo1'))
+        self.assertTrue(op('foo', 'FOO'))
+        self.assertTrue(op('True', True))
+        self.assertTrue(op('None', None))
+
+        self.assertFalse(op('True', 'True'))
+        self.assertFalse(op(None, None))
 
     def test_iequals(self):
         op = operators.get_operator('iequals')
@@ -113,6 +125,46 @@ class OperatorTest(unittest2.TestCase):
         self.assertFalse(op('hasystack needle haystack', 'nEeDle'))
         self.assertFalse(op('needlA', 'needlA'))
 
+    def test_startswith(self):
+        op = operators.get_operator('startswith')
+        self.assertTrue(op('hasystack needle haystack', 'hasystack'))
+        self.assertTrue(op('a hasystack needle haystack', 'a '))
+
+    def test_startswith_fail(self):
+        op = operators.get_operator('startswith')
+        self.assertFalse(op('hasystack needle haystack', 'needle'))
+        self.assertFalse(op('a hasystack needle haystack', 'haystack'))
+
+    def test_istartswith(self):
+        op = operators.get_operator('istartswith')
+        self.assertTrue(op('haystack needle haystack', 'HAYstack'))
+        self.assertTrue(op('HAYSTACK needle haystack', 'haystack'))
+
+    def test_istartswith_fail(self):
+        op = operators.get_operator('istartswith')
+        self.assertFalse(op('hasystack needle haystack', 'NEEDLE'))
+        self.assertFalse(op('a hasystack needle haystack', 'haystack'))
+
+    def test_endswith(self):
+        op = operators.get_operator('endswith')
+        self.assertTrue(op('hasystack needle haystackend', 'haystackend'))
+        self.assertTrue(op('a hasystack needle haystack b', 'b'))
+
+    def test_endswith_fail(self):
+        op = operators.get_operator('endswith')
+        self.assertFalse(op('hasystack needle haystackend', 'haystack'))
+        self.assertFalse(op('a hasystack needle haystack', 'a'))
+
+    def test_iendswith(self):
+        op = operators.get_operator('iendswith')
+        self.assertTrue(op('haystack needle haystackEND', 'HAYstackend'))
+        self.assertTrue(op('HAYSTACK needle haystackend', 'haystackEND'))
+
+    def test_iendswith_fail(self):
+        op = operators.get_operator('iendswith')
+        self.assertFalse(op('hasystack needle haystack', 'NEEDLE'))
+        self.assertFalse(op('a hasystack needle haystack', 'a '))
+
     def test_lt(self):
         op = operators.get_operator('lessthan')
         self.assertTrue(op(1, 2), 'Failed lessthan.')
@@ -139,13 +191,13 @@ class OperatorTest(unittest2.TestCase):
 
     def test_timediff_lt(self):
         op = operators.get_operator('timediff_lt')
-        self.assertTrue(op(datetime.datetime.utcnow().isoformat(), 10),
+        self.assertTrue(op(date_utils.get_datetime_utc_now().isoformat(), 10),
                         'Failed test_timediff_lt.')
 
     def test_timediff_lt_fail(self):
         op = operators.get_operator('timediff_lt')
         self.assertFalse(op('2014-07-01T00:01:01.000000', 10),
-                        'Passed test_timediff_lt.')
+                         'Passed test_timediff_lt.')
 
     def test_timediff_gt(self):
         op = operators.get_operator('timediff_gt')
@@ -154,5 +206,19 @@ class OperatorTest(unittest2.TestCase):
 
     def test_timediff_gt_fail(self):
         op = operators.get_operator('timediff_gt')
-        self.assertFalse(op(datetime.datetime.utcnow().isoformat(), 10),
+        self.assertFalse(op(date_utils.get_datetime_utc_now().isoformat(), 10),
                          'Passed test_timediff_gt.')
+
+    def test_exists(self):
+        op = operators.get_operator('exists')
+        self.assertTrue(op(False, None), 'Should return True')
+        self.assertTrue(op(1, None), 'Should return True')
+        self.assertTrue(op('foo', None), 'Should return True')
+        self.assertFalse(op(None, None), 'Should return False')
+
+    def test_nexists(self):
+        op = operators.get_operator('nexists')
+        self.assertFalse(op(False, None), 'Should return False')
+        self.assertFalse(op(1, None), 'Should return False')
+        self.assertFalse(op('foo', None), 'Should return False')
+        self.assertTrue(op(None, None), 'Should return True')

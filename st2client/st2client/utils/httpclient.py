@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import json
-import requests
 import logging
 from pipes import quote as pquote
+
+import requests
 
 
 LOG = logging.getLogger(__name__)
@@ -55,7 +58,7 @@ def add_json_content_type_to_headers(func):
 class HTTPClient(object):
 
     def __init__(self, root, cacert=None, debug=False):
-        self.root = root
+        self.root = self._get_url_without_trailing_slash(root)
         self.cacert = cacert
         self.debug = debug
 
@@ -133,3 +136,15 @@ class HTTPClient(object):
 
         curl_line = ' '.join(parts)
         return curl_line
+
+    def _get_url_without_trailing_slash(self, value):
+        """
+        Function which strips a trailing slash from the provided url if one is present.
+
+        :param value: URL to format.
+        :type value: ``str``
+
+        :rtype: ``str``
+        """
+        result = value[:-1] if value.endswith('/') else value
+        return result

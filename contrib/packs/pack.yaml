@@ -1,6 +1,6 @@
 ---
-name :i packs 
-description : st2 content pack containing pack management functionality. 
+name : packs
+description : st2 content pack containing pack management functionality.
 version : 0.1
 author : st2-dev
 email : info@stackstorm.com

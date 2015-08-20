@@ -1,8 +1,0 @@
-{
-    "name": "test-runner-2",
-    "description": "A test runner.",
-    "enabled": true,
-    "runner_parameters": {
-    },
-    "runner_module": "tests.unit.test_runner"
-}

@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from st2common import log as logging
-from st2common.models.base import BaseAPI
+from st2common.models.api.base import BaseAPI
 
 __all__ = ['ActionRunnerAPI']
 

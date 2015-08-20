@@ -1,0 +1,166 @@
+[action_sensor]
+# Whether to enable or disable the ability to post a trigger on action.
+enable = True
+
+[actionrunner]
+# Python binary which will be used by Python actions.
+python_binary = /mnt/st2repos/st2/virtualenv/bin/python
+# location of the logging.conf file
+logging = conf/logging.conf
+
+[api]
+# List of origins allowed
+allow_origin = ['http://localhost:3000']
+# location of the logging.conf file
+logging = conf/logging.conf
+# True to mask secrets in API responses
+mask_secrets = True
+# StackStorm API server host
+host = 0.0.0.0
+# Send empty message every N seconds to keep connection open
+heartbeat = 25
+# StackStorm API server port
+port = 9101
+
+[auth]
+# Enable authentication middleware.
+enable = True
+# Path to the logging config.
+logging = conf/logging.conf
+# Base URL to the API endpoint excluding the version
+api_url = None
+# Access token ttl in seconds.
+token_ttl = 86400
+# Path to the SSL certificate file. Only used when "use_ssl" is specified.
+cert = /etc/apache2/ssl/mycert.crt
+# JSON serialized arguments which are passed to the authentication backend in a standalone mode.
+backend_kwargs = None
+# Host on which the service should listen on.
+host = 0.0.0.0
+# Authentication mode (proxy,standalone)
+mode = proxy
+# Path to the SSL private key file. Only used when "use_ssl" is specified.
+key = /etc/apache2/ssl/mycert.key
+# Specify to enable debug mode.
+debug = False
+# Specify to enable SSL / TLS mode
+use_ssl = False
+# Port on which the service should listen on.
+port = 9100
+# Authentication backend to use in a standalone mode (mongodb,flat_file).
+backend = flat_file
+
+[cloudslang]
+# CloudSlang home directory.
+home_dir = /opt/cslang
+
+[content]
+# Path to the directory which contains system packs.
+system_packs_base_path = /opt/stackstorm/packs
+# Paths which will be searched for integration packs.
+packs_base_paths = None
+
+[coordination]
+# Endpoint for the coordination server.
+url = None
+# TTL for the lock if backend suports it.
+lock_timeout = 60
+
+[database]
+# username for db login
+username = None
+# password for db login
+password = None
+# host of db server
+host = 0.0.0.0
+# name of database
+db_name = st2
+# port of db server
+port = 27017
+
+[exporter]
+# location of the logging.exporter.conf file
+logging = conf/logging.exporter.conf
+# Directory to dump data to.
+dump_dir = /opt/stackstorm/exports/
+
+[log]
+# Controls if stderr should be redirected to the logs.
+redirect_stderr = False
+# Exclusion list of loggers to omit.
+excludes = 
+# True to mask secrets in the log files.
+mask_secrets = True
+
+[messaging]
+# URL of the messaging server.
+url = amqp://guest:guest@localhost:5672//
+
+[mistral]
+# Time in seconds to wait before retrying connection to Mistral.
+retry_wait = 5
+# Mistral v2 API server root endpoint.
+v2_base_url = http://localhost:8989/v2
+# Maximum no of attempts made to connect to Mistral.
+max_attempts = 180
+
+[notifier]
+# Location of the logging configuration file.
+logging = conf/logging.notifier.conf
+
+[resultstracker]
+# Location of the logging configuration file.
+logging = conf/logging.resultstracker.conf
+
+[rulesengine]
+# Location of the logging configuration file.
+logging = conf/logging.rulesengine.conf
+
+[scheduler]
+# The frequency for rescheduling action executions.
+rescheduling_interval = 300
+# The time in seconds to wait before recovering delayed action executions.
+delayed_execution_recovery = 600
+
+[schema]
+# Version of JSON schema to use.
+version = 4
+# URL to the JSON schema draft.
+draft = http://json-schema.org/draft-04/schema#
+
+[sensorcontainer]
+# location of the logging.conf file
+logging = conf/logging.sensorcontainer.conf
+
+[ssh_runner]
+# Location of the script on the remote filesystem.
+remote_dir = /tmp
+# How partial success of actions run on multiple nodes should be treated.
+allow_partial_failure = False
+
+[syslog]
+# Host for the syslog server.
+host = localhost
+# Transport protocol to use (udp / tcp).
+protocol = udp
+# Port for the syslog server.
+port = 514
+# Syslog facility level.
+facility = local7
+
+[system]
+# A list of usernames for users which should have admin privileges
+admin_users = []
+# Base path to all st2 artifacts.
+base_path = /opt/stackstorm
+
+[system_user]
+# SSH private key for the system user.
+ssh_key_file = /home/vagrant/.ssh/stanley_rsa
+# Default system user.
+user = stanley
+
+[timer]
+# Timezone pertaining to the location where st2 is run.
+local_timezone = America/Los_Angeles
+

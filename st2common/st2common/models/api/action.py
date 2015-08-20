@@ -13,19 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import jsonschema
+import copy
 
 from st2common.util import isotime
 from st2common.util import schema as util_schema
 from st2common import log as logging
-from st2common.models.base import BaseAPI
-from st2common.models.db.action import (RunnerTypeDB, ActionDB, ActionExecutionDB)
-from st2common.constants.action import ACTIONEXEC_STATUSES
+from st2common.models.api.base import BaseAPI
+from st2common.models.api.tag import TagsHelper
+from st2common.models.api.notification import (NotificationSubSchemaAPI, NotificationsHelper)
+from st2common.models.db.action import ActionDB
+from st2common.models.db.actionalias import ActionAliasDB
+from st2common.models.db.executionstate import ActionExecutionStateDB
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.runner import RunnerTypeDB
+from st2common.constants.action import LIVEACTION_STATUSES
+from st2common.models.system.common import ResourceReference
 
 
-__all__ = ['ActionAPI',
-           'ActionExecutionAPI',
-           'RunnerTypeAPI']
+__all__ = [
+    'ActionAPI',
+    'ActionCreateAPI',
+    'LiveActionAPI',
+    'RunnerTypeAPI'
+]
 
 
 LOG = logging.getLogger(__name__)
@@ -67,6 +77,12 @@ class RunnerTypeAPI(BaseAPI):
                 "type": "string",
                 "required": True
             },
+            "query_module": {
+                "description": "The python module that implements the "
+                               "results tracker (querier) for the runner.",
+                "type": "string",
+                "required": False
+            },
             "runner_parameters": {
                 "description": "Input parameters for the action runner.",
                 "type": "object",
@@ -86,23 +102,31 @@ class RunnerTypeAPI(BaseAPI):
         # default values from draft schema, but, either because of a bug or some weird intention, it
         # has continued to resolve $ref'erenced properties against the initial draft schema, not the
         # modified one
-        jsonschema.validate(kw, self.schema, util_schema.get_validator())
         for key, value in kw.items():
             setattr(self, key, value)
         if not hasattr(self, 'runner_parameters'):
             setattr(self, 'runner_parameters', dict())
 
     @classmethod
-    def to_model(cls, runnertype):
-        model = super(cls, cls).to_model(runnertype)
-        model.enabled = bool(runnertype.enabled)
-        model.runner_module = str(runnertype.runner_module)
-        model.runner_parameters = getattr(runnertype, 'runner_parameters', dict())
+    def to_model(cls, runner_type):
+        name = runner_type.name
+        description = runner_type.description
+        enabled = bool(runner_type.enabled)
+        runner_module = str(runner_type.runner_module)
+        runner_parameters = getattr(runner_type, 'runner_parameters', dict())
+        query_module = getattr(runner_type, 'query_module', None)
+
+        model = cls.model(name=name, description=description, enabled=enabled,
+                          runner_module=runner_module, runner_parameters=runner_parameters,
+                          query_module=query_module)
+
         return model
 
 
 class ActionAPI(BaseAPI):
-    """The system entity that represents a Stack Action/Automation in the system."""
+    """
+    The system entity that represents a Stack Action/Automation in the system.
+    """
 
     model = ActionDB
     schema = {
@@ -112,6 +136,11 @@ class ActionAPI(BaseAPI):
         "properties": {
             "id": {
                 "description": "The unique identifier for the action.",
+                "type": "string"
+            },
+            "ref": {
+                "description": "System computed user friendly reference for the action. \
+                                Provided value will be overridden by computed value.",
                 "type": "string"
             },
             "name": {
@@ -147,14 +176,29 @@ class ActionAPI(BaseAPI):
                 "type": "object",
                 "patternProperties": {
                     "^\w+$": util_schema.get_draft_schema()
-                }
+                },
+                "default": {}
+            },
+            "tags": {
+                "description": "User associated metadata assigned to this object.",
+                "type": "array",
+                "items": {"type": "object"}
+            },
+            "notify": {
+                "description": "Notification settings for action.",
+                "type": "object",
+                "properties": {
+                    "on-complete": NotificationSubSchemaAPI,
+                    "on-failure": NotificationSubSchemaAPI,
+                    "on-success": NotificationSubSchemaAPI
+                },
+                "additionalProperties": False
             }
         },
         "additionalProperties": False
     }
 
     def __init__(self, **kw):
-        jsonschema.validate(kw, self.schema, util_schema.get_validator())
         for key, value in kw.items():
             setattr(self, key, value)
         if not hasattr(self, 'parameters'):
@@ -163,30 +207,75 @@ class ActionAPI(BaseAPI):
             setattr(self, 'entry_point', '')
 
     @classmethod
-    def from_model(cls, model):
+    def from_model(cls, model, mask_secrets=False):
         action = cls._from_model(model)
         action['runner_type'] = action['runner_type']['name']
+        action['tags'] = TagsHelper.from_model(model.tags)
+
+        if getattr(model, 'notify', None):
+            action['notify'] = NotificationsHelper.from_model(model.notify)
+
         return cls(**action)
 
     @classmethod
     def to_model(cls, action):
-        model = super(cls, cls).to_model(action)
-        model.enabled = bool(action.enabled)
-        model.entry_point = str(action.entry_point)
-        model.pack = str(action.pack)
-        model.runner_type = {'name': str(action.runner_type)}
-        model.parameters = getattr(action, 'parameters', dict())
+        name = getattr(action, 'name', None)
+        description = getattr(action, 'description', None)
+        enabled = bool(getattr(action, 'enabled', True))
+        entry_point = str(action.entry_point)
+        pack = str(action.pack)
+        runner_type = {'name': str(action.runner_type)}
+        parameters = getattr(action, 'parameters', dict())
+        tags = TagsHelper.to_model(getattr(action, 'tags', []))
+        ref = ResourceReference.to_string_reference(pack=pack, name=name)
+
+        if getattr(action, 'notify', None):
+            notify = NotificationsHelper.to_model(action.notify)
+        else:
+            notify = None
+
+        model = cls.model(name=name, description=description, enable=enabled, enabled=enabled,
+                          entry_point=entry_point, pack=pack, runner_type=runner_type,
+                          tags=tags, parameters=parameters, notify=notify,
+                          ref=ref)
+
         return model
 
 
-class ActionExecutionAPI(BaseAPI):
+class ActionCreateAPI(ActionAPI):
+    """
+    API model for create action operations.
+    """
+    schema = copy.deepcopy(ActionAPI.schema)
+    schema['properties']['data_files'] = {
+        'description': 'Optional action script and data files which are written to the filesystem.',
+        'type': 'array',
+        'items': {
+            'type': 'object',
+            'properties': {
+                'file_path': {
+                    'type': 'string',
+                    'required': True
+                },
+                'content': {
+                    'type': 'string',
+                    'required': True
+                },
+            },
+            'additionalProperties': False
+        },
+        'default': {}
+    }
+
+
+class LiveActionAPI(BaseAPI):
     """The system entity that represents the execution of a Stack Action/Automation
     in the system.
     """
 
-    model = ActionExecutionDB
+    model = LiveActionDB
     schema = {
-        "title": "ActionExecution",
+        "title": "liveaction",
         "description": "An execution of an action.",
         "type": "object",
         "properties": {
@@ -196,7 +285,7 @@ class ActionExecutionAPI(BaseAPI):
             },
             "status": {
                 "description": "The current status of the action execution.",
-                "enum": ACTIONEXEC_STATUSES
+                "enum": LIVEACTION_STATUSES
             },
             "start_timestamp": {
                 "description": "The start time when the action is executed.",
@@ -242,34 +331,233 @@ class ActionExecutionAPI(BaseAPI):
             },
             "callback": {
                 "type": "object"
+            },
+            "runner_info": {
+                "type": "object"
+            },
+            "notify": {
+                "description": "Notification settings for liveaction.",
+                "type": "object",
+                "properties": {
+                    "on-complete": NotificationSubSchemaAPI,
+                    "on-failure": NotificationSubSchemaAPI,
+                    "on-success": NotificationSubSchemaAPI
+                },
+                "additionalProperties": False
             }
         },
         "additionalProperties": False
     }
 
     @classmethod
-    def from_model(cls, model):
-        doc = super(cls, cls)._from_model(model)
+    def from_model(cls, model, mask_secrets=False):
+        doc = super(cls, cls)._from_model(model, mask_secrets=mask_secrets)
         if model.start_timestamp:
             doc['start_timestamp'] = isotime.format(model.start_timestamp, offset=False)
         if model.end_timestamp:
             doc['end_timestamp'] = isotime.format(model.end_timestamp, offset=False)
+
+        if getattr(model, 'notify', None):
+            doc['notify'] = NotificationsHelper.from_model(model.notify)
+
         return cls(**doc)
 
     @classmethod
-    def to_model(cls, execution):
-        model = super(cls, cls).to_model(execution)
-        model.action = execution.action
+    def to_model(cls, live_action):
+        name = getattr(live_action, 'name', None)
+        description = getattr(live_action, 'description', None)
+        action = live_action.action
 
-        if getattr(execution, 'start_timestamp', None):
-            model.start_timestamp = isotime.parse(execution.start_timestamp)
+        if getattr(live_action, 'start_timestamp', None):
+            start_timestamp = isotime.parse(live_action.start_timestamp)
+        else:
+            start_timestamp = None
 
-        if getattr(execution, 'end_timestamp', None):
-            model.end_timestamp = isotime.parse(execution.end_timestamp)
+        if getattr(live_action, 'end_timestamp', None):
+            end_timestamp = isotime.parse(live_action.end_timestamp)
+        else:
+            end_timestamp = None
 
-        model.status = getattr(execution, 'status', None)
-        model.parameters = getattr(execution, 'parameters', dict())
-        model.context = getattr(execution, 'context', dict())
-        model.callback = getattr(execution, 'callback', dict())
-        model.result = getattr(execution, 'result', None)
+        status = getattr(live_action, 'status', None)
+        parameters = getattr(live_action, 'parameters', dict())
+        context = getattr(live_action, 'context', dict())
+        callback = getattr(live_action, 'callback', dict())
+        result = getattr(live_action, 'result', None)
+
+        if getattr(live_action, 'notify', None):
+            notify = NotificationsHelper.to_model(live_action.notify)
+        else:
+            notify = None
+
+        model = cls.model(name=name, description=description, action=action,
+                          start_timestamp=start_timestamp, end_timestamp=end_timestamp,
+                          status=status, parameters=parameters, context=context,
+                          callback=callback, result=result, notify=notify)
+
         return model
+
+
+class ActionExecutionStateAPI(BaseAPI):
+    """
+    System entity that represents state of an action in the system.
+    This is used only in tests for now.
+    """
+    model = ActionExecutionStateDB
+    schema = {
+        "title": "ActionExecutionState",
+        "description": "Execution state of an action.",
+        "type": "object",
+        "properties": {
+            "id": {
+                "description": "The unique identifier for the action execution state.",
+                "type": "string"
+            },
+            "execution_id": {
+                "type": "string",
+                "description": "ID of the action execution.",
+                "required": True
+            },
+            "query_context": {
+                "type": "object",
+                "description": "query context to be used by querier.",
+                "required": True
+            },
+            "query_module": {
+                "type": "string",
+                "description": "Name of the query module.",
+                "required": True
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, state):
+        execution_id = state.execution_id
+        query_module = state.query_module
+        query_context = state.query_context
+
+        model = cls.model(execution_id=execution_id, query_module=query_module,
+                          query_context=query_context)
+        return model
+
+
+class ActionAliasAPI(BaseAPI):
+    """
+    Alias for an action in the system.
+    """
+    model = ActionAliasDB
+    schema = {
+        "title": "ActionAlias",
+        "description": "Alias for an action.",
+        "type": "object",
+        "properties": {
+            "id": {
+                "description": "The unique identifier for the action alias.",
+                "type": "string"
+            },
+            "ref": {
+                "description": "System computed user friendly reference for the alias. \
+                                Provided value will be overridden by computed value.",
+                "type": "string"
+            },
+            "name": {
+                "type": "string",
+                "description": "Name of the action alias.",
+                "required": True
+            },
+            "pack": {
+                "description": "The content pack this actionalias belongs to.",
+                "type": "string",
+                "required": True
+            },
+            "description": {
+                "type": "string",
+                "description": "Description of the action alias."
+            },
+            "enabled": {
+                "description": "Flag indicating of action alias is enabled.",
+                "type": "boolean",
+                "default": True
+            },
+            "action_ref": {
+                "type": "string",
+                "description": "Reference to the aliased action.",
+                "required": True
+            },
+            "formats": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Possible parameter format."
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, alias):
+        name = alias.name
+        description = alias.description
+        pack = alias.pack
+        ref = ResourceReference.to_string_reference(pack=pack, name=name)
+        enabled = getattr(alias, 'enabled', True)
+        action_ref = alias.action_ref
+        formats = alias.formats
+
+        model = cls.model(name=name, description=description, pack=pack, ref=ref, enabled=enabled,
+                          action_ref=action_ref, formats=formats)
+        return model
+
+
+class AliasExecutionAPI(BaseAPI):
+    """
+    Alias for an action in the system.
+    """
+    model = None
+    schema = {
+        "title": "AliasExecution",
+        "description": "Execution of an ActionAlias.",
+        "type": "object",
+        "properties": {
+            "name": {
+                "type": "string",
+                "description": "Name of the action alias which matched.",
+                "required": True
+            },
+            "format": {
+                "type": "string",
+                "description": "Format string which matched.",
+                "required": True
+            },
+            "command": {
+                "type": "string",
+                "description": "Command used in chat.",
+                "required": True
+            },
+            "user": {
+                "type": "string",
+                "description": "User that requested the execution.",
+                "default": "channel"
+            },
+            "source_channel": {
+                "type": "string",
+                "description": "Channel from which the execution was requested. This is not the \
+                                channel as defined by the notification system."
+            },
+            "notification_channel": {
+                "type": "string",
+                "description": "StackStorm notification channel to use to respond.",
+                "required": True
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, aliasexecution):
+        # probably should be unsupported
+        raise NotImplementedError()
+
+    @classmethod
+    def from_model(cls, aliasexecution):
+        raise NotImplementedError()

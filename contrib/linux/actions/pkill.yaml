@@ -1,0 +1,15 @@
+---
+  name: "pkill"
+  runner_type: "remote-shell-cmd"
+  description: "Kill processes using pkill"
+  enabled: true
+  entry_point: ""
+  parameters:
+    cmd:
+      immutable: true
+      default: "pkill -e {{process}}"
+      position: 0
+    process:
+      type: "string"
+      description: "Process name to kill"
+      required: true

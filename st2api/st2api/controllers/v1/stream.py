@@ -18,7 +18,7 @@ from pecan import Response
 from pecan.rest import RestController
 
 from st2common import log as logging
-from st2common.models.base import jsexpose
+from st2common.models.api.base import jsexpose
 from st2common.util.jsonify import json_encode
 
 from st2api.listener import get_listener
@@ -43,7 +43,6 @@ def format(gen):
 class StreamController(RestController):
     @jsexpose(content_type='text/event-stream')
     def get_all(self):
-
         def make_response():
             res = Response(content_type='text/event-stream',
                            app_iter=format(get_listener().generator()))

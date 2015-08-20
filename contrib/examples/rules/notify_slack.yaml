@@ -1,0 +1,17 @@
+---
+    name: "sample.notify_slack"
+    pack: "examples"
+    description: "Sample rule firing on action completion."
+    enabled: true
+
+    trigger:
+      type: "core.st2.generic.notifytrigger"
+      parameters: {}
+    criteria:
+      trigger.channel:
+        pattern: "slack"
+        type: "equals"
+    action:
+      ref: "slack.post_message"
+      parameters:
+        message: "{{trigger.message}}"

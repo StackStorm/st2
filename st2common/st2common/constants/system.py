@@ -16,7 +16,17 @@
 from st2common import __version__
 
 __all__ = [
-    'VERSION_STRING'
+    'VERSION_STRING',
+
+    'API_URL_ENV_VARIABLE_NAME',
+    'AUTH_TOKEN_ENV_VARIABLE_NAME',
+    'SYSTEM_KV_PREFIX'
 ]
 
 VERSION_STRING = 'StackStorm v%s' % (__version__)
+
+API_URL_ENV_VARIABLE_NAME = 'ST2_API_URL'
+AUTH_TOKEN_ENV_VARIABLE_NAME = 'ST2_AUTH_TOKEN'
+
+# Used to prefix all system variables stored in the key-value store.
+SYSTEM_KV_PREFIX = 'system'

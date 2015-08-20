@@ -1,0 +1,30 @@
+---
+description: Look up weather.
+enabled: true
+entry_point: ''
+name: weather
+parameters:
+  auth:
+    type: string
+  headers:
+    type: string
+  method:
+    default: GET
+    enum:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    immutable: true
+  params:
+    type: string
+  timeout:
+    default: 60
+    type: integer
+  url:
+    default: http://api.openweathermap.org/data/2.5/weather?q={{zip}}&units=imperial
+    immutable: true
+    type: string
+  zip:
+    type: string
+runner_type: "http-request"

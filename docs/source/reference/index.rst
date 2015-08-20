@@ -9,3 +9,5 @@ Contents:
    cli
    api
    packs
+   jinja_filters
+   sensor_partitioning

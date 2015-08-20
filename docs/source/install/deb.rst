@@ -23,7 +23,7 @@ The easiest way to install these is to use the requirements.txt file from the |s
 
 ::
 
-    curl -q -k -O https://ops.stackstorm.net/releases/st2/0.6.1dev/requirements.txt
+    curl -q -k -O https://raw.githubusercontent.com/StackStorm/st2/v0.12/requirements.txt
     pip install -r requirements.txt
 
 RabbitMQ
@@ -33,7 +33,7 @@ In order to get the latest version of RabbitMQ, you will want to follow the dire
 
 ::
 
-    http://www.rabbitmq.com/install-rpm.html
+    http://www.rabbitmq.com/install-debian.html
 
 Once you have RabbitMQ installed, you will need to run the following commands to enable certain plugins.
 
@@ -62,13 +62,14 @@ You will need to download the following packages:
  - st2auth
  - st2api
  - st2actions
+ - st2debug
 
 The format of the DEB packages is like this: <component>_<version>-<build>_amd64.deb
 
 You can download the packages from this URL:
 ::
 
-    https://ops.stackstorm.net/releases/st2/0.6.1dev/debs/current/
+    https://downloads.stackstorm.net/releases/st2/0.12.0/debs/current/
 
 --------------
 

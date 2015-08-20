@@ -1,0 +1,9 @@
+---
+    trigger: "irc.pubmsg"
+    payload:
+      source:
+          nick: "Kami_"
+          host: "gateway/web/irccloud.com/x-uvv"
+      channel: "#stackstorm"
+      timestamp: 1419166748,
+      message: "blah blah"

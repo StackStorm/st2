@@ -14,9 +14,11 @@
 # limitations under the License.
 
 import os
+import six
 import logging
 import unittest2
 
+from st2client import models
 from st2client.client import Client
 
 
@@ -29,6 +31,17 @@ class TestClientEndpoints(unittest2.TestCase):
         for var in ['ST2_BASE_URL', 'ST2_API_URL', 'ST2_DATASTORE_URL']:
             if var in os.environ:
                 del os.environ[var]
+
+    def test_managers(self):
+        property_names = [k for k, v in six.iteritems(Client.__dict__)
+                          if isinstance(v, property)]
+
+        client = Client()
+
+        for property_name in property_names:
+            manager = getattr(client, property_name, None)
+            self.assertIsNotNone(manager)
+            self.assertIsInstance(manager, models.ResourceManager)
 
     def test_default(self):
         base_url = 'http://localhost'

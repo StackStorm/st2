@@ -1,0 +1,23 @@
+name: traceroute
+runner_type: "remote-shell-cmd"
+description: "Traceroute a Host"
+enabled: true
+entry_point: 'traceroute.sh'
+parameters:
+  host:
+    type: string
+    description: host name to traceroute
+    required: true
+    position: 1
+  hops:
+    type: integer
+    description: Limit of maximum number of hops
+    default: 30
+    position: 2
+  queries_to_hop:
+    type: integer
+    description:  No. of quereies to each hop
+    default: 3
+    position: 3
+  hosts:
+    default: "localhost"

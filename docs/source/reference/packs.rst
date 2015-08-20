@@ -9,19 +9,19 @@ Canonical pack as laid out on the file system.
 
 .. code-block:: bash
 
-   # contents a pack folder
+   # contents of a pack folder
    actions/
    rules/
    sensors/
-   etc/
    config.yaml
    pack.yaml
+   requirements.txt
 
 At the topmost level are the main folders ``actions``, ``rules`` and ``sensors`` as well as some shared files.
 
-* ``etc`` - A folder to place bootstrap, dependency listings (like requirements.txt) etc. This folder is opaque to |st2|.
-* ``pack.yaml`` - Manifest file which for now is only a sentinel file to identify the folder as a pack.
+* ``pack.yaml`` - Metadata file that describes and identifies the folder as a pack.
 * ``config.yaml`` - Shared config file that is provided to both actions and sensors.
+* ``requirements.txt`` - File containing a list of python dependencies.
 
 .. code-block:: bash
 
@@ -34,8 +34,11 @@ At the topmost level are the main folders ``actions``, ``rules`` and ``sensors``
       action1.sh
       workflow1.yaml
       workflow2.yaml
+      workflows/
+        workflow1.yaml
+        workflow2.yaml
 
-The ``actions`` folder contains action script files and action metadata files. See :doc:`Actions </actions>` and :doc:`Workflows </workflows>` for specifics on writing actions. Note that the ``lib`` sub-folder is always available for access for an action script.
+The ``actions`` folder contains action script files and action metadata files. See :doc:`Actions </actions>` and :doc:`Workflows </workflows>` for specifics on writing actions. Since metadata files and workflow definitions can both be written as YAML, it's good practice to put the workflow definitions in a separate directory. Note that the ``lib`` sub-folder is always available for access for an action script.
 
 .. code-block:: bash
 
@@ -58,140 +61,62 @@ The ``sensors`` folder contains sensors. See :doc:`Sensors </sensors>` for speci
 
 My first pack
 -------------
-If you would like to create a pack yourself then follow these *simple* steps.
+If you would like to create a pack yourself then follow these *simple* steps. In the example below, we will create a simple pack named **hello-st2**. The full example is also available at :github_st2:`st2/contrib/hello-st2 <st2/contrib/hello-st2>`.
 
-1. Create a pack folder and its internal structure
+1. First, let's create the pack folder structure and related files. Let's keep the metadata files such as pack.yaml, config.yaml, and requirements.txt empty for now.
 
 .. code-block:: bash
 
-   # Name of folder is name of the pack. Therefore, this is the 'hello-|st2|' pack.
+   # Use the name of the pack for the folder name.
    mkdir hello-st2
    cd hello-st2
    mkdir actions
    mkdir rules
    mkdir sensors
-   mkdir etc
-
-Note that all folders are optional. If a folder is present it is introspected for content i.e. it is safe to skip a folder or keep it empty.
-
-2. Now create the pack description files.
-
-.. code-block:: bash
-
-   # Name of folder is name of the pack. Therefore, this is the 'hello-st2' pack.
    touch pack.yaml
    touch config.yaml
+   touch requirements.txt
 
-Lets leave these empty for now and fill them in as per requirement.
+.. note::
+    All folders are optional. If a folder is present, it is introspected for content. So it is safe to skip a folder or keep it empty.
 
-3. Add an action
+2. Create the action. The following example simply echoes a greeting.
 
-.. code-block:: bash
+Copy the following content to actions/greet.yaml
 
-   touch actions/hello.yaml
-   touch actions/hello.sh
+.. literalinclude:: /../../contrib/hello-st2/actions/greet.yaml
 
-   # Content of hello.sh
-   #!/usr/bin/env bash
-   echo "Hello st2!"
+Copy the following content to actions/greet.sh
 
-   # Content of hello.yaml
-   ---
-       name: "hello"
-       runner_type: "run-local"
-       description: "Hello st2 action."
-       enabled: true
-       entry_point: "hello.sh"
-       parameters: {}
+.. literalinclude:: /../../contrib/hello-st2/actions/greet.sh
 
-4. Add a sensor
+3. Create a sensor. The sample sensor below publishes an event to |st2| every 60 seconds.
 
-.. code-block:: bash
+Copy the following content to sensors/sensor1.yaml
 
-    touch sensors/sensor1.py
+.. literalinclude:: /../../contrib/hello-st2/sensors/sensor1.yaml
 
-    # content of sensor1.py
-    import eventlet
+Copy the following content to sensors/sensor1.py
 
-    class HelloSensor(object):
-        def __init__(self, container_service, config=None):
-            self._container_service = container_service
-            self._stop = False
+.. literalinclude:: /../../contrib/hello-st2/sensors/sensor1.py
 
-        def setup(self):
-            pass
+4. Create a rule. The sample rule below is triggered by event from the sensor and invokes the action from the samples above.
 
-        def start(self):
-            eventlet.spawn_after(self._on_time, 10)
+Copy the following content to rules/rule1.yaml
 
-        def stop(self):
-            self._stop = True
+.. literalinclude:: /../../contrib/hello-st2/rules/rule1.yaml
 
-        def get_trigger_types(self):
-            return [{
-                'name': 'event1',
-                'payload_schema': {
-                    'type': 'object'
-                }
-            }]
-
-        def _on_time(self):
-            if self._stop:
-                return
-            self._do_post_trigger()
-            eventlet.spawn_after(self._on_time, 10)
-
-        def _do_post_trigger(self):
-            trigger = {'trigger': 'hello-st2.event1'}
-            self._container_service.dispatch(trigger, {})
-
-
-    # Methods required for programmable sensors.
-    def add_trigger(self, trigger):
-        pass
-
-    def update_trigger(self, trigger):
-        pass
-
-    def remove_trigger(self, trigger):
-        pass
-
-5. Add a rule
+5. Deploy this pack manually.
 
 .. code-block:: bash
 
-   touch rules/rule1.yaml
-
-   # Content of rule1.yaml
-   ---
-       name: "on_event1"
-       description: "Sample rule firing on hello-st2.event1."
-
-       trigger:
-           type: "hello-st2.event1
-
-       action:
-           ref: "hello-st2.hello"
-           parameters: {}
-
-       enabled: true
-
-6. Deploy pack manually
-
-.. code-block:: bash
-
-   # Assuming that hello-st2 is on the same machine as the |st2| content-repo.
-   cp -R ./hello-st2 /opt/stackstork/
+   # Assuming that hello-st2 is on the same machine where StackStorm is running.
+   cp -R ./hello-st2 /opt/stackstorm/packs
 
    # Reloads the content
    st2 run packs.load register=all
 
-   # To pick up sensors, need to bounce the sensor_container.
-   # Note: live update coming soon and this won't be needed.
-   st2 run packs.restart_component servicename=sensor_container
-
-
-Once you follow steps 1-6 you will have created your first pack. Commands like ``st2 action list``, ``st2 rule list`` and ``st2 trigger list`` will show you the loaded content.
+Once you follow steps 1-5 you will have created your first pack. Commands like ``st2 action list``, ``st2 rule list`` and ``st2 trigger list`` will show you the loaded content. To check if the sensor triggering action is working, run ``st2 execution list``, there should be an entry for executing ``hello-st2.greet`` every minute.
 
 Next steps would be to create an integration pack for you favorite tool or service that you would like to use with |st2|. Happy hacking!
 
@@ -199,37 +124,45 @@ Next steps would be to create an integration pack for you favorite tool or servi
 Pushing a Pack to the Community
 -------------------------------
 
-"What's better than getting to use your mega-awesome |st2| pack?" Why publishing it to the community and sharing your awesomeness with others. For this purpose we have created the `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__ where you can share and pull other content packs. Submit a pull request! Here are the steps:
+So, now you forged this uber-awesome pack in |st2|, what's next? Do you want to share your awesome pack and knowledge with the community? For this purpose we have created the `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__ where you can share and pull other content packs. Submit a pull request! Here are the steps:
 
+1. Fork the |st2| community repository (st2contrib) on Github
 
-1. Clone the |st2| community repo locally
+  * Go to https://github.com/StackStorm/st2contrib and click "Fork" button on
+    the right
 
-.. code-block:: bash
-
-   git clone https://github.com/StackStorm/st2contrib.git
-
-2. Put your pack in the repo
+2. Clone your fork
 
 .. code-block:: bash
 
-   cd st2contrib
-   cp -R ~/hello-st2 ./packs/
+   git clone https://github.com/<your username>/st2contrib.git
 
-3. Create a local commit and push to remote repo.
+3. Create a branch for your changes
 
 .. code-block:: bash
 
-   # Creating a local branch new/hello-st2
-   git checkout -b new/hello-st2
-   git add packs/hello-st2
-   git commit -m "My first pack."
-   git push origin new/hello-st2
+    cd st2contrib
+    git checkout -b my_uber_new_pack
+
+4. Put your pack in the repo
+
+.. code-block:: bash
+
+   cp -R ~/uber_new_pack ./packs/
+
+5. Create a local commit and push to remote repo
+
+.. code-block:: bash
+
+   git add packs/uber_new_pack
+   git commit -m "Awesomeness!!!"
+   git push origin my_uber_new_pack
 
 4. Create pull request
 
-    * Goto `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__. You will see a yellow banner with a button ``Compare & Pull request``. Click the button.
-    * Fill in details describing the pack. Click the ``Create pull request`` button.
-    * Github will notify us of a new pull request(PR) and we shall review the code, make sure everything looks pristine and merge it in to make your pack publicly available via st2contrib.
+  * Go to `StackStorm community repo <https://github.com/StackStorm/st2contrib>`__. You will see a yellow banner with a button ``Compare & Pull request``. Click the button.
+  * Fill in details describing the pack. Click the ``Create pull request`` button.
+  * Github will notify us of a new pull request (PR) and we shall review the code, make sure everything looks pristine and merge it in to make your pack publicly available via st2contrib.
 
 .. hint:: If you are new to git/GitHub, `here <https://try.github.io/levels/1/challenges/1>`__ is an excellent interactive learning resource.
 

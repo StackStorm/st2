@@ -16,7 +16,10 @@
 __all__ = [
     'VALID_MODES',
     'DEFAULT_MODE',
-    'DEFAULT_BACKEND'
+    'DEFAULT_BACKEND',
+
+    'HEADER_ATTRIBUTE_NAME',
+    'QUERY_PARAM_ATTRIBUTE_NAME'
 ]
 
 VALID_MODES = [
@@ -24,6 +27,9 @@ VALID_MODES = [
     'standalone'
 ]
 
+HEADER_ATTRIBUTE_NAME = 'X-Auth-Token'
+QUERY_PARAM_ATTRIBUTE_NAME = 'x-auth-token'
+
 DEFAULT_MODE = 'proxy'
 
-DEFAULT_BACKEND = 'file'
+DEFAULT_BACKEND = 'flat_file'

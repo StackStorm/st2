@@ -3,3 +3,4 @@ pyyaml
 requests
 six
 python-dateutil
+jsonpath-rw

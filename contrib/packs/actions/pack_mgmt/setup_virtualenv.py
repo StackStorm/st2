@@ -1,14 +1,31 @@
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 import re
-import pipes
+import shutil
 
-from oslo.config import cfg
+from oslo_config import cfg
 
-import st2common.config as config
 from st2common.util.shell import run_command
 from st2actions.runners.pythonrunner import Action
 from st2common.constants.pack import PACK_NAME_WHITELIST
 from st2common.constants.pack import BASE_PACK_REQUIREMENTS
+from st2common.content.utils import get_packs_base_paths
+from st2common.content.utils import get_pack_directory
+from st2common.util.shell import quote_unix
 
 
 class SetupVirtualEnvironmentAction(Action):
@@ -24,17 +41,8 @@ class SetupVirtualEnvironmentAction(Action):
 
     def __init__(self, config=None):
         super(SetupVirtualEnvironmentAction, self).__init__(config=config)
-        self.initialize()
-
-        self._base_packs_path = cfg.CONF.content.packs_base_path
         self._base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path,
                                                    'virtualenvs/')
-
-    def initialize(self):
-        try:
-            config.parse_args()
-        except:
-            pass
 
     def run(self, packs):
         """
@@ -50,6 +58,8 @@ class SetupVirtualEnvironmentAction(Action):
 
     def _setup_pack_virtualenv(self, pack_name):
         """
+        Setup virtual environment for the provided pack.
+
         :param pack_name: Pack name.
         :type pack_name: ``str``
         """
@@ -60,16 +70,22 @@ class SetupVirtualEnvironmentAction(Action):
 
         self.logger.debug('Setting up virtualenv for pack "%s"' % (pack_name))
 
-        pack_name = pipes.quote(pack_name)
-        pack_path = os.path.join(self._base_packs_path, pack_name)
-        virtualenv_path = os.path.join(self._base_virtualenvs_path, pack_name)
+        virtualenv_path = os.path.join(self._base_virtualenvs_path, quote_unix(pack_name))
 
-        # Ensure virtualenvs directory exists
-        if not os.path.isdir(pack_path):
-            raise Exception('Pack "%s" is not installed' % (pack_name))
+        # Ensure pack directory exists in one of the search paths
+        pack_path = get_pack_directory(pack_name=pack_name)
+
+        if not pack_path:
+            packs_base_paths = get_packs_base_paths()
+            search_paths = ', '.join(packs_base_paths)
+            msg = 'Pack "%s" is not installed. Looked in: %s' % (pack_name, search_paths)
+            raise Exception(msg)
 
         if not os.path.exists(self._base_virtualenvs_path):
             os.makedirs(self._base_virtualenvs_path)
+
+        # 0. Delete virtual environment if it exists
+        self._remove_virtualenv(virtualenv_path=virtualenv_path)
 
         # 1. Create virtual environment
         self.logger.debug('Creating virtualenv for pack "%s" in "%s"' %
@@ -97,15 +113,35 @@ class SetupVirtualEnvironmentAction(Action):
                           (pack_name, virtualenv_path))
 
     def _create_virtualenv(self, virtualenv_path):
-        self.logger.debug('Creating virtualenv in "%s"' % (virtualenv_path))
+        python_binary = cfg.CONF.actionrunner.python_binary
 
-        cmd = ['virtualenv', '--system-site-packages', virtualenv_path]
+        if not os.path.isfile(python_binary):
+            raise Exception('Python binary "%s" doesn\'t exist' % (python_binary))
+
+        self.logger.debug('Creating virtualenv in "%s" using Python binary "%s"' %
+                          (virtualenv_path, python_binary))
+
+        cmd = ['virtualenv', '-p', python_binary, '--system-site-packages', virtualenv_path]
         exit_code, _, stderr = run_command(cmd=cmd)
 
         if exit_code != 0:
             raise Exception('Failed to create virtualenv in "%s": %s' %
                             (virtualenv_path, stderr))
 
+        return True
+
+    def _remove_virtualenv(self, virtualenv_path):
+        if not os.path.exists(virtualenv_path):
+            self.logger.info('Virtualenv path "%s" doesn\'t exist' % virtualenv_path)
+            return True
+
+        self.logger.debug('Removing virtualenv in "%s"' % virtualenv_path)
+        try:
+            shutil.rmtree(virtualenv_path)
+        except Exception as error:
+            self.logger.error('Error while removing virtualenv at "%s": "%s"' %
+                              (virtualenv_path, error))
+            raise
         return True
 
     def _install_requirements(self, virtualenv_path, requirements_file_path):

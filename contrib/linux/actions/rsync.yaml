@@ -1,0 +1,33 @@
+---
+    name: 'rsync'
+    runner_type: 'run-remote'
+    description: 'Copy file(s) from one place to another w/ rsync'
+    enabled: true
+    entry_point: ''
+    parameters:
+        source:
+            type: 'string'
+            description: 'List of files/directories to to be copied'
+            required: true
+            position: 1
+        dest_server:
+            type: 'string'
+            description: "Destination server for rsync'd files"
+            required: true
+            position: 2
+        destination:
+            type: 'string'
+            description: 'Destination of files/directories on target server'
+            required: true
+            position: 3
+        cmd:
+            immutable: true
+            default: 'rsync {{args}} {{source}} {{dest_server}}:{{destination}}'
+            position: 0
+        connect_timeout:
+            type: 'integer'
+            description: 'SSH connect timeout in seconds'
+            default: 30
+        args:
+            description: 'Command line arguments passed to rysnc'
+            default: '-avz -e "ssh -o ConnectTimeout={{connect_timeout}}"'

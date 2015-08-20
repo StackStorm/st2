@@ -14,60 +14,63 @@
 # limitations under the License.
 
 import eventlet
-import unittest2
-import multiprocessing
 
-from st2client import client as st2
-from st2client import models
+from integration.mistral import base
 
 
-class TestWorkflowExecution(unittest2.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        cls.st2client = st2.Client(base_url='http://localhost')
-
-    def test_cpu_count(self):
-        # Ensure tests are run on multi-processor system to catch race conditions
-        self.assertGreaterEqual(multiprocessing.cpu_count(), 2)
-
-    def _execute_workflow(self, action, parameters):
-        execution = models.ActionExecution(action=action, parameters=parameters)
-        execution = self.st2client.executions.create(execution)
-        self.assertIsNotNone(execution.id)
-        self.assertEqual(execution.action, action)
-        self.assertIn(execution.status, ['scheduled', 'running'])
-        return execution
-
-    def _wait_for_completion(self, execution, wait=10):
-        for i in range(wait):
-            eventlet.sleep(1)
-            execution = self.st2client.executions.get_by_id(execution.id)
-            if execution.status in ['succeeded', 'failed']:
-                break
-        return execution
-
-    def _assert_success(self, execution):
-        self.assertEqual(execution.status, 'succeeded')
-        self.assertIn('state', execution.result)
-        self.assertEqual(execution.result['state'], 'SUCCESS')
-
-    def _assert_failure(self, execution):
-        self.assertEqual(execution.status, 'failed')
-        self.assertIn('state', execution.result)
-        self.assertEqual(execution.result['state'], 'ERROR')
+class WiringTest(base.TestWorkflowExecution):
 
     def test_basic_workflow(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'date'})
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertIn('stdout', execution.result)
 
-    def test_complex_workflow(self):
-        execution = self._execute_workflow('examples.mistral-complex', {'vm_name': 'demo1'})
+    def test_basic_workbook(self):
+        execution = self._execute_workflow('examples.mistral-workbook-basic', {'cmd': 'date'})
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertIn('stdout', execution.result)
 
-    def test_workflow_failure(self):
+    def test_complex_workbook(self):
+        execution = self._execute_workflow(
+            'examples.mistral-workbook-complex', {'vm_name': 'demo1'})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=8)
+        self.assertIn('vm_id', execution.result)
+
+    def test_complex_workbook_subflow_actions(self):
+        execution = self._execute_workflow(
+            'examples.mistral-workbook-subflows', {'subject': 'st2', 'adjective': 'cool'})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)
+        self.assertIn('tagline', execution.result)
+        self.assertEqual(execution.result['tagline'], 'st2 is cool!')
+
+    def test_with_items(self):
+        params = {'cmd': 'date', 'count': 8}
+        execution = self._execute_workflow('examples.mistral-repeat', params)
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertEqual(len(execution.result['result']), params['count'])
+
+    def test_concurrent_load(self):
+        wf_name = 'examples.mistral-workbook-complex'
+        wf_params = {'vm_name': 'demo1'}
+        executions = [self._execute_workflow(wf_name, wf_params) for i in range(3)]
+
+        def assert_successful_completion(execution):
+            eventlet.sleep(30)
+            execution = self._wait_for_completion(execution)
+            self._assert_success(execution, num_tasks=8)
+            self.assertIn('vm_id', execution.result)
+
+        threads = [eventlet.spawn(assert_successful_completion, execution)
+                   for execution in executions]
+
+        [thread.wait() for thread in threads]
+
+    def test_execution_failure(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'foo'})
         execution = self._wait_for_completion(execution)
         self._assert_failure(execution)

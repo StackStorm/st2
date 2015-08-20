@@ -59,6 +59,11 @@ class TestTriggerController(FunctionalTest):
         cls._setupTriggerTypes()
 
     def test_get_all(self):
+        resp = self.app.get('/v1/triggers')
+        self.assertEqual(resp.status_int, http_client.OK)
+        # TriggerType without parameters will register a trigger
+        # with same name.
+        self.assertEqual(len(resp.json), 2, 'Get all failure. %s' % resp.json)
         post_resp = self._do_post(TRIGGER_0)
         trigger_id_0 = self._get_trigger_id(post_resp)
         post_resp = self._do_post(TRIGGER_1)

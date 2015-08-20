@@ -17,38 +17,57 @@
 Configuration options registration and useful routines.
 """
 
-from oslo.config import cfg
+import os
+
+from oslo_config import cfg
 
 import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
 
 CONF = cfg.CONF
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def parse_args(args=None):
+    CONF(args=args, version=VERSION_STRING)
+
+
+def register_opts():
+    _register_common_opts()
+    _register_app_opts()
 
 
 def _register_common_opts():
     common_config.register_opts()
 
 
+def get_logging_config_path():
+    return cfg.CONF.api.logging
+
+
 def _register_app_opts():
+    # Note "host" and "port" options are registerd as part of st2common since they are also used
+    # outside st2api
     api_opts = [
-        cfg.StrOpt('host', default='0.0.0.0', help='StackStorm Robotinator API server host'),
-        cfg.IntOpt('port', default=9101, help='StackStorm Robotinator API server port'),
         cfg.ListOpt('allow_origin', default=['http://localhost:3000'],
                     help='List of origins allowed'),
         cfg.IntOpt('heartbeat', default=25,
-                   help='Send empty message every N seconds to keep connection open')
+                   help='Send empty message every N seconds to keep connection open'),
+        cfg.BoolOpt('mask_secrets', default=True,
+                    help='True to mask secrets in API responses')
     ]
     CONF.register_opts(api_opts, group='api')
 
+    static_root = os.path.join(cfg.CONF.system.base_path, 'static')
+    template_path = os.path.join(BASE_DIR, 'templates/')
     pecan_opts = [
         cfg.StrOpt('root',
                    default='st2api.controllers.root.RootController',
                    help='Action root controller'),
-        cfg.StrOpt('static_root', default='%(confdir)s/public'),
-        cfg.StrOpt('template_path',
-                   default='%(confdir)s/st2api/st2api/templates'),
+        cfg.StrOpt('static_root', default=static_root),
+        cfg.StrOpt('template_path', default=template_path),
         cfg.ListOpt('modules', default=['st2api']),
-        cfg.BoolOpt('debug', default=True),
+        cfg.BoolOpt('debug', default=False),
         cfg.BoolOpt('auth_enable', default=True),
         cfg.DictOpt('errors', default={'__force_dict__': True})
     ]
@@ -59,15 +78,6 @@ def _register_app_opts():
                    help='location of the logging.conf file')
     ]
     CONF.register_opts(logging_opts, group='api')
-
-
-def register_opts():
-    _register_common_opts()
-    _register_app_opts()
-
-
-def parse_args(args=None):
-    CONF(args=args, version=VERSION_STRING)
 
 
 register_opts()

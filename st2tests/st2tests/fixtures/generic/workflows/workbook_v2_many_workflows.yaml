@@ -1,0 +1,38 @@
+name: 'generic.workbook_v2_many_workflows'
+version: '2.0'
+
+workflows:
+
+  main:
+    type: direct
+    input:
+      - count
+      - friend
+    tasks:
+      greet:
+        workflow: subflow1 count=<% $.count %> friend=<% $.friend %>
+        publish:
+          towhom: <% $.greet.towhom %>
+
+  subflow1:
+    type: direct
+    input:
+      - count
+      - friend
+    output:
+      towhom: <% $.towhom %>
+    tasks:
+      say-greeting:
+        action: core.hey
+        input:
+          cmd: <% $.count %>
+        publish:
+          greet: <% $.say-greeting.stdout %>
+        on-success:
+          - say-friend
+      say-friend:
+        action: core.friend
+        input:
+          cmd: <% $.friend %>
+        publish:
+          towhom: <% $.say-friend.stdout %>

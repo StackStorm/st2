@@ -43,18 +43,21 @@ class BaseSensor(object):
     @abc.abstractmethod
     def add_trigger(self, trigger):
         """
+        Runs when trigger is created
         """
         pass
 
     @abc.abstractmethod
     def update_trigger(self, trigger):
         """
+        Runs when trigger is updated
         """
         pass
 
     @abc.abstractmethod
     def remove_trigger(self, trigger):
         """
+        Runs when trigger is deleted
         """
         pass
 
@@ -73,11 +76,10 @@ class PollingSensor(BaseSensor):
     """
     Base class to be inherited from by the active sensors.
 
-    Active sensors are the ones which periodically polling a 3rd party system
-    for new information.
+    Active sensors periodically poll a 3rd party system for new information.
     """
 
-    def __init__(self, sensor_service, config, poll_interval=5):
+    def __init__(self, sensor_service, config=None, poll_interval=5):
         super(PollingSensor, self).__init__(sensor_service=sensor_service, config=config)
         self._poll_interval = poll_interval
 

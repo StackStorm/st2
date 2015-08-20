@@ -18,8 +18,8 @@ import mock
 import mongoengine
 
 from st2common.exceptions import db
-from st2common.models.db.reactor import TriggerDB
-from st2common.persistence.reactor import Trigger
+from st2common.models.db.trigger import TriggerDB
+from st2common.persistence.trigger import Trigger
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import reference
 from st2tests import DbTestCase
@@ -35,9 +35,7 @@ class ReferenceTest(DbTestCase):
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def setUpClass(cls):
         super(ReferenceTest, cls).setUpClass()
-        trigger = TriggerDB()
-        trigger.name = 'trigger-1'
-        trigger.pack = 'dummy_pack_1'
+        trigger = TriggerDB(pack='dummy_pack_1', name='trigger-1')
         cls.__model = Trigger.add_or_update(trigger)
         cls.__ref = {'id': str(cls.__model.id),
                      'name': cls.__model.name}

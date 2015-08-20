@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import sys
 import abc
 import json
 import uuid
@@ -23,22 +24,20 @@ import six
 from eventlet.green import subprocess
 
 from st2actions.runners import ActionRunner
+from st2common.util.green.shell import run_command
 from st2common import log as logging
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
-from st2common.constants.action import ACTIONEXEC_STATUS_SUCCEEDED, ACTIONEXEC_STATUS_FAILED
-from st2common.constants.pack import DEFAULT_PACK_NAME
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
-
+from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
 
 LOG = logging.getLogger(__name__)
 
-# Default timeout (in seconds) for actions executed by Python runner
-DEFAULT_ACTION_TIMEOUT = 10 * 60
-
 # constants to lookup in runner_parameters.
+RUNNER_ENV = 'env'
 RUNNER_TIMEOUT = 'timeout'
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -91,7 +90,7 @@ class Action(object):
 
 class PythonRunner(ActionRunner):
 
-    def __init__(self, runner_id, timeout=DEFAULT_ACTION_TIMEOUT):
+    def __init__(self, runner_id, timeout=PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT):
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``
@@ -103,10 +102,11 @@ class PythonRunner(ActionRunner):
         # TODO :This is awful, but the way "runner_parameters" and other variables get
         # assigned on the runner instance is even worse. Those arguments should
         # be passed to the constructor.
+        self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
 
     def run(self, action_parameters):
-        pack = self.action.pack if self.action else DEFAULT_PACK_NAME
+        pack = self.get_pack_name()
         serialized_parameters = json.dumps(action_parameters) if action_parameters else ''
         virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
         python_path = get_sandbox_python_binary_path(pack=pack)
@@ -115,12 +115,16 @@ class PythonRunner(ActionRunner):
             msg = PACK_VIRTUALENV_DOESNT_EXIST % (pack, pack)
             raise Exception(msg)
 
+        if not self.entry_point:
+            raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
+
         args = [
             python_path,
             WRAPPER_SCRIPT_PATH,
             '--pack=%s' % (pack),
             '--file-path=%s' % (self.entry_point),
-            '--parameters=%s' % (serialized_parameters)
+            '--parameters=%s' % (serialized_parameters),
+            '--parent-args=%s' % (json.dumps(sys.argv[1:]))
         ]
 
         # We need to ensure all the st2 dependencies are also available to the
@@ -129,30 +133,28 @@ class PythonRunner(ActionRunner):
         env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
                                                     inherit_parent_virtualenv=True)
 
-        # Note: We are using eventlet friendly implementation of subprocess
-        # which uses GreenPipe so it doesn't block
-        process = subprocess.Popen(args=args, stdin=None, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, shell=False, env=env)
+        # Include user provided environment variables (if any)
+        user_env_vars = self._get_env_vars()
+        env.update(user_env_vars)
 
-        try:
-            exit_code = process.wait(timeout=self._timeout)
-        except subprocess.TimeoutExpired:
-            # Action has timed out, kill the process and propagate the error
-            # Note: process.kill() will set the returncode to -9 so we don't
-            # need to explicitly set it to some non-zero value
-            process.kill()
+        # Include common st2 environment variables
+        st2_env_vars = self._get_common_action_env_variables()
+        env.update(st2_env_vars)
+
+        exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
+                                                           stderr=subprocess.PIPE, shell=False,
+                                                           env=env, timeout=self._timeout)
+
+        if timed_out:
             error = 'Action failed to complete in %s seconds' % (self._timeout)
         else:
             error = None
-
-        stdout, stderr = process.communicate()
-        exit_code = process.returncode
 
         if ACTION_OUTPUT_RESULT_DELIMITER in stdout:
             split = stdout.split(ACTION_OUTPUT_RESULT_DELIMITER)
             assert len(split) == 3
             result = split[1].strip()
-            stdout = split[0] = split[2]
+            stdout = split[0] + split[2]
         else:
             result = None
 
@@ -171,8 +173,30 @@ class PythonRunner(ActionRunner):
         if error:
             output['error'] = error
 
-        status = ACTIONEXEC_STATUS_SUCCEEDED if exit_code == 0 else ACTIONEXEC_STATUS_FAILED
-        self.container_service.report_result(output)
-        self.container_service.report_status(status)
-        LOG.debug('Action output : %s. exit_code : %s. status : %s', str(output), exit_code, status)
-        return output is not None
+        status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
+        return (status, output, None)
+
+    def _get_env_vars(self):
+        """
+        Return sanitized environment variables which will be used when launching
+        a subprocess.
+
+        :rtype: ``dict``
+        """
+        # Don't allow user to override PYTHONPATH since this would break things
+        blacklisted_vars = ['pythonpath']
+        env_vars = {}
+
+        if self._env:
+            env_vars.update(self._env)
+
+        # Remove "blacklisted" environment variables
+        to_delete = []
+        for key, value in env_vars.items():
+            if key.lower() in blacklisted_vars:
+                to_delete.append(key)
+
+        for key in to_delete:
+            del env_vars[key]
+
+        return env_vars

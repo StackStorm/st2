@@ -1,0 +1,105 @@
+#!/usr/bin/env python
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Utility for tailing GELF formatted log files and pretty-printing the lines.
+
+Based on https://github.com/racker/node-rackspace-shared-utils/blob/master/bin/gelf-tail
+"""
+
+import sys
+import json
+import datetime
+
+from st2client.utils.color import DisplayColors
+
+LEVEL_INT_TO_STRING_MAP = {
+    2: 'critical',
+    3: 'error',
+    4: 'warning',
+    6: 'info',
+    7: 'debug',
+    0: 'info'
+}
+
+def process_line(line):
+    try:
+        parsed = json.loads(line)
+    except ValueError:
+        # Invalid / non-json line
+        return
+
+    level = parsed['level']
+    dt = datetime.datetime.fromtimestamp(parsed['timestamp'])
+    timestamp = dt.strftime('%Y-%m-%d %H:%M:%S')
+    level_string = LEVEL_INT_TO_STRING_MAP.get(level, LEVEL_INT_TO_STRING_MAP[0])
+
+    timestamp = DisplayColors.colorize(timestamp, DisplayColors.GREEN)
+
+    if level < 4:
+        level = DisplayColors.colorize(level_string, DisplayColors.RED)
+    elif level < 6:
+        level = DisplayColors.colorize(level_string, DisplayColors.YELLOW)
+    elif level < 8:
+        level = DisplayColors.colorize(level_string, DisplayColors.GREEN)
+
+    short_message = parsed['short_message']
+    full_message = parsed['full_message']
+
+    if full_message:
+        if short_message in full_message:
+            message = full_message
+        else:
+            message = short_message + '\n' + full_message
+    else:
+        message = full_message
+
+    # Output main line
+    values = {'timestamp': timestamp, 'level': level, 'message': message}
+    print('%(timestamp)s [%(level)s]: %(message)s' % values)
+
+    # Output additional attributes
+    additional_attributes = dict([(k, v) for k, v in parsed.items() if k.startswith('_')])
+
+    if additional_attributes:
+        attributes = json.dumps(additional_attributes, indent=4, sort_keys=True)
+        print(attributes)
+
+    exception = parsed.get('_exception', None)
+    traceback = parsed.get('_traceback', None)
+
+    # Output exception (if any)
+    if exception:
+        if traceback:
+            print(traceback)
+        else:
+            print(exception)
+
+
+def main():
+    line = sys.stdin.readline()
+
+    while line:
+        try:
+            process_line(line=line)
+        except Exception:
+            pass
+
+        line = sys.stdin.readline()
+
+
+if __name__ == '__main__':
+    main()

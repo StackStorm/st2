@@ -1,0 +1,5 @@
+; http://nedbatchelder.com/code/coverage/config.html
+
+[run]
+include = st2*
+omit = *tests/*

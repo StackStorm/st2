@@ -1,0 +1,14 @@
+---
+description: Action that executes an arbitrary Linux command on the localhost.
+enabled: true
+entry_point: ''
+name: local
+pack: core
+parameters:
+  cmd:
+    description: Arbitrary Linux command to be executed on the remote host(s).
+    required: true
+    type: string
+  sudo:
+    immutable: true
+runner_type: "local-shell-cmd"

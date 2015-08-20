@@ -13,13 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 import mock
 import pecan
 import unittest
+from webob import exc
 
-from st2common.models import base
+from st2common.models.api import base
 
 
 class FakeModel(base.BaseAPI):
@@ -35,6 +34,7 @@ class FakeModel(base.BaseAPI):
 
 
 @mock.patch.object(pecan, 'request', mock.MagicMock(json={'a': 'b'}))
+@mock.patch.object(pecan, 'response', mock.MagicMock())
 class TestModelBase(unittest.TestCase):
 
     def setUp(self):
@@ -69,7 +69,7 @@ class TestModelBase(unittest.TestCase):
         self.f.assert_called_once_with(self, ('11',), {})
 
     def test_expose_argument_type_casting(self):
-        @base.jsexpose(int)
+        @base.jsexpose(arg_types=[int])
         def f(self, id, *args, **kwargs):
             self.f(self, id, args, kwargs)
 
@@ -78,7 +78,7 @@ class TestModelBase(unittest.TestCase):
         self.f.assert_called_once_with(self, 11, (), {})
 
     def test_expose_argument_with_default(self):
-        @base.jsexpose(int)
+        @base.jsexpose(arg_types=[int])
         def f(self, id, some=None, *args, **kwargs):
             self.f(self, id, some, args, kwargs)
 
@@ -87,7 +87,7 @@ class TestModelBase(unittest.TestCase):
         self.f.assert_called_once_with(self, 11, None, (), {})
 
     def test_expose_kv_unused(self):
-        @base.jsexpose(int, int, str)
+        @base.jsexpose([int, int, str])
         def f(self, id, *args, **kwargs):
             self.f(self, id, args, kwargs)
 
@@ -96,7 +96,7 @@ class TestModelBase(unittest.TestCase):
         self.f.assert_called_once_with(self, 11, (), {'number': '7', 'name': 'fox'})
 
     def test_expose_kv_type_casting(self):
-        @base.jsexpose(int, int, str)
+        @base.jsexpose([int, int, str])
         def f(self, id, number, name, *args, **kwargs):
             self.f(self, id, number, name, args, kwargs)
 
@@ -107,7 +107,7 @@ class TestModelBase(unittest.TestCase):
     def test_expose_body_unused(self):
         APIModelMock = mock.MagicMock()
 
-        @base.jsexpose(body=APIModelMock)
+        @base.jsexpose(body_cls=APIModelMock)
         def f(self, *args, **kwargs):
             self.f(self, args, kwargs)
 
@@ -119,7 +119,7 @@ class TestModelBase(unittest.TestCase):
     def test_expose_body(self):
         APIModelMock = mock.MagicMock()
 
-        @base.jsexpose(body=APIModelMock)
+        @base.jsexpose(body_cls=APIModelMock)
         def f(self, body, *args, **kwargs):
             self.f(self, body, args, kwargs)
 
@@ -131,7 +131,7 @@ class TestModelBase(unittest.TestCase):
     def test_expose_body_and_arguments_unused(self):
         APIModelMock = mock.MagicMock()
 
-        @base.jsexpose(body=APIModelMock)
+        @base.jsexpose(body_cls=APIModelMock)
         def f(self, body, *args, **kwargs):
             self.f(self, body, args, kwargs)
 
@@ -143,7 +143,7 @@ class TestModelBase(unittest.TestCase):
     def test_expose_body_and_arguments_type_casting(self):
         APIModelMock = mock.MagicMock()
 
-        @base.jsexpose(int, body=APIModelMock)
+        @base.jsexpose(arg_types=[int], body_cls=APIModelMock)
         def f(self, id, body, *args, **kwargs):
             self.f(self, id, body, args, kwargs)
 
@@ -156,7 +156,7 @@ class TestModelBase(unittest.TestCase):
     def test_expose_body_and_typed_arguments_unused(self):
         APIModelMock = mock.MagicMock()
 
-        @base.jsexpose(int, body=APIModelMock)
+        @base.jsexpose(arg_types=[int], body_cls=APIModelMock)
         def f(self, id, body, *args, **kwargs):
             self.f(self, id, body, args, kwargs)
 
@@ -169,7 +169,7 @@ class TestModelBase(unittest.TestCase):
     def test_expose_body_and_typed_kw_unused(self):
         APIModelMock = mock.MagicMock()
 
-        @base.jsexpose(int, body=APIModelMock)
+        @base.jsexpose(arg_types=[int], body_cls=APIModelMock)
         def f(self, body, id, *args, **kwargs):
             self.f(self, body, id, args, kwargs)
 
@@ -181,7 +181,7 @@ class TestModelBase(unittest.TestCase):
     @mock.patch.object(pecan, 'response', mock.MagicMock(status=200))
     def test_expose_schema_validation_failed(self):
 
-        @base.jsexpose(body=FakeModel)
+        @base.jsexpose(body_cls=FakeModel)
         def f(self, body, *args, **kwargs):
             self.f(self, body, *args, **kwargs)
 
@@ -189,6 +189,4 @@ class TestModelBase(unittest.TestCase):
         rtn_val = f(self)
         self.assertEqual(rtn_val, 'null')
         pecan.request.json = {'a': '123', 'b': '456'}
-        rtn_val = json.loads(f(self))
-        self.assertIn('faultstring', rtn_val)
-        self.assertIn("'b' was unexpected", rtn_val['faultstring'])
+        self.assertRaisesRegexp(exc.HTTPBadRequest, ''b' was unexpected', f, self)

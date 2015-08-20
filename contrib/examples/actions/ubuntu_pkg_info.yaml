@@ -1,0 +1,12 @@
+---
+description: This gets pkg info on ubuntu
+enabled: true
+entry_point: ubuntu_pkg_info/ubuntu_pkg_info.py
+name: ubuntu_pkg_info
+parameters:
+  pkgname:
+    description: Name of the package for which info is needed.
+    position: 0
+    required: true
+    type: string
+runner_type: "local-shell-script"

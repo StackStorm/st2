@@ -19,13 +19,39 @@ from mongoengine import ValidationError
 import six
 
 from st2common import log as logging
-from st2common.constants.action import (ACTIONEXEC_STATUSES,
-                                        ACTION_ID, ACTION_NAME, ACTION_PACK)
+from st2common.constants.action import (LIVEACTION_STATUSES)
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.system.common import ResourceReference
-from st2common.persistence.action import (RunnerType, Action, ActionExecution)
+from st2common.persistence.action import Action
+from st2common.persistence.liveaction import LiveAction
+from st2common.persistence.runner import RunnerType
 
 LOG = logging.getLogger(__name__)
+
+
+def get_action_parameters_specs(action_ref):
+    """
+    Retrieve parameters specifications schema for the provided action reference.
+
+    Note: This function returns a union of action and action runner parameters.
+
+    :param action_ref: Action reference.
+    :type action_ref: ``str``
+
+    :rtype: ``dict``
+    """
+    action_db = get_action_by_ref(ref=action_ref)
+
+    parameters = {}
+    if not action_db:
+        return parameters
+
+    runner_type_name = action_db.runner_type['name']
+    runner_type_db = get_runnertype_by_name(runnertype_name=runner_type_name)
+
+    parameters.update(action_db.parameters)
+    parameters.update(runner_type_db['runner_parameters'])
+
+    return parameters
 
 
 def get_runnertype_by_id(runnertype_id):
@@ -46,29 +72,27 @@ def get_runnertype_by_id(runnertype_id):
 
 
 def get_runnertype_by_name(runnertype_name):
-        """
-            Get an runnertype by name.
-            On error, raise ST2ObjectNotFoundError.
-        """
-        try:
-            runnertypes = RunnerType.query(name=runnertype_name)
-        except (ValueError, ValidationError) as e:
-            LOG.error('Database lookup for name="%s" resulted in exception: %s',
-                      runnertype_name, e)
-            raise StackStormDBObjectNotFoundError('Unable to find runnertype with name="%s"'
-                                                  % runnertype_name)
+    """
+        Get an runnertype by name.
+        On error, raise ST2ObjectNotFoundError.
+    """
+    try:
+        runnertypes = RunnerType.query(name=runnertype_name)
+    except (ValueError, ValidationError) as e:
+        LOG.error('Database lookup for name="%s" resulted in exception: %s',
+                  runnertype_name, e)
+        raise StackStormDBObjectNotFoundError('Unable to find runnertype with name="%s"'
+                                              % runnertype_name)
 
-        if not runnertypes:
-            LOG.error('Database lookup for RunnerType with name="%s" produced no results',
-                      runnertype_name)
-            raise StackStormDBObjectNotFoundError('Unable to find RunnerType with name="%s"'
-                                                  % runnertype_name)
+    if not runnertypes:
+        raise StackStormDBObjectNotFoundError('Unable to find RunnerType with name="%s"'
+                                              % runnertype_name)
 
-        if len(runnertypes) > 1:
-            LOG.warning('More than one RunnerType returned from DB lookup by name. '
-                        'Result list is: %s', runnertypes)
+    if len(runnertypes) > 1:
+        LOG.warning('More than one RunnerType returned from DB lookup by name. '
+                    'Result list is: %s', runnertypes)
 
-        return runnertypes[0]
+    return runnertypes[0]
 
 
 def get_action_by_id(action_id):
@@ -90,121 +114,93 @@ def get_action_by_id(action_id):
     return action
 
 
-def _get_action_by_pack_and_name(pack=None, name=None):
+def get_action_by_ref(ref):
     """
-        Get Action by name and pack.
+    Returns the action object from db given a string ref.
 
-        Query doesn't raise an exception.
+    :param ref: Reference to the trigger type db object.
+    :type ref: ``str``
+
+    :rtype action: ``object``
     """
-    return Action.query(name=name, pack=pack).first()
+    try:
+        return Action.get_by_ref(ref)
+    except ValueError as e:
+        LOG.debug('Database lookup for ref="%s" resulted ' +
+                  'in exception : %s.', ref, e, exc_info=True)
+        return None
 
 
-def get_actionexec_by_id(actionexec_id):
+def get_liveaction_by_id(liveaction_id):
     """
-        Get ActionExecution by id.
+        Get LiveAction by id.
 
         On error, raise ST2DBObjectNotFoundError.
     """
-    actionexec = None
+    liveaction = None
 
     try:
-        actionexec = ActionExecution.get_by_id(actionexec_id)
+        liveaction = LiveAction.get_by_id(liveaction_id)
     except (ValidationError, ValueError) as e:
-        LOG.error('Database lookup for actionexecution with id="%s" resulted in '
-                  'exception: %s', actionexec_id, e)
-        raise StackStormDBObjectNotFoundError('Unable to find actionexecution with '
-                                              'id="%s"' % actionexec_id)
+        LOG.error('Database lookup for LiveAction with id="%s" resulted in '
+                  'exception: %s', liveaction_id, e)
+        raise StackStormDBObjectNotFoundError('Unable to find LiveAction with '
+                                              'id="%s"' % liveaction_id)
 
-    return actionexec
+    return liveaction
 
 
-def get_action_by_dict(action_dict):
+def update_liveaction_status(status=None, result=None, context=None, end_timestamp=None,
+                             liveaction_id=None, runner_info=None, liveaction_db=None,
+                             publish=True):
     """
-        Get Action object from DB based on action_dict values.
-
-        action_dict is a dictionary that contains either an "id" field,
-        a "name" field", or both fields.
-
-        Returns:
-            - Action object found in DB. (None on lookup failure.)
-            - modified action_dict with "id" key removed if lookup by
-                  id failed.
-    """
-    action = None
-
-    if ACTION_ID in action_dict:
-        action_id = action_dict[ACTION_ID]
-        try:
-            action = get_action_by_id(action_id)
-            if (ACTION_NAME not in action_dict or
-                    action_dict[ACTION_NAME] != getattr(action, ACTION_NAME)):
-                action_dict[ACTION_NAME] = getattr(action, ACTION_NAME)
-        except StackStormDBObjectNotFoundError:
-            LOG.info('Action not found by id, falling back to lookup by name and '
-                     'removing action id from Action Execution.')
-            del action_dict[ACTION_ID]
-        else:
-            return (action, action_dict)
-
-    if ACTION_NAME in action_dict:
-        if ACTION_PACK not in action_dict:
-            return (None, {})
-        name = action_dict[ACTION_NAME]
-        pack = action_dict[ACTION_PACK]
-
-        action = _get_action_by_pack_and_name(pack=pack, name=name)
-
-        if action:
-            action_dict[ACTION_ID] = str(getattr(action, ACTION_ID))
-            return (action, action_dict)
-
-    # No action found by identifiers in action_dict.
-    return (None, {})
-
-
-def get_action_by_ref(action_ref):
-    if (not isinstance(action_ref, str) and not isinstance(action_ref, unicode)
-            and not isinstance(action_ref, ResourceReference)):
-        raise Exception('Action reference has to be either str or ResourceReference.')
-
-    if isinstance(action_ref, str) or isinstance(action_ref, unicode):
-        action_ref = ResourceReference.from_string_reference(ref=action_ref)
-
-    return _get_action_by_pack_and_name(name=action_ref.name, pack=action_ref.pack)
-
-
-def update_actionexecution_status(new_status, end_timestamp=None, actionexec_id=None,
-                                  actionexec_db=None):
-    """
-        Update the status of the specified ActionExecution to the value provided in
+        Update the status of the specified LiveAction to the value provided in
         new_status.
 
-        The ActionExecution may be specified using either actionexec_id, or as an
-        actionexec_db instance.
+        The LiveAction may be specified using either liveaction_id, or as an
+        liveaction_db instance.
     """
 
-    if (actionexec_id is None) and (actionexec_db is None):
-        raise ValueError('Must specify an actionexec_id or an actionexec_db when '
-                         'calling update_actionexecution_status')
+    if (liveaction_id is None) and (liveaction_db is None):
+        raise ValueError('Must specify an liveaction_id or an liveaction_db when '
+                         'calling update_LiveAction_status')
 
-    if actionexec_db is None:
-        actionexec_db = get_actionexec_by_id(actionexec_id)
+    if liveaction_db is None:
+        liveaction_db = get_liveaction_by_id(liveaction_id)
 
-    if new_status not in ACTIONEXEC_STATUSES:
-        raise ValueError('Attempting to set status for ActionExecution "%s" '
+    if status not in LIVEACTION_STATUSES:
+        raise ValueError('Attempting to set status for LiveAction "%s" '
                          'to unknown status string. Unknown status is "%s"',
-                         actionexec_db, new_status)
+                         liveaction_db, status)
 
-    LOG.debug('Updating ActionExection: "%s" with status="%s"',
-              actionexec_db, new_status)
-    actionexec_db.status = new_status
+    extra = {'liveaction_db': liveaction_db}
+    LOG.debug('Updating ActionExection: "%s" with status="%s"', liveaction_db.id, status,
+              extra=extra)
+
+    old_status = liveaction_db.status
+    liveaction_db.status = status
+
+    if result:
+        liveaction_db.result = result
+
+    if context:
+        liveaction_db.context.update(context)
 
     if end_timestamp:
-        actionexec_db.end_timestamp = end_timestamp
+        liveaction_db.end_timestamp = end_timestamp
 
-    actionexec_db = ActionExecution.add_or_update(actionexec_db)
-    LOG.debug('Updated status for ActionExecution object: %s', actionexec_db)
-    return actionexec_db
+    if runner_info:
+        liveaction_db.runner_info = runner_info
+
+    liveaction_db = LiveAction.add_or_update(liveaction_db)
+
+    LOG.debug('Updated status for LiveAction object.', extra=extra)
+
+    if publish and status != old_status:
+        LiveAction.publish_status(liveaction_db)
+        LOG.debug('Published status for LiveAction object.', extra=extra)
+
+    return liveaction_db
 
 
 def get_args(action_parameters, action_db):
@@ -216,7 +212,7 @@ def get_args(action_parameters, action_db):
 
     positional_args = []
     positional_args_keys = set()
-    for pos, arg in six.iteritems(position_args_dict):
+    for _, arg in six.iteritems(position_args_dict):
         positional_args.append(str(action_parameters.get(arg)))
         positional_args_keys.add(arg)
     positional_args = ' '.join(positional_args)  # convert to string.

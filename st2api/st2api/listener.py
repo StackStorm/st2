@@ -32,17 +32,23 @@ import eventlet
 
 from kombu import Connection, Queue
 from kombu.mixins import ConsumerMixin
-from oslo.config import cfg
+from oslo_config import cfg
 
-from st2common.models.api.action import ActionExecutionAPI
-from st2common.models.api.history import ActionExecutionHistoryAPI
-from st2common.transport import actionexecution, history, publishers
+from st2common.models.api.action import LiveActionAPI
+from st2common.models.api.execution import ActionExecutionAPI
+from st2common.transport import liveaction, execution, publishers
+from st2common.transport import utils as transport_utils
 from st2common import log as logging
+
+__all__ = [
+    'get_listener',
+    'get_listener_if_set'
+]
 
 LOG = logging.getLogger(__name__)
 
 QUEUE = Queue(None,
-              actionexecution.ACTIONEXECUTION_XCHG,
+              liveaction.LIVEACTION_XCHG,
               routing_key=publishers.ANY_RK,
               exclusive=True)
 
@@ -54,28 +60,31 @@ class Listener(ConsumerMixin):
     def __init__(self, connection):
         self.connection = connection
         self.queues = []
+        self._stopped = False
 
     def get_consumers(self, consumer, channel):
         return [
-            consumer(queues=[history.get_queue(routing_key=publishers.ANY_RK,
-                                               exclusive=True)],
+            consumer(queues=[execution.get_queue(routing_key=publishers.ANY_RK,
+                                                 exclusive=True)],
                      accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionHistoryAPI)]),
+                     callbacks=[self.processor(ActionExecutionAPI)]),
 
             consumer(queues=[Queue(None,
-                                   actionexecution.ACTIONEXECUTION_XCHG,
+                                   liveaction.LIVEACTION_XCHG,
                                    routing_key=publishers.ANY_RK,
                                    exclusive=True)],
                      accept=['pickle'],
-                     callbacks=[self.processor(ActionExecutionAPI)])
+                     callbacks=[self.processor(LiveActionAPI)])
         ]
 
     def processor(self, model):
         def process(body, message):
+            from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
             meta = message.delivery_info
-            event_name = "%s__%s" % (meta.get('exchange'), meta.get('routing_key'))
+            event_name = '%s__%s' % (meta.get('exchange'), meta.get('routing_key'))
+
             try:
-                self.emit(event_name, model.from_model(body))
+                self.emit(event_name, model.from_model(body, **from_model_kwargs))
             finally:
                 message.ack()
 
@@ -90,13 +99,16 @@ class Listener(ConsumerMixin):
         queue = eventlet.Queue()
         self.queues.append(queue)
         try:
-            while True:
+            while not self._stopped:
                 try:
                     yield queue.get(timeout=cfg.CONF.api.heartbeat)
                 except eventlet.queue.Empty:
                     yield
         finally:
             self.queues.remove(queue)
+
+    def shutdown(self):
+        self._stopped = True
 
 
 def listen(listener):
@@ -109,7 +121,12 @@ def listen(listener):
 def get_listener():
     global _listener
     if not _listener:
-        with Connection(cfg.CONF.messaging.url) as conn:
+        with Connection(transport_utils.get_messaging_urls()) as conn:
             _listener = Listener(conn)
             eventlet.spawn_n(listen, _listener)
+    return _listener
+
+
+def get_listener_if_set():
+    global _listener
     return _listener

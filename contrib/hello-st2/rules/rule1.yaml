@@ -1,0 +1,10 @@
+---
+name: on_hello_event1
+description: Sample rule firing on hello-st2.event1.
+enabled: true
+trigger:
+    type: hello-st2.event1
+action:
+    ref: hello-st2.greet
+    parameters:
+        greeting: Yo

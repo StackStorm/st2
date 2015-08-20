@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -37,6 +37,9 @@ def get_version_string():
 def get_requirements():
     with open(PKG_REQ_FILE) as f:
         required = f.read().splitlines()
+
+    # Ignore comments in the requirements file
+    required = [line for line in required if not line.startswith('#')]
     return required
 
 

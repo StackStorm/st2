@@ -1,0 +1,15 @@
+---
+  name: "file_touch"
+  runner_type: "remote-shell-cmd"
+  description: "Touches a file"
+  enabled: true
+  entry_point: ""
+  parameters:
+    cmd:
+      immutable: true
+      default: "echo $(date +%s) > {{file}}"
+      position: 0
+    file:
+      type: "string"
+      description: "Path of the file to be touched"
+      required: true

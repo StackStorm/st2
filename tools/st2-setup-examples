@@ -1,0 +1,28 @@
+#!/bin/bash
+
+echo "Installer for the examples pack..."
+
+PACK="examples"
+USRPATH="/usr/share/doc/st2"
+TESTSPATH="/opt/stackstorm/packs"
+
+echo -e "Checking ${USRPATH}/${PACK}..."
+if [ -d ${USRPATH}/${PACK} ]; then
+    mkdir -p ${TESTSPATH}
+    cp -Rf ${USRPATH}/${PACK} ${TESTSPATH}
+else
+    echo "${PACK} does not exist in ${USRPATH}"
+    exit 2
+fi
+
+echo -e "Reloading St2 content..."
+st2ctl reload
+
+echo -e "Bootstrapping virtualenv for ${PACK} pack..."
+if [ -f ${TESTSPATH}/${PACK}/requirements.txt ]; then
+    echo "Creating virtualenv for ${PACK}..."
+    mkdir -p /opt/stackstorm/virtualenvs
+    virtualenv --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
+    echo "Installing requirements.txt for ${PACK}..."
+    pip install -r ${TESTSPATH}/${PACK}/requirements.txt -E /opt/stackstorm/virtualenvs/${PACK}
+fi

@@ -16,6 +16,168 @@
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.models.system.common import ResourceReference
 
+__all__ = [
+    'WEBHOOKS_PARAMETERS_SCHEMA',
+    'WEBHOOKS_PAYLOAD_SCHEMA',
+    'INTERVAL_PARAMETERS_SCHEMA',
+    'DATE_PARAMETERS_SCHEMA',
+    'CRON_PARAMETERS_SCHEMA',
+    'TIMER_PAYLOAD_SCHEMA',
+
+    'ACTION_SENSOR_TRIGGER',
+    'NOTIFY_TRIGGER',
+    'ACTION_FILE_WRITTEN_TRIGGER',
+
+    'TIMER_TRIGGER_TYPES',
+    'INTERNAL_TRIGGER_TYPES',
+    'SYSTEM_TRIGGER_TYPES'
+]
+
+# Action resource triggers
+ACTION_SENSOR_TRIGGER = {
+    'name': 'st2.generic.actiontrigger',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating the completion of an action execution.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'execution_id': {},
+            'status': {},
+            'start_timestamp': {},
+            'action_name': {},
+            'parameters': {},
+            'result': {}
+        }
+    }
+}
+ACTION_FILE_WRITTEN_TRIGGER = {
+    'name': 'st2.action.file_writen',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating action file being written on disk.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'ref': {},
+            'file_path': {},
+            'content': {},
+            'host_info': {}
+        }
+    }
+}
+
+NOTIFY_TRIGGER = {
+    'name': 'st2.generic.notifytrigger',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Notification trigger.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'execution_id': {},
+            'status': {},
+            'start_timestamp': {},
+            'end_timestamp': {},
+            'action_ref': {},
+            'channel': {},
+            'message': {},
+            'data': {}
+        }
+    }
+}
+
+# Sensor spawn/exit triggers.
+SENSOR_SPAWN_TRIGGER = {
+    'name': 'st2.sensor.process_spawn',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger indicating sensor process is started up.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'object': {}
+        }
+    }
+}
+
+SENSOR_EXIT_TRIGGER = {
+    'name': 'st2.sensor.process_exit',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger indicating sensor process is stopped.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'object': {}
+        }
+    }
+}
+
+# KeyValuePair resource triggers
+KEY_VALUE_PAIR_CREATE_TRIGGER = {
+    'name': 'st2.key_value_pair.create',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating datastore item creation.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'object': {}
+        }
+    }
+}
+
+KEY_VALUE_PAIR_UPDATE_TRIGGER = {
+    'name': 'st2.key_value_pair.update',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating datastore set action.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'object': {}
+        }
+    }
+}
+
+KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER = {
+    'name': 'st2.key_value_pair.value_change',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating a change of datastore item value.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'old_object': {},
+            'new_object': {}
+        }
+    }
+}
+
+KEY_VALUE_PAIR_DELETE_TRIGGER = {
+    'name': 'st2.key_value_pair.delete',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating datastore item deletion.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'object': {}
+        }
+    }
+}
+
+# Internal system triggers which are available for each resource
+INTERNAL_TRIGGER_TYPES = {
+    'action': [
+        ACTION_SENSOR_TRIGGER,
+        NOTIFY_TRIGGER,
+        ACTION_FILE_WRITTEN_TRIGGER
+    ],
+    'sensor': [
+        SENSOR_SPAWN_TRIGGER,
+        SENSOR_EXIT_TRIGGER
+    ],
+    'key_value_pair': [
+        KEY_VALUE_PAIR_CREATE_TRIGGER,
+        KEY_VALUE_PAIR_UPDATE_TRIGGER,
+        KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER,
+        KEY_VALUE_PAIR_DELETE_TRIGGER
+    ]
+}
+
 
 WEBHOOKS_PARAMETERS_SCHEMA = {
     'type': 'object',
@@ -39,8 +201,8 @@ WEBHOOK_TRIGGER_TYPES = {
     ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.webhook'): {
         'name': 'st2.webhook',
         'pack': SYSTEM_PACK_NAME,
-        'description': 'Trigger type for registering webhooks that can consume'
-                       + ' arbitrary payload.',
+        'description': ('Trigger type for registering webhooks that can consume'
+                        ' arbitrary payload.'),
         'parameters_schema': WEBHOOKS_PARAMETERS_SCHEMA,
         'payload_schema': WEBHOOKS_PAYLOAD_SCHEMA
     }

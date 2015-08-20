@@ -17,10 +17,13 @@ import copy
 
 import six
 
-from st2common.models.base import BaseAPI
-from st2common.models.api.reactor import TriggerAPI
-from st2common.models.db.reactor import RuleDB, ActionExecutionSpecDB
-from st2common.persistence.reactor import Trigger
+from st2common.constants.pack import DEFAULT_PACK_NAME
+from st2common.models.api.base import BaseAPI
+from st2common.models.api.trigger import TriggerAPI
+from st2common.models.api.tag import TagsHelper
+from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
+from st2common.models.system.common import ResourceReference
+from st2common.persistence.trigger import Trigger
 import st2common.services.triggers as TriggerService
 from st2common.util import reference
 import st2common.validators.api.reactor as validator
@@ -88,6 +91,14 @@ class RuleAPI(BaseAPI):
                 'type': 'string',
                 'required': True
             },
+            'pack': {
+                'type': 'string'
+            },
+            "ref": {
+                "description": "System computed user friendly reference for the action. \
+                                Provided value will be overridden by computed value.",
+                "type": "string"
+            },
             'description': {
                 'type': 'string'
             },
@@ -102,6 +113,10 @@ class RuleAPI(BaseAPI):
                     'parameters': {
                         'type': 'object',
                         'default': {}
+                    },
+                    'ref': {
+                        'type': 'string',
+                        'required': False
                     }
                 },
                 'additionalProperties': True
@@ -114,14 +129,19 @@ class RuleAPI(BaseAPI):
             'enabled': {
                 'type': 'boolean',
                 'default': True
+            },
+            "tags": {
+                "description": "User associated metadata assigned to this object.",
+                "type": "array",
+                "items": {"type": "object"}
             }
         },
         'additionalProperties': False
     }
 
     @classmethod
-    def from_model(cls, model):
-        rule = cls._from_model(model)
+    def from_model(cls, model, mask_secrets=False):
+        rule = cls._from_model(model, mask_secrets=mask_secrets)
         trigger_db = reference.get_model_by_resource_ref(Trigger, model.trigger)
 
         if not trigger_db:
@@ -130,27 +150,34 @@ class RuleAPI(BaseAPI):
         rule['trigger'] = vars(TriggerAPI.from_model(trigger_db))
         del rule['trigger']['id']
         del rule['trigger']['name']
-        for oldkey, value in six.iteritems(rule['criteria']):
-            newkey = oldkey.replace(u'\u2024', '.')
-            if oldkey != newkey:
-                rule['criteria'][newkey] = value
-                del rule['criteria'][oldkey]
+        rule['tags'] = TagsHelper.from_model(model.tags)
         return cls(**rule)
 
     @classmethod
     def to_model(cls, rule):
-        model = super(cls, cls).to_model(rule)
+        name = getattr(rule, 'name', None)
+        description = getattr(rule, 'description', None)
+
+        # Create a trigger for the provided rule
         trigger_db = TriggerService.create_trigger_db_from_rule(rule)
-        model.trigger = reference.get_str_resource_ref_from_model(trigger_db)
-        model.criteria = dict(getattr(rule, 'criteria', {}))
-        for oldkey, value in six.iteritems(model.criteria):
-            newkey = oldkey.replace('.', u'\u2024')
-            if oldkey != newkey:
-                model.criteria[newkey] = value
-                del model.criteria[oldkey]
-        validator.validate_criteria(model.criteria)
-        model.action = ActionExecutionSpecDB()
-        model.action.ref = rule.action['ref']
-        model.action.parameters = rule.action['parameters']
-        model.enabled = rule.enabled
+
+        trigger = reference.get_str_resource_ref_from_model(trigger_db)
+        criteria = dict(getattr(rule, 'criteria', {}))
+        pack = getattr(rule, 'pack', DEFAULT_PACK_NAME)
+        ref = ResourceReference.to_string_reference(pack=pack, name=name)
+
+        # Validate criteria
+        validator.validate_criteria(criteria)
+
+        # Validate trigger parameters
+        validator.validate_trigger_parameters(trigger_db=trigger_db)
+
+        action = ActionExecutionSpecDB(ref=rule.action['ref'],
+                                       parameters=rule.action['parameters'])
+
+        enabled = rule.enabled
+        tags = TagsHelper.to_model(getattr(rule, 'tags', []))
+
+        model = cls.model(name=name, description=description, pack=pack, ref=ref, trigger=trigger,
+                          criteria=criteria, action=action, enabled=enabled, tags=tags)
         return model

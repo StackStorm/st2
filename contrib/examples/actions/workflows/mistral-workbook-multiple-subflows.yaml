@@ -1,0 +1,76 @@
+version: "2.0"
+name: "examples.mistral-workbook-multiple-subflows"
+
+workflows:
+
+    main:
+        type: direct
+        output:
+            report: <% $.report %>
+            state: <% $.state %>
+        task-defaults:
+          on-error:
+            - fail
+        tasks:
+            call_internal_workflow:
+                workflow: internal_workflow
+                input:
+                    name: <% $.vm_name %>
+                publish:
+                    report: <% $.call_internal_workflow.report %>
+                on-success:
+                    - call_internal_workflow_multiple_tasks
+            call_internal_workflow_multiple_tasks:
+                workflow: internal_workflow_multiple_tasks
+                input:
+                    vm_id: <% $.vm_id %>
+                    cpu_cores: <% $.cpu_cores %>
+                    memory_mb: <% $.memory_mb %>
+                on-success:
+                    - call_external_workflow
+            call_external_workflow:
+                action: examples.mistral-basic
+                input:
+                    cmd: "sleep 2; echo external workflow ok"
+                publish:
+                    state: <% $.call_external_workflow.stdout %>
+                on-success:
+                    - call_action_chain
+            call_action_chain:
+                action: examples.echochain
+
+    internal_workflow:
+        type: direct
+        input:
+            - name
+        output:
+            report: <% $.report %>
+        task-defaults:
+          on-error:
+            - fail
+        tasks:
+            task1:
+                action: core.local
+                input:
+                    cmd: "sleep 3; echo task1 ok"
+                publish:
+                    report: <% $.task1.stdout %>
+
+    internal_workflow_multiple_tasks:
+        type: direct
+        input:
+            - vm_id
+            - cpu_cores
+            - memory_mb
+        task-defaults:
+          on-error:
+            - fail
+        tasks:
+            task1:
+                action: core.local
+                input:
+                    cmd: "sleep 2; echo task1 ok"
+            task2:
+                action: core.local
+                input:
+                    cmd: "sleep 4; echo task2 ok"

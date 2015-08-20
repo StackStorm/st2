@@ -12,20 +12,21 @@ Contents:
     start
     packs
     actions
+    runners
     rules
     sensors
+    aliases
+    traces
+    webhooks
     datastore
     workflows
     history
+    authentication
+    cli
+    troubleshooting
     resources/index
     reference/index
     changelog
+    upgrade_notes
+    development/index
     roadmap
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

@@ -1,6 +1,6 @@
 ---
   name: "download"
-  runner_type: "run-python"
+  runner_type: "python-script"
   description: "Downloads packs and places it in the local content repository."
   enabled: true
   entry_point: "pack_mgmt/download.py"
@@ -11,8 +11,17 @@
         type: "string"
     repo_url:
       type: "string"
-      default: "https://github.com/StackStorm/st2contrib.git"
+      default: "StackStorm/st2contrib"
+    branch:
+      type: "string"
+      default: "master"
     abs_repo_base:
       type: "string"
       default: "/opt/stackstorm/packs/"
       immutable: true
+    subtree:
+      type: "boolean"
+      default: false
+    verifyssl:
+      type: "boolean"
+      default: true

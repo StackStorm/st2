@@ -1,0 +1,7 @@
+---
+description: Action that returns a randomly generated exit code.
+enabled: true
+entry_point: bash_exit_code/bash_exit_code.sh
+name: local-random-exit
+parameters: {}
+runner_type: "local-shell-cmd"

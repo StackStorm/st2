@@ -1,0 +1,12 @@
+
+---
+  name: "sample.without_action"
+  pack: "pack_with_rules"
+  description: "Sample rule using an Interval Timer."
+  trigger:
+    type: "core.st2.IntervalTimer"
+    parameters:
+      delta: 5
+      unit: "seconds"
+  criteria: {}
+  enabled: true
