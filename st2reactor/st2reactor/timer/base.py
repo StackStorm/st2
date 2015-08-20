@@ -112,6 +112,7 @@ class St2Timer(object):
                         trigger['parameters'], time_type.run_date)
         else:
             self._add_job(trigger, time_type)
+        return time_type
 
     def _add_job(self, trigger, time_type, replace=True):
         try:
@@ -133,9 +134,8 @@ class St2Timer(object):
             'executed_at': str(utc_now),
             'schedule': trigger['parameters'].get('time')
         }
-        trace_context = TraceContext(trace_tag='%s-%s-%s' % (self._get_trigger_type_name(trigger),
-                                                             payload['schedule'],
-                                                             uuid.uuid4().hex))
+        trace_context = TraceContext(trace_tag='%s-%s' % (self._get_trigger_type_name(trigger),
+                                                          trigger.name))
         self._trigger_dispatcher.dispatch(trigger, payload, trace_context=trace_context)
 
     def _get_trigger_type_name(self, trigger):
