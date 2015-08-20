@@ -141,6 +141,8 @@ class Notifier(consumers.MessageHandler):
             payload['action_ref'] = liveaction.action
             payload['runner_ref'] = self._get_runner_ref(liveaction.action)
 
+            trace_context = self._get_trace_context(liveaction=liveaction)
+
             failed_routes = []
             for route in routes:
                 try:
@@ -149,7 +151,8 @@ class Notifier(consumers.MessageHandler):
                     payload['channel'] = route
                     LOG.debug('POSTing %s for %s. Payload - %s.', NOTIFY_TRIGGER_TYPE['name'],
                               liveaction.id, payload)
-                    self._trigger_dispatcher.dispatch(self._notify_trigger, payload=payload)
+                    self._trigger_dispatcher.dispatch(self._notify_trigger, payload=payload,
+                                                      trace_context=trace_context)
                 except:
                     failed_routes.append(route)
 
