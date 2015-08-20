@@ -44,8 +44,12 @@ class SensorTypeController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @jsexpose(str, body_cls=SensorTypeAPI)
+    @jsexpose(arg_types=[str], body_cls=SensorTypeAPI)
     def put(self, ref_or_id, sensor_type):
+        # Note: Right now this function only supports updating of "enabled"
+        # attribute on the SensorType model.
+        # The reason for that is that SensorTypeAPI.to_model right now only
+        # knows how to work with sensor type definitions from YAML files.
         try:
             sensor_type_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         except Exception as e:
@@ -59,20 +63,25 @@ class SensorTypeController(resource.ContentPackResourceController):
             validate_not_part_of_system_pack(sensor_type_db)
         except ValueValidationException as e:
             abort(http_client.BAD_REQUEST, str(e))
+            return
 
         if not getattr(sensor_type, 'pack', None):
             sensor_type.pack = sensor_type_db.pack
-
         try:
-            sensor_type_db = SensorTypeAPI.to_model(sensor_type)
+            old_sensor_type_db = sensor_type_db
             sensor_type_db.id = sensor_type_id
+            sensor_type_db.enabled = getattr(sensor_type, 'enabled', False)
             sensor_type_db = SensorType.add_or_update(sensor_type_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Unable to update sensor_type data=%s', sensor_type)
             abort(http_client.BAD_REQUEST, str(e))
             return
 
+        extra = {
+            'old_sensor_type_db': old_sensor_type_db,
+            'new_sensor_type_db': sensor_type_db
+        }
+        LOG.audit('Sensor updated. Sensor.id=%s.' % (sensor_type_db.id), extra=extra)
         sensor_type_api = SensorTypeAPI.from_model(sensor_type_db)
-        LOG.debug('PUT /sensors/ client_result=%s', sensor_type_api)
 
         return sensor_type_api
