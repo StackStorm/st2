@@ -17,7 +17,7 @@ TriggerInstance(ti1) dispatched by Sensor to |st2|, matched a Rule(r1) leading t
 The trace created in this case contains all the entities from above since they cascade
 from the same origin i.e. TriggerInstance(ti1) dispatched into the system.
 
-.. code-block:: base
+.. code-block:: bash
 
    Trace
      |- ti1
@@ -35,7 +35,7 @@ ActionExecution(ae1) started by user, on completion of ae1 an ActionTrigger Trig
 The trace created in this case contains all the entities from above since they cascade
 from the same origin i.e. ActionExecution(ae1) dispatched into the system.
 
-.. code-block:: base
+.. code-block:: bash
 
    Trace
      |- ae1
@@ -63,11 +63,11 @@ What is a trace_tag and trace_id?
 Dispatch a Trigger
 ^^^^^^^^^^^^^^^^^^
 
-TriggerInstance dispatch most often happens from a Sensor. The :ref:`Authoring a sensor<authoring-a-sensor>` page contains information on how to introduce a Trace.
+TriggerInstance dispatch most often happens from a Sensor. The :ref:`authoring a sensor<ref-sensors-authoring-a-sensor>` page contains information on how to introduce a Trace.
 
 A brief snippet is included here to explain some trace specific constructs. A sensor would inject such triggers by using the sensor\_service passed into the sensor on instantiation.
 
-.. code:: python
+.. code-block:: python
 
     self._sensor_service.dispatch(trigger=trigger, payload=payload, trace_tag=trace_tag)
 
@@ -83,13 +83,15 @@ Execute an Action
 Execution of an Action can also be assocaited with a Trace. Here is how this could be done from the CLI.
 
 To start a new trace use ``trace-tag``
-.. code:: bash
+
+.. code-block:: bash
 
    $ st2 run core.local date --trace-tag TraceDateAction
 
 
 To associate with an existing trace use ``trace-id``
-.. code:: bash
+
+.. code-block:: bash
 
    $ st2 run core.local uname --trace-id 55d505fd32ed35711522c4c8
 
@@ -104,28 +106,33 @@ List
 ^^^^
 
 * All traces in the system
-.. code::bash
+
+.. code-block:: bash
 
     $ st2 trace list
 
 
 * Filter by trace-id
-.. code::bash
+
+.. code-block:: bash
 
     $ st2 trace list --trace-tag <trace-tag>
 
 * Filter by execution
-.. code::bash
+
+.. code-block:: bash
 
     $ st2 trace list --execution 55d505fd32ed35711522c4c7
 
 * Filter by rule
-.. code::bash
+
+.. code-block:: bash
 
     $ st2 trace list --rule 55d5064432ed35711522c4ca
 
 * Filter by trigger-instance
-.. code::bash
+
+.. code-block:: bash
 
     $ st2 trace list --trigger-instance 55d5069832ed35711cc4b08e
 
@@ -134,7 +141,8 @@ Get
 ^^^
 
 * Get a specific trace
-.. code::bash
+
+.. code-block:: bash
 
     $ st2 trace get <trace-id>
 

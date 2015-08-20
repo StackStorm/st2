@@ -87,7 +87,7 @@ Common operations
 -----------------
 
 1. dispatch(trigger, payload, trace_tag)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This method allows sensor to inject triggers into the system.
 
