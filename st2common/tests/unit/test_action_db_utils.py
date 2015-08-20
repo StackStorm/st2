@@ -231,13 +231,26 @@ class ActionDBUtilsTestCase(DbTestCase):
         params = {
             'actionstr': 'foo',
             'actionint': 20,
-            'runnerint': 555
+            'runnerint': 555,
+            'runnerdummy': 'bar'
         }
         pos_args, named_args = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
         self.assertEqual(pos_args, '20 foo', 'Positional args not parsed correctly.')
         self.assertTrue('actionint' not in named_args)
         self.assertTrue('actionstr' not in named_args)
-        self.assertEqual(named_args.get('runnerint'), 555)
+        self.assertEqual(named_args.get('runnerint'), '555')
+        self.assertEqual(named_args.get('runnerdummy'), 'bar')
+
+    def test_get_args_multi_lines(self):
+        params = {
+            'actionstr': 'foo\ninject_mole.sh',
+            'actionint': 100,
+            'runnerdummy': 'bar\ninject_mole.sh'
+        }
+
+        pos_args, named_args = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
+        self.assertEqual(pos_args, '100 "foo\ninject_mole.sh"')
+        self.assertEqual(named_args.get('runnerdummy'), '"bar\ninject_mole.sh"')
 
     @classmethod
     def _setup_test_models(cls):

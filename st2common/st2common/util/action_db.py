@@ -203,6 +203,11 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
     return liveaction_db
 
 
+def _quote_text_lines(value):
+    # Quote text that has multiple lines to prevent code injection into parameters.
+    return '"{0}"'.format(value) if '\n' in value else value
+
+
 def get_args(action_parameters, action_db):
     """
     :return: (positional_args, named_args)
@@ -213,14 +218,14 @@ def get_args(action_parameters, action_db):
     positional_args = []
     positional_args_keys = set()
     for _, arg in six.iteritems(position_args_dict):
-        positional_args.append(str(action_parameters.get(arg)))
+        positional_args.append(_quote_text_lines(str(action_parameters.get(arg))))
         positional_args_keys.add(arg)
-    positional_args = ' '.join(positional_args)  # convert to string.
+    positional_args = ' '.join(positional_args)
 
     named_args = {}
     for param in action_parameters:
         if param not in positional_args_keys:
-            named_args[param] = action_parameters.get(param)
+            named_args[param] = _quote_text_lines(str(action_parameters.get(param)))
 
     return positional_args, named_args
 
