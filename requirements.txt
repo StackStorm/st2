@@ -31,3 +31,5 @@ pyinotify>=0.9.5,<=0.10
 # used by nmap actions
 python-nmap>=0.3.4,<0.4
 semver>=2.1.2
+ipaddr
+ipaddr
