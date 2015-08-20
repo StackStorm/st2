@@ -14,11 +14,15 @@
 # limitations under the License.
 
 import six
+from pecan import abort
+from mongoengine import ValidationError
 
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.persistence.sensor import SensorType
 from st2common.models.api.sensor import SensorTypeAPI
+from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2api.controllers import resource
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
@@ -52,3 +56,45 @@ class SensorTypeController(resource.ContentPackResourceController):
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return super(SensorTypeController, self)._get_one(ref_or_id)
+
+    @jsexpose(arg_types=[str], body_cls=SensorTypeAPI)
+    def put(self, ref_or_id, sensor_type):
+        # Note: Right now this function only supports updating of "enabled"
+        # attribute on the SensorType model.
+        # The reason for that is that SensorTypeAPI.to_model right now only
+        # knows how to work with sensor type definitions from YAML files.
+        try:
+            sensor_type_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+        except Exception as e:
+            LOG.exception(e.message)
+            abort(http_client.NOT_FOUND, e.message)
+            return
+
+        sensor_type_id = sensor_type_db.id
+
+        try:
+            validate_not_part_of_system_pack(sensor_type_db)
+        except ValueValidationException as e:
+            abort(http_client.BAD_REQUEST, str(e))
+            return
+
+        if not getattr(sensor_type, 'pack', None):
+            sensor_type.pack = sensor_type_db.pack
+        try:
+            old_sensor_type_db = sensor_type_db
+            sensor_type_db.id = sensor_type_id
+            sensor_type_db.enabled = getattr(sensor_type, 'enabled', False)
+            sensor_type_db = SensorType.add_or_update(sensor_type_db)
+        except (ValidationError, ValueError) as e:
+            LOG.exception('Unable to update sensor_type data=%s', sensor_type)
+            abort(http_client.BAD_REQUEST, str(e))
+            return
+
+        extra = {
+            'old_sensor_type_db': old_sensor_type_db,
+            'new_sensor_type_db': sensor_type_db
+        }
+        LOG.audit('Sensor updated. Sensor.id=%s.' % (sensor_type_db.id), extra=extra)
+        sensor_type_api = SensorTypeAPI.from_model(sensor_type_db)
+
+        return sensor_type_api

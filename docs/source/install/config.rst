@@ -174,6 +174,50 @@ By default, the logs can be found in ``/var/log/st2``.
 
   logrotate log rotation
 
+Configure Mistral
+-----------------
+There are a number of configurable options available under the mistral section in ``/etc/st2/st2.conf``. If the mistral section is not provided, default values will be used. By default, all Keystone related options are unset and |st2| will not pass any credential for authentication to Mistral. Please refer to OpenStack and Mistral documentation for Keystone setup.
+
++-----------------------+--------------------------------------------------------+
+| options               | description                                            |
++=======================+========================================================+
+| v2_base_url           | Mistral API v2 root endpoint                           |
++-----------------------+--------------------------------------------------------+
+| max_attempts          | Max attempts to reconnect on connection error.         |
++-----------------------+--------------------------------------------------------+
+| retry_wait            | Number of seconds to wait inbetween reconnection.      |
++-----------------------+--------------------------------------------------------+
+| keystone_username     | Username for authentication with OpenStack Keystone.   |
++-----------------------+--------------------------------------------------------+
+| keystone_password     | Password for authentication with OpenStack Keystone.   |
++-----------------------+--------------------------------------------------------+
+| keystone_project_name | OpenStack project scope.                               |
++-----------------------+--------------------------------------------------------+
+| keystone_auth_url     | v3 Auth URL for OpenStack Keystone.                    |
++-----------------------+--------------------------------------------------------+
+
+::
+
+    # Example with basic options.
+
+    [mistral]
+    v2_base_url = http://workflow.example.com:8989/v2
+    max_attempts = 180
+    retry_wait = 5
+
+::
+
+    # Example with auth options.
+
+    [mistral]
+    v2_base_url = http://workflow.example.com:8989/v2
+    max_attempts = 180
+    retry_wait = 5
+    keystone_username = mistral
+    keystone_password = pass123
+    keystone_project_name = default
+    keystone_auht_url = http://identity.example.com:5000/v3
+
 Authentication
 --------------
 Please refer to the main :doc:`/../authentication` section.

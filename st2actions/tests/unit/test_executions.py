@@ -35,6 +35,7 @@ from st2common.persistence.rule import Rule
 from st2common.persistence.runner import RunnerType
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2common.services import action as action_service
+from st2common.services import trace as trace_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 import st2common.util.action_db as action_utils
@@ -141,6 +142,9 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         rule = Rule.add_or_update(rule)
         trigger_instance = TriggerInstance.add_or_update(
             TriggerInstanceAPI.to_model(TriggerInstanceAPI(**docs['trigger_instance'])))
+        trace_service.add_or_update_given_trace_context(
+            trace_context={'trace_tag': 'test_triggered_execution_trace'},
+            trigger_instances=[str(trigger_instance.id)])
         enforcer = RuleEnforcer(trigger_instance, rule)
         enforcer.enforce()
 

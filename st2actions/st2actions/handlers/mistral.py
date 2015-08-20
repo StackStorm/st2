@@ -16,9 +16,12 @@
 import ast
 import eventlet
 import json
+import re
 import requests
 
 from oslo_config import cfg
+from mistralclient.api import client as mistral
+from mistralclient.api.v2 import action_executions
 
 from st2common.constants import action as action_constants
 from st2common import log as logging
@@ -40,6 +43,15 @@ def get_handler():
     return MistralCallbackHandler
 
 
+def get_action_execution_id_from_url(url):
+    match = re.search('(.+)/action_executions/(.+)', url)
+    if not match or len(match.groups()) != 2:
+        raise ValueError('Unable to extract the action execution ID '
+                         'from the callback URL (%s).' % (url))
+
+    return match.group(2)
+
+
 class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
 
     @staticmethod
@@ -49,30 +61,35 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
             return
 
         try:
-            method = 'PUT'
-            headers = {'content-type': 'application/json'}
-
             if isinstance(result, basestring) and len(result) > 0 and result[0] in ['{', '[']:
                 value = ast.literal_eval(result)
                 if type(value) in [dict, list]:
                     result = value
 
+            action_execution_id = get_action_execution_id_from_url(url)
             output = json.dumps(result) if type(result) in [dict, list] else str(result)
             data = {'state': STATUS_MAP[status], 'output': output}
+
+            client = mistral.client(
+                mistral_url=cfg.CONF.mistral.v2_base_url,
+                username=cfg.CONF.mistral.keystone_username,
+                api_key=cfg.CONF.mistral.keystone_password,
+                project_name=cfg.CONF.mistral.keystone_project_name,
+                auth_url=cfg.CONF.mistral.keystone_auth_url)
+
+            manager = action_executions.ActionExecutionManager(client)
 
             for i in range(cfg.CONF.mistral.max_attempts):
                 try:
                     LOG.info('Sending callback to %s with data %s.', url, data)
-                    response = requests.request(method, url, data=json.dumps(data), headers=headers)
-                    if response.status_code == 200:
-                        break
+                    manager.update(action_execution_id, **data)
+                    break
                 except requests.exceptions.ConnectionError as conn_exc:
-                    LOG.exception(conn_exc)
-                    if i < cfg.CONF.mistral.max_attempts:
+                    if i == cfg.CONF.mistral.max_attempts - 1:
+                        raise conn_exc
+                    else:
+                        LOG.warn(conn_exc)
                         eventlet.sleep(cfg.CONF.mistral.retry_wait)
-
-            if response and response.status_code != 200:
-                response.raise_for_status()
 
         except Exception as e:
             LOG.exception(e)

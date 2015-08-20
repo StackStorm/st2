@@ -16,6 +16,7 @@ Contents:
     rules
     sensors
     aliases
+    traces
     webhooks
     datastore
     workflows

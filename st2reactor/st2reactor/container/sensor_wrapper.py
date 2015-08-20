@@ -24,6 +24,7 @@ from oslo_config import cfg
 from st2client.client import Client
 
 from st2common import log as logging
+from st2common.models.api.trace import TraceContext
 from st2common.models.db import db_setup
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
@@ -72,7 +73,7 @@ class SensorService(object):
         logger.propagate = True
         return logger
 
-    def dispatch(self, trigger, payload=None):
+    def dispatch(self, trigger, payload=None, trace_tag=None):
         """
         Method which dispatches the trigger.
 
@@ -81,8 +82,28 @@ class SensorService(object):
 
         :param payload: Trigger payload.
         :type payload: ``dict``
+
+        :param trace_tag: Tracer to track the triggerinstance.
+        :type trace_tags: ``str``
         """
-        self._dispatcher.dispatch(trigger, payload=payload)
+        # empty strings
+        trace_context = TraceContext(trace_tag=trace_tag) if trace_tag else None
+        self.dispatch_with_context(trigger, payload=payload, trace_context=trace_context)
+
+    def dispatch_with_context(self, trigger, payload=None, trace_context=None):
+        """
+        Method which dispatches the trigger.
+
+        :param trigger: Full name / reference of the trigger.
+        :type trigger: ``str``
+
+        :param payload: Trigger payload.
+        :type payload: ``dict``
+
+        :param trace_context: Trace context to associate with Trigger.
+        :type trace_context: ``st2common.api.models.api.trace.TraceContext``
+        """
+        self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
     ##################################
     # Methods for datastore management
