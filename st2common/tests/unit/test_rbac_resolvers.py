@@ -632,7 +632,6 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
             resource_db=self.resources['rule_3'],
             permission_type=PermissionType.RULE_DELETE))
 
-
         # Custom role with with grant on the parent pack
         user_db = self.users['custom_role_rule_pack_grant']
         self.assertTrue(resolver.user_has_resource_permission(

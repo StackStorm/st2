@@ -93,7 +93,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                     'properties': {
                         'resource_uid': {
                             'type': 'string',
-                            'description': 'UID of a resource to which this grant applies to. Can be empty if it\'s a global permission',
+                            'description': 'UID of a resource to which this grant applies to.',
                             'required': False,
                             'default': None
                         },

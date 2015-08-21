@@ -22,7 +22,6 @@ from st2common.rbac import utils
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.models.db.auth import UserDB
-from st2common.models.db.rule import RuleDB
 
 
 class RBACUtilsTestCase(CleanDbTestCase):

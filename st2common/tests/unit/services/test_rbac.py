@@ -22,7 +22,6 @@ from st2common.persistence.auth import User
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rule import Rule
 from st2common.models.db.auth import UserDB
-from st2common.models.db.pack import PackDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rule import RuleDB
 from st2common.models.db.runner import RunnerTypeDB
@@ -149,7 +148,8 @@ class RBACServicesTestCase(CleanDbTestCase):
         resource_db = self.resources['rule_1']
         permission_types = [PermissionType.RULE_CREATE, PermissionType.RULE_MODIFY]
 
-        permission_grant = rbac_services.create_permission_grant(role_db=role_db, resource_db=resource_db,
+        permission_grant = rbac_services.create_permission_grant(role_db=role_db,
+                                                                 resource_db=resource_db,
                                                                  permission_types=permission_types)
 
         # Retrieve all grants
@@ -165,7 +165,6 @@ class RBACServicesTestCase(CleanDbTestCase):
         permission_grants = rbac_services.get_all_permission_grants_for_user(user_db=user_db,
             resource_types=[ResourceType.RULE])
         self.assertItemsEqual(permission_grants, [permission_grant])
-
 
     def test_create_and_remove_permission_grant(self):
         role_db = self.roles['custom_role_2']
