@@ -99,7 +99,7 @@ class FileController(BaseFileController):
         pack_db = self._get_by_name_or_id(name_or_id=name_or_id)
 
         if not pack_db:
-            raise StackStormDBObjectNotFoundError('Pack with name_or_id "%s" doesn't exist' % (name_or_id))
+            raise StackStormDBObjectNotFoundError('Pack with name_or_id "%s" does not exist' % (name_or_id))
 
         if not file_path_components:
             raise ValueError('Missing file path')
