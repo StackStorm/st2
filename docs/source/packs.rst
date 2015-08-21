@@ -109,5 +109,6 @@ See :doc:`/reference/packs` for details on how to pack your integrations and aut
     - `st2incubator`_ - upcoming integration packs and productivity tools.
 * Learn how to write a pack and contribute to community  - :doc:`/reference/packs`
 * Learn how to write :ref:`custom sensors <ref-sensors-authoring-a-sensor>` and :ref:`custom actions <ref-actions-writing-custom>`
+* Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - a growing set of practical examples of automating with StackStorm.
 
 .. include:: /engage.rst
