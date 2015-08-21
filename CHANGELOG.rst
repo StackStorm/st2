@@ -47,6 +47,7 @@ in development
 * Add X-Request-ID header to all API calls for easier debugging. (improvement)
 * Add new CLI commands for disabling and enabling content pack resources
   (``{sensor,action,rule} {enable, disable} <ref or id>``) (feature)
+* Fix a bug in handling positional arguments with spaces. (bug-fix)
 
 0.12.2 - August 11, 2015.
 -------------------------
