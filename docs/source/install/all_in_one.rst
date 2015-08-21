@@ -45,8 +45,9 @@ Amazon Web Services (AWS)
 #. Setup a security group. It is recommended that you leave the default settings. Port 443 must be available for the WebUI, port 9100 for |st2| authentication, and port 9101 for the |st2| API
 #. Review your settings, and then click Launch.
 #. In the **Select an existing key pair or create a new key pair** dialog box, select **Choose an existing key pair** to select a new key pair that you already created or create a new key pair. Select the acknowledgment check box, and then click **Launch Instances**. This can take approximately 5-15 minutes to launch. A confirmation page will appear, letting you know that your instance is launching. Click **View Instances** to close the confirmation and return to the AWS Console.
-#. From **Instances**, make note of the **Public IP** and **Public DNS**
+#. From **Instances**, make note of the **Instance ID**, **Public IP** and **Public DNS**
 #. In your web browser, enter the |st2| setup URL. The format will be: https://**Public IP**/setup
+#. Enter the username and password to log in. The username is *installer*, and the password is your **Instance ID**
 #. Proceed to the section *Running the installer*
 
 Vagrant / VirtualBox / VMWare Workstation
