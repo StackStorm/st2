@@ -44,7 +44,7 @@ class KeyValuePairDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
                 'fields': ['expire_timestamp'],
                 'expireAfterSeconds': 0
             }
-        ]
+        ] + stormbase.UIDFieldMixin.get_indexes()
     }
 
     def __init__(self, *args, **values):

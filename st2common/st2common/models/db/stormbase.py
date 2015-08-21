@@ -190,7 +190,23 @@ class UIDFieldMixin(object):
     RESOURCE_TYPE = abc.abstractproperty
     UID_FIELDS = abc.abstractproperty
 
-    uid = me.StringField(unique=True, required=True)
+    uid = me.StringField(required=True)
+
+    @classmethod
+    def get_indexes(cls):
+        # Note: We use a special sparse index so we don't need to pre-populate "uid" for existing
+        # models in the database before ensure_indexes() is called.
+        # This field gets populated in the constructor which means it will be lazily assigned next
+        # time the model is saved (e.g. once register-content is ran).
+        indexes = [
+            {
+                'fields': ['uid'],
+                'unique': True,
+                'sparse': True,
+                'types': False
+            }
+        ]
+        return indexes
 
     def get_uid(self):
         parts = []

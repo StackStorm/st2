@@ -78,7 +78,7 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     notify = me.EmbeddedDocumentField(NotificationSchema)
 
     meta = {
-        'indexes': stormbase.TagsMixin.get_indices()
+        'indexes': stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()
     }
 
     def __init__(self, *args, **values):

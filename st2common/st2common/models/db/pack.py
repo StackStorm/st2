@@ -41,17 +41,14 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     email = me.EmailField(required=True)
     files = me.ListField(field=me.StringField())
 
+    meta = {
+        'indexes': stormbase.UIDFieldMixin.get_indexes()
+    }
+
     def __init__(self, *args, **values):
         super(PackDB, self).__init__(*args, **values)
         self.uid = self.get_uid()
 
-    def clean(self):
-        """
-        Note: We can't implement clean on the "UIDFieldMixin" class and we need to explicitly
-        define it on each model class otherwise we would need to make sure "UIDFieldMixin" is
-        always inherited from first (order matters).
-        """
-        self.uid = self.get_uid()
 
 # specialized access objects
 pack_access = MongoDBAccess(PackDB)
