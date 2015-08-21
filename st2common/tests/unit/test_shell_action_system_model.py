@@ -137,42 +137,43 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs['sudo'] = False
         kwargs['user'] = LOGGED_USER_USERNAME
         kwargs['named_args'] = {}
-        kwargs['positional_args'] = ['ein', 'zwei', 'drei']
+        kwargs['positional_args'] = ['ein', 'zwei', 'drei', 'mamma mia', 'foo\nbar']
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        self.assertEqual(command, '/tmp/foo.sh ein zwei drei')
+        self.assertEqual(command, '/tmp/foo.sh ein zwei drei \'mamma mia\' \'foo\nbar\'')
 
         # different user, named args, positional args
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = False
         kwargs['user'] = 'mauser'
         kwargs['named_args'] = {}
-        kwargs['positional_args'] = ['ein', 'zwei', 'drei']
+        kwargs['positional_args'] = ['ein', 'zwei', 'drei', 'mamma mia']
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        expected = 'sudo -E -u mauser -- bash -c \'/tmp/foo.sh ein zwei drei\''
-        self.assertEqual(command, expected)
+        ex = 'sudo -E -u mauser -- bash -c \'/tmp/foo.sh ein zwei drei \'"\'"\'mamma mia\'"\'"\'\''
+        self.assertEqual(command, ex)
 
         # same user, positional and named args
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = False
         kwargs['user'] = LOGGED_USER_USERNAME
-        kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2'}
+        kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2', 'key3': 'value 3'}
         kwargs['positional_args'] = ['ein', 'zwei', 'drei']
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        self.assertEqual(command, '/tmp/foo.sh key2=value2 key1=value1 ein zwei drei')
+        exp = '/tmp/foo.sh key3=\'value 3\' key2=value2 key1=value1 ein zwei drei'
+        self.assertEqual(command, exp)
 
         # different user, positional and named args
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = False
         kwargs['user'] = 'mauser'
-        kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2'}
+        kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2', 'key3': 'value 3'}
         kwargs['positional_args'] = ['ein', 'zwei', 'drei']
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
-        expected = ('sudo -E -u mauser -- bash -c \'/tmp/foo.sh key2=value2 '
-                    'key1=value1 ein zwei drei\'')
+        expected = ('sudo -E -u mauser -- bash -c \'/tmp/foo.sh key3=\'"\'"\'value 3\'"\'"\' '
+                    'key2=value2 key1=value1 ein zwei drei\'')
         self.assertEqual(command, expected)
 
     def test_named_parameter_escaping(self):
