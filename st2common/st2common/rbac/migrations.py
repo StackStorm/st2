@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from mongoengine import NotUniqueError
+
 from st2common.rbac.types import SystemRole
 from st2common.persistence.rbac import Role
 from st2common.models.db.rbac import RoleDB
@@ -24,6 +26,9 @@ __all__ = [
 
 
 def insert_system_roles():
+    """
+    Migration which inserts the default system roles.
+    """
     system_roles = SystemRole.get_valid_values()
 
     for role_name in system_roles:
@@ -34,5 +39,5 @@ def insert_system_roles():
         # by non-id PK
         try:
             Role.add_or_update(role_db)
-        except StackStormDBObjectConflictError:
+        except (StackStormDBObjectConflictError, NotUniqueError):
             pass
