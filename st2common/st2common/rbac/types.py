@@ -144,6 +144,9 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.PACK_DELETE,
         PermissionType.PACK_ALL,
 
+        PermissionType.SENSOR_VIEW,
+        PermissionType.SENSOR_ALL,
+
         PermissionType.ACTION_VIEW,
         PermissionType.ACTION_CREATE,
         PermissionType.ACTION_MODIFY,
