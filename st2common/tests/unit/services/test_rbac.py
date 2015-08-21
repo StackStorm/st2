@@ -148,9 +148,10 @@ class RBACServicesTestCase(CleanDbTestCase):
         resource_db = self.resources['rule_1']
         permission_types = [PermissionType.RULE_CREATE, PermissionType.RULE_MODIFY]
 
-        permission_grant = rbac_services.create_permission_grant(role_db=role_db,
-                                                                 resource_db=resource_db,
-                                                                 permission_types=permission_types)
+        permission_grant = rbac_services.create_permission_grant_for_resource_db(
+            role_db=role_db,
+            resource_db=resource_db,
+            permission_types=permission_types)
 
         # Retrieve all grants
         permission_grants = rbac_services.get_all_permission_grants_for_user(user_db=user_db)
@@ -172,15 +173,17 @@ class RBACServicesTestCase(CleanDbTestCase):
 
         # Grant "ALL" permission to the resource
         permission_types = [PermissionType.RULE_ALL]
-        rbac_services.create_permission_grant(role_db=role_db, resource_db=resource_db,
-                                              permission_types=permission_types)
+        rbac_services.create_permission_grant_for_resource_db(role_db=role_db,
+                                                              resource_db=resource_db,
+                                                              permission_types=permission_types)
 
         role_db.reload()
         self.assertItemsEqual(role_db.permission_grants, role_db.permission_grants)
 
         # Remove the previously granted permission
-        rbac_services.remove_permission_grant(role_db=role_db, resource_db=resource_db,
-                                              permission_types=permission_types)
+        rbac_services.remove_permission_grant_for_resource_db(role_db=role_db,
+                                                              resource_db=resource_db,
+                                                              permission_types=permission_types)
 
         role_db.reload()
         self.assertItemsEqual(role_db.permission_grants, [])
@@ -192,12 +195,14 @@ class RBACServicesTestCase(CleanDbTestCase):
         permission_types = [PermissionType.RULE_ALL]
 
         expected_msg = 'Permissions cannot be manipulated for a resource of type'
-        self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.create_permission_grant,
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                rbac_services.create_permission_grant_for_resource_db,
                                 role_db=role_db, resource_db=resource_db,
                                 permission_types=permission_types)
 
         expected_msg = 'Permissions cannot be manipulated for a resource of type'
-        self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.remove_permission_grant,
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                rbac_services.remove_permission_grant_for_resource_db,
                                 role_db=role_db, resource_db=resource_db,
                                 permission_types=permission_types)
 
@@ -208,11 +213,13 @@ class RBACServicesTestCase(CleanDbTestCase):
         permission_types = [PermissionType.ACTION_EXECUTE]
 
         expected_msg = 'Invalid permission type'
-        self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.create_permission_grant,
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                rbac_services.create_permission_grant_for_resource_db,
                                 role_db=role_db, resource_db=resource_db,
                                 permission_types=permission_types)
 
         expected_msg = 'Invalid permission type'
-        self.assertRaisesRegexp(ValueError, expected_msg, rbac_services.remove_permission_grant,
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                rbac_services.remove_permission_grant_for_resource_db,
                                 role_db=role_db, resource_db=resource_db,
                                 permission_types=permission_types)

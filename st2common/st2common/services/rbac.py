@@ -40,7 +40,7 @@ __all__ = [
     'get_all_permission_grants_for_user',
     'create_permission_grant',
     'create_permission_grant_for_resource_db',
-    'remove_permission_grant'
+    'remove_permission_grant_for_resource_db'
 ]
 
 
@@ -203,6 +203,9 @@ def create_permission_grant_for_resource_db(role_db, resource_db, permission_typ
     :param resource_db: Resource to create the permission assignment for.
     :type resource_db: :class:`StormFoundationDB`
     """
+    permission_types = _validate_permission_types(resource_db=resource_db,
+                                                  permission_types=permission_types)
+
     resource_uid = resource_db.get_uid()
     resource_type = resource_db.get_resource_type()
 
@@ -231,7 +234,7 @@ def create_permission_grant(role_db, resource_uid, resource_type, permission_typ
     return permission_grant_db
 
 
-def remove_permission_grant(role_db, resource_db, permission_types):
+def remove_permission_grant_for_resource_db(role_db, resource_db, permission_types):
     """
     Remove a permission grant from a role.
 
