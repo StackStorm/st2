@@ -66,6 +66,9 @@ def get_sandbox_path(virtualenv_path):
     sandbox_path = []
 
     parent_path = os.environ.get('PATH', '')
+    if not virtualenv_path:
+        return parent_path
+
     parent_path = parent_path.split(':')
     parent_path = [path for path in parent_path if path]
 
