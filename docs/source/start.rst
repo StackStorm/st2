@@ -237,13 +237,7 @@ For more content - actions, sensors, rules - checkout `st2contrib`_ community re
 
 Troubleshooting
 ----------------------
-If something goes wrong:
-
-* Check recent executions: ``st2 execution list``
-* Use service control ``st2ctl`` to check service status, restart services, reload packs, or clean the db.
-* Inspect the logs at ``/var/log/st2/``
-* Follow :doc:`/troubleshooting` guide
-* Engage with developers at `#stackstorm on irc.freenode.org <http://webchat.freenode.net/?channels=stackstorm>`__
+If something goes wrong, follow :doc:`/troubleshooting` guide, and engage with developers at `#stackstorm on irc.freenode.org <http://webchat.freenode.net/?channels=stackstorm>`__
 
 
 -------------------------------
@@ -257,9 +251,10 @@ If something goes wrong:
     * :ref:`Convert your scripts into StackStorm actions. <ref-actions-converting-scripts>`
     * Learn how to :ref:`write custom actions <ref-actions-writing-custom>`.
 
-* Connect with your monitoring system: - :doc:`resources/monitoring`.
-* Configure SSH for `remote` actions  - :ref:`config-configure-ssh`.
+* Connect with your monitoring system - :doc:`resources/monitoring`.
 * Use workflows to stitch actions into higher level automations - :doc:`/workflows`.
+
+* Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - a growing set of practical examples of automating with StackStorm.
 
 
 .. include:: engage.rst
