@@ -27,7 +27,7 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
                                                    local_script_path,
                                                    '/opt/stackstorm/packs/fixtures/actions/lib/',
                                                    named_args={'song': 'b s'},
-                                                   positional_args='"taylor swift"',
+                                                   positional_args=['taylor swift'],
                                                    env_vars={},
                                                    on_behalf_user='stanley',
                                                    user='vagrant',
@@ -37,10 +37,11 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
                                                    parallel=True,
                                                    sudo=False,
                                                    timeout=60)
-        expected = '/tmp/remote_script.sh song=\'b s\' "taylor swift"'
+        expected = '/tmp/remote_script.sh song=\'b s\' \'taylor swift\''
         self.assertEqual(script_action.get_full_command_string(), expected)
 
         # Test with sudo
         script_action.sudo = True
-        ex = 'sudo -E -- bash -c \'/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' "taylor swift"\''
+        ex = 'sudo -E -- bash -c ' + \
+             '\'/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)

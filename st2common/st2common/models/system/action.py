@@ -206,7 +206,8 @@ class ShellScriptAction(ShellCommandAction):
 
         # add the positional args
         if positional_args:
-            command_parts.append(positional_args)
+            pos_args_string = ' '.join(map(quote_unix, positional_args))
+            command_parts.append(pos_args_string)
         return ' '.join(command_parts)
 
 

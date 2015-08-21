@@ -126,7 +126,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs['sudo'] = False
         kwargs['user'] = 'mauser'
         kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2'}
-        kwargs['positional_args'] = ''
+        kwargs['positional_args'] = []
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
         expected = 'sudo -E -u mauser -- bash -c \'/tmp/foo.sh key2=value2 key1=value1\''
@@ -137,7 +137,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs['sudo'] = False
         kwargs['user'] = LOGGED_USER_USERNAME
         kwargs['named_args'] = {}
-        kwargs['positional_args'] = 'ein zwei drei'
+        kwargs['positional_args'] = ['ein', 'zwei', 'drei']
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
         self.assertEqual(command, '/tmp/foo.sh ein zwei drei')
@@ -147,7 +147,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs['sudo'] = False
         kwargs['user'] = 'mauser'
         kwargs['named_args'] = {}
-        kwargs['positional_args'] = 'ein zwei drei'
+        kwargs['positional_args'] = ['ein', 'zwei', 'drei']
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
         expected = 'sudo -E -u mauser -- bash -c \'/tmp/foo.sh ein zwei drei\''
@@ -158,7 +158,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs['sudo'] = False
         kwargs['user'] = LOGGED_USER_USERNAME
         kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2'}
-        kwargs['positional_args'] = 'ein zwei drei'
+        kwargs['positional_args'] = ['ein', 'zwei', 'drei']
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
         self.assertEqual(command, '/tmp/foo.sh key2=value2 key1=value1 ein zwei drei')
@@ -168,7 +168,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         kwargs['sudo'] = False
         kwargs['user'] = 'mauser'
         kwargs['named_args'] = {'key1': 'value1', 'key2': 'value2'}
-        kwargs['positional_args'] = 'ein zwei drei'
+        kwargs['positional_args'] = ['ein', 'zwei', 'drei']
         action = ShellScriptAction(**kwargs)
         command = action.get_full_command_string()
         expected = ('sudo -E -u mauser -- bash -c \'/tmp/foo.sh key2=value2 '
