@@ -105,7 +105,9 @@ fi
 echo "Installing version ${VER}"
 
 # Determine which mistral version to use
-if version_ge $VER "0.9"; then
+if version_ge $VER "0.13"; then
+    MISTRAL_STABLE_BRANCH="st2-0.13.0"
+elif version_ge $VER "0.9"; then
     MISTRAL_STABLE_BRANCH="st2-0.9.0"
 elif version_ge $VER "0.8.1"; then
     MISTRAL_STABLE_BRANCH="st2-0.8.1"
@@ -400,7 +402,7 @@ setup_mistral() {
   . /opt/openstack/mistral/.venv/bin/activate
   pip install -q -r requirements.txt
   pip install -q psycopg2
-  python setup.py develop
+  python setup.py install
 
   # Setup plugins for actions.
   mkdir -p /etc/mistral/actions
@@ -411,7 +413,7 @@ setup_mistral() {
   cd /etc/mistral/actions
   git clone -b ${MISTRAL_STABLE_BRANCH} https://github.com/StackStorm/st2mistral.git
   cd /etc/mistral/actions/st2mistral
-  python setup.py develop
+  python setup.py install
 
   # Create configuration files.
   mkdir -p /etc/mistral
