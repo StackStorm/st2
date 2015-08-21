@@ -28,6 +28,7 @@ setup(
     author='StackStorm',
     author_email='info@stackstorm.com',
     install_requires=[
+        "ldap",
         "pecan",
     ],
     test_suite='st2auth',
