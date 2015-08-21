@@ -300,5 +300,6 @@ def get_resolver_for_permission_type(permission_type):
     :rtype: :class:`PermissionsResolver`
     """
     resource_type = PermissionType.get_resource_type(permission_type=permission_type)
-    resolver = get_resolver_for_resource_type(resource_type=resource_type)
-    return resolver
+    resolver_cls = get_resolver_for_resource_type(resource_type=resource_type)
+    resolver_instance = resolver_cls()
+    return resolver_instance

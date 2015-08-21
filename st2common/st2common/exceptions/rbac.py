@@ -44,7 +44,7 @@ class ResourceTypeAccessDeniedError(AccessDeniedError):
 
         message = ('User "%s" doesn\t have required permission "%s"' % (user_db.name,
                                                                         permission_type))
-        super(ResourceAccessDeniedError, self).__init__(message=message, user_db=user_db)
+        super(ResourceTypeAccessDeniedError, self).__init__(message=message, user_db=user_db)
 
 
 class ResourceAccessDeniedError(AccessDeniedError):
