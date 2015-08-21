@@ -101,6 +101,8 @@ pylint: requirements .pylint
 	done
 	# Lint Python pack management actions
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/pack_mgmt/ || exit 1;
+	# Lint other packs
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models contrib/linux || exit 1;
 	# Lint Python scripts
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models scripts/*.py || exit 1;
 
@@ -114,6 +116,7 @@ flake8: requirements .flake8
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS)
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 contrib/packs/actions/pack_mgmt/
+	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 contrib/linux
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 scripts/
 
 .PHONY: lint
@@ -302,7 +305,16 @@ mistral-itests: requirements .mistral-itests
 	@echo "==================== MISTRAL integration tests ===================="
 	@echo "The tests assume both st2 and mistral are running on localhost."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration/mistral || exit 1;
+
+.PHONY: .mistral-itests-coverage-html
+.mistral-itests-coverage-html:
+	@echo
+	@echo "==================== MISTRAL integration tests with coverage (HTML reports) ===================="
+	@echo "The tests assume both st2 and mistral are running on localhost."
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v --with-coverage \
+		--cover-inclusive --cover-html st2tests/integration/mistral || exit 1;
 
 .PHONY: rpms
 rpms:

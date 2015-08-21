@@ -53,10 +53,13 @@ and WebUI url:
 .. toctree::
     :maxdepth: 1
 
+    Installer <all_in_one>
     Ubuntu / Debian <deb>
     RedHat / Fedora <rpm>
     Vagrant <vagrant>
     Docker <docker>
+    Puppet <puppet>
+    Ansible <ansible>
     sources
     config
     webui

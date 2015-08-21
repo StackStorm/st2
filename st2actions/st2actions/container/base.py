@@ -121,7 +121,7 @@ class RunnerContainer(object):
             # mark execution as failed.
             status = action_constants.LIVEACTION_STATUS_FAILED
             # include the error message and traceback to try and provide some hints.
-            result = {'message': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
+            result = {'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
             context = None
         finally:
             # Log action completion
@@ -129,10 +129,17 @@ class RunnerContainer(object):
             LOG.debug('Action "%s" completed.' % (action_db.name), extra=extra)
 
             # Always clean-up the auth_token
-            updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
-                                                                result, context)
-            executions.update_execution(updated_liveaction_db)
+            try:
+                LOG.debug('Setting status: %s for liveaction: %s', status, liveaction_db.id)
+                updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
+                                                                    result, context)
+            except:
+                error = 'Cannot update LiveAction object for id: %s, status: %s, result: %s.' % (
+                    liveaction_db.id, status, result)
+                LOG.exception(error)
+                raise
 
+            executions.update_execution(updated_liveaction_db)
             extra = {'liveaction_db': updated_liveaction_db}
             LOG.debug('Updated liveaction after run', extra=extra)
 

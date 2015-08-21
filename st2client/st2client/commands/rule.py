@@ -30,6 +30,9 @@ class RuleBranch(resource.ResourceBranch):
                 'delete': RuleDeleteCommand
             })
 
+        self.commands['enable'] = RuleEnableCommand(self.resource, self.app, self.subparsers)
+        self.commands['disable'] = RuleDisableCommand(self.resource, self.app, self.subparsers)
+
 
 class RuleListCommand(resource.ContentPackResourceListCommand):
     display_attributes = ['ref', 'pack', 'name', 'description']
@@ -43,6 +46,18 @@ class RuleGetCommand(resource.ContentPackResourceGetCommand):
 
 class RuleUpdateCommand(resource.ContentPackResourceUpdateCommand):
     pass
+
+
+class RuleEnableCommand(resource.ContentPackResourceEnableCommand):
+    display_attributes = ['all']
+    attribute_display_order = ['id', 'ref', 'pack', 'name', 'enabled', 'description',
+                               'enabled']
+
+
+class RuleDisableCommand(resource.ContentPackResourceDisableCommand):
+    display_attributes = ['all']
+    attribute_display_order = ['id', 'ref', 'pack', 'name', 'enabled', 'description',
+                               'enabled']
 
 
 class RuleDeleteCommand(resource.ContentPackResourceDeleteCommand):

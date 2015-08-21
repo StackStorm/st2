@@ -18,9 +18,9 @@ SUBJECT=$1
 shift
 SEND_EMPTY_BODY=$1
 shift
-CONTENT_TYPE=$1
-shift
 BODY="$@"
+shift
+CONTENT_TYPE=$1
 
 if [[ "${CONTENT_TYPE}" = "text/html" ]]; then
   LINE_BREAK="<br><br>"

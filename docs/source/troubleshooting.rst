@@ -115,6 +115,41 @@ start after running the command, this usually means a configuration error
 that is to look into the action runner service logs -
 ``/var/log/st2/logs/st2actionrunner.*.log``.
 
+Running Self-Verification
+-------------------------
+
+|st2| package-based installations come with a script, that allows to verify |st2| installation, using |st2| itself.
+Currently script covers the following aspects of |st2|:
+
+* Basic ``st2`` commands (similar to the commands outlined in *Manual Verification* section)
+* Examples pack installation
+* Commands described in Quick Start
+* Packs pack actions
+* ActionChain and Mistral Workflows
+
+To run the self-verification:
+
+1. Switch to `root` user and save an authentication token into `ST2_AUTH_TOKEN` variable:
+
+.. code-block:: bash
+
+    sudo su
+    export ST2_AUTH_TOKEN=`st2 auth testu -p testp -t`
+
+2. Run ``st2-self-check`` script:
+
+On Ubuntu / Debian:
+
+.. code-block:: bash
+
+    /usr/lib/python2.7/dist-packages/st2common/bin/st2-self-check
+
+On RedHat / Fedora:
+
+.. code-block:: bash
+
+    /usr/lib/python2.7/site-packages/st2common/bin/st2-self-check
+
 Submitting debugging information to StackStorm
 ----------------------------------------------
 
@@ -197,38 +232,30 @@ and uploaded to StackStorm.
     2015-02-10 17:43:49,770  INFO - Creating tarball...
     2015-02-10 17:43:49,912  INFO - Debug tarball successfully generated and can be reviewed at: /tmp/st2-debug-output-vagrant-ubuntu-trusty-64-2015-02-10-17:43:49.tar.gz
 
+Ask for help!
+--------------
 
-Running Self-Verification
--------------------------
+We stand behind |st2| and make the best effort to support you. Ask for support on any of the following channels:
 
-|st2| package-based installations come with a script, that allows to verify |st2| installation, using |st2| itself. 
-Currently script covers the following aspects of |st2|:
+* `Slack <https://stackstorm-community.slack.com>`_:  If you're not slacker yet, good excuse to become one! Slack allows you to search in archives. This is great if you want to know if someone else had an issue that you are facing! Come hang out. Register `here <https://stackstorm.typeform.com/to/K76GRP/>`_.
 
-* Basic ``st2`` commands (similar to the commands outlined in *Manual Verification* section)
-* Examples pack installation
-* Commands described in Quick Start
-* Packs pack actions
-* ActionChain and Mistral Workflows
+* `IRC <http://webchat.freenode.net/?channels=stackstorm/>`_: We can all get our geek fix!
 
-To run the self-verification:
+* `Email support <support@stackstorm.com/>`_ and we'll get back to you!
 
-1. Switch to `root` user and save an authentication token into `ST2_AUTH_TOKEN` variable:
+Please have the following list ready so we can help you faster!
 
-.. code-block:: bash
+1. st2 version. (``st2 --version``)
+2. st2client version. (``pip show st2client``)
+3. OS version. (Cent OS 7. ``uname -a``)
+4. Python version. (``python --version``)
+5. A brief description of the problem.
+6. Any relevant logs you have collected. [Please use `Pastebin <http://pastebin.com/>`_  or `github gists <http://gist.github.com/>`_.]
 
-    sudo su
-    export ST2_AUTH_TOKEN=`st2 auth testu -p testp -t`
-    
-2. Run ``st2-self-check`` script:
+You may also use ``st2-submit-debug-info`` tool (See `Submitting debugging information to StackStorm`_).
 
-On Ubuntu / Debian:
+If you are sure there is a st2 bug after your research, file an `issue
+<https://github.com/StackStorm/st2/issues/>`_ in st2 repo.
 
-.. code-block:: bash
-
-    /usr/lib/python2.7/dist-packages/st2common/bin/st2-self-check
-    
-On RedHat / Fedora:
-
-.. code-block:: bash
-
-    /usr/lib/python2.7/site-packages/st2common/bin/st2-self-check
+A good bug report should contain all the items listed above. You can also provide steps to
+reproduce the bug on our end. More information you provide us, faster we can resolve your issue!

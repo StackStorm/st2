@@ -64,6 +64,9 @@ To execute an action manually, you can use ``st2 run <action with parameters>`` 
    # Obtain execution results (the command below is provided as a tip in the output of the above command):
    st2 execution get 54fc83b9e11c711106a7ae01
 
+   # If you want to add a trace tag to execution when you run it, you can use:
+   st2 run core.local cmd=date --trace-tag="simple-date-check-`date +%s`"
+
 Action Runner
 ^^^^^^^^^^^^^
 

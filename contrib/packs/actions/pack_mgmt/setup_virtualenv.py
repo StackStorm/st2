@@ -15,6 +15,7 @@
 
 import os
 import re
+import shutil
 
 from oslo_config import cfg
 
@@ -83,6 +84,9 @@ class SetupVirtualEnvironmentAction(Action):
         if not os.path.exists(self._base_virtualenvs_path):
             os.makedirs(self._base_virtualenvs_path)
 
+        # 0. Delete virtual environment if it exists
+        self._remove_virtualenv(virtualenv_path=virtualenv_path)
+
         # 1. Create virtual environment
         self.logger.debug('Creating virtualenv for pack "%s" in "%s"' %
                           (pack_name, virtualenv_path))
@@ -124,6 +128,20 @@ class SetupVirtualEnvironmentAction(Action):
             raise Exception('Failed to create virtualenv in "%s": %s' %
                             (virtualenv_path, stderr))
 
+        return True
+
+    def _remove_virtualenv(self, virtualenv_path):
+        if not os.path.exists(virtualenv_path):
+            self.logger.info('Virtualenv path "%s" doesn\'t exist' % virtualenv_path)
+            return True
+
+        self.logger.debug('Removing virtualenv in "%s"' % virtualenv_path)
+        try:
+            shutil.rmtree(virtualenv_path)
+        except Exception as error:
+            self.logger.error('Error while removing virtualenv at "%s": "%s"' %
+                              (virtualenv_path, error))
+            raise
         return True
 
     def _install_requirements(self, virtualenv_path, requirements_file_path):

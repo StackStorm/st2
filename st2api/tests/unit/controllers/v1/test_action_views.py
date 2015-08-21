@@ -25,7 +25,7 @@ ACTION_1 = {
     'description': 'test description',
     'enabled': True,
     'pack': 'wolfpack',
-    'entry_point': '/tmp/test/action1.sh',
+    'entry_point': 'test/action1.sh',
     'runner_type': 'local-shell-script',
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
@@ -39,7 +39,7 @@ ACTION_2 = {
     'description': 'test description',
     'enabled': True,
     'pack': 'wolfpack',
-    'entry_point': '/tmp/test/action2.py',
+    'entry_point': 'test/action2.py',
     'runner_type': 'local-shell-script',
     'parameters': {
         'c': {'type': 'string', 'default': 'C1', 'position': 0},

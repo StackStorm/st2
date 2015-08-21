@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """
-This module contains common service setup code.
+This module contains common service setup and teardown code.
 """
 
 from __future__ import absolute_import
@@ -28,7 +28,7 @@ from st2common import log as logging
 from st2common.models import db
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.logging.misc import set_log_level_for_all_loggers
-from st2common.transport.utils import register_exchanges
+from st2common.transport.bootstrap_utils import register_exchanges
 from st2common.signal_handlers import register_common_signal_handlers
 
 __all__ = [

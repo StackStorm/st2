@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
-
 from st2common import transport
 from st2common.models.db.executionstate import actionexecstate_access
 from st2common.persistence import base as persistence
+from st2common.transport import utils as transport_utils
 
 
 class ActionExecutionState(persistence.Access):
@@ -32,5 +31,5 @@ class ActionExecutionState(persistence.Access):
     def _get_publisher(cls):
         if not cls.publisher:
             cls.publisher = transport.actionexecutionstate.ActionExecutionStatePublisher(
-                cfg.CONF.messaging.url)
+                urls=transport_utils.get_messaging_urls())
         return cls.publisher

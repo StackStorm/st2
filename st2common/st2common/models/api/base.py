@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 import abc
 import copy
 import functools
@@ -171,7 +172,20 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                 pecan.response.status = status_code
                 return json_encode(None)
 
-            result = f(*args, **kwargs)
+            try:
+                result = f(*args, **kwargs)
+            except TypeError as e:
+                message = str(e)
+                # Invalid number of arguments passed to the function meaning invalid path was
+                # requested
+                # Note: The check is hacky, but it works for now.
+                func_name = f.__name__
+                pattern = '%s\(\) takes exactly \d+ arguments \(\d+ given\)' % (func_name)
+
+                if re.search(pattern, message):
+                    raise exc.HTTPNotFound()
+                else:
+                    raise e
 
             if status_code:
                 pecan.response.status = status_code

@@ -132,6 +132,8 @@ class ActionBranch(resource.ResourceBranch):
             })
 
         # Registers extended commands
+        self.commands['enable'] = ActionEnableCommand(self.resource, self.app, self.subparsers)
+        self.commands['disable'] = ActionDisableCommand(self.resource, self.app, self.subparsers)
         self.commands['execute'] = ActionRunCommand(
             self.resource, self.app, self.subparsers,
             add_help=False)
@@ -150,6 +152,20 @@ class ActionGetCommand(resource.ContentPackResourceGetCommand):
 
 class ActionUpdateCommand(resource.ContentPackResourceUpdateCommand):
     pass
+
+
+class ActionEnableCommand(resource.ContentPackResourceEnableCommand):
+    display_attributes = ['all']
+    attribute_display_order = ['id', 'ref', 'pack', 'name', 'description',
+                               'enabled', 'entry_point', 'runner_type',
+                               'parameters']
+
+
+class ActionDisableCommand(resource.ContentPackResourceDisableCommand):
+    display_attributes = ['all']
+    attribute_display_order = ['id', 'ref', 'pack', 'name', 'description',
+                               'enabled', 'entry_point', 'runner_type',
+                               'parameters']
 
 
 class ActionDeleteCommand(resource.ContentPackResourceDeleteCommand):
@@ -299,12 +315,14 @@ class ActionRunCommandMixin(object):
                 # Top-level error
                 instance.error = top_level_error
                 instance.traceback = top_level_traceback
+                instance.result = 'See error and traceback.'
                 options['attributes'].insert(status_index + 1, 'error')
                 options['attributes'].insert(status_index + 2, 'traceback')
             elif task_error:
                 # Task error
                 instance.error = task_error
                 instance.traceback = task_traceback
+                instance.result = 'See error and traceback.'
                 instance.failed_on = tasks[-1].get('name', 'unknown')
                 options['attributes'].insert(status_index + 1, 'error')
                 options['attributes'].insert(status_index + 2, 'traceback')
@@ -339,9 +357,6 @@ class ActionRunCommandMixin(object):
 
             if execution.status == 'LIVEACTION_STATUS_CANCELED':
                 return execution
-
-            if self._is_error_result(result=execution.result):
-                execution.result = self._format_error_result(execution.result)
 
         return execution
 
@@ -382,22 +397,6 @@ class ActionRunCommandMixin(object):
             traceback = None
 
         return error, traceback
-
-    def _is_error_result(self, result):
-        if not isinstance(result, dict):
-            return False
-
-        if 'message' not in result:
-            return False
-
-        if 'traceback' not in result:
-            return False
-
-        return True
-
-    def _format_error_result(self, result):
-        result = 'Message: %s\nTraceback: %s' % (result['message'], result['traceback'])
-        return result
 
     def _get_action_parameters_from_args(self, action, runner, args):
         """
@@ -740,6 +739,12 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         self._add_common_options()
 
         if self.name in ['run', 'execute']:
+            self.parser.add_argument('--trace-tag', '--trace_tag',
+                                     help='A trace tag string to track execution later.',
+                                     dest='trace_tag', required=False)
+            self.parser.add_argument('--trace-id',
+                                     help='Existing trace id for this execution.',
+                                     dest='trace_id', required=False)
             self.parser.add_argument('-a', '--async',
                                      action='store_true', dest='async',
                                      help='Do not wait for action to finish.')
@@ -778,6 +783,12 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         execution = models.LiveAction()
         execution.action = action_ref
         execution.parameters = action_parameters
+
+        if not args.trace_id and args.trace_tag:
+            execution.context = {'trace_context': {'trace_tag': args.trace_tag}}
+
+        if args.trace_id:
+            execution.context = {'trace_context': {'id_': args.trace_id}}
 
         action_exec_mgr = self.app.client.managers['LiveAction']
 

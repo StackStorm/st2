@@ -37,6 +37,9 @@ class SensorTypeAPI(BaseAPI):
             'description': {
                 'type': 'string'
             },
+            'enabled': {
+                'type': 'boolean',
+            },
             'artifact_uri': {
                 'type': 'string',
             },

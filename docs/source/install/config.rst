@@ -38,6 +38,21 @@ In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following se
 
 .. note:: The #RMQ_VHOST property is optional and can be left blank.
 
+StackStorm also supports RabbitMQ cluster.
+
+In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following section :
+
+.. code-block:: bash
+
+    [messaging]
+    cluster_urls = <amqp://#RMQ_USER:#RMQ_PASSWD@#RMQ_NODE_1:#RMQ_PORT/#RMQ_VHOST>,
+                   <amqp://#RMQ_USER:#RMQ_PASSWD@#RMQ_NODE_2:#RMQ_PORT/#RMQ_VHOST>,
+                   <amqp://#RMQ_USER:#RMQ_PASSWD@#RMQ_NODE_3:#RMQ_PORT/#RMQ_VHOST>
+
+
+* To understand more about setting up a RabbitMQ cluster - https://www.rabbitmq.com/clustering.html
+* RabbitMQ HA guide - https://www.rabbitmq.com/ha.html
+
 SUDO Access
 -----------
 
@@ -106,6 +121,19 @@ SSH Troubleshooting
 
         sudo ssh -i /home/stanley/.ssh/stanley_rsa -t stanley@host.example.com uname -a
 
+Using SSH config
+~~~~~~~~~~~~~~~~
+
+StackStorm allows loading of the SSH config file local to the system user. This is a configurable option and to
+enable add following to ``/etc/st2/st2.conf``
+
+.. code-block:: bash
+
+    [ssh_runner]
+    use_ssh_config = True
+    ...
+
+
 Configure Logging
 -----------------
 
@@ -145,6 +173,50 @@ By default, the logs can be found in ``/var/log/st2``.
   audit at :github_contrib:`st2contrib/extra/logstash <extra/logstash>`
 
   logrotate log rotation
+
+Configure Mistral
+-----------------
+There are a number of configurable options available under the mistral section in ``/etc/st2/st2.conf``. If the mistral section is not provided, default values will be used. By default, all Keystone related options are unset and |st2| will not pass any credential for authentication to Mistral. Please refer to OpenStack and Mistral documentation for Keystone setup.
+
++-----------------------+--------------------------------------------------------+
+| options               | description                                            |
++=======================+========================================================+
+| v2_base_url           | Mistral API v2 root endpoint                           |
++-----------------------+--------------------------------------------------------+
+| max_attempts          | Max attempts to reconnect on connection error.         |
++-----------------------+--------------------------------------------------------+
+| retry_wait            | Number of seconds to wait inbetween reconnection.      |
++-----------------------+--------------------------------------------------------+
+| keystone_username     | Username for authentication with OpenStack Keystone.   |
++-----------------------+--------------------------------------------------------+
+| keystone_password     | Password for authentication with OpenStack Keystone.   |
++-----------------------+--------------------------------------------------------+
+| keystone_project_name | OpenStack project scope.                               |
++-----------------------+--------------------------------------------------------+
+| keystone_auth_url     | v3 Auth URL for OpenStack Keystone.                    |
++-----------------------+--------------------------------------------------------+
+
+::
+
+    # Example with basic options.
+
+    [mistral]
+    v2_base_url = http://workflow.example.com:8989/v2
+    max_attempts = 180
+    retry_wait = 5
+
+::
+
+    # Example with auth options.
+
+    [mistral]
+    v2_base_url = http://workflow.example.com:8989/v2
+    max_attempts = 180
+    retry_wait = 5
+    keystone_username = mistral
+    keystone_password = pass123
+    keystone_project_name = default
+    keystone_auht_url = http://identity.example.com:5000/v3
 
 Authentication
 --------------

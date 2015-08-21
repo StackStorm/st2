@@ -29,7 +29,8 @@ FIXTURES_1 = {
     'runners': ['testrunner1.yaml', 'testrunner2.yaml'],
     'actions': ['action1.yaml', 'a2.yaml'],
     'triggertypes': ['triggertype1.yaml'],
-    'triggers': ['trigger1.yaml']
+    'triggers': ['trigger1.yaml'],
+    'traces': ['trace_for_test_enforce.yaml']
 }
 FIXTURES_2 = {
     'rules': ['rule1.yaml', 'rule2.yaml']

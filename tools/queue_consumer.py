@@ -24,9 +24,9 @@ from pprint import pprint
 
 from kombu.mixins import ConsumerMixin
 from kombu import Connection, Exchange, Queue
-from oslo_config import cfg
 
 from st2common import config
+from st2common.transport import utils as transport_utils
 
 
 class QueueConsumer(ConsumerMixin):
@@ -58,7 +58,7 @@ def main(queue, exchange, routing_key='#'):
     queue = Queue(name=queue, exchange=exchange, routing_key=routing_key,
                   auto_delete=True)
 
-    with Connection(cfg.CONF.messaging.url) as connection:
+    with Connection(transport_utils.get_messaging_urls()) as connection:
         watcher = QueueConsumer(connection=connection, queue=queue)
         watcher.run()
 

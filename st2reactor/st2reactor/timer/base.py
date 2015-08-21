@@ -23,6 +23,7 @@ import jsonschema
 
 from st2common import log as logging
 from st2common.constants.triggers import TIMER_TRIGGER_TYPES
+from st2common.models.api.trace import TraceContext
 import st2common.services.triggers as trigger_services
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
@@ -109,6 +110,7 @@ class St2Timer(object):
                         trigger['parameters'], time_type.run_date)
         else:
             self._add_job(trigger, time_type)
+        return time_type
 
     def _add_job(self, trigger, time_type, replace=True):
         try:
@@ -130,7 +132,14 @@ class St2Timer(object):
             'executed_at': str(utc_now),
             'schedule': trigger['parameters'].get('time')
         }
-        self._trigger_dispatcher.dispatch(trigger, payload)
+        trace_context = TraceContext(trace_tag='%s-%s' % (self._get_trigger_type_name(trigger),
+                                                          trigger.name))
+        self._trigger_dispatcher.dispatch(trigger, payload, trace_context=trace_context)
+
+    def _get_trigger_type_name(self, trigger):
+        trigger_type_ref = trigger['type']
+        trigger_type = TIMER_TRIGGER_TYPES[trigger_type_ref]
+        return trigger_type['name']
 
     def _register_timer_trigger_types(self):
         return trigger_services.add_trigger_models(TIMER_TRIGGER_TYPES.values())

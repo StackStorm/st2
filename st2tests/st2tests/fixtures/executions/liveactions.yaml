@@ -1,6 +1,6 @@
 ---
 task1:
-  action: core.local
+  action: executions.local
   callback: {}
   context:
     user: system
@@ -20,7 +20,7 @@ task1:
   start_timestamp: '2014-09-01T00:00:02.000000Z'
   status: succeeded
 task2:
-  action: core.local
+  action: executions.local
   callback: {}
   context:
     user: system
@@ -40,7 +40,7 @@ task2:
   start_timestamp: '2014-09-01T00:00:03.000000Z'
   status: succeeded
 workflow:
-  action: core.chain
+  action: executions.chain
   callback: {}
   context:
     user: system
