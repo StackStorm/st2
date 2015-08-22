@@ -9,7 +9,7 @@ allow the Action author to concentrate only on the implementation of the
 action itself rather than setting up the environment.
 
 Exit Codes
-~~~~~~~~~~
+----------
 Normally an exit code of a runner is defined by an exit code of a script or a command they execute. All runners return timeout exit code (-9) in case when a command or a script did not complete its execution within specified timeout.
 
 Local command runner (local-shell-cmd)
@@ -19,7 +19,7 @@ This is the local runner. This runner executes a Linux command on the same host
 where |st2| components are running.
 
 Runner parameters
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 .. include:: _includes/runner_parameters/local_shell_cmd.rst
 
@@ -30,7 +30,7 @@ This is the local runner. Actions are implemented as scripts. They are executed
 on the same hosts where |st2| components are running.
 
 Runner parameters
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 .. include:: _includes/runner_parameters/local_shell_script.rst
 
@@ -41,7 +41,7 @@ This is a remote runner. This runner executes a Linux command on one or more
 remote hosts provided by the user.
 
 Runner parameters
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 .. include:: _includes/runner_parameters/remote_shell_cmd.rst
 
@@ -52,17 +52,16 @@ This is a remote runner. Actions are implemented as scripts. They run on one or
 more remote hosts provided by the user.
 
 Runner parameters
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 .. include:: _includes/runner_parameters/remote_shell_script.rst
 
 .. note::
 
-    Remote script runner and remote command runner uses fabric to remote to boxes.
-    Fabric turned out to be really buggy in eventlet environment and therefore a
-    Paramiko SSH runner with eventlets is now in place. This is not enabled by default as
-    it is in experimental stage. If you want to use this runner instead, set
-    ``use_paramiko_ssh_runner = True`` in ``ssh_runner`` section in /etc/st2/st2.conf.
+    Until v0.13 remote script runner and remote command runner used Fabric to remote to boxes.
+    In 0.13 Fabric is replaced with Paramiko with eventlets.
+    If for some reason you need to use old Fabric based
+    implementation instead, set ``use_paramiko_ssh_runner = False`` in ``[ssh_runner]`` section in ``/etc/st2/st2.conf``.
 
 Windows command runner (windows-cmd)
 ------------------------------------
@@ -74,7 +73,7 @@ For more information on enabling and setting up the Windows runner, please see
 the following section - :doc:`./install/windows_runners`.
 
 Runner parameters
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 .. include:: _includes/runner_parameters/windows_cmd.rst
 
@@ -87,7 +86,7 @@ For more information on enabling and setting up the Windows runner, please see
 the following section - :doc:`./install/windows_runners`.
 
 Runner parameters
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 .. include:: _includes/runner_parameters/windows_script.rst
 
@@ -97,7 +96,7 @@ HTTP runner (http-request)
 HTTP runner works by performing HTTP request to the provided URL.
 
 Runner parameters
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 .. include:: _includes/runner_parameters/http_request.rst
 
@@ -121,7 +120,7 @@ This is a Python runner. Actions are implemented as Python classes with a
 running.
 
 Runner parameters
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 .. include:: _includes/runner_parameters/python_script.rst
 
@@ -133,7 +132,7 @@ executing complex work-flows. For more information, please refer to the
 :doc:`Workflows </workflows>` and :doc:`Mistral </mistral>` section of documentation.
 
 Runner parameters
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 .. include:: _includes/runner_parameters/mistral_v2.rst
 
@@ -148,7 +147,7 @@ Note: This runner is currently in an experimental phase which means that there
 might be bugs and the external user facing API might change.
 
 Runner parameters
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 .. include:: _includes/runner_parameters/cloudslang.rst
 

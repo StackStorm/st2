@@ -1,6 +1,11 @@
 Docker
 ======
 
+.. TODO:: @jfryman Add a DEPRECATED node here
+
+.. warning::
+   st2express is deprecated. Use on your risk. A new and better Docker and instructions are coming soon.
+
 st2express repository contains a Dockerfile which allows you to easily and
 quickly run all the |st2| components inside a single docker container.
 
@@ -34,7 +39,7 @@ Distributed Containers
 
 Each of the components are available via the Docker Hub. Take a look at https://registry.hub.docker.com/repos/stackstorm/
 
-Fetch the following images: 
+Fetch the following images:
 
 ::
 
