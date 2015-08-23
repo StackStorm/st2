@@ -39,7 +39,7 @@ http://hostname:8080/.
 
 Authenticate
 ----------------
-If :doc:`authentication </authentication>` enabled, obtain authentication token with ``st2 auth <username>``,
+If :doc:`authentication </config/authentication>` enabled, obtain authentication token with ``st2 auth <username>``,
 and supply it with each command using ``--token`` parameter. For convenience,
 keep credentials in CLI config file, or put it to environment variable ``ST2_AUTH_TOKEN``.
 :ref:`Details here <authentication-usage>`, a nice shortcut for now is:

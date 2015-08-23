@@ -75,5 +75,5 @@ Complete instructions coming soon, along with updated packages. Meantime, read a
 Configuration
 ^^^^^^^^^^^^^
 
-See  :doc:`/install/config` for more information on setting up SSH access for a user.
+See  :doc:`/config/config` for more information on setting up SSH access for a user.
 
