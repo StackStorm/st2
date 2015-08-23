@@ -19,9 +19,10 @@ import itertools
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../st2common'))
+sys.path.insert(0, os.path.abspath('../../st2common'))
 sys.path.insert(0, os.path.abspath('./_themes'))
 
+print sys.path
 from st2common import __version__
 
 # -- General configuration ------------------------------------------------
@@ -151,6 +152,10 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 # keep_warnings = False
 
+# If true, Sphinx will warn about all references where the target cannot be
+# found. Default is False. You can activate this mode temporarily using the
+# -n command-line switch.
+nitpicky = True
 
 # -- Options for HTML output ----------------------------------------------
 
