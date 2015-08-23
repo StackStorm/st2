@@ -21,6 +21,7 @@ Contents:
     sensors
     aliases
     webhooks
+    policies
     datastore
     cli
     resources/index
