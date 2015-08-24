@@ -22,7 +22,6 @@ import itertools
 sys.path.insert(0, os.path.abspath('../../st2common'))
 sys.path.insert(0, os.path.abspath('./_themes'))
 
-print sys.path
 from st2common import __version__
 
 # -- General configuration ------------------------------------------------
@@ -156,6 +155,11 @@ pygments_style = 'sphinx'
 # found. Default is False. You can activate this mode temporarily using the
 # -n command-line switch.
 nitpicky = True
+
+# XXX: temp fix before we figure how to make autodocs work
+nitpick_ignore = [
+    ('py:class', 'st2actions.runners.pythonrunner.Action'),
+    ('py:class', 'KeyValuePair')]
 
 # -- Options for HTML output ----------------------------------------------
 
