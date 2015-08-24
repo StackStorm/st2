@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+0.13.0 - August 24, 2015
+------------------------
+
 * Add new OpenStack Keystone authentication backend.
   [Itxaka Serrano]
 * Information about parent workflow is now a dict in child's context field. (improvement)
