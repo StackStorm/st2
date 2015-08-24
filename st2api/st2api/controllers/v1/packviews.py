@@ -115,8 +115,10 @@ class FileController(BaseFileController):
             # Ignore references to files which don't exist on disk
             raise StackStormDBObjectNotFoundError('File "%s" not found' % (file_path))
 
+        content_type = mimetypes.guess_type(normalized_file_path)[0] or 'application/octet-stream'
+
         response.headers['Cache-Control'] = 'public, max-age=86400'
-        response.headers['Content-Type'] = mimetypes.guess_type(normalized_file_path)[0]
+        response.headers['Content-Type'] = content_type
         response.body = self._get_file_content(file_path=normalized_file_path)
         return response
 
