@@ -14,12 +14,20 @@
 
 import sys
 import os
+import glob
 import itertools
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '../../'))
+
+# Include Python modules for all the st2components
+st2_components_paths = glob.glob(ROOT_DIR + '/st2*')
+for module_path in st2_components_paths:
+    sys.path.append(module_path)
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../../st2common'))
 sys.path.insert(0, os.path.abspath('./_themes'))
 
 from st2common import __version__
@@ -34,6 +42,8 @@ from st2common import __version__
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.viewcode',
     'sphinx.ext.todo',
     'sphinx.ext.extlinks',
 
@@ -120,7 +130,7 @@ todo_include_todos = True
 exclude_patterns = [
     '**/._*',
     'engage.rst',  # included file
-    'install/on_complete.rst', # included file
+    'install/on_complete.rst',  # included file
     'auth_usage.rst',
     'todo.rst',  # included file,
     '_includes/*',  # includes files
@@ -301,3 +311,8 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 # texinfo_no_detailmenu = False
+
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {'http://docs.python.org/': None}
+
+autoclass_content = 'both'
