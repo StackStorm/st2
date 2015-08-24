@@ -3,11 +3,12 @@
 # Constants
 read -r -d '' WARNING_MSG << EOM
 ######################################################################
-######                       WARNING                           #######
+######                       DISCLAIMER                        #######
 ######################################################################
 
-This scripts allows you to evaluate StackStorm on a single server and
-is not intended to be used for production deployments.
+This scripts installs StackStorm on a single server. Check the docs
+for multi-server deployemnt, hardening security, and other aspects of
+running StackStorm in production.
 
 For more information, see http://docs.stackstorm.com/install/index.html
 EOM
