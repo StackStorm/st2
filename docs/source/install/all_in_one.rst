@@ -2,7 +2,7 @@ All-in-one Installer
 ====================
 |st2| provides an all-in-one installer aimed at assisting users with the initial setup and configuration. The installer comes pre-bundled in a number of different provisioning options for convenience, or can also be manually deployed and installed manually on a server.
 
-.. warning:: This new brigh all-in-one installer is soon going to become the main one. It provides production-level functionality, graphical setup, and based on more reliable architecture. But warn you, it is in BETA. Please give it a try, report bugs and ask for improvements. If you prefer stability, use st2_deploy from the :doc:`/install/index` doc.
+.. warning:: This new and shiny all-in-one installer is soon going to become default. It provides production-level functionality, graphical setup, and based on more reliable architecture. But warn you, it is in BETA. Please give it a try, report bugs and ask for improvements. If you prefer stability, use st2_deploy from the :doc:`/install/index` doc.
 
 While in beta, OS support will start at our most commonly used platforms and be added before final release. At present, supported platforms are:
 
