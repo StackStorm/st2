@@ -34,11 +34,28 @@ Permission grant
 ~~~~~~~~~~~~~~~~
 
 Permission grant grants a particular permission (permission type) to a particular resource. For
-example, you could grant an execute permission (``action_execute``) to an action ``core.local``.
+example, you could grant an execute / run permission (``action_execute``) to an action
+``core.local``.
+
+In general, there are five permission types available for each supported resource type:
+
+* ``view`` - Ability to view a specific resource or ability to list all the
+  resources of a specific type.
+* ``create`` - Ability to create a new resource.
+* ``modify`` - Ability to modify (update) an existing resource.
+* ``delete`` - Ability to delete a specific resource.
+* ``all`` - Ability to perform all the supported operations on a specific resource. For example,
+  if you grant ``action_all`` on a particular action this implies the following permissions:
+  ``action_view``, ``action_create``, ``action_modify``, ``action_delete`` and ``action_execute``.
+
+In addition to that, there is also a special ``execute`` (``action_execute``) permission type
+available for actions. This permission allows users to execute (run) a particular action.
 
 The table below contains a list of all the available permission types.
 
 .. include:: _includes/available_permission_types.rst
+
+This list can also be retrieved using the RBAC meta API (``GET /v1.0/rbac/permission_types``).
 
 Resource
 ~~~~~~~~
@@ -47,10 +64,10 @@ In the context of RBAC, resource refers to the resource to which the permission 
 Currently permission grants can be applied to the following resource types:
 
 * pack
-* execution
-* action
 * sensor
+* action
 * rule
+* execution
 
 Resource is identified by and you refer to it in the permission grants using ``uid``. UID is a
 identifier which is unique for each resource in the StackStorm installation. UIDs follow this
@@ -97,9 +114,9 @@ Permission inheritance
 ~~~~~~~~~~~~~~~~~~~~~~
 
 By default all the pack resources inherit all the permission from a pack. This means that if you
-grant "execute" permission to a pack, user will be able to execute all the actions inside that
-pack. Similarly, if you grant "delete" permission to a pack, user will be able to delete all the
-resources in a pack (action, rule).
+grant ``action_execute`` permission to a pack, user will be able to execute all the actions inside
+that pack. Similarly, if you grant ``rule_delete`` permission to a pack, user will be able to
+create new rules in that pack.
 
 Defining roles and user role assignments
 ----------------------------------------
