@@ -1,9 +1,4 @@
-Configuration
-==============
 
-.. note:: If you are using the "all in one" :doc:`/install/index`, all configurations are already setup.
-
-|st2| configuration file is at :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>`
 
 Configure MongoDB
 -----------------
@@ -218,22 +213,8 @@ There are a number of configurable options available under the mistral section i
     keystone_project_name = default
     keystone_auht_url = http://identity.example.com:5000/v3
 
-Authentication
---------------
-Please refer to the main :doc:`/../authentication` section.
 
-Sample configuration file
--------------------------
 
-A sample config file with all the configuration options can be found at :github_st2:`st2.conf.sample <conf/st2.conf.sample>`.
 
-Serve WebUI files from the API server
--------------------------------------
 
-By default, static WebUI files are served by python SimpleHTTPServer. This means you can
-access the web interface by going to ``http://<api host>:8080/``.
 
-For production deployments, we encourage you use nginx, Apache or a similar
-dedicated web server to serve those static files.
-
-.. include:: /engage.rst

@@ -553,8 +553,7 @@ To see other available predefined actions, run the command below.
 
     st2 action list --pack=core
 
-Community contributed actions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. rubric:: What's Next?
 
-More packs and actions contributed by the |st2| developers and
-community can be found in the `StackStorm contrib repo on Github <https://github.com/StackStorm/st2contrib/>`_.
+* Explore packs and actions contributed by |st2| developers and community in the `StackStorm st2contrib repo on Github <https://github.com/StackStorm/st2contrib/>`_.
+* Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - on creating actions, and other practical examples of automating with StackStorm.

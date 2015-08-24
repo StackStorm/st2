@@ -550,7 +550,12 @@ class AliasExecutionAPI(BaseAPI):
             "notification_channel": {
                 "type": "string",
                 "description": "StackStorm notification channel to use to respond.",
-                "required": True
+                "required": False
+            },
+            "notification_route": {
+                "type": "string",
+                "description": "StackStorm notification route to use to respond.",
+                "required": False
             }
         },
         "additionalProperties": False

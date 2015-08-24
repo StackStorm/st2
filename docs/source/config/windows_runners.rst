@@ -24,9 +24,6 @@ Samba client is available in standard APT and Yum repositories and winexe is
 available in our repositories. Both of those dependencies are installed by
 default when using ``st2_deploy.sh`` script or a pupped based installation.
 
-For information on configuring and enabling StackStorm repository, see
-:ref:`stackstorm-repos`.
-
 Installing on Ubuntu
 ~~~~~~~~~~~~~~~~~~~~
 

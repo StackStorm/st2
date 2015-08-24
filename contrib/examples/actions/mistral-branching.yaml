@@ -1,0 +1,27 @@
+---
+description: Demonstrate how to use condition to select branch of execution.
+enabled: true
+entry_point: workflows/mistral-branching.yaml
+name: mistral-branching
+pack: examples
+parameters:
+  which:
+    type: string
+    required: true
+    enum:
+      - a
+      - b
+      - c
+  context:
+    default: {}
+    immutable: true
+    type: object
+  task:
+    default: null
+    immutable: true
+    type: string
+  workflow:
+    default: null
+    immutable: true
+    type: string
+runner_type: mistral-v2

@@ -1,8 +1,11 @@
 Installation
 ============
-There are a few methods to deploys StackStorm. The easiest is all-in-one install
-on Ubuntu/Debian or RedHat/Fedora which we explain next. Skip below if you want to learn about
+
+There are several methods to deploy StackStorm. The easiest is all-in-one install
+on Ubuntu/Debian or RedHat/Fedora. Skip below if you want to learn about
 :doc:`docker` or :doc:`vagrant`, or other installations approaches.
+
+.. note:: Try our new :doc:`all_in_one`. It's BETA, to soon become the main installation option, with reliability, security, and graphical setup.
 
 To install and run |st2| on a single Ubuntu/Debian or RedHat/Fedora box, with all dependencies,
 download and run the deployment script.
@@ -53,18 +56,16 @@ and WebUI url:
 .. toctree::
     :maxdepth: 1
 
-    Installer <all_in_one>
+    All-In-One Installer - NEW!!! <all_in_one>
     Ubuntu / Debian <deb>
     RedHat / Fedora <rpm>
     Vagrant <vagrant>
     Docker <docker>
     Puppet <puppet>
+    chef
     Ansible <ansible>
+    salt
     sources
-    config
-    webui
-    windows_runners
-    StackStorm Repositories <stackstorm_repos>
 
 .. note::
     We compile, build and test on Fedora 20 and Ubuntu 14.04. The `st2_deploy.sh <https://github.com/StackStorm/st2sandbox/blob/master/scripts/st2_deploy.sh>`_
