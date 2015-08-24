@@ -418,8 +418,8 @@ class Shell(object):
             # We don't have read access to the file with a cached token
             message = ('Unable to retrieve cached token from "%s" (user %s doesn\'t have read '
                        'access to the parent directory). Subsequent requests won\'t use a '
-                       'cached token meaning they will be slower.' % (CACHED_TOKEN_PATH,
-                                                                      os.getlogin()))
+                       'cached token meaning they may be slower.' % (CACHED_TOKEN_PATH,
+                                                                     os.getlogin()))
             LOG.warn(message)
             return None
 
@@ -427,7 +427,7 @@ class Shell(object):
             # We don't have read access to the file with a cached token
             message = ('Unable to retrieve cached token from "%s" (user %s doesn\'t have read '
                        'access to this file). Subsequent requests won\'t use a cached token '
-                       'meaning they will be slower.' % (CACHED_TOKEN_PATH, os.getlogin()))
+                       'meaning they may be slower.' % (CACHED_TOKEN_PATH, os.getlogin()))
             LOG.warn(message)
             return None
 
@@ -464,8 +464,8 @@ class Shell(object):
             # We don't have write access to the file with a cached token
             message = ('Unable to write token to "%s" (user %s doesn\'t have write'
                        'access to the parent directory). Subsequent requests won\'t use a '
-                       'cached token meaning they will be slower.' % (CACHED_TOKEN_PATH,
-                                                                      os.getlogin()))
+                       'cached token meaning they may be slower.' % (CACHED_TOKEN_PATH,
+                                                                     os.getlogin()))
             LOG.warn(message)
             return None
 
@@ -473,8 +473,8 @@ class Shell(object):
             # We don't have write access to the file with a cached token
             message = ('Unable to write token to "%s" (user %s doesn\'t have write'
                        'access to this file). Subsequent requests won\'t use a '
-                       'cached token meaning they will be slower.' % (CACHED_TOKEN_PATH,
-                                                                      os.getlogin()))
+                       'cached token meaning they may be slower.' % (CACHED_TOKEN_PATH,
+                                                                     os.getlogin()))
             LOG.warn(message)
             return None
 
