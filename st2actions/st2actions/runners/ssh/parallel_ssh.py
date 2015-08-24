@@ -242,7 +242,7 @@ class ParallelSSHClient(object):
             results[host] = {'stdout': stdout, 'stderr': stderr, 'return_code': exit_code,
                              'succeeded': is_succeeded, 'failed': not is_succeeded}
         except:
-            error = 'Failed executing command %s on host %s', cmd, host
+            error = 'Failed executing command %s on host %s' % (cmd, host)
             LOG.exception(error)
             _, _, tb = sys.exc_info()
             results[host] = self._generate_error_result(error, tb)
