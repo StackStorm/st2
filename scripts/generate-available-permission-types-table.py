@@ -31,13 +31,22 @@ DESTINATION_PATH = os.path.join(CURRENT_DIR,
 HEADER = '.. NOTE: This file has been generated automatically, don\'t manually edit it'
 TABLE_HEADER = ['Permission name', 'Description']
 
+RESOURCE_DISPLAY_ORDER = [
+    ResourceType.PACK,
+    ResourceType.SENSOR,
+    ResourceType.ACTION,
+    ResourceType.RULE,
+    ResourceType.EXECUTION,
+]
+
 
 def main():
     lines = []
     lines.append(HEADER)
     lines.append('')
 
-    for resource_type in ResourceType.get_valid_values():
+    valid_resource_types = ResourceType.get_valid_values()
+    for resource_type in RESOURCE_DISPLAY_ORDER:
         resource_title = resource_type.replace('_', ' ').title()
         lines.append('%s' % (resource_title))
         lines.append('~' * len(resource_title))
@@ -50,8 +59,8 @@ def main():
         rows.append(TABLE_HEADER)
 
         for permission_type in permission_types:
-            rows.append([permission_type, 'TBD'])
-            pass
+            description = PermissionType.get_permission_description(permission_type)
+            rows.append([permission_type, description])
 
         table = as_rest_table(rows, full=True)
         lines.extend(table.split('\n'))
