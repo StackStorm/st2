@@ -136,7 +136,7 @@ datastore. This way if the sensor is restarted or if it crashes, the sensor
 can resume from where it left off without injecting duplicated triggers into
 the system.
 
-For implementation, see the following page - https://github.com/StackStorm/st2contrib/blob/master/packs/twitter/sensors/twitter_search_sensor.py#L56
+For the implementation, see :github_contrib:`twitter_search_sensor.py on st2contrib</packs/twitter/sensors/twitter_search_sensor.py>`
 
 1. list_values(local=True, prefix=None)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
