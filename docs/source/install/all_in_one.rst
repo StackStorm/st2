@@ -3,7 +3,7 @@ All-in-one Installer
 |st2| provides an all-in-one installer aimed at assisting users with the initial setup and configuration. The installer comes pre-bundled in a number of different provisioning options for convenience, or can also be manually deployed and installed manually on a server.
 
 .. warning:: This new brigh all-in-one installer is soon going to become the main one. It provides production-level functionality, graphical setup, and based on more reliable architecture. But warn you, it is in BETA. Please give it a try, report bugs and ask for improvements. If you prefer stability, use st2_deploy from the :doc:`/install/index` doc.
-   
+
 While in beta, OS support will start at our most commonly used platforms and be added before final release. At present, supported platforms are:
 
 * Ubuntu 14.04
@@ -14,7 +14,7 @@ Certification is currently planned and/or underway for:
 * CentOS / RHEL 6.x and 7.x
 * Ubuntu LTS 12.04
 
-If your platform is not listed here and you would like it to be, please drop us a line at `support@stackstorm.com <email:support@stackstorm.com>` and let us know. 
+If your platform is not listed here and you would like it to be, please drop us a line at `support@stackstorm.com <email:support@stackstorm.com>` and let us know.
 
 Pre-Requisites
 --------------
@@ -57,8 +57,8 @@ Bring Your Own Box
 
 You will need elevated privileges in order to run this script. This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
 
-.. include:: _includes/install/ok.rst
-   
+.. include:: /_includes/install/ok.rst
+
 Visit the setup URL output on your command line by entering the address in your web browser. From there, proceed to the section *Running the Setup*
 
 Amazon Web Services (AWS)
@@ -99,7 +99,7 @@ If you have previously used deployed |st2| and downloaded the st2express box it 
 
 This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
 
-.. include:: _includes/install/ok.rst
+.. include:: /_includes/install/ok.rst
 
 Visit the setup URL output on your command line by entering the address in your web browser. From there, proceed to the section *Running the Setup*
 
