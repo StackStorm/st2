@@ -156,8 +156,8 @@ create_user() {
     echo "###########################################################################################"
     echo "# Creating system user: ${SYSTEMUSER}"
     useradd ${SYSTEMUSER}
-    mkdir -p /home/${SYSTEMUSER}/.ssh
     rm -Rf ${STAN}/*
+    mkdir -p /home/${SYSTEMUSER}/.ssh
     chmod 0700 /home/${SYSTEMUSER}/.ssh
     mkdir -p /home/${SYSTEMUSER}/${TYPE}
     echo "###########################################################################################"
@@ -165,8 +165,7 @@ create_user() {
     ssh-keygen -f /home/${SYSTEMUSER}/.ssh/stanley_rsa -P ""
     cat /home/${SYSTEMUSER}/.ssh/stanley_rsa.pub >> /home/${SYSTEMUSER}/.ssh/authorized_keys
     chmod 0600 /home/${SYSTEMUSER}/.ssh/authorized_keys
-    chown -R ${SYSTEMUSER}:${SYSTEMUSER} /home/${SYSTEMUSER}
-    if [ $(grep 'stanley' /etc/sudoers.d/* &> /dev/null; echo $?) != 0 ]
+    if [ $(grep ${SYSTEMUSER} /etc/sudoers.d/* &> /dev/null; echo $?) != 0 ]
     then
       echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2
       chmod 0440 /etc/sudoers.d/st2
@@ -174,6 +173,15 @@ create_user() {
 
     # make sure requiretty is disabled.
     sed -i "s/^Defaults\s\+requiretty/# Defaults requiretty/g" /etc/sudoers
+
+    if [ $(id -u ${SYSTEMUSER} &> /devnull; echo $?) != 0 ]
+    then
+      groupadd ${SYSTEMUSER}
+      usermod -a -G ${SYSTEMUSER} ${SYSTEMUSER}
+    fi
+
+    chown -R ${SYSTEMUSER}:${SYSTEMUSER} /home/${SYSTEMUSER}
+    chown -R ${SYSTEMUSER}:${SYSTEMUSER} /var/log/st2
   fi
 }
 
@@ -325,7 +333,9 @@ if [ -e "$log_config" ]; then
     rm $log_config
 fi
 cp /opt/openstack/mistral/etc/wf_trace_logging.conf.sample $log_config
-sed -i "s~tmp~var/log~g" $log_config
+sed -i "s~/var/log~/var/log/mistral~g" $log_config
+mkdir -p /var/log/mistral
+chown ${SYSTEMUSER}:${SYSTEMUSER} /var/log/mistral
 }
 
 setup_mistral_db()
@@ -352,6 +362,9 @@ fi
 touch $upstart
 cat <<mistral_upstart >$upstart
 description "Mistral Workflow Service"
+
+setuid ${SYSTEMUSER}
+setgid ${SYSTEMUSER}
 
 start on runlevel [2345]
 stop on runlevel [016]
@@ -652,7 +665,7 @@ fi
 register_content
 echo "###########################################################################################"
 echo "# Starting St2 Services"
-st2ctl restart
+su - ${SYSTEMUSER} -c 'st2ctl restart'
 sleep 20
 ##This is a hack around a weird issue with actions getting stuck in scheduled state
 TOKEN=`st2 auth ${TEST_ACCOUNT_USERNAME} -p ${TEST_ACCOUNT_PASSWORD} | grep token | awk '{print $4}'`

@@ -187,7 +187,7 @@ function st2start_classic(){
   then
     /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
   else
-    service mistral start
+    sudo service mistral start
   fi
 }
 
@@ -207,7 +207,7 @@ function st2stop_classic(){
         then
           kill $p
         else
-          service mistral stop
+          sudo service mistral stop
         fi
       else
         echo "${COM} is not running"
@@ -270,7 +270,7 @@ function restart_component_classic() {
         sleep 1
         /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
       else
-        service mistral restart
+        sudo service mistral restart
       fi
     elif [[ "${COM}" == "st2web" ]]
     then
@@ -301,7 +301,7 @@ function restart_component_classic() {
         done
         for i in `seq 1 ${PROC_COUNT}`
         do
-          ${COM} --config-file ${STANCONF} &>> ${LOGFILE} &
+          nohup ${COM} --config-file ${STANCONF} &>> ${LOGFILE} &
         done
       else
         echo "${COM} is not running"
