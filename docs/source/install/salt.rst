@@ -3,7 +3,7 @@ Salt
 
 .. figure:: /_static/images/oh_noes_b.jpg
 
-... note::
+.. note::
 
    OH NO! You caught us! We don't have a Salt States or Documentation for Salt just quite yet. Don't fret, we're working on it (promise!!!) If you'd like to help us fill in this section, pull requests are gladly accepted. In the meantime, here are some resources that we do have to get you started.
 
