@@ -14,9 +14,10 @@
 # limitations under the License.
 
 import os
+import mimetypes
 
 import six
-from pecan import abort
+from pecan import abort, expose, response
 from pecan.rest import RestController
 
 from st2api.controllers import resource
@@ -93,15 +94,19 @@ class FileController(BaseFileController):
     """
 
     @request_user_has_resource_permission(permission_type=PermissionType.PACK_VIEW)
-    @jsexpose(content_type='text/plain', status_code=http_client.OK)
+    @expose()
     def get_one(self, name_or_id, *file_path_components):
         """
-            Outputs the content of all the files inside the pack.
+            Outputs the content of a specific file in a pack.
 
             Handles requests:
                 GET /packs/views/files/<pack_name>/<file path>
         """
         pack_db = self._get_by_name_or_id(name_or_id=name_or_id)
+
+        if not pack_db:
+            msg = 'Pack with name_or_id "%s" does not exist' % (name_or_id)
+            raise StackStormDBObjectNotFoundError(msg)
 
         if not file_path_components:
             raise ValueError('Missing file path')
@@ -115,8 +120,12 @@ class FileController(BaseFileController):
             # Ignore references to files which don't exist on disk
             raise StackStormDBObjectNotFoundError('File "%s" not found' % (file_path))
 
-        content = self._get_file_content(file_path=normalized_file_path)
-        return content
+        content_type = mimetypes.guess_type(normalized_file_path)[0] or 'application/octet-stream'
+
+        response.headers['Cache-Control'] = 'public, max-age=86400'
+        response.headers['Content-Type'] = content_type
+        response.body = self._get_file_content(file_path=normalized_file_path)
+        return response
 
 
 class PackViewsController(RestController):

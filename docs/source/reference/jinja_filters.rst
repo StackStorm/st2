@@ -20,12 +20,12 @@ match pattern at the beginning of expression.
 
 regex_replace
 ~~~~~~~~~~~~~
-replace a pattern matching regex with supplied value
+replace a pattern matching regex with supplied value (backreferences possible)
 
 .. code-block:: bash
 
     {{value_key | regex_replace("x", "y")}}
-    {{value_key | regex_replace("(blue|white|red)", "color")}}
+    {{value_key | regex_replace("(blue|white|red)", "beautiful color \\1")}}
 
 regex_search
 ~~~~~~~~~~~~
