@@ -366,6 +366,9 @@ function getpids(){
     if [[ "${COM}" == "st2web" && -z "${ST2_DISABLE_HTTPSERVER}" ]]
     then
       PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
+    elif [[ "${COM}" ]] == "mistral" ]]
+    then
+      PID=`ps ax | grep -v grep | grep -v postgres | grep "${COM}" | awk '{print $1}'`
     else
       PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
     fi
