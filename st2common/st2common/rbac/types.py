@@ -50,7 +50,7 @@ class PermissionType(Enum):
     # Note: Execution create is granted with "action_execute"
     EXECUTION_VIEW = 'execution_view'
     EXECUTION_RE_RUN = 'execution_re_run'
-    EXECUTION_DELETE = 'execution_delete'
+    EXECUTION_STOP = 'execution_stop'
     EXECUTION_ALL = 'execution_all'
 
     RULE_VIEW = 'rule_view'
@@ -182,7 +182,8 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
     ResourceType.EXECUTION: [
         PermissionType.EXECUTION_VIEW,
         PermissionType.EXECUTION_RE_RUN,
-        PermissionType.EXECUTION_DELETE,
+
+        PermissionType.EXECUTION_STOP,
         PermissionType.EXECUTION_ALL,
     ],
     ResourceType.KEY_VALUE: [

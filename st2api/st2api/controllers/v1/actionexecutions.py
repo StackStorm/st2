@@ -334,7 +334,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
     def post(self, liveaction):
         return self._handle_schedule_execution(liveaction=liveaction)
 
-    @request_user_has_permission(permission_type=PermissionType.EXECUTION_DELETE)
+    @request_user_has_permission(permission_type=PermissionType.EXECUTION_STOP)
     @jsexpose(arg_types=[str])
     def delete(self, exec_id):
         """
