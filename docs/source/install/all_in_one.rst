@@ -53,6 +53,7 @@ Bring Your Own Box
 |st2| provides a bash-based bootstrap script that is used to bootstrap a computer with StackStorm. It is highly recommended to run this script on a clean base OS. To get started, run the following command.
 
 ::
+
     curl -sSL https://raw.githubusercontent.com/StackStorm/st2workroom/master/script/bootstrap-st2express | sh
 
 You will need elevated privileges in order to run this script. This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
