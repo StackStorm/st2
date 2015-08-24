@@ -6,7 +6,7 @@ read -r -d '' WARNING_MSG << EOM
 ######                       DISCLAIMER                        #######
 ######################################################################
 
-This scripts installs StackStorm on a single server. Check the docs
+This script installs StackStorm on a single server. Check the docs
 for multi-server deployment, hardening security, and other aspects of
 running StackStorm in production.
 
