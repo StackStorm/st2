@@ -183,7 +183,9 @@ function st2clean(){
     mongo st2 --eval "db.dropDatabase();"
     # start with clean logs
     LOGDIR=$(dirname $0)/../logs
-    rm ${LOGDIR}/*
+    if [ -d ${LOGDIR} ]; then
+        rm ${LOGDIR}/*
+    fi
     if [ -n "$ST2_EXPORTER" ]; then
         EXPORTS_DIR=$(exportsdir)
         echo "Removing $EXPORTS_DIR..."
