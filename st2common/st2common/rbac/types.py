@@ -21,7 +21,8 @@ __all__ = [
     'PermissionType',
     'ResourceType',
 
-    'RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP'
+    'RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP',
+    'PERMISION_TYPE_TO_DESCRIPTION_MAP'
 ]
 
 
@@ -95,6 +96,16 @@ class PermissionType(Enum):
         split = permission_type.split('_')
         assert len(split) >= 2
         return split[-1]
+
+    @classmethod
+    def get_permission_description(cls, permission_type):
+        """
+        Retrieve a description for the provided permission_type.
+
+        :rtype: ``str``
+        """
+        description = PERMISION_TYPE_TO_DESCRIPTION_MAP[permission_type]
+        return description
 
     @classmethod
     def get_permission_type(cls, resource_type, permission_name):
@@ -191,4 +202,35 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.KEY_VALUE_SET,
         PermissionType.KEY_VALUE_DELETE
     ]
+}
+
+
+# Maps a permission type to the correponsding description
+PERMISION_TYPE_TO_DESCRIPTION_MAP = {
+    PermissionType.PACK_VIEW: 'Ability to view a pack.',
+    PermissionType.PACK_CREATE: 'Ability to create a new pack.',
+    PermissionType.PACK_MODIFY: 'Ability to modify (update) an existing pack.',
+    PermissionType.PACK_DELETE: 'Ability to delete an existing pack.',
+    PermissionType.PACK_ALL: 'Ability to perform all the supported operations on a particular pack.',
+
+    PermissionType.SENSOR_VIEW: 'Ability to view a sensor',
+    PermissionType.SENSOR_ALL: 'Ability to perform all the supported operations on a particular sensor',
+
+    PermissionType.ACTION_VIEW: 'Ability to view an action.',
+    PermissionType.ACTION_CREATE: 'Ability to create a new action.',
+    PermissionType.ACTION_MODIFY: 'Ability to modify (update) an existing action.',
+    PermissionType.ACTION_DELETE: 'Ability to delete an existing action.',
+    PermissionType.ACTION_EXECUTE: 'Ability to execute (run) an action.',
+    PermissionType.ACTION_ALL: 'Ability to perform all the supported operations on a particular action.',
+
+    PermissionType.EXECUTION_VIEW: 'Ability to view an execution.',
+    PermissionType.EXECUTION_RE_RUN: 'Ability to create a new action.',
+    PermissionType.EXECUTION_STOP: 'Ability to stop (cancel) a running execution.',
+    PermissionType.EXECUTION_ALL: 'Ability to perform all the supported operations on a particular execution.',
+
+    PermissionType.RULE_VIEW: 'Ability to view a rule.',
+    PermissionType.RULE_CREATE: 'Ability to create a new rule.',
+    PermissionType.RULE_MODIFY: 'Ability to modify (update) an existing rule.',
+    PermissionType.RULE_DELETE: 'Ability to delete an existing rule.',
+    PermissionType.RULE_ALL: 'Ability to perform all the supported operations on a particular rule.',
 }
