@@ -24,6 +24,9 @@ DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
 if [[ "$DEBTEST" == "Ubuntu" ]]; then
   TYPE="debs"
   PYTHONPACK="/usr/lib/python2.7/dist-packages"
+elif [[ "$DEBTEST" == "Debia" ]]; then
+  TYPE="debs"
+  PYTHONPACK="/usr/lib/python2.7/dist-packages"
 elif [[ -f "/etc/redhat-release" ]]; then
   TYPE="rpms"
   PYTHONPACK="/usr/lib/python2.7/site-packages"
