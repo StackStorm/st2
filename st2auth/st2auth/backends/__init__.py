@@ -14,23 +14,31 @@
 # limitations under the License.
 
 import json
-import importlib
 
 from oslo_config import cfg
+from stevedore.driver import DriverManager
+from stevedore.extension import ExtensionManager
 
-from st2common.util.loader import _get_classes_in_module
+from st2common import log as logging
 
 __all__ = [
+    'get_available_backends'
     'get_backend_instance',
-    'VALID_BACKEND_NAMES'
 ]
 
-BACKEND_MODULES = {
-    'flat_file': 'st2auth.backends.flat_file',
-    'mongodb': 'st2auth.backends.mongodb'
-}
+LOG = logging.getLogger(__name__)
 
-VALID_BACKEND_NAMES = BACKEND_MODULES.keys()
+BACKENDS_NAMESPACE = 'st2auth.backends.backend'
+
+
+def get_available_backends():
+    """
+    Return names of the available / installed authentication backends.
+
+    :rtype: ``list`` of ``str``
+    """
+    manager = ExtensionManager(namespace=BACKENDS_NAMESPACE, invoke_on_load=False)
+    return manager.names()
 
 
 def get_backend_instance(name):
@@ -38,16 +46,12 @@ def get_backend_instance(name):
     :param name: Backend name.
     :type name: ``str``
     """
-    if name not in VALID_BACKEND_NAMES:
-        raise ValueError('Invalid authentication backend specified: %s', name)
-
-    module = importlib.import_module(BACKEND_MODULES[name])
-    classes = _get_classes_in_module(module=module)
-
     try:
-        cls = [klass for klass in classes if klass.__name__.endswith('AuthenticationBackend')][0]
-    except IndexError:
-        raise ValueError('"%s" backend module doesn\'t export a compatible class' % (name))
+        manager = DriverManager(namespace=BACKENDS_NAMESPACE, name=name,
+                                invoke_on_load=False)
+    except RuntimeError as e:
+        raise ValueError('Invalid authentication backend specified: %s (%s)' %
+                         (name, str(e)))
 
     backend_kwargs = cfg.CONF.auth.backend_kwargs
 
@@ -59,4 +63,6 @@ def get_backend_instance(name):
     else:
         kwargs = {}
 
-    return cls(**kwargs)
+    cls = manager.driver
+    cls_instance = cls(**kwargs)
+    return cls_instance
