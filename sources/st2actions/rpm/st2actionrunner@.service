@@ -7,7 +7,7 @@ Type=simple
 Environment="DAEMON_ARGS=--config-file /etc/st2/st2.conf"
 Environment="WORKERID=%i"
 EnvironmentFile=-/etc/sysconfig/st2actionrunner
-ExecStart=/usr/bin/st2actionrunner $DAEMON_ARGS
+ExecStart=/usr/share/python/st2actions/bin/st2actionrunner $DAEMON_ARGS
 TimeoutSec=60
 PrivateTmp=true
 Restart=on-failure

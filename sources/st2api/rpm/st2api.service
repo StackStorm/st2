@@ -8,7 +8,7 @@ User=st2
 Group=st2
 Environment="DAEMON_ARGS=--config-file /etc/st2/st2.conf"
 EnvironmentFile=-/etc/sysconfig/st2api
-ExecStart=/usr/bin/st2api $DAEMON_ARGS
+ExecStart=/usr/share/python/st2api/bin/st2api $DAEMON_ARGS
 TimeoutSec=60
 PrivateTmp=true
 Restart=on-failure
