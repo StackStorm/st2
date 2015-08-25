@@ -1,5 +1,5 @@
 [Unit]
-Description=StackStorm service st2reactor
+Description=StackStorm service st2sensorcontainer
 After=network.target
 
 [Service]
@@ -7,8 +7,8 @@ Type=simple
 User=st2
 Group=st2
 Environment="DAEMON_ARGS=--config-file /etc/st2/st2.conf"
-EnvironmentFile=-/etc/sysconfig/st2reactor
-ExecStart=/usr/bin/st2reactor $DAEMON_ARGS
+EnvironmentFile=-/etc/sysconfig/st2sensorcontainer
+ExecStart=/usr/share/python/st2reactor/bin/st2sensorcontainer $DAEMON_ARGS
 TimeoutSec=60
 PrivateTmp=true
 Restart=on-failure
