@@ -22,8 +22,8 @@ from stevedore.extension import ExtensionManager
 from st2common import log as logging
 
 __all__ = [
-    'get_available_backends'
-    'get_backend_instance',
+    'get_available_backends',
+    'get_backend_instance'
 ]
 
 LOG = logging.getLogger(__name__)
