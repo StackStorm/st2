@@ -11,7 +11,8 @@ The auth service can run in either proxy or standalone modes as described below.
 Proxy mode
 ----------
 
-In proxy mode which is configured by default, authentication is handled upstream from the st2auth service.
+In proxy mode which is configured by default, authentication is handled upstream from the st2auth
+service.
 
 .. figure:: /_static/images/st2auth_proxy_mode.png
     :align: center
@@ -45,7 +46,8 @@ it.
 Standalone mode
 ---------------
 
-In the standalone mode, st2auth service handles the authentication itself using a backend which is specified in the config file.
+In the standalone mode, st2auth service handles the authentication itself using a backend which is
+specified in the config file.
 
 .. figure:: /_static/images/st2auth_standalone_mode.png
     :align: center
@@ -55,12 +57,14 @@ In the standalone mode, st2auth service handles the authentication itself using 
 In this mode, the service should listen on https (this means setting the
 ``use_ssl`` configuration option) and be accessible to the st2 clients.
 
-|st2| ships with a flat file and a mongodb authentication backends that can be configured in standalone mode. Please refer to the configuration section below on how to configure these backends.
+|st2| ships with a htpasswd compatible flat file authentication backends that can be configured in
+standalone mode. Please refer to the configuration section below on how to configure these backends.
 
 Configuring the service
 -----------------------
 
-By default, the |st2| configuration file is located at /etc/st2/st2.conf. The available settings listed below are configured under the ``auth`` section in the configuration file.
+By default, the |st2| configuration file is located at /etc/st2/st2.conf. The available settings
+listed below are configured under the ``auth`` section in the configuration file.
 
 * ``host`` - Hostname for the service to listen on.
 * ``port`` - Port for the service to listen on.
@@ -69,18 +73,28 @@ By default, the |st2| configuration file is located at /etc/st2/st2.conf. The av
 * ``key`` - Path to the SSL private key file. Only used when "use_ssl" is specified.
 * ``mode`` - Mode to use (``proxy`` or ``standalone``). Defaults to ``proxy``.
 * ``backend`` - Authentication backend to use in standalone mode (mongodb,flat_file).
-* ``backend_kwargs`` - JSON serialized arguments which are passed to the authentication backend in standalone mode.
-* ``token_ttl`` - The value in seconds when the token expires. By default, the token expires in 24 hours.
-* ``api_url`` - Authentication service also acts as a service catalog. It returns a URL to the API endpoint on successful authentication. This information is used by clients such as command line tool and web UI. The setting needs to contain a public base URL to the API endpoint (excluding the API version). Example: http://myhost.example.com:9101/
-* ``enable`` - Authentication is not enabled for the |st2| API until this is set to True. If running |st2| on multiple servers, please ensure that this is set to True on all |st2| configuration files.
+* ``backend_kwargs`` - JSON serialized arguments which are passed to the authentication backend in
+  standalone mode.
+* ``token_ttl`` - The value in seconds when the token expires. By default, the token expires in 24
+  hours.
+* ``api_url`` - Authentication service also acts as a service catalog. It returns a URL to the API
+  endpoint on successful authentication. This information is used by clients such as command line
+  tool and web UI. The setting needs to contain a public base URL to the API endpoint (excluding
+  the API version). Example: ``http://myhost.example.com:9101/``
+* ``enable`` - Authentication is not enabled for the |st2| API until this is set to True. If
+  running |st2| on multiple servers, please ensure that this is set to True on all |st2|
+  configuration files.
 * ``debug`` - Specify to enable debug mode.
 
 Setup proxy mode
-----------------------------------
+----------------
 
-The following example hosts the |st2| auth service in Apache and configures Apache to authenticates users.
+The following example hosts the |st2| auth service in Apache and configures Apache to authenticates
+users.
 
-Example ``auth`` section in the |st2| configuration file. ::
+Example ``auth`` section in the |st2| configuration file.
+
+.. sourcecode:: ini
 
     [auth]
     mode = proxy
@@ -89,7 +103,9 @@ Example ``auth`` section in the |st2| configuration file. ::
     logging = /etc/st2/st2auth.logging.conf
     api_url = http://myhost.example.com:9101/
 
-Install Apache and other dependencies. ::
+Install Apache and other dependencies.
+
+.. sourcecode:: bash
 
     # Install Apache, mod_wsgi, and pwauth for mod_auth_external.
     sudo apt-get -y install apache2 libapache2-mod-wsgi libapache2-mod-authz-unixgroup pwauth
@@ -98,7 +114,8 @@ Install Apache and other dependencies. ::
     sudo mkdir -p /etc/apache2/ssl
     sudo openssl req -x509 -nodes -newkey rsa:2048 -subj "/C=US/ST=California/L=Palo Alto/O=Example/CN=example.com" -keyout /etc/apache2/ssl/mycert.key -out /etc/apache2/ssl/mycert.crt
 
-Follow the example below and create /etc/apache2/sites-available/st2-auth.conf. The following configures st2auth to authenticate users who belong to the st2ops group, with PAM via apache.
+Follow the example below and create /etc/apache2/sites-available/st2-auth.conf. The following
+configures st2auth to authenticate users who belong to the st2ops group, with PAM via apache.
 
 .. literalinclude:: ../../../st2auth/conf/apache.sample.conf
 
@@ -127,26 +144,45 @@ Enable SSL and st2-auth and restart Apache. ::
     sudo service apache2 restart
 
 Setup standalone mode
-------------------------------------
+---------------------
 
-The following is a list of authentication backends that is available to configure in standalone mode.
+This section describes authentication backends which are available for you to use in the standalone
+mode.
+
+Keep in mind that only htpasswd compatible flat file authentication backend is available and
+installed by default.
+
+If you want to use a different backend (e.g. Keystone) you need to install a corresponding Python
+package for that backend and configure st2auth as described below.
+
+For example, to install keystone backend package, you would run the command shown below:
+
+.. sourcecode:: bash
+
+    pip install git+https://github.com/StackStorm/st2-auth-backend-keystone.git@master#egg=st2_auth_backend_keystone
+
+Keep in mind that you need to run this command on the same server where st2auth is running.
 
 Flat file backend
 ~~~~~~~~~~~~~~~~~
 
-Flat file backend supports reading credentials from an Apache HTTPd htpasswd
-formatted file. To manage this file you can use `htpasswd`_ utility which comes
-with a standard Apache httpd distribution or by installing apache2-utils.
+Flat file backend supports reading credentials from an Apache HTTPd htpasswd formatted file. To
+manage this file you can use `htpasswd`_ utility which comes with a standard Apache httpd
+distribution or by installing apache2-utils package on Ubuntu / Debian.
 
-    **Backend configuration options:**
+**Backend configuration options:**
 
-    * ``file_path`` - Path to the file containing credentials.
+* ``file_path`` - Path to the file containing credentials.
 
-Example htpasswd command to generate a password file with a user entry. ::
+Example htpasswd command to generate a password file with a user entry.
 
-    htpasswd -cm /path/to/.htpasswd stark
+.. sourcecode:: bash
 
-Example ``auth`` section in the |st2| configuration file. ::
+    htpasswd -cs /path/to/.htpasswd stark
+
+Example ``auth`` section in the |st2| configuration file.
+
+.. sourcecode:: ini
 
     [auth]
     mode = standalone
@@ -163,22 +199,26 @@ Example ``auth`` section in the |st2| configuration file. ::
 MongoDB backend
 ~~~~~~~~~~~~~~~
 
+Repository URL: https://github.com/StackStorm/st2-auth-backend-mongodb
+
 MongoDB backend supports reading credentials from a MongoDB collection called ``users``. This
 backend is supported only if debug in the |st2| configuration file is set to True. Currently,
 the MongoDB collection and the user entries will have to be generated manually. Entries in this
 ``users`` collection need to have the following attributes:
 
-    * ``username`` - Username
-    * ``salt`` - Password salt
-    * ``password`` - SHA256 hash for the salt+password - SHA256(<salt><password>)
+* ``username`` - Username
+* ``salt`` - Password salt
+* ``password`` - SHA256 hash for the salt+password - SHA256(<salt><password>)
 
-    **Backend configuration options:**
+**Backend configuration options:**
 
-    * ``db_host`` - MongoDB server host.
-    * ``db_port`` - MongoDB server port.
-    * ``db_name`` - Name of the database to use.
+* ``db_host`` - MongoDB server host.
+* ``db_port`` - MongoDB server port.
+* ``db_name`` - Name of the database to use.
 
-Example ``auth`` section in the |st2| configuration file. ::
+Example ``auth`` section in the |st2| configuration file.
+
+.. sourcecode:: ini
 
     [auth]
     mode = standalone
@@ -195,14 +235,18 @@ Example ``auth`` section in the |st2| configuration file. ::
 Keystone backend
 ~~~~~~~~~~~~~~~~
 
-Keystone backend supports authenticating against a Keystone auth server.
+Repository URL: https://github.com/StackStorm/st2-auth-backend-keystone
 
-    **Backend configuration options:**
+Keystone backend supports authenticating against an OpenStack Keystone auth server.
 
-    * ``keystone_url`` - Keystone server url, port included (e.x. "http://keystone.com:5000").
-    * ``keystone_version`` - Keystone api version to use. Defaults to 2.
+**Backend configuration options:**
 
-Example ``auth`` section in the |st2| configuration file. ::
+* ``keystone_url`` - Keystone server url, port included (e.g. ``http://keystone.com:5000``).
+* ``keystone_version`` - Keystone APIversion to use. Defaults to ``2``.
+
+Example ``auth`` section in the |st2| configuration file.
+
+.. sourcecode:: ini
 
     [auth]
     mode = standalone
@@ -216,14 +260,18 @@ Example ``auth`` section in the |st2| configuration file. ::
     logging = /path/to/st2auth.logging.conf
     api_url = http://myhost.example.com:9101/
 
-After the configuration change, restart all st2 components. ::
+After the configuration change, restart all st2 components.
+
+.. sourcecode:: bash
 
     st2ctl restart
 
 Testing
 -------
 
-Run the following curl commands to test. ::
+Run the following curl commands to test.
+
+.. sourcecode:: bash
 
     # The following will fail because SSL is required.
     curl -X POST http://myhost.example.com:9100/tokens
