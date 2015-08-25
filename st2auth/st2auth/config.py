@@ -58,7 +58,7 @@ def _register_app_opts():
                    help='Authentication mode (%s)' % (','.join(VALID_MODES))),
         cfg.StrOpt('backend', default=DEFAULT_BACKEND,
                    help=('Authentication backend to use in a standalone mode. Available '
-                         'backends: %s.' % (','.join(get_available_backends())))),
+                         'backends: %s.' % (', '.join(get_available_backends())))),
         cfg.StrOpt('backend_kwargs', default=None,
                    help='JSON serialized arguments which are passed to the authentication backend'
                         ' in a standalone mode.')
