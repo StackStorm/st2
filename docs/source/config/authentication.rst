@@ -201,8 +201,7 @@ MongoDB backend
 
 Repository URL: https://github.com/StackStorm/st2-auth-backend-mongodb
 
-MongoDB backend supports reading credentials from a MongoDB collection called ``users``. This
-backend is supported only if debug in the |st2| configuration file is set to True. Currently,
+MongoDB backend supports reading credentials from a MongoDB collection called ``users``. Currently,
 the MongoDB collection and the user entries will have to be generated manually. Entries in this
 ``users`` collection need to have the following attributes:
 
