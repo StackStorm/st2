@@ -1,0 +1,13 @@
+[Unit]
+Description=StackStorm service st2actionrunner
+After=network.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/sysconfig/st2actionrunner
+ExecStart=/bin/bash /usr/share/python/st2actions/bin/runners.sh start
+ExecStop=/bin/bash /usr/share/python/st2actions/bin/runners.sh start stop 
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
