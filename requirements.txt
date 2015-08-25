@@ -10,7 +10,7 @@ kombu
 mongoengine>=0.8.7,<0.9
 oslo.config>=1.12.1,<1.13
 paramiko
--e git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
+git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
 pymongo<3.0
 python-dateutil
 python-json-logger
