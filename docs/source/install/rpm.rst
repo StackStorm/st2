@@ -5,10 +5,14 @@ RedHat / Fedora
 
 ---------------
 
+.. warning::
 
-.. TODO:: @jfryman rewprd the WORK-IN-PROGRESS/coming soon disclamer.
+   WOWZERS! A **deprecation** notice! Please note that this documentation and associated RPM packages are currently undergoing review and maintenance. Our core packages for CentOS and RedHat Enterprise (RHEL) are undergoing a complete overhaul to incorporate `**rpmvenv** <https://github.com/kevinconway/rpmvenv>` into our base packages. As such, please consider these instructions **DEPRECATED** for the time being. Hold tight, these packages and documentation are coming very soon.
 
-.. warning:: We are reworking RedHat/Fedora packages and documentation. This page gives all the references to help a motivated reader figure out the installation. Proper documentation coming soon.
+   If you are feeling adventerous and want to attempt an installation using this method, we have left this documentation here for you to better understand the internals of the system as it currently exists
+
+   In the meantime, please feel free to take a look at many of our installation methods, including our `All-in-one Installer </install/all_in_one.rst>`.
+
 
 StackStorm YUM Repositories
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
