@@ -183,7 +183,7 @@ install_pip() {
   echo "# Installing packages via pip"
   pip install -U pip
   hash -d pip
-  curl -sS -k -f /tmp/requirements.txt "${DOWNLOAD_SERVER}/releases/st2/${VER}/${TYPE}/requirements.txt"
+  curl -sS -k -o /tmp/requirements.txt "${DOWNLOAD_SERVER}/releases/st2/${VER}/requirements.txt"
   pip install -U -r /tmp/requirements.txt
 }
 
