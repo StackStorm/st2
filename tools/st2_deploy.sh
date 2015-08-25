@@ -183,7 +183,7 @@ install_pip() {
   echo "# Installing packages via pip"
   pip install -U pip
   hash -d pip
-  curl -sS -k -o /tmp/requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/requirements.txt
+  curl -sS -k -o /tmp/requirements.txt "${DOWNLOAD_SERVER}/releases/st2/${VER}/requirements.txt"
   pip install -U -r /tmp/requirements.txt
 }
 
