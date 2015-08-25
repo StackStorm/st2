@@ -19,6 +19,8 @@ requests
 setuptools==11.1
 six==1.9.0
 tooz==1.20.0
+# Used for dynamic plugin (driver) loading
+stevedore>=1.7.0,<1.8
 git+https://github.com/StackStorm/python-mistralclient.git
 git+https://github.com/StackStorm/fabric.git@stanley-patched
 passlib>=1.6.2,<1.7
