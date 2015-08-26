@@ -58,7 +58,7 @@ def _register_app_opts():
                    help='Authentication mode (%s)' % (','.join(VALID_MODES))),
         cfg.StrOpt('backend', default=DEFAULT_BACKEND,
                    help=('Authentication backend to use in a standalone mode. Available '
-                         'backends: %s.' % (', '.join(get_available_backends())))),
+                         'backends: %s.' % (', '.join(available_backends)))),
         cfg.StrOpt('backend_kwargs', default=None,
                    help='JSON serialized arguments which are passed to the authentication backend'
                         ' in a standalone mode.')
@@ -68,7 +68,7 @@ def _register_app_opts():
 
     api_opts = [
         cfg.ListOpt('allow_origin', default=['http://localhost:3000'],
-            help='List of origins allowed'),
+                    help='List of origins allowed'),
     ]
     cfg.CONF.register_cli_opts(api_opts, group='api')
 
