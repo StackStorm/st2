@@ -23,3 +23,15 @@ class Trace(Access):
     @classmethod
     def _get_impl(cls):
         return cls.impl
+
+    @classmethod
+    def push_action_execution(cls, instance, action_execution):
+        return cls._get_impl().update(instance, push__action_executions=action_execution)
+
+    @classmethod
+    def push_rule(cls, instance, rule):
+        return cls._get_impl().update(instance, push__rules=rule)
+
+    @classmethod
+    def push_trigger_instance(cls, instance, trigger_instance):
+        return cls._get_impl().update(instance, push__trigger_instances=trigger_instance)

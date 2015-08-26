@@ -82,6 +82,29 @@ class TraceDBTest(CleanDbTestCase):
         self.assertEquals(len(retrieved[0].trigger_instances), no_trigger_instances,
                           'Failed to update trigger_instances.')
 
+    def test_update_via_list_push(self):
+        no_action_executions = 4
+        no_rules = 4
+        no_trigger_instances = 5
+        saved = TraceDBTest._create_save_trace(
+            trace_tag='test_trace',
+            action_executions=[str(bson.ObjectId()) for _ in range(no_action_executions)],
+            rules=[str(bson.ObjectId()) for _ in range(no_rules)],
+            trigger_instances=[str(bson.ObjectId()) for _ in range(no_trigger_instances)])
+
+        # push updates
+        Trace.push_action_execution(
+            saved, action_execution=TraceComponentDB(object_id=str(bson.ObjectId())))
+        Trace.push_rule(saved, rule=TraceComponentDB(object_id=str(bson.ObjectId())))
+        Trace.push_trigger_instance(
+            saved, trigger_instance=TraceComponentDB(object_id=str(bson.ObjectId())))
+
+        retrieved = Trace.get(id=saved.id)
+        self.assertEquals(retrieved.id, saved.id, 'Incorrect trace retrieved.')
+        self.assertEquals(len(retrieved.action_executions), no_action_executions + 1)
+        self.assertEquals(len(retrieved.rules), no_rules + 1)
+        self.assertEquals(len(retrieved.trigger_instances), no_trigger_instances + 1)
+
     @staticmethod
     def _create_save_trace(trace_tag, id_=None, action_executions=None, rules=None,
                            trigger_instances=None):
