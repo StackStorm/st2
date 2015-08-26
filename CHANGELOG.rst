@@ -4,8 +4,11 @@ Changelog
 in development
 --------------
 
-0.13.0 - August 24, 2015.
--------------------------
+* Update CLI so ``st2 run`` / ``st2 execution run`` and ``st2 execution re-run`` commands exit with
+  non-zero code if the action fails. (improvement)
+
+0.13.0 - August 24, 2015
+------------------------
 
 * Add new OpenStack Keystone authentication backend.
   [Itxaka Serrano]
@@ -54,8 +57,8 @@ in development
 * Make sure that the ``$PATH`` environment variable which is set for the sandboxed Python
   process contains "<virtualenv path>/bin" directory as the first entry. (bug fix)
 
-0.12.2 - August 11, 2015.
--------------------------
+0.12.2 - August 11, 2015
+------------------------
 
 * Support local ssh config file in remote runners. (feature)
 * Changes to htpasswd file used in `flat_file` auth backend do not require
