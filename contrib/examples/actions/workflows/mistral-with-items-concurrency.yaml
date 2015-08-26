@@ -12,10 +12,10 @@ examples.mistral-with-items-concurrency:
         - count
     tasks:
         repeat:
-            with-items: i in <% range(0, $.count).list() %>
+            with-items: i in <% list(range(0, $.count)) %>
             concurrency: 2
             action: core.local
             input:
-                cmd: "sleep 5; <% $.cmd %>"
+                cmd: "<% $.cmd %>; sleep 5"
             publish:
                 result: <% $.repeat.stdout %>
