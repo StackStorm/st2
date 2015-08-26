@@ -374,7 +374,10 @@ class ActionChainRunner(ActionRunner):
             liveaction, _ = action_service.request(liveaction)
         except:
             liveaction.status = LIVEACTION_STATUS_FAILED
-            raise Exception('Failed to schedule liveaction.')
+
+            message = 'Failed to schedule liveaction.'
+            LOG.exception(message)
+            raise Exception(message)
 
         while (wait_for_completion and
                liveaction.status != LIVEACTION_STATUS_SUCCEEDED and
