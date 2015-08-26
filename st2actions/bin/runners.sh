@@ -16,5 +16,5 @@ fi
 WORKERSNUM=${WORKERSNUM:-`nproc`}
 action="$1"; shift;
 for i in `seq $WORKERSNUM`; do
-  [ "$sv" = "systemd" ] && $svbin $action $@
+  [ "$sv" = "systemd" ] && $svbin $action st2actionrunner@$i
 done
