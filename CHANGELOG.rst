@@ -4,6 +4,8 @@ Changelog
 in development
 --------------
 
+* Add YAQL v1.0 support to Mistral. Earlier versions are deprecated. (improvement)
+
 0.13.0 - August 24, 2015.
 -------------------------
 
