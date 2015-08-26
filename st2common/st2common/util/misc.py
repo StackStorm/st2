@@ -13,11 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import inspect
+
 import six
 
 __all__ = [
-    'prefix_dict_keys'
+    'Enum',
+    'prefix_dict_keys',
+    'compare_path_file_name'
 ]
+
+
+class Enum(object):
+    @classmethod
+    def get_valid_values(cls):
+        keys = cls.__dict__.keys()
+        values = [getattr(cls, key) for key in keys if (not key.startswith('_') and
+                  not inspect.ismethod(getattr(cls, key)))]
+        return values
 
 
 def prefix_dict_keys(dictionary, prefix='_'):
@@ -38,3 +52,16 @@ def prefix_dict_keys(dictionary, prefix='_'):
         result['%s%s' % (prefix, key)] = value
 
     return result
+
+
+def compare_path_file_name(file_path_a, file_path_b):
+    """
+    Custom compare function which compares full absolute file paths just using
+    the file name.
+
+    This function can be used with ``sorted`` or ``list.sort`` function.
+    """
+    file_name_a = os.path.basename(file_path_a)
+    file_name_b = os.path.basename(file_path_b)
+
+    return file_name_a < file_name_b

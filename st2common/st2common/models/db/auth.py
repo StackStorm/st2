@@ -14,7 +14,9 @@
 # limitations under the License.
 
 import mongoengine as me
+
 from st2common.models.db import stormbase
+from st2common.services.rbac import get_roles_for_user
 
 __all__ = [
     'UserDB',
@@ -24,6 +26,19 @@ __all__ = [
 
 class UserDB(stormbase.StormFoundationDB):
     name = me.StringField(required=True, unique=True)
+
+    def get_roles(self):
+        """
+        Retrieve roles assigned to that user.
+
+        :rtype: ``list`` of :class:`RoleDB`
+        """
+        result = get_roles_for_user(user_db=self)
+        return result
+
+    def get_permission_assingments(self):
+        # TODO
+        pass
 
 
 class TokenDB(stormbase.StormFoundationDB):

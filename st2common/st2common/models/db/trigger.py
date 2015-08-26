@@ -14,8 +14,10 @@
 # limitations under the License.
 
 import mongoengine as me
+
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
+from st2common.constants.types import ResourceType
 
 __all__ = [
     'TriggerTypeDB',
@@ -26,6 +28,7 @@ __all__ = [
 
 class TriggerTypeDB(stormbase.StormBaseDB,
                     stormbase.ContentPackResourceMixin,
+                    stormbase.UIDFieldMixin,
                     stormbase.TagsMixin):
     """Description of a specific kind/type of a trigger. The
        (pack, name) tuple is expected uniquely identify a trigger in
@@ -35,27 +38,46 @@ class TriggerTypeDB(stormbase.StormBaseDB,
         trigger_source: Source that owns this trigger type.
         payload_info: Meta information of the expected payload.
     """
+
+    RESOURCE_TYPE = ResourceType.TRIGGER_TYPE
+    UID_FIELDS = ['pack', 'name']
+
     name = me.StringField(required=True)
     pack = me.StringField(required=True, unique_with='name')
     payload_schema = me.DictField()
     parameters_schema = me.DictField(default={})
 
     meta = {
-        'indexes': stormbase.TagsMixin.get_indices()
+        'indexes': stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()
     }
 
+    def __init__(self, *args, **values):
+        super(TriggerTypeDB, self).__init__(*args, **values)
+        self.ref = self.get_reference().ref
+        self.uid = self.get_uid()
 
-class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin):
+
+class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
+                stormbase.UIDFieldMixin):
     """
     Attribute:
         pack - Name of the content pack this trigger belongs to.
         type - Reference to the TriggerType object.
         parameters - Trigger parameters.
     """
+
+    RESOURCE_TYPE = ResourceType.TRIGGER_INSTANCE
+    UID_FIELDS = ['pack', 'name']
+
     name = me.StringField(required=True)
     pack = me.StringField(required=True, unique_with='name')
     type = me.StringField()
     parameters = me.DictField()
+
+    def __init__(self, *args, **values):
+        super(TriggerDB, self).__init__(*args, **values)
+        self.ref = self.get_reference().ref
+        self.uid = self.get_uid()
 
 
 class TriggerInstanceDB(stormbase.StormFoundationDB):

@@ -143,6 +143,9 @@ class ActionAPI(BaseAPI):
                                 Provided value will be overridden by computed value.",
                 "type": "string"
             },
+            "uid": {
+                "type": "string"
+            },
             "name": {
                 "description": "The name of the action.",
                 "type": "string",

@@ -28,6 +28,7 @@ from st2api.controllers.v1.traces import TracesController
 from st2api.controllers.v1.triggers import TriggerTypeController, TriggerController, \
     TriggerInstanceController
 from st2api.controllers.v1.webhooks import WebhooksController
+from st2api.controllers.v1.rbac import RBACController
 
 
 class RootController(object):
@@ -49,3 +50,4 @@ class RootController(object):
     actionalias = ActionAliasController()
     aliasexecution = ActionAliasExecutionController()
     traces = TracesController()
+    rbac = RBACController()

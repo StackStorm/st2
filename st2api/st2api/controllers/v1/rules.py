@@ -26,6 +26,9 @@ from st2api.controllers import resource
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.rule import Rule
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_permission
 
 http_client = six.moves.http_client
 
@@ -51,6 +54,17 @@ class RuleController(resource.ContentPackResourceController):
 
     include_reference = True
 
+    @request_user_has_permission(permission_type=PermissionType.RULE_VIEW)
+    @jsexpose()
+    def get_all(self, **kwargs):
+        return super(RuleController, self)._get_all(**kwargs)
+
+    @request_user_has_resource_permission(permission_type=PermissionType.RULE_VIEW)
+    @jsexpose(arg_types=[str])
+    def get_one(self, ref_or_id):
+        return super(RuleController, self)._get_one(ref_or_id)
+
+    @request_user_has_permission(permission_type=PermissionType.RULE_CREATE)
     @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
     def post(self, rule):
         """
@@ -85,6 +99,7 @@ class RuleController(resource.ContentPackResourceController):
 
         return rule_api
 
+    @request_user_has_resource_permission(permission_type=PermissionType.RULE_MODIFY)
     @jsexpose(arg_types=[str], body_cls=RuleAPI)
     def put(self, rule_ref_or_id, rule):
         rule_db = self._get_by_ref_or_id(rule_ref_or_id)
@@ -109,6 +124,7 @@ class RuleController(resource.ContentPackResourceController):
 
         return rule_api
 
+    @request_user_has_resource_permission(permission_type=PermissionType.RULE_DELETE)
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, rule_ref_or_id):
         """

@@ -33,13 +33,13 @@ class SensorBranch(resource.ResourceBranch):
 
 
 class SensorListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'pack', 'name', 'enabled', 'poll_interval', 'trigger_types']
+    display_attributes = ['uid', 'ref', 'pack', 'name', 'enabled', 'trigger_types']
 
 
 class SensorGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
-    attribute_display_order = ['id', 'ref', 'pack', 'name', 'enabled', 'poll_interval',
-                               'entry_point', 'artifact_uri', 'trigger_types']
+    attribute_display_order = ['id', 'uid', 'ref', 'pack', 'name', 'enabled', 'entry_point',
+                               'artifact_uri', 'trigger_types']
 
 
 class SensorEnableCommand(resource.ContentPackResourceEnableCommand):

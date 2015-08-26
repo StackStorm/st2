@@ -23,6 +23,7 @@ Contents:
     webhooks
     policies
     datastore
+    rbac
     cli
     resources/index
     reference/index

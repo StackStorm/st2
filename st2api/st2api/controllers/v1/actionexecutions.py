@@ -42,6 +42,10 @@ from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
 from st2common.util import date as date_utils
+from st2common.util import action_db as action_utils
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.utils import assert_request_user_has_resource_permission
 
 __all__ = [
     'ActionExecutionsController'
@@ -95,6 +99,13 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         return from_model_kwargs
 
     def _handle_schedule_execution(self, liveaction):
+        # Assert the permissions
+        action_ref = liveaction.action
+        action_db = action_utils.get_action_by_ref(action_ref)
+
+        assert_request_user_has_resource_permission(request=pecan.request, resource_db=action_db,
+                                                    permission_type=PermissionType.ACTION_EXECUTE)
+
         try:
             return self._schedule_execution(liveaction=liveaction)
         except ValueError as e:
@@ -181,6 +192,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
 
 class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
+    @request_user_has_permission(permission_type=PermissionType.EXECUTION_VIEW)
     @jsexpose(arg_types=[str])
     def get(self, id, **kwargs):
         """
@@ -192,6 +204,7 @@ class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
 
 
 class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
+    @request_user_has_permission(permission_type=PermissionType.EXECUTION_VIEW)
     @jsexpose()
     def get(self, id, attribute, **kwargs):
         """
@@ -276,6 +289,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         'timestamp_lt': lambda value: isotime.parse(value=value)
     }
 
+    @request_user_has_permission(permission_type=PermissionType.EXECUTION_VIEW)
     @jsexpose()
     def get_all(self, exclude_attributes=None, **kw):
         """
@@ -320,6 +334,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
     def post(self, liveaction):
         return self._handle_schedule_execution(liveaction=liveaction)
 
+    @request_user_has_permission(permission_type=PermissionType.EXECUTION_STOP)
     @jsexpose(arg_types=[str])
     def delete(self, exec_id):
         """
