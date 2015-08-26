@@ -139,6 +139,10 @@ class MongoDBAccess(object):
         return instance
 
     @staticmethod
+    def update(instance, **kwargs):
+        instance.update(**kwargs)
+
+    @staticmethod
     def delete(instance):
         instance.delete()
 
