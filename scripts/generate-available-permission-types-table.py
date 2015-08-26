@@ -45,9 +45,8 @@ def main():
     lines.append(HEADER)
     lines.append('')
 
-    valid_resource_types = ResourceType.get_valid_values()
     for resource_type in RESOURCE_DISPLAY_ORDER:
-        resource_title = resource_type.replace('_', ' ').title()
+        resource_title = resource_type.replace('_', ' ').title()  # pylint: disable=no-member
         lines.append('%s' % (resource_title))
         lines.append('~' * len(resource_title))
         lines.append('')
