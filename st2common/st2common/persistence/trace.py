@@ -34,16 +34,17 @@ class Trace(Access):
         if trigger_instances:
             update_kwargs['push_all__trigger_instances'] = trigger_instances
         if update_kwargs:
-            cls._get_impl().update(instance, **update_kwargs)
+            return cls.update(instance, **update_kwargs)
+        return instance
 
     @classmethod
     def push_action_execution(cls, instance, action_execution):
-        return cls._get_impl().update(instance, push__action_executions=action_execution)
+        return cls.update(instance, push__action_executions=action_execution)
 
     @classmethod
     def push_rule(cls, instance, rule):
-        return cls._get_impl().update(instance, push__rules=rule)
+        return cls.update(instance, push__rules=rule)
 
     @classmethod
     def push_trigger_instance(cls, instance, trigger_instance):
-        return cls._get_impl().update(instance, push__trigger_instances=trigger_instance)
+        return cls.update(instance, push__trigger_instances=trigger_instance)

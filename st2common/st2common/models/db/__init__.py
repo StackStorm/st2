@@ -153,7 +153,7 @@ class MongoDBAccess(object):
 
     @staticmethod
     def update(instance, **kwargs):
-        instance.update(**kwargs)
+        return instance.update(**kwargs)
 
     @staticmethod
     def delete(instance):
