@@ -141,7 +141,7 @@ class Notifier(consumers.MessageHandler):
             payload['action_ref'] = liveaction.action
             payload['runner_ref'] = self._get_runner_ref(liveaction.action)
 
-            trace_context = self._get_trace_context(liveaction=liveaction)
+            trace_context = self._get_trace_context(execution_id=execution_id)
 
             failed_routes = []
             for route in routes:
@@ -159,8 +159,9 @@ class Notifier(consumers.MessageHandler):
             if len(failed_routes) > 0:
                 raise Exception('Failed notifications to routes: %s' % ', '.join(failed_routes))
 
-    def _get_trace_context(self, liveaction):
-        _, trace_db = trace_service.get_trace_db_by_live_action(liveaction=liveaction)
+    def _get_trace_context(self, execution_id):
+        trace_db = trace_service.get_trace_db_by_action_execution(
+            action_execution_id=execution_id)
         if trace_db:
             return TraceContext(id_=str(trace_db.id), trace_tag=trace_db.trace_tag)
         # If no trace_context is found then do not create a new one here. If necessary
@@ -181,9 +182,12 @@ class Notifier(consumers.MessageHandler):
                    'runner_ref': self._get_runner_ref(liveaction.action),
                    'parameters': liveaction.get_masked_parameters(),
                    'result': liveaction.result}
-        trace_context = self._get_trace_context(liveaction=liveaction)
-        LOG.debug('POSTing %s for %s. Payload - %s.', ACTION_TRIGGER_TYPE['name'],
-                  liveaction.id, payload)
+        # Use execution_id to extract trace rather than liveaction. execution_id
+        # will look-up an exact TraceDB while liveaction depending on context
+        # may not end up going to the DB.
+        trace_context = self._get_trace_context(execution_id=execution_id)
+        LOG.debug('POSTing %s for %s. Payload - %s. TraceContext - %s',
+                  ACTION_TRIGGER_TYPE['name'], liveaction.id, payload, trace_context)
         self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload,
                                           trace_context=trace_context)
 
