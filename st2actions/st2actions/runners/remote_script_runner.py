@@ -159,7 +159,7 @@ class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):
         command = remote_action.get_full_command_string()
         LOG.info('Command to run: %s', command)
         results = self._parallel_ssh_client.run(command, timeout=remote_action.get_timeout(),
-                                                cwd=remote_action.get_remote_base_dir())
+                                                cwd=remote_action.get_cwd())
         LOG.debug('Results from script: %s', results)
         return results
 
