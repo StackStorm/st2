@@ -226,13 +226,15 @@ class TestTraceService(DbTestCase):
         action_execution_id = 'action_execution_1'
         rule_id = 'rule_1'
         trigger_instance_id = 'trigger_instance_1'
-        trace_service.add_or_update_given_trace_db(
-            self.trace_empty,
+        to_save = copy.copy(self.trace_empty)
+        to_save.id = None
+        saved = trace_service.add_or_update_given_trace_db(
+            to_save,
             action_executions=[action_execution_id],
             rules=[rule_id],
             trigger_instances=[trigger_instance_id])
 
-        retrieved_trace_db = Trace.get_by_id(self.trace_empty.id)
+        retrieved_trace_db = Trace.get_by_id(saved.id)
         self.assertEqual(len(retrieved_trace_db.action_executions), 1,
                          'Expected updated action_executions.')
         self.assertEqual(retrieved_trace_db.action_executions[0].object_id, action_execution_id,
@@ -246,8 +248,20 @@ class TestTraceService(DbTestCase):
         self.assertEqual(retrieved_trace_db.trigger_instances[0].object_id, trigger_instance_id,
                          'Expected updated trigger_instances.')
 
+        # Now add more TraceComponents and validated that they are added properly.
+        saved = trace_service.add_or_update_given_trace_db(
+            retrieved_trace_db,
+            action_executions=[bson.ObjectId(), bson.ObjectId()],
+            rules=[bson.ObjectId()],
+            trigger_instances=[bson.ObjectId(), bson.ObjectId(), bson.ObjectId()])
+        retrieved_trace_db = Trace.get_by_id(saved.id)
+        self.assertEqual(len(retrieved_trace_db.action_executions), 3,
+                         'Expected updated action_executions.')
+        self.assertEqual(len(retrieved_trace_db.rules), 2, 'Expected updated rules.')
+        self.assertEqual(len(retrieved_trace_db.trigger_instances), 4,
+                         'Expected updated trigger_instances.')
+
         Trace.delete(retrieved_trace_db)
-        Trace.add_or_update(self.trace_empty)
 
     def test_add_or_update_given_trace_db_fail(self):
         self.assertRaises(ValueError, trace_service.add_or_update_given_trace_db, None)
