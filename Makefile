@@ -187,9 +187,13 @@ requirements: virtualenv $(REQUIREMENTS)
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
+
+	# Make sure we use latest version of pip
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade pip
+
 	for req in $(REQUIREMENTS); do \
 		echo "Installing $$req..." ; \
-		. $(VIRTUALENV_DIR)/bin/activate && pip install $(PIP_OPTIONS) $$req ; \
+		$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) $$req ; \
 	done
 
 .PHONY: virtualenv
