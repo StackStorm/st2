@@ -9,7 +9,7 @@ in development
   non-zero code if the action fails. (improvement)
 * Move st2auth service authentication backends to a "repo per backend" model. Backends are now also
   dynamically discovered and registered which makes it possible to easily create and use custom
-  backends. For backward compatibility reasons, ``flat_file`` backend is installed and available by
+  backends. For backward compatibility reasons, ``flat_file`` backend is installed And available by
   default. (new feature, improvement)
 * New st2auth authentication backend for authenticating against LDAP servers -
   https://github.com/StackStorm/st2-auth-backend-ldap. (new feature)

@@ -49,17 +49,18 @@ def get_backend_instance(name):
     try:
         manager = DriverManager(namespace=BACKENDS_NAMESPACE, name=name,
                                 invoke_on_load=False)
-    except RuntimeError as e:
-        raise ValueError('Invalid authentication backend specified: %s (%s)' %
-                         (name, str(e)))
+    except RuntimeError:
+        message = 'Invalid authentication backend specified: %s' % (name)
+        LOG.exception(message)
+        raise ValueError(message)
 
     backend_kwargs = cfg.CONF.auth.backend_kwargs
 
     if backend_kwargs:
         try:
             kwargs = json.loads(backend_kwargs)
-        except ValueError:
-            raise ValueError('Failed to JSON parse backend settings')
+        except ValueError as e:
+            raise ValueError('Failed to JSON parse backend settings: %s' % (str(e)))
     else:
         kwargs = {}
 
