@@ -141,7 +141,7 @@ class Notifier(consumers.MessageHandler):
             payload['action_ref'] = liveaction.action
             payload['runner_ref'] = self._get_runner_ref(liveaction.action)
 
-            trace_context = self._get_trace_context(liveaction=liveaction)
+            trace_context = self._get_trace_context(execution_id=execution_id)
 
             failed_routes = []
             for route in routes:
