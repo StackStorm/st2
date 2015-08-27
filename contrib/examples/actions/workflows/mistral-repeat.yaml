@@ -10,7 +10,7 @@ examples.mistral-repeat:
         - count
     tasks:
         repeat:
-            with-items: i in <% range(0, $.count).list() %>
+            with-items: i in <% list(range(0, $.count)) %>
             action: core.local cmd=<% $.cmd %>
             publish:
                 result: <% $.repeat.stdout %>

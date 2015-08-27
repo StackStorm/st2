@@ -4,6 +4,7 @@ Changelog
 in development
 --------------
 
+* Add YAQL v1.0 support to Mistral. Earlier versions are deprecated. (improvement)
 * Update CLI so ``st2 run`` / ``st2 execution run`` and ``st2 execution re-run`` commands exit with
   non-zero code if the action fails. (improvement)
 

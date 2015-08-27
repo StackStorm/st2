@@ -20,7 +20,7 @@ Pre-Requisites
 --------------
 Before getting started, it is necessary to do a bit of pre-planning to integrate |st2| into an environment. Below is a checklist of items to prepare before running the installer.
 
-#. A server. See below for the list of pre-bundled options, or bring your own.
+#. A server. See below for the list of pre-bundled options - including a VMDK for VMware environments and an AMI image which can be great for trying us out on AWS, or bring your own.
 #. Hostname of new server setup with DNS.
 #. Admin Password.
 #. Administrative SSH Public/Private Keys *(Optional)*
