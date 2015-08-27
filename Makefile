@@ -229,12 +229,15 @@ tests: pytests
 pytests: compile requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: compile unit-tests itests clean
+.pytests: compile .unit-tests .itests clean
 
 .PHONY: .pytests-coverage
 .pytests-coverage: .unit-tests-coverage-html .itests-coverage-html clean
 
 .PHONY: unit-tests
+itests: requirements .unit-tests
+
+.PHONY: .unit-tests
 unit-tests:
 	@echo
 	@echo "==================== tests ===================="
