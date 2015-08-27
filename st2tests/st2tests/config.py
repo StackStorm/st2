@@ -52,6 +52,7 @@ def _register_config_opts():
     _register_api_opts()
     _register_auth_opts()
     _register_action_sensor_opts()
+    _register_ssh_runner_opts()
     _register_mistral_opts()
     _register_cloudslang_opts()
     _register_scheduler_opts()
@@ -158,6 +159,28 @@ def _register_action_sensor_opts():
                    help='Amount of time to wait prior to retrying a request.')
     ]
     _register_opts(action_sensor_opts, group='action_sensor')
+
+
+def _register_ssh_runner_opts():
+    ssh_runner_opts = [
+        cfg.BoolOpt('use_ssh_config', default=False,
+                    help='Use the .ssh/config file. Useful to override ports etc.'),
+        cfg.StrOpt('remote_dir',
+                   default='/tmp',
+                   help='Location of the script on the remote filesystem.'),
+        cfg.BoolOpt('allow_partial_failure',
+                    default=False,
+                    help='How partial success of actions run on multiple nodes ' +
+                         'should be treated.'),
+        cfg.BoolOpt('use_paramiko_ssh_runner',
+                    default=False,
+                    help='Use Paramiko based SSH runner as the default remote runner. ' +
+                         'EXPERIMENTAL!!! USE AT YOUR OWN RISK.'),
+        cfg.IntOpt('max_parallel_actions', default=50,
+                   help='Max number of parallel remote SSH actions that should be run.  ' +
+                        'Works only with Paramiko SSH runner.'),
+    ]
+    _register_opts(ssh_runner_opts, group='ssh_runner')
 
 
 def _register_mistral_opts():
