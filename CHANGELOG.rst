@@ -1,8 +1,10 @@
 Changelog
 =========
 
-in development
---------------
+0.13.1 - TBD
+------------
+
+* cwd for paramiko script runner should use cwd provided as runner parameter. (bug-fix)
 
 
 0.13.0 - August 24, 2015
