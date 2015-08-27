@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import hashlib
+from types import UnicodeType
+
+import bencode
 import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
@@ -24,6 +28,9 @@ __all__ = [
     'TriggerDB',
     'TriggerInstanceDB',
 ]
+
+# Patch bencode so it also knows how to encode unicode types
+bencode.encode_func[UnicodeType] = bencode.encode_string
 
 
 class TriggerTypeDB(stormbase.StormBaseDB,
@@ -80,6 +87,17 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         super(TriggerDB, self).__init__(*args, **values)
         self.ref = self.get_reference().ref
         self.uid = self.get_uid()
+
+    def get_uid(self):
+        # Note: Trigger is uniquely identified using name + pack + parameters attributes
+        uid = super(TriggerDB, self).get_uid()
+
+        parameters = getattr(self, 'parameters', {})
+        parameters = dict(parameters)
+        parameters = hashlib.md5(bencode.bencode(parameters)).hexdigest()
+
+        uid = uid + self.UID_SEPARATOR + parameters
+        return uid
 
 
 class TriggerInstanceDB(stormbase.StormFoundationDB):
