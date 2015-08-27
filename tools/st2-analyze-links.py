@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -19,6 +20,7 @@
 """
 
 import eventlet
+import os
 import sets
 import sys
 
@@ -26,6 +28,14 @@ from oslo_config import cfg
 
 from st2common import config
 from st2common.persistence.rule import Rule
+from st2common.service_setup import db_setup
+
+try:
+    from graphviz import Digraph
+except ImportError:
+    msg = ('Missing "graphviz" dependency. You can install it using pip: \n'
+           'pip install graphviz')
+    raise ImportError(msg)
 
 
 def do_register_cli_opts(opts, ignore_errors=False):
@@ -48,53 +58,88 @@ def _monkey_patch():
 
 class RuleLink(object):
 
-    def __init__(self, rule_ref, action_ref):
+    def __init__(self, source_action_ref, rule_ref, dest_action_ref):
+        self._source_action_ref = source_action_ref
         self._rule_ref = rule_ref
-        self._action_ref = action_ref
+        self._dest_action_ref = dest_action_ref
 
     def __str__(self):
-        return '(%s -> %s)' % (self._rule_ref, self._action_ref)
+        return '(%s -> %s -> %s)' % (self._source_action_ref, self._rule_ref, self._dest_action_ref)
 
 
 class LinksAnalyzer(object):
 
     def __init__(self):
         self._rule_link_by_action_ref = {}
-        self._rules = None
+        self._rules = {}
 
     def analyze(self, root_action_ref, link_tigger_ref):
-        rules = Rule.query(trigger=link_tigger_ref)
+        rules = Rule.query(trigger=link_tigger_ref, enabled=True)
+        # pprint.pprint([rule.ref for rule in rules])
         for rule in rules:
             source_action_ref = self._get_source_action_ref(rule)
             if not source_action_ref:
-                print 'No source_action_ref for rule %s' % rule
+                print 'No source_action_ref for rule %s' % rule.ref
                 continue
             rule_links = self._rules.get(source_action_ref, None)
             if rule_links is None:
                 rule_links = []
                 self._rules[source_action_ref] = rule_links
-            rule_links.append(RuleLink(rule_ref=rule.ref, action_ref=rule.action.ref))
-        print self._do_analyze(action_ref=root_action_ref)
+            rule_links.append(RuleLink(source_action_ref=source_action_ref, rule_ref=rule.ref,
+                                       dest_action_ref=rule.action.ref))
+        analyzed = self._do_analyze(action_ref=root_action_ref)
+        for (depth, rule_link) in analyzed:
+            print '%s%s' % ('  ' * depth, rule_link)
+        return analyzed
 
     def _get_source_action_ref(self, rule):
         criteria = rule.criteria
         source_action_ref = criteria.get('trigger.action_name', None)
         if not source_action_ref:
             source_action_ref = criteria.get('trigger.action_ref', None)
-        return source_action_ref
+        return source_action_ref['pattern'] if source_action_ref else None
 
-    def _do_analyze(self, action_ref, rule_links=None, processed=None):
+    def _do_analyze(self, action_ref, rule_links=None, processed=None, depth=0):
         if processed is None:
             processed = sets.Set()
         if rule_links is None:
             rule_links = []
         processed.add(action_ref)
-        for rule_link in self._rules[action_ref]:
-            if rule_link._action_ref in processed:
+        for rule_link in self._rules.get(action_ref, []):
+            rule_links.append((depth, rule_link))
+            if rule_link._dest_action_ref in processed:
                 continue
-            rule_links.append(rule_link)
-            self._do_analyze(rule_link._action_ref, rule_links=rule_links, processed=processed)
+            self._do_analyze(rule_link._dest_action_ref, rule_links=rule_links, processed=processed, depth=depth+1)
         return rule_links
+
+
+class Grapher(object):
+    def generate_graph(self, rule_links, out_file):
+        graph_label = 'Rule based visualizer'
+
+        graph_attr = {
+            'rankdir': 'TD',
+            'labelloc': 't',
+            'fontsize': '15',
+            'label': graph_label
+        }
+        node_attr = {}
+        dot = Digraph(comment='Rule based links visualization',
+                      node_attr=node_attr, graph_attr=graph_attr, format='png')
+
+        nodes = sets.Set()
+        for _, rule_link in rule_links:
+            print rule_link._source_action_ref
+            if rule_link._source_action_ref not in nodes:
+                nodes.add(rule_link._source_action_ref)
+                dot.node(rule_link._source_action_ref, rule_link._source_action_ref)
+            if rule_link._dest_action_ref not in nodes:
+                nodes.add(rule_link._dest_action_ref)
+                dot.node(rule_link._dest_action_ref, rule_link._dest_action_ref)
+            dot.edge(rule_link._source_action_ref, rule_link._dest_action_ref, constraint='true', label=rule_link._rule_ref)
+        output_path = os.path.join(os.getcwd(), out_file)
+        dot.format = 'png'
+        dot.render(output_path)
 
 
 def main():
@@ -104,10 +149,14 @@ def main():
         cfg.StrOpt('action_ref', default=None,
                    help='Root action to begin analysis.'),
         cfg.StrOpt('link_trigger_ref', default='core.st2.generic.actiontrigger',
-                   help='Root action to begin analysis.')
+                   help='Root action to begin analysis.'),
+        cfg.StrOpt('out_file', default='pipeline')
     ]
     do_register_cli_opts(cli_opts)
     config.parse_args()
+    db_setup()
+    rule_links = LinksAnalyzer().analyze(cfg.CONF.action_ref, cfg.CONF.link_trigger_ref)
+    Grapher().generate_graph(rule_links, cfg.CONF.out_file)
 
 
 if __name__ == '__main__':
