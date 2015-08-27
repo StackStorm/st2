@@ -29,6 +29,7 @@ class ResourceType(Enum):
     ACTION = 'action'
     SENSOR_TYPE = 'sensor_type'
     TRIGGER_TYPE = 'trigger_type'
+    TRIGGER = 'trigger'
     TRIGGER_INSTANCE = 'trigger_instance'
     RULE = 'rule'
 

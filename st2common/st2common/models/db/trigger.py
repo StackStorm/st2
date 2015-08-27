@@ -34,6 +34,7 @@ class TriggerTypeDB(stormbase.StormBaseDB,
        (pack, name) tuple is expected uniquely identify a trigger in
        the namespace of all triggers provided by a specific trigger_source.
     Attribute:
+        name - Trigger type name.
         pack - Name of the content pack this trigger belongs to.
         trigger_source: Source that owns this trigger type.
         payload_info: Meta information of the expected payload.
@@ -61,12 +62,13 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
                 stormbase.UIDFieldMixin):
     """
     Attribute:
+        name - Trigger name.
         pack - Name of the content pack this trigger belongs to.
         type - Reference to the TriggerType object.
         parameters - Trigger parameters.
     """
 
-    RESOURCE_TYPE = ResourceType.TRIGGER_INSTANCE
+    RESOURCE_TYPE = ResourceType.TRIGGER
     UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)
