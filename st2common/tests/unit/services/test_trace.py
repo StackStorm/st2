@@ -16,6 +16,8 @@
 import bson
 import copy
 
+from unittest2 import TestCase
+
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.trace import UniqueTraceNotFoundException
 from st2common.models.api.trace import TraceContext
@@ -298,3 +300,16 @@ class TestTraceService(DbTestCase):
                          'Expected updated trigger_instances.')
 
         Trace.delete(retrieved_trace_db)
+
+
+class TestTraceContext(TestCase):
+
+    def test_str_method(self):
+        trace_context = TraceContext(id_='id', trace_tag='tag')
+        self.assertTrue(str(trace_context))
+
+        trace_context = TraceContext(trace_tag='tag')
+        self.assertTrue(str(trace_context))
+
+        trace_context = TraceContext(id_='id')
+        self.assertTrue(str(trace_context))

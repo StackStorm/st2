@@ -151,3 +151,6 @@ class TraceContext(object):
     def __init__(self, id_=None, trace_tag=None):
         self.id_ = id_
         self.trace_tag = trace_tag
+
+    def __str__(self):
+        return '{id_: %s, trace_tag: %s}' % (self.id_, self.trace_tag)
