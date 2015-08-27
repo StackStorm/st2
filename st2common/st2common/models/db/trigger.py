@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import hashlib
+
 import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
+from st2common.util import bencode
 
 __all__ = [
     'TriggerTypeDB',
@@ -34,6 +37,7 @@ class TriggerTypeDB(stormbase.StormBaseDB,
        (pack, name) tuple is expected uniquely identify a trigger in
        the namespace of all triggers provided by a specific trigger_source.
     Attribute:
+        name - Trigger type name.
         pack - Name of the content pack this trigger belongs to.
         trigger_source: Source that owns this trigger type.
         payload_info: Meta information of the expected payload.
@@ -61,12 +65,13 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
                 stormbase.UIDFieldMixin):
     """
     Attribute:
+        name - Trigger name.
         pack - Name of the content pack this trigger belongs to.
         type - Reference to the TriggerType object.
         parameters - Trigger parameters.
     """
 
-    RESOURCE_TYPE = ResourceType.TRIGGER_INSTANCE
+    RESOURCE_TYPE = ResourceType.TRIGGER
     UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)
@@ -78,6 +83,17 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         super(TriggerDB, self).__init__(*args, **values)
         self.ref = self.get_reference().ref
         self.uid = self.get_uid()
+
+    def get_uid(self):
+        # Note: Trigger is uniquely identified using name + pack + parameters attributes
+        uid = super(TriggerDB, self).get_uid()
+
+        parameters = getattr(self, 'parameters', {})
+        parameters = bencode.bencode(parameters)
+        parameters = hashlib.md5(parameters).hexdigest()
+
+        uid = uid + self.UID_SEPARATOR + parameters
+        return uid
 
 
 class TriggerInstanceDB(stormbase.StormFoundationDB):
