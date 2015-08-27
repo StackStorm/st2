@@ -21,6 +21,8 @@ from __future__ import absolute_import
 
 from types import UnicodeType
 
+from mongoengine.base.datastructures import BaseDict
+
 import bencode as bencode_upstream
 
 __all__ = [
@@ -35,6 +37,7 @@ def encode_unicode(x, r):
 
 # Patch bencode so it also knows how to encode unicode types
 bencode_upstream.encode_func[UnicodeType] = encode_unicode
+bencode_upstream.encode_func[BaseDict] = bencode_upstream.encode_dict
 
 
 def bencode(x):

@@ -89,8 +89,8 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         uid = super(TriggerDB, self).get_uid()
 
         parameters = getattr(self, 'parameters', {})
-        parameters = dict(parameters)
-        parameters = hashlib.md5(bencode.bencode(parameters)).hexdigest()
+        parameters = bencode.bencode(parameters)
+        parameters = hashlib.md5(parameters).hexdigest()
 
         uid = uid + self.UID_SEPARATOR + parameters
         return uid
