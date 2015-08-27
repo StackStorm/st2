@@ -13,27 +13,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.util.misc import Enum
+"""
+This module contains patched version of bencode function which knows how to handle unicode types.
+"""
+
+from __future__ import absolute_import
+
+from types import UnicodeType
+
+from mongoengine.base.datastructures import BaseDict
+
+import bencode as bencode_upstream
 
 __all__ = [
-    'ResourceType'
+    'bencode',
+    'bdecode'
 ]
 
 
-class ResourceType(Enum):
-    """
-    Enum representing a valid resource type in a system.
-    """
+def encode_unicode(x, r):
+    x = x.encode('utf-8')
+    r.extend((str(len(x)), ':', x))
 
-    PACK = 'pack'
-    ACTION = 'action'
-    SENSOR_TYPE = 'sensor_type'
-    TRIGGER_TYPE = 'trigger_type'
-    TRIGGER = 'trigger'
-    TRIGGER_INSTANCE = 'trigger_instance'
-    RULE = 'rule'
+# Patch bencode so it also knows how to encode unicode types
+bencode_upstream.encode_func[UnicodeType] = encode_unicode
+bencode_upstream.encode_func[BaseDict] = bencode_upstream.encode_dict
 
-    EXECUTION = 'execution'
-    KEY_VALUE = 'key_value'
 
-    UNKNOWN = 'unknown'
+def bencode(x):
+    return bencode_upstream.bencode(x)
+
+
+def bdecode(x):
+    return bencode_upstream.bdecode(x)
