@@ -5,7 +5,6 @@ in development
 --------------
 
 * Add YAQL v1.0 support to Mistral. Earlier versions are deprecated. (improvement)
-* cwd for paramiko script runner should use cwd provided as runner parameter. (bug-fix)
 
 0.13.0 - August 24, 2015.
 -------------------------
