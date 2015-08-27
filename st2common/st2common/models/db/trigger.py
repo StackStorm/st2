@@ -14,23 +14,19 @@
 # limitations under the License.
 
 import hashlib
-from types import UnicodeType
 
-import bencode
 import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
+from st2common.util import bencode
 
 __all__ = [
     'TriggerTypeDB',
     'TriggerDB',
     'TriggerInstanceDB',
 ]
-
-# Patch bencode so it also knows how to encode unicode types
-bencode.encode_func[UnicodeType] = bencode.encode_string
 
 
 class TriggerTypeDB(stormbase.StormBaseDB,
