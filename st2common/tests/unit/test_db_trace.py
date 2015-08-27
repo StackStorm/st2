@@ -115,7 +115,7 @@ class TraceDBTest(CleanDbTestCase):
             rules=[str(bson.ObjectId()) for _ in range(no_rules)],
             trigger_instances=[str(bson.ObjectId()) for _ in range(no_trigger_instances)])
 
-        Trace.push_components(
+        retrieved = Trace.push_components(
             saved,
             action_executions=[TraceComponentDB(object_id=str(bson.ObjectId()))
                                for _ in range(no_action_executions)],
@@ -124,7 +124,6 @@ class TraceDBTest(CleanDbTestCase):
             trigger_instances=[TraceComponentDB(object_id=str(bson.ObjectId()))
                                for _ in range(no_trigger_instances)])
 
-        retrieved = Trace.get(id=saved.id)
         self.assertEquals(retrieved.id, saved.id, 'Incorrect trace retrieved.')
         self.assertEquals(len(retrieved.action_executions), no_action_executions * 2)
         self.assertEquals(len(retrieved.rules), no_rules * 2)
