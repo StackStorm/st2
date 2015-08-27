@@ -85,7 +85,8 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._username = self._username or cfg.CONF.system_user.user
         self._password = self.runner_parameters.get(RUNNER_PASSWORD, None)
         self._ssh_port = self.runner_parameters.get(RUNNER_SSH_PORT, 22)
-        self._ssh_key_file = self.runner_parameters.get(RUNNER_PRIVATE_KEY, self._ssh_key_file)
+        self._private_key = self.runner_parameters.get(RUNNER_PRIVATE_KEY, self._ssh_key_file)
+        self._ssh_key_file = self._private_key or self._ssh_key_file
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._sudo = self._sudo if self._sudo else False
