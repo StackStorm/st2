@@ -23,6 +23,7 @@ from st2common.fields import ComplexDateTimeField
 from st2common.util import date as date_utils
 from st2common.util.secrets import get_secret_parameters
 from st2common.util.secrets import mask_secret_parameters
+from st2common.constants.types import ResourceType
 
 __all__ = [
     'ActionExecutionDB'
@@ -33,6 +34,8 @@ LOG = logging.getLogger(__name__)
 
 
 class ActionExecutionDB(stormbase.StormFoundationDB):
+    RESOURCE_TYPE = ResourceType.EXECUTION
+
     trigger = stormbase.EscapedDictField()
     trigger_type = stormbase.EscapedDictField()
     trigger_instance = stormbase.EscapedDictField()

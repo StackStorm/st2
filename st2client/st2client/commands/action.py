@@ -140,12 +140,12 @@ class ActionBranch(resource.ResourceBranch):
 
 
 class ActionListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'pack', 'name', 'description']
+    display_attributes = ['uid', 'ref', 'pack', 'name', 'description']
 
 
 class ActionGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
-    attribute_display_order = ['id', 'ref', 'pack', 'name', 'description',
+    attribute_display_order = ['id', 'uid', 'ref', 'pack', 'name', 'description',
                                'enabled', 'entry_point', 'runner_type',
                                'parameters']
 
@@ -202,7 +202,11 @@ class ActionRunCommandMixin(object):
             self.print_output('To get the results, execute:\n st2 execution get %s' %
                               (execution.id), six.text_type)
         else:
-            return self._print_execution_details(execution=execution, args=args, **kwargs)
+            self._print_execution_details(execution=execution, args=args, **kwargs)
+
+        if execution.status == 'failed':
+            # Exit with non zero if the action has failed
+            sys.exit(1)
 
     def _add_common_options(self):
         root_arg_grp = self.parser.add_mutually_exclusive_group()

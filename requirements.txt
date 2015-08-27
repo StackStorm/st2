@@ -35,3 +35,4 @@ python-nmap>=0.3.4,<0.4
 semver>=2.1.2
 # flat_file auth backend is installed and available by default
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2auth_flat_file_backend
+bencode>=1.0,<1.1

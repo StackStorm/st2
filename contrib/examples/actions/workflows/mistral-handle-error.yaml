@@ -10,17 +10,16 @@ examples.mistral-handle-error:
         - cmd
     output:
         stdout: <% $.stdout %>
-    task-defaults:
-        on-error:
-            - notify_on_error
-            - fail
     tasks:
         task1:
             action: core.local cmd=<% $.cmd %>
             publish:
                 stdout: <% $.task1.stdout %>
-                stderr: <% $.task1.stderr %>
+            on-error:
+                - notify_on_error
         notify_on_error:
             action: core.local
             input:
-                cmd: "printf '<% $.error %>'"
+                cmd: "printf '<% $.task1.stderr %>'"
+            on-complete:
+                - fail

@@ -31,6 +31,8 @@ from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.transport.bootstrap_utils import register_exchanges
 from st2common.signal_handlers import register_common_signal_handlers
 
+from st2common.rbac.migrations import insert_system_roles
+
 __all__ = [
     'setup',
     'teardown',
@@ -43,7 +45,7 @@ LOG = logging.getLogger(__name__)
 
 
 def setup(service, config, setup_db=True, register_mq_exchanges=True,
-          register_signal_handlers=True):
+          register_signal_handlers=True, run_migrations=True):
     """
     Common setup function.
 
@@ -89,6 +91,10 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
 
     if register_signal_handlers:
         register_common_signal_handlers()
+
+    # TODO: This is a "not so nice" workaround until we have a proper migration system in place
+    if run_migrations:
+        insert_system_roles()
 
 
 def teardown():

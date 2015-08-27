@@ -25,8 +25,9 @@ from webob import exc
 
 from st2common import log as logging
 from st2common.persistence.auth import User
-from st2common.exceptions import auth as exceptions
 from st2common.exceptions import db as db_exceptions
+from st2common.exceptions import auth as auth_exceptions
+from st2common.exceptions import rbac as rbac_exceptions
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.util.jsonify import json_encode
 from st2common.util.auth import validate_token
@@ -128,13 +129,13 @@ class AuthHook(PecanHook):
             del state.arguments.keywords[QUERY_PARAM_ATTRIBUTE_NAME]
 
     def on_error(self, state, e):
-        if isinstance(e, exceptions.TokenNotProvidedError):
+        if isinstance(e, auth_exceptions.TokenNotProvidedError):
             LOG.exception('Token is not provided.')
             return self._abort_unauthorized()
-        if isinstance(e, exceptions.TokenNotFoundError):
+        if isinstance(e, auth_exceptions.TokenNotFoundError):
             LOG.exception('Token is not found.')
             return self._abort_unauthorized()
-        if isinstance(e, exceptions.TokenExpiredError):
+        if isinstance(e, auth_exceptions.TokenExpiredError):
             LOG.exception('Token has expired.')
             return self._abort_unauthorized()
 
@@ -196,6 +197,9 @@ class JSONErrorResponseHook(PecanHook):
             status_code = httplib.CONFLICT
             message = str(e)
             body['conflict-id'] = e.conflict_id
+        elif isinstance(e, rbac_exceptions.AccessDeniedError):
+            status_code = httplib.FORBIDDEN
+            message = str(e)
         elif isinstance(e, (ValueValidationException, ValueError)):
             status_code = httplib.BAD_REQUEST
             message = getattr(e, 'message', str(e))

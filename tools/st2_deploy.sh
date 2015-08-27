@@ -44,6 +44,16 @@ TEST_ACCOUNT_PASSWORD="testp"
 AUTH_FILE_PATH="/etc/st2/htpasswd"
 HTPASSWD_FILE_CONTENT="testu:{SHA}V1t6eZLxnehb7CTBuj61Nq3lIh4="
 
+# Content for the RBAC user role assignment file
+ROLE_ASSIGNMENTS_DIRECTORY_PATH="/opt/stackstorm/rbac/assignments/"
+ADMIN_USER_ROLE_ASSIGNMENT_FILE_PATH="/opt/stackstorm/rbac/assignments/testu.yaml"
+read -r -d '' ADMIN_USER_ROLE_ASSIGNMENT_FILE_CONTENT << EOM
+---
+    username: "testu"
+    roles:
+        - "system_admin"
+EOM
+
 # WebUI
 WEBUI_CONFIG_PATH="/opt/stackstorm/static/webui/config.js"
 
@@ -183,7 +193,7 @@ install_pip() {
   echo "# Installing packages via pip"
   pip install -U pip
   hash -d pip
-  curl -sS -k -o /tmp/requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/requirements.txt
+  curl -sS -k -o /tmp/requirements.txt "${DOWNLOAD_SERVER}/releases/st2/${VER}/requirements.txt"
   pip install -U -r /tmp/requirements.txt
 }
 
@@ -480,6 +490,18 @@ function setup_auth() {
     sed -i "s#^backend_kwargs =\$#backend_kwargs = {\"file_path\": \"${AUTH_FILE_PATH}\"}#g" ${STANCONF}
 }
 
+function setup_admin_user() {
+    echo "###########################################################################################"
+    echo "# Setting up admin user"
+
+    mkdir -p ${ROLE_ASSIGNMENTS_DIRECTORY_PATH}
+
+    # Install role definition file for an admin user
+    if [[ ! -f ${ADMIN_USER_ROLE_ASSIGNMENT_FILE_PATH} ]]; then
+        echo "${ADMIN_USER_ROLE_ASSIGNMENT_FILE_CONTENT}" > ${ADMIN_USER_ROLE_ASSIGNMENT_FILE_PATH}
+    fi
+}
+
 download_pkgs() {
   echo "###########################################################################################"
   echo "# Downloading ${TYPE} packages"
@@ -540,6 +562,12 @@ register_content() {
   echo "###########################################################################################"
   echo "# Registering all content"
   $PYTHON ${PYTHONPACK}/st2common/bin/st2-register-content --register-sensors --register-actions --config-file ${STANCONF}
+}
+
+function apply_rbac_definitions() {
+  echo "###########################################################################################"
+  echo "# Applying RBAC definitions"
+  ${PYTHON} ${PYTHONPACK}/st2common/bin/st2-apply-rbac-definitions --config-file ${STANCONF}
 }
 
 create_user
@@ -638,6 +666,7 @@ install_webui() {
 }
 
 setup_auth
+setup_admin_user
 
 if [ ${INSTALL_ST2CLIENT} == "1" ]; then
     install_st2client
@@ -650,7 +679,10 @@ fi
 if version_ge $VER "0.9"; then
   migrate_rules
 fi
+
 register_content
+apply_rbac_definitions
+
 echo "###########################################################################################"
 echo "# Starting St2 Services"
 st2ctl restart

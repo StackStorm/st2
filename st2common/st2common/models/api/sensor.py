@@ -27,6 +27,12 @@ class SensorTypeAPI(BaseAPI):
                 'type': 'string',
                 'default': None
             },
+            'ref': {
+                'type': 'string'
+            },
+            'uid': {
+                'type': 'string'
+            },
             'name': {
                 'type': 'string',
                 'required': True

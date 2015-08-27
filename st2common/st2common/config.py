@@ -49,6 +49,11 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(auth_opts, 'auth', ignore_errors)
 
+    rbac_opts = [
+        cfg.BoolOpt('enable', default=False, help='Enable RBAC.'),
+    ]
+    do_register_opts(rbac_opts, 'rbac', ignore_errors)
+
     system_user_opts = [
         cfg.StrOpt('user',
                    default='stanley',

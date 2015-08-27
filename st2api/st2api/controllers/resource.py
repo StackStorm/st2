@@ -58,9 +58,13 @@ class ResourceController(rest.RestController):
     # A list of optional transformation functions for user provided filter values
     filter_transform_functions = {}
 
+    # Method responsible for retrieving an instance of the corresponding model DB object
+    get_one_db_method = None
+
     def __init__(self):
         self.supported_filters = copy.deepcopy(self.__class__.supported_filters)
         self.supported_filters.update(RESERVED_QUERY_PARAMS)
+        self.get_one_db_method = self._get_by_name_or_id
 
     @jsexpose()
     def get_all(self, **kwargs):
@@ -226,6 +230,10 @@ class ResourceController(rest.RestController):
 
 class ContentPackResourceController(ResourceController):
     include_reference = False
+
+    def __init__(self):
+        super(ContentPackResourceController, self).__init__()
+        self.get_one_db_method = self._get_by_ref_or_id
 
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):

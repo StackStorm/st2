@@ -8,30 +8,26 @@ workflows:
         output:
             report: <% $.report %>
             state: <% $.state %>
-        task-defaults:
-          on-error:
-            - fail
         tasks:
             call_internal_workflow:
-                workflow: internal_workflow
+                workflow: wf1
                 input:
-                    name: <% $.vm_name %>
+                    v1: ok
                 publish:
                     report: <% $.call_internal_workflow.report %>
                 on-success:
                     - call_internal_workflow_multiple_tasks
             call_internal_workflow_multiple_tasks:
-                workflow: internal_workflow_multiple_tasks
+                workflow: wf2
                 input:
-                    vm_id: <% $.vm_id %>
-                    cpu_cores: <% $.cpu_cores %>
-                    memory_mb: <% $.memory_mb %>
+                    v1: good
+                    v2: excellent
                 on-success:
                     - call_external_workflow
             call_external_workflow:
                 action: examples.mistral-basic
                 input:
-                    cmd: "sleep 2; echo external workflow ok"
+                    cmd: "echo 'external workflow ok'"
                 publish:
                     state: <% $.call_external_workflow.stdout %>
                 on-success:
@@ -39,38 +35,31 @@ workflows:
             call_action_chain:
                 action: examples.echochain
 
-    internal_workflow:
+    wf1:
         type: direct
         input:
-            - name
+            - v1
         output:
             report: <% $.report %>
-        task-defaults:
-          on-error:
-            - fail
         tasks:
-            task1:
+            t1:
                 action: core.local
                 input:
-                    cmd: "sleep 3; echo task1 ok"
+                    cmd: "echo 'task1 <% $.v1 %>'; sleep 1"
                 publish:
-                    report: <% $.task1.stdout %>
+                    report: <% $.t1.stdout %>
 
-    internal_workflow_multiple_tasks:
+    wf2:
         type: direct
         input:
-            - vm_id
-            - cpu_cores
-            - memory_mb
-        task-defaults:
-          on-error:
-            - fail
+            - v1
+            - v2
         tasks:
-            task1:
+            t1:
                 action: core.local
                 input:
-                    cmd: "sleep 2; echo task1 ok"
-            task2:
+                    cmd: "echo 'task2 <% $.v1 %>'; sleep 1"
+            t2:
                 action: core.local
                 input:
-                    cmd: "sleep 4; echo task2 ok"
+                    cmd: "echo 'task3 <% $.v2 %>'; sleep 2"

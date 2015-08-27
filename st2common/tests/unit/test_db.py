@@ -415,9 +415,7 @@ class KeyValuePairModelTest(DbTestCase):
 
     @staticmethod
     def _create_save_kvp():
-        created = KeyValuePairDB()
-        created.name = 'token'
-        created.value = '0123456789ABCDEF'
+        created = KeyValuePairDB(name='token', value='0123456789ABCDEF')
         return KeyValuePair.add_or_update(created)
 
     @staticmethod

@@ -48,7 +48,7 @@ class BaseAPI(object):
 
     def __repr__(self):
         name = type(self).__name__
-        attrs = ', '.join("'%s':%r" % item for item in six.iteritems(vars(self)))
+        attrs = ', '.join("'%s': %r" % item for item in six.iteritems(vars(self)))
         # The format here is so that eval can be applied.
         return "%s(**{%s})" % (name, attrs)
 

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 import datetime
 
 import bson
@@ -23,13 +24,19 @@ from oslo_config import cfg
 from st2common.util import mongoescape
 from st2common.models.base import DictSerializableClassMixin
 from st2common.models.system.common import ResourceReference
+from st2common.constants.types import ResourceType
 
 __all__ = [
     'StormFoundationDB',
     'StormBaseDB',
+
     'EscapedDictField',
-    'TagsMixin',
+    'EscapedDynamicField',
     'TagField',
+
+    'RefFieldMixin',
+    'UIDFieldMixin',
+    'TagsMixin',
     'ContentPackResourceMixin'
 ]
 
@@ -41,6 +48,9 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
     Base abstraction for a model entity. This foundation class should only be directly
     inherited from the application domain models.
     """
+
+    # Variable representing a type of this resource
+    RESOURCE_TYPE = ResourceType.UNKNOWN
 
     # We explicitly assign the manager so pylint know what type objects is
     objects = me.queryset.QuerySetManager()
@@ -62,6 +72,9 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
             v = '"%s"' % str(v) if type(v) in [str, unicode, datetime.datetime] else str(v)
             attrs.append('%s=%s' % (k, v))
         return '%s(%s)' % (self.__class__.__name__, ', '.join(attrs))
+
+    def get_resource_type(self):
+        return self.RESOURCE_TYPE
 
     def mask_secrets(self, value):
         """
@@ -156,11 +169,71 @@ class TagsMixin(object):
         return ['tags.name', 'tags.value']
 
 
+class RefFieldMixin(object):
+    """
+    Mixin class which adds "ref" field to the class inheriting from it.
+    """
+
+    ref = me.StringField(required=True, unique=True)
+
+
+class UIDFieldMixin(object):
+    """
+    Mixin class which adds "uid" field to the class inheriting from it.
+
+    UID field is a unique identifier which we can be used to unambiguously reference a resource in
+    the system.
+    """
+
+    UID_SEPARATOR = ':'  # TODO: Move to constants
+
+    RESOURCE_TYPE = abc.abstractproperty
+    UID_FIELDS = abc.abstractproperty
+
+    uid = me.StringField(required=True)
+
+    @classmethod
+    def get_indexes(cls):
+        # Note: We use a special sparse index so we don't need to pre-populate "uid" for existing
+        # models in the database before ensure_indexes() is called.
+        # This field gets populated in the constructor which means it will be lazily assigned next
+        # time the model is saved (e.g. once register-content is ran).
+        indexes = [
+            {
+                'fields': ['uid'],
+                'unique': True,
+                'sparse': True,
+                'types': False
+            }
+        ]
+        return indexes
+
+    def get_uid(self):
+        parts = []
+        parts.append(self.RESOURCE_TYPE)
+
+        for field in self.UID_FIELDS:
+            value = getattr(self, field, None)
+            parts.append(value)
+
+        uid = self.UID_SEPARATOR.join(parts)
+        return uid
+
+
 class ContentPackResourceMixin(object):
     """
-    Mixin class which provides utility methods for models which contain
-    a "pack" attribute.
+    Mixin class provides utility methods for models which belong to a pack.
     """
+
+    def get_pack_uid(self):
+        """
+        Return an UID of a pack this resource belongs to.
+
+        :rtype ``str``
+        """
+        parts = [ResourceType.PACK, self.pack]
+        uid = UIDFieldMixin.UID_SEPARATOR.join(parts)
+        return uid
 
     def get_reference(self):
         """
@@ -168,5 +241,9 @@ class ContentPackResourceMixin(object):
 
         :rtype: :class:`ResourceReference`
         """
-        ref = ResourceReference(pack=self.pack, name=self.name)
+        if getattr(self, 'ref', None):
+            ref = ResourceReference.from_string_reference(ref=self.ref)
+        else:
+            ref = ResourceReference(pack=self.pack, name=self.name)
+
         return ref
