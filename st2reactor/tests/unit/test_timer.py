@@ -85,7 +85,7 @@ class St2TimerTestCase(CleanDbTestCase):
         trigger_db = TriggerDB(name='test_trigger_1', pack='dummy', type=type_,
                                parameters=parameters)
         timer.add_trigger(trigger_db)
-        timer._emit_trigger_instance(trigger=trigger_db)
+        timer._emit_trigger_instance(trigger=trigger_db.to_serializable_dict())
 
         self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag,
                          '%s-%s' % (TIMER_TRIGGER_TYPES[type_]['name'], trigger_db.name))
