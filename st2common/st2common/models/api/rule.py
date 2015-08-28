@@ -178,7 +178,7 @@ class RuleAPI(BaseAPI):
         action = ActionExecutionSpecDB(ref=rule.action['ref'],
                                        parameters=rule.action['parameters'])
 
-        enabled = rule.enabled
+        enabled = getattr(rule, 'enabled', True)
         tags = TagsHelper.to_model(getattr(rule, 'tags', []))
 
         model = cls.model(name=name, description=description, pack=pack, ref=ref, trigger=trigger,
