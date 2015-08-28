@@ -24,6 +24,7 @@ from st2common.content.loader import MetaLoader
 from st2common.content.loader import ContentPackLoader
 from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
+from st2common.util.file_system import get_file_list
 
 __all__ = [
     'ResourceRegistrar'
@@ -37,11 +38,21 @@ LOG = logging.getLogger(__name__)
 # a long running process.
 REGISTERED_PACKS_CACHE = {}
 
+EXCLUDE_FILE_PATTERNS = [
+    '*.pyc'
+]
+
 
 class ResourceRegistrar(object):
     ALLOWED_EXTENSIONS = []
 
-    def __init__(self):
+    def __init__(self, use_pack_cache=True):
+        """
+        :param use_pack_cache: True to cache which packs have been registered in memory and making
+                                sure packs are only registered once.
+        :type use_pack_cache: ``bool``
+        """
+        self._use_pack_cache = use_pack_cache
         self._meta_loader = MetaLoader()
         self._pack_loader = ContentPackLoader()
 
@@ -78,7 +89,7 @@ class ResourceRegistrar(object):
         """
         Register pack in the provided directory.
         """
-        if pack_name in REGISTERED_PACKS_CACHE:
+        if self._use_pack_cache and pack_name in REGISTERED_PACKS_CACHE:
             # This pack has already been registered during this register content run
             return
 
@@ -110,6 +121,11 @@ class ResourceRegistrar(object):
             raise ValueError('Pack "%s" metadata file is empty' % (pack_name))
 
         content['ref'] = pack_name
+
+        # Include a list of pack files
+        pack_file_list = get_file_list(directory=pack_dir, exclude_patterns=EXCLUDE_FILE_PATTERNS)
+        content['files'] = pack_file_list
+
         pack_api = PackAPI(**content)
         pack_db = PackAPI.to_model(pack_api)
 

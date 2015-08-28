@@ -80,7 +80,7 @@ class NotifierTestCase(unittest2.TestCase):
                 self.tester.fail('Test failed')
 
     @mock.patch('st2common.util.action_db.get_action_by_ref', mock.MagicMock(
-        return_value=ActionDB(runner_type={'name': 'run-local-cmd'})))
+        return_value=ActionDB(pack='core', name='local', runner_type={'name': 'run-local-cmd'})))
     @mock.patch('st2common.util.action_db.get_runnertype_by_name', mock.MagicMock(
         return_value=RunnerTypeDB(runner_parameters={})))
     @mock.patch.object(Action, 'get_by_ref', mock.MagicMock(

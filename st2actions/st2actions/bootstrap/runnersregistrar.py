@@ -181,6 +181,12 @@ RUNNER_TYPES = [
                                 'doesn\'t finish in timeout seconds.'),
                 'type': 'integer',
                 'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+            },
+            'port': {
+                'description': 'SSH port. Note: This parameter is used only in ParamikoSSHRunner.',
+                'type': 'integer',
+                'default': 22,
+                'required': False
             }
         },
         'runner_module': 'st2actions.runners.remote_command_runner'
@@ -254,6 +260,12 @@ RUNNER_TYPES = [
                                 'doesn\'t finish in timeout seconds.'),
                 'type': 'integer',
                 'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+            },
+            'port': {
+                'description': 'SSH port. Note: This parameter is used only in ParamikoSSHRunner.',
+                'type': 'integer',
+                'default': 22,
+                'required': False
             }
         },
         'runner_module': 'st2actions.runners.remote_script_runner'

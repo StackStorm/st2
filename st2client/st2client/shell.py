@@ -42,6 +42,7 @@ from st2client.commands import keyvalue
 from st2client.commands import policy
 from st2client.commands import resource
 from st2client.commands import sensor
+from st2client.commands import trace
 from st2client.commands import trigger
 from st2client.commands import triggerinstance
 from st2client.commands import webhook
@@ -219,7 +220,11 @@ class Shell(object):
             self, self.subparsers, read_only=True)
 
         self.commands['sensor'] = sensor.SensorBranch(
-            'An adapter which allows you to integrate Stanley with external system ',
+            'An adapter which allows you to integrate StackStorm with external system ',
+            self, self.subparsers)
+
+        self.commands['trace'] = trace.TraceBranch(
+            'A group of executions, rules and triggerinstances that are related.',
             self, self.subparsers)
 
         self.commands['trigger'] = trigger.TriggerTypeBranch(
@@ -411,14 +416,19 @@ class Shell(object):
 
         if not os.access(ST2_CONFIG_DIRECTORY, os.R_OK):
             # We don't have read access to the file with a cached token
-            LOG.warn('User "%s" doesn\'t have read access to file "%s"' % (os.getlogin(),
-                                                                           CACHED_TOKEN_PATH))
+            message = ('Unable to retrieve cached token from "%s" (user %s doesn\'t have read '
+                       'access to the parent directory). Subsequent requests won\'t use a '
+                       'cached token meaning they may be slower.' % (CACHED_TOKEN_PATH,
+                                                                     os.getlogin()))
+            LOG.warn(message)
             return None
 
         if not os.access(CACHED_TOKEN_PATH, os.R_OK):
             # We don't have read access to the file with a cached token
-            LOG.warn('User "%s" doesn\'t have read access to file "%s"' % (os.getlogin(),
-                                                                           CACHED_TOKEN_PATH))
+            message = ('Unable to retrieve cached token from "%s" (user %s doesn\'t have read '
+                       'access to this file). Subsequent requests won\'t use a cached token '
+                       'meaning they may be slower.' % (CACHED_TOKEN_PATH, os.getlogin()))
+            LOG.warn(message)
             return None
 
         with open(CACHED_TOKEN_PATH) as fp:
@@ -452,14 +462,20 @@ class Shell(object):
 
         if not os.access(ST2_CONFIG_DIRECTORY, os.W_OK):
             # We don't have write access to the file with a cached token
-            LOG.warn('User "%s" doesn\'t have write access to file "%s"' % (os.getlogin(),
-                                                                            CACHED_TOKEN_PATH))
+            message = ('Unable to write token to "%s" (user %s doesn\'t have write'
+                       'access to the parent directory). Subsequent requests won\'t use a '
+                       'cached token meaning they may be slower.' % (CACHED_TOKEN_PATH,
+                                                                     os.getlogin()))
+            LOG.warn(message)
             return None
 
         if os.path.isfile(CACHED_TOKEN_PATH) and not os.access(CACHED_TOKEN_PATH, os.W_OK):
             # We don't have write access to the file with a cached token
-            LOG.warn('User "%s" doesn\'t have write access to file "%s"' % (os.getlogin(),
-                                                                            CACHED_TOKEN_PATH))
+            message = ('Unable to write token to "%s" (user %s doesn\'t have write'
+                       'access to this file). Subsequent requests won\'t use a '
+                       'cached token meaning they may be slower.' % (CACHED_TOKEN_PATH,
+                                                                     os.getlogin()))
+            LOG.warn(message)
             return None
 
         token = token_obj.token

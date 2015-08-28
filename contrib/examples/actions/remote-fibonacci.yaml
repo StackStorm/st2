@@ -3,5 +3,17 @@ description: Action that returns fibonacci numbers in a range.
 enabled: true
 entry_point: pythonactions/fibonacci.py
 name: remote-fib
-parameters: {}
-runner_type: "remote-shell-cmd"
+runner_type: "remote-shell-script"
+parameters:
+  start:
+    type: number
+    default: 1
+    required: true
+    description: Start number for fibonacci series
+    position: 0
+  end:
+    type: number
+    description: End number for fibonacci series
+    required: true
+    default: 100
+    position: 1

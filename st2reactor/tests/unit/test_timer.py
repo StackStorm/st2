@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mock import Mock
+import bson
+import mock
 
 from st2common.constants.triggers import TIMER_TRIGGER_TYPES
 from st2common.models.db.trigger import TriggerDB
@@ -27,7 +28,7 @@ from st2tests.base import CleanDbTestCase
 class St2TimerTestCase(CleanDbTestCase):
     def test_trigger_types_are_registered_on_start(self):
         timer = St2Timer()
-        timer._scheduler = Mock()
+        timer._scheduler = mock.Mock()
 
         # Verify there are no TriggerType in the db when we start
         self.assertItemsEqual(TriggerType.get_all(), [])
@@ -46,21 +47,21 @@ class St2TimerTestCase(CleanDbTestCase):
 
     def test_existing_rules_are_loaded_on_start(self):
         # Assert that we dispatch message for every existing Trigger object
-        St2Timer._handle_create_trigger = Mock()
+        St2Timer._handle_create_trigger = mock.Mock()
 
         timer = St2Timer()
-        timer._scheduler = Mock()
-        timer._trigger_watcher.run = Mock()
+        timer._scheduler = mock.Mock()
+        timer._trigger_watcher.run = mock.Mock()
 
         # Verify there are no Trigger and TriggerType in the db wh:w
         self.assertItemsEqual(Trigger.get_all(), [])
         self.assertItemsEqual(TriggerType.get_all(), [])
 
         # Add a dummy timer Trigger object
-        type = TIMER_TRIGGER_TYPES.keys()[0]
+        type_ = TIMER_TRIGGER_TYPES.keys()[0]
         parameters = {'unit': 'seconds', 'delta': 1000}
-        trigger_db = TriggerDB(name='test_trigger_1', pack='dummy', type=type,
-                               parameters=parameters)
+        trigger_db = TriggerDB(id=bson.ObjectId(), name='test_trigger_1', pack='dummy',
+                               type=type_, parameters=parameters)
         trigger_db = Trigger.add_or_update(trigger_db)
 
         # Verify object has been added
@@ -71,3 +72,20 @@ class St2TimerTestCase(CleanDbTestCase):
 
         # Verify handlers are called
         timer._handle_create_trigger.assert_called_with(trigger_db)
+
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    def test_timer_trace_tag_creation(self, dispatch_mock):
+        timer = St2Timer()
+        timer._scheduler = mock.Mock()
+        timer._trigger_watcher = mock.Mock()
+
+        # Add a dummy timer Trigger object
+        type_ = TIMER_TRIGGER_TYPES.keys()[0]
+        parameters = {'unit': 'seconds', 'delta': 1}
+        trigger_db = TriggerDB(name='test_trigger_1', pack='dummy', type=type_,
+                               parameters=parameters)
+        timer.add_trigger(trigger_db)
+        timer._emit_trigger_instance(trigger=trigger_db.to_serializable_dict())
+
+        self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag,
+                         '%s-%s' % (TIMER_TRIGGER_TYPES[type_]['name'], trigger_db.name))

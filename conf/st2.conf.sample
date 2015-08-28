@@ -4,7 +4,7 @@ enable = True
 
 [actionrunner]
 # Python binary which will be used by Python actions.
-python_binary = /mnt/st2repos/st2/virtualenv/bin/python
+python_binary = /data/stanley/virtualenv/bin/python
 # location of the logging.conf file
 logging = conf/logging.conf
 
@@ -78,12 +78,6 @@ db_name = st2
 # port of db server
 port = 27017
 
-[exporter]
-# location of the logging.exporter.conf file
-logging = conf/logging.exporter.conf
-# Directory to dump data to.
-dump_dir = /opt/stackstorm/exports/
-
 [log]
 # Controls if stderr should be redirected to the logs.
 redirect_stderr = False
@@ -95,18 +89,32 @@ mask_secrets = True
 [messaging]
 # URL of the messaging server.
 url = amqp://guest:guest@localhost:5672//
+# URL of all the nodes in a messaging service cluster.
+cluster_urls = []
 
 [mistral]
-# Time in seconds to wait before retrying connection to Mistral.
+# Username for authentication.
+keystone_username = None
+# Seconds to wait before reconnecting.
 retry_wait = 5
-# Mistral v2 API server root endpoint.
+# OpenStack project scope.
+keystone_project_name = None
+# Password for authentication.
+keystone_password = None
+# Auth endpoint for Keystone.
+keystone_auth_url = None
+# v2 API root endpoint.
 v2_base_url = http://localhost:8989/v2
-# Maximum no of attempts made to connect to Mistral.
+# Max attempts to reconnect.
 max_attempts = 180
 
 [notifier]
 # Location of the logging configuration file.
 logging = conf/logging.notifier.conf
+
+[rbac]
+# Enable RBAC.
+enable = False
 
 [resultstracker]
 # Location of the logging configuration file.
@@ -129,12 +137,22 @@ version = 4
 draft = http://json-schema.org/draft-04/schema#
 
 [sensorcontainer]
+# Provider of sensor node partition config.
+partition_provider = {'name': 'default'}
 # location of the logging.conf file
 logging = conf/logging.sensorcontainer.conf
+# name of the sensor node.
+sensor_node_name = sensornode1
 
 [ssh_runner]
+# Max number of parallel remote SSH actions that should be run.  Works only with Paramiko SSH runner.
+max_parallel_actions = 50
+# Use the .ssh/config file. Useful to override ports etc.
+use_ssh_config = False
 # Location of the script on the remote filesystem.
 remote_dir = /tmp
+# Use Paramiko based SSH runner as the default remote runner. EXPERIMENTAL!!! USE AT YOUR OWN RISK.
+use_paramiko_ssh_runner = False
 # How partial success of actions run on multiple nodes should be treated.
 allow_partial_failure = False
 
@@ -163,4 +181,3 @@ user = stanley
 [timer]
 # Timezone pertaining to the location where st2 is run.
 local_timezone = America/Los_Angeles
-

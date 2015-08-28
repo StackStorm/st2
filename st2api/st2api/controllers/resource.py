@@ -58,9 +58,13 @@ class ResourceController(rest.RestController):
     # A list of optional transformation functions for user provided filter values
     filter_transform_functions = {}
 
+    # Method responsible for retrieving an instance of the corresponding model DB object
+    get_one_db_method = None
+
     def __init__(self):
         self.supported_filters = copy.deepcopy(self.__class__.supported_filters)
         self.supported_filters.update(RESERVED_QUERY_PARAMS)
+        self.get_one_db_method = self._get_by_name_or_id
 
     @jsexpose()
     def get_all(self, **kwargs):
@@ -181,7 +185,7 @@ class ResourceController(rest.RestController):
 
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
         result = self.model.from_model(instance, **from_model_kwargs)
-        LOG.debug('GET %s with name_or_odid=%s, client_result=%s', pecan.request.path, id, result)
+        LOG.debug('GET %s with name_or_id=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
 
@@ -227,6 +231,10 @@ class ResourceController(rest.RestController):
 class ContentPackResourceController(ResourceController):
     include_reference = False
 
+    def __init__(self):
+        super(ContentPackResourceController, self).__init__()
+        self.get_one_db_method = self._get_by_ref_or_id
+
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return self._get_one(ref_or_id)
@@ -235,11 +243,11 @@ class ContentPackResourceController(ResourceController):
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
-    def _get_one(self, ref_or_id):
+    def _get_one(self, ref_or_id, exclude_fields=None):
         LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
 
         try:
-            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
         except Exception as e:
             LOG.exception(e.message)
             pecan.abort(http_client.NOT_FOUND, e.message)
@@ -268,7 +276,7 @@ class ContentPackResourceController(ResourceController):
 
         return result
 
-    def _get_by_ref_or_id(self, ref_or_id):
+    def _get_by_ref_or_id(self, ref_or_id, exclude_fields=None):
         """
         Retrieve resource object by an id of a reference.
 
@@ -283,9 +291,9 @@ class ContentPackResourceController(ResourceController):
             is_reference = False
 
         if is_reference:
-            resource_db = self._get_by_ref(resource_ref=ref_or_id)
+            resource_db = self._get_by_ref(resource_ref=ref_or_id, exclude_fields=exclude_fields)
         else:
-            resource_db = self._get_by_id(resource_id=ref_or_id)
+            resource_db = self._get_by_id(resource_id=ref_or_id, exclude_fields=exclude_fields)
 
         if not resource_db:
             msg = 'Resource with a reference or id "%s" not found' % (ref_or_id)
@@ -293,21 +301,14 @@ class ContentPackResourceController(ResourceController):
 
         return resource_db
 
-    def _get_by_id(self, resource_id):
-        try:
-            resource_db = self.access.get_by_id(resource_id)
-        except Exception:
-            resource_db = None
-
-        return resource_db
-
-    def _get_by_ref(self, resource_ref):
+    def _get_by_ref(self, resource_ref, exclude_fields=None):
         try:
             ref = ResourceReference.from_string_reference(ref=resource_ref)
         except Exception:
             return None
 
-        resource_db = self.access.query(name=ref.name, pack=ref.pack).first()
+        resource_db = self.access.query(name=ref.name, pack=ref.pack,
+                                        exclude_fields=exclude_fields).first()
         return resource_db
 
     def _get_filters(self, **kwargs):

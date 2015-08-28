@@ -15,8 +15,12 @@
 
 from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
+from st2api.controllers.v1.packviews import PackViewsController
 from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_permission
 
 __all__ = [
     'PacksController'
@@ -35,6 +39,15 @@ class PacksController(ResourceController):
         'sort': ['ref']
     }
 
+    # Nested controllers
+    views = PackViewsController()
+
+    @request_user_has_permission(permission_type=PermissionType.PACK_VIEW)
+    @jsexpose()
+    def get_all(self, **kwargs):
+        return super(PacksController, self)._get_all(**kwargs)
+
+    @request_user_has_resource_permission(permission_type=PermissionType.PACK_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, name_or_id):
         return self._get_one_by_name_or_id(name_or_id=name_or_id)

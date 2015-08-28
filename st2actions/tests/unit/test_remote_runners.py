@@ -20,7 +20,7 @@ tests_config.parse_args()
 import mock
 from unittest2 import TestCase
 
-from st2actions.runners.fabric_runner import BaseFabricRunner
+from st2actions.runners.ssh.fabric_runner import BaseFabricRunner
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.models.system.action import RemoteScriptAction
 from st2common.models.system.action import FabricRemoteScriptAction

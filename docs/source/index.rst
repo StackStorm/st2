@@ -8,24 +8,27 @@ Contents:
 
     overview
     install/index
+    config/index
     video
     start
     packs
     actions
     runners
     rules
+    workflows
+    history
+    traces
     sensors
     aliases
     webhooks
+    policies
     datastore
-    workflows
-    history
-    authentication
+    rbac
     cli
-    troubleshooting
     resources/index
     reference/index
+    development/index
+    troubleshooting
     changelog
     upgrade_notes
-    development/index
     roadmap

@@ -48,7 +48,12 @@ class MistralRunner(AsyncActionRunner):
         self._on_behalf_user = cfg.CONF.system_user.user
         self._notify = None
         self._skip_notify_tasks = []
-        self._client = mistral.client(mistral_url=self.url)
+        self._client = mistral.client(
+            mistral_url=self.url,
+            username=cfg.CONF.mistral.keystone_username,
+            api_key=cfg.CONF.mistral.keystone_password,
+            project_name=cfg.CONF.mistral.keystone_project_name,
+            auth_url=cfg.CONF.mistral.keystone_auth_url)
 
     def pre_run(self):
         if getattr(self, 'liveaction', None):

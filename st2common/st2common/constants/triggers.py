@@ -26,6 +26,7 @@ __all__ = [
 
     'ACTION_SENSOR_TRIGGER',
     'NOTIFY_TRIGGER',
+    'ACTION_FILE_WRITTEN_TRIGGER',
 
     'TIMER_TRIGGER_TYPES',
     'INTERNAL_TRIGGER_TYPES',
@@ -49,6 +50,20 @@ ACTION_SENSOR_TRIGGER = {
         }
     }
 }
+ACTION_FILE_WRITTEN_TRIGGER = {
+    'name': 'st2.action.file_writen',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger encapsulating action file being written on disk.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'ref': {},
+            'file_path': {},
+            'content': {},
+            'host_info': {}
+        }
+    }
+}
 
 NOTIFY_TRIGGER = {
     'name': 'st2.generic.notifytrigger',
@@ -65,6 +80,31 @@ NOTIFY_TRIGGER = {
             'channel': {},
             'message': {},
             'data': {}
+        }
+    }
+}
+
+# Sensor spawn/exit triggers.
+SENSOR_SPAWN_TRIGGER = {
+    'name': 'st2.sensor.process_spawn',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger indicating sensor process is started up.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'object': {}
+        }
+    }
+}
+
+SENSOR_EXIT_TRIGGER = {
+    'name': 'st2.sensor.process_exit',
+    'pack': SYSTEM_PACK_NAME,
+    'description': 'Trigger indicating sensor process is stopped.',
+    'payload_schema': {
+        'type': 'object',
+        'properties': {
+            'object': {}
         }
     }
 }
@@ -123,36 +163,12 @@ KEY_VALUE_PAIR_DELETE_TRIGGER = {
 INTERNAL_TRIGGER_TYPES = {
     'action': [
         ACTION_SENSOR_TRIGGER,
-        NOTIFY_TRIGGER
+        NOTIFY_TRIGGER,
+        ACTION_FILE_WRITTEN_TRIGGER
     ],
     'sensor': [
-        {
-            'name': 'st2.sensor.process_spawn',
-            'pack': SYSTEM_PACK_NAME,
-            'description': 'Trigger encapsulating spawning of a sensor process.',
-            'payload_schema': {
-                'type': 'object',
-                'properties': {
-                    'id': {},
-                    'timestamp': {},
-                    'pid': {},
-                    'cmd': {}
-                }
-            }
-        },
-        {
-            'name': 'st2.sensor.process_exit',
-            'pack': SYSTEM_PACK_NAME,
-            'description': 'Trigger encapsulating exit of a sensor process.',
-            'payload_schema': {
-                'type': 'object',
-                'properties': {
-                    'id': {},
-                    'timestamp': {},
-                    'exit_code': {}
-                }
-            }
-        }
+        SENSOR_SPAWN_TRIGGER,
+        SENSOR_EXIT_TRIGGER
     ],
     'key_value_pair': [
         KEY_VALUE_PAIR_CREATE_TRIGGER,

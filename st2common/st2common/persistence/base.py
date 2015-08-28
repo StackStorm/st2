@@ -151,6 +151,35 @@ class Access(object):
         return model_object
 
     @classmethod
+    def update(cls, model_object, publish=True, dispatch_trigger=True, **kwargs):
+        """
+        Use this method when -
+        * upsert=False is desired
+        * special operators like push, push_all are to be used.
+        """
+        cls._get_impl().update(model_object, **kwargs)
+        # update does not return the object but a flag; likely success/fail but docs
+        # are not very good on this one so ignoring. Explicitly get the object from
+        # DB abd return.
+        model_object = cls.get_by_id(model_object.id)
+
+        # Publish internal event on the message bus
+        if publish:
+            try:
+                cls.publish_update(model_object)
+            except:
+                LOG.exception('Publish failed.')
+
+        # Dispatch trigger
+        if dispatch_trigger:
+            try:
+                cls.dispatch_update_trigger(model_object)
+            except:
+                LOG.exception('Trigger dispatch failed.')
+
+        return model_object
+
+    @classmethod
     def delete(cls, model_object, publish=True, dispatch_trigger=True):
         persisted_object = cls._get_impl().delete(model_object)
 

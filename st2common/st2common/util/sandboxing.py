@@ -29,6 +29,7 @@ from st2common.constants.pack import SYSTEM_PACK_NAMES
 __all__ = [
     'get_sandbox_python_binary_path',
     'get_sandbox_python_path',
+    'get_sandbox_path',
     'get_sandbox_virtualenv_path'
 ]
 
@@ -52,9 +53,37 @@ def get_sandbox_python_binary_path(pack=None):
     return python_path
 
 
+def get_sandbox_path(virtualenv_path):
+    """
+    Return PATH environment variable value for the sandboxed environment.
+
+    This function makes sure that virtualenv/bin directory is in the path and has precedence over
+    the global PATH values.
+
+    Note: This function needs to be called from the parent process (one which is spawning a
+    sandboxed process).
+    """
+    sandbox_path = []
+
+    parent_path = os.environ.get('PATH', '')
+    if not virtualenv_path:
+        return parent_path
+
+    parent_path = parent_path.split(':')
+    parent_path = [path for path in parent_path if path]
+
+    # Add virtualenv bin directory
+    virtualenv_bin_path = os.path.join(virtualenv_path, 'bin/')
+    sandbox_path.append(virtualenv_bin_path)
+    sandbox_path.extend(parent_path)
+
+    sandbox_path = ':'.join(sandbox_path)
+    return sandbox_path
+
+
 def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=True):
     """
-    Return PYTHONPATH for the new sandboxed environment.
+    Return PYTHONPATH environment variable value for the new sandboxed environment.
 
     This function takes into account if the current (parent) process is running under virtualenv
     and other things like that.

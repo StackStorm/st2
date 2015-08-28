@@ -6,11 +6,19 @@ python:
   - 2.7
 
 env:
+  - TASK=checks
   - TASK=unit
   - TASK=integration
+  - TASK=mistral
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: TASK=mistral
 
 services:
   - mongodb
+  - postgresql
   - rabbitmq
 
 cache:
@@ -20,7 +28,8 @@ cache:
 install:
   - pip install python-coveralls
   - make requirements
-  - if [ ${TASK} = 'integration' ]; then sudo ./scripts/travis/prepare-integration.sh; fi
+  - if [ ${TASK} = 'integration' ] || [ ${TASK} = 'mistral' ]; then sudo ./scripts/travis/prepare-integration.sh; fi
+  - if [ ${TASK} = 'mistral' ]; then sudo ./scripts/travis/setup-mistral.sh; fi
 
 script:
   - ./scripts/travis/build.sh

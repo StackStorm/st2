@@ -49,6 +49,11 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(auth_opts, 'auth', ignore_errors)
 
+    rbac_opts = [
+        cfg.BoolOpt('enable', default=False, help='Enable RBAC.'),
+    ]
+    do_register_opts(rbac_opts, 'rbac', ignore_errors)
+
     system_user_opts = [
         cfg.StrOpt('user',
                    default='stanley',
@@ -93,8 +98,12 @@ def register_opts(ignore_errors=False):
     do_register_opts(db_opts, 'database', ignore_errors)
 
     messaging_opts = [
+        # It would be nice to be able to deprecate url and completely switch to using
+        # url. However, this will be a breaking change and will have impact so allowing both.
         cfg.StrOpt('url', default='amqp://guest:guest@localhost:5672//',
-                   help='URL of the messaging server.')
+                   help='URL of the messaging server.'),
+        cfg.ListOpt('cluster_urls', default=[],
+                    help='URL of all the nodes in a messaging service cluster.')
     ]
     do_register_opts(messaging_opts, 'messaging', ignore_errors)
 

@@ -27,6 +27,12 @@ class SensorTypeAPI(BaseAPI):
                 'type': 'string',
                 'default': None
             },
+            'ref': {
+                'type': 'string'
+            },
+            'uid': {
+                'type': 'string'
+            },
             'name': {
                 'type': 'string',
                 'required': True
@@ -36,6 +42,9 @@ class SensorTypeAPI(BaseAPI):
             },
             'description': {
                 'type': 'string'
+            },
+            'enabled': {
+                'type': 'boolean',
             },
             'artifact_uri': {
                 'type': 'string',

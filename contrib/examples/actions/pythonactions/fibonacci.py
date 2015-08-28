@@ -1,8 +1,9 @@
-from __future__ import print_function
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import traceback
+
 from six.moves import map
 
 
@@ -13,10 +14,11 @@ def fib(n):
 
 if __name__ == '__main__':
     try:
-        startNumber = int(sys.argv[1])
-        endNumber = int(sys.argv[2])
-        print(map(fib, list(range(startNumber, endNumber))))
-        sys.exit(0)
+        startNumber = int(float(sys.argv[1]))
+        endNumber = int(float(sys.argv[2]))
+        results = map(str, map(fib, list(range(startNumber, endNumber))))
+        results = ' '.join(results)
+        print(results)
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
         sys.exit(e.message)

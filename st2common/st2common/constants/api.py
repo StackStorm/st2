@@ -19,3 +19,5 @@ __all__ = [
 
 
 DEFAULT_API_VERSION = 'v1'
+
+REQUEST_ID_HEADER = 'X-Request-ID'

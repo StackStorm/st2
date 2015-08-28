@@ -64,6 +64,9 @@ To execute an action manually, you can use ``st2 run <action with parameters>`` 
    # Obtain execution results (the command below is provided as a tip in the output of the above command):
    st2 execution get 54fc83b9e11c711106a7ae01
 
+   # If you want to add a trace tag to execution when you run it, you can use:
+   st2 run core.local cmd=date --trace-tag="simple-date-check-`date +%s`"
+
 Action Runner
 ^^^^^^^^^^^^^
 
@@ -550,8 +553,7 @@ To see other available predefined actions, run the command below.
 
     st2 action list --pack=core
 
-Community contributed actions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. rubric:: What's Next?
 
-More packs and actions contributed by the |st2| developers and
-community can be found in the `StackStorm contrib repo on Github <https://github.com/StackStorm/st2contrib/>`_.
+* Explore packs and actions contributed by |st2| developers and community in the `StackStorm st2contrib repo on Github <https://github.com/StackStorm/st2contrib/>`_.
+* Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - on creating actions, and other practical examples of automating with StackStorm.

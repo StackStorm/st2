@@ -105,6 +105,8 @@ class Client(object):
             models.KeyValuePair, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Webhook'] = ResourceManager(
             models.Webhook, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Trace'] = ResourceManager(
+            models.Trace, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
 
     @property
     def actions(self):
@@ -149,3 +151,7 @@ class Client(object):
     @property
     def triggerinstances(self):
         return self.managers['TriggerInstance']
+
+    @property
+    def trace(self):
+        return self.managers['Trace']

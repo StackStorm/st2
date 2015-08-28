@@ -27,6 +27,21 @@ MODEL_MODULE_NAMES = [
 ]
 
 
+def get_model_classes():
+    """
+    Retrieve a list of all the defined model classes.
+
+    :rtype: ``list``
+    """
+    result = []
+    for module_name in MODEL_MODULE_NAMES:
+        module = importlib.import_module(module_name)
+        model_classes = getattr(module, 'MODELS', [])
+        result.extend(model_classes)
+
+    return result
+
+
 def db_setup(db_name, db_host, db_port, username=None, password=None):
     LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".' %
              (db_name, db_host, db_port, str(username)))
@@ -52,13 +67,11 @@ def db_ensure_indexes():
     are created in real-time and not in background).
     """
     LOG.debug('Ensuring database indexes...')
+    model_classes = get_model_classes()
 
-    for module_name in MODEL_MODULE_NAMES:
-        module = importlib.import_module(module_name)
-        model_classes = getattr(module, 'MODELS', [])
-        for cls in model_classes:
-            LOG.debug('Ensuring indexes for model "%s"...' % (cls.__name__))
-            cls.ensure_indexes()
+    for cls in model_classes:
+        LOG.debug('Ensuring indexes for model "%s"...' % (cls.__name__))
+        cls.ensure_indexes()
 
 
 def db_teardown():
@@ -137,6 +150,10 @@ class MongoDBAccess(object):
                 value = getattr(instance, attr)
                 setattr(instance, attr, field.to_python(value))
         return instance
+
+    @staticmethod
+    def update(instance, **kwargs):
+        return instance.update(**kwargs)
 
     @staticmethod
     def delete(instance):
