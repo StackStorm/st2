@@ -134,10 +134,10 @@ RUNNER_TYPES = [
                 'secret': True
             },
             'private_key': {
-                'description': ('Private key used to log in. If not provided, '
-                                'private key from the config file is used.'),
+                'description': ('Private key material to log in.'),
                 'type': 'string',
-                'required': False
+                'required': False,
+                'secret': True
             },
             'cmd': {
                 'description': 'Arbitrary Linux command to be executed on the '
@@ -218,10 +218,10 @@ RUNNER_TYPES = [
                 'secret': True
             },
             'private_key': {
-                'description': ('Private key used to log in. If not provided, '
-                                'private key from the config file is used.'),
+                'description': ('Private key material to log in.'),
                 'type': 'string',
-                'required': False
+                'required': False,
+                'secret': True
             },
             'parallel': {
                 'description': 'Default to parallel execution.',
