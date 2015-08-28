@@ -242,7 +242,7 @@ pytests: compile requirements .flake8 .pylint .pytests-coverage
 itests: requirements .unit-tests
 
 .PHONY: .unit-tests
-unit-tests:
+.unit-tests:
 	@echo
 	@echo "==================== tests ===================="
 	@echo
