@@ -41,11 +41,6 @@
         ref: "examples.mistral-workbook-complex"
         params:
             vm_name: "fake-host-1"
-        on-success: "mistral-workbook-multiple-subflows"
-    -
-        name: "mistral-workbook-multiple-subflows"
-        ref: "examples.mistral-workbook-multiple-subflows"
-        params: {}
         on-success: "mistral-workbook-subflows"
     -
         name: "mistral-workbook-subflows"
