@@ -239,7 +239,7 @@ pytests: compile requirements .flake8 .pylint .pytests-coverage
 .pytests-coverage: .unit-tests-coverage-html .itests-coverage-html clean
 
 .PHONY: unit-tests
-itests: requirements .unit-tests
+unit-tests: requirements .unit-tests
 
 .PHONY: .unit-tests
 .unit-tests:
