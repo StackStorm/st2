@@ -131,7 +131,7 @@ class RuleAPI(BaseAPI):
             'action': REQUIRED_ATTR_SCHEMAS['action'],
             'enabled': {
                 'type': 'boolean',
-                'default': True
+                'default': False
             },
             "tags": {
                 "description": "User associated metadata assigned to this object.",
@@ -178,7 +178,7 @@ class RuleAPI(BaseAPI):
         action = ActionExecutionSpecDB(ref=rule.action['ref'],
                                        parameters=rule.action['parameters'])
 
-        enabled = getattr(rule, 'enabled', True)
+        enabled = getattr(rule, 'enabled', False)
         tags = TagsHelper.to_model(getattr(rule, 'tags', []))
 
         model = cls.model(name=name, description=description, pack=pack, ref=ref, trigger=trigger,
