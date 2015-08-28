@@ -13,6 +13,9 @@ in development
   default. (new feature, improvement)
 * New st2auth authentication backend for authenticating against LDAP servers -
   https://github.com/StackStorm/st2-auth-backend-ldap. (new feature)
+* Default to rule being disabled if the user doesn't explicitly specify ``enabled`` attribute when
+  creating a rule via the API or inside the rule metadata file when registering local content
+  (previously it defaulted to enabled).
 
 0.13.0 - August 24, 2015
 ------------------------
