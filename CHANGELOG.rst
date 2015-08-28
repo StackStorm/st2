@@ -13,6 +13,8 @@ in development
   default. (new feature, improvement)
 * New st2auth authentication backend for authenticating against LDAP servers -
   https://github.com/StackStorm/st2-auth-backend-ldap. (new feature)
+* private_key supplied for remote_actions is now used to auth correctly. private_key argument
+  should be the contents of private key file. (bug-fix)
 
 0.13.0 - August 24, 2015
 ------------------------
