@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.13.1 - TBD
-------------
+0.13.1 - August 28, 2015
+------------------------
 
 * cwd for paramiko script runner should use cwd provided as runner parameter. (bug-fix)
 * Fix timer regression; bring brake broken timers. (bug-fix)
