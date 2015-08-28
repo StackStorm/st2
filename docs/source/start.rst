@@ -237,7 +237,7 @@ For more content - actions, sensors, rules - checkout `st2contrib`_ community re
 
 Troubleshooting
 ----------------------
-If something goes wrong, follow :doc:`/troubleshooting` guide, and engage with developers at `#stackstorm on irc.freenode.org <http://webchat.freenode.net/?channels=stackstorm>`__
+If something goes wrong, follow :doc:`/troubleshooting/index` guide, and engage with developers at `#stackstorm on irc.freenode.org <http://webchat.freenode.net/?channels=stackstorm>`__
 
 
 -------------------------------
