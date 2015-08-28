@@ -24,6 +24,8 @@ tests_config.parse_args()
 
 from st2actions.runners.remote_script_runner import ParamikoRemoteScriptRunner
 from st2actions.runners.ssh.parallel_ssh import ParallelSSHClient
+from st2common.exceptions.ssh import InvalidCredentialsException
+from st2common.exceptions.ssh import NoHostsConnectedToException
 from st2common.models.system.action import RemoteScriptAction
 import st2common.util.jsonify as jsonify
 
@@ -41,7 +43,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
             script_local_libs_path_abs=None,
             named_args={}, positional_args=['blank space'], env_vars={},
             on_behalf_user='svetlana', user='stanley',
-            private_key='/home/stanley/.ssh/stanley_rsa',
+            private_key='---SOME RSA KEY---',
             remote_dir='/tmp', hosts=['localhost'], cwd='/test/cwd/'
         )
         paramiko_runner = ParamikoRemoteScriptRunner('runner_1')
@@ -49,3 +51,23 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         paramiko_runner._run_script_on_remote_host(remote_action)
         ParallelSSHClient.run.assert_called_with("/tmp/shiz_storm.py 'blank space'",
                                                  cwd='/test/cwd/', timeout=None)
+
+    @patch('st2actions.runners.ssh.parallel_ssh.ParallelSSHClient', Mock)
+    @patch.object(ParallelSSHClient, 'run', MagicMock(return_value={}))
+    @patch.object(ParallelSSHClient, 'connect', MagicMock(return_value={}))
+    def test_username_only_ssh(self):
+        paramiko_runner = ParamikoRemoteScriptRunner('runner_1')
+
+        paramiko_runner.runner_parameters = {'username': 'test_user', 'hosts': 'localhost'}
+        self.assertRaises(InvalidCredentialsException, paramiko_runner.pre_run)
+
+    def test_username_invalid_private_key(self):
+        paramiko_runner = ParamikoRemoteScriptRunner('runner_1')
+
+        paramiko_runner.runner_parameters = {
+            'username': 'test_user',
+            'hosts': 'localhost',
+            'private_key': 'invalid private key',
+        }
+        paramiko_runner.context = {}
+        self.assertRaises(NoHostsConnectedToException, paramiko_runner.pre_run)
