@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
 import sys
 import traceback
@@ -77,8 +78,10 @@ class ParallelSSHClient(object):
 
         if self._successful_connects < 1:
             # We definitely have to raise an exception in this case.
-            msg = 'Unable to connect to any of the %d hosts: %s' % (len(self._hosts, self._hosts))
-            LOG.error(msg, extra={'connect_results': results})
+            LOG.error('Unable to connect to any of the hosts.',
+                      extra={'connect_results': results})
+            msg = ('Unable to connect to any one of the hosts: %s.\n\n connect_errors=%s' %
+                   (self._hosts, json.dumps(results, indent=2)))
             raise NoHostsConnectedToException(msg)
 
         return results
