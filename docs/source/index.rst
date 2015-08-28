@@ -28,7 +28,7 @@ Contents:
     resources/index
     reference/index
     development/index
-    troubleshooting
+    troubleshooting/index
     changelog
     upgrade_notes
     roadmap
