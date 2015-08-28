@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import uuid
+
 from apscheduler.schedulers.background import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
@@ -132,8 +134,9 @@ class St2Timer(object):
             'executed_at': str(utc_now),
             'schedule': trigger['parameters'].get('time')
         }
+
         trace_context = TraceContext(trace_tag='%s-%s' % (self._get_trigger_type_name(trigger),
-                                                          trigger.name))
+                                                          trigger.get('name', uuid.uuid4().hex)))
         self._trigger_dispatcher.dispatch(trigger, payload, trace_context=trace_context)
 
     def _get_trigger_type_name(self, trigger):

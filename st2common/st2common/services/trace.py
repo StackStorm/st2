@@ -240,21 +240,23 @@ def add_or_update_given_trace_db(trace_db, action_executions=None, rules=None,
         action_executions = []
     action_executions = [TraceComponentDB(object_id=action_execution)
                          for action_execution in action_executions]
-    if trace_db.action_executions:
-        action_executions.extend(trace_db.action_executions)
 
     if not rules:
         rules = []
     rules = [TraceComponentDB(object_id=rule) for rule in rules]
-    if trace_db.rules:
-        rules.extend(trace_db.rules)
 
     if not trigger_instances:
         trigger_instances = []
     trigger_instances = [TraceComponentDB(object_id=trigger_instance)
                          for trigger_instance in trigger_instances]
-    if trace_db.trigger_instances:
-        trigger_instances.extend(trace_db.trigger_instances)
+
+    # If an id exists then this is an update and we do not want to perform
+    # an upsert so use push_components which will use the push operator.
+    if trace_db.id:
+        return Trace.push_components(trace_db,
+                                     action_executions=action_executions,
+                                     rules=rules,
+                                     trigger_instances=trigger_instances)
 
     trace_db.action_executions = action_executions
     trace_db.rules = rules

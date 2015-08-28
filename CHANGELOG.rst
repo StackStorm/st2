@@ -1,9 +1,13 @@
 Changelog
 =========
 
-in development
---------------
+0.13.1 - August 28, 2015
+------------------------
 
+* cwd for paramiko script runner should use cwd provided as runner parameter. (bug-fix)
+* Fix timer regression; bring brake broken timers. (bug-fix)
+* Updates to trace objects are done via non-upsert updates by adding to the array. This
+  makes it safer to update trace objects from multiple processes. (bug-fix)
 
 0.13.0 - August 24, 2015
 ------------------------

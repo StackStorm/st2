@@ -106,7 +106,9 @@ fi
 echo "Installing version ${VER}"
 
 # Determine which mistral version to use
-if version_ge $VER "0.13"; then
+if version_ge $VER "0.13.1"; then
+    MISTRAL_STABLE_BRANCH="st2-0.13.1"
+elif version_ge $VER "0.13"; then
     MISTRAL_STABLE_BRANCH="st2-0.13.0"
 elif version_ge $VER "0.9"; then
     MISTRAL_STABLE_BRANCH="st2-0.9.0"
@@ -183,7 +185,7 @@ install_pip() {
   echo "# Installing packages via pip"
   pip install -U pip
   hash -d pip
-  curl -sS -k -o /tmp/requirements.txt https://raw.githubusercontent.com/StackStorm/st2/master/requirements.txt
+  curl -sS -k -o /tmp/requirements.txt "${DOWNLOAD_SERVER}/releases/st2/${VER}/requirements.txt"
   pip install -U -r /tmp/requirements.txt
 }
 

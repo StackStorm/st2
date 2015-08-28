@@ -23,3 +23,28 @@ class Trace(Access):
     @classmethod
     def _get_impl(cls):
         return cls.impl
+
+    @classmethod
+    def push_components(cls, instance, action_executions=None, rules=None, trigger_instances=None):
+        update_kwargs = {}
+        if action_executions:
+            update_kwargs['push_all__action_executions'] = action_executions
+        if rules:
+            update_kwargs['push_all__rules'] = rules
+        if trigger_instances:
+            update_kwargs['push_all__trigger_instances'] = trigger_instances
+        if update_kwargs:
+            return cls.update(instance, **update_kwargs)
+        return instance
+
+    @classmethod
+    def push_action_execution(cls, instance, action_execution):
+        return cls.update(instance, push__action_executions=action_execution)
+
+    @classmethod
+    def push_rule(cls, instance, rule):
+        return cls.update(instance, push__rules=rule)
+
+    @classmethod
+    def push_trigger_instance(cls, instance, trigger_instance):
+        return cls.update(instance, push__trigger_instances=trigger_instance)
