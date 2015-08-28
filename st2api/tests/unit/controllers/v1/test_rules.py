@@ -59,6 +59,11 @@ class TestRuleController(FunctionalTest):
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
+        file_name = 'rule_no_enabled_attribute.yaml'
+        TestRuleController.RULE_3 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
     @classmethod
     def tearDownClass(cls):
         TestRuleController.fixtures_loader.delete_fixtures_from_db(
@@ -112,6 +117,12 @@ class TestRuleController(FunctionalTest):
 
         expected_msg = 'Additional properties are not allowed (u\'minutex\' was unexpected)'
         self.assertTrue(expected_msg in post_resp.body)
+
+    def test_post_no_enabled_attribute_disabled_by_default(self):
+        post_resp = self.__do_post(TestRuleController.RULE_3)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
+        self.assertFalse(post_resp.json['enabled'])
+        self.__do_delete(self.__get_rule_id(post_resp))
 
     def test_put(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)
