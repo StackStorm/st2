@@ -106,7 +106,9 @@ fi
 echo "Installing version ${VER}"
 
 # Determine which mistral version to use
-if version_ge $VER "0.13"; then
+if [[ "$VER" == "0.13.1" ]]; then
+    MISTRAL_STABLE_BRANCH="st2-0.13.1"
+elif version_ge $VER "0.13"; then
     MISTRAL_STABLE_BRANCH="st2-0.13.0"
 elif version_ge $VER "0.9"; then
     MISTRAL_STABLE_BRANCH="st2-0.9.0"
