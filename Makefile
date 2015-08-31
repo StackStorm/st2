@@ -26,8 +26,6 @@ COMPONENTS_TEST_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TEST))
 
 PYTHON_TARGET := 2.7
 
-REQUIREMENTS := requirements.txt test-requirements.txt st2client/requirements.txt
-
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PIP_OPTIONS
@@ -183,18 +181,16 @@ distclean: clean
 	rm -rf $(VIRTUALENV_DIR)
 
 .PHONY: requirements
-requirements: virtualenv $(REQUIREMENTS)
+requirements: virtualenv
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
 
+	# Generate all requirements to support current CI pipeline.
+	python scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 	# Make sure we use latest version of pip
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade pip
-
-	for req in $(REQUIREMENTS); do \
-		echo "Installing $$req..." ; \
-		$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) $$req ; \
-	done
+	$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r requirements.txt ; \
 
 .PHONY: virtualenv
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
