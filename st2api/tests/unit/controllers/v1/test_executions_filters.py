@@ -45,7 +45,7 @@ class TestActionExecutionFilters(FunctionalTest):
         cls.num_records = 100
 
         cls.refs = {}
-
+        cls.start_timestamps = []
         cls.fake_types = [
             {
                 'trigger': copy.deepcopy(fixture.ARTIFACTS['trigger']),
@@ -87,6 +87,9 @@ class TestActionExecutionFilters(FunctionalTest):
             wb_obj = ActionExecutionAPI(**data)
             db_obj = ActionExecutionAPI.to_model(wb_obj)
             cls.refs[obj_id] = ActionExecution.add_or_update(db_obj)
+            cls.start_timestamps.append(timestamp)
+
+        cls.start_timestamps = sorted(cls.start_timestamps)
 
     def test_get_all(self):
         response = self.app.get('/v1/executions')
@@ -241,6 +244,60 @@ class TestActionExecutionFilters(FunctionalTest):
         dt1 = response.json[0]['start_timestamp']
         dt2 = response.json[len(response.json) - 1]['start_timestamp']
         self.assertLess(isotime.parse(dt2), isotime.parse(dt1))
+
+    def test_timestamp_lt_and_gt_filter(self):
+        def isoformat(timestamp):
+            return isotime.format(timestamp, offset=False)
+
+        index = len(self.start_timestamps) - 1
+        timestamp = self.start_timestamps[index]
+
+        # Last (largest) timestamp, there are no executions with a greater timestamp
+        timestamp = self.start_timestamps[-1]
+        response = self.app.get('/v1/executions?timestamp_gt=%s' % (isoformat(timestamp)))
+        self.assertEqual(len(response.json), 0)
+
+        # First (smallest) timestamp, there are no executions with a smaller timestamp
+        timestamp = self.start_timestamps[0]
+        response = self.app.get('/v1/executions?timestamp_lt=%s' % (isoformat(timestamp)))
+        self.assertEqual(len(response.json), 0)
+
+        # Second last, there should be one timestamp greater than it
+        timestamp = self.start_timestamps[-2]
+        response = self.app.get('/v1/executions?timestamp_gt=%s' % (isoformat(timestamp)))
+        self.assertEqual(len(response.json), 1)
+        self.assertTrue(isotime.parse(response.json[0]['start_timestamp']) > timestamp)
+
+        # Second one, there should be one timestamp smaller than it
+        timestamp = self.start_timestamps[1]
+        response = self.app.get('/v1/executions?timestamp_lt=%s' % (isoformat(timestamp)))
+        self.assertEqual(len(response.json), 1)
+        self.assertTrue(isotime.parse(response.json[0]['start_timestamp']) < timestamp)
+
+        # Half timestamps should be smaller
+        index = (len(self.start_timestamps) - 1)
+        timestamp = self.start_timestamps[index]
+        response = self.app.get('/v1/executions?timestamp_lt=%s' % (isoformat(timestamp)))
+        self.assertEqual(len(response.json), index)
+        self.assertTrue(isotime.parse(response.json[0]['start_timestamp']) < timestamp)
+
+        # Half timestamps should be greater
+        index = (len(self.start_timestamps) - 1)
+        timestamp = self.start_timestamps[-index]
+        response = self.app.get('/v1/executions?timestamp_gt=%s' % (isoformat(timestamp)))
+        self.assertEqual(len(response.json), (index - 1))
+        self.assertTrue(isotime.parse(response.json[0]['start_timestamp']) > timestamp)
+
+        # Both, lt and gt filters, should return exactly two results
+        timestamp_gt = self.start_timestamps[10]
+        timestamp_lt = self.start_timestamps[13]
+        response = self.app.get('/v1/executions?timestamp_gt=%s&timestamp_lt=%s' %
+                                (isoformat(timestamp_gt), isoformat(timestamp_lt)))
+        self.assertEqual(len(response.json), 2)
+        self.assertTrue(isotime.parse(response.json[0]['start_timestamp']) > timestamp_gt)
+        self.assertTrue(isotime.parse(response.json[1]['start_timestamp']) > timestamp_gt)
+        self.assertTrue(isotime.parse(response.json[0]['start_timestamp']) < timestamp_lt)
+        self.assertTrue(isotime.parse(response.json[1]['start_timestamp']) < timestamp_lt)
 
     def test_filters_view(self):
         response = self.app.get('/v1/executions/views/filters')
