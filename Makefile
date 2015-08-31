@@ -186,10 +186,13 @@ requirements: virtualenv
 	@echo "==================== requirements ===================="
 	@echo
 
-	# Generate all requirements to support current CI pipeline.
-	python scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 	# Make sure we use latest version of pip
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade pip
+
+	# Generate all requirements to support current CI pipeline.
+	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
+
+	# Install requirements
 	$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) requirements.txt
 
 .PHONY: virtualenv
