@@ -74,17 +74,20 @@ class ResourceController(rest.RestController):
     def get_one(self, id):
         return self._get_one_by_id(id=id)
 
-    def _get_all(self, exclude_fields=None, **kwargs):
+    def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
+                 **kwargs):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
-        query_options = kwargs.get('query_options', self.query_options)
+        kwargs = copy.deepcopy(kwargs)
+
         exclude_fields = exclude_fields or []
+        query_options = query_options if query_options else self.query_options
 
         # TODO: Why do we use comma delimited string, user can just specify
         # multiple values using ?sort=foo&sort=bar and we get a list back
-        sort = kwargs.get('sort').split(',') if kwargs.get('sort') else []
+        sort = sort.split(',') if sort else []
 
         db_sort_values = []
         for sort_key in sort:
@@ -108,8 +111,7 @@ class ResourceController(rest.RestController):
         kwargs['sort'] = db_sort_values if db_sort_values else default_sort_values
 
         # TODO: To protect us from DoS, we need to make max_limit mandatory
-        offset = int(kwargs.pop('offset', 0))
-        limit = kwargs.pop('limit', None)
+        offset = int(offset)
 
         if limit and int(limit) > self.max_limit:
             limit = self.max_limit
@@ -131,7 +133,7 @@ class ResourceController(rest.RestController):
 
         extra = {
             'filters': filters,
-            'sort': kwargs.get('sort', None),
+            'sort': sort,
             'offset': offset,
             'limit': limit
         }
