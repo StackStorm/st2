@@ -1,0 +1,20 @@
+# Remeber to list implicit packages here, otherwise version won't be fixated!
+python-dateutil
+eventlet
+jinja2
+jsonschema
+kombu
+mongoengine
+oslo.config
+paramiko
+pyyaml
+pymongo
+requests
+semver
+six
+tooz
+bencode
+ipaddr
+git+https://github.com/StackStorm/fabric.git@stanley-patched#egg=fabric
+git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
+git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2auth_flat_file_backend

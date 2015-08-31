@@ -1,0 +1,9 @@
+# Remeber to list implicit packages here, otherwise version won't be fixated!
+apscheduler
+python-dateutil
+eventlet
+jsonpath-rw
+jsonschema
+kombu
+oslo.config
+six

@@ -1,0 +1,8 @@
+# Remeber to list implicit packages here, otherwise version won't be fixated!
+eventlet
+oslo.config
+passlib
+pymongo
+six
+stevedore
+git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan

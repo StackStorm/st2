@@ -2,6 +2,8 @@
 *.sqlite
 *.swp
 *.log
+requirements.txt
+*/requirements.txt
 
 # C extensions
 *.so

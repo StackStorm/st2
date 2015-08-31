@@ -1,4 +1,0 @@
-python-gnupg>=0.3.7,<0.4
-requests
-six==1.9.0
-pyyaml
