@@ -59,7 +59,7 @@ def parse_args():
 
 
 def check_pip_version():
-    if StrictVersion(pip.__version__) < StrictVersion('6.0.0'):
+    if StrictVersion(pip.__version__) < StrictVersion('6.1.0'):
         print "Upgrade pip, your version `{0}' "\
               "is outdated:\n".format(pip.__version__), GET_PIP
         sys.exit(1)
