@@ -2,12 +2,10 @@
 eventlet>=0.13.0
 six==1.9.0
 apscheduler>=3.0.0rc1
-eventlet>=0.13.0
 gitpython==0.3.2.1
 jsonschema>=2.3.0
 mongoengine>=0.8.7,<0.9
 pymongo<3.0
-six==1.9.0
 passlib>=1.6.2,<1.7
 lockfile>=0.10.2,<0.11
 python-gnupg>=0.3.7,<0.4
