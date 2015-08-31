@@ -308,6 +308,15 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
 
+        # Use a custom sort order when filtering on a timestamp so we return a correct result as
+        # expected by the user
+        if 'timestamp_lt' in kw:
+            query_options = {'sort': ['-start_timestamp', 'action.ref']}
+            kw['query_options'] = query_options
+        elif 'timestamp_gt' in kw:
+            query_options = {'sort': ['+start_timestamp', 'action.ref']}
+            kw['query_options'] = query_options
+
         return self._get_action_executions(exclude_fields=exclude_fields, **kw)
 
     @jsexpose(arg_types=[str])
