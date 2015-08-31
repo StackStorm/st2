@@ -137,6 +137,9 @@ class ResourceController(rest.RestController):
         LOG.info('GET all %s with filters=%s' % (pecan.request.path, filters), extra=extra)
 
         instances = self.access.query(exclude_fields=exclude_fields, **filters)
+        if limit == 1:
+            # Perform the filtering on the DB side
+            instances = instances.limit(limit)
 
         if limit:
             pecan.response.headers['X-Limit'] = str(limit)
