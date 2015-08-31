@@ -30,7 +30,7 @@ REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PIP_OPTIONS
-	PIP_OPTIONS := -U -q -r
+	PIP_OPTIONS := -U -q
 endif
 
 .PHONY: all
@@ -197,7 +197,7 @@ requirements: virtualenv
 	#
 	for req in $(REQUIREMENTS); do \
 			echo "Installing $$req..." ; \
-			$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) $$req ; \
+			$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
 	done
 
 .PHONY: virtualenv
