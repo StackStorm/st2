@@ -128,7 +128,13 @@ class ResourceController(rest.RestController):
 
             filters['__'.join(v.split('.'))] = filter_value
 
-        LOG.info('GET all %s with filters=%s', pecan.request.path, filters)
+        extra = {
+            'filters': filters,
+            'sort': kwargs.get('sort', None),
+            'offset': offset,
+            'limit': limit
+        }
+        LOG.info('GET all %s with filters=%s' % (pecan.request.path, filters), extra=extra)
 
         instances = self.access.query(exclude_fields=exclude_fields, **filters)
 
