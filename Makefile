@@ -190,7 +190,7 @@ requirements: virtualenv
 	python scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 	# Make sure we use latest version of pip
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade pip
-	$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r requirements.txt ; \
+	$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) requirements.txt
 
 .PHONY: virtualenv
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
