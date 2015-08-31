@@ -26,6 +26,7 @@ COMPONENTS_TEST_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TEST))
 
 PYTHON_TARGET := 2.7
 
+REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PIP_OPTIONS
@@ -193,7 +194,11 @@ requirements: virtualenv
 	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
 	# Install requirements
-	$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) requirements.txt
+	#
+	for req in $(REQUIREMENTS); do \
+			echo "Installing $$req..." ; \
+			$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) $$req ; \
+	done
 
 .PHONY: virtualenv
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
