@@ -108,10 +108,21 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None):
     """
     requirements = merge_source_requirements(sources)
     fixed = load_requirements(locate_file(fixed_requirements, must_exist=True))
-    fixedreq_hash = dict([(req.req.project_name, req) for req in fixed if req.req])
+
+    # Make sure there are no duplicate / conflicting definitions
+    fixedreq_hash = {}
+    for req in fixed:
+        project_name = req.req.project_name
+
+        if not req.req:
+            continue
+
+        if project_name in fixedreq_hash:
+            raise ValueError('Duplicate definition for dependency "%s"' % (project_name))
+
+        fixedreq_hash[project_name] = req
 
     lines_to_write = []
-
     links = set()
     for req in requirements:
         # we don't have any idea how to process links, so just add them
