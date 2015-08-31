@@ -79,6 +79,7 @@ class ResourceController(rest.RestController):
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
+        query_options = kwargs.get('query_options', self.query_options)
         exclude_fields = exclude_fields or []
 
         # TODO: Why do we use comma delimited string, user can just specify
@@ -103,7 +104,7 @@ class ResourceController(rest.RestController):
             sort_value = direction + self.supported_filters[sort_key]
             db_sort_values.append(sort_value)
 
-        default_sort_values = copy.copy(self.query_options.get('sort'))
+        default_sort_values = copy.copy(query_options.get('sort'))
         kwargs['sort'] = db_sort_values if db_sort_values else default_sort_values
 
         # TODO: To protect us from DoS, we need to make max_limit mandatory
