@@ -17,4 +17,4 @@ bencode
 ipaddr
 git+https://github.com/StackStorm/fabric.git@stanley-patched#egg=fabric
 git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
-git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2auth_flat_file_backend
+git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
