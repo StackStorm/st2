@@ -16,7 +16,12 @@ Local command runner (local-shell-cmd)
 ---------------------------------------
 
 This is the local runner. This runner executes a Linux command on the same host
-where |st2| components are running.
+where |st2| components are running. `stdout` and `stderr` fields
+in output produced are newline stripped (only last newline char).
+If you want a newline explicitly, you should do so when you invoking the command like so:
+
+::
+    st2 run core.local cmd='echo \n'
 
 Runner parameters
 ^^^^^^^^^^^^^^^^^
@@ -27,7 +32,8 @@ Local script runner (local-shell-script)
 ----------------------------------------
 
 This is the local runner. Actions are implemented as scripts. They are executed
-on the same hosts where |st2| components are running.
+on the same hosts where |st2| components are running. `stdout` and `stderr`
+fields in output are stripped off last newline character.
 
 Runner parameters
 ^^^^^^^^^^^^^^^^^
@@ -38,7 +44,8 @@ Remote command runner (remote-shell-cmd)
 ----------------------------------------
 
 This is a remote runner. This runner executes a Linux command on one or more
-remote hosts provided by the user.
+remote hosts provided by the user. `stdout` and `stderr`
+fields in output are stripped off last newline character.
 
 Runner parameters
 ^^^^^^^^^^^^^^^^^
@@ -49,7 +56,8 @@ Remote script runner (remote-shell-script)
 ------------------------------------------
 
 This is a remote runner. Actions are implemented as scripts. They run on one or
-more remote hosts provided by the user.
+more remote hosts provided by the user. `stdout` and `stderr`
+fields in output are stripped off last newline character.
 
 Runner parameters
 ^^^^^^^^^^^^^^^^^
