@@ -28,6 +28,7 @@ from st2common.persistence.pack import Pack
 from st2common.persistence.sensor import SensorType
 from st2common.persistence.action import Action
 from st2common.persistence.rule import Rule
+from st2common.persistence.keyvalue import KeyValuePair
 from st2common.models.db.auth import UserDB
 from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
@@ -36,9 +37,11 @@ from st2common.models.db.pack import PackDB
 from st2common.models.db.sensor import SensorTypeDB
 from st2common.models.db.action import ActionDB
 from st2common.models.db.rule import RuleDB
+from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.rbac.resolvers import SensorPermissionsResolver
 from st2common.rbac.resolvers import ActionPermissionsResolver
 from st2common.rbac.resolvers import RulePermissionsResolver
+from st2common.rbac.resolvers import KeyValuePermissionsResolver
 from st2common.rbac.resolvers import get_resolver_for_resource_type
 from st2common.rbac.migrations import insert_system_roles
 from st2tests.base import CleanDbTestCase
@@ -692,3 +695,29 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
             user_db=user_db,
             resource_db=self.resources['rule_3'],
             permission_type=PermissionType.RULE_DELETE))
+
+
+class KeyValuePermissionsResolverTestCase(BasePermissionsResolverTestCase):
+    def setUp(self):
+        super(KeyValuePermissionsResolverTestCase, self).setUp()
+
+        kvp_1_db = KeyValuePairDB(name='key1', value='val1')
+        kvp_1_db = KeyValuePair.add_or_update(kvp_1_db)
+        self.resources['kvp_1'] = kvp_1_db
+
+    def test_user_has_resource_permission(self):
+        # Note: Right now we don't support granting permissions on key value items so we just check
+        # that the method always returns True
+        resolver = KeyValuePermissionsResolver()
+
+        # No roles
+        user_db = self.users['no_roles']
+        resource_db = self.resources['kvp_1']
+
+        permission_types = PermissionType.get_valid_permissions_for_resource_type(
+            ResourceType.KEY_VALUE)
+        for permission_type in permission_types:
+            self.assertTrue(resolver.user_has_resource_permission(
+                user_db=user_db,
+                resource_db=resource_db,
+                permission_type=permission_type))
