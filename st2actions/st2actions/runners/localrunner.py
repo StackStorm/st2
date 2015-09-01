@@ -159,8 +159,8 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             'failed': not succeeded,
             'succeeded': succeeded,
             'return_code': exit_code,
-            'stdout': stdout,
-            'stderr': stderr
+            'stdout': stdout.rstrip(),
+            'stderr': stderr.rstrip()
         }
 
         if error:
