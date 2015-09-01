@@ -38,3 +38,21 @@ def prefix_dict_keys(dictionary, prefix='_'):
         result['%s%s' % (prefix, key)] = value
 
     return result
+
+
+def strip_last_newline_char(input_str):
+    """
+    Strips the last char if its newline.
+
+    :param input_str: Input string to be stripped.
+    :type input_str: ``str``
+
+    :rtype: ``str``
+    """
+    if not input_str:
+        return input_str
+
+    if input_str.endswith('\n'):
+        return input_str[:-1]
+
+    return input_str
