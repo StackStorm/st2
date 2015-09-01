@@ -37,9 +37,20 @@ install_reqs, dep_links = fetch_requirements()
 setup(
     name=st2_component,
     version=__version__,
-    description='{} component'.format(st2_component),
+    description='CLI and python client library for the StackStorm (st2) automation platform.',
     author='StackStorm',
     author_email='info@stackstorm.com',
+    license='Apache License (2.0)',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7'
+    ],
     install_requires=install_reqs,
     dependency_links=dep_links,
     test_suite=st2_component,
