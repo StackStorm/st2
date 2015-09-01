@@ -20,29 +20,32 @@ from setuptools import setup, find_packages
 from st2api import __version__
 
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ST2_COMPONENT = os.path.basename(BASE_DIR)
+REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
+
+
 def fetch_requirements():
     links = []
     reqs = []
-    for req in parse_requirements('requirements.txt', session=False):
+    for req in parse_requirements(REQUIREMENTS_FILE, session=False):
         if req.link:
             links.append(str(req.link))
         reqs.append(str(req.req))
     return (reqs, links)
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-st2_component = os.path.basename(current_dir)
 install_reqs, dep_links = fetch_requirements()
 
 
 setup(
-    name=st2_component,
+    name=ST2_COMPONENT,
     version=__version__,
-    description='{} component'.format(st2_component),
+    description='{} component'.format(ST2_COMPONENT),
     author='StackStorm',
     author_email='info@stackstorm.com',
     install_requires=install_reqs,
     dependency_links=dep_links,
-    test_suite=st2_component,
+    test_suite=ST2_COMPONENT,
     zip_safe=False,
     include_package_data=True,
     packages=find_packages(exclude=['setuptools', 'tests']),
