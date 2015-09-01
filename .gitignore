@@ -3,6 +3,7 @@
 *.swp
 *.log
 */requirements.txt
+!st2client/requirements.txt
 
 # C extensions
 *.so
