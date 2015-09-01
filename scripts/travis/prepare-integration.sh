@@ -46,7 +46,7 @@ create_user
 pip install --upgrade pip
 
 # install st2 client
-python ./st2client/setup.py develop
+python ./st2client/setup.py install
 st2 --version
 
 # install screen
