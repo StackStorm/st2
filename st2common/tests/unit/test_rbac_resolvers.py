@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import unittest2
 from oslo_config import cfg
 
 from st2common.services import rbac as rbac_services
@@ -38,10 +39,13 @@ from st2common.models.db.rule import RuleDB
 from st2common.rbac.resolvers import SensorPermissionsResolver
 from st2common.rbac.resolvers import ActionPermissionsResolver
 from st2common.rbac.resolvers import RulePermissionsResolver
+from st2common.rbac.resolvers import get_resolver_for_resource_type
 from st2common.rbac.migrations import insert_system_roles
 from st2tests.base import CleanDbTestCase
 
 __all__ = [
+    'PermissionsResolverUtilsTestCase',
+
     'SensorPermissionsResolverTestCase',
     'ActionPermissionsResolverTestCase',
     'RulePermissionsResolverTestCase'
@@ -144,6 +148,23 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
         role_assignment_db = UserRoleAssignmentDB(user=user_db.name,
                                                   role=self.roles['custom_role_pack_grant'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
+
+
+class PermissionsResolverUtilsTestCase(unittest2.TestCase):
+    def test_get_resolver_for_resource_type_valid_resource_type(self):
+        valid_resources_types = [ResourceType.PACK, ResourceType.SENSOR, ResourceType.ACTION,
+                                 ResourceType.RULE]
+
+        for resource_type in valid_resources_types:
+            cls = get_resolver_for_resource_type(resource_type=resource_type)
+            resource_name = resource_type.split('_')[0].lower()
+            class_name = cls.__name__.lower()
+            self.assertTrue(resource_name in class_name)
+
+    def test_get_resolver_for_resource_type_unsupported_resource_type(self):
+        expected_msg = 'Unsupported resource: alias'
+        self.assertRaisesRegexp(ValueError, expected_msg, get_resolver_for_resource_type,
+                                resource_type='alias')
 
 
 class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
