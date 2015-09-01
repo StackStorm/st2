@@ -1,6 +1,9 @@
 # Packages versions fixed for the whole st2 stack
 eventlet>=0.13.0
+oslo.config>=1.12.1,<1.13
 six==1.9.0
+pyyaml>=3.11,<4.0
+requests>=2.7.0,<3.0
 apscheduler>=3.0.0rc1
 gitpython==0.3.2.1
 jsonschema>=2.3.0
