@@ -42,6 +42,9 @@ create_user() {
 
 create_user
 
+# make sure we are using latest version of pip
+pip install --upgrade pip
+
 # install st2 client
 python ./st2client/setup.py develop
 st2 --version
