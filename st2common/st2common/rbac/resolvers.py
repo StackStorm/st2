@@ -29,6 +29,7 @@ __all__ = [
     'SensorPermissionsResolver',
     'ActionPermissionsResolver',
     'RulePermissionsResolver',
+    'KeyValuePermissionsResolver',
 
     'get_resolver_for_resource_type',
     'get_resolver_for_permission_type'
@@ -281,6 +282,18 @@ class RulePermissionsResolver(PermissionsResolver):
         return False
 
 
+class KeyValuePermissionsResolver(PermissionsResolver):
+    """
+    Permission resolver for "key value pair" resource type.
+    """
+
+    def user_has_permission(self, user_db, permission_type):
+        # TODO: We don't support assigning permissions on key value pairs yet
+        return True
+
+    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+        # TODO: We don't support assigning permissions on key value pairs yet
+        return True
 def get_resolver_for_resource_type(resource_type):
     """
     Return resolver instance for the provided resource type.
@@ -295,6 +308,8 @@ def get_resolver_for_resource_type(resource_type):
         return ActionPermissionsResolver
     elif resource_type == ResourceType.RULE:
         return RulePermissionsResolver
+    elif resource_type == ResourceType.KEY_VALUE:
+        return KeyValuePermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
 
