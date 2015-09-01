@@ -21,12 +21,28 @@ from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.trigger import TriggerAPI
 from st2common.models.api.tag import TagsHelper
-from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
+from st2common.models.db.rule import RuleDB, RuleTypeDB, ActionExecutionSpecDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import Trigger
 import st2common.services.triggers as TriggerService
 from st2common.util import reference
 import st2common.validators.api.reactor as validator
+
+
+class RuleTypeSpec(BaseAPI):
+    schema = {
+        'type': 'object',
+        'properties': {
+            'ref': {
+                'type': 'string',
+                'required': True
+            },
+            'parameters': {
+                'type': 'object'
+            }
+        },
+        'additionalProperties': False
+    }
 
 
 class ActionSpec(BaseAPI):
@@ -51,6 +67,49 @@ REQUIRED_ATTR_SCHEMAS = {
 
 for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
     v.update({'required': True})
+
+
+class RuleTypeAPI(BaseAPI):
+    model = RuleTypeDB
+    schema = {
+        'title': 'RuleType',
+        'description': 'A specific type of rule.',
+        'type': 'object',
+        'properties': {
+            'id': {
+                'description': 'The unique identifier for the action runner.',
+                'type': 'string',
+                'default': None
+            },
+            'name': {
+                'description': 'The name of the action runner.',
+                'type': 'string',
+                'required': True
+            },
+            'description': {
+                'description': 'The description of the action runner.',
+                'type': 'string'
+            },
+            'enabled': {
+                'type': 'boolean',
+                'default': True
+            },
+            'parameters': {
+                'type': 'object'
+            }
+        },
+        'additionalProperties': False
+    }
+
+    @classmethod
+    def to_model(cls, rule_type):
+        name = getattr(rule_type, 'name', None)
+        description = getattr(rule_type, 'description', None)
+        enabled = getattr(rule_type, 'enabled', False)
+        parameters = getattr(rule_type, 'parameters', {})
+
+        return cls.model(name=name, description=description, enabled=enabled,
+                         parameters=parameters)
 
 
 class RuleAPI(BaseAPI):
@@ -105,6 +164,7 @@ class RuleAPI(BaseAPI):
             'description': {
                 'type': 'string'
             },
+            'type': RuleTypeSpec.schema,
             'trigger': {
                 'type': 'object',
                 'required': True,

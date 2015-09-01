@@ -93,7 +93,7 @@ def register_actions():
 
 
 def register_rules():
-    # Register rules.
+    # Register ruletypes and rules.
     registered_count = 0
 
     try:
@@ -102,12 +102,20 @@ def register_rules():
         LOG.info('=========================================================')
         # Importing here to reduce scope of dependency. This way even if st2reactor
         # is not installed bootstrap continues.
-        import st2reactor.bootstrap.rulesregistrar as rules_registrar
-        registered_count = rules_registrar.register_rules(pack_dir=cfg.CONF.register.pack)
+        import st2reactor.bootstrap.ruletypesregistrar as rule_types_registrar
+        rule_types_registrar.register_rule_types()
     except Exception as e:
-        LOG.warning('Failed to register rules: %s', e, exc_info=True)
+        LOG.warning('Failed to register rule types: %s', e, exc_info=True)
+    else:
+        try:
+            # Importing here to reduce scope of dependency. This way even if st2reactor
+            # is not installed bootstrap continues.
+            import st2reactor.bootstrap.rulesregistrar as rules_registrar
+            registered_count = rules_registrar.register_rules(pack_dir=cfg.CONF.register.pack)
+        except Exception as e:
+            LOG.warning('Failed to register rules: %s', e, exc_info=True)
 
-    LOG.info('Registered %s rules.' % (registered_count))
+    LOG.info('Registered %s rules.', registered_count)
 
 
 def register_aliases():
