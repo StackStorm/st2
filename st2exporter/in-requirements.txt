@@ -1,0 +1,5 @@
+# Remeber to list implicit packages here, otherwise version won't be fixated!
+six
+eventlet
+kombu
+oslo.config
