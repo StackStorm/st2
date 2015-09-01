@@ -143,7 +143,7 @@ class MongoDBAccess(object):
         return self.model.objects(**kwargs)._collection.aggregate(*args, **kwargs)
 
     def insert(self, instance):
-        instance = self.model._qs.insert(instance)
+        instance = self.model.objects.insert(instance)
         return self._undo_dict_field_escape(instance)
 
     def add_or_update(self, instance):

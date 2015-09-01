@@ -22,6 +22,8 @@ from st2common.rbac import utils
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.models.db.auth import UserDB
+from st2common.models.db.rbac import RoleDB
+from st2common.persistence.rbac import Role
 
 
 class RBACUtilsTestCase(CleanDbTestCase):
@@ -86,3 +88,17 @@ class RBACPermissionTypeTestCase(unittest2.TestCase):
                          'all')
         self.assertEqual(PermissionType.get_permission_name(PermissionType.PACK_ALL),
                          'all')
+
+
+class RBACRoleDBTestCase(CleanDbTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(RBACRoleDBTestCase, cls).setUpClass()
+        config.parse_args()
+
+    def test_insert(self):
+        role_db = RoleDB(name='role-1', description='test role', system=True)
+        created = Role.insert(role_db)
+        retrieved = Role.get_by_id(created.id)
+        self.assertEqual(retrieved.name, role_db.name, 'Failed to save RoleDB object.')
