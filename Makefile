@@ -14,7 +14,8 @@ COMPONENTS := $(wildcard st2*)
 
 # Components that implement a component-controlled test-runner. These components provide an
 # in-component Makefile. (Temporary fix until I can generalize the pecan unittest setup. -mar)
-COMPONENT_SPECIFIC_TESTS := st2tests
+# Note: We also want to ignore egg-info dir created during build
+COMPONENT_SPECIFIC_TESTS := st2tests st2client.egg-info
 
 # nasty hack to get a space into a variable
 space_char :=
