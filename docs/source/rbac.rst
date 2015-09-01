@@ -113,10 +113,19 @@ the error is logged in the audit log.
 Permission inheritance
 ~~~~~~~~~~~~~~~~~~~~~~
 
+**Pack resources**
+
 By default all the pack resources inherit all the permission from a pack. This means that if you
 grant ``action_execute`` permission to a pack, user will be able to execute all the actions inside
-that pack. Similarly, if you grant ``rule_delete`` permission to a pack, user will be able to
+that pack. Similarly, if you grant ``rule_create`` permission to a pack, user will be able to
 create new rules in that pack.
+
+**Executions**
+
+Executions inherit permissions from the action they belong to. This means that if you grant
+``action_view`` permission on a particular action, user will be able to view all the executions
+which belong to that action. Similarly, if you grant ``execution_stop`` to a pack, user will be
+able to stop all the executions which belong to the action in that pack.
 
 Defining roles and user role assignments
 ----------------------------------------
