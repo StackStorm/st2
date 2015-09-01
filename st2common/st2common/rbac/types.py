@@ -133,7 +133,7 @@ class ResourceType(Enum):
     RULE = SystemResourceType.RULE
 
     EXECUTION = SystemResourceType.EXECUTION
-    KEY_VALUE = SystemResourceType.KEY_VALUE
+    KEY_VALUE_PAIR = SystemResourceType.KEY_VALUE_PAIR
 
 
 class SystemRole(Enum):
@@ -197,7 +197,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.EXECUTION_STOP,
         PermissionType.EXECUTION_ALL,
     ],
-    ResourceType.KEY_VALUE: [
+    ResourceType.KEY_VALUE_PAIR: [
         PermissionType.KEY_VALUE_VIEW,
         PermissionType.KEY_VALUE_SET,
         PermissionType.KEY_VALUE_DELETE

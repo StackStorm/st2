@@ -34,6 +34,6 @@ class ResourceType(Enum):
     RULE = 'rule'
 
     EXECUTION = 'execution'
-    KEY_VALUE = 'key_value'
+    KEY_VALUE_PAIR = 'key_value_pair'
 
     UNKNOWN = 'unknown'

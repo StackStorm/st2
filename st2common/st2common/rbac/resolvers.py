@@ -308,7 +308,7 @@ def get_resolver_for_resource_type(resource_type):
         return ActionPermissionsResolver
     elif resource_type == ResourceType.RULE:
         return RulePermissionsResolver
-    elif resource_type == ResourceType.KEY_VALUE:
+    elif resource_type == ResourceType.KEY_VALUE_PAIR:
         return KeyValuePermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
