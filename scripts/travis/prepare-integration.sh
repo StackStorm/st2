@@ -42,16 +42,15 @@ create_user() {
 
 create_user
 
-# make sure we are using latest version of pip and setuptools
-pip install --upgrade pip
-pip install --upgrade setuptools
+# install screen
+apt-get install -y screen
+
+# Activate the virtualenv created during make requirements phase
+source ./virtualenv/bin/activate
 
 # install st2 client
 python ./st2client/setup.py develop
 st2 --version
-
-# install screen
-apt-get install -y screen
 
 # start dev environment in screens
 ./tools/launchdev.sh start
