@@ -65,3 +65,21 @@ def compare_path_file_name(file_path_a, file_path_b):
     file_name_b = os.path.basename(file_path_b)
 
     return file_name_a < file_name_b
+
+
+def strip_last_newline_char(input_str):
+    """
+    Strips the last char if its newline.
+
+    :param input_str: Input string to be stripped.
+    :type input_str: ``str``
+
+    :rtype: ``str``
+    """
+    if not input_str:
+        return input_str
+
+    if input_str.endswith('\n'):
+        return input_str[0:len(input_str) - 1]
+
+    return input_str
