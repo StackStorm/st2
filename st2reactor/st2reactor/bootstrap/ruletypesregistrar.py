@@ -16,7 +16,7 @@
 import copy
 
 from st2common import log as logging
-from st2common.constants.rule import RULE_TYPE_STD, RULE_TYPE_BACKSTOP
+from st2common.constants.rule import RULE_TYPE_STANDARD, RULE_TYPE_BACKSTOP
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RuleTypeAPI
 from st2common.persistence.runner import RuleType
@@ -31,7 +31,7 @@ LOG = logging.getLogger(__name__)
 
 RULE_TYPES = [
     {
-        'name': RULE_TYPE_STD,
+        'name': RULE_TYPE_STANDARD,
         'description': 'standard rule that is always applicable.',
         'enabled': True,
         'parameters': {

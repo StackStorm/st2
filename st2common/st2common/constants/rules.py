@@ -15,5 +15,5 @@
 
 TRIGGER_PAYLOAD_PREFIX = 'trigger'
 
-RULE_TYPE_STD = 'standard'
+RULE_TYPE_STANDARD = 'standard'
 RULE_TYPE_BACKSTOP = 'backstop'
