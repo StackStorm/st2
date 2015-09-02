@@ -18,9 +18,9 @@ SUBJECT=$1
 shift
 SEND_EMPTY_BODY=$1
 shift
-BODY="$@"
-shift
 CONTENT_TYPE=$1
+shift
+BODY="$@"
 
 if [[ "${CONTENT_TYPE}" = "text/html" ]]; then
   LINE_BREAK="<br><br>"
@@ -28,7 +28,8 @@ else
   LINE_BREAK="\n\n"
 fi
 
-if [[ -z "${BODY// }" && $SEND_EMPTY_BODY == 'True' ]] || [[ -n $BODY ]]; then
+trimmed="${BODY// }"
+if [[ -z $trimmed && $SEND_EMPTY_BODY == 'True' ]] || [[ -n $trimmed ]]; then
   ${MAIL} <<EOF
 TO: ${TO}
 FROM: ${FROM}
