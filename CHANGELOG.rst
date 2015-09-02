@@ -16,9 +16,6 @@ in development
 * Default to rule being disabled if the user doesn't explicitly specify ``enabled`` attribute when
   creating a rule via the API or inside the rule metadata file when registering local content
   (previously it defaulted to enabled).
-* ``private_key`` supplied for remote_actions is now used to auth correctly. ``private_key``
-  argument should be the contents of private key file (of user specified in ``username`` argument).
-  (bug-fix)
 * Fix ``timestamp_lt`` and ``timestamp_gt`` filtering in the `/executions` API endpoint. Now we 
   return a correct result which is expected from a user-perspective. (bug-fix)
 
