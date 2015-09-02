@@ -16,6 +16,7 @@
 import mock
 import six
 
+from st2common.constants.rules import RULE_TYPE_STANDARD, RULE_TYPE_BACKSTOP
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
@@ -61,6 +62,11 @@ class TestRuleController(FunctionalTest):
 
         file_name = 'rule_no_enabled_attribute.yaml'
         TestRuleController.RULE_3 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+        file_name = 'backstop_rule.yaml'
+        TestRuleController.RULE_4 = TestRuleController.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
@@ -163,6 +169,30 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(get_resp.status_int, http_client.OK)
         self.assertEqual(self.__get_rule_id(get_resp), rule_id)
         self.assertEqual(get_resp.json['tags'], TestRuleController.RULE_1['tags'])
+        self.__do_delete(rule_id)
+
+    def test_rule_without_type(self):
+        post_resp = self.__do_post(TestRuleController.RULE_1)
+        rule_id = self.__get_rule_id(post_resp)
+        get_resp = self.__do_get_one(rule_id)
+        self.assertEqual(get_resp.status_int, http_client.OK)
+        self.assertEqual(self.__get_rule_id(get_resp), rule_id)
+        assigned_rule_type = get_resp.json['type']
+        self.assertTrue(assigned_rule_type, 'rule_type should be assigned')
+        self.assertEqual(assigned_rule_type['ref'], RULE_TYPE_STANDARD,
+                         'rule_type should be standard')
+        self.__do_delete(rule_id)
+
+    def test_rule_with_type(self):
+        post_resp = self.__do_post(TestRuleController.RULE_4)
+        rule_id = self.__get_rule_id(post_resp)
+        get_resp = self.__do_get_one(rule_id)
+        self.assertEqual(get_resp.status_int, http_client.OK)
+        self.assertEqual(self.__get_rule_id(get_resp), rule_id)
+        assigned_rule_type = get_resp.json['type']
+        self.assertTrue(assigned_rule_type, 'rule_type should be assigned')
+        self.assertEqual(assigned_rule_type['ref'], RULE_TYPE_BACKSTOP,
+                         'rule_type should be backstop')
         self.__do_delete(rule_id)
 
     @staticmethod

@@ -21,7 +21,7 @@ from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.trigger import TriggerAPI
 from st2common.models.api.tag import TagsHelper
-from st2common.models.db.rule import RuleDB, RuleTypeDB, ActionExecutionSpecDB
+from st2common.models.db.rule import RuleDB, RuleTypeDB, RuleTypeSpecDB, ActionExecutionSpecDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import Trigger
 import st2common.services.triggers as TriggerService
@@ -241,7 +241,8 @@ class RuleAPI(BaseAPI):
 
         rule_type = dict(getattr(rule, 'type', {}))
         if rule_type:
-            kwargs['rule_type'] = None
+            kwargs['type'] = RuleTypeSpecDB(ref=rule_type['ref'],
+                                            parameters=rule_type.get('parameters', {}))
 
         kwargs['enabled'] = getattr(rule, 'enabled', False)
         kwargs['tags'] = TagsHelper.to_model(getattr(rule, 'tags', []))
