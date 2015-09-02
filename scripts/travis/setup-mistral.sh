@@ -6,14 +6,35 @@ if [ "$(whoami)" != 'root' ]; then
     exit 2
 fi
 
-MISTRAL_STABLE_BRANCH="st2-0.9.0"
+MISTRAL_STABLE_BRANCH="master"
 STANCONF="${PWD}/conf/st2.dev.conf"
+TYPE="debs"
 
 setup_mistral_st2_config()
 {
   echo "" >> ${STANCONF}
   echo "[mistral]" >> ${STANCONF}
   echo "v2_base_url = http://127.0.0.1:8989/v2" >> ${STANCONF}
+}
+
+setup_postgresql() {
+  # Setup the postgresql service on fedora. Ubuntu is already setup by default.
+  if [[ "$TYPE" == "rpms" ]]; then
+    echo "Configuring PostgreSQL for Fedora..."
+    systemctl enable postgresql
+    sudo postgresql-setup initdb
+    pg_hba_config=/var/lib/pgsql/data/pg_hba.conf
+    sed -i 's/^local\s\+all\s\+all\s\+peer/local all all trust/g' ${pg_hba_config}
+    sed -i 's/^local\s\+all\s\+all\s\+ident/local all all trust/g' ${pg_hba_config}
+    sed -i 's/^host\s\+all\s\+all\s\+127.0.0.1\/32\s\+ident/host all all 127.0.0.1\/32 md5/g' ${pg_hba_config}
+    sed -i 's/^host\s\+all\s\+all\s\+::1\/128\s\+ident/host all all ::1\/128 md5/g' ${pg_hba_config}
+    systemctl start postgresql
+  fi
+
+  echo "Changing max connections for PostgreSQL..."
+  config=`sudo -u postgres psql -c "SHOW config_file;" | grep postgresql.conf`
+  sed -i 's/max_connections = 100/max_connections = 500/' ${config}
+  service postgresql restart
 }
 
 setup_mistral_config()
@@ -97,7 +118,7 @@ setup_mistral() {
   . /opt/openstack/mistral/.venv/bin/activate
   pip install -q -r requirements.txt
   pip install -q psycopg2
-  python setup.py develop
+  python setup.py install
 
   # Setup plugins for actions.
   mkdir -p /etc/mistral/actions
@@ -108,7 +129,7 @@ setup_mistral() {
   cd /etc/mistral/actions
   git clone -b ${MISTRAL_STABLE_BRANCH} https://github.com/StackStorm/st2mistral.git
   cd /etc/mistral/actions/st2mistral
-  python setup.py develop
+  python setup.py install
 
   # Create configuration files.
   mkdir -p /etc/mistral
@@ -117,10 +138,15 @@ setup_mistral() {
   setup_mistral_st2_config
 
   # Setup database.
+  setup_postgresql
   setup_mistral_db
 
   # Setup service.
-  setup_mistral_upstart
+  if [[ "$TYPE" == "debs" ]]; then
+    setup_mistral_upstart
+  elif [[ "$TYPE" == "rpms" ]]; then
+    setup_mistral_systemd
+  fi
 
   # Deactivate venv.
   deactivate
