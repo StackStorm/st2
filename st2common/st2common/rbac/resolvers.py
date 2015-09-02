@@ -18,6 +18,7 @@ Module containing resolver classes which contain permission resolving logic for 
 types.
 """
 
+from st2common.models.db.pack import PackDB
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.rbac.types import SystemRole
@@ -30,6 +31,7 @@ __all__ = [
     'ActionPermissionsResolver',
     'RulePermissionsResolver',
     'KeyValuePermissionsResolver',
+    'ExecutionPermissionsResolver',
 
     'get_resolver_for_resource_type',
     'get_resolver_for_permission_type'
@@ -294,6 +296,69 @@ class KeyValuePermissionsResolver(PermissionsResolver):
     def user_has_resource_permission(self, user_db, resource_db, permission_type):
         # TODO: We don't support assigning permissions on key value pairs yet
         return True
+
+
+class ExecutionPermissionsResolver(PermissionsResolver):
+    """
+    Permission resolver for "execution" resource type.
+    """
+
+    def user_has_permission(self, user_db, permission_type):
+        # TODO
+        raise NotImplementedError()
+
+    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            return True
+
+        # Check custom roles
+        action = resource_db['action']
+
+        # TODO: Add utility methods for constructing uids from parts
+        pack_db = PackDB(ref=action['pack'])
+
+        action_uid = action['uid']
+        action_pack_uid = pack_db.get_uid()
+
+        # Note: Right now action_execute implies execution_re_run and execution_stop
+        if permission_type == PermissionType.EXECUTION_VIEW:
+            action_permission_type = PermissionType.ACTION_VIEW
+        elif permission_type in [PermissionType.EXECUTION_RE_RUN,
+                                 PermissionType.EXECUTION_STOP]:
+            action_permission_type = PermissionType.ACTION_EXECUTE
+        elif permission_type == PermissionType.EXECUTION_ALL:
+            action_permission_type = PermissionType.ACTION_ALL
+        else:
+            raise ValueError('Invalid permission type: %s' % (permission_type))
+
+        # Check grants on the pack of the action to which execution belongs to
+        resource_types = [ResourceType.PACK]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=action_pack_uid,
+                                                               resource_types=resource_types,
+                                                               permission_type=action_permission_type)
+
+        if len(permission_grants) >= 1:
+            return True
+
+        # Check grants on the action the execution belongs to
+        resource_types = [ResourceType.ACTION]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=action_uid,
+                                                               resource_types=resource_types,
+                                                               permission_type=action_permission_type)
+
+        if len(permission_grants) >= 1:
+            return True
+
+        return False
+
+
+
 def get_resolver_for_resource_type(resource_type):
     """
     Return resolver instance for the provided resource type.
@@ -308,6 +373,8 @@ def get_resolver_for_resource_type(resource_type):
         return ActionPermissionsResolver
     elif resource_type == ResourceType.RULE:
         return RulePermissionsResolver
+    elif resource_type == ResourceType.EXECUTION:
+        return ExecutionPermissionsResolver
     elif resource_type == ResourceType.KEY_VALUE_PAIR:
         return KeyValuePermissionsResolver
     else:
