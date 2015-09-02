@@ -1,17 +1,30 @@
 #!/bin/bash
 
+function usage() {
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-s]" >&2
+}
+
 subcommand=$1; shift
 runner_count=1
 skip_examples=false
 
-while getopts "r:s" o; do
-    echo "${o}"
+while getopts ":r:s" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
             ;;
         s)
             skip_examples=true
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            usage
+            exit 2
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument." >&2
+            usage
+            exit 2
             ;;
     esac
 done
@@ -226,6 +239,6 @@ restart)
     st2start
     ;;
 *)
-    echo "Usage: $0 [start|stop|restart|startclean]" >&2
+    usage
     ;;
 esac
