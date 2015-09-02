@@ -16,28 +16,19 @@
 
 import os.path
 
-from pip.req import parse_requirements
 from setuptools import setup, find_packages
 
+from dist_utils import fetch_requirements
+from dist_utils import apply_vagrant_workaround
 from st2client import __version__
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ST2_COMPONENT = os.path.basename(BASE_DIR)
 REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
 
+install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
-def fetch_requirements():
-    links = []
-    reqs = []
-    for req in parse_requirements(REQUIREMENTS_FILE, session=False):
-        if req.link:
-            links.append(str(req.link))
-        reqs.append(str(req.req))
-    return (reqs, links)
-
-install_reqs, dep_links = fetch_requirements()
-
-
+apply_vagrant_workaround()
 setup(
     name=ST2_COMPONENT,
     version=__version__,

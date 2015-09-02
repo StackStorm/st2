@@ -183,7 +183,7 @@ distclean: clean
 	rm -rf $(VIRTUALENV_DIR)
 
 .PHONY: requirements
-requirements: virtualenv
+requirements: virtualenv .sdist-requirements
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
@@ -354,3 +354,18 @@ debs:
 	rm -Rf ~/debbuild
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make deb; popd;)
 	pushd st2client && make deb && popd
+
+# >>>>
+.PHONY: .sdist-requirements
+.sdist-requirements:
+	# Copy over shared dist utils module which is needed by setup.py
+	@for component in $(COMPONENTS_TEST); do\
+		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
+	done
+	
+	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
+	#@for component in $(COMPONENTS_TEST); do\
+	#	test -s $$component/README.rst || cp -f README.rst $$component/; \
+	#	cp -f CONTRIBUTING.rst $$component/; \
+	#	cp -f LICENSE $$component/; \
+	#done
