@@ -13,27 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.util.enum import Enum
+import inspect
 
 __all__ = [
-    'ResourceType'
+    'Enum'
 ]
 
 
-class ResourceType(Enum):
-    """
-    Enum representing a valid resource type in a system.
-    """
-
-    PACK = 'pack'
-    ACTION = 'action'
-    SENSOR_TYPE = 'sensor_type'
-    TRIGGER_TYPE = 'trigger_type'
-    TRIGGER = 'trigger'
-    TRIGGER_INSTANCE = 'trigger_instance'
-    RULE = 'rule'
-
-    EXECUTION = 'execution'
-    KEY_VALUE_PAIR = 'key_value_pair'
-
-    UNKNOWN = 'unknown'
+class Enum(object):
+    @classmethod
+    def get_valid_values(cls):
+        keys = cls.__dict__.keys()
+        values = [getattr(cls, key) for key in keys if (not key.startswith('_') and
+                  not inspect.ismethod(getattr(cls, key)))]
+        return values

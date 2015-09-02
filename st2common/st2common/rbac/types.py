@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.util.misc import Enum
+from st2common.util.enum import Enum
 from st2common.constants.types import ResourceType as SystemResourceType
 
 __all__ = [
