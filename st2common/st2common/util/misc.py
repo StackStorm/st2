@@ -80,6 +80,6 @@ def strip_last_newline_char(input_str):
         return input_str
 
     if input_str.endswith('\n'):
-        return input_str[0:len(input_str) - 1]
+        return input_str[:-1]
 
     return input_str
