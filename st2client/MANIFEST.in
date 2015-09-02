@@ -2,6 +2,7 @@
 # Include all files under the source tree by default.
 # Another behaviour can be used in the future though.
 recursive-include st2client *.* *
+include dist_utils.py
 include requirements.txt
 include README.rst
 include CHANGELOG.rst
