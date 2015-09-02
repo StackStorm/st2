@@ -9,7 +9,7 @@ WORKERSVC=st2actionrunner-worker
 if [ -x $SYSTEMDCTL ]; then
   sv=systemd
   svbin=$SYSTEMDCTL
-elif ( /sbin/start 2>/dev/null | grep -q "missing job name" ); then
+elif ( /sbin/start 2>&1 | grep -q "missing job name" ); then
   sv=upstart
   svbin=$UPSTARTCTL
 else
