@@ -44,7 +44,7 @@ class ExamplesTest(base.TestWorkflowExecution):
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
         self.assertEqual(len(execution.result['result']), 3)
-        self.assertListEqual(execution.result['result'], ['Yo!\n', 'Yo!\n', 'Yo!\n'])
+        self.assertListEqual(execution.result['result'], ['Yo!', 'Yo!', 'Yo!'])
 
     def test_repeat_with_items(self):
         inputs = {'cmds': ['echo "a"', 'echo "b"', 'echo "c"']}
@@ -52,4 +52,4 @@ class ExamplesTest(base.TestWorkflowExecution):
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
         self.assertEqual(len(execution.result['result']), 3)
-        self.assertListEqual(sorted(execution.result['result']), ['a\n', 'b\n', 'c\n'])
+        self.assertListEqual(sorted(execution.result['result']), ['a', 'b', 'c'])
