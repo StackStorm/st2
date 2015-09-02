@@ -18,7 +18,7 @@ else
   if [ ! -x $svbin ]; then
     >&2 echo "Init file not found: $svbin"
     >&2 echo "Unknown platform, we support ONLY debian, systemd and sysv!"
-    exit 1
+    exit 99
   fi
 fi
 
