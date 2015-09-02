@@ -18,6 +18,7 @@ import copy
 import six
 
 from st2common.constants.pack import DEFAULT_PACK_NAME
+from st2common.constants.rules import RULE_TYPE_STD
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.trigger import TriggerAPI
 from st2common.models.api.tag import TagsHelper
@@ -218,29 +219,33 @@ class RuleAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, rule):
-        name = getattr(rule, 'name', None)
-        description = getattr(rule, 'description', None)
+        kwargs = {}
+        kwargs['name'] = getattr(rule, 'name', None)
+        kwargs['description'] = getattr(rule, 'description', None)
 
         # Create a trigger for the provided rule
         trigger_db = TriggerService.create_trigger_db_from_rule(rule)
-
-        trigger = reference.get_str_resource_ref_from_model(trigger_db)
-        criteria = dict(getattr(rule, 'criteria', {}))
-        pack = getattr(rule, 'pack', DEFAULT_PACK_NAME)
-        ref = ResourceReference.to_string_reference(pack=pack, name=name)
-
-        # Validate criteria
-        validator.validate_criteria(criteria)
-
+        kwargs['trigger'] = reference.get_str_resource_ref_from_model(trigger_db)
         # Validate trigger parameters
         validator.validate_trigger_parameters(trigger_db=trigger_db)
 
-        action = ActionExecutionSpecDB(ref=rule.action['ref'],
-                                       parameters=rule.action['parameters'])
+        kwargs['pack'] = getattr(rule, 'pack', DEFAULT_PACK_NAME)
+        kwargs['ref'] = ResourceReference.to_string_reference(pack=kwargs['pack'],
+                                                              name=kwargs['name'])
 
-        enabled = getattr(rule, 'enabled', False)
-        tags = TagsHelper.to_model(getattr(rule, 'tags', []))
+        # Validate criteria
+        kwargs['criteria'] = dict(getattr(rule, 'criteria', {}))
+        validator.validate_criteria(kwargs['criteria'])
 
-        model = cls.model(name=name, description=description, pack=pack, ref=ref, trigger=trigger,
-                          criteria=criteria, action=action, enabled=enabled, tags=tags)
+        kwargs['action'] = ActionExecutionSpecDB(ref=rule.action['ref'],
+                                                 parameters=rule.action['parameters'])
+
+        rule_type = dict(getattr(rule, 'type', {}))
+        if rule_type:
+            kwargs['rule_type'] = None
+
+        kwargs['enabled'] = getattr(rule, 'enabled', False)
+        kwargs['tags'] = TagsHelper.to_model(getattr(rule, 'tags', []))
+
+        model = cls.model(**kwargs)
         return model
