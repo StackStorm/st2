@@ -26,6 +26,7 @@ from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
+from st2common.exceptions.ssh import InvalidCredentialsException
 
 LOG = logging.getLogger(__name__)
 
@@ -81,11 +82,19 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         if len(self._hosts) < 1:
             raise ActionRunnerPreRunError('No hosts specified to run action for action %s.',
                                           self.liveaction_id)
-        self._username = self.runner_parameters.get(RUNNER_USERNAME, cfg.CONF.system_user.user)
-        self._username = self._username or cfg.CONF.system_user.user
+        self._username = self.runner_parameters.get(RUNNER_USERNAME, None)
         self._password = self.runner_parameters.get(RUNNER_PASSWORD, None)
+        self._private_key = self.runner_parameters.get(RUNNER_PRIVATE_KEY, None)
+
+        if self._username:
+            if not self._password and not self._private_key:
+                msg = ('Either password or private_key data needs to be supplied for user: %s' %
+                       self._username)
+                raise InvalidCredentialsException(msg)
+
+        self._username = self._username or cfg.CONF.system_user.user
         self._ssh_port = self.runner_parameters.get(RUNNER_SSH_PORT, 22)
-        self._private_key = self.runner_parameters.get(RUNNER_PRIVATE_KEY, self._ssh_key_file)
+        self._ssh_key_file = self._private_key or self._ssh_key_file
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._sudo = self._sudo if self._sudo else False
@@ -108,14 +117,24 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
             self._parallel_ssh_client = ParallelSSHClient(
                 hosts=self._hosts,
                 user=self._username, password=self._password,
-                port=self._ssh_port, concurrency=concurrency, raise_on_error=False,
+                port=self._ssh_port, concurrency=concurrency,
+                raise_on_any_error=False,
+                connect=True
+            )
+        elif self._private_key:
+            self._parallel_ssh_client = ParallelSSHClient(
+                hosts=self._hosts,
+                user=self._username, pkey_material=self._private_key,
+                port=self._ssh_port, concurrency=concurrency,
+                raise_on_any_error=False,
                 connect=True
             )
         else:
             self._parallel_ssh_client = ParallelSSHClient(
                 hosts=self._hosts,
-                user=self._username, pkey=self._ssh_key_file,
-                port=self._ssh_port, concurrency=concurrency, raise_on_error=False,
+                user=self._username, pkey_file=self._ssh_key_file,
+                port=self._ssh_port, concurrency=concurrency,
+                raise_on_any_error=False,
                 connect=True
             )
 

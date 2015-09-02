@@ -287,8 +287,14 @@ def get_resolver_for_resource_type(resource_type):
 
     :rtype: :class:`PermissionsResolver`
     """
-    if resource_type == ResourceType.ACTION:
+    if resource_type == ResourceType.PACK:
+        return PackPermissionsResolver
+    elif resource_type == ResourceType.SENSOR:
+        return SensorPermissionsResolver
+    elif resource_type == ResourceType.ACTION:
         return ActionPermissionsResolver
+    elif resource_type == ResourceType.RULE:
+        return RulePermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
 
