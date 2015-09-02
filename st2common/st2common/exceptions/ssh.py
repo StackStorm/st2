@@ -13,46 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
-
 __all__ = [
-    'prefix_dict_keys'
+    'InvalidCredentialsException'
 ]
 
 
-def prefix_dict_keys(dictionary, prefix='_'):
-    """
-    Prefix dictionary keys with a provided prefix.
-
-    :param dictionary: Dictionary whose keys to prefix.
-    :type dictionary: ``dict``
-
-    :param prefix: Key prefix.
-    :type prefix: ``str``
-
-    :rtype: ``dict``:
-    """
-    result = {}
-
-    for key, value in six.iteritems(dictionary):
-        result['%s%s' % (prefix, key)] = value
-
-    return result
+class InvalidCredentialsException(Exception):
+    pass
 
 
-def strip_last_newline_char(input_str):
-    """
-    Strips the last char if its newline.
-
-    :param input_str: Input string to be stripped.
-    :type input_str: ``str``
-
-    :rtype: ``str``
-    """
-    if not input_str:
-        return input_str
-
-    if input_str.endswith('\n'):
-        return input_str[:-1]
-
-    return input_str
+class NoHostsConnectedToException(Exception):
+    pass

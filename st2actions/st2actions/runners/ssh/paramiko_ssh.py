@@ -28,6 +28,7 @@ import paramiko
 # Ref: https://bugs.launchpad.net/paramiko/+bug/392973
 
 from st2common.log import logging
+from st2common.util.misc import strip_last_newline_char
 from st2common.util.shell import quote_unix
 
 __all__ = [
@@ -339,7 +340,7 @@ class ParamikoSSHClient(object):
             cmd = quote_unix(cmd)
 
         extra = {'_cmd': cmd}
-        self.logger.debug('Executing command', extra=extra)
+        self.logger.info('Executing command', extra=extra)
 
         # Use the system default buffer size
         bufsize = -1
@@ -399,8 +400,8 @@ class ParamikoSSHClient(object):
         # Receive the exit status code of the command we ran.
         status = chan.recv_exit_status()
 
-        stdout = stdout.getvalue()
-        stderr = stderr.getvalue()
+        stdout = strip_last_newline_char(stdout.getvalue())
+        stderr = strip_last_newline_char(stderr.getvalue())
 
         extra = {'_status': status, '_stdout': stdout, '_stderr': stderr}
         self.logger.debug('Command finished', extra=extra)
@@ -425,7 +426,7 @@ class ParamikoSSHClient(object):
             data = chan.recv(self.CHUNK_SIZE)
 
             while data:
-                stdout.write(str(data).decode('utf-8'))
+                stdout.write(self._get_decoded_data(data))
                 ready = chan.recv_ready()
 
                 if not ready:
@@ -445,7 +446,7 @@ class ParamikoSSHClient(object):
             data = chan.recv_stderr(self.CHUNK_SIZE)
 
             while data:
-                stderr.write(str(data).decode('utf-8'))
+                stderr.write(self._get_decoded_data(data))
                 ready = chan.recv_stderr_ready()
 
                 if not ready:
@@ -454,6 +455,14 @@ class ParamikoSSHClient(object):
                 data = chan.recv_stderr(self.CHUNK_SIZE)
 
         return stderr
+
+    def _get_decoded_data(self, data):
+        decoded_data = str(data)
+        try:
+            decoded_data = decoded_data.decode('utf-8')
+        except:
+            self.logger.warning('Non UTF-8 character found in data: %s', data)
+        return decoded_data
 
     def _get_pkey_object(self, key):
         """
