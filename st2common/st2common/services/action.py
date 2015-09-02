@@ -159,6 +159,26 @@ def is_action_canceled(liveaction_id):
     return liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELED
 
 
+def request_cancellation(liveaction):
+    """
+    Request cancellation of an action execution.
+
+    :return: (liveaction, execution)
+    :rtype: tuple
+    """
+    if liveaction.status == action_constants.LIVEACTION_STATUS_CANCELING:
+        return liveaction
+
+    if liveaction.status not in action_constants.CANCELABLE_STATES:
+        raise Exception('Unable to cancel execution because it is already in a completed state.')
+
+    update_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELING)
+
+    execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+
+    return (liveaction, execution)
+
+
 def _cleanup_liveaction(liveaction):
     try:
         LiveAction.delete(liveaction)

@@ -20,10 +20,10 @@ import six
 
 from st2actions import handlers
 from st2common import log as logging
-from st2common.exceptions.actionrunner import ActionRunnerCreateError
-from st2common.util.api import get_full_public_api_url
-import st2common.util.action_db as action_utils
 from st2common.constants.pack import DEFAULT_PACK_NAME
+from st2common.exceptions.actionrunner import ActionRunnerCreateError
+from st2common.util import action_db as action_utils
+from st2common.util.api import get_full_public_api_url
 
 
 __all__ = [
@@ -93,6 +93,9 @@ class ActionRunner(object):
     @abc.abstractmethod
     def run(self, action_parameters):
         raise NotImplementedError()
+
+    def cancel(self):
+        pass
 
     def post_run(self, status, result):
         if self.callback and not (set(['url', 'source']) - set(self.callback.keys())):
