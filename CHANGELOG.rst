@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.13.2 - TBD.
+-------------
+
+* private_key supplied for remote_actions is now used to auth correctly. private_key argument should be the contents of private key file (of user specified in username argument). (bug-fix)
+* Last newline character ('\n') is now stripped from ``stdout`` and ``stderr`` fields in local and remote command/shell runners. (improvement)
+
 0.13.1 - August 28, 2015
 ------------------------
 
