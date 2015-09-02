@@ -22,8 +22,8 @@ from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
 from st2actions import __version__
 
+ST2_COMPONENT = 'st2actions'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ST2_COMPONENT = os.path.basename(BASE_DIR)
 REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
 
 install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
