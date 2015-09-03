@@ -257,18 +257,17 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
     def test_user_has_resource_permissions(self):
         resolver = SensorPermissionsResolver()
+        all_permission_types = PermissionType.get_valid_permissions_for_resource_type(
+            ResourceType.SENSOR)
 
         # Admin user, should always return true
         resource_db = self.resources['sensor_1']
         user_db = self.users['admin']
-        self.assertTrue(resolver.user_has_resource_permission(
+        self.assertTrue(self._user_has_resource_permissions(
+            resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_type=PermissionType.SENSOR_ALL))
-        self.assertTrue(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=resource_db,
-            permission_type=PermissionType.SENSOR_VIEW))
+            permission_types=all_permission_types))
 
         # Observer, should always return true for VIEW permission
         user_db = self.users['observer']
@@ -283,33 +282,19 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # No roles, should return false for everything
         user_db = self.users['no_roles']
-        self.assertFalse(resolver.user_has_resource_permission(
+        self.assertFalse(self._user_has_resource_permissions(
+            resolver=resolver,
             user_db=user_db,
-            resource_db=self.resources['sensor_1'],
-            permission_type=PermissionType.SENSOR_VIEW))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['sensor_2'],
-            permission_type=PermissionType.SENSOR_ALL))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['sensor_3'],
-            permission_type=PermissionType.SENSOR_VIEW))
+            resource_db=resource_db,
+            permission_types=all_permission_types))
 
         # Custom role with no permission grants, should return false for everything
         user_db = self.users['1_custom_role_no_permissions']
-        self.assertFalse(resolver.user_has_resource_permission(
+        self.assertFalse(self._user_has_resource_permissions(
+            resolver=resolver,
             user_db=user_db,
-            resource_db=self.resources['sensor_1'],
-            permission_type=PermissionType.SENSOR_VIEW))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['sensor_2'],
-            permission_type=PermissionType.SENSOR_ALL))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['sensor_3'],
-            permission_type=PermissionType.SENSOR_VIEW))
+            resource_db=resource_db,
+            permission_types=all_permission_types))
 
         # Custom role with unrelated permission grant to parent pack
         user_db = self.users['custom_role_pack_grant']
@@ -422,18 +407,18 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
     def test_user_has_resource_permissions(self):
         resolver = ActionPermissionsResolver()
+        all_permission_types = PermissionType.get_valid_permissions_for_resource_type(
+            ResourceType.ACTION)
 
         # Admin user, should always return true
         resource_db = self.resources['action_1']
         user_db = self.users['admin']
-        self.assertTrue(resolver.user_has_resource_permission(
+
+        self.assertTrue(self._user_has_resource_permissions(
+            resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_type=PermissionType.ACTION_DELETE))
-        self.assertTrue(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=resource_db,
-            permission_type=PermissionType.ACTION_EXECUTE))
+            permission_types=all_permission_types))
 
         # Observer, should always return true for VIEW permission
         user_db = self.users['observer']
@@ -457,41 +442,19 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # No roles, should return false for everything
         user_db = self.users['no_roles']
-        self.assertFalse(resolver.user_has_resource_permission(
+        self.assertFalse(self._user_has_resource_permissions(
+            resolver=resolver,
             user_db=user_db,
-            resource_db=self.resources['action_1'],
-            permission_type=PermissionType.ACTION_VIEW))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['action_2'],
-            permission_type=PermissionType.ACTION_VIEW))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['action_1'],
-            permission_type=PermissionType.ACTION_MODIFY))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['action_2'],
-            permission_type=PermissionType.ACTION_DELETE))
+            resource_db=resource_db,
+            permission_types=all_permission_types))
 
         # Custom role with no permission grants, should return false for everything
         user_db = self.users['1_custom_role_no_permissions']
-        self.assertFalse(resolver.user_has_resource_permission(
+        self.assertFalse(self._user_has_resource_permissions(
+            resolver=resolver,
             user_db=user_db,
-            resource_db=self.resources['action_1'],
-            permission_type=PermissionType.ACTION_VIEW))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['action_2'],
-            permission_type=PermissionType.ACTION_VIEW))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['action_1'],
-            permission_type=PermissionType.ACTION_MODIFY))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['action_2'],
-            permission_type=PermissionType.ACTION_DELETE))
+            resource_db=resource_db,
+            permission_types=all_permission_types))
 
         # Custom role with unrelated permission grant to parent pack
         user_db = self.users['custom_role_pack_grant']
@@ -601,18 +564,17 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
     def test_user_has_resource_permissions(self):
         resolver = RulePermissionsResolver()
+        all_permission_types = PermissionType.get_valid_permissions_for_resource_type(
+            ResourceType.RULE)
 
         # Admin user, should always return true
         resource_db = self.resources['rule_1']
         user_db = self.users['admin']
-        self.assertTrue(resolver.user_has_resource_permission(
+        self.assertTrue(self._user_has_resource_permissions(
+            resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_type=PermissionType.RULE_MODIFY))
-        self.assertTrue(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=resource_db,
-            permission_type=PermissionType.RULE_DELETE))
+            permission_types=all_permission_types))
 
         # Observer, should always return true for VIEW permission
         user_db = self.users['observer']
@@ -636,33 +598,19 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # No roles, should return false for everything
         user_db = self.users['no_roles']
-        self.assertFalse(resolver.user_has_resource_permission(
+        self.assertFalse(self._user_has_resource_permissions(
+            resolver=resolver,
             user_db=user_db,
-            resource_db=self.resources['rule_1'],
-            permission_type=PermissionType.RULE_VIEW))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['rule_2'],
-            permission_type=PermissionType.RULE_VIEW))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['rule_3'],
-            permission_type=PermissionType.RULE_DELETE))
+            resource_db=resource_db,
+            permission_types=all_permission_types))
 
         # Custom role with no permission grants, should return false for everything
         user_db = self.users['1_custom_role_no_permissions']
-        self.assertFalse(resolver.user_has_resource_permission(
+        self.assertFalse(self._user_has_resource_permissions(
+            resolver=resolver,
             user_db=user_db,
-            resource_db=self.resources['rule_1'],
-            permission_type=PermissionType.RULE_VIEW))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['rule_2'],
-            permission_type=PermissionType.RULE_VIEW))
-        self.assertFalse(resolver.user_has_resource_permission(
-            user_db=user_db,
-            resource_db=self.resources['rule_3'],
-            permission_type=PermissionType.RULE_DELETE))
+            resource_db=resource_db,
+            permission_types=all_permission_types))
 
         # Custom role with unrelated permission grant to parent pack
         user_db = self.users['custom_role_pack_grant']
@@ -893,17 +841,13 @@ class ExecutionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_user_has_resource_permissions(self):
-        # Note: Right now we don't support granting permissions on key value items so we just check
-        # that the method always returns True
         resolver = ExecutionPermissionsResolver()
-
         all_permission_types = PermissionType.get_valid_permissions_for_resource_type(
             ResourceType.EXECUTION)
 
         # Admin user, should always return true
         resource_db = self.resources['exec_1']
         user_db = self.users['admin']
-
         self.assertTrue(self._user_has_resource_permissions(
             resolver=resolver,
             user_db=user_db,
