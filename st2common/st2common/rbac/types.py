@@ -193,7 +193,6 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
     ResourceType.EXECUTION: [
         PermissionType.EXECUTION_VIEW,
         PermissionType.EXECUTION_RE_RUN,
-
         PermissionType.EXECUTION_STOP,
         PermissionType.EXECUTION_ALL,
     ],
