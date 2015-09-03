@@ -117,7 +117,6 @@ class BaseDbTestCase(TestCase):
             logging.config.fileConfig(config_path,
                                       disable_existing_loggers=False)
 
-
     @classmethod
     def _establish_connection_and_re_create_db(cls):
         username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None

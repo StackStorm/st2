@@ -412,7 +412,6 @@ class ExecutionPermissionsResolver(PermissionsResolver):
         return False
 
 
-
 def get_resolver_for_resource_type(resource_type):
     """
     Return resolver instance for the provided resource type.
