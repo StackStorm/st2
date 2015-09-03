@@ -115,17 +115,21 @@ Permission inheritance
 
 **Pack resources**
 
-By default all the pack resources inherit all the permission from a pack. This means that if you
-grant ``action_execute`` permission to a pack, user will be able to execute all the actions inside
-that pack. Similarly, if you grant ``rule_create`` permission to a pack, user will be able to
-create new rules in that pack.
+Pack resources inherit all the permission from a pack. This means that if you grant
+``action_execute`` permission to a pack, user will be able to execute all the actions inside that
+pack. Similarly, if you grant ``rule_create`` permission to a pack, user will be able to create new
+rules in that pack.
 
 **Executions**
 
-Executions inherit permissions from the action they belong to. This means that if you grant
-``action_view`` permission on a particular action, user will be able to view all the executions
-which belong to that action. Similarly, if you grant ``execution_stop`` to a pack, user will be
-able to stop all the executions which belong to the action in that pack.
+Executions inherit permissions from the action they belong and from the action's parent pack. This
+means that if you grant ``action_view`` permission on a particular action, the user will be able to
+view all the executions which belong to that action. Similarly, if you grant ``action_view`` to a
+parent pack of the action execution belongs to, user will be able to view all the executions which
+belong to the action with that parent pack.
+
+On top of that, granting ``action_execute`` on a particular pack or action also grants
+``execution_re_run`` and ``execution_stop`` to all the executions which belong to that action.
 
 Defining roles and user role assignments
 ----------------------------------------
