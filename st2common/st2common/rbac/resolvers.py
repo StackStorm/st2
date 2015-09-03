@@ -139,9 +139,11 @@ class PackPermissionsResolver(PermissionsResolver):
         # Check custom roles
         resource_uid = resource_db.get_uid()
         resource_types = [ResourceType.PACK]
+        permission_types = [permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=resource_uid,
-                                                               resource_types=resource_types)
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
 
         if len(permission_grants) >= 1:
             self._log('Found a direct grant on the pack', extra=log_context)
@@ -183,20 +185,22 @@ class SensorPermissionsResolver(PermissionsResolver):
 
         # Check direct grants on the specified resource
         resource_types = [ResourceType.SENSOR]
+        permission_types = [PermissionType.SENSOR_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=sensor_uid,
                                                                resource_types=resource_types,
-                                                               permission_type=permission_type)
+                                                               permission_types=permission_types)
         if len(permission_grants) >= 1:
             self._log('Found a direct grant on the sensor', extra=log_context)
             return True
 
         # Check grants on the parent pack
         resource_types = [ResourceType.PACK]
+        permission_types = [PermissionType.SENSOR_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=pack_uid,
                                                                resource_types=resource_types,
-                                                               permission_type=permission_type)
+                                                               permission_types=permission_types)
 
         if len(permission_grants) >= 1:
             self._log('Found a grant on the sensor parent pack', extra=log_context)
@@ -238,20 +242,22 @@ class ActionPermissionsResolver(PermissionsResolver):
 
         # Check direct grants on the specified resource
         resource_types = [ResourceType.ACTION]
+        permission_types = [PermissionType.ACTION_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=action_uid,
                                                                resource_types=resource_types,
-                                                               permission_type=permission_type)
+                                                               permission_types=permission_types)
         if len(permission_grants) >= 1:
             self._log('Found a direct grant on the action', extra=log_context)
             return True
 
         # Check grants on the parent pack
         resource_types = [ResourceType.PACK]
+        permission_types = [PermissionType.ACTION_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=pack_uid,
                                                                resource_types=resource_types,
-                                                               permission_type=permission_type)
+                                                               permission_types=permission_types)
 
         if len(permission_grants) >= 1:
             self._log('Found a grant on the action parent pack', extra=log_context)
@@ -293,20 +299,22 @@ class RulePermissionsResolver(PermissionsResolver):
 
         # Check direct grants on the specified resource
         resource_types = [ResourceType.RULE]
+        permission_types = [PermissionType.RULE_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=rule_uid,
                                                                resource_types=resource_types,
-                                                               permission_type=permission_type)
+                                                               permission_types=permission_types)
         if len(permission_grants) >= 1:
             self._log('Found a direct grant on the rule', extra=log_context)
             return True
 
         # Check grants on the parent pack
         resource_types = [ResourceType.PACK]
+        permission_types = [PermissionType.RULE_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=pack_uid,
                                                                resource_types=resource_types,
-                                                               permission_type=permission_type)
+                                                               permission_types=permission_types)
 
         if len(permission_grants) >= 1:
             self._log('Found a grant on the rule parent pack', extra=log_context)
@@ -378,10 +386,11 @@ class ExecutionPermissionsResolver(PermissionsResolver):
 
         # Check grants on the pack of the action to which execution belongs to
         resource_types = [ResourceType.PACK]
+        permission_types = [PermissionType.ACTION_ALL, action_permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=action_pack_uid,
                                                                resource_types=resource_types,
-                                                               permission_type=action_permission_type)
+                                                               permission_types=permission_types)
 
         if len(permission_grants) >= 1:
             self._log('Found a grant on the execution action parent pack', extra=log_context)
@@ -389,10 +398,11 @@ class ExecutionPermissionsResolver(PermissionsResolver):
 
         # Check grants on the action the execution belongs to
         resource_types = [ResourceType.ACTION]
+        permission_types = [PermissionType.ACTION_ALL, action_permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=action_uid,
                                                                resource_types=resource_types,
-                                                               permission_type=action_permission_type)
+                                                               permission_types=permission_types)
 
         if len(permission_grants) >= 1:
             self._log('Found a grant on the execution action', extra=log_context)
