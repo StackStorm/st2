@@ -28,8 +28,8 @@ cache:
 install:
   - if [ ${TASK} != 'checks' ]; then pip install python-coveralls; fi
   - make requirements
-  - if [ ${TASK} = 'integration' ] || [ ${TASK} = 'mistral' ]; then sudo ./scripts/travis/prepare-integration.sh; fi
-  - if [ ${TASK} = 'mistral' ]; then sudo ./scripts/travis/setup-mistral.sh; fi
+  - if [ ${TASK} = 'integration' ] || [ ${TASK} = 'mistral' ]; then sudo -E ./scripts/travis/prepare-integration.sh; fi
+  - if [ ${TASK} = 'mistral' ]; then sudo -E ./scripts/travis/setup-mistral.sh; fi
 
 script:
   - ./scripts/travis/build.sh

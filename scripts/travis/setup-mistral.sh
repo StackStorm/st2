@@ -6,9 +6,39 @@ if [ "$(whoami)" != 'root' ]; then
     exit 2
 fi
 
-MISTRAL_STABLE_BRANCH="master"
+function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -V | tail -n 1)" == "$1"; }
+
+# Determine which mistral version to use
+if [[ "${TRAVIS_BRANCH}" == 'master' ]]; then
+    MISTRAL_STABLE_BRANCH='master'
+elif [[ "${TRAVIS_BRANCH}" =~ ^v[0-9] ]]; then
+    # remove 'v' prefix from version
+    VER=`echo ${TRAVIS_BRANCH} | cut -c2-`
+    if version_ge $VER "0.13"; then
+        MISTRAL_STABLE_BRANCH="st2-0.13.0"
+    elif version_ge $VER "0.9"; then
+        MISTRAL_STABLE_BRANCH="st2-0.9.0"
+    elif version_ge $VER "0.8.1"; then
+        MISTRAL_STABLE_BRANCH="st2-0.8.1"
+    elif version_ge $VER "0.8"; then
+        MISTRAL_STABLE_BRANCH="st2-0.8.0"
+    else
+        MISTRAL_STABLE_BRANCH="st2-0.5.1"
+    fi
+else
+    MISTRAL_STABLE_BRANCH="st2-0.13.0"
+fi
+
 STANCONF="${PWD}/conf/st2.dev.conf"
 TYPE="debs"
+
+
+echo "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
+echo "Installing Mistral version ${MISTRAL_STABLE_BRANCH}"
+
+##############################################################
+# Copy-pasted from st2_deploy.sh
+##############################################################
 
 setup_mistral_st2_config()
 {
