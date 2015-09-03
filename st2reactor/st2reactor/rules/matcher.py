@@ -64,9 +64,3 @@ class RulesMatcher(object):
 
     def _is_first_pass_rule(self, rule):
         return rule.type['ref'] != RULE_TYPE_BACKSTOP
-
-    def _get_matching_rules_first_pass(self):
-        pass
-
-    def _get_matching_rules_second_pass(self):
-        pass
