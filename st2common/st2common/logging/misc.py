@@ -49,7 +49,7 @@ def reopen_log_files(handlers):
             handler.release()
 
 
-def set_log_level_for_all_loggers(level):
+def set_log_level_for_all_loggers(level=logging.DEBUG):
     """
     Set a log level for all the loggers and handlers to the provided level.
     """
@@ -61,8 +61,8 @@ def set_log_level_for_all_loggers(level):
         if not isinstance(logger, logging.Logger):
             continue
 
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(level)
 
         handlers = logger.handlers
         for handler in handlers:
-            handler.setLevel(logging.DEBUG)
+            handler.setLevel(level)

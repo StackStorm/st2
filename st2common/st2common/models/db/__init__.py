@@ -42,7 +42,8 @@ def get_model_classes():
     return result
 
 
-def db_setup(db_name, db_host, db_port, username=None, password=None):
+def db_setup(db_name, db_host, db_port, username=None, password=None,
+             ensure_indexes=True):
     LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".' %
              (db_name, db_host, db_port, str(username)))
     connection = mongoengine.connection.connect(db_name, host=db_host,
@@ -51,7 +52,8 @@ def db_setup(db_name, db_host, db_port, username=None, password=None):
 
     # Create all the indexes upfront to prevent race-conditions caused by
     # lazy index creation
-    db_ensure_indexes()
+    if ensure_indexes:
+        db_ensure_indexes()
 
     return connection
 

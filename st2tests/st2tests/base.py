@@ -22,6 +22,7 @@ import os
 import os.path
 import sys
 import shutil
+import logging
 
 import eventlet
 from oslo_config import cfg
@@ -29,7 +30,7 @@ import six
 from unittest2 import TestCase
 
 from st2common.exceptions.db import StackStormDBObjectConflictError
-from st2common.models.db import db_setup, db_teardown
+from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.content.utils import get_packs_base_paths
 import st2common.models.db.rule as rule_model
@@ -56,6 +57,7 @@ __all__ = [
     'CleanFilesTestCase'
 ]
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ALL_MODELS = []
 ALL_MODELS.extend(rule_model.MODELS)
@@ -102,9 +104,18 @@ class EventletTestCase(TestCase):
 
 
 class BaseDbTestCase(TestCase):
+
+    # Set to True to enable printing of all the log messages to the console
+    DISPLAY_LOG_MESSAGES = False
+
     @classmethod
     def setUpClass(cls):
         st2tests.config.parse_args()
+
+        if cls.DISPLAY_LOG_MESSAGES:
+            config_path = os.path.join(BASE_DIR, '../conf/logging.conf')
+            logging.config.fileConfig(config_path,
+                                      disable_existing_loggers=False)
 
     @classmethod
     def _establish_connection_and_re_create_db(cls):
@@ -112,9 +123,13 @@ class BaseDbTestCase(TestCase):
         password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
         cls.db_connection = db_setup(
             cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-            username=username, password=password)
+            username=username, password=password, ensure_indexes=False)
         cls._drop_collections()
         cls.db_connection.drop_database(cfg.CONF.database.db_name)
+
+        # Explicity ensure indexes after we re-create the DB otherwise ensure_indexes could failure
+        # inside db_setup if test inserted invalid data
+        db_ensure_indexes()
 
     @classmethod
     def _drop_db(cls):

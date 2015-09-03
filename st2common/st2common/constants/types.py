@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.util.misc import Enum
+from st2common.util.enum import Enum
 
 __all__ = [
     'ResourceType'
@@ -34,6 +34,6 @@ class ResourceType(Enum):
     RULE = 'rule'
 
     EXECUTION = 'execution'
-    KEY_VALUE = 'key_value'
+    KEY_VALUE_PAIR = 'key_value_pair'
 
     UNKNOWN = 'unknown'
