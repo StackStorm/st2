@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 from st2common.models.api.rule import RuleAPI
 from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB)
 from st2common.persistence.rule import Rule
@@ -22,6 +24,7 @@ from st2common.util import date as date_utils
 import st2reactor.container.utils as container_utils
 from st2reactor.rules.matcher import RulesMatcher
 from st2tests.base import DbTestCase
+from st2tests.fixturesloader import FixturesLoader
 
 
 class RuleMatcherTest(DbTestCase):
@@ -156,3 +159,55 @@ class RuleMatcherTest(DbTestCase):
         self.rules.append(rule_db)
 
         return self.rules
+
+
+PACK = 'backstop'
+FIXTURES_TRIGGERS = {
+    'triggertypes': ['triggertype1.yaml'],
+    'triggers': ['trigger1.yaml']
+}
+FIXTURES_RULES = {
+    'rules': ['backstop.yaml', 'success.yaml', 'fail.yaml']
+}
+
+
+class BackstopRuleMatcherTest(DbTestCase):
+    models = None
+
+    @classmethod
+    def setUpClass(cls):
+        super(BackstopRuleMatcherTest, cls).setUpClass()
+        fixturesloader = FixturesLoader()
+        # Create TriggerTypes before creation of Rule to avoid failure. Rule requires the
+        # Trigger and therefore TriggerType to be created prior to rule creation.
+        cls.models = fixturesloader.save_fixtures_to_db(
+            fixtures_pack=PACK, fixtures_dict=FIXTURES_TRIGGERS)
+        cls.models.update(fixturesloader.save_fixtures_to_db(
+            fixtures_pack=PACK, fixtures_dict=FIXTURES_RULES))
+
+    def test_backstop_ignore(self):
+        trigger_instance = container_utils.create_trigger_instance(
+            self.models['triggers']['trigger1.yaml'].ref,
+            {'k1': 'v1'},
+            date_utils.get_datetime_utc_now()
+        )
+        trigger = self.models['triggers']['trigger1.yaml']
+        rules = [rule for rule in six.itervalues(self.models['rules'])]
+        rules_matcher = RulesMatcher(trigger_instance, trigger, rules)
+        matching_rules = rules_matcher.get_matching_rules()
+        self.assertEqual(len(matching_rules), 1)
+        self.assertEqual(matching_rules[0].id, self.models['rules']['success.yaml'].id)
+
+    def test_backstop_apply(self):
+        trigger_instance = container_utils.create_trigger_instance(
+            self.models['triggers']['trigger1.yaml'].ref,
+            {'k1': 'v1'},
+            date_utils.get_datetime_utc_now()
+        )
+        trigger = self.models['triggers']['trigger1.yaml']
+        success_rule = self.models['rules']['success.yaml']
+        rules = [rule for rule in six.itervalues(self.models['rules']) if rule != success_rule]
+        rules_matcher = RulesMatcher(trigger_instance, trigger, rules)
+        matching_rules = rules_matcher.get_matching_rules()
+        self.assertEqual(len(matching_rules), 1)
+        self.assertEqual(matching_rules[0].id, self.models['rules']['backstop.yaml'].id)
