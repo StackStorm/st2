@@ -149,10 +149,11 @@ class RuleAPI(BaseAPI):
 
         if not trigger_db:
             raise ValueError('Missing TriggerDB object for rule %s' % (rule['id']))
-
-        rule['trigger'] = vars(TriggerAPI.from_model(trigger_db))
-        del rule['trigger']['id']
-        del rule['trigger']['name']
+        rule['trigger'] = {
+            'type': trigger_db.type,
+            'parameters': trigger_db.parameters,
+            'ref': model.trigger
+        }
         rule['tags'] = TagsHelper.from_model(model.tags)
         return cls(**rule)
 
@@ -184,3 +185,20 @@ class RuleAPI(BaseAPI):
         model = cls.model(name=name, description=description, pack=pack, ref=ref, trigger=trigger,
                           criteria=criteria, action=action, enabled=enabled, tags=tags)
         return model
+
+
+class RuleViewAPI(RuleAPI):
+
+    # Always deep-copy to avoid breaking the original.
+    schema = copy.deepcopy(RuleAPI.schema)
+    # Update the schema to include the description properties
+    schema['properties']['action'].update({
+        'description': {
+            'type': 'string'
+        }
+    })
+    schema['properties']['trigger'].update({
+        'description': {
+            'type': 'string'
+        }
+    })
