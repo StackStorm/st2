@@ -22,6 +22,7 @@ import os
 import os.path
 import sys
 import shutil
+import logging
 
 import eventlet
 from oslo_config import cfg
@@ -56,6 +57,7 @@ __all__ = [
     'CleanFilesTestCase'
 ]
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ALL_MODELS = []
 ALL_MODELS.extend(rule_model.MODELS)
@@ -102,9 +104,19 @@ class EventletTestCase(TestCase):
 
 
 class BaseDbTestCase(TestCase):
+
+    # Set to True to enable printing of all the log messages to the console
+    DISPLAY_LOG_MESSAGES = False
+
     @classmethod
     def setUpClass(cls):
         st2tests.config.parse_args()
+
+        if cls.DISPLAY_LOG_MESSAGES:
+            config_path = os.path.join(BASE_DIR, '../conf/logging.conf')
+            logging.config.fileConfig(config_path,
+                                      disable_existing_loggers=False)
+
 
     @classmethod
     def _establish_connection_and_re_create_db(cls):
