@@ -135,9 +135,13 @@ class RuleViewController(resource.ContentPackResourceController):
         trigger_type_by_refs = {}
 
         # The functions that will return args that can used to query.
-        ref_query_args = lambda resource_ref: {'ref': resource_ref.ref}
-        name_pack_query_args = lambda resource_ref: {'name': resource_ref.name,
-                                                     'pack': resource_ref.pack}
+        def ref_query_args(ref):
+            return {'ref': ref}
+
+        def name_pack_query_args(ref):
+            resource_ref = ResourceReference.from_string_reference(ref=ref)
+            return {'name': resource_ref.name, 'pack': resource_ref.pack}
+
         action_dbs = self._get_entities(model_persistence=Action,
                                         refs=action_refs,
                                         query_args=ref_query_args)
@@ -168,11 +172,10 @@ class RuleViewController(resource.ContentPackResourceController):
         """
         q = None
         for ref in refs:
-            resource_ref = ResourceReference.from_string_reference(ref=ref)
             if not q:
-                q = Q(**query_args(resource_ref))
+                q = Q(**query_args(ref))
             else:
-                q |= Q(**query_args(resource_ref))
+                q |= Q(**query_args(ref))
         if q:
             return model_persistence._get_impl().model.objects(q)
         return []
