@@ -13,13 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__all__ = [
-    'SystemRole'
-]
+import unittest2
+
+from st2common.util.misc import strip_last_newline_char
 
 
-class SystemRole(object):
-    """
-    Enum class representing names of the system roled which can't be changed or deleted.
-    """
-    ADMIN = 'admin'
+class MiscUtilTestCase(unittest2.TestCase):
+
+    def test_strip_last_newline_char(self):
+        self.assertEqual(strip_last_newline_char(None), None)
+        self.assertEqual(strip_last_newline_char(''), '')
+        self.assertEqual(strip_last_newline_char('foo'), 'foo')
+        self.assertEqual(strip_last_newline_char('foo\n'), 'foo')
+        self.assertEqual(strip_last_newline_char('foo\n\n'), 'foo\n')

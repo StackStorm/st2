@@ -31,7 +31,7 @@ class KeyValuePairDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
         value: Arbitrary value to be stored.
     """
 
-    RESOURCE_TYPE = ResourceType.KEY_VALUE
+    RESOURCE_TYPE = ResourceType.KEY_VALUE_PAIR
     UID_FIELDS = ['name']
 
     name = me.StringField(required=True, unique=True)

@@ -21,10 +21,10 @@ import six
 
 from oslo_config import cfg
 
-from st2common.constants.rbac import SystemRole
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.exceptions.rbac import ResourceTypeAccessDeniedError
 from st2common.exceptions.rbac import ResourceAccessDeniedError
+from st2common.rbac.types import SystemRole
 from st2common.rbac import resolvers
 from st2common.services import rbac as rbac_services
 

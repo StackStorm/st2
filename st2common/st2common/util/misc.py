@@ -14,24 +14,13 @@
 # limitations under the License.
 
 import os
-import inspect
 
 import six
 
 __all__ = [
-    'Enum',
     'prefix_dict_keys',
     'compare_path_file_name'
 ]
-
-
-class Enum(object):
-    @classmethod
-    def get_valid_values(cls):
-        keys = cls.__dict__.keys()
-        values = [getattr(cls, key) for key in keys if (not key.startswith('_') and
-                  not inspect.ismethod(getattr(cls, key)))]
-        return values
 
 
 def prefix_dict_keys(dictionary, prefix='_'):
@@ -65,3 +54,21 @@ def compare_path_file_name(file_path_a, file_path_b):
     file_name_b = os.path.basename(file_path_b)
 
     return file_name_a < file_name_b
+
+
+def strip_last_newline_char(input_str):
+    """
+    Strips the last char if its newline.
+
+    :param input_str: Input string to be stripped.
+    :type input_str: ``str``
+
+    :rtype: ``str``
+    """
+    if not input_str:
+        return input_str
+
+    if input_str.endswith('\n'):
+        return input_str[:-1]
+
+    return input_str

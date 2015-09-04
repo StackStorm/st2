@@ -21,7 +21,7 @@ from st2tests.config import parse_args
 from st2common.models.db.auth import UserDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 
-from st2common.constants.rbac import SystemRole
+from st2common.rbac.types import SystemRole
 from st2common.rbac.utils import request_user_is_admin
 from st2common.rbac.utils import request_user_has_role
 from st2common.rbac.utils import user_is_admin

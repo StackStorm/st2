@@ -42,7 +42,7 @@ class ResourceTypeAccessDeniedError(AccessDeniedError):
     def __init__(self, user_db, permission_type):
         self.permission_type = permission_type
 
-        message = ('User "%s" doesn\t have required permission "%s"' % (user_db.name,
+        message = ('User "%s" doesn\'t have required permission "%s"' % (user_db.name,
                                                                         permission_type))
         super(ResourceTypeAccessDeniedError, self).__init__(message=message, user_db=user_db)
 
@@ -56,6 +56,6 @@ class ResourceAccessDeniedError(AccessDeniedError):
         self.resource_db = resource_db
         self.permission_type = permission_type
 
-        message = ('User "%s" doesn\t have required permission "%s" on resource "%s"' %
-                   (user_db.name, resource_db.get_uid(), permission_type))
+        message = ('User "%s" doesn\'t have required permission "%s" on resource "%s"' %
+                   (user_db.name, permission_type, resource_db.get_uid()))
         super(ResourceAccessDeniedError, self).__init__(message=message, user_db=user_db)

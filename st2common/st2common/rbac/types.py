@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.util.misc import Enum
+from st2common.util.enum import Enum
 from st2common.constants.types import ResourceType as SystemResourceType
 
 __all__ = [
@@ -133,7 +133,7 @@ class ResourceType(Enum):
     RULE = SystemResourceType.RULE
 
     EXECUTION = SystemResourceType.EXECUTION
-    KEY_VALUE = SystemResourceType.KEY_VALUE
+    KEY_VALUE_PAIR = SystemResourceType.KEY_VALUE_PAIR
 
 
 class SystemRole(Enum):
@@ -193,11 +193,10 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
     ResourceType.EXECUTION: [
         PermissionType.EXECUTION_VIEW,
         PermissionType.EXECUTION_RE_RUN,
-
         PermissionType.EXECUTION_STOP,
         PermissionType.EXECUTION_ALL,
     ],
-    ResourceType.KEY_VALUE: [
+    ResourceType.KEY_VALUE_PAIR: [
         PermissionType.KEY_VALUE_VIEW,
         PermissionType.KEY_VALUE_SET,
         PermissionType.KEY_VALUE_DELETE
