@@ -13,6 +13,12 @@ running StackStorm in production.
 For more information, see http://docs.stackstorm.com/install/index.html
 EOM
 
+if [[ $EUID != 0 ]]; then
+    echo 'StackStorm installation requires superuser access rights!'
+    echo 'Please run with sudo or from root user.'
+    exit 1
+fi
+
 WARNING_SLEEP_DELAY=5
 
 # Options which can be provied by the user via env variables
