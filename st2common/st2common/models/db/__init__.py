@@ -42,7 +42,8 @@ def get_model_classes():
     return result
 
 
-def db_setup(db_name, db_host, db_port, username=None, password=None):
+def db_setup(db_name, db_host, db_port, username=None, password=None,
+             ensure_indexes=True):
     LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".' %
              (db_name, db_host, db_port, str(username)))
     connection = mongoengine.connection.connect(db_name, host=db_host,
@@ -51,7 +52,8 @@ def db_setup(db_name, db_host, db_port, username=None, password=None):
 
     # Create all the indexes upfront to prevent race-conditions caused by
     # lazy index creation
-    db_ensure_indexes()
+    if ensure_indexes:
+        db_ensure_indexes()
 
     return connection
 
@@ -142,22 +144,26 @@ class MongoDBAccess(object):
     def aggregate(self, *args, **kwargs):
         return self.model.objects(**kwargs)._collection.aggregate(*args, **kwargs)
 
-    @staticmethod
-    def add_or_update(instance):
+    def insert(self, instance):
+        instance = self.model.objects.insert(instance)
+        return self._undo_dict_field_escape(instance)
+
+    def add_or_update(self, instance):
         instance.save()
+        return self._undo_dict_field_escape(instance)
+
+    def update(self, instance, **kwargs):
+        return instance.update(**kwargs)
+
+    def delete(self, instance):
+        instance.delete()
+
+    def _undo_dict_field_escape(self, instance):
         for attr, field in instance._fields.iteritems():
             if isinstance(field, stormbase.EscapedDictField):
                 value = getattr(instance, attr)
                 setattr(instance, attr, field.to_python(value))
         return instance
-
-    @staticmethod
-    def update(instance, **kwargs):
-        return instance.update(**kwargs)
-
-    @staticmethod
-    def delete(instance):
-        instance.delete()
 
     def _process_null_filters(self, filters):
         result = copy.deepcopy(filters)

@@ -35,9 +35,7 @@ def insert_system_roles():
         description = role_name
         role_db = RoleDB(name=role_name, description=description, system=True)
 
-        # TODO: This it not ideal, we need to modify add_or_update so it allows atomic updates
-        # by non-id PK
         try:
-            Role.add_or_update(role_db)
+            Role.insert(role_db, log_not_unique_error_as_debug=True)
         except (StackStormDBObjectConflictError, NotUniqueError):
             pass

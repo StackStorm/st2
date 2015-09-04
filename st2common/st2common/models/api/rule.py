@@ -237,7 +237,7 @@ class RuleAPI(BaseAPI):
         validator.validate_criteria(kwargs['criteria'])
 
         kwargs['action'] = ActionExecutionSpecDB(ref=rule.action['ref'],
-                                                 parameters=rule.action['parameters'])
+                                                 parameters=rule.action.get('parameters', {}))
 
         rule_type = dict(getattr(rule, 'type', {}))
         if rule_type:

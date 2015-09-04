@@ -14,24 +14,13 @@
 # limitations under the License.
 
 import os
-import inspect
 
 import six
 
 __all__ = [
-    'Enum',
     'prefix_dict_keys',
     'compare_path_file_name'
 ]
-
-
-class Enum(object):
-    @classmethod
-    def get_valid_values(cls):
-        keys = cls.__dict__.keys()
-        values = [getattr(cls, key) for key in keys if (not key.startswith('_') and
-                  not inspect.ismethod(getattr(cls, key)))]
-        return values
 
 
 def prefix_dict_keys(dictionary, prefix='_'):

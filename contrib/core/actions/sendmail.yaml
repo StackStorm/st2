@@ -20,11 +20,6 @@ parameters:
     required: false
     type: boolean
     default: True
-  body:
-    description: Body of the email.
-    position: 3
-    required: true
-    type: string
   content_type:
     type: string
     description: Content type of message to be sent
@@ -32,7 +27,12 @@ parameters:
       - "text/plain"
       - "text/html"
     default: "text/html"
+    position: 3
+  body:
+    description: Body of the email.
     position: 4
+    required: true
+    type: string
   sudo:
     immutable: true
 
