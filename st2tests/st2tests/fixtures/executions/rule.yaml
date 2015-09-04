@@ -2,7 +2,7 @@
 action:
   parameters:
     cmd: echo "{{trigger}}" >> /tmp/st2.persons.out
-  ref: core.local
+  ref: executions.local
 criteria:
   trigger.name:
     pattern: Joe

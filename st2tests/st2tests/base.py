@@ -19,8 +19,10 @@ except ImportError:
     import json
 
 import os
+import os.path
 import sys
 import shutil
+import logging
 
 import eventlet
 from oslo_config import cfg
@@ -28,7 +30,9 @@ import six
 from unittest2 import TestCase
 
 from st2common.exceptions.db import StackStormDBObjectConflictError
-from st2common.models.db import db_setup, db_teardown
+from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
+from st2common.bootstrap.base import ResourceRegistrar
+from st2common.content.utils import get_packs_base_paths
 import st2common.models.db.rule as rule_model
 import st2common.models.db.sensor as sensor_model
 import st2common.models.db.trigger as trigger_model
@@ -53,6 +57,7 @@ __all__ = [
     'CleanFilesTestCase'
 ]
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ALL_MODELS = []
 ALL_MODELS.extend(rule_model.MODELS)
@@ -99,9 +104,18 @@ class EventletTestCase(TestCase):
 
 
 class BaseDbTestCase(TestCase):
+
+    # Set to True to enable printing of all the log messages to the console
+    DISPLAY_LOG_MESSAGES = False
+
     @classmethod
     def setUpClass(cls):
         st2tests.config.parse_args()
+
+        if cls.DISPLAY_LOG_MESSAGES:
+            config_path = os.path.join(BASE_DIR, '../conf/logging.conf')
+            logging.config.fileConfig(config_path,
+                                      disable_existing_loggers=False)
 
     @classmethod
     def _establish_connection_and_re_create_db(cls):
@@ -109,9 +123,13 @@ class BaseDbTestCase(TestCase):
         password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
         cls.db_connection = db_setup(
             cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-            username=username, password=password)
+            username=username, password=password, ensure_indexes=False)
         cls._drop_collections()
         cls.db_connection.drop_database(cfg.CONF.database.db_name)
+
+        # Explicity ensure indexes after we re-create the DB otherwise ensure_indexes could failure
+        # inside db_setup if test inserted invalid data
+        db_ensure_indexes()
 
     @classmethod
     def _drop_db(cls):
@@ -131,6 +149,14 @@ class BaseDbTestCase(TestCase):
         for model in ALL_MODELS:
             model.drop_collection()
 
+    @classmethod
+    def _register_packs(self):
+        """
+        Register all the packs inside the fixtures directory.
+        """
+        registrar = ResourceRegistrar(use_pack_cache=False)
+        registrar.register_packs(base_dirs=get_packs_base_paths())
+
 
 class DbTestCase(BaseDbTestCase):
     """
@@ -142,11 +168,15 @@ class DbTestCase(BaseDbTestCase):
 
     db_connection = None
     current_result = None
+    register_packs = False
 
     @classmethod
     def setUpClass(cls):
         BaseDbTestCase.setUpClass()
         cls._establish_connection_and_re_create_db()
+
+        if cls.register_packs:
+            cls._register_packs()
 
     @classmethod
     def tearDownClass(cls):
@@ -255,19 +285,33 @@ class CleanDbTestCase(BaseDbTestCase):
 
 class CleanFilesTestCase(TestCase):
     """
-    Base test class which deletes specified files and directories on tearDown.
+    Base test class which deletes specified files and directories on setUp and `tearDown.
     """
     to_delete_files = []
     to_delete_directories = []
 
+    def setUp(self):
+        super(CleanFilesTestCase, self).setUp()
+        self._delete_files()
+
     def tearDown(self):
+        super(CleanFilesTestCase, self).tearDown()
+        self._delete_files()
+
+    def _delete_files(self):
         for file_path in self.to_delete_files:
+            if not os.path.isfile(file_path):
+                continue
+
             try:
                 os.remove(file_path)
             except Exception:
                 pass
 
         for file_path in self.to_delete_directories:
+            if not os.path.isdir(file_path):
+                continue
+
             try:
                 shutil.rmtree(file_path)
             except Exception:

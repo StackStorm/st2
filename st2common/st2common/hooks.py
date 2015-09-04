@@ -15,6 +15,7 @@
 
 import httplib
 import traceback
+import uuid
 
 import webob
 from oslo_config import cfg
@@ -24,10 +25,13 @@ from webob import exc
 
 from st2common import log as logging
 from st2common.persistence.auth import User
-from st2common.exceptions import auth as exceptions
 from st2common.exceptions import db as db_exceptions
+from st2common.exceptions import auth as auth_exceptions
+from st2common.exceptions import rbac as rbac_exceptions
+from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.util.jsonify import json_encode
 from st2common.util.auth import validate_token
+from st2common.constants.api import REQUEST_ID_HEADER
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
 from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 
@@ -79,8 +83,10 @@ class CorsHook(PecanHook):
             origin_allowed = list(origins)[0]
 
         methods_allowed = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-        request_headers_allowed = ['Content-Type', 'Authorization', 'X-Auth-Token']
-        response_headers_allowed = ['Content-Type', 'X-Limit', 'X-Total-Count']
+        request_headers_allowed = ['Content-Type', 'Authorization', 'X-Auth-Token',
+                                   REQUEST_ID_HEADER]
+        response_headers_allowed = ['Content-Type', 'X-Limit', 'X-Total-Count',
+                                    REQUEST_ID_HEADER]
 
         headers['Access-Control-Allow-Origin'] = origin_allowed
         headers['Access-Control-Allow-Methods'] = ','.join(methods_allowed)
@@ -123,27 +129,37 @@ class AuthHook(PecanHook):
             del state.arguments.keywords[QUERY_PARAM_ATTRIBUTE_NAME]
 
     def on_error(self, state, e):
-        if isinstance(e, exceptions.TokenNotProvidedError):
+        if isinstance(e, auth_exceptions.TokenNotProvidedError):
             LOG.exception('Token is not provided.')
             return self._abort_unauthorized()
-        if isinstance(e, exceptions.TokenNotFoundError):
+        if isinstance(e, auth_exceptions.TokenNotFoundError):
             LOG.exception('Token is not found.')
             return self._abort_unauthorized()
-        if isinstance(e, exceptions.TokenExpiredError):
+        if isinstance(e, auth_exceptions.TokenExpiredError):
             LOG.exception('Token has expired.')
             return self._abort_unauthorized()
 
     @staticmethod
     def _abort_unauthorized():
-        return webob.Response(json_encode({
+        body = json_encode({
             'faultstring': 'Unauthorized'
-        }), status=401)
+        })
+        headers = {}
+        headers['Content-Type'] = 'application/json'
+        status = httplib.UNAUTHORIZED
+
+        return webob.Response(body=body, status=status, headers=headers)
 
     @staticmethod
     def _abort_other_errors():
-        return webob.Response(json_encode({
+        body = json_encode({
             'faultstring': 'Internal Server Error'
-        }), status=500)
+        })
+        headers = {}
+        headers['Content-Type'] = 'application/json'
+        status = httplib.INTERNAL_SERVER_ERROR
+
+        return webob.Response(body=body, status=status, headers=headers)
 
     @staticmethod
     def _validate_token(request):
@@ -181,7 +197,10 @@ class JSONErrorResponseHook(PecanHook):
             status_code = httplib.CONFLICT
             message = str(e)
             body['conflict-id'] = e.conflict_id
-        elif isinstance(e, ValueError):
+        elif isinstance(e, rbac_exceptions.AccessDeniedError):
+            status_code = httplib.FORBIDDEN
+            message = str(e)
+        elif isinstance(e, (ValueValidationException, ValueError)):
             status_code = httplib.BAD_REQUEST
             message = getattr(e, 'message', str(e))
         else:
@@ -231,17 +250,24 @@ class LoggingHook(PecanHook):
         # Log the incoming request
         values = {'method': method, 'path': path, 'remote_addr': remote_addr}
         values['filters'] = state.arguments.keywords
-        LOG.info('%(method)s %(path)s with filters=%(filters)s' % values, extra=values)
+
+        request_id = state.request.headers.get(REQUEST_ID_HEADER, None)
+        values['request_id'] = request_id
+
+        LOG.info('%(request_id)s -  %(method)s %(path)s with filters=%(filters)s' %
+                 values, extra=values)
 
     def after(self, state):
         # Note: We use getattr since in some places (tests) request is mocked
         method = getattr(state.request, 'method', None)
         path = getattr(state.request, 'path', None)
         remote_addr = getattr(state.request, 'remote_addr', None)
+        request_id = state.request.headers.get(REQUEST_ID_HEADER, None)
 
         # Log the outgoing response
         values = {'method': method, 'path': path, 'remote_addr': remote_addr}
         values['status_code'] = state.response.status
+        values['request_id'] = request_id
 
         if hasattr(state.controller, 'im_self'):
             function_name = state.controller.im_func.__name__
@@ -255,10 +281,35 @@ class LoggingHook(PecanHook):
 
         if log_result:
             values['result'] = state.response.body
-            log_msg = '%(method)s %(path)s result=%(result)s' % values
+            log_msg = '%(request_id)s - %(method)s %(path)s result=%(result)s' % values
         else:
             # Note: We don't want to include a result for some
             # methods which have a large result
-            log_msg = '%(method)s %(path)s' % values
+            log_msg = '%(request_id)s - %(method)s %(path)s' % values
 
         LOG.info(log_msg, extra=values)
+
+
+class RequestIDHook(PecanHook):
+    """
+    If request id header isn't present, this hooks adds one.
+    """
+
+    def before(self, state):
+        headers = getattr(state.request, 'headers', None)
+
+        if headers:
+            req_id_header = getattr(headers, REQUEST_ID_HEADER, None)
+
+            if not req_id_header:
+                req_id = str(uuid.uuid4())
+                state.request.headers[REQUEST_ID_HEADER] = req_id
+
+    def after(self, state):
+        req_headers = getattr(state.request, 'headers', None)
+        resp_headers = getattr(state.response, 'headers', None)
+
+        if req_headers and resp_headers:
+            req_id_header = req_headers.get(REQUEST_ID_HEADER, None)
+            if req_id_header:
+                resp_headers[REQUEST_ID_HEADER] = req_id_header

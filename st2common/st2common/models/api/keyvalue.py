@@ -31,6 +31,9 @@ class KeyValuePairAPI(BaseAPI):
             'id': {
                 'type': 'string'
             },
+            "uid": {
+                "type": "string"
+            },
             'name': {
                 'type': 'string'
             },

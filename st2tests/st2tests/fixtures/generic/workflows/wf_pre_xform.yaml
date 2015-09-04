@@ -6,15 +6,15 @@ demo:
         - var1
         - var2
     tasks:
+        task_with_no_input:
+            action: wolfpack.a1
         task_with_inputs:
-            action: demo.action1
+            action: wolfpack.a2
             input:
-                var1: <% $.var1 %>
-                var2: <% $.var2 %>
+                strtype: <% $.var1 %>
+                inttype: <% $.var2 %>
             publish:
                 var3: <% $.var3 %>
                 var4: <% $.var4 %>
         task_with_inline_inputs:
-            action: demo.action2 var1=<% $.var1 %> var2="some string" var3="some <% $.var2 %> string"
-        task_with_no_input:
-            action: demo.action3
+            action: wolfpack.a2 strtype="some <% $.var1 %> string" inttype=<% $.var2 %>

@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import six
 
 __all__ = [
-    'prefix_dict_keys'
+    'prefix_dict_keys',
+    'compare_path_file_name'
 ]
 
 
@@ -38,3 +41,34 @@ def prefix_dict_keys(dictionary, prefix='_'):
         result['%s%s' % (prefix, key)] = value
 
     return result
+
+
+def compare_path_file_name(file_path_a, file_path_b):
+    """
+    Custom compare function which compares full absolute file paths just using
+    the file name.
+
+    This function can be used with ``sorted`` or ``list.sort`` function.
+    """
+    file_name_a = os.path.basename(file_path_a)
+    file_name_b = os.path.basename(file_path_b)
+
+    return file_name_a < file_name_b
+
+
+def strip_last_newline_char(input_str):
+    """
+    Strips the last char if its newline.
+
+    :param input_str: Input string to be stripped.
+    :type input_str: ``str``
+
+    :rtype: ``str``
+    """
+    if not input_str:
+        return input_str
+
+    if input_str.endswith('\n'):
+        return input_str[:-1]
+
+    return input_str

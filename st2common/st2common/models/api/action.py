@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from st2common.util import isotime
 from st2common.util import schema as util_schema
 from st2common import log as logging
@@ -28,9 +30,12 @@ from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.models.system.common import ResourceReference
 
 
-__all__ = ['ActionAPI',
-           'LiveActionAPI',
-           'RunnerTypeAPI']
+__all__ = [
+    'ActionAPI',
+    'ActionCreateAPI',
+    'LiveActionAPI',
+    'RunnerTypeAPI'
+]
 
 
 LOG = logging.getLogger(__name__)
@@ -119,7 +124,9 @@ class RunnerTypeAPI(BaseAPI):
 
 
 class ActionAPI(BaseAPI):
-    """The system entity that represents a Stack Action/Automation in the system."""
+    """
+    The system entity that represents a Stack Action/Automation in the system.
+    """
 
     model = ActionDB
     schema = {
@@ -134,6 +141,9 @@ class ActionAPI(BaseAPI):
             "ref": {
                 "description": "System computed user friendly reference for the action. \
                                 Provided value will be overridden by computed value.",
+                "type": "string"
+            },
+            "uid": {
                 "type": "string"
             },
             "name": {
@@ -233,6 +243,32 @@ class ActionAPI(BaseAPI):
                           ref=ref)
 
         return model
+
+
+class ActionCreateAPI(ActionAPI):
+    """
+    API model for create action operations.
+    """
+    schema = copy.deepcopy(ActionAPI.schema)
+    schema['properties']['data_files'] = {
+        'description': 'Optional action script and data files which are written to the filesystem.',
+        'type': 'array',
+        'items': {
+            'type': 'object',
+            'properties': {
+                'file_path': {
+                    'type': 'string',
+                    'required': True
+                },
+                'content': {
+                    'type': 'string',
+                    'required': True
+                },
+            },
+            'additionalProperties': False
+        },
+        'default': {}
+    }
 
 
 class LiveActionAPI(BaseAPI):
@@ -514,7 +550,12 @@ class AliasExecutionAPI(BaseAPI):
             "notification_channel": {
                 "type": "string",
                 "description": "StackStorm notification channel to use to respond.",
-                "required": True
+                "required": False
+            },
+            "notification_route": {
+                "type": "string",
+                "description": "StackStorm notification route to use to respond.",
+                "required": False
             }
         },
         "additionalProperties": False

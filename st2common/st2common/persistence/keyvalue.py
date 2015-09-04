@@ -16,6 +16,7 @@
 from st2common.persistence.base import Access
 from st2common.models.db import keyvalue
 from st2common.models.api.keyvalue import KeyValuePairAPI
+from st2common.models.system.common import ResourceReference
 from st2common.constants.triggers import KEY_VALUE_PAIR_CREATE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_UPDATE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER
@@ -29,10 +30,18 @@ class KeyValuePair(Access):
     api_model_cls = KeyValuePairAPI
     dispatch_trigger_for_operations = ['create', 'update', 'value_change', 'delete']
     operation_to_trigger_ref_map = {
-        'create': KEY_VALUE_PAIR_CREATE_TRIGGER['name'],
-        'update': KEY_VALUE_PAIR_UPDATE_TRIGGER['name'],
-        'value_change': KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER['name'],
-        'delete': KEY_VALUE_PAIR_DELETE_TRIGGER['name'],
+        'create': ResourceReference.to_string_reference(
+            name=KEY_VALUE_PAIR_CREATE_TRIGGER['name'],
+            pack=KEY_VALUE_PAIR_CREATE_TRIGGER['pack']),
+        'update': ResourceReference.to_string_reference(
+            name=KEY_VALUE_PAIR_UPDATE_TRIGGER['name'],
+            pack=KEY_VALUE_PAIR_UPDATE_TRIGGER['pack']),
+        'value_change': ResourceReference.to_string_reference(
+            name=KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER['name'],
+            pack=KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER['pack']),
+        'delete': ResourceReference.to_string_reference(
+            name=KEY_VALUE_PAIR_DELETE_TRIGGER['name'],
+            pack=KEY_VALUE_PAIR_DELETE_TRIGGER['pack']),
     }
 
     @classmethod

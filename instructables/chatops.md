@@ -1,4 +1,8 @@
-Hi, and thanks for using StackStorm + ChatOps. We value your feedback, and would love to hear it. Please send us a note at `support@stackstorm.com`, or come chat with us on IRC at irc://irc.freenode.net/#stackstorm.
+# UPDATED DOCUMENTATION
+
+Thanks for coming here to give StackStorm + ChatOps a try! We have made the experience for trying out StackStorm much more streamlined with an all-in-one installer with AMIs, Vagrant images, and more. Please check out http://docs.stackstorm.com/install/all_in_one.html#all-in-one-installer for more information.
+
+This instructable has been left here as a reference for understanding the internal wiring.
 
 ## What is ChatOps
 
@@ -87,7 +91,7 @@ hubot::env_export:
  HUBOT_LOG_LEVEL: "debug"
  HUBOT_SLACK_TOKEN: "xoxb-XXXX"
  EXPRESS_PORT: 8081
- ST2_CHANNEL: "hubot"
+ ST2_ROUTE: "hubot"
 hubot::external_scripts:
   - "hubot-stackstorm"
 hubot::dependencies:
@@ -96,6 +100,8 @@ hubot::dependencies:
   "hubot-slack": ">=3.3.0 < 4.0.0"
   "hubot-stackstorm": ">= 0.1.0 < 0.2.0"
 ```
+
+Note: ST2_ROUTE used to be ST2_CHANNEL but to avoid confusions with chat client channels, we renamed it.
 
 Take note of the `EXPRESS_PORT` environment variable. Hubot's HTTP port in `st2workroom` needs to be moved to `TCP 8081` to avoid port conflict with `st2web`, which serves on `TCP 8080`. If you are not running your bot on the same machine where StackStorm is running, you can omit this variable. Pay attention to this information, however, as it is needed in order to configure a callback from StackStorm.
 
@@ -200,7 +206,7 @@ formats:
   - "google {{query}}"
 ```
 
-Now, navigate to the hubot pack `rules` directory, and view the notify_hubot rule. This is a notification rule that sets up a notification channel.
+Now, navigate to the hubot pack `rules` directory, and view the notify_hubot rule. This is a notification rule that sets up a notification route.
 
 ```
 $ cd ~/stackstorm/st2workroom/artifacts/packs/hubot/rules
@@ -219,7 +225,7 @@ trigger:
   pack: "chatops"
   type: "core.st2.generic.notifytrigger"
 criteria:
-  trigger.channel:
+  trigger.route:
     pattern: "hubot"
     type: "equals"
 action:
@@ -229,6 +235,10 @@ action:
     user: "{{trigger.data.user}}"
     result: "{{trigger}}"
 ```
+
+Note: trigger.route used to be trigger.channel but to avoid confusions, we renamed it. trigger
+.channel would still work but please use trigger.route everywhere. trigger.channel would be
+deprecated soon.
 
 This file is also here to serve as an example on how to setup other notification triggers.
 

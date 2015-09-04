@@ -17,6 +17,7 @@ import copy
 
 import six
 
+from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.trigger import TriggerAPI
 from st2common.models.api.tag import TagsHelper
@@ -86,17 +87,20 @@ class RuleAPI(BaseAPI):
                 'type': 'string',
                 'default': None
             },
+            "ref": {
+                "description": "System computed user friendly reference for the action. \
+                                Provided value will be overridden by computed value.",
+                "type": "string"
+            },
+            'uid': {
+                'type': 'string'
+            },
             'name': {
                 'type': 'string',
                 'required': True
             },
             'pack': {
                 'type': 'string'
-            },
-            "ref": {
-                "description": "System computed user friendly reference for the action. \
-                                Provided value will be overridden by computed value.",
-                "type": "string"
             },
             'description': {
                 'type': 'string'
@@ -127,7 +131,7 @@ class RuleAPI(BaseAPI):
             'action': REQUIRED_ATTR_SCHEMAS['action'],
             'enabled': {
                 'type': 'boolean',
-                'default': True
+                'default': False
             },
             "tags": {
                 "description": "User associated metadata assigned to this object.",
@@ -162,7 +166,7 @@ class RuleAPI(BaseAPI):
 
         trigger = reference.get_str_resource_ref_from_model(trigger_db)
         criteria = dict(getattr(rule, 'criteria', {}))
-        pack = str(rule.pack)
+        pack = getattr(rule, 'pack', DEFAULT_PACK_NAME)
         ref = ResourceReference.to_string_reference(pack=pack, name=name)
 
         # Validate criteria
@@ -174,7 +178,7 @@ class RuleAPI(BaseAPI):
         action = ActionExecutionSpecDB(ref=rule.action['ref'],
                                        parameters=rule.action['parameters'])
 
-        enabled = rule.enabled
+        enabled = getattr(rule, 'enabled', False)
         tags = TagsHelper.to_model(getattr(rule, 'tags', []))
 
         model = cls.model(name=name, description=description, pack=pack, ref=ref, trigger=trigger,

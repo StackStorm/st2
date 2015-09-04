@@ -134,10 +134,10 @@ RUNNER_TYPES = [
                 'secret': True
             },
             'private_key': {
-                'description': ('Private key used to log in. If not provided, '
-                                'private key from the config file is used.'),
+                'description': ('Private key material to log in.'),
                 'type': 'string',
-                'required': False
+                'required': False,
+                'secret': True
             },
             'cmd': {
                 'description': 'Arbitrary Linux command to be executed on the '
@@ -181,6 +181,12 @@ RUNNER_TYPES = [
                                 'doesn\'t finish in timeout seconds.'),
                 'type': 'integer',
                 'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+            },
+            'port': {
+                'description': 'SSH port. Note: This parameter is used only in ParamikoSSHRunner.',
+                'type': 'integer',
+                'default': 22,
+                'required': False
             }
         },
         'runner_module': 'st2actions.runners.remote_command_runner'
@@ -212,10 +218,10 @@ RUNNER_TYPES = [
                 'secret': True
             },
             'private_key': {
-                'description': ('Private key used to log in. If not provided, '
-                                'private key from the config file is used.'),
+                'description': ('Private key material to log in.'),
                 'type': 'string',
-                'required': False
+                'required': False,
+                'secret': True
             },
             'parallel': {
                 'description': 'Default to parallel execution.',
@@ -254,6 +260,12 @@ RUNNER_TYPES = [
                                 'doesn\'t finish in timeout seconds.'),
                 'type': 'integer',
                 'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+            },
+            'port': {
+                'description': 'SSH port. Note: This parameter is used only in ParamikoSSHRunner.',
+                'type': 'integer',
+                'default': 22,
+                'required': False
             }
         },
         'runner_module': 'st2actions.runners.remote_script_runner'

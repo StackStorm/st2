@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import os.path
 
 from oslo_config import cfg
 
@@ -26,6 +27,9 @@ __all__ = [
     'get_packs_base_paths',
     'get_pack_base_path',
     'get_pack_directory',
+    'get_pack_file_abs_path',
+    'get_pack_resource_file_abs_path',
+    'get_relative_path_to_pack',
     'check_pack_directory_exists',
     'check_pack_content_directory_exists'
 ]
@@ -176,15 +180,117 @@ def get_entry_point_abs_path(pack=None, entry_point=None):
 
     :rtype: ``str``
     """
-    if entry_point is not None and len(entry_point) > 0:
-        if os.path.isabs(entry_point):
-            return entry_point
-
-        pack_base_path = get_pack_base_path(pack_name=pack)
-        entry_point_abs_path = os.path.join(pack_base_path, 'actions', quote_unix(entry_point))
-        return entry_point_abs_path
-    else:
+    if not entry_point:
         return None
+
+    if os.path.isabs(entry_point):
+        pack_base_path = get_pack_base_path(pack_name=pack)
+        common_prefix = os.path.commonprefix([pack_base_path, entry_point])
+
+        if common_prefix != pack_base_path:
+            raise ValueError('Entry point file "%s" is located outside of the pack directory' %
+                             (entry_point))
+
+        return entry_point
+
+    entry_point_abs_path = get_pack_resource_file_abs_path(pack_name=pack,
+                                                           resource_type='action',
+                                                           file_path=entry_point)
+    return entry_point_abs_path
+
+
+def get_pack_file_abs_path(pack_name, file_path):
+    """
+    Retrieve full absolute path to the pack file.
+
+    Note: This function also takes care of sanitizing ``file_name`` argument
+          preventing directory traversal and similar attacks.
+
+    :param pack_name: Pack name.
+    :type pack_name: ``str``
+
+    :pack file_path: Resource file path relative to the pack directory (e.g. my_file.py or
+                     actions/directory/my_file.py)
+    :type file_path: ``str``
+
+    :rtype: ``str``
+    """
+    pack_base_path = get_pack_base_path(pack_name=pack_name)
+
+    path_components = []
+    path_components.append(pack_base_path)
+
+    # Normalize the path to prevent directory traversal
+    normalized_file_path = os.path.normpath('/' + file_path).lstrip('/')
+
+    if normalized_file_path != file_path:
+        raise ValueError('Invalid file path: %s' % (file_path))
+
+    path_components.append(normalized_file_path)
+    result = os.path.join(*path_components)
+
+    assert normalized_file_path in result
+
+    # Final safety check for common prefix to avoid traversal attack
+    common_prefix = os.path.commonprefix([pack_base_path, result])
+    if common_prefix != pack_base_path:
+        raise ValueError('Invalid file_path: %s' % (file_path))
+
+    return result
+
+
+def get_pack_resource_file_abs_path(pack_name, resource_type, file_path):
+    """
+    Retrieve full absolute path to the pack resource file.
+
+    Note: This function also takes care of sanitizing ``file_name`` argument
+          preventing directory traversal and similar attacks.
+
+    :param pack_name: Pack name.
+    :type pack_name: ``str``
+
+    :param resource_type: Pack resource type (e.g. action, sensor, etc.).
+    :type resource_type: ``str``
+
+    :pack file_path: Resource file path relative to the pack directory (e.g. my_file.py or
+                     directory/my_file.py)
+    :type file_path: ``str``
+
+    :rtype: ``str``
+    """
+    path_components = []
+    if resource_type == 'action':
+        path_components.append('actions/')
+    elif resource_type == 'sensor':
+        path_components.append('sensors/')
+    elif resource_type == 'rule':
+        path_components.append('rules/')
+    else:
+        raise ValueError('Invalid resource type: %s' % (resource_type))
+
+    path_components.append(file_path)
+    file_path = os.path.join(*path_components)
+    result = get_pack_file_abs_path(pack_name=pack_name, file_path=file_path)
+    return result
+
+
+def get_relative_path_to_pack(pack_name, file_path):
+    """
+    Retrieve a file path which is relative to the provided pack directory.
+
+    :rtype: ``str``
+    """
+    pack_base_path = get_pack_base_path(pack_name=pack_name)
+
+    if not os.path.isabs(file_path):
+        return file_path
+
+    common_prefix = os.path.commonprefix([pack_base_path, file_path])
+    if common_prefix != pack_base_path:
+        raise ValueError('file_path is not located inside the pack directory')
+
+    relative_path = os.path.relpath(file_path, common_prefix)
+    return relative_path
 
 
 def get_action_libs_abs_path(pack=None, entry_point=None):

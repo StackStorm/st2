@@ -1,9 +1,33 @@
 #!/bin/bash
 
+function usage() {
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-s]" >&2
+}
+
+subcommand=$1; shift
 runner_count=1
-if [ "$#" -gt 1 ]; then
-    runner_count=${2}
-fi
+skip_examples=false
+
+while getopts ":r:s" o; do
+    case "${o}" in
+        r)
+            runner_count=${OPTARG}
+            ;;
+        s)
+            skip_examples=true
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            usage
+            exit 2
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument." >&2
+            usage
+            exit 2
+            ;;
+    esac
+done
 
 function init(){
     ST2_BASE_DIR="/opt/stackstorm"
@@ -68,7 +92,9 @@ function st2start(){
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
-    cp -Rp ./contrib/examples $PACKS_BASE_DIR
+    if [ "$skip_examples" = false ]; then
+        cp -Rp ./contrib/examples $PACKS_BASE_DIR
+    fi
 
     # activate virtualenv to set PYTHONPATH
     source ./virtualenv/bin/activate
@@ -183,7 +209,9 @@ function st2clean(){
     mongo st2 --eval "db.dropDatabase();"
     # start with clean logs
     LOGDIR=$(dirname $0)/../logs
-    rm ${LOGDIR}/*
+    if [ -d ${LOGDIR} ]; then
+        rm ${LOGDIR}/*
+    fi
     if [ -n "$ST2_EXPORTER" ]; then
         EXPORTS_DIR=$(exportsdir)
         echo "Removing $EXPORTS_DIR..."
@@ -191,7 +219,7 @@ function st2clean(){
     fi
 }
 
-case ${1} in
+case ${subcommand} in
 start)
     init
     st2start
@@ -211,6 +239,6 @@ restart)
     st2start
     ;;
 *)
-    echo "Usage: $0 [start|stop|restart|startclean]" >&2
+    usage
     ;;
 esac

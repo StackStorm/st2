@@ -215,7 +215,6 @@ def get_args(action_parameters, action_db):
     for _, arg in six.iteritems(position_args_dict):
         positional_args.append(str(action_parameters.get(arg)))
         positional_args_keys.add(arg)
-    positional_args = ' '.join(positional_args)  # convert to string.
 
     named_args = {}
     for param in action_parameters:

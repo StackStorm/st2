@@ -30,7 +30,9 @@ __all__ = [
     'LIVEACTION_STATUSES',
 
     'ACTION_OUTPUT_RESULT_DELIMITER',
-    'ACTION_KV_PREFIX'
+    'ACTION_KV_PREFIX',
+
+    'WORKFLOW_RUNNER_TYPES'
 ]
 
 
@@ -59,6 +61,7 @@ LIVEACTION_STATUSES = [
 ]
 
 ACTION_OUTPUT_RESULT_DELIMITER = '%%%%%~=~=~=************=~=~=~%%%%'
+ACTION_KV_PREFIX = 'action_context'
 
 RUNNABLE_STATES = [
     LIVEACTION_STATUS_REQUESTED,
@@ -78,4 +81,7 @@ COMPLETED_STATES = [
     LIVEACTION_STATUS_CANCELED
 ]
 
-ACTION_KV_PREFIX = 'action_context'
+WORKFLOW_RUNNER_TYPES = [
+    'action-chain',
+    'mistral-v2',
+]

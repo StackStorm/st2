@@ -538,6 +538,7 @@ Run action every sunday at midnight
 
 * Explore automations on `st2contrib`_ community repo.
 * Learn more about :doc:`sensors`.
+* Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - a growing set of practical examples of automating with StackStorm.
 
 
 .. include:: engage.rst

@@ -65,7 +65,7 @@ def _get_resolved_runner_params(runner_parameters, action_parameters,
         # pickup the override.
         if param_name in action_parameters:
             action_param = action_parameters[param_name]
-            if action_param.get('default', False):
+            if 'default' in action_param:
                 resolved_params[param_name] = action_param['default']
 
             # No further override (from liveaction) if param is immutable

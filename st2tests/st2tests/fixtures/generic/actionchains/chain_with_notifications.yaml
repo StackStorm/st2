@@ -11,17 +11,17 @@
                 on-complete:
                     message: "on complete"
                     data: {}
-                    channels:
+                    routes:
                         - "channel1"
                 on-failure:
                     message: "on failure"
                     data: {}
-                    channels:
+                    routes:
                         - "channel1"
                 on-success:
                     message: "on success"
                     data: {}
-                    channels:
+                    routes:
                         - "channel1"
         -
             name: "c2"

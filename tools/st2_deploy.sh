@@ -6,14 +6,21 @@
 # Constants
 read -r -d '' WARNING_MSG << EOM
 ######################################################################
-######                       WARNING                           #######
+######                       DISCLAIMER                        #######
 ######################################################################
 
-This scripts allows you to evaluate StackStorm on a single server and
-is not intended to be used for production deployments.
+This script installs StackStorm on a single server. Check the docs
+for multi-server deployment, hardening security, and other aspects of
+running StackStorm in production.
 
 For more information, see http://docs.stackstorm.com/install/index.html
 EOM
+
+if [[ $EUID != 0 ]]; then
+    echo 'StackStorm installation requires superuser access rights!'
+    echo 'Please run with sudo or from root user.'
+    exit 1
+fi
 
 WARNING_SLEEP_DELAY=5
 
@@ -47,6 +54,16 @@ TEST_ACCOUNT_PASSWORD="testp"
 # Content for the test htpasswd file used by auth
 AUTH_FILE_PATH="/etc/st2/htpasswd"
 HTPASSWD_FILE_CONTENT="testu:{SHA}V1t6eZLxnehb7CTBuj61Nq3lIh4="
+
+# Content for the RBAC user role assignment file
+ROLE_ASSIGNMENTS_DIRECTORY_PATH="/opt/stackstorm/rbac/assignments/"
+ADMIN_USER_ROLE_ASSIGNMENT_FILE_PATH="/opt/stackstorm/rbac/assignments/testu.yaml"
+read -r -d '' ADMIN_USER_ROLE_ASSIGNMENT_FILE_CONTENT << EOM
+---
+    username: "testu"
+    roles:
+        - "system_admin"
+EOM
 
 # WebUI
 WEBUI_CONFIG_PATH="/opt/stackstorm/static/webui/config.js"
@@ -121,7 +138,9 @@ fi
 echo "Installing version ${VER}"
 
 # Determine which mistral version to use
-if version_ge $VER "0.9"; then
+if version_ge $VER "0.13"; then
+    MISTRAL_STABLE_BRANCH="st2-0.13.0"
+elif version_ge $VER "0.9"; then
     MISTRAL_STABLE_BRANCH="st2-0.9.0"
 elif version_ge $VER "0.8.1"; then
     MISTRAL_STABLE_BRANCH="st2-0.8.1"
@@ -800,7 +819,7 @@ setup_mistral() {
   pip install -U setuptools
   pip install -q -r requirements.txt
   pip install -q psycopg2
-  python setup.py develop
+  python setup.py install
 
   # Setup plugins for actions.
   mkdir -p /etc/mistral/actions
@@ -811,7 +830,7 @@ setup_mistral() {
   cd /etc/mistral/actions
   git clone -b ${MISTRAL_STABLE_BRANCH} https://github.com/StackStorm/st2mistral.git
   cd /etc/mistral/actions/st2mistral
-  python setup.py develop
+  python setup.py install
 
   # Create configuration files.
   mkdir -p /etc/mistral
@@ -882,6 +901,18 @@ function setup_auth() {
     sed -i "s#^backend_kwargs =\$#backend_kwargs = {\"file_path\": \"${AUTH_FILE_PATH}\"}#g" ${STANCONF}
 }
 
+function setup_admin_user() {
+    echo "###########################################################################################"
+    echo "# Setting up admin user"
+
+    mkdir -p ${ROLE_ASSIGNMENTS_DIRECTORY_PATH}
+
+    # Install role definition file for an admin user
+    if [[ ! -f ${ADMIN_USER_ROLE_ASSIGNMENT_FILE_PATH} ]]; then
+        echo "${ADMIN_USER_ROLE_ASSIGNMENT_FILE_CONTENT}" > ${ADMIN_USER_ROLE_ASSIGNMENT_FILE_PATH}
+    fi
+}
+
 download_pkgs() {
   echo "###########################################################################################"
   echo "# Downloading ${TYPE} packages"
@@ -942,6 +973,12 @@ register_content() {
   echo "###########################################################################################"
   echo "# Registering all content"
   ${PYTHON} ${PYTHONPACK}/st2common/bin/st2-register-content --register-sensors --register-actions --config-file ${STANCONF}
+}
+
+function apply_rbac_definitions() {
+  echo "###########################################################################################"
+  echo "# Applying RBAC definitions"
+  ${PYTHON} ${PYTHONPACK}/st2common/bin/st2-apply-rbac-definitions --config-file ${STANCONF}
 }
 
 create_user
@@ -1040,6 +1077,7 @@ install_webui() {
 }
 
 setup_auth
+setup_admin_user
 
 if [ ${INSTALL_ST2CLIENT} == "1" ]; then
     install_st2client
@@ -1052,7 +1090,10 @@ fi
 if version_ge $VER "0.9"; then
   migrate_rules
 fi
+
 register_content
+apply_rbac_definitions
+
 echo "###########################################################################################"
 echo "# Starting St2 Services"
 

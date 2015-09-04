@@ -113,3 +113,21 @@ def cast_params(action_ref, params, cast_overrides=None):
         LOG.debug('Casting param: %s of type %s to type: %s', v, type(v), parameter_type)
         params[k] = cast(v)
     return params
+
+
+def validate_action_parameters(action_ref, inputs):
+    input_set = set(inputs.keys())
+
+    # Get the list of action and runner parameters.
+    parameters = action_db_util.get_action_parameters_specs(action_ref)
+
+    # Check required parameters that have no default defined.
+    required = set([param for param, meta in six.iteritems(parameters)
+                    if meta.get('required', False) and 'default' not in meta])
+
+    requires = sorted(required.difference(input_set))
+
+    # Check unexpected parameters:
+    unexpected = sorted(input_set.difference(set(parameters.keys())))
+
+    return requires, unexpected

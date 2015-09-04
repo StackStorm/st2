@@ -4,9 +4,9 @@ enabled: true
 entry_point: send_mail/send_mail
 name: sendmail
 parameters:
-  body:
-    description: Body of the email.
-    position: 3
+  to:
+    description: Recipient email address.
+    position: 0
     required: true
     type: string
   subject:
@@ -14,13 +14,12 @@ parameters:
     position: 1
     required: true
     type: string
-  sudo:
-    immutable: true
-  to:
-    description: Recipient email address.
-    position: 0
-    required: true
-    type: string
+  send_empty_body:
+    description: Send a message even if the body is empty.
+    position: 2
+    required: false
+    type: boolean
+    default: True
   content_type:
     type: string
     description: Content type of message to be sent
@@ -28,11 +27,13 @@ parameters:
       - "text/plain"
       - "text/html"
     default: "text/html"
+    position: 3
+  body:
+    description: Body of the email.
     position: 4
-  send_empty_body:
-    description: Send a message even if the body is empty.
-    position: 2
-    required: false
-    type: boolean
-    default: True
+    required: true
+    type: string
+  sudo:
+    immutable: true
+
 runner_type: "local-shell-script"

@@ -150,6 +150,7 @@ or if you only want to run a test for specific file or even class or method, run
 
 .. rubric:: What's Next?
 
-* **Get going with** :doc:`/start`.
+* Get going with :doc:`/start`.
+* Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - a growing set of practical examples of automating with StackStorm.
 
 .. include:: /engage.rst

@@ -4,7 +4,8 @@ Mistral
 
 Basic Workflow
 ++++++++++++++
-Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under **/usr/share/doc/st2/examples** if |st2| is already installed. The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. A task can reference any registered |st2| action directly. In this example, the run-cmd task is calling **core.local** and passing the cmd as input. **core.local** is an action that comes installed with |st2|. When the workflow is invoked, |st2| will translate the workflow definition appropriately before sending it to Mistral. Let's save this as mistral-basic.yaml at **/opt/stackstorm/packs/examples/actions/workflows** where |st2| is installed.
+Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under :github_st2:`/usr/share/doc/st2/examples </contrib/examples>` if |st2| is already installed (and you can :ref:`deploy examples <start-deploy-examples>`).
+The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. A task can reference any registered |st2| action directly. In this example, the run-cmd task is calling **core.local** and passing the cmd as input. **core.local** is an action that comes installed with |st2|. When the workflow is invoked, |st2| will translate the workflow definition appropriately before sending it to Mistral. Let's save this as mistral-basic.yaml at **/opt/stackstorm/packs/examples/actions/workflows** where |st2| is installed.
 
 .. literalinclude:: /../../contrib/examples/actions/workflows/mistral-basic.yaml
 
@@ -98,8 +99,7 @@ example of using ``ipv4_address`` from the above example in another task is show
 
         setup_ipv4_dns:
             action: rackspace.create_dns_record
-            policies:
-              wait-before: 1
+            wait-before: 1 # delay, in seconds
             input:
               name: '<% $.hostname %>.<% $.asg %>.<% $.domain %>'
               zone_id: <% $.dns_zone_id %>
@@ -122,4 +122,8 @@ To test out this workflow, save the metadata file to /opt/stackstorm/packs/examp
 
 More Examples
 +++++++++++++++++++
-There are more workflow examples under /usr/share/doc/st2/examples such as error handling, repeat, and retries. We will continue to share more of them at our github repos.
+There are more workflow examples under :github_st2:`/usr/share/doc/st2/examples </contrib/examples/actions/workflows/>` such as error handling, repeat, and retries.
+
+Check out this step-by-step tutorial on building a workflow in |st2| http://stackstorm.com/2015/07/08/automating-with-mistral-workflow/
+
+And more details on Mistral workflow syntax on https://wiki.openstack.org/wiki/Mistral/DSLv2

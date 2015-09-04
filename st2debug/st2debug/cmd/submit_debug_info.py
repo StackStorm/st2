@@ -213,7 +213,7 @@ def get_system_information():
 
 
 def create_archive(include_logs, include_configs, include_content, include_system_info,
-                   debug=False):
+                   user_info=None, debug=False):
     """
     Create an archive with debugging information.
 
@@ -234,7 +234,8 @@ def create_archive(include_logs, include_configs, include_content, include_syste
         'logs': os.path.join(temp_dir_path, 'logs/'),
         'configs': os.path.join(temp_dir_path, 'configs/'),
         'content': os.path.join(temp_dir_path, 'content/'),
-        'system_info': os.path.join(temp_dir_path, 'system_info.yaml')
+        'system_info': os.path.join(temp_dir_path, 'system_info.yaml'),
+        'user_info': os.path.join(temp_dir_path, 'user_info.yaml')
     }
 
     for directory_name in DIRECTORY_STRUCTURE:
@@ -280,6 +281,13 @@ def create_archive(include_logs, include_configs, include_content, include_syste
         with open(output_paths['system_info'], 'w') as fp:
             fp.write(system_information)
 
+    if user_info:
+        LOG.debug('Including user info')
+        user_info = yaml.dump(user_info, default_flow_style=False)
+
+        with open(output_paths['user_info'], 'w') as fp:
+            fp.write(user_info)
+
     # Configs
     st2_config_path = os.path.join(output_paths['configs'], ST2_CONFIG_FILE_NAME)
     process_st2_config(config_path=st2_config_path)
@@ -303,6 +311,9 @@ def create_archive(include_logs, include_configs, include_content, include_syste
         for file_path in output_paths.values():
             file_path = os.path.normpath(file_path)
             source_dir = file_path
+
+            if not os.path.exists(source_dir):
+                continue
 
             if '.' in file_path:
                 arcname = os.path.basename(file_path)
@@ -358,12 +369,14 @@ def upload_archive(archive_file_path):
 
 
 def create_and_review_archive(include_logs, include_configs, include_content, include_system_info,
-                              debug=False):
+                              user_info=None, debug=False):
     try:
         plain_text_output_path = create_archive(include_logs=include_logs,
                                                 include_configs=include_configs,
                                                 include_content=include_content,
-                                                include_system_info=include_system_info)
+                                                include_system_info=include_system_info,
+                                                user_info=user_info,
+                                                debug=debug)
     except Exception:
         LOG.exception('Failed to generate tarball', exc_info=True)
     else:
@@ -372,12 +385,14 @@ def create_and_review_archive(include_logs, include_configs, include_content, in
 
 
 def create_and_upload_archive(include_logs, include_configs, include_content, include_system_info,
-                              debug=False):
+                              user_info=None, debug=False):
     try:
         plain_text_output_path = create_archive(include_logs=include_logs,
                                                 include_configs=include_configs,
                                                 include_content=include_content,
-                                                include_system_info=include_system_info)
+                                                include_system_info=include_system_info,
+                                                user_info=user_info,
+                                                debug=debug)
         encrypted_output_path = encrypt_archive(archive_file_path=plain_text_output_path)
         upload_archive(archive_file_path=encrypted_output_path)
     except Exception:
@@ -389,6 +404,7 @@ def create_and_upload_archive(include_logs, include_configs, include_content, in
         LOG.info('Debug tarball successfully uploaded to StackStorm (name=%s)' % (tarball_name))
         LOG.info('When communicating with support, please let them know the tarball name - %s' %
                  (tarball_name))
+
     finally:
         # Remove tarballs
         if plain_text_output_path:
@@ -410,7 +426,7 @@ def main():
     parser.add_argument('--exclude-system-info', action='store_true', default=False,
                         help='Don\'t include system information in the generated tarball')
     parser.add_argument('--yes', action='store_true', default=False,
-                        help='Run in non-interative mode and answer "yes" to all the questions')
+                        help='Run in non-interactive mode and answer "yes" to all the questions')
     parser.add_argument('--review', action='store_true', default=False,
                         help='Generate the tarball, but don\'t encrypt and upload it')
     parser.add_argument('--debug', action='store_true', default=False,
@@ -447,6 +463,17 @@ def main():
             print('Aborting')
             sys.exit(1)
 
+    # Prompt user for optional additional context info
+    user_info = {}
+    if not args.yes:
+        print('If you want us to get back to you via email, you can provide additional context '
+              'such as your name, email and an optional comment')
+        value = six.moves.input('Would you like to provide additional context? [y/n] ')
+        if value.strip().lower() in ['y', 'yes']:
+            user_info['name'] = six.moves.input('Name: ')
+            user_info['email'] = six.moves.input('Email: ')
+            user_info['comment'] = six.moves.input('Comment: ')
+
     setup_logging()
 
     if args.review:
@@ -454,10 +481,12 @@ def main():
                                   include_configs=not args.exclude_configs,
                                   include_content=not args.exclude_content,
                                   include_system_info=not args.exclude_system_info,
+                                  user_info=user_info,
                                   debug=args.debug)
     else:
         create_and_upload_archive(include_logs=not args.exclude_logs,
                                   include_configs=not args.exclude_configs,
                                   include_content=not args.exclude_content,
                                   include_system_info=not args.exclude_system_info,
+                                  user_info=user_info,
                                   debug=args.debug)

@@ -28,7 +28,8 @@ else
   LINE_BREAK="\n\n"
 fi
 
-if [[ -z "${BODY// }" && $SEND_EMPTY_BODY == 'True' ]] || [[ -n $BODY ]]; then
+trimmed="${BODY// }"
+if [[ -z $trimmed && $SEND_EMPTY_BODY == 'True' ]] || [[ -n $trimmed ]]; then
   ${MAIL} <<EOF
 TO: ${TO}
 FROM: ${FROM}

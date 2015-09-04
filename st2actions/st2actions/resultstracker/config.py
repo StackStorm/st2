@@ -46,15 +46,16 @@ def _register_results_tracker_opts():
     ]
     CONF.register_opts(resultstracker_opts, group='resultstracker')
 
-    # Note: Right now reesults tracker also needs access to action runner
-    # config, notably mistral section which is registred bellow
+    # Note: Right now results tracker also needs access to the action runner
+    # config, notably the mistral section which is registered below.
     mistral_opts = [
-        cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2',
-                   help='Mistral v2 API server root endpoint.'),
-        cfg.IntOpt('max_attempts', default=180,
-                   help='Maximum no of attempts made to connect to Mistral.'),
-        cfg.IntOpt('retry_wait', default=5,
-                   help='Time in seconds to wait before retrying connection to Mistral.')
+        cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2', help='v2 API root endpoint.'),
+        cfg.IntOpt('max_attempts', default=180, help='Max attempts to reconnect.'),
+        cfg.IntOpt('retry_wait', default=5, help='Seconds to wait before reconnecting.'),
+        cfg.StrOpt('keystone_username', default=None, help='Username for authentication.'),
+        cfg.StrOpt('keystone_password', default=None, help='Password for authentication.'),
+        cfg.StrOpt('keystone_project_name', default=None, help='OpenStack project scope.'),
+        cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.')
     ]
     CONF.register_opts(mistral_opts, group='mistral')
 

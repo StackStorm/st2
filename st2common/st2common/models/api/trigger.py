@@ -33,6 +33,12 @@ class TriggerTypeAPI(BaseAPI):
                 'type': 'string',
                 'default': None
             },
+            'ref': {
+                'type': 'string'
+            },
+            'uid': {
+                'type': 'string'
+            },
             'name': {
                 'type': 'string',
                 'required': True
@@ -89,6 +95,12 @@ class TriggerAPI(BaseAPI):
             'id': {
                 'type': 'string',
                 'default': None
+            },
+            'ref': {
+                'type': 'string'
+            },
+            'uid': {
+                'type': 'string'
             },
             'name': {
                 'type': 'string'

@@ -23,6 +23,9 @@ from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services import coordination
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_permission
 
 http_client = six.moves.http_client
 
@@ -40,9 +43,11 @@ class KeyValuePairController(RestController):
 
     # TODO: Port to use ResourceController
     def __init__(self):
-        self._coordinator = coordination.get_coordinator()
         super(KeyValuePairController, self).__init__()
+        self._coordinator = coordination.get_coordinator()
+        self.get_one_db_method = self.__get_by_name
 
+    @request_user_has_resource_permission(permission_type=PermissionType.KEY_VALUE_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, name):
         """
@@ -66,6 +71,7 @@ class KeyValuePairController(RestController):
 
         return kvp_api
 
+    @request_user_has_permission(permission_type=PermissionType.KEY_VALUE_VIEW)
     @jsexpose(arg_types=[str])
     def get_all(self, **kw):
         """
@@ -93,6 +99,8 @@ class KeyValuePairController(RestController):
         """
         lock_name = self._get_lock_name_for_key(name=name)
 
+        # TODO: Custom permission check since the key doesn't need to exist here
+
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
             existing_kvp = self.__get_by_name(name=name)
@@ -117,6 +125,7 @@ class KeyValuePairController(RestController):
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
         return kvp_api
 
+    @request_user_has_resource_permission(permission_type=PermissionType.KEY_VALUE_DELETE)
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, name):
         """

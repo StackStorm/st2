@@ -62,17 +62,29 @@ def _register_action_runner_opts():
                    help='Location of the script on the remote filesystem.'),
         cfg.BoolOpt('allow_partial_failure',
                     default=False,
-                    help='How partial success of actions run on multiple nodes should be treated.')
+                    help='How partial success of actions run on multiple nodes ' +
+                         'should be treated.'),
+        cfg.BoolOpt('use_paramiko_ssh_runner',
+                    default=False,
+                    help='Use Paramiko based SSH runner as the default remote runner. ' +
+                         'EXPERIMENTAL!!! USE AT YOUR OWN RISK.'),
+        cfg.IntOpt('max_parallel_actions', default=50,
+                   help='Max number of parallel remote SSH actions that should be run.  ' +
+                        'Works only with Paramiko SSH runner.'),
+        cfg.BoolOpt('use_ssh_config',
+                    default=False,
+                    help='Use the .ssh/config file. Useful to override ports etc.')
     ]
     CONF.register_opts(ssh_runner_opts, group='ssh_runner')
 
     mistral_opts = [
-        cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2',
-                   help='Mistral v2 API server root endpoint.'),
-        cfg.IntOpt('max_attempts', default=180,
-                   help='Maximum no of attempts made to connect to Mistral.'),
-        cfg.IntOpt('retry_wait', default=5,
-                   help='Time in seconds to wait before retrying connection to Mistral.')
+        cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2', help='v2 API root endpoint.'),
+        cfg.IntOpt('max_attempts', default=180, help='Max attempts to reconnect.'),
+        cfg.IntOpt('retry_wait', default=5, help='Seconds to wait before reconnecting.'),
+        cfg.StrOpt('keystone_username', default=None, help='Username for authentication.'),
+        cfg.StrOpt('keystone_password', default=None, help='Password for authentication.'),
+        cfg.StrOpt('keystone_project_name', default=None, help='OpenStack project scope.'),
+        cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.')
     ]
     CONF.register_opts(mistral_opts, group='mistral')
 
