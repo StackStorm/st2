@@ -144,22 +144,26 @@ class MongoDBAccess(object):
     def aggregate(self, *args, **kwargs):
         return self.model.objects(**kwargs)._collection.aggregate(*args, **kwargs)
 
-    @staticmethod
-    def add_or_update(instance):
+    def insert(self, instance):
+        instance = self.model.objects.insert(instance)
+        return self._undo_dict_field_escape(instance)
+
+    def add_or_update(self, instance):
         instance.save()
+        return self._undo_dict_field_escape(instance)
+
+    def update(self, instance, **kwargs):
+        return instance.update(**kwargs)
+
+    def delete(self, instance):
+        instance.delete()
+
+    def _undo_dict_field_escape(self, instance):
         for attr, field in instance._fields.iteritems():
             if isinstance(field, stormbase.EscapedDictField):
                 value = getattr(instance, attr)
                 setattr(instance, attr, field.to_python(value))
         return instance
-
-    @staticmethod
-    def update(instance, **kwargs):
-        return instance.update(**kwargs)
-
-    @staticmethod
-    def delete(instance):
-        instance.delete()
 
     def _process_null_filters(self, filters):
         result = copy.deepcopy(filters)
