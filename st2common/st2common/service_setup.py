@@ -25,6 +25,7 @@ import logging as stdlib_logging
 from oslo_config import cfg
 
 from st2common import log as logging
+from st2common import config as common_config
 from st2common.models import db
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.logging.misc import set_log_level_for_all_loggers
@@ -95,6 +96,11 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     # TODO: This is a "not so nice" workaround until we have a proper migration system in place
     if run_migrations:
         insert_system_roles()
+
+    if cfg.CONF.rbac.enable and not cfg.CONF.auth.enable:
+        msg = ('Authentication is not enabled. RBAC only works when authentication is enabled.'
+               'You can either enable authentication or disable RBAC.')
+        raise Exception(msg)
 
 
 def teardown():
