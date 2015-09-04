@@ -38,6 +38,41 @@ __all__ = ['RuleViewController']
 
 
 class RuleViewController(resource.ContentPackResourceController):
+    """
+    Add some extras to a Rule object to make it easier for UI to render a rule. The additions
+    do not necessarily belong in the Rule itself but are still valuable augmentations.
+
+    :Example:
+        {
+            "action": {
+                "description": "Action that executes an arbitrary Linux command on the localhost.",
+                "parameters": {
+                    "cmd": "echo \"{{trigger.executed_at}}\""
+                },
+                "ref": "core.local"
+            },
+            "criteria": {},
+            "description": "Sample rule using an Interval Timer.",
+            "enabled": false,
+            "id": "55ea221832ed35759cf3b312",
+            "name": "sample.with_timer",
+            "pack": "examples",
+            "ref": "examples.sample.with_timer",
+            "tags": [],
+            "trigger": {
+                "description": "Triggers on specified intervals. e.g. every 30s, 1week etc.",
+                "parameters": {
+                    "delta": 5,
+                    "unit": "seconds"
+                },
+                "ref": "core.4ad65602-6fb4-4c89-b0f2-b990d7b68bad",
+                "type": "core.st2.IntervalTimer"
+            },
+            "uid": "rule:examples:sample.with_timer"
+        }
+
+    The `description` fields in action and trigger are augmented properties.
+    """
 
     model = RuleViewAPI
     access = Rule
