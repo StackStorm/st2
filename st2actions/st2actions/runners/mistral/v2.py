@@ -245,6 +245,16 @@ class MistralRunner(AsyncActionRunner):
         raise Exception('Failed to connect to mistral on %s. Make sure that mistral is running '
                         'and that the url is set correctly in the config.', self.url)
 
+    def cancel(self):
+        mistral_ctx = self.context.get('mistral', dict())
+
+        if not mistral_ctx.get('execution_id'):
+            raise Exception('Unable to cancel because mistral execution_id is missing.')
+
+        # There is no cancellation state in Mistral. Pause the workflow so
+        # actions that are still executing can gracefully reach completion.
+        self._client.executions.update(mistral_ctx.get('execution_id'), 'PAUSED')
+
     @staticmethod
     def _build_mistral_context(parent, current):
         """
