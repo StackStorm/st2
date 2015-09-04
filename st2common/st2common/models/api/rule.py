@@ -176,7 +176,7 @@ class RuleAPI(BaseAPI):
         validator.validate_trigger_parameters(trigger_db=trigger_db)
 
         action = ActionExecutionSpecDB(ref=rule.action['ref'],
-                                       parameters=rule.action['parameters'])
+                                       parameters=rule.action.get('parameters', {}))
 
         enabled = getattr(rule, 'enabled', False)
         tags = TagsHelper.to_model(getattr(rule, 'tags', []))
