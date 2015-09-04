@@ -66,15 +66,15 @@ class RuleViewController(resource.ContentPackResourceController):
 
         for rule in rules:
             action_db = action_by_refs[rule.action['ref']]
-            rule.action['description'] = action_db.description
+            rule.action['description'] = action_db.description if action_db else ''
 
             trigger_db = trigger_by_refs[rule.trigger['ref']]
-            rule.trigger['description'] = trigger_db.description
+            rule.trigger['description'] = trigger_db.description if trigger_db else ''
 
             # If description is not found in trigger get description from triggertype
             if not rule.trigger['description']:
                 trigger_type_db = trigger_type_by_refs[rule.trigger['type']]
-                rule.trigger['description'] = trigger_type_db.description
+                rule.trigger['description'] = trigger_type_db.description if trigger_type_db else ''
 
         return rules
 
