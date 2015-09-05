@@ -18,7 +18,7 @@ from jsonpath_rw import parse
 
 from st2common import log as logging
 import st2common.operators as criteria_operators
-from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
+from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX, RULE_TYPE_BACKSTOP
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util.templating import render_template_with_system_context
@@ -137,7 +137,39 @@ class RuleFilter(object):
         return criteria_pattern
 
 
-class PayloadLookup():
+class SecondPassRuleFilter(RuleFilter):
+    """
+    Special filter that handles all second pass rules. For not these are only
+    backstop rules i.e. those that can match when no other rule has matched.
+    """
+    def __init__(self, trigger_instance, trigger, rule, first_pass_matched):
+        """
+        :param trigger_instance: TriggerInstance DB object.
+        :type trigger_instance: :class:`TriggerInstanceDB``
+
+        :param trigger: Trigger DB object.
+        :type trigger: :class:`TriggerDB`
+
+        :param rule: Rule DB object.
+        :type rule: :class:`RuleDB`
+
+        :param first_pass_matched: Rules that matched in the first pass.
+        :type first_pass_matched: `list`
+        """
+        super(SecondPassRuleFilter, self).__init__(trigger_instance, trigger, rule)
+        self.first_pass_matched = first_pass_matched
+
+    def filter(self):
+        # backstop rules only apply if no rule matched in the first pass.
+        if self.first_pass_matched and self._is_backstop_rule():
+            return False
+        return super(SecondPassRuleFilter, self).filter()
+
+    def _is_backstop_rule(self):
+        return self.rule.type['ref'] == RULE_TYPE_BACKSTOP
+
+
+class PayloadLookup(object):
 
     def __init__(self, payload):
         self._context = {

@@ -20,12 +20,28 @@ import six
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.tag import TagsHelper
-from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
+from st2common.models.db.rule import RuleDB, RuleTypeDB, RuleTypeSpecDB, ActionExecutionSpecDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import Trigger
 import st2common.services.triggers as TriggerService
 from st2common.util import reference
 import st2common.validators.api.reactor as validator
+
+
+class RuleTypeSpec(BaseAPI):
+    schema = {
+        'type': 'object',
+        'properties': {
+            'ref': {
+                'type': 'string',
+                'required': True
+            },
+            'parameters': {
+                'type': 'object'
+            }
+        },
+        'additionalProperties': False
+    }
 
 
 class ActionSpec(BaseAPI):
@@ -50,6 +66,49 @@ REQUIRED_ATTR_SCHEMAS = {
 
 for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
     v.update({'required': True})
+
+
+class RuleTypeAPI(BaseAPI):
+    model = RuleTypeDB
+    schema = {
+        'title': 'RuleType',
+        'description': 'A specific type of rule.',
+        'type': 'object',
+        'properties': {
+            'id': {
+                'description': 'The unique identifier for the action runner.',
+                'type': 'string',
+                'default': None
+            },
+            'name': {
+                'description': 'The name of the action runner.',
+                'type': 'string',
+                'required': True
+            },
+            'description': {
+                'description': 'The description of the action runner.',
+                'type': 'string'
+            },
+            'enabled': {
+                'type': 'boolean',
+                'default': True
+            },
+            'parameters': {
+                'type': 'object'
+            }
+        },
+        'additionalProperties': False
+    }
+
+    @classmethod
+    def to_model(cls, rule_type):
+        name = getattr(rule_type, 'name', None)
+        description = getattr(rule_type, 'description', None)
+        enabled = getattr(rule_type, 'enabled', False)
+        parameters = getattr(rule_type, 'parameters', {})
+
+        return cls.model(name=name, description=description, enabled=enabled,
+                         parameters=parameters)
 
 
 class RuleAPI(BaseAPI):
@@ -104,6 +163,7 @@ class RuleAPI(BaseAPI):
             'description': {
                 'type': 'string'
             },
+            'type': RuleTypeSpec.schema,
             'trigger': {
                 'type': 'object',
                 'required': True,
@@ -158,31 +218,36 @@ class RuleAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, rule):
-        name = getattr(rule, 'name', None)
-        description = getattr(rule, 'description', None)
+        kwargs = {}
+        kwargs['name'] = getattr(rule, 'name', None)
+        kwargs['description'] = getattr(rule, 'description', None)
 
         # Create a trigger for the provided rule
         trigger_db = TriggerService.create_trigger_db_from_rule(rule)
-
-        trigger = reference.get_str_resource_ref_from_model(trigger_db)
-        criteria = dict(getattr(rule, 'criteria', {}))
-        pack = getattr(rule, 'pack', DEFAULT_PACK_NAME)
-        ref = ResourceReference.to_string_reference(pack=pack, name=name)
-
-        # Validate criteria
-        validator.validate_criteria(criteria)
-
+        kwargs['trigger'] = reference.get_str_resource_ref_from_model(trigger_db)
         # Validate trigger parameters
         validator.validate_trigger_parameters(trigger_db=trigger_db)
 
-        action = ActionExecutionSpecDB(ref=rule.action['ref'],
-                                       parameters=rule.action.get('parameters', {}))
+        kwargs['pack'] = getattr(rule, 'pack', DEFAULT_PACK_NAME)
+        kwargs['ref'] = ResourceReference.to_string_reference(pack=kwargs['pack'],
+                                                              name=kwargs['name'])
 
-        enabled = getattr(rule, 'enabled', False)
-        tags = TagsHelper.to_model(getattr(rule, 'tags', []))
+        # Validate criteria
+        kwargs['criteria'] = dict(getattr(rule, 'criteria', {}))
+        validator.validate_criteria(kwargs['criteria'])
 
-        model = cls.model(name=name, description=description, pack=pack, ref=ref, trigger=trigger,
-                          criteria=criteria, action=action, enabled=enabled, tags=tags)
+        kwargs['action'] = ActionExecutionSpecDB(ref=rule.action['ref'],
+                                                 parameters=rule.action.get('parameters', {}))
+
+        rule_type = dict(getattr(rule, 'type', {}))
+        if rule_type:
+            kwargs['type'] = RuleTypeSpecDB(ref=rule_type['ref'],
+                                            parameters=rule_type.get('parameters', {}))
+
+        kwargs['enabled'] = getattr(rule, 'enabled', False)
+        kwargs['tags'] = TagsHelper.to_model(getattr(rule, 'tags', []))
+
+        model = cls.model(**kwargs)
         return model
 
 

@@ -20,6 +20,7 @@ from st2api.controllers.v1.aliasexecution import ActionAliasExecutionController
 from st2api.controllers.v1.keyvalue import KeyValuePairController
 from st2api.controllers.v1.packs import PacksController
 from st2api.controllers.v1.policies import PolicyTypeController, PolicyController
+from st2api.controllers.v1.ruletypes import RuleTypesController
 from st2api.controllers.v1.rules import RuleController
 from st2api.controllers.v1.runnertypes import RunnerTypesController
 from st2api.controllers.v1.sensors import SensorTypeController
@@ -43,6 +44,7 @@ class RootController(object):
     triggertypes = TriggerTypeController()
     triggers = TriggerController()
     triggerinstances = TriggerInstanceController()
+    ruletypes = RuleTypesController()
     rules = RuleController()
     keys = KeyValuePairController()
     webhooks = WebhooksController()

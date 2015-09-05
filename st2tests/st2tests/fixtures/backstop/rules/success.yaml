@@ -1,0 +1,14 @@
+---
+  name: "success"
+  description: "success rule."
+  trigger:
+    type: "wolfpack.triggertype-1"
+  criteria:
+    trigger.k1:
+      type: equals
+      pattern: v1
+  action:
+    ref: "core.local"
+    parameters:
+      cmd: "echo \"success\""
+  enabled: true
