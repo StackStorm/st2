@@ -20,6 +20,7 @@ rhel-rpm:
 	pushd ~ && rpmdev-setuptree && popd
 	mkdir -p st2 && cp -f ../conf/st2.prod.conf st2/st2.conf
 	mkdir -p logrotate.d && cp -f ../conf/logrotate.conf logrotate.d/st2.conf
+	sed -i '/\[actionrunner\]/a python_binary = /usr/bin/python2.7' st2/st2.conf
 	tar --transform=s~^~$(COMPONENTS)-$(VER)/~ --exclude=correlation -czf $(RPM_SOURCES_DIR)/$(COMPONENTS).tar.gz bin st2 logrotate.d $(COMPONENTS) ../contrib ../docs ../tools/ ../requirements.txt
 	cp packaging/rpm/$(COMPONENTS)-rhel6.spec $(RPM_SPECS_DIR)/
 	cd $(RPM_SPECS_DIR) && rpmbuild --clean --rmsource -ba $(COMPONENTS)-rhel6.spec
