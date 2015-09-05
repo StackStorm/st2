@@ -23,6 +23,7 @@ from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2api.controllers import resource
+from st2api.controllers.v1.ruleviews import RuleViewController
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.rule import Rule
@@ -40,6 +41,7 @@ class RuleController(resource.ContentPackResourceController):
         Implements the RESTful web endpoint that handles
         the lifecycle of Rules in the system.
     """
+    views = RuleViewController()
 
     model = RuleAPI
     access = Rule

@@ -1,0 +1,32 @@
+---
+description: Awesome action-2
+enabled: true
+entry_point: ''
+name: action-2
+pack: wolfpack
+parameters:
+  actionimmutable:
+    default: actionimmutable
+    immutable: true
+    type: string
+  actionint:
+    default: 10
+    type: number
+  actionstr:
+    required: true
+    type: string
+  async_test:
+    default: false
+    type: boolean
+  runnerdummy:
+    default: actiondummy
+    immutable: true
+    type: string
+  runnerfoo:
+    default: FOO
+    immutable: true
+    type: string
+  runnerimmutable:
+    default: failed_override
+    type: string
+runner_type: test-runner-1
