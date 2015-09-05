@@ -20,6 +20,30 @@ from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
 
 
+class RuleTypeDB(stormbase.StormBaseDB):
+    enabled = me.BooleanField(
+        default=True,
+        help_text='A flag indicating whether the runner for this type is enabled.')
+    parameters = me.DictField(
+        help_text='The specification for parameters for the action.',
+        default={})
+
+
+class RuleTypeSpecDB(me.EmbeddedDocument):
+    ref = me.StringField(unique=False,
+                         help_text='Type of rule.',
+                         default='standard')
+    parameters = me.DictField(default={})
+
+    def __str__(self):
+        result = []
+        result.append('RuleTypeSpecDB@')
+        result.append(str(id(self)))
+        result.append('(ref="%s", ' % self.ref)
+        result.append('parameters="%s")' % self.parameters)
+        return ''.join(result)
+
+
 class ActionExecutionSpecDB(me.EmbeddedDocument):
     ref = me.StringField(required=True, unique=False)
     parameters = me.DictField()
@@ -55,6 +79,7 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         required=False,
         help_text='Name of the content pack.',
         unique_with='name')
+    type = me.EmbeddedDocumentField(RuleTypeSpecDB, default=RuleTypeSpecDB())
     trigger = me.StringField()
     criteria = stormbase.EscapedDictField()
     action = me.EmbeddedDocumentField(ActionExecutionSpecDB)
@@ -71,5 +96,6 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         self.uid = self.get_uid()
 
 rule_access = MongoDBAccess(RuleDB)
+rule_type_access = MongoDBAccess(RuleTypeDB)
 
 MODELS = [RuleDB]

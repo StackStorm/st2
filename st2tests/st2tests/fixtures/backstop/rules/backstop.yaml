@@ -1,0 +1,13 @@
+---
+  name: "backstop"
+  description: "backstop rule."
+  trigger:
+    type: "wolfpack.triggertype-1"
+  criteria: {}
+  type:
+    ref: backstop
+  action:
+    ref: "core.local"
+    parameters:
+      cmd: "echo \"backstop\""
+  enabled: true

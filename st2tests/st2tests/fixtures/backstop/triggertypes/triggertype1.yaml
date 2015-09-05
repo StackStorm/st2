@@ -1,6 +1,5 @@
 ---
 name: triggertype-1
-description: awesome trigger-1
 pack: wolfpack
 parameters_schema: {}
 payload_schema: {}
