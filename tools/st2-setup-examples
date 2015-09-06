@@ -2,6 +2,7 @@
 
 echo "Installer for the examples pack..."
 
+PY27=`which python2.7`
 PACK="examples"
 USRPATH="/usr/share/doc/st2"
 TESTSPATH="/opt/stackstorm/packs"
@@ -22,7 +23,7 @@ echo -e "Bootstrapping virtualenv for ${PACK} pack..."
 if [ -f ${TESTSPATH}/${PACK}/requirements.txt ]; then
     echo "Creating virtualenv for ${PACK}..."
     mkdir -p /opt/stackstorm/virtualenvs
-    virtualenv --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
+    virtualenv -p ${PY27} --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
     echo "Installing requirements.txt for ${PACK}..."
     pip install -r ${TESTSPATH}/${PACK}/requirements.txt -E /opt/stackstorm/virtualenvs/${PACK}
 fi
