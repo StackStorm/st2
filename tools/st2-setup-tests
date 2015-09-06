@@ -11,6 +11,7 @@ PY27=`which python2.7`
 TESTSREPO='https://github.com/StackStorm/st2tests.git'
 PACK=$1
 TESTSPATH="/opt/stackstorm/packs"
+VENVPATH="/opt/stackstorm/virtualenvs"
 TMPPATH='/tmp/st2tests'
 
 if [ -d ${TMPPATH} ]; then
@@ -32,6 +33,11 @@ fi
 if [ -d ${TESTSPATH}/${PACK} ]; then
   echo -e "Deleting ${TESTSPATH}/${PACK}..."
   rm -Rf ${TESTSPATH}/${PACK}
+fi
+
+if [ -d ${VENVPATH}/${PACK} ]; then
+  echo -e "Deleting ${VENVPATH}/${PACK}..."
+  rm -Rf ${VENVPATH}/${PACK}
 fi
 
 echo -e "Copying ${PACK} to ${TESTSPATH}..."
