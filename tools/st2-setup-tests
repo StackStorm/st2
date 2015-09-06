@@ -43,7 +43,7 @@ echo -e "Bootstrapping virtualenv for ${PACK} pack..."
 if [ -f ${TESTSPATH}/${PACK}/requirements.txt ]; then
     echo "Creating virtualenv for ${PACK}..."
     mkdir -p /opt/stackstorm/virtualenvs
-    virtualenv --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
+    virtualenv-2.7 --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
     echo "Installing requirements.txt for ${PACK}..."
     source /opt/stackstorm/virtualenvs/${PACK}/bin/activate
     pip install -r ${TESTSPATH}/${PACK}/requirements.txt
