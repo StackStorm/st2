@@ -37,7 +37,7 @@ if [ -d ${TESTSPATH}/${PACK} ]; then
 fi
 
 if [ -d ${VENVSPATH}/${PACK} ]; then
-  echo -e "Deleting ${VENVPATH}/${PACK}..."
+  echo -e "Deleting ${VENVSPATH}/${PACK}..."
   rm -Rf ${VENVSPATH}/${PACK}
 fi
 
@@ -50,10 +50,10 @@ st2ctl reload
 echo -e "Bootstrapping virtualenv for ${PACK} pack..."
 if [ -f ${TESTSPATH}/${PACK}/requirements.txt ]; then
     echo "Creating virtualenv for ${PACK}..."
-    mkdir -p /opt/stackstorm/virtualenvs
-    virtualenv -p ${PY27} --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
+    mkdir -p ${VENVSPATH}
+    virtualenv -p ${PY27} --system-site-packages ${VENVSPATH}/${PACK}
     echo "Installing requirements.txt for ${PACK}..."
-    source /opt/stackstorm/virtualenvs/${PACK}/bin/activate
+    source ${VENVSPATH}/${PACK}/bin/activate
     pip install -r ${TESTSPATH}/${PACK}/requirements.txt
     deactivate
 fi
