@@ -7,6 +7,7 @@ if [ -z $1 ]; then
   exit 2
 fi
 
+PY27=`which python2.7`
 TESTSREPO='https://github.com/StackStorm/st2tests.git'
 PACK=$1
 TESTSPATH="/opt/stackstorm/packs"
@@ -43,7 +44,7 @@ echo -e "Bootstrapping virtualenv for ${PACK} pack..."
 if [ -f ${TESTSPATH}/${PACK}/requirements.txt ]; then
     echo "Creating virtualenv for ${PACK}..."
     mkdir -p /opt/stackstorm/virtualenvs
-    virtualenv --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
+    virtualenv -p ${PY27} --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
     echo "Installing requirements.txt for ${PACK}..."
     source /opt/stackstorm/virtualenvs/${PACK}/bin/activate
     pip install -r ${TESTSPATH}/${PACK}/requirements.txt
