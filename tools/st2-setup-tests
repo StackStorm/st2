@@ -7,11 +7,12 @@ if [ -z $1 ]; then
   exit 2
 fi
 
-PY27=`which python2.7`
-TESTSREPO='https://github.com/StackStorm/st2tests.git'
 PACK=$1
+PY27=`which python2.7`
+
+TESTSREPO='https://github.com/StackStorm/st2tests.git'
 TESTSPATH="/opt/stackstorm/packs"
-VENVPATH="/opt/stackstorm/virtualenvs"
+VENVSPATH="/opt/stackstorm/virtualenvs"
 TMPPATH='/tmp/st2tests'
 
 if [ -d ${TMPPATH} ]; then
@@ -35,9 +36,9 @@ if [ -d ${TESTSPATH}/${PACK} ]; then
   rm -Rf ${TESTSPATH}/${PACK}
 fi
 
-if [ -d ${VENVPATH}/${PACK} ]; then
+if [ -d ${VENVSPATH}/${PACK} ]; then
   echo -e "Deleting ${VENVPATH}/${PACK}..."
-  rm -Rf ${VENVPATH}/${PACK}
+  rm -Rf ${VENVSPATH}/${PACK}
 fi
 
 echo -e "Copying ${PACK} to ${TESTSPATH}..."
