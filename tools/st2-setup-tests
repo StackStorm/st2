@@ -7,9 +7,12 @@ if [ -z $1 ]; then
   exit 2
 fi
 
-TESTSREPO='https://github.com/StackStorm/st2tests.git'
 PACK=$1
+PY27=`which python2.7`
+
+TESTSREPO='https://github.com/StackStorm/st2tests.git'
 TESTSPATH="/opt/stackstorm/packs"
+VENVSPATH="/opt/stackstorm/virtualenvs"
 TMPPATH='/tmp/st2tests'
 
 if [ -d ${TMPPATH} ]; then
@@ -33,6 +36,11 @@ if [ -d ${TESTSPATH}/${PACK} ]; then
   rm -Rf ${TESTSPATH}/${PACK}
 fi
 
+if [ -d ${VENVSPATH}/${PACK} ]; then
+  echo -e "Deleting ${VENVSPATH}/${PACK}..."
+  rm -Rf ${VENVSPATH}/${PACK}
+fi
+
 echo -e "Copying ${PACK} to ${TESTSPATH}..."
 cp -Rf ${TMPPATH}/packs/${PACK} ${TESTSPATH}/
 
@@ -42,10 +50,10 @@ st2ctl reload
 echo -e "Bootstrapping virtualenv for ${PACK} pack..."
 if [ -f ${TESTSPATH}/${PACK}/requirements.txt ]; then
     echo "Creating virtualenv for ${PACK}..."
-    mkdir -p /opt/stackstorm/virtualenvs
-    virtualenv --system-site-packages /opt/stackstorm/virtualenvs/${PACK}
+    mkdir -p ${VENVSPATH}
+    virtualenv -p ${PY27} --system-site-packages ${VENVSPATH}/${PACK}
     echo "Installing requirements.txt for ${PACK}..."
-    source /opt/stackstorm/virtualenvs/${PACK}/bin/activate
+    source ${VENVSPATH}/${PACK}/bin/activate
     pip install -r ${TESTSPATH}/${PACK}/requirements.txt
     deactivate
 fi

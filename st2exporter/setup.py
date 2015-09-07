@@ -20,7 +20,7 @@ from setuptools import setup, find_packages
 
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
-from st2debug import __version__
+from st2exporter import __version__
 
 ST2_COMPONENT = 'st2exporter'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
