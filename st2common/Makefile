@@ -83,7 +83,5 @@ wheelhouse: .stamp-wheelhouse
 
 bdist_wheel: .stamp-bdist_wheel
 .stamp-bdist_wheel: populate_version
-	# All other components depend on st2common, so we create st2common
-	# in the shared WHEELHOUSE directory.
 	python setup.py bdist_wheel -d $(WHEELDIR)
 	touch $@
