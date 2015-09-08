@@ -78,24 +78,7 @@ class MistralResultsQuerier(Querier):
                           execution_id, query_context)
             raise
 
-        # Get the liveaction object to compare state.
-        is_action_canceled = action_service.is_action_canceled_or_canceling(execution_id)
-
-        # Identify the list of tasks that are not in completed states.
-        active_tasks = [t for t in tasks if t['state'] not in DONE_STATES]
-
-        # On cancellation, mistral workflow executions are paused so that tasks can
-        # gracefully reach completion. If any task is not completed, do not mark st2
-        # action execution for the workflow complete. By marking the st2 action execution
-        # as running, this will keep the query for this mistral workflow execution active.
-        if wf_state not in DONE_STATES and not active_tasks and is_action_canceled:
-            status = action_constants.LIVEACTION_STATUS_CANCELED
-        elif wf_state in DONE_STATES and active_tasks:
-            status = action_constants.LIVEACTION_STATUS_RUNNING
-        elif wf_state not in DONE_STATES:
-            status = action_constants.LIVEACTION_STATUS_RUNNING
-        else:
-            status = DONE_STATES[wf_state]
+        status = self._determine_execution_status(execution_id, wf_state, tasks)
 
         result = output or {}
 
@@ -158,6 +141,28 @@ class MistralResultsQuerier(Querier):
             result[attr] = jsonify.try_loads(task.get(attr, None))
 
         return result
+
+    def _determine_execution_status(self, execution_id, wf_state, tasks):
+        # Get the liveaction object to compare state.
+        is_action_canceled = action_service.is_action_canceled_or_canceling(execution_id)
+
+        # Identify the list of tasks that are not in completed states.
+        active_tasks = [t for t in tasks if t['state'] not in DONE_STATES]
+
+        # On cancellation, mistral workflow executions are paused so that tasks can
+        # gracefully reach completion. If any task is not completed, do not mark st2
+        # action execution for the workflow complete. By marking the st2 action execution
+        # as running, this will keep the query for this mistral workflow execution active.
+        if wf_state not in DONE_STATES and not active_tasks and is_action_canceled:
+            status = action_constants.LIVEACTION_STATUS_CANCELED
+        elif wf_state in DONE_STATES and active_tasks:
+            status = action_constants.LIVEACTION_STATUS_RUNNING
+        elif wf_state not in DONE_STATES:
+            status = action_constants.LIVEACTION_STATUS_RUNNING
+        else:
+            status = DONE_STATES[wf_state]
+
+        return status
 
 
 def get_instance():
