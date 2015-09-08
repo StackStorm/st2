@@ -684,7 +684,8 @@ class MistralRunnerTest(DbTestCase):
         self.assertEqual(mistral_context['execution_id'], WF1_EXEC.get('id'))
         self.assertEqual(mistral_context['workflow_name'], WF1_EXEC.get('workflow_name'))
 
-        liveaction, execution = action_service.request_cancellation(liveaction)
+        requester = cfg.CONF.system_user.user
+        liveaction, execution = action_service.request_cancellation(liveaction, requester)
         executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'PAUSED')
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)

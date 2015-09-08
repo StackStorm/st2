@@ -81,6 +81,12 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         'trigger_instance'
     ]
 
+    def _get_requester(self):
+        # Retrieve username of the authed user (note - if auth is disabled, user will not be
+        # set so we fall back to the system user name)
+        request_token = pecan.request.context.get('token', None)
+        return request_token.user if request_token else cfg.CONF.system_user.user
+
     def _get_from_model_kwargs_for_request(self, request):
         """
         Set mask_secrets=False if the user is an admin and provided ?show_secrets=True query param.
@@ -124,17 +130,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
-        # Retrieve username of the authed user (note - if auth is disabled, user will not be
-        # set so we fall back to the system user name)
-        request_token = pecan.request.context.get('token', None)
-
-        if request_token:
-            user = request_token.user
-        else:
-            user = cfg.CONF.system_user.user
-
-        liveaction.context['user'] = user
-        LOG.debug('User is: %s' % user)
+        liveaction.context['user'] = self._get_requester()
+        LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
         if 'st2-context' in pecan.request.headers and pecan.request.headers['st2-context']:
@@ -375,7 +372,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             abort(http_client.OK, 'Action cannot be canceled. State = %s.' % liveaction_db.status)
 
         try:
-            (liveaction_db, execution_db) = action_service.request_cancellation(liveaction_db)
+            (liveaction_db, execution_db) = action_service.request_cancellation(
+                liveaction_db, self._get_requester())
         except:
             LOG.exception('Failed requesting cancellation for liveaction %s.', liveaction_db.id)
             abort(http_client.INTERNAL_SERVER_ERROR, 'Failed canceling execution.')

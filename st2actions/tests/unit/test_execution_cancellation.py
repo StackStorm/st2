@@ -17,6 +17,8 @@ import copy
 
 import mock
 
+from oslo_config import cfg
+
 # XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
 tests_config.parse_args()
@@ -35,6 +37,12 @@ from st2common.transport.publishers import CUDPublisher
 from st2tests.fixtures import executions as fixture
 from st2tests import DbTestCase
 from tests.unit.base import MockLiveActionPublisher
+
+
+MOCK_RESULT = {
+    'message': 'Action canceled by user.',
+    'user': cfg.CONF.system_user.user
+}
 
 
 @mock.patch.object(LocalShellRunner, 'run',
@@ -63,10 +71,10 @@ class ExecutionCancellationTest(DbTestCase):
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Cancel execution.
-        action_service.request_cancellation(liveaction)
+        action_service.request_cancellation(liveaction, cfg.CONF.system_user.user)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
-        self.assertDictEqual(liveaction.result, {'message': 'Action canceled by user.'})
+        self.assertDictEqual(liveaction.result, MOCK_RESULT)
 
     @mock.patch.object(ActionRunner, 'cancel',
                        mock.MagicMock(side_effect=Exception('Mock cancellation failure.')))
@@ -77,7 +85,7 @@ class ExecutionCancellationTest(DbTestCase):
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Cancel execution.
-        action_service.request_cancellation(liveaction)
+        action_service.request_cancellation(liveaction, cfg.CONF.system_user.user)
 
         # Cancellation failed and execution state remains "canceling".
         ActionRunner.cancel.assert_called_once_with()

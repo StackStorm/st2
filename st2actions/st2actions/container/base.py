@@ -178,7 +178,6 @@ class RunnerContainer(object):
 
             liveaction_db.status = action_constants.LIVEACTION_STATUS_CANCELED
             liveaction_db.end_timestamp = date_utils.get_datetime_utc_now()
-            liveaction_db.result = {'message': 'Action canceled by user.'}
             liveaction_db = LiveAction.add_or_update(liveaction_db)
             executions.update_execution(liveaction_db)
         except:

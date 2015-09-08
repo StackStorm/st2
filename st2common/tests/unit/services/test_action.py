@@ -93,7 +93,7 @@ class TestActionExecutionService(DbTestCase):
         return request, execution
 
     def _submit_cancellation(self, execution):
-        execution, _ = action_service.request_cancellation(execution)
+        execution, _ = action_service.request_cancellation(execution, USERNAME)
         execution = action_db.get_liveaction_by_id(execution.id)
         return execution
 

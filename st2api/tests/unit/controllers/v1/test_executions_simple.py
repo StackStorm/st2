@@ -233,6 +233,8 @@ class TestActionExecutionController(FunctionalTest):
         delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
         self.assertEqual(delete_resp.status_int, 200)
         self.assertEqual(delete_resp.json['status'], 'canceling')
+        expected_result = {'message': 'Action canceled by user.', 'user': 'stanley'}
+        self.assertDictEqual(delete_resp.json['result'], expected_result)
 
     def test_post_delete_trace(self):
         """
