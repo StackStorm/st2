@@ -34,4 +34,12 @@ class WebhookDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
 
     def __init__(self, *args, **values):
         super(WebhookDB, self).__init__(*args, **values)
+        self.name = self._normalize_name(name=self.name)
         self.uid = self.get_uid()
+
+    def _normalize_name(self, name):
+        # Remove trailing slash if present
+        if name.endswith('/'):
+            name = name[:-1]
+
+        return name
