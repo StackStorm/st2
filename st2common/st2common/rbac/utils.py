@@ -41,7 +41,9 @@ __all__ = [
     'user_is_admin',
     'user_has_permission',
     'user_has_resource_permission',
-    'user_has_role'
+    'user_has_role',
+
+    'get_user_db_from_request'
 ]
 
 
@@ -68,7 +70,7 @@ def request_user_has_role(request, role):
     if not cfg.CONF.auth.enable:
         return True
 
-    user_db = _get_user_db_from_request(request=request)
+    user_db = get_user_db_from_request(request=request)
     return user_has_role(user_db=user_db, role=role)
 
 
@@ -78,7 +80,7 @@ def request_user_has_permission(request, permission_type):
 
     :rtype: ``bool``
     """
-    user_db = _get_user_db_from_request(request=request)
+    user_db = get_user_db_from_request(request=request)
     return user_has_permission(user_db=user_db, permission_type=permission_type)
 
 
@@ -88,7 +90,7 @@ def request_user_has_resource_permission(request, resource_db, permission_type):
 
     :rtype: ``bool``
     """
-    user_db = _get_user_db_from_request(request=request)
+    user_db = get_user_db_from_request(request=request)
     return user_has_resource_permission(user_db=user_db, resource_db=resource_db,
                                         permission_type=permission_type)
 
@@ -102,7 +104,7 @@ def assert_request_user_is_admin(request):
     is_admin = request_user_is_admin(request=request)
 
     if not is_admin:
-        user_db = _get_user_db_from_request(request=request)
+        user_db = get_user_db_from_request(request=request)
         raise AccessDeniedError(message='Administrator access required',
                                 user_db=user_db)
 
@@ -117,7 +119,7 @@ def assert_request_user_has_permission(request, permission_type):
                                                  permission_type=permission_type)
 
     if not has_permission:
-        user_db = _get_user_db_from_request(request=request)
+        user_db = get_user_db_from_request(request=request)
         raise ResourceTypeAccessDeniedError(user_db=user_db, permission_type=permission_type)
 
 
@@ -131,7 +133,7 @@ def assert_request_user_has_resource_permission(request, resource_db, permission
                                                           permission_type=permission_type)
 
     if not has_permission:
-        user_db = _get_user_db_from_request(request=request)
+        user_db = get_user_db_from_request(request=request)
         raise ResourceAccessDeniedError(user_db=user_db, resource_db=resource_db,
                                         permission_type=permission_type)
 
@@ -198,7 +200,7 @@ def user_has_resource_permission(user_db, resource_db, permission_type):
     return result
 
 
-def _get_user_db_from_request(request):
+def get_user_db_from_request(request):
     """
     Retrieve UserDB object from the provided request.
     """
