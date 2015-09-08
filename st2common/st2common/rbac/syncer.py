@@ -240,7 +240,12 @@ class RBACDefinitionsDBSyncer(object):
 
         created_role_assignment_dbs = []
         for role_db in role_dbs_to_assign:
-            assignment_db = rbac_services.assign_role_to_user(role_db=role_db, user_db=user_db)
+            if role_db.name in role_assignment_api.roles:
+                description = getattr(role_assignment_api, 'description', None)
+            else:
+                description = None
+            assignment_db = rbac_services.assign_role_to_user(role_db=role_db, user_db=user_db,
+                                                              description=description)
             created_role_assignment_dbs.append(assignment_db)
 
         LOG.debug('Created %s new assignments for user "%s"' % (len(role_dbs_to_assign),

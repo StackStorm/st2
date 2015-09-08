@@ -153,7 +153,8 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
             'description': {
                 'type': 'string',
                 'description': 'Assignment description',
-                'required': False
+                'required': False,
+                'default': None
             },
             'roles': {
                 'type': 'array',
@@ -168,19 +169,17 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
         'additionalProperties': False
     }
 
-    def validate(self):
+    def validate(self, validate_role_exists=False):
         # Parent JSON schema validation
         super(UserRoleAssignmentFileFormatAPI, self).validate()
 
         # Custom validation
-        # TODO: Add an argument for validating role db existance
-        return
+        if validate_role_exists:
+            # Validate that the referenced roles exist in the db
+            role_dbs = get_all_roles()
+            role_names = [role_db.name for role_db in role_dbs]
+            roles = self.roles
 
-        # Validate that the referenced roles exist in the db
-        role_dbs = get_all_roles()
-        role_names = [role_db.name for role_db in role_dbs]
-        roles = self.roles
-
-        for role in roles:
-            if role not in role_names:
-                raise ValueError('Role "%s" doesn\'t exist in the database' % (role))
+            for role in roles:
+                if role not in role_names:
+                    raise ValueError('Role "%s" doesn\'t exist in the database' % (role))
