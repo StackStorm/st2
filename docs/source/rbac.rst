@@ -51,6 +51,11 @@ In general, there are five permission types available for each supported resourc
 In addition to that, there is also a special ``execute`` (``action_execute``) permission type
 available for actions. This permission allows users to execute (run) a particular action.
 
+As described in the table below, ``create``, ``modify``, ``delete`` and ``execute`` permissions
+also implicitly grant corresponding ``view`` permission. This means that, for example, if you
+grant ``action_execute`` permission on a particular action, user will also be able to view and
+retrieve details for this particular action.
+
 The table below contains a list of all the available permission types.
 
 .. include:: _includes/available_permission_types.rst
