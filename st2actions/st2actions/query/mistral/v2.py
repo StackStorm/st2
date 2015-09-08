@@ -79,7 +79,7 @@ class MistralResultsQuerier(Querier):
             raise
 
         # Get the liveaction object to compare state.
-        is_action_canceled = action_service.is_action_canceled(execution_id)
+        is_action_canceled = action_service.is_action_canceled_or_canceling(execution_id)
 
         # Identify the list of tasks that are not in completed states.
         active_tasks = [t for t in tasks if t['state'] not in DONE_STATES]

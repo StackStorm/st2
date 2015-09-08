@@ -30,7 +30,7 @@ from st2common.util import schema as util_schema
 
 __all__ = [
     'request',
-    'is_action_canceled'
+    'is_action_canceled_or_canceling'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -154,9 +154,10 @@ def update_status(liveaction, new_status, result=None, publish=True):
     return liveaction
 
 
-def is_action_canceled(liveaction_id):
+def is_action_canceled_or_canceling(liveaction_id):
     liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
-    return liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELED
+    return liveaction_db.status in [action_constants.LIVEACTION_STATUS_CANCELED,
+                                    action_constants.LIVEACTION_STATUS_CANCELING]
 
 
 def request_cancellation(liveaction, requester):

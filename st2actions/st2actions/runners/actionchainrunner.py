@@ -262,7 +262,8 @@ class ActionChainRunner(ActionRunner):
                 result['tasks'].append(task_result)
 
                 if self.liveaction_id:
-                    self._stopped = action_service.is_action_canceled(self.liveaction_id)
+                    self._stopped = action_service.is_action_canceled_or_canceling(
+                        self.liveaction_id)
 
                 if not self._stopped:
                     try:
