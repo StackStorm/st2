@@ -127,3 +127,7 @@ There are more workflow examples under :github_st2:`/usr/share/doc/st2/examples 
 Check out this step-by-step tutorial on building a workflow in |st2| http://stackstorm.com/2015/07/08/automating-with-mistral-workflow/
 
 And more details on Mistral workflow syntax on https://wiki.openstack.org/wiki/Mistral/DSLv2
+
+Canceling Workflow Execution
+++++++++++++++++++++++++++++
+An execution of a Mistral workflow can be cancelled by running ``st2 execution cancel <execution-id>``. Workflow tasks that are still running will not be canceled and will run to completion. No new tasks for the workflow will be scheduled.
