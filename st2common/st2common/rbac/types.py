@@ -218,13 +218,14 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
                                 'sensor.'),
 
     PermissionType.ACTION_VIEW: 'Ability to view an action.',
-    PermissionType.ACTION_CREATE: 'Ability to create a new action. Also implies "view" permission.',
+    PermissionType.ACTION_CREATE: ('Ability to create a new action. Also implies "action_view" '
+                                   'permission.'),
     PermissionType.ACTION_MODIFY: ('Ability to modify (update) an existing action. Also implies '
-                                   '"view" permission.'),
-    PermissionType.ACTION_DELETE: ('Ability to delete an existing action. Also implies "view" '
-                                   ' permission.'),
-    PermissionType.ACTION_EXECUTE: ('Ability to execute (run) an action. Also implies "view" '
-                                    'permission.'),
+                                   '"action_view" permission.'),
+    PermissionType.ACTION_DELETE: ('Ability to delete an existing action. Also implies '
+                                   '"action_view" permission.'),
+    PermissionType.ACTION_EXECUTE: ('Ability to execute (run) an action. Also implies '
+                                    '"action_view" permission.'),
     PermissionType.ACTION_ALL: ('Ability to perform all the supported operations on a particular '
                                 'action.'),
 
@@ -235,10 +236,11 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
                                    'particular execution.'),
 
     PermissionType.RULE_VIEW: 'Ability to view a rule.',
-    PermissionType.RULE_CREATE: 'Ability to create a new rule. Also implies "view" permission',
+    PermissionType.RULE_CREATE: ('Ability to create a new rule. Also implies "rule_view" '
+                                 'permission'),
     PermissionType.RULE_MODIFY: ('Ability to modify (update) an existing rule. Also implies '
-                                 '"view" permission.'),
-    PermissionType.RULE_DELETE: ('Ability to delete an existing rule. Also implies "view" '
+                                 '"rule_view" permission.'),
+    PermissionType.RULE_DELETE: ('Ability to delete an existing rule. Also implies "rule_view" '
                                  'permission.'),
     PermissionType.RULE_ALL: ('Ability to perform all the supported operations on a particular '
                               'rule.')
