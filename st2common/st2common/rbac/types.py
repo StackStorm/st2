@@ -65,6 +65,11 @@ class PermissionType(Enum):
     KEY_VALUE_SET = 'key_value_set'
     KEY_VALUE_DELETE = 'key_value_delete'
 
+    WEBHOOK_CREATE = 'webhook_create'
+    WEBHOOK_POST = 'webhook_post'
+    WEBHOOK_DELETE = 'webhook_delete'
+    WEBHOOK_ALL = 'webhook_all'
+
     @classmethod
     def get_valid_permissions_for_resource_type(cls, resource_type):
         """
@@ -134,6 +139,7 @@ class ResourceType(Enum):
 
     EXECUTION = SystemResourceType.EXECUTION
     KEY_VALUE_PAIR = SystemResourceType.KEY_VALUE_PAIR
+    WEBHOOK = SystemResourceType.WEBHOOK
 
 
 class SystemRole(Enum):
@@ -200,6 +206,12 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.KEY_VALUE_VIEW,
         PermissionType.KEY_VALUE_SET,
         PermissionType.KEY_VALUE_DELETE
+    ],
+    ResourceType.WEBHOOK: [
+        PermissionType.WEBHOOK_CREATE,
+        PermissionType.WEBHOOK_POST,
+        PermissionType.WEBHOOK_DELETE,
+        PermissionType.WEBHOOK_ALL
     ]
 }
 
@@ -243,5 +255,10 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.RULE_DELETE: ('Ability to delete an existing rule. Also implies "rule_view" '
                                  'permission.'),
     PermissionType.RULE_ALL: ('Ability to perform all the supported operations on a particular '
-                              'rule.')
+                              'rule.'),
+
+    PermissionType.WEBHOOK_CREATE: ('Ability to create a new webhook'),
+    PermissionType.WEBHOOK_POST: ('Ability to send / POST data for an existing webhook'),
+    PermissionType.WEBHOOK_ALL: ('Ability to perform all the supported operations on a particular '
+                              'webhook.')
 }

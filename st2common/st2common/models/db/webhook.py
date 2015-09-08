@@ -13,28 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.util.enum import Enum
+import mongoengine as me
 
-__all__ = [
-    'ResourceType'
-]
+from st2common.models.db import stormbase
+from st2common.constants.types import ResourceType
 
 
-class ResourceType(Enum):
+class WebhookDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     """
-    Enum representing a valid resource type in a system.
+    Note: Right now webhook is a meta model which is not persisted in the database.
+
+    Attribute:
+        name: Webhook name - maps to the URL path (e.g. st2/ or my/webhook/one).
     """
 
-    PACK = 'pack'
-    ACTION = 'action'
-    SENSOR_TYPE = 'sensor_type'
-    TRIGGER_TYPE = 'trigger_type'
-    TRIGGER = 'trigger'
-    TRIGGER_INSTANCE = 'trigger_instance'
-    RULE = 'rule'
+    RESOURCE_TYPE = ResourceType.WEBHOOK
+    UID_FIELDS = ['name']
 
-    EXECUTION = 'execution'
-    KEY_VALUE_PAIR = 'key_value_pair'
+    name = me.StringField(required=True)
 
-    WEBHOOK = 'webhook'
-    UNKNOWN = 'unknown'
+    def __init__(self, *args, **values):
+        super(WebhookDB, self).__init__(*args, **values)
+        self.uid = self.get_uid()

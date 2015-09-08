@@ -38,6 +38,7 @@ __all__ = [
     'RulePermissionsResolver',
     'KeyValuePermissionsResolver',
     'ExecutionPermissionsResolver',
+    'WebhookPermissionsResolver',
 
     'get_resolver_for_resource_type',
     'get_resolver_for_permission_type'
@@ -437,6 +438,47 @@ class ExecutionPermissionsResolver(PermissionsResolver):
         return False
 
 
+class WebhookPermissionsResolver(PermissionsResolver):
+    def user_has_permission(self, user_db, permission_type):
+        # TODO
+        return True
+
+    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+        log_context = {
+            'user_db': user_db,
+            'resource_db': resource_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user resource permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        webhook_uid = resource_db.get_uid()
+
+        # Check direct grants on the webhook
+        resource_types = [ResourceType.WEBHOOK]
+        permission_types = [PermissionType.WEBHOOK_ALL, permission_type]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=webhook_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+
+        if len(permission_grants) >= 1:
+            self._log('Found a grant on the webhook', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
+
 def get_resolver_for_resource_type(resource_type):
     """
     Return resolver instance for the provided resource type.
@@ -455,6 +497,8 @@ def get_resolver_for_resource_type(resource_type):
         return ExecutionPermissionsResolver
     elif resource_type == ResourceType.KEY_VALUE_PAIR:
         return KeyValuePermissionsResolver
+    elif resource_type == ResourceType.WEBHOOK:
+        return WebhookPermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
 
