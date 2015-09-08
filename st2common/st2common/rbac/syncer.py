@@ -174,14 +174,19 @@ class RBACDefinitionsDBSyncer(object):
         """
         LOG.info('Synchronizing users role assignments...')
 
-        username_to_role_assignment_map = dict([(api.username, api) for api in
-                                                role_assignment_apis])
         user_dbs = User.get_all()
+        username_to_user_db_map = dict([(user_db.name, user_db) for user_db in user_dbs])
 
         results = {}
-        for user_db in user_dbs:
-            username = user_db.name
-            role_assignment_api = username_to_role_assignment_map.get(username, None)
+        for role_assignment_api in role_assignment_apis:
+            username = role_assignment_api.username
+            user_db = username_to_user_db_map.get(username, None)
+
+            if not user_db:
+                LOG.debug(('Skipping role assignments for user "%s" which doesn\'t exist in the '
+                           'database' % (username)))
+                continue
+
             role_assignment_dbs = rbac_services.get_role_assignments_for_user(user_db=user_db)
 
             result = self._sync_user_role_assignments(user_db=user_db,
