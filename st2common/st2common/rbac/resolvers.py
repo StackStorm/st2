@@ -183,9 +183,14 @@ class SensorPermissionsResolver(PermissionsResolver):
         sensor_uid = resource_db.get_uid()
         pack_uid = resource_db.get_pack_uid()
 
+        if permission_type == PermissionType.SENSOR_VIEW:
+            # Note: "create", "modify" and "delete" also grant / imply "view" permission
+            permission_types = [PermissionType.SENSOR_ALL, permission_type]
+        else:
+            permission_types = [PermissionType.SENSOR_ALL, permission_type]
+
         # Check direct grants on the specified resource
         resource_types = [ResourceType.SENSOR]
-        permission_types = [PermissionType.SENSOR_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=sensor_uid,
                                                                resource_types=resource_types,
@@ -196,7 +201,6 @@ class SensorPermissionsResolver(PermissionsResolver):
 
         # Check grants on the parent pack
         resource_types = [ResourceType.PACK]
-        permission_types = [PermissionType.SENSOR_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=pack_uid,
                                                                resource_types=resource_types,
@@ -240,9 +244,21 @@ class ActionPermissionsResolver(PermissionsResolver):
         action_uid = resource_db.get_uid()
         pack_uid = resource_db.get_pack_uid()
 
+        if permission_type == PermissionType.ACTION_VIEW:
+            # Note: "create", "modify", "delete" and "execute" also grant / imply "view" permission
+            permission_types = [
+                PermissionType.ACTION_ALL,
+                PermissionType.ACTION_CREATE,
+                PermissionType.ACTION_MODIFY,
+                PermissionType.ACTION_DELETE,
+                PermissionType.ACTION_EXECUTE,
+                permission_type
+            ]
+        else:
+            permission_types = [PermissionType.ACTION_ALL, permission_type]
+
         # Check direct grants on the specified resource
         resource_types = [ResourceType.ACTION]
-        permission_types = [PermissionType.ACTION_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=action_uid,
                                                                resource_types=resource_types,
@@ -253,7 +269,6 @@ class ActionPermissionsResolver(PermissionsResolver):
 
         # Check grants on the parent pack
         resource_types = [ResourceType.PACK]
-        permission_types = [PermissionType.ACTION_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=pack_uid,
                                                                resource_types=resource_types,
@@ -297,9 +312,20 @@ class RulePermissionsResolver(PermissionsResolver):
         rule_uid = resource_db.get_uid()
         pack_uid = resource_db.get_pack_uid()
 
+        if permission_type == PermissionType.RULE_VIEW:
+            # Note: "create", "modify", "delete" and "execute" also grant / imply "view" permission
+            permission_types = [
+                PermissionType.RULE_ALL,
+                PermissionType.RULE_CREATE,
+                PermissionType.RULE_MODIFY,
+                PermissionType.RULE_DELETE,
+                permission_type
+            ]
+        else:
+            permission_types = [PermissionType.RULE_ALL, permission_type]
+
         # Check direct grants on the specified resource
         resource_types = [ResourceType.RULE]
-        permission_types = [PermissionType.RULE_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=rule_uid,
                                                                resource_types=resource_types,
@@ -310,7 +336,6 @@ class RulePermissionsResolver(PermissionsResolver):
 
         # Check grants on the parent pack
         resource_types = [ResourceType.PACK]
-        permission_types = [PermissionType.RULE_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=pack_uid,
                                                                resource_types=resource_types,
@@ -373,7 +398,7 @@ class ExecutionPermissionsResolver(PermissionsResolver):
         action_uid = action['uid']
         action_pack_uid = pack_db.get_uid()
 
-        # Note: Right now action_execute implies execution_re_run and execution_stop
+        # Note: "action_execute" also grants / implies "execution_re_run" and "execution_stop"
         if permission_type == PermissionType.EXECUTION_VIEW:
             action_permission_type = PermissionType.ACTION_VIEW
         elif permission_type in [PermissionType.EXECUTION_RE_RUN,
