@@ -116,6 +116,10 @@ class RBACDefinitionsLoader(object):
         """
         content = self._meta_loader.load(file_path)
 
+        if not content:
+            msg = ('Role definition file "%s" is empty and invalid' % file_path)
+            raise ValueError(msg)
+
         role_definition_api = RoleDefinitionFileFormatAPI(**content)
         role_definition_api.validate()
 
@@ -132,6 +136,10 @@ class RBACDefinitionsLoader(object):
         :rtype: :class:`UserRoleAssignmentFileFormatAPI`
         """
         content = self._meta_loader.load(file_path)
+
+        if not content:
+            msg = ('Role assignment file "%s" is empty and invalid' % file_path)
+            raise ValueError(msg)
 
         user_role_assignment_api = UserRoleAssignmentFileFormatAPI(**content)
         user_role_assignment_api.validate()
