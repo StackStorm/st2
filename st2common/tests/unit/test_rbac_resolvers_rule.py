@@ -122,7 +122,8 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
                                      permission_types=[PermissionType.RULE_MODIFY])
         grant_db = PermissionGrant.add_or_update(grant_db)
         permission_grants = [str(grant_db.id)]
-        role_5_db = RoleDB(name='custom_role_rule_modify_grant', permission_grants=permission_grants)
+        role_5_db = RoleDB(name='custom_role_rule_modify_grant',
+                           permission_grants=permission_grants)
         role_5_db = Role.add_or_update(role_5_db)
         self.roles['custom_role_rule_modify_grant'] = role_5_db
 

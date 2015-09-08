@@ -204,7 +204,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
 }
 
 
-# Maps a permission type to the correponsding description
+# Maps a permission type to the corresponding description
 PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.PACK_VIEW: 'Ability to view a pack.',
     PermissionType.PACK_CREATE: 'Ability to create a new pack.',
@@ -215,13 +215,16 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
 
     PermissionType.SENSOR_VIEW: 'Ability to view a sensor',
     PermissionType.SENSOR_ALL: ('Ability to perform all the supported operations on a particular '
-                                'sensor'),
+                                'sensor.'),
 
     PermissionType.ACTION_VIEW: 'Ability to view an action.',
-    PermissionType.ACTION_CREATE: 'Ability to create a new action.',
-    PermissionType.ACTION_MODIFY: 'Ability to modify (update) an existing action.',
-    PermissionType.ACTION_DELETE: 'Ability to delete an existing action.',
-    PermissionType.ACTION_EXECUTE: 'Ability to execute (run) an action.',
+    PermissionType.ACTION_CREATE: 'Ability to create a new action. Also implies "view" permission.',
+    PermissionType.ACTION_MODIFY: ('Ability to modify (update) an existing action. Also implies '
+                                   '"view" permission.'),
+    PermissionType.ACTION_DELETE: ('Ability to delete an existing action. Also implies "view" '
+                                   ' permission.'),
+    PermissionType.ACTION_EXECUTE: ('Ability to execute (run) an action. Also implies "view" '
+                                    'permission.'),
     PermissionType.ACTION_ALL: ('Ability to perform all the supported operations on a particular '
                                 'action.'),
 
@@ -232,9 +235,11 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
                                    'particular execution.'),
 
     PermissionType.RULE_VIEW: 'Ability to view a rule.',
-    PermissionType.RULE_CREATE: 'Ability to create a new rule.',
-    PermissionType.RULE_MODIFY: 'Ability to modify (update) an existing rule.',
-    PermissionType.RULE_DELETE: 'Ability to delete an existing rule.',
+    PermissionType.RULE_CREATE: 'Ability to create a new rule. Also implies "view" permission',
+    PermissionType.RULE_MODIFY: ('Ability to modify (update) an existing rule. Also implies '
+                                 '"view" permission.'),
+    PermissionType.RULE_DELETE: ('Ability to delete an existing rule. Also implies "view" '
+                                 'permission.'),
     PermissionType.RULE_ALL: ('Ability to perform all the supported operations on a particular '
                               'rule.')
 }
