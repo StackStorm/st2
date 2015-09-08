@@ -86,6 +86,12 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                 'description': 'Role description',
                 'required': False
             },
+            'enabled': {
+                'type': 'boolean',
+                'description': ('Flag indicating if this role is enabled. Note: Disabled roles '
+                                'are simply ignored when loading definitions from disk.'),
+                'default': True
+            },
             'permission_grants': {
                 'type': 'array',
                 'items': {
@@ -155,6 +161,13 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
                 'description': 'Assignment description',
                 'required': False,
                 'default': None
+            },
+            'enabled': {
+                'type': 'boolean',
+                'description': ('Flag indicating if this assignment is enabled. Note: Disabled '
+                                'assignments are simply ignored when loading definitions from '
+                                ' disk.'),
+                'default': True
             },
             'roles': {
                 'type': 'array',
