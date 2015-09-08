@@ -26,6 +26,7 @@ from st2common.persistence.auth import ApiKey
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_permission
+from st2common.util import auth as auth_util
 
 http_client = six.moves.http_client
 
@@ -87,8 +88,7 @@ class ApiKeyController(RestController):
         """
         api_key_db = None
         try:
-            # TODO add key creation
-            api_key.key = None
+            api_key.key = auth_util.generate_api_key()
             api_key_db = ApiKey.add_or_update(ApiKeyAPI.to_model(api_key))
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for api_key data=%s.', api_key)

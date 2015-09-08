@@ -13,13 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+import hashlib
+import os
+import random
+
 from st2common import log as logging
 from st2common.persistence.auth import Token
 from st2common.exceptions import auth as exceptions
 from st2common.util import date as date_utils
 
 __all__ = [
-    'validate_token'
+    'validate_token',
+    'generate_api_key'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -58,3 +64,19 @@ def validate_token(token_in_headers, token_in_query_params):
 
     LOG.audit('Token with id "%s" is validated.' % (token.id))
     return token
+
+
+def generate_api_key():
+    """
+    Generates an sufficiently large and random key.
+
+    credit: http://jetfar.com/simple-api-key-generation-in-python/
+    """
+    # 256bit seed from urandom
+    seed = os.urandom(256)
+    # since urandom does not provide sufficient entropy hash, base64encode and salt.
+    # The resulting value is now large and should be hard to predict.
+    hashed_seed = hashlib.sha256(seed).hexdigest()
+    return base64.b64encode(
+        hashed_seed,
+        random.choice(['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD'])).rstrip('==')
