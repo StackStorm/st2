@@ -68,11 +68,12 @@ Resource
 In the context of RBAC, resource refers to the resource to which the permission grant applies to.
 Currently permission grants can be applied to the following resource types:
 
-* pack
-* sensor
-* action
-* rule
-* execution
+* packs
+* sensors
+* actions
+* rules
+* executions
+* webhooks
 
 Resource is identified by and you refer to it in the permission grants using ``uid``. UID is a
 identifier which is unique for each resource in the StackStorm installation. UIDs follow this
