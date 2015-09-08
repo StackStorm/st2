@@ -20,7 +20,8 @@ from st2common.services.rbac import get_roles_for_user
 
 __all__ = [
     'UserDB',
-    'TokenDB'
+    'TokenDB',
+    'ApiKeyDB'
 ]
 
 
@@ -49,4 +50,19 @@ class TokenDB(stormbase.StormFoundationDB):
                             help_text='Arbitrary metadata associated with this token')
 
 
-MODELS = [UserDB, TokenDB]
+class ApiKeyDB(stormbase.StormFoundationDB):
+    """
+    """
+    user = me.StringField(required=True)
+    key = me.StringField(required=True, unique=True)
+    metadata = me.DictField(required=False,
+                            help_text='Arbitrary metadata associated with this token')
+
+    meta = {
+        'indexes': [
+            {'fields': ['key']}
+        ]
+    }
+
+
+MODELS = [UserDB, TokenDB, ApiKeyDB]

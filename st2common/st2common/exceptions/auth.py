@@ -31,3 +31,7 @@ class TokenExpiredError(StackStormBaseException):
 
 class TTLTooLargeException(StackStormBaseException):
     pass
+
+
+class ApiKeyNotFoundError(StackStormDBObjectNotFoundError):
+    pass

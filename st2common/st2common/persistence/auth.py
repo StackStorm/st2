@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.exceptions.auth import TokenNotFoundError
+from st2common.exceptions.auth import TokenNotFoundError, ApiKeyNotFoundError
 from st2common.models.db import MongoDBAccess
-from st2common.models.db.auth import UserDB, TokenDB
+from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
 from st2common.persistence.base import Access
 
 
@@ -59,3 +59,28 @@ class Token(Access):
         for model_object in TokenDB.objects(token=value):
             return model_object
         raise TokenNotFoundError()
+
+
+class ApiKey(Access):
+    impl = MongoDBAccess(ApiKeyDB)
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def get(cls, value):
+        for model_object in ApiKeyDB.objects(key=value):
+            return model_object
+        raise ApiKeyNotFoundError('ApiKey with key=%s not found.', value)
+
+    @classmethod
+    def get_by_key_or_id(cls, value):
+        try:
+            return cls.get(value)
+        except ApiKeyNotFoundError:
+            pass
+        try:
+            return cls.get_by_id(value)
+        except:
+            raise ApiKeyNotFoundError('ApiKey with key or id=%s not found.', value)

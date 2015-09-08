@@ -65,6 +65,10 @@ class PermissionType(Enum):
     KEY_VALUE_SET = 'key_value_set'
     KEY_VALUE_DELETE = 'key_value_delete'
 
+    API_KEY_VIEW = 'api_key_view'
+    API_KEY_CREATE = 'api_key_create'
+    API_KEY_DELETE = 'api_key_delete'
+
     @classmethod
     def get_valid_permissions_for_resource_type(cls, resource_type):
         """

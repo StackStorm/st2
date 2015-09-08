@@ -16,7 +16,7 @@
 from oslo_config import cfg
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
-from st2common.models.db.auth import UserDB, TokenDB
+from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
 from st2common import log as logging
 
 
@@ -91,4 +91,36 @@ class TokenAPI(BaseAPI):
         expiry = isotime.parse(instance.expiry) if instance.expiry else None
 
         model = cls.model(user=user, token=token, expiry=expiry)
+        return model
+
+
+class ApiKeyAPI(BaseAPI):
+    model = ApiKeyDB
+    schema = {
+        "title": "ApiKey",
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string"
+            },
+            "user": {
+                "type": ["string", "null"]
+            },
+            "key": {
+                "type": ["string", "null"]
+            },
+            "metadata": {
+                "type": ["object", "null"]
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, instance):
+        user = str(instance.user) if instance.user else None
+        key = str(instance.key) if instance.key else None
+        metadata = instance.metadata
+
+        model = cls.model(user=user, key=key, metadata=metadata)
         return model
