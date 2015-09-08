@@ -15,6 +15,7 @@
 
 import six
 import jsonschema
+import pecan
 from pecan import abort
 from mongoengine import ValidationError
 
@@ -30,6 +31,7 @@ from st2common.persistence.rule import Rule
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_permission
+from st2common.rbac.utils import assert_request_user_has_rule_trigger_and_action_permission
 
 http_client = six.moves.http_client
 
@@ -80,6 +82,13 @@ class RuleController(resource.ContentPackResourceController):
                 setattr(rule, 'pack', DEFAULT_PACK_NAME)
             rule_db = RuleAPI.to_model(rule)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
+
+            # Check referenced trigger and action permissions
+            # Note: This needs to happen after "to_model" call since to_model performs some
+            # validation (trigger exists, etc.)
+            assert_request_user_has_rule_trigger_and_action_permission(request=pecan.request,
+                                                                       rule_api=rule)
+
             rule_db = Rule.add_or_update(rule_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
@@ -113,6 +122,13 @@ class RuleController(resource.ContentPackResourceController):
                             rule.id, rule_ref_or_id)
             old_rule_db = rule_db
             rule_db = RuleAPI.to_model(rule)
+
+            # Check referenced trigger and action permissions
+            # Note: This needs to happen after "to_model" call since to_model performs some
+            # validation (trigger exists, etc.)
+            assert_request_user_has_rule_trigger_and_action_permission(request=pecan.request,
+                                                                       rule_api=rule)
+
             rule_db.id = rule_ref_or_id
             rule_db = Rule.add_or_update(rule_db)
         except (ValueValidationException, jsonschema.ValidationError, ValueError) as e:

@@ -164,9 +164,9 @@ class PermissionsResolverUtilsTestCase(unittest2.TestCase):
                                  ResourceType.WEBHOOK]
 
         for resource_type in valid_resources_types:
-            cls = get_resolver_for_resource_type(resource_type=resource_type)
+            resolver_instance = get_resolver_for_resource_type(resource_type=resource_type)
             resource_name = resource_type.split('_')[0].lower()
-            class_name = cls.__name__.lower()
+            class_name = resolver_instance.__class__.__name__.lower()
             self.assertTrue(resource_name in class_name)
 
     def test_get_resolver_for_resource_type_unsupported_resource_type(self):

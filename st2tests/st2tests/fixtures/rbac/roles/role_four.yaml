@@ -18,6 +18,9 @@
         -
             # Here we grant "rule_create" to "dummy_pack_1" pack which means user can create new
             # rules inside this pack.
+            # Note: To be able to create a rule user also needs to have an "action_execute" permission
+            # on the action used inside the rule. In case the rule trigger type is a webhook, user also
+            # needs to have "webhook_create" permission on the corresponding webhook.
             resource_uid: "pack:dummy_pack_1"
             permission_types:
                - "rule_create"
@@ -52,6 +55,8 @@
         -
             # Here we grant "webhook_post" to a webhook named "st2" (that's a generic webhook which exists
             # by default in every installation) allowing user to POST triggers to this particular webhook.
+            # Keep in mind that the user needs to have "webhook_create" permissions on a particular webhook
+            # if you want to allow user to create / register a new webhook via rule.
             resource_uid: "webhook:st2"
             permission_types:
                - "webhook_post"

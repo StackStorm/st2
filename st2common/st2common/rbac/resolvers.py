@@ -23,6 +23,8 @@ import logging as stdlib_logging
 
 from st2common import log as logging
 from st2common.models.db.pack import PackDB
+from st2common.models.db.webhook import WebhookDB
+from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPE
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.rbac.types import SystemRole
@@ -288,6 +290,52 @@ class RulePermissionsResolver(PermissionsResolver):
     Permission resolver for "rule" resource type.
     """
 
+    def user_has_trigger_permission(self, user_db, trigger):
+        """
+        Check if the user has access to the provided trigger.
+
+        This method is to be used during rule create and update where we check if the user has the
+        necessary trigger permissions.
+
+        Note: Right now we only support webhook triggers.
+
+        :param trigger: "trigger" attribute of the RuleAPI object.
+        :type trigger: ``dict``
+        """
+        log_context = {
+            'user_db': user_db,
+            'trigger': trigger,
+            'resolver': self.__class__.__name__
+        }
+
+        trigger_type = trigger['type']
+        trigger_parameters = trigger.get('parameters', {})
+
+        if trigger_type != WEBHOOK_TRIGGER_TYPE:
+            self._log('Not a webhook trigger type, ignoring trigger permission checking',
+                      extra=log_context)
+            return True
+
+        resolver = get_resolver_for_resource_type(ResourceType.WEBHOOK)
+        webhook_db = WebhookDB(name=trigger_parameters['url'])
+        permission_type = PermissionType.WEBHOOK_CREATE
+        result = resolver.user_has_resource_permission(user_db=user_db,
+                                                       resource_db=webhook_db,
+                                                       permission_type=permission_type)
+
+        if result is True:
+            self._log('Found a matching trigger grant', extra=log_context)
+            return True
+
+        self._log('No matching trigger grants found', extra=log_context)
+        return False
+
+    def user_has_action_permission(self, user_db, action_ref):
+        """
+        Check if the user has "execute" permission on the provided action.
+        """
+        pass
+
     def user_has_permission(self, user_db, permission_type):
         # TODO
         return True
@@ -483,33 +531,35 @@ def get_resolver_for_resource_type(resource_type):
     """
     Return resolver instance for the provided resource type.
 
-    :rtype: :class:`PermissionsResolver`
+    :rtype: Instance of :class:`PermissionsResolver`
     """
     if resource_type == ResourceType.PACK:
-        return PackPermissionsResolver
+        resolver_cls = PackPermissionsResolver
     elif resource_type == ResourceType.SENSOR:
-        return SensorPermissionsResolver
+        resolver_cls = SensorPermissionsResolver
     elif resource_type == ResourceType.ACTION:
-        return ActionPermissionsResolver
+        resolver_cls = ActionPermissionsResolver
     elif resource_type == ResourceType.RULE:
-        return RulePermissionsResolver
+        resolver_cls = RulePermissionsResolver
     elif resource_type == ResourceType.EXECUTION:
-        return ExecutionPermissionsResolver
+        resolver_cls = ExecutionPermissionsResolver
     elif resource_type == ResourceType.KEY_VALUE_PAIR:
-        return KeyValuePermissionsResolver
+        resolver_cls = KeyValuePermissionsResolver
     elif resource_type == ResourceType.WEBHOOK:
-        return WebhookPermissionsResolver
+        resolver_cls = WebhookPermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
+
+    resolver_instance = resolver_cls()
+    return resolver_instance
 
 
 def get_resolver_for_permission_type(permission_type):
     """
     Return resolver instance for the provided permission type.
 
-    :rtype: :class:`PermissionsResolver`
+    :rtype: Instance of :class:`PermissionsResolver`
     """
     resource_type = PermissionType.get_resource_type(permission_type=permission_type)
-    resolver_cls = get_resolver_for_resource_type(resource_type=resource_type)
-    resolver_instance = resolver_cls()
+    resolver_instance = get_resolver_for_resource_type(resource_type=resource_type)
     return resolver_instance
