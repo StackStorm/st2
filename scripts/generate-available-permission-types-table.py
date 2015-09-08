@@ -37,6 +37,7 @@ RESOURCE_DISPLAY_ORDER = [
     ResourceType.ACTION,
     ResourceType.RULE,
     ResourceType.EXECUTION,
+    ResourceType.WEBHOOK
 ]
 
 
