@@ -24,7 +24,6 @@ from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.models.system.action import ResolvedActionParameters
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.executionstate import ActionExecutionState
-from st2common.persistence.liveaction import LiveAction
 from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
@@ -176,9 +175,11 @@ class RunnerContainer(object):
 
             runner.cancel()
 
-            liveaction_db.status = action_constants.LIVEACTION_STATUS_CANCELED
-            liveaction_db.end_timestamp = date_utils.get_datetime_utc_now()
-            liveaction_db = LiveAction.add_or_update(liveaction_db)
+            liveaction_db = update_liveaction_status(
+                status=action_constants.LIVEACTION_STATUS_CANCELED,
+                end_timestamp=date_utils.get_datetime_utc_now(),
+                liveaction_db=liveaction_db)
+
             executions.update_execution(liveaction_db)
         except:
             _, ex, tb = sys.exc_info()
