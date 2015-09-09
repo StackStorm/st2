@@ -19,7 +19,7 @@ requests
 setuptools==11.1
 six==1.9.0
 tooz==1.20.0
-git+https://github.com/StackStorm/python-mistralclient.git@st2-0.13.1
+git+https://github.com/StackStorm/python-mistralclient.git@st2-0.13.2
 git+https://github.com/StackStorm/fabric.git@stanley-patched
 passlib>=1.6.2,<1.7
 lockfile>=0.10.2,<0.11
