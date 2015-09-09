@@ -127,10 +127,11 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         # Retrieve username of the authed user (note - if auth is disabled, user will not be
         # set so we fall back to the system user name)
-        request_token = pecan.request.context.get('token', None)
+        auth_context = pecan.request.context.get('auth', None)
+        user_db = auth_context.get('user', None) if auth_context else None
 
-        if request_token:
-            user = request_token.user
+        if user_db:
+            user = user_db.name
         else:
             user = cfg.CONF.system_user.user
 
