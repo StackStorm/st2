@@ -16,9 +16,15 @@ in development
 * Default to rule being disabled if the user doesn't explicitly specify ``enabled`` attribute when
   creating a rule via the API or inside the rule metadata file when registering local content
   (previously it defaulted to enabled).
-* Fix ``timestamp_lt`` and ``timestamp_gt`` filtering in the `/executions` API endpoint. Now we 
+* Fix ``timestamp_lt`` and ``timestamp_gt`` filtering in the `/executions` API endpoint. Now we
   return a correct result which is expected from a user-perspective. (bug-fix)
 * Enable Mistral workflow cancellation via ``st2 execution cancel``. (improvement)
+* Fix sensor container service so the ``config`` argument is correctly passed to the sensor
+  instances in the system packs. Previously, this argument didn't get passed correctly to the
+  FileWatchSensor from the system linux pack. (bug-fix)
+* Make sure sensor processes correctly pick up parent ``--debug`` flag. This makes debugging a lot
+  easier since user simply needs to start sensor container with ``--debug`` flag and all the sensor
+  logs with level debug or higher will be routed to the container log. (improvement)
 
 0.13.1 - August 28, 2015
 ------------------------
