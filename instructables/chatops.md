@@ -109,7 +109,7 @@ By default, Hubot connects to StackStorm on `localhost`. If you install your bot
 
 ```
  ST2_API: http://st2api.yourcomany.net:9101
- ST2_AUTH: http://st2auth.yourcompany.net:9100
+ ST2_AUTH_URL: http://st2auth.yourcompany.net:9100
 ```
 
 To obtain Slack auth token, you need add new Slack integration by going to
@@ -149,6 +149,7 @@ how to do that, please visit the following page - [Installing and configuring th
 If you are installing Hubot on a machine that is not the same as your StackStorm installation, you will need to set the following environment variables:
 
 * `ST2_API` - FQDN + port to StackStorm endpoint. Typically: `http://<host>:9101`
+*  `ST2_AUTH_URL` - FQDN + port to StackStorm Auth endpoint: `http://<host>:9100`
 
 Once done, start up your Hubot instance. Validate that things are working alright and Hubot is connecting to your client by issuing a default command. For example, if you named your Hubot instance `frybot`, you can issue the command:
 
@@ -246,8 +247,7 @@ Now, once this is all done, register all the new files we created and reload Hub
 
 ```
 $ cd ~/stackstorm/st2workroom
-$ vagrant ssh -- sudo st2ctl reload --register-all
-$ vagrant ssh -- sudo st2ctl restart
+$ vagrant ssh -- sudo st2ctl reload
 $ vagrant ssh -- sudo service hubot restart
 
 ```
