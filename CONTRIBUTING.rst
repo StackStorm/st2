@@ -41,10 +41,12 @@ Adding a new component dependency
 To add a new dependency for a particular component, you should perform the following steps:
 
 1. Add a name / link to the dependency to component ``in-requirements.txt``
-   fire. For example ``st2actions/in-requirements.txt``
-2. Pin this requirement to a specific version in ``fixed-requirements.txt``
-   file.
-3. Generate final ``requirements.txt`` file for that component by running
-   ``make requirements`` target in the component directory. For example:
-   ``cd st2actions ; make requirements``.
-4. Add a commit generated requirements.txt file.
+   file. For example ``st2actions/in-requirements.txt``
+2. Pin this requirement to a specific version in the ``fixed-requirements.txt`` file in the
+   repo root.
+3. Generate final ``requirements.txt`` file for that component by running ``make requirements``
+   target in the component directory. For example: ``cd st2actions ; make requirements``.
+4. Generate global ``requirements.txt`` file in the repo root by running ``make requirements`` in
+   there.
+5. Add and commit generated requirements.txt files - ``git add
+   st2*/requirements.txt ; git add requirements.txt ; git commit``

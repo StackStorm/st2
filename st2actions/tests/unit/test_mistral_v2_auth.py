@@ -29,7 +29,7 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-import st2actions.bootstrap.runnersregistrar as runners_registrar
+import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2actions.runners.localrunner import LocalShellRunner
 from st2actions.runners.mistral.v2 import MistralRunner
 from st2common.constants import action as action_constants

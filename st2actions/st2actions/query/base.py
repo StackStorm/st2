@@ -22,8 +22,7 @@ import time
 from st2actions.container.service import RunnerContainerService
 from st2actions.runners import get_runner
 from st2common import log as logging
-from st2common.constants.action import (LIVEACTION_STATUS_FAILED,
-                                        LIVEACTION_STATUS_SUCCEEDED)
+from st2common.constants import action as action_constants
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions
@@ -31,7 +30,6 @@ from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util import date as date_utils
 
 LOG = logging.getLogger(__name__)
-DONE_STATES = [LIVEACTION_STATUS_FAILED, LIVEACTION_STATUS_SUCCEEDED]
 
 __all__ = [
     'Querier',
@@ -97,25 +95,23 @@ class Querier(object):
             LOG.debug('Remove state object %s.', query_context)
             return
 
-        done = (status in DONE_STATES)
-
         liveaction_db = None
         try:
             liveaction_db = self._update_action_results(execution_id, status, results)
         except Exception:
-            LOG.exception('Failed updating action results for liveaction_id %s',
-                          execution_id)
+            LOG.exception('Failed updating action results for liveaction_id %s', execution_id)
             self._delete_state_object(query_context)
             return
 
-        if done:
+        if status in action_constants.COMPLETED_STATES:
             action_db = get_action_by_ref(liveaction_db.action)
             if not action_db:
                 LOG.exception('Unable to invoke post run. Action %s '
                               'no longer exists.' % liveaction_db.action)
                 self._delete_state_object(query_context)
                 return
-            self._invoke_post_run(liveaction_db, action_db)
+            if status != action_constants.LIVEACTION_STATUS_CANCELED:
+                self._invoke_post_run(liveaction_db, action_db)
             self._delete_state_object(query_context)
             return
 
@@ -126,12 +122,14 @@ class Querier(object):
         if not liveaction_db:
             raise Exception('No DB model for liveaction_id: %s' % execution_id)
 
-        liveaction_db.result = results
-        liveaction_db.status = status
+        if liveaction_db.status != action_constants.LIVEACTION_STATUS_CANCELED:
+            liveaction_db.status = status
 
-        done = status in DONE_STATES
-        if done and not liveaction_db.end_timestamp:
-            # Action has completed, record end_timestamp
+        liveaction_db.result = results
+
+        # Action has completed, record end_timestamp
+        if (liveaction_db.status in action_constants.COMPLETED_STATES and
+                not liveaction_db.end_timestamp):
             liveaction_db.end_timestamp = date_utils.get_datetime_utc_now()
 
         # update liveaction, update actionexecution and then publish update.
@@ -168,6 +166,7 @@ class Querier(object):
         state_db = ActionExecutionState.get_by_id(query_context.id)
         if state_db is not None:
             try:
+                LOG.info('Clearing state object: %s', state_db)
                 ActionExecutionState.delete(state_db)
             except:
                 LOG.exception('Failed clearing state object: %s', state_db)

@@ -24,6 +24,7 @@ from st2common.constants import action as action_constants
 from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
+from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
 from st2common.transport import consumers, liveaction
 from st2common.transport import utils as transport_utils
@@ -36,6 +37,9 @@ LOG = logging.getLogger(__name__)
 ACTIONRUNNER_WORK_Q = liveaction.get_status_management_queue(
     'st2.actionrunner.work', routing_key=action_constants.LIVEACTION_STATUS_SCHEDULED)
 
+ACTIONRUNNER_CANCEL_Q = liveaction.get_status_management_queue(
+    'st2.actionrunner.canel', routing_key=action_constants.LIVEACTION_STATUS_CANCELING)
+
 
 class ActionExecutionDispatcher(consumers.MessageHandler):
     message_type = LiveActionDB
@@ -47,11 +51,11 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
     def process(self, liveaction):
         """Dispatches the LiveAction to appropriate action runner.
 
-        LiveAction in statuses other than "scheduled" are ignored. If
+        LiveAction in statuses other than "scheduled" and "canceling" are ignored. If
         LiveAction is already canceled and result is empty, the LiveAction
         is updated with a generic exception message.
 
-        :param liveaction: Scheduled action execution request.
+        :param liveaction: Action execution request.
         :type liveaction: ``st2common.models.db.liveaction.LiveActionDB``
 
         :rtype: ``dict``
@@ -68,8 +72,9 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
                 executions.update_execution(updated_liveaction)
             return
 
-        if liveaction.status != action_constants.LIVEACTION_STATUS_SCHEDULED:
-            LOG.info('%s is not executing %s (id=%s) with "%s" status.',
+        if liveaction.status not in [action_constants.LIVEACTION_STATUS_SCHEDULED,
+                                     action_constants.LIVEACTION_STATUS_CANCELING]:
+            LOG.info('%s is not dispatching %s (id=%s) with "%s" status.',
                      self.__class__.__name__, type(liveaction), liveaction.id, liveaction.status)
             return
 
@@ -79,6 +84,11 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
             LOG.exception('Failed to find liveaction %s in the database.', liveaction.id)
             raise
 
+        return (self._run_action(liveaction_db)
+                if liveaction.status == action_constants.LIVEACTION_STATUS_SCHEDULED
+                else self._cancel_action(liveaction_db))
+
+    def _run_action(self, liveaction_db):
         # stamp liveaction with process_info
         runner_info = system_info.get_process_info()
 
@@ -96,11 +106,8 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
 
         # the extra field will not be shown in non-audit logs so temporarily log at info.
         LOG.info('Dispatched {~}action_execution: %s / {~}live_action: %s with "%s" status.',
-                 action_execution_db.id, liveaction_db.id, liveaction.status)
+                 action_execution_db.id, liveaction_db.id, liveaction_db.status)
 
-        return self._run_action(liveaction_db)
-
-    def _run_action(self, liveaction_db):
         extra = {'liveaction_db': liveaction_db}
         try:
             result = self.container.dispatch(liveaction_db)
@@ -121,7 +128,27 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
 
         return result
 
+    def _cancel_action(self, liveaction_db):
+        action_execution_db = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+        extra = {'action_execution_db': action_execution_db, 'liveaction_db': liveaction_db}
+        LOG.audit('Canceling action execution.', extra=extra)
+
+        # the extra field will not be shown in non-audit logs so temporarily log at info.
+        LOG.info('Dispatched {~}action_execution: %s / {~}live_action: %s with "%s" status.',
+                 action_execution_db.id, liveaction_db.id, liveaction_db.status)
+
+        try:
+            result = self.container.dispatch(liveaction_db)
+            LOG.debug('Runner dispatch produced result: %s', result)
+        except:
+            _, ex, tb = sys.exc_info()
+            extra['error'] = str(ex)
+            LOG.info('Failed to cancel action execution %s.' % (liveaction_db.id), extra=extra)
+            raise
+
+        return result
+
 
 def get_worker():
     with Connection(transport_utils.get_messaging_urls()) as conn:
-        return ActionExecutionDispatcher(conn, [ACTIONRUNNER_WORK_Q])
+        return ActionExecutionDispatcher(conn, [ACTIONRUNNER_WORK_Q, ACTIONRUNNER_CANCEL_Q])

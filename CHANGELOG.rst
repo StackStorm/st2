@@ -18,6 +18,7 @@ in development
   (previously it defaulted to enabled).
 * Fix ``timestamp_lt`` and ``timestamp_gt`` filtering in the `/executions` API endpoint. Now we 
   return a correct result which is expected from a user-perspective. (bug-fix)
+* Enable Mistral workflow cancellation via ``st2 execution cancel``. (improvement)
 
 0.13.1 - August 28, 2015
 ------------------------

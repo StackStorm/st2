@@ -19,7 +19,7 @@ from oslo_config import cfg
 from webtest import TestApp
 
 
-import st2actions.bootstrap.runnersregistrar as runners_registrar
+import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2common.middleware import auth
 from st2tests import DbTestCase
 import st2tests.config as tests_config
