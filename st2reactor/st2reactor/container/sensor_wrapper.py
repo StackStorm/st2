@@ -107,7 +107,6 @@ class SensorService(object):
         :param trace_context: Trace context to associate with Trigger.
         :type trace_context: ``st2common.api.models.api.trace.TraceContext``
         """
-        self._logger.debug('Dispatching trigger "%s", payload: %s' % (trigger, payload))
         self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
     ##################################
