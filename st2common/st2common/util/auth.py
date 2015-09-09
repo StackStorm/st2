@@ -19,13 +19,14 @@ import os
 import random
 
 from st2common import log as logging
-from st2common.persistence.auth import Token
+from st2common.persistence.auth import Token, ApiKey
 from st2common.exceptions import auth as exceptions
 from st2common.util import date as date_utils
 
 __all__ = [
     'validate_token',
-    'generate_api_key'
+    'generate_api_key',
+    'validate_api_key'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -80,3 +81,33 @@ def generate_api_key():
     return base64.b64encode(
         hashed_seed,
         random.choice(['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD'])).rstrip('==')
+
+
+def validate_api_key(api_key_in_headers, api_key_query_params):
+    """
+    Validate the provided API key.
+
+    :param api_key_in_headers: API key provided via headers.
+    :type api_key_in_headers: ``str``
+
+    :param api_key_query_params: API key provided via query params.
+    :type api_key_query_params: ``str``
+
+    :return: TokenDB object on success.
+    :rtype: :class:`.ApiKeyDB`
+    """
+    if not api_key_in_headers and not api_key_query_params:
+        LOG.audit('API key is not found in header or query parameters.')
+        raise exceptions.TokenNotProvidedError('API key is not provided.')
+
+    if api_key_in_headers:
+        LOG.audit('API key provided in headers')
+
+    if api_key_query_params:
+        LOG.audit('API key provided in query parameters')
+
+    api_key = api_key_in_headers or api_key_query_params
+    api_key_db = ApiKey.get(api_key)
+
+    LOG.audit('API key with id "%s" is validated.' % (api_key_db.id))
+    return api_key_db

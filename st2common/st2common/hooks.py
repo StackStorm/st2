@@ -30,10 +30,12 @@ from st2common.exceptions import auth as auth_exceptions
 from st2common.exceptions import rbac as rbac_exceptions
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.util.jsonify import json_encode
-from st2common.util.auth import validate_token
+from st2common.util.auth import validate_token, validate_api_key
 from st2common.constants.api import REQUEST_ID_HEADER
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
 from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
+from st2common.constants.auth import HEADER_API_KEY_ATTRIBUTE_NAME
+from st2common.constants.auth import QUERY_PARAM_API_KEY_ATTRIBUTE_NAME
 
 
 LOG = logging.getLogger(__name__)
@@ -108,6 +110,7 @@ class AuthHook(PecanHook):
         if state.request.method == 'OPTIONS':
             return
 
+        api_key = self._validate_api_key(request=state.request)
         token_db = self._validate_token(request=state.request)
 
         try:
@@ -174,6 +177,20 @@ class AuthHook(PecanHook):
         token_in_query_params = query_params.get(QUERY_PARAM_ATTRIBUTE_NAME, None)
         return validate_token(token_in_headers=token_in_headers,
                               token_in_query_params=token_in_query_params)
+
+    @staticmethod
+    def _validate_api_key(request):
+        """
+        Validate api key provided either in headers or query parameters.
+        """
+        headers = request.headers
+        query_string = request.query_string
+        query_params = dict(urlparse.parse_qsl(query_string))
+
+        api_key_in_headers = headers.get(HEADER_API_KEY_ATTRIBUTE_NAME, None)
+        api_key_in_query_params = query_params.get(QUERY_PARAM_API_KEY_ATTRIBUTE_NAME, None)
+        return validate_api_key(api_key_in_headers=api_key_in_headers,
+                                api_key_query_params=api_key_in_query_params)
 
 
 class JSONErrorResponseHook(PecanHook):
