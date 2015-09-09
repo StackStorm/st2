@@ -16,6 +16,13 @@ class BaseSensor(object):
     """
 
     def __init__(self, sensor_service, config=None):
+        """
+        :param sensor_service: Sensor Service instance.
+        :type sensor_service: :class:``st2reactor.container.sensor_wrapper.SensorService``
+
+        :keyword config: Sensor config.
+        :type config: ``dict`` or None
+        """
         self._sensor_service = sensor_service
         self._config = config or {}
 
