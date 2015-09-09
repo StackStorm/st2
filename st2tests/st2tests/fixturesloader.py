@@ -22,7 +22,7 @@ from st2common.content.loader import MetaLoader
 
 from st2common.models.api.action import (ActionAPI, LiveActionAPI, ActionExecutionStateAPI,
                                          RunnerTypeAPI, ActionAliasAPI)
-from st2common.models.api.auth import ApiKeyAPI
+from st2common.models.api.auth import ApiKeyAPI, UserAPI
 from st2common.models.api.execution import (ActionExecutionAPI)
 from st2common.models.api.policy import (PolicyTypeAPI, PolicyAPI)
 from st2common.models.api.rule import (RuleAPI)
@@ -32,7 +32,7 @@ from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI, TriggerIns
 
 from st2common.models.db.action import ActionDB
 from st2common.models.db.actionalias import ActionAliasDB
-from st2common.models.db.auth import ApiKeyDB
+from st2common.models.db.auth import ApiKeyDB, UserDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.models.db.runner import RunnerTypeDB
@@ -46,7 +46,7 @@ from st2common.persistence.action import Action
 from st2common.persistence.actionalias import ActionAlias
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.executionstate import ActionExecutionState
-from st2common.persistence.auth import ApiKey
+from st2common.persistence.auth import ApiKey, User
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.persistence.policy import (PolicyType, Policy)
@@ -58,7 +58,8 @@ from st2common.persistence.trigger import (Trigger, TriggerType, TriggerInstance
 
 ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'aliases', 'executions', 'liveactions',
                        'policies', 'policytypes', 'rules', 'runners', 'sensors',
-                       'triggertypes', 'triggers', 'triggerinstances', 'traces', 'apikeys']
+                       'triggertypes', 'triggers', 'triggerinstances', 'traces', 'apikeys',
+                       'users']
 ALLOWED_FIXTURES = copy.copy(ALLOWED_DB_FIXTURES)
 ALLOWED_FIXTURES.extend(['actionchains', 'workflows'])
 
@@ -77,7 +78,8 @@ FIXTURE_DB_MODEL = {
     'traces': TraceDB,
     'triggertypes': TriggerTypeDB,
     'triggers': TriggerDB,
-    'triggerinstances': TriggerInstanceDB
+    'triggerinstances': TriggerInstanceDB,
+    'users': UserDB
 }
 
 FIXTURE_API_MODEL = {
@@ -95,7 +97,8 @@ FIXTURE_API_MODEL = {
     'traces': TraceAPI,
     'triggertypes': TriggerTypeAPI,
     'triggers': TriggerAPI,
-    'triggerinstances': TriggerInstanceAPI
+    'triggerinstances': TriggerInstanceAPI,
+    'users': UserAPI
 }
 
 
@@ -114,7 +117,8 @@ FIXTURE_PERSISTENCE_MODEL = {
     'traces': Trace,
     'triggertypes': TriggerType,
     'triggers': Trigger,
-    'triggerinstances': TriggerInstance
+    'triggerinstances': TriggerInstance,
+    'users': User
 }
 
 

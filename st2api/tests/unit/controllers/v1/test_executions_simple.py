@@ -237,10 +237,6 @@ class TestActionExecutionController(FunctionalTest):
         self.assertDictEqual(delete_resp.json['result'], expected_result)
 
     def test_post_delete_trace(self):
-        """
-        Validate that the API controller doesn't blow up on specifying
-        trace_context.
-        """
         LIVE_ACTION_TRACE = copy.copy(LIVE_ACTION_1)
         LIVE_ACTION_TRACE['context'] = {'trace_context': {'trace_tag': 'balleilaka'}}
         post_resp = self._do_post(LIVE_ACTION_TRACE)
@@ -378,10 +374,18 @@ class TestActionExecutionController(FunctionalTest):
         return self.app.delete('/v1/executions/%s' % actionexecution_id,
                                expect_errors=expect_errors)
 
+
+# TestActionExecutionControllerAuthEnabled test section
+
 NOW = date_utils.get_datetime_utc_now()
 EXPIRY = NOW + datetime.timedelta(seconds=300)
 SYS_TOKEN = TokenDB(id=bson.ObjectId(), user='system', token=uuid.uuid4().hex, expiry=EXPIRY)
 USR_TOKEN = TokenDB(id=bson.ObjectId(), user='tokenuser', token=uuid.uuid4().hex, expiry=EXPIRY)
+
+FIXTURES_PACK = 'generic'
+FIXTURES = {
+    'users': ['system_user.yaml', 'token_user.yaml']
+}
 
 
 def mock_get_token(*args, **kwargs):
@@ -405,6 +409,9 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
         headers = {'content-type': 'application/json', 'X-Auth-Token': str(SYS_TOKEN.token)}
         post_resp = cls.app.post_json('/v1/actions', cls.action, headers=headers)
         cls.action['id'] = post_resp.json['id']
+
+        FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
+                                             fixtures_dict=FIXTURES)
 
     @classmethod
     @mock.patch.object(
