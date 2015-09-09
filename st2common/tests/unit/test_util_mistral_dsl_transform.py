@@ -19,11 +19,11 @@ import yaml
 
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
-import st2common.bootstrap.runnersregistrar as runners_registrar
-from st2actions.runners.mistral import utils
+from st2common.exceptions.workflow import WorkflowDefinitionException
 from st2common.models.api.action import ActionAPI, RunnerTypeAPI
 from st2common.persistence.action import Action
 from st2common.persistence.runner import RunnerType
+from st2common.util.workflow import mistral as utils
 
 
 WB_PRE_XFORM_FILE = 'wb_pre_xform.yaml'
@@ -49,6 +49,7 @@ TEST_FIXTURES = {
         'action1.yaml'
     ],
     'runners': [
+        'run-local.yaml',
         'testrunner1.yaml',
         'testrunner2.yaml'
     ]
@@ -71,17 +72,11 @@ WF_UNEXP_PARAM_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WF_UNE
 WF_UNEXP_PARAM_DEF = FIXTURES['workflows'][WF_UNEXP_PARAM_FILE]
 
 
-def _read_file_content(path):
-    with open(path, 'r') as f:
-        return f.read()
-
-
 class DSLTransformTestCase(DbTestCase):
 
     @classmethod
     def setUpClass(cls):
         super(DSLTransformTestCase, cls).setUpClass()
-        runners_registrar.register_runner_types()
 
         for _, fixture in six.iteritems(FIXTURES['runners']):
             instance = RunnerTypeAPI(**fixture)
@@ -91,74 +86,70 @@ class DSLTransformTestCase(DbTestCase):
             instance = ActionAPI(**fixture)
             Action.add_or_update(ActionAPI.to_model(instance))
 
-    @staticmethod
-    def _read_file_content(path):
+    def _read_file_content(self, path):
         with open(path, 'r') as f:
             return f.read()
 
-    def test_invalid_dsl_version(self):
-        def_yaml = _read_file_content(WB_PRE_XFORM_PATH)
-        def_dict = yaml.safe_load(def_yaml)
+    def _read_yaml_file_as_json(self, path):
+        def_yaml = self._read_file_content(path)
+        return yaml.safe_load(def_yaml)
 
-        # Unsupported version
-        def_dict['version'] = '1.0'
-        def_yaml = yaml.safe_dump(def_dict)
-        self.assertRaises(Exception, utils.transform_definition, def_yaml)
-
-        # Missing version
+    def test_missing_version(self):
+        def_dict = self._read_yaml_file_as_json(WB_PRE_XFORM_PATH)
         del def_dict['version']
         def_yaml = yaml.safe_dump(def_dict)
-        self.assertRaises(Exception, utils.transform_definition, def_yaml)
+        self.assertRaises(WorkflowDefinitionException, utils.transform_definition, def_yaml)
+
+    def test_unsupported_version(self):
+        def_dict = self._read_yaml_file_as_json(WB_PRE_XFORM_PATH)
+        def_dict['version'] = '1.0'
+        def_yaml = yaml.safe_dump(def_dict)
+        self.assertRaises(WorkflowDefinitionException, utils.transform_definition, def_yaml)
 
     def test_transform_workbook_dsl_yaml(self):
-        def_yaml = _read_file_content(WB_PRE_XFORM_PATH)
+        def_yaml = self._read_file_content(WB_PRE_XFORM_PATH)
         new_def = utils.transform_definition(def_yaml)
         actual = yaml.safe_load(new_def)
         expected = copy.deepcopy(WB_POST_XFORM_DEF)
         self.assertDictEqual(actual, expected)
 
     def test_transform_workbook_dsl_dict(self):
-        def_yaml = _read_file_content(WB_PRE_XFORM_PATH)
-        def_dict = yaml.safe_load(def_yaml)
+        def_dict = self._read_yaml_file_as_json(WB_PRE_XFORM_PATH)
         actual = utils.transform_definition(def_dict)
         expected = copy.deepcopy(WB_POST_XFORM_DEF)
         self.assertDictEqual(actual, expected)
 
     def test_transform_workflow_dsl_yaml(self):
-        def_yaml = _read_file_content(WF_PRE_XFORM_PATH)
+        def_yaml = self._read_file_content(WF_PRE_XFORM_PATH)
         new_def = utils.transform_definition(def_yaml)
         actual = yaml.safe_load(new_def)
         expected = copy.deepcopy(WF_POST_XFORM_DEF)
         self.assertDictEqual(actual, expected)
 
     def test_transform_workflow_dsl_dict(self):
-        def_yaml = _read_file_content(WF_PRE_XFORM_PATH)
-        def_dict = yaml.safe_load(def_yaml)
+        def_dict = self._read_yaml_file_as_json(WF_PRE_XFORM_PATH)
         actual = utils.transform_definition(def_dict)
         expected = copy.deepcopy(WF_POST_XFORM_DEF)
         self.assertDictEqual(actual, expected)
 
     def test_required_action_params_failure(self):
-        def_yaml = _read_file_content(WF_NO_REQ_PARAM_PATH)
-        def_dict = yaml.safe_load(def_yaml)
+        def_dict = self._read_yaml_file_as_json(WF_NO_REQ_PARAM_PATH)
 
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(WorkflowDefinitionException) as cm:
             utils.transform_definition(def_dict)
 
         self.assertIn('Missing required parameters', cm.exception.message)
 
     def test_unexpected_action_params_failure(self):
-        def_yaml = _read_file_content(WF_UNEXP_PARAM_PATH)
-        def_dict = yaml.safe_load(def_yaml)
+        def_dict = self._read_yaml_file_as_json(WF_UNEXP_PARAM_PATH)
 
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(WorkflowDefinitionException) as cm:
             utils.transform_definition(def_dict)
 
         self.assertIn('Unexpected parameters', cm.exception.message)
 
     def test_deprecated_callback_action(self):
-        def_yaml = _read_file_content(WB_PRE_XFORM_PATH)
-        def_dict = yaml.safe_load(def_yaml)
+        def_dict = self._read_yaml_file_as_json(WB_PRE_XFORM_PATH)
         def_dict['workflows']['main']['tasks']['callback'] = {'action': 'st2.callback'}
         def_yaml = yaml.safe_dump(def_dict)
-        self.assertRaises(Exception, utils.transform_definition, def_yaml)
+        self.assertRaises(WorkflowDefinitionException, utils.transform_definition, def_yaml)
