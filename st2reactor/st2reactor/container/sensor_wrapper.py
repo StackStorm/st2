@@ -422,9 +422,7 @@ class SensorWrapper(object):
         sensor_class_kwargs['sensor_service'] = SensorService(sensor_wrapper=self)
 
         sensor_config = self._get_sensor_config()
-
-        if self._pack not in SYSTEM_PACK_NAMES:
-            sensor_class_kwargs['config'] = sensor_config
+        sensor_class_kwargs['config'] = sensor_config
 
         if self._poll_interval and issubclass(sensor_class, PollingSensor):
             sensor_class_kwargs['poll_interval'] = self._poll_interval
