@@ -18,14 +18,12 @@ import sys
 import json
 import atexit
 import argparse
-import logging as stdlib_logging
 
 import eventlet
 from oslo_config import cfg
 from st2client.client import Client
 
 from st2common import log as logging
-from st2common.logging.misc import set_log_level_for_all_handlers
 from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.models.api.trace import TraceContext
 from st2common.models.db import db_setup
@@ -35,7 +33,6 @@ from st2common.util.config_parser import ContentPackConfigParser
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2reactor.sensor.base import Sensor, PollingSensor
 from st2reactor.sensor import config
-from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2client.models.keyvalue import KeyValuePair
@@ -436,7 +433,7 @@ class SensorWrapper(object):
 
         try:
             sensor_instance = sensor_class(**sensor_class_kwargs)
-        except Exception as e:
+        except Exception:
             self._logger.exception('Failed to instantiate "%s" sensor class' % (self._class_name))
             raise Exception('Failed to instantiate "%s" sensor class' % (self._class_name))
 
