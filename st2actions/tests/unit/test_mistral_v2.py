@@ -119,6 +119,8 @@ WF1 = workflows.Workflow(None, {'name': WF1_NAME, 'definition': WF1_YAML})
 WF1_OLD = workflows.Workflow(None, {'name': WF1_NAME, 'definition': ''})
 WF1_EXEC = copy.deepcopy(MISTRAL_EXECUTION)
 WF1_EXEC['workflow_name'] = WF1_NAME
+WF1_EXEC_PAUSED = copy.deepcopy(WF1_EXEC)
+WF1_EXEC_PAUSED['state'] = 'PAUSED'
 
 # Non-workbook with a many workflows
 WF2_YAML_FILE_NAME = TEST_FIXTURES['workflows'][4]
@@ -654,6 +656,39 @@ class MistralRunnerTest(DbTestCase):
         # is set to 3. We expect only 3 calls to pass thru the update method.
         calls = [call('12345', state='SUCCESS', output=NON_EMPTY_RESULT) for i in range(0, 3)]
         action_executions.ActionExecutionManager.update.assert_has_calls(calls)
+
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF1))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
+    @mock.patch.object(
+        executions.ExecutionManager, 'update',
+        mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC_PAUSED)))
+    def test_cancel(self):
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        mistral_context = liveaction.context.get('mistral', None)
+        self.assertIsNotNone(mistral_context)
+        self.assertEqual(mistral_context['execution_id'], WF1_EXEC.get('id'))
+        self.assertEqual(mistral_context['workflow_name'], WF1_EXEC.get('workflow_name'))
+
+        requester = cfg.CONF.system_user.user
+        liveaction, execution = action_service.request_cancellation(liveaction, requester)
+        executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'PAUSED')
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
     def test_build_context(self):
         parent = {

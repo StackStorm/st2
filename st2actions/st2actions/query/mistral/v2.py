@@ -8,15 +8,19 @@ from oslo_config import cfg
 import requests
 
 from st2actions.query.base import Querier
-from st2common.util import jsonify
+from st2common.constants import action as action_constants
 from st2common import log as logging
+from st2common.services import action as action_service
+from st2common.util import jsonify
 from st2common.util.url import get_url_without_trailing_slash
-from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED,
-                                        LIVEACTION_STATUS_RUNNING)
+
 
 LOG = logging.getLogger(__name__)
 
-DONE_STATES = {'ERROR': LIVEACTION_STATUS_FAILED, 'SUCCESS': LIVEACTION_STATUS_SUCCEEDED}
+DONE_STATES = {
+    'ERROR': action_constants.LIVEACTION_STATUS_FAILED,
+    'SUCCESS': action_constants.LIVEACTION_STATUS_SUCCEEDED
+}
 
 
 def get_query_instance():
@@ -44,38 +48,47 @@ class MistralResultsQuerier(Querier):
         :type query_context: ``objext``
         :rtype: (``str``, ``object``)
         """
-        exec_id = query_context.get('mistral', {}).get('execution_id', None)
-        if not exec_id:
-            raise Exception('Mistral execution id invalid in query_context %s.' %
-                            str(query_context))
-
-        try:
-            status, output = self._get_workflow_result(exec_id)
-            if output and 'tasks' in output:
-                LOG.warn('Key conflict with tasks in the workflow output.')
-        except requests.exceptions.ConnectionError:
-            msg = 'Unable to connect to mistral.'
-            trace = traceback.format_exc(10)
-            LOG.exception(msg)
-            return (LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
-        except:
-            LOG.exception('Exception trying to get workflow status and output for '
-                          'query context: %s. Will skip query.', query_context)
+        mistral_exec_id = query_context.get('mistral', {}).get('execution_id', None)
+        if not mistral_exec_id:
+            LOG.exception('[%s] Missing mistral workflow execution ID in query context. %s',
+                          execution_id, query_context)
             raise
 
-        result = output or {}
         try:
-            result['tasks'] = self._get_workflow_tasks(exec_id)
+            wf_state, output = self._get_workflow_result(mistral_exec_id)
         except requests.exceptions.ConnectionError:
             msg = 'Unable to connect to mistral.'
             trace = traceback.format_exc(10)
             LOG.exception(msg)
-            return (LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
+            return (action_constants.LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
         except:
-            LOG.exception('Unable to get workflow results for '
-                          'query_context: %s. Will skip query.', query_context)
+            LOG.exception('[%s] Unable to fetch mistral workflow execution status and output. %s',
+                          execution_id, query_context)
+            raise
 
-        LOG.debug('Mistral query results: %s' % result)
+        try:
+            tasks = self._get_workflow_tasks(mistral_exec_id)
+        except requests.exceptions.ConnectionError:
+            msg = 'Unable to connect to mistral.'
+            trace = traceback.format_exc(10)
+            LOG.exception(msg)
+            return (action_constants.LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
+        except:
+            LOG.exception('[%s] Unable to fetch mistral workflow tasks. %s',
+                          execution_id, query_context)
+            raise
+
+        status = self._determine_execution_status(execution_id, wf_state, tasks)
+
+        result = output or {}
+
+        if 'tasks' in result:
+            LOG.warn('[%s] Overwriting tasks in the workflow output.' % (execution_id))
+
+        result['tasks'] = tasks
+
+        LOG.debug('[%s] mistral workflow execution status: %s' % (execution_id, status))
+        LOG.debug('[%s] mistral workflow execution result: %s' % (execution_id, result))
 
         return (status, result)
 
@@ -95,10 +108,9 @@ class MistralResultsQuerier(Querier):
         """
         execution = executions.ExecutionManager(self._client).get(exec_id)
 
-        if execution.state in DONE_STATES:
-            return (DONE_STATES[execution.state], jsonify.try_loads(execution.output))
+        output = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else None
 
-        return (LIVEACTION_STATUS_RUNNING, None)
+        return (execution.state, output)
 
     def _get_workflow_tasks(self, exec_id):
         """
@@ -129,6 +141,28 @@ class MistralResultsQuerier(Querier):
             result[attr] = jsonify.try_loads(task.get(attr, None))
 
         return result
+
+    def _determine_execution_status(self, execution_id, wf_state, tasks):
+        # Get the liveaction object to compare state.
+        is_action_canceled = action_service.is_action_canceled_or_canceling(execution_id)
+
+        # Identify the list of tasks that are not in completed states.
+        active_tasks = [t for t in tasks if t['state'] not in DONE_STATES]
+
+        # On cancellation, mistral workflow executions are paused so that tasks can
+        # gracefully reach completion. If any task is not completed, do not mark st2
+        # action execution for the workflow complete. By marking the st2 action execution
+        # as running, this will keep the query for this mistral workflow execution active.
+        if wf_state not in DONE_STATES and not active_tasks and is_action_canceled:
+            status = action_constants.LIVEACTION_STATUS_CANCELED
+        elif wf_state in DONE_STATES and active_tasks:
+            status = action_constants.LIVEACTION_STATUS_RUNNING
+        elif wf_state not in DONE_STATES:
+            status = action_constants.LIVEACTION_STATUS_RUNNING
+        else:
+            status = DONE_STATES[wf_state]
+
+        return status
 
 
 def get_instance():

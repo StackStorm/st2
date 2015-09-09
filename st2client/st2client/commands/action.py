@@ -40,6 +40,7 @@ LOG = logging.getLogger(__name__)
 LIVEACTION_STATUS_REQUESTED = 'requested'
 LIVEACTION_STATUS_SCHEDULED = 'scheduled'
 LIVEACTION_STATUS_RUNNING = 'running'
+LIVEACTION_STATUS_CANCELING = 'canceling'
 LIVEACTION_STATUS_CANCELED = 'canceled'
 
 # Who parameters should be masked when displaying action execution output
@@ -346,7 +347,8 @@ class ActionRunCommandMixin(object):
         pending_statuses = [
             LIVEACTION_STATUS_REQUESTED,
             LIVEACTION_STATUS_SCHEDULED,
-            LIVEACTION_STATUS_RUNNING
+            LIVEACTION_STATUS_RUNNING,
+            LIVEACTION_STATUS_CANCELING
         ]
 
         if not args.async:
@@ -359,7 +361,7 @@ class ActionRunCommandMixin(object):
 
             sys.stdout.write('\n')
 
-            if execution.status == 'LIVEACTION_STATUS_CANCELED':
+            if execution.status == LIVEACTION_STATUS_CANCELED:
                 return execution
 
         return execution
@@ -954,7 +956,7 @@ class ActionExecutionCancelCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         response = self.run(args, **kwargs)
         if response and 'faultstring' in response:
-            message = response.get('faultstring', '%s with id %s canceled.' %
+            message = response.get('faultstring', 'Cancellation requested for %s with id %s.' %
                                    (self.resource.get_display_name().lower(), args.id))
 
         elif response:

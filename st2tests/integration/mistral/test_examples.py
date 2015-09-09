@@ -25,7 +25,7 @@ class ExamplesTest(base.TestWorkflowExecution):
 
     def test_handle_error(self):
         execution = self._execute_workflow('examples.mistral-handle-error')
-        execution = self._wait_for_completion(execution)
+        execution = self._wait_for_completion(execution, expect_tasks_completed=False)
         self.assertEqual(execution.status, 'failed')
         self.assertIn('tasks', execution.result)
         self.assertEqual(2, len(execution.result['tasks']))
