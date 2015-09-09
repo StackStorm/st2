@@ -432,8 +432,8 @@ class SensorWrapper(object):
         try:
             sensor_instance = sensor_class(**sensor_class_kwargs)
         except Exception as e:
-            raise Exception('Failed to instantiate "%s" sensor class: %s' %
-                            (self._class_name, str(e)))
+            self._logger.exception('Failed to instantiate "%s" sensor class' % (self._class_name))
+            raise Exception('Failed to instantiate "%s" sensor class' % (self._class_name))
 
         return sensor_instance
 
