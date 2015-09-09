@@ -29,8 +29,9 @@ This project is used to help provide a consistent experience for people testing,
 To get started, first download the `st2workroom`.
 
 ```
-$ git clone https://github.com/StackStorm/st2workroom st2workroom
-$ cd st2workroom
+$ mkdir ~/stackstorm
+$ git clone https://github.com/StackStorm/st2workroom ~/stackstorm/st2workroom
+$ cd ~/stackstorm/st2workroom
 ```
 
 Then, let's configure the workroom. We'll first configure the stack. This defines where StackStorm will look for its integration packs. Open up the file `stacks/st2.yaml` with your favorite editor. You should configure it to look like this:
