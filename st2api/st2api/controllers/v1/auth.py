@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pecan
+import six
+
 from pecan import abort
 from pecan.rest import RestController
-import six
 from mongoengine import ValidationError
 
 from st2common import log as logging
@@ -41,6 +43,10 @@ class ApiKeyController(RestController):
     """
     Implements the REST endpoint for managing the key value store.
     """
+
+    def __init__(self):
+        super(ApiKeyController, self).__init__()
+        self.get_one_db_method = ApiKey.get_by_key_or_id
 
     @request_user_has_resource_permission(permission_type=PermissionType.API_KEY_VIEW)
     @jsexpose(arg_types=[str])
@@ -88,6 +94,7 @@ class ApiKeyController(RestController):
         """
         api_key_db = None
         try:
+            api_key.user = self._get_user(api_key)
             api_key.key = auth_util.generate_api_key()
             api_key_db = ApiKey.add_or_update(ApiKeyAPI.to_model(api_key))
         except (ValidationError, ValueError) as e:
@@ -130,3 +137,20 @@ class ApiKeyController(RestController):
 
         extra = {'api_key_db': api_key_db}
         LOG.audit('ApiKey deleted. ApiKey.id=%s' % (api_key_db.id), extra=extra)
+
+    def _get_user(self, api_key):
+        # If a user is provided in api_key try to use that value. In the future
+        # this behavior should change.
+        user = getattr(api_key, 'user', '')
+        if user:
+            return user
+
+        # no user found in api_key lookup from request context.
+        # AuthHook places context in the pecan request.
+        auth_context = pecan.request.context.get('auth', None)
+
+        if not auth_context:
+            return None
+
+        user_db = auth_context.get('user', None)
+        return user_db.name if user_db else None

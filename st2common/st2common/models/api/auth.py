@@ -104,7 +104,8 @@ class ApiKeyAPI(BaseAPI):
                 "type": "string"
             },
             "user": {
-                "type": ["string", "null"]
+                "type": ["string", "null"],
+                "default": ""
             },
             "key": {
                 "type": ["string", "null"]
@@ -120,7 +121,7 @@ class ApiKeyAPI(BaseAPI):
     def to_model(cls, instance):
         user = str(instance.user) if instance.user else None
         key = str(instance.key) if instance.key else None
-        metadata = instance.metadata
+        metadata = getattr(instance, 'metadata', {})
 
         model = cls.model(user=user, key=key, metadata=metadata)
         return model
