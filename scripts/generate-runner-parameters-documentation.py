@@ -21,7 +21,7 @@ available runner parameters.
 
 import os
 
-from st2actions.bootstrap.runnersregistrar import RUNNER_TYPES
+from st2common.bootstrap.runnersregistrar import RUNNER_TYPES
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 HEADER = '.. NOTE: This file has been generated automatically, don\'t manually edit it'

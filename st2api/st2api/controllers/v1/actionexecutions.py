@@ -41,7 +41,6 @@ from st2common.services import executions as execution_service
 from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
-from st2common.util import date as date_utils
 from st2common.util import action_db as action_utils
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
@@ -81,6 +80,14 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         'result',
         'trigger_instance'
     ]
+
+    def _get_requester(self):
+        # Retrieve username of the authed user (note - if auth is disabled, user will not be
+        # set so we fall back to the system user name)
+        auth_context = pecan.request.context.get('auth', None)
+        user_db = auth_context.get('user', None) if auth_context else None
+
+        return user_db.name if user_db else cfg.CONF.system_user.user
 
     def _get_from_model_kwargs_for_request(self, request):
         """
@@ -125,18 +132,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
-        # Retrieve username of the authed user (note - if auth is disabled, user will not be
-        # set so we fall back to the system user name)
-        auth_context = pecan.request.context.get('auth', None)
-        user_db = auth_context.get('user', None) if auth_context else None
-
-        if user_db:
-            user = user_db.name
-        else:
-            user = cfg.CONF.system_user.user
-
-        liveaction.context['user'] = user
-        LOG.debug('User is: %s' % user)
+        liveaction.context['user'] = self._get_requester()
+        LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
         if 'st2-context' in pecan.request.headers and pecan.request.headers['st2-context']:
@@ -358,7 +355,6 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         if not execution_api:
             abort(http_client.NOT_FOUND, 'Execution with id %s not found.' % exec_id)
-            return
 
         liveaction_id = execution_api.liveaction['id']
         if not liveaction_id:
@@ -370,30 +366,22 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         except:
             abort(http_client.INTERNAL_SERVER_ERROR,
                   'Execution object missing link to liveaction %s.' % liveaction_id)
-            return
 
         if liveaction_db.status == LIVEACTION_STATUS_CANCELED:
-            abort(http_client.OK,
-                  'Action is already in "canceled" state.')
+            abort(http_client.OK, 'Action is already in "canceled" state.')
 
         if liveaction_db.status not in CANCELABLE_STATES:
-            abort(http_client.OK,
-                  'Action cannot be canceled. State = %s.' % liveaction_db.status)
-            return
+            abort(http_client.OK, 'Action cannot be canceled. State = %s.' % liveaction_db.status)
 
-        liveaction_db.status = 'canceled'
-        liveaction_db.end_timestamp = date_utils.get_datetime_utc_now()
-        liveaction_db.result = {'message': 'Action canceled by user.'}
         try:
-            LiveAction.add_or_update(liveaction_db)
+            (liveaction_db, execution_db) = action_service.request_cancellation(
+                liveaction_db, self._get_requester())
         except:
-            LOG.exception('Failed updating status to canceled for liveaction %s.',
-                          liveaction_db.id)
+            LOG.exception('Failed requesting cancellation for liveaction %s.', liveaction_db.id)
             abort(http_client.INTERNAL_SERVER_ERROR, 'Failed canceling execution.')
-            return
 
-        execution_db = execution_service.update_execution(liveaction_db)
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+
         return ActionExecutionAPI.from_model(execution_db, from_model_kwargs)
 
     @jsexpose()

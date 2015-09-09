@@ -17,7 +17,7 @@ import jsonschema
 import mock
 import yaml
 
-import st2actions.bootstrap.actionsregistrar as actions_registrar
+import st2common.bootstrap.actionsregistrar as actions_registrar
 from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
 from st2common.models.db.runner import RunnerTypeDB

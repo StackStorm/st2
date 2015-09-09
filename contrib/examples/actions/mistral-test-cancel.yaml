@@ -1,0 +1,24 @@
+---
+description: A sample workflow used to test the cancel feature.
+enabled: true
+entry_point: workflows/mistral-test-cancel.yaml
+name: mistral-test-cancel
+pack: examples
+parameters:
+  sleep:
+    type: integer
+    required: true
+    default: 180
+  context:
+    default: {}
+    immutable: true
+    type: object
+  task:
+    default: null
+    immutable: true
+    type: string
+  workflow:
+    default: null
+    immutable: true
+    type: string
+runner_type: mistral-v2

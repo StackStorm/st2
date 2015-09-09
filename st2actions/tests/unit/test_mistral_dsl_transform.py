@@ -19,7 +19,7 @@ import yaml
 
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
-import st2actions.bootstrap.runnersregistrar as runners_registrar
+import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2actions.runners.mistral import utils
 from st2common.models.api.action import ActionAPI, RunnerTypeAPI
 from st2common.persistence.action import Action

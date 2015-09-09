@@ -59,18 +59,23 @@ class WiringTest(base.TestWorkflowExecution):
         wf_params = {'vm_name': 'demo1'}
         executions = [self._execute_workflow(wf_name, wf_params) for i in range(3)]
 
-        def assert_successful_completion(execution):
-            eventlet.sleep(30)
-            execution = self._wait_for_completion(execution)
-            self._assert_success(execution, num_tasks=8)
-            self.assertIn('vm_id', execution.result)
+        eventlet.sleep(30)
 
-        threads = [eventlet.spawn(assert_successful_completion, execution)
-                   for execution in executions]
-
-        [thread.wait() for thread in threads]
+        for execution in executions:
+            e = self._wait_for_completion(execution)
+            self._assert_success(e, num_tasks=8)
+            self.assertIn('vm_id', e.result)
 
     def test_execution_failure(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'foo'})
         execution = self._wait_for_completion(execution)
         self._assert_failure(execution)
+
+    def test_cancellation(self):
+        execution = self._execute_workflow('examples.mistral-test-cancel', {'sleep': 10})
+        execution = self._wait_for_state(execution, ['running'])
+        self.st2client.liveactions.delete(execution)
+        execution = self._wait_for_completion(execution, expect_tasks_completed=False)
+        self._assert_canceled(execution, are_tasks_completed=False)
+        execution = self._wait_for_completion(execution, expect_tasks_completed=True)
+        self._assert_canceled(execution, are_tasks_completed=True)
