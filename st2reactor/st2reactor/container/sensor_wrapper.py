@@ -18,12 +18,15 @@ import sys
 import json
 import atexit
 import argparse
+import logging as stdlib_logging
 
 import eventlet
 from oslo_config import cfg
 from st2client.client import Client
 
 from st2common import log as logging
+from st2common.logging.misc import set_log_level_for_all_handlers
+from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.models.api.trace import TraceContext
 from st2common.models.db import db_setup
 from st2common.transport.reactor import TriggerDispatcher
@@ -71,6 +74,7 @@ class SensorService(object):
         logger_name = '%s.%s' % (self._sensor_wrapper._logger.name, name)
         logger = logging.getLogger(logger_name)
         logger.propagate = True
+
         return logger
 
     def dispatch(self, trigger, payload=None, trace_tag=None):
@@ -103,6 +107,7 @@ class SensorService(object):
         :param trace_context: Trace context to associate with Trigger.
         :type trace_context: ``st2common.api.models.api.trace.TraceContext``
         """
+        self._logger.debug('Dispatching trigger "%s", payload: %s' % (trigger, payload))
         self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
     ##################################
@@ -333,6 +338,9 @@ class SensorWrapper(object):
         self._logger = logging.getLogger('SensorWrapper.%s' %
                                          (self._class_name))
         logging.setup(cfg.CONF.sensorcontainer.logging)
+
+        if '--debug' in parent_args:
+            set_log_level_for_all_loggers()
 
         self._sensor_instance = self._get_sensor_instance()
 
