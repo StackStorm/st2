@@ -98,7 +98,7 @@ def validate_api_key(api_key_in_headers, api_key_query_params):
     """
     if not api_key_in_headers and not api_key_query_params:
         LOG.audit('API key is not found in header or query parameters.')
-        raise exceptions.TokenNotProvidedError('API key is not provided.')
+        raise exceptions.ApiKeyNotProvidedError('API key is not provided.')
 
     if api_key_in_headers:
         LOG.audit('API key provided in headers')

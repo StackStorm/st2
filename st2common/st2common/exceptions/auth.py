@@ -33,5 +33,17 @@ class TTLTooLargeException(StackStormBaseException):
     pass
 
 
+class ApiKeyNotProvidedError(StackStormBaseException):
+    pass
+
+
 class ApiKeyNotFoundError(StackStormDBObjectNotFoundError):
+    pass
+
+
+class MultipleAuthSourcesError(StackStormBaseException):
+    pass
+
+
+class NoAuthSourceProvidedError(StackStormBaseException):
     pass

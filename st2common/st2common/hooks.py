@@ -110,21 +110,11 @@ class AuthHook(PecanHook):
         if state.request.method == 'OPTIONS':
             return
 
-        api_key = self._validate_api_key(request=state.request)
-        token_db = self._validate_token(request=state.request)
+        user_db = self._get_validated_user(request=state.request)
 
-        try:
-            user_db = User.get(token_db.user)
-        except ValueError:
-            # User doesn't exist - we should probably also invalidate token if
-            # this happens
-            user_db = None
-
-        # Store token and related user object in the context
-        # Note: We also store token outside of auth dict for backward compatibility
-        state.request.context['token'] = token_db
+        # Store related user object in the context. The token is not passed
+        # along any longer as that should only be used in the auth domain.
         state.request.context['auth'] = {
-            'token': token_db,
             'user': user_db
         }
 
@@ -132,20 +122,31 @@ class AuthHook(PecanHook):
             del state.arguments.keywords[QUERY_PARAM_ATTRIBUTE_NAME]
 
     def on_error(self, state, e):
+        if isinstance(e, (auth_exceptions.NoAuthSourceProvidedError,
+                          auth_exceptions.MultiAuthSourcesError)):
+            LOG.error(str(e))
+            return self._abort_unauthorized(str(e))
         if isinstance(e, auth_exceptions.TokenNotProvidedError):
             LOG.exception('Token is not provided.')
-            return self._abort_unauthorized()
+            return self._abort_unauthorized(str(e))
         if isinstance(e, auth_exceptions.TokenNotFoundError):
             LOG.exception('Token is not found.')
-            return self._abort_unauthorized()
+            return self._abort_unauthorized(str(e))
         if isinstance(e, auth_exceptions.TokenExpiredError):
             LOG.exception('Token has expired.')
-            return self._abort_unauthorized()
+            return self._abort_unauthorized(str(e))
+        if isinstance(e, auth_exceptions.ApiKeyNotProvidedError):
+            LOG.exception('API key is not provided.')
+            return self._abort_unauthorized(str(e))
+        if isinstance(e, auth_exceptions.ApiKeyNotFoundError):
+            LOG.exception('API key is not found.')
+            return self._abort_unauthorized(str(e))
 
     @staticmethod
-    def _abort_unauthorized():
+    def _abort_unauthorized(msg):
+        faultstring = 'Unauthorized - %s' % msg if msg else 'Unauthorized'
         body = json_encode({
-            'faultstring': 'Unauthorized'
+            'faultstring': faultstring
         })
         headers = {}
         headers['Content-Type'] = 'application/json'
@@ -165,32 +166,52 @@ class AuthHook(PecanHook):
         return webob.Response(body=body, status=status, headers=headers)
 
     @staticmethod
-    def _validate_token(request):
+    def _get_validated_user(request):
         """
-        Validate token provided either in headers or query parameters.
+        Validate one of token or api_key provided either in headers or query parameters.
+        Will returnt the User
+
+        :rtype: :class:`UserDB`
         """
+
         headers = request.headers
         query_string = request.query_string
         query_params = dict(urlparse.parse_qsl(query_string))
 
         token_in_headers = headers.get(HEADER_ATTRIBUTE_NAME, None)
         token_in_query_params = query_params.get(QUERY_PARAM_ATTRIBUTE_NAME, None)
-        return validate_token(token_in_headers=token_in_headers,
-                              token_in_query_params=token_in_query_params)
-
-    @staticmethod
-    def _validate_api_key(request):
-        """
-        Validate api key provided either in headers or query parameters.
-        """
-        headers = request.headers
-        query_string = request.query_string
-        query_params = dict(urlparse.parse_qsl(query_string))
 
         api_key_in_headers = headers.get(HEADER_API_KEY_ATTRIBUTE_NAME, None)
         api_key_in_query_params = query_params.get(QUERY_PARAM_API_KEY_ATTRIBUTE_NAME, None)
-        return validate_api_key(api_key_in_headers=api_key_in_headers,
-                                api_key_query_params=api_key_in_query_params)
+
+        if (token_in_headers or token_in_query_params) and \
+           (api_key_in_headers or api_key_in_query_params):
+            raise auth_exceptions.MultipleAuthSourcesError(
+                'Only one of Token or API key expected.')
+
+        user = None
+        if token_in_headers or token_in_query_params:
+            token_db = validate_token(token_in_headers=token_in_headers,
+                                      token_in_query_params=token_in_query_params)
+            user = token_db.user
+        elif api_key_in_headers or api_key_in_query_params:
+            api_key_db = validate_api_key(api_key_in_headers=api_key_in_headers,
+                                          api_key_query_params=api_key_in_query_params)
+            user = api_key_db.user
+        else:
+            raise auth_exceptions.NoAuthSourceProvidedError('One of Token or API key required.')
+
+        if not user:
+            LOG.warn('User not found for supplied token or api-key.')
+            return None
+
+        try:
+            return User.get(user)
+        except ValueError:
+            # User doesn't exist - we should probably also invalidate token/apikey if
+            # this happens.
+            LOG.warn('User %s not found.', user)
+            return None
 
 
 class JSONErrorResponseHook(PecanHook):
