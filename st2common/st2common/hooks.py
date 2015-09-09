@@ -123,7 +123,7 @@ class AuthHook(PecanHook):
 
     def on_error(self, state, e):
         if isinstance(e, (auth_exceptions.NoAuthSourceProvidedError,
-                          auth_exceptions.MultiAuthSourcesError)):
+                          auth_exceptions.MultipleAuthSourcesError)):
             LOG.error(str(e))
             return self._abort_unauthorized(str(e))
         if isinstance(e, auth_exceptions.TokenNotProvidedError):
