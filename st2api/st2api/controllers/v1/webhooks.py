@@ -33,6 +33,9 @@ from st2common.models.api.trace import TraceContext
 import st2common.services.triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_webhook_permission
+
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
@@ -71,6 +74,7 @@ class WebhooksController(RestController):
 
         return hook
 
+    @request_user_has_webhook_permission(permission_type=PermissionType.WEBHOOK_SEND)
     @jsexpose(arg_types=[str], status_code=http_client.ACCEPTED)
     def post(self, *args, **kwargs):
         hook = '/'.join(args)  # TODO: There must be a better way to do this.
@@ -132,6 +136,8 @@ class WebhooksController(RestController):
         return TraceContext(trace_tag=trace_tag)
 
     def add_trigger(self, trigger):
+        # Note: Permission checking for creating and deleting a webhook is done during rule
+        # creation
         url = trigger['parameters']['url']
         LOG.info('Listening to endpoint: %s', urljoin(self._base_url, url))
         self._hooks[url] = trigger
@@ -140,6 +146,8 @@ class WebhooksController(RestController):
         pass
 
     def remove_trigger(self, trigger):
+        # Note: Permission checking for creating and deleting a webhook is done during rule
+        # creation
         url = trigger['parameters']['url']
 
         if url in self._hooks:

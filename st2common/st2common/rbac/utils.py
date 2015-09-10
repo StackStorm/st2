@@ -24,9 +24,12 @@ from oslo_config import cfg
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.exceptions.rbac import ResourceTypeAccessDeniedError
 from st2common.exceptions.rbac import ResourceAccessDeniedError
+from st2common.rbac.types import PermissionType
+from st2common.rbac.types import ResourceType
 from st2common.rbac.types import SystemRole
 from st2common.rbac import resolvers
 from st2common.services import rbac as rbac_services
+from st2common.util import action_db as action_utils
 
 __all__ = [
     'request_user_is_admin',
@@ -34,14 +37,21 @@ __all__ = [
     'request_user_has_permission',
     'request_user_has_resource_permission',
 
+    'request_user_has_rule_trigger_permission',
+    'request_user_has_rule_action_permission',
+
     'assert_request_user_is_admin',
     'assert_request_user_has_permission',
     'assert_request_user_has_resource_permission',
 
+    'assert_request_user_has_rule_trigger_and_action_permission',
+
     'user_is_admin',
     'user_has_permission',
     'user_has_resource_permission',
-    'user_has_role'
+    'user_has_role',
+
+    'get_user_db_from_request'
 ]
 
 
@@ -68,7 +78,7 @@ def request_user_has_role(request, role):
     if not cfg.CONF.auth.enable:
         return True
 
-    user_db = _get_user_db_from_request(request=request)
+    user_db = get_user_db_from_request(request=request)
     return user_has_role(user_db=user_db, role=role)
 
 
@@ -78,7 +88,7 @@ def request_user_has_permission(request, permission_type):
 
     :rtype: ``bool``
     """
-    user_db = _get_user_db_from_request(request=request)
+    user_db = get_user_db_from_request(request=request)
     return user_has_permission(user_db=user_db, permission_type=permission_type)
 
 
@@ -88,7 +98,7 @@ def request_user_has_resource_permission(request, resource_db, permission_type):
 
     :rtype: ``bool``
     """
-    user_db = _get_user_db_from_request(request=request)
+    user_db = get_user_db_from_request(request=request)
     return user_has_resource_permission(user_db=user_db, resource_db=resource_db,
                                         permission_type=permission_type)
 
@@ -102,7 +112,7 @@ def assert_request_user_is_admin(request):
     is_admin = request_user_is_admin(request=request)
 
     if not is_admin:
-        user_db = _get_user_db_from_request(request=request)
+        user_db = get_user_db_from_request(request=request)
         raise AccessDeniedError(message='Administrator access required',
                                 user_db=user_db)
 
@@ -117,7 +127,7 @@ def assert_request_user_has_permission(request, permission_type):
                                                  permission_type=permission_type)
 
     if not has_permission:
-        user_db = _get_user_db_from_request(request=request)
+        user_db = get_user_db_from_request(request=request)
         raise ResourceTypeAccessDeniedError(user_db=user_db, permission_type=permission_type)
 
 
@@ -131,9 +141,86 @@ def assert_request_user_has_resource_permission(request, resource_db, permission
                                                           permission_type=permission_type)
 
     if not has_permission:
-        user_db = _get_user_db_from_request(request=request)
+        user_db = get_user_db_from_request(request=request)
         raise ResourceAccessDeniedError(user_db=user_db, resource_db=resource_db,
                                         permission_type=permission_type)
+
+
+def request_user_has_rule_trigger_permission(request, trigger):
+    """
+    Check that the currently logged-in has necessary permissions on the trigger used / referenced
+    inside the rule.
+    """
+    if not cfg.CONF.rbac.enable:
+        return True
+
+    user_db = get_user_db_from_request(request=request)
+    rules_resolver = resolvers.get_resolver_for_resource_type(ResourceType.RULE)
+    has_trigger_permission = rules_resolver.user_has_trigger_permission(user_db=user_db,
+                                                                        trigger=trigger)
+
+    if has_trigger_permission:
+        return True
+
+    return False
+
+
+def request_user_has_rule_action_permission(request, action_ref):
+    """
+    Check that the currently logged-in has necessary permissions on the action used / referenced
+    inside the rule.
+    """
+    if not cfg.CONF.rbac.enable:
+        return True
+
+    user_db = get_user_db_from_request(request=request)
+    action_db = action_utils.get_action_by_ref(ref=action_ref)
+    action_resolver = resolvers.get_resolver_for_resource_type(ResourceType.ACTION)
+    has_action_permission = action_resolver.user_has_resource_permission(
+        user_db=user_db, resource_db=action_db, permission_type=PermissionType.ACTION_EXECUTE)
+
+    if has_action_permission:
+        return True
+
+    return False
+
+
+def assert_request_user_has_rule_trigger_and_action_permission(request, rule_api):
+    """
+    Check that the currently logged-in has necessary permissions on trhe trigger and action
+    used / referenced inside the rule.
+    """
+
+    if not cfg.CONF.rbac.enable:
+        return True
+
+    trigger = rule_api.trigger
+    action = rule_api.action
+    trigger_type = trigger['type']
+    action_ref = action['ref']
+
+    user_db = get_user_db_from_request(request=request)
+
+    # Check that user has access to the specified trigger - right now we only check for
+    # webhook permissions
+    has_trigger_permission = request_user_has_rule_trigger_permission(request=request,
+                                                                      trigger=trigger)
+
+    if not has_trigger_permission:
+        msg = ('User "%s" doesn\'t have required permission (%s) to use trigger %s' %
+               (user_db.name, PermissionType.WEBHOOK_CREATE, trigger_type))
+        raise AccessDeniedError(message=msg, user_db=user_db)
+
+    # Check that user has access to the specified action
+    has_action_permission = request_user_has_rule_action_permission(request=request,
+                                                                    action_ref=action_ref)
+
+    if not has_action_permission:
+        msg = ('User "%s" doesn\'t have required (%s) permission to use action %s' %
+               (user_db.name, PermissionType.ACTION_EXECUTE, action_ref))
+        raise AccessDeniedError(message=msg, user_db=user_db)
+
+    return True
 
 
 def user_is_admin(user_db):
@@ -176,7 +263,6 @@ def user_has_permission(user_db, permission_type):
     if not cfg.CONF.rbac.enable:
         return True
 
-    # TODO
     # TODO Verify permission type for the provided resource type
     resolver = resolvers.get_resolver_for_permission_type(permission_type=permission_type)
     result = resolver.user_has_permission(user_db=user_db, permission_type=permission_type)
@@ -190,7 +276,6 @@ def user_has_resource_permission(user_db, resource_db, permission_type):
     if not cfg.CONF.rbac.enable:
         return True
 
-    # TODO
     # TODO Verify permission type for the provided resource type
     resolver = resolvers.get_resolver_for_permission_type(permission_type=permission_type)
     result = resolver.user_has_resource_permission(user_db=user_db, resource_db=resource_db,
@@ -198,7 +283,7 @@ def user_has_resource_permission(user_db, resource_db, permission_type):
     return result
 
 
-def _get_user_db_from_request(request):
+def get_user_db_from_request(request):
     """
     Retrieve UserDB object from the provided request.
     """

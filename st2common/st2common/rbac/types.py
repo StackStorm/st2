@@ -65,6 +65,11 @@ class PermissionType(Enum):
     KEY_VALUE_SET = 'key_value_set'
     KEY_VALUE_DELETE = 'key_value_delete'
 
+    WEBHOOK_CREATE = 'webhook_create'
+    WEBHOOK_SEND = 'webhook_send'
+    WEBHOOK_DELETE = 'webhook_delete'
+    WEBHOOK_ALL = 'webhook_all'
+
     @classmethod
     def get_valid_permissions_for_resource_type(cls, resource_type):
         """
@@ -134,6 +139,7 @@ class ResourceType(Enum):
 
     EXECUTION = SystemResourceType.EXECUTION
     KEY_VALUE_PAIR = SystemResourceType.KEY_VALUE_PAIR
+    WEBHOOK = SystemResourceType.WEBHOOK
 
 
 class SystemRole(Enum):
@@ -142,7 +148,6 @@ class SystemRole(Enum):
     """
     SYSTEM_ADMIN = ' system_admin'  # Special role which can't be revoked.
     ADMIN = 'admin'
-    OPERATOR = 'operator'
     OBSERVER = 'observer'
 
 
@@ -200,11 +205,17 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.KEY_VALUE_VIEW,
         PermissionType.KEY_VALUE_SET,
         PermissionType.KEY_VALUE_DELETE
+    ],
+    ResourceType.WEBHOOK: [
+        PermissionType.WEBHOOK_CREATE,
+        PermissionType.WEBHOOK_SEND,
+        PermissionType.WEBHOOK_DELETE,
+        PermissionType.WEBHOOK_ALL
     ]
 }
 
 
-# Maps a permission type to the correponsding description
+# Maps a permission type to the corresponding description
 PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.PACK_VIEW: 'Ability to view a pack.',
     PermissionType.PACK_CREATE: 'Ability to create a new pack.',
@@ -215,13 +226,17 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
 
     PermissionType.SENSOR_VIEW: 'Ability to view a sensor',
     PermissionType.SENSOR_ALL: ('Ability to perform all the supported operations on a particular '
-                                'sensor'),
+                                'sensor.'),
 
     PermissionType.ACTION_VIEW: 'Ability to view an action.',
-    PermissionType.ACTION_CREATE: 'Ability to create a new action.',
-    PermissionType.ACTION_MODIFY: 'Ability to modify (update) an existing action.',
-    PermissionType.ACTION_DELETE: 'Ability to delete an existing action.',
-    PermissionType.ACTION_EXECUTE: 'Ability to execute (run) an action.',
+    PermissionType.ACTION_CREATE: ('Ability to create a new action. Also implies "action_view" '
+                                   'permission.'),
+    PermissionType.ACTION_MODIFY: ('Ability to modify (update) an existing action. Also implies '
+                                   '"action_view" permission.'),
+    PermissionType.ACTION_DELETE: ('Ability to delete an existing action. Also implies '
+                                   '"action_view" permission.'),
+    PermissionType.ACTION_EXECUTE: ('Ability to execute (run) an action. Also implies '
+                                    '"action_view" permission.'),
     PermissionType.ACTION_ALL: ('Ability to perform all the supported operations on a particular '
                                 'action.'),
 
@@ -232,9 +247,18 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
                                    'particular execution.'),
 
     PermissionType.RULE_VIEW: 'Ability to view a rule.',
-    PermissionType.RULE_CREATE: 'Ability to create a new rule.',
-    PermissionType.RULE_MODIFY: 'Ability to modify (update) an existing rule.',
-    PermissionType.RULE_DELETE: 'Ability to delete an existing rule.',
+    PermissionType.RULE_CREATE: ('Ability to create a new rule. Also implies "rule_view" '
+                                 'permission'),
+    PermissionType.RULE_MODIFY: ('Ability to modify (update) an existing rule. Also implies '
+                                 '"rule_view" permission.'),
+    PermissionType.RULE_DELETE: ('Ability to delete an existing rule. Also implies "rule_view" '
+                                 'permission.'),
     PermissionType.RULE_ALL: ('Ability to perform all the supported operations on a particular '
-                              'rule.')
+                              'rule.'),
+
+    PermissionType.WEBHOOK_CREATE: ('Ability to create a new webhook.'),
+    PermissionType.WEBHOOK_SEND: ('Ability to send / POST data to an existing webhook.'),
+    PermissionType.WEBHOOK_DELETE: ('Ability to delete an existing webhook.'),
+    PermissionType.WEBHOOK_ALL: ('Ability to perform all the supported operations on a particular '
+                              'webhook.')
 }

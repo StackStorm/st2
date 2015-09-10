@@ -208,6 +208,7 @@ class RuleAPI(BaseAPI):
 
         if not trigger_db:
             raise ValueError('Missing TriggerDB object for rule %s' % (rule['id']))
+
         rule['trigger'] = {
             'type': trigger_db.type,
             'parameters': trigger_db.parameters,
@@ -225,6 +226,7 @@ class RuleAPI(BaseAPI):
         # Create a trigger for the provided rule
         trigger_db = TriggerService.create_trigger_db_from_rule(rule)
         kwargs['trigger'] = reference.get_str_resource_ref_from_model(trigger_db)
+
         # Validate trigger parameters
         validator.validate_trigger_parameters(trigger_db=trigger_db)
 

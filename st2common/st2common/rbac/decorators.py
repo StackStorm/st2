@@ -75,9 +75,32 @@ def request_user_has_resource_permission(permission_type):
             controller_instance = args[0]
             resource_id = args[1]  # Note: This can either be id, name or ref
 
-            # TODO: Special case for key value pair controller - use "_get_one_raw"
             get_one_db_method = controller_instance.get_one_db_method
             resource_db = get_one_db_method(resource_id)
+            utils.assert_request_user_has_resource_permission(request=pecan.request,
+                                                              resource_db=resource_db,
+                                                              permission_type=permission_type)
+            return func(*args, **kwargs)
+        return func_wrapper
+    return decorate
+
+
+def request_user_has_webhook_permission(permission_type):
+    """
+    A decorator which checks that the currently logged-in user has a webhook post permission.
+
+    Note: We need a special decorator for webhooks since Webhook objects don't actually exist in
+    the DB right now.
+    """
+    from st2common.models.db.webhook import WebhookDB
+
+    def decorate(func):
+        @wraps(func)
+        def func_wrapper(*args, **kwargs):
+            hook = '/'.join(args[1:])  # TODO: There must be a better way to do this.
+            webhook_db = WebhookDB(name=hook)
+
+            resource_db = webhook_db
             utils.assert_request_user_has_resource_permission(request=pecan.request,
                                                               resource_db=resource_db,
                                                               permission_type=permission_type)

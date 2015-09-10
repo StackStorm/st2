@@ -37,6 +37,7 @@ RESOURCE_DISPLAY_ORDER = [
     ResourceType.ACTION,
     ResourceType.RULE,
     ResourceType.EXECUTION,
+    ResourceType.WEBHOOK
 ]
 
 
@@ -59,7 +60,7 @@ def main():
 
         for permission_type in permission_types:
             description = PermissionType.get_permission_description(permission_type)
-            rows.append([permission_type, description])
+            rows.append(['**%s**' % (permission_type), description])
 
         table = as_rest_table(rows, full=True)
         lines.extend(table.split('\n'))

@@ -132,7 +132,7 @@ def delete_role(name):
     return result
 
 
-def assign_role_to_user(role_db, user_db):
+def assign_role_to_user(role_db, user_db, description=None):
     """
     Assign role to a user.
 
@@ -141,8 +141,12 @@ def assign_role_to_user(role_db, user_db):
 
     :param user_db: User to assign the role to.
     :type user_db: :class:`UserDB`
+
+    :param description: Optional assingment description.
+    :type description: ``str``
     """
-    role_assignment_db = UserRoleAssignmentDB(user=user_db.name, role=role_db.name)
+    role_assignment_db = UserRoleAssignmentDB(user=user_db.name, role=role_db.name,
+                                              description=description)
     role_assignment_db = UserRoleAssignment.add_or_update(role_assignment_db)
     return role_assignment_db
 

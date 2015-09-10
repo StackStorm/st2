@@ -31,6 +31,9 @@ mkdir -p %{buildroot}/var/log/st2
 mkdir -p %{buildroot}/etc/st2
 mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/opt/stackstorm/packs
+mkdir -p %{buildroot}/opt/stackstorm/rbac
+mkdir -p %{buildroot}/opt/stackstorm/rbac/roles
+mkdir -p %{buildroot}/opt/stackstorm/rbac/assignments
 mkdir -p %{buildroot}/usr/share/doc/st2
 mkdir -p %{buildroot}/usr/share/stackstorm
 cp -R contrib/default %{buildroot}/opt/stackstorm/packs/
@@ -43,6 +46,8 @@ cp -R st2common %{buildroot}/%{python2_sitelib}/
 cp -R bin %{buildroot}/%{python2_sitelib}/st2common/
 install st2/st2.conf %{buildroot}/etc/st2/st2.conf
 install logrotate.d/st2.conf %{buildroot}/etc/logrotate.d/st2.conf
+install rbac/roles/sample.yaml %{buildroot}/opt/stackstorm/rbac/roles/sample.yaml
+install rbac/assignments/sample.yaml %{buildroot}/opt/stackstorm/rbac/assignments/sample.yaml
 install -m755 tools/st2ctl %{buildroot}/usr/bin/st2ctl
 install -m755 tools/st2-setup-tests %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-setup-tests
 install -m755 tools/st2-setup-examples %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-setup-examples

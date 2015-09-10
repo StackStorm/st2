@@ -23,6 +23,8 @@ import logging as stdlib_logging
 
 from st2common import log as logging
 from st2common.models.db.pack import PackDB
+from st2common.models.db.webhook import WebhookDB
+from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPE
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.rbac.types import SystemRole
@@ -38,6 +40,7 @@ __all__ = [
     'RulePermissionsResolver',
     'KeyValuePermissionsResolver',
     'ExecutionPermissionsResolver',
+    'WebhookPermissionsResolver',
 
     'get_resolver_for_resource_type',
     'get_resolver_for_permission_type'
@@ -183,9 +186,14 @@ class SensorPermissionsResolver(PermissionsResolver):
         sensor_uid = resource_db.get_uid()
         pack_uid = resource_db.get_pack_uid()
 
+        if permission_type == PermissionType.SENSOR_VIEW:
+            # Note: "create", "modify" and "delete" also grant / imply "view" permission
+            permission_types = [PermissionType.SENSOR_ALL, permission_type]
+        else:
+            permission_types = [PermissionType.SENSOR_ALL, permission_type]
+
         # Check direct grants on the specified resource
         resource_types = [ResourceType.SENSOR]
-        permission_types = [PermissionType.SENSOR_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=sensor_uid,
                                                                resource_types=resource_types,
@@ -196,7 +204,6 @@ class SensorPermissionsResolver(PermissionsResolver):
 
         # Check grants on the parent pack
         resource_types = [ResourceType.PACK]
-        permission_types = [PermissionType.SENSOR_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=pack_uid,
                                                                resource_types=resource_types,
@@ -240,9 +247,21 @@ class ActionPermissionsResolver(PermissionsResolver):
         action_uid = resource_db.get_uid()
         pack_uid = resource_db.get_pack_uid()
 
+        if permission_type == PermissionType.ACTION_VIEW:
+            # Note: "create", "modify", "delete" and "execute" also grant / imply "view" permission
+            permission_types = [
+                PermissionType.ACTION_ALL,
+                PermissionType.ACTION_CREATE,
+                PermissionType.ACTION_MODIFY,
+                PermissionType.ACTION_DELETE,
+                PermissionType.ACTION_EXECUTE,
+                permission_type
+            ]
+        else:
+            permission_types = [PermissionType.ACTION_ALL, permission_type]
+
         # Check direct grants on the specified resource
         resource_types = [ResourceType.ACTION]
-        permission_types = [PermissionType.ACTION_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=action_uid,
                                                                resource_types=resource_types,
@@ -253,7 +272,6 @@ class ActionPermissionsResolver(PermissionsResolver):
 
         # Check grants on the parent pack
         resource_types = [ResourceType.PACK]
-        permission_types = [PermissionType.ACTION_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=pack_uid,
                                                                resource_types=resource_types,
@@ -271,6 +289,52 @@ class RulePermissionsResolver(PermissionsResolver):
     """
     Permission resolver for "rule" resource type.
     """
+
+    def user_has_trigger_permission(self, user_db, trigger):
+        """
+        Check if the user has access to the provided trigger.
+
+        This method is to be used during rule create and update where we check if the user has the
+        necessary trigger permissions.
+
+        Note: Right now we only support webhook triggers.
+
+        :param trigger: "trigger" attribute of the RuleAPI object.
+        :type trigger: ``dict``
+        """
+        log_context = {
+            'user_db': user_db,
+            'trigger': trigger,
+            'resolver': self.__class__.__name__
+        }
+
+        trigger_type = trigger['type']
+        trigger_parameters = trigger.get('parameters', {})
+
+        if trigger_type != WEBHOOK_TRIGGER_TYPE:
+            self._log('Not a webhook trigger type, ignoring trigger permission checking',
+                      extra=log_context)
+            return True
+
+        resolver = get_resolver_for_resource_type(ResourceType.WEBHOOK)
+        webhook_db = WebhookDB(name=trigger_parameters['url'])
+        permission_type = PermissionType.WEBHOOK_CREATE
+        result = resolver.user_has_resource_permission(user_db=user_db,
+                                                       resource_db=webhook_db,
+                                                       permission_type=permission_type)
+
+        if result is True:
+            self._log('Found a matching trigger grant', extra=log_context)
+            return True
+
+        self._log('No matching trigger grants found', extra=log_context)
+        return False
+
+    def user_has_action_permission(self, user_db, action_ref):
+        """
+        Check if the user has "execute" permission on the provided action.
+        """
+        pass
 
     def user_has_permission(self, user_db, permission_type):
         # TODO
@@ -297,9 +361,20 @@ class RulePermissionsResolver(PermissionsResolver):
         rule_uid = resource_db.get_uid()
         pack_uid = resource_db.get_pack_uid()
 
+        if permission_type == PermissionType.RULE_VIEW:
+            # Note: "create", "modify", "delete" and "execute" also grant / imply "view" permission
+            permission_types = [
+                PermissionType.RULE_ALL,
+                PermissionType.RULE_CREATE,
+                PermissionType.RULE_MODIFY,
+                PermissionType.RULE_DELETE,
+                permission_type
+            ]
+        else:
+            permission_types = [PermissionType.RULE_ALL, permission_type]
+
         # Check direct grants on the specified resource
         resource_types = [ResourceType.RULE]
-        permission_types = [PermissionType.RULE_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=rule_uid,
                                                                resource_types=resource_types,
@@ -310,7 +385,6 @@ class RulePermissionsResolver(PermissionsResolver):
 
         # Check grants on the parent pack
         resource_types = [ResourceType.PACK]
-        permission_types = [PermissionType.RULE_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=pack_uid,
                                                                resource_types=resource_types,
@@ -373,7 +447,7 @@ class ExecutionPermissionsResolver(PermissionsResolver):
         action_uid = action['uid']
         action_pack_uid = pack_db.get_uid()
 
-        # Note: Right now action_execute implies execution_re_run and execution_stop
+        # Note: "action_execute" also grants / implies "execution_re_run" and "execution_stop"
         if permission_type == PermissionType.EXECUTION_VIEW:
             action_permission_type = PermissionType.ACTION_VIEW
         elif permission_type in [PermissionType.EXECUTION_RE_RUN,
@@ -412,35 +486,80 @@ class ExecutionPermissionsResolver(PermissionsResolver):
         return False
 
 
+class WebhookPermissionsResolver(PermissionsResolver):
+    def user_has_permission(self, user_db, permission_type):
+        # TODO
+        return True
+
+    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+        log_context = {
+            'user_db': user_db,
+            'resource_db': resource_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user resource permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        webhook_uid = resource_db.get_uid()
+
+        # Check direct grants on the webhook
+        resource_types = [ResourceType.WEBHOOK]
+        permission_types = [PermissionType.WEBHOOK_ALL, permission_type]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=webhook_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+
+        if len(permission_grants) >= 1:
+            self._log('Found a grant on the webhook', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
+
 def get_resolver_for_resource_type(resource_type):
     """
     Return resolver instance for the provided resource type.
 
-    :rtype: :class:`PermissionsResolver`
+    :rtype: Instance of :class:`PermissionsResolver`
     """
     if resource_type == ResourceType.PACK:
-        return PackPermissionsResolver
+        resolver_cls = PackPermissionsResolver
     elif resource_type == ResourceType.SENSOR:
-        return SensorPermissionsResolver
+        resolver_cls = SensorPermissionsResolver
     elif resource_type == ResourceType.ACTION:
-        return ActionPermissionsResolver
+        resolver_cls = ActionPermissionsResolver
     elif resource_type == ResourceType.RULE:
-        return RulePermissionsResolver
+        resolver_cls = RulePermissionsResolver
     elif resource_type == ResourceType.EXECUTION:
-        return ExecutionPermissionsResolver
+        resolver_cls = ExecutionPermissionsResolver
     elif resource_type == ResourceType.KEY_VALUE_PAIR:
-        return KeyValuePermissionsResolver
+        resolver_cls = KeyValuePermissionsResolver
+    elif resource_type == ResourceType.WEBHOOK:
+        resolver_cls = WebhookPermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
+
+    resolver_instance = resolver_cls()
+    return resolver_instance
 
 
 def get_resolver_for_permission_type(permission_type):
     """
     Return resolver instance for the provided permission type.
 
-    :rtype: :class:`PermissionsResolver`
+    :rtype: Instance of :class:`PermissionsResolver`
     """
     resource_type = PermissionType.get_resource_type(permission_type=permission_type)
-    resolver_cls = get_resolver_for_resource_type(resource_type=resource_type)
-    resolver_instance = resolver_cls()
+    resolver_instance = get_resolver_for_resource_type(resource_type=resource_type)
     return resolver_instance

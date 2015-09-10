@@ -90,6 +90,31 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         expected_msg = 'Duplicate definition file found for role "role_three_name_conflict"'
         self.assertRaisesRegexp(ValueError, expected_msg, loader.load_role_definitions)
 
+    def test_load_role_definitions_disabled_role_definition(self):
+        loader = RBACDefinitionsLoader()
+
+        # Disabled role which means this method shouldn't include it in the result
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac/roles/role_disabled.yaml')
+        file_paths = [file_path]
+
+        loader._get_role_definitions_file_paths = mock.Mock()
+        loader._get_role_definitions_file_paths.return_value = file_paths
+
+        result = loader.load_role_definitions()
+        self.assertItemsEqual(result, [])
+
+    def test_load_role_definitions_empty_definition_file(self):
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac_invalid/roles/role_empty.yaml')
+        file_paths = [file_path]
+
+        loader._get_role_definitions_file_paths = mock.Mock()
+        loader._get_role_definitions_file_paths.return_value = file_paths
+
+        expected_msg = 'Role definition file .+? is empty and invalid'
+        self.assertRaisesRegexp(ValueError, expected_msg, loader.load_role_definitions)
+
     def test_load_user_role_assignments_duplicate_user_definition(self):
         loader = RBACDefinitionsLoader()
 
@@ -106,3 +131,52 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
 
         expected_msg = 'Duplicate definition file found for user "userfoo"'
         self.assertRaisesRegexp(ValueError, expected_msg, loader.load_user_role_assignments)
+
+    def test_load_user_role_assignments_disabled_assignment(self):
+        loader = RBACDefinitionsLoader()
+
+        # Disabled role assignment which means this method shouldn't include it in the result
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac/assignments/user_disabled.yaml')
+        file_paths = [file_path]
+
+        loader._get_role_assiginments_file_paths = mock.Mock()
+        loader._get_role_assiginments_file_paths.return_value = file_paths
+
+        result = loader.load_user_role_assignments()
+        self.assertItemsEqual(result, [])
+
+    def test_load_user_role_assignments_empty_definition_file(self):
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(),
+                                 'rbac_invalid/assignments/user_empty.yaml')
+        file_paths = [file_path]
+
+        loader._get_role_assiginments_file_paths = mock.Mock()
+        loader._get_role_assiginments_file_paths.return_value = file_paths
+
+        expected_msg = 'Role assignment file .+? is empty and invalid'
+        self.assertRaisesRegexp(ValueError, expected_msg, loader.load_user_role_assignments)
+
+    def test_load_sample_role_definition(self):
+        """
+        Validate that the sample role definition which we ship with default installation works.
+        """
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac/roles/role_sample.yaml')
+        role_api = loader.load_role_definition_from_file(file_path=file_path)
+        self.assertEqual(role_api.name, 'sample')
+        self.assertFalse(role_api.enabled)
+
+    def test_load_sample_user_role_assignment_definition(self):
+        """
+        Validate that the sample user role assignment definition which we ship with default
+        installation works.
+        """
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac/assignments/user_sample.yaml')
+        assignment_api = loader.load_user_role_assignments_from_file(file_path=file_path)
+        self.assertEqual(assignment_api.username, 'stackstorm_user')
+        self.assertFalse(assignment_api.enabled)

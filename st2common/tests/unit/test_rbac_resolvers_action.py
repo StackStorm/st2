@@ -55,6 +55,10 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         user_4_db = User.add_or_update(user_4_db)
         self.users['custom_role_action_all_grant'] = user_4_db
 
+        user_5_db = UserDB(name='custom_role_action_execute_grant')
+        user_5_db = User.add_or_update(user_5_db)
+        self.users['custom_role_action_execute_grant'] = user_5_db
+
         # Create some mock resources on which permissions can be granted
         action_1_db = ActionDB(pack='test_pack_1', name='action1', entry_point='',
                                runner_type={'name': 'run-local'})
@@ -116,6 +120,17 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         role_4_db = Role.add_or_update(role_4_db)
         self.roles['custom_role_action_all_grant'] = role_4_db
 
+        # Custom role - "action_execute" on action_1
+        grant_db = PermissionGrantDB(resource_uid=self.resources['action_1'].get_uid(),
+                                     resource_type=ResourceType.ACTION,
+                                     permission_types=[PermissionType.ACTION_EXECUTE])
+        grant_db = PermissionGrant.add_or_update(grant_db)
+        permission_grants = [str(grant_db.id)]
+        role_5_db = RoleDB(name='custom_role_action_execute_grant',
+                           permission_grants=permission_grants)
+        role_5_db = Role.add_or_update(role_5_db)
+        self.roles['custom_role_action_execute_grant'] = role_5_db
+
         # Create some mock role assignments
         user_db = self.users['custom_role_action_pack_grant']
         role_assignment_db = UserRoleAssignmentDB(
@@ -138,6 +153,12 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
             role=self.roles['custom_role_action_all_grant'].name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+        user_db = self.users['custom_role_action_execute_grant']
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_db.name,
+            role=self.roles['custom_role_action_execute_grant'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_user_has_resource_permissions(self):
@@ -251,3 +272,28 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
             user_db=user_db,
             resource_db=resource_db,
             permission_types=all_permission_types))
+
+        # Custom role - "action_execute" grant on action_1
+        user_db = self.users['custom_role_action_execute_grant']
+        resource_db = self.resources['action_1']
+        self.assertTrue(resolver.user_has_resource_permission(
+            user_db=user_db,
+            resource_db=resource_db,
+            permission_type=PermissionType.ACTION_EXECUTE))
+
+        # "execute" also grants "view"
+        self.assertTrue(resolver.user_has_resource_permission(
+            user_db=user_db,
+            resource_db=resource_db,
+            permission_type=PermissionType.ACTION_VIEW))
+
+        permission_types = [
+            PermissionType.ACTION_CREATE,
+            PermissionType.ACTION_MODIFY,
+            PermissionType.ACTION_DELETE
+        ]
+        self.assertFalse(self._user_has_resource_permissions(
+            resolver=resolver,
+            user_db=user_db,
+            resource_db=resource_db,
+            permission_types=permission_types))

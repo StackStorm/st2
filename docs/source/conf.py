@@ -133,7 +133,8 @@ exclude_patterns = [
     'install/on_complete.rst',  # included file
     'auth_usage.rst',
     'todo.rst',  # included file,
-    '_includes/*',  # includes files
+    '_includes/*',  # includes files,
+    'known_security_issues.rst',
 
 ]
 
