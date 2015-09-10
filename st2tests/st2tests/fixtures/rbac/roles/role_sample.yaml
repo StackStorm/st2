@@ -49,7 +49,7 @@
         -
             # Here we grant "rule_view" and "rule_modify" to rule "my_rule_1" inside "dummy_pack_2" allowing
             # user to view and modify (but not delete) this particular rule.
-            resource_uid: "action:dummy_pack_2:my_rule_1"
+            resource_uid: "rule:dummy_pack_2:my_rule_1"
             permission_types:
                - "rule_view"
                - "rule_modify"
