@@ -94,18 +94,6 @@ class DSLTransformTestCase(DbTestCase):
         def_yaml = self._read_file_content(path)
         return yaml.safe_load(def_yaml)
 
-    def test_missing_version(self):
-        def_dict = self._read_yaml_file_as_json(WB_PRE_XFORM_PATH)
-        del def_dict['version']
-        def_yaml = yaml.safe_dump(def_dict)
-        self.assertRaises(WorkflowDefinitionException, utils.transform_definition, def_yaml)
-
-    def test_unsupported_version(self):
-        def_dict = self._read_yaml_file_as_json(WB_PRE_XFORM_PATH)
-        def_dict['version'] = '1.0'
-        def_yaml = yaml.safe_dump(def_dict)
-        self.assertRaises(WorkflowDefinitionException, utils.transform_definition, def_yaml)
-
     def test_transform_workbook_dsl_yaml(self):
         def_yaml = self._read_file_content(WB_PRE_XFORM_PATH)
         new_def = utils.transform_definition(def_yaml)

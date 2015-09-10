@@ -191,13 +191,6 @@ def transform_definition(definition):
     is_dict = isinstance(definition, dict)
     spec = copy.deepcopy(definition) if is_dict else yaml.safe_load(definition)
 
-    # Check version
-    if 'version' not in spec:
-        raise WorkflowDefinitionException('Unknown version. Only version 2.0 is supported.')
-
-    if spec['version'] != '2.0':
-        raise WorkflowDefinitionException('Only version 2.0 is supported.')
-
     # Transform adhoc actions
     for action_name, action_spec in six.iteritems(spec.get('actions', {})):
         _transform_action(action_name, action_spec)
@@ -208,8 +201,9 @@ def transform_definition(definition):
     # Transform tasks
     if is_workbook:
         for workflow_name, workflow_spec in six.iteritems(spec.get('workflows', {})):
-            for task_name, task_spec in six.iteritems(workflow_spec.get('tasks')):
-                _transform_action(task_name, task_spec)
+            if 'tasks' in workflow_spec:
+                for task_name, task_spec in six.iteritems(workflow_spec.get('tasks')):
+                    _transform_action(task_name, task_spec)
     else:
         for key, value in six.iteritems(spec):
             if 'tasks' in value:
