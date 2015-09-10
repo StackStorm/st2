@@ -113,7 +113,7 @@ Webhook
 +====================+==========================================================================+
 | **webhook_create** | Ability to create a new webhook.                                         |
 +--------------------+--------------------------------------------------------------------------+
-| **webhook_post**   | Ability to send / POST data for an existing webhook.                     |
+| **webhook_send**   | Ability to send / POST data to an existing webhook.                      |
 +--------------------+--------------------------------------------------------------------------+
 | **webhook_delete** | Ability to delete an existing webhook.                                   |
 +--------------------+--------------------------------------------------------------------------+
