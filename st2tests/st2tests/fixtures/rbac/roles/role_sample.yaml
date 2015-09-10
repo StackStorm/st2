@@ -1,6 +1,7 @@
 ---
-    name: "role_four"
+    name: "sample"
     description: "Role which contains many different permission grants and serves for demonstration purposes"
+    enabled: false
     permission_grants:
         -
             # Here we grant "pack_all" to "dummy_pack_1" pack which means user can perform all the

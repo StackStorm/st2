@@ -192,9 +192,9 @@ following directory: ``/opt/stackstorm/rbac/roles/``. Each file defines role inf
 associated permission grants for a single role which means that if you want to define **n** roles
 you will need **n** files.
 
-Example role definition (``/opt/stackstorm/rbac/roles/role_four.yaml``) is shown below:
+Example role definition (``/opt/stackstorm/rbac/roles/role_sample.yaml``) is shown below:
 
-.. literalinclude:: ../../st2tests/st2tests/fixtures/rbac/roles/role_four.yaml
+.. literalinclude:: ../../st2tests/st2tests/fixtures/rbac/roles/role_sample.yaml
     :language: yaml
 
 The example above contains a variety of permission grants with the corresponding explanation
