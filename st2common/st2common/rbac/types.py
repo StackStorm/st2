@@ -148,7 +148,6 @@ class SystemRole(Enum):
     """
     SYSTEM_ADMIN = ' system_admin'  # Special role which can't be revoked.
     ADMIN = 'admin'
-    OPERATOR = 'operator'
     OBSERVER = 'observer'
 
 
