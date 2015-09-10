@@ -19,6 +19,14 @@ in development
 * Fix ``timestamp_lt`` and ``timestamp_gt`` filtering in the `/executions` API endpoint. Now we
   return a correct result which is expected from a user-perspective. (bug-fix)
 * Enable Mistral workflow cancellation via ``st2 execution cancel``. (improvement)
+
+0.13.2 - September 09, 2015
+---------------------------
+
+* Private_key supplied for remote_actions is now used to auth correctly. private_key argument
+  should be the contents of private key file (of user specified in username argument). (bug-fix)
+* Last newline character ('\n') is now stripped from ``stdout`` and ``stderr`` fields in local
+  and remote command/shell runners. (improvement)
 * Fix sensor container service so the ``config`` argument is correctly passed to the sensor
   instances in the system packs. Previously, this argument didn't get passed correctly to the
   FileWatchSensor from the system linux pack. (bug-fix)
