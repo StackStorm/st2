@@ -21,14 +21,31 @@ A user represents an entity (person / robot) which needs to be authenticated and
 User permissions are represented as a union of permission grants which are assigned to all the user
 roles.
 
+By default when a new StackStorm user is created, this user has no roles assigned to it, meaning it
+doesn't have access to perform any API operation which is behind the RBAC wall.
+
 Role
 ~~~~
 
 Role contains a set of permissions (permission grants) which apply to the resources. Permission
 grants are usually grouped together in a role using a specific criteria (e.g. by project, location,
-team, etc).
+team, responsibility, etc.).
 
-Roles are assigned to the users. Each user can have multiple roles assigned to it.
+Roles are assigned to the users. Each user can have multiple roles assigned to it and each role can
+be assigned to multiple users.
+
+System roles
+------------
+
+System roles are roles which are available by default and can't be manipulated (modified and / or 
+deleted).
+
+Currently, the following system roles are available:
+
+* **System administrator** - Same as administrator, but this role is assigned to the first user in the
+  system and can't be revoked.
+* **Administrator** - All the permissions on all the resources.
+* **Observer** - ``view`` permission on all the resources.
 
 Permission grant
 ~~~~~~~~~~~~~~~~
@@ -61,6 +78,29 @@ The table below contains a list of all the available permission types.
 .. include:: _includes/available_permission_types.rst
 
 This list can also be retrieved using the RBAC meta API (``GET /v1.0/rbac/permission_types``).
+
+User permissions
+~~~~~~~~~~~~~~~~
+
+User permissions (also called effective user permission set) are represented as a union of all
+the permission grants which are assigned to the user roles.
+
+For example, if user has the following two roles assigned to it:
+
+.. literalinclude:: ../../st2tests/st2tests/fixtures/rbac/roles/role_five.yaml
+    :language: yaml
+
+.. literalinclude:: ../../st2tests/st2tests/fixtures/rbac/roles/role_six.yaml
+    :language: yaml
+
+The effective user permission set which is used during RBAC checks is:
+
+* ``action_execute`` on ``action:dummy_pack_1:my_action_1``
+* ``action_execute`` on ``action:dummy_pack_1:my_action_2``
+
+RBAC system uses a whitelist approach which means there is no possibility of a conflicting and
+contradictory permission grants in different roles (e.g. one role would grant a particular
+permission and other role would revoke it).
 
 Resource
 ~~~~~~~~
@@ -96,25 +136,12 @@ For example:
     |                         |                         |           |                         | remotely.               |
     +-------------------------+-------------------------+-----------+-------------------------+-------------------------+
 
-System roles
-------------
-
-System roles are roles which are available by default and can't be manipulated (modified and /
-or deleted).
-
-Currently, the following system roles are available:
-
-* System administrator - Same as administrator, but this role is assigned to the first user in the
-  system and can't be revoked.
-* Administrator - All the permissions on all the resources.
-* Observer - ``view`` permission on all the resources.
-
 How it works
 ------------
 
-User permissions are checked when a user performs an API request. If user has the necessary
-permissions the API operation proceeds normally, otherwise access denied error is returned and
-the error is logged in the audit log.
+User permissions are checked when a user performs an operation using the API. If user has the
+necessary permissions* the API operation proceeds normally, otherwise access denied error is
+returned and the error is logged in the audit log.
 
 Permission inheritance
 ~~~~~~~~~~~~~~~~~~~~~~
