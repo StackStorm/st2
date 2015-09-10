@@ -44,6 +44,14 @@ class ApiKeyController(RestController):
     Implements the REST endpoint for managing the key value store.
     """
 
+    supported_filters = {
+        'user': 'user'
+    }
+
+    query_options = {
+        'sort': ['user']
+    }
+
     def __init__(self):
         super(ApiKeyController, self).__init__()
         self.get_one_db_method = ApiKey.get_by_key_or_id

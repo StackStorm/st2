@@ -96,7 +96,8 @@ class ApiKeyListCommand(resource.ResourceListCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        filters = {'user': args.user}
+        filters = {}
+        filters['user'] = args.user
         filters.update(**kwargs)
         return self.manager.get_all(**filters)
 
@@ -108,10 +109,12 @@ class ApiKeyGetCommand(resource.ResourceGetCommand):
     pk_argument_name = 'key_or_id'  # name of the attribute which stores resource PK
 
 
-class ApiKeyCreateCommand(resource.ResourceCreateCommand):
+class ApiKeyCreateCommand(resource.ResourceCommand):
 
     def __init__(self, resource, *args, **kwargs):
-        super(ApiKeyCreateCommand, self).__init__(resource, *args, **kwargs)
+        super(ApiKeyCreateCommand, self).__init__(
+            resource, 'create', 'Create a new %s.' % resource.get_display_name().lower(),
+            *args, **kwargs)
 
         self.parser.add_argument('-u', '--user', type=str,
                                  help='User for which to create API Keys.',
