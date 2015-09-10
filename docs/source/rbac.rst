@@ -68,10 +68,17 @@ In general, there are five permission types available for each supported resourc
 In addition to that, there is also a special ``execute`` (``action_execute``) permission type
 available for actions. This permission allows users to execute (run) a particular action.
 
+Keep in mind that in StackStorm workflow is just an action so if you want someone to be able to
+execute a particular workflow, you simply need to grant them ``action_execute`` permission on that
+workflow.
+
 As described in the table below, ``create``, ``modify``, ``delete`` and ``execute`` permissions
 also implicitly grant corresponding ``view`` permission. This means that, for example, if you
 grant ``action_execute`` permission on a particular action, user will also be able to view and
 retrieve details for this particular action.
+
+Available permission types
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The table below contains a list of all the available permission types.
 
