@@ -46,7 +46,7 @@ class WebhookPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.resources['webhook_1'] = webhook_1_db
 
         # Create some mock roles with associated permission grants
-        # Custom role - "webhook_post" grant on webhook_1
+        # Custom role - "webhook_send" grant on webhook_1
         grant_db = PermissionGrantDB(resource_uid=self.resources['webhook_1'].get_uid(),
                                      resource_type=ResourceType.WEBHOOK,
                                      permission_types=[PermissionType.WEBHOOK_SEND])
@@ -78,7 +78,7 @@ class WebhookPermissionsResolverTestCase(BasePermissionsResolverTestCase):
             resource_db=resource_db,
             permission_types=all_permission_types))
 
-        # Custom role with "webhook_post" grant on webhook_1
+        # Custom role with "webhook_send" grant on webhook_1
         user_db = self.users['custom_role_webhook_grant']
         self.assertTrue(resolver.user_has_resource_permission(
             user_db=user_db,

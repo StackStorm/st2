@@ -66,7 +66,7 @@ class PermissionType(Enum):
     KEY_VALUE_DELETE = 'key_value_delete'
 
     WEBHOOK_CREATE = 'webhook_create'
-    WEBHOOK_SEND = 'webhook_post'
+    WEBHOOK_SEND = 'webhook_send'
     WEBHOOK_DELETE = 'webhook_delete'
     WEBHOOK_ALL = 'webhook_all'
 

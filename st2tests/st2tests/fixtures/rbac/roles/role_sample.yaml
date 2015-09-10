@@ -54,10 +54,10 @@
                - "rule_view"
                - "rule_modify"
         -
-            # Here we grant "webhook_post" to a webhook named "st2" (that's a generic webhook which exists
+            # Here we grant "webhook_send" to a webhook named "st2" (that's a generic webhook which exists
             # by default in every installation) allowing user to POST triggers to this particular webhook.
             # Keep in mind that the user needs to have "webhook_create" permissions on a particular webhook
             # if you want to allow user to create / register a new webhook via rule.
             resource_uid: "webhook:st2"
             permission_types:
-               - "webhook_post"
+               - "webhook_send"
