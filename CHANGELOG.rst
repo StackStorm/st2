@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.13.2 - TBD.
--------------
+0.13.2 - September 09, 2015
+---------------------------
 
 * Private_key supplied for remote_actions is now used to auth correctly. private_key argument
   should be the contents of private key file (of user specified in username argument). (bug-fix)
