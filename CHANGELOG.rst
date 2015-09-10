@@ -19,6 +19,8 @@ in development
 * Fix ``timestamp_lt`` and ``timestamp_gt`` filtering in the `/executions` API endpoint. Now we
   return a correct result which is expected from a user-perspective. (bug-fix)
 * Enable Mistral workflow cancellation via ``st2 execution cancel``. (improvement)
+* Make sure that alias execution endpoint returns a correct status code and error message if the
+  referenced action doesn't exist.
 
 0.13.2 - September 09, 2015
 ---------------------------
