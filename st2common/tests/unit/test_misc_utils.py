@@ -13,4 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = '0.13.2'
+import unittest2
+
+from st2common.util.misc import strip_last_newline_char
+
+
+class MiscUtilTestCase(unittest2.TestCase):
+
+    def test_strip_last_newline_char(self):
+        self.assertEqual(strip_last_newline_char(None), None)
+        self.assertEqual(strip_last_newline_char(''), '')
+        self.assertEqual(strip_last_newline_char('foo'), 'foo')
+        self.assertEqual(strip_last_newline_char('foo\n'), 'foo')
+        self.assertEqual(strip_last_newline_char('foo\n\n'), 'foo\n')

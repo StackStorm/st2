@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
 import sys
 import traceback
@@ -21,6 +22,7 @@ import eventlet
 
 from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
 from st2common import log as logging
+from st2common.exceptions.ssh import NoHostsConnectedToException
 import st2common.util.jsonify as jsonify
 from st2common.util import ip_utils
 
@@ -31,12 +33,14 @@ class ParallelSSHClient(object):
     KEYS_TO_TRANSFORM = ['stdout', 'stderr']
     CONNECT_ERROR = 'Cannot connect to host.'
 
-    def __init__(self, hosts, user=None, password=None, pkey=None, port=22, concurrency=10,
-                 raise_on_error=False, connect=True):
+    def __init__(self, hosts, user=None, password=None, pkey_file=None, pkey_material=None, port=22,
+                 concurrency=10, raise_on_any_error=False, connect=True):
         self._ssh_user = user
-        self._ssh_key = pkey
+        self._ssh_key_file = pkey_file
+        self._ssh_key_material = pkey_material
         self._ssh_password = password
         self._hosts = hosts
+        self._successful_connects = 0
         self._ssh_port = port
 
         if not hosts:
@@ -48,17 +52,17 @@ class ParallelSSHClient(object):
         self._scan_interval = 0.1
 
         if connect:
-            connect_results = self.connect(raise_on_error=raise_on_error)
+            connect_results = self.connect(raise_on_any_error=raise_on_any_error)
             extra = {'_connect_results': connect_results}
             LOG.debug('Connect to hosts complete.', extra=extra)
 
-    def connect(self, raise_on_error=False):
+    def connect(self, raise_on_any_error=False):
         """
         Connect to hosts in hosts list. Returns status of connect as a dict.
 
-        :param raise_on_error: Optional Raise an exception even if connecting to one
-                               of the hosts fails.
-        :type raise_on_error: ``boolean``
+        :param raise_on_any_error: Optional Raise an exception even if connecting to one
+                                   of the hosts fails.
+        :type raise_on_any_error: ``boolean``
 
         :rtype: ``dict`` of ``str`` to ``dict``
         """
@@ -68,9 +72,18 @@ class ParallelSSHClient(object):
             while not self._pool.free():
                 eventlet.sleep(self._scan_interval)
             self._pool.spawn(self._connect, host=host, results=results,
-                             raise_on_error=raise_on_error)
+                             raise_on_any_error=raise_on_any_error)
 
         self._pool.waitall()
+
+        if self._successful_connects < 1:
+            # We definitely have to raise an exception in this case.
+            LOG.error('Unable to connect to any of the hosts.',
+                      extra={'connect_results': results})
+            msg = ('Unable to connect to any one of the hosts: %s.\n\n connect_errors=%s' %
+                   (self._hosts, json.dumps(results, indent=2)))
+            raise NoHostsConnectedToException(msg)
+
         return results
 
     def run(self, cmd, timeout=None, cwd=None):
@@ -204,32 +217,38 @@ class ParallelSSHClient(object):
         self._pool.waitall()
         return results
 
-    def _connect(self, host, results, raise_on_error=False):
+    def _connect(self, host, results, raise_on_any_error=False):
         (hostname, port) = self._get_host_port_info(host)
 
-        extra = {'_host': host, '_port': port, '_user': self._ssh_user}
-        if not self._ssh_password:
-            extra['_key'] = self._ssh_key
+        extra = {'host': host, 'port': port, 'user': self._ssh_user}
+        if self._ssh_password:
+            extra['password'] = '<redacted>'
+        elif self._ssh_key_file:
+            extra['key_file_path'] = self._ssh_key_file
         else:
-            extra['_password'] = '<redacted>'
+            extra['private_key'] = '<redacted>'
+
         LOG.debug('Connecting to host.', extra=extra)
 
         client = ParamikoSSHClient(hostname, username=self._ssh_user,
                                    password=self._ssh_password,
-                                   key=self._ssh_key, port=port)
+                                   key=self._ssh_key_file,
+                                   key_material=self._ssh_key_material,
+                                   port=port)
         try:
             client.connect()
         except:
             error = 'Failed connecting to host %s.' % hostname
             LOG.exception(error)
             _, ex, tb = sys.exc_info()
-            if raise_on_error:
+            if raise_on_any_error:
                 raise
             error = ' '.join([self.CONNECT_ERROR, str(ex)])
             error_dict = self._generate_error_result(error, tb)
             self._bad_hosts[hostname] = error_dict
             results[hostname] = error_dict
         else:
+            self._successful_connects += 1
             self._hosts_client[hostname] = client
             results[hostname] = {'message': 'Connected to host.'}
 

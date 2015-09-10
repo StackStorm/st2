@@ -13,4 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = '0.13.2'
+__all__ = [
+    'InvalidCredentialsException'
+]
+
+
+class InvalidCredentialsException(Exception):
+    pass
+
+
+class NoHostsConnectedToException(Exception):
+    pass

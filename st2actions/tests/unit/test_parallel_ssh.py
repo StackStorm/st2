@@ -71,7 +71,7 @@ class ParallelSSHTests(unittest2.TestCase):
         hosts = ['localhost', '127.0.0.1', 'st2build001']
         client = ParallelSSHClient(hosts=hosts,
                                    user='ubuntu',
-                                   pkey='~/.ssh/id_rsa',
+                                   pkey_file='~/.ssh/id_rsa',
                                    connect=False)
         client.connect()
         expected_conn = {
@@ -93,7 +93,7 @@ class ParallelSSHTests(unittest2.TestCase):
         hosts = ['localhost', '127.0.0.1', 'st2build001']
         client = ParallelSSHClient(hosts=hosts,
                                    user='ubuntu',
-                                   pkey='~/.ssh/id_rsa',
+                                   pkey_file='~/.ssh/id_rsa',
                                    connect=True)
         client.run('pwd', timeout=60)
         expected_kwargs = {
@@ -110,7 +110,7 @@ class ParallelSSHTests(unittest2.TestCase):
         hosts = ['localhost', '127.0.0.1', 'st2build001']
         client = ParallelSSHClient(hosts=hosts,
                                    user='ubuntu',
-                                   pkey='~/.ssh/id_rsa',
+                                   pkey_file='~/.ssh/id_rsa',
                                    connect=True)
         client.put('/local/stuff', '/remote/stuff', mode=0744)
         expected_kwargs = {
@@ -128,7 +128,7 @@ class ParallelSSHTests(unittest2.TestCase):
         hosts = ['localhost', '127.0.0.1', 'st2build001']
         client = ParallelSSHClient(hosts=hosts,
                                    user='ubuntu',
-                                   pkey='~/.ssh/id_rsa',
+                                   pkey_file='~/.ssh/id_rsa',
                                    connect=True)
         client.delete_file('/remote/stuff')
         for host in hosts:
@@ -141,7 +141,7 @@ class ParallelSSHTests(unittest2.TestCase):
         hosts = ['localhost', '127.0.0.1', 'st2build001']
         client = ParallelSSHClient(hosts=hosts,
                                    user='ubuntu',
-                                   pkey='~/.ssh/id_rsa',
+                                   pkey_file='~/.ssh/id_rsa',
                                    connect=True)
         client.delete_dir('/remote/stuff/', force=True)
         expected_kwargs = {
@@ -157,7 +157,7 @@ class ParallelSSHTests(unittest2.TestCase):
     def test_host_port_info(self):
         client = ParallelSSHClient(hosts=['dummy'],
                                    user='ubuntu',
-                                   pkey='~/.ssh/id_rsa',
+                                   pkey_file='~/.ssh/id_rsa',
                                    connect=True)
         # No port case. Port should be 22.
         host_str = '1.2.3.4'
