@@ -157,3 +157,26 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
 
         expected_msg = 'Role assignment file .+? is empty and invalid'
         self.assertRaisesRegexp(ValueError, expected_msg, loader.load_user_role_assignments)
+
+    def test_load_sample_role_definition(self):
+        """
+        Validate that the sample role definition which we ship with default installation works.
+        """
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac/roles/role_sample.yaml')
+        role_api = loader.load_role_definition_from_file(file_path=file_path)
+        self.assertEqual(role_api.name, 'sample')
+        self.assertFalse(role_api.enabled)
+
+    def test_load_sample_user_role_assignment_definition(self):
+        """
+        Validate that the sample user role assignment definition which we ship with default
+        installation works.
+        """
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac/assignments/user_sample.yaml')
+        assignment_api = loader.load_user_role_assignments_from_file(file_path=file_path)
+        self.assertEqual(assignment_api.username, 'stackstorm_user')
+        self.assertFalse(assignment_api.enabled)
