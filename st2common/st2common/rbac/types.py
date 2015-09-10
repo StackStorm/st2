@@ -66,7 +66,7 @@ class PermissionType(Enum):
     KEY_VALUE_DELETE = 'key_value_delete'
 
     WEBHOOK_CREATE = 'webhook_create'
-    WEBHOOK_POST = 'webhook_post'
+    WEBHOOK_SEND = 'webhook_post'
     WEBHOOK_DELETE = 'webhook_delete'
     WEBHOOK_ALL = 'webhook_all'
 
@@ -208,7 +208,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
     ],
     ResourceType.WEBHOOK: [
         PermissionType.WEBHOOK_CREATE,
-        PermissionType.WEBHOOK_POST,
+        PermissionType.WEBHOOK_SEND,
         PermissionType.WEBHOOK_DELETE,
         PermissionType.WEBHOOK_ALL
     ]
@@ -257,7 +257,7 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
                               'rule.'),
 
     PermissionType.WEBHOOK_CREATE: ('Ability to create a new webhook.'),
-    PermissionType.WEBHOOK_POST: ('Ability to send / POST data for an existing webhook.'),
+    PermissionType.WEBHOOK_SEND: ('Ability to send / POST data to an existing webhook.'),
     PermissionType.WEBHOOK_DELETE: ('Ability to delete an existing webhook.'),
     PermissionType.WEBHOOK_ALL: ('Ability to perform all the supported operations on a particular '
                               'webhook.')

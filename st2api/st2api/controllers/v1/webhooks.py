@@ -74,7 +74,7 @@ class WebhooksController(RestController):
 
         return hook
 
-    @request_user_has_webhook_permission(permission_type=PermissionType.WEBHOOK_POST)
+    @request_user_has_webhook_permission(permission_type=PermissionType.WEBHOOK_SEND)
     @jsexpose(arg_types=[str], status_code=http_client.ACCEPTED)
     def post(self, *args, **kwargs):
         hook = '/'.join(args)  # TODO: There must be a better way to do this.
