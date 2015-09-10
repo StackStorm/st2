@@ -189,6 +189,10 @@ class Shell(object):
         self.commands['auth'] = auth.TokenCreateCommand(
             models.Token, self, self.subparsers, name='auth')
 
+        self.commands['api-key'] = auth.ApiKeyBranch(
+            'API Keys.',
+            self, self.subparsers)
+
         self.commands['execution'] = action.ActionExecutionBranch(
             'An invocation of an action.',
             self, self.subparsers)
