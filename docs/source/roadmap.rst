@@ -15,7 +15,7 @@ StackStorm is new and under active development. We are opening it early to engag
 * **Bugs and smaller improvements**
 * **Documentation:** generate REST API docs.
 * **More integration packs:** push more content to the community to help work with most common and widely used tool. Tell us if there is tool you love and think we should integrate with or better yet write a pack yourself.
-* **Various RBAC improvements** - ability to assign permissions on key value objects, ability to assign permissions on arbitrary triggers.
+* **Various RBAC improvements** - ability to assign permissions on key value objects, ability to assign permissions on arbitrary triggers, support for a default role which is assigned to new users.
 * **Advanced RBAC functionality** - ability to grant permissions on tags, RBAC for ChatOps.
 * **Support for RBAC in the UI** - ability to manage and visualize RBAC assignments in the WebUI.
 
