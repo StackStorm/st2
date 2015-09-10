@@ -16,11 +16,11 @@
 import hashlib
 
 
-FIXED_SALT = 'saltnpeper'
+FIXED_SALT = 'saltnpepper'
 
 
-def hash(value):
+def hash(value, salt=FIXED_SALT):
     sha512 = hashlib.sha512()
-    sha512.update(FIXED_SALT)
+    sha512.update(salt)
     sha512.update(value)
     return sha512.hexdigest()
