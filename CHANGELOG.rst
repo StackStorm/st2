@@ -26,6 +26,20 @@ in development
   easier since user simply needs to start sensor container with ``--debug`` flag and all the sensor
   logs with level debug or higher will be routed to the container log. (improvement)
 
+0.13.2 - September 09, 2015
+---------------------------
+
+* Private_key supplied for remote_actions is now used to auth correctly. private_key
+  argument should be the contents of private key file (of user specified in username
+  argument). (bug-fix)
+* Last newline character ('\n') is now stripped from ``stdout`` and ``stderr`` fields in
+  local and remote command/shell runners. (improvement)
+* Fix sensor container service so the ``config`` argument is correctly passed to the sensor
+  instances in the system packs. Previously, this argument didn't get passed correctly to
+  the FileWatchSensor from the system linux pack. (bug-fix)
+* Make sure sensor processes correctly pick up parent ``--debug`` flag. This makes
+  debugging a lot easier since user simply needs to start sensor container with ``--debug``flag and all the sensor logs with level debug or higher will be routed to the container log. (improvement)
+
 0.13.1 - August 28, 2015
 ------------------------
 
