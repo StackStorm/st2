@@ -60,6 +60,7 @@ class ApiKeyDB(stormbase.StormFoundationDB):
 
     meta = {
         'indexes': [
+            {'fields': ['user']},
             {'fields': ['key']}
         ]
     }
