@@ -24,6 +24,7 @@ from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import date as date_utils
+from st2common.models.utils import action_param_utils
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
@@ -333,6 +334,12 @@ class ParamsUtilsTest(DbTestCase):
                                 action_context={},
                                 runnertype_parameter_info={},
                                 action_parameter_info={})
+
+    def test_cast_param_referenced_action_doesnt_exist(self):
+        # Make sure the function throws if the action doesnt exist
+        expected_msg = 'Action with ref "foo.doesntexist" doesn\'t exist'
+        self.assertRaisesRegexp(ValueError, expected_msg, action_param_utils.cast_params,
+                                action_ref='foo.doesntexist', params={})
 
     def _get_liveaction_model(self, params):
         status = 'initializing'

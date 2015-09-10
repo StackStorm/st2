@@ -83,6 +83,10 @@ def cast_params(action_ref, params, cast_overrides=None):
     """
     """
     action_db = action_db_util.get_action_by_ref(action_ref)
+
+    if not action_db:
+        raise ValueError('Action with ref "%s" doesn\'t exist' % (action_ref))
+
     action_parameters_schema = action_db.parameters
     runnertype_db = action_db_util.get_runnertype_by_name(action_db.runner_type['name'])
     runner_parameters_schema = runnertype_db.runner_parameters
