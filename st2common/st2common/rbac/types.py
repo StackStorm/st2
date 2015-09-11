@@ -145,6 +145,7 @@ class ResourceType(Enum):
     EXECUTION = SystemResourceType.EXECUTION
     KEY_VALUE_PAIR = SystemResourceType.KEY_VALUE_PAIR
     WEBHOOK = SystemResourceType.WEBHOOK
+    API_KEY = SystemResourceType.API_KEY
 
 
 class SystemRole(Enum):
