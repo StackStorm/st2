@@ -33,8 +33,7 @@ class GunicornWSGIEntryPointTestCase(unittest2.TestCase):
         port = random.randint(10000, 30000)
         config_path = os.path.join(BASE_DIR, '../../../st2api/st2api/gunicorn_config.py')
         st2_config_path = os.path.join(BASE_DIR, '../../../conf/st2.dev.conf')
-        cmd = ('gunicorn_pecan %s -k eventlet -w 1 -b 127.0.0.1:%s' %
-                (config_path, port))
+        cmd = ('gunicorn_pecan %s -k eventlet -w 1 -b 127.0.0.1:%s' % (config_path, port))
         env = os.environ.copy()
         env['ST2_CONFIG_PATH'] = st2_config_path
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env,
@@ -49,8 +48,7 @@ class GunicornWSGIEntryPointTestCase(unittest2.TestCase):
         port = random.randint(10000, 30000)
         config_path = os.path.join(BASE_DIR, '../../../st2auth/st2auth/gunicorn_config.py')
         st2_config_path = os.path.join(BASE_DIR, '../../../conf/st2.dev.conf')
-        cmd = ('gunicorn_pecan %s -k eventlet -w 1 -b 127.0.0.1:%s' %
-                (config_path, port))
+        cmd = ('gunicorn_pecan %s -k eventlet -w 1 -b 127.0.0.1:%s' % (config_path, port))
         env = os.environ.copy()
         env['ST2_CONFIG_PATH'] = st2_config_path
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env,
