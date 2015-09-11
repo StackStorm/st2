@@ -54,6 +54,7 @@ class UserRoleAssignmentDB(stormbase.StormFoundationDB):
     Attribute:
         user: A reference to the user name to which the role is assigned.
         role: A reference to the role name which is assigned to the user.
+        description: Optional assigment description.
     """
     user = me.StringField(required=True)
     role = me.StringField(required=True, unique_with='user')

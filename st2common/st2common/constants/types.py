@@ -36,4 +36,5 @@ class ResourceType(Enum):
     EXECUTION = 'execution'
     KEY_VALUE_PAIR = 'key_value_pair'
 
+    WEBHOOK = 'webhook'
     UNKNOWN = 'unknown'

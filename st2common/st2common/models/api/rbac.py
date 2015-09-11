@@ -86,6 +86,12 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                 'description': 'Role description',
                 'required': False
             },
+            'enabled': {
+                'type': 'boolean',
+                'description': ('Flag indicating if this role is enabled. Note: Disabled roles '
+                                'are simply ignored when loading definitions from disk.'),
+                'default': True
+            },
             'permission_grants': {
                 'type': 'array',
                 'items': {
@@ -153,7 +159,15 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
             'description': {
                 'type': 'string',
                 'description': 'Assignment description',
-                'required': False
+                'required': False,
+                'default': None
+            },
+            'enabled': {
+                'type': 'boolean',
+                'description': ('Flag indicating if this assignment is enabled. Note: Disabled '
+                                'assignments are simply ignored when loading definitions from '
+                                ' disk.'),
+                'default': True
             },
             'roles': {
                 'type': 'array',
@@ -168,19 +182,17 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
         'additionalProperties': False
     }
 
-    def validate(self):
+    def validate(self, validate_role_exists=False):
         # Parent JSON schema validation
         super(UserRoleAssignmentFileFormatAPI, self).validate()
 
         # Custom validation
-        # TODO: Add an argument for validating role db existance
-        return
+        if validate_role_exists:
+            # Validate that the referenced roles exist in the db
+            role_dbs = get_all_roles()
+            role_names = [role_db.name for role_db in role_dbs]
+            roles = self.roles
 
-        # Validate that the referenced roles exist in the db
-        role_dbs = get_all_roles()
-        role_names = [role_db.name for role_db in role_dbs]
-        roles = self.roles
-
-        for role in roles:
-            if role not in role_names:
-                raise ValueError('Role "%s" doesn\'t exist in the database' % (role))
+            for role in roles:
+                if role not in role_names:
+                    raise ValueError('Role "%s" doesn\'t exist in the database' % (role))

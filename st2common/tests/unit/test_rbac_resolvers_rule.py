@@ -54,6 +54,10 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
         user_4_db = User.add_or_update(user_4_db)
         self.users['custom_role_rule_all_grant'] = user_4_db
 
+        user_5_db = UserDB(name='custom_role_rule_modify_grant')
+        user_5_db = User.add_or_update(user_5_db)
+        self.users['custom_role_rule_modify_grant'] = user_5_db
+
         # Create some mock resources on which permissions can be granted
         rule_1_db = RuleDB(pack='test_pack_1', name='rule1')
         rule_1_db = Rule.add_or_update(rule_1_db)
@@ -91,7 +95,7 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
         role_4_db = Role.add_or_update(role_4_db)
         self.roles['custom_role_rule_grant'] = role_4_db
 
-        # Custom role - "rule_all" grant on a parent ruke pack
+        # Custom role - "rule_all" grant on a parent rule pack
         grant_db = PermissionGrantDB(resource_uid=self.resources['pack_1'].get_uid(),
                                      resource_type=ResourceType.PACK,
                                      permission_types=[PermissionType.RULE_ALL])
@@ -102,7 +106,7 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
         role_4_db = Role.add_or_update(role_4_db)
         self.roles['custom_role_pack_rule_all_grant'] = role_4_db
 
-        # Custom role - "rule_all" grant on a sensor
+        # Custom role - "rule_all" grant on a rule
         grant_db = PermissionGrantDB(resource_uid=self.resources['rule_1'].get_uid(),
                                      resource_type=ResourceType.RULE,
                                      permission_types=[PermissionType.RULE_ALL])
@@ -111,6 +115,17 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
         role_4_db = RoleDB(name='custom_role_rule_all_grant', permission_grants=permission_grants)
         role_4_db = Role.add_or_update(role_4_db)
         self.roles['custom_role_rule_all_grant'] = role_4_db
+
+        # Custom role - "rule_modify" on role_1
+        grant_db = PermissionGrantDB(resource_uid=self.resources['rule_1'].get_uid(),
+                                     resource_type=ResourceType.RULE,
+                                     permission_types=[PermissionType.RULE_MODIFY])
+        grant_db = PermissionGrant.add_or_update(grant_db)
+        permission_grants = [str(grant_db.id)]
+        role_5_db = RoleDB(name='custom_role_rule_modify_grant',
+                           permission_grants=permission_grants)
+        role_5_db = Role.add_or_update(role_5_db)
+        self.roles['custom_role_rule_modify_grant'] = role_5_db
 
         # Create some mock role assignments
         user_db = self.users['custom_role_rule_pack_grant']
@@ -134,6 +149,12 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
         role_assignment_db = UserRoleAssignmentDB(
             user=user_db.name,
             role=self.roles['custom_role_rule_all_grant'].name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+        user_db = self.users['custom_role_rule_modify_grant']
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_db.name,
+            role=self.roles['custom_role_rule_modify_grant'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_user_has_resource_permissions(self):
@@ -258,3 +279,27 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
             user_db=user_db,
             resource_db=resource_db,
             permission_types=all_permission_types))
+
+        # Custom role - "rule_modify" grant on rule_1
+        user_db = self.users['custom_role_rule_modify_grant']
+        resource_db = self.resources['rule_1']
+        self.assertTrue(resolver.user_has_resource_permission(
+            user_db=user_db,
+            resource_db=resource_db,
+            permission_type=PermissionType.RULE_MODIFY))
+
+        # "modify" also grants "view"
+        self.assertTrue(resolver.user_has_resource_permission(
+            user_db=user_db,
+            resource_db=resource_db,
+            permission_type=PermissionType.RULE_VIEW))
+
+        permission_types = [
+            PermissionType.RULE_CREATE,
+            PermissionType.RULE_DELETE
+        ]
+        self.assertFalse(self._user_has_resource_permissions(
+            resolver=resolver,
+            user_db=user_db,
+            resource_db=resource_db,
+            permission_types=permission_types))

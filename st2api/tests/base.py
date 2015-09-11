@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
+import pecan
 from pecan import load_app
 from pecan.testing import load_test_app
 from oslo_config import cfg
@@ -26,13 +28,21 @@ import st2tests.config as tests_config
 
 
 class FunctionalTest(DbTestCase):
+    """
+    Base test case class for testing API controllers with auth and RBAC disabled.
+    """
 
     @classmethod
     def setUpClass(cls):
         super(FunctionalTest, cls).setUpClass()
 
         tests_config.parse_args()
+
+        # Make sure auth is disabled
         cfg.CONF.set_default('enable', False, group='auth')
+
+        # Make sure RBAC is disabled
+        cfg.CONF.set_override(name='enable', override=False, group='rbac')
 
         opts = cfg.CONF.api_pecan
         cfg_dict = {
@@ -51,6 +61,30 @@ class FunctionalTest(DbTestCase):
         runners_registrar.register_runner_types()
 
         cls.app = load_test_app(config=cfg_dict)
+
+
+class APIControllerWithRBACTestCase(FunctionalTest):
+    """
+    Base test case class for testing API controllers with RBAC enabled.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super(APIControllerWithRBACTestCase, cls).setUpClass()
+
+        # Make sure RBAC is enabeld
+        cfg.CONF.set_override(name='enable', override=True, group='rbac')
+
+    def use_user(self, user_db):
+        """
+        Select a user which is to be used by the HTTP request following this call.
+        """
+        mock_context = {
+            'auth': {
+                'user': user_db
+            }
+        }
+        type(pecan.request).context = mock.PropertyMock(return_value=mock_context)
 
 
 class AuthMiddlewareTest(DbTestCase):

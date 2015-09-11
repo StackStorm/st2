@@ -141,7 +141,8 @@ class RBACDefinitionsDBSyncer(object):
                                                 description=role_api.description)
 
             # Create associated permission grants
-            for permission_grant in role_api.permission_grants:
+            permission_grants = getattr(role_api, 'permission_grants', [])
+            for permission_grant in permission_grants:
                 resource_uid = permission_grant['resource_uid']
                 resource_type, _ = parse_uid(resource_uid)
                 permission_types = permission_grant['permission_types']
@@ -173,14 +174,19 @@ class RBACDefinitionsDBSyncer(object):
         """
         LOG.info('Synchronizing users role assignments...')
 
-        username_to_role_assignment_map = dict([(api.username, api) for api in
-                                                role_assignment_apis])
         user_dbs = User.get_all()
+        username_to_user_db_map = dict([(user_db.name, user_db) for user_db in user_dbs])
 
         results = {}
-        for user_db in user_dbs:
-            username = user_db.name
-            role_assignment_api = username_to_role_assignment_map.get(username, None)
+        for role_assignment_api in role_assignment_apis:
+            username = role_assignment_api.username
+            user_db = username_to_user_db_map.get(username, None)
+
+            if not user_db:
+                LOG.debug(('Skipping role assignments for user "%s" which doesn\'t exist in the '
+                           'database' % (username)))
+                continue
+
             role_assignment_dbs = rbac_services.get_role_assignments_for_user(user_db=user_db)
 
             result = self._sync_user_role_assignments(user_db=user_db,
@@ -240,7 +246,12 @@ class RBACDefinitionsDBSyncer(object):
 
         created_role_assignment_dbs = []
         for role_db in role_dbs_to_assign:
-            assignment_db = rbac_services.assign_role_to_user(role_db=role_db, user_db=user_db)
+            if role_db.name in role_assignment_api.roles:
+                description = getattr(role_assignment_api, 'description', None)
+            else:
+                description = None
+            assignment_db = rbac_services.assign_role_to_user(role_db=role_db, user_db=user_db,
+                                                              description=description)
             created_role_assignment_dbs.append(assignment_db)
 
         LOG.debug('Created %s new assignments for user "%s"' % (len(role_dbs_to_assign),

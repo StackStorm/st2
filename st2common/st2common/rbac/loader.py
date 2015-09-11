@@ -74,9 +74,14 @@ class RBACDefinitionsLoader(object):
             LOG.debug('Loading role definition from: %s' % (file_path))
             role_definition_api = self.load_role_definition_from_file(file_path=file_path)
             role_name = role_definition_api.name
+            enabled = getattr(role_definition_api, 'enabled', True)
 
             if role_name in result:
                 raise ValueError('Duplicate definition file found for role "%s"' % (role_name))
+
+            if not enabled:
+                LOG.debug('Skipping disabled role "%s"' % (role_name))
+                continue
 
             result[role_name] = role_definition_api
 
@@ -96,9 +101,14 @@ class RBACDefinitionsLoader(object):
             LOG.debug('Loading user role assignments from: %s' % (file_path))
             role_assignment_api = self.load_user_role_assignments_from_file(file_path=file_path)
             username = role_assignment_api.username
+            enabled = getattr(role_assignment_api, 'enabled', True)
 
             if username in result:
                 raise ValueError('Duplicate definition file found for user "%s"' % (username))
+
+            if not enabled:
+                LOG.debug('Skipping disabled role assignment for user "%s"' % (username))
+                continue
 
             result[username] = role_assignment_api
 
@@ -116,6 +126,10 @@ class RBACDefinitionsLoader(object):
         """
         content = self._meta_loader.load(file_path)
 
+        if not content:
+            msg = ('Role definition file "%s" is empty and invalid' % file_path)
+            raise ValueError(msg)
+
         role_definition_api = RoleDefinitionFileFormatAPI(**content)
         role_definition_api.validate()
 
@@ -132,6 +146,10 @@ class RBACDefinitionsLoader(object):
         :rtype: :class:`UserRoleAssignmentFileFormatAPI`
         """
         content = self._meta_loader.load(file_path)
+
+        if not content:
+            msg = ('Role assignment file "%s" is empty and invalid' % file_path)
+            raise ValueError(msg)
 
         user_role_assignment_api = UserRoleAssignmentFileFormatAPI(**content)
         user_role_assignment_api.validate()

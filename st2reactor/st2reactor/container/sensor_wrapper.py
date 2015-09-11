@@ -24,6 +24,7 @@ from oslo_config import cfg
 from st2client.client import Client
 
 from st2common import log as logging
+from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.models.api.trace import TraceContext
 from st2common.models.db import db_setup
 from st2common.transport.reactor import TriggerDispatcher
@@ -32,7 +33,6 @@ from st2common.util.config_parser import ContentPackConfigParser
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2reactor.sensor.base import Sensor, PollingSensor
 from st2reactor.sensor import config
-from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2client.models.keyvalue import KeyValuePair
@@ -71,6 +71,7 @@ class SensorService(object):
         logger_name = '%s.%s' % (self._sensor_wrapper._logger.name, name)
         logger = logging.getLogger(logger_name)
         logger.propagate = True
+
         return logger
 
     def dispatch(self, trigger, payload=None, trace_tag=None):
@@ -334,6 +335,9 @@ class SensorWrapper(object):
                                          (self._class_name))
         logging.setup(cfg.CONF.sensorcontainer.logging)
 
+        if '--debug' in parent_args:
+            set_log_level_for_all_loggers()
+
         self._sensor_instance = self._get_sensor_instance()
 
     def run(self):
@@ -422,18 +426,16 @@ class SensorWrapper(object):
         sensor_class_kwargs['sensor_service'] = SensorService(sensor_wrapper=self)
 
         sensor_config = self._get_sensor_config()
-
-        if self._pack not in SYSTEM_PACK_NAMES:
-            sensor_class_kwargs['config'] = sensor_config
+        sensor_class_kwargs['config'] = sensor_config
 
         if self._poll_interval and issubclass(sensor_class, PollingSensor):
             sensor_class_kwargs['poll_interval'] = self._poll_interval
 
         try:
             sensor_instance = sensor_class(**sensor_class_kwargs)
-        except Exception as e:
-            raise Exception('Failed to instantiate "%s" sensor class: %s' %
-                            (self._class_name, str(e)))
+        except Exception:
+            self._logger.exception('Failed to instantiate "%s" sensor class' % (self._class_name))
+            raise Exception('Failed to instantiate "%s" sensor class' % (self._class_name))
 
         return sensor_instance
 
