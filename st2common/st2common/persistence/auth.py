@@ -17,7 +17,7 @@ from st2common.exceptions.auth import TokenNotFoundError, ApiKeyNotFoundError
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
 from st2common.persistence.base import Access
-from st2common.utils import hash as hash_utils
+from st2common.util import hash as hash_utils
 
 
 class User(Access):
