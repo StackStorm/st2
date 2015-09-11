@@ -31,10 +31,20 @@ from st2common.content.utils import get_pack_file_abs_path
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_resource_permission
 
+__all__ = [
+    'FilesController',
+    'FileController'
+]
+
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
+
 BOM_LEN = len(codecs.BOM_UTF8)
+
+# Maximum file size in bytes. If the file on disk is larger then this value, we don't include it
+# in the response. This prevents DDoS / exhaustion attacks.
+MAX_FILE_SIZE = (500 * 1000)
 
 
 class BaseFileController(BasePacksController):
@@ -47,6 +57,14 @@ class BaseFileController(BasePacksController):
     @jsexpose()
     def get_all(self, **kwargs):
         return abort(404)
+
+    def _get_file_size(self, file_path):
+        try:
+            size = os.path.getsize(file_path)
+        except OSError:
+            size = None
+
+        return size
 
     def _get_file_content(self, file_path):
         with codecs.open(file_path, 'r+b') as fp:
@@ -93,9 +111,14 @@ class FilesController(BaseFileController):
         result = []
         for file_path in pack_files:
             normalized_file_path = get_pack_file_abs_path(pack_name=pack_name, file_path=file_path)
-
             if not normalized_file_path or not os.path.isfile(normalized_file_path):
                 # Ignore references to files which don't exist on disk
+                continue
+
+            file_size = self._get_file_size(file_path=normalized_file_path)
+            if file_size is not None and file_size > MAX_FILE_SIZE:
+                LOG.debug('Skipping file "%s" which size exceeds max file size (%s bytes)' %
+                          (normalized_file_path, MAX_FILE_SIZE))
                 continue
 
             content = self._get_file_content(file_path=normalized_file_path)
@@ -152,10 +175,15 @@ class FileController(BaseFileController):
         pack_name = pack_db.name
 
         normalized_file_path = get_pack_file_abs_path(pack_name=pack_name, file_path=file_path)
-
         if not normalized_file_path or not os.path.isfile(normalized_file_path):
             # Ignore references to files which don't exist on disk
             raise StackStormDBObjectNotFoundError('File "%s" not found' % (file_path))
+
+        file_size = self._get_file_size(file_path=normalized_file_path)
+        if file_size is not None and file_size > MAX_FILE_SIZE:
+            msg = ('File %s exceeds maximum allowed file size (%s bytes)' %
+                   (file_path, MAX_FILE_SIZE))
+            raise ValueError(msg)
 
         content_type = mimetypes.guess_type(normalized_file_path)[0] or 'application/octet-stream'
 
