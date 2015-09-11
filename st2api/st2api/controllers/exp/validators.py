@@ -13,17 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2api.controllers.exp.actionalias import ActionAliasController
-from st2api.controllers.exp.aliasexecution import ActionAliasExecutionController
-from st2api.controllers.exp.validators import ValidationController
+import pecan
+
+from st2common import log as logging
+from st2common.util import jsonify
+from st2common.validators.workflow.mistral import v2 as mistral_validation_utils
 
 
-class RootController(object):
+LOG = logging.getLogger(__name__)
 
-    # Here for backward compatibility reasons
-    # Deprecated. Use /v1/ instead.
-    actionalias = ActionAliasController()
-    aliasexecution = ActionAliasExecutionController()
 
-    # Experimental
-    validators = ValidationController()
+class MistralValidationController(pecan.rest.RestController):
+
+    def __init__(self):
+        super(MistralValidationController, self).__init__()
+        self.validator = mistral_validation_utils.get_validator()
+
+    @pecan.expose(content_type='application/json')
+    def post(self):
+        def_yaml = pecan.request.text
+        result = self.validator.validate(def_yaml)
+        return jsonify.json_encode(result)
+
+
+class ValidationController(pecan.rest.RestController):
+    mistral = MistralValidationController()
