@@ -530,7 +530,7 @@ setup_rabbitmq() {
 
 setup_mongodb_systemd() {
   # Enable and start MongoDB
-  if ([[ "${DISTRO_NAME}" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]]) && [[ $DISTRO_VERSION =~ 7\.[0-9] ]]
+  if ([[ "${DISTRO_NAME}" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]] || [[ "${DISTRO_NAME}" == "Scientific Linux" ]]) && [[ $DISTRO_VERSION =~ 7\.[0-9] ]]
   then
     systemctl enable mongod
     systemctl start mongod
@@ -552,7 +552,7 @@ setup_postgresql() {
   if [[ "$TYPE" == "rpms" ]]; then
     echo "Configuring PostgreSQL..."
 
-    if (([[ "${DISTRO_NAME}" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]]) && [[ $DISTRO_VERSION =~ 7\.[0-9] ]]) || [[ "${DISTRO_NAME}" == "Fedora" ]]
+    if (([[ "${DISTRO_NAME}" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]] || [[ "${DISTRO_NAME}" == "Scientific Linux" ]]) && [[ $DISTRO_VERSION =~ 7\.[0-9] ]]) || [[ "${DISTRO_NAME}" == "Fedora" ]]
     then
       systemctl enable postgresql
       if postgresql-setup initdb
