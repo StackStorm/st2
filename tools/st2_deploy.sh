@@ -358,7 +358,7 @@ echo "# Detected Distro is ${DISTRO_NAME} ${DISTRO_VERSION}"
 if [[ "${DISTRO_NAME}" == "Ubuntu" ]]; then
   TYPE="debs"
   PYTHONPACK="/usr/lib/python2.7/dist-packages"
-elif [[ "${DISTRO_NAME}" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "Fedora" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]]; then
+elif [[ "${DISTRO_NAME}" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "Fedora" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]] || [[ "${DISTRO_NAME}" == "Scientific Linux" ]]; then
   TYPE="rpms"
   PYTHONPACK="/usr/lib/python2.7/site-packages"
 
@@ -472,7 +472,7 @@ install_apt() {
 install_yum() {
   echo "###########################################################################################"
   echo "# Installing packages via yum"
-  if [[ "$DISTRO_NAME" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]]
+  if [[ "$DISTRO_NAME" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]] || [[ "${DISTRO_NAME}" == "Scientific Linux" ]]
   then
     if [[ $DISTRO_VERSION =~ 6\.[0-9] ]]
     then
