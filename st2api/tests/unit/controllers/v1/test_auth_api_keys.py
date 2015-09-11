@@ -19,6 +19,7 @@ import random
 import string
 import unittest
 
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.models.db.auth import UserDB
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
@@ -36,6 +37,11 @@ PECAN_CONTEXT = {
         'user': UserDB(name=USERNAME)
     }
 }
+
+# Hardcoded keys matching the fixtures. Lazy way to workound one-way hash and still use fixtures.
+KEY1_KEY = "1234"
+KEY2_KEY = "5678"
+KEY3_KEY = "9012"
 
 
 class TestApiKeyController(FunctionalTest):
@@ -58,40 +64,63 @@ class TestApiKeyController(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 3, '/v1/apikeys did not return all apikeys.')
 
-        retrieved_keys = [apikey['key'] for apikey in resp.json]
+        retrieved_ids = [apikey['id'] for apikey in resp.json]
 
-        self.assertEqual(retrieved_keys,
-                         [self.apikey1.key, self.apikey2.key, self.apikey3.key],
+        self.assertEqual(retrieved_ids,
+                         [str(self.apikey1.id), str(self.apikey2.id), str(self.apikey3.id)],
                          'Incorrect api keys retrieved.')
 
     def test_get_one_by_id(self):
         resp = self.app.get('/v1/apikeys/%s' % self.apikey1.id)
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json['key'], self.apikey1.key,
+        self.assertEqual(resp.json['id'], str(self.apikey1.id),
                          'Incorrect api key retrieved.')
+        self.assertEqual(resp.json['key'], MASKED_ATTRIBUTE_VALUE,
+                         'Key should be masked.')
 
     def test_get_one_by_key(self):
-        resp = self.app.get('/v1/apikeys/%s' % self.apikey2.key)
+        # key1
+        resp = self.app.get('/v1/apikeys/%s' % KEY1_KEY)
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json['id'], str(self.apikey1.id),
+                         'Incorrect api key retrieved.')
+        self.assertEqual(resp.json['key'], MASKED_ATTRIBUTE_VALUE,
+                         'Key should be masked.')
+        # key2
+        resp = self.app.get('/v1/apikeys/%s' % KEY2_KEY)
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['id'], str(self.apikey2.id),
                          'Incorrect api key retrieved.')
+        self.assertEqual(resp.json['key'], MASKED_ATTRIBUTE_VALUE,
+                         'Key should be masked.')
+        # key3
+        resp = self.app.get('/v1/apikeys/%s' % KEY3_KEY)
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json['id'], str(self.apikey3.id),
+                         'Incorrect api key retrieved.')
+        self.assertEqual(resp.json['key'], MASKED_ATTRIBUTE_VALUE,
+                         'Key should be masked.')
 
     def test_post_delete_key(self):
         api_key = {
             'user': 'herge'
         }
-        resp = self.app.post_json('/v1/apikeys/', api_key)
-        self.assertEqual(resp.status_int, 201)
-        self.assertTrue(resp.json['key'], 'Key should be non-None.')
+        resp1 = self.app.post_json('/v1/apikeys/', api_key)
+        self.assertEqual(resp1.status_int, 201)
+        self.assertTrue(resp1.json['key'], 'Key should be non-None.')
+        self.assertNotEqual(resp1.json['key'], MASKED_ATTRIBUTE_VALUE, 'Key should not be masked.')
 
-        resp = self.app.delete('/v1/apikeys/%s' % resp.json['id'])
+        # should lead to creation of another key
+        resp2 = self.app.post_json('/v1/apikeys/', api_key)
+        self.assertEqual(resp2.status_int, 201)
+        self.assertTrue(resp2.json['key'], 'Key should be non-None.')
+        self.assertNotEqual(resp2.json['key'], MASKED_ATTRIBUTE_VALUE, 'Key should not be masked.')
+        self.assertNotEqual(resp1.json['key'], resp2.json['key'], 'Should be different')
+
+        resp = self.app.delete('/v1/apikeys/%s' % resp1.json['id'])
         self.assertEqual(resp.status_int, 204)
 
-        resp = self.app.post_json('/v1/apikeys/', api_key)
-        self.assertEqual(resp.status_int, 201)
-        self.assertTrue(resp.json['key'], 'Key should be non-None.')
-
-        resp = self.app.delete('/v1/apikeys/%s' % resp.json['key'])
+        resp = self.app.delete('/v1/apikeys/%s' % resp2.json['key'])
         self.assertEqual(resp.status_int, 204)
 
     def test_post_no_user_fail(self):

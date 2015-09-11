@@ -97,19 +97,19 @@ class ApiKeyController(RestController):
 
     @request_user_has_permission(permission_type=PermissionType.API_KEY_CREATE)
     @jsexpose(body_cls=ApiKeyAPI, status_code=http_client.CREATED)
-    def post(self, api_key):
+    def post(self, api_key_api):
         """
         Create a new entry or update an existing one.
         """
         api_key_db = None
         try:
-            api_key.user = self._get_user(api_key)
+            api_key_api.user = self._get_user(api_key_api)
             api_key, api_key_hash = auth_util.generate_api_key_and_hash()
             # store key_hash in DB
-            api_key.key = api_key_hash
-            api_key_db = ApiKey.add_or_update(ApiKeyAPI.to_model(api_key))
+            api_key_api.key = api_key_hash
+            api_key_db = ApiKey.add_or_update(ApiKeyAPI.to_model(api_key_api))
         except (ValidationError, ValueError) as e:
-            LOG.exception('Validation failed for api_key data=%s.', api_key)
+            LOG.exception('Validation failed for api_key data=%s.', api_key_api)
             abort(http_client.BAD_REQUEST, str(e))
 
         extra = {'api_key_db': api_key_db}

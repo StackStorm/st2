@@ -79,8 +79,8 @@ class ApiKey(Access):
     def get_by_key_or_id(cls, value):
         try:
             # DB does not contain key but the key_hash.
-            value = hash_utils.hash(value)
-            return cls.get(value)
+            value_hash = hash_utils.hash(value)
+            return cls.get(value_hash)
         except ApiKeyNotFoundError:
             pass
         try:
