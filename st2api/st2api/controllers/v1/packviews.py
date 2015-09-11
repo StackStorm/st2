@@ -20,7 +20,7 @@ import six
 from pecan import abort, expose, response
 from pecan.rest import RestController
 
-from st2api.controllers import resource
+from st2api.controllers.v1.packs import BasePacksController
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
@@ -35,11 +35,12 @@ http_client = six.moves.http_client
 LOG = logging.getLogger(__name__)
 
 
-class BaseFileController(resource.ResourceController):
+class BaseFileController(BasePacksController):
     model = PackAPI
     access = Pack
 
     supported_filters = {}
+    query_options = {}
 
     @jsexpose()
     def get_all(self, **kwargs):
@@ -59,14 +60,19 @@ class FilesController(BaseFileController):
 
     @request_user_has_resource_permission(permission_type=PermissionType.PACK_VIEW)
     @jsexpose(arg_types=[str], status_code=http_client.OK)
-    def get_one(self, name_or_id):
+    def get_one(self, ref_or_id):
         """
             Outputs the content of all the files inside the pack.
 
             Handles requests:
-                GET /packs/views/files/<pack_name>
+                GET /packs/views/files/<pack_ref_or_id>
         """
-        pack_db = self._get_by_name_or_id(name_or_id=name_or_id)
+        pack_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+
+        if not pack_db:
+            msg = 'Pack with ref_or_id "%s" does not exist' % (ref_or_id)
+            raise StackStormDBObjectNotFoundError(msg)
+
         pack_name = pack_db.name
         pack_files = pack_db.files
 
@@ -95,17 +101,17 @@ class FileController(BaseFileController):
 
     @request_user_has_resource_permission(permission_type=PermissionType.PACK_VIEW)
     @expose()
-    def get_one(self, name_or_id, *file_path_components):
+    def get_one(self, ref_or_id, *file_path_components):
         """
             Outputs the content of a specific file in a pack.
 
             Handles requests:
-                GET /packs/views/files/<pack_name>/<file path>
+                GET /packs/views/files/<pack_ref_or_id>/<file path>
         """
-        pack_db = self._get_by_name_or_id(name_or_id=name_or_id)
+        pack_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
         if not pack_db:
-            msg = 'Pack with name_or_id "%s" does not exist' % (name_or_id)
+            msg = 'Pack with ref_or_id "%s" does not exist' % (ref_or_id)
             raise StackStormDBObjectNotFoundError(msg)
 
         if not file_path_components:
