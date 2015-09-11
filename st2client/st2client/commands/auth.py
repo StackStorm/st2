@@ -121,7 +121,7 @@ class ApiKeyCreateCommand(resource.ResourceCommand):
                                  default='')
         self.parser.add_argument('-m', '--metadata', type=json.loads,
                                  help='User for which to create API Keys.',
-                                 default='')
+                                 default={})
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
