@@ -74,7 +74,7 @@ class ApiKeyController(RestController):
             abort(http_client.NOT_FOUND, msg)
 
         try:
-            return ApiKeyAPI.from_model(api_key_db)
+            return ApiKeyAPI.from_model(api_key_db, mask_secrets=True)
         except (ValidationError, ValueError) as e:
             LOG.exception('Failed to serialize API key.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
@@ -90,7 +90,8 @@ class ApiKeyController(RestController):
         """
 
         api_key_dbs = ApiKey.get_all(**kw)
-        api_keys = [ApiKeyAPI.from_model(api_key_db) for api_key_db in api_key_dbs]
+        api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=True)
+                    for api_key_db in api_key_dbs]
 
         return api_keys
 
@@ -103,7 +104,9 @@ class ApiKeyController(RestController):
         api_key_db = None
         try:
             api_key.user = self._get_user(api_key)
-            api_key.key = auth_util.generate_api_key()
+            api_key, api_key_hash = auth_util.generate_api_key_and_hash()
+            # store key_hash in DB
+            api_key.key = api_key_hash
             api_key_db = ApiKey.add_or_update(ApiKeyAPI.to_model(api_key))
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for api_key data=%s.', api_key)
@@ -113,6 +116,10 @@ class ApiKeyController(RestController):
         LOG.audit('ApiKey created. ApiKey.id=%s' % (api_key_db.id), extra=extra)
 
         api_key_api = ApiKeyAPI.from_model(api_key_db)
+        # Return real api_key back to user. A one-way hash of the api_key is stored in the DB
+        # only the real value only returned at create time. Also, no masking of key here since
+        # the user needs to see this value atleast once.
+        api_key_api.key = api_key
         return api_key_api
 
     @request_user_has_resource_permission(permission_type=PermissionType.API_KEY_DELETE)

@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 from oslo_config import cfg
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
@@ -118,10 +120,23 @@ class ApiKeyAPI(BaseAPI):
     }
 
     @classmethod
+    def from_model(cls, model, mask_secrets=False):
+        doc = cls._from_model(model=model, mask_secrets=mask_secrets)
+        attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
+        # switcharoo. key_hash is returned as key and likely masked.
+        attrs['key'] = attrs.pop('key_hash', None)
+
+        return cls(**attrs)
+
+    @classmethod
     def to_model(cls, instance):
         user = str(instance.user) if instance.user else None
         key = str(instance.key) if instance.key else None
         metadata = getattr(instance, 'metadata', {})
 
-        model = cls.model(user=user, key=key, metadata=metadata)
+        # The api_key is never really stored in the DB. It is assumed
+        # that the value passed in here is actually api_key_hash; since
+        # this cannot be enforced here assumption is that clients of this method
+        # do the right thing.
+        model = cls.model(user=user, key_hash=key, metadata=metadata)
         return model

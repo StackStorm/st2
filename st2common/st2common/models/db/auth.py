@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import mongoengine as me
 
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.models.db import stormbase
 from st2common.services.rbac import get_roles_for_user
 
@@ -54,16 +56,25 @@ class ApiKeyDB(stormbase.StormFoundationDB):
     """
     """
     user = me.StringField(required=True)
-    key = me.StringField(required=True, unique=True)
+    key_hash = me.StringField(required=True, unique=True)
     metadata = me.DictField(required=False,
                             help_text='Arbitrary metadata associated with this token')
 
     meta = {
         'indexes': [
             {'fields': ['user']},
-            {'fields': ['key']}
+            {'fields': ['key_hash']}
         ]
     }
+
+    def mask_secrets(self, value):
+        result = copy.deepcopy(value)
+
+        # In theory the key_hash is safe to return as it is one way. On the other
+        # hand given that this is actually a secret no real point in letting the hash
+        # escape.
+        result['key_hash'] = MASKED_ATTRIBUTE_VALUE
+        return result
 
 
 MODELS = [UserDB, TokenDB, ApiKeyDB]

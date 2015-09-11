@@ -22,6 +22,7 @@ from st2common import log as logging
 from st2common.persistence.auth import Token, ApiKey
 from st2common.exceptions import auth as exceptions
 from st2common.util import date as date_utils
+from st2common.util import hash as hash_utils
 
 __all__ = [
     'validate_token',
@@ -81,6 +82,12 @@ def generate_api_key():
     return base64.b64encode(
         hashed_seed,
         random.choice(['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD'])).rstrip('==')
+
+
+def generate_api_key_and_hash():
+    api_key = generate_api_key()
+    api_key_hash = hash_utils.hash(api_key)
+    return api_key, api_key_hash
 
 
 def validate_api_key(api_key_in_headers, api_key_query_params):

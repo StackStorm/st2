@@ -17,6 +17,7 @@ from st2common.exceptions.auth import TokenNotFoundError, ApiKeyNotFoundError
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
 from st2common.persistence.base import Access
+from st2common.utils import hash as hash_utils
 
 
 class User(Access):
@@ -70,13 +71,15 @@ class ApiKey(Access):
 
     @classmethod
     def get(cls, value):
-        for model_object in ApiKeyDB.objects(key=value):
+        for model_object in ApiKeyDB.objects(key_hash=value):
             return model_object
-        raise ApiKeyNotFoundError('ApiKey with key=%s not found.', value)
+        raise ApiKeyNotFoundError('ApiKey with key_hash=%s not found.', value)
 
     @classmethod
     def get_by_key_or_id(cls, value):
         try:
+            # DB does not contain key but the key_hash.
+            value = hash_utils.hash(value)
             return cls.get(value)
         except ApiKeyNotFoundError:
             pass
