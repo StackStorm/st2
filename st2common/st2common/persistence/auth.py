@@ -71,19 +71,19 @@ class ApiKey(Access):
 
     @classmethod
     def get(cls, value):
-        for model_object in ApiKeyDB.objects(key_hash=value):
+        # DB does not contain key but the key_hash.
+        value_hash = hash_utils.hash(value)
+        for model_object in ApiKeyDB.objects(key_hash=value_hash):
             return model_object
-        raise ApiKeyNotFoundError('ApiKey with key_hash=%s not found.', value)
+        raise ApiKeyNotFoundError('ApiKey with key_hash=%s not found.' % value_hash)
 
     @classmethod
     def get_by_key_or_id(cls, value):
         try:
-            # DB does not contain key but the key_hash.
-            value_hash = hash_utils.hash(value)
-            return cls.get(value_hash)
+            return cls.get(value)
         except ApiKeyNotFoundError:
             pass
         try:
             return cls.get_by_id(value)
         except:
-            raise ApiKeyNotFoundError('ApiKey with key or id=%s not found.', value)
+            raise ApiKeyNotFoundError('ApiKey with key or id=%s not found.' % value)
