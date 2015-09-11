@@ -49,17 +49,39 @@ class MistralWorkflowValidator(WorkflowValidator):
 
     @staticmethod
     def parse(message):
+        result = {
+            'type': None,
+            'path': None,
+            'message': message
+        }
+
+        # Check message for schema specific error.
         m1 = re.search('^Invalid DSL: (.+)\n', message)
 
         if m1:
-            return 'DSL ERROR: %s' % m1.group(1)
+            result['type'] = 'schema'
+            result['message'] = m1.group(1)
 
+            path = re.search('On instance(.+):', message)
+
+            if path:
+                result['path'] = path.group(1).strip("[']").replace("']['", ".")
+
+        # Check message for YAQL specific error.
         m2 = re.search('^Parse error: (.+)$', message)
 
         if m2:
-            return 'YAQL ERROR: %s' % m2.group(1)
+            result['type'] = 'yaql'
+            result['message'] = m2.group(1)
 
-        return message
+        # Check message for action parameters specific error.
+        if any([candidate in message
+                for candidate in ['Missing required parameters',
+                                  'Unexpected parameters',
+                                  'st2.callback is deprecated']]):
+            result['type'] = 'action'
+
+        return result
 
     def validate(self, definition):
         def_dict = yaml.safe_load(definition)
@@ -68,9 +90,8 @@ class MistralWorkflowValidator(WorkflowValidator):
         if not is_workbook:
             # Non-workbook definition containing multiple workflows is not supported.
             if len([k for k, _ in six.iteritems(def_dict) if k != 'version']) != 1:
-                raise WorkflowDefinitionException(
-                    'Workflow (not workbook) definition is detected. '
-                    'Multiple workflows is not supported.')
+                return [self.parse('Multiple workflows is not supported workflow '
+                                   'only (not a workbook) definition.')]
 
         # Select validation function.
         func = self._client.workbooks.validate if is_workbook else self._client.workflows.validate
@@ -79,8 +100,12 @@ class MistralWorkflowValidator(WorkflowValidator):
         result = func(definition)
 
         if not result.get('valid', None):
-            raise WorkflowDefinitionException(
-                self.parse(result.get('error', 'Unknown exception.')))
+            return [self.parse(result.get('error', 'Unknown exception.'))]
 
-        # Run custom DSL transformer to check action parameters.
-        def_dict_xformed = utils.transform_definition(def_dict)
+        try:
+            # Run custom DSL transformer to check action parameters.
+            utils.transform_definition(def_dict)
+        except WorkflowDefinitionException as e:
+            return [self.parse(e.message)]
+
+        return []
