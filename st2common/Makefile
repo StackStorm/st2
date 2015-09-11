@@ -46,7 +46,7 @@ deb:
 WHEELDIR ?= /tmp/wheelhouse
 ST2_COMPONENT := $(notdir $(CURDIR))
 ST2PKG_RELEASE ?= 1
-ST2PKG_VERSION ?= 0.1.0
+ST2PKG_VERSION ?= $(shell python -c "from $(ST2_COMPONENT) import __version__; print __version__,")
 
 ifneq (,$(wildcard /etc/debian_version))
 	DEBIAN := 1
