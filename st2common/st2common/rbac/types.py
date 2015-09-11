@@ -217,6 +217,12 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.WEBHOOK_SEND,
         PermissionType.WEBHOOK_DELETE,
         PermissionType.WEBHOOK_ALL
+    ],
+    ResourceType.API_KEY: [
+        PermissionType.API_KEY_VIEW,
+        PermissionType.API_KEY_CREATE,
+        PermissionType.API_KEY_DELETE,
+        PermissionType.API_KEY_ALL
     ]
 }
 
@@ -266,5 +272,10 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.WEBHOOK_SEND: ('Ability to send / POST data to an existing webhook.'),
     PermissionType.WEBHOOK_DELETE: ('Ability to delete an existing webhook.'),
     PermissionType.WEBHOOK_ALL: ('Ability to perform all the supported operations on a particular '
-                              'webhook.')
+                                 'webhook.'),
+
+    PermissionType.API_KEY_VIEW: ('Ability view API Keys.'),
+    PermissionType.API_KEY_CREATE: ('Ability to create a new API Key.'),
+    PermissionType.API_KEY_DELETE: ('Ability to delete an existing API Keys.'),
+    PermissionType.API_KEY_ALL: ('Ability to perform all the supported operations on an API Key.')
 }

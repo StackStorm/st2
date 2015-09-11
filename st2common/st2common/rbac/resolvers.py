@@ -527,6 +527,20 @@ class WebhookPermissionsResolver(PermissionsResolver):
         return False
 
 
+class ApiKeyPermissionResolver(PermissionsResolver):
+    """
+    Permission resolver for "api key" resource type.
+    """
+
+    def user_has_permission(self, user_db, permission_type):
+        # TODO: Implement
+        return True
+
+    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+        # TODO: Implement
+        return True
+
+
 def get_resolver_for_resource_type(resource_type):
     """
     Return resolver instance for the provided resource type.
@@ -547,6 +561,8 @@ def get_resolver_for_resource_type(resource_type):
         resolver_cls = KeyValuePermissionsResolver
     elif resource_type == ResourceType.WEBHOOK:
         resolver_cls = WebhookPermissionsResolver
+    elif resource_type == ResourceType.API_KEY:
+        resolver_cls = ApiKeyPermissionResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
 
