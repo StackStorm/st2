@@ -164,8 +164,8 @@ function st2start(){
     echo 'Starting screen session st2-auth...'
     if [ ${use_gunicorn} ]; then
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-api ./virtualenv/bin/gunicorn_pecan \
-            ./st2auth/st2auth/gunicorn_config.py -k eventlet -b 127.0.0.1:9101
+        screen -d -m -S st2-auth ./virtualenv/bin/gunicorn_pecan \
+            ./st2auth/st2auth/gunicorn_config.py -k eventlet -b 127.0.0.1:9100
     else
         screen -d -m -S st2-auth ./virtualenv/bin/python \
         ./st2auth/bin/st2auth \
