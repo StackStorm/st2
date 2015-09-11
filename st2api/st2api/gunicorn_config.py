@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """
-st2api configuration / starup file for gunicorn.
+st2api configuration / wsgi entry point file for gunicorn.
 """
 
 # Note: We need this import otherwise pecan will try to import from local, not global cmd package
