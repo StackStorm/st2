@@ -23,6 +23,14 @@ from st2common.persistence.execution import ActionExecution
 
 LOG = logging.getLogger(__name__)
 
+# List of supported filters and relation between filter name and execution property it represents.
+# The same list is used both in ActionExecutionController to map filter names to properties and
+# in FiltersController below to generate a list of unique values for each filter for UI so user
+# could pick a filter from a drop down.
+# If filter is unique for every execution or repeats very rarely (ex. execution id or parent
+# reference) it should be also added to IGNORE_FILTERS to avoid bloating FiltersController
+# response. Failure to do so will eventually result in Chrome hanging out while opening History
+# tab of st2web.
 SUPPORTED_FILTERS = {
     'action': 'action.ref',
     'status': 'status',
@@ -39,7 +47,7 @@ SUPPORTED_FILTERS = {
 
 # List of filters that are too broad to distinct by them and are very likely to represent 1 to 1
 # relation between filter and particular history record.
-IGNORE_FILTERS = ['parent', 'timestamp', 'liveaction']
+IGNORE_FILTERS = ['parent', 'timestamp', 'liveaction', 'trigger_instance']
 
 
 class FiltersController(RestController):
