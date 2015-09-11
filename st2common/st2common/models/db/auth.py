@@ -19,6 +19,7 @@ import mongoengine as me
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.models.db import stormbase
 from st2common.services.rbac import get_roles_for_user
+from st2common.constants.types import ResourceType
 
 __all__ = [
     'UserDB',
@@ -52,9 +53,12 @@ class TokenDB(stormbase.StormFoundationDB):
                             help_text='Arbitrary metadata associated with this token')
 
 
-class ApiKeyDB(stormbase.StormFoundationDB):
+class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     """
     """
+    RESOURCE_TYPE = ResourceType.API_KEY
+    UID_FIELDS = ['id']
+
     user = me.StringField(required=True)
     key_hash = me.StringField(required=True, unique=True)
     metadata = me.DictField(required=False,
