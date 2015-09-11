@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import codecs
 import mimetypes
 
 import six
@@ -33,6 +34,7 @@ from st2common.rbac.decorators import request_user_has_resource_permission
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
+BOM_LEN = len(codecs.BOM_UTF8)
 
 
 class BaseFileController(BasePacksController):
@@ -47,8 +49,20 @@ class BaseFileController(BasePacksController):
         return abort(404)
 
     def _get_file_content(self, file_path):
-        with open(file_path, 'r') as fp:
+        with codecs.open(file_path, 'r+b') as fp:
             content = fp.read()
+
+        return content
+
+    def _process_file_content(self, content):
+        """
+        This method processes the file content and removes unicode BOM character if one is present.
+
+        Note: If we don't do that, files view explodes with "UnicodeDecodeError: ... invalid start
+        byte" because the json.dump doesn't know how to handle BOM character.
+        """
+        if content.startswith(codecs.BOM_UTF8):
+            content = content[BOM_LEN:]
 
         return content
 
@@ -85,13 +99,30 @@ class FilesController(BaseFileController):
                 continue
 
             content = self._get_file_content(file_path=normalized_file_path)
+
+            include_file = self._include_file(file_path=file_path, content=content)
+            if not include_file:
+                LOG.debug('Skipping binary file "%s"' % (normalized_file_path))
+                continue
+
             item = {
                 'file_path': file_path,
                 'content': content
             }
             result.append(item)
-
         return result
+
+    def _include_file(self, file_path, content):
+        """
+        Method which returns True if the following file content should be included in the response.
+
+        Right now we exclude any file with UTF8 BOM character in it - those are most likely binary
+        files such as icon, etc.
+        """
+        if codecs.BOM_UTF8 in content:
+            return False
+
+        return True
 
 
 class FileController(BaseFileController):
