@@ -14,9 +14,10 @@
 # limitations under the License.
 
 """
-Configuration file for gunicorn.
+st2api configuration / starup file for gunicorn.
 """
 
+# Note: We need this import otherwise pecan will try to import from local, not global cmd package
 from __future__ import absolute_import
 
 import os
@@ -25,7 +26,6 @@ from oslo_config import cfg
 
 from st2api import config  # noqa
 from st2common.service_setup import setup as common_setup
-from st2common.models import db
 
 __all__ = [
     'app'
@@ -37,6 +37,7 @@ ST2_CONFIG_PATH = os.environ.get('ST2_CONFIG_PATH', DEFAULT_ST2_CONFIG_PATH)
 CONFIG_ARGS = ['--config-file', ST2_CONFIG_PATH]
 common_setup(service='api', config=config, setup_db=True, register_mq_exchanges=True,
              register_signal_handlers=False, config_args=CONFIG_ARGS)
+
 app = {
     'root': 'st2api.controllers.root.RootController',
     'modules': ['st2api'],
