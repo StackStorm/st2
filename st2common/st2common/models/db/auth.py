@@ -71,6 +71,10 @@ class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
         ]
     }
 
+    def __init__(self, *args, **values):
+        super(ApiKeyDB, self).__init__(*args, **values)
+        self.uid = self.get_uid()
+
     def mask_secrets(self, value):
         result = copy.deepcopy(value)
 
