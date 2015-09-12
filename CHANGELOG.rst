@@ -21,6 +21,7 @@ in development
 * Enable Mistral workflow cancellation via ``st2 execution cancel``. (improvement)
 * Make sure that alias execution endpoint returns a correct status code and error message if the
   referenced action doesn't exist.
+* Allow action-alias to be created and deleted from CLI.
 
 0.13.2 - September 09, 2015
 ---------------------------
