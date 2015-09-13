@@ -152,14 +152,14 @@ class ActionsRegistrar(ResourceRegistrar):
         return registered_count
 
 
-def register_actions(packs_base_paths=None, pack_dir=None):
+def register_actions(packs_base_paths=None, pack_dir=None, use_pack_cache=True):
     if packs_base_paths:
         assert isinstance(packs_base_paths, list)
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()
 
-    registrar = ActionsRegistrar()
+    registrar = ActionsRegistrar(use_pack_cache=use_pack_cache)
 
     if pack_dir:
         result = registrar.register_actions_from_pack(pack_dir=pack_dir)

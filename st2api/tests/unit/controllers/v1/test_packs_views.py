@@ -21,13 +21,14 @@ import st2common.bootstrap.actionsregistrar as actions_registrar
 from tests import FunctionalTest
 
 
+@mock.patch('st2common.bootstrap.base.REGISTERED_PACKS_CACHE', {})
 class PacksViewsControllerTestCase(FunctionalTest):
     @classmethod
     def setUpClass(cls):
         super(PacksViewsControllerTestCase, cls).setUpClass()
 
         # Register local action and pack fixtures
-        actions_registrar.register_actions()
+        actions_registrar.register_actions(use_pack_cache=False)
 
     def test_get_pack_files_success(self):
         resp = self.app.get('/v1/packs/views/files/dummy_pack_1')
