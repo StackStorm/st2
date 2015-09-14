@@ -34,9 +34,8 @@ class PackInfo(Action):
                 pack_git_info_path = git_info_path
                 break
 
-        error = ('Pack "%s" doesn\'t exist or it doesn\'t contain a valid .gitinfo file' % (pack))
-
         if not pack_git_info_path:
+            error = ('Pack "%s" doesn\'t exist or it doesn\'t contain a .gitinfo file' % (pack))
             raise Exception(error)
 
         try:
