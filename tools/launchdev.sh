@@ -1,17 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-s]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-s]" >&2
 }
 
 subcommand=$1; shift
 runner_count=1
+use_gunicorn=false
 skip_examples=false
 
-while getopts ":r:s" o; do
+while getopts ":r:gs" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
+            ;;
+        g)
+            use_gunicorn=true
             ;;
         s)
             skip_examples=true
@@ -109,9 +113,15 @@ function st2start(){
 
     # Run the st2 API server
     echo 'Starting screen session st2-api...'
-    screen -d -m -S st2-api ./virtualenv/bin/python \
-        ./st2api/bin/st2api \
-        --config-file $ST2_CONF
+    if [ ${use_gunicorn} ]; then
+        export ST2_CONFIG_PATH=${ST2_CONF}
+        screen -d -m -S st2-api ./virtualenv/bin/gunicorn_pecan \
+            ./st2api/st2api/gunicorn_config.py -k eventlet
+    else
+        screen -d -m -S st2-api ./virtualenv/bin/python \
+            ./st2api/bin/st2api \
+            --config-file $ST2_CONF
+    fi
 
     # Start a screen for every runner
     echo 'Starting screen sessions for st2-actionrunner(s)...'
@@ -152,9 +162,15 @@ function st2start(){
 
     # Run the auth API server
     echo 'Starting screen session st2-auth...'
-    screen -d -m -S st2-auth ./virtualenv/bin/python \
+    if [ ${use_gunicorn} ]; then
+        export ST2_CONFIG_PATH=${ST2_CONF}
+        screen -d -m -S st2-auth ./virtualenv/bin/gunicorn_pecan \
+            ./st2auth/st2auth/gunicorn_config.py -k eventlet
+    else
+        screen -d -m -S st2-auth ./virtualenv/bin/python \
         ./st2auth/bin/st2auth \
         --config-file $ST2_CONF
+    fi
 
     if [ -n "$ST2_EXPORTER" ]; then
         EXPORTS_DIR=$(exportsdir)
