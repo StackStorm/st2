@@ -22,6 +22,10 @@ in development
 * Make sure that alias execution endpoint returns a correct status code and error message if the
   referenced action doesn't exist.
 * Allow action-alias to be created and deleted from CLI.
+* Allow user to select ``keystone`` backend in the st2auth service. (bug-fix)
+* Fix ``packs.info`` action so it correctly exists with a non-zero status code if the pack doesn't
+  exist or if it doesn't contain a valid ``.gitinfo`` file. (bug-fix)
+* Fix ``packs.info`` action so it correctly searches all the packs base dirs. (bug-fix)
 
 0.13.2 - September 09, 2015
 ---------------------------

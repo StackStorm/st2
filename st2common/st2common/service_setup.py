@@ -30,6 +30,7 @@ from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.transport.bootstrap_utils import register_exchanges
 from st2common.signal_handlers import register_common_signal_handlers
+from st2common import triggers
 
 from st2common.rbac.migrations import insert_system_roles
 
@@ -45,7 +46,8 @@ LOG = logging.getLogger(__name__)
 
 
 def setup(service, config, setup_db=True, register_mq_exchanges=True,
-          register_signal_handlers=True, run_migrations=True):
+          register_signal_handlers=True, register_internal_trigger_types=False,
+          run_migrations=True, config_args=None):
     """
     Common setup function.
 
@@ -56,6 +58,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     3. Set log level for all the loggers to DEBUG if --debug flag is present
     4. Registers RabbitMQ exchanges
     5. Registers common signal handlers
+    6. Register internal trigger types
 
     :param service: Name of the service.
     :param config: Config object to use to parse args.
@@ -65,7 +68,10 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     logging.setup(DEFAULT_LOGGING_CONF_PATH)
 
     # Parse args to setup config.
-    config.parse_args()
+    if config_args:
+        config.parse_args(config_args)
+    else:
+        config.parse_args()
 
     config_file_paths = cfg.CONF.config_file
     config_file_paths = [os.path.abspath(path) for path in config_file_paths]
@@ -91,6 +97,9 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
 
     if register_signal_handlers:
         register_common_signal_handlers()
+
+    if register_internal_trigger_types:
+        triggers.register_internal_trigger_types()
 
     # TODO: This is a "not so nice" workaround until we have a proper migration system in place
     if run_migrations:
