@@ -28,6 +28,7 @@ from st2api import config  # noqa
 from st2common.service_setup import setup as common_setup
 
 __all__ = [
+    'server',
     'app'
 ]
 
@@ -38,6 +39,11 @@ CONFIG_ARGS = ['--config-file', ST2_CONFIG_PATH]
 common_setup(service='api', config=config, setup_db=True, register_mq_exchanges=True,
              register_signal_handlers=False, register_internal_trigger_types=True,
              config_args=CONFIG_ARGS)
+
+server = {
+    'host': cfg.CONF.auth.host,
+    'port': cfg.CONF.auth.port
+}
 
 app = {
     'root': 'st2api.controllers.root.RootController',

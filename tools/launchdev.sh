@@ -116,7 +116,7 @@ function st2start(){
     if [ ${use_gunicorn} ]; then
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-api ./virtualenv/bin/gunicorn_pecan \
-            ./st2api/st2api/gunicorn_config.py -k eventlet -b 127.0.0.1:9101
+            ./st2api/st2api/gunicorn_config.py -k eventlet
     else
         screen -d -m -S st2-api ./virtualenv/bin/python \
             ./st2api/bin/st2api \
@@ -165,7 +165,7 @@ function st2start(){
     if [ ${use_gunicorn} ]; then
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-auth ./virtualenv/bin/gunicorn_pecan \
-            ./st2auth/st2auth/gunicorn_config.py -k eventlet -b 127.0.0.1:9100
+            ./st2auth/st2auth/gunicorn_config.py -k eventlet
     else
         screen -d -m -S st2-auth ./virtualenv/bin/python \
         ./st2auth/bin/st2auth \
