@@ -29,6 +29,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class GunicornWSGIEntryPointTestCase(unittest2.TestCase):
+    @unittest2.skipIf(os.environ.get('TRAVIS'), 'Running on travis')
     def test_st2api_wsgi_entry_point(self):
         port = random.randint(10000, 30000)
         config_path = os.path.join(BASE_DIR, '../../../st2api/st2api/gunicorn_config.py')
@@ -44,6 +45,7 @@ class GunicornWSGIEntryPointTestCase(unittest2.TestCase):
         self.assertEqual(response.status_code, httplib.OK)
         kill_process(process)
 
+    @unittest2.skipIf(os.environ.get('TRAVIS'), 'Running on travis')
     def test_st2auth(self):
         port = random.randint(10000, 30000)
         config_path = os.path.join(BASE_DIR, '../../../st2auth/st2auth/gunicorn_config.py')
