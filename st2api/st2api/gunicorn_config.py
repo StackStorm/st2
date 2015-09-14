@@ -41,8 +41,8 @@ common_setup(service='api', config=config, setup_db=True, register_mq_exchanges=
              config_args=CONFIG_ARGS)
 
 server = {
-    'host': cfg.CONF.auth.host,
-    'port': cfg.CONF.auth.port
+    'host': cfg.CONF.api.host,
+    'port': cfg.CONF.api.port
 }
 
 app = {
