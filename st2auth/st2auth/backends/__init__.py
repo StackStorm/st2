@@ -27,7 +27,8 @@ __all__ = [
 
 BACKEND_MODULES = {
     'flat_file': 'st2auth.backends.flat_file',
-    'mongodb': 'st2auth.backends.mongodb'
+    'mongodb': 'st2auth.backends.mongodb',
+    'keystone': 'st2auth.backends.keystone'
 }
 
 VALID_BACKEND_NAMES = BACKEND_MODULES.keys()
