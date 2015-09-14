@@ -23,7 +23,7 @@ GITINFO_FILE = '.gitinfo'
 
 
 class PackInfo(Action):
-    def run(self, pack, pack_dir="/opt/stackstorm/packs"):
+    def run(self, pack):
         packs_base_paths = get_packs_base_paths()
 
         pack_git_info_path = None
@@ -34,7 +34,7 @@ class PackInfo(Action):
                 pack_git_info_path = git_info_path
                 break
 
-        error = ('Pack %s doesn\'t exist or it doesn\'t contain a valid .gitinfo file' % (pack))
+        error = ('Pack "%s" doesn\'t exist or it doesn\'t contain a valid .gitinfo file' % (pack))
 
         if not pack_git_info_path:
             raise Exception(error)
@@ -42,7 +42,7 @@ class PackInfo(Action):
         try:
             details = self._parse_git_info_file(git_info_path)
         except Exception as e:
-            error = ('Pack %s doesn\'t contain a valid .gitinfo file: %s' % (pack, str(e)))
+            error = ('Pack "%s" doesn\'t contain a valid .gitinfo file: %s' % (pack, str(e)))
             raise Exception(error)
 
         return details
