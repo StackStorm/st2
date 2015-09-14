@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.13.3 - TBD
+------------
+
+* Allow user to select ``keystone`` backend in the st2auth service. (bug-fix)
+
 0.13.2 - September 09, 2015
 ---------------------------
 
