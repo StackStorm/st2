@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2actions.runners.pythonrunner import Action
-import json
 import os
+import sys
+import json
+
+from st2actions.runners.pythonrunner import Action
 
 GITINFO_FILE = '.gitinfo'
 
@@ -28,4 +30,5 @@ class PackInfo(Action):
                 details = json.load(data_file)
                 return details
         except:
-            print "Unable to load git info for {}".format(pack)
+            error = 'Pack %s doesn\'t exist or it doesn\'t contain .gitinfo file' % (pack)
+            raise Exception(error)
