@@ -109,6 +109,3 @@ private_key contents are held only in memory and is not logged or persisted anyw
 However, due to implementation limitations of fabric, we create a temporary file with
 contents of private_key and delete the file after command is complete (either succeeded or
 failed). This is unsafe and we recommend moving away from Fabric runner.
-
-
-

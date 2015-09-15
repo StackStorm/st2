@@ -1,5 +1,5 @@
 Rule is not being matched / action is not firing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+================================================
 
 You created a rule which supposed to fire an action when a particular trigger
 is emitted, but for some reason, this action is not being called.
@@ -14,7 +14,7 @@ There are multiple reasons why this could be the case:
 In this section we will guide you through troubleshooting this issue.
 
 1. Checking that the trigger is emitted
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------
 
 First thing you should do is check that trigger is being emitted and flowing
 to the rules engine.
@@ -49,7 +49,7 @@ flowing to the rules engine. This could either mean that the sensor is
 misconfigured or not running or that there is some other issue with the sensor.
 
 2. Verifying the rule criteria
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 Now that we have established that trigger is indeed being emitted, we are going
 to verify the rule criteria.

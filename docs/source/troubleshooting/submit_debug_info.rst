@@ -1,7 +1,7 @@
 .. _submit_debug_info_to_st2:
 
 Submitting debugging information to StackStorm
-----------------------------------------------
+==============================================
 
 First step when trying to help you debug an issue or a problem you are having
 is for us to try to reproduce the problem. To be able to do that, our setup
@@ -65,7 +65,7 @@ like this:
     st2-submit-debug-info --exclude-configs --exclude-content --exclude-system-info
 
 Reviewing the debug information
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------
 
 If you want to review and / or manipulate information (e.g. remove log lines
 which you might find sensitive) which is sent to StackStorm, you can do that
