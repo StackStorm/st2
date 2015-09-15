@@ -34,7 +34,7 @@ from st2common.persistence.auth import Token
 from st2common.persistence.trace import Trace
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest, AuthMiddlewareTest
+from tests import FunctionalTest
 
 
 ACTION_1 = {
