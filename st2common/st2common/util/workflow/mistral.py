@@ -20,6 +20,7 @@ import re
 import six
 import yaml
 
+from st2common.exceptions.workflow import WorkflowDefinitionException
 from st2common import log as logging
 from st2common.models.system.common import ResourceReference
 from st2common.models.utils import action_param_utils
@@ -117,12 +118,12 @@ def _validate_action_parameters(name, action, action_params):
     requires, unexpected = action_param_utils.validate_action_parameters(action.ref, action_params)
 
     if requires:
-        raise Exception('Missing required parameters in "%s" for action "%s": '
-                        '"%s"' % (name, action.ref, '", "'.join(requires)))
+        raise WorkflowDefinitionException('Missing required parameters in "%s" for action "%s": '
+                                          '"%s"' % (name, action.ref, '", "'.join(requires)))
 
     if unexpected:
-        raise Exception('Unexpected parameters in "%s" for action "%s": '
-                        '"%s"' % (name, action.ref, '", "'.join(unexpected)))
+        raise WorkflowDefinitionException('Unexpected parameters in "%s" for action "%s": '
+                                          '"%s"' % (name, action.ref, '", "'.join(unexpected)))
 
 
 def _transform_action(name, spec):
@@ -139,7 +140,7 @@ def _transform_action(name, spec):
         return
 
     if spec[action_key] == 'st2.callback':
-        raise Exception('st2.callback is deprecated.')
+        raise WorkflowDefinitionException('st2.callback is deprecated.')
 
     # Convert parameters that are inline (i.e. action: some_action var1={$.value1} var2={$.value2})
     # and split it to action name and input dict as illustrated below.
@@ -190,13 +191,6 @@ def transform_definition(definition):
     is_dict = isinstance(definition, dict)
     spec = copy.deepcopy(definition) if is_dict else yaml.safe_load(definition)
 
-    # Check version
-    if 'version' not in spec:
-        raise Exception('Unknown version. Only version 2.0 is supported.')
-
-    if spec['version'] != '2.0':
-        raise Exception('Only version 2.0 is supported.')
-
     # Transform adhoc actions
     for action_name, action_spec in six.iteritems(spec.get('actions', {})):
         _transform_action(action_name, action_spec)
@@ -207,8 +201,9 @@ def transform_definition(definition):
     # Transform tasks
     if is_workbook:
         for workflow_name, workflow_spec in six.iteritems(spec.get('workflows', {})):
-            for task_name, task_spec in six.iteritems(workflow_spec.get('tasks')):
-                _transform_action(task_name, task_spec)
+            if 'tasks' in workflow_spec:
+                for task_name, task_spec in six.iteritems(workflow_spec.get('tasks')):
+                    _transform_action(task_name, task_spec)
     else:
         for key, value in six.iteritems(spec):
             if 'tasks' in value:

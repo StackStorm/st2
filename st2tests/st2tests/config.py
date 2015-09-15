@@ -53,7 +53,6 @@ def _register_config_opts():
     _register_auth_opts()
     _register_action_sensor_opts()
     _register_ssh_runner_opts()
-    _register_mistral_opts()
     _register_cloudslang_opts()
     _register_scheduler_opts()
     _register_exporter_opts()
@@ -181,19 +180,6 @@ def _register_ssh_runner_opts():
                         'Works only with Paramiko SSH runner.'),
     ]
     _register_opts(ssh_runner_opts, group='ssh_runner')
-
-
-def _register_mistral_opts():
-    mistral_opts = [
-        cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2', help='v2 API root endpoint.'),
-        cfg.IntOpt('max_attempts', default=2, help='Max attempts to reconnect.'),
-        cfg.IntOpt('retry_wait', default=1, help='Seconds to wait before reconnecting.'),
-        cfg.StrOpt('keystone_username', default=None, help='Username for authentication.'),
-        cfg.StrOpt('keystone_password', default=None, help='Password for authentication.'),
-        cfg.StrOpt('keystone_project_name', default=None, help='OpenStack project scope.'),
-        cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.')
-    ]
-    _register_opts(mistral_opts, group='mistral')
 
 
 def _register_cloudslang_opts():

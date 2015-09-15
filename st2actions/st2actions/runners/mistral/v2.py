@@ -24,12 +24,12 @@ from mistralclient.api import client as mistral
 from mistralclient.api.base import APIException
 from oslo_config import cfg
 
-from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2actions.runners import AsyncActionRunner
-from st2actions.runners.mistral import utils
+from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common import log as logging
-from st2common.util.url import get_url_without_trailing_slash
 from st2common.models.api.notification import NotificationsHelper
+from st2common.util.workflow import mistral as utils
+from st2common.util.url import get_url_without_trailing_slash
 
 
 LOG = logging.getLogger(__name__)

@@ -13,17 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2api.controllers.exp.actionalias import ActionAliasController
-from st2api.controllers.exp.aliasexecution import ActionAliasExecutionController
-from st2api.controllers.exp.validation import ValidationController
+import abc
+import six
 
 
-class RootController(object):
+@six.add_metaclass(abc.ABCMeta)
+class WorkflowValidator(object):
 
-    # Here for backward compatibility reasons
-    # Deprecated. Use /v1/ instead.
-    actionalias = ActionAliasController()
-    aliasexecution = ActionAliasExecutionController()
-
-    # Experimental
-    validation = ValidationController()
+    @abc.abstractmethod
+    def validate(self, definition):
+        raise NotImplementedError
