@@ -22,12 +22,32 @@ from mongoengine.queryset import QuerySet
 from st2common import log as logging
 
 __all__ = [
+    'enable_profiling',
+    'disable_profiling',
+    'is_enabled',
     'log_query_and_profile_data_for_queryset'
 ]
 
 LOG = logging.getLogger(__name__)
 
 ENABLE_PROFILING = False
+
+
+def enable_profiling():
+    global ENABLE_PROFILING
+    ENABLE_PROFILING = True
+    return ENABLE_PROFILING
+
+
+def disable_profiling():
+    global ENABLE_PROFILING
+    ENABLE_PROFILING = False
+    return ENABLE_PROFILING
+
+
+def is_enabled():
+    global ENABLE_PROFILING
+    return ENABLE_PROFILING
 
 
 def log_query_and_profile_data_for_queryset(queryset):

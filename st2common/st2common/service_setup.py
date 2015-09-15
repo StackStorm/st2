@@ -30,8 +30,8 @@ from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.transport.bootstrap_utils import register_exchanges
 from st2common.signal_handlers import register_common_signal_handlers
+from st2common.models.utils.profiling import enable_profiling
 from st2common import triggers
-import st2common.models.utils.profiling
 
 from st2common.rbac.migrations import insert_system_roles
 
@@ -94,7 +94,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         db_setup()
 
     if cfg.CONF.debug or cfg.CONF.profile:
-        st2common.models.utils.profiling.ENABLE_PROFILING = True
+        enable_profiling()
 
     if register_mq_exchanges:
         register_exchanges()
