@@ -1,0 +1,6 @@
+---
+name: examples
+description: Pack which contains various examples of sensors, triggers, actions and rules.
+version: 0.1.0
+author : st2-dev
+email : info@stackstorm.com
