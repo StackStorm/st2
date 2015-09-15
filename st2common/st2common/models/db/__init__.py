@@ -7,7 +7,7 @@ import mongoengine
 from st2common import log as logging
 from st2common.util import isotime
 from st2common.models.db import stormbase
-from st2common.models.db.profiling import log_query_and_profile_data_for_queryset
+from st2common.models.utils.profiling import log_query_and_profile_data_for_queryset
 
 
 LOG = logging.getLogger(__name__)
