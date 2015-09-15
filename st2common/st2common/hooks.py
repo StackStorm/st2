@@ -86,7 +86,7 @@ class CorsHook(PecanHook):
 
         methods_allowed = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
         request_headers_allowed = ['Content-Type', 'Authorization', 'X-Auth-Token',
-                                   REQUEST_ID_HEADER]
+                                   HEADER_API_KEY_ATTRIBUTE_NAME, REQUEST_ID_HEADER]
         response_headers_allowed = ['Content-Type', 'X-Limit', 'X-Total-Count',
                                     REQUEST_ID_HEADER]
 
