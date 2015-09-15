@@ -105,6 +105,9 @@ class ApiKeyAPI(BaseAPI):
             "id": {
                 "type": "string"
             },
+            "uid": {
+                "type": "string"
+            },
             "user": {
                 "type": ["string", "null"],
                 "default": ""
@@ -154,6 +157,9 @@ class ApiKeyCreateResponseAPI(BaseAPI):
             "id": {
                 "type": "string"
             },
+            "uid": {
+                "type": "string"
+            },
             "user": {
                 "type": ["string", "null"],
                 "default": ""
@@ -186,6 +192,7 @@ class ApiKeyCreateResponseAPI(BaseAPI):
             else None
         # key_hash is ignored.
         attrs.pop('key_hash', None)
+        # key is unknown so the calling code will have to update after conversion.
         attrs['key'] = None
 
         return cls(**attrs)
