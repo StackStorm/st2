@@ -132,24 +132,12 @@ class ApiKeyController(RestController):
             Handles requests:
                 DELETE /apikeys/1
         """
-        api_key_db = None
-        try:
-            api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
-        except ApiKeyNotFoundError:
-            msg = 'ApiKey matching %s for reference and id not found.', api_key_id_or_key
-            LOG.exception(msg)
-            abort(http_client.NOT_FOUND, msg)
+        api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
 
         LOG.debug('DELETE /apikeys/ lookup with api_key_id_or_key=%s found object: %s',
                   api_key_id_or_key, api_key_db)
 
-        try:
-            ApiKey.delete(api_key_db)
-        except Exception as e:
-            LOG.exception('Database delete encountered exception during '
-                          'delete of api_key_id_or_key="%s". ', api_key_id_or_key)
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
-            return
+        ApiKey.delete(api_key_db)
 
         extra = {'api_key_db': api_key_db}
         LOG.audit('ApiKey deleted. ApiKey.id=%s' % (api_key_db.id), extra=extra)
