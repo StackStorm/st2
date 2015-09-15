@@ -17,6 +17,8 @@
 Module containing MongoDB profiling related functionality.
 """
 
+from mongoengine.queryset import QuerySet
+
 from st2common import log as logging
 
 __all__ = [
@@ -43,6 +45,10 @@ def log_query_and_profile_data_for_queryset(queryset):
     """
     if not ENABLE_PROFILING:
         # Profiling is disabled
+        return queryset
+
+    if not isinstance(queryset, QuerySet):
+        # Note: Some mongoengine methods don't return queryset (e.g. count)
         return queryset
 
     query = getattr(queryset, '_query', None)
