@@ -97,7 +97,7 @@ class MistralValidationControllerTest(FunctionalTest):
         return yaml.safe_load(def_yaml)
 
     def __do_post(self, definition, expect_errors=False):
-        return self.app.post('/exp/validators/mistral', definition, expect_errors=expect_errors)
+        return self.app.post('/exp/validation/mistral', definition, expect_errors=expect_errors)
 
     @mock.patch.object(
         workbooks.WorkbookManager, 'validate',
