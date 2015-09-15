@@ -16,6 +16,7 @@
 import pecan
 import six
 
+from oslo_config import cfg
 from pecan import abort
 from pecan.rest import RestController
 from mongoengine import ValidationError
@@ -153,19 +154,15 @@ class ApiKeyController(RestController):
         extra = {'api_key_db': api_key_db}
         LOG.audit('ApiKey deleted. ApiKey.id=%s' % (api_key_db.id), extra=extra)
 
-    def _get_user(self, api_key):
-        # If a user is provided in api_key try to use that value. In the future
-        # this behavior should change.
-        user = getattr(api_key, 'user', '')
-        if user:
-            return user
-
-        # no user found in api_key lookup from request context.
-        # AuthHook places context in the pecan request.
+    def _get_user(self):
+        """
+        Looks up user from the auth context in the request or will return system_user.
+        """
+        # lookup user from request context. AuthHook places context in the pecan request.
         auth_context = pecan.request.context.get('auth', None)
 
         if not auth_context:
-            return None
+            return cfg.CONF.system_user.user
 
         user_db = auth_context.get('user', None)
-        return user_db.name if user_db else None
+        return user_db.name if user_db else cfg.CONF.system_user.user
