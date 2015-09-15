@@ -22,6 +22,7 @@ import requests
 import eventlet
 from eventlet.green import subprocess
 
+import st2common.models.utils.profiling
 from st2common.util.shell import kill_process
 
 
@@ -29,6 +30,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class GunicornWSGIEntryPointTestCase(unittest2.TestCase):
+    @unittest2.skipIf(st2common.models.utils.profiling.ENABLE_PROFILING, 'Profiling is enabled')
     @unittest2.skipIf(os.environ.get('TRAVIS'), 'Running on travis')
     def test_st2api_wsgi_entry_point(self):
         port = random.randint(10000, 30000)
@@ -45,6 +47,7 @@ class GunicornWSGIEntryPointTestCase(unittest2.TestCase):
         self.assertEqual(response.status_code, httplib.OK)
         kill_process(process)
 
+    @unittest2.skipIf(st2common.models.utils.profiling.ENABLE_PROFILING, 'Profiling is enabled')
     @unittest2.skipIf(os.environ.get('TRAVIS'), 'Running on travis')
     def test_st2auth(self):
         port = random.randint(10000, 30000)
