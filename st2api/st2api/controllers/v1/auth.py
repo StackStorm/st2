@@ -104,10 +104,10 @@ class ApiKeyController(RestController):
         """
         api_key_db = None
         try:
-            api_key_api.user = self._get_user(api_key_api)
+            api_key_api.user = self._get_user()
             api_key, api_key_hash = auth_util.generate_api_key_and_hash()
             # store key_hash in DB
-            api_key_api.key = api_key_hash
+            api_key_api.key_hash = api_key_hash
             api_key_db = ApiKey.add_or_update(ApiKeyAPI.to_model(api_key_api))
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for api_key data=%s.', api_key_api)

@@ -75,7 +75,7 @@ class TestApiKeyController(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['id'], str(self.apikey1.id),
                          'Incorrect api key retrieved.')
-        self.assertEqual(resp.json['key'], MASKED_ATTRIBUTE_VALUE,
+        self.assertEqual(resp.json['key_hash'], MASKED_ATTRIBUTE_VALUE,
                          'Key should be masked.')
 
     def test_get_one_by_key(self):
@@ -84,21 +84,21 @@ class TestApiKeyController(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['id'], str(self.apikey1.id),
                          'Incorrect api key retrieved.')
-        self.assertEqual(resp.json['key'], MASKED_ATTRIBUTE_VALUE,
+        self.assertEqual(resp.json['key_hash'], MASKED_ATTRIBUTE_VALUE,
                          'Key should be masked.')
         # key2
         resp = self.app.get('/v1/apikeys/%s' % KEY2_KEY)
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['id'], str(self.apikey2.id),
                          'Incorrect api key retrieved.')
-        self.assertEqual(resp.json['key'], MASKED_ATTRIBUTE_VALUE,
+        self.assertEqual(resp.json['key_hash'], MASKED_ATTRIBUTE_VALUE,
                          'Key should be masked.')
         # key3
         resp = self.app.get('/v1/apikeys/%s' % KEY3_KEY)
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['id'], str(self.apikey3.id),
                          'Incorrect api key retrieved.')
-        self.assertEqual(resp.json['key'], MASKED_ATTRIBUTE_VALUE,
+        self.assertEqual(resp.json['key_hash'], MASKED_ATTRIBUTE_VALUE,
                          'Key should be masked.')
 
     def test_post_delete_key(self):
@@ -108,7 +108,8 @@ class TestApiKeyController(FunctionalTest):
         resp1 = self.app.post_json('/v1/apikeys/', api_key)
         self.assertEqual(resp1.status_int, 201)
         self.assertTrue(resp1.json['key'], 'Key should be non-None.')
-        self.assertNotEqual(resp1.json['key'], MASKED_ATTRIBUTE_VALUE, 'Key should not be masked.')
+        self.assertNotEqual(resp1.json['key'], MASKED_ATTRIBUTE_VALUE,
+                            'Key should not be masked.')
 
         # should lead to creation of another key
         resp2 = self.app.post_json('/v1/apikeys/', api_key)

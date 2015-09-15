@@ -139,7 +139,7 @@ class ApiKeyAPI(BaseAPI):
     @classmethod
     def to_model(cls, instance):
         user = str(instance.user) if instance.user else None
-        key_hash = str(instance.key_hash) if instance.key_hash else None
+        key_hash = getattr(instance, 'key_hash', None)
         metadata = getattr(instance, 'metadata', {})
         enabled = bool(getattr(instance, 'enabled', True))
         model = cls.model(user=user, key_hash=key_hash, metadata=metadata, enabled=enabled)
