@@ -109,6 +109,37 @@ class ApiKeyAPI(BaseAPI):
                 "type": ["string", "null"],
                 "default": ""
             },
+            "key_hash": {
+                "type": ["string", "null"]
+            },
+            "metadata": {
+                "type": ["object", "null"]
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, instance):
+        user = str(instance.user) if instance.user else None
+        key_hash = str(instance.key_hash) if instance.key_hash else None
+        metadata = getattr(instance, 'metadata', {})
+        model = cls.model(user=user, key_hash=key_hash, metadata=metadata)
+        return model
+
+
+class ApiKeyCreateResponseAPI(BaseAPI):
+    schema = {
+        "title": "APIKeyCreateResponse",
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string"
+            },
+            "user": {
+                "type": ["string", "null"],
+                "default": ""
+            },
             "key": {
                 "type": ["string", "null"]
             },
@@ -123,20 +154,7 @@ class ApiKeyAPI(BaseAPI):
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model=model, mask_secrets=mask_secrets)
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
-        # switcharoo. key_hash is returned as key and likely masked.
-        attrs['key'] = attrs.pop('key_hash', None)
+        # key_hash is ignored.
+        attrs['key'] = ''
 
         return cls(**attrs)
-
-    @classmethod
-    def to_model(cls, instance):
-        user = str(instance.user) if instance.user else None
-        key = str(instance.key) if instance.key else None
-        metadata = getattr(instance, 'metadata', {})
-
-        # The api_key is never really stored in the DB. It is assumed
-        # that the value passed in here is actually api_key_hash; since
-        # this cannot be enforced here assumption is that clients of this method
-        # do the right thing.
-        model = cls.model(user=user, key_hash=key, metadata=metadata)
-        return model

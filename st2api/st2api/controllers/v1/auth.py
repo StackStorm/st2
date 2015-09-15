@@ -22,7 +22,7 @@ from pecan.rest import RestController
 from mongoengine import ValidationError
 
 from st2common import log as logging
-from st2common.models.api.auth import ApiKeyAPI
+from st2common.models.api.auth import ApiKeyAPI, ApiKeyCreateResponseAPI
 from st2common.models.api.base import jsexpose
 from st2common.exceptions.auth import ApiKeyNotFoundError
 from st2common.persistence.auth import ApiKey
@@ -116,12 +116,12 @@ class ApiKeyController(RestController):
         extra = {'api_key_db': api_key_db}
         LOG.audit('ApiKey created. ApiKey.id=%s' % (api_key_db.id), extra=extra)
 
-        api_key_api = ApiKeyAPI.from_model(api_key_db)
+        api_key_create_response_api = ApiKeyCreateResponseAPI.from_model(api_key_db)
         # Return real api_key back to user. A one-way hash of the api_key is stored in the DB
         # only the real value only returned at create time. Also, no masking of key here since
         # the user needs to see this value atleast once.
-        api_key_api.key = api_key
-        return api_key_api
+        api_key_create_response_api.key = api_key
+        return api_key_create_response_api
 
     @request_user_has_resource_permission(permission_type=PermissionType.API_KEY_DELETE)
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
