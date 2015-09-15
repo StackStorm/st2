@@ -26,6 +26,9 @@ in development
 * Fix ``packs.info`` action so it correctly exists with a non-zero status code if the pack doesn't
   exist or if it doesn't contain a valid ``.gitinfo`` file. (bug-fix)
 * Fix ``packs.info`` action so it correctly searches all the packs base dirs. (bug-fix)
+* Add support for ``--profile`` flag to all the services. When this flag is provided service runs
+  in the profiling module which means all the MongoDB queries and query related profile data is 
+  logged. (new-feature)
 
 0.13.2 - September 09, 2015
 ---------------------------

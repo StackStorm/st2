@@ -1,5 +1,5 @@
 Running Self-Verification
--------------------------
+=========================
 
 |st2| package-based installations come with a script, that allows to verify |st2| installation, using |st2| itself.
 Currently script covers the following aspects of |st2|:
