@@ -395,7 +395,9 @@ def mock_get_token(*args, **kwargs):
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
+class TestActionExecutionControllerAuthEnabled(FunctionalTest):
+
+    enable_auth = True
 
     @classmethod
     @mock.patch.object(

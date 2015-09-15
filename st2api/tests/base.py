@@ -31,17 +31,20 @@ class FunctionalTest(DbTestCase):
     """
     Base test case class for testing API controllers with auth and RBAC disabled.
     """
+    # By default auth is disabled
+    enable_auth = False
 
     @classmethod
     def setUpClass(cls):
         super(FunctionalTest, cls).setUpClass()
+        cls._do_setUpClass()
 
+    @classmethod
+    def _do_setUpClass(cls):
         tests_config.parse_args()
 
-        # Make sure auth is disabled
-        cfg.CONF.set_default('enable', False, group='auth')
+        cfg.CONF.set_default('enable', cls.enable_auth, group='auth')
 
-        # Make sure RBAC is disabled
         cfg.CONF.set_override(name='enable', override=False, group='rbac')
 
         opts = cfg.CONF.api_pecan

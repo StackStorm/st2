@@ -19,7 +19,7 @@ import datetime
 import bson
 import mock
 
-from tests import AuthMiddlewareTest
+from tests import FunctionalTest
 from st2common.util import date as date_utils
 from st2common.models.db.auth import TokenDB
 from st2common.persistence.auth import Token
@@ -34,7 +34,9 @@ FUTURE = NOW + datetime.timedelta(seconds=300)
 PAST = NOW + datetime.timedelta(seconds=-300)
 
 
-class TestTokenValidation(AuthMiddlewareTest):
+class TestHookBasedTokenAuth(FunctionalTest):
+
+    enable_auth = True
 
     @mock.patch.object(
         Token, 'get',
