@@ -24,7 +24,7 @@ from st2common.util import date as date_utils
 from st2common.models.db.auth import TokenDB
 from st2common.persistence.auth import Token
 from st2common.exceptions.auth import TokenNotFoundError
-
+from st2tests.fixturesloader import FixturesLoader
 
 OBJ_ID = bson.ObjectId()
 USER = 'stanley'
@@ -34,7 +34,7 @@ FUTURE = NOW + datetime.timedelta(seconds=300)
 PAST = NOW + datetime.timedelta(seconds=-300)
 
 
-class TestHookBasedTokenAuth(FunctionalTest):
+class TestTokenBasedAuth(FunctionalTest):
 
     enable_auth = True
 
@@ -76,3 +76,65 @@ class TestHookBasedTokenAuth(FunctionalTest):
         response = self.app.get('/v1/actions', expect_errors=True)
         self.assertTrue('application/json' in response.headers['content-type'])
         self.assertEqual(response.status_int, 401)
+
+
+FIXTURES_PACK = 'generic'
+
+TEST_MODELS = {
+    'apikeys': ['apikey1.yaml', 'apikey_disabled.yaml']
+}
+
+# Hardcoded keys matching the fixtures. Lazy way to workound one-way hash and still use fixtures.
+KEY1_KEY = "1234"
+DISABLED_KEY = "0000"
+
+
+class TestApiKeyBasedAuth(FunctionalTest):
+
+    enable_auth = True
+
+    apikey1 = None
+    apikey_disabled = None
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestApiKeyBasedAuth, cls).setUpClass()
+        models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
+                                                      fixtures_dict=TEST_MODELS)
+        cls.apikey1 = models['apikeys']['apikey1.yaml']
+        cls.apikey_disabled = models['apikeys']['apikey_disabled.yaml']
+
+    def test_apikey_validation_apikey_in_headers(self):
+        response = self.app.get('/v1/actions', headers={'St2-Api-key': KEY1_KEY},
+                                expect_errors=False)
+        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertEqual(response.status_int, 200)
+
+    def test_apikey_validation_apikey_in_query_params(self):
+        response = self.app.get('/v1/actions?st2-api-key=%s' % (KEY1_KEY), expect_errors=False)
+        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertEqual(response.status_int, 200)
+
+    def test_apikey_disabled(self):
+        response = self.app.get('/v1/actions', headers={'St2-Api-key': DISABLED_KEY},
+                                expect_errors=True)
+        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertEqual(response.status_int, 401)
+        self.assertEqual(response.json_body['faultstring'], 'Unauthorized - API key is disabled.')
+
+    def test_apikey_not_found(self):
+        response = self.app.get('/v1/actions', headers={'St2-Api-key': 'UNKNOWN'},
+                                expect_errors=True)
+        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertEqual(response.status_int, 401)
+        self.assertRegexpMatches(response.json_body['faultstring'],
+                                 '^Unauthorized - ApiKey with key_hash=([a-zA-Z0-9]+) not found.$')
+
+    def test_multiple_auth_sources(self):
+        response = self.app.get('/v1/actions',
+                                headers={'X-Auth-Token': TOKEN, 'St2-Api-key': KEY1_KEY},
+                                expect_errors=True)
+        self.assertTrue('application/json' in response.headers['content-type'])
+        self.assertEqual(response.status_int, 401)
+        self.assertEqual(response.json_body['faultstring'],
+                         'Unauthorized - Only one of Token or API key expected.')
