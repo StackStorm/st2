@@ -24,6 +24,7 @@ from mongoengine import ValidationError
 from st2common import log as logging
 from st2common.models.api.auth import ApiKeyAPI, ApiKeyCreateResponseAPI
 from st2common.models.api.base import jsexpose
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.exceptions.auth import ApiKeyNotFoundError
 from st2common.persistence.auth import ApiKey
 from st2common.rbac.types import PermissionType
@@ -134,6 +135,17 @@ class ApiKeyController(RestController):
 
         old_api_key_db = api_key_db
         api_key_db = ApiKeyAPI.to_model(api_key_api)
+
+        # Passing in key_hash as MASKED_ATTRIBUTE_VALUE is expected since we do not
+        # leak it out therefore it is expected we get the same value back. Interpret
+        # this special code and empty value as no-change
+        if api_key_db.key_hash == MASKED_ATTRIBUTE_VALUE or not api_key_db.key_hash:
+            api_key_db.key_hash = old_api_key_db.key_hash
+
+        # Rather than silently ignore any update to key_hash it is better to explicitly
+        # disallow and notify user.
+        if old_api_key_db.key_hash != api_key_db.key_hash:
+            raise ValueError('Update of key_hash is not allowed.')
 
         api_key_db.id = old_api_key_db.id
         api_key_db = ApiKey.add_or_update(api_key_db)

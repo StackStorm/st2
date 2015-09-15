@@ -142,6 +142,17 @@ class TestApiKeyController(FunctionalTest):
         self.assertEqual(put_resp.status_int, 200)
         self.assertEqual(put_resp.json['enabled'], resp.json['enabled'])
 
+    def test_put_api_key_fail(self):
+        resp = self.app.get('/v1/apikeys/%s' % self.apikey1.id)
+        self.assertEqual(resp.status_int, 200)
+
+        update_input = resp.json
+        update_input['key_hash'] = '1'
+        put_resp = self.app.put_json('/v1/apikeys/%s' % self.apikey1.id, update_input,
+                                     expect_errors=True)
+        self.assertEqual(put_resp.status_int, 400)
+        self.assertTrue(put_resp.json['faultstring'])
+
     def test_post_no_user_fail(self):
         self.app.post_json('/v1/apikeys/', {}, expect_errors=True)
 
