@@ -110,7 +110,7 @@ class AuthHook(PecanHook):
         if state.request.method == 'OPTIONS':
             return
 
-        user_db = self._get_validated_user(request=state.request)
+        user_db = self._validate_creds_and_get_user(request=state.request)
 
         # Store related user object in the context. The token is not passed
         # along any longer as that should only be used in the auth domain.
@@ -166,7 +166,7 @@ class AuthHook(PecanHook):
         return webob.Response(body=body, status=status, headers=headers)
 
     @staticmethod
-    def _get_validated_user(request):
+    def _validate_creds_and_get_user(request):
         """
         Validate one of token or api_key provided either in headers or query parameters.
         Will returnt the User
