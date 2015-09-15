@@ -59,7 +59,7 @@ class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     """
     """
     RESOURCE_TYPE = ResourceType.API_KEY
-    UID_FIELDS = ['id']
+    UID_FIELDS = ['key_hash']
 
     user = me.StringField(required=True)
     key_hash = me.StringField(required=True, unique=True)
@@ -86,8 +86,9 @@ class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
 
         # In theory the key_hash is safe to return as it is one way. On the other
         # hand given that this is actually a secret no real point in letting the hash
-        # escape.
+        # escape. Since uid contains key_hash masking that as well.
         result['key_hash'] = MASKED_ATTRIBUTE_VALUE
+        result['uid'] = MASKED_ATTRIBUTE_VALUE
         return result
 
 
