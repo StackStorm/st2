@@ -116,5 +116,8 @@ def validate_api_key(api_key_in_headers, api_key_query_params):
     api_key = api_key_in_headers or api_key_query_params
     api_key_db = ApiKey.get(api_key)
 
+    if not api_key_db.enabled:
+        raise exceptions.ApiKeyDisabledError('API key is disabled.')
+
     LOG.audit('API key with id "%s" is validated.' % (api_key_db.id))
     return api_key_db

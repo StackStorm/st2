@@ -114,17 +114,35 @@ class ApiKeyAPI(BaseAPI):
             },
             "metadata": {
                 "type": ["object", "null"]
+            },
+            'created_at': {
+                'description': 'The start time when the action is executed.',
+                'type': 'string',
+                'pattern': isotime.ISO8601_UTC_REGEX
+            },
+            "enabled": {
+                "description": "Enable or disable the action from invocation.",
+                "type": "boolean",
+                "default": True
             }
         },
         "additionalProperties": False
     }
 
     @classmethod
+    def from_model(cls, model, mask_secrets=False):
+        doc = super(cls, cls)._from_model(model, mask_secrets=mask_secrets)
+        doc['created_at'] = isotime.format(model.created_at, offset=False) if model.created_at \
+            else None
+        return cls(**doc)
+
+    @classmethod
     def to_model(cls, instance):
         user = str(instance.user) if instance.user else None
         key_hash = str(instance.key_hash) if instance.key_hash else None
         metadata = getattr(instance, 'metadata', {})
-        model = cls.model(user=user, key_hash=key_hash, metadata=metadata)
+        enabled = bool(getattr(instance, 'enabled', True))
+        model = cls.model(user=user, key_hash=key_hash, metadata=metadata, enabled=enabled)
         return model
 
 
@@ -145,6 +163,16 @@ class ApiKeyCreateResponseAPI(BaseAPI):
             },
             "metadata": {
                 "type": ["object", "null"]
+            },
+            'created_at': {
+                'description': 'The start time when the action is executed.',
+                'type': 'string',
+                'pattern': isotime.ISO8601_UTC_REGEX
+            },
+            "enabled": {
+                "description": "Enable or disable the action from invocation.",
+                "type": "boolean",
+                "default": True
             }
         },
         "additionalProperties": False
@@ -154,7 +182,10 @@ class ApiKeyCreateResponseAPI(BaseAPI):
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model=model, mask_secrets=mask_secrets)
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
+        attrs['created_at'] = isotime.format(model.created_at, offset=False) if model.created_at \
+            else None
         # key_hash is ignored.
-        attrs['key'] = ''
+        attrs.pop('key_hash', None)
+        attrs['key'] = None
 
         return cls(**attrs)

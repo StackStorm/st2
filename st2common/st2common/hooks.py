@@ -141,6 +141,9 @@ class AuthHook(PecanHook):
         if isinstance(e, auth_exceptions.ApiKeyNotFoundError):
             LOG.exception('API key is not found.')
             return self._abort_unauthorized(str(e))
+        if isinstance(e, auth_exceptions.ApiKeyDisabledError):
+            LOG.exception('API key is disabled.')
+            return self._abort_unauthorized(str(e))
 
     @staticmethod
     def _abort_unauthorized(msg):

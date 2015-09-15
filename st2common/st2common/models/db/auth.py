@@ -17,9 +17,11 @@ import copy
 import mongoengine as me
 
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
+from st2common.constants.types import ResourceType
+from st2common.fields import ComplexDateTimeField
 from st2common.models.db import stormbase
 from st2common.services.rbac import get_roles_for_user
-from st2common.constants.types import ResourceType
+from st2common.util import date as date_utils
 
 __all__ = [
     'UserDB',
@@ -63,6 +65,10 @@ class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     key_hash = me.StringField(required=True, unique=True)
     metadata = me.DictField(required=False,
                             help_text='Arbitrary metadata associated with this token')
+    created_at = ComplexDateTimeField(default=date_utils.get_datetime_utc_now,
+                                      help_text='The creation time of this ApiKey.')
+    enabled = me.BooleanField(required=True, default=True,
+                              help_text='A flag indicating whether the ApiKey is enabled.')
 
     meta = {
         'indexes': [

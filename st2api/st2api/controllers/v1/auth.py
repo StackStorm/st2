@@ -123,6 +123,27 @@ class ApiKeyController(RestController):
         api_key_create_response_api.key = api_key
         return api_key_create_response_api
 
+    @request_user_has_permission(permission_type=PermissionType.API_KEY_CREATE)
+    @jsexpose(arg_types=[str], body_cls=ApiKeyAPI)
+    def put(self, api_key_id_or_key, api_key_api):
+
+        api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
+
+        LOG.debug('PUT /apikeys/ lookup with api_key_id_or_key=%s found object: %s',
+                  api_key_id_or_key, api_key_db)
+
+        old_api_key_db = api_key_db
+        api_key_db = ApiKeyAPI.to_model(api_key_api)
+
+        api_key_db.id = old_api_key_db.id
+        api_key_db = ApiKey.add_or_update(api_key_db)
+
+        extra = {'old_api_key_db': old_api_key_db, 'new_api_key_db': api_key_db}
+        LOG.audit('API Key updated. ApiKey.id=%s.' % (api_key_db.id), extra=extra)
+        api_key_api = ApiKeyAPI.from_model(api_key_db)
+
+        return api_key_api
+
     @request_user_has_resource_permission(permission_type=PermissionType.API_KEY_DELETE)
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, api_key_id_or_key):

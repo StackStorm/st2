@@ -52,6 +52,10 @@ class ApiKeyNotFoundError(StackStormDBObjectNotFoundError):
     pass
 
 
+class ApiKeyDisabledError(StackStormDBObjectNotFoundError):
+    pass
+
+
 class MultipleAuthSourcesError(StackStormBaseException):
     pass
 
