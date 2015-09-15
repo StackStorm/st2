@@ -9,3 +9,4 @@ platform and how you can troubleshoot and debug them.
 
     rules
     ssh
+    database
