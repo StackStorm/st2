@@ -157,15 +157,30 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(coord_opts, 'coordination', ignore_errors)
 
+    # Mistral options
+    mistral_opts = [
+        cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2', help='v2 API root endpoint.'),
+        cfg.IntOpt('max_attempts', default=180, help='Max attempts to reconnect.'),
+        cfg.IntOpt('retry_wait', default=5, help='Seconds to wait before reconnecting.'),
+        cfg.StrOpt('keystone_username', default=None, help='Username for authentication.'),
+        cfg.StrOpt('keystone_password', default=None, help='Password for authentication.'),
+        cfg.StrOpt('keystone_project_name', default=None, help='OpenStack project scope.'),
+        cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.')
+    ]
+    do_register_opts(mistral_opts, group='mistral', ignore_errors=ignore_errors)
+
     # Common CLI options
     debug = cfg.BoolOpt('debug', default=False,
         help='Enable debug mode. By default this will set all log levels to DEBUG.')
+    profile = cfg.BoolOpt('profile', default=False,
+        help=('Enable profile mode. In the profile mode all the MongoDB queries and related '
+              'profile data are logged.'))
     use_debugger = cfg.BoolOpt('use-debugger', default=True,
         help='Enables debugger. Note that using this option changes how the '
              'eventlet library is used to support async IO. This could result in '
              'failures that do not occur under normal operation.')
 
-    cli_opts = [debug, use_debugger]
+    cli_opts = [debug, profile, use_debugger]
     do_register_cli_opts(cli_opts, ignore_errors=ignore_errors)
 
 

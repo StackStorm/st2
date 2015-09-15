@@ -4,9 +4,10 @@ import importlib
 import six
 import mongoengine
 
+from st2common import log as logging
 from st2common.util import isotime
 from st2common.models.db import stormbase
-from st2common import log as logging
+from st2common.models.utils.profiling import log_query_and_profile_data_for_queryset
 
 
 LOG = logging.getLogger(__name__)
@@ -104,6 +105,7 @@ class MongoDBAccess(object):
             instances = instances.exclude(*exclude_fields)
 
         instance = instances[0] if instances else None
+        log_query_and_profile_data_for_queryset(queryset=instances)
 
         if not instance and raise_exception:
             raise ValueError('Unable to find the %s instance. %s' % (self.model.__name__, kwargs))
@@ -113,7 +115,9 @@ class MongoDBAccess(object):
         return self.query(*args, **kwargs)
 
     def count(self, *args, **kwargs):
-        return self.model.objects(**kwargs).count()
+        result = self.model.objects(**kwargs).count()
+        log_query_and_profile_data_for_queryset(queryset=result)
+        return result
 
     def query(self, offset=0, limit=None, order_by=None, exclude_fields=None,
               **filters):
@@ -134,12 +138,15 @@ class MongoDBAccess(object):
 
         result = result.order_by(*order_by)
         result = result[offset:eop]
+        log_query_and_profile_data_for_queryset(queryset=result)
 
         return result
 
     def distinct(self, *args, **kwargs):
         field = kwargs.pop('field')
-        return self.model.objects(**kwargs).distinct(field)
+        result = self.model.objects(**kwargs).distinct(field)
+        log_query_and_profile_data_for_queryset(queryset=result)
+        return result
 
     def aggregate(self, *args, **kwargs):
         return self.model.objects(**kwargs)._collection.aggregate(*args, **kwargs)

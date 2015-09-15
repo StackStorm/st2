@@ -13,17 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2api.controllers.exp.actionalias import ActionAliasController
-from st2api.controllers.exp.aliasexecution import ActionAliasExecutionController
-from st2api.controllers.exp.validation import ValidationController
+from st2common.exceptions import StackStormBaseException
 
 
-class RootController(object):
-
-    # Here for backward compatibility reasons
-    # Deprecated. Use /v1/ instead.
-    actionalias = ActionAliasController()
-    aliasexecution = ActionAliasExecutionController()
-
-    # Experimental
-    validation = ValidationController()
+class WorkflowDefinitionException(StackStormBaseException):
+    pass
