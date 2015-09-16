@@ -165,4 +165,3 @@ class ApiKeyEnableCommand(resource.ResourceEnableCommand):
 
 class ApiKeyDisableCommand(resource.ResourceDisableCommand):
     pk_argument_name = 'key_or_id'  # name of the attribute which stores resource PK
-
