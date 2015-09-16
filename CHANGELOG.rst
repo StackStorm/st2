@@ -27,8 +27,10 @@ in development
   exist or if it doesn't contain a valid ``.gitinfo`` file. (bug-fix)
 * Fix ``packs.info`` action so it correctly searches all the packs base dirs. (bug-fix)
 * Add support for ``--profile`` flag to all the services. When this flag is provided service runs
-  in the profiling module which means all the MongoDB queries and query related profile data is 
+  in the profiling module which means all the MongoDB queries and query related profile data is
   logged. (new-feature)
+* Introduce API Keys that do not expire like Authentication tokens. This makes it easier to work
+  with webhook based integrations. (new-feature)
 
 0.13.2 - September 09, 2015
 ---------------------------
