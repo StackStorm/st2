@@ -84,6 +84,9 @@ class ApiKeyBranch(resource.ResourceBranch):
                 'delete': ApiKeyDeleteCommand
             })
 
+        self.commands['enable'] = ApiKeyEnableCommand(self.resource, self.app, self.subparsers)
+        self.commands['disable'] = ApiKeyDisableCommand(self.resource, self.app, self.subparsers)
+
 
 class ApiKeyListCommand(resource.ResourceListCommand):
     display_attributes = ['id', 'user', 'metadata']
@@ -154,3 +157,12 @@ class ApiKeyCreateCommand(resource.ResourceCommand):
 
 class ApiKeyDeleteCommand(resource.ResourceDeleteCommand):
     pk_argument_name = 'key_or_id'  # name of the attribute which stores resource PK
+
+
+class ApiKeyEnableCommand(resource.ResourceEnableCommand):
+    pk_argument_name = 'key_or_id'  # name of the attribute which stores resource PK
+
+
+class ApiKeyDisableCommand(resource.ResourceDisableCommand):
+    pk_argument_name = 'key_or_id'  # name of the attribute which stores resource PK
+
