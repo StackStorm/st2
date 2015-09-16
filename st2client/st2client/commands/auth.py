@@ -122,6 +122,9 @@ class ApiKeyCreateCommand(resource.ResourceCommand):
         self.parser.add_argument('-m', '--metadata', type=json.loads,
                                  help='User for which to create API Keys.',
                                  default={})
+        self.parser.add_argument('-k', '--only-key', action='store_true', dest='only_key',
+                                 default=False,
+                                 help='Only print API Key to the console on creation.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -138,12 +141,15 @@ class ApiKeyCreateCommand(resource.ResourceCommand):
             instance = self.run(args, **kwargs)
             if not instance:
                 raise Exception('Server did not create instance.')
-            self.print_output(instance, table.PropertyValueTable,
-                              attributes=['all'], json=args.json)
         except Exception as e:
             message = e.message or str(e)
             print('ERROR: %s' % (message))
             raise OperationFailureException(message)
+        if args.only_key:
+            print(instance.key)
+        else:
+            self.print_output(instance, table.PropertyValueTable,
+                              attributes=['all'], json=args.json)
 
 
 class ApiKeyDeleteCommand(resource.ResourceDeleteCommand):
