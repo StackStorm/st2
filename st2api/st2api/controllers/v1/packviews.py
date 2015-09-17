@@ -13,13 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import codecs
 import mimetypes
+import os
 
 import six
-from pecan import abort, expose, response
+from pecan import abort, expose, request, response
 from pecan.rest import RestController
+from wsgiref.handlers import format_date_time
 
 from st2api.controllers.v1.packs import BasePacksController
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -30,6 +31,8 @@ from st2common.persistence.pack import Pack
 from st2common.content.utils import get_pack_file_abs_path
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_resource_permission
+
+http_client = six.moves.http_client
 
 __all__ = [
     'FilesController',
@@ -59,12 +62,15 @@ class BaseFileController(BasePacksController):
         return abort(404)
 
     def _get_file_size(self, file_path):
-        try:
-            size = os.path.getsize(file_path)
-        except OSError:
-            size = None
+        return self._get_file_stats(file_path=file_path)[0]
 
-        return size
+    def _get_file_stats(self, file_path):
+        try:
+            file_stats = os.stat(file_path)
+        except OSError:
+            return (None, None)
+
+        return file_stats.st_size, file_stats.st_mtime
 
     def _get_file_content(self, file_path):
         with codecs.open(file_path, 'r+b') as fp:
@@ -179,7 +185,13 @@ class FileController(BaseFileController):
             # Ignore references to files which don't exist on disk
             raise StackStormDBObjectNotFoundError('File "%s" not found' % (file_path))
 
-        file_size = self._get_file_size(file_path=normalized_file_path)
+        file_size, file_mtime = self._get_file_stats(file_path=normalized_file_path)
+
+        if not self._is_file_changed(file_mtime):
+            # unsure if a header is required
+            response.status = http_client.NOT_MODIFIED
+            return response
+
         if file_size is not None and file_size > MAX_FILE_SIZE:
             msg = ('File %s exceeds maximum allowed file size (%s bytes)' %
                    (file_path, MAX_FILE_SIZE))
@@ -187,10 +199,28 @@ class FileController(BaseFileController):
 
         content_type = mimetypes.guess_type(normalized_file_path)[0] or 'application/octet-stream'
 
-        response.headers['Cache-Control'] = 'public, max-age=86400'
+        response.headers['Cache-Control'] = 'public, max-age=90'
+        # Add both Last-Modified and ETag headers as per recommendations in RFC2616
+        response.headers['Last-Modified'] = format_date_time(file_mtime)
+        response.headers['ETag'] = repr(file_mtime)
         response.headers['Content-Type'] = content_type
         response.body = self._get_file_content(file_path=normalized_file_path)
         return response
+
+    def _is_file_changed(self, file_mtime):
+        if_none_match = request.headers.get('If-None-Match', None)
+        if_modified_since = request.headers.get('If-Modified-Since', None)
+
+        # For if_none_match check against what would be the ETAG value
+        if if_none_match:
+            return repr(file_mtime) != if_none_match
+
+        # For if_modified_since check against file_mtime
+        if if_modified_since:
+            return if_modified_since != format_date_time(file_mtime)
+
+        # Neither header is provided therefore assume file is changed.
+        return True
 
 
 class PackViewsController(RestController):
