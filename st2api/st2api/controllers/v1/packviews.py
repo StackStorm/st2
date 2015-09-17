@@ -188,7 +188,7 @@ class FileController(BaseFileController):
         file_size, file_mtime = self._get_file_stats(file_path=normalized_file_path)
 
         if not self._is_file_changed(file_mtime):
-            # unsure if a header is required
+            self._add_cache_headers(file_mtime)
             response.status = http_client.NOT_MODIFIED
             return response
 
@@ -199,10 +199,7 @@ class FileController(BaseFileController):
 
         content_type = mimetypes.guess_type(normalized_file_path)[0] or 'application/octet-stream'
 
-        response.headers['Cache-Control'] = 'public, max-age=90'
-        # Add both Last-Modified and ETag headers as per recommendations in RFC2616
-        response.headers['Last-Modified'] = format_date_time(file_mtime)
-        response.headers['ETag'] = repr(file_mtime)
+        self._add_cache_headers(file_mtime)
         response.headers['Content-Type'] = content_type
         response.body = self._get_file_content(file_path=normalized_file_path)
         return response
@@ -221,6 +218,12 @@ class FileController(BaseFileController):
 
         # Neither header is provided therefore assume file is changed.
         return True
+
+    def _add_cache_headers(self, file_mtime):
+        response.headers['Cache-Control'] = 'public, max-age=90'
+        # Add both Last-Modified and ETag headers as per recommendations in RFC2616
+        response.headers['Last-Modified'] = format_date_time(file_mtime)
+        response.headers['ETag'] = repr(file_mtime)
 
 
 class PackViewsController(RestController):
