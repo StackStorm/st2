@@ -33,7 +33,7 @@ class ActionAliasBranch(resource.ResourceBranch):
 
 
 class ActionAliasListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'pack', 'name', 'description', 'enabled']
+    display_attributes = ['ref', 'pack', 'description', 'enabled']
 
 
 class ActionAliasGetCommand(resource.ContentPackResourceGetCommand):

@@ -35,7 +35,7 @@ class RuleBranch(resource.ResourceBranch):
 
 
 class RuleListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['uid', 'ref', 'pack', 'name', 'description']
+    display_attributes = ['ref', 'pack', 'description', 'enabled']
 
 
 class RuleGetCommand(resource.ContentPackResourceGetCommand):

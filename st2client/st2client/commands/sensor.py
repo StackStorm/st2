@@ -33,7 +33,7 @@ class SensorBranch(resource.ResourceBranch):
 
 
 class SensorListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['uid', 'ref', 'pack', 'name', 'enabled', 'trigger_types']
+    display_attributes = ['ref', 'pack', 'description', 'enabled']
 
 
 class SensorGetCommand(resource.ContentPackResourceGetCommand):

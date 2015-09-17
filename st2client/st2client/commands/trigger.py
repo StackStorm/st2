@@ -37,7 +37,7 @@ class TriggerTypeBranch(resource.ResourceBranch):
 
 
 class TriggerTypeListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'pack', 'name', 'description']
+    display_attributes = ['ref', 'pack', 'description']
 
 
 class TriggerTypeGetCommand(resource.ContentPackResourceGetCommand):

@@ -141,7 +141,7 @@ class ActionBranch(resource.ResourceBranch):
 
 
 class ActionListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['uid', 'ref', 'pack', 'name', 'description']
+    display_attributes = ['ref', 'pack', 'description']
 
 
 class ActionGetCommand(resource.ContentPackResourceGetCommand):
