@@ -220,7 +220,6 @@ class FileController(BaseFileController):
         return True
 
     def _add_cache_headers(self, file_mtime):
-        response.headers['Cache-Control'] = 'public, max-age=90'
         # Add both Last-Modified and ETag headers as per recommendations in RFC2616
         response.headers['Last-Modified'] = format_date_time(file_mtime)
         response.headers['ETag'] = repr(file_mtime)
