@@ -85,6 +85,8 @@ class Client(object):
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['ActionAlias'] = ActionAliasResourceManager(
             models.ActionAlias, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['ApiKey'] = ResourceManager(
+            models.ApiKey, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['LiveAction'] = LiveActionResourceManager(
             models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Policy'] = ResourceManager(
@@ -111,6 +113,10 @@ class Client(object):
     @property
     def actions(self):
         return self.managers['Action']
+
+    @property
+    def apikeys(self):
+        return self.managers['ApiKey']
 
     @property
     def keys(self):

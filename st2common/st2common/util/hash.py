@@ -13,23 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-
-from st2client.models import core
+import hashlib
 
 
-LOG = logging.getLogger(__name__)
+FIXED_SALT = 'saltnpepper'
 
 
-class Token(core.Resource):
-    _display_name = 'Access Token'
-    _plural = 'Tokens'
-    _plural_display_name = 'Access Tokens'
-    _repr_attributes = ['user', 'expiry', 'metadata']
-
-
-class ApiKey(core.Resource):
-    _display_name = 'API Key'
-    _plural = 'ApiKeys'
-    _plural_display_name = 'API Keys'
-    _repr_attributes = ['id', 'user', 'metadata']
+def hash(value, salt=FIXED_SALT):
+    sha512 = hashlib.sha512()
+    sha512.update(salt)
+    sha512.update(value)
+    return sha512.hexdigest()

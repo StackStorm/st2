@@ -13,23 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+import unittest2
 
-from st2client.models import core
-
-
-LOG = logging.getLogger(__name__)
+from st2common.util import hash as hash_utils
+from st2common.util import auth as auth_utils
 
 
-class Token(core.Resource):
-    _display_name = 'Access Token'
-    _plural = 'Tokens'
-    _plural_display_name = 'Access Tokens'
-    _repr_attributes = ['user', 'expiry', 'metadata']
+class TestHashWithApiKeys(unittest2.TestCase):
 
+    def test_hash_repeatability(self):
+        api_key = auth_utils.generate_api_key()
+        hash1 = hash_utils.hash(api_key)
+        hash2 = hash_utils.hash(api_key)
+        self.assertEqual(hash1, hash2, 'Expected a repeated hash.')
 
-class ApiKey(core.Resource):
-    _display_name = 'API Key'
-    _plural = 'ApiKeys'
-    _plural_display_name = 'API Keys'
-    _repr_attributes = ['id', 'user', 'metadata']
+    def test_hash_uniqueness(self):
+        count = 10000
+        api_keys = [auth_utils.generate_api_key() for _ in range(count)]
+        hashes = set([hash_utils.hash(api_key) for api_key in api_keys])
+        self.assertEqual(len(hashes), count, 'Expected all unique hashes.')

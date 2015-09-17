@@ -37,4 +37,5 @@ class ResourceType(Enum):
     KEY_VALUE_PAIR = 'key_value_pair'
 
     WEBHOOK = 'webhook'
+    API_KEY = 'api_key'
     UNKNOWN = 'unknown'

@@ -84,8 +84,10 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
     def _get_requester(self):
         # Retrieve username of the authed user (note - if auth is disabled, user will not be
         # set so we fall back to the system user name)
-        request_token = pecan.request.context.get('token', None)
-        return request_token.user if request_token else cfg.CONF.system_user.user
+        auth_context = pecan.request.context.get('auth', None)
+        user_db = auth_context.get('user', None) if auth_context else None
+
+        return user_db.name if user_db else cfg.CONF.system_user.user
 
     def _get_from_model_kwargs_for_request(self, request):
         """

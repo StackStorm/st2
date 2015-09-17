@@ -331,4 +331,48 @@ require the token to be included as a CLI argument or be provided as an environm
 
 .. include:: ../auth_usage.rst
 
+.. _authentication-apikeys:
+
+API Keys
+--------
+
+|st2| also supports API keys which differ from tokens in the sense that they do not expire and are
+therefore suited to be use with integrations like webhooks etc.
+
+All API key management is currently available via the |st2| CLI.
+
+To create an API key -
+
+.. sourcecode:: bash
+
+   st2 apikey create -k -m '{"used_by": "my integration"}'
+   <API_KEY_VALUE>
+
+.. note::
+
+    For security purposes the <API_KEY_VALUE> is only show at create time. |st2| itself does not
+    store this API Key value in its database, only a one-way hash is stored. It is not possible to
+    retrieve an API Key after creation. If the API Key is lost or not recorded at the time of creation
+    it is best to delete the API Key and create a new one.
+
+The optional ``-m`` attribute allows metadata to be associated with the created key. It is good practice to
+assign a meaningful value like the external service which uses this key to authenticate with |st2|.
+
+The CLI for API keys also support `get`, `list`, `delete`, `enable` and `disable` commands.
+
+If an API Key is disabled it will disallow access until that API key is enabled again. This is a
+good way to temporarily revoke access of an external service to |st2|.
+
+API Key Usage
+~~~~~~~~~~~~~
+
+API keys are designed for API access. As of now they cannot be used via clients like the UI and CLI.
+
+The following are sample API calls via curl using API Keys. ::
+
+    curl -H "St2-Api-Key: <API-KEY-VALUE>" http://myhost.example.com:9101/v1/actions
+
+    curl https://myhost.example.com:9101/v1/actions?st2-api-key=<API-KEY-VALUE>
+
+
 .. _htpasswd: https://httpd.apache.org/docs/2.2/programs/htpasswd.html

@@ -167,6 +167,7 @@ class ResourceManager(object):
         limit = kwargs.pop('limit', None)
         pack = kwargs.pop('pack', None)
         prefix = kwargs.pop('prefix', None)
+        user = kwargs.pop('user', None)
 
         params = {}
         if limit and limit <= 0:
@@ -179,6 +180,9 @@ class ResourceManager(object):
 
         if prefix:
             params['prefix'] = prefix
+
+        if user:
+            params['user'] = user
 
         response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != 200:

@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 from oslo_config import cfg
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
-from st2common.models.db.auth import UserDB, TokenDB
+from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
 from st2common import log as logging
 
 
@@ -92,3 +94,105 @@ class TokenAPI(BaseAPI):
 
         model = cls.model(user=user, token=token, expiry=expiry)
         return model
+
+
+class ApiKeyAPI(BaseAPI):
+    model = ApiKeyDB
+    schema = {
+        "title": "ApiKey",
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string"
+            },
+            "uid": {
+                "type": "string"
+            },
+            "user": {
+                "type": ["string", "null"],
+                "default": ""
+            },
+            "key_hash": {
+                "type": ["string", "null"]
+            },
+            "metadata": {
+                "type": ["object", "null"]
+            },
+            'created_at': {
+                'description': 'The start time when the action is executed.',
+                'type': 'string',
+                'pattern': isotime.ISO8601_UTC_REGEX
+            },
+            "enabled": {
+                "description": "Enable or disable the action from invocation.",
+                "type": "boolean",
+                "default": True
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def from_model(cls, model, mask_secrets=False):
+        doc = super(cls, cls)._from_model(model, mask_secrets=mask_secrets)
+        doc['created_at'] = isotime.format(model.created_at, offset=False) if model.created_at \
+            else None
+        return cls(**doc)
+
+    @classmethod
+    def to_model(cls, instance):
+        user = str(instance.user) if instance.user else None
+        key_hash = getattr(instance, 'key_hash', None)
+        metadata = getattr(instance, 'metadata', {})
+        enabled = bool(getattr(instance, 'enabled', True))
+        model = cls.model(user=user, key_hash=key_hash, metadata=metadata, enabled=enabled)
+        return model
+
+
+class ApiKeyCreateResponseAPI(BaseAPI):
+    schema = {
+        "title": "APIKeyCreateResponse",
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string"
+            },
+            "uid": {
+                "type": "string"
+            },
+            "user": {
+                "type": ["string", "null"],
+                "default": ""
+            },
+            "key": {
+                "type": ["string", "null"]
+            },
+            "metadata": {
+                "type": ["object", "null"]
+            },
+            'created_at': {
+                'description': 'The start time when the action is executed.',
+                'type': 'string',
+                'pattern': isotime.ISO8601_UTC_REGEX
+            },
+            "enabled": {
+                "description": "Enable or disable the action from invocation.",
+                "type": "boolean",
+                "default": True
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def from_model(cls, model, mask_secrets=False):
+        doc = cls._from_model(model=model, mask_secrets=mask_secrets)
+        attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
+        attrs['created_at'] = isotime.format(model.created_at, offset=False) if model.created_at \
+            else None
+        # key_hash is ignored.
+        attrs.pop('key_hash', None)
+        # key is unknown so the calling code will have to update after conversion.
+        attrs['key'] = None
+
+        return cls(**attrs)

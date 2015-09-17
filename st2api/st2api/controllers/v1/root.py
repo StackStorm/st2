@@ -17,6 +17,7 @@ from st2api.controllers.v1.actions import ActionsController
 from st2api.controllers.v1.actionalias import ActionAliasController
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 from st2api.controllers.v1.aliasexecution import ActionAliasExecutionController
+from st2api.controllers.v1.auth import ApiKeyController
 from st2api.controllers.v1.keyvalue import KeyValuePairController
 from st2api.controllers.v1.packs import PacksController
 from st2api.controllers.v1.policies import PolicyTypeController, PolicyController
@@ -53,3 +54,4 @@ class RootController(object):
     aliasexecution = ActionAliasExecutionController()
     traces = TracesController()
     rbac = RBACController()
+    apikeys = ApiKeyController()

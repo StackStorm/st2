@@ -15,14 +15,11 @@
 
 import mock
 import pecan
-from pecan import load_app
 from pecan.testing import load_test_app
 from oslo_config import cfg
-from webtest import TestApp
 
 
 import st2common.bootstrap.runnersregistrar as runners_registrar
-from st2common.middleware import auth
 from st2tests import DbTestCase
 import st2tests.config as tests_config
 
@@ -31,17 +28,20 @@ class FunctionalTest(DbTestCase):
     """
     Base test case class for testing API controllers with auth and RBAC disabled.
     """
+    # By default auth is disabled
+    enable_auth = False
 
     @classmethod
     def setUpClass(cls):
         super(FunctionalTest, cls).setUpClass()
+        cls._do_setUpClass()
 
+    @classmethod
+    def _do_setUpClass(cls):
         tests_config.parse_args()
 
-        # Make sure auth is disabled
-        cfg.CONF.set_default('enable', False, group='auth')
+        cfg.CONF.set_default('enable', cls.enable_auth, group='auth')
 
-        # Make sure RBAC is disabled
         cfg.CONF.set_override(name='enable', override=False, group='rbac')
 
         opts = cfg.CONF.api_pecan
@@ -85,29 +85,3 @@ class APIControllerWithRBACTestCase(FunctionalTest):
             }
         }
         type(pecan.request).context = mock.PropertyMock(return_value=mock_context)
-
-
-class AuthMiddlewareTest(DbTestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        super(AuthMiddlewareTest, cls).setUpClass()
-        tests_config.parse_args()
-
-        opts = cfg.CONF.api_pecan
-        cfg_dict = {
-            'app': {
-                'root': opts.root,
-                'template_path': opts.template_path,
-                'modules': opts.modules,
-                'debug': opts.debug,
-                'auth_enable': opts.auth_enable,
-                'errors': {'__force_dict__': True}
-            }
-        }
-
-        # TODO(manas) : register action types here for now. RunnerType registration can be moved
-        # to posting to /runnertypes but that implies implementing POST.
-        runners_registrar.register_runner_types()
-
-        cls.app = TestApp(auth.AuthMiddleware(load_app(cfg_dict)))

@@ -13,13 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+import hashlib
+import os
+import random
+
 from st2common import log as logging
-from st2common.persistence.auth import Token
+from st2common.persistence.auth import Token, ApiKey
 from st2common.exceptions import auth as exceptions
 from st2common.util import date as date_utils
+from st2common.util import hash as hash_utils
 
 __all__ = [
-    'validate_token'
+    'validate_token',
+    'generate_api_key',
+    'validate_api_key'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -58,3 +66,58 @@ def validate_token(token_in_headers, token_in_query_params):
 
     LOG.audit('Token with id "%s" is validated.' % (token.id))
     return token
+
+
+def generate_api_key():
+    """
+    Generates an sufficiently large and random key.
+
+    credit: http://jetfar.com/simple-api-key-generation-in-python/
+    """
+    # 256bit seed from urandom
+    seed = os.urandom(256)
+    # since urandom does not provide sufficient entropy hash, base64encode and salt.
+    # The resulting value is now large and should be hard to predict.
+    hashed_seed = hashlib.sha256(seed).hexdigest()
+    return base64.b64encode(
+        hashed_seed,
+        random.choice(['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD'])).rstrip('==')
+
+
+def generate_api_key_and_hash():
+    api_key = generate_api_key()
+    api_key_hash = hash_utils.hash(api_key)
+    return api_key, api_key_hash
+
+
+def validate_api_key(api_key_in_headers, api_key_query_params):
+    """
+    Validate the provided API key.
+
+    :param api_key_in_headers: API key provided via headers.
+    :type api_key_in_headers: ``str``
+
+    :param api_key_query_params: API key provided via query params.
+    :type api_key_query_params: ``str``
+
+    :return: TokenDB object on success.
+    :rtype: :class:`.ApiKeyDB`
+    """
+    if not api_key_in_headers and not api_key_query_params:
+        LOG.audit('API key is not found in header or query parameters.')
+        raise exceptions.ApiKeyNotProvidedError('API key is not provided.')
+
+    if api_key_in_headers:
+        LOG.audit('API key provided in headers')
+
+    if api_key_query_params:
+        LOG.audit('API key provided in query parameters')
+
+    api_key = api_key_in_headers or api_key_query_params
+    api_key_db = ApiKey.get(api_key)
+
+    if not api_key_db.enabled:
+        raise exceptions.ApiKeyDisabledError('API key is disabled.')
+
+    LOG.audit('API key with id "%s" is validated.' % (api_key_db.id))
+    return api_key_db
