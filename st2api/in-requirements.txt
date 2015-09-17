@@ -8,3 +8,4 @@ oslo.config
 pymongo
 six
 git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
+git+https://github.com/StackStorm/python-mistralclient#egg=python-mistralclient
