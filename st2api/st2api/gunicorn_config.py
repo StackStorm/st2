@@ -49,5 +49,6 @@ app = {
     'root': 'st2api.controllers.root.RootController',
     'modules': ['st2api'],
     'debug': cfg.CONF.api_pecan.debug,
-    'errors': {'__force_dict__': True}
+    'errors': {'__force_dict__': True},
+    'guess_content_type_from_ext': False
 }

@@ -64,3 +64,35 @@ class PacksViewsControllerTestCase(FunctionalTest):
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml', expect_errors=True)
         self.assertEqual(resp.status_int, httplib.BAD_REQUEST)
         self.assertTrue('File pack.yaml exceeds maximum allowed file size' in resp)
+
+    def test_headers_get_pack_file(self):
+        resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml')
+        self.assertEqual(resp.status_int, httplib.OK)
+        self.assertTrue('name : dummy_pack_1' in resp.body)
+        self.assertIsNotNone(resp.headers['ETag'])
+        self.assertIsNotNone(resp.headers['Last-Modified'])
+
+    def test_no_change_get_pack_file(self):
+        resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml')
+        self.assertEqual(resp.status_int, httplib.OK)
+        self.assertTrue('name : dummy_pack_1' in resp.body)
+
+        # Confirm NOT_MODIFIED
+        resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml',
+                            headers={'If-None-Match': resp.headers['ETag']})
+        self.assertEqual(resp.status_code, httplib.NOT_MODIFIED)
+
+        resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml',
+                            headers={'If-Modified-Since': resp.headers['Last-Modified']})
+        self.assertEqual(resp.status_code, httplib.NOT_MODIFIED)
+
+        # Confirm value is returned if header do not match
+        resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml',
+                            headers={'If-None-Match': 'ETAG'})
+        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertTrue('name : dummy_pack_1' in resp.body)
+
+        resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml',
+                            headers={'If-Modified-Since': 'Last-Modified'})
+        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertTrue('name : dummy_pack_1' in resp.body)
