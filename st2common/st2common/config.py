@@ -94,6 +94,12 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('db_name', default='st2', help='name of database'),
         cfg.StrOpt('username', help='username for db login'),
         cfg.StrOpt('password', help='password for db login'),
+        cfg.IntOpt('connection_retry_max_delay_m', help='Connection retry total time (minutes).',
+                   default=3),
+        cfg.IntOpt('connection_retry_backoff_max_s', help='Connection retry backoff max (seconds).',
+                   default=10),
+        cfg.IntOpt('connection_retry_backoff_mul', help='Backoff multiplier (seconds).',
+                   default=1)
     ]
     do_register_opts(db_opts, 'database', ignore_errors)
 
