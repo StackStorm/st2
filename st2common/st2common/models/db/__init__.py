@@ -18,8 +18,6 @@ import importlib
 
 import six
 import mongoengine
-from oslo_config import cfg
-from retrying import retry
 
 from st2common import log as logging
 from st2common.util import isotime
