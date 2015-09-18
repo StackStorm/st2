@@ -126,8 +126,10 @@ def db_setup():
     username = getattr(cfg.CONF.database, 'username', None)
     password = getattr(cfg.CONF.database, 'password', None)
 
-    connection = db.db_setup(db_name=cfg.CONF.database.db_name, db_host=cfg.CONF.database.host,
-                             db_port=cfg.CONF.database.port, username=username, password=password)
+    connection = db.db_setup_with_retry(
+        db_name=cfg.CONF.database.db_name, db_host=cfg.CONF.database.host,
+        db_port=cfg.CONF.database.port, username=username, password=password
+    )
     return connection
 
 

@@ -27,8 +27,8 @@ logging.setup(cfg.CONF.auth.logging)
 
 username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
 password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-db.db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-            username=username, password=password)
+db.db_setup_with_retry(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
+                       username=username, password=password)
 
 pecan_config = {
     'app': {
