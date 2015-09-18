@@ -26,7 +26,7 @@ from st2client.client import Client
 from st2common import log as logging
 from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.models.api.trace import TraceContext
-from st2common.models.db import db_setup
+from st2common.persistence.db_init import db_setup_with_retry
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
 from st2common.util.config_parser import ContentPackConfigParser
@@ -320,8 +320,8 @@ class SensorWrapper(object):
         # 2. Establish DB connection
         username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
         password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-                 username=username, password=password)
+        db_setup_with_retry(cfg.CONF.database.db_name, cfg.CONF.database.host,
+                            cfg.CONF.database.port, username=username, password=password)
 
         # 3. Instantiate the watcher
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,

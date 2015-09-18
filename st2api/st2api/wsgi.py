@@ -18,7 +18,7 @@ from oslo_config import cfg
 
 from st2api import config  # noqa
 from st2common import log as logging
-from st2common.models import db
+from st2common.persistence import db_init
 
 
 cfg.CONF(args=['--config-file', '/etc/st2/st2.conf'])
@@ -27,8 +27,8 @@ logging.setup(cfg.CONF.api.logging)
 
 username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
 password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-db.db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-            username=username, password=password)
+db_init.db_setup_with_retry(cfg.CONF.database.db_name, cfg.CONF.database.host,
+                            cfg.CONF.database.port, username=username, password=password)
 
 pecan_config = {
     'app': {
