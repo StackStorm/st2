@@ -26,7 +26,7 @@ from st2client.client import Client
 from st2common import log as logging
 from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.models.api.trace import TraceContext
-from st2common.models.db import db_setup_with_retry
+from st2common.persistence.db_init import db_setup_with_retry
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
 from st2common.util.config_parser import ContentPackConfigParser

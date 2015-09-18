@@ -28,6 +28,7 @@ from st2common import log as logging
 from st2common.models import db
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
 from st2common.logging.misc import set_log_level_for_all_loggers
+from st2common.persistence import db_init
 from st2common.transport.bootstrap_utils import register_exchanges
 from st2common.signal_handlers import register_common_signal_handlers
 from st2common.models.utils.profiling import enable_profiling
@@ -126,7 +127,7 @@ def db_setup():
     username = getattr(cfg.CONF.database, 'username', None)
     password = getattr(cfg.CONF.database, 'password', None)
 
-    connection = db.db_setup_with_retry(
+    connection = db_init.db_setup_with_retry(
         db_name=cfg.CONF.database.db_name, db_host=cfg.CONF.database.host,
         db_port=cfg.CONF.database.port, username=username, password=password
     )
