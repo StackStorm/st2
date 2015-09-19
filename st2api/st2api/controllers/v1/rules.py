@@ -32,6 +32,7 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_permission
 from st2common.rbac.utils import assert_request_user_has_rule_trigger_and_action_permission
+from st2common.services.triggers import cleanup_trigger_db_for_rule
 
 http_client = six.moves.http_client
 
@@ -136,6 +137,9 @@ class RuleController(resource.ContentPackResourceController):
             abort(http_client.BAD_REQUEST, str(e))
             return
 
+        # use old_rule_db for cleanup.
+        cleanup_trigger_db_for_rule(old_rule_db)
+
         extra = {'old_rule_db': old_rule_db, 'new_rule_db': rule_db}
         LOG.audit('Rule updated. Rule.id=%s.' % (rule_db.id), extra=extra)
         rule_api = RuleAPI.from_model(rule_db)
@@ -160,6 +164,9 @@ class RuleController(resource.ContentPackResourceController):
                           rule_ref_or_id)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
+
+        # use old_rule_db for cleanup.
+        cleanup_trigger_db_for_rule(rule_db)
 
         extra = {'rule_db': rule_db}
         LOG.audit('Rule deleted. Rule.id=%s.' % (rule_db.id), extra=extra)

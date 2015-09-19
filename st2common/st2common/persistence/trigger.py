@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common import log as logging
 from st2common import transport
 from st2common.models.db.trigger import triggertype_access, trigger_access, triggerinstance_access
 from st2common.persistence.base import (Access, ContentPackResource)
 from st2common.transport import utils as transport_utils
+
+LOG = logging.getLogger(__name__)
 
 
 class TriggerType(ContentPackResource):
@@ -41,6 +44,28 @@ class Trigger(ContentPackResource):
             cls.publisher = transport.reactor.TriggerCUDPublisher(
                 urls=transport_utils.get_messaging_urls())
         return cls.publisher
+
+    @classmethod
+    def delete_if_unreferenced(cls, model_object, publish=True, dispatch_trigger=True):
+        # Found in the innards of mongoengine
+        delete_query = model_object._object_key
+        delete_query['lte__ref_count'] = 0
+        cls._get_impl().delete_by_query(**delete_query)
+        # Publish internal event on the message bus
+        if publish:
+            try:
+                cls.publish_delete(model_object)
+            except Exception:
+                LOG.exception('Publish failed.')
+
+        # Dispatch trigger
+        if dispatch_trigger:
+            try:
+                cls.dispatch_delete_trigger(model_object)
+            except Exception:
+                LOG.exception('Trigger dispatch failed.')
+
+        return model_object
 
 
 class TriggerInstance(Access):
