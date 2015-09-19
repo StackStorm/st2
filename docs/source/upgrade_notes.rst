@@ -1,6 +1,13 @@
 Upgrade Notes
 =============
 
+|st2| In Development
+--------------------
+
+* Refactor retries in the Mistral action runner to use exponential backoff. Configuration options
+  for Mistral have changed. The options ``max_attempts`` and ``retry_wait`` are deprecated. Please
+  refer to the configuration section of docs for more details.
+
 |st2| 1.1
 ---------
 
