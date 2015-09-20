@@ -260,13 +260,14 @@ def create_or_update_trigger_type_db(trigger_type):
 
 
 def _create_trigger_type(pack, name, description=None, payload_schema=None,
-                         parameters_schema=None):
+                         parameters_schema=None, tags=None):
     trigger_type = {
         'name': name,
         'pack': pack,
         'description': description,
         'payload_schema': payload_schema,
-        'parameters_schema': parameters_schema
+        'parameters_schema': parameters_schema,
+        'tags': tags
     }
 
     return create_or_update_trigger_type_db(trigger_type=trigger_type)
@@ -313,13 +314,16 @@ def _add_trigger_models(trigger_type):
     payload_schema = trigger_type['payload_schema'] if 'payload_schema' in trigger_type else {}
     parameters_schema = trigger_type['parameters_schema'] \
         if 'parameters_schema' in trigger_type else {}
+    tags = trigger_type['tags'] \
+        if 'tags' in trigger_type else {}
 
     trigger_type = _create_trigger_type(
         pack=pack,
         name=trigger_type['name'],
         description=description,
         payload_schema=payload_schema,
-        parameters_schema=parameters_schema
+        parameters_schema=parameters_schema,
+        tags=tags
     )
     trigger = _create_trigger(trigger_type=trigger_type)
     return (trigger_type, trigger)
