@@ -315,7 +315,7 @@ def _add_trigger_models(trigger_type):
     parameters_schema = trigger_type['parameters_schema'] \
         if 'parameters_schema' in trigger_type else {}
     tags = trigger_type['tags'] \
-        if 'tags' in trigger_type else {}
+        if 'tags' in trigger_type else []
 
     trigger_type = _create_trigger_type(
         pack=pack,
