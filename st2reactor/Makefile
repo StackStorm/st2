@@ -61,7 +61,7 @@ requirements:
 
 changelog: populate_version
 ifeq ($(DEBIAN),1)
-	debchange -v $(ST2PKG_VERSION) -M "automated build version: $(ST2PKG_VERSION)"
+	debchange -v $(ST2PKG_VERSION)-$(ST2PKG_RELEASE) -M "automated build version: $(ST2PKG_VERSION)"
 endif
 
 wheelhouse: .stamp-wheelhouse
