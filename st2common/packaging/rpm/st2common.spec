@@ -37,10 +37,15 @@ mkdir -p %{buildroot}/opt/stackstorm/rbac/assignments
 mkdir -p %{buildroot}/usr/share/doc/st2
 mkdir -p %{buildroot}/usr/share/stackstorm
 cp -R contrib/default %{buildroot}/opt/stackstorm/packs/
+chmod -R 770 %{buildroot}/opt/stackstorm/packs/default
 cp -R contrib/core %{buildroot}/opt/stackstorm/packs/
+chmod -R 770 %{buildroot}/opt/stackstorm/packs/core
 cp -R contrib/packs %{buildroot}/opt/stackstorm/packs/
+chmod -R 770 %{buildroot}/opt/stackstorm/packs/packs
 cp -R contrib/linux %{buildroot}/opt/stackstorm/packs/
+chmod -R 770 %{buildroot}/opt/stackstorm/packs/linux
 cp -R contrib/examples %{buildroot}/usr/share/doc/st2/
+chmod -R 770 %{buildroot}/opt/stackstorm/packs/examples
 cp -R docs/* %{buildroot}/usr/share/doc/st2/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 cp -R bin %{buildroot}/%{python2_sitelib}/st2common/
