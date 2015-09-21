@@ -17,6 +17,7 @@ import os
 import shutil
 import hashlib
 import json
+import stat
 
 import six
 from git.repo import Repo
@@ -143,11 +144,26 @@ class DownloadGitRepoAction(Action):
 
                 self.logger.debug('Moving pack from %s to %s.', abs_pack_temp_location, to)
                 shutil.move(abs_pack_temp_location, to)
+                # post move fix all permissions.
+                DownloadGitRepoAction._apply_pack_permissions(to)
                 message = 'Success.'
             elif message:
                 message = 'Failure : %s' % message
             result[pack] = (desired, message)
         return result
+
+    @staticmethod
+    def _apply_pack_permissions(pack_path):
+        # mode = 770
+        mode = stat.S_IRWXU | stat.S_IRWXG
+        os.chmod(pack_path, mode)
+
+        # Yuck! Since os.chmod does not support chmod -R walk manually.
+        for root, dirs, files in os.walk(pack_path):
+            for d in dirs:
+                os.chmod(os.path.join(root, d), mode)
+            for f in files:
+                os.chmod(os.path.join(root, f), mode)
 
     @staticmethod
     def _is_desired_pack(abs_pack_path, pack_name):
