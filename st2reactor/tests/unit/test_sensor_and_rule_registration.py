@@ -61,6 +61,7 @@ class SensorRegistrationTestCase(DbTestCase):
 
         self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
         self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
+        self.assertEqual(len(trigger_type_dbs[0].tags), 0)
         self.assertEqual(trigger_type_dbs[1].name, 'trigger_type_2')
         self.assertEqual(trigger_type_dbs[1].pack, 'pack_with_sensor')
         self.assertEqual(len(trigger_type_dbs[1].tags), 2)
@@ -112,7 +113,6 @@ class SensorRegistrationTestCase(DbTestCase):
 
         self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
         self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
-        self.assertEqual(len(trigger_type_dbs[0].tags), 0)
         self.assertEqual(trigger_type_dbs[1].name, 'trigger_type_2')
         self.assertEqual(trigger_type_dbs[1].pack, 'pack_with_sensor')
         self.assertEqual(trigger_type_dbs[1].description, 'test 2')
