@@ -154,7 +154,10 @@ class DownloadGitRepoAction(Action):
 
     @staticmethod
     def _apply_pack_permissions(pack_path):
-        # mode = 770
+        """
+        Will recursively apply permission 770 to pack and its contents.
+        """
+        # These mask is same as mode = 770
         mode = stat.S_IRWXU | stat.S_IRWXG
         os.chmod(pack_path, mode)
 
