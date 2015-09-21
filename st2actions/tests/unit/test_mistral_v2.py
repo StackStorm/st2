@@ -161,6 +161,7 @@ class MistralRunnerTest(DbTestCase):
         super(MistralRunnerTest, self).tearDown()
         cfg.CONF.set_default('max_attempts', 2, group='mistral')
         cfg.CONF.set_default('retry_wait', 1, group='mistral')
+        cfg.CONF.set_default('use_ssl', False, group='api')
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -196,6 +197,55 @@ class MistralRunnerTest(DbTestCase):
                 'st2.action': {
                     'st2_context': {
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
+                        'parent': {
+                            'execution_id': str(execution.id)
+                        },
+                        'notify': {},
+                        'skip_notify_tasks': []
+                    }
+                }
+            }
+        }
+
+        executions.ExecutionManager.create.assert_called_with(
+            WF1_NAME, workflow_input=workflow_input, env=env)
+
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF1))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
+    def test_launch_workflow_with_st2_https(self):
+        cfg.CONF.set_default('use_ssl', True, group='api')
+
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        mistral_context = liveaction.context.get('mistral', None)
+        self.assertIsNotNone(mistral_context)
+        self.assertEqual(mistral_context['execution_id'], WF1_EXEC.get('id'))
+        self.assertEqual(mistral_context['workflow_name'], WF1_EXEC.get('workflow_name'))
+
+        workflow_input = copy.deepcopy(ACTION_PARAMS)
+        workflow_input.update({'count': '3'})
+
+        env = {
+            'st2_execution_id': str(execution.id),
+            'st2_liveaction_id': str(liveaction.id),
+            '__actions': {
+                'st2.action': {
+                    'st2_context': {
+                        'endpoint': 'https://0.0.0.0:9101/v1/actionexecutions',
                         'parent': {
                             'execution_id': str(execution.id)
                         },

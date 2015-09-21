@@ -144,7 +144,10 @@ class MistralRunner(AsyncActionRunner):
         inputs = self.runner_parameters.get('context', dict())
         inputs.update(action_parameters)
 
-        endpoint = 'http://%s:%s/v1/actionexecutions' % (cfg.CONF.api.host, cfg.CONF.api.port)
+        # If host value does not start with http, then default to http://.
+        protocol = 'http' if not cfg.CONF.api.use_ssl else 'https'
+        base_url = '%s://%s:%s' % (protocol, cfg.CONF.api.host, cfg.CONF.api.port)
+        endpoint = base_url + '/v1/actionexecutions'
 
         # Build context with additional information
         parent_context = {

@@ -138,7 +138,8 @@ def register_opts(ignore_errors=False):
     # Common API options
     api_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='StackStorm API server host'),
-        cfg.IntOpt('port', default=9101, help='StackStorm API server port')
+        cfg.IntOpt('port', default=9101, help='StackStorm API server port'),
+        cfg.BoolOpt('use_ssl', default=False, help='Set to True if API is using SSL.')
     ]
     do_register_opts(api_opts, 'api', ignore_errors)
 
