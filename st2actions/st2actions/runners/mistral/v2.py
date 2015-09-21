@@ -30,6 +30,7 @@ from st2common import log as logging
 from st2common.models.api.notification import NotificationsHelper
 from st2common.util.workflow import mistral as utils
 from st2common.util.url import get_url_without_trailing_slash
+from st2common.util.api import get_full_public_api_url
 
 
 LOG = logging.getLogger(__name__)
@@ -144,10 +145,8 @@ class MistralRunner(AsyncActionRunner):
         inputs = self.runner_parameters.get('context', dict())
         inputs.update(action_parameters)
 
-        # If host value does not start with http, then default to http://.
-        protocol = 'http' if not cfg.CONF.api.use_ssl else 'https'
-        base_url = '%s://%s:%s' % (protocol, cfg.CONF.api.host, cfg.CONF.api.port)
-        endpoint = base_url + '/v1/actionexecutions'
+        api_url = get_full_public_api_url()
+        endpoint = api_url + '/actionexecutions'
 
         # Build context with additional information
         parent_context = {

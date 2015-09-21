@@ -108,6 +108,10 @@ class MistralAuthTest(DbTestCase):
             instance = ActionAPI(**fixture)
             Action.add_or_update(ActionAPI.to_model(instance))
 
+    def setUp(self):
+        super(MistralAuthTest, self).setUp()
+        cfg.CONF.set_override('api_url', 'http://0.0.0.0:9101', group='auth')
+
     def tearDown(self):
         super(MistralAuthTest, self).tearDown()
         cfg.CONF.set_default('keystone_username', None, group='mistral')

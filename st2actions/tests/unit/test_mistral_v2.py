@@ -157,11 +157,14 @@ class MistralRunnerTest(DbTestCase):
             instance = ActionAPI(**fixture)
             Action.add_or_update(ActionAPI.to_model(instance))
 
+    def setUp(self):
+        super(MistralRunnerTest, self).setUp()
+        cfg.CONF.set_override('api_url', 'http://0.0.0.0:9101', group='auth')
+
     def tearDown(self):
         super(MistralRunnerTest, self).tearDown()
         cfg.CONF.set_default('max_attempts', 2, group='mistral')
         cfg.CONF.set_default('retry_wait', 1, group='mistral')
-        cfg.CONF.set_default('use_ssl', False, group='api')
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -223,7 +226,7 @@ class MistralRunnerTest(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     def test_launch_workflow_with_st2_https(self):
-        cfg.CONF.set_default('use_ssl', True, group='api')
+        cfg.CONF.set_override('api_url', 'https://0.0.0.0:9101', group='auth')
 
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
