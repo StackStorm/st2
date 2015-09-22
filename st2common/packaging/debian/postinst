@@ -10,3 +10,4 @@ chmod -R 775 /opt/stackstorm/packs/default
 chmod -R 775 /opt/stackstorm/packs/core
 chmod -R 775 /opt/stackstorm/packs/packs
 chmod -R 775 /opt/stackstorm/packs/linux
+chmod -R 775 /usr/share/doc/st2/examples
