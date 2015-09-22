@@ -43,6 +43,7 @@ setup(
     packages=find_packages(exclude=['setuptools', 'tests']),
     scripts=[
         'bin/st2-bootstrap-rmq',
-        'bin/st2-register-content'
+        'bin/st2-register-content',
+        'bin/st2-apply-rbac-definitions'
     ]
 )
