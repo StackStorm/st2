@@ -6,7 +6,7 @@ chmod 755 /usr/lib/python2.7/dist-packages/st2common/bin/st2-setup-examples
 chmod 755 /usr/lib/python2.7/dist-packages/st2common/bin/st2-self-check
 
 # setup permissions on pack rather than inheriting from git repo.
-chmod -R 770 /opt/stackstorm/packs/default
-chmod -R 770 /opt/stackstorm/packs/core
-chmod -R 770 /opt/stackstorm/packs/packs
-chmod -R 770 /opt/stackstorm/packs/linux
+chmod -R 775 /opt/stackstorm/packs/default
+chmod -R 775 /opt/stackstorm/packs/core
+chmod -R 775 /opt/stackstorm/packs/packs
+chmod -R 775 /opt/stackstorm/packs/linux
