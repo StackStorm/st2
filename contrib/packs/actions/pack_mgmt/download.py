@@ -157,8 +157,8 @@ class DownloadGitRepoAction(Action):
         """
         Will recursively apply permission 770 to pack and its contents.
         """
-        # These mask is same as mode = 770
-        mode = stat.S_IRWXU | stat.S_IRWXG
+        # These mask is same as mode = 775
+        mode = stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH
         os.chmod(pack_path, mode)
 
         # Yuck! Since os.chmod does not support chmod -R walk manually.
