@@ -47,7 +47,6 @@ chmod -R 770 %{buildroot}/opt/stackstorm/packs/packs
 cp -R contrib/linux %{buildroot}/opt/stackstorm/packs/
 chmod -R 770 %{buildroot}/opt/stackstorm/packs/linux
 cp -R contrib/examples %{buildroot}/usr/share/doc/st2/
-chmod -R 770 %{buildroot}/opt/stackstorm/packs/examples
 cp -R docs/* %{buildroot}/usr/share/doc/st2/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 cp -R bin %{buildroot}/%{python2_sitelib}/st2common/
