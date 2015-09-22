@@ -281,6 +281,11 @@ class Shell(object):
         password = credentials.get('password', None)
         cache_token = rc_config.get('cli', {}).get('cache_token', False)
 
+        # Silence SSL warnings
+        silence_ssl_warnings = rc_config.get('general', {}).get('silence_ssl_warnings', False)
+        if silence_ssl_warnings:
+            requests.packages.urllib3.disable_warnings()
+
         if username and password:
             # Credentials are provided, try to authenticate agaist the API
             try:
