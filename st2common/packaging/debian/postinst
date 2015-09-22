@@ -10,4 +10,3 @@ chmod -R 770 /opt/stackstorm/packs/default
 chmod -R 770 /opt/stackstorm/packs/core
 chmod -R 770 /opt/stackstorm/packs/packs
 chmod -R 770 /opt/stackstorm/packs/linux
-chmod -R 770 /opt/stackstorm/packs/examples
