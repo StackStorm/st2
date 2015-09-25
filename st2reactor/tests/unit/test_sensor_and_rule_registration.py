@@ -61,8 +61,12 @@ class SensorRegistrationTestCase(DbTestCase):
 
         self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
         self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
+        self.assertEqual(len(trigger_type_dbs[0].tags), 0)
         self.assertEqual(trigger_type_dbs[1].name, 'trigger_type_2')
         self.assertEqual(trigger_type_dbs[1].pack, 'pack_with_sensor')
+        self.assertEqual(len(trigger_type_dbs[1].tags), 2)
+        self.assertEqual(trigger_type_dbs[1].tags[0].name, 'tag1name')
+        self.assertEqual(trigger_type_dbs[1].tags[0].value, 'tag1 value')
 
         # Verify second call to registration doesn't create a duplicate objects
         registrar.register_sensors_from_packs(base_dirs=[PACKS_DIR])

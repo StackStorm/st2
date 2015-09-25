@@ -10,3 +10,10 @@
     -
       name: "trigger_type_2"
       description: "2"
+      tags:
+        -
+          name: tag1name
+          value: tag1 value
+        -
+          name: tag2name
+          value: tag2 value

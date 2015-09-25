@@ -10,7 +10,7 @@ TESTSPATH="/opt/stackstorm/packs"
 echo -e "Checking ${USRPATH}/${PACK}..."
 if [ -d ${USRPATH}/${PACK} ]; then
     mkdir -p ${TESTSPATH}
-    cp -Rf ${USRPATH}/${PACK} ${TESTSPATH}
+    cp -Rfp ${USRPATH}/${PACK} ${TESTSPATH}
 else
     echo "${PACK} does not exist in ${USRPATH}"
     exit 2

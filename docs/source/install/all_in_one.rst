@@ -54,7 +54,7 @@ Bring Your Own Box
 
 ::
 
-    curl -sSL https://raw.githubusercontent.com/StackStorm/st2workroom/master/script/bootstrap-st2express | sh
+    curl -sSL https://raw.githubusercontent.com/StackStorm/st2workroom/master/script/bootstrap-st2express | sudo sh
 
 You will need elevated privileges in order to run this script. This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
 

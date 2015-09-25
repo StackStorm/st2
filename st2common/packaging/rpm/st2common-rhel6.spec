@@ -39,10 +39,15 @@ mkdir -p %{buildroot}/opt/stackstorm/rbac/assignments
 mkdir -p %{buildroot}/usr/share/doc/st2
 mkdir -p %{buildroot}/usr/share/stackstorm
 cp -R contrib/default %{buildroot}/opt/stackstorm/packs/
+chmod -R 775 %{buildroot}/opt/stackstorm/packs/default
 cp -R contrib/core %{buildroot}/opt/stackstorm/packs/
+chmod -R 775 %{buildroot}/opt/stackstorm/packs/core
 cp -R contrib/packs %{buildroot}/opt/stackstorm/packs/
+chmod -R 775 %{buildroot}/opt/stackstorm/packs/packs
 cp -R contrib/linux %{buildroot}/opt/stackstorm/packs/
+chmod -R 775 %{buildroot}/opt/stackstorm/packs/linux
 cp -R contrib/examples %{buildroot}/usr/share/doc/st2/
+chmod -R 775 %{buildroot}/usr/share/doc/st2/examples
 cp -R docs/* %{buildroot}/usr/share/doc/st2/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 cp -R bin %{buildroot}/%{python2_sitelib}/st2common/
@@ -50,6 +55,9 @@ install st2/st2.conf %{buildroot}/etc/st2/st2.conf
 install logrotate.d/st2.conf %{buildroot}/etc/logrotate.d/st2.conf
 install rbac/roles/sample.yaml %{buildroot}/opt/stackstorm/rbac/roles/sample.yaml
 install rbac/assignments/sample.yaml %{buildroot}/opt/stackstorm/rbac/assignments/sample.yaml
+install -m755 bin/st2-register-content %{buildroot}/usr/bin/st2-register-content
+install -m755 bin/st2-bootstrap-rmq %{buildroot}/usr/bin/st2-bootstrap-rmq
+install -m755 bin/st2-apply-rbac-definitions %{buildroot}/usr/bin/st2-apply-rbac-definitions
 install -m755 tools/st2ctl %{buildroot}/usr/bin/st2ctl
 install -m755 tools/st2-setup-tests %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-setup-tests
 install -m755 tools/st2-setup-examples %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-setup-examples

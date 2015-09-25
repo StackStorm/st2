@@ -31,6 +31,8 @@ in development
   logged. (new-feature)
 * Introduce API Keys that do not expire like Authentication tokens. This makes it easier to work
   with webhook based integrations. (new-feature)
+* Allow user to define trigger tags in sensor definition YAML files. (new feature) #2000
+  [Tom Deckers]
 
 0.13.2 - September 09, 2015
 ---------------------------

@@ -7,6 +7,7 @@
   parameters:
     sudo:
       immutable: true
+      default: true
     cmd:
       immutable: true
       default: "st2ctl reload{% for item in register.split(',') %} --register-{{ item|trim }}{% endfor %}"
