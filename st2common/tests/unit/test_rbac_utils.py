@@ -110,8 +110,10 @@ class RBACUtilsTestCase(DbTestCase):
                                                role=SystemRole.SYSTEM_ADMIN))
 
     def test_request_is_admin_and_request_has_role(self):
+        mock_request_system_admin_user = mock.Mock()
         mock_request_admin_user = mock.Mock()
         mock_request_regular_user = mock.Mock()
+        mock_request_system_admin_user.context = {'auth': {'user': self.system_admin_user}}
         mock_request_admin_user.context = {'auth': {'user': self.admin_user}}
         mock_request_regular_user.context = {'auth': {'user': self.regular_user}}
 
@@ -123,13 +125,19 @@ class RBACUtilsTestCase(DbTestCase):
         self.assertTrue(request_user_has_role(request=mock_request_regular_user,
                                               role=SystemRole.ADMIN))
 
+        # System admin user
+        self.assertTrue(request_user_is_system_admin(request=mock_request_system_admin_user))
+        self.assertTrue(request_user_has_role(request=mock_request_system_admin_user,
+                                              role=SystemRole.SYSTEM_ADMIN))
+
         # Admin user
         self.assertTrue(request_user_is_admin(request=mock_request_admin_user))
-        self.assertTrue(request_user_has_role(request=mock_request_admin_user,
-                                              role=SystemRole.ADMIN))
 
         # RBAC enabled
         cfg.CONF.set_override(name='enable', override=True, group='rbac')
+
+        # System admin user
+        self.assertTrue(request_user_is_admin(request=mock_request_system_admin_user))
 
         # Admin user
         self.assertTrue(request_user_is_admin(request=mock_request_admin_user))

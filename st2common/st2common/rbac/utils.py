@@ -60,7 +60,7 @@ __all__ = [
 
 def request_user_is_admin(request):
     """
-    Check if the logged-in request user has admin role.
+    Check if the logged-in request user has admin (either system admin or admin) role.
 
     :rtype: ``bool``
     """
@@ -253,14 +253,23 @@ def assert_request_user_has_rule_trigger_and_action_permission(request, rule_api
 
 def user_is_admin(user_db):
     """
-    Return True if the provided user has admin rule, false otherwise.
+    Return True if the provided user has admin role (either system admin or admin), false
+    otherwise.
 
     :param user_db: User object to check for.
     :type user_db: :class:`UserDB`
 
     :rtype: ``bool``
     """
-    return user_has_role(user_db=user_db, role=SystemRole.ADMIN)
+    is_system_admin = user_is_system_admin(user_db=user_db)
+    if is_system_admin:
+        return True
+
+    is_admin = user_has_role(user_db=user_db, role=SystemRole.ADMIN)
+    if is_admin:
+        return True
+
+    return False
 
 
 def user_is_system_admin(user_db):
