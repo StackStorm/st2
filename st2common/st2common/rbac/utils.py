@@ -33,6 +33,7 @@ from st2common.util import action_db as action_utils
 
 __all__ = [
     'request_user_is_admin',
+    'request_user_is_system_admin',
     'request_user_has_role',
     'request_user_has_permission',
     'request_user_has_resource_permission',
@@ -41,12 +42,14 @@ __all__ = [
     'request_user_has_rule_action_permission',
 
     'assert_request_user_is_admin',
+    'assert_request_user_is_system_admin',
     'assert_request_user_has_permission',
     'assert_request_user_has_resource_permission',
 
     'assert_request_user_has_rule_trigger_and_action_permission',
 
     'user_is_admin',
+    'user_is_system_admin',
     'user_has_permission',
     'user_has_resource_permission',
     'user_has_role',
@@ -62,6 +65,15 @@ def request_user_is_admin(request):
     :rtype: ``bool``
     """
     return request_user_has_role(request=request, role=SystemRole.ADMIN)
+
+
+def request_user_is_system_admin(request):
+    """
+    Check if the logged-in request user has system admin role.
+
+    :rtype: ``bool``
+    """
+    return request_user_has_role(request=request, role=SystemRole.SYSTEM_ADMIN)
 
 
 def request_user_has_role(request, role):
@@ -114,6 +126,20 @@ def assert_request_user_is_admin(request):
     if not is_admin:
         user_db = get_user_db_from_request(request=request)
         raise AccessDeniedError(message='Administrator access required',
+                                user_db=user_db)
+
+
+def assert_request_user_is_system_admin(request):
+    """
+    Assert that the currently logged in user is a system administrator.
+
+    If the user is not a system administrator, an exception is thrown.
+    """
+    is_system_admin = request_user_is_system_admin(request=request)
+
+    if not is_system_admin:
+        user_db = get_user_db_from_request(request=request)
+        raise AccessDeniedError(message='System Administrator access required',
                                 user_db=user_db)
 
 
@@ -233,6 +259,18 @@ def user_is_admin(user_db):
     :rtype: ``bool``
     """
     return user_has_role(user_db=user_db, role=SystemRole.ADMIN)
+
+
+def user_is_system_admin(user_db):
+    """
+    Return True if the provided user has system admin rule, false otherwise.
+
+    :param user_db: User object to check for.
+    :type user_db: :class:`UserDB`
+
+    :rtype: ``bool``
+    """
+    return user_has_role(user_db=user_db, role=SystemRole.SYSTEM_ADMIN)
 
 
 def user_has_role(user_db, role):
