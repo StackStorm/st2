@@ -188,7 +188,7 @@ class RBACDefinitionsDBSyncer(object):
                 # DB yet because user creation in StackStorm is lazy (we only create UserDB) object
                 # when user first logs in.
                 user_db = UserDB(name=username)
-                LOG.debug(('User "%s" doesn\'t exist in the DB, creating assignment a anyway' %
+                LOG.debug(('User "%s" doesn\'t exist in the DB, creating assignment anyway' %
                           (username)))
                 continue
 
