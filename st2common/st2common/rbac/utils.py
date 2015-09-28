@@ -64,7 +64,8 @@ def request_user_is_admin(request):
 
     :rtype: ``bool``
     """
-    return request_user_has_role(request=request, role=SystemRole.ADMIN)
+    user_db = get_user_db_from_request(request=request)
+    return user_is_admin(user_db=user_db)
 
 
 def request_user_is_system_admin(request):
@@ -73,7 +74,8 @@ def request_user_is_system_admin(request):
 
     :rtype: ``bool``
     """
-    return request_user_has_role(request=request, role=SystemRole.SYSTEM_ADMIN)
+    user_db = get_user_db_from_request(request=request)
+    return user_is_system_admin(user_db=user_db)
 
 
 def request_user_has_role(request, role):
