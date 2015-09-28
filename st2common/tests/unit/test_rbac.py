@@ -24,6 +24,15 @@ from st2common.rbac.types import ResourceType
 from st2common.models.db.auth import UserDB
 from st2common.models.db.rbac import RoleDB
 from st2common.persistence.rbac import Role
+from st2common.services.rbac import get_all_roles
+from st2common.rbac.migrations import insert_system_roles
+
+__all__ = [
+    'RBACUtilsTestCase',
+    'RBACPermissionTypeTestCase',
+    'RBACMigrationsTestCase',
+    'RBACRoleDBTestCase'
+]
 
 
 class RBACUtilsTestCase(CleanDbTestCase):
@@ -88,6 +97,27 @@ class RBACPermissionTypeTestCase(unittest2.TestCase):
                          'all')
         self.assertEqual(PermissionType.get_permission_name(PermissionType.PACK_ALL),
                          'all')
+
+
+class RBACMigrationsTestCase(CleanDbTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(RBACMigrationsTestCase, cls).setUpClass()
+        config.parse_args()
+
+    def test_insert_system_roles(self):
+        role_dbs = get_all_roles()
+        self.assertItemsEqual(role_dbs, [])
+
+        insert_system_roles()
+
+        role_dbs = get_all_roles()
+        self.assertTrue(len(role_dbs), 3)
+
+        role_names = [role_db.name for role_db in role_dbs]
+        self.assertTrue('system_admin' in role_names)
+        self.assertTrue('admin' in role_names)
+        self.assertTrue('observer' in role_names)
 
 
 class RBACRoleDBTestCase(CleanDbTestCase):
