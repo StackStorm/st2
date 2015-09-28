@@ -249,11 +249,9 @@ class ParamikoSSHClientTests(unittest2.TestCase):
 
     @patch('paramiko.SSHClient', Mock)
     def test_consume_stdout(self):
-        """
-        Test utf-8 decoding of ``stdout`` still works fine when reading CHUNK_SIZE splits a
-        multi-byte utf-8 character in the middle. We should wait to collect all bytes
-        and finally decode.
-        """
+        # Test utf-8 decoding of ``stdout`` still works fine when reading CHUNK_SIZE splits a
+        # multi-byte utf-8 character in the middle. We should wait to collect all bytes
+        # and finally decode.
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu'}
         mock = ParamikoSSHClient(**conn_params)
@@ -272,11 +270,9 @@ class ParamikoSSHClientTests(unittest2.TestCase):
 
     @patch('paramiko.SSHClient', Mock)
     def test_consume_stderr(self):
-        """
-        Test utf-8 decoding of ``stderr`` still works fine when reading CHUNK_SIZE splits a
-        multi-byte utf-8 character in the middle. We should wait to collect all bytes
-        and finally decode.
-        """
+        # Test utf-8 decoding of ``stderr`` still works fine when reading CHUNK_SIZE splits a
+        # multi-byte utf-8 character in the middle. We should wait to collect all bytes
+        # and finally decode.
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu'}
         mock = ParamikoSSHClient(**conn_params)
