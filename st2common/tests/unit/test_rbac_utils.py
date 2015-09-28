@@ -132,6 +132,8 @@ class RBACUtilsTestCase(DbTestCase):
 
         # Admin user
         self.assertTrue(request_user_is_admin(request=mock_request_admin_user))
+        self.assertTrue(request_user_has_role(request=mock_request_admin_user,
+                                              role=SystemRole.ADMIN))
 
         # RBAC enabled
         cfg.CONF.set_override(name='enable', override=True, group='rbac')
