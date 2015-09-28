@@ -466,8 +466,8 @@ class ParamikoSSHClient(object):
         try:
             return data.decode('utf-8')
         except:
-            self.logger.warning('Non UTF-8 character found in data: %s', data)
-            return ''
+            self.logger.exception('Non UTF-8 character found in data: %s', data)
+            raise
 
     def _get_pkey_object(self, key):
         """
