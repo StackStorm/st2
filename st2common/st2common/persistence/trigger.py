@@ -49,7 +49,7 @@ class Trigger(ContentPackResource):
     def delete_if_unreferenced(cls, model_object, publish=True, dispatch_trigger=True):
         # Found in the innards of mongoengine
         delete_query = model_object._object_key
-        delete_query['lte__ref_count'] = 0
+        delete_query['ref_count__lte'] = 0
         cls._get_impl().delete_by_query(**delete_query)
         # Publish internal event on the message bus
         if publish:
