@@ -421,19 +421,22 @@ class ParamikoSSHClient(object):
         Try to consume stdout data from chan if it's receive ready.
         """
 
+        out = bytearray()
         stdout = StringIO()
         if chan.recv_ready():
             data = chan.recv(self.CHUNK_SIZE)
+            out += data
 
             while data:
-                stdout.write(self._get_decoded_data(data))
                 ready = chan.recv_ready()
 
                 if not ready:
                     break
 
                 data = chan.recv(self.CHUNK_SIZE)
+                out += data
 
+        stdout.write(self._get_decoded_data(out))
         return stdout
 
     def _consume_stderr(self, chan):
@@ -441,28 +444,30 @@ class ParamikoSSHClient(object):
         Try to consume stderr data from chan if it's receive ready.
         """
 
+        out = bytearray()
         stderr = StringIO()
         if chan.recv_stderr_ready():
             data = chan.recv_stderr(self.CHUNK_SIZE)
+            out += data
 
             while data:
-                stderr.write(self._get_decoded_data(data))
                 ready = chan.recv_stderr_ready()
 
                 if not ready:
                     break
 
                 data = chan.recv_stderr(self.CHUNK_SIZE)
+                out += data
 
+        stderr.write(self._get_decoded_data(out))
         return stderr
 
     def _get_decoded_data(self, data):
-        decoded_data = str(data)
         try:
-            decoded_data = decoded_data.decode('utf-8')
+            return data.decode('utf-8')
         except:
             self.logger.warning('Non UTF-8 character found in data: %s', data)
-        return decoded_data
+            return ''
 
     def _get_pkey_object(self, key):
         """
