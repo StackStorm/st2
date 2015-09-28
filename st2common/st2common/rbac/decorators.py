@@ -25,6 +25,7 @@ from st2common.rbac import utils
 
 __all__ = [
     'request_user_is_admin',
+    'request_user_is_system_admin',
     'request_user_has_permission',
     'request_user_has_resource_permission'
 ]
@@ -35,6 +36,16 @@ def request_user_is_admin():
         @wraps(func)
         def func_wrapper(*args, **kwargs):
             utils.assert_request_user_is_admin(request=pecan.request)
+            return func(*args, **kwargs)
+        return func_wrapper
+    return decorate
+
+
+def request_user_is_system_admin():
+    def decorate(func):
+        @wraps(func)
+        def func_wrapper(*args, **kwargs):
+            utils.assert_request_user_is_system_admin(request=pecan.request)
             return func(*args, **kwargs)
         return func_wrapper
     return decorate
