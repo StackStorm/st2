@@ -70,5 +70,8 @@ install -m755 tools/migrate_rules_to_include_pack.py %{buildroot}/usr/lib/python
 /etc/st2/*
 /opt/stackstorm/*
 /var/log/st2
+/usr/bin/st2-register-content
+/usr/bin/st2-bootstrap-rmq
+/usr/bin/st2-apply-rbac-definitions
 /usr/bin/st2ctl
 /etc/logrotate.d/st2.conf
