@@ -33,6 +33,11 @@ in development
   with webhook based integrations. (new-feature)
 * Allow user to define trigger tags in sensor definition YAML files. (new feature) #2000
   [Tom Deckers]
+* Fix a bug in ``stdout`` and ``stderr`` consumption in paramiko SSH runner where reading a fixed
+  chunk byte array and decoding it could result in multi-byte UTF-8 character being read half way
+  resulting in UTF-8 decode error. This happens only when output is greater than default chunk size
+  (1024 bytes) and script produces utf-8 output. We now collect all the bytes from channel
+  and only then decode the byte stream as utf-8.
 
 0.13.2 - September 09, 2015
 ---------------------------

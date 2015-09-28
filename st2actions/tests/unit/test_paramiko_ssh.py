@@ -246,3 +246,45 @@ class ParamikoSSHClientTests(unittest2.TestCase):
 
         calls = [call(local_file, remote_file)]
         mock_cli.open_sftp().put.assert_has_calls(calls, any_order=True)
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_consume_stdout(self):
+        # Test utf-8 decoding of ``stdout`` still works fine when reading CHUNK_SIZE splits a
+        # multi-byte utf-8 character in the middle. We should wait to collect all bytes
+        # and finally decode.
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu'}
+        mock = ParamikoSSHClient(**conn_params)
+        mock.CHUNK_SIZE = 1
+        chan = Mock()
+        chan.recv_ready.side_effect = [True, True, True, True, False]
+
+        chan.recv.side_effect = ['\xF0', '\x90', '\x8D', '\x88']
+        try:
+            '\xF0'.decode('utf-8')
+            self.fail('Test fixture is not right.')
+        except UnicodeDecodeError:
+            pass
+        stdout = mock._consume_stdout(chan)
+        self.assertEqual(u'\U00010348', stdout.getvalue())
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_consume_stderr(self):
+        # Test utf-8 decoding of ``stderr`` still works fine when reading CHUNK_SIZE splits a
+        # multi-byte utf-8 character in the middle. We should wait to collect all bytes
+        # and finally decode.
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu'}
+        mock = ParamikoSSHClient(**conn_params)
+        mock.CHUNK_SIZE = 1
+        chan = Mock()
+        chan.recv_stderr_ready.side_effect = [True, True, True, True, False]
+
+        chan.recv_stderr.side_effect = ['\xF0', '\x90', '\x8D', '\x88']
+        try:
+            '\xF0'.decode('utf-8')
+            self.fail('Test fixture is not right.')
+        except UnicodeDecodeError:
+            pass
+        stderr = mock._consume_stderr(chan)
+        self.assertEqual(u'\U00010348', stderr.getvalue())
