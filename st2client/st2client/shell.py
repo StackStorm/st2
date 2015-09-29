@@ -456,7 +456,7 @@ class Shell(object):
             raise ValueError(msg)
 
         now = int(time.time())
-        if (expire_timestamp + TOKEN_EXPIRATION_GRACE_PERIOD_SECONDS) < now:
+        if (expire_timestamp - TOKEN_EXPIRATION_GRACE_PERIOD_SECONDS) < now:
             LOG.debug('Cached token from file "%s" has expired' % (cached_token_path))
             # Token has expired
             return None
