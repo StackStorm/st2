@@ -217,7 +217,7 @@ class TestRuleController(FunctionalTest):
         return self.app.delete('/v1/rules/%s' % rule_id)
 
 
-TEST_FIXTURES = {
+TEST_FIXTURES_2 = {
     'runners': ['testrunner1.yaml'],
     'actions': ['action1.yaml'],
     'triggertypes': ['triggertype_with_parameter.yaml']
@@ -233,7 +233,7 @@ class TestRuleControllerTriggerCreator(FunctionalTest):
     def setUpClass(cls):
         super(TestRuleControllerTriggerCreator, cls).setUpClass()
         cls.models = cls.fixtures_loader.save_fixtures_to_db(
-            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
+            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES_2)
 
         # Don't load rule into DB as that is what is being tested.
         file_name = 'rule_trigger_params.yaml'
