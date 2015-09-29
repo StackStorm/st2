@@ -409,14 +409,6 @@ class Shell(object):
 
         return token
 
-    def _get_cached_token_path_for_user(self, username):
-        """
-        Retrieve cached token path for the provided username.
-        """
-        file_name = 'token-%s' % (username)
-        result = os.path.abspath(os.path.join(ST2_CONFIG_DIRECTORY, file_name))
-        return result
-
     def _get_cached_auth_token(self, client, username, password):
         """
         Retrieve cached auth token from the file in the config directory.
@@ -461,9 +453,11 @@ class Shell(object):
 
         now = int(time.time())
         if (expire_timestamp + TOKEN_EXPIRATION_GRACE_PERIOD_SECONDS) < now:
+            LOG.debug('Cached token from file "%s" has expired' % (cached_token_path))
             # Token has expired
             return None
 
+        LOG.debug('Using cached token from file "%s"' % (cached_token_path))
         return token
 
     def _cache_auth_token(self, token_obj):
@@ -514,6 +508,7 @@ class Shell(object):
         with os.fdopen(fd, 'w') as fp:
             fp.write(data)
 
+        LOG.debug('Token has been cached in "%s"' % (cached_token_path))
         return True
 
     def _authenticate_and_retrieve_auth_token(self, client, username, password):
@@ -522,6 +517,14 @@ class Shell(object):
         instance = models.Token()
         instance = manager.create(instance, auth=(username, password))
         return instance
+
+    def _get_cached_token_path_for_user(self, username):
+        """
+        Retrieve cached token path for the provided username.
+        """
+        file_name = 'token-%s' % (username)
+        result = os.path.abspath(os.path.join(ST2_CONFIG_DIRECTORY, file_name))
+        return result
 
     def _get_config_file_path(self, args):
         """
