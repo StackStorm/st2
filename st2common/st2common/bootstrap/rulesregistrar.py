@@ -24,7 +24,7 @@ from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.rule import RuleAPI
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.rule import Rule
-from st2common.services.triggers import cleanup_trigger_db_for_rule
+from st2common.services.triggers import cleanup_trigger_db_for_rule, increment_trigger_ref_count
 import st2common.content.utils as content_utils
 
 __all__ = [
@@ -140,6 +140,7 @@ class RulesRegistrar(ResourceRegistrar):
 
                 try:
                     rule_db = Rule.add_or_update(rule_db)
+                    increment_trigger_ref_count(rule_api=rule_api)
                     extra = {'rule_db': rule_db}
                     LOG.audit('Rule updated. Rule %s from %s.', rule_db, rule, extra=extra)
                 except Exception:

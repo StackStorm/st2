@@ -180,10 +180,23 @@ def create_trigger_db_from_rule(rule):
         trigger_db = existing_trigger_db
 
     # Special reference counting for trigger with parameters.
-    if trigger_dict.get('parameters', None):
-        Trigger.update(trigger_db, inc__ref_count=1)
+    # if trigger_dict.get('parameters', None):
+    #     Trigger.update(trigger_db, inc__ref_count=1)
 
     return trigger_db
+
+
+def increment_trigger_ref_count(rule_api):
+    '''
+    Given the rule figures out the TriggerType with parameter and increments
+    reference count on the Trigger.
+    '''
+    trigger_dict = _get_trigger_dict_given_rule(rule_api)
+
+    # Special reference counting for trigger with parameters.
+    if trigger_dict.get('parameters', None):
+        trigger_db = _get_trigger_db(trigger_dict)
+        Trigger.update(trigger_db, inc__ref_count=1)
 
 
 def cleanup_trigger_db_for_rule(rule_db):
