@@ -343,7 +343,6 @@ class CLITokenCachingTestCase(unittest2.TestCase):
                                               password=password)
         self.assertEqual(result, None)
 
-        cached_token_path = shell._get_cached_token_path_for_user(username=username)
         token_db = TokenDB(user=username, token='fyeah', expiry=expiry)
         shell._cache_auth_token(token_obj=token_db)
 
