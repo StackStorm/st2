@@ -187,10 +187,13 @@ def create_trigger_db_from_rule(rule):
 
 
 def increment_trigger_ref_count(rule_api):
-    '''
+    """
     Given the rule figures out the TriggerType with parameter and increments
-    reference count on the Trigger.
-    '''
+    reference count on the appropriate Trigger.
+
+    :param rule_api: Rule object used to infer the Trigger.
+    :type rule_api: ``RuleApi``
+    """
     trigger_dict = _get_trigger_dict_given_rule(rule_api)
 
     # Special reference counting for trigger with parameters.
