@@ -38,6 +38,9 @@ in development
   resulting in UTF-8 decode error. This happens only when output is greater than default chunk size
   (1024 bytes) and script produces utf-8 output. We now collect all the bytes from channel
   and only then decode the byte stream as utf-8.
+* Update CLI so it supports caching tokens for different users (it creates a different file for each
+  user). This means you can now use ``ST2_CONFIG_FILE`` option without disabling token cache.
+  (improvement)
 
 0.13.2 - September 09, 2015
 ---------------------------
