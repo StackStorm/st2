@@ -451,7 +451,8 @@ class Shell(object):
             token = data['token']
             expire_timestamp = data['expire_timestamp']
         except Exception as e:
-            msg = 'File with cached token is corrupted or invalid: %s' % (str(e))
+            msg = ('File "%s" with cached token is corrupted or invalid (%s). Please delete '
+                   ' this file' % (cached_token_path, str(e)))
             raise ValueError(msg)
 
         now = int(time.time())
