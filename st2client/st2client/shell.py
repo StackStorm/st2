@@ -34,6 +34,7 @@ import requests
 
 from st2client import __version__
 from st2client import models
+from st2common.logging.misc import set_log_level_for_all_loggers
 from st2client.client import Client
 from st2client.commands import auth
 from st2client.commands import action
@@ -320,6 +321,8 @@ class Shell(object):
 
         try:
             debug = getattr(args, 'debug', False)
+            if debug:
+                set_log_level_for_all_loggers(level=logging.DEBUG)
 
             # Set up client.
             self.client = self.get_client(args=args, debug=debug)
