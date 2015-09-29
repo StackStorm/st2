@@ -37,6 +37,8 @@ __all__ = [
     'SSHCommandTimeoutError'
 ]
 
+PRIVATE_KEY_HEADER = 'PRIVATE KEY-----'.lower()
+
 
 class SSHCommandTimeoutError(Exception):
     """
@@ -483,5 +485,14 @@ class ParamikoSSHClient(object):
             else:
                 return key
 
-        msg = 'Invalid or unsupported key type'
+        # If a user passes in something which looks like file path we throw a more friendly
+        # exception letting the user know we expect the contents a not a path.
+        # Note: We do it here and not up the stack to avoid false positives.
+        contains_header = PRIVATE_KEY_HEADER in key.lower()
+        if not contains_header and (key.count('/') >= 1 or key.count('\\') >= 1):
+            msg = ('"private_key" parameter needs to contain private key data / content and not '
+                   'a path')
+        else:
+            msg = 'Invalid or unsupported key type'
+
         raise paramiko.ssh_exception.SSHException(msg)
