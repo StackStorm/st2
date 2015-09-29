@@ -18,6 +18,7 @@ Module for syncing RBAC definitions in the database with the ones from the files
 """
 
 from st2common import log as logging
+from st2common.models.db.auth import UserDB
 from st2common.persistence.auth import User
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
@@ -183,9 +184,12 @@ class RBACDefinitionsDBSyncer(object):
             user_db = username_to_user_db_map.get(username, None)
 
             if not user_db:
-                LOG.debug(('Skipping role assignments for user "%s" which doesn\'t exist in the '
-                           'database' % (username)))
-                continue
+                # Note: We allow assignments to be created for the users which don't exist in the
+                # DB yet because user creation in StackStorm is lazy (we only create UserDB) object
+                # when user first logs in.
+                user_db = UserDB(name=username)
+                LOG.debug(('User "%s" doesn\'t exist in the DB, creating assignment anyway' %
+                          (username)))
 
             role_assignment_dbs = rbac_services.get_role_assignments_for_user(user_db=user_db)
 

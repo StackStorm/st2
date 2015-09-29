@@ -152,7 +152,7 @@ class SystemRole(Enum):
     """
     Default system roles which can't be manipulated (modified or removed).
     """
-    SYSTEM_ADMIN = ' system_admin'  # Special role which can't be revoked.
+    SYSTEM_ADMIN = 'system_admin'  # Special role which can't be revoked.
     ADMIN = 'admin'
     OBSERVER = 'observer'
 

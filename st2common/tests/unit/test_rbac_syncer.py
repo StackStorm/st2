@@ -191,6 +191,27 @@ class RBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         self.assertTrue(len(role_dbs), 1)
         self.assertEqual(role_dbs[0], self.roles['role_2'])
 
+    def test_sync_assignments_user_doesnt_exist_in_db(self):
+        # Make sure that the assignments for the users which don't exist in the db are still saved
+        syncer = RBACDefinitionsDBSyncer()
+
+        self._insert_mock_roles()
+
+        # Initial state, no roles
+        user_db = UserDB(name='doesntexistwhaha')
+        role_dbs = get_roles_for_user(user_db=user_db)
+        self.assertItemsEqual(role_dbs, [])
+
+        # Do the sync with two roles defined
+        api = UserRoleAssignmentFileFormatAPI(username=user_db.name,
+                                              roles=['role_1', 'role_2'])
+        syncer.sync_users_role_assignments(role_assignment_apis=[api])
+
+        role_dbs = get_roles_for_user(user_db=user_db)
+        self.assertTrue(len(role_dbs), 2)
+        self.assertEqual(role_dbs[0], self.roles['role_1'])
+        self.assertEqual(role_dbs[1], self.roles['role_2'])
+
     def assertRoleDBObjectExists(self, role_db):
         result = Role.get_by_id(str(role_db.id))
         self.assertTrue(result)
