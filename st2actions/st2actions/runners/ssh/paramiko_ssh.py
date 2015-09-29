@@ -121,7 +121,7 @@ class ParamikoSSHClient(object):
             conninfo['key_filename'] = self.key_files
 
         if self.key_material:
-            conninfo['pkey'] = self._get_pkey_object(key=self.key_material)
+            conninfo['pkey'] = self._get_pkey_object(key_material=self.key_material)
 
         if not self.password and not (self.key_files or self.key_material):
             conninfo['allow_agent'] = True
@@ -471,14 +471,14 @@ class ParamikoSSHClient(object):
             self.logger.exception('Non UTF-8 character found in data: %s', data)
             raise
 
-    def _get_pkey_object(self, key):
+    def _get_pkey_object(self, key_material):
         """
         Try to detect private key type and return paramiko.PKey object.
         """
 
         for cls in [paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey]:
             try:
-                key = cls.from_private_key(StringIO(key))
+                key = cls.from_private_key(StringIO(key_material))
             except paramiko.ssh_exception.SSHException:
                 # Invalid key, try other key type
                 pass
@@ -488,8 +488,8 @@ class ParamikoSSHClient(object):
         # If a user passes in something which looks like file path we throw a more friendly
         # exception letting the user know we expect the contents a not a path.
         # Note: We do it here and not up the stack to avoid false positives.
-        contains_header = PRIVATE_KEY_HEADER in key.lower()
-        if not contains_header and (key.count('/') >= 1 or key.count('\\') >= 1):
+        contains_header = PRIVATE_KEY_HEADER in key_material.lower()
+        if not contains_header and (key_material.count('/') >= 1 or key_material.count('\\') >= 1):
             msg = ('"private_key" parameter needs to contain private key data / content and not '
                    'a path')
         else:
