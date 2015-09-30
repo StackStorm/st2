@@ -66,17 +66,20 @@ class StringValueParser(object):
     end = '"'
     escape = '\\'
 
-    @staticmethod
-    def is_applicable(first_char):
-        return first_char == StringValueParser.start
+    def __init__(self, start, end, escape):
+        self.start = start
+        self.end = end
+        self.escape = escape
 
-    @staticmethod
-    def parse(start, stream):
+    def is_applicable(self, first_char):
+        return first_char == self.start
+
+    def parse(self, start, stream):
         end = 0
         char_idx = start + 1
         while not end:
             char = stream[char_idx]
-            if char == StringValueParser.end and stream[char_idx - 1] != StringValueParser.escape:
+            if char == self.end and stream[char_idx - 1] != self.escape:
                 end = char_idx
             else:
                 char_idx += 1
@@ -106,7 +109,12 @@ class DefaultParser(object):
         except IndexError:
             raise content.ParseException('What sort of messed up stream did you provide!')
 
-PARSERS = [JsonValueParser, StringValueParser, DefaultParser]
+PARSERS = [
+    JsonValueParser,
+    StringValueParser(start='"', end='"', escape='\\'),
+    StringValueParser(start='\'', end='\'', escape='\\'),
+    DefaultParser
+]
 
 
 class KeyValueActionAliasFormatParser(object):
