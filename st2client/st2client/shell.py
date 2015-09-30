@@ -34,6 +34,7 @@ import requests
 
 from st2client import __version__
 from st2client import models
+from st2common.logging.misc import set_log_level_for_all_loggers
 from st2client.client import Client
 from st2client.commands import auth
 from st2client.commands import action
@@ -61,9 +62,7 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-CLI_DESCRIPTION = 'CLI for StackStorm event-driven automation platform. http://stackstorm.com'
-
-CACHED_TOKEN_PATH = os.path.abspath(os.path.join(ST2_CONFIG_DIRECTORY, 'token'))
+CLI_DESCRIPTION = 'CLI for StackStorm event-driven automation platform. https://stackstorm.com'
 
 # How many seconds before the token actual expiration date we should consider the token as
 # expired. This is used to prevent the operation from failing durig the API request because the
@@ -322,6 +321,8 @@ class Shell(object):
 
         try:
             debug = getattr(args, 'debug', False)
+            if debug:
+                set_log_level_for_all_loggers(level=logging.DEBUG)
 
             # Set up client.
             self.client = self.get_client(args=args, debug=debug)
@@ -420,27 +421,28 @@ class Shell(object):
         if not os.path.isdir(ST2_CONFIG_DIRECTORY):
             os.makedirs(ST2_CONFIG_DIRECTORY)
 
-        if not os.path.isfile(CACHED_TOKEN_PATH):
+        cached_token_path = self._get_cached_token_path_for_user(username=username)
+        if not os.path.isfile(cached_token_path):
             return None
 
         if not os.access(ST2_CONFIG_DIRECTORY, os.R_OK):
             # We don't have read access to the file with a cached token
             message = ('Unable to retrieve cached token from "%s" (user %s doesn\'t have read '
                        'access to the parent directory). Subsequent requests won\'t use a '
-                       'cached token meaning they may be slower.' % (CACHED_TOKEN_PATH,
+                       'cached token meaning they may be slower.' % (cached_token_path,
                                                                      os.getlogin()))
             LOG.warn(message)
             return None
 
-        if not os.access(CACHED_TOKEN_PATH, os.R_OK):
+        if not os.access(cached_token_path, os.R_OK):
             # We don't have read access to the file with a cached token
             message = ('Unable to retrieve cached token from "%s" (user %s doesn\'t have read '
                        'access to this file). Subsequent requests won\'t use a cached token '
-                       'meaning they may be slower.' % (CACHED_TOKEN_PATH, os.getlogin()))
+                       'meaning they may be slower.' % (cached_token_path, os.getlogin()))
             LOG.warn(message)
             return None
 
-        with open(CACHED_TOKEN_PATH) as fp:
+        with open(cached_token_path) as fp:
             data = fp.read()
 
         try:
@@ -449,14 +451,17 @@ class Shell(object):
             token = data['token']
             expire_timestamp = data['expire_timestamp']
         except Exception as e:
-            msg = 'File with cached token is corrupted: %s' % (str(e))
+            msg = ('File "%s" with cached token is corrupted or invalid (%s). Please delete '
+                   ' this file' % (cached_token_path, str(e)))
             raise ValueError(msg)
 
         now = int(time.time())
-        if (expire_timestamp + TOKEN_EXPIRATION_GRACE_PERIOD_SECONDS) < now:
+        if (expire_timestamp - TOKEN_EXPIRATION_GRACE_PERIOD_SECONDS) < now:
+            LOG.debug('Cached token from file "%s" has expired' % (cached_token_path))
             # Token has expired
             return None
 
+        LOG.debug('Using cached token from file "%s"' % (cached_token_path))
         return token
 
     def _cache_auth_token(self, token_obj):
@@ -469,20 +474,23 @@ class Shell(object):
         if not os.path.isdir(ST2_CONFIG_DIRECTORY):
             os.makedirs(ST2_CONFIG_DIRECTORY)
 
+        username = token_obj.user
+        cached_token_path = self._get_cached_token_path_for_user(username=username)
+
         if not os.access(ST2_CONFIG_DIRECTORY, os.W_OK):
             # We don't have write access to the file with a cached token
             message = ('Unable to write token to "%s" (user %s doesn\'t have write'
                        'access to the parent directory). Subsequent requests won\'t use a '
-                       'cached token meaning they may be slower.' % (CACHED_TOKEN_PATH,
+                       'cached token meaning they may be slower.' % (cached_token_path,
                                                                      os.getlogin()))
             LOG.warn(message)
             return None
 
-        if os.path.isfile(CACHED_TOKEN_PATH) and not os.access(CACHED_TOKEN_PATH, os.W_OK):
+        if os.path.isfile(cached_token_path) and not os.access(cached_token_path, os.W_OK):
             # We don't have write access to the file with a cached token
             message = ('Unable to write token to "%s" (user %s doesn\'t have write'
                        'access to this file). Subsequent requests won\'t use a '
-                       'cached token meaning they may be slower.' % (CACHED_TOKEN_PATH,
+                       'cached token meaning they may be slower.' % (cached_token_path,
                                                                      os.getlogin()))
             LOG.warn(message)
             return None
@@ -500,10 +508,11 @@ class Shell(object):
         # open + chmod are two operations which means that during a short time frame (between
         # open and chmod) when file can potentially be read by other users if the default
         # permissions used during create allow that.
-        fd = os.open(CACHED_TOKEN_PATH, os.O_WRONLY | os.O_CREAT, 0600)
+        fd = os.open(cached_token_path, os.O_WRONLY | os.O_CREAT, 0600)
         with os.fdopen(fd, 'w') as fp:
             fp.write(data)
 
+        LOG.debug('Token has been cached in "%s"' % (cached_token_path))
         return True
 
     def _authenticate_and_retrieve_auth_token(self, client, username, password):
@@ -512,6 +521,14 @@ class Shell(object):
         instance = models.Token()
         instance = manager.create(instance, auth=(username, password))
         return instance
+
+    def _get_cached_token_path_for_user(self, username):
+        """
+        Retrieve cached token path for the provided username.
+        """
+        file_name = 'token-%s' % (username)
+        result = os.path.abspath(os.path.join(ST2_CONFIG_DIRECTORY, file_name))
+        return result
 
     def _get_config_file_path(self, args):
         """
