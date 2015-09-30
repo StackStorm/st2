@@ -44,31 +44,35 @@ class TestDefaultParser(TestCase):
         self.assertEqual(value, 'value1')
 
 
-class TestStringValueParser(TestCase):
+STR_DOUBLE_QUOTE_PARSER = StringValueParser(start='"', end='"', escape='\\')
+
+
+class Test_DQ_StringValueParser(TestCase):
 
     def testStringParsing(self):
         stream = 'some meaningful "spaced value1" something else skippable "double spaced value2"' \
                  'still more skip.'
 
         start = len('some meaningful ')
-        self.assertTrue(StringValueParser.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = StringValueParser.parse(start, stream)
+        self.assertTrue(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
+        _, value, _ = STR_DOUBLE_QUOTE_PARSER.parse(start, stream)
         self.assertEqual(value, 'spaced value1')
 
         start = len('some meaningful "spaced value1" something else skippable ')
-        self.assertTrue(StringValueParser.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = StringValueParser.parse(start, stream)
+        self.assertTrue(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
+        _, value, _ = STR_DOUBLE_QUOTE_PARSER.parse(start, stream)
         self.assertEqual(value, 'double spaced value2')
 
         start = len(stream) - 2
-        self.assertFalse(StringValueParser.is_applicable(stream[start]), 'Should not be parsable.')
+        self.assertFalse(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]),
+                         'Should not be parsable.')
 
     def testEndStringParsing(self):
         stream = 'some meaningful "spaced value1"'
 
         start = len('some meaningful ')
-        self.assertTrue(StringValueParser.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = StringValueParser.parse(start, stream)
+        self.assertTrue(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
+        _, value, _ = STR_DOUBLE_QUOTE_PARSER.parse(start, stream)
         self.assertEqual(value, 'spaced value1')
 
     def testEscapedStringParsing(self):
@@ -76,25 +80,87 @@ class TestStringValueParser(TestCase):
                  '"double spaced value2" still more skip.'
 
         start = len('some meaningful ')
-        self.assertTrue(StringValueParser.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = StringValueParser.parse(start, stream)
+        self.assertTrue(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
+        _, value, _ = STR_DOUBLE_QUOTE_PARSER.parse(start, stream)
         self.assertEqual(value, 'spaced \\"value1')
 
         start = len('some meaningful "spaced \\"value1" something else skippable ')
-        self.assertTrue(StringValueParser.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = StringValueParser.parse(start, stream)
+        self.assertTrue(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
+        _, value, _ = STR_DOUBLE_QUOTE_PARSER.parse(start, stream)
         self.assertEqual(value, 'double spaced value2')
 
         start = len(stream) - 2
-        self.assertFalse(StringValueParser.is_applicable(stream[start]), 'Should not be parsable.')
+        self.assertFalse(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]),
+                         'Should not be parsable.')
 
     def testIncompleteStringParsing(self):
         stream = 'some meaningful "spaced .'
 
         start = len('some meaningful ')
-        self.assertTrue(StringValueParser.is_applicable(stream[start]), 'Should be parsable.')
+        self.assertTrue(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
         try:
-            StringValueParser.parse(start, stream)
+            STR_DOUBLE_QUOTE_PARSER.parse(start, stream)
+            self.assertTrue(False, 'Parsing failure expected.')
+        except content.ParseException:
+            self.assertTrue(True)
+
+
+STR_SINGLE_QUOTE_PARSER = StringValueParser(start='\'', end='\'', escape='\\')
+
+
+class Test_SQ_StringValueParser(TestCase):
+
+    def testStringParsing(self):
+        stream = "some meaningful 'spaced value1' something else skippable 'double spaced value2'" \
+                 "still more skip."
+
+        start = len('some meaningful ')
+        self.assertTrue(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
+        _, value, _ = STR_SINGLE_QUOTE_PARSER.parse(start, stream)
+        self.assertEqual(value, 'spaced value1')
+
+        start = len("some meaningful 'spaced value1' something else skippable ")
+        self.assertTrue(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
+        _, value, _ = STR_SINGLE_QUOTE_PARSER.parse(start, stream)
+        self.assertEqual(value, 'double spaced value2')
+
+        start = len(stream) - 2
+        self.assertFalse(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]),
+                         'Should not be parsable.')
+
+    def testEndStringParsing(self):
+        stream = "some meaningful 'spaced value1'"
+
+        start = len('some meaningful ')
+        self.assertTrue(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
+        _, value, _ = STR_SINGLE_QUOTE_PARSER.parse(start, stream)
+        self.assertEqual(value, 'spaced value1')
+
+    def testEscapedStringParsing(self):
+        stream = "some meaningful 'spaced \\'value1' something else skippable " \
+                 "\'double spaced value2\' still more skip."
+
+        start = len('some meaningful ')
+        self.assertTrue(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
+        _, value, _ = STR_SINGLE_QUOTE_PARSER.parse(start, stream)
+        self.assertEqual(value, "spaced \\'value1")
+
+        start = len("some meaningful 'spaced \\'value1' something else skippable ")
+        self.assertTrue(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
+        _, value, _ = STR_SINGLE_QUOTE_PARSER.parse(start, stream)
+        self.assertEqual(value, 'double spaced value2')
+
+        start = len(stream) - 2
+        self.assertFalse(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]),
+                         'Should not be parsable.')
+
+    def testIncompleteStringParsing(self):
+        stream = "some meaningful 'spaced ."
+
+        start = len('some meaningful ')
+        self.assertTrue(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
+        try:
+            STR_SINGLE_QUOTE_PARSER.parse(start, stream)
             self.assertTrue(False, 'Parsing failure expected.')
         except content.ParseException:
             self.assertTrue(True)
