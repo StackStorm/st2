@@ -567,7 +567,7 @@ setup_postgresql() {
     else
       chkconfig postgresql on
       if service postgresql initdb
-      then 
+      then
         pg_hba_config=/var/lib/pgsql/data/pg_hba.conf
         sed -i 's/^local\s\+all\s\+all\s\+peer/local all all trust/g' ${pg_hba_config}
         sed -i 's/^local\s\+all\s\+all\s\+ident/local all all trust/g' ${pg_hba_config}
@@ -969,6 +969,12 @@ migrate_rules() {
   $PYTHON ${PYTHONPACK}/st2common/bin/migrate_rules_to_include_pack.py
 }
 
+migrate_triggers() {
+  echo "###########################################################################################"
+  echo "# Migrating triggers (ref_count inclusion)."
+  $PYTHON ${PYTHONPACK}/st2common/bin/migrate_triggers_to_include_ref_count.py
+}
+
 register_content() {
   echo "###########################################################################################"
   echo "# Registering all content"
@@ -1089,6 +1095,10 @@ fi
 
 if version_ge $VER "0.9"; then
   migrate_rules
+fi
+
+if version_ge $VER "1.0"; then
+  migrate_triggers
 fi
 
 register_content

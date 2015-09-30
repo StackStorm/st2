@@ -1,5 +1,13 @@
 Upgrade Notes
 =============
+|st2| 1.0
+---------
+
+* Triggers now have a `ref_count` property which must be included in Trigger objects
+  created in previous versions of |st2|. A migration script is shipped in
+  ${dist_packages}/st2common/bin/migrate_triggers_to_include_ref_count.py on installation.
+  The migration script is run as part of st2_deploy.sh when you upgrade from versions < 0.13 to 1.0.
+
 |st2| 0.11
 -------------
 
