@@ -15,7 +15,7 @@
 
 import os
 
-from st2common.content import aliasesregistrar
+from st2common.bootstrap import aliasesregistrar
 from st2tests import DbTestCase, fixturesloader
 
 
