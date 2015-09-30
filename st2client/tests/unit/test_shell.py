@@ -15,6 +15,7 @@
 
 import os
 import time
+import datetime
 import json
 import logging
 import tempfile
@@ -337,7 +338,7 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         shell = Shell()
         username = 'testu'
         password = 'testp'
-        expiry = '2015-09-30T17:33:49.573Z'
+        expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=30)
 
         result = shell._get_cached_auth_token(client=client, username=username,
                                               password=password)
