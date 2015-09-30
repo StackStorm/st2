@@ -23,8 +23,8 @@ from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 import st2common.bootstrap.sensorsregistrar as sensors_registrar
 import st2common.bootstrap.actionsregistrar as actions_registrar
-import st2common.content.aliasesregistrar as aliases_registrar
-import st2common.content.policiesregistrar as policies_registrar
+import st2common.bootstrap.aliasesregistrar as aliases_registrar
+import st2common.bootstrap.policiesregistrar as policies_registrar
 import st2common.bootstrap.runnersregistrar as runners_registrar
 import st2common.bootstrap.rulesregistrar as rules_registrar
 import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
