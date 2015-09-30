@@ -14,14 +14,20 @@
 # limitations under the License.
 
 import os
+import time
+import datetime
 import json
-import mock
 import logging
+import tempfile
 
-from tests import base
+import mock
+import unittest2
 
-from st2client import shell
+from st2client.shell import Shell
+from st2client.client import Client
 from st2client.utils import httpclient
+from st2common.models.db.auth import TokenDB
+from tests import base
 
 LOG = logging.getLogger(__name__)
 
@@ -35,7 +41,7 @@ class TestShell(base.BaseCLITestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestShell, self).__init__(*args, **kwargs)
-        self.shell = shell.Shell()
+        self.shell = Shell()
 
     def test_endpoints_default(self):
         base_url = 'http://localhost'
@@ -253,3 +259,94 @@ class TestShell(base.BaseCLITestCase):
             ['trigger', 'delete', 'abc']
         ]
         self._validate_parser(args_list)
+
+
+class CLITokenCachingTestCase(unittest2.TestCase):
+    def setUp(self):
+        super(CLITokenCachingTestCase, self).setUp()
+        self._mock_config_directory_path = tempfile.mkdtemp()
+        self._p = mock.patch('st2client.shell.ST2_CONFIG_DIRECTORY',
+                             self._mock_config_directory_path)
+        self._p.start()
+
+    def tearDown(self):
+        super(CLITokenCachingTestCase, self).tearDown()
+        self._p.stop()
+
+    def test_get_cached_auth_token_no_token_cache_file(self):
+        client = Client()
+        shell = Shell()
+        username = 'testu'
+        password = 'testp'
+
+        result = shell._get_cached_auth_token(client=client, username=username,
+                                              password=password)
+        self.assertEqual(result, None)
+
+    def test_get_cached_auth_token_corrupted_token_cache_file(self):
+        client = Client()
+        shell = Shell()
+        username = 'testu'
+        password = 'testp'
+
+        cached_token_path = shell._get_cached_token_path_for_user(username=username)
+        with open(cached_token_path, 'w') as fp:
+            fp.write('CORRRRRUPTED!')
+
+        expected_msg = 'File (.+) with cached token is corrupted or invalid'
+        self.assertRaisesRegexp(ValueError, expected_msg, shell._get_cached_auth_token,
+                                client=client, username=username, password=password)
+
+    def test_get_cached_auth_token_expired_token_in_cache_file(self):
+        client = Client()
+        shell = Shell()
+        username = 'testu'
+        password = 'testp'
+
+        cached_token_path = shell._get_cached_token_path_for_user(username=username)
+        data = {
+            'token': 'expired',
+            'expire_timestamp': (int(time.time()) - 10)
+        }
+        with open(cached_token_path, 'w') as fp:
+            fp.write(json.dumps(data))
+
+        result = shell._get_cached_auth_token(client=client, username=username,
+                                              password=password)
+        self.assertEqual(result, None)
+
+    def test_get_cached_auth_token_valid_token_in_cache_file(self):
+        client = Client()
+        shell = Shell()
+        username = 'testu'
+        password = 'testp'
+
+        cached_token_path = shell._get_cached_token_path_for_user(username=username)
+        data = {
+            'token': 'yayvalid',
+            'expire_timestamp': (int(time.time()) + 20)
+        }
+        with open(cached_token_path, 'w') as fp:
+            fp.write(json.dumps(data))
+
+        result = shell._get_cached_auth_token(client=client, username=username,
+                                              password=password)
+        self.assertEqual(result, 'yayvalid')
+
+    def test_cache_auth_token_success(self):
+        client = Client()
+        shell = Shell()
+        username = 'testu'
+        password = 'testp'
+        expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=30)
+
+        result = shell._get_cached_auth_token(client=client, username=username,
+                                              password=password)
+        self.assertEqual(result, None)
+
+        token_db = TokenDB(user=username, token='fyeah', expiry=expiry)
+        shell._cache_auth_token(token_obj=token_db)
+
+        result = shell._get_cached_auth_token(client=client, username=username,
+                                              password=password)
+        self.assertEqual(result, 'fyeah')

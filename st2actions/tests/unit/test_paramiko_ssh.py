@@ -122,6 +122,27 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                                 expected_msg, mock.connect)
 
     @patch('paramiko.SSHClient', Mock)
+    def test_key_material_contains_path_not_contents(self):
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu'}
+        key_materials = [
+            '~/.ssh/id_rsa',
+            '/tmp/id_rsa',
+            'C:\\id_rsa'
+        ]
+
+        expected_msg = ('"private_key" parameter needs to contain private key data / content and '
+                        'not a path')
+
+        for key_material in key_materials:
+            conn_params = conn_params.copy()
+            conn_params['key_material'] = key_material
+            mock = ParamikoSSHClient(**conn_params)
+
+            self.assertRaisesRegexp(paramiko.ssh_exception.SSHException,
+                                    expected_msg, mock.connect)
+
+    @patch('paramiko.SSHClient', Mock)
     def test_create_with_key(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',

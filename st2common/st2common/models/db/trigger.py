@@ -78,6 +78,7 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
     pack = me.StringField(required=True, unique_with='name')
     type = me.StringField()
     parameters = me.DictField()
+    ref_count = me.IntField(default=0)
 
     def __init__(self, *args, **values):
         super(TriggerDB, self).__init__(*args, **values)

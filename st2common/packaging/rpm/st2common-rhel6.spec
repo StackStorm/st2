@@ -63,6 +63,7 @@ install -m755 tools/st2-setup-tests %{buildroot}/usr/lib/python2.7/site-packages
 install -m755 tools/st2-setup-examples %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-setup-examples
 install -m755 tools/st2-self-check %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-self-check
 install -m755 tools/migrate_rules_to_include_pack.py %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/migrate_rules_to_include_pack.py
+install -m755 tools/migrate_triggers_to_include_ref_count.py %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/migrate_triggers_to_include_ref_count.py
 
 %files
 %{python2_sitelib}/st2common*

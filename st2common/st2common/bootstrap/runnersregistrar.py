@@ -134,7 +134,8 @@ RUNNER_TYPES = [
                 'secret': True
             },
             'private_key': {
-                'description': ('Private key material to log in.'),
+                'description': ('Private key material to log in. Note: This needs to be actual '
+                                'private key data and NOT path.'),
                 'type': 'string',
                 'required': False,
                 'secret': True
@@ -218,7 +219,8 @@ RUNNER_TYPES = [
                 'secret': True
             },
             'private_key': {
-                'description': ('Private key material to log in.'),
+                'description': ('Private key material to log in. Note: This needs to be actual '
+                                'private key data and NOT path.'),
                 'type': 'string',
                 'required': False,
                 'secret': True

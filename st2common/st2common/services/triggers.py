@@ -175,9 +175,42 @@ def create_trigger_db_from_rule(rule):
             'triggertype. Cannot create trigger: %s.' % (trigger_dict))
 
     if not existing_trigger_db:
-        return create_or_update_trigger_db(trigger_dict)
+        trigger_db = create_or_update_trigger_db(trigger_dict)
+    else:
+        trigger_db = existing_trigger_db
 
-    return existing_trigger_db
+    # Special reference counting for trigger with parameters.
+    # if trigger_dict.get('parameters', None):
+    #     Trigger.update(trigger_db, inc__ref_count=1)
+
+    return trigger_db
+
+
+def increment_trigger_ref_count(rule_api):
+    """
+    Given the rule figures out the TriggerType with parameter and increments
+    reference count on the appropriate Trigger.
+
+    :param rule_api: Rule object used to infer the Trigger.
+    :type rule_api: ``RuleApi``
+    """
+    trigger_dict = _get_trigger_dict_given_rule(rule_api)
+
+    # Special reference counting for trigger with parameters.
+    if trigger_dict.get('parameters', None):
+        trigger_db = _get_trigger_db(trigger_dict)
+        Trigger.update(trigger_db, inc__ref_count=1)
+
+
+def cleanup_trigger_db_for_rule(rule_db):
+    # rule.trigger is actually trigger_db ref.
+    existing_trigger_db = get_trigger_db_by_ref(rule_db.trigger)
+    if not existing_trigger_db or not existing_trigger_db.parameters:
+        # nothing to be done here so moving on.
+        LOG.debug('ref_count decrement for %s not required.', existing_trigger_db)
+        return
+    Trigger.update(existing_trigger_db, dec__ref_count=1)
+    Trigger.delete_if_unreferenced(existing_trigger_db)
 
 
 def create_trigger_type_db(trigger_type):

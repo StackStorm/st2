@@ -178,7 +178,12 @@ class MongoDBAccess(object):
         return instance.update(**kwargs)
 
     def delete(self, instance):
-        instance.delete()
+        return instance.delete()
+
+    def delete_by_query(self, **query):
+        result = self.model.objects.filter(**query).delete()
+        log_query_and_profile_data_for_queryset(queryset=result)
+        return result
 
     def _undo_dict_field_escape(self, instance):
         for attr, field in instance._fields.iteritems():
