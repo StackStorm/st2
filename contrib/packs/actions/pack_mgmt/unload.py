@@ -25,6 +25,7 @@ from st2common.persistence.reactor import Rule
 from st2common.persistence.action import Action
 from st2common.persistence.action import ActionAlias
 from st2common.constants.pack import SYSTEM_PACK_NAMES
+from st2common.services.triggers import cleanup_trigger_db_for_rule
 
 BLOCKED_PACKS = frozenset(SYSTEM_PACK_NAMES)
 
@@ -71,7 +72,10 @@ class UnregisterPackAction(BaseAction):
         return self._delete_pack_db_objects(pack=pack, access_cls=Action)
 
     def _unregister_rules(self, pack):
-        return self._delete_pack_db_objects(pack=pack, access_cls=Rule)
+        deleted_rules = self._delete_pack_db_objects(pack=pack, access_cls=Rule)
+        for rule_db in deleted_rules:
+            cleanup_trigger_db_for_rule(rule_db=rule_db)
+        return deleted_rules
 
     def _unregister_aliases(self, pack):
         return self._delete_pack_db_objects(pack=pack, access_cls=ActionAlias)
@@ -94,8 +98,13 @@ class UnregisterPackAction(BaseAction):
     def _delete_pack_db_objects(self, pack, access_cls):
         db_objs = access_cls.get_all(pack=pack)
 
+        deleted_objs = []
+
         for db_obj in db_objs:
             try:
                 access_cls.delete(db_obj)
+                deleted_objs.append(db_obj)
             except:
                 self.logger.exception('Failed to remove DB object %s.', db_obj)
+
+        return deleted_objs

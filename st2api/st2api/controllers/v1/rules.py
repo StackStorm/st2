@@ -32,6 +32,7 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_permission
 from st2common.rbac.utils import assert_request_user_has_rule_trigger_and_action_permission
+from st2common.services.triggers import cleanup_trigger_db_for_rule, increment_trigger_ref_count
 
 http_client = six.moves.http_client
 
@@ -90,6 +91,9 @@ class RuleController(resource.ContentPackResourceController):
                                                                        rule_api=rule)
 
             rule_db = Rule.add_or_update(rule_db)
+            # After the rule has been added modify the ref_count. This way a failure to add
+            # the rule due to violated constraints will have no impact on ref_count.
+            increment_trigger_ref_count(rule_api=rule)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
             abort(http_client.BAD_REQUEST, str(e))
@@ -131,10 +135,16 @@ class RuleController(resource.ContentPackResourceController):
 
             rule_db.id = rule_ref_or_id
             rule_db = Rule.add_or_update(rule_db)
+            # After the rule has been added modify the ref_count. This way a failure to add
+            # the rule due to violated constraints will have no impact on ref_count.
+            increment_trigger_ref_count(rule_api=rule)
         except (ValueValidationException, jsonschema.ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s', rule)
             abort(http_client.BAD_REQUEST, str(e))
             return
+
+        # use old_rule_db for cleanup.
+        cleanup_trigger_db_for_rule(old_rule_db)
 
         extra = {'old_rule_db': old_rule_db, 'new_rule_db': rule_db}
         LOG.audit('Rule updated. Rule.id=%s.' % (rule_db.id), extra=extra)
@@ -160,6 +170,9 @@ class RuleController(resource.ContentPackResourceController):
                           rule_ref_or_id)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
+
+        # use old_rule_db for cleanup.
+        cleanup_trigger_db_for_rule(rule_db)
 
         extra = {'rule_db': rule_db}
         LOG.audit('Rule deleted. Rule.id=%s.' % (rule_db.id), extra=extra)

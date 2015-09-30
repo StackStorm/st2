@@ -41,6 +41,7 @@ in development
 * Update CLI so it supports caching tokens for different users (it creates a different file for each
   user). This means you can now use ``ST2_CONFIG_FILE`` option without disabling token cache.
   (improvement)
+* Cleanup timers and webhook trigger definitions once all rules referencing them are removed. (bug-fix)
 
 0.13.2 - September 09, 2015
 ---------------------------

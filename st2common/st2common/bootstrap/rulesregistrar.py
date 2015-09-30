@@ -24,6 +24,7 @@ from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.rule import RuleAPI
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.rule import Rule
+from st2common.services.triggers import cleanup_trigger_db_for_rule, increment_trigger_ref_count
 import st2common.content.utils as content_utils
 
 __all__ = [
@@ -139,10 +140,18 @@ class RulesRegistrar(ResourceRegistrar):
 
                 try:
                     rule_db = Rule.add_or_update(rule_db)
+                    increment_trigger_ref_count(rule_api=rule_api)
                     extra = {'rule_db': rule_db}
                     LOG.audit('Rule updated. Rule %s from %s.', rule_db, rule, extra=extra)
                 except Exception:
                     LOG.exception('Failed to create rule %s.', rule_api.name)
+
+                # If there was an existing rule then the ref count was updated in
+                # to_model so it needs to be adjusted down here. Also, update could
+                # lead to removal of a Trigger so now is a good time for book-keeping.
+                if existing:
+                    cleanup_trigger_db_for_rule(existing)
+
             except:
                 LOG.exception('Failed registering rule from %s.', rule)
             else:
