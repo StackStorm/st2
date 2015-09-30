@@ -62,9 +62,6 @@ class JsonValueParser(object):
 
 
 class StringValueParser(object):
-    start = '"'
-    end = '"'
-    escape = '\\'
 
     def __init__(self, start, end, escape):
         self.start = start
