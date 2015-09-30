@@ -18,7 +18,7 @@ import six
 
 import st2tests
 
-from st2common.content.policiesregistrar import register_policy_types, register_policies
+from st2common.bootstrap.policiesregistrar import register_policy_types, register_policies
 from st2common.models.api.action import ActionAPI, RunnerTypeAPI
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.persistence.action import Action
