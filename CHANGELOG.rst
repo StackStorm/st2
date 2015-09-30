@@ -41,6 +41,8 @@ in development
 * Update CLI so it supports caching tokens for different users (it creates a different file for each
   user). This means you can now use ``ST2_CONFIG_FILE`` option without disabling token cache.
   (improvement)
+* Fix CLI so it skips automatic authentication if credentials are provided in the config on "auth"
+  command. (bug fix)
 
 0.13.2 - September 09, 2015
 ---------------------------
