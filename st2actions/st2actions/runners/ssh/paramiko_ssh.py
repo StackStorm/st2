@@ -349,7 +349,10 @@ class ParamikoSSHClient(object):
         chan = transport.open_session()
 
         start_time = time.time()
-        chan.get_pty()
+        if cmd.startswith('sudo'):
+            # Note that fabric does this as well. If you set pty, stdout and stderr
+            # streams will be combined into one.
+            chan.get_pty()
         chan.exec_command(cmd)
 
         stdout = StringIO()
