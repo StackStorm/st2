@@ -109,3 +109,7 @@ private_key contents are held only in memory and is not logged or persisted anyw
 However, due to implementation limitations of fabric, we create a temporary file with
 contents of private_key and delete the file after command is complete (either succeeded or
 failed). This is unsafe and we recommend moving away from Fabric runner.
+
+If you are running remote actions as ``sudo``, pseudo tty is enabled by default. This means
+that ``stdout`` and ``stderr`` streams get combined into one and reported as ``stdout``. This
+is true for both fabric and paramiko ssh runner.
