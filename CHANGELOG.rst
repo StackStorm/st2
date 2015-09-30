@@ -38,6 +38,8 @@ in development
   resulting in UTF-8 decode error. This happens only when output is greater than default chunk size
   (1024 bytes) and script produces utf-8 output. We now collect all the bytes from channel
   and only then decode the byte stream as utf-8.
+* Enable pseudo tty when running remote SSH commands with the paramiko SSH runner. This is done
+  to match existing Fabric behavior. (bug-fix)
 
 0.13.2 - September 09, 2015
 ---------------------------
