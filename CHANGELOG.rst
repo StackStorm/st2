@@ -48,6 +48,8 @@ in development
   command. (bug fix)
 * Strip the last '\r' or '\r\n' from both ``stdout`` and ``stderr`` streams from paramiko and local
   runner output. This is done to be compatible with fabric output of those streams. (bug-fix)
+* Include parameters when viwewing output an execution on the CLI.
+* CLI renders parameters and output as yaml for better readability.
 
 0.13.2 - September 09, 2015
 ---------------------------

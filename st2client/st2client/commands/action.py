@@ -228,7 +228,7 @@ class ActionRunCommandMixin(object):
 
         detail_arg_grp = execution_details_arg_grp.add_mutually_exclusive_group()
         detail_arg_grp.add_argument('--attr', nargs='+',
-                                    default=['id', 'status', 'result'],
+                                    default=['id', 'status', 'parameters', 'result'],
                                     help=('List of attributes to include in the '
                                           'output. "all" or unspecified will '
                                           'return all attributes.'))
@@ -933,7 +933,6 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, resource.ResourceCommand)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
             raise OperationFailureException('Execution %s not found.' % (args.id))
-
         return self._print_execution_details(execution=execution, args=args, **kwargs)
 
 
