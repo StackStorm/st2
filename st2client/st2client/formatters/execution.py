@@ -15,6 +15,8 @@
 
 import ast
 import logging
+import sys
+
 import yaml
 
 from st2client import formatters
@@ -46,12 +48,15 @@ class ExecutionResult(formatters.Formatter):
                     if type(new_value) in [dict, list]:
                         value = new_value
                 if type(value) in [dict, list]:
-                    # To get a nice overhang indent get safe_dump to generate output with
-                    # the attribute key and then remove the attribute key from the string.
-                    # Also, drop the trailing newline
+                    # 1. To get a nice overhang indent get safe_dump to generate output with
+                    #    the attribute key and then remove the attribute key from the string.
+                    # 2. Drop the trailing newline
+                    # 3. Set width to maxint so pyyaml does not split text. Anything longer
+                    #    and likely we will see other issues like storage :P.
                     formatted_value = yaml.safe_dump({attr: value},
                                                      default_flow_style=False,
-                                                     indent=4)[len(attr)+2:-1]
+                                                     width=sys.maxint,
+                                                     indent=2)[len(attr)+2:-1]
                     value = ('\n' if isinstance(value, dict) else '') + formatted_value
                 output += ('\n' if output else '') + '%s: %s' % \
                     (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
