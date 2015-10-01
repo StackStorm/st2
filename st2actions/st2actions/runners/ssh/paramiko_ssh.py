@@ -28,7 +28,7 @@ import paramiko
 # Ref: https://bugs.launchpad.net/paramiko/+bug/392973
 
 from st2common.log import logging
-from st2common.util.misc import strip_last_newline_char
+from st2common.util.misc import strip_shell_chars
 from st2common.util.shell import quote_unix
 
 __all__ = [
@@ -406,8 +406,8 @@ class ParamikoSSHClient(object):
         # Receive the exit status code of the command we ran.
         status = chan.recv_exit_status()
 
-        stdout = strip_last_newline_char(stdout.getvalue())
-        stderr = strip_last_newline_char(stderr.getvalue())
+        stdout = strip_shell_chars(stdout.getvalue())
+        stderr = strip_shell_chars(stderr.getvalue())
 
         extra = {'_status': status, '_stdout': stdout, '_stderr': stderr}
         self.logger.debug('Command finished', extra=extra)

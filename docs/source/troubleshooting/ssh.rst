@@ -29,8 +29,7 @@ To validate remote actions are working correctly, you can use the following comm
             "failed": false,
             "return_code": 0,
             "stderr": "",
-            "stdout": "stanley
-    "
+            "stdout": "stanley"
         }
     }
 
@@ -94,8 +93,7 @@ boxes as a different user, we have a way.
             "failed": false,
             "return_code": 0,
             "stderr": "",
-            "stdout": "test_user
-    "
+            "stdout": "test_user"
         }
     }
 

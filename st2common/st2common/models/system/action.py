@@ -33,7 +33,6 @@ from st2common.util.shell import quote_unix
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
 from st2common.exceptions.fabricrunner import FabricExecutionFailureException
 import st2common.util.jsonify as jsonify
-from st2common.util.misc import strip_last_newline_char
 from st2common.util.secrets import get_secret_parameters
 from st2common.util.secrets import mask_secret_parameters
 
@@ -394,8 +393,8 @@ class FabricRemoteAction(RemoteAction):
             result = self._get_error_result()
         else:
             result = {
-                'stdout': strip_last_newline_char(output.stdout),
-                'stderr': strip_last_newline_char(output.stderr),
+                'stdout': output.stdout,
+                'stderr': output.stderr,
                 'return_code': output.return_code,
                 'succeeded': output.succeeded,
                 'failed': output.failed

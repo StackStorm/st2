@@ -28,7 +28,7 @@ from st2common.models.system.action import ShellScriptAction
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
-from st2common.util.misc import strip_last_newline_char
+from st2common.util.misc import strip_shell_chars
 from st2common.util.green.shell import run_command
 from st2common.util.shell import kill_process
 import st2common.util.jsonify as jsonify
@@ -160,8 +160,8 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
             'failed': not succeeded,
             'succeeded': succeeded,
             'return_code': exit_code,
-            'stdout': strip_last_newline_char(stdout),
-            'stderr': strip_last_newline_char(stderr)
+            'stdout': strip_shell_chars(stdout),
+            'stderr': strip_shell_chars(stderr)
         }
 
         if error:

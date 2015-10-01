@@ -15,14 +15,31 @@
 
 import unittest2
 
-from st2common.util.misc import strip_last_newline_char
+from st2common.util.misc import rstrip_last_char, strip_shell_chars
 
 
 class MiscUtilTestCase(unittest2.TestCase):
 
-    def test_strip_last_newline_char(self):
-        self.assertEqual(strip_last_newline_char(None), None)
-        self.assertEqual(strip_last_newline_char(''), '')
-        self.assertEqual(strip_last_newline_char('foo'), 'foo')
-        self.assertEqual(strip_last_newline_char('foo\n'), 'foo')
-        self.assertEqual(strip_last_newline_char('foo\n\n'), 'foo\n')
+    def test_rstrip_last_char(self):
+        self.assertEqual(rstrip_last_char(None, '\n'), None)
+        self.assertEqual(rstrip_last_char('stuff', None), 'stuff')
+        self.assertEqual(rstrip_last_char('', '\n'), '')
+        self.assertEqual(rstrip_last_char('foo', '\n'), 'foo')
+        self.assertEqual(rstrip_last_char('foo\n', '\n'), 'foo')
+        self.assertEqual(rstrip_last_char('foo\n\n', '\n'), 'foo\n')
+        self.assertEqual(rstrip_last_char('foo\r', '\r'), 'foo')
+        self.assertEqual(rstrip_last_char('foo\r\r', '\r'), 'foo\r')
+        self.assertEqual(rstrip_last_char('foo\r\n', '\r\n'), 'foo')
+        self.assertEqual(rstrip_last_char('foo\r\r\n', '\r\n'), 'foo\r')
+        self.assertEqual(rstrip_last_char('foo\n\r', '\r\n'), 'foo\n\r')
+
+    def test_strip_shell_chars(self):
+        self.assertEqual(strip_shell_chars(None), None)
+        self.assertEqual(strip_shell_chars('foo'), 'foo')
+        self.assertEqual(strip_shell_chars('foo\r'), 'foo')
+        self.assertEqual(strip_shell_chars('fo\ro\r'), 'fo\ro')
+        self.assertEqual(strip_shell_chars('foo\n'), 'foo')
+        self.assertEqual(strip_shell_chars('fo\no\n'), 'fo\no')
+        self.assertEqual(strip_shell_chars('foo\r\n'), 'foo')
+        self.assertEqual(strip_shell_chars('fo\no\r\n'), 'fo\no')
+        self.assertEqual(strip_shell_chars('foo\r\n\r\n'), 'foo\r\n')
