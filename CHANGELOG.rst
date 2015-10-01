@@ -42,6 +42,8 @@ in development
   user). This means you can now use ``ST2_CONFIG_FILE`` option without disabling token cache.
   (improvement)
 * Cleanup timers and webhook trigger definitions once all rules referencing them are removed. (bug-fix)
+* Enable pseudo tty when running remote SSH commands with the paramiko SSH runner. This is done
+  to match existing Fabric behavior. (bug-fix)
 
 0.13.2 - September 09, 2015
 ---------------------------

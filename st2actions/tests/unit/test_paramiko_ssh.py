@@ -53,6 +53,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                          'allow_agent': False,
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
+                         'timeout': 60,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
@@ -69,6 +70,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
                          'key_filename': 'id_rsa',
+                         'timeout': 60,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
@@ -103,6 +105,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
                          'pkey': pkey,
+                         'timeout': 60,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
@@ -152,6 +155,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
                          'key_filename': 'id_rsa',
+                         'timeout': 60,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
@@ -170,6 +174,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
                          'key_filename': 'id_rsa',
+                         'timeout': 60,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
@@ -190,6 +195,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'allow_agent': True,
                          'look_for_keys': True,
+                         'timeout': 60,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 

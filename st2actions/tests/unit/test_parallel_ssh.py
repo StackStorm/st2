@@ -39,6 +39,7 @@ class ParallelSSHTests(unittest2.TestCase):
             'look_for_keys': False,
             'password': 'ubuntu',
             'username': 'ubuntu',
+            'timeout': 60,
             'port': 22
         }
         for host in hosts:
@@ -58,6 +59,7 @@ class ParallelSSHTests(unittest2.TestCase):
             'look_for_keys': False,
             'password': 'ubuntu',
             'username': 'ubuntu',
+            'timeout': 60,
             'port': 22
         }
         for host in hosts:
@@ -79,6 +81,7 @@ class ParallelSSHTests(unittest2.TestCase):
             'look_for_keys': False,
             'key_filename': '~/.ssh/id_rsa',
             'username': 'ubuntu',
+            'timeout': 60,
             'port': 22
         }
         for host in hosts:
