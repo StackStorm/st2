@@ -104,7 +104,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         argv = ['execution', 'get', EXECUTION['id'], '-j']
         content = self._get_execution(argv)
         self.assertEqual(json.loads(content),
-                         jsutil.get_kvps(EXECUTION, ['id', 'status', 'result']))
+                         jsutil.get_kvps(EXECUTION, ['id', 'status', 'parameters', 'result']))
 
     def test_execution_get_detail(self):
         argv = ['execution', 'get', EXECUTION['id'], '-d']
