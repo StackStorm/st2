@@ -46,6 +46,8 @@ in development
   to match existing Fabric behavior. (bug-fix)
 * Fix CLI so it skips automatic authentication if credentials are provided in the config on "auth"
   command. (bug fix)
+* Strip the last '\r' or '\r\n' from both ``stdout`` and ``stderr`` streams from paramiko and local
+  runner output. This is done to be compatible with fabric output of those streams. (bug-fix)
 * Include parameters when viwewing output an execution on the CLI.
 * CLI renders parameters and output as yaml for better readability.
 
