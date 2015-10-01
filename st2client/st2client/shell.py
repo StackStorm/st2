@@ -78,6 +78,12 @@ CONFIG_OPTION_TO_CLIENT_KWARGS_MAP = {
     'debug': ['cli', 'debug']
 }
 
+# A list of command classes for which automatic authentication should be skipped.
+from st2client.commands.auth import TokenCreateCommand
+SKIP_AUTH_CLASSES = [
+    TokenCreateCommand.__name__
+]
+
 
 class Shell(object):
 
@@ -284,6 +290,15 @@ class Shell(object):
         silence_ssl_warnings = rc_config.get('general', {}).get('silence_ssl_warnings', False)
         if silence_ssl_warnings:
             requests.packages.urllib3.disable_warnings()
+
+        # We skip automatic authentication for some commands such as auth
+        try:
+            command_class_name = args.func.im_class.__name__
+        except Exception:
+            command_class_name = None
+
+        if command_class_name in SKIP_AUTH_CLASSES:
+            return client
 
         if username and password:
             # Credentials are provided, try to authenticate agaist the API
