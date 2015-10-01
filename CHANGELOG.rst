@@ -46,6 +46,8 @@ in development
   to match existing Fabric behavior. (bug-fix)
 * Fix CLI so it skips automatic authentication if credentials are provided in the config on "auth"
   command. (bug fix)
+* Strip the last '\r' or '\r\n' from both ``stdout`` and ``stderr`` streams from paramiko and local
+  runner output. This is done to be compatible with fabric output of those streams. (bug-fix)
 
 0.13.2 - September 09, 2015
 ---------------------------
