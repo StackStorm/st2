@@ -66,15 +66,16 @@ class St2Timer(object):
         self.add_trigger(trigger)
 
     def remove_trigger(self, trigger):
-        id = trigger['id']
+        trigger_id = trigger['id']
 
         try:
-            job_id = self._jobs[id]
+            job_id = self._jobs[trigger_id]
         except KeyError:
-            LOG.info('Job not found: %s', id)
+            LOG.info('Job not found: %s', trigger_id)
             return
 
         self._scheduler.remove_job(job_id)
+        del self._jobs[trigger_id]
 
     def _add_job_to_scheduler(self, trigger):
         trigger_type_ref = trigger['type']
@@ -128,7 +129,9 @@ class St2Timer(object):
 
     def _emit_trigger_instance(self, trigger):
         utc_now = date_utils.get_datetime_utc_now()
-        LOG.info('Timer fired at: %s. Trigger: %s', str(utc_now), trigger)
+        # debug logging is reasonable for this one. A high resolution timer will end up
+        # trashing standard logs.
+        LOG.debug('Timer fired at: %s. Trigger: %s', str(utc_now), trigger)
 
         payload = {
             'executed_at': str(utc_now),

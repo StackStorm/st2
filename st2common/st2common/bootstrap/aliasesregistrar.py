@@ -111,7 +111,7 @@ class AliasesRegistrar(ResourceRegistrar):
         try:
             action_alias_db.id = ActionAlias.get_by_name(action_alias_api.name).id
         except ValueError:
-            LOG.info('ActionAlias %s not found. Creating new one.', action_alias)
+            LOG.debug('ActionAlias %s not found. Creating new one.', action_alias)
 
         try:
             action_alias_db = ActionAlias.add_or_update(action_alias_db)

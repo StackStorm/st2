@@ -67,6 +67,8 @@ class ParamikoSSHClient(object):
     CHUNK_SIZE = 1024
     # How long to sleep while waiting for command to finish
     SLEEP_DELAY = 1.5
+    # Connect socket timeout
+    CONNECT_TIMEOUT = 60
 
     def __init__(self, hostname, port=22, username=None, password=None,
                  key=None, key_files=None, key_material=None, timeout=None):
@@ -93,7 +95,7 @@ class ParamikoSSHClient(object):
         self.key_files = key_files
         if not self.key_files and self.key:
             self.key_files = key  # `key` arg is deprecated.
-        self.timeout = timeout
+        self.timeout = timeout or ParamikoSSHClient.CONNECT_TIMEOUT
         self.key_material = key_material
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -112,7 +114,8 @@ class ParamikoSSHClient(object):
                     'port': self.port,
                     'username': self.username,
                     'allow_agent': False,
-                    'look_for_keys': False}
+                    'look_for_keys': False,
+                    'timeout': self.timeout}
 
         if self.password:
             conninfo['password'] = self.password
@@ -126,9 +129,6 @@ class ParamikoSSHClient(object):
         if not self.password and not (self.key_files or self.key_material):
             conninfo['allow_agent'] = True
             conninfo['look_for_keys'] = True
-
-        if self.timeout:
-            conninfo['timeout'] = self.timeout
 
         extra = {'_hostname': self.hostname, '_port': self.port,
                  '_username': self.username, '_timeout': self.timeout}
@@ -351,6 +351,10 @@ class ParamikoSSHClient(object):
         chan = transport.open_session()
 
         start_time = time.time()
+        if cmd.startswith('sudo'):
+            # Note that fabric does this as well. If you set pty, stdout and stderr
+            # streams will be combined into one.
+            chan.get_pty()
         chan.exec_command(cmd)
 
         stdout = StringIO()

@@ -125,6 +125,8 @@ class TriggerAPI(BaseAPI):
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         trigger = cls._from_model(model, mask_secrets=mask_secrets)
+        # Hide ref count from API.
+        trigger.pop('ref_count', None)
         return cls(**trigger)
 
     @classmethod

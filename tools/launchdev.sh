@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-s]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-s] [-c]" >&2
 }
 
 subcommand=$1; shift
 runner_count=1
 use_gunicorn=false
 skip_examples=false
+load_content=true
 
-while getopts ":r:gs" o; do
+while getopts ":r:gsc" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
@@ -19,6 +20,9 @@ while getopts ":r:gs" o; do
             ;;
         s)
             skip_examples=true
+            ;;
+        c)
+            load_content=false
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -202,11 +206,13 @@ function st2start(){
         fi
     done
 
-    # Register contents
-    echo 'Registering sensors, actions, rules, aliases, and policies...'
-    ./virtualenv/bin/python \
-        ./st2common/bin/st2-register-content \
-        --config-file $ST2_CONF --register-all
+    if [ "$load_content" = true ]; then
+        # Register contents
+        echo 'Registering sensors, actions, rules, aliases, and policies...'
+        ./virtualenv/bin/python \
+            ./st2common/bin/st2-register-content \
+            --config-file $ST2_CONF --register-all
+    fi
 
     # List screen sessions
     screen -ls || exit 0

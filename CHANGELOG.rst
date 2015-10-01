@@ -41,6 +41,9 @@ in development
 * Update CLI so it supports caching tokens for different users (it creates a different file for each
   user). This means you can now use ``ST2_CONFIG_FILE`` option without disabling token cache.
   (improvement)
+* Cleanup timers and webhook trigger definitions once all rules referencing them are removed. (bug-fix)
+* Enable pseudo tty when running remote SSH commands with the paramiko SSH runner. This is done
+  to match existing Fabric behavior. (bug-fix)
 * Fix CLI so it skips automatic authentication if credentials are provided in the config on "auth"
   command. (bug fix)
 
