@@ -56,7 +56,7 @@ class ExecutionResult(formatters.Formatter):
                     formatted_value = yaml.safe_dump({attr: value},
                                                      default_flow_style=False,
                                                      width=sys.maxint,
-                                                     indent=2)[len(attr)+2:-1]
+                                                     indent=2)[len(attr) + 2:-1]
                     value = ('\n' if isinstance(value, dict) else '') + formatted_value
                 output += ('\n' if output else '') + '%s: %s' % \
                     (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
