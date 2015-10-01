@@ -21,7 +21,10 @@ where |st2| components are running.
 .. note::
 
     ``stdout`` and ``stderr`` attributes in the runner
-    result object have the last line break (\n) character removed if present. This is done so you can more easily re-use the result of common commands such as ``uptime``, ``whoami`` etc., which include a trailing line break in other actions and workflows. If you have an action which requires a trailing line break character to be present, you can add it explicitly to the result, e.g. ``echo -e 'test\n'`` (this will result into two line break characters and only one of them will be stripped/removed from the result).
+    result object have the last '\n' or '\r' or '\r\n' characters removed if present.
+    This is done so you can more easily re-use the result of common commands such as
+    ``uptime``, ``whoami`` etc., which include a trailing line break in other actions
+    and workflows. If you have an action which requires a trailing line break character to be present, you can add it explicitly to the result, e.g. ``echo -e 'test\n'`` (this will result into two line break characters and only one of them will be stripped/removed from the result).
 
 Runner parameters
 ^^^^^^^^^^^^^^^^^
