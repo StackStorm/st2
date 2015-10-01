@@ -79,8 +79,9 @@ CONFIG_OPTION_TO_CLIENT_KWARGS_MAP = {
 }
 
 # A list of command classes for which automatic authentication should be skipped.
+from st2client.commands.auth import TokenCreateCommand
 SKIP_AUTH_CLASSES = [
-    'TokenCreateCommand'
+    TokenCreateCommand.__name__
 ]
 
 
