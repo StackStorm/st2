@@ -14,8 +14,8 @@
 # limitations under the License.
 
 import ast
-import json
 import logging
+import yaml
 
 from st2client import formatters
 from st2client.utils import jsutil
@@ -46,7 +46,13 @@ class ExecutionResult(formatters.Formatter):
                     if type(new_value) in [dict, list]:
                         value = new_value
                 if type(value) in [dict, list]:
-                    value = ('\n' if isinstance(value, dict) else '') + json.dumps(value, indent=4)
+                    # To get a nice overhang indent get safe_dump to generate output with
+                    # the attribute key and then remove the attribute key from the string.
+                    # Also, drop the trailing newline
+                    formatted_value = yaml.safe_dump({attr: value},
+                                                     default_flow_style=False,
+                                                     indent=4)[len(attr)+2:-1]
+                    value = ('\n' if isinstance(value, dict) else '') + formatted_value
                 output += ('\n' if output else '') + '%s: %s' % \
                     (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
         return strutil.unescape(output)
