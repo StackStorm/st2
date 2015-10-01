@@ -34,7 +34,7 @@ from st2common.signal_handlers import register_common_signal_handlers
 from st2common.models.utils.profiling import enable_profiling
 from st2common import triggers
 
-from st2common.rbac.migrations import insert_system_roles
+from st2common.rbac.migrations import run_all as run_all_rbac_migrations
 
 __all__ = [
     'setup',
@@ -108,7 +108,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
 
     # TODO: This is a "not so nice" workaround until we have a proper migration system in place
     if run_migrations:
-        insert_system_roles()
+        run_all_rbac_migrations()
 
     if cfg.CONF.rbac.enable and not cfg.CONF.auth.enable:
         msg = ('Authentication is not enabled. RBAC only works when authentication is enabled.'

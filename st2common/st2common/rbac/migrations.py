@@ -21,8 +21,16 @@ from st2common.models.db.rbac import RoleDB
 from st2common.exceptions.db import StackStormDBObjectConflictError
 
 __all__ = [
-    'insert_system_roles'
+    'run_all',
+
+    'insert_system_roles',
+    'delete_mistyped_role'
 ]
+
+
+def run_all():
+    insert_system_roles()
+    delete_mistyped_role()
 
 
 def insert_system_roles():
@@ -39,3 +47,27 @@ def insert_system_roles():
             Role.insert(role_db, log_not_unique_error_as_debug=True)
         except (StackStormDBObjectConflictError, NotUniqueError):
             pass
+
+    delete_mistyped_role()
+
+
+def delete_mistyped_role():
+    """
+    Delete " system_admin" role which was fat fingered.
+    """
+    # Note: Space is significant here since we want to remove a bad role
+    role_name = ' system_admin'
+    assert(role_name.startswith(' '))
+
+    try:
+        role_db = Role.get_by_name(role_name)
+    except:
+        return
+
+    if not role_db:
+        return
+
+    try:
+        Role.delete(role_db)
+    except:
+        return
