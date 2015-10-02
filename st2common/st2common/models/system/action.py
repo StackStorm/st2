@@ -52,6 +52,8 @@ LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 
 class ShellCommandAction(object):
+    EXPORT_CMD = 'export'
+
     def __init__(self, name, action_exec_id, command, user, env_vars=None, sudo=False,
                  timeout=None, cwd=None):
         self.name = name
@@ -85,6 +87,18 @@ class ShellCommandAction(object):
 
     def get_cwd(self):
         return self.cwd
+
+    def _get_env_vars_export_string(self):
+        if self.env_vars:
+            exports = ' '.join(
+                '%s=%s' % (quote_unix(k), quote_unix(v))
+                for k, v in self.env_vars.iteritems()
+            )
+            shell_env_str = '%s %s' % (ShellCommandAction.EXPORT_CMD, exports)
+        else:
+            shell_env_str = ''
+
+        return shell_env_str
 
     def _get_command_string(self, cmd, args):
         """
