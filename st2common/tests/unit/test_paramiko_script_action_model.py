@@ -99,7 +99,7 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
         # Test with sudo
         script_action.sudo = True
         ex = 'sudo -E -- bash -c ' + \
-              '\'cd /tmp && \'"\'"\'/tmp/remote script.sh\'"\'"\'\''
+             '\'cd /tmp && \'"\'"\'/tmp/remote script.sh\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)
 
     def test_script_path_shell_injection_safe_with_env_vars(self):
@@ -118,7 +118,6 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
              '\'export FOO=BAR && ' + \
              'cd /tmp && \'"\'"\'/tmp/remote script.sh\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)
-
 
     @staticmethod
     def _get_test_script_action():
