@@ -55,10 +55,10 @@ class ParamikoRemoteCommandAction(RemoteAction):
                 command = 'sudo -E -u %s -- bash -c %s' % (user, command)
             else:
                 if env_str:
-                    command = '%s && cd %s && %s' % (env_str, quote_unix(cwd),
-                                                     quote_unix(self.command))
+                    command = '%s && cd %s && %s' % (env_str, cwd,
+                                                     self.command)
                 else:
-                    command = 'cd %s && %s' % (quote_unix(cwd), quote_unix(self.command))
+                    command = 'cd %s && %s' % (cwd, self.command)
 
         LOG.debug('Command to run on remote host will be: %s', command)
         return command
