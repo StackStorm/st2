@@ -63,7 +63,4 @@ class ParamikoRemoteScriptAction(RemoteScriptAction):
                 else:
                     command = 'cd %s && %s' % (cwd, script_path)
 
-            # if env_str:
-            #     command = '%s && %s' % (env_str, command)
-
         return command
