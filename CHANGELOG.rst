@@ -48,8 +48,15 @@ in development
   command. (bug fix)
 * Strip the last '\r' or '\r\n' from both ``stdout`` and ``stderr`` streams from paramiko and local
   runner output. This is done to be compatible with fabric output of those streams. (bug-fix)
-* Include parameters when viwewing output an execution on the CLI.
-* CLI renders parameters and output as yaml for better readability.
+* Include parameters when viwewing output an execution on the CLI. (improvement)
+* CLI renders parameters and output as yaml for better readability. (improvement)
+* Set env variables (user provided and system assigned) before running remote command or script
+  action with paramiko. (bug-fix)
+* Fix a bug in Paramiko SSH runner where ``cwd`` could just be accessed in sudo mode but ``cd``
+  was outside scope of ``sudo`` in the command generated. Now, ``cd`` is inside the scope of
+  ``sudo``. (bug-fix)
+* Fix a bug in Paramiko SSH runner where kwargs keys in script arguments were not shell
+  injection safe. For example, kwarg key could contain spaces. (bug-fix)
 
 0.13.2 - September 09, 2015
 ---------------------------
