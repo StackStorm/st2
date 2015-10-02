@@ -90,6 +90,8 @@ class ShellCommandAction(object):
 
     def _get_env_vars_export_string(self):
         if self.env_vars:
+            # Envrionment variables could contain spaces and open us to shell
+            # injection attacks. Always quote the key and the value.
             exports = ' '.join(
                 '%s=%s' % (quote_unix(k), quote_unix(v))
                 for k, v in self.env_vars.iteritems()
