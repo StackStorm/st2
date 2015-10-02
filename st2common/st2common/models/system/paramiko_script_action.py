@@ -31,19 +31,22 @@ class ParamikoRemoteScriptAction(RemoteScriptAction):
         script_arguments = self._get_script_arguments(named_args=self.named_args,
                                                       positional_args=self.positional_args)
         env_str = self._get_env_vars_export_string()
+        cwd = self.get_cwd()
 
         if self.sudo:
             if script_arguments:
                 if env_str:
-                    command = quote_unix('%s && %s %s' % (
-                        env_str, self.remote_script, script_arguments))
+                    command = quote_unix('%s && cd %s && %s %s' % (
+                        env_str, cwd, self.remote_script, script_arguments))
                 else:
-                    command = quote_unix('%s %s' % (self.remote_script, script_arguments))
+                    command = quote_unix('cd %s && %s %s' % (
+                        cwd, self.remote_script, script_arguments))
             else:
                 if env_str:
-                    command = quote_unix('%s && %s' % (env_str, self.remote_script))
+                    command = quote_unix('%s && cd %s && %s' % (
+                        env_str, cwd, self.remote_script))
                 else:
-                    command = quote_unix(self.remote_script)
+                    command = quote_unix('cd %s && %s' % (cwd, self.remote_script))
 
             command = 'sudo -E -- bash -c %s' % (command)
         else:
@@ -51,16 +54,17 @@ class ParamikoRemoteScriptAction(RemoteScriptAction):
 
             if script_arguments:
                 if env_str:
-                    command = '%s && %s %s' % (env_str, script_path, script_arguments)
+                    command = '%s && cd %s && %s %s' % (env_str, quote_unix(cwd),
+                                                        script_path, script_arguments)
                 else:
-                    command = '%s %s' % (script_path, script_arguments)
+                    command = 'cd %s && %s %s' % (quote_unix(cwd), script_path, script_arguments)
             else:
                 if env_str:
-                    command = '%s && %s' % (env_str, script_path)
+                    command = '%s && cd %s && %s' % (env_str, quote_unix(cwd), script_path)
                 else:
-                    command = script_path
+                    command = 'cd %s && %s' % (quote_unix(cwd), script_path)
 
-            if env_str:
-                command = '%s && %s' % (env_str, command)
+            # if env_str:
+            #     command = '%s && %s' % (env_str, command)
 
         return command

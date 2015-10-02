@@ -147,7 +147,8 @@ RUNNER_TYPES = [
             },
             'cwd': {
                 'description': 'Working directory where the script will be executed in',
-                'type': 'string'
+                'type': 'string',
+                'default': FABRIC_RUNNER_DEFAULT_REMOTE_DIR
             },
             'env': {
                 'description': ('Environment variables which will be available to the command'

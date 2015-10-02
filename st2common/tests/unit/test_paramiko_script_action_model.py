@@ -36,12 +36,13 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
                                                    hosts=['localhost'],
                                                    parallel=True,
                                                    sudo=False,
-                                                   timeout=60)
-        expected = '/tmp/remote_script.sh song=\'b s\' \'taylor swift\''
+                                                   timeout=60, cwd='/tmp')
+        expected = 'cd /tmp && /tmp/remote_script.sh song=\'b s\' \'taylor swift\''
         self.assertEqual(script_action.get_full_command_string(), expected)
 
         # Test with sudo
         script_action.sudo = True
         ex = 'sudo -E -- bash -c ' + \
-             '\'/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
+             '\'cd /tmp && ' + \
+             '/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
         self.assertEqual(script_action.get_full_command_string(), ex)

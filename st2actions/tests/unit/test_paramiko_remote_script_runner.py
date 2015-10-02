@@ -26,7 +26,7 @@ from st2actions.runners.remote_script_runner import ParamikoRemoteScriptRunner
 from st2actions.runners.ssh.parallel_ssh import ParallelSSHClient
 from st2common.exceptions.ssh import InvalidCredentialsException
 from st2common.exceptions.ssh import NoHostsConnectedToException
-from st2common.models.system.action import RemoteScriptAction
+from st2common.models.system.paramiko_script_action import ParamikoRemoteScriptAction
 import st2common.util.jsonify as jsonify
 
 
@@ -37,7 +37,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
     @patch.object(ParallelSSHClient, 'run', MagicMock(return_value={}))
     @patch.object(ParallelSSHClient, 'connect', MagicMock(return_value={}))
     def test_cwd_used_correctly(self):
-        remote_action = RemoteScriptAction(
+        remote_action = ParamikoRemoteScriptAction(
             'foo-script', bson.ObjectId(),
             script_local_path_abs='/home/stanley/shiz_storm.py',
             script_local_libs_path_abs=None,
@@ -49,8 +49,9 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         paramiko_runner = ParamikoRemoteScriptRunner('runner_1')
         paramiko_runner._parallel_ssh_client = ParallelSSHClient(['localhost'], 'stanley')
         paramiko_runner._run_script_on_remote_host(remote_action)
-        ParallelSSHClient.run.assert_called_with("/tmp/shiz_storm.py 'blank space'",
-                                                 cwd='/test/cwd/', timeout=None)
+        exp_cmd = "cd /test/cwd/ && /tmp/shiz_storm.py 'blank space'"
+        ParallelSSHClient.run.assert_called_with(exp_cmd,
+                                                 timeout=None)
 
     @patch('st2actions.runners.ssh.parallel_ssh.ParallelSSHClient', Mock)
     @patch.object(ParallelSSHClient, 'run', MagicMock(return_value={}))
