@@ -216,7 +216,7 @@ class ShellScriptAction(ShellCommandAction):
                     if value is True:
                         command_parts.append(arg)
                 else:
-                    command_parts.append('%s=%s' % (arg, quote_unix(str(value))))
+                    command_parts.append('%s=%s' % (quote_unix(arg), quote_unix(str(value))))
 
         # add the positional args
         if positional_args:
