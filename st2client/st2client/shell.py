@@ -34,7 +34,6 @@ import requests
 
 from st2client import __version__
 from st2client import models
-from st2common.logging.misc import set_log_level_for_all_loggers
 from st2client.client import Client
 from st2client.commands import auth
 from st2client.commands import action
@@ -54,7 +53,7 @@ from st2client.config_parser import ST2_CONFIG_PATH
 from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.date import parse as parse_isotime
 from st2client.utils.misc import merge_dicts
-from st2client.utils.logging import LogLevelFilter
+from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_loggers
 
 __all__ = [
     'Shell'
