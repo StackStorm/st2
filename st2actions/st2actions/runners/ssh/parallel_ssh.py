@@ -86,7 +86,7 @@ class ParallelSSHClient(object):
 
         return results
 
-    def run(self, cmd, timeout=None, cwd=None):
+    def run(self, cmd, timeout=None):
         """
         Run a command on remote hosts. Returns a dict containing results
         of execution from all hosts.
@@ -102,10 +102,6 @@ class ParallelSSHClient(object):
 
         :rtype: ``dict`` of ``str`` to ``dict``
         """
-        # Note that doing a chdir using sftp client in ssh_client doesn't really
-        # set the session working directory. So we have to do this hack.
-        if cwd:
-            cmd = 'cd %s && %s' % (cwd, cmd)
 
         options = {
             'cmd': cmd,

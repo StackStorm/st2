@@ -26,23 +26,41 @@ LOG = logging.getLogger(__name__)
 
 
 class ParamikoRemoteScriptAction(RemoteScriptAction):
+
     def _format_command(self):
         script_arguments = self._get_script_arguments(named_args=self.named_args,
                                                       positional_args=self.positional_args)
+        env_str = self._get_env_vars_export_string()
+        cwd = quote_unix(self.get_cwd())
+        script_path = quote_unix(self.remote_script)
 
         if self.sudo:
             if script_arguments:
-                command = quote_unix('%s %s' % (self.remote_script, script_arguments))
+                if env_str:
+                    command = quote_unix('%s && cd %s && %s %s' % (
+                        env_str, cwd, script_path, script_arguments))
+                else:
+                    command = quote_unix('cd %s && %s %s' % (
+                        cwd, script_path, script_arguments))
             else:
-                command = quote_unix(self.remote_script)
+                if env_str:
+                    command = quote_unix('%s && cd %s && %s' % (
+                        env_str, cwd, script_path))
+                else:
+                    command = quote_unix('cd %s && %s' % (cwd, script_path))
 
             command = 'sudo -E -- bash -c %s' % (command)
         else:
-            script_path = quote_unix(self.remote_script)
-
             if script_arguments:
-                command = '%s %s' % (script_path, script_arguments)
+                if env_str:
+                    command = '%s && cd %s && %s %s' % (env_str, cwd,
+                                                        script_path, script_arguments)
+                else:
+                    command = 'cd %s && %s %s' % (cwd, script_path, script_arguments)
             else:
-                command = script_path
+                if env_str:
+                    command = '%s && cd %s && %s' % (env_str, cwd, script_path)
+                else:
+                    command = 'cd %s && %s' % (cwd, script_path)
 
         return command

@@ -20,7 +20,107 @@ from st2common.models.system.paramiko_script_action import ParamikoRemoteScriptA
 
 class ParamikoRemoteScriptActionTests(unittest2.TestCase):
 
-    def test_get_command_string(self):
+    def test_get_command_string_no_env_vars(self):
+        script_action = ParamikoRemoteScriptActionTests._get_test_script_action()
+        ex = 'cd /tmp && /tmp/remote_script.sh song=\'b s\' \'taylor swift\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+        # Test with sudo
+        script_action.sudo = True
+        ex = 'sudo -E -- bash -c ' + \
+             '\'cd /tmp && ' + \
+             '/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+    def test_get_command_string_with_env_vars(self):
+        script_action = ParamikoRemoteScriptActionTests._get_test_script_action()
+        script_action.env_vars = {
+            'ST2_ACTION_EXECUTION_ID': '55ce39d532ed3543aecbe71d',
+            'FOO': 'BAR BAZ BOOZ'
+        }
+        ex = 'export ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d ' + \
+             'FOO=\'BAR BAZ BOOZ\' && ' + \
+             'cd /tmp && /tmp/remote_script.sh song=\'b s\' \'taylor swift\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+        # Test with sudo
+        script_action.sudo = True
+        ex = 'sudo -E -- bash -c ' + \
+             '\'export ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d ' + \
+             'FOO=\'"\'"\'BAR BAZ BOOZ\'"\'"\' && ' + \
+             'cd /tmp && ' + \
+             '/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+    def test_get_command_string_no_script_args_no_env_args(self):
+        script_action = ParamikoRemoteScriptActionTests._get_test_script_action()
+        script_action.named_args = {}
+        script_action.positional_args = []
+        ex = 'cd /tmp && /tmp/remote_script.sh'
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+        # Test with sudo
+        script_action.sudo = True
+        ex = 'sudo -E -- bash -c ' + \
+             '\'cd /tmp && /tmp/remote_script.sh\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+    def test_get_command_string_no_script_args_with_env_args(self):
+        script_action = ParamikoRemoteScriptActionTests._get_test_script_action()
+        script_action.named_args = {}
+        script_action.positional_args = []
+        script_action.env_vars = {
+            'ST2_ACTION_EXECUTION_ID': '55ce39d532ed3543aecbe71d',
+            'FOO': 'BAR BAZ BOOZ'
+        }
+        ex = 'export ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d ' + \
+             'FOO=\'BAR BAZ BOOZ\' && ' + \
+             'cd /tmp && /tmp/remote_script.sh'
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+        # Test with sudo
+        script_action.sudo = True
+        ex = 'sudo -E -- bash -c ' + \
+             '\'export ST2_ACTION_EXECUTION_ID=55ce39d532ed3543aecbe71d ' + \
+             'FOO=\'"\'"\'BAR BAZ BOOZ\'"\'"\' && ' + \
+             'cd /tmp && ' + \
+             '/tmp/remote_script.sh\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+    def test_script_path_shell_injection_safe(self):
+        script_action = ParamikoRemoteScriptActionTests._get_test_script_action()
+        test_path = '/tmp/remote script.sh'
+        script_action.remote_script = test_path
+        script_action.named_args = {}
+        script_action.positional_args = []
+        ex = 'cd /tmp && \'/tmp/remote script.sh\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+        # Test with sudo
+        script_action.sudo = True
+        ex = 'sudo -E -- bash -c ' + \
+             '\'cd /tmp && \'"\'"\'/tmp/remote script.sh\'"\'"\'\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+    def test_script_path_shell_injection_safe_with_env_vars(self):
+        script_action = ParamikoRemoteScriptActionTests._get_test_script_action()
+        test_path = '/tmp/remote script.sh'
+        script_action.remote_script = test_path
+        script_action.named_args = {}
+        script_action.positional_args = []
+        script_action.env_vars = {'FOO': 'BAR'}
+        ex = 'export FOO=BAR && cd /tmp && \'/tmp/remote script.sh\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+        # Test with sudo
+        script_action.sudo = True
+        ex = 'sudo -E -- bash -c ' + \
+             '\'export FOO=BAR && ' + \
+             'cd /tmp && \'"\'"\'/tmp/remote script.sh\'"\'"\'\''
+        self.assertEqual(script_action.get_full_command_string(), ex)
+
+    @staticmethod
+    def _get_test_script_action():
         local_script_path = '/opt/stackstorm/packs/fixtures/actions/remote_script.sh'
         script_action = ParamikoRemoteScriptAction('fixtures.remote_script',
                                                    '55ce39d532ed3543aecbe71d',
@@ -36,12 +136,5 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
                                                    hosts=['localhost'],
                                                    parallel=True,
                                                    sudo=False,
-                                                   timeout=60)
-        expected = '/tmp/remote_script.sh song=\'b s\' \'taylor swift\''
-        self.assertEqual(script_action.get_full_command_string(), expected)
-
-        # Test with sudo
-        script_action.sudo = True
-        ex = 'sudo -E -- bash -c ' + \
-             '\'/tmp/remote_script.sh song=\'"\'"\'b s\'"\'"\' \'"\'"\'taylor swift\'"\'"\'\''
-        self.assertEqual(script_action.get_full_command_string(), ex)
+                                                   timeout=60, cwd='/tmp')
+        return script_action

@@ -21,7 +21,8 @@ from st2common import log as logging
 from st2actions.runners.ssh.fabric_runner import BaseFabricRunner
 from st2actions.runners.ssh.fabric_runner import RUNNER_COMMAND
 from st2actions.runners.ssh.paramiko_ssh_runner import BaseParallelSSHRunner
-from st2common.models.system.action import (FabricRemoteAction, RemoteAction)
+from st2common.models.system.action import FabricRemoteAction
+from st2common.models.system.paramiko_command_action import ParamikoRemoteCommandAction
 
 __all__ = [
     'get_runner',
@@ -80,22 +81,21 @@ class ParamikoRemoteCommandRunner(BaseParallelSSHRunner):
 
     def _run(self, remote_action):
         command = remote_action.get_full_command_string()
-        return self._parallel_ssh_client.run(command, timeout=remote_action.get_timeout(),
-                                             cwd=remote_action.get_cwd())
+        return self._parallel_ssh_client.run(command, timeout=remote_action.get_timeout())
 
     def _get_remote_action(self, action_paramaters):
         command = self.runner_parameters.get(RUNNER_COMMAND, None)
         env_vars = self._get_env_vars()
-        return RemoteAction(self.action_name,
-                            str(self.liveaction_id),
-                            command,
-                            env_vars=env_vars,
-                            on_behalf_user=self._on_behalf_user,
-                            user=self._username,
-                            password=self._password,
-                            private_key=self._private_key,
-                            hosts=self._hosts,
-                            parallel=self._parallel,
-                            sudo=self._sudo,
-                            timeout=self._timeout,
-                            cwd=self._cwd)
+        return ParamikoRemoteCommandAction(self.action_name,
+                                           str(self.liveaction_id),
+                                           command,
+                                           env_vars=env_vars,
+                                           on_behalf_user=self._on_behalf_user,
+                                           user=self._username,
+                                           password=self._password,
+                                           private_key=self._private_key,
+                                           hosts=self._hosts,
+                                           parallel=self._parallel,
+                                           sudo=self._sudo,
+                                           timeout=self._timeout,
+                                           cwd=self._cwd)
