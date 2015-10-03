@@ -108,7 +108,7 @@ class ParallelSSHClient(object):
             'timeout': timeout
         }
         results = self._execute_in_pool(self._run_command, **options)
-        return jsonify.json_loads(results, ParallelSSHClient.KEYS_TO_TRANSFORM)
+        return results
 
     def put(self, local_path, remote_path, mode=None, mirror_local_mode=False):
         """
@@ -254,8 +254,9 @@ class ParallelSSHClient(object):
             client = self._hosts_client[host]
             (stdout, stderr, exit_code) = client.run(cmd, timeout=timeout)
             is_succeeded = (exit_code == 0)
-            results[host] = {'stdout': stdout, 'stderr': stderr, 'return_code': exit_code,
-                             'succeeded': is_succeeded, 'failed': not is_succeeded}
+            result_dict = {'stdout': stdout, 'stderr': stderr, 'return_code': exit_code,
+                           'succeeded': is_succeeded, 'failed': not is_succeeded}
+            results[host] = jsonify.json_loads(result_dict, ParallelSSHClient.KEYS_TO_TRANSFORM)
         except:
             error = 'Failed executing command %s on host %s' % (cmd, host)
             LOG.exception(error)
