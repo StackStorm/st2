@@ -57,6 +57,8 @@ in development
   ``sudo``. (bug-fix)
 * Fix a bug in Paramiko SSH runner where kwargs keys in script arguments were not shell
   injection safe. For example, kwarg key could contain spaces. (bug-fix)
+* Fix a bug in Paramiko SSH runner where JSON output in ``stdout`` or ``stderr`` wasn't transformed
+  to object automatically. (bug-fix)
 
 0.13.2 - September 09, 2015
 ---------------------------

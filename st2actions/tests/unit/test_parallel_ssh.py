@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
 
 from mock import (patch, Mock, MagicMock)
@@ -173,3 +174,17 @@ class ParallelSSHTests(unittest2.TestCase):
         host, port = client._get_host_port_info(host_str)
         self.assertEqual(host, 'fec2::10')
         self.assertEqual(port, 55)
+
+    @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, 'run', MagicMock(
+        return_value=(json.dumps({'foo': 'bar'}), '', 0))
+    )
+    def test_run_command_json_output_transformed_to_object(self):
+        hosts = ['localhost']
+        client = ParallelSSHClient(hosts=hosts,
+                                   user='ubuntu',
+                                   pkey_file='~/.ssh/id_rsa',
+                                   connect=True)
+        results = client.run('stuff', timeout=60)
+        self.assertTrue('localhost' in results)
+        self.assertDictEqual(results['localhost']['stdout'], {'foo': 'bar'})
