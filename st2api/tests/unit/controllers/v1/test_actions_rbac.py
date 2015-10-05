@@ -61,21 +61,20 @@ ACTION_2 = {
 class ActionControllerRBACTestCase(APIControllerWithRBACTestCase):
     fixtures_loader = FixturesLoader()
 
-    @classmethod
-    def setUpClass(cls):
-        super(ActionControllerRBACTestCase, cls).setUpClass()
-        cls.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
-                                                fixtures_dict=TEST_FIXTURES)
+    def setUp(self):
+        super(ActionControllerRBACTestCase, self).setUp()
+        self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
+                                                 fixtures_dict=TEST_FIXTURES)
 
         file_name = 'action1.yaml'
-        ActionControllerRBACTestCase.ACTION_1 = cls.fixtures_loader.load_fixtures(
+        ActionControllerRBACTestCase.ACTION_1 = self.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'actions': [file_name]})['actions'][file_name]
 
         # Insert mock users, roles and assignments
-        self = cls
-        cls.users = {}
-        cls.roles = {}
+        self = self
+        self.users = {}
+        self.roles = {}
 
         # Users
         user_1_db = UserDB(name='no_permissions')
@@ -113,6 +112,7 @@ class ActionControllerRBACTestCase(APIControllerWithRBACTestCase):
                         'on resource "action:wolfpack:action-1"')
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
+        self.use_user({})
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
@@ -122,8 +122,6 @@ class ActionControllerRBACTestCase(APIControllerWithRBACTestCase):
 
         resp = self.__do_post(ACTION_2)
         self.assertEqual(resp.status_code, httplib.CREATED)
-        action_id = self.__get_action_id(resp)
-        self.__do_delete(action_id, expect_errors=True)
 
     @staticmethod
     def __get_action_id(resp):

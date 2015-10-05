@@ -50,26 +50,25 @@ TEST_FIXTURES = {
 class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
     fixtures_loader = FixturesLoader()
 
-    @classmethod
-    def setUpClass(cls):
-        super(RuleControllerRBACTestCase, cls).setUpClass()
-        cls.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
+    def setUp(self):
+        super(RuleControllerRBACTestCase, self).setUp()
+        self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                 fixtures_dict=TEST_FIXTURES)
 
         file_name = 'rule_with_webhook_trigger.yaml'
-        RuleControllerRBACTestCase.RULE_1 = cls.fixtures_loader.load_fixtures(
+        RuleControllerRBACTestCase.RULE_1 = self.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         file_name = 'rule_example_pack.yaml'
-        RuleControllerRBACTestCase.RULE_2 = cls.fixtures_loader.load_fixtures(
+        RuleControllerRBACTestCase.RULE_2 = self.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         # Insert mock users, roles and assignments
-        self = cls
-        cls.users = {}
-        cls.roles = {}
+        self = self
+        self.users = {}
+        self.roles = {}
 
         # Users
         user_1_db = UserDB(name='rule_create')
