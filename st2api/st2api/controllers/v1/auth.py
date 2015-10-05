@@ -29,7 +29,7 @@ from st2common.exceptions.auth import ApiKeyNotFoundError
 from st2common.persistence.auth import ApiKey
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_permission
+from st2common.rbac.decorators import request_user_has_resource_db_permission
 from st2common.util import auth as auth_util
 
 http_client = six.moves.http_client
@@ -58,7 +58,7 @@ class ApiKeyController(RestController):
         super(ApiKeyController, self).__init__()
         self.get_one_db_method = ApiKey.get_by_key_or_id
 
-    @request_user_has_resource_permission(permission_type=PermissionType.API_KEY_VIEW)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, api_key_id_or_key):
         """
@@ -156,7 +156,7 @@ class ApiKeyController(RestController):
 
         return api_key_api
 
-    @request_user_has_resource_permission(permission_type=PermissionType.API_KEY_DELETE)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_DELETE)
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, api_key_id_or_key):
         """

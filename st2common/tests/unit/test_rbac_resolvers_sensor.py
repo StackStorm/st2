@@ -137,7 +137,7 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
             role=self.roles['custom_role_sensor_all_grant'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
-    def test_user_has_resource_permissions(self):
+    def test_user_has_resource_db_permissions(self):
         resolver = SensorPermissionsResolver()
         all_permission_types = PermissionType.get_valid_permissions_for_resource_type(
             ResourceType.SENSOR)
@@ -145,7 +145,7 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Admin user, should always return true
         resource_db = self.resources['sensor_1']
         user_db = self.users['admin']
-        self.assertTrue(self._user_has_resource_permissions(
+        self.assertTrue(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -153,18 +153,18 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # Observer, should always return true for VIEW permission
         user_db = self.users['observer']
-        self.assertTrue(resolver.user_has_resource_permission(
+        self.assertTrue(resolver.user_has_resource_db_permission(
             user_db=user_db,
             resource_db=self.resources['sensor_1'],
             permission_type=PermissionType.SENSOR_VIEW))
-        self.assertTrue(resolver.user_has_resource_permission(
+        self.assertTrue(resolver.user_has_resource_db_permission(
             user_db=user_db,
             resource_db=self.resources['sensor_2'],
             permission_type=PermissionType.SENSOR_VIEW))
 
         # No roles, should return false for everything
         user_db = self.users['no_roles']
-        self.assertFalse(self._user_has_resource_permissions(
+        self.assertFalse(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -172,7 +172,7 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # Custom role with no permission grants, should return false for everything
         user_db = self.users['1_custom_role_no_permissions']
-        self.assertFalse(self._user_has_resource_permissions(
+        self.assertFalse(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -180,43 +180,43 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # Custom role with unrelated permission grant to parent pack
         user_db = self.users['custom_role_pack_grant']
-        self.assertFalse(resolver.user_has_resource_permission(
+        self.assertFalse(resolver.user_has_resource_db_permission(
             user_db=user_db,
             resource_db=self.resources['sensor_1'],
             permission_type=PermissionType.SENSOR_VIEW))
-        self.assertFalse(resolver.user_has_resource_permission(
+        self.assertFalse(resolver.user_has_resource_db_permission(
             user_db=user_db,
             resource_db=self.resources['sensor_2'],
             permission_type=PermissionType.SENSOR_ALL))
-        self.assertFalse(resolver.user_has_resource_permission(
+        self.assertFalse(resolver.user_has_resource_db_permission(
             user_db=user_db,
             resource_db=self.resources['sensor_3'],
             permission_type=PermissionType.SENSOR_VIEW))
 
         # Custom role with with grant on the parent pack
         user_db = self.users['custom_role_sensor_pack_grant']
-        self.assertTrue(resolver.user_has_resource_permission(
+        self.assertTrue(resolver.user_has_resource_db_permission(
             user_db=user_db,
             resource_db=self.resources['sensor_1'],
             permission_type=PermissionType.SENSOR_VIEW))
-        self.assertTrue(resolver.user_has_resource_permission(
+        self.assertTrue(resolver.user_has_resource_db_permission(
             user_db=user_db,
             resource_db=self.resources['sensor_2'],
             permission_type=PermissionType.SENSOR_VIEW))
 
-        self.assertFalse(resolver.user_has_resource_permission(
+        self.assertFalse(resolver.user_has_resource_db_permission(
             user_db=user_db,
             resource_db=self.resources['sensor_3'],
             permission_type=PermissionType.SENSOR_VIEW))
 
         # Custom role with a direct grant on sensor
         user_db = self.users['custom_role_sensor_grant']
-        self.assertTrue(resolver.user_has_resource_permission(
+        self.assertTrue(resolver.user_has_resource_db_permission(
             user_db=user_db,
             resource_db=self.resources['sensor_3'],
             permission_type=PermissionType.SENSOR_VIEW))
 
-        self.assertFalse(resolver.user_has_resource_permission(
+        self.assertFalse(resolver.user_has_resource_db_permission(
             user_db=user_db,
             resource_db=self.resources['sensor_3'],
             permission_type=PermissionType.SENSOR_ALL))
@@ -224,7 +224,7 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Custom role - "sensor_all" grant on the sensor parent pack
         user_db = self.users['custom_role_pack_sensor_all_grant']
         resource_db = self.resources['sensor_1']
-        self.assertTrue(self._user_has_resource_permissions(
+        self.assertTrue(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -233,7 +233,7 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Custom role - "sensor_all" grant on the sensor
         user_db = self.users['custom_role_sensor_all_grant']
         resource_db = self.resources['sensor_1']
-        self.assertTrue(self._user_has_resource_permissions(
+        self.assertTrue(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,

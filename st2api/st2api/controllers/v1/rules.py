@@ -20,7 +20,6 @@ from pecan import abort
 from mongoengine import ValidationError
 
 from st2common import log as logging
-from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2api.controllers import resource
@@ -30,7 +29,8 @@ from st2common.models.api.base import jsexpose
 from st2common.persistence.rule import Rule
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_permission
+from st2common.rbac.decorators import request_user_has_resource_api_permission
+from st2common.rbac.decorators import request_user_has_resource_db_permission
 from st2common.rbac.utils import assert_request_user_has_rule_trigger_and_action_permission
 from st2common.services.triggers import cleanup_trigger_db_for_rule, increment_trigger_ref_count
 
@@ -64,13 +64,13 @@ class RuleController(resource.ContentPackResourceController):
     def get_all(self, **kwargs):
         return super(RuleController, self)._get_all(**kwargs)
 
-    @request_user_has_resource_permission(permission_type=PermissionType.RULE_VIEW)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return super(RuleController, self)._get_one(ref_or_id)
 
-    @request_user_has_permission(permission_type=PermissionType.RULE_CREATE)
     @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
+    @request_user_has_resource_api_permission(permission_type=PermissionType.RULE_CREATE)
     def post(self, rule):
         """
             Create a new rule.
@@ -79,8 +79,6 @@ class RuleController(resource.ContentPackResourceController):
                 POST /rules/
         """
         try:
-            if not hasattr(rule, 'pack'):
-                setattr(rule, 'pack', DEFAULT_PACK_NAME)
             rule_db = RuleAPI.to_model(rule)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
 
@@ -114,7 +112,7 @@ class RuleController(resource.ContentPackResourceController):
 
         return rule_api
 
-    @request_user_has_resource_permission(permission_type=PermissionType.RULE_MODIFY)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_MODIFY)
     @jsexpose(arg_types=[str], body_cls=RuleAPI)
     def put(self, rule_ref_or_id, rule):
         rule_db = self._get_by_ref_or_id(rule_ref_or_id)
@@ -152,7 +150,7 @@ class RuleController(resource.ContentPackResourceController):
 
         return rule_api
 
-    @request_user_has_resource_permission(permission_type=PermissionType.RULE_DELETE)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_DELETE)
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, rule_ref_or_id):
         """
