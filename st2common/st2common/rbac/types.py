@@ -94,7 +94,7 @@ class PermissionType(Enum):
         """
         split = permission_type.split('_')
         assert len(split) >= 2
-        return split[0]
+        return '_'.join(split[:-1])
 
     @classmethod
     def get_permission_name(cls, permission_type):
