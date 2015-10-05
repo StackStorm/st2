@@ -37,7 +37,7 @@ __all__ = [
     'request_user_has_role',
     'request_user_has_permission',
     'request_user_has_resource_api_permission',
-    'request_user_has_resource_permission',
+    'request_user_has_resource_db_permission',
 
     'request_user_has_rule_trigger_permission',
     'request_user_has_rule_action_permission',
@@ -45,7 +45,7 @@ __all__ = [
     'assert_request_user_is_admin',
     'assert_request_user_is_system_admin',
     'assert_request_user_has_permission',
-    'assert_request_user_has_resource_permission',
+    'assert_request_user_has_resource_db_permission',
 
     'assert_request_user_has_rule_trigger_and_action_permission',
 
@@ -53,7 +53,7 @@ __all__ = [
     'user_is_system_admin',
     'user_has_permission',
     'user_has_resource_api_permission',
-    'user_has_resource_permission',
+    'user_has_resource_db_permission',
     'user_has_role',
 
     'get_user_db_from_request'
@@ -118,15 +118,15 @@ def request_user_has_resource_api_permission(request, resource_api, permission_t
                                             permission_type=permission_type)
 
 
-def request_user_has_resource_permission(request, resource_db, permission_type):
+def request_user_has_resource_db_permission(request, resource_db, permission_type):
     """
     Check that currently logged-in user has specified permission on the provied resource.
 
     :rtype: ``bool``
     """
     user_db = get_user_db_from_request(request=request)
-    return user_has_resource_permission(user_db=user_db, resource_db=resource_db,
-                                        permission_type=permission_type)
+    return user_has_resource_db_permission(user_db=user_db, resource_db=resource_db,
+                                           permission_type=permission_type)
 
 
 def assert_request_user_is_admin(request):
@@ -187,14 +187,15 @@ def assert_request_user_has_resource_api_permission(request, resource_api, permi
                                         permission_type=permission_type)
 
 
-def assert_request_user_has_resource_permission(request, resource_db, permission_type):
+def assert_request_user_has_resource_db_permission(request, resource_db, permission_type):
     """
     Check that currently logged-in user has specified permission on the provied resource.
 
     If user doesn't have a required permission, AccessDeniedError is thrown.
     """
-    has_permission = request_user_has_resource_permission(request=request, resource_db=resource_db,
-                                                          permission_type=permission_type)
+    has_permission = request_user_has_resource_db_permission(request=request,
+                                                             resource_db=resource_db,
+                                                             permission_type=permission_type)
 
     if not has_permission:
         user_db = get_user_db_from_request(request=request)
@@ -232,7 +233,7 @@ def request_user_has_rule_action_permission(request, action_ref):
     user_db = get_user_db_from_request(request=request)
     action_db = action_utils.get_action_by_ref(ref=action_ref)
     action_resolver = resolvers.get_resolver_for_resource_type(ResourceType.ACTION)
-    has_action_permission = action_resolver.user_has_resource_permission(
+    has_action_permission = action_resolver.user_has_resource_db_permission(
         user_db=user_db, resource_db=action_db, permission_type=PermissionType.ACTION_EXECUTE)
 
     if has_action_permission:
@@ -360,7 +361,7 @@ def user_has_resource_api_permission(user_db, resource_api, permission_type):
     return result
 
 
-def user_has_resource_permission(user_db, resource_db, permission_type):
+def user_has_resource_db_permission(user_db, resource_db, permission_type):
     """
     Check that the provided user has specified permission on the provided resource.
     """
@@ -369,8 +370,8 @@ def user_has_resource_permission(user_db, resource_db, permission_type):
 
     # TODO Verify permission type for the provided resource type
     resolver = resolvers.get_resolver_for_permission_type(permission_type=permission_type)
-    result = resolver.user_has_resource_permission(user_db=user_db, resource_db=resource_db,
-                                                   permission_type=permission_type)
+    result = resolver.user_has_resource_db_permission(user_db=user_db, resource_db=resource_db,
+                                                      permission_type=permission_type)
     return result
 
 

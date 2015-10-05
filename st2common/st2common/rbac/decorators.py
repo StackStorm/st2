@@ -28,7 +28,7 @@ __all__ = [
     'request_user_is_system_admin',
     'request_user_has_permission',
     'request_user_has_resource_api_permission',
-    'request_user_has_resource_permission'
+    'request_user_has_resource_db_permission'
 ]
 
 
@@ -87,7 +87,7 @@ def request_user_has_resource_api_permission(permission_type):
     return decorate
 
 
-def request_user_has_resource_permission(permission_type):
+def request_user_has_resource_db_permission(permission_type):
     """
     A decorator meant to wrap post, put and delete Pecan REST controller methods.
 
@@ -113,9 +113,9 @@ def request_user_has_resource_permission(permission_type):
 
             get_one_db_method = controller_instance.get_one_db_method
             resource_db = get_one_db_method(resource_id)
-            utils.assert_request_user_has_resource_permission(request=pecan.request,
-                                                              resource_db=resource_db,
-                                                              permission_type=permission_type)
+            utils.assert_request_user_has_resource_db_permission(request=pecan.request,
+                                                                 resource_db=resource_db,
+                                                                 permission_type=permission_type)
             return func(*args, **kwargs)
         return func_wrapper
     return decorate
@@ -137,9 +137,9 @@ def request_user_has_webhook_permission(permission_type):
             webhook_db = WebhookDB(name=hook)
 
             resource_db = webhook_db
-            utils.assert_request_user_has_resource_permission(request=pecan.request,
-                                                              resource_db=resource_db,
-                                                              permission_type=permission_type)
+            utils.assert_request_user_has_resource_db_permission(request=pecan.request,
+                                                                 resource_db=resource_db,
+                                                                 permission_type=permission_type)
             return func(*args, **kwargs)
         return func_wrapper
     return decorate

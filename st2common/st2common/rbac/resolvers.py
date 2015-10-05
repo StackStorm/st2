@@ -136,7 +136,7 @@ class PackPermissionsResolver(PermissionsResolver):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
             'user_db': user_db,
             'resource_db': resource_db,
@@ -179,7 +179,7 @@ class SensorPermissionsResolver(PermissionsResolver):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
             'user_db': user_db,
             'resource_db': resource_db,
@@ -253,7 +253,7 @@ class ActionPermissionsResolver(PermissionsResolver):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         action_uid = resource_db.get_uid()
         pack_uid = resource_db.get_pack_uid()
         return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
@@ -358,7 +358,7 @@ class RulePermissionsResolver(PermissionsResolver):
         resolver = get_resolver_for_resource_type(ResourceType.WEBHOOK)
         webhook_db = WebhookDB(name=trigger_parameters['url'])
         permission_type = PermissionType.WEBHOOK_CREATE
-        result = resolver.user_has_resource_permission(user_db=user_db,
+        result = resolver.user_has_resource_db_permission(user_db=user_db,
                                                        resource_db=webhook_db,
                                                        permission_type=permission_type)
 
@@ -388,7 +388,7 @@ class RulePermissionsResolver(PermissionsResolver):
                                                   rule_uid=rule_uid,
                                                   permission_type=permission_type)
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         rule_uid = resource_db.get_uid()
         pack_uid = resource_db.get_pack_uid()
         return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
@@ -467,7 +467,7 @@ class KeyValuePermissionsResolver(PermissionsResolver):
         # TODO: We don't support assigning permissions on key value pairs yet
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         # TODO: We don't support assigning permissions on key value pairs yet
         return True
 
@@ -481,7 +481,7 @@ class ExecutionPermissionsResolver(PermissionsResolver):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
             'user_db': user_db,
             'resource_db': resource_db,
@@ -551,7 +551,7 @@ class WebhookPermissionsResolver(PermissionsResolver):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
             'user_db': user_db,
             'resource_db': resource_db,
@@ -596,8 +596,7 @@ class ApiKeyPermissionResolver(PermissionsResolver):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
-
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         # Desired impl is as under. Permission grants as of now are to
         # a role while for this to work right the permission grant would have to
         # be to a specific user. The user ofcourse has to belong to a role

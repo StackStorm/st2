@@ -57,7 +57,7 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
         # Insert common mock objects
         self._insert_common_mocks()
 
-    def _user_has_resource_permissions(self, resolver, user_db, resource_db, permission_types):
+    def _user_has_resource_db_permissions(self, resolver, user_db, resource_db, permission_types):
         """
         Method which verifies that user has all the provided permissions.
         """
@@ -65,7 +65,7 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
         self.assertTrue(len(permission_types) > 1)
 
         for permission_type in permission_types:
-            result = resolver.user_has_resource_permission(
+            result = resolver.user_has_resource_db_permission(
                 user_db=user_db,
                 resource_db=resource_db,
                 permission_type=permission_type)
