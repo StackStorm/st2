@@ -29,6 +29,7 @@ from st2common.models.api.base import jsexpose
 from st2common.persistence.rule import Rule
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_api_permission
 from st2common.rbac.decorators import request_user_has_resource_permission
 from st2common.rbac.utils import assert_request_user_has_rule_trigger_and_action_permission
 from st2common.services.triggers import cleanup_trigger_db_for_rule, increment_trigger_ref_count
@@ -68,8 +69,8 @@ class RuleController(resource.ContentPackResourceController):
     def get_one(self, ref_or_id):
         return super(RuleController, self)._get_one(ref_or_id)
 
-    @request_user_has_permission(permission_type=PermissionType.RULE_CREATE)
     @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
+    @request_user_has_resource_api_permission(permission_type=PermissionType.RULE_CREATE)
     def post(self, rule):
         """
             Create a new rule.
