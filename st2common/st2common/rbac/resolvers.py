@@ -222,7 +222,62 @@ class ActionPermissionsResolver(PermissionsResolver):
     Permission resolver for "action" resource type.
     """
 
+    def user_has_resource_create_permission(self, user_db, resource_api):
+        """
+        """
+        # TODO: Refactor and reuse logic from user_has_resource_permission
+        permission_type = PermissionType.ACTION_CREATE
+        pack_ref = resource_api.pack
+        action_name = resource_api.name
+
+        log_context = {
+            'user_db': user_db,
+            'resource_api': resource_api,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user resource permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        permission_types = [PermissionType.ACTION_ALL, permission_type]
+
+        # Check direct grants on the specified resource
+        resource_types = [ResourceType.ACTION]
+        action_uid = 'action:%s:%s' % (pack_ref, action_name)
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=action_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+        if len(permission_grants) >= 1:
+            self._log('Found a direct grant on the action', extra=log_context)
+            return True
+
+        # Check grants on the parent pack
+        resource_types = [ResourceType.PACK]
+        pack_uid = 'pack:%s' % (pack_ref)  # TODO: Use util function to build UID
+
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=pack_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+
+        if len(permission_grants) >= 1:
+            self._log('Found a grant on the action parent pack', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
     def user_has_permission(self, user_db, permission_type):
+        assert permission_type in [PermissionType.ACTION_CREATE]
         # TODO
         return True
 
