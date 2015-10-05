@@ -246,7 +246,6 @@ class ActionPermissionsResolver(PermissionsResolver):
                                                   permission_type=permission_type)
 
     def user_has_permission(self, user_db, permission_type):
-        assert permission_type in [PermissionType.ACTION_CREATE]
         # TODO
         return True
 
@@ -377,10 +376,34 @@ class RulePermissionsResolver(PermissionsResolver):
         # TODO
         return True
 
+    def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
+        assert permission_type in [PermissionType.RULE_CREATE]
+
+        rule_uid = resource_api.get_uid()
+        pack_uid = resource_api.get_pack_uid()
+        return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
+                                                  rule_uid=rule_uid,
+                                                  permission_type=permission_type)
+
     def user_has_resource_permission(self, user_db, resource_db, permission_type):
+        rule_uid = resource_db.get_uid()
+        pack_uid = resource_db.get_pack_uid()
+        return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
+                                                  rule_uid=rule_uid,
+                                                  permission_type=permission_type)
+
+    def _user_has_resource_permission(self, user_db, pack_uid, rule_uid, permission_type):
+        """
+        :param pack_uid: UID of a pack this resource belongs to.
+        :type pack_uid: ``str``
+
+        :param rule_uid: UID of a rule to check the permissions for.
+        :type rule_uid: ``str``
+        """
         log_context = {
             'user_db': user_db,
-            'resource_db': resource_db,
+            'pack_uid': pack_uid,
+            'resource_uid': rule_uid,
             'permission_type': permission_type,
             'resolver': self.__class__.__name__
         }
@@ -395,9 +418,6 @@ class RulePermissionsResolver(PermissionsResolver):
             return True
 
         # Check custom roles
-        rule_uid = resource_db.get_uid()
-        pack_uid = resource_db.get_pack_uid()
-
         if permission_type == PermissionType.RULE_VIEW:
             # Note: "create", "modify", "delete" and "execute" also grant / imply "view" permission
             permission_types = [
