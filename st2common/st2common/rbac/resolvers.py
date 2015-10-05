@@ -55,6 +55,20 @@ class PermissionsResolver(object):
     resource type.
     """
 
+    def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
+        """
+        Method for checking user permissions on a resource which is to be created (e.g.
+        create operation).
+        """
+        raise NotImplementedError()
+
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        """
+        Method for checking user permissions on an existing resource (e.g. get
+        one, edit, delete operations).
+        """
+        raise NotImplementedError()
+
     def _user_has_system_role_permission(self, user_db, permission_type):
         """
         Check the user system roles and return True if user has the required permission.
@@ -222,9 +236,9 @@ class ActionPermissionsResolver(PermissionsResolver):
     Permission resolver for "action" resource type.
     """
 
-    def user_has_resource_create_permission(self, user_db, resource_api):
-        """
-        """
+    def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
+        assert permission_type in [PermissionType.ACTION_CREATE]
+
         # TODO: Refactor and reuse logic from user_has_resource_permission
         permission_type = PermissionType.ACTION_CREATE
         pack_ref = resource_api.pack
