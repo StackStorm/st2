@@ -34,6 +34,14 @@ from st2common.util import schema as util_schema
 from st2common.util.jsonify import json_encode
 from st2common import log as logging
 
+__all__ = [
+    'BaseAPI',
+
+    'APIUIDMixin',
+
+    'jsexpose'
+]
+
 
 LOG = logging.getLogger(__name__)
 VALIDATOR = util_schema.get_validator(assign_property_default=False)
