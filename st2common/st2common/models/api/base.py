@@ -103,6 +103,26 @@ class BaseAPI(object):
         raise NotImplementedError()
 
 
+class APIUIDMixin(object):
+    """"
+    Mixin class for retrieving UID for API objects.
+    """
+
+    def get_uid(self):
+        # TODO: This is not the most efficient approach - refactor this functionality into util
+        # module and re-use it here and in the DB model
+        resource_db = self.to_model(self)
+        resource_uid = resource_db.get_uid()
+        return resource_uid
+
+    def get_pack_uid(self):
+        # TODO: This is not the most efficient approach - refactor this functionality into util
+        # module and re-use it here and in the DB model
+        resource_db = self.to_model(self)
+        pack_uid = resource_db.get_pack_uid()
+        return pack_uid
+
+
 def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='application/json'):
     """
     :param arg_types: A list of types for the function arguments.

@@ -239,11 +239,8 @@ class ActionPermissionsResolver(PermissionsResolver):
     def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
         assert permission_type in [PermissionType.ACTION_CREATE]
 
-        pack_ref = resource_api.pack
-        action_name = resource_api.name
-
-        action_uid = 'action:%s:%s' % (pack_ref, action_name)  # TODO: Use util function to build UID
-        pack_uid = 'pack:%s' % (pack_ref)  # TODO: Use util function to build UID
+        action_uid = resource_api.get_uid()
+        pack_uid = resource_api.get_pack_uid()
         return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
                                                   action_uid=action_uid,
                                                   permission_type=permission_type)
