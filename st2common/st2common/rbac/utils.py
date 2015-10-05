@@ -36,6 +36,7 @@ __all__ = [
     'request_user_is_system_admin',
     'request_user_has_role',
     'request_user_has_permission',
+    'request_user_has_resource_api_permission',
     'request_user_has_resource_permission',
 
     'request_user_has_rule_trigger_permission',
@@ -51,6 +52,7 @@ __all__ = [
     'user_is_admin',
     'user_is_system_admin',
     'user_has_permission',
+    'user_has_resource_api_permission',
     'user_has_resource_permission',
     'user_has_role',
 
@@ -106,6 +108,16 @@ def request_user_has_permission(request, permission_type):
     return user_has_permission(user_db=user_db, permission_type=permission_type)
 
 
+def request_user_has_resource_api_permission(request, resource_api, permission_type):
+    """
+    Check that currently logged-in user has specified permission for the resource which is to be
+    created.
+    """
+    user_db = get_user_db_from_request(request=request)
+    return user_has_resource_api_permission(user_db=user_db, resource_api=resource_api,
+                                            permission_type=permission_type)
+
+
 def request_user_has_resource_permission(request, resource_db, permission_type):
     """
     Check that currently logged-in user has specified permission on the provied resource.
@@ -159,11 +171,27 @@ def assert_request_user_has_permission(request, permission_type):
         raise ResourceTypeAccessDeniedError(user_db=user_db, permission_type=permission_type)
 
 
+def assert_request_user_has_resource_api_permission(request, resource_api, permission_type):
+    """
+    Check that currently logged-in user has specified permission for the resource which is to be
+    created.
+    """
+    has_permission = request_user_has_resource_api_permission(request=request,
+                                                              resource_api=resource_api,
+                                                              permission_type=permission_type)
+
+    if not has_permission:
+        user_db = get_user_db_from_request(request=request)
+        # TODO: Refactor exception
+        raise ResourceAccessDeniedError(user_db=user_db, resource_db=resource_api,
+                                        permission_type=permission_type)
+
+
 def assert_request_user_has_resource_permission(request, resource_db, permission_type):
     """
     Check that currently logged-in user has specified permission on the provied resource.
 
-    If user doesn't have a required permission, AccessDeniedError s thrown.
+    If user doesn't have a required permission, AccessDeniedError is thrown.
     """
     has_permission = request_user_has_resource_permission(request=request, resource_db=resource_db,
                                                           permission_type=permission_type)
@@ -315,6 +343,20 @@ def user_has_permission(user_db, permission_type):
     # TODO Verify permission type for the provided resource type
     resolver = resolvers.get_resolver_for_permission_type(permission_type=permission_type)
     result = resolver.user_has_permission(user_db=user_db, permission_type=permission_type)
+    return result
+
+
+def user_has_resource_api_permission(user_db, resource_api, permission_type):
+    """
+    Check that the provided user has specified permission on the provided resource API.
+    """
+    if not cfg.CONF.rbac.enable:
+        return True
+
+    # TODO Verify permission type for the provided resource type
+    resolver = resolvers.get_resolver_for_permission_type(permission_type=permission_type)
+    result = resolver.user_has_resource_api_permission(user_db=user_db, resource_api=resource_api,
+                                                       permission_type=permission_type)
     return result
 
 
