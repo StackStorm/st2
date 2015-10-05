@@ -20,7 +20,6 @@ from pecan import abort
 from mongoengine import ValidationError
 
 from st2common import log as logging
-from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2api.controllers import resource
@@ -79,8 +78,6 @@ class RuleController(resource.ContentPackResourceController):
                 POST /rules/
         """
         try:
-            if not hasattr(rule, 'pack'):
-                setattr(rule, 'pack', DEFAULT_PACK_NAME)
             rule_db = RuleAPI.to_model(rule)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
 
