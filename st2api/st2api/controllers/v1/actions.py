@@ -43,6 +43,7 @@ from st2common.util.system_info import get_host_info
 import st2common.validators.api.action as action_validator
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_api_permission
 from st2common.rbac.decorators import request_user_has_resource_permission
 
 http_client = six.moves.http_client
@@ -84,8 +85,8 @@ class ActionsController(resource.ContentPackResourceController):
     def get_one(self, ref_or_id):
         return super(ActionsController, self)._get_one(ref_or_id)
 
-    @request_user_has_permission(permission_type=PermissionType.ACTION_CREATE)
     @jsexpose(body_cls=ActionCreateAPI, status_code=http_client.CREATED)
+    @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_CREATE)
     def post(self, action):
         """
             Create a new action.
