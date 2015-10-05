@@ -282,7 +282,6 @@ class ActionPermissionsResolver(PermissionsResolver):
             return True
 
         # Check custom roles
-
         if permission_type == PermissionType.ACTION_VIEW:
             # Note: "create", "modify", "delete" and "execute" also grant / imply "view" permission
             permission_types = [

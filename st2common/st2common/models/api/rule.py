@@ -19,6 +19,7 @@ import six
 
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.models.api.base import BaseAPI
+from st2common.models.api.base import APIUIDMixin
 from st2common.models.api.tag import TagsHelper
 from st2common.models.db.rule import RuleDB, RuleTypeDB, RuleTypeSpecDB, ActionExecutionSpecDB
 from st2common.models.system.common import ResourceReference
@@ -111,7 +112,7 @@ class RuleTypeAPI(BaseAPI):
                          parameters=parameters)
 
 
-class RuleAPI(BaseAPI):
+class RuleAPI(BaseAPI, APIUIDMixin):
     """
     Attribute:
         trigger_type: Trigger that trips this rule. Of the form {'id':'1234', 'name':'trigger-1'}.
