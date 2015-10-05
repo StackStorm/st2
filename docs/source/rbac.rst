@@ -37,7 +37,7 @@ be assigned to multiple users.
 System roles
 ------------
 
-System roles are roles which are available by default and can't be manipulated (modified and / or 
+System roles are roles which are available by default and can't be manipulated (modified and / or
 deleted).
 
 Currently, the following system roles are available:
@@ -169,7 +169,7 @@ parent pack of the action execution belongs to, user will be able to view all th
 belong to the action with that parent pack.
 
 On top of that, granting ``action_execute`` on a particular pack or action also grants
-``execution_re_run`` and ``execution_stop`` to all the executions which belong to that action.
+``execution_rerun`` and ``execution_stop`` to all the executions which belong to that action.
 
 Defining roles and user role assignments
 ----------------------------------------
