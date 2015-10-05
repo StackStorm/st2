@@ -38,8 +38,8 @@ class PermissionType(Enum):
     PACK_ALL = 'pack_all'
 
     # Note: Right now we only have read endpoints for sensors types
-    SENSOR_VIEW = 'sensor_view'
-    SENSOR_ALL = 'sensor_all'
+    SENSOR_VIEW = 'sensor_type_view'
+    SENSOR_ALL = 'sensor_type_all'
 
     ACTION_VIEW = 'action_view'
     ACTION_CREATE = 'action_create'
@@ -50,7 +50,7 @@ class PermissionType(Enum):
 
     # Note: Execution create is granted with "action_execute"
     EXECUTION_VIEW = 'execution_view'
-    EXECUTION_RE_RUN = 'execution_re_run'
+    EXECUTION_RE_RUN = 'execution_rerun'
     EXECUTION_STOP = 'execution_stop'
     EXECUTION_ALL = 'execution_all'
 
@@ -61,9 +61,9 @@ class PermissionType(Enum):
     RULE_ALL = 'rule_all'
 
     # TODO - Maybe "datastore_item" / key_value_item ?
-    KEY_VALUE_VIEW = 'key_value_view'
-    KEY_VALUE_SET = 'key_value_set'
-    KEY_VALUE_DELETE = 'key_value_delete'
+    KEY_VALUE_VIEW = 'key_value_pair_view'
+    KEY_VALUE_SET = 'key_value_pair_set'
+    KEY_VALUE_DELETE = 'key_value_pair_delete'
 
     WEBHOOK_CREATE = 'webhook_create'
     WEBHOOK_SEND = 'webhook_send'
