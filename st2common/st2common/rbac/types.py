@@ -37,8 +37,9 @@ class PermissionType(Enum):
     PACK_DELETE = 'pack_delete'
     PACK_ALL = 'pack_all'
 
-    # Note: Right now we only have read endpoints for sensors types
+    # Note: Right now we only have read endpoints + update for sensors types
     SENSOR_VIEW = 'sensor_view'
+    SENSOR_MODIFY = 'sensor_modify'
     SENSOR_ALL = 'sensor_all'
 
     ACTION_VIEW = 'action_view'
@@ -184,6 +185,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
     ],
     ResourceType.SENSOR: [
         PermissionType.SENSOR_VIEW,
+        PermissionType.SENSOR_MODIFY,
         PermissionType.SENSOR_ALL
     ],
     ResourceType.ACTION: [
@@ -237,6 +239,8 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
                               'pack.'),
 
     PermissionType.SENSOR_VIEW: 'Ability to view a sensor',
+    PermissionType.SENSOR_MODIFY: ('Ability to modify (update) an existing sensor. Also implies '
+                                   '"sensor_view" permission.'),
     PermissionType.SENSOR_ALL: ('Ability to perform all the supported operations on a particular '
                                 'sensor.'),
 

@@ -57,6 +57,7 @@ class SensorTypeController(resource.ContentPackResourceController):
     def get_one(self, ref_or_id):
         return super(SensorTypeController, self)._get_one(ref_or_id)
 
+    @request_user_has_resource_permission(permission_type=PermissionType.SENSOR_MODIFY)
     @jsexpose(arg_types=[str], body_cls=SensorTypeAPI)
     def put(self, ref_or_id, sensor_type):
         # Note: Right now this function only supports updating of "enabled"

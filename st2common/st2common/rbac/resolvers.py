@@ -202,7 +202,11 @@ class SensorPermissionsResolver(PermissionsResolver):
 
         if permission_type == PermissionType.SENSOR_VIEW:
             # Note: "create", "modify" and "delete" also grant / imply "view" permission
-            permission_types = [PermissionType.SENSOR_ALL, permission_type]
+            permission_types = [
+                PermissionType.SENSOR_ALL,
+                PermissionType.SENSOR_MODIFY,
+                permission_type
+            ]
         else:
             permission_types = [PermissionType.SENSOR_ALL, permission_type]
 
