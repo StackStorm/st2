@@ -26,7 +26,7 @@ from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2api.controllers import resource
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_permission
+from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
 
@@ -52,11 +52,12 @@ class SensorTypeController(resource.ContentPackResourceController):
     def get_all(self, **kwargs):
         return super(SensorTypeController, self)._get_all(**kwargs)
 
-    @request_user_has_resource_permission(permission_type=PermissionType.SENSOR_VIEW)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.SENSOR_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return super(SensorTypeController, self)._get_one(ref_or_id)
 
+    @request_user_has_resource_db_permission(permission_type=PermissionType.SENSOR_MODIFY)
     @jsexpose(arg_types=[str], body_cls=SensorTypeAPI)
     def put(self, ref_or_id, sensor_type):
         # Note: Right now this function only supports updating of "enabled"

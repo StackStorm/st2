@@ -35,6 +35,8 @@ class RBACTypeTestCase(TestCase):
 
         self.assertEqual(PermissionType.get_resource_type(PermissionType.SENSOR_VIEW),
                          systemtypes.SENSOR_TYPE)
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.SENSOR_MODIFY),
+                         systemtypes.SENSOR_TYPE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.SENSOR_ALL),
                          systemtypes.SENSOR_TYPE)
 

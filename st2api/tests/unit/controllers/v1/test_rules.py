@@ -140,6 +140,14 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(put_resp.status_int, http_client.OK)
         self.__do_delete(self.__get_rule_id(put_resp))
 
+    def test_post_no_pack_info(self):
+        rule = copy.deepcopy(TestRuleController.RULE_1)
+        del rule['pack']
+        post_resp = self.__do_post(rule)
+        self.assertEqual(post_resp.json['pack'], DEFAULT_PACK_NAME)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
+        self.__do_delete(self.__get_rule_id(post_resp))
+
     def test_put_no_pack_info(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)
         test_rule = post_resp.json

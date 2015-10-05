@@ -27,7 +27,7 @@ from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_permission
+from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
 
@@ -93,7 +93,7 @@ class RuleViewController(resource.ContentPackResourceController):
         rules = self._get_all(**kwargs)
         return self._append_view_properties(rules)
 
-    @request_user_has_resource_permission(permission_type=PermissionType.RULE_VIEW)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         rule = self._get_one(ref_or_id)

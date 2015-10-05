@@ -55,6 +55,20 @@ class PermissionsResolver(object):
     resource type.
     """
 
+    def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
+        """
+        Method for checking user permissions on a resource which is to be created (e.g.
+        create operation).
+        """
+        raise NotImplementedError()
+
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        """
+        Method for checking user permissions on an existing resource (e.g. get one, edit, delete
+        operations).
+        """
+        raise NotImplementedError()
+
     def _user_has_system_role_permission(self, user_db, permission_type):
         """
         Check the user system roles and return True if user has the required permission.
@@ -122,7 +136,7 @@ class PackPermissionsResolver(PermissionsResolver):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
             'user_db': user_db,
             'resource_db': resource_db,
@@ -165,7 +179,7 @@ class SensorPermissionsResolver(PermissionsResolver):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
             'user_db': user_db,
             'resource_db': resource_db,
@@ -188,7 +202,11 @@ class SensorPermissionsResolver(PermissionsResolver):
 
         if permission_type == PermissionType.SENSOR_VIEW:
             # Note: "create", "modify" and "delete" also grant / imply "view" permission
-            permission_types = [PermissionType.SENSOR_ALL, permission_type]
+            permission_types = [
+                PermissionType.SENSOR_ALL,
+                PermissionType.SENSOR_MODIFY,
+                permission_type
+            ]
         else:
             permission_types = [PermissionType.SENSOR_ALL, permission_type]
 
@@ -222,14 +240,38 @@ class ActionPermissionsResolver(PermissionsResolver):
     Permission resolver for "action" resource type.
     """
 
+    def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
+        assert permission_type in [PermissionType.ACTION_CREATE]
+
+        action_uid = resource_api.get_uid()
+        pack_uid = resource_api.get_pack_uid()
+        return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
+                                                  action_uid=action_uid,
+                                                  permission_type=permission_type)
+
     def user_has_permission(self, user_db, permission_type):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        action_uid = resource_db.get_uid()
+        pack_uid = resource_db.get_pack_uid()
+        return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
+                                                  action_uid=action_uid,
+                                                  permission_type=permission_type)
+
+    def _user_has_resource_permission(self, user_db, pack_uid, action_uid, permission_type):
+        """
+        :param pack_uid: UID of a pack this resource belongs to.
+        :type pack_uid: ``str``
+
+        :param action_uid: UID of an action to check the permissions for.
+        :type action_uid: ``str``
+        """
         log_context = {
             'user_db': user_db,
-            'resource_db': resource_db,
+            'pack_uid': pack_uid,
+            'resource_uid': action_uid,
             'permission_type': permission_type,
             'resolver': self.__class__.__name__
         }
@@ -244,9 +286,6 @@ class ActionPermissionsResolver(PermissionsResolver):
             return True
 
         # Check custom roles
-        action_uid = resource_db.get_uid()
-        pack_uid = resource_db.get_pack_uid()
-
         if permission_type == PermissionType.ACTION_VIEW:
             # Note: "create", "modify", "delete" and "execute" also grant / imply "view" permission
             permission_types = [
@@ -319,7 +358,7 @@ class RulePermissionsResolver(PermissionsResolver):
         resolver = get_resolver_for_resource_type(ResourceType.WEBHOOK)
         webhook_db = WebhookDB(name=trigger_parameters['url'])
         permission_type = PermissionType.WEBHOOK_CREATE
-        result = resolver.user_has_resource_permission(user_db=user_db,
+        result = resolver.user_has_resource_db_permission(user_db=user_db,
                                                        resource_db=webhook_db,
                                                        permission_type=permission_type)
 
@@ -340,10 +379,34 @@ class RulePermissionsResolver(PermissionsResolver):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
+        assert permission_type in [PermissionType.RULE_CREATE]
+
+        rule_uid = resource_api.get_uid()
+        pack_uid = resource_api.get_pack_uid()
+        return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
+                                                  rule_uid=rule_uid,
+                                                  permission_type=permission_type)
+
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        rule_uid = resource_db.get_uid()
+        pack_uid = resource_db.get_pack_uid()
+        return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
+                                                  rule_uid=rule_uid,
+                                                  permission_type=permission_type)
+
+    def _user_has_resource_permission(self, user_db, pack_uid, rule_uid, permission_type):
+        """
+        :param pack_uid: UID of a pack this resource belongs to.
+        :type pack_uid: ``str``
+
+        :param rule_uid: UID of a rule to check the permissions for.
+        :type rule_uid: ``str``
+        """
         log_context = {
             'user_db': user_db,
-            'resource_db': resource_db,
+            'pack_uid': pack_uid,
+            'resource_uid': rule_uid,
             'permission_type': permission_type,
             'resolver': self.__class__.__name__
         }
@@ -358,9 +421,6 @@ class RulePermissionsResolver(PermissionsResolver):
             return True
 
         # Check custom roles
-        rule_uid = resource_db.get_uid()
-        pack_uid = resource_db.get_pack_uid()
-
         if permission_type == PermissionType.RULE_VIEW:
             # Note: "create", "modify", "delete" and "execute" also grant / imply "view" permission
             permission_types = [
@@ -407,7 +467,7 @@ class KeyValuePermissionsResolver(PermissionsResolver):
         # TODO: We don't support assigning permissions on key value pairs yet
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         # TODO: We don't support assigning permissions on key value pairs yet
         return True
 
@@ -421,7 +481,7 @@ class ExecutionPermissionsResolver(PermissionsResolver):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
             'user_db': user_db,
             'resource_db': resource_db,
@@ -491,7 +551,7 @@ class WebhookPermissionsResolver(PermissionsResolver):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
             'user_db': user_db,
             'resource_db': resource_db,
@@ -536,8 +596,7 @@ class ApiKeyPermissionResolver(PermissionsResolver):
         # TODO
         return True
 
-    def user_has_resource_permission(self, user_db, resource_db, permission_type):
-
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         # Desired impl is as under. Permission grants as of now are to
         # a role while for this to work right the permission grant would have to
         # be to a specific user. The user ofcourse has to belong to a role

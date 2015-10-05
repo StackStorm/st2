@@ -64,7 +64,7 @@ class WebhookPermissionsResolverTestCase(BasePermissionsResolverTestCase):
             role=self.roles['custom_role_webhook_grant'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
-    def test_user_has_resource_permissions(self):
+    def test_user_has_resource_db_permissions(self):
         resolver = WebhookPermissionsResolver()
         all_permission_types = PermissionType.get_valid_permissions_for_resource_type(
             ResourceType.WEBHOOK)
@@ -72,7 +72,7 @@ class WebhookPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Admin user, should always return true
         resource_db = self.resources['webhook_1']
         user_db = self.users['admin']
-        self.assertTrue(self._user_has_resource_permissions(
+        self.assertTrue(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -80,7 +80,7 @@ class WebhookPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # Custom role with "webhook_send" grant on webhook_1
         user_db = self.users['custom_role_webhook_grant']
-        self.assertTrue(resolver.user_has_resource_permission(
+        self.assertTrue(resolver.user_has_resource_db_permission(
             user_db=user_db,
             resource_db=resource_db,
             permission_type=PermissionType.WEBHOOK_SEND))
@@ -90,7 +90,7 @@ class WebhookPermissionsResolverTestCase(BasePermissionsResolverTestCase):
             PermissionType.WEBHOOK_DELETE,
             PermissionType.WEBHOOK_ALL
         ]
-        self.assertFalse(self._user_has_resource_permissions(
+        self.assertFalse(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,

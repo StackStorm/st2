@@ -44,7 +44,7 @@ from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.utils import assert_request_user_has_resource_permission
+from st2common.rbac.utils import assert_request_user_has_resource_db_permission
 
 __all__ = [
     'ActionExecutionsController'
@@ -110,8 +110,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         action_ref = liveaction.action
         action_db = action_utils.get_action_by_ref(action_ref)
 
-        assert_request_user_has_resource_permission(request=pecan.request, resource_db=action_db,
-                                                    permission_type=PermissionType.ACTION_EXECUTE)
+        assert_request_user_has_resource_db_permission(request=pecan.request, resource_db=action_db,
+            permission_type=PermissionType.ACTION_EXECUTE)
 
         try:
             return self._schedule_execution(liveaction=liveaction)

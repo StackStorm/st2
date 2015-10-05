@@ -27,7 +27,6 @@ from mongoengine import ValidationError
 from st2api.controllers import resource
 from st2api.controllers.v1.actionviews import ActionViewsController
 from st2common import log as logging
-from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.constants.triggers import ACTION_FILE_WRITTEN_TRIGGER
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.base import jsexpose
@@ -44,7 +43,8 @@ from st2common.util.system_info import get_host_info
 import st2common.validators.api.action as action_validator
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_permission
+from st2common.rbac.decorators import request_user_has_resource_api_permission
+from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
 
@@ -80,13 +80,13 @@ class ActionsController(resource.ContentPackResourceController):
     def get_all(self, **kwargs):
         return super(ActionsController, self)._get_all(**kwargs)
 
-    @request_user_has_resource_permission(permission_type=PermissionType.ACTION_VIEW)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return super(ActionsController, self)._get_one(ref_or_id)
 
-    @request_user_has_permission(permission_type=PermissionType.ACTION_CREATE)
     @jsexpose(body_cls=ActionCreateAPI, status_code=http_client.CREATED)
+    @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_CREATE)
     def post(self, action):
         """
             Create a new action.
@@ -94,9 +94,6 @@ class ActionsController(resource.ContentPackResourceController):
             Handles requests:
                 POST /actions/
         """
-        if not hasattr(action, 'pack'):
-            setattr(action, 'pack', DEFAULT_PACK_NAME)
-
         # Perform validation
         validate_not_part_of_system_pack(action)
         action_validator.validate_action(action)
@@ -126,7 +123,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         return action_api
 
-    @request_user_has_resource_permission(permission_type=PermissionType.ACTION_MODIFY)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_MODIFY)
     @jsexpose(arg_types=[str], body_cls=ActionCreateAPI)
     def put(self, action_ref_or_id, action):
         action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
@@ -168,7 +165,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         return action_api
 
-    @request_user_has_resource_permission(permission_type=PermissionType.ACTION_DELETE)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_DELETE)
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, action_ref_or_id):
         """

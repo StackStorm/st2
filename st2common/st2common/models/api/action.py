@@ -19,6 +19,7 @@ from st2common.util import isotime
 from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.api.base import BaseAPI
+from st2common.models.api.base import APIUIDMixin
 from st2common.models.api.tag import TagsHelper
 from st2common.models.api.notification import (NotificationSubSchemaAPI, NotificationsHelper)
 from st2common.models.db.action import ActionDB
@@ -123,7 +124,7 @@ class RunnerTypeAPI(BaseAPI):
         return model
 
 
-class ActionAPI(BaseAPI):
+class ActionAPI(BaseAPI, APIUIDMixin):
     """
     The system entity that represents a Stack Action/Automation in the system.
     """
@@ -245,7 +246,7 @@ class ActionAPI(BaseAPI):
         return model
 
 
-class ActionCreateAPI(ActionAPI):
+class ActionCreateAPI(ActionAPI, APIUIDMixin):
     """
     API model for create action operations.
     """

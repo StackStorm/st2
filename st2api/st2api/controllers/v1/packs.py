@@ -23,7 +23,7 @@ from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_permission
+from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 __all__ = [
     'PacksController',
@@ -93,7 +93,7 @@ class PacksController(BasePacksController):
     def get_all(self, **kwargs):
         return super(PacksController, self)._get_all(**kwargs)
 
-    @request_user_has_resource_permission(permission_type=PermissionType.PACK_VIEW)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return self._get_one_by_ref_or_id(ref_or_id=ref_or_id)

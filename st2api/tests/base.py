@@ -20,7 +20,8 @@ from oslo_config import cfg
 
 
 import st2common.bootstrap.runnersregistrar as runners_registrar
-from st2tests import DbTestCase
+from st2tests.base import DbTestCase
+from st2tests.base import CleanDbTestCase
 import st2tests.config as tests_config
 
 
@@ -63,10 +64,12 @@ class FunctionalTest(DbTestCase):
         cls.app = load_test_app(config=cfg_dict)
 
 
-class APIControllerWithRBACTestCase(FunctionalTest):
+class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
     """
     Base test case class for testing API controllers with RBAC enabled.
     """
+
+    pecan_request_context_mock = None
 
     @classmethod
     def setUpClass(cls):
@@ -74,6 +77,18 @@ class APIControllerWithRBACTestCase(FunctionalTest):
 
         # Make sure RBAC is enabeld
         cfg.CONF.set_override(name='enable', override=True, group='rbac')
+
+    @classmethod
+    def tearDownClass(cls):
+        super(APIControllerWithRBACTestCase, cls).tearDownClass()
+
+    def tearDown(self):
+        super(APIControllerWithRBACTestCase, self).tearDown()
+
+        # Unpatch pecan.request.context (if patched)
+        if self.pecan_request_context_mock:
+            self.pecan_request_context_mock.stop()
+            del(type(pecan.request).context)
 
     def use_user(self, user_db):
         """
@@ -84,4 +99,5 @@ class APIControllerWithRBACTestCase(FunctionalTest):
                 'user': user_db
             }
         }
-        type(pecan.request).context = mock.PropertyMock(return_value=mock_context)
+        self.pecan_request_context_mock = mock.PropertyMock(return_value=mock_context)
+        type(pecan.request).context = self.pecan_request_context_mock
