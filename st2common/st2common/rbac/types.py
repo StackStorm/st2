@@ -70,10 +70,10 @@ class PermissionType(Enum):
     WEBHOOK_DELETE = 'webhook_delete'
     WEBHOOK_ALL = 'webhook_all'
 
-    API_KEY_VIEW = 'api_key_view'
-    API_KEY_CREATE = 'api_key_create'
-    API_KEY_DELETE = 'api_key_delete'
-    API_KEY_ALL = 'api_key_all'
+    API_KEY_VIEW = 'apikey_view'
+    API_KEY_CREATE = 'apikey_create'
+    API_KEY_DELETE = 'apikey_delete'
+    API_KEY_ALL = 'apikey_all'
 
     @classmethod
     def get_valid_permissions_for_resource_type(cls, resource_type):
