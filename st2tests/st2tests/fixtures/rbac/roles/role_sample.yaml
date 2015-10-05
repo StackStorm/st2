@@ -26,6 +26,12 @@
             permission_types:
                - "rule_create"
         -
+            # Here we grant "webhook_create" which allows user to create a webhook with a name of 
+            # "my_sample_webhook".
+            resource_uid: "webhook:my_sample_webhook"
+            permission_types:
+               - "webhook_create"
+        -
             # Here we grant "action_execute" to "dummy_pack_2" which means user can execute (run)
             # all the actions inside this pack. Execute permission also grants "execution_re_run"
             # and "execution_stop" which means user can also re-run and stop (cancel) all the
