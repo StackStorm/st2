@@ -64,8 +64,8 @@ class PermissionsResolver(object):
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         """
-        Method for checking user permissions on an existing resource (e.g. get
-        one, edit, delete operations).
+        Method for checking user permissions on an existing resource (e.g. get one, edit, delete
+        operations).
         """
         raise NotImplementedError()
 
@@ -239,56 +239,14 @@ class ActionPermissionsResolver(PermissionsResolver):
     def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
         assert permission_type in [PermissionType.ACTION_CREATE]
 
-        # TODO: Refactor and reuse logic from user_has_resource_permission
-        permission_type = PermissionType.ACTION_CREATE
         pack_ref = resource_api.pack
         action_name = resource_api.name
 
-        log_context = {
-            'user_db': user_db,
-            'resource_api': resource_api,
-            'permission_type': permission_type,
-            'resolver': self.__class__.__name__
-        }
-        self._log('Checking user resource permissions', extra=log_context)
-
-        # First check the system role permissions
-        has_system_role_permission = self._user_has_system_role_permission(
-            user_db=user_db, permission_type=permission_type)
-
-        if has_system_role_permission:
-            self._log('Found a matching grant via system role', extra=log_context)
-            return True
-
-        # Check custom roles
-        permission_types = [PermissionType.ACTION_ALL, permission_type]
-
-        # Check direct grants on the specified resource
-        resource_types = [ResourceType.ACTION]
-        action_uid = 'action:%s:%s' % (pack_ref, action_name)
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_uid=action_uid,
-                                                               resource_types=resource_types,
-                                                               permission_types=permission_types)
-        if len(permission_grants) >= 1:
-            self._log('Found a direct grant on the action', extra=log_context)
-            return True
-
-        # Check grants on the parent pack
-        resource_types = [ResourceType.PACK]
+        action_uid = 'action:%s:%s' % (pack_ref, action_name)  # TODO: Use util function to build UID
         pack_uid = 'pack:%s' % (pack_ref)  # TODO: Use util function to build UID
-
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_uid=pack_uid,
-                                                               resource_types=resource_types,
-                                                               permission_types=permission_types)
-
-        if len(permission_grants) >= 1:
-            self._log('Found a grant on the action parent pack', extra=log_context)
-            return True
-
-        self._log('No matching grants found', extra=log_context)
-        return False
+        return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
+                                                  action_uid=action_uid,
+                                                  permission_type=permission_type)
 
     def user_has_permission(self, user_db, permission_type):
         assert permission_type in [PermissionType.ACTION_CREATE]
@@ -296,9 +254,24 @@ class ActionPermissionsResolver(PermissionsResolver):
         return True
 
     def user_has_resource_permission(self, user_db, resource_db, permission_type):
+        action_uid = resource_db.get_uid()
+        pack_uid = resource_db.get_pack_uid()
+        return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
+                                                  action_uid=action_uid,
+                                                  permission_type=permission_type)
+
+    def _user_has_resource_permission(self, user_db, pack_uid, action_uid, permission_type):
+        """
+        :param pack_uid: UID of a pack this resource belongs to.
+        :type pack_uid: ``str``
+
+        :param action_uid: UID of an action to check the permissions for.
+        :type action_uid: ``str``
+        """
         log_context = {
             'user_db': user_db,
-            'resource_db': resource_db,
+            'pack_uid': pack_uid,
+            'resource_uid': action_uid,
             'permission_type': permission_type,
             'resolver': self.__class__.__name__
         }
@@ -313,8 +286,6 @@ class ActionPermissionsResolver(PermissionsResolver):
             return True
 
         # Check custom roles
-        action_uid = resource_db.get_uid()
-        pack_uid = resource_db.get_pack_uid()
 
         if permission_type == PermissionType.ACTION_VIEW:
             # Note: "create", "modify", "delete" and "execute" also grant / imply "view" permission
