@@ -26,8 +26,10 @@
             permission_types:
                - "rule_create"
         -
-            # Here we grant "webhook_create" which allows user to create a webhook with a name of 
+            # Here we grant "webhook_create" which allows user to create a webhook with a name of
             # "my_sample_webhook".
+            # Keep in mind that webhooks have no parent resource so the permission grant is
+            # directly on the webhook you want to allow a user to create.
             resource_uid: "webhook:my_sample_webhook"
             permission_types:
                - "webhook_create"
