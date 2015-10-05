@@ -61,7 +61,7 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
-        file_name = 'rule1.yaml'
+        file_name = 'rule_example_pack.yaml'
         RuleControllerRBACTestCase.RULE_2 = cls.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
