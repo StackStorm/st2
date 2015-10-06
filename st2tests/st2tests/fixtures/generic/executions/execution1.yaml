@@ -3,6 +3,8 @@ action:
   enabled: true
   entry_point: ''
   id: 54c6bb640640fd5211edef0c
+  uid: action:core:local
+  ref: core.local
   name: local
   pack: core
   parameters:
