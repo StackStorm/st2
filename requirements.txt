@@ -26,7 +26,7 @@ python-gnupg<0.4,>=0.3.7
 python-json-logger
 python-nmap<0.4,>=0.3.4
 pyyaml<4.0,>=3.11
-requests<3.0,>=2.7.0 [security]
+requests<3.0,>=2.7.0
 retrying
 semver>=2.1.2
 six==1.9.0
