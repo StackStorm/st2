@@ -44,6 +44,19 @@ Role creation
 A newly created user has no permissions assigned. Each permission must be explicitly assign to a user. To assign a
 permission grants StackStorm requires creation of a role. In this case we are trying to create a pack owner role.
 
+Lets first make sure there is a pack `x` we can use to experiment.
+
+.. sourcecode:: bash
+
+    $ cd /opt/stackstorm/packs/
+    $ mkdir x
+    $ mkdir x/actions x/rules x/sensors
+    $ touch pack.yaml
+    $ touch config.yaml
+    $ touch requirements.txt
+    $ cp core/icon.png x/icon.png
+
+
 Create file `/opt/stackstorm/rbac/roles/x_pack_owner.yaml` with the following content -
 
 .. sourcecode:: bash
@@ -94,4 +107,45 @@ StackStorm know of the latest changes to RBAC permission grants.
 
 Validation
 ----------
-XXX
+Lets take what we have achieved for a spin using the StackStorm CLI.
+
+1. Setup Authentication token.
+
+.. sourcecode:: bash
+
+    $ st2 auth rbacu1 -p <RBACU1_PASSWORD>
+    $ export ST2_AUTH_TOKEN=<USER_SCOPED_AUTH_TOKEN>
+    $ st2 action list
+
+2. Validate rule visibility and creation.
+
+.. sourcecode:: bash
+
+    $ cd /opt/stackstorm/packs/x
+    $ cp /usr/share/doc/st2/examples/rules/sample_rule_with_timer.yaml rules/
+    $ sed -i 's/pack: "examples"/pack: "x"/g' rules/sample_rule_with_timer.yaml
+    $ st2 rule create rules/sample_rule_with_timer.yaml
+    $ st2 rule get x.sample_rule_with_timer.yaml
+    $ st2 rule delete x.sample_rule_with_timer.yaml
+
+    # Expect Failure
+    $ st2 rule get <EXISTING_RULE_REF>
+
+3. Validation action visibility, creation and execute.
+
+.. sourcecode:: bash
+
+    $ cd /opt/stackstorm/packs/x
+    $ cp /usr/share/doc/st2/examples/actions/local.yaml actions/
+    $ echo "pack: x" >> actions/local.yaml
+    $ st2 action create actions/local.yaml
+    $ st2 action get x.local-notify
+    $ st2 run x.local-notify hostname
+    $ st2 action delete x.local-notify
+
+    # Expect failure
+    $ st2 action get core.local
+    $ st2 run core.local hostname
+
+This walk-through showcases a narrow slice in StackStorm RBAC capabilities. For a more comprehensive refrence head
+over to http://docs.stackstorm.com/latest/rbac.html.
