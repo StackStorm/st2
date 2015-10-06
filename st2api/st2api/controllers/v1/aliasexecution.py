@@ -20,6 +20,7 @@ from pecan import rest
 
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import AliasExecutionAPI
 from st2common.models.api.auth import get_system_username
 from st2common.models.db.liveaction import LiveActionDB
@@ -118,6 +119,9 @@ class ActionAliasExecutionController(rest.RestController):
     def _schedule_execution(self, action_alias_db, params, notify, context):
         action_ref = action_alias_db.action_ref
         action_db = action_utils.get_action_by_ref(action_ref)
+
+        if not action_db:
+            raise StackStormDBObjectNotFoundError('Action with ref "%s" not found ' % (action_ref))
 
         assert_request_user_has_resource_db_permission(request=pecan.request, resource_db=action_db,
             permission_type=PermissionType.ACTION_EXECUTE)

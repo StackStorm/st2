@@ -15,6 +15,7 @@
 
 import copy
 import re
+import httplib
 
 import jsonschema
 from oslo_config import cfg
@@ -44,6 +45,7 @@ from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_db_permission
 from st2common.rbac.utils import assert_request_user_has_resource_db_permission
 
 __all__ = [
@@ -189,8 +191,23 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         return exclude_fields
 
 
-class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
-    @request_user_has_permission(permission_type=PermissionType.EXECUTION_VIEW)
+class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, ResourceController):
+    # Note: We need to override "get_one" and "get_all" to return 404 since nested controller
+    # don't implement thos methods
+
+    # ResourceController attributes
+    query_options = {}
+    supported_filters = {}
+
+    def get_all(self):
+        abort(httplib.NOT_FOUND)
+
+    def get_one(self, id):
+        abort(httplib.NOT_FOUND)
+
+
+class ActionExecutionChildrenController(BaseActionExecutionNestedController):
+    @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_VIEW)
     @jsexpose(arg_types=[str])
     def get(self, id, **kwargs):
         """
@@ -201,8 +218,8 @@ class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
         return self._get_children(id_=id, **kwargs)
 
 
-class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
-    @request_user_has_permission(permission_type=PermissionType.EXECUTION_VIEW)
+class ActionExecutionAttributeController(BaseActionExecutionNestedController):
+    @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_VIEW)
     @jsexpose()
     def get(self, id, attribute, **kwargs):
         """
@@ -210,7 +227,7 @@ class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
 
         Handles requests:
 
-            GET /actionexecutions/<id>/<attribute>
+            GET /executions/<id>/attribute/<attribute name>
 
         :rtype: ``dict``
         """
@@ -253,7 +270,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         existing_execution = self._get_one(id=execution_id, exclude_fields=self.exclude_fields)
 
         # Merge in any parameters provided by the user
-        new_parameters = copy.deepcopy(existing_execution.parameters)
+        new_parameters = copy.deepcopy(getattr(existing_execution, 'parameters', {}))
         new_parameters.update(parameters)
 
         # Create object for the new execution
@@ -291,10 +308,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
     @jsexpose()
     def get_all(self, exclude_attributes=None, **kw):
         """
-        List all actionexecutions.
+        List all executions.
 
         Handles requests:
-            GET /actionexecutions[?exclude_attributes=result,trigger_instance]
+            GET /executions[?exclude_attributes=result,trigger_instance]
 
         :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
         :type exclude_attributes: ``str``
@@ -317,13 +334,14 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         return self._get_action_executions(exclude_fields=exclude_fields, **kw)
 
+    @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, id, exclude_attributes=None, **kwargs):
         """
         Retrieve a single execution.
 
         Handles requests:
-            GET /actionexecutions/<id>[?exclude_attributes=result,trigger_instance]
+            GET /executions/<id>[?exclude_attributes=result,trigger_instance]
 
         :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
         :type exclude_attributes: ``str``
@@ -341,14 +359,14 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
     def post(self, liveaction):
         return self._handle_schedule_execution(liveaction=liveaction)
 
-    @request_user_has_permission(permission_type=PermissionType.EXECUTION_STOP)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_STOP)
     @jsexpose(arg_types=[str])
     def delete(self, exec_id):
         """
         Stops a single execution.
 
         Handles requests:
-            DELETE /actionexecutions/<id>
+            DELETE /executions/<id>
 
         """
         execution_api = self._get_one(id=exec_id)

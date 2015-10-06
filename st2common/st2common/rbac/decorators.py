@@ -100,11 +100,13 @@ def request_user_has_resource_db_permission(permission_type):
     Note: The same query happens inside the decorator function meaning this is not the most
     efficient approach and we should eventually cache the "get one" results.
     """
+    valid_method_names = ['get_one', 'get', 'post', 'put', 'delete']
+
     def decorate(func):
         function_name = func.__name__
-        if function_name not in ['get_one', 'post', 'put', 'delete']:
-            raise Exception('This decorator should only be used to wrap post, put and delete '
-                            'methods')
+        if function_name not in valid_method_names:
+            raise Exception('This decorator should only be used to wrap %s methods' %
+                            (', '.join(valid_method_names)))
 
         @wraps(func)
         def func_wrapper(*args, **kwargs):

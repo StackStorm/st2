@@ -268,7 +268,7 @@ class ActionCreateAPI(ActionAPI, APIUIDMixin):
             },
             'additionalProperties': False
         },
-        'default': {}
+        'default': []
     }
 
 
@@ -541,12 +541,13 @@ class AliasExecutionAPI(BaseAPI):
             "user": {
                 "type": "string",
                 "description": "User that requested the execution.",
-                "default": "channel"
+                "default": "channel"  # TODO: This value doesnt get set
             },
             "source_channel": {
                 "type": "string",
                 "description": "Channel from which the execution was requested. This is not the \
-                                channel as defined by the notification system."
+                                channel as defined by the notification system.",
+                "required": True
             },
             "notification_channel": {
                 "type": "string",

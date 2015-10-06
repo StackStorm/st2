@@ -35,6 +35,7 @@ LOG = logging.getLogger(__name__)
 
 class ActionExecutionDB(stormbase.StormFoundationDB):
     RESOURCE_TYPE = ResourceType.EXECUTION
+    UID_FIELDS = ['id']
 
     trigger = stormbase.EscapedDictField()
     trigger_type = stormbase.EscapedDictField()
@@ -77,6 +78,11 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             {'fields': ['-start_timestamp', 'action.ref', 'status']}
         ]
     }
+
+    def get_uid(self):
+        # TODO Construct od from non id field:
+        uid = [self.RESOURCE_TYPE, str(self.id)]
+        return ':'.join(uid)
 
     def mask_secrets(self, value):
         result = copy.deepcopy(value)

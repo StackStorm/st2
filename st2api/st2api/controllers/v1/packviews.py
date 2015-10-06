@@ -18,6 +18,7 @@ import mimetypes
 import os
 
 import six
+import pecan
 from pecan import abort, expose, request, response
 from pecan.rest import RestController
 from wsgiref.handlers import format_date_time
@@ -30,6 +31,7 @@ from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 from st2common.content.utils import get_pack_file_abs_path
 from st2common.rbac.types import PermissionType
+from st2common.rbac.utils import assert_request_user_has_resource_db_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
@@ -48,6 +50,11 @@ BOM_LEN = len(codecs.BOM_UTF8)
 # Maximum file size in bytes. If the file on disk is larger then this value, we don't include it
 # in the response. This prevents DDoS / exhaustion attacks.
 MAX_FILE_SIZE = (500 * 1000)
+
+# File paths in the file controller for which RBAC checks are not performed
+WHITELISTED_FILE_PATHS = [
+    'icon.png'
+]
 
 
 class BaseFileController(BasePacksController):
@@ -159,14 +166,13 @@ class FileController(BaseFileController):
     Controller which allows user to retrieve content of a specific file in a pack.
     """
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
     @expose()
     def get_one(self, ref_or_id, *file_path_components):
         """
             Outputs the content of a specific file in a pack.
 
             Handles requests:
-                GET /packs/views/files/<pack_ref_or_id>/<file path>
+                GET /packs/views/file/<pack_ref_or_id>/<file path>
         """
         pack_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
@@ -179,6 +185,11 @@ class FileController(BaseFileController):
 
         file_path = os.path.join(*file_path_components)
         pack_name = pack_db.name
+
+        # Note: Until list filtering is in place we don't require RBAC check for icon file
+        if file_path not in WHITELISTED_FILE_PATHS:
+            assert_request_user_has_resource_db_permission(request=pecan.request,
+               resource_db=pack_db, permission_type=PermissionType.PACK_VIEW)
 
         normalized_file_path = get_pack_file_abs_path(pack_name=pack_name, file_path=file_path)
         if not normalized_file_path or not os.path.isfile(normalized_file_path):
