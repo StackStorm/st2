@@ -45,20 +45,11 @@ class ParamikoRemoteCommandAction(RemoteAction):
 
             command = 'sudo -E -- bash -c %s' % (command)
         else:
-            if self.user and self.user != LOGGED_USER_USERNAME:
-                # Need to use sudo to run as a different user
-                user = quote_unix(self.user)
-                if env_str:
-                    command = quote_unix('%s && cd %s && %s' % (env_str, cwd, self.command))
-                else:
-                    command = quote_unix('cd %s && %s' % (cwd, self.command))
-                command = 'sudo -E -u %s -- bash -c %s' % (user, command)
+            if env_str:
+                command = '%s && cd %s && %s' % (env_str, cwd,
+                                                 self.command)
             else:
-                if env_str:
-                    command = '%s && cd %s && %s' % (env_str, cwd,
-                                                     self.command)
-                else:
-                    command = 'cd %s && %s' % (cwd, self.command)
+                command = 'cd %s && %s' % (cwd, self.command)
 
         LOG.debug('Command to run on remote host will be: %s', command)
         return command
