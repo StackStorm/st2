@@ -16,7 +16,7 @@
 import httplib
 
 import six
-import pecan
+#import pecan
 
 from st2common.persistence.auth import User
 from st2common.models.db.auth import UserDB
@@ -112,10 +112,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
 
         supported_endpoints = [
             # Sensors
-            #{
+            # {
             #    'path': '/v1/sensors',
             #    'method': 'GET'
-            #}
+            # }
             {
                 'path': '/v1/sensortypes/%s' % (sensor_model.ref),
                 'method': 'GET'
@@ -126,10 +126,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'payload': {'enabled': False}
             },
             # Actions
-            #{
+            # {
             #    'path': '/v1/actions',
             #    'method': 'GET'
-            #},
+            # },
             {
                 'path': '/v1/actions/wolfpack.action-1',
                 'method': 'GET'
@@ -149,10 +149,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'method': 'DELETE'
             },
             # Rules
-            #{
+            # {
             #    'path': '/v1/rules',
             #    'method': 'GET'
-            #},
+            # },
             {
                 'path': '/v1/rules/%s' % (rule_model.ref),
                 'method': 'GET'
@@ -172,10 +172,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'method': 'DELETE'
             },
             # Action Executions
-            #{
+            # {
             #    'path': '/v1/executions',
             #    'method': 'GET'
-            #},
+            # },
             {
                 'path': '/v1/executions/%s' % (execution_model.id),
                 'method': 'GET'
@@ -199,10 +199,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'path': '/v1/executions/%s/attribute/trigger_instance' % (execution_model.id),
                 'method': 'GET'
             },
-            #{
-            #    'path': '/v1/executions/%s/children' % (execution_model.id),
-            #    'method': 'GET'
-            #},
+            {
+                'path': '/v1/executions/%s/children' % (execution_model.id),
+                'method': 'GET'
+            },
             # Alias executions
         ]
 
@@ -217,10 +217,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
 
         # Test that access to icon.png file doesn't require any permissions
         # TODO: This doesn't work since controler returns icon/png content-type
-        #setattr(type(pecan.request), 'content_type', 'a/a')
-        #response = self.app.get('/v1/packs/views/file/dummy_pack_2/icon.png',
+        # setattr(type(pecan.request), 'content_type', 'a/a')
+        # response = self.app.get('/v1/packs/views/file/dummy_pack_2/icon.png',
         #                        expect_errors=True)
-        #self.assertEqual(response.status_code, httplib.OK)
+        # self.assertEqual(response.status_code, httplib.OK)
 
         # Other files should return forbidden
         response = self.app.get('/v1/packs/views/file/dummy_pack_2/pack.yaml',
