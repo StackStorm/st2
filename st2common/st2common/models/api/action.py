@@ -268,7 +268,7 @@ class ActionCreateAPI(ActionAPI, APIUIDMixin):
             },
             'additionalProperties': False
         },
-        'default': {}
+        'default': []
     }
 
 
