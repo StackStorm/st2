@@ -22,7 +22,7 @@ class ParamikoRemoteComamndActionTests(unittest2.TestCase):
 
     def test_get_command_string_no_env_vars(self):
         cmd_action = ParamikoRemoteComamndActionTests._get_test_command_action('echo boo bah baz')
-        ex = 'sudo -E -u estee -- bash -c \'cd /tmp && echo boo bah baz\''
+        ex = 'cd /tmp && echo boo bah baz'
         self.assertEqual(cmd_action.get_full_command_string(), ex)
         # With sudo
         cmd_action.sudo = True
@@ -33,16 +33,15 @@ class ParamikoRemoteComamndActionTests(unittest2.TestCase):
         # E.g. st2 run core.remote hosts=localhost cmd='"/tmp/space stuff.sh"'
         cmd_action = ParamikoRemoteComamndActionTests._get_test_command_action(
             '"/t/space stuff.sh"')
-        ex = 'sudo -E -u estee -- bash -c \'cd /tmp && "/t/space stuff.sh"\''
+        ex = 'cd /tmp && "/t/space stuff.sh"'
         self.assertEqual(cmd_action.get_full_command_string(), ex)
 
     def test_get_command_string_with_env_vars(self):
         cmd_action = ParamikoRemoteComamndActionTests._get_test_command_action('echo boo bah baz')
         cmd_action.env_vars = {'FOO': 'BAR', 'BAR': 'BEET CAFE'}
-        ex = 'sudo -E -u estee -- bash -c ' + \
-             '\'export FOO=BAR ' + \
-             'BAR=\'"\'"\'BEET CAFE\'"\'"\'' + \
-             ' && cd /tmp && echo boo bah baz\''
+        ex = 'export FOO=BAR ' + \
+             'BAR=\'BEET CAFE\'' + \
+             ' && cd /tmp && echo boo bah baz'
         self.assertEqual(cmd_action.get_full_command_string(), ex)
 
         # With sudo
