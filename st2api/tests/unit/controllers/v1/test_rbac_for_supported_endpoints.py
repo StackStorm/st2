@@ -15,21 +15,11 @@
 
 import httplib
 
-import mock
 import six
 import pecan
 
-from st2common.transport.publishers import PoolPublisher
-from st2common.rbac.types import PermissionType
-from st2common.rbac.types import ResourceType
 from st2common.persistence.auth import User
-from st2common.persistence.rbac import Role
-from st2common.persistence.rbac import UserRoleAssignment
-from st2common.persistence.rbac import PermissionGrant
 from st2common.models.db.auth import UserDB
-from st2common.models.db.rbac import RoleDB
-from st2common.models.db.rbac import UserRoleAssignmentDB
-from st2common.models.db.rbac import PermissionGrantDB
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
 
@@ -44,7 +34,13 @@ TEST_FIXTURES = {
     'runners': ['testrunner1.yaml'],
     'sensors': ['sensor1.yaml'],
     'actions': ['action1.yaml', 'local.yaml'],
+    'rules': ['rule1.yaml'],
+    'triggers': ['trigger1.yaml'],
+    'triggertypes': ['triggertype1.yaml'],
+    'executions': ['execution1.yaml'],
+    'liveactions': ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml'],
 }
+
 MOCK_ACTION_1 = {
     'name': 'ma.dummy.action',
     'pack': 'examples',
@@ -57,6 +53,30 @@ MOCK_ACTION_1 = {
         'd': {'type': 'string', 'default': 'D1', 'immutable': True}
     }
 }
+
+MOCK_RULE_1 = {
+    'enabled': True,
+    'name': 'st2.test.rule2',
+    'pack': 'yoyohoneysingh',
+    'trigger': {
+        'type': 'wolfpack.triggertype-1'
+    },
+    'criteria': {
+        'trigger.k1': {
+            'pattern': 't1_p_v',
+            'type': 'equals'
+        }
+    },
+    'action': {
+        'ref': 'sixpack.st2.test.action',
+        'parameters': {
+            'ip2': '{{rule.k1}}',
+            'ip1': '{{trigger.t1_p}}'
+        }
+    },
+    'description': ''
+}
+
 
 class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
     """
@@ -82,10 +102,14 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         self.users['no_permissions'] = user_1_db
 
         # Insert mock objects - those objects are used to test get one, edit and delete operations
-        print self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
-                                                 fixtures_dict=TEST_FIXTURES)
+        self.models = self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
+                                                               fixtures_dict=TEST_FIXTURES)
 
     def test_api_endpoints_behind_rbac_wall(self):
+        sensor_model = self.models['sensors']['sensor1.yaml']
+        rule_model = self.models['rules']['rule1.yaml']
+        execution_model = self.models['executions']['execution1.yaml']
+
         supported_endpoints = [
             # Sensors
             #{
@@ -93,8 +117,13 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             #    'method': 'GET'
             #}
             {
-                'path': '/v1/sensortypes/generic.sensor1',
+                'path': '/v1/sensortypes/%s' % (sensor_model.ref),
                 'method': 'GET'
+            },
+            {
+                'path': '/v1/sensortypes/%s' % (sensor_model.ref),
+                'method': 'PUT',
+                'payload': {'enabled': False}
             },
             # Actions
             #{
@@ -118,15 +147,70 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             {
                 'path': '/v1/actions/wolfpack.action-1',
                 'method': 'DELETE'
-            }
-
+            },
+            # Rules
+            #{
+            #    'path': '/v1/rules',
+            #    'method': 'GET'
+            #},
+            {
+                'path': '/v1/rules/%s' % (rule_model.ref),
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/rules',
+                'method': 'POST',
+                'payload': MOCK_RULE_1
+            },
+            {
+                'path': '/v1/rules/%s' % (rule_model.ref),
+                'method': 'PUT',
+                'payload': {'enabled': False}
+            },
+            {
+                'path': '/v1/rules/%s' % (rule_model.ref),
+                'method': 'DELETE'
+            },
+            # Action Executions
+            #{
+            #    'path': '/v1/executions',
+            #    'method': 'GET'
+            #},
+            {
+                'path': '/v1/executions/%s' % (execution_model.id),
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/executions',
+                'method': 'POST',
+                'payload': {'action': 'core.local'}  # schedule execution / run action
+            },
+            {
+                'path': '/v1/executions/%s' % (execution_model.id),
+                'method': 'DELETE'  # stop execution
+            },
+            {
+                'path': '/v1/executions/%s/re_run' % (execution_model.id),
+                'method': 'POST',  # re-run execution
+                'payload': {'parameters': {}}
+            },
+            # Action execution nested controllers
+            {
+                'path': '/v1/executions/%s/attribute/trigger_instance' % (execution_model.id),
+                'method': 'GET'
+            },
+            #{
+            #    'path': '/v1/executions/%s/children' % (execution_model.id),
+            #    'method': 'GET'
+            #},
+            # Alias executions
         ]
 
         self.use_user(self.users['no_permissions'])
         for endpoint in supported_endpoints:
-            print endpoint['path'], endpoint['method']
+            msg = '%s "%s" didn\'t return 403 status code' % (endpoint['method'], endpoint['path'])
             response = self._perform_request_for_endpoint(endpoint=endpoint)
-            self.assertEqual(response.status_code, httplib.FORBIDDEN, endpoint['path'])
+            self.assertEqual(response.status_code, httplib.FORBIDDEN, msg)
 
     def test_icon_png_file_is_whitelisted(self):
         self.use_user(self.users['no_permissions'])
