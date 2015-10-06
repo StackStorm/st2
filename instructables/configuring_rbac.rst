@@ -6,8 +6,7 @@ control over what functions are accessible to a user within StackStorm.
 
 **Possible scenarios :**
 
-1. A user owns a pack i.e is able to view, create, delete, modify and where applicable execute various resources like
-  actions, rules, sensors.
+1. A user owns a pack i.e is able to view, create, delete, modify and where applicable execute various resources like actions, rules, sensors.
 2. A user can create rules, execute actions and view a handful of actions.
 3. A user capable of viewing actions in a pack but cannot execute any action.
 
