@@ -4,14 +4,14 @@ Configuring RBAC
 StackStorm enterprise edition brings support for Role Based Access Control(RBAC). RBAC allows a StackStorm administrator
 control over what functions are accessible to a user within StackStorm.
 
-Possible scenarios :
+**Possible scenarios :**
 
-- A user owns a pack i.e is able to view, create, delete, modify and where applicable execute various resources like
+1. A user owns a pack i.e is able to view, create, delete, modify and where applicable execute various resources like
   actions, rules, sensors.
-- A user can create rules, execute actions and view a handful of actions.
-- A user capable of viewing actions in a pack but cannot execute any action.
+2. A user can create rules, execute actions and view a handful of actions.
+3. A user capable of viewing actions in a pack but cannot execute any action.
 
-This guide provides a walk-through on how to configure a user as a pack owner. The steps to be followed are by an
+This guide provides a walk-through of scenario 1 i.e configuring a user as a pack owner. The steps to be followed are by an
 Administrator of StackStorm on a box that is running StackStorm.
 
 User creation
@@ -28,10 +28,9 @@ To create a user and set-up a password on most linux systems -
 .. sourcecode:: bash
 
     $ useradd rbacu1
-
     $ passwd rbacu1
 
-Once this user is created StackStorm will allow access to this user. Optionally, to validate try -
+Once this user is created StackStorm will allow access to this user. (Optional) To validate try -
 
 .. sourcecode:: bash
 
@@ -41,8 +40,8 @@ Once this user is created StackStorm will allow access to this user. Optionally,
 
 Role creation
 -------------
-A newly created user has no permissions assigned. Each permission must be explicitly assign to a user. To assign a
-permission grants StackStorm requires creation of a role. In this case we are trying to create a pack owner role.
+A newly created user has no assigned permissions. Each permission must be explicitly assigned to a user. To assign
+permission grants StackStorm requires creation of a role and then associating this role with a user. In this case we are trying to create a pack owner role.
 
 Lets first make sure there is a pack `x` we can use to experiment.
 
@@ -56,8 +55,7 @@ Lets first make sure there is a pack `x` we can use to experiment.
     $ touch requirements.txt
     $ cp core/icon.png x/icon.png
 
-
-Create file `/opt/stackstorm/rbac/roles/x_pack_owner.yaml` with the following content -
+Now we setup a role. Create file `/opt/stackstorm/rbac/roles/x_pack_owner.yaml` with the following content -
 
 .. sourcecode:: bash
 
@@ -74,8 +72,8 @@ Create file `/opt/stackstorm/rbac/roles/x_pack_owner.yaml` with the following co
                - "rule_all"
                - "action_all"
 
-In this case for a `pack owner` role would require the user to be able to view, create, modify and delete all contents
-of a pack. In this particular case we are choosing pack `x` as the target of ownership.
+A `pack owner` role would require the user to be able to view, create, modify and delete all contents
+of a pack. Again, lets pick pack `x` as the target of ownership.
 
 See http://docs.stackstorm.com/latest/rbac.html#available-permission-types for a full list of permission types.
 
@@ -96,13 +94,13 @@ with the following content -
 
 Applying RBAC
 -------------
-Once again as a StackStorm administrator and on a box with StackStrom installed run -
+As a StackStorm administrator and on a box with StackStrom installed run -
 
 .. sourcecode:: bash
 
     st2-apply-rbac-definitions
 
-This command will sync up the contents of StackStorm with content of the file system. Only after running this command does
+This command will sync up the StackStorm RBAC state with file system state. Only after running this command does
 StackStorm know of the latest changes to RBAC permission grants.
 
 Validation
