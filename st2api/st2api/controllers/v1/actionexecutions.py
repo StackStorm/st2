@@ -15,6 +15,7 @@
 
 import copy
 import re
+import httplib
 
 import jsonschema
 from oslo_config import cfg
@@ -190,8 +191,23 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         return exclude_fields
 
 
-class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
-    @request_user_has_permission(permission_type=PermissionType.EXECUTION_VIEW)
+class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, ResourceController):
+    # Note: We need to override "get_one" and "get_all" to return 404 since nested controller
+    # don't implement thos methods
+
+    # ResourceController attributes
+    query_options = {}
+    supported_filters = {}
+
+    def get_all(self):
+        abort(httplib.NOT_FOUND)
+
+    def get_one(self, id):
+        abort(httplib.NOT_FOUND)
+
+
+class ActionExecutionChildrenController(BaseActionExecutionNestedController):
+    @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_VIEW)
     @jsexpose(arg_types=[str])
     def get(self, id, **kwargs):
         """
@@ -202,8 +218,8 @@ class ActionExecutionChildrenController(ActionExecutionsControllerMixin):
         return self._get_children(id_=id, **kwargs)
 
 
-class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
-    @request_user_has_permission(permission_type=PermissionType.EXECUTION_VIEW)
+class ActionExecutionAttributeController(BaseActionExecutionNestedController):
+    @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_VIEW)
     @jsexpose()
     def get(self, id, attribute, **kwargs):
         """
@@ -211,7 +227,7 @@ class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
 
         Handles requests:
 
-            GET /executions/<id>/<attribute>
+            GET /executions/<id>/attribute/<attribute name>
 
         :rtype: ``dict``
         """
