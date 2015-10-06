@@ -211,7 +211,7 @@ class ActionExecutionAttributeController(ActionExecutionsControllerMixin):
 
         Handles requests:
 
-            GET /actionexecutions/<id>/<attribute>
+            GET /executions/<id>/<attribute>
 
         :rtype: ``dict``
         """
@@ -292,10 +292,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
     @jsexpose()
     def get_all(self, exclude_attributes=None, **kw):
         """
-        List all actionexecutions.
+        List all executions.
 
         Handles requests:
-            GET /actionexecutions[?exclude_attributes=result,trigger_instance]
+            GET /executions[?exclude_attributes=result,trigger_instance]
 
         :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
         :type exclude_attributes: ``str``
@@ -325,7 +325,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         Retrieve a single execution.
 
         Handles requests:
-            GET /actionexecutions/<id>[?exclude_attributes=result,trigger_instance]
+            GET /executions/<id>[?exclude_attributes=result,trigger_instance]
 
         :param exclude_attributes: Comma delimited string of attributes to exclude from the object.
         :type exclude_attributes: ``str``
@@ -350,7 +350,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         Stops a single execution.
 
         Handles requests:
-            DELETE /actionexecutions/<id>
+            DELETE /executions/<id>
 
         """
         execution_api = self._get_one(id=exec_id)
