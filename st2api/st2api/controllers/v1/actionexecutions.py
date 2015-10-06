@@ -270,7 +270,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         existing_execution = self._get_one(id=execution_id, exclude_fields=self.exclude_fields)
 
         # Merge in any parameters provided by the user
-        new_parameters = copy.deepcopy(getattr('existing_execution', 'parameters', {}))
+        new_parameters = copy.deepcopy(getattr(existing_execution, 'parameters', {}))
         new_parameters.update(parameters)
 
         # Create object for the new execution
