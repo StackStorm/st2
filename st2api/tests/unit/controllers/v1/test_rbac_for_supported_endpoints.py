@@ -16,7 +16,7 @@
 import httplib
 
 import six
-#import pecan
+# import pecan
 
 from st2common.persistence.auth import User
 from st2common.models.db.auth import UserDB
@@ -111,6 +111,24 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         execution_model = self.models['executions']['execution1.yaml']
 
         supported_endpoints = [
+            # Packs
+            # {
+            #    'path': '/v1/packs',
+            #    'method': 'GET'
+            # }
+            {
+                'path': '/v1/packs/dummy_pack_1',
+                'method': 'GET'
+            },
+            # Pack views
+            {
+                'path': '/v1/packs/views/files/dummy_pack_1',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/packs/views/file/dummy_pack_1/pack.yaml',
+                'method': 'GET'
+            },
             # Sensors
             # {
             #    'path': '/v1/sensors',
