@@ -51,6 +51,11 @@ BOM_LEN = len(codecs.BOM_UTF8)
 # in the response. This prevents DDoS / exhaustion attacks.
 MAX_FILE_SIZE = (500 * 1000)
 
+# File paths in the file controller for which RBAC checks are not performed
+WHITELISTED_FILE_PATHS = [
+    'icon.png'
+]
+
 
 class BaseFileController(BasePacksController):
     model = PackAPI
@@ -182,7 +187,7 @@ class FileController(BaseFileController):
         pack_name = pack_db.name
 
         # Note: Until list filtering is in place we don't require RBAC check for icon file
-        if file_path != 'icon.png':
+        if file_path not in WHITELISTED_FILE_PATHS:
             assert_request_user_has_resource_db_permission(request=pecan.request,
                resource_db=pack_db, permission_type=PermissionType.PACK_VIEW)
 
