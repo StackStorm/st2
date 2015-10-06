@@ -53,7 +53,8 @@ class FunctionalTest(DbTestCase):
                 'modules': opts.modules,
                 'debug': opts.debug,
                 'auth_enable': opts.auth_enable,
-                'errors': {'__force_dict__': True}
+                'errors': {'__force_dict__': True},
+                'guess_content_type_from_ext': False
             }
         }
 

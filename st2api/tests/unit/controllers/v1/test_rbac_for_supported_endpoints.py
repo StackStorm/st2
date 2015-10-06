@@ -16,7 +16,6 @@
 import httplib
 
 import six
-# import pecan
 
 from st2common.persistence.auth import User
 from st2common.models.db.auth import UserDB
@@ -241,11 +240,16 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(self.users['no_permissions'])
 
         # Test that access to icon.png file doesn't require any permissions
-        # TODO: This doesn't work since controler returns icon/png content-type
-        # setattr(type(pecan.request), 'content_type', 'a/a')
-        # response = self.app.get('/v1/packs/views/file/dummy_pack_2/icon.png',
-        #                        expect_errors=True)
-        # self.assertEqual(response.status_code, httplib.OK)
+        # Note: We need to mock content-type since pecan and webest don't like if content-type is
+        # set dynamically in the request handler aka  "pecan.core: ERROR: Controller 'get_one'
+        # defined does not support content_type 'image/png'. Supported type(s): ['text/html']" is
+        # returned
+        from st2api.controllers.v1.packviews import FileController
+        FileController.get_one._pecan['content_types'] = {'image/png': None}
+        FileController.get_one._pecan['explicit_content_type'] = True
+
+        response = self.app.get('/v1/packs/views/file/dummy_pack_2/icon.png')
+        self.assertEqual(response.status_code, httplib.OK)
 
         # Other files should return forbidden
         response = self.app.get('/v1/packs/views/file/dummy_pack_2/pack.yaml',
