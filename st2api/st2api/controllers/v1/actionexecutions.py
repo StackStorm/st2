@@ -44,6 +44,7 @@ from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_db_permission
 from st2common.rbac.utils import assert_request_user_has_resource_db_permission
 
 __all__ = [
@@ -317,6 +318,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         return self._get_action_executions(exclude_fields=exclude_fields, **kw)
 
+    @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, id, exclude_attributes=None, **kwargs):
         """
