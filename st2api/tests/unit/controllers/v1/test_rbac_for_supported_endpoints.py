@@ -34,6 +34,7 @@ TEST_FIXTURES = {
     'runners': ['testrunner1.yaml'],
     'sensors': ['sensor1.yaml'],
     'actions': ['action1.yaml', 'local.yaml'],
+    'aliases': ['alias1.yaml'],
     'rules': ['rule1.yaml'],
     'triggers': ['trigger1.yaml'],
     'triggertypes': ['triggertype1.yaml'],
@@ -222,6 +223,12 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'method': 'GET'
             },
             # Alias executions
+            {
+                'path': '/v1/aliasexecution',
+                'method': 'POST',
+                'payload': {'name': 'alias1', 'format': 'foo', 'command': 'bar',
+                            'user': 'channel', 'source_channel': 'bar'}
+            },
         ]
 
         self.use_user(self.users['no_permissions'])
