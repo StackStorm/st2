@@ -18,11 +18,13 @@
 This script is used to automate generation of requirements.txt for st2 components.
 
 The idea behind this script is that that each component has it's own requirements
-"in-requirements.txt" file (input requirements file). In addition to this file,
-there's also the top-level "fixed-requirements.txt" which pins production versions
-for the whole st2 stack. During production use (building, packaging, etc)
-requirements.txt is generated from in-requirements.txt where version of packages are
-fixed according to fixed-requirements.txt.
+"in-requirements.txt" file. in-requirements.txt is an input requirements file -
+a requirements file with dependencies but WITHOUT any version restrictions.
+
+In addition to this file, there's also the top-level "fixed-requirements.txt"
+which pins production versions for the whole st2 stack. During production use
+(building, packaging, etc) requirements.txt is generated from in-requirements.txt
+where version of packages are fixed according to fixed-requirements.txt.
 """
 
 import argparse
@@ -85,7 +87,7 @@ def merge_source_requirements(sources):
     merged_requirements = []
     for infile_path in (locate_file(p, must_exist=True) for p in sources):
         for req in load_requirements(infile_path):
-            # Requirements lines like "project[version_spec]"
+            # Requirements starting with project name "project ..."
             if req.req:
                 # Skip already added project name
                 if req.req.project_name in projects:
