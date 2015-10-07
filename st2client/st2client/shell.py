@@ -299,6 +299,10 @@ class Shell(object):
         if command_class_name in SKIP_AUTH_CLASSES:
             return client
 
+        # We also skip automatic authentication if token is provided via the environment variable
+        if os.environ.get('ST2_AUTH_TOKEN', None) is not None:
+            return client
+
         if username and password:
             # Credentials are provided, try to authenticate agaist the API
             try:
