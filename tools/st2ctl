@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 LOGFILE="/dev/null"
 WEBUI_LOG_FILE="/var/log/st2/st2web.log"
 COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine st2web mistral st2resultstracker st2notifier"
