@@ -35,6 +35,12 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE_PATH_FULL = os.path.join(BASE_DIR, '../fixtures/st2rc.full.ini')
 CONFIG_FILE_PATH_PARTIAL = os.path.join(BASE_DIR, '../fixtures/st2rc.partial.ini')
 
+MOCK_CONFIG = """
+[credentials]
+username = foo
+password = bar
+"""
+
 
 class TestShell(base.BaseCLITestCase):
     capture_output = True
@@ -265,13 +271,22 @@ class CLITokenCachingTestCase(unittest2.TestCase):
     def setUp(self):
         super(CLITokenCachingTestCase, self).setUp()
         self._mock_config_directory_path = tempfile.mkdtemp()
-        self._p = mock.patch('st2client.shell.ST2_CONFIG_DIRECTORY',
+        self._mock_config_path = os.path.join(self._mock_config_directory_path, 'config')
+        self._p1 = mock.patch('st2client.shell.ST2_CONFIG_DIRECTORY',
                              self._mock_config_directory_path)
-        self._p.start()
+        self._p2 = mock.patch('st2client.shell.ST2_CONFIG_PATH',
+                             self._mock_config_path)
+        self._p1.start()
+        self._p2.start()
 
     def tearDown(self):
         super(CLITokenCachingTestCase, self).tearDown()
-        self._p.stop()
+        self._p1.stop()
+        self._p2.stop()
+
+    def _write_mock_config(self):
+        with open(self._mock_config_path, 'w') as fp:
+            fp.write(MOCK_CONFIG)
 
     def test_get_cached_auth_token_no_token_cache_file(self):
         client = Client()
@@ -350,3 +365,42 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         result = shell._get_cached_auth_token(client=client, username=username,
                                               password=password)
         self.assertEqual(result, 'fyeah')
+
+    def test_automatic_auth_skipped_on_auth_command(self):
+        self._write_mock_config()
+
+        shell = Shell()
+        shell._get_auth_token = mock.Mock()
+
+        argv = ['auth', 'testu', '-p', 'testp']
+        args = shell.parser.parse_args(args=argv)
+        shell.get_client(args=args)
+        self.assertEqual(shell._get_auth_token.call_count, 0)
+
+    def test_automatic_auth_skipped_if_token_provided_as_env_variable(self):
+        self._write_mock_config()
+
+        shell = Shell()
+        shell._get_auth_token = mock.Mock()
+
+        os.environ['ST2_AUTH_TOKEN'] = 'fooo'
+        argv = ['action', 'list']
+        args = shell.parser.parse_args(args=argv)
+        shell.get_client(args=args)
+        self.assertEqual(shell._get_auth_token.call_count, 0)
+
+    def test_automatic_auth_skipped_if_token_provided_as_cli_argument(self):
+        self._write_mock_config()
+
+        shell = Shell()
+        shell._get_auth_token = mock.Mock()
+
+        argv = ['action', 'list', '--token=bar']
+        args = shell.parser.parse_args(args=argv)
+        shell.get_client(args=args)
+        self.assertEqual(shell._get_auth_token.call_count, 0)
+
+        argv = ['action', 'list', '-t', 'bar']
+        args = shell.parser.parse_args(args=argv)
+        shell.get_client(args=args)
+        self.assertEqual(shell._get_auth_token.call_count, 0)

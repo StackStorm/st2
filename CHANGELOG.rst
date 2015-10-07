@@ -61,6 +61,8 @@ in development
   to object automatically. (bug-fix)
 * Paramiko SSH runner no longer runs a remote command with ``sudo`` if local user and remote user
   differ. (bug-fix)
+* Fix a bug with the CLI token precedence - now the auth token specified as an environment variable
+  or as a command line argument has precedence over credentials in the CLI config. (bug fix)
 
 0.13.2 - September 09, 2015
 ---------------------------

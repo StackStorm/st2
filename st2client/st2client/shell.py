@@ -277,6 +277,22 @@ class Shell(object):
             LOG.info('Skipping parsing CLI config')
             return client
 
+        # We skip automatic authentication for some commands such as auth
+        try:
+            command_class_name = args.func.im_class.__name__
+        except Exception:
+            command_class_name = None
+
+        if command_class_name in SKIP_AUTH_CLASSES:
+            return client
+
+        # We also skip automatic authentication if token is provided via the environment variable
+        # or as a command line argument
+        env_var_token = os.environ.get('ST2_AUTH_TOKEN', None)
+        cli_argument_token = getattr(args, 'token', None)
+        if env_var_token or cli_argument_token:
+            return client
+
         # If credentials are provided in the CLI config use them and try to authenticate
         rc_config = self._parse_config_file(args=args)
 
@@ -289,15 +305,6 @@ class Shell(object):
         silence_ssl_warnings = rc_config.get('general', {}).get('silence_ssl_warnings', False)
         if silence_ssl_warnings:
             requests.packages.urllib3.disable_warnings()
-
-        # We skip automatic authentication for some commands such as auth
-        try:
-            command_class_name = args.func.im_class.__name__
-        except Exception:
-            command_class_name = None
-
-        if command_class_name in SKIP_AUTH_CLASSES:
-            return client
 
         if username and password:
             # Credentials are provided, try to authenticate agaist the API
