@@ -287,7 +287,10 @@ class Shell(object):
             return client
 
         # We also skip automatic authentication if token is provided via the environment variable
-        if os.environ.get('ST2_AUTH_TOKEN', None):
+        # or as a command line argument
+        env_var_token = os.environ.get('ST2_AUTH_TOKEN', None)
+        cli_argument_token = getattr(args, 'token', None)
+        if env_var_token or cli_argument_token:
             return client
 
         # If credentials are provided in the CLI config use them and try to authenticate
