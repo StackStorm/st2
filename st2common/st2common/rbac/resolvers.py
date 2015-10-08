@@ -281,6 +281,39 @@ class ActionPermissionsResolver(PermissionsResolver):
     Permission resolver for "action" resource type.
     """
 
+    def user_has_permission(self, user_db, permission_type):
+        assert permission_type in [PermissionType.ACTION_LIST]
+
+        log_context = {
+            'user_db': user_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        permission_types = [permission_type]
+
+        # Check direct grants
+        resource_types = [ResourceType.ACTION]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+        if len(permission_grants) >= 1:
+            self._log('Found a direct grant', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
     def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
         assert permission_type in [PermissionType.ACTION_CREATE]
 
@@ -289,10 +322,6 @@ class ActionPermissionsResolver(PermissionsResolver):
         return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
                                                   action_uid=action_uid,
                                                   permission_type=permission_type)
-
-    def user_has_permission(self, user_db, permission_type):
-        # TODO
-        return True
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         action_uid = resource_db.get_uid()
