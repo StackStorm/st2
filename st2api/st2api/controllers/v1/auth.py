@@ -29,6 +29,7 @@ from st2common.exceptions.auth import ApiKeyNotFoundError
 from st2common.persistence.auth import ApiKey
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_api_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 from st2common.util import auth as auth_util
 
@@ -97,8 +98,8 @@ class ApiKeyController(RestController):
 
         return api_keys
 
-    @request_user_has_permission(permission_type=PermissionType.API_KEY_CREATE)
     @jsexpose(body_cls=ApiKeyAPI, status_code=http_client.CREATED)
+    @request_user_has_resource_api_permission(permission_type=PermissionType.API_KEY_CREATE)
     def post(self, api_key_api):
         """
         Create a new entry or update an existing one.
