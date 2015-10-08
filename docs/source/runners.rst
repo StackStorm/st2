@@ -135,6 +135,18 @@ Runner parameters
 
 .. include:: _includes/runner_parameters/python_script.rst
 
+ActionChain runner (action-chain)
+---------------------------------
+
+ActionChain is a no-frills linear workflow, a simple chain of action invocations.
+For more information, please refer to the :doc:`Workflows </workflows>` and
+:doc:`ActionChain </actionchain>` section of documentation.
+
+Runner parameters
+^^^^^^^^^^^^^^^^^
+
+.. include:: _includes/runner_parameters/action_chain.rst
+
 Mistral runner (mistral-v2)
 ---------------------------
 
