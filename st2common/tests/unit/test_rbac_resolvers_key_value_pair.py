@@ -33,7 +33,7 @@ class KeyValuePermissionsResolverTestCase(BasePermissionsResolverTestCase):
         kvp_1_db = KeyValuePair.add_or_update(kvp_1_db)
         self.resources['kvp_1'] = kvp_1_db
 
-    def test_user_has_resource_db_permissions(self):
+    def test_user_has_resource_db_permission(self):
         # Note: Right now we don't support granting permissions on key value items so we just check
         # that the method always returns True
         resolver = KeyValuePermissionsResolver()
