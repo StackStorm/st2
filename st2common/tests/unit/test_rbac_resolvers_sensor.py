@@ -55,6 +55,10 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         user_4_db = User.add_or_update(user_4_db)
         self.users['custom_role_sensor_all_grant'] = user_4_db
 
+        user_5_db = UserDB(name='custom_role_sensor_list_grant')
+        user_5_db = User.add_or_update(user_5_db)
+        self.users['custom_role_sensor_list_grant'] = user_5_db
+
         # Create some mock resources on which permissions can be granted
         sensor_1_db = SensorTypeDB(pack='test_pack_1', name='sensor1')
         sensor_1_db = SensorType.add_or_update(sensor_1_db)
@@ -113,6 +117,17 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         role_4_db = Role.add_or_update(role_4_db)
         self.roles['custom_role_sensor_all_grant'] = role_4_db
 
+        # Custom role - "sensor_list" grant
+        grant_db = PermissionGrantDB(resource_uid='*',
+                                     resource_type=ResourceType.SENSOR,
+                                     permission_types=[PermissionType.SENSOR_LIST])
+        grant_db = PermissionGrant.add_or_update(grant_db)
+        permission_grants = [str(grant_db.id)]
+        role_5_db = RoleDB(name='custom_role_sensor_list_grant',
+                           permission_grants=permission_grants)
+        role_5_db = Role.add_or_update(role_5_db)
+        self.roles['custom_role_sensor_list_grant'] = role_5_db
+
         # Create some mock role assignments
         user_db = self.users['custom_role_sensor_pack_grant']
         role_assignment_db = UserRoleAssignmentDB(
@@ -137,7 +152,41 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
             role=self.roles['custom_role_sensor_all_grant'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
-    def test_user_has_resource_db_permissions(self):
+        user_db = self.users['custom_role_sensor_list_grant']
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_db.name,
+            role=self.roles['custom_role_sensor_list_grant'].name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+    def test_user_has_permission(self):
+        resolver = SensorPermissionsResolver()
+
+        # Admin user, should always return true
+        user_db = self.users['admin']
+        self.assertTrue(resolver.user_has_permission(user_db=user_db,
+                                                     permission_type=PermissionType.SENSOR_LIST))
+
+        # Observer, should always return true for VIEW permissions
+        user_db = self.users['observer']
+        self.assertTrue(resolver.user_has_permission(user_db=user_db,
+                                                     permission_type=PermissionType.SENSOR_LIST))
+
+        # No roles, should return false for everything
+        user_db = self.users['no_roles']
+        self.assertFalse(resolver.user_has_permission(user_db=user_db,
+                                                      permission_type=PermissionType.SENSOR_LIST))
+
+        # Custom role with no permission grants, should return false for everything
+        user_db = self.users['1_custom_role_no_permissions']
+        self.assertFalse(resolver.user_has_permission(user_db=user_db,
+                                                      permission_type=PermissionType.SENSOR_LIST))
+
+        # Custom role with "sensor_list" grant
+        user_db = self.users['custom_role_sensor_list_grant']
+        self.assertTrue(resolver.user_has_permission(user_db=user_db,
+                                                     permission_type=PermissionType.SENSOR_LIST))
+
+    def test_user_has_resource_db_permission(self):
         resolver = SensorPermissionsResolver()
         all_permission_types = PermissionType.get_valid_permissions_for_resource_type(
             ResourceType.SENSOR)

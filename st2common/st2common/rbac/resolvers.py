@@ -46,6 +46,12 @@ __all__ = [
     'get_resolver_for_permission_type'
 ]
 
+# "Read" permission names which are granted to observer role by default
+READ_PERMISSION_NAMES = [
+    'view',
+    'list'
+]
+
 
 class PermissionsResolver(object):
     """
@@ -54,6 +60,12 @@ class PermissionsResolver(object):
     Permission resolver classes implement permission resolving / checking logic for a particular
     resource type.
     """
+
+    def user_has_permission(self, user_db, permission_type):
+        """
+        Method for checking user permissions which are not tied to a particular resource.
+        """
+        raise NotImplementedError()
 
     def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
         """
@@ -86,7 +98,7 @@ class PermissionsResolver(object):
         elif SystemRole.ADMIN in user_role_names:
             # Admin has all the permissions
             return True
-        elif SystemRole.OBSERVER in user_role_names and permission_name == 'view':
+        elif SystemRole.OBSERVER in user_role_names and permission_name in READ_PERMISSION_NAMES:
             # Observer role has "view" permission on all the resources
             return True
 
@@ -176,8 +188,37 @@ class SensorPermissionsResolver(PermissionsResolver):
     """
 
     def user_has_permission(self, user_db, permission_type):
-        # TODO
-        return True
+        assert permission_type in [PermissionType.SENSOR_LIST]
+
+        log_context = {
+            'user_db': user_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        permission_types = [permission_type]
+
+        # Check direct grants
+        resource_types = [ResourceType.SENSOR]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+        if len(permission_grants) >= 1:
+            self._log('Found a direct grant', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
