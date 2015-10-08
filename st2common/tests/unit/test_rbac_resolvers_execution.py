@@ -233,6 +233,7 @@ class ExecutionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         resolver = ExecutionPermissionsResolver()
         all_permission_types = PermissionType.get_valid_permissions_for_resource_type(
             ResourceType.EXECUTION)
+        all_permission_types.remove(PermissionType.EXECUTION_LIST)
 
         # Admin user, should always return true
         resource_db = self.resources['exec_1']
