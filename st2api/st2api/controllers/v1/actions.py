@@ -75,7 +75,7 @@ class ActionsController(resource.ContentPackResourceController):
         super(ActionsController, self).__init__(*args, **kwargs)
         self._trigger_dispatcher = TriggerDispatcher(LOG)
 
-    @request_user_has_permission(permission_type=PermissionType.ACTION_VIEW)
+    @request_user_has_permission(permission_type=PermissionType.ACTION_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
         return super(ActionsController, self)._get_all(**kwargs)

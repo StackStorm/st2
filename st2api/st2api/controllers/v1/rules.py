@@ -59,7 +59,7 @@ class RuleController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @request_user_has_permission(permission_type=PermissionType.RULE_VIEW)
+    @request_user_has_permission(permission_type=PermissionType.RULE_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
         return super(RuleController, self)._get_all(**kwargs)

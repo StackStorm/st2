@@ -304,7 +304,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         'timestamp_lt': lambda value: isotime.parse(value=value)
     }
 
-    @request_user_has_permission(permission_type=PermissionType.EXECUTION_VIEW)
+    @request_user_has_permission(permission_type=PermissionType.EXECUTION_LIST)
     @jsexpose()
     def get_all(self, exclude_attributes=None, **kw):
         """

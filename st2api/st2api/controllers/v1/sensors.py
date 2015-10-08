@@ -47,7 +47,7 @@ class SensorTypeController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @request_user_has_permission(permission_type=PermissionType.SENSOR_VIEW)
+    @request_user_has_permission(permission_type=PermissionType.SENSOR_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
         return super(SensorTypeController, self)._get_all(**kwargs)

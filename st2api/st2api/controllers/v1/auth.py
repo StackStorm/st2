@@ -82,7 +82,7 @@ class ApiKeyController(RestController):
             LOG.exception('Failed to serialize API key.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    @request_user_has_permission(permission_type=PermissionType.API_KEY_VIEW)
+    @request_user_has_permission(permission_type=PermissionType.API_KEY_LIST)
     @jsexpose(arg_types=[str])
     def get_all(self, **kw):
         """
