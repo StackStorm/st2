@@ -40,9 +40,10 @@ LOG = logging.getLogger(__name__)
 def get_trigger_db_given_type_and_params(type=None, parameters=None):
     try:
         parameters = parameters or {}
+        trigger_dbs = Trigger.query(type=type,
+                                    parameters=parameters)
 
-        trigger_db = Trigger.query(type=type,
-                                   parameters=parameters).first()
+        trigger_db = trigger_dbs[0] if len(trigger_dbs) > 0 else None
 
         if not parameters and not trigger_db:
             # We need to do double query because some TriggeDB objects without
@@ -80,7 +81,6 @@ def _get_trigger_db(trigger):
         if name and pack:
             ref = ResourceReference.to_string_reference(name=name, pack=pack)
             return get_trigger_db_by_ref(ref)
-
         return get_trigger_db_given_type_and_params(type=trigger['type'],
                                                     parameters=trigger.get('parameters', {}))
     else:
