@@ -31,6 +31,7 @@ class PermissionType(Enum):
     Available permission types.
     """
 
+    PACK_LIST = 'pack_list'
     PACK_VIEW = 'pack_view'
     PACK_CREATE = 'pack_create'
     PACK_MODIFY = 'pack_modify'
@@ -38,10 +39,12 @@ class PermissionType(Enum):
     PACK_ALL = 'pack_all'
 
     # Note: Right now we only have read endpoints + update for sensors types
+    SENSOR_LIST = 'sensor_type_list'
     SENSOR_VIEW = 'sensor_type_view'
     SENSOR_MODIFY = 'sensor_type_modify'
     SENSOR_ALL = 'sensor_type_all'
 
+    ACTION_LIST = 'action_list'
     ACTION_VIEW = 'action_view'
     ACTION_CREATE = 'action_create'
     ACTION_MODIFY = 'action_modify'
@@ -50,11 +53,13 @@ class PermissionType(Enum):
     ACTION_ALL = 'action_all'
 
     # Note: Execution create is granted with "action_execute"
+    EXECUTION_LIST = 'execution_list'
     EXECUTION_VIEW = 'execution_view'
     EXECUTION_RE_RUN = 'execution_rerun'
     EXECUTION_STOP = 'execution_stop'
     EXECUTION_ALL = 'execution_all'
 
+    RULE_LIST = 'rule_list'
     RULE_VIEW = 'rule_view'
     RULE_CREATE = 'rule_create'
     RULE_MODIFY = 'rule_modify'
@@ -71,6 +76,7 @@ class PermissionType(Enum):
     WEBHOOK_DELETE = 'webhook_delete'
     WEBHOOK_ALL = 'webhook_all'
 
+    API_KEY_LIST = 'api_key_list'
     API_KEY_VIEW = 'api_key_view'
     API_KEY_CREATE = 'api_key_create'
     API_KEY_DELETE = 'api_key_delete'
@@ -161,15 +167,19 @@ class SystemRole(Enum):
 # Maps a list of available permission types for each resource
 RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
     ResourceType.PACK: [
+        PermissionType.PACK_LIST,
         PermissionType.PACK_VIEW,
         PermissionType.PACK_CREATE,
         PermissionType.PACK_MODIFY,
         PermissionType.PACK_DELETE,
         PermissionType.PACK_ALL,
 
+        PermissionType.SENSOR_LIST,
         PermissionType.SENSOR_VIEW,
+        PermissionType.SENSOR_MODIFY,
         PermissionType.SENSOR_ALL,
 
+        PermissionType.ACTION_LIST,
         PermissionType.ACTION_VIEW,
         PermissionType.ACTION_CREATE,
         PermissionType.ACTION_MODIFY,
@@ -177,6 +187,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.ACTION_EXECUTE,
         PermissionType.ACTION_ALL,
 
+        PermissionType.RULE_LIST,
         PermissionType.RULE_VIEW,
         PermissionType.RULE_CREATE,
         PermissionType.RULE_MODIFY,
@@ -184,11 +195,13 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.RULE_ALL
     ],
     ResourceType.SENSOR: [
+        PermissionType.SENSOR_LIST,
         PermissionType.SENSOR_VIEW,
         PermissionType.SENSOR_MODIFY,
         PermissionType.SENSOR_ALL
     ],
     ResourceType.ACTION: [
+        PermissionType.ACTION_LIST,
         PermissionType.ACTION_VIEW,
         PermissionType.ACTION_CREATE,
         PermissionType.ACTION_MODIFY,
@@ -197,6 +210,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.ACTION_ALL
     ],
     ResourceType.RULE: [
+        PermissionType.RULE_LIST,
         PermissionType.RULE_VIEW,
         PermissionType.RULE_CREATE,
         PermissionType.RULE_MODIFY,
@@ -204,6 +218,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.RULE_ALL
     ],
     ResourceType.EXECUTION: [
+        PermissionType.EXECUTION_LIST,
         PermissionType.EXECUTION_VIEW,
         PermissionType.EXECUTION_RE_RUN,
         PermissionType.EXECUTION_STOP,
@@ -221,6 +236,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.WEBHOOK_ALL
     ],
     ResourceType.API_KEY: [
+        PermissionType.API_KEY_LIST,
         PermissionType.API_KEY_VIEW,
         PermissionType.API_KEY_CREATE,
         PermissionType.API_KEY_DELETE,
@@ -231,6 +247,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
 
 # Maps a permission type to the corresponding description
 PERMISION_TYPE_TO_DESCRIPTION_MAP = {
+    PermissionType.PACK_LIST: 'Ability list (view all) packs.',
     PermissionType.PACK_VIEW: 'Ability to view a pack.',
     PermissionType.PACK_CREATE: 'Ability to create a new pack.',
     PermissionType.PACK_MODIFY: 'Ability to modify (update) an existing pack.',
@@ -238,12 +255,14 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.PACK_ALL: ('Ability to perform all the supported operations on a particular '
                               'pack.'),
 
+    PermissionType.SENSOR_LIST: 'Ability list (view all) sensors.',
     PermissionType.SENSOR_VIEW: 'Ability to view a sensor',
     PermissionType.SENSOR_MODIFY: ('Ability to modify (update) an existing sensor. Also implies '
                                    '"sensor_view" permission.'),
     PermissionType.SENSOR_ALL: ('Ability to perform all the supported operations on a particular '
                                 'sensor.'),
 
+    PermissionType.ACTION_LIST: 'Ability list (view all) actions.',
     PermissionType.ACTION_VIEW: 'Ability to view an action.',
     PermissionType.ACTION_CREATE: ('Ability to create a new action. Also implies "action_view" '
                                    'permission.'),
@@ -256,12 +275,14 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.ACTION_ALL: ('Ability to perform all the supported operations on a particular '
                                 'action.'),
 
+    PermissionType.EXECUTION_LIST: 'Ability list (view all) executions.',
     PermissionType.EXECUTION_VIEW: 'Ability to view an execution.',
     PermissionType.EXECUTION_RE_RUN: 'Ability to create a new action.',
     PermissionType.EXECUTION_STOP: 'Ability to stop (cancel) a running execution.',
     PermissionType.EXECUTION_ALL: ('Ability to perform all the supported operations on a '
                                    'particular execution.'),
 
+    PermissionType.RULE_LIST: 'Ability list (view all) rules.',
     PermissionType.RULE_VIEW: 'Ability to view a rule.',
     PermissionType.RULE_CREATE: ('Ability to create a new rule. Also implies "rule_view" '
                                  'permission'),
@@ -278,6 +299,7 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.WEBHOOK_ALL: ('Ability to perform all the supported operations on a particular '
                                  'webhook.'),
 
+    PermissionType.API_KEY_LIST: 'Ability list (view all) API keys.',
     PermissionType.API_KEY_VIEW: ('Ability view API Keys.'),
     PermissionType.API_KEY_CREATE: ('Ability to create a new API Key.'),
     PermissionType.API_KEY_DELETE: ('Ability to delete an existing API Keys.'),

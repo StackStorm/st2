@@ -22,6 +22,8 @@ from st2common.rbac.types import PermissionType
 class RBACTypeTestCase(TestCase):
 
     def test_get_resource_type(self):
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.PACK_LIST),
+                         systemtypes.PACK)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.PACK_VIEW),
                          systemtypes.PACK)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.PACK_CREATE),
@@ -33,6 +35,8 @@ class RBACTypeTestCase(TestCase):
         self.assertEqual(PermissionType.get_resource_type(PermissionType.PACK_ALL),
                          systemtypes.PACK)
 
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.SENSOR_LIST),
+                         systemtypes.SENSOR_TYPE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.SENSOR_VIEW),
                          systemtypes.SENSOR_TYPE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.SENSOR_MODIFY),
@@ -40,6 +44,8 @@ class RBACTypeTestCase(TestCase):
         self.assertEqual(PermissionType.get_resource_type(PermissionType.SENSOR_ALL),
                          systemtypes.SENSOR_TYPE)
 
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.ACTION_LIST),
+                         systemtypes.ACTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.ACTION_VIEW),
                          systemtypes.ACTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.ACTION_CREATE),
@@ -53,6 +59,8 @@ class RBACTypeTestCase(TestCase):
         self.assertEqual(PermissionType.get_resource_type(PermissionType.ACTION_ALL),
                          systemtypes.ACTION)
 
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.EXECUTION_LIST),
+                         systemtypes.EXECUTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.EXECUTION_VIEW),
                          systemtypes.EXECUTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.EXECUTION_RE_RUN),
@@ -62,6 +70,8 @@ class RBACTypeTestCase(TestCase):
         self.assertEqual(PermissionType.get_resource_type(PermissionType.EXECUTION_ALL),
                          systemtypes.EXECUTION)
 
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.RULE_LIST),
+                         systemtypes.RULE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.RULE_VIEW),
                          systemtypes.RULE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.RULE_CREATE),
@@ -89,6 +99,8 @@ class RBACTypeTestCase(TestCase):
         self.assertEqual(PermissionType.get_resource_type(PermissionType.WEBHOOK_ALL),
                          systemtypes.WEBHOOK)
 
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.API_KEY_LIST),
+                         systemtypes.API_KEY)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.API_KEY_VIEW),
                          systemtypes.API_KEY)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.API_KEY_CREATE),
