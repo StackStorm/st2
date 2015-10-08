@@ -74,7 +74,7 @@ class TestTokenController(FunctionalTest):
     def _test_token_post(self):
         ttl = cfg.CONF.auth.token_ttl
         timestamp = date_utils.get_datetime_utc_now()
-        response = self.app.post_json('/tokens', {}, expect_errors=False)
+        response = self.app.post_json('/v1/tokens', {}, expect_errors=False)
         expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
         expected_expiry = date_utils.add_utc_tz(expected_expiry)
         self.assertEqual(response.status_int, 201)
@@ -86,7 +86,7 @@ class TestTokenController(FunctionalTest):
 
     def test_token_post_unauthorized(self):
         type(pecan.request).remote_user = None
-        response = self.app.post_json('/tokens', {}, expect_errors=True)
+        response = self.app.post_json('/v1/tokens', {}, expect_errors=True)
         self.assertEqual(response.status_int, 401)
 
     @mock.patch.object(
@@ -109,7 +109,7 @@ class TestTokenController(FunctionalTest):
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_set_ttl(self):
         timestamp = date_utils.add_utc_tz(date_utils.get_datetime_utc_now())
-        response = self.app.post_json('/tokens', {'ttl': 60}, expect_errors=False)
+        response = self.app.post_json('/v1/tokens', {'ttl': 60}, expect_errors=False)
         expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=60)
         self.assertEqual(response.status_int, 201)
         actual_expiry = isotime.parse(response.json['expiry'])
@@ -121,7 +121,7 @@ class TestTokenController(FunctionalTest):
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_set_ttl_over_policy(self):
         ttl = cfg.CONF.auth.token_ttl
-        response = self.app.post_json('/tokens', {'ttl': ttl + 60}, expect_errors=True)
+        response = self.app.post_json('/v1/tokens', {'ttl': ttl + 60}, expect_errors=True)
         self.assertEqual(response.status_int, 400)
         message = 'TTL specified %s is greater than max allowed %s.' % (
                   ttl + 60, ttl
@@ -132,7 +132,7 @@ class TestTokenController(FunctionalTest):
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_set_bad_ttl(self):
-        response = self.app.post_json('/tokens', {'ttl': -1}, expect_errors=True)
+        response = self.app.post_json('/v1/tokens', {'ttl': -1}, expect_errors=True)
         self.assertEqual(response.status_int, 400)
-        response = self.app.post_json('/tokens', {'ttl': 0}, expect_errors=True)
+        response = self.app.post_json('/v1/tokens', {'ttl': 0}, expect_errors=True)
         self.assertEqual(response.status_int, 400)
