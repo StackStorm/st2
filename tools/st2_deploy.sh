@@ -465,6 +465,8 @@ install_apt() {
   # Install packages
   echo "Installing ${APT_PACKAGE_LIST}"
   apt-get install -y ${APT_PACKAGE_LIST}
+  # Now that pip is installed set PIP=`which pip` again.
+  PIP=`which pip`
   setup_rabbitmq
   install_pip
 }
