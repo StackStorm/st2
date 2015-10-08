@@ -5,7 +5,7 @@
 [![Build Status](https://api.travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2) [![Coverage Status](https://coveralls.io/repos/StackStorm/st2/badge.svg?branch=master&service=github)](https://coveralls.io/github/StackStorm/st2?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/StackStorm/st2/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/StackStorm/st2/?branch=master) ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg) [![IRC](https://img.shields.io/irc/%23stackstorm.png)](http://webchat.freenode.net/?channels=stackstorm)
 
 ## StackStorm Overview
-
+[![StackStorm 5 min Intro Video](https://cloud.githubusercontent.com/assets/1294734/10356016/16278d0a-6d27-11e5-987d-c8a7629a69ed.png)](https://www.youtube.com/watch?v=pzZws3ftDtA)
 ### About
 
 StackStorm is a platform for integration and automation across services and tools. It ties together your existing infrastructure and application environment so you can more easily automate that environment -- with a particular focus on taking actions in response to events.
