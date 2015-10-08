@@ -63,6 +63,8 @@ in development
   differ. (bug-fix)
 * Fix a bug with the CLI token precedence - now the auth token specified as an environment variable
   or as a command line argument has precedence over credentials in the CLI config. (bug fix)
+* Support versioned APIs for auth controller. For backward compatibility, unversioned API calls
+  get redirected to versioned controllers by the server. (improvement)
 
 0.13.2 - September 09, 2015
 ---------------------------
