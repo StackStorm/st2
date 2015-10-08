@@ -39,8 +39,8 @@ class NotificationSubSchema(me.EmbeddedDocument):
         result.append(str(id(self)))
         result.append('(message="%s", ' % str(self.message))
         result.append('data="%s", ' % str(self.data))
-        result.append('routes="%s")' % str(self.channels))
-        result.append('(**deprecated**) channels="%s")' % str(self.channels))
+        result.append('routes="%s", ' % str(self.routes))
+        result.append('[**deprecated**]channels="%s")' % str(self.channels))
         return ''.join(result)
 
 
