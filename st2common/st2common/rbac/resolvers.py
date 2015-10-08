@@ -753,6 +753,11 @@ class ApiKeyPermissionResolver(PermissionsResolver):
         self._log('No matching grants found', extra=log_context)
         return False
 
+    def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
+        assert permission_type in [PermissionType.API_KEY_CREATE]
+        # TODO:
+        return True
+
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         # Desired impl is as under. Permission grants as of now are to
         # a role while for this to work right the permission grant would have to

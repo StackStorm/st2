@@ -125,10 +125,9 @@ class ApiKeyController(RestController):
         api_key_create_response_api.key = api_key
         return api_key_create_response_api
 
-    @request_user_has_permission(permission_type=PermissionType.API_KEY_CREATE)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_MODIFY)
     @jsexpose(arg_types=[str], body_cls=ApiKeyAPI)
     def put(self, api_key_id_or_key, api_key_api):
-
         api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
 
         LOG.debug('PUT /apikeys/ lookup with api_key_id_or_key=%s found object: %s',

@@ -79,6 +79,7 @@ class PermissionType(Enum):
     API_KEY_LIST = 'api_key_list'
     API_KEY_VIEW = 'api_key_view'
     API_KEY_CREATE = 'api_key_create'
+    API_KEY_MODIFY = 'api_key_modify'
     API_KEY_DELETE = 'api_key_delete'
     API_KEY_ALL = 'api_key_all'
 
@@ -239,6 +240,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.API_KEY_LIST,
         PermissionType.API_KEY_VIEW,
         PermissionType.API_KEY_CREATE,
+        PermissionType.API_KEY_MODIFY,
         PermissionType.API_KEY_DELETE,
         PermissionType.API_KEY_ALL
     ]
@@ -302,6 +304,8 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.API_KEY_LIST: 'Ability list (view all) API keys.',
     PermissionType.API_KEY_VIEW: ('Ability view API Keys.'),
     PermissionType.API_KEY_CREATE: ('Ability to create a new API Key.'),
+    PermissionType.API_KEY_MODIFY: ('Ability to modify (update) an existing API key. Also implies '
+                                    '"api_key_view" permission.'),
     PermissionType.API_KEY_DELETE: ('Ability to delete an existing API Keys.'),
     PermissionType.API_KEY_ALL: ('Ability to perform all the supported operations on an API Key.')
 }
