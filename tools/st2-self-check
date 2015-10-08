@@ -18,6 +18,25 @@ else
   exit 2
 fi
 
+#Determine API HTTP Protocol
+PROTOCOL="http"
+ST2_CLI_CONFIG_FILE=`readlink -f ~/.st2/config`
+if [ ! -z ${ST2_API_URL+x} ]; then
+  if [[ ${ST2_API_URL} = https* ]]; then
+    PROTOCOL="https"
+  fi
+elif [ ! -z ${ST2_BASE_URL+x} ]; then
+  if [[ ${ST2_BASE_URL} = https* ]]; then
+    PROTOCOL="https"
+  fi
+elif [ -e "${ST2_CLI_CONFIG_FILE}" ]; then
+  if [ ! -z "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'https://(.+):9101'" ]; then
+    PROTOCOL="https"
+  elif [ ! -z "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'base_url\s?=\s?https'" ]; then
+    PROTOCOL="https"
+  fi
+fi
+
 # Install test prerequisites
 ${PYTHONPACK}/st2common/bin/st2-setup-tests asserts
 ${PYTHONPACK}/st2common/bin/st2-setup-tests fixtures
@@ -49,7 +68,7 @@ TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep
 for TEST in $TEST_ACTION_LIST
     do
         echo -n "Attempting Test ${TEST}..."
-        TEST_OUTPUT=`st2 run ${TEST} token=${ST2_AUTH_TOKEN} -j`
+        TEST_OUTPUT=`st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} -j`
         CHECK_STATUS=`echo ${TEST_OUTPUT} | grep '"status": "succeeded"'`
         if [ $? -ne 0 ]; then
             echo -e "ERROR!"
