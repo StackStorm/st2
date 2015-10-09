@@ -168,19 +168,16 @@ class SystemRole(Enum):
 # Maps a list of available permission types for each resource
 RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
     ResourceType.PACK: [
-        PermissionType.PACK_LIST,
         PermissionType.PACK_VIEW,
         PermissionType.PACK_CREATE,
         PermissionType.PACK_MODIFY,
         PermissionType.PACK_DELETE,
         PermissionType.PACK_ALL,
 
-        PermissionType.SENSOR_LIST,
         PermissionType.SENSOR_VIEW,
         PermissionType.SENSOR_MODIFY,
         PermissionType.SENSOR_ALL,
 
-        PermissionType.ACTION_LIST,
         PermissionType.ACTION_VIEW,
         PermissionType.ACTION_CREATE,
         PermissionType.ACTION_MODIFY,
@@ -188,7 +185,6 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.ACTION_EXECUTE,
         PermissionType.ACTION_ALL,
 
-        PermissionType.RULE_LIST,
         PermissionType.RULE_VIEW,
         PermissionType.RULE_CREATE,
         PermissionType.RULE_MODIFY,
