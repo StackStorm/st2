@@ -305,6 +305,12 @@ RUNNER_TYPES = [
                 'type': 'boolean',
                 'default': False
             },
+            'verify_ssl_cert': {
+                'description': 'SSL verification is not supported.',
+                'type': 'boolean',
+                'default': False,
+                'immutable': True
+            }
         },
         'runner_module': 'st2actions.runners.httprunner'
     },
