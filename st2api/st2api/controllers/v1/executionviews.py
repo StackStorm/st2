@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from itertools import chain
 from pecan.rest import RestController
 import six
 
@@ -63,21 +62,7 @@ class FiltersController(RestController):
 
         for name, field in six.iteritems(SUPPORTED_FILTERS):
             if name not in IGNORE_FILTERS:
-                if isinstance(field, six.string_types):
-                    query = '$' + field
-                else:
-                    dot_notation = list(chain.from_iterable(
-                        ('$' + item, '.') for item in field
-                    ))
-                    dot_notation.pop(-1)
-                    query = {'$concat': dot_notation}
-
-                aggregate = ActionExecution.aggregate([
-                    {'$match': {'parent': None}},
-                    {'$group': {'_id': query}}
-                ])
-
-                filters[name] = [res['_id'] for res in aggregate['result'] if res['_id']]
+                filters[name] = ActionExecution.distinct(field=field)
 
         return filters
 
