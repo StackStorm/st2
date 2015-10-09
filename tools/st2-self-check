@@ -1,5 +1,36 @@
 #!/bin/bash
 
+function usage() {
+  echo ""
+  echo "Usage: $0"
+  echo ""
+  echo "Options:"
+  echo "  -w  Run Windows tests"
+  echo ""
+  >&2
+}
+
+RUN_WINDOWS_TESTS=false
+
+while getopts "w" o
+do
+    case "${o}" in
+        w)
+            RUN_WINDOWS_TESTS=true
+            ;;
+        \?)
+            usage
+            exit 2
+            ;;
+        :)
+            usage
+            exit 2
+            ;;
+    esac
+done
+
+shift $(($OPTIND-1))
+
 ## Script to install samples, tests, and run all workflows in tests pack.
 ERRORS=0
 PACKS="tests examples"
@@ -66,17 +97,24 @@ TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep
 
 # Run all the tests
 for TEST in $TEST_ACTION_LIST
-    do
-        echo -n "Attempting Test ${TEST}..."
-        TEST_OUTPUT=`st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} -j`
-        CHECK_STATUS=`echo ${TEST_OUTPUT} | grep '"status": "succeeded"'`
-        if [ $? -ne 0 ]; then
-            echo -e "ERROR!"
-            ((ERRORS++))
-        else
-            echo "OK!"
-        fi
-    done
+do
+    # If -w option is not set, skip Windows related tests
+    # because smbclient is not installed by default.
+    if [ ${RUN_WINDOWS_TESTS} = "false" ] && [ ${TEST} = "tests.test_windows_runners" ]; then
+        echo "Skipping ${TEST}..."
+        continue
+    fi
+
+    echo -n "Attempting Test ${TEST}..."
+    TEST_OUTPUT=`st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} -j`
+    CHECK_STATUS=`echo ${TEST_OUTPUT} | grep '"status": "succeeded"'`
+    if [ $? -ne 0 ]; then
+        echo -e "ERROR!"
+        ((ERRORS++))
+    else
+        echo "OK!"
+    fi
+done
 
 echo -n "Attempting Example examples.mistral_examples..."
 MISTRAL_EXAMPLES=`st2 run examples.mistral_examples -j`
