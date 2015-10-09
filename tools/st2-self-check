@@ -94,6 +94,7 @@ done
 
 # Retrieve test action list
 TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`
+TEST_ACTION_LIST+=' examples.mistral_examples'
 
 # Run all the tests
 for TEST in $TEST_ACTION_LIST
@@ -107,8 +108,8 @@ do
 
     echo -n "Attempting Test ${TEST}..."
     TEST_OUTPUT=`st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} -j`
-    CHECK_STATUS=`echo ${TEST_OUTPUT} | grep '"status": "succeeded"'`
-    if [ $? -ne 0 ]; then
+    CHECK_STATUS=`echo ${TEST_OUTPUT} | grep '"status": "failed"'`
+    if [ $? -ne 1 ]; then
         echo -e "ERROR!"
         ((ERRORS++))
     else
@@ -116,19 +117,13 @@ do
     fi
 done
 
-echo -n "Attempting Example examples.mistral_examples..."
-MISTRAL_EXAMPLES=`st2 run examples.mistral_examples -j`
-CHECK_STATUS=`echo ${MISTRAL_EXAMPLES} | grep '"status": "succeeded"'`
-if [ $? -ne 0 ]; then
-    ((ERRORS++))
-fi
-
 if [ $ERRORS -ne 0 ]; then
-    echo "ERROR!"
+    echo "SELF CHECK FAILED!"
     echo "st2-self-check failed.  See above.  Also check the execution list for details."
     echo "st2 execution list"
 else
-    echo -e "OK!"
+    echo "SELF CHECK SUCCEEDED!"
+    echo -e "st2-self-check succeeded."
 
 cat << EOF
 
