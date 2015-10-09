@@ -2,8 +2,6 @@
 task1:
   action: executions.local
   callback: {}
-  context:
-    user: system
   end_timestamp: '2014-09-01T00:00:05.000000Z'
   parameters:
     cmd: 'echo "{u"foo": u"bar"}"'
@@ -22,8 +20,6 @@ task1:
 task2:
   action: executions.local
   callback: {}
-  context:
-    user: system
   end_timestamp: '2014-09-01T00:00:05.000000Z'
   parameters:
     cmd: 'echo "{u"name": u"Joe"}"'
@@ -42,8 +38,6 @@ task2:
 workflow:
   action: executions.chain
   callback: {}
-  context:
-    user: system
   end_timestamp: '2014-09-01T00:00:05.000000Z'
   parameters: {}
   result: {}
