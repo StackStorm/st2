@@ -65,6 +65,7 @@ in development
   or as a command line argument has precedence over credentials in the CLI config. (bug fix)
 * Support versioned APIs for auth controller. For backward compatibility, unversioned API calls
   get redirected to versioned controllers by the server. (improvement)
+* Add option to verify SSL cert for HTTPS request to the core.http action. (new feature)
 
 0.13.2 - September 09, 2015
 ---------------------------
