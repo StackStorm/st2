@@ -118,8 +118,8 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.roles['custom_role_sensor_all_grant'] = role_4_db
 
         # Custom role - "sensor_list" grant
-        grant_db = PermissionGrantDB(resource_uid='*',
-                                     resource_type=ResourceType.SENSOR,
+        grant_db = PermissionGrantDB(resource_uid=None,
+                                     resource_type=None,
                                      permission_types=[PermissionType.SENSOR_LIST])
         grant_db = PermissionGrant.add_or_update(grant_db)
         permission_grants = [str(grant_db.id)]

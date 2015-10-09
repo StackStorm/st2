@@ -197,8 +197,8 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.roles['action_action_all_grant'] = role_9_db
 
         # Custom role - "action_list" grant
-        grant_db = PermissionGrantDB(resource_uid='*',
-                                     resource_type=ResourceType.ACTION,
+        grant_db = PermissionGrantDB(resource_uid=None,
+                                     resource_type=None,
                                      permission_types=[PermissionType.ACTION_LIST])
         grant_db = PermissionGrant.add_or_update(grant_db)
         permission_grants = [str(grant_db.id)]

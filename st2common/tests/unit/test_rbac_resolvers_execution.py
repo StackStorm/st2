@@ -185,8 +185,8 @@ class ExecutionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         self.roles['custom_role_action_all_grant'] = role_4_db
 
         # Custom role - "execution_list" grant
-        grant_db = PermissionGrantDB(resource_uid='*',
-                                     resource_type=ResourceType.EXECUTION,
+        grant_db = PermissionGrantDB(resource_uid=None,
+                                     resource_type=None,
                                      permission_types=[PermissionType.EXECUTION_LIST])
         grant_db = PermissionGrant.add_or_update(grant_db)
         permission_grants = [str(grant_db.id)]
