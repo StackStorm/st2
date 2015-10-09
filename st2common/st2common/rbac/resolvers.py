@@ -82,6 +82,12 @@ class PermissionsResolver(object):
         raise NotImplementedError()
 
     def _user_has_list_permission(self, user_db, permission_type):
+        """
+        Common method for checking if a user has specific "list" resource permission (e.g.
+        rules_list, action_list, etc.).
+        """
+        assert PermissionType.get_permission_name(permission_type) == 'list'
+
         log_context = {
             'user_db': user_db,
             'permission_type': permission_type,
