@@ -72,7 +72,7 @@ class PermissionGrantDB(stormbase.StormFoundationDB):
         permission_types: A list of permission type granted to that resources.
     """
     resource_uid = me.StringField(required=False)
-    resource_type = me.StringField(required=True)
+    resource_type = me.StringField(required=False)
     permission_types = me.ListField(field=me.StringField())
 
 # Specialized access objects
