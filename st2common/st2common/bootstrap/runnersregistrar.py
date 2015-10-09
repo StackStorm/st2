@@ -306,10 +306,10 @@ RUNNER_TYPES = [
                 'default': False
             },
             'verify_ssl_cert': {
-                'description': 'SSL verification is not supported.',
+                'description': 'Set to True to verify SSL certificate. Verification '
+                               'using a CA cert bundle is not yet supported.',
                 'type': 'boolean',
-                'default': False,
-                'immutable': True
+                'default': True
             }
         },
         'runner_module': 'st2actions.runners.httprunner'

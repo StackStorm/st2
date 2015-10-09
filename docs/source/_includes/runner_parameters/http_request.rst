@@ -6,4 +6,4 @@
 * ``http_proxy`` (string) - A URL of a HTTP proxy to use (e.g. http://10.10.1.10:3128).
 * ``headers`` (string) - HTTP headers for the request.
 * ``allow_redirects`` (boolean) - Set to True if POST/PUT/DELETE redirect following is allowed.
-* ``verify_ssl_cert`` (boolean) - SSL verification is not supported.
+* ``verify_ssl_cert`` (boolean) - Set to True to verify SSL certificate. Verification using a CA cert bundle is not yet supported.
