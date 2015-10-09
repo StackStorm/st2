@@ -69,6 +69,13 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
                                 loader.load_role_definition_from_file, file_path=file_path)
 
+        # Only list permissions can be used without a resource_uid
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac_invalid/roles/role_four.yaml')
+        expected_msg = ('Invalid permission type "action_create". Only "list" permission types '
+                        'can be used without a resource id')
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                loader.load_role_definition_from_file, file_path=file_path)
+
     def test_load_user_role_assignments_success(self):
         loader = RBACDefinitionsLoader()
 
