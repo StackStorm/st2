@@ -81,6 +81,35 @@ class PermissionsResolver(object):
         """
         raise NotImplementedError()
 
+    def _user_has_list_permission(self, user_db, permission_type):
+        log_context = {
+            'user_db': user_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        permission_types = [permission_type]
+
+        # Check direct grants
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               permission_types=permission_types)
+        if len(permission_grants) >= 1:
+            self._log('Found a direct grant', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
     def _user_has_system_role_permission(self, user_db, permission_type):
         """
         Check the user system roles and return True if user has the required permission.
@@ -146,36 +175,7 @@ class PackPermissionsResolver(PermissionsResolver):
 
     def user_has_permission(self, user_db, permission_type):
         assert permission_type in [PermissionType.PACK_LIST]
-
-        log_context = {
-            'user_db': user_db,
-            'permission_type': permission_type,
-            'resolver': self.__class__.__name__
-        }
-        self._log('Checking user permissions', extra=log_context)
-
-        # First check the system role permissions
-        has_system_role_permission = self._user_has_system_role_permission(
-            user_db=user_db, permission_type=permission_type)
-
-        if has_system_role_permission:
-            self._log('Found a matching grant via system role', extra=log_context)
-            return True
-
-        # Check custom roles
-        permission_types = [permission_type]
-
-        # Check direct grants
-        resource_types = [ResourceType.PACK]
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_types=resource_types,
-                                                               permission_types=permission_types)
-        if len(permission_grants) >= 1:
-            self._log('Found a direct grant', extra=log_context)
-            return True
-
-        self._log('No matching grants found', extra=log_context)
-        return False
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
@@ -218,36 +218,7 @@ class SensorPermissionsResolver(PermissionsResolver):
 
     def user_has_permission(self, user_db, permission_type):
         assert permission_type in [PermissionType.SENSOR_LIST]
-
-        log_context = {
-            'user_db': user_db,
-            'permission_type': permission_type,
-            'resolver': self.__class__.__name__
-        }
-        self._log('Checking user permissions', extra=log_context)
-
-        # First check the system role permissions
-        has_system_role_permission = self._user_has_system_role_permission(
-            user_db=user_db, permission_type=permission_type)
-
-        if has_system_role_permission:
-            self._log('Found a matching grant via system role', extra=log_context)
-            return True
-
-        # Check custom roles
-        permission_types = [permission_type]
-
-        # Check direct grants
-        resource_types = [ResourceType.SENSOR]
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_types=resource_types,
-                                                               permission_types=permission_types)
-        if len(permission_grants) >= 1:
-            self._log('Found a direct grant', extra=log_context)
-            return True
-
-        self._log('No matching grants found', extra=log_context)
-        return False
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
@@ -312,36 +283,7 @@ class ActionPermissionsResolver(PermissionsResolver):
 
     def user_has_permission(self, user_db, permission_type):
         assert permission_type in [PermissionType.ACTION_LIST]
-
-        log_context = {
-            'user_db': user_db,
-            'permission_type': permission_type,
-            'resolver': self.__class__.__name__
-        }
-        self._log('Checking user permissions', extra=log_context)
-
-        # First check the system role permissions
-        has_system_role_permission = self._user_has_system_role_permission(
-            user_db=user_db, permission_type=permission_type)
-
-        if has_system_role_permission:
-            self._log('Found a matching grant via system role', extra=log_context)
-            return True
-
-        # Check custom roles
-        permission_types = [permission_type]
-
-        # Check direct grants
-        resource_types = [ResourceType.ACTION]
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_types=resource_types,
-                                                               permission_types=permission_types)
-        if len(permission_grants) >= 1:
-            self._log('Found a direct grant', extra=log_context)
-            return True
-
-        self._log('No matching grants found', extra=log_context)
-        return False
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
         assert permission_type in [PermissionType.ACTION_CREATE]
@@ -476,36 +418,7 @@ class RulePermissionsResolver(PermissionsResolver):
 
     def user_has_permission(self, user_db, permission_type):
         assert permission_type in [PermissionType.RULE_LIST]
-
-        log_context = {
-            'user_db': user_db,
-            'permission_type': permission_type,
-            'resolver': self.__class__.__name__
-        }
-        self._log('Checking user permissions', extra=log_context)
-
-        # First check the system role permissions
-        has_system_role_permission = self._user_has_system_role_permission(
-            user_db=user_db, permission_type=permission_type)
-
-        if has_system_role_permission:
-            self._log('Found a matching grant via system role', extra=log_context)
-            return True
-
-        # Check custom roles
-        permission_types = [permission_type]
-
-        # Check direct grants
-        resource_types = [ResourceType.RULE]
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_types=resource_types,
-                                                               permission_types=permission_types)
-        if len(permission_grants) >= 1:
-            self._log('Found a direct grant', extra=log_context)
-            return True
-
-        self._log('No matching grants found', extra=log_context)
-        return False
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
         assert permission_type in [PermissionType.RULE_CREATE]
@@ -607,36 +520,7 @@ class ExecutionPermissionsResolver(PermissionsResolver):
 
     def user_has_permission(self, user_db, permission_type):
         assert permission_type in [PermissionType.EXECUTION_LIST]
-
-        log_context = {
-            'user_db': user_db,
-            'permission_type': permission_type,
-            'resolver': self.__class__.__name__
-        }
-        self._log('Checking user permissions', extra=log_context)
-
-        # First check the system role permissions
-        has_system_role_permission = self._user_has_system_role_permission(
-            user_db=user_db, permission_type=permission_type)
-
-        if has_system_role_permission:
-            self._log('Found a matching grant via system role', extra=log_context)
-            return True
-
-        # Check custom roles
-        permission_types = [permission_type]
-
-        # Check direct grants
-        resource_types = [ResourceType.EXECUTION]
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_types=resource_types,
-                                                               permission_types=permission_types)
-        if len(permission_grants) >= 1:
-            self._log('Found a direct grant', extra=log_context)
-            return True
-
-        self._log('No matching grants found', extra=log_context)
-        return False
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
@@ -751,36 +635,7 @@ class ApiKeyPermissionResolver(PermissionsResolver):
 
     def user_has_permission(self, user_db, permission_type):
         assert permission_type in [PermissionType.API_KEY_LIST]
-
-        log_context = {
-            'user_db': user_db,
-            'permission_type': permission_type,
-            'resolver': self.__class__.__name__
-        }
-        self._log('Checking user permissions', extra=log_context)
-
-        # First check the system role permissions
-        has_system_role_permission = self._user_has_system_role_permission(
-            user_db=user_db, permission_type=permission_type)
-
-        if has_system_role_permission:
-            self._log('Found a matching grant via system role', extra=log_context)
-            return True
-
-        # Check custom roles
-        permission_types = [permission_type]
-
-        # Check direct grants
-        resource_types = [ResourceType.API_KEY]
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               resource_types=resource_types,
-                                                               permission_types=permission_types)
-        if len(permission_grants) >= 1:
-            self._log('Found a direct grant', extra=log_context)
-            return True
-
-        self._log('No matching grants found', extra=log_context)
-        return False
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
         assert permission_type in [PermissionType.API_KEY_CREATE]
