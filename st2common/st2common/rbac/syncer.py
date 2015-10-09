@@ -144,8 +144,13 @@ class RBACDefinitionsDBSyncer(object):
             # Create associated permission grants
             permission_grants = getattr(role_api, 'permission_grants', [])
             for permission_grant in permission_grants:
-                resource_uid = permission_grant['resource_uid']
-                resource_type, _ = parse_uid(resource_uid)
+                resource_uid = permission_grant.get('resource_uid', None)
+
+                if resource_uid:
+                    resource_type, _ = parse_uid(resource_uid)
+                else:
+                    resource_type = None
+
                 permission_types = permission_grant['permission_types']
                 assignment_db = rbac_services.create_permission_grant(
                     role_db=role_db,
