@@ -135,6 +135,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
             permission_types = permission_grant.get('permission_types', [])
 
             if resource_uid:
+                # Permission types which apply to a resource
                 resource_type, _ = parse_uid(uid=resource_uid)
                 valid_permission_types = PermissionType.get_valid_permissions_for_resource_type(
                     resource_type=resource_type)
@@ -143,6 +144,14 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                     if permission_type not in valid_permission_types:
                         message = ('Invalid permission type "%s" for resource type "%s"' %
                                    (permission_type, resource_type))
+                        raise ValueError(message)
+            else:
+                # Right now we only support single permission type (list) which is global and
+                # doesn't apply to a resource
+                for permission_type in permission_types:
+                    if not permission_type.endswith('_list'):
+                        message = ('Invalid permission type "%s". Only "list" permission types '
+                                   'can be used without a resource id' % (permission_type))
                         raise ValueError(message)
 
 
