@@ -69,7 +69,7 @@ class RBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         # Assert role has been created in the DB
         self.assertRoleDBObjectExists(role_db=created_role_dbs[0])
 
-    def test_sync_roles_single_role_definition_two_grants(self):
+    def test_sync_roles_single_role_definition_three_grants(self):
         syncer = RBACDefinitionsDBSyncer()
 
         # One role with two grants
@@ -81,6 +81,9 @@ class RBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
             {
                 'resource_uid': 'pack:mapack2',
                 'permission_types': ['rule_view', 'action_view']
+            },
+            {
+                'permission_types': ['sensor_list', 'action_list']
             }
         ]
         api = RoleDefinitionFileFormatAPI(name='test_role_2', description='test description 2',
@@ -90,13 +93,23 @@ class RBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         self.assertItemsEqual(deleted_role_dbs, [])
         self.assertEqual(created_role_dbs[0].name, 'test_role_2')
         self.assertEqual(created_role_dbs[0].description, 'test description 2')
-        self.assertEqual(len(created_role_dbs[0].permission_grants), 2)
+        self.assertEqual(len(created_role_dbs[0].permission_grants), 3)
 
         # Assert role and grants have been created in the DB
         self.assertRoleDBObjectExists(role_db=created_role_dbs[0])
 
         for permission_grant_id in created_role_dbs[0].permission_grants:
             self.assertGrantDBObjectExists(permission_grant_id)
+
+        grant_db = PermissionGrant.get_by_id(str(created_role_dbs[0].permission_grants[0]))
+        self.assertEqual(grant_db.resource_uid, permission_grants[0]['resource_uid'])
+        self.assertEqual(grant_db.resource_type, 'pack')
+        self.assertEqual(grant_db.permission_types, permission_grants[0]['permission_types'])
+
+        grant_db = PermissionGrant.get_by_id(str(created_role_dbs[0].permission_grants[2]))
+        self.assertEqual(grant_db.resource_uid, None)
+        self.assertEqual(grant_db.resource_type, None)
+        self.assertEqual(grant_db.permission_types, permission_grants[2]['permission_types'])
 
     def test_sync_roles_locally_removed_roles_are_removed_from_db(self):
         syncer = RBACDefinitionsDBSyncer()
