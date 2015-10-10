@@ -306,8 +306,10 @@ RUNNER_TYPES = [
                 'default': False
             },
             'verify_ssl_cert': {
-                'description': 'Set to True to verify SSL certificate. Verification '
-                               'using a CA cert bundle is not yet supported.',
+                'description': 'Certificate for HTTPS request is verified by default using '
+                               'requests CA bundle which comes from Mozilla. Verification '
+                               'using a custom CA bundle is not yet supported. Set to False '
+                               'to skip verification.',
                 'type': 'boolean',
                 'default': True
             }
