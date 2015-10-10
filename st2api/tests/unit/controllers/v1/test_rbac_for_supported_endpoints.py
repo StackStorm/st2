@@ -112,10 +112,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
 
         supported_endpoints = [
             # Packs
-            # {
-            #    'path': '/v1/packs',
-            #    'method': 'GET'
-            # }
+            {
+                'path': '/v1/packs',
+                'method': 'GET'
+            },
             {
                 'path': '/v1/packs/dummy_pack_1',
                 'method': 'GET'
@@ -130,10 +130,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'method': 'GET'
             },
             # Sensors
-            # {
-            #    'path': '/v1/sensors',
-            #    'method': 'GET'
-            # }
+            {
+                'path': '/v1/sensortypes',
+                'method': 'GET'
+            },
             {
                 'path': '/v1/sensortypes/%s' % (sensor_model.ref),
                 'method': 'GET'
@@ -144,10 +144,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'payload': {'enabled': False}
             },
             # Actions
-            # {
-            #    'path': '/v1/actions',
-            #    'method': 'GET'
-            # },
+            {
+                'path': '/v1/actions',
+                'method': 'GET'
+            },
             {
                 'path': '/v1/actions/wolfpack.action-1',
                 'method': 'GET'
@@ -167,10 +167,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'method': 'DELETE'
             },
             # Rules
-            # {
-            #    'path': '/v1/rules',
-            #    'method': 'GET'
-            # },
+            {
+                'path': '/v1/rules',
+                'method': 'GET'
+            },
             {
                 'path': '/v1/rules/%s' % (rule_model.ref),
                 'method': 'GET'
@@ -190,10 +190,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'method': 'DELETE'
             },
             # Action Executions
-            # {
-            #    'path': '/v1/executions',
-            #    'method': 'GET'
-            # },
+            {
+                'path': '/v1/executions',
+                'method': 'GET'
+            },
             {
                 'path': '/v1/executions/%s' % (execution_model.id),
                 'method': 'GET'
@@ -227,7 +227,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'method': 'POST',
                 'payload': {'name': 'alias1', 'format': 'foo', 'command': 'bar',
                             'user': 'channel', 'source_channel': 'bar'}
-            },
+            }
         ]
 
         self.use_user(self.users['no_permissions'])

@@ -76,6 +76,10 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         user_9_db = User.add_or_update(user_9_db)
         self.users['action_action_all_grant'] = user_9_db
 
+        user_10_db = UserDB(name='custom_role_action_list_grant')
+        user_10_db = User.add_or_update(user_10_db)
+        self.users['custom_role_action_list_grant'] = user_10_db
+
         # Create some mock resources on which permissions can be granted
         action_1_db = ActionDB(pack='test_pack_1', name='action1', entry_point='',
                                runner_type={'name': 'run-local'})
@@ -192,6 +196,17 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         role_9_db = Role.add_or_update(role_9_db)
         self.roles['action_action_all_grant'] = role_9_db
 
+        # Custom role - "action_list" grant
+        grant_db = PermissionGrantDB(resource_uid=None,
+                                     resource_type=None,
+                                     permission_types=[PermissionType.ACTION_LIST])
+        grant_db = PermissionGrant.add_or_update(grant_db)
+        permission_grants = [str(grant_db.id)]
+        role_10_db = RoleDB(name='custom_role_action_list_grant',
+                           permission_grants=permission_grants)
+        role_10_db = Role.add_or_update(role_10_db)
+        self.roles['custom_role_action_list_grant'] = role_10_db
+
         # Create some mock role assignments
         user_db = self.users['custom_role_action_pack_grant']
         role_assignment_db = UserRoleAssignmentDB(
@@ -245,6 +260,40 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
             user=user_db.name,
             role=self.roles['action_action_all_grant'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
+
+        user_db = self.users['custom_role_action_list_grant']
+        role_assignment_db = UserRoleAssignmentDB(
+            user=user_db.name,
+            role=self.roles['custom_role_action_list_grant'].name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+    def test_user_has_permission(self):
+        resolver = ActionPermissionsResolver()
+
+        # Admin user, should always return true
+        user_db = self.users['admin']
+        self.assertTrue(resolver.user_has_permission(user_db=user_db,
+                                                     permission_type=PermissionType.ACTION_LIST))
+
+        # Observer, should always return true for VIEW permissions
+        user_db = self.users['observer']
+        self.assertTrue(resolver.user_has_permission(user_db=user_db,
+                                                     permission_type=PermissionType.ACTION_LIST))
+
+        # No roles, should return false for everything
+        user_db = self.users['no_roles']
+        self.assertFalse(resolver.user_has_permission(user_db=user_db,
+                                                      permission_type=PermissionType.ACTION_LIST))
+
+        # Custom role with no permission grants, should return false for everything
+        user_db = self.users['1_custom_role_no_permissions']
+        self.assertFalse(resolver.user_has_permission(user_db=user_db,
+                                                      permission_type=PermissionType.ACTION_LIST))
+
+        # Custom role with "action_list" grant
+        user_db = self.users['custom_role_action_list_grant']
+        self.assertTrue(resolver.user_has_permission(user_db=user_db,
+                                                     permission_type=PermissionType.ACTION_LIST))
 
     def test_user_has_resource_api_permission(self):
         resolver = ActionPermissionsResolver()
@@ -338,7 +387,7 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         resource_db = self.resources['action_1']
         user_db = self.users['admin']
 
-        self.assertTrue(self._user_has_resource_db_permissions(
+        self.assertTrue(self._user_has_resource_db_permission(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -366,7 +415,7 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # No roles, should return false for everything
         user_db = self.users['no_roles']
-        self.assertFalse(self._user_has_resource_db_permissions(
+        self.assertFalse(self._user_has_resource_db_permission(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -374,7 +423,7 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # Custom role with no permission grants, should return false for everything
         user_db = self.users['1_custom_role_no_permissions']
-        self.assertFalse(self._user_has_resource_db_permissions(
+        self.assertFalse(self._user_has_resource_db_permission(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -426,7 +475,7 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Custom role - "action_all" grant on the action parent pack
         user_db = self.users['custom_role_pack_action_all_grant']
         resource_db = self.resources['action_1']
-        self.assertTrue(self._user_has_resource_db_permissions(
+        self.assertTrue(self._user_has_resource_db_permission(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -435,7 +484,7 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Custom role - "action_all" grant on the action
         user_db = self.users['custom_role_action_all_grant']
         resource_db = self.resources['action_1']
-        self.assertTrue(self._user_has_resource_db_permissions(
+        self.assertTrue(self._user_has_resource_db_permission(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -460,7 +509,7 @@ class ActionPermissionsResolverTestCase(BasePermissionsResolverTestCase):
             PermissionType.ACTION_MODIFY,
             PermissionType.ACTION_DELETE
         ]
-        self.assertFalse(self._user_has_resource_db_permissions(
+        self.assertFalse(self._user_has_resource_db_permission(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,

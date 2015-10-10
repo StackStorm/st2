@@ -46,6 +46,12 @@ __all__ = [
     'get_resolver_for_permission_type'
 ]
 
+# "Read" permission names which are granted to observer role by default
+READ_PERMISSION_NAMES = [
+    'view',
+    'list'
+]
+
 
 class PermissionsResolver(object):
     """
@@ -54,6 +60,12 @@ class PermissionsResolver(object):
     Permission resolver classes implement permission resolving / checking logic for a particular
     resource type.
     """
+
+    def user_has_permission(self, user_db, permission_type):
+        """
+        Method for checking user permissions which are not tied to a particular resource.
+        """
+        raise NotImplementedError()
 
     def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
         """
@@ -68,6 +80,41 @@ class PermissionsResolver(object):
         operations).
         """
         raise NotImplementedError()
+
+    def _user_has_list_permission(self, user_db, permission_type):
+        """
+        Common method for checking if a user has specific "list" resource permission (e.g.
+        rules_list, action_list, etc.).
+        """
+        assert PermissionType.get_permission_name(permission_type) == 'list'
+
+        log_context = {
+            'user_db': user_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        permission_types = [permission_type]
+
+        # Check direct grants
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               permission_types=permission_types)
+        if len(permission_grants) >= 1:
+            self._log('Found a direct grant', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
 
     def _user_has_system_role_permission(self, user_db, permission_type):
         """
@@ -86,7 +133,7 @@ class PermissionsResolver(object):
         elif SystemRole.ADMIN in user_role_names:
             # Admin has all the permissions
             return True
-        elif SystemRole.OBSERVER in user_role_names and permission_name == 'view':
+        elif SystemRole.OBSERVER in user_role_names and permission_name in READ_PERMISSION_NAMES:
             # Observer role has "view" permission on all the resources
             return True
 
@@ -133,8 +180,8 @@ class PackPermissionsResolver(PermissionsResolver):
     """
 
     def user_has_permission(self, user_db, permission_type):
-        # TODO
-        return True
+        assert permission_type in [PermissionType.PACK_LIST]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
@@ -176,8 +223,8 @@ class SensorPermissionsResolver(PermissionsResolver):
     """
 
     def user_has_permission(self, user_db, permission_type):
-        # TODO
-        return True
+        assert permission_type in [PermissionType.SENSOR_LIST]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
@@ -240,6 +287,10 @@ class ActionPermissionsResolver(PermissionsResolver):
     Permission resolver for "action" resource type.
     """
 
+    def user_has_permission(self, user_db, permission_type):
+        assert permission_type in [PermissionType.ACTION_LIST]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+
     def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
         assert permission_type in [PermissionType.ACTION_CREATE]
 
@@ -248,10 +299,6 @@ class ActionPermissionsResolver(PermissionsResolver):
         return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
                                                   action_uid=action_uid,
                                                   permission_type=permission_type)
-
-    def user_has_permission(self, user_db, permission_type):
-        # TODO
-        return True
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         action_uid = resource_db.get_uid()
@@ -376,8 +423,8 @@ class RulePermissionsResolver(PermissionsResolver):
         pass
 
     def user_has_permission(self, user_db, permission_type):
-        # TODO
-        return True
+        assert permission_type in [PermissionType.RULE_LIST]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
         assert permission_type in [PermissionType.RULE_CREATE]
@@ -478,8 +525,8 @@ class ExecutionPermissionsResolver(PermissionsResolver):
     """
 
     def user_has_permission(self, user_db, permission_type):
-        # TODO
-        return True
+        assert permission_type in [PermissionType.EXECUTION_LIST]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
@@ -593,7 +640,12 @@ class ApiKeyPermissionResolver(PermissionsResolver):
     """
 
     def user_has_permission(self, user_db, permission_type):
-        # TODO
+        assert permission_type in [PermissionType.API_KEY_LIST]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+
+    def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
+        assert permission_type in [PermissionType.API_KEY_CREATE]
+        # TODO:
         return True
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):

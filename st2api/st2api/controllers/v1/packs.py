@@ -88,7 +88,7 @@ class PacksController(BasePacksController):
     # Nested controllers
     views = PackViewsController()
 
-    @request_user_has_permission(permission_type=PermissionType.PACK_VIEW)
+    @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
         return super(PacksController, self)._get_all(**kwargs)

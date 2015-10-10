@@ -69,3 +69,9 @@
             resource_uid: "webhook:st2"
             permission_types:
                - "webhook_send"
+        -
+            # Here we grant "action_list" and "rule_list" allowing user to view / list all the actions and
+            # rules
+            permission_types:
+               - "action_list"
+               - "rule_list"

@@ -42,7 +42,7 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertEqual(role_definition_api.name, 'role_three')
         self.assertTrue('all the pack permissions on pack dummy_pack_1' in
                         role_definition_api.description)
-        self.assertEqual(len(role_definition_api.permission_grants), 3)
+        self.assertEqual(len(role_definition_api.permission_grants), 4)
         self.assertEqual(role_definition_api.permission_grants[0]['resource_uid'],
                          'pack:dummy_pack_1')
         self.assertEqual(role_definition_api.permission_grants[1]['resource_uid'],
@@ -50,6 +50,9 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertTrue('rule_view' in role_definition_api.permission_grants[1]['permission_types'])
         self.assertEqual(role_definition_api.permission_grants[2]['permission_types'],
                          ['action_execute'])
+        self.assertTrue('resource_uid' not in role_definition_api.permission_grants[3])
+        self.assertEqual(role_definition_api.permission_grants[3]['permission_types'],
+                         ['action_list', 'rule_list'])
 
     def test_load_role_definition_validation_error(self):
         loader = RBACDefinitionsLoader()
@@ -64,6 +67,13 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         file_path = os.path.join(get_fixtures_base_path(), 'rbac_invalid/roles/role_two.yaml')
         expected_msg = '.*Failed validating \'enum\'.*'
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
+                                loader.load_role_definition_from_file, file_path=file_path)
+
+        # Only list permissions can be used without a resource_uid
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac_invalid/roles/role_four.yaml')
+        expected_msg = ('Invalid permission type "action_create". Only "list" permission types '
+                        'can be used without a resource id')
+        self.assertRaisesRegexp(ValueError, expected_msg,
                                 loader.load_role_definition_from_file, file_path=file_path)
 
     def test_load_user_role_assignments_success(self):

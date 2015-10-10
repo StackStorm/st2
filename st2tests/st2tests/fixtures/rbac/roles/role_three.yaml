@@ -16,3 +16,7 @@
             resource_uid: "action:dummy_pack_2:my_action"
             permission_types:
                - "action_execute"
+        -
+            permission_types:
+               - "action_list"
+               - "rule_list"

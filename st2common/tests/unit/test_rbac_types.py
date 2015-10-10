@@ -15,85 +15,127 @@
 
 from unittest2 import TestCase
 
-from st2common.constants.types import ResourceType as systemtypes
+from st2common.constants.types import ResourceType as SystemType
 from st2common.rbac.types import PermissionType
+from st2common.rbac.types import ResourceType
 
 
-class RBACTypeTestCase(TestCase):
+class RBACPermissionTypeTestCase(TestCase):
+
+    def test_get_valid_permission_for_resource_type(self):
+        valid_action_permissions = PermissionType.get_valid_permissions_for_resource_type(
+            resource_type=ResourceType.ACTION)
+
+        for name in valid_action_permissions:
+            self.assertTrue(name.startswith(ResourceType.ACTION + '_'))
+
+        valid_rule_permissions = PermissionType.get_valid_permissions_for_resource_type(
+            resource_type=ResourceType.RULE)
+
+        for name in valid_rule_permissions:
+            self.assertTrue(name.startswith(ResourceType.RULE + '_'))
 
     def test_get_resource_type(self):
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.PACK_LIST),
+                         SystemType.PACK)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.PACK_VIEW),
-                         systemtypes.PACK)
+                         SystemType.PACK)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.PACK_CREATE),
-                         systemtypes.PACK)
+                         SystemType.PACK)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.PACK_MODIFY),
-                         systemtypes.PACK)
+                         SystemType.PACK)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.PACK_DELETE),
-                         systemtypes.PACK)
+                         SystemType.PACK)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.PACK_ALL),
-                         systemtypes.PACK)
+                         SystemType.PACK)
 
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.SENSOR_LIST),
+                         SystemType.SENSOR_TYPE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.SENSOR_VIEW),
-                         systemtypes.SENSOR_TYPE)
+                         SystemType.SENSOR_TYPE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.SENSOR_MODIFY),
-                         systemtypes.SENSOR_TYPE)
+                         SystemType.SENSOR_TYPE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.SENSOR_ALL),
-                         systemtypes.SENSOR_TYPE)
+                         SystemType.SENSOR_TYPE)
 
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.ACTION_LIST),
+                         SystemType.ACTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.ACTION_VIEW),
-                         systemtypes.ACTION)
+                         SystemType.ACTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.ACTION_CREATE),
-                         systemtypes.ACTION)
+                         SystemType.ACTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.ACTION_MODIFY),
-                         systemtypes.ACTION)
+                         SystemType.ACTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.ACTION_DELETE),
-                         systemtypes.ACTION)
+                         SystemType.ACTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.ACTION_EXECUTE),
-                         systemtypes.ACTION)
+                         SystemType.ACTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.ACTION_ALL),
-                         systemtypes.ACTION)
+                         SystemType.ACTION)
 
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.EXECUTION_LIST),
+                         SystemType.EXECUTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.EXECUTION_VIEW),
-                         systemtypes.EXECUTION)
+                         SystemType.EXECUTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.EXECUTION_RE_RUN),
-                         systemtypes.EXECUTION)
+                         SystemType.EXECUTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.EXECUTION_STOP),
-                         systemtypes.EXECUTION)
+                         SystemType.EXECUTION)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.EXECUTION_ALL),
-                         systemtypes.EXECUTION)
+                         SystemType.EXECUTION)
 
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.RULE_LIST),
+                         SystemType.RULE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.RULE_VIEW),
-                         systemtypes.RULE)
+                         SystemType.RULE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.RULE_CREATE),
-                         systemtypes.RULE)
+                         SystemType.RULE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.RULE_MODIFY),
-                         systemtypes.RULE)
+                         SystemType.RULE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.RULE_DELETE),
-                         systemtypes.RULE)
+                         SystemType.RULE)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.RULE_ALL),
-                         systemtypes.RULE)
+                         SystemType.RULE)
 
         self.assertEqual(PermissionType.get_resource_type(PermissionType.KEY_VALUE_VIEW),
-                         systemtypes.KEY_VALUE_PAIR)
+                         SystemType.KEY_VALUE_PAIR)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.KEY_VALUE_SET),
-                         systemtypes.KEY_VALUE_PAIR)
+                         SystemType.KEY_VALUE_PAIR)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.KEY_VALUE_DELETE),
-                         systemtypes.KEY_VALUE_PAIR)
+                         SystemType.KEY_VALUE_PAIR)
 
         self.assertEqual(PermissionType.get_resource_type(PermissionType.WEBHOOK_CREATE),
-                         systemtypes.WEBHOOK)
+                         SystemType.WEBHOOK)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.WEBHOOK_SEND),
-                         systemtypes.WEBHOOK)
+                         SystemType.WEBHOOK)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.WEBHOOK_DELETE),
-                         systemtypes.WEBHOOK)
+                         SystemType.WEBHOOK)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.WEBHOOK_ALL),
-                         systemtypes.WEBHOOK)
+                         SystemType.WEBHOOK)
 
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.API_KEY_LIST),
+                         SystemType.API_KEY)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.API_KEY_VIEW),
-                         systemtypes.API_KEY)
+                         SystemType.API_KEY)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.API_KEY_CREATE),
-                         systemtypes.API_KEY)
+                         SystemType.API_KEY)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.API_KEY_DELETE),
-                         systemtypes.API_KEY)
+                         SystemType.API_KEY)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.API_KEY_ALL),
-                         systemtypes.API_KEY)
+                         SystemType.API_KEY)
+
+    def test_get_permission_name(self):
+        self.assertEqual(PermissionType.get_permission_name(PermissionType.ACTION_LIST),
+                         'list')
+        self.assertEqual(PermissionType.get_permission_name(PermissionType.ACTION_CREATE),
+                         'create')
+        self.assertEqual(PermissionType.get_permission_name(PermissionType.ACTION_DELETE),
+                         'delete')
+        self.assertEqual(PermissionType.get_permission_name(PermissionType.ACTION_ALL),
+                         'all')
+        self.assertEqual(PermissionType.get_permission_name(PermissionType.PACK_ALL),
+                         'all')
+        self.assertEqual(PermissionType.get_permission_name(PermissionType.SENSOR_MODIFY),
+                         'modify')
+        self.assertEqual(PermissionType.get_permission_name(PermissionType.ACTION_EXECUTE),
+                         'execute')
