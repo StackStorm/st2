@@ -305,6 +305,14 @@ RUNNER_TYPES = [
                 'type': 'boolean',
                 'default': False
             },
+            'verify_ssl_cert': {
+                'description': 'Certificate for HTTPS request is verified by default using '
+                               'requests CA bundle which comes from Mozilla. Verification '
+                               'using a custom CA bundle is not yet supported. Set to False '
+                               'to skip verification.',
+                'type': 'boolean',
+                'default': True
+            }
         },
         'runner_module': 'st2actions.runners.httprunner'
     },

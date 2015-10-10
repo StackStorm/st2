@@ -38,7 +38,7 @@ RUNNER_COOKIES = 'cookies'
 RUNNER_ALLOW_REDIRECTS = 'allow_redirects'
 RUNNER_HTTP_PROXY = 'http_proxy'
 RUNNER_HTTPS_PROXY = 'https_proxy'
-
+RUNNER_VERIFY_SSL_CERT = 'verify_ssl_cert'
 
 # Lookup constants for action params
 ACTION_AUTH = 'auth'
@@ -77,6 +77,7 @@ class HttpRunner(ActionRunner):
         self._allow_redirects = self.runner_parameters.get(RUNNER_ALLOW_REDIRECTS, False)
         self._http_proxy = self.runner_parameters.get(RUNNER_HTTP_PROXY, None)
         self._https_proxy = self.runner_parameters.get(RUNNER_HTTPS_PROXY, None)
+        self._verify_ssl_cert = self.runner_parameters.get(RUNNER_VERIFY_SSL_CERT, None)
 
     def run(self, action_parameters):
         client = self._get_http_client(action_parameters)
@@ -124,7 +125,7 @@ class HttpRunner(ActionRunner):
         return HTTPClient(url=self._url, method=method, body=body, params=params,
                           headers=headers, cookies=self._cookies, auth=auth,
                           timeout=timeout, allow_redirects=self._allow_redirects,
-                          proxies=proxies, files=files)
+                          proxies=proxies, files=files, verify=self._verify_ssl_cert)
 
     def _params_to_dict(self, params):
         if not params:
@@ -144,7 +145,7 @@ class HttpRunner(ActionRunner):
 class HTTPClient(object):
     def __init__(self, url=None, method=None, body='', params=None, headers=None, cookies=None,
                  auth=None, timeout=60, allow_redirects=False, proxies=None,
-                 files=None):
+                 files=None, verify=False):
         if url is None:
             raise Exception('URL must be specified.')
 
@@ -171,6 +172,7 @@ class HTTPClient(object):
         self.allow_redirects = allow_redirects
         self.proxies = proxies
         self.files = files
+        self.verify = verify
 
     def run(self):
         results = {}
@@ -201,7 +203,8 @@ class HTTPClient(object):
                 timeout=self.timeout,
                 allow_redirects=self.allow_redirects,
                 proxies=self.proxies,
-                files=self.files
+                files=self.files,
+                verify=self.verify
             )
 
             headers = dict(resp.headers)
