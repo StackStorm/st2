@@ -13,8 +13,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2auth.controllers import auth
+from pecan import expose
+
+from st2common import log as logging
+import st2auth.controllers.v1.root as v1_root
+
+__all__ = [
+    'RootController'
+]
+
+LOG = logging.getLogger(__name__)
 
 
 class RootController(object):
-    tokens = auth.TokenController()
+
+    def __init__(self):
+        v1_controller = v1_root.RootController()
+        self.default_controller = v1_controller
+
+        self.controllers = {
+            'v1': v1_controller,
+        }
+
+    @expose()
+    def _lookup(self, *remainder):
+        version = ''
+        if len(remainder) > 0:
+            version = remainder[0]
+
+            if remainder[len(remainder) - 1] == '':
+                # If the url has a trailing '/' remainder will contain an empty string.
+                # In order for further pecan routing to work this method needs to remove
+                # the empty string from end of the tuple.
+                remainder = remainder[:len(remainder) - 1]
+        versioned_controller = self.controllers.get(version, None)
+        if versioned_controller:
+            return versioned_controller, remainder[1:]
+        LOG.debug('No version specified in URL. Will use default controller.')
+        return self.default_controller, remainder

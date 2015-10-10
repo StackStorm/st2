@@ -310,16 +310,18 @@ Run the following curl commands to test.
 .. sourcecode:: bash
 
     # The following will fail because SSL is required.
-    curl -X POST http://myhost.example.com:9100/tokens
+    curl -X POST http://myhost.example.com:9100/v1/tokens
 
     # The following will fail with 401 unauthorized. Please note that this is executed with "-k" to skip SSL cert verification.
-    curl -X POST -k https://myhost.example.com:9100/tokens
+    curl -X POST -k https://myhost.example.com:9100/v1/tokens
 
     # The following will succeed and return a valid token. Please note that this is executed with "-k" to skip SSL cert verification.
-    curl -X POST -k -u yourusername:yourpassword https://myhost.example.com:9100/tokens
+    curl -X POST -k -u yourusername:yourpassword https://myhost.example.com:9100/v1/tokens
 
     # The following will verify the SSL cert, succeed, and return a valid token.
-    curl -X POST --cacert /path/to/cacert.pem -u yourusername:yourpassword https://myhost.example.com:9100/tokens
+    curl -X POST --cacert /path/to/cacert.pem -u yourusername:yourpassword https://myhost.example.com:9100/v1/tokens
+
+.. note:: Until version 0.13 of StackStorm, auth APIs were unversioned. If your version is 0.13 or below, skip v1 in the URL paths above.
 
 .. _authentication-usage:
 
