@@ -41,7 +41,7 @@ SUPPORTED_FILTERS = {
     'trigger': 'trigger.name',
     'trigger_type': 'trigger_type.name',
     'trigger_instance': 'trigger_instance.id',
-    'user': 'liveaction.context.user'
+    'user': 'context.user'
 }
 
 # List of filters that are too broad to distinct by them and are very likely to represent 1 to 1

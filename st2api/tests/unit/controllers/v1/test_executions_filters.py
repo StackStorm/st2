@@ -55,6 +55,7 @@ class TestActionExecutionFilters(FunctionalTest):
                 'action': copy.deepcopy(fixture.ARTIFACTS['actions']['chain']),
                 'runner': copy.deepcopy(fixture.ARTIFACTS['runners']['action-chain']),
                 'liveaction': copy.deepcopy(fixture.ARTIFACTS['liveactions']['workflow']),
+                'context': copy.deepcopy(fixture.ARTIFACTS['context']),
                 'children': []
             },
             {
