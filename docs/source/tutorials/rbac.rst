@@ -1,5 +1,5 @@
-Configuring RBAC
-================
+Getting Started With RBAC
+=========================
 
 StackStorm enterprise edition brings support for Role Based Access Control(RBAC). RBAC allows a StackStorm administrator
 control over what functions are accessible to a user within StackStorm.
