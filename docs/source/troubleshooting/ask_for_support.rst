@@ -3,7 +3,7 @@ Ask for help!
 
 We stand behind |st2| and make the best effort to support you. Ask for support on any of the following channels:
 
-* `Slack <https://stackstorm-community.slack.com>`_:  If you're not slacker yet, good excuse to become one! Slack allows you to search in archives. This is great if you want to know if someone else had an issue that you are facing! Come hang out. Register `here <https://stackstorm.typeform.com/to/K76GRP/>`_.
+* `Slack <https://stackstorm-community.slack.com>`_:  If you're not slacker yet, good excuse to become one! Slack allows you to search in archives. This is great if you want to know if someone else had an issue that you are facing! Come hang out. Register `here <http://stackstorm.com/community-signup>`_.
 * `IRC <http://webchat.freenode.net/?channels=stackstorm/>`_: We can all get our geek fix!
 * `Email support <support@stackstorm.com/>`_ and we'll get back to you!
 
