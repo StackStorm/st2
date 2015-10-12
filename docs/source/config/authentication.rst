@@ -264,7 +264,7 @@ LDAP backend
 
 LDAP backend reads authentication information from an LDAP server.
 
-Currently there are two types of LDAP backend available - community contributed one and one
+Currently there are two types of LDAP backends available - community contributed one and one
 developed and maintained by the StackStorm team. Community contributed one can be installed
 by anyone and the StackStorm developed one is only available in the enterprise edition (for
 more information on the enterprise edition, please see https://stackstorm.com/product/#enterprise).
@@ -276,14 +276,28 @@ developed and maintained by the community.
 Enterprise LDAP backend
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Community maintained LDAP backend
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+As noted above this backend is installed and available by default in the enterprise edition.
+
+**Backend configuration options:**
+
+* ``host`` - Hostname / IP of the LDAP server.
+* ``port`` - Port of the LDAP server.
+* ``use_ssl`` - Use LDAPS to connect. Defaults to ``False``.
+* ``use_tls`` - Start TLS on LDAP to connect. Defaults to ``False``.
+* ``cacert`` - Path to the CA cert used to validate the server certificate. Defaults to
+  ``None``.
+* ``users_ou`` - OU of the user accounts.
+* ``id_attr`` - Field name of the user ID attribute.
+* ``scope`` - Search scope (base, onelevel, or subtree). Defaults to ``subtree``.
+
+Community LDAP backend
+~~~~~~~~~~~~~~~~~~~~~~
+
+Repository URL: https://github.com/StackStorm/st2-auth-backend-ldap
 
 The backend tries to bind the ldap user with given username and password. If the bind was
 successful, it tries to find the user in the given group. If the user is in the group, they will be
 authenticated.
-
-https://stackstorm.com/product/#enterprise
 
 **Backend configuration options:**
 
