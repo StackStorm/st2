@@ -8,3 +8,4 @@ This section contains various step by step tutorials.
 
     rbac
     chatops
+    notifications
