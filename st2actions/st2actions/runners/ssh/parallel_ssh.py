@@ -261,6 +261,7 @@ class ParallelSSHClient(object):
                            'succeeded': is_succeeded, 'failed': not is_succeeded}
             results[host] = jsonify.json_loads(result_dict, ParallelSSHClient.KEYS_TO_TRANSFORM)
         except:
+            cmd = self._sanitize_command_string(cmd=cmd)
             error = 'Failed executing command "%s" on host "%s"' % (cmd, host)
             LOG.exception(error)
             _, ex, tb = sys.exc_info()
@@ -320,6 +321,20 @@ class ParallelSSHClient(object):
             port = self._ssh_port
 
         return (hostname, port)
+
+    @staticmethod
+    def _sanitize_command_string(cmd):
+        """
+        Remove any potentially sensitive information from the command string.
+
+        For now we only mask the values of the sensitive environment variables.
+        """
+        if not cmd:
+            return cmd
+
+        result = re.sub('ST2_ACTION_AUTH_TOKEN=(.+?)\s+?', 'ST2_ACTION_AUTH_TOKEN=%s ' %
+                        (MASKED_ATTRIBUTE_VALUE), cmd)
+        return result
 
     @staticmethod
     def _generate_error_result(exc, tb, message):
