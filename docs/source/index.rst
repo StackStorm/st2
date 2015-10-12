@@ -29,6 +29,7 @@ Contents:
     reference/index
     development/index
     troubleshooting/index
+    tutorials/index
     changelog
     upgrade_notes
     roadmap
