@@ -14,12 +14,14 @@
 # limitations under the License.
 
 import json
+import re
 import os
 import sys
 import traceback
 
 import eventlet
 
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
 from st2actions.runners.ssh.paramiko_ssh import SSHCommandTimeoutError
 from st2common import log as logging
