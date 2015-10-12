@@ -7,3 +7,4 @@ This section contains various step by step tutorials.
     :maxdepth: 1
 
     rbac
+    chatops

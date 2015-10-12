@@ -15,10 +15,7 @@ Administrator of StackStorm on a box that is running StackStorm.
 
 User creation
 -------------
-All user and password management is kept outside of StackStorm. Documentation on Authentication_ describe how to
-confirgure StackStorm with various identity providers.
-
-.. _Authentication: http://docs.stackstorm.com/latest/config/authentication.html
+All user and password management is kept outside of StackStorm. Documentation on :doc:`authentication </config/authentication>` describes how to confirgure StackStorm with various identity providers.
 
 For sake of this guide let us assume that the identify provider is managed by the OS on which StackStorm runs.
 
@@ -74,7 +71,7 @@ Now we setup a role. Create file `/opt/stackstorm/rbac/roles/x_pack_owner.yaml` 
 A `pack owner` role would require the user to be able to view, create, modify and delete all contents
 of a pack. Again, lets pick pack `x` as the target of ownership.
 
-See http://docs.stackstorm.com/latest/rbac.html#available-permission-types for a full list of permission types.
+See :ref:`available permission types<ref-rbac-available-permission-types>` for a full list of permission types.
 
 Role assignment
 ---------------
@@ -144,5 +141,5 @@ Lets take what we have achieved for a spin using the StackStorm CLI.
     $ st2 action get core.local
     $ st2 run core.local hostname
 
-This walk-through showcases a narrow slice in StackStorm RBAC capabilities. For a more comprehensive refrence head
-over to http://docs.stackstorm.com/latest/rbac.html.
+This walk-through showcases a narrow slice in StackStorm RBAC capabilities. For a more comprehensive reference head
+over to :doc:`RBAC </rbac>`.
