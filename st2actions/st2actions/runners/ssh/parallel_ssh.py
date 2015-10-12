@@ -329,11 +329,16 @@ class ParallelSSHClient(object):
         else:
             return_code = 255
 
+        stdout = getattr(ex, 'stdout', None) or ''
+        stderr = getattr(ex, 'stderr', None) or ''
+
         error_dict = {
-            'error': error_msg,
-            'traceback': ''.join(traceback.format_tb(tb, 20)) if tb else '',
             'failed': True,
             'succeeded': False,
-            'return_code': return_code
+            'return_code': return_code,
+            'stdout': stdout,
+            'stderr': stderr,
+            'error': error_msg,
+            'traceback': ''.join(traceback.format_tb(tb, 20)) if tb else '',
         }
         return error_dict
