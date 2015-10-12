@@ -513,3 +513,7 @@ class ParamikoSSHClient(object):
             msg = 'Invalid or unsupported key type'
 
         raise paramiko.ssh_exception.SSHException(msg)
+
+    def __repr__(self):
+        return ('<ParamikoSSHClient hostname=%s,port=%s,username=%s,id=%s>' %
+                (self.hostname, self.port, self.username, id(self)))
