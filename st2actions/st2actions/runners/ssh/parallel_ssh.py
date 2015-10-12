@@ -21,6 +21,7 @@ import traceback
 import eventlet
 
 from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
+from st2actions.runners.ssh.paramiko_ssh import SSHCommandTimeoutError
 from st2common import log as logging
 from st2common.exceptions.ssh import NoHostsConnectedToException
 import st2common.util.jsonify as jsonify
@@ -240,7 +241,7 @@ class ParallelSSHClient(object):
             if raise_on_any_error:
                 raise
             error = ' '.join([self.CONNECT_ERROR, str(ex)])
-            error_dict = self._generate_error_result(error, tb)
+            error_dict = self._generate_error_result(ex, error, tb)
             self._bad_hosts[hostname] = error_dict
             results[hostname] = error_dict
         else:
@@ -260,8 +261,8 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed executing command %s on host %s' % (cmd, host)
             LOG.exception(error)
-            _, _, tb = sys.exc_info()
-            results[host] = self._generate_error_result(error, tb)
+            _, ex, tb = sys.exc_info()
+            results[host] = self._generate_error_result(ex, error, tb)
 
     def _put_files(self, local_path, remote_path, host, results, mode=None,
                    mirror_local_mode=False):
@@ -278,8 +279,8 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed sending file(s) in path %s to host %s' % (local_path, host)
             LOG.exception(error)
-            _, _, tb = sys.exc_info()
-            results[host] = self._generate_error_result(error, tb)
+            _, ex, tb = sys.exc_info()
+            results[host] = self._generate_error_result(ex, error, tb)
 
     def _mkdir(self, host, path, results):
         try:
@@ -288,8 +289,8 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed "mkdir %s" on host %s.' % (path, host)
             LOG.exception(error)
-            _, _, tb = sys.exc_info()
-            results[host] = self._generate_error_result(error, tb)
+            _, ex, tb = sys.exc_info()
+            results[host] = self._generate_error_result(ex, error, tb)
 
     def _delete_file(self, host, path, results):
         try:
@@ -298,8 +299,8 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed deleting file %s on host %s.' % (path, host)
             LOG.exception(error)
-            _, _, tb = sys.exc_info()
-            results[host] = self._generate_error_result(error, tb)
+            _, ex, tb = sys.exc_info()
+            results[host] = self._generate_error_result(ex, error, tb)
 
     def _delete_dir(self, host, path, results, force=False, timeout=None):
         try:
@@ -308,8 +309,8 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed deleting dir %s on host %s.' % (path, host)
             LOG.exception(error)
-            _, _, tb = sys.exc_info()
-            results[host] = self._generate_error_result(error, tb)
+            _, ex, tb = sys.exc_info()
+            results[host] = self._generate_error_result(ex, error, tb)
 
     def _get_host_port_info(self, host_str):
         (hostname, port) = ip_utils.split_host_port(host_str)
@@ -319,12 +320,20 @@ class ParallelSSHClient(object):
         return (hostname, port)
 
     @staticmethod
-    def _generate_error_result(error_msg, tb):
+    def _generate_error_result(ex, error_msg, tb):
+        """
+        :param ex: Raised exception.
+        """
+        if isinstance(ex, SSHCommandTimeoutError):
+            return_code = -9
+        else:
+            return_code = 255
+
         error_dict = {
             'error': error_msg,
             'traceback': ''.join(traceback.format_tb(tb, 20)) if tb else '',
             'failed': True,
             'succeeded': False,
-            'return_code': 255
+            'return_code': return_code
         }
         return error_dict
