@@ -83,6 +83,8 @@ also implicitly grant corresponding ``view`` permission. This means that, for ex
 grant ``action_execute`` permission on a particular action, user will also be able to view and
 retrieve details for this particular action.
 
+.. _ref-rbac-available-permission-types:
+
 Available permission types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
