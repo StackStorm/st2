@@ -303,5 +303,14 @@ class TestActionExecutionFilters(FunctionalTest):
         response = self.app.get('/v1/executions/views/filters')
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, dict)
-        for key, value in six.iteritems(history_views.ARTIFACTS['filters']):
+        self.assertEqual(len(response.json), len(history_views.ARTIFACTS['filters']['default']))
+        for key, value in six.iteritems(history_views.ARTIFACTS['filters']['default']):
+            self.assertEqual(set(response.json[key]), set(value))
+
+    def test_filters_view_specific_types(self):
+        response = self.app.get('/v1/executions/views/filters?types=action,user,nonexistent')
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, dict)
+        self.assertEqual(len(response.json), len(history_views.ARTIFACTS['filters']['specific']))
+        for key, value in six.iteritems(history_views.ARTIFACTS['filters']['specific']):
             self.assertEqual(set(response.json[key]), set(value))

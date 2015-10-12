@@ -49,19 +49,26 @@ SUPPORTED_FILTERS = {
 IGNORE_FILTERS = ['parent', 'timestamp', 'liveaction', 'trigger_instance']
 
 
+def csv(s):
+    return s.split(',')
+
+
 class FiltersController(RestController):
-    @jsexpose()
-    def get_all(self):
+    @jsexpose(arg_types=[csv])
+    def get_all(self, types=None):
         """
             List all distinct filters.
 
             Handles requests:
-                GET /executions/views/filters
+                GET /executions/views/filters[?types=action,rule]
+
+            :param types: Comma delimited string of filter types to output.
+            :type types: ``str``
         """
         filters = {}
 
         for name, field in six.iteritems(SUPPORTED_FILTERS):
-            if name not in IGNORE_FILTERS:
+            if name not in IGNORE_FILTERS and (not types or name in types):
                 filters[name] = ActionExecution.distinct(field=field)
 
         return filters

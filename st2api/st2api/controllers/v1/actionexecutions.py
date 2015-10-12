@@ -55,7 +55,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 # Note: We initialize filters here and not in the constructor
-SUPPORTED_EXECUTIONS_FILTERS = SUPPORTED_FILTERS
+SUPPORTED_EXECUTIONS_FILTERS = copy.deepcopy(SUPPORTED_FILTERS)
 SUPPORTED_EXECUTIONS_FILTERS.update({
     'timestamp_gt': 'start_timestamp.gt',
     'timestamp_lt': 'start_timestamp.lt'
