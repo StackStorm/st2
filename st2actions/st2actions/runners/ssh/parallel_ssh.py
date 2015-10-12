@@ -342,3 +342,7 @@ class ParallelSSHClient(object):
             'traceback': ''.join(traceback.format_tb(tb, 20)) if tb else '',
         }
         return error_dict
+
+    def __repr__(self):
+        return ('<ParallelSSHClient hosts=%s,user=%s,id=%s>' %
+                (repr(self._hosts), self._ssh_user, id(self)))
