@@ -262,11 +262,28 @@ Example ``auth`` section in the |st2| configuration file.
 LDAP backend
 ~~~~~~~~~~~~
 
-Repository URL: https://github.com/StackStorm/st2-auth-backend-ldap
+LDAP backend reads authentication information from an LDAP server.
 
-Backend which reads authentication information from an LDAP server. The backend tries to bind the
-ldap user with given username and password. If the bind was successful, it tries to find the user
-in the given group. If the user is in the group, they will be authenticated.
+Currently there are two types of LDAP backend available - community contributed one and one
+developed and maintained by the StackStorm team. Community contributed one can be installed
+by anyone and the StackStorm developed one is only available in the enterprise edition (for
+more information on the enterprise edition, please see https://stackstorm.com/product/#enterprise).
+
+The difference between them is that the one included in the enterprise edition is developed,
+supported, tested and maintained by the StackStorm team and the community contributed one is
+developed and maintained by the community.
+
+Enterprise LDAP backend
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Community maintained LDAP backend
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The backend tries to bind the ldap user with given username and password. If the bind was
+successful, it tries to find the user in the given group. If the user is in the group, they will be
+authenticated.
+
+https://stackstorm.com/product/#enterprise
 
 **Backend configuration options:**
 
