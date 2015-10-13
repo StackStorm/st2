@@ -17,7 +17,7 @@ Ubuntu
 
 ::
 
-    apt-get install python-pip python-virtualenv python-dev gcc git make realpath screen
+    apt-get install python-pip python-virtualenv python-dev gcc git make realpath screen libffi-dev libssl-dev
     apt-get install mongodb mongodb-server
     apt-get install rabbitmq-server
 
