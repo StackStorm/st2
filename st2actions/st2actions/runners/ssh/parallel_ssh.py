@@ -236,14 +236,13 @@ class ParallelSSHClient(object):
                                    port=port)
         try:
             client.connect()
-        except:
+        except Exception as ex:
             error = 'Failed connecting to host %s.' % hostname
             LOG.exception(error)
-            _, ex, tb = sys.exc_info()
             if raise_on_any_error:
                 raise
             error = ' '.join([self.CONNECT_ERROR, str(ex)])
-            error_dict = self._generate_error_result(exc=ex, tb=tb, message=error)
+            error_dict = self._generate_error_result(exc=ex, message=error)
             self._bad_hosts[hostname] = error_dict
             results[hostname] = error_dict
         else:
@@ -260,12 +259,11 @@ class ParallelSSHClient(object):
             result_dict = {'stdout': stdout, 'stderr': stderr, 'return_code': exit_code,
                            'succeeded': is_succeeded, 'failed': not is_succeeded}
             results[host] = jsonify.json_loads(result_dict, ParallelSSHClient.KEYS_TO_TRANSFORM)
-        except:
+        except Exception as ex:
             cmd = self._sanitize_command_string(cmd=cmd)
             error = 'Failed executing command "%s" on host "%s"' % (cmd, host)
             LOG.exception(error)
-            _, ex, tb = sys.exc_info()
-            results[host] = self._generate_error_result(exc=ex, tb=tb, message=error)
+            results[host] = self._generate_error_result(exc=ex, message=error)
 
     def _put_files(self, local_path, remote_path, host, results, mode=None,
                    mirror_local_mode=False):
@@ -279,41 +277,37 @@ class ParallelSSHClient(object):
                                                       mode=mode)
             LOG.debug('Result of copy: %s' % result)
             results[host] = result
-        except:
+        except Exception as ex:
             error = 'Failed sending file(s) in path %s to host %s' % (local_path, host)
             LOG.exception(error)
-            _, ex, tb = sys.exc_info()
-            results[host] = self._generate_error_result(exc=ex, tb=tb, message=error)
+            results[host] = self._generate_error_result(exc=ex, message=error)
 
     def _mkdir(self, host, path, results):
         try:
             result = self._hosts_client[host].mkdir(path)
             results[host] = result
-        except:
+        except Exception as ex:
             error = 'Failed "mkdir %s" on host %s.' % (path, host)
             LOG.exception(error)
-            _, ex, tb = sys.exc_info()
-            results[host] = self._generate_error_result(exc=ex, tb=tb, message=error)
+            results[host] = self._generate_error_result(exc=ex, message=error)
 
     def _delete_file(self, host, path, results):
         try:
             result = self._hosts_client[host].delete_file(path)
             results[host] = result
-        except:
+        except Exception as ex:
             error = 'Failed deleting file %s on host %s.' % (path, host)
             LOG.exception(error)
-            _, ex, tb = sys.exc_info()
-            results[host] = self._generate_error_result(exc=ex, tb=tb, message=error)
+            results[host] = self._generate_error_result(exc=ex, message=error)
 
     def _delete_dir(self, host, path, results, force=False, timeout=None):
         try:
             result = self._hosts_client[host].delete_dir(path, force=force, timeout=timeout)
             results[host] = result
-        except:
+        except Exception as ex:
             error = 'Failed deleting dir %s on host %s.' % (path, host)
             LOG.exception(error)
-            _, ex, tb = sys.exc_info()
-            results[host] = self._generate_error_result(exc=ex, tb=tb, message=error)
+            results[host] = self._generate_error_result(exc=ex, message=error)
 
     def _get_host_port_info(self, host_str):
         (hostname, port) = ip_utils.split_host_port(host_str)
@@ -337,19 +331,17 @@ class ParallelSSHClient(object):
         return result
 
     @staticmethod
-    def _generate_error_result(exc, tb, message):
+    def _generate_error_result(exc, message):
         """
         :param exc: Raised exception.
         :type exc: Exception.
-
-        :param tb: Traceback belonging to the raised exception.
 
         :param message: Error message which will be prefixed to the exception exception message.
         :type message: ``str``
         """
         exc_message = getattr(exc, 'message', str(exc))
         error_message = '%s: %s' % (message, exc_message)
-        traceback_message = ''.join(traceback.format_tb(tb, 20)) if tb else ''
+        traceback_message = traceback.format_exc()
 
         if isinstance(exc, SSHCommandTimeoutError):
             return_code = -9
