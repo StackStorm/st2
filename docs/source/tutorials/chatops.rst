@@ -1,3 +1,5 @@
+.. _ref-chatops:
+
 Let's ChatOps!
 ==============
 
@@ -10,6 +12,7 @@ for more information.
 
 This instructable has been left here as a reference for understanding
 the internal wiring.
+
 
 What is ChatOps
 ---------------
