@@ -21,6 +21,7 @@ import unittest2
 
 from st2actions.runners.ssh.parallel_ssh import ParallelSSHClient
 from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
+from st2actions.runners.ssh.paramiko_ssh import SSHCommandTimeoutError
 import st2tests.config as tests_config
 tests_config.parse_args()
 
@@ -106,6 +107,30 @@ class ParallelSSHTests(unittest2.TestCase):
         for host in hosts:
             hostname, _ = client._get_host_port_info(host)
             client._hosts_client[hostname].run.assert_called_with('pwd', **expected_kwargs)
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_run_command_timeout(self):
+        # Make sure stdout and stderr is included on timeout
+        hosts = ['localhost', '127.0.0.1', 'st2build001']
+        client = ParallelSSHClient(hosts=hosts,
+                                   user='ubuntu',
+                                   pkey_file='~/.ssh/id_rsa',
+                                   connect=True)
+        mock_run = Mock(side_effect=SSHCommandTimeoutError(cmd='pwd', timeout=10,
+                                                           stdout='a',
+                                                           stderr='b'))
+        for host in hosts:
+            hostname, _ = client._get_host_port_info(host)
+            host_client = client._hosts_client[host]
+            host_client.run = mock_run
+
+        results = client.run('pwd')
+        for host in hosts:
+            result = results[host]
+            self.assertEqual(result['failed'], True)
+            self.assertEqual(result['stdout'], 'a')
+            self.assertEqual(result['stderr'], 'b')
+            self.assertEqual(result['return_code'], -9)
 
     @patch('paramiko.SSHClient', Mock)
     @patch.object(ParamikoSSHClient, 'put', MagicMock(return_value={}))

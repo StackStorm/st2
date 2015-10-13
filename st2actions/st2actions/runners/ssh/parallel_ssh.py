@@ -14,13 +14,16 @@
 # limitations under the License.
 
 import json
+import re
 import os
 import sys
 import traceback
 
 import eventlet
 
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
+from st2actions.runners.ssh.paramiko_ssh import SSHCommandTimeoutError
 from st2common import log as logging
 from st2common.exceptions.ssh import NoHostsConnectedToException
 import st2common.util.jsonify as jsonify
@@ -240,7 +243,7 @@ class ParallelSSHClient(object):
             if raise_on_any_error:
                 raise
             error = ' '.join([self.CONNECT_ERROR, str(ex)])
-            error_dict = self._generate_error_result(error, tb)
+            error_dict = self._generate_error_result(exc=ex, tb=tb, message=error)
             self._bad_hosts[hostname] = error_dict
             results[hostname] = error_dict
         else:
@@ -258,10 +261,11 @@ class ParallelSSHClient(object):
                            'succeeded': is_succeeded, 'failed': not is_succeeded}
             results[host] = jsonify.json_loads(result_dict, ParallelSSHClient.KEYS_TO_TRANSFORM)
         except:
-            error = 'Failed executing command %s on host %s' % (cmd, host)
+            cmd = self._sanitize_command_string(cmd=cmd)
+            error = 'Failed executing command "%s" on host "%s"' % (cmd, host)
             LOG.exception(error)
-            _, _, tb = sys.exc_info()
-            results[host] = self._generate_error_result(error, tb)
+            _, ex, tb = sys.exc_info()
+            results[host] = self._generate_error_result(exc=ex, tb=tb, message=error)
 
     def _put_files(self, local_path, remote_path, host, results, mode=None,
                    mirror_local_mode=False):
@@ -278,8 +282,8 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed sending file(s) in path %s to host %s' % (local_path, host)
             LOG.exception(error)
-            _, _, tb = sys.exc_info()
-            results[host] = self._generate_error_result(error, tb)
+            _, ex, tb = sys.exc_info()
+            results[host] = self._generate_error_result(exc=ex, tb=tb, message=error)
 
     def _mkdir(self, host, path, results):
         try:
@@ -288,8 +292,8 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed "mkdir %s" on host %s.' % (path, host)
             LOG.exception(error)
-            _, _, tb = sys.exc_info()
-            results[host] = self._generate_error_result(error, tb)
+            _, ex, tb = sys.exc_info()
+            results[host] = self._generate_error_result(exc=ex, tb=tb, message=error)
 
     def _delete_file(self, host, path, results):
         try:
@@ -298,8 +302,8 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed deleting file %s on host %s.' % (path, host)
             LOG.exception(error)
-            _, _, tb = sys.exc_info()
-            results[host] = self._generate_error_result(error, tb)
+            _, ex, tb = sys.exc_info()
+            results[host] = self._generate_error_result(exc=ex, tb=tb, message=error)
 
     def _delete_dir(self, host, path, results, force=False, timeout=None):
         try:
@@ -308,8 +312,8 @@ class ParallelSSHClient(object):
         except:
             error = 'Failed deleting dir %s on host %s.' % (path, host)
             LOG.exception(error)
-            _, _, tb = sys.exc_info()
-            results[host] = self._generate_error_result(error, tb)
+            _, ex, tb = sys.exc_info()
+            results[host] = self._generate_error_result(exc=ex, tb=tb, message=error)
 
     def _get_host_port_info(self, host_str):
         (hostname, port) = ip_utils.split_host_port(host_str)
@@ -319,12 +323,53 @@ class ParallelSSHClient(object):
         return (hostname, port)
 
     @staticmethod
-    def _generate_error_result(error_msg, tb):
+    def _sanitize_command_string(cmd):
+        """
+        Remove any potentially sensitive information from the command string.
+
+        For now we only mask the values of the sensitive environment variables.
+        """
+        if not cmd:
+            return cmd
+
+        result = re.sub('ST2_ACTION_AUTH_TOKEN=(.+?)\s+?', 'ST2_ACTION_AUTH_TOKEN=%s ' %
+                        (MASKED_ATTRIBUTE_VALUE), cmd)
+        return result
+
+    @staticmethod
+    def _generate_error_result(exc, tb, message):
+        """
+        :param exc: Raised exception.
+        :type exc: Exception.
+
+        :param tb: Traceback belonging to the raised exception.
+
+        :param message: Error message which will be prefixed to the exception exception message.
+        :type message: ``str``
+        """
+        exc_message = getattr(exc, 'message', str(exc))
+        error_message = '%s: %s' % (message, exc_message)
+        traceback_message = ''.join(traceback.format_tb(tb, 20)) if tb else ''
+
+        if isinstance(exc, SSHCommandTimeoutError):
+            return_code = -9
+        else:
+            return_code = 255
+
+        stdout = getattr(exc, 'stdout', None) or ''
+        stderr = getattr(exc, 'stderr', None) or ''
+
         error_dict = {
-            'error': error_msg,
-            'traceback': ''.join(traceback.format_tb(tb, 20)) if tb else '',
             'failed': True,
             'succeeded': False,
-            'return_code': 255
+            'return_code': return_code,
+            'stdout': stdout,
+            'stderr': stderr,
+            'error': error_message,
+            'traceback': traceback_message,
         }
         return error_dict
+
+    def __repr__(self):
+        return ('<ParallelSSHClient hosts=%s,user=%s,id=%s>' %
+                (repr(self._hosts), self._ssh_user, id(self)))

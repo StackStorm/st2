@@ -44,9 +44,19 @@ class SSHCommandTimeoutError(Exception):
     """
     Exception which is raised when an SSH command times out.
     """
-    def __init__(self, cmd, timeout):
+
+    def __init__(self, cmd, timeout, stdout=None, stderr=None):
+        """
+        :param stdout: Stdout which was consumed until the timeout occured.
+        :type stdout: ``str``
+
+        :param stdout: Stderr which was consumed until the timeout occured.
+        :type stderr: ``str``
+        """
         self.cmd = cmd
         self.timeout = timeout
+        self.stdout = stdout
+        self.stderr = stderr
         message = 'Command didn\'t finish in %s seconds' % (timeout)
         super(SSHCommandTimeoutError, self).__init__(message)
 
@@ -387,7 +397,10 @@ class ParamikoSSHClient(object):
                 # TODO: Is this the right way to clean up?
                 chan.close()
 
-                raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout)
+                stdout = strip_shell_chars(stdout.getvalue())
+                stderr = strip_shell_chars(stderr.getvalue())
+                raise SSHCommandTimeoutError(cmd=cmd, timeout=timeout, stdout=stdout,
+                                             stderr=stderr)
 
             stdout.write(self._consume_stdout(chan).getvalue())
             stderr.write(self._consume_stderr(chan).getvalue())
@@ -500,3 +513,7 @@ class ParamikoSSHClient(object):
             msg = 'Invalid or unsupported key type'
 
         raise paramiko.ssh_exception.SSHException(msg)
+
+    def __repr__(self):
+        return ('<ParamikoSSHClient hostname=%s,port=%s,username=%s,id=%s>' %
+                (self.hostname, self.port, self.username, id(self)))

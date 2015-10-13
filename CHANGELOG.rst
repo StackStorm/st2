@@ -66,6 +66,8 @@ in development
 * Support versioned APIs for auth controller. For backward compatibility, unversioned API calls
   get redirected to versioned controllers by the server. (improvement)
 * Add option to verify SSL cert for HTTPS request to the core.http action. (new feature)
+* Update remote runner to include stdout and stderr which was consumed so far when a timeout
+  occurs. (improvement)
 
 0.13.2 - September 09, 2015
 ---------------------------

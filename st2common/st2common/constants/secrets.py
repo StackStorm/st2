@@ -26,7 +26,8 @@ MASKED_ATTRIBUTES_BLACKLIST = [
     'auth_token',
     'token',
     'secret',
-    'credentials'
+    'credentials',
+    'st2_auth_token'
 ]
 
 # Value with which the masked attribute values are replaced
