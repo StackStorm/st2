@@ -1,7 +1,7 @@
 ---
 # Action definition metadata
 name: "mistral_examples"
-description: "Run all the Mistral examples"
+description: "Run selected Mistral examples"
 
 # `runner_type` has value `action-chain` to identify that action is an ActionChain.
 runner_type: "action-chain"
