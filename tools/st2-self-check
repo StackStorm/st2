@@ -106,9 +106,10 @@ do
     fi
 
     echo -n "Attempting Test ${TEST}..."
-    TEST_OUTPUT=`st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} -j`
-    CHECK_STATUS=`echo ${TEST_OUTPUT} | grep '"status": "failed"'`
-    if [ $? -ne 1 ]; then
+    RESULT_FILE=/tmp/${TEST}.out
+    st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} -j > ${RESULT_FILE}
+    CHECK_STATUS=`head -n 9 ${RESULT_FILE} | grep '"status": "succeeded"'`
+    if [ $? -ne 0 ]; then
         echo -e "ERROR!"
         ((ERRORS++))
     else
@@ -117,9 +118,10 @@ do
 done
 
 echo -n "Attempting Example examples.mistral_examples..."
-MISTRAL_EXAMPLES=`st2 run examples.mistral_examples -j`
-CHECK_STATUS=`echo ${MISTRAL_EXAMPLES} | grep '"status": "failed"'`
-if [ $? -ne 1 ]; then
+RESULT_FILE=/tmp/examples.mistral_examples.out
+st2 run examples.mistral_examples -j > ${RESULT_FILE}
+CHECK_STATUS=`head -n 9 ${RESULT_FILE} | grep '"status": "succeeded"'`
+if [ $? -ne 0 ]; then
     echo -e "ERROR!"
     ((ERRORS++))
 else
