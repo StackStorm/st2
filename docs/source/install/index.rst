@@ -2,52 +2,47 @@ Installation
 ============
 
 There are several methods to deploy StackStorm. The easiest is all-in-one install
-on Ubuntu/Debian or RedHat/Fedora. Skip below if you want to learn about
-:doc:`docker` or :doc:`vagrant`, or other installations approaches.
+on Ubuntu/Debian or RedHat/CentOS. Skip below if you want to learn about
+:doc:`puppet` or :doc:`chef`, or other installations approaches.
 
-.. note:: Try our new :doc:`all_in_one`. It's BETA, to soon become the main installation option, with reliability, security, and graphical setup.
 
-To install and run |st2| on a single Ubuntu/Debian or RedHat/Fedora box, with all dependencies,
-download and run the deployment script.
 
-::
-
-    curl -q -k -O https://downloads.stackstorm.net/releases/st2/scripts/st2_deploy.sh
-    chmod +x st2_deploy.sh
-    sudo ./st2_deploy.sh
-
-This will download and install the stable release of |st2| (currently |release|).
-If you want to install the latest development version, run ``sudo ./st2_deploy.sh latest``.
-Installation should take about 5 min. Grab a coffee and watch :doc:`/video` while it is being installed.
-
-At the end of the installation, you will see a nice big **ST2 OK**, the default username and password,
-and WebUI url:
+To install and run |st2| on a single Ubuntu/Debian or RedHat/CentOS box, with all dependencies,
+run the bootstrap script:
 
 ::
 
-    WebUI at http://my-host:8080/
-    ==========================================
+    curl -sSL https://raw.githubusercontent.com/StackStorm/st2workroom/master/script/bootstrap-st2express | sudo sh
 
-              _   ___     ____  _  __
-             | | |__ \   / __ \| |/ /
-          ___| |_   ) | | |  | | ' /
-         / __| __| / /  | |  | |  <
-         \__ \ |_ / /_  | |__| | . \
-         |___/\__|____|  \____/|_|\_\
+You will need elevated privileges in order to run this script. This will download and install the stable release of |st2| (currently |release|). Check out :doc:`all_in_one` to learn how to provide anser file, get latest development version, and other details. Installation should take about 20 min. *Yes, we are working on making it faster!*. Grab a coffee and watch :doc:`/video` while it is being installed. Once completed, you will see the following console output. Read it :)
+
+::
+
+    ███████╗████████╗██████╗      ██████╗ ██╗  ██╗
+    ██╔════╝╚══██╔══╝╚════██╗    ██╔═══██╗██║ ██╔╝
+    ███████╗   ██║    █████╔╝    ██║   ██║█████╔╝
+    ╚════██║   ██║   ██╔═══╝     ██║   ██║██╔═██╗
+    ███████║   ██║   ███████╗    ╚██████╔╝██║  ██╗
+    ╚══════╝   ╚═╝   ╚══════╝     ╚═════╝ ╚═╝  ╚═╝
 
       st2 is installed and ready to use.
-    ==========================================
 
-    Test StackStorm user account details
+    First time starting this machine up?
+    Visit https://kickbox.example.com/setup to configure StackStorm
+    Otherwise, head to https://kickbox.example.com to access the WebUI
 
-    Username: testu
-    Password: testp
+    If you would like to use the CLI interface, you will need
+    to ensure that StackStorm environment variables are properly
+    set. You can do this by logging out and logging back in, or
+    running the command:
 
-    Test account credentials were also written to the default CLI config at .
+    . /etc/profile.d/st2.sh
 
-    To login and obtain an authentication token, run the following command:
 
-    st2 auth testu -p testp
+Visit the setup URL output, ``https://<HOST>/setup`` and proceed to :ref:`all_in_one-running_the_setup` to configure StackStorm and complete installation.
+
+
+.. note:: The :doc:`st2_deploy` which was a primary way to deploy up to v0.13 is avaialbe, although being deprecated by the new :doc:`all_in_one`
 
 .. include:: on_complete.rst
 
@@ -56,9 +51,10 @@ and WebUI url:
 .. toctree::
     :maxdepth: 1
 
-    All-In-One Installer - NEW!!! <all_in_one>
+    All-In-One Installer  <all_in_one>
     Ubuntu / Debian <deb>
-    RedHat / Fedora <rpm>
+    RedHat / CentOS <rpm>
+    Scripted Installer <st2_deploy>
     Vagrant <vagrant>
     Docker <docker>
     Puppet <puppet>

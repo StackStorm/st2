@@ -104,6 +104,8 @@ This will boot up a fresh |st2| installation along with the Mistral workflow eng
 
 Visit the setup URL output on your command line by entering the address in your web browser. From there, proceed to the section *Running the Setup*
 
+.. _all_in_one-running_the_setup:
+
 Running the Setup
 ~~~~~~~~~~~~~~~~~
 Once the machine is provisioned, you will need to configure |st2| to integrate with your environment. Before you see the initial setup screen, you may be presented with a SSL certificate warning. A brand new self-signed SSL certificate was created, and you will need to trust this certificate to continue.
