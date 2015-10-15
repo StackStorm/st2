@@ -12,12 +12,12 @@ Currently script covers the following aspects of |st2|:
 
 To run the self-verification:
 
-1. Switch to `root` user and save an authentication token into `ST2_AUTH_TOKEN` variable:
+1. Switch to `root` user and save an authentication token into the `ST2_AUTH_TOKEN` variable. Also make sure ST2_API_URL and ST2_AUTH_URL are already defined.
 
 .. code-block:: bash
 
     sudo su
-    export ST2_AUTH_TOKEN=`st2 auth testu -p testp -t`
+    export ST2_AUTH_TOKEN=`st2 auth <username> -p <password> -t`
 
 2. Run ``st2-self-check`` script:
 
