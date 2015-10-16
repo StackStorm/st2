@@ -107,8 +107,8 @@ class TriggerDispatcher(object):
         self._publisher.publish_trigger(payload=payload, routing_key=routing_key)
 
 
-def get_trigger_cud_queue(name, routing_key):
-    return Queue(name, TRIGGER_CUD_XCHG, routing_key=routing_key)
+def get_trigger_cud_queue(name, routing_key, exclusive=False):
+    return Queue(name, TRIGGER_CUD_XCHG, routing_key=routing_key, exclusive=exclusive)
 
 
 def get_trigger_instances_queue(name, routing_key):

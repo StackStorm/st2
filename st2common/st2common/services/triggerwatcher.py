@@ -28,10 +28,10 @@ LOG = logging.getLogger(__name__)
 
 class TriggerWatcher(ConsumerMixin):
 
-    sleep_interval = 4  # how long to sleep after processing each message
+    sleep_interval = 0  # sleep to co-operatively yield after processing each message
 
     def __init__(self, create_handler, update_handler, delete_handler,
-                 trigger_types=None, queue_suffix=None):
+                 trigger_types=None, queue_suffix=None, exclusive=False):
         """
         :param create_handler: Function which is called on TriggerDB create event.
         :type create_handler: ``callable``
@@ -46,13 +46,18 @@ class TriggerWatcher(ConsumerMixin):
                               if the trigger in the message payload is included
                               in this list.
         :type trigger_types: ``list``
+
+        :param exclusive: If the Q is exclusive to a specific connection which is then
+                          single connection created by TriggerWatcher. When the connection
+                          breaks the Q is removed by the message broker.
+        :type exclusive: ``bool``
         """
         # TODO: Handle trigger type filtering using routing key
         self._create_handler = create_handler
         self._update_handler = update_handler
         self._delete_handler = delete_handler
         self._trigger_types = trigger_types
-        self._trigger_watch_q = self._get_queue(queue_suffix)
+        self._trigger_watch_q = self._get_queue(queue_suffix, exclusive=exclusive)
 
         self.connection = None
         self._load_thread = None
@@ -135,10 +140,10 @@ class TriggerWatcher(ConsumerMixin):
                 self._handlers[publishers.CREATE_RK](trigger)
 
     @staticmethod
-    def _get_queue(queue_suffix):
+    def _get_queue(queue_suffix, exclusive):
         if not queue_suffix:
             # pick last 10 digits of uuid. Arbitrary but unique enough for the TriggerWatcher.
             u_hex = uuid.uuid4().hex
             queue_suffix = uuid.uuid4().hex[len(u_hex) - 10:]
         queue_name = 'st2.trigger.watch.%s' % queue_suffix
-        return reactor.get_trigger_cud_queue(queue_name, routing_key='#')
+        return reactor.get_trigger_cud_queue(queue_name, routing_key='#', exclusive=exclusive)
