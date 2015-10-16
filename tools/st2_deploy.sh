@@ -570,7 +570,9 @@ setup_postgresql() {
       fi
       systemctl start postgresql
     else
-      chkconfig postgresql on
+	  if [[ "$TYPE" == "rpms" ]]; then
+		chkconfig postgresql on
+	  fi
       if service postgresql initdb
       then
         pg_hba_config=/var/lib/pgsql/data/pg_hba.conf
