@@ -33,6 +33,16 @@ class ExamplesTest(base.TestWorkflowExecution):
         self.assertEqual(tasks['task1']['state'], 'ERROR')
         self.assertIn(tasks['notify_on_error']['state'], ['RUNNING', 'SUCCESS'])
 
+    def test_handle_error_task_default(self):
+        execution = self._execute_workflow('examples.mistral-handle-error-task-default')
+        execution = self._wait_for_completion(execution, expect_tasks_completed=False)
+        self.assertEqual(execution.status, 'failed')
+        self.assertIn('tasks', execution.result)
+        self.assertEqual(2, len(execution.result['tasks']))
+        tasks = {t['name']: t for t in execution.result['tasks']}
+        self.assertEqual(tasks['task1']['state'], 'ERROR')
+        self.assertIn(tasks['notify_on_error']['state'], ['RUNNING', 'SUCCESS'])
+
     def test_handle_retry(self):
         execution = self._execute_workflow('examples.mistral-handle-retry')
         execution = self._wait_for_completion(execution)
