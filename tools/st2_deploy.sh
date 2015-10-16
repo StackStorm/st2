@@ -24,12 +24,14 @@ fi
 
 WARNING_SLEEP_DELAY=5
 
-# Options which can be provied by the user via env variables
+# Options which can be provided by the user via env variables
 INSTALL_ST2CLIENT=${INSTALL_ST2CLIENT:-1}
 INSTALL_WEBUI=${INSTALL_WEBUI:-1}
 INSTALL_MISTRAL=${INSTALL_MISTRAL:-1}
 INSTALL_CLOUDSLANG=${INSTALL_CLOUDSLANG:-0}
 INSTALL_WINDOWS_RUNNER_DEPENDENCIES=${INSTALL_WINDOWS_RUNNER_DEPENDENCIES:-1}
+
+CONTAINER=${CONTAINER:"None"}
 
 # Common variables
 DOWNLOAD_SERVER="https://downloads.stackstorm.net"
@@ -551,7 +553,8 @@ setup_mistral_st2_config()
 
 setup_postgresql() {
   # Setup the postgresql service on Fedora. Ubuntu is already setup by default.
-  if [[ "$TYPE" == "rpms" ]]; then
+  if ([[ "$TYPE" == "rpms" ]] || [[ "$CONTAINER" == "DOCKER" ]])
+  then
     echo "Configuring PostgreSQL..."
 
     if (([[ "${DISTRO_NAME}" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]] || [[ "${DISTRO_NAME}" == "Scientific Linux" ]]) && [[ $DISTRO_VERSION =~ 7\.[0-9] ]]) || [[ "${DISTRO_NAME}" == "Fedora" ]]
