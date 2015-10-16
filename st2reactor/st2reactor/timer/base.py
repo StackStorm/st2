@@ -47,7 +47,8 @@ class St2Timer(object):
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger,
                                                trigger_types=self._trigger_types,
-                                               queue_suffix='timers')
+                                               queue_suffix='timers',
+                                               exclusive=True)
         self._trigger_dispatcher = TriggerDispatcher(LOG)
 
     def start(self):
