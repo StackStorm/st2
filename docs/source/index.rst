@@ -16,20 +16,19 @@ Contents:
     runners
     rules
     workflows
-    history
-    traces
     sensors
-    aliases
     webhooks
+    chatops/index
     policies
     datastore
-    rbac
+    history
+    traces
     cli
-    resources/index
-    reference/index
-    development/index
+    authentication
+    rbac
+    REFERENCE > <reference/index>
     troubleshooting/index
-    tutorials/index
+    development/index
     changelog
     upgrade_notes
     roadmap

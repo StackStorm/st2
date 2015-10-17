@@ -47,3 +47,15 @@ and WebUI url:
     st2 auth testu -p testp
 
 .. include:: on_complete.rst
+
+.. note::
+    We compile, build and test on CentOS 6, CentOS 7, and Ubuntu 14.04. The `st2_deploy.sh <https://github.com/StackStorm/st2sandbox/blob/master/scripts/st2_deploy.sh>`_
+    script should work for other versions, but if you find a problem, let us know. Fixes welcome :)
+
+    st2_deploy.sh script allows you to easily install and run |st2| with all the
+    dependencies on a single server. It's intended to be used for testing,
+    evaluation and POC. It doesn't use HTTPS, uses flat file
+    htpasswd based authentication, etc. - you should **not** use it 'as is' for production
+    deployments.
+
+    For production deployments use :doc:`all_in_one`, follow deb / rpm installation methods, or leverage puppet modules from `puppet-st2 <https://github.com/StackStorm/puppet-st2>`_.

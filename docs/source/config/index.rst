@@ -11,8 +11,9 @@ A sample config file with all the configuration options can be found at :github_
 .. toctree::
     :maxdepth: 1
 
+    overview
     config
-    authentication
+    chatops
     webui
     windows_runners
 

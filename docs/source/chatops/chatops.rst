@@ -15,7 +15,7 @@ the internal wiring.
 
 
 What is ChatOps
----------------
+~~~~~~~~~~~~~~~
 
 ChatOps is a new operational paradigm where work that is already
 happening in the background today is brought into a common chatroom. By
@@ -33,8 +33,10 @@ actions and workflows to accelerate the IT delivery pipeline.
 
 Excited to try it out? Let's do it!
 
-Getting Started
----------------
+Configuration
+=============
+
+.. TODO:: Reference to Chatops section in `config/index`
 
 In effort to make setup as quick and easy as possible, we have setup our
 ``st2workroom`` environment to allow you to spin up a test copy of

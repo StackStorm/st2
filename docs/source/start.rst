@@ -39,7 +39,7 @@ http://hostname:8080/.
 
 Authenticate
 ----------------
-If :doc:`authentication </config/authentication>` enabled, obtain authentication token with ``st2 auth <username>``,
+If :doc:`authentication <authentication>` enabled, obtain authentication token with ``st2 auth <username>``,
 and supply it with each command using ``--token`` parameter. For convenience,
 keep credentials in CLI config file, or put it to environment variable ``ST2_AUTH_TOKEN``.
 :ref:`Details here <authentication-usage>`, a nice shortcut for now is:
@@ -251,9 +251,7 @@ If something goes wrong, follow :doc:`/troubleshooting/index` guide, and engage 
     * :ref:`Convert your scripts into StackStorm actions. <ref-actions-converting-scripts>`
     * Learn how to :ref:`write custom actions <ref-actions-writing-custom>`.
 
-* Connect with your monitoring system - :doc:`resources/monitoring`.
 * Use workflows to stitch actions into higher level automations - :doc:`/workflows`.
-
 * Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - a growing set of practical examples of automating with StackStorm.
 
 
