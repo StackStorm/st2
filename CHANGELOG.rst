@@ -69,6 +69,9 @@ in development
 * Update remote runner to include stdout and stderr which was consumed so far when a timeout
   occurs. (improvement)
 * Fix st2-self-check script to check whether to use http/https when connecting to st2, to disable Windows test by default, and to check test status correctly. (bug-fix)
+* Reduce the wait time between message consumption by TriggerWatcher to avoid latency (improvement)
+* Use exclusive messaging Qs for TriggerWatcher to avoid having to deal with old messages
+  and related migration scripts. (bug-fix)
 
 0.13.2 - September 09, 2015
 ---------------------------
