@@ -982,6 +982,12 @@ migrate_triggers() {
   $PYTHON ${PYTHONPACK}/st2common/bin/migrate_triggers_to_include_ref_count.py
 }
 
+migrate_messaging_setup() {
+  echo "###########################################################################################"
+  echo "# Migrating messaging setup."
+  $PYTHON ${PYTHONPACK}/st2common/bin/migrate_messaging_setup.py
+}
+
 register_content() {
   echo "###########################################################################################"
   echo "# Registering all content"
@@ -1106,6 +1112,7 @@ fi
 
 if version_ge $VER "1.0"; then
   migrate_triggers
+  migrate_messaging_setup
 fi
 
 register_content
