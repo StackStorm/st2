@@ -1,10 +1,8 @@
 Action Alias
 ============
 
-Alias for an action in StackStorm. A simplified and more human readable representation
-of actions in StackStorm which are useful in text based interfaces like ChatOps.
-
-For now ActionAlias is only leveraged via ChatOps clients.
+Action Alias is a simplified and more human readable representation
+of actions in StackStorm which are useful in text based interfaces, notably ChatOps.
 
 Action Alias Structure
 ^^^^^^^^^^^^^^^^^^^^^^
