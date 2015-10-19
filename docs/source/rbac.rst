@@ -127,6 +127,7 @@ Currently permission grants can be applied to the following resource types:
 * packs
 * sensors
 * actions
+* action aliases
 * rules
 * executions
 * webhooks
