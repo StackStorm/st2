@@ -81,6 +81,25 @@ Action
 | **action_all**     | Ability to perform all the supported operations on a particular action.               |
 +--------------------+---------------------------------------------------------------------------------------+
 
+Action Alias
+~~~~~~~~~~~~
+
++-------------------------+---------------------------------------------------------------------------------------------------+
+| Permission name         | Description                                                                                       |
++=========================+===================================================================================================+
+| **action_alias_list**   | Ability list (view all) action aliases.                                                           |
++-------------------------+---------------------------------------------------------------------------------------------------+
+| **action_alias_view**   | Ability to view an action alias.                                                                  |
++-------------------------+---------------------------------------------------------------------------------------------------+
+| **action_alias_create** | Ability to create a new action alias. Also implies  "action_alias_view" permission.               |
++-------------------------+---------------------------------------------------------------------------------------------------+
+| **action_alias_modify** | Ability to modify (update) an existing action alias. Also implies "action_alias_view" permission. |
++-------------------------+---------------------------------------------------------------------------------------------------+
+| **action_alias_delete** | Ability to delete an existing action alias. Also imples "action_alias_view" permission.           |
++-------------------------+---------------------------------------------------------------------------------------------------+
+| **action_alias_all**    | Ability to perform all the supported operations on a particular action alias.                     |
++-------------------------+---------------------------------------------------------------------------------------------------+
+
 Rule
 ~~~~
 
