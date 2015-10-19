@@ -140,6 +140,15 @@ class RBACPermissionTypeTestCase(TestCase):
         self.assertEqual(PermissionType.get_permission_type(resource_type=ResourceType.RULE,
                                                             permission_name='delete'),
                         PermissionType.RULE_DELETE)
+        self.assertEqual(PermissionType.get_permission_type(resource_type=ResourceType.SENSOR,
+                                                            permission_name='view'),
+                        PermissionType.SENSOR_VIEW)
+        self.assertEqual(PermissionType.get_permission_type(resource_type=ResourceType.SENSOR,
+                                                            permission_name='all'),
+                        PermissionType.SENSOR_ALL)
+        self.assertEqual(PermissionType.get_permission_type(resource_type=ResourceType.SENSOR,
+                                                            permission_name='modify'),
+                        PermissionType.SENSOR_MODIFY)
 
     def test_get_permission_name(self):
         self.assertEqual(PermissionType.get_permission_name(PermissionType.ACTION_LIST),

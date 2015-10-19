@@ -139,6 +139,10 @@ class PermissionType(Enum):
 
         :rtype: ``str``
         """
+        # Special case for sensor type (sensor_type -> sensor)
+        if resource_type == ResourceType.SENSOR:
+            resource_type = 'sensor'
+
         permission_enum = '%s_%s' % (resource_type.upper(), permission_name.upper())
         result = getattr(cls, permission_enum, None)
 
