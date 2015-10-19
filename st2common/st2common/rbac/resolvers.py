@@ -37,6 +37,7 @@ __all__ = [
     'PackPermissionsResolver',
     'SensorPermissionsResolver',
     'ActionPermissionsResolver',
+    'ActionAliasPermissionsResolver',
     'RulePermissionsResolver',
     'KeyValuePermissionsResolver',
     'ExecutionPermissionsResolver',
@@ -348,6 +349,97 @@ class ActionPermissionsResolver(PermissionsResolver):
 
         # Check direct grants on the specified resource
         resource_types = [ResourceType.ACTION]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=action_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+        if len(permission_grants) >= 1:
+            self._log('Found a direct grant on the action', extra=log_context)
+            return True
+
+        # Check grants on the parent pack
+        resource_types = [ResourceType.PACK]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=pack_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+
+        if len(permission_grants) >= 1:
+            self._log('Found a grant on the action parent pack', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
+
+class ActionAliasPermissionsResolver(PermissionsResolver):
+    """
+    Permission resolver for "action_alias" resource type.
+    """
+
+    def user_has_permission(self, user_db, permission_type):
+        assert permission_type in [PermissionType.ACTION_ALIAS_LIST]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+
+    def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
+        assert permission_type in [PermissionType.ACTION_ALIAS_CREATE]
+
+        action_uid = resource_api.get_uid()
+        pack_uid = resource_api.get_pack_uid()
+        return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
+                                                  action_uid=action_uid,
+                                                  permission_type=permission_type)
+
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        action_uid = resource_db.get_uid()
+        pack_uid = resource_db.get_pack_uid()
+        return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
+                                                  action_uid=action_uid,
+                                                  permission_type=permission_type)
+
+    def _user_has_resource_permission(self, user_db, pack_uid, action_uid, permission_type):
+        """
+        :param pack_uid: UID of a pack this resource belongs to.
+        :type pack_uid: ``str``
+
+        :param action_uid: UID of an action to check the permissions for.
+        :type action_uid: ``str``
+        """
+        # TODO: Refactor this method on a base ResourcePermissionResolver class since we use a
+        # similar logic for all resources which belong to a pack (sensor, action, action alias,
+        # rule)
+        log_context = {
+            'user_db': user_db,
+            'pack_uid': pack_uid,
+            'resource_uid': action_uid,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user resource permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        if permission_type == PermissionType.ACTION_ALIAS_VIEW:
+            # Note: "create", "modify", "delete" also grant / imply "view" permission
+            permission_types = [
+                PermissionType.ACTION_ALIAS_ALL,
+                PermissionType.ACTION_ALIAS_CREATE,
+                PermissionType.ACTION_ALIAS_MODIFY,
+                PermissionType.ACTION_ALIAS_DELETE,
+                permission_type
+            ]
+        else:
+            permission_types = [PermissionType.ACTION_ALIAS_ALL, permission_type]
+
+        # Check direct grants on the specified resource
+        resource_types = [ResourceType.ACTION_ALIAS]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=action_uid,
                                                                resource_types=resource_types,
