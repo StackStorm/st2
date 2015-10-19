@@ -446,7 +446,7 @@ class ActionExecutionStateAPI(BaseAPI):
         return model
 
 
-class ActionAliasAPI(BaseAPI):
+class ActionAliasAPI(BaseAPI, APIUIDMixin):
     """
     Alias for an action in the system.
     """
@@ -463,6 +463,9 @@ class ActionAliasAPI(BaseAPI):
             "ref": {
                 "description": "System computed user friendly reference for the alias. \
                                 Provided value will be overridden by computed value.",
+                "type": "string"
+            },
+            "uid": {
                 "type": "string"
             },
             "name": {
