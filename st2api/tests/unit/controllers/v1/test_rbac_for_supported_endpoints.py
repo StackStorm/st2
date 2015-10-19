@@ -54,6 +54,14 @@ MOCK_ACTION_1 = {
     }
 }
 
+MOCK_ACTION_ALIAS_1 = {
+    'name': 'alias3',
+    'pack': 'aliases',
+    'description': 'test description',
+    'action_ref': 'core.local',
+    'formats': ['a', 'b']
+}
+
 MOCK_RULE_1 = {
     'enabled': True,
     'name': 'st2.test.rule2',
@@ -106,6 +114,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                                                                fixtures_dict=TEST_FIXTURES)
 
     def test_api_endpoints_behind_rbac_wall(self):
+        #  alias_model = self.models['aliases']['alias1.yaml']
         sensor_model = self.models['sensors']['sensor1.yaml']
         rule_model = self.models['rules']['rule1.yaml']
         execution_model = self.models['executions']['execution1.yaml']
@@ -164,6 +173,29 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             },
             {
                 'path': '/v1/actions/wolfpack.action-1',
+                'method': 'DELETE'
+            },
+            # Action aliases
+            {
+                'path': '/v1/actionalias',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/actionalias/aliases.alias1',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/actionalias',
+                'method': 'POST',
+                'payload': MOCK_ACTION_ALIAS_1
+            },
+            {
+                'path': '/v1/actionalias/aliases.alias1',
+                'method': 'PUT',
+                'payload': MOCK_ACTION_ALIAS_1
+            },
+            {
+                'path': '/v1/actionalias/aliases.alias1',
                 'method': 'DELETE'
             },
             # Rules
@@ -232,8 +264,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
 
         self.use_user(self.users['no_permissions'])
         for endpoint in supported_endpoints:
-            msg = '%s "%s" didn\'t return 403 status code' % (endpoint['method'], endpoint['path'])
             response = self._perform_request_for_endpoint(endpoint=endpoint)
+            msg = '%s "%s" didn\'t return 403 status code (body=%s)' % (endpoint['method'],
+                                                                        endpoint['path'],
+                                                                        response.body)
             self.assertEqual(response.status_code, httplib.FORBIDDEN, msg)
 
     def test_icon_png_file_is_whitelisted(self):
