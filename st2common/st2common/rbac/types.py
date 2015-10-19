@@ -143,7 +143,8 @@ class PermissionType(Enum):
         result = getattr(cls, permission_enum, None)
 
         if not result:
-            raise ValueError('Unsupported permission type')
+            raise ValueError('Unsupported permission type for type "%s" and name "%s"' %
+                             (resource_type, permission_name))
 
         return result
 
