@@ -32,7 +32,15 @@ PACK_SEPARATOR = '.'
 
 class ActionAliasDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
     """
-        Database entity that represent an Alias for an action.
+    Database entity that represent an Alias for an action.
+
+    Attribute:
+        pack: Pack to which this alias belongs to.
+        name: Alias name.
+        ref: Alias reference (pack + name).
+        enabled: A flag indicating whether this alias is enabled in the system.
+        action_ref: Reference of an action this alias belongs to.
+        formats: Alias format strings.
     """
 
     RESOURCE_TYPE = ResourceType.ACTION
