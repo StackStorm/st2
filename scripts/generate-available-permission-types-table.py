@@ -35,6 +35,7 @@ RESOURCE_DISPLAY_ORDER = [
     ResourceType.PACK,
     ResourceType.SENSOR,
     ResourceType.ACTION,
+    ResourceType.ACTION_ALIAS,
     ResourceType.RULE,
     ResourceType.EXECUTION,
     ResourceType.WEBHOOK
