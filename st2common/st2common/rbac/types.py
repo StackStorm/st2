@@ -135,11 +135,11 @@ class PermissionType(Enum):
     @classmethod
     def get_permission_type(cls, resource_type, permission_name):
         """
-        Retrieve permission type for the provided resource type and permission name.
+        Retrieve permission type enum value for the provided resource type and permission name.
 
         :rtype: ``str``
         """
-        permission_enum = '%s_%s' % (resource_type, permission_name.lower())
+        permission_enum = '%s_%s' % (resource_type.upper(), permission_name.upper())
         result = getattr(cls, permission_enum, None)
 
         if not result:
