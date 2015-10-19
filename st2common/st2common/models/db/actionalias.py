@@ -18,6 +18,7 @@ import mongoengine as me
 from st2common import log as logging
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
+from st2common.constants.types import ResourceType
 
 __all__ = [
     'ActionAliasDB'
@@ -29,10 +30,14 @@ LOG = logging.getLogger(__name__)
 PACK_SEPARATOR = '.'
 
 
-class ActionAliasDB(stormbase.StormBaseDB):
+class ActionAliasDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
     """
         Database entity that represent an Alias for an action.
     """
+
+    RESOURCE_TYPE = ResourceType.ACTION
+    UID_FIELDS = ['pack', 'name']
+
     ref = me.StringField(required=True)
     pack = me.StringField(
         required=True,

@@ -27,6 +27,7 @@ class ResourceType(Enum):
 
     PACK = 'pack'
     ACTION = 'action'
+    ACTION_ALIAS = 'action_alias'
     SENSOR_TYPE = 'sensor_type'
     TRIGGER_TYPE = 'trigger_type'
     TRIGGER = 'trigger'
