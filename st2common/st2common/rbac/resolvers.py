@@ -803,6 +803,8 @@ def get_resolver_for_resource_type(resource_type):
         resolver_cls = SensorPermissionsResolver
     elif resource_type == ResourceType.ACTION:
         resolver_cls = ActionPermissionsResolver
+    elif resource_type == ResourceType.ACTION_ALIAS:
+        resolver_cls = ActionAliasPermissionsResolver
     elif resource_type == ResourceType.RULE:
         resolver_cls = RulePermissionsResolver
     elif resource_type == ResourceType.EXECUTION:
