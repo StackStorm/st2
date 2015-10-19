@@ -55,7 +55,8 @@ class WebhooksController(RestController):
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger,
                                                trigger_types=self._trigger_types,
-                                               queue_suffix='webhooks')
+                                               queue_suffix=self.__class__.__name__,
+                                               exclusive=True)
         self._trigger_watcher.start()
         self._register_webhook_trigger_types()
 

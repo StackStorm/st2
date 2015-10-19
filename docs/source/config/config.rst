@@ -214,6 +214,12 @@ There are a number of configurable options available under the mistral section i
     keystone_auht_url = http://identity.example.com:5000/v3
 
 
+Authentication
+--------------
+
+Please refer to :doc:`../authentication` to learn details of authentication, integrations with
+various identity providers, managing API tokens.
+
 
 
 

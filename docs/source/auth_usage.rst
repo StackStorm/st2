@@ -11,7 +11,7 @@ response. ::
 
 The following is a sample API call via curl using the token. ::
 
-    curl -H "X-Auth-Token: 4d76e023841a4a91a9c66aa4541156fe" http://myhost.example.com:9101/v1/actions
+    curl -H "X-Auth-Token: 4d76e023841a4a91a9c66aa4541156fe" https://myhost.example.com:9101/v1/actions
 
 The following is the equivalent for CLI. ::
 

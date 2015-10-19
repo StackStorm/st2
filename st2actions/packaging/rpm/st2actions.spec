@@ -26,6 +26,7 @@ mkdir -p %{buildroot}/etc/st2actions
 mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/usr/bin
 cp -R st2actions %{buildroot}%{python2_sitelib}/
+cp -R bin %{buildroot}%{python2_sitelib}/st2actions/
 cp -R conf/* %{buildroot}/etc/st2actions
 install -m755 bin/st2actionrunner %{buildroot}/usr/bin/st2actionrunner
 install -m755 bin/st2resultstracker %{buildroot}/usr/bin/st2resultstracker

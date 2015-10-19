@@ -5,6 +5,10 @@ UPSTARTCTL=/sbin/initctl
 SPAWNSVC=st2actionrunner
 WORKERSVC=st2actionrunner-worker
 
+if [ -z "$WORKERS" ]; then
+  WORKERS=2
+fi
+
 # 1. Choose init type
 if [ -x $SYSTEMDCTL ]; then
   sv=systemd
@@ -24,10 +28,10 @@ else
 fi
 
 # 2. Spwan workers
-WORKERSNUM=${WORKERSNUM:-`nproc`}
 action="$1"; shift;
 rs=0
-for i in `seq $WORKERSNUM`; do
+i=1
+while [ $i -le $WORKERS ]; do
   if [ $sv = systemd ]; then
     $svbin $action $SPAWNSVC@$i
   elif [ $sv = upstart ]; then
@@ -37,6 +41,7 @@ for i in `seq $WORKERSNUM`; do
   fi
   cmdrs=$?
   [ $cmdrs -gt 0 ] && rs=$cmdrs
+  i=`expr $i + 1`
 done
 
 exit $rs

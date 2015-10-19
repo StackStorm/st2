@@ -117,7 +117,7 @@ Install Apache and other dependencies.
 Follow the example below and create /etc/apache2/sites-available/st2-auth.conf. The following
 configures st2auth to authenticate users who belong to the st2ops group, with PAM via apache.
 
-.. literalinclude:: ../../../st2auth/conf/apache.sample.conf
+.. literalinclude:: ../../st2auth/conf/apache.sample.conf
 
 The path to the st2auth module is different depending on how |st2| is installed.
 
@@ -362,7 +362,7 @@ Usage
 Once st2auth is setup, API calls require token to be passed via the headers and the CLI calls
 require the token to be included as a CLI argument or be provided as an environment variable.
 
-.. include:: ../auth_usage.rst
+.. include:: auth_usage.rst
 
 .. _authentication-apikeys:
 

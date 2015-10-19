@@ -1,5 +1,5 @@
-StackStorm CLI 101
-==================
+CLI Reference
+===================
 
 StackStorm command line client (CLI) allows you talk to and operate StackStorm
 deployment using the command line interface. It talks to the StackStorm

@@ -328,7 +328,9 @@ class SensorWrapper(object):
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger,
                                                trigger_types=self._trigger_types,
-                                               queue_suffix='sensorwrapper')
+                                               queue_suffix='sensorwrapper_%s_%s' %
+                                               (self._pack, self._class_name),
+                                               exclusive=True)
 
         # 4. Set up logging
         self._logger = logging.getLogger('SensorWrapper.%s' %

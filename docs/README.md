@@ -73,6 +73,22 @@ pandoc - a super-tool to convert between formats. Sample for markdown conversion
 	sudo apt-get install pandoc
 	pandoc --from=markdown --to=rst --output=README.rst README.md
 
+## Running docs only
+
+To make docs changes, without installing full development environment (e.g., on Mac or Windows:
+
+```
+git clone git@github.com:StackStorm/st2.git
+cd st2/docs
+virtualenv .venv
+. .venv/bin/activate
+pip install sphinx sphinx-autobuild
+sphinx-autobuild -H 0.0.0.0 -b html ./source/ ./build/html
+
+```
+
+Edit, enjoy live updates.
+
 ## Misc
 
 It's ironic that I use Markdown to write about rST tricks.

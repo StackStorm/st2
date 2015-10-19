@@ -73,6 +73,6 @@ Also, please note that although this is not recommended and will undermine your 
 Authentication
 --------------
 
-To configure st2web to support authentication, edit ``config.js`` and add ``auth:true`` to every server that supports authentication. To enable authentication on a server side, please refer to :doc:`authentication`.
+To configure st2web to support authentication, edit ``config.js`` and add ``auth:true`` to every server that supports authentication. To enable authentication on a server side, please refer to :doc:`../authentication`.
 
 
