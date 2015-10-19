@@ -30,7 +30,8 @@ LOG = logging.getLogger(__name__)
 PACK_SEPARATOR = '.'
 
 
-class ActionAliasDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
+class ActionAliasDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
+                    stormbase.UIDFieldMixin):
     """
     Database entity that represent an Alias for an action.
 
@@ -63,6 +64,11 @@ class ActionAliasDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
     meta = {
         'indexes': ['name']
     }
+
+    def __init__(self, *args, **values):
+        super(ActionAliasDB, self).__init__(*args, **values)
+        self.ref = self.get_reference().ref
+        self.uid = self.get_uid()
 
 
 # specialized access objects
