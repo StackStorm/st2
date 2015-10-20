@@ -480,7 +480,8 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
             },
             "description": {
                 "type": "string",
-                "description": "Description of the action alias."
+                "description": "Description of the action alias.",
+                "default": None
             },
             "enabled": {
                 "description": "Flag indicating of action alias is enabled.",
@@ -504,7 +505,7 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
     @classmethod
     def to_model(cls, alias):
         name = alias.name
-        description = alias.description
+        description = getattr(alias, 'description', None)
         pack = alias.pack
         ref = ResourceReference.to_string_reference(pack=pack, name=name)
         enabled = getattr(alias, 'enabled', True)
