@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-s] [-c]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c]" >&2
 }
 
 subcommand=$1; shift
 runner_count=1
 use_gunicorn=false
-skip_examples=false
+copy_examples=false
 load_content=true
 
-while getopts ":r:gsc" o; do
+while getopts ":r:gxc" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
@@ -18,8 +18,8 @@ while getopts ":r:gsc" o; do
         g)
             use_gunicorn=true
             ;;
-        s)
-            skip_examples=true
+        x)
+            copy_examples=true
             ;;
         c)
             load_content=false
@@ -100,7 +100,9 @@ function st2start(){
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
-    if [ "$skip_examples" = false ]; then
+
+    if [ "$copy_examples" = true ]; then
+        echo "Copying examples from ./contrib/examples to $PACKS_BASE_DIR"
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
     fi
 
@@ -117,7 +119,8 @@ function st2start(){
 
     # Run the st2 API server
     echo 'Starting screen session st2-api...'
-    if [ ${use_gunicorn} ]; then
+    if [ "${use_gunicorn}" = true ]; then
+        echo '  using guicorn to run st2-api...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-api ./virtualenv/bin/gunicorn_pecan \
             ./st2api/st2api/gunicorn_config.py -k eventlet
@@ -166,7 +169,8 @@ function st2start(){
 
     # Run the auth API server
     echo 'Starting screen session st2-auth...'
-    if [ ${use_gunicorn} ]; then
+    if [ "${use_gunicorn}" = true ]; then
+        echo '  using guicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-auth ./virtualenv/bin/gunicorn_pecan \
             ./st2auth/st2auth/gunicorn_config.py -k eventlet
