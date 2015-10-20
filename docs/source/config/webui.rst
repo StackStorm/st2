@@ -6,21 +6,21 @@ st2web is an Angular-based HTML5 web application. It allows you to control the w
 Deployment
 -----------
 
-Production version of st2web is deployed on all-in-one installation. You can access the UI by pointing your browser to ``http://<server hostname>:8080/``. For vagrant deployment of st2express, it would be http://172.168.90.50:8080/.
+Production version of st2web is deployed on all-in-one installation. You can access the UI by pointing your browser to ``https://<server hostname>/``. For vagrant deployment of st2express, it would be https://172.168.50.11/.
 
 .. note::
 
-    If you want to change the default listen port you can do that by setting the ``WEBUI_PORT``
+    For deployments that use st2web service instead of nginx to serve web content, the address should include non-standart port: ``https://<server hostname>:8080/``.
+
+    If you want to change the default listen port on such deployments, you can do that by setting the ``WEBUI_PORT``
     environment variable when controlling the services using the st2ctl script.
 
     For example, to make the WebUI HTTP server listen on port 9999, you would run the following
     command: ``WEBUI_PORT=9999 st2ctl restart``
 
-It can also be installed by extracting the latest tar-ball from :ops_latest:`webui` into ``/opt/stackstorm/static/webui``.
+It can also be installed by extracting the latest tar-ball from :ops_latest:`webui` into ``/opt/stackstorm/static/webui`` and serving the folder with web server of choice.
 
-st2web is a pure html5 application and consist only of js scripts, html templates, css styles and a number of static files including custom fonts and svg images. For application to work correctly, all this files should be served to the browser.
-By default they are served by python SimpleHTTPServer. For your custom deployments,
-you are encouraged to host it off nginx, Apache or a similar dedicated web server to serve those static files.
+st2web is a pure html5 application and consist only of js scripts, html templates, css styles and a number of static files including custom fonts and svg images. For application to work correctly, all this files should be served to the browser. By default they are served by nginx. For your custom deployments, you can also use Apache or a similar dedicated web server to serve those static files.
 
 Note that |st2| API endpoint should be accessible from the browser, not the web server running static content.
 
@@ -47,7 +47,7 @@ On a web client side, a file ``config.js`` in a root of the project which contai
 
 Multiple servers could be configured for user to pick from. To disconnect from the current server and return to login screen, pick 'Disconnect' from the drop down at the top right corner of the UI.
 
-On an |st2| side, `CORS <https://en.wikipedia.org/wiki/Cross-origin_resource_sharing>`__ should also be properly configured. In st2.conf, ``allow_origin`` property of the [api] section should contain the Origin header browser sends with every request. For example, if you have deployed UI on its own server and accessing it using url `http://webui.example.com:8000`, your config should look like that:
+On an |st2| side, `CORS <https://en.wikipedia.org/wiki/Cross-origin_resource_sharing>`__ should also be properly configured. In st2.conf, ``allow_origin`` property of the [api] section should contain the Origin header browser sends with every request. For example, if you have deployed UI on its own server and accessing it using url `http://webui.example.com`, your config should look like that:
 
 ::
 
@@ -58,7 +58,7 @@ On an |st2| side, `CORS <https://en.wikipedia.org/wiki/Cross-origin_resource_sha
    logging = st2api/conf/logging.conf
    # List of allowed origins for CORS, use when deploying st2web client
    # The URL must match the one the browser uses to access the st2web
-   allow_origin = http://webui.example.com:8000
+   allow_origin = http://webui.example.com
 
 Origin consists of scheme, hostname and port (if it isn't 80). Path (including tailing slash) should be omitted.
 
@@ -74,5 +74,3 @@ Authentication
 --------------
 
 To configure st2web to support authentication, edit ``config.js`` and add ``auth:true`` to every server that supports authentication. To enable authentication on a server side, please refer to :doc:`../authentication`.
-
-
