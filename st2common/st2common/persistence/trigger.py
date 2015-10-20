@@ -52,15 +52,24 @@ class Trigger(ContentPackResource):
         delete_query = model_object._object_key
         delete_query['ref_count__lte'] = 0
         cls._get_impl().delete_by_query(**delete_query)
+
+        # Since delete_by_query cannot tell if teh delete actually happened check with a get call
+        # if the trigger was deleted. Unfortuantely, this opens up to races on delete.
+        confirmed_delete = False
+        try:
+            cls.get_by_id(model_object.id)
+        except ValueError:
+            confirmed_delete = True
+
         # Publish internal event on the message bus
-        if publish:
+        if confirmed_delete and publish:
             try:
                 cls.publish_delete(model_object)
             except Exception:
                 LOG.exception('Publish failed.')
 
         # Dispatch trigger
-        if dispatch_trigger:
+        if confirmed_delete and dispatch_trigger:
             try:
                 cls.dispatch_delete_trigger(model_object)
             except Exception:
