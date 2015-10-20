@@ -52,6 +52,13 @@ class PermissionType(Enum):
     ACTION_EXECUTE = 'action_execute'
     ACTION_ALL = 'action_all'
 
+    ACTION_ALIAS_LIST = 'action_alias_list'
+    ACTION_ALIAS_VIEW = 'action_alias_view'
+    ACTION_ALIAS_CREATE = 'action_alias_create'
+    ACTION_ALIAS_MODIFY = 'action_alias_modify'
+    ACTION_ALIAS_DELETE = 'action_alias_delete'
+    ACTION_ALIAS_ALL = 'action_alias_all'
+
     # Note: Execution create is granted with "action_execute"
     EXECUTION_LIST = 'execution_list'
     EXECUTION_VIEW = 'execution_view'
@@ -128,15 +135,20 @@ class PermissionType(Enum):
     @classmethod
     def get_permission_type(cls, resource_type, permission_name):
         """
-        Retrieve permission type for the provided resource type and permission name.
+        Retrieve permission type enum value for the provided resource type and permission name.
 
         :rtype: ``str``
         """
-        permission_enum = '%s_%s' % (resource_type, permission_name.lower())
+        # Special case for sensor type (sensor_type -> sensor)
+        if resource_type == ResourceType.SENSOR:
+            resource_type = 'sensor'
+
+        permission_enum = '%s_%s' % (resource_type.upper(), permission_name.upper())
         result = getattr(cls, permission_enum, None)
 
         if not result:
-            raise ValueError('Unsupported permission type')
+            raise ValueError('Unsupported permission type for type "%s" and name "%s"' %
+                             (resource_type, permission_name))
 
         return result
 
@@ -148,6 +160,7 @@ class ResourceType(Enum):
     PACK = SystemResourceType.PACK
     SENSOR = SystemResourceType.SENSOR_TYPE
     ACTION = SystemResourceType.ACTION
+    ACTION_ALIAS = SystemResourceType.ACTION_ALIAS
     RULE = SystemResourceType.RULE
 
     EXECUTION = SystemResourceType.EXECUTION
@@ -185,6 +198,12 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.ACTION_EXECUTE,
         PermissionType.ACTION_ALL,
 
+        PermissionType.ACTION_ALIAS_VIEW,
+        PermissionType.ACTION_ALIAS_CREATE,
+        PermissionType.ACTION_ALIAS_MODIFY,
+        PermissionType.ACTION_ALIAS_DELETE,
+        PermissionType.ACTION_ALIAS_ALL,
+
         PermissionType.RULE_VIEW,
         PermissionType.RULE_CREATE,
         PermissionType.RULE_MODIFY,
@@ -205,6 +224,14 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.ACTION_DELETE,
         PermissionType.ACTION_EXECUTE,
         PermissionType.ACTION_ALL
+    ],
+    ResourceType.ACTION_ALIAS: [
+        PermissionType.ACTION_ALIAS_LIST,
+        PermissionType.ACTION_ALIAS_VIEW,
+        PermissionType.ACTION_ALIAS_CREATE,
+        PermissionType.ACTION_ALIAS_MODIFY,
+        PermissionType.ACTION_ALIAS_DELETE,
+        PermissionType.ACTION_ALIAS_ALL
     ],
     ResourceType.RULE: [
         PermissionType.RULE_LIST,
@@ -272,6 +299,17 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
                                     '"action_view" permission.'),
     PermissionType.ACTION_ALL: ('Ability to perform all the supported operations on a particular '
                                 'action.'),
+
+    PermissionType.ACTION_ALIAS_LIST: 'Ability list (view all) action aliases.',
+    PermissionType.ACTION_ALIAS_VIEW: 'Ability to view an action alias.',
+    PermissionType.ACTION_ALIAS_CREATE: ('Ability to create a new action alias. Also implies '
+                                         ' "action_alias_view" permission.'),
+    PermissionType.ACTION_ALIAS_MODIFY: ('Ability to modify (update) an existing action alias. '
+                                        'Also implies "action_alias_view" permission.'),
+    PermissionType.ACTION_ALIAS_DELETE: ('Ability to delete an existing action alias. Also '
+                                        'imples "action_alias_view" permission.'),
+    PermissionType.ACTION_ALIAS_ALL: ('Ability to perform all the supported operations on a '
+                                      'particular action alias.'),
 
     PermissionType.EXECUTION_LIST: 'Ability list (view all) executions.',
     PermissionType.EXECUTION_VIEW: 'Ability to view an execution.',

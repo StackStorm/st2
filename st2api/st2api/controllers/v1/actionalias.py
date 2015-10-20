@@ -23,6 +23,10 @@ from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.action import ActionAliasAPI
 from st2common.persistence.actionalias import ActionAlias
 from st2common.models.api.base import jsexpose
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_api_permission
+from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
 
@@ -44,7 +48,18 @@ class ActionAliasController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
+    @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_LIST)
+    @jsexpose()
+    def get_all(self, **kwargs):
+        return super(ActionAliasController, self)._get_all(**kwargs)
+
+    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_ALIAS_VIEW)
+    @jsexpose(arg_types=[str])
+    def get_one(self, ref_or_id):
+        return super(ActionAliasController, self)._get_one(ref_or_id)
+
     @jsexpose(body_cls=ActionAliasAPI, status_code=http_client.CREATED)
+    @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_CREATE)
     def post(self, action_alias):
         """
             Create a new ActionAlias.
@@ -68,6 +83,7 @@ class ActionAliasController(resource.ContentPackResourceController):
 
         return action_alias_api
 
+    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_MODIFY)
     @jsexpose(arg_types=[str], body_cls=ActionAliasAPI)
     def put(self, action_alias_ref_or_id, action_alias):
         action_alias_db = self._get_by_ref_or_id(ref_or_id=action_alias_ref_or_id)
@@ -94,6 +110,7 @@ class ActionAliasController(resource.ContentPackResourceController):
 
         return action_alias_api
 
+    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_ALIAS_DELETE)
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, action_alias_ref_or_id):
         """

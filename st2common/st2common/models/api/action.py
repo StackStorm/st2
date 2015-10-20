@@ -446,7 +446,7 @@ class ActionExecutionStateAPI(BaseAPI):
         return model
 
 
-class ActionAliasAPI(BaseAPI):
+class ActionAliasAPI(BaseAPI, APIUIDMixin):
     """
     Alias for an action in the system.
     """
@@ -465,6 +465,9 @@ class ActionAliasAPI(BaseAPI):
                                 Provided value will be overridden by computed value.",
                 "type": "string"
             },
+            "uid": {
+                "type": "string"
+            },
             "name": {
                 "type": "string",
                 "description": "Name of the action alias.",
@@ -477,7 +480,8 @@ class ActionAliasAPI(BaseAPI):
             },
             "description": {
                 "type": "string",
-                "description": "Description of the action alias."
+                "description": "Description of the action alias.",
+                "default": None
             },
             "enabled": {
                 "description": "Flag indicating of action alias is enabled.",
@@ -501,7 +505,7 @@ class ActionAliasAPI(BaseAPI):
     @classmethod
     def to_model(cls, alias):
         name = alias.name
-        description = alias.description
+        description = getattr(alias, 'description', None)
         pack = alias.pack
         ref = ResourceReference.to_string_reference(pack=pack, name=name)
         enabled = getattr(alias, 'enabled', True)
