@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-s] [-c]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c]" >&2
 }
 
 subcommand=$1; shift
 runner_count=1
 use_gunicorn=false
-skip_examples=false
+copy_examples=false
 load_content=true
 
-while getopts ":r:gsc" o; do
+while getopts ":r:gxc" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
@@ -18,8 +18,8 @@ while getopts ":r:gsc" o; do
         g)
             use_gunicorn=true
             ;;
-        s)
-            skip_examples=true
+        x)
+            copy_examples=true
             ;;
         c)
             load_content=false
@@ -100,7 +100,9 @@ function st2start(){
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
-    if [ "$skip_examples" = false ]; then
+
+    if [ "$copy_examples" = true ]; then
+        echo "Copying examples from ./contrib/examples to $PACKS_BASE_DIR"
         cp -Rp ./contrib/examples $PACKS_BASE_DIR
     fi
 
