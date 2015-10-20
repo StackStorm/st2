@@ -72,7 +72,7 @@ class WebhookPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Admin user, should always return true
         resource_db = self.resources['webhook_1']
         user_db = self.users['admin']
-        self.assertTrue(self._user_has_resource_db_permission(
+        self.assertTrue(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -90,7 +90,7 @@ class WebhookPermissionsResolverTestCase(BasePermissionsResolverTestCase):
             PermissionType.WEBHOOK_DELETE,
             PermissionType.WEBHOOK_ALL
         ]
-        self.assertFalse(self._user_has_resource_db_permission(
+        self.assertFalse(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,

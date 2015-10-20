@@ -388,7 +388,7 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Admin user, should always return true
         resource_db = self.resources['rule_1']
         user_db = self.users['admin']
-        self.assertTrue(self._user_has_resource_db_permission(
+        self.assertTrue(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -416,7 +416,7 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # No roles, should return false for everything
         user_db = self.users['no_roles']
-        self.assertFalse(self._user_has_resource_db_permission(
+        self.assertFalse(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -424,7 +424,7 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # Custom role with no permission grants, should return false for everything
         user_db = self.users['1_custom_role_no_permissions']
-        self.assertFalse(self._user_has_resource_db_permission(
+        self.assertFalse(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -488,7 +488,7 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Custom role - "rule_all" grant on the rule parent pack
         user_db = self.users['custom_role_pack_rule_all_grant']
         resource_db = self.resources['rule_1']
-        self.assertTrue(self._user_has_resource_db_permission(
+        self.assertTrue(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -497,7 +497,7 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Custom role - "rule_all" grant on the rule
         user_db = self.users['custom_role_rule_all_grant']
         resource_db = self.resources['rule_1']
-        self.assertTrue(self._user_has_resource_db_permission(
+        self.assertTrue(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
@@ -521,7 +521,7 @@ class RulePermissionsResolverTestCase(BasePermissionsResolverTestCase):
             PermissionType.RULE_CREATE,
             PermissionType.RULE_DELETE
         ]
-        self.assertFalse(self._user_has_resource_db_permission(
+        self.assertFalse(self._user_has_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
