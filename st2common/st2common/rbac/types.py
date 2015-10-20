@@ -198,6 +198,12 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.ACTION_EXECUTE,
         PermissionType.ACTION_ALL,
 
+        PermissionType.ACTION_ALIAS_VIEW,
+        PermissionType.ACTION_ALIAS_CREATE,
+        PermissionType.ACTION_ALIAS_MODIFY,
+        PermissionType.ACTION_ALIAS_DELETE,
+        PermissionType.ACTION_ALIAS_ALL,
+
         PermissionType.RULE_VIEW,
         PermissionType.RULE_CREATE,
         PermissionType.RULE_MODIFY,
