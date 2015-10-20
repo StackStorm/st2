@@ -3,9 +3,9 @@ Role Based Access Control
 
 .. note::
 
-   Role Based Access Control (RBAC) is only available in StackStorm enterprise edition. For more
+   Role Based Access Control (RBAC) is only available in StackStorm Enterprise Edition. For
    information about enterprise edition and differences between community and enterprise edition,
-   please see this page - https://stackstorm.com/product/#enterprise.
+   please see `stackstorm.com/product <https://stackstorm.com/product/#enterprise>`_.
 
 |st2| implements Role Based Access (abbreviated RBAC) control which allows system administrators
 and operators to restrict users access and limit the operations they can perform.
