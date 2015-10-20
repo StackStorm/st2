@@ -6,22 +6,34 @@ The docs are build with Sphinx. It's integrated with the main project Makefile.
 
 ## Sphinx Tricks
 
+* If the whole section belongs Enterprise Edition, put the following note:
+    ```
+    .. note::
+
+       Role Based Access Control (RBAC) is only available in StackStorm Enterprise Edition. For
+       information about enterprise edition and differences between community and enterprise edition,
+       please see `stackstorm.com/product <https://stackstorm.com/product/#enterprise>`_.
+    ```
+    Refer to Enterprise edition in passing with
+
+        `see Enterprise Edition <https://stackstorm.com/product/#enterprise>`_
+
 * TODO (Use [http://localhost:8000/todo.html](http://localhost:8000/todo.html) for full TODO list (must be empty when we ship)
 :
 
-		.. todo:: Here is a TODO
+    .. todo:: Here is a TODO
 
 * Code fragment:
 
-		.. code-block: bash
+    .. code-block: bash
 
-			# List all available triggers
-    		st2 trigger list
+      # List all available triggers
+        st2 trigger list
 
 * Reference the document
 
-		:doc:`/start`
-		:doc:`in the Rules doc </rules>`
+    :doc:`/start`
+    :doc:`in the Rules doc </rules>`
 
 * Referencing an arbitrary section: for instance, there's examples section in sensors.rst. Define a reference on `examples` section in sensors.rst:
 
@@ -38,40 +50,40 @@ The docs are build with Sphinx. It's integrated with the main project Makefile.
 
 * External links:
 
-		`External link <http://webchat.freenode.net/?channels=stackstorm>`_
+    `External link <http://webchat.freenode.net/?channels=stackstorm>`_
 
 * Inlcude a document, full body:
 
-		.. include:: /engage.rst
+    .. include:: /engage.rst
 
 * Link to GitHub st2 repo
 
- 		:github_st2:`st2/st2common/st2common/operators.py </st2common/st2common/operators.py>`
+    :github_st2:`st2/st2common/st2common/operators.py </st2common/st2common/operators.py>`
 
 * Link  to Github st2contrib repo:
 
-		:github_contrib:`Link to docker README on st2contrib<packs/docker/README.md>`
+    :github_contrib:`Link to docker README on st2contrib<packs/docker/README.md>`
 
 * Link to st2contrib and st2incubator repos on Github (using a global we set up in source/conf.py)
 
-		`st2contrib`_
-		`st2incubator`_
+    `st2contrib`_
+    `st2incubator`_
 
 * The pattern to include an example from `/contrib/examples`: make example file name a reference on github. may say that it is deployed to `/usr/share/doc/st2/examples/`, and auto-include the file:
 
-		Sample rule: :github_st2:`sample-rule-with-webhook.yaml
-		</contrib/examples/rules/sample-rule-with-webhook.yaml>` :
+    Sample rule: :github_st2:`sample-rule-with-webhook.yaml
+    </contrib/examples/rules/sample-rule-with-webhook.yaml>` :
 
-		.. literalinclude:: /../../contrib/examples/rules/sample_rule_with_webhook.yaml
-    		:language: json
+    .. literalinclude:: /../../contrib/examples/rules/sample_rule_with_webhook.yaml
+        :language: json
 
 
 ## Pandoc - convert md <-> rst and more
 
 pandoc - a super-tool to convert between formats. Sample for markdown conversion:
 
-	sudo apt-get install pandoc
-	pandoc --from=markdown --to=rst --output=README.rst README.md
+  sudo apt-get install pandoc
+  pandoc --from=markdown --to=rst --output=README.rst README.md
 
 ## Running docs only
 

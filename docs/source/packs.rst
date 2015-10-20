@@ -4,7 +4,7 @@ Integration Packs
 What is a Pack?
 ---------------
 Pack is the unit of deployment for integrations and automations in order to extend |st2|. Typically a pack is organized along service or product boundaries e.g. AWS, Docker, Sensu etc. A pack can contain :doc:`Actions </actions>`, :doc:`Workflows </workflows>`,
-:doc:`Rules </rules>`, :doc:`Sensors </sensors>`.
+:doc:`Rules </rules>`, :doc:`Sensors </sensors>`, :doc:`Aliases <chatops/aliases>`.
 
 It is best to view a pack as the means to extend |st2| and allow it to integrate with an external systems. See `next section` to learn more about pack management.
 

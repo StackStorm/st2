@@ -1,4 +1,14 @@
+Nginx and WSGI
+--------------
 
+Production |st2| installations use `nginx <http://nginx.org/en/>`_ for SSL termination,
+serving static content of WebUI,
+and running st2auth and st2api as WSGI apps via gunicorn/uwsgi. StackStorm nginx configurations
+can be found at ``/etc/nginx/sites-enabled/st2*.conf``.
+
+
+``st2auth`` and ``st2api`` can also run in by a built-in simple Python server. This is used for development and strongly discouraged for any production. Be aware that some settings in /etc/st2.conf are only effective when running in development mode, and don't apply when running under WSGI servers. Refer to the comments in
+:github_st2:`st2.conf.sample <conf/st2.conf.sample>`.
 
 Configure MongoDB
 -----------------
@@ -17,7 +27,7 @@ In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following se
     username = <username for db login>
     password = <password for db login>
 
-.. note:: The username and password properties are optional.
+The ``username`` and ``password`` properties are optional.
 
 Configure RabbitMQ
 ------------------
@@ -31,9 +41,9 @@ In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following se
     [messaging]
     url = <amqp://#RMQ_USER:#RMQ_PASSWD@#RMQ_HOST:#RMQ_PORT/#RMQ_VHOST>
 
-.. note:: The #RMQ_VHOST property is optional and can be left blank.
+The ``#RMQ_VHOST`` property is optional and can be left blank.
 
-StackStorm also supports RabbitMQ cluster.
+StackStorm also supports `RabbitMQ cluster <https://www.rabbitmq.com/clustering.html>`_.
 
 In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following section :
 
@@ -48,32 +58,13 @@ In :github_st2:`/etc/st2/st2.conf <conf/st2.prod.conf>` include the following se
 * To understand more about setting up a RabbitMQ cluster - https://www.rabbitmq.com/clustering.html
 * RabbitMQ HA guide - https://www.rabbitmq.com/ha.html
 
-SUDO Access
------------
-
-By default, all actions run by |st2| are performed by a single user. Typically, this user is named
-``stanley`` and that is configurable via :github_st2:`st2.conf <conf/st2.prod.conf>`.
-
-.. note:: `stanley` user requires the following access -
-
-    * Sudo access to all boxes on which action will run.
-    * SETENV option needs to be set for all the commands. This way environment variables which are
-      available to the local runner actions will also be available when user executes local runner
-      action under a different user or with root privileges.
-    * As some actions require sudo privileges password-less sudo access to all boxes.
-
-One option of setting up passwordless sudo is perform the below operation on each remote box.
-
-.. code-block:: bash
-
-    echo "stanley    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2
 
 .. _config-configure-ssh:
 
 Configure SSH
 -------------
 
-To run actions on remote hosts, |st2| uses `Fabric <http://www.fabfile.org/>`_. It is required to configure identity file based SSH access on all remote hosts.
+To run actions on remote hosts, |st2| uses SSH. It is advised to configure identity file based SSH access on all remote hosts.
 
 |st2| ssh user and a path to SSH key are set in ``/etc/st2/st2.conf``. During installation, ``st2_deploy.sh`` script configures ssh on the local box for a user `stanley`.
 
@@ -127,6 +118,25 @@ enable add following to ``/etc/st2/st2.conf``
     [ssh_runner]
     use_ssh_config = True
     ...
+
+SUDO Access
+-----------
+
+StackStorm's ``shell`` actions -  ``local-shell-cmd``, ``local-shell-script``, ``remote-shell-cmd``, ``remote-shell-script``- are performed by a special user. By default, this user is named ``stanley`` and that is configurable via :github_st2:`st2.conf <conf/st2.prod.conf>`.
+
+.. note:: `stanley` user requires the following access:
+
+    * Sudo access to all boxes on which script action will run.
+    * SETENV option needs to be set for all the commands. This way environment variables which are
+      available to the local runner actions will also be available when user executes local runner
+      action under a different user or with root privileges.
+    * As some actions require sudo privileges password-less sudo access to all boxes.
+
+One way of setting up passwordless sudo is perform the below operation on each remote box.
+
+.. code-block:: bash
+
+    echo "stanley    ALL=(ALL)       NOPASSWD: SETENV: ALL" >> /etc/sudoers.d/st2
 
 
 Configure Logging
