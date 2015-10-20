@@ -17,4 +17,4 @@
     action:
         ref: "core.local"
         parameters:
-            cmd: "echo \"{{trigger.body}}\" >> /tmp/st2.webhook_sample.out"
+            cmd: "echo \"{{trigger.body}}\" >> ~/st2.webhook_sample.out"
