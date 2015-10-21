@@ -40,6 +40,15 @@ to the st2 clients.
   configuration files.
 * ``debug`` - Specify to enable debug mode.
 
+After the configuration change, restart all st2 components.
+
+.. sourcecode:: bash
+
+    st2ctl restart
+
+Authentication Backends
+-----------------------
+
 The service can be configured with different backends (i.e. PAM, LDAP, etc.) to handle the
 authentication. If backend is not specified, a htpasswd compatible flat file authentication
 backend is used. The all-in-one installer and packages download and configure PAM by default. To
@@ -52,35 +61,34 @@ command on the same server where st2auth is running.
 
     pip install git+https://github.com/StackStorm/st2-auth-backend-pam.git@master#egg=st2_auth_backend_pam
 
-After the backend is installed, configure the backend at /etc/st2/st2.conf. Specific configuration
-details for the backend can be found in the README at the corresponding repo. The following is a
-sample auth section in the config file for the PAM backend.
+After the backend is installed, configure the backend at /etc/st2/st2.conf, and restart |st2|.
+Specific configuration details for the backend can be found in the README at the corresponding
+repo. The following is a sample auth section in the config file for the PAM backend.
 
 .. sourcecode:: ini
 
     [auth]
     mode = standalone
+    backend = pam
     enable = True
     use_ssl = True
-    cert = /path/to/the/ssl/cert/file
-    key = /path/to/the/ssl/key/file
-    backend = pam
-    backend_kwargs =
-    debug = False
+    cert = /path/to/ssl/cert/file
+    key = /path/to/ssl/key/file
     logging = /etc/st2/st2auth.logging.conf
     api_url = https://myhost.examples.com:9101
-
-After the configuration change, restart all st2 components.
-
-.. sourcecode:: bash
-
-    st2ctl restart
+    debug = False
 
 StackStorm developed auth backends such as LDAP are only available in the enterprise edition. For 
 more information on the enterprise edition, please visit https://stackstorm.com/product/#enterprise.
 The auth backends included with the enterprise edition are developed, tested, maintained, and
 supported by the StackStorm team and the community contributed backends are developed and maintained
 by the community.
+
+The following is a list of backends that StackStorm has developed to get things started.
+
+* `PAM <https://github.com/StackStorm/st2-auth-backend-pam>`_
+* `Flat File <https://github.com/StackStorm/st2-auth-backend-flat-file>`_
+* `OpenStack Keystone <https://github.com/StackStorm/st2-auth-backend-keystone>`_
 
 Running the Service
 -------------------
@@ -156,11 +164,12 @@ To create an API key -
 
     For security purposes the <API_KEY_VALUE> is only show at create time. |st2| itself does not
     store this API Key value in its database, only a one-way hash is stored. It is not possible to
-    retrieve an API Key after creation. If the API Key is lost or not recorded at the time of creation
-    it is best to delete the API Key and create a new one.
+    retrieve an API Key after creation. If the API Key is lost or not recorded at the time of
+    creation it is best to delete the API Key and create a new one.
 
-The optional ``-m`` attribute allows metadata to be associated with the created key. It is good practice to
-assign a meaningful value like the external service which uses this key to authenticate with |st2|.
+The optional ``-m`` attribute allows metadata to be associated with the created key. It is good
+practice to assign a meaningful value like the external service which uses this key to authenticate
+with |st2|.
 
 The CLI for API keys also support `get`, `list`, `delete`, `enable` and `disable` commands.
 
