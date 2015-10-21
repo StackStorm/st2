@@ -33,6 +33,6 @@ QUERY_PARAM_ATTRIBUTE_NAME = 'x-auth-token'
 HEADER_API_KEY_ATTRIBUTE_NAME = 'St2-Api-Key'
 QUERY_PARAM_API_KEY_ATTRIBUTE_NAME = 'st2-api-key'
 
-DEFAULT_MODE = 'proxy'
+DEFAULT_MODE = 'standalone'
 
 DEFAULT_BACKEND = 'flat_file'
