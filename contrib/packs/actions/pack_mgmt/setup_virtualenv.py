@@ -48,7 +48,7 @@ class SetupVirtualEnvironmentAction(Action):
         self._base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path,
                                                    'virtualenvs/')
 
-    def run(self, packs, update):
+    def run(self, packs, update=False):
         """
         :param packs: A list of packs to create the environment for.
         :type: packs: ``list``
@@ -60,7 +60,7 @@ class SetupVirtualEnvironmentAction(Action):
                    (', '.join(packs)))
         return message
 
-    def _setup_pack_virtualenv(self, pack_name, update):
+    def _setup_pack_virtualenv(self, pack_name, update=False):
         """
         Setup virtual environment for the provided pack.
 
