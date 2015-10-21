@@ -9,3 +9,7 @@
       type: "array"
       items:
         type: "string"
+    update:
+      type: "boolean"
+      default: false
+      description: "Check this option if the virtual environment already exists and if you only want to perform an update and installation of new dependencies. If you don't check this option, the virtual environment will be destroyed then re-created."
