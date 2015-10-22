@@ -20,6 +20,13 @@ An automation plaform that needs a much better description than this.
 %prep
 %setup
 
+%pre
+getent group st2packs >/dev/null || groupadd -r st2packs
+getent passwd stanley >/dev/null || \
+    useradd -r -g stanley -d /home/stanley -s /bin/bash \
+    -c "StackStorm System Account" stanley
+usermod -a -G st2packs stanley || true
+
 %build
 # Empty section.
 
@@ -63,6 +70,9 @@ install -m755 tools/st2-self-check %{buildroot}/usr/lib/python2.7/site-packages/
 install -m755 tools/migrate_rules_to_include_pack.py %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/
 install -m755 tools/migrate_messaging_setup.py %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/migrate_rules_to_include_pack.py
 install -m755 tools/migrate_triggers_to_include_ref_count.py %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/migrate_triggers_to_include_ref_count.py
+
+%post
+chgrp -hR st2packs /opt/stackstorm/packs
 
 %files
 %{python2_sitelib}/st2common*
