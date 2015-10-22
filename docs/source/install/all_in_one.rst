@@ -2,19 +2,52 @@ All-in-one Installer
 ====================
 |st2| provides an all-in-one installer aimed at assisting users with the initial setup and configuration. The installer comes pre-bundled in a number of different provisioning options for convenience, or can also be manually deployed and installed manually on a server.
 
-.. warning:: This new and shiny all-in-one installer is soon going to become default. It provides production-level functionality, graphical setup, and based on more reliable architecture. But warn you, it is in BETA. Please give it a try, report bugs and ask for improvements. If you prefer stability, use st2_deploy from the :doc:`/install/index` doc.
-
-While in beta, OS support will start at our most commonly used platforms and be added before final release. At present, supported platforms are:
-
 * Ubuntu 14.04
+* CentOS / RHEL 6.x and 7.x
 
 Certification is currently planned and/or underway for:
 
 * Debian 7/8
-* CentOS / RHEL 6.x and 7.x
-* Ubuntu LTS 12.04
 
 If your platform is not listed here and you would like it to be, please drop us a line at `support@stackstorm.com <email:support@stackstorm.com>` and let us know.
+
+TL;DR
+-----
+
+That's OK! You're busy, we get it. How do you just get started? Get your own box, and run this command:
+
+::
+
+   curl -sSL http://stackstorm.com/install.sh | sudo sh
+
+
+Want to learn more? Read on! We will make it worth your while.
+
+What is it?
+-----------
+
+The All-in-one installer is an opinionated installation of |st2| that allows you to get up and going on a single instance very quickly. Using this method, we download and configure |st2| using our best practices for deployment. This makes the All-in-one installer good to use when starting out with |st2| in Proof-of-concepts or initial production deployments. It also serves as a good baseline for review how all the various components interact as you build out larger, scaled |st2| deployments.
+
+The All-in-one installer is comprised of three |st2| projects. They are:
+
+* [puppet-st2](https://github.com/stackstorm/puppet-st2). This is our supported Puppet module used to install and setup |st2|.
+* [st2workroom](https://github.com/stackstorm/st2workroom). st2workroom scaffolding built around Puppet. It allows you to spin up Vagrant images or deploy on a bare-metal server in much the same way
+* [st2installer](https://github.com/stackstorm/st2installer). This is the GUI installer that is used to configure |st2|, the initial admin user to access the CLI and WebUI, and ChatOps. This application generates an answer file that is then passed to `st2workroom` to bootstrap your installation.
+
+Using these three projects, it is possible to get |st2| setup with the following components:
+
+* |st2| Core - Stable or Latest version
+* OpenStack Mistral Workflow Engine
+* Hubot ChatOps Robot
+* MongoDB (supporting infrastructure)
+* RabbitMQ (supporting infrastructure)
+* PostgreSQL (supporting infrastructure)
+
+Optionally, you can also provide an Enterprise Key and get access to the following features:
+
+* |st2| FLOW - HTML5 based Graphical Workflow editor. Use this to visualize, edit, and share workflows. 
+* |st2| Role Based Access Control. Apply fine-grained controls to actions and rules to fit into the most complex of environments.
+* |st2| LDAP Authentication Support. Integrate with your existing authentication directory.G
 
 Pre-Requisites
 --------------
@@ -54,51 +87,10 @@ Bring Your Own Box
 
 ::
 
-    curl -sSL https://raw.githubusercontent.com/StackStorm/st2workroom/master/script/bootstrap-st2express | sudo sh
+   curl -sSL http://stackstorm.com/install.sh | sudo sh
+
 
 You will need elevated privileges in order to run this script. This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
-
-.. include:: /_includes/install/ok.rst
-
-Visit the setup URL output on your command line by entering the address in your web browser. From there, proceed to the section *Running the Setup*
-
-Amazon Web Services (AWS)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-|st2| provides pre-built AMI images containing the latest stable release of |st2|. These images come equipped with the *All-in-one installer* to help you get setup quickly and easily. To get started:
-
-#. From the AWS Marketplace, select |st2|
-#. Select the instance type/size. For assistance in choosing an instance type, refer to the *Sizing the Server* section above. Click **Next: Configure instance details**.
-#. Set any configuration details. Click **Next: Add Storage**
-#. Set up any applicable tags for your instance. Click **Next: Configure Security Group**
-#. Setup a security group. It is recommended that you leave the default settings. Port 443 must be available for the WebUI, port 9100 for |st2| authentication, and port 9101 for the |st2| API
-#. Review your settings, and then click Launch.
-#. In the **Select an existing key pair or create a new key pair** dialog box, select **Choose an existing key pair** to select a new key pair that you already created or create a new key pair. Select the acknowledgment check box, and then click **Launch Instances**. This can take approximately 5-15 minutes to launch. A confirmation page will appear, letting you know that your instance is launching. Click **View Instances** to close the confirmation and return to the AWS Console.
-#. From **Instances**, make note of the **Instance ID**, **Public IP** and **Public DNS**
-#. In your web browser, enter the |st2| setup URL. The format will be: https://**Public IP**/setup
-#. Enter the username and password to log in. The username is *installer*, and the password is your **Instance ID**
-#. Proceed to the section *Running the installer*
-
- .. _all_in_one-vagrant:
-
-Vagrant
-~~~~~~~
-|st2| provides pre-built Vagrant boxes for both `VirtualBox <https://www.virtualbox.org>` and `VMWare <https://www.vmware.com>` providers. By default, the setup will install the lastest stable release of |st2|.
-
-::
-
-   git clone https://github.com/StackStorm/st2workroom.git st2workroom
-   cd st2workroom
-   vagrant up st2express
-
-
-If you have previously used deployed |st2| and downloaded the st2express box it might be a good idea to update the box. If this is your absolute first install of |st2| then skip this step.
-
-::
-
-  vagrant box update st2express
-
-
-This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
 
 .. include:: /_includes/install/ok.rst
 
@@ -162,3 +154,107 @@ In this step, you will setup ChatOps. ChatOps is a core feature of StackStorm, a
 #. Select the Chat Service that you wish to connect to
 #. Enter the appropriate configuration information for a bot user account on your chat service
 #. Click **Get Started**
+
+Updating
+--------
+
+Once you've installed with the All-in-one installer, you will download the latest stable release. If you would like to upgrade, or follow a specific testing branch, you can do so with the following command:
+
+::
+
+   ENV=<new version> update-system
+
+
+Each stable release is tagged with a Git Tag, and you can provide that tag at runtime. You can track the unstable branch (`master`) with the following command
+
+::
+
+   ENV=master update-system
+
+
+Unattended Installation
+-----------------------
+
+In addition to the GUI installation method, the All-in-one installer also provides the ability to provide an answers file to pre-seed the installation with values.
+
+The answers file is formatted in standard YAML. Below, we will discuss the various settings you can set in the answers file. Once you have this file, you can kick off the bootstrap with the following command:
+
+::
+
+   curl -sSL http://stackstorm.com/install.sh | sudo sh "-a <answers_file>.yaml"
+
+
+If you have already installed using this method, you can find and update your answers file at `/opt/puppet/hieradata/answers.yaml`
+
+
+Configurable Settings
++++++++++++++++++++++
+
+System Configuration Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* `system::hostname`  - Hostname of the server (used for SSL generation)
+* `system::fqdn`      - Fully Qualified Domain Name for the server
+* `system::ipaddress` - IP address of the external IP to access StackStorm
+
+StackStorm Configuration Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These values are used to configure settings within the StackStorm. They inform some basic settings, and can always be updated later.
+
+* `st2enterprise::token`          - This is the Enterprise Auth Token provided by |st2| to enable the enterprise features. Visit https://stackstorm.com for more details
+* `st2::version`                  - Version of StackStorm to deploy (default: latest stable)
+* `st2::revision`                 - Revision of StackStorm to deploy (default: latest stable)
+* `st2::api_url`                  - StackStorm API URL (if not on the same machine)
+* `st2::auth_url`                 - StackStorm Auth URL (if not on the same machine)
+* `st2::ssl_public_key`           - SSL Public key used with HTTPS auth. Must provide the actual key contents
+* `st2::ssl_private_key`          - SSL Private key used with HTTPS auth. Must provide the actual key contents
+* `st2::stanley::username`        - Username for default remote SSH user
+* `st2::stanley::ssh_public_key`  - SSH Public Key for default remote SSH user. Must provide the actual key contents.
+* `st2::stanley::ssh_private_key` - SSH Private Key for default remote SSH user. Must provide the actual key contents.
+
+Hubot Configuration Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These values directly correspond to configure the Hubot adapter, Hubot environment variables, and required NPM libraries to get started. We have done our best to include several example configurations that you can [find in our |st2| workroom](https://github.com/StackStorm/st2workroom/blob/master/hieradata/workroom.yaml.example)
+
+If for whatever reason your chat client is not listed as an example, it is possible to add *any* Hubot chat service via this method. Refer to the plugin details for more information. In general, you'll need to understand the NPM dependencies, and any environment variables that need to be set.
+
+Below are the values you can set
+
+* `hubot::chat_alias`        - A short for a command used at the beginning of task. (e.g.: !)
+* `hubot::adapter`           - The name of the npm adapter used to connect to your chat service
+* `hubot::env_export`        - A hash of all environment variables necessary to configure the `hubot::adapter`
+* `hubot::external_scripts`  - An array of all external hubot scripts to load on startup
+* `hubot::dependencies`      - a hash of all npm dependencies needed your your chat adapter.
+
+
+Example Answers File
+++++++++++++++++++++
+
+::
+
+   ---
+    ### Hipchat Example Config
+    ## See https://github.com/hipchat/hubot-hipchat#adapter-configuration for more details
+    st2enterprise::token: myawesometokentogetenterprisefeatures
+    st2::version: 1.0.0
+    st2::revision: 1
+    hubot::chat_alias: "!"
+    hubot::adapter: "hipchat"
+    hubot::env_export:
+     HUBOT_LOG_LEVEL: "debug"
+     HUBOT_HIPCHAT_JID: "XXX"
+     HUBOT_HIPCHAT_PASSWORD: "XXX"
+     HUBOT_XMPP_DOMAIN: "XXX" # Use only if using HipChat Server Beta
+     ST2_CHANNEL: "hubot"
+     ST2_AUTH_USERNAME: "testu"
+     ST2_AUTH_PASSWORD: "testu"
+     EXPRESS_PORT: 8081
+    hubot::external_scripts:
+      - "hubot-stackstorm"
+    hubot::dependencies:
+      "hubot": ">= 2.6.0 < 3.0.0"
+      "hubot-scripts": ">= 2.5.0 < 3.0.0"
+      "hubot-hipchat": ">=2.12.0 < 3.0.0"
+      "hubot-stackstorm": ">= 0.1.0 < 0.2.0"  
