@@ -52,6 +52,9 @@ class SetupVirtualEnvironmentAction(Action):
         """
         :param packs: A list of packs to create the environment for.
         :type: packs: ``list``
+
+        :param update: True to update dependencies inside the virtual environment.
+        :type update: ``bool``
         """
         for pack_name in packs:
             self._setup_pack_virtualenv(pack_name=pack_name, update=update)
@@ -90,7 +93,6 @@ class SetupVirtualEnvironmentAction(Action):
 
         # If we don't want to update, or if the virtualenv doesn't exist, let's create it.
         if not update or not os.path.exists(virtualenv_path):
-
             # 0. Delete virtual environment if it exists
             self._remove_virtualenv(virtualenv_path=virtualenv_path)
 
@@ -118,7 +120,7 @@ class SetupVirtualEnvironmentAction(Action):
 
         self.logger.debug('Virtualenv for pack "%s" successfully %s in "%s"' %
                           (pack_name,
-                           "updated" if update else "created",
+                           'updated' if update else 'created',
                            virtualenv_path))
 
     def _create_virtualenv(self, virtualenv_path):
