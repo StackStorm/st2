@@ -83,7 +83,7 @@ Deployment Options
 
 Bring Your Own Box
 ~~~~~~~~~~~~~~~~~~
-|st2| provides a bash-based bootstrap script that is used to bootstrap a computer with StackStorm. It is highly recommended to run this script on a clean base OS. To get started, run the following command.
+|st2| provides a bash-based bootstrap script that is used to bootstrap a computer with |st2|. It is highly recommended to run this script on a clean base OS. To get started, run the following command.
 
 ::
 
@@ -129,7 +129,6 @@ If you have previously used deployed |st2| and downloaded the st2express box it 
 ::
 
   vagrant box update st2
->>>>>>> 941cb331fa034b5b75eeb6a809239743a9e14ccc
 
 
 You will need elevated privileges in order to run this script. This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
@@ -149,10 +148,10 @@ Step 1: Configuring Hostname and SSL
 
 .. figure:: /_static/images/st2installer_step_1.png
 
-In this step, you will be setting up the networking for |st2|. Here, you will configure the hostname of the new server and optionally upload SSL certificates to be used by the StackStorm WebUI, Auth, and API HTTP endpoints.
+In this step, you will be setting up the networking for |st2|. Here, you will configure the hostname of the new server and optionally upload SSL certificates to be used by the |st2| WebUI, Auth, and API HTTP endpoints.
 
 #. Enter the FQDN of the |st2| server. This FQDN should be setup in your DNS server
-#. *(Optional)* Choose to send anonymous data to StackStorm.
+#. *(Optional)* Choose to send anonymous data to |st2|.
 #. Select either **Continue with self-signed** to continue with the automatically generated SSL certificates, or **Upload SSL Certificate** to upload public/private SSL keys.
 #. Click **Next**
 
@@ -164,7 +163,7 @@ Step 2: Setup user accounts
 .. figure:: /_static/images/st2installer_step_2.png
 
 
-In this step, you will be setting up the Administrator account for you, and the administrative account for StackStorm. In the upper section, you will be asked to enter a new password. This password will be used with the account **admin**, created on the box with `sudo` privileges. In the lower section, you will setup the account that StackStorm will use to log into remote servers via SSH, and execute commands. Make note of the generated SSH key pair if you choose that option, and distribute this key to your servers.
+In this step, you will be setting up the Administrator account for you, and the administrative account for |st2|. In the upper section, you will be asked to enter a new password. This password will be used with the account **admin**, created on the box with `sudo` privileges. In the lower section, you will setup the account that |st2| will use to log into remote servers via SSH, and execute commands. Make note of the generated SSH key pair if you choose that option, and distribute this key to your servers.
 
 #. Enter a new password, containing at least 8 characters, with at least one digit and at least one letter.
 #. Confirm the new password in the box below.
@@ -190,7 +189,7 @@ Step 3: Configure ChatOps
 .. figure:: /_static/images/st2installer_step_3.png
 
 
-In this step, you will setup ChatOps. ChatOps is a core feature of StackStorm, allowing you to collaborate and work more effectively by executing actions inside of a chat room. This step will setup Hubot and pre-configure it to connect to StackStorm as well as to your selected Chat service. While this is an optional feature and can be in the event that you have your own Hubot installation, or do not want to install this feature, we highly recommend experimenting with the feature in your daily operational workflows.
+In this step, you will setup ChatOps. ChatOps is a core feature of |st2|, allowing you to collaborate and work more effectively by executing actions inside of a chat room. This step will setup Hubot and pre-configure it to connect to |st2| as well as to your selected Chat service. While this is an optional feature and can be in the event that you have your own Hubot installation, or do not want to install this feature, we highly recommend experimenting with the feature in your daily operational workflows.
 
 #. If you have your own Hubot installation already, click on **configure your existing Hubot instance**.
 #. Select the Chat Service that you wish to connect to
@@ -237,23 +236,23 @@ System Configuration Values
 
 * `system::hostname`  - Hostname of the server (used for SSL generation)
 * `system::fqdn`      - Fully Qualified Domain Name for the server
-* `system::ipaddress` - IP address of the external IP to access StackStorm
+* `system::ipaddress` - IP address of the external IP to access |st2|
 
-StackStorm Configuration Values
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|st2| Configuration Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These values are used to configure settings within the StackStorm. They inform some basic settings, and can always be updated later.
+These values are used to configure settings within the |st2| . They inform some basic settings, and can always be updated later.
 
-* `st2enterprise::token`          - This is the Enterprise Auth Token provided by |st2| to enable the enterprise features. Visit https://stackstorm.com for more details
-* `st2::version`                  - Version of StackStorm to deploy (default: latest stable)
-* `st2::revision`                 - Revision of StackStorm to deploy (default: latest stable)
-* `st2::api_url`                  - StackStorm API URL (if not on the same machine)
-* `st2::auth_url`                 - StackStorm Auth URL (if not on the same machine)
-* `st2::ssl_public_key`           - SSL Public key used with HTTPS auth. Must provide the actual key contents
-* `st2::ssl_private_key`          - SSL Private key used with HTTPS auth. Must provide the actual key contents
-* `st2::stanley::username`        - Username for default remote SSH user
-* `st2::stanley::ssh_public_key`  - SSH Public Key for default remote SSH user. Must provide the actual key contents.
-* `st2::stanley::ssh_private_key` - SSH Private Key for default remote SSH user. Must provide the actual key contents.
+* :code:`st2enterprise::token`          - This is the Enterprise Auth Token provided by |st2| to enable the enterprise features. Visit https://stackstorm.com for more details
+* :code:`st2::version`                  - Version of |st2| to deploy (default: latest stable)
+* :code:`st2::revision`                 - Revision of |st2| to deploy (default: latest stable)
+* :code:`st2::api_url`                  - |st2| API URL (if not on the same machine)
+* :code:`st2::auth_url`                 - |st2| Auth URL (if not on the same machine)
+* :code:`st2::ssl_public_key`           - SSL Public key used with HTTPS auth. Must provide the actual key contents
+* :code:`st2::ssl_private_key`          - SSL Private key used with HTTPS auth. Must provide the actual key contents
+* :code:`st2::stanley::username`        - Username for default remote SSH user
+* :code:`st2::stanley::ssh_public_key`  - SSH Public Key for default remote SSH user. Must provide the actual key contents.
+* :code:`st2::stanley::ssh_private_key` - SSH Private Key for default remote SSH user. Must provide the actual key contents.
 
 Hubot Configuration Values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -264,11 +263,11 @@ If for whatever reason your chat client is not listed as an example, it is possi
 
 Below are the values you can set
 
-* `hubot::chat_alias`        - A short for a command used at the beginning of task. (e.g.: !)
-* `hubot::adapter`           - The name of the npm adapter used to connect to your chat service
-* `hubot::env_export`        - A hash of all environment variables necessary to configure the `hubot::adapter`
-* `hubot::external_scripts`  - An array of all external hubot scripts to load on startup
-* `hubot::dependencies`      - a hash of all npm dependencies needed your your chat adapter.
+* :code:`hubot::chat_alias`        - A short for a command used at the beginning of task. (e.g.: !)
+* :code:`hubot::adapter`           - The name of the npm adapter used to connect to your chat service
+* :code:`hubot::env_export`        - A hash of all environment variables necessary to configure the :code:`hubot::adapter`
+* :code:`hubot::external_scripts`  - An array of all external hubot scripts to load on startup
+* :code:`hubot::dependencies`      - a hash of all npm dependencies needed your your chat adapter.
 
 
 Example Answers File
@@ -299,4 +298,6 @@ Example Answers File
       "hubot": ">= 2.6.0 < 3.0.0"
       "hubot-scripts": ">= 2.5.0 < 3.0.0"
       "hubot-hipchat": ">=2.12.0 < 3.0.0"
-      "hubot-stackstorm": ">= 0.1.0 < 0.2.0"  
+      "hubot-stackstorm": ">= 0.1.0 < 0.2.0"
+    
+
