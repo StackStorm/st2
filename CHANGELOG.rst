@@ -73,9 +73,13 @@ in development
 * Reduce the wait time between message consumption by TriggerWatcher to avoid latency (improvement)
 * Use exclusive messaging Qs for TriggerWatcher to avoid having to deal with old messages
   and related migration scripts. (bug-fix)
-* Allow user to specify value for the ``From`` field in the `sendmail`` action by passing ``from``
+* Allow user to specify value for the ``From`` field in the ``sendmail`` action by passing ``from``
   parameter to the action. (improvement)
   [pixelrebel]
+* Allow user to update / reinstall Python dependencies listed in ``requirements.txt`` inside the
+  pack virtual environment by passing ``update=True`` parameter to ``packs.setup_virtualenv``
+  action or by using new ``packs.update_virtualenv`` action. (new feature)
+  [jsjeannotte]
 
 0.13.2 - September 09, 2015
 ---------------------------
