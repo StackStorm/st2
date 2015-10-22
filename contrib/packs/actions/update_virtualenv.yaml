@@ -1,0 +1,15 @@
+---
+  name: "update_virtualenv"
+  runner_type: "python-script"
+  description: "Update / reinstall Python dependencies listed in requirements.txt inside the pack virtual environment"
+  enabled: true
+  entry_point: "pack_mgmt/setup_virtualenv.py"
+  parameters:
+    packs:
+      type: "array"
+      items:
+        type: "string"
+    update:
+      type: "boolean"
+      default: true
+      immutable: true

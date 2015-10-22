@@ -89,6 +89,48 @@ Bring Your Own Box
 
    curl -sSL http://stackstorm.com/install.sh | sudo sh
 
+You will need elevated privileges in order to run this script. This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
+
+.. include:: /_includes/install/ok.rst
+
+Visit the setup URL output on your command line by entering the address in your web browser. From there, proceed to the section *Running the Setup*
+
+Amazon Web Services (AWS)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+|st2| provides pre-built AMI images containing the latest stable release of |st2|. These images come equipped with the *All-in-one installer* to help you get setup quickly and easily. To get started:
+
+#. From the AWS Marketplace, select |st2|
+#. Select the instance type/size. For assistance in choosing an instance type, refer to the *Sizing the Server* section above. Click **Next: Configure instance details**.
+#. Set any configuration details. Click **Next: Add Storage**
+#. Set up any applicable tags for your instance. Click **Next: Configure Security Group**
+#. Setup a security group. It is recommended that you leave the default settings. Port 443 must be available for the WebUI, port 9100 for |st2| authentication, and port 9101 for the |st2| API
+#. Review your settings, and then click Launch.
+#. In the **Select an existing key pair or create a new key pair** dialog box, select **Choose an existing key pair** to select a new key pair that you already created or create a new key pair. Select the acknowledgment check box, and then click **Launch Instances**. This can take approximately 5-15 minutes to launch. A confirmation page will appear, letting you know that your instance is launching. Click **View Instances** to close the confirmation and return to the AWS Console.
+#. From **Instances**, make note of the **Instance ID**, **Public IP** and **Public DNS**
+#. In your web browser, enter the |st2| setup URL. The format will be: https://**Public IP**/setup
+#. Enter the username and password to log in. The username is *installer*, and the password is your **Instance ID**
+#. Proceed to the section *Running the installer*
+
+ .. _all_in_one-vagrant:
+
+Vagrant
+~~~~~~~
+|st2| provides pre-built Vagrant boxes for both `VirtualBox <https://www.virtualbox.org>` and `VMWare <https://www.vmware.com>` providers. By default, the setup will install the lastest stable release of |st2|.
+
+::
+
+   git clone https://github.com/StackStorm/st2workroom.git st2workroom
+   cd st2workroom
+   vagrant up st2
+
+
+If you have previously used deployed |st2| and downloaded the st2express box it might be a good idea to update the box. If this is your absolute first install of |st2| then skip this step.
+
+::
+
+  vagrant box update st2
+>>>>>>> 941cb331fa034b5b75eeb6a809239743a9e14ccc
+
 
 You will need elevated privileges in order to run this script. This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
 
