@@ -68,10 +68,14 @@ in development
 * Add option to verify SSL cert for HTTPS request to the core.http action. (new feature)
 * Update remote runner to include stdout and stderr which was consumed so far when a timeout
   occurs. (improvement)
-* Fix st2-self-check script to check whether to use http/https when connecting to st2, to disable Windows test by default, and to check test status correctly. (bug-fix)
+* Fix st2-self-check script to check whether to use http/https when connecting to st2, to disable
+  Windows test by default, and to check test status correctly. (bug-fix)
 * Reduce the wait time between message consumption by TriggerWatcher to avoid latency (improvement)
 * Use exclusive messaging Qs for TriggerWatcher to avoid having to deal with old messages
   and related migration scripts. (bug-fix)
+* Allow user to specify value for the ``From`` field in the `sendmail`` action by passing ``from``
+  parameter to the action. (improvement)
+  [pixelrebel]
 
 0.13.2 - September 09, 2015
 ---------------------------
