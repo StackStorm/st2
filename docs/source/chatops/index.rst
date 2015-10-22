@@ -8,5 +8,6 @@ Chatops
     :maxdepth: 1
 
     chatops
+    chatops-configuration
     aliases
     notifications
