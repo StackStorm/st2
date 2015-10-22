@@ -1,6 +1,6 @@
 Mistral
 =======
-`Mistral <https://wiki.openstack.org/wiki/Mistral>`_ is an OpenStack project that manages and executes workflows as a service. Mistral is installed as a separate service named "mistral" along with |st2|. A Mistral workflow can be defined as a |st2| action in a Mistral workbook using the `v2 DSL <https://wiki.openstack.org/wiki/Mistral/DSLv2>`_. Both workbook and workflow definitions are supported. On action execution, |st2| writes the definition to Mistral and executes the workflow. Workflow can invoke other |st2| actions natively as subtasks. |st2| handles the translations and calls transparently in Mistral and actively polls Mistral for execution results.  |st2| actions in the workflow can be traced back to the original parent action that invoked the workflow.
+`Mistral <http://docs.openstack.org/developer/mistral/overview.html>`_ is an OpenStack project that manages and executes workflows as a service. Mistral is installed as a separate service named "mistral" along with |st2|. A Mistral workflow can be defined as a |st2| action in a Mistral workbook using the `v2 DSL <http://docs.openstack.org/developer/mistral/dsl/dsl_v2.html>`_. Both workbook and workflow definitions are supported. On action execution, |st2| writes the definition to Mistral and executes the workflow. Workflow can invoke other |st2| actions natively as subtasks. |st2| handles the translations and calls transparently in Mistral and actively polls Mistral for execution results.  |st2| actions in the workflow can be traced back to the original parent action that invoked the workflow.
 
 Basic Workflow
 ++++++++++++++
@@ -46,6 +46,10 @@ To display subtasks, run ``st2 execution get <execution-id> --tasks``.
 | 54ee54c91e2e24152b769a49 | core.local | stanley      | succeeded | Wed, 25 Feb 2015 23:03:37    | Wed, 25 Feb 2015 23:03:37    |
 |                          |            |              |           | UTC                          | UTC                          |
 +--------------------------+------------+--------------+-----------+------------------------------+------------------------------+
+
+Canceling Workflow Execution
+++++++++++++++++++++++++++++
+An execution of a Mistral workflow can be cancelled by running ``st2 execution cancel <execution-id>``. Workflow tasks that are still running will not be canceled and will run to completion. No new tasks for the workflow will be scheduled.
 
 Publishing variables in mistral workflows
 +++++++++++++++++++++++++++++++++++++++++
@@ -126,8 +130,4 @@ There are more workflow examples under :github_st2:`/usr/share/doc/st2/examples 
 
 Check out this step-by-step tutorial on building a workflow in |st2| http://stackstorm.com/2015/07/08/automating-with-mistral-workflow/
 
-And more details on Mistral workflow syntax on https://wiki.openstack.org/wiki/Mistral/DSLv2
-
-Canceling Workflow Execution
-++++++++++++++++++++++++++++
-An execution of a Mistral workflow can be cancelled by running ``st2 execution cancel <execution-id>``. Workflow tasks that are still running will not be canceled and will run to completion. No new tasks for the workflow will be scheduled.
+More details about Mistral can be found at http://docs.openstack.org/developer/mistral/.
