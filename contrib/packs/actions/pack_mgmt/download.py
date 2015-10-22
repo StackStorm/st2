@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import grp
 import os
 import shutil
+import subprocess
 import hashlib
 import json
 import stat
@@ -54,6 +56,9 @@ STACKSTORM_CONTRIB_REPOS = [
 # Only if you can emphatically answer 'YES' to allow about questions you should
 # touch this file. Else, be warned you might loose a part of you soul or sanity.
 #####
+
+
+PACK_GROUP_CFG_KEY = 'pack_group'
 
 
 class DownloadGitRepoAction(Action):
@@ -145,18 +150,26 @@ class DownloadGitRepoAction(Action):
                 self.logger.debug('Moving pack from %s to %s.', abs_pack_temp_location, to)
                 shutil.move(abs_pack_temp_location, to)
                 # post move fix all permissions.
-                DownloadGitRepoAction._apply_pack_permissions(to)
+                try:
+                    self._apply_pack_permissions(pack_path=dest_pack_path)
+                except:
+                    self.loggger.exception('Damn It!')
                 message = 'Success.'
             elif message:
                 message = 'Failure : %s' % message
             result[pack] = (desired, message)
         return result
 
-    @staticmethod
-    def _apply_pack_permissions(pack_path):
+    def _apply_pack_permissions(self, pack_path):
         """
         Will recursively apply permission 770 to pack and its contents.
         """
+        # 1. switch owner group to configuered group
+        pack_group = self.config.get(PACK_GROUP_CFG_KEY, None)
+        if pack_group:
+            subprocess.call(['sudo', 'chgrp', '-R', pack_group, pack_path])
+
+        # 2. Setup the right permissions and group ownership
         # These mask is same as mode = 775
         mode = stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH
         os.chmod(pack_path, mode)
