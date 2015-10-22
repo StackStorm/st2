@@ -88,14 +88,14 @@ Vagrant
 
    git clone https://github.com/StackStorm/st2workroom.git st2workroom
    cd st2workroom
-   vagrant up st2express
+   vagrant up st2
 
 
 If you have previously used deployed |st2| and downloaded the st2express box it might be a good idea to update the box. If this is your absolute first install of |st2| then skip this step.
 
 ::
 
-  vagrant box update st2express
+  vagrant box update st2
 
 
 This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
