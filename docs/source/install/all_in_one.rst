@@ -1,5 +1,5 @@
 All-in-one Installer
-====================
+********************
 |st2| provides an all-in-one installer aimed at assisting users with the initial setup and configuration. The installer comes pre-bundled in a number of different provisioning options for convenience, or can also be manually deployed and installed manually on a server.
 
 * Ubuntu 14.04
@@ -12,7 +12,7 @@ Certification is currently planned and/or underway for:
 If your platform is not listed here and you would like it to be, please drop us a line at `support@stackstorm.com <email:support@stackstorm.com>` and let us know.
 
 TL;DR
------
+#####
 
 That's OK! You're busy, we get it. How do you just get started? Get your own box, and run this command:
 
@@ -24,7 +24,7 @@ That's OK! You're busy, we get it. How do you just get started? Get your own box
 Want to learn more? Read on! We will make it worth your while.
 
 What is it?
------------
+###########
 
 The All-in-one installer is an opinionated installation of |st2| that allows you to get up and going on a single instance very quickly. Using this method, we download and configure |st2| using our best practices for deployment. This makes the All-in-one installer good to use when starting out with |st2| in Proof-of-concepts or initial production deployments. It also serves as a good baseline for review how all the various components interact as you build out larger, scaled |st2| deployments.
 
@@ -50,7 +50,8 @@ Optionally, you can also provide an Enterprise Key and get access to the followi
 * |st2| LDAP Authentication Support. Integrate with your existing authentication directory.G
 
 Pre-Requisites
---------------
+##############
+
 Before getting started, it is necessary to do a bit of pre-planning to integrate |st2| into an environment. Below is a checklist of items to prepare before running the installer.
 
 #. A server. See below for the list of pre-bundled options - including a VMDK for VMware environments and an AMI image which can be great for trying us out on AWS, or bring your own.
@@ -63,26 +64,30 @@ Before getting started, it is necessary to do a bit of pre-planning to integrate
 The initial setup is designed to configure itself to a freshly deployed server with no additional services running. If you do not have or do not wish to provide SSL and SSH keys during the initial setup, |st2| will generate random new keys automatically.
 
 Sizing the Server
-~~~~~~~~~~~~~~~~~
+=================
+
 A standard all-in-one installation has all of the various components of |st2|, as well as the supporting infrastructure components. While the system can operate with less equipped servers, these are recommended for the best experience while testing or deploying |st2|.
 
 Testing
-+++++++
+-------
+
 * Single or Dual CPU system
 * At least 2GB of RAM
 * Recommended EC2: **m3.medium**
 
 Production
-++++++++++
+----------
+
 * Quad core CPU system
 * >16GB RAM
 * Recommended EC2: **m4.xlarge**
 
 Deployment Options
--------------------------
+##################
 
 Bring Your Own Box
-~~~~~~~~~~~~~~~~~~
+==================
+
 |st2| provides a bash-based bootstrap script that is used to bootstrap a computer with |st2|. It is highly recommended to run this script on a clean base OS. To get started, run the following command.
 
 ::
@@ -96,8 +101,9 @@ You will need elevated privileges in order to run this script. This will boot up
 Visit the setup URL output on your command line by entering the address in your web browser. From there, proceed to the section *Running the Setup*
 
 Amazon Web Services (AWS)
-~~~~~~~~~~~~~~~~~~~~~~~~~
-|st2| provides pre-built AMI images containing the latest stable release of |st2|. These images come equipped with the *All-in-one installer* to help you get setup quickly and easily. To get started:
+=========================
+
+Getting started with AWS is easy! Follow the instructions below to provision a server with the appropriate security settings, and then run the All-in-one installer script.
 
 #. From the AWS Marketplace, select |st2|
 #. Select the instance type/size. For assistance in choosing an instance type, refer to the *Sizing the Server* section above. Click **Next: Configure instance details**.
@@ -106,45 +112,18 @@ Amazon Web Services (AWS)
 #. Setup a security group. It is recommended that you leave the default settings. Port 443 must be available for the WebUI, port 9100 for |st2| authentication, and port 9101 for the |st2| API
 #. Review your settings, and then click Launch.
 #. In the **Select an existing key pair or create a new key pair** dialog box, select **Choose an existing key pair** to select a new key pair that you already created or create a new key pair. Select the acknowledgment check box, and then click **Launch Instances**. This can take approximately 5-15 minutes to launch. A confirmation page will appear, letting you know that your instance is launching. Click **View Instances** to close the confirmation and return to the AWS Console.
-#. From **Instances**, make note of the **Instance ID**, **Public IP** and **Public DNS**
 #. In your web browser, enter the |st2| setup URL. The format will be: https://**Public IP**/setup
-#. Enter the username and password to log in. The username is *installer*, and the password is your **Instance ID**
-#. Proceed to the section *Running the installer*
-
- .. _all_in_one-vagrant:
-
-Vagrant
-~~~~~~~
-|st2| provides pre-built Vagrant boxes for both `VirtualBox <https://www.virtualbox.org>` and `VMWare <https://www.vmware.com>` providers. By default, the setup will install the lastest stable release of |st2|.
-
-::
-
-   git clone https://github.com/StackStorm/st2workroom.git st2workroom
-   cd st2workroom
-   vagrant up st2
-
-
-If you have previously used deployed |st2| and downloaded the st2express box it might be a good idea to update the box. If this is your absolute first install of |st2| then skip this step.
-
-::
-
-  vagrant box update st2
-
-
-You will need elevated privileges in order to run this script. This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
-
-.. include:: /_includes/install/ok.rst
-
-Visit the setup URL output on your command line by entering the address in your web browser. From there, proceed to the section *Running the Setup*
+#. Run the BYOB installer command above.
+#. Once finished, Proceed to the section *Running the installer*
 
 .. _all_in_one-running_the_setup:
 
 Running the Setup
-~~~~~~~~~~~~~~~~~
+*****************
 Once the machine is provisioned, you will need to configure |st2| to integrate with your environment. Before you see the initial setup screen, you may be presented with a SSL certificate warning. A brand new self-signed SSL certificate was created, and you will need to trust this certificate to continue.
 
 Step 1: Configuring Hostname and SSL
-++++++++++++++++++++++++++++++++++++
+====================================
 
 .. figure:: /_static/images/st2installer_step_1.png
 
@@ -158,7 +137,7 @@ In this step, you will be setting up the networking for |st2|. Here, you will co
 Note: Uploaded SSL certificates should be in X509 ASCII/Base64 armored format.
 
 Step 2: Setup user accounts
-+++++++++++++++++++++++++++
+===========================
 
 .. figure:: /_static/images/st2installer_step_2.png
 
@@ -184,7 +163,7 @@ simply becomes...
    AAAAB3NzaC1yc2EAAAADAQABAAABAQCwPYLqtmPSs/xjpTtuI71SJSSvZYa0qIRi9Rgd+eiWm4VT43F8/vwAuc+3VpaaNnu+f5emXasbk/hHP+lH/fCjWzS+yrUvJluIuzOfIuAmKpV9rYSgDiRwCgp1fpU2C4QtJW9KUVQdmvIrW+gi8Z66kZ2307oNHlyDv5jBv4wO9dYirSRvg+32YW03BEe2as47Ux5r1I0MvjsVQoTsLRZNjPdUjTwkgPY8k2YE+AMI22EonqiU4XZPUouGP3qFZqKgKjVYfVfaZ7B+ezBDkn4sFJeiOTqalsWrqlL6UWbVSExN8ZUaJr0ZO5WNmB9tUU6xb8K8LvINtqnPOR14NWVZ
 
 Step 3: Configure ChatOps
-+++++++++++++++++++++++++
+=========================
 
 .. figure:: /_static/images/st2installer_step_3.png
 
@@ -197,7 +176,7 @@ In this step, you will setup ChatOps. ChatOps is a core feature of |st2|, allowi
 #. Click **Get Started**
 
 Changing Configuration
-----------------------
+**********************
 
 At any point after installation, it is possible to update the StackStorm configuration to reconfigure basic settings, SSL setup, ChatOps configuration. You can even upgrade a StackStorm community install to an Enterprise install very easily.
 
@@ -207,25 +186,25 @@ Make sure to protect this file, and make it only readable by the ``root`` user. 
 
 
 Configurable Settings
-+++++++++++++++++++++
+=====================
 
 Below includes a list of settings that can be supplied to the All-in-one installer.
 
 
 System Configuration Values
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
-* `system::hostname`  - Hostname of the server (used for SSL generation)
-* `system::fqdn`      - Fully Qualified Domain Name for the server
-* `system::ipaddress` - IP address of the external IP to access |st2|
+These settings are used to inform NGINX setup, SSL setup, and any network proxy information.
 
+* :code:`system::hostname`    - Hostname of the server (used for SSL generation)
+* :code:`system::fqdn`        - Fully Qualified Domain Name for the server
+* :code:`system::ipaddress`   - IP address of the external IP to access |st2|.
+* :code:`system::http_proxy`  - HTTP proxy server
+* :code:`system::https_proxy` - HTTPS proxy server
 
 |st2| Configuration Values
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
-These values are used to configure settings within the |st2| . They inform some basic settings, and can always be updated later.
-
-* :code:`st2enterprise::token`          - This is the Enterprise Auth Token provided by |st2| to enable the enterprise features. Visit https://stackstorm.com for more details
 * :code:`st2::version`                  - Version of |st2| to deploy (default: latest stable)
 * :code:`st2::revision`                 - Revision of |st2| to deploy (default: latest stable)
 * :code:`st2::api_url`                  - |st2| API URL (if not on the same machine)
@@ -237,8 +216,21 @@ These values are used to configure settings within the |st2| . They inform some 
 * :code:`st2::stanley::ssh_private_key` - SSH Private Key for default remote SSH user. Must provide the actual key contents.
 
 
+|st2| Enterprise Configuration Values
+-------------------------------------
+
+* :code:`st2enterprise::token` - This is the Enterprise Auth Token provided by |st2| to enable the enterprise features. Visit https://stackstorm.com for more details
+* :code:`st2::ldap::host`      - LDAP host to connect to (e.g.: ldap.stackstorm.net)
+* :code:`st2::ldap::port`      - LDAP port to connect to (default: 389)
+* :code:`st2::ldap::use_ssl`   - LDAP Enable SSL (default: false)
+* :code:`st2::ldap::use_tls`   - LDAP Enable TLS (default: false)
+* :code:`st2::ldap::base_dn`   - LDAP Base DN (e.g: ou=Users,dc=stackstorm,dc=net)
+* :code:`st2::ldap::id_attr`   - LDAP attribute search (default: uid)
+* :code:`st2::ldap::scope`     - LDAP Search Scope (default: subtree)
+
+
 Hubot Configuration Values
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 These values directly correspond to configure the Hubot adapter, Hubot environment variables, and required NPM libraries to get started. We have done our best to include several example configurations that you can [find in our |st2| workroom](https://github.com/StackStorm/st2workroom/blob/master/hieradata/workroom.yaml.example)
 
@@ -254,7 +246,7 @@ Below are the values you can set
 
 
 Example Answers File
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 ::
 
@@ -284,16 +276,16 @@ Example Answers File
       "hubot-stackstorm": ">= 0.1.0 < 0.2.0"
 
 Updating
---------
+********
 
-Once you've installed with the All-in-one installer, you will download the latest stable release. If you would like to upgrade, or follow a specific testing branch, you can do so with the following command:
+Once you've installed with the All-in-one installer, you will download the latest stable release. If you would like to upgrade to newer versions of StackStorm via the Installer, or follow a specific testing branch, you can do so with the following command:
 
 ::
 
    ENV=<new version> update-system
 
 
-Each stable release is tagged with a Git Tag, and you can provide that tag at runtime. You can track the unstable branch (`master`) with the following command
+Each stable release is tagged with a Git Tag, and you can provide that tag at runtime. You can track the unstable branch (`master`) with the following command. Be warned, we attempt to keep this profile passing CI, but it may be unstable.
 
 ::
 
@@ -301,7 +293,7 @@ Each stable release is tagged with a Git Tag, and you can provide that tag at ru
 
 
 Unattended Installation
------------------------
+***********************
 
 In addition to the GUI installation method, the All-in-one installer also provides the ability to provide an answers file to pre-seed the installation with values.
 
@@ -313,5 +305,3 @@ The answers file is formatted in standard YAML. Below, we will discuss the vario
 
 
 If you have already installed using this method, you can find and update your answers file at `/opt/puppet/hieradata/answers.yaml`
-
-
