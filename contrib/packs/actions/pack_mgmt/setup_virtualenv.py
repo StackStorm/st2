@@ -88,7 +88,8 @@ class SetupVirtualEnvironmentAction(Action):
         if not os.path.exists(self._base_virtualenvs_path):
             os.makedirs(self._base_virtualenvs_path)
 
-        if not update:
+        # If we don't want to update, or if the virtualenv doesn't exist, let's create it.
+        if not update or not os.path.exists(virtualenv_path):
 
             # 0. Delete virtual environment if it exists
             self._remove_virtualenv(virtualenv_path=virtualenv_path)
