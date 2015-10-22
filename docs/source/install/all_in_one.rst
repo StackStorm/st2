@@ -196,6 +196,93 @@ In this step, you will setup ChatOps. ChatOps is a core feature of |st2|, allowi
 #. Enter the appropriate configuration information for a bot user account on your chat service
 #. Click **Get Started**
 
+Changing Configuration
+----------------------
+
+At any point after installation, it is possible to update the StackStorm configuration to reconfigure basic settings, SSL setup, ChatOps configuration. You can even upgrade a StackStorm community install to an Enterprise install very easily.
+
+To update or change settings, you will create a configuration file at :code:`/opt/puppet/hieradata/answers.yaml`, and then run the :code:`update-system` command. The installer will then run and reconfigure your system appropriately.
+
+Make sure to protect this file, and make it only readable by the ``root`` user. This file could contain secrets.
+
+
+Configurable Settings
++++++++++++++++++++++
+
+Below includes a list of settings that can be supplied to the All-in-one installer.
+
+
+System Configuration Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* `system::hostname`  - Hostname of the server (used for SSL generation)
+* `system::fqdn`      - Fully Qualified Domain Name for the server
+* `system::ipaddress` - IP address of the external IP to access |st2|
+
+
+|st2| Configuration Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These values are used to configure settings within the |st2| . They inform some basic settings, and can always be updated later.
+
+* :code:`st2enterprise::token`          - This is the Enterprise Auth Token provided by |st2| to enable the enterprise features. Visit https://stackstorm.com for more details
+* :code:`st2::version`                  - Version of |st2| to deploy (default: latest stable)
+* :code:`st2::revision`                 - Revision of |st2| to deploy (default: latest stable)
+* :code:`st2::api_url`                  - |st2| API URL (if not on the same machine)
+* :code:`st2::auth_url`                 - |st2| Auth URL (if not on the same machine)
+* :code:`st2::ssl_public_key`           - SSL Public key used with HTTPS auth. Must provide the actual key contents
+* :code:`st2::ssl_private_key`          - SSL Private key used with HTTPS auth. Must provide the actual key contents
+* :code:`st2::stanley::username`        - Username for default remote SSH user
+* :code:`st2::stanley::ssh_public_key`  - SSH Public Key for default remote SSH user. Must provide the actual key contents.
+* :code:`st2::stanley::ssh_private_key` - SSH Private Key for default remote SSH user. Must provide the actual key contents.
+
+
+Hubot Configuration Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These values directly correspond to configure the Hubot adapter, Hubot environment variables, and required NPM libraries to get started. We have done our best to include several example configurations that you can [find in our |st2| workroom](https://github.com/StackStorm/st2workroom/blob/master/hieradata/workroom.yaml.example)
+
+If for whatever reason your chat client is not listed as an example, it is possible to add *any* Hubot chat service via this method. Refer to the plugin details for more information. In general, you'll need to understand the NPM dependencies, and any environment variables that need to be set.
+
+Below are the values you can set
+
+* :code:`hubot::chat_alias`        - A short for a command used at the beginning of task. (e.g.: !)
+* :code:`hubot::adapter`           - The name of the npm adapter used to connect to your chat service
+* :code:`hubot::env_export`        - A hash of all environment variables necessary to configure the :code:`hubot::adapter`
+* :code:`hubot::external_scripts`  - An array of all external hubot scripts to load on startup
+* :code:`hubot::dependencies`      - a hash of all npm dependencies needed your your chat adapter.
+
+
+Example Answers File
+~~~~~~~~~~~~~~~~~~~~
+
+::
+
+   ---
+    ### Hipchat Example Config
+    ## See https://github.com/hipchat/hubot-hipchat#adapter-configuration for more details
+    st2enterprise::token: myawesometokentogetenterprisefeatures
+    st2::version: 1.0.0
+    st2::revision: 1
+    hubot::chat_alias: "!"
+    hubot::adapter: "hipchat"
+    hubot::env_export:
+     HUBOT_LOG_LEVEL: "debug"
+     HUBOT_HIPCHAT_JID: "XXX"
+     HUBOT_HIPCHAT_PASSWORD: "XXX"
+     HUBOT_XMPP_DOMAIN: "XXX" # Use only if using HipChat Server Beta
+     ST2_CHANNEL: "hubot"
+     ST2_AUTH_USERNAME: "testu"
+     ST2_AUTH_PASSWORD: "testu"
+     EXPRESS_PORT: 8081
+    hubot::external_scripts:
+      - "hubot-stackstorm"
+    hubot::dependencies:
+      "hubot": ">= 2.6.0 < 3.0.0"
+      "hubot-scripts": ">= 2.5.0 < 3.0.0"
+      "hubot-hipchat": ">=2.12.0 < 3.0.0"
+      "hubot-stackstorm": ">= 0.1.0 < 0.2.0"
+
 Updating
 --------
 
@@ -227,77 +314,4 @@ The answers file is formatted in standard YAML. Below, we will discuss the vario
 
 If you have already installed using this method, you can find and update your answers file at `/opt/puppet/hieradata/answers.yaml`
 
-
-Configurable Settings
-+++++++++++++++++++++
-
-System Configuration Values
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* `system::hostname`  - Hostname of the server (used for SSL generation)
-* `system::fqdn`      - Fully Qualified Domain Name for the server
-* `system::ipaddress` - IP address of the external IP to access |st2|
-
-|st2| Configuration Values
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These values are used to configure settings within the |st2| . They inform some basic settings, and can always be updated later.
-
-* :code:`st2enterprise::token`          - This is the Enterprise Auth Token provided by |st2| to enable the enterprise features. Visit https://stackstorm.com for more details
-* :code:`st2::version`                  - Version of |st2| to deploy (default: latest stable)
-* :code:`st2::revision`                 - Revision of |st2| to deploy (default: latest stable)
-* :code:`st2::api_url`                  - |st2| API URL (if not on the same machine)
-* :code:`st2::auth_url`                 - |st2| Auth URL (if not on the same machine)
-* :code:`st2::ssl_public_key`           - SSL Public key used with HTTPS auth. Must provide the actual key contents
-* :code:`st2::ssl_private_key`          - SSL Private key used with HTTPS auth. Must provide the actual key contents
-* :code:`st2::stanley::username`        - Username for default remote SSH user
-* :code:`st2::stanley::ssh_public_key`  - SSH Public Key for default remote SSH user. Must provide the actual key contents.
-* :code:`st2::stanley::ssh_private_key` - SSH Private Key for default remote SSH user. Must provide the actual key contents.
-
-Hubot Configuration Values
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These values directly correspond to configure the Hubot adapter, Hubot environment variables, and required NPM libraries to get started. We have done our best to include several example configurations that you can [find in our |st2| workroom](https://github.com/StackStorm/st2workroom/blob/master/hieradata/workroom.yaml.example)
-
-If for whatever reason your chat client is not listed as an example, it is possible to add *any* Hubot chat service via this method. Refer to the plugin details for more information. In general, you'll need to understand the NPM dependencies, and any environment variables that need to be set.
-
-Below are the values you can set
-
-* :code:`hubot::chat_alias`        - A short for a command used at the beginning of task. (e.g.: !)
-* :code:`hubot::adapter`           - The name of the npm adapter used to connect to your chat service
-* :code:`hubot::env_export`        - A hash of all environment variables necessary to configure the :code:`hubot::adapter`
-* :code:`hubot::external_scripts`  - An array of all external hubot scripts to load on startup
-* :code:`hubot::dependencies`      - a hash of all npm dependencies needed your your chat adapter.
-
-
-Example Answers File
-++++++++++++++++++++
-
-::
-
-   ---
-    ### Hipchat Example Config
-    ## See https://github.com/hipchat/hubot-hipchat#adapter-configuration for more details
-    st2enterprise::token: myawesometokentogetenterprisefeatures
-    st2::version: 1.0.0
-    st2::revision: 1
-    hubot::chat_alias: "!"
-    hubot::adapter: "hipchat"
-    hubot::env_export:
-     HUBOT_LOG_LEVEL: "debug"
-     HUBOT_HIPCHAT_JID: "XXX"
-     HUBOT_HIPCHAT_PASSWORD: "XXX"
-     HUBOT_XMPP_DOMAIN: "XXX" # Use only if using HipChat Server Beta
-     ST2_CHANNEL: "hubot"
-     ST2_AUTH_USERNAME: "testu"
-     ST2_AUTH_PASSWORD: "testu"
-     EXPRESS_PORT: 8081
-    hubot::external_scripts:
-      - "hubot-stackstorm"
-    hubot::dependencies:
-      "hubot": ">= 2.6.0 < 3.0.0"
-      "hubot-scripts": ">= 2.5.0 < 3.0.0"
-      "hubot-hipchat": ">=2.12.0 < 3.0.0"
-      "hubot-stackstorm": ">= 0.1.0 < 0.2.0"
-    
 
