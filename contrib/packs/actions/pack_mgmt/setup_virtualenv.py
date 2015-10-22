@@ -37,6 +37,10 @@ class SetupVirtualEnvironmentAction(Action):
     1. Create virtual environment for the pack
     2. Install base requirements which are common to all the packs
     3. Install pack-specific requirements (if any)
+
+    If the 'update' parameter is set to True, the setup skips the deletion and
+    creation of the virtual environment and performs an update of the
+    current dependencies as well as an installation of new dependencies
     """
 
     def __init__(self, config=None):
@@ -44,19 +48,19 @@ class SetupVirtualEnvironmentAction(Action):
         self._base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path,
                                                    'virtualenvs/')
 
-    def run(self, packs):
+    def run(self, packs, update=False):
         """
         :param packs: A list of packs to create the environment for.
         :type: packs: ``list``
         """
         for pack_name in packs:
-            self._setup_pack_virtualenv(pack_name=pack_name)
+            self._setup_pack_virtualenv(pack_name=pack_name, update=update)
 
         message = ('Successfuly set up virtualenv for the following packs: %s' %
                    (', '.join(packs)))
         return message
 
-    def _setup_pack_virtualenv(self, pack_name):
+    def _setup_pack_virtualenv(self, pack_name, update=False):
         """
         Setup virtual environment for the provided pack.
 
@@ -84,13 +88,16 @@ class SetupVirtualEnvironmentAction(Action):
         if not os.path.exists(self._base_virtualenvs_path):
             os.makedirs(self._base_virtualenvs_path)
 
-        # 0. Delete virtual environment if it exists
-        self._remove_virtualenv(virtualenv_path=virtualenv_path)
+        # If we don't want to update, or if the virtualenv doesn't exist, let's create it.
+        if not update or not os.path.exists(virtualenv_path):
 
-        # 1. Create virtual environment
-        self.logger.debug('Creating virtualenv for pack "%s" in "%s"' %
-                          (pack_name, virtualenv_path))
-        self._create_virtualenv(virtualenv_path=virtualenv_path)
+            # 0. Delete virtual environment if it exists
+            self._remove_virtualenv(virtualenv_path=virtualenv_path)
+
+            # 1. Create virtual environment
+            self.logger.debug('Creating virtualenv for pack "%s" in "%s"' %
+                              (pack_name, virtualenv_path))
+            self._create_virtualenv(virtualenv_path=virtualenv_path)
 
         # 2. Install base requirements which are common to all the packs
         self.logger.debug('Installing base requirements')
@@ -109,8 +116,10 @@ class SetupVirtualEnvironmentAction(Action):
         else:
             self.logger.debug('No pack specific requirements found')
 
-        self.logger.debug('Virtualenv for pack "%s" successfully created in "%s"' %
-                          (pack_name, virtualenv_path))
+        self.logger.debug('Virtualenv for pack "%s" successfully %s in "%s"' %
+                          (pack_name,
+                           "updated" if update else "created",
+                           virtualenv_path))
 
     def _create_virtualenv(self, virtualenv_path):
         python_binary = cfg.CONF.actionrunner.python_binary
