@@ -346,3 +346,23 @@ Installation fails! Oh No!
 --------------------------
 
 As much as it pains us to say, sometimes the installation fails. Right now, the most likely cause for this is an upstream provider having a poor time at the moment of your install. We are actively working to reduce the upstream failure potiential. Best thing to do if something comes up is to simply run ``update-system``
+
+Nginx fails to start w/ Self-signed SSL
+--------------------------------------
+
+Maybe you're seeing this error:
+
+::
+
+    nginx[XXX]: nginx: [emerg] SSL_CTX_use_PrivateKey_file("/etc/ssl/st2/st2.key") failed (SSL: error:0B080074:x509 certificate routines:X509_check_private_key:key values mismatch)
+
+
+In some cases, we have seen the automatic SSL generation create a mis-match between the self-signed certificates. We have only seen this in a few rare cases, and are working to see if we can reliaby reproduce and restore the problem. To fix this problem, simply perform the following steps:
+
+::
+
+    rm -rf /etc/ssl/st2/*
+    update-system
+
+
+This should automatically generate new self-signed SSL certificates, and allow nginx to start
