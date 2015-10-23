@@ -103,9 +103,20 @@ Visit the setup URL output on your command line by entering the address in your 
 Amazon Web Services (AWS)
 =========================
 
+We have currently performed testing and certified that StackStorm Installer works properly on the following AMI Images:
+
+* CentOS 6     - `ami-1255b321`
+* CentOS 7     - `ami-d440a6e7`
+* Ubuntu 14.04 - `ami-5189a661`
+
+It is highly likely that the installer will also work on different AMIs if it is one of our Supported Operating Systems. However, if you run into issues, these are AMIs that we use in our automated testing and should get you going with minimal fuss.
+
+We are constantly striving to ensure that we have compatability with as many platforms as we can. However, if you find an AMI that doesn't work, please let us know and we'll be glad to take a look. We also love Pull Requests from the community, and might have some goodies if you help us out!
+
+
 Getting started with AWS is easy! Follow the instructions below to provision a server with the appropriate security settings, and then run the All-in-one installer script.
 
-#. From the AWS Marketplace, select |st2|
+#. From the AMI Community Marketplace, select the appropriate AMI image. Suggestions are recommended above.
 #. Select the instance type/size. For assistance in choosing an instance type, refer to the *Sizing the Server* section above. Click **Next: Configure instance details**.
 #. Set any configuration details. Click **Next: Add Storage**
 #. Set up any applicable tags for your instance. Click **Next: Configure Security Group**
