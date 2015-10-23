@@ -470,6 +470,12 @@ install_apt() {
   # Now that pip is installed set PIP=`which pip` again.
   PIP=`which pip`
   setup_rabbitmq
+
+  if [[ "$CONTAINER" == "DOCKER" ]]
+  then
+    service mongod start
+  fi
+  
   install_pip
 }
 
