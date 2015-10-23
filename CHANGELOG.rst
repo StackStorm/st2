@@ -80,6 +80,8 @@ in development
   pack virtual environment by passing ``update=True`` parameter to ``packs.setup_virtualenv``
   action or by using new ``packs.update_virtualenv`` action. (new feature)
   [jsjeannotte]
+* Pack on install are now assigned an owner group. The ``pack_group`` property allows to pick this
+  value and default is ``st2packs``. (new feature)
 
 0.13.2 - September 09, 2015
 ---------------------------
