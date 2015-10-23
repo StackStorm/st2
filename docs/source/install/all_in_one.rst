@@ -55,7 +55,7 @@ Pre-Requisites
 Before getting started, it is necessary to do a bit of pre-planning to integrate |st2| into an environment. Below is a checklist of items to prepare before running the installer.
 
 #. A server. See below for the list of pre-bundled options - including a VMDK for VMware environments and an AMI image which can be great for trying us out on AWS, or bring your own.
-#. Hostname of new server setup with DNS.
+#. Hostname and IP of new server. IP must be externally addressible from the target install box.
 #. Admin Password.
 #. Administrative SSH Public/Private Keys *(Optional)*
 #. SSL Certificates *(Optional)*
@@ -198,7 +198,7 @@ These settings are used to inform NGINX setup, SSL setup, and any network proxy 
 
 * :code:`system::hostname`    - Hostname of the server (used for SSL generation)
 * :code:`system::fqdn`        - Fully Qualified Domain Name for the server
-* :code:`system::ipaddress`   - IP address of the external IP to access |st2|.
+* :code:`system::ipaddress`   - IP address of the external IP to access |st2|. This IP address *must* be reachable from outside this box.
 * :code:`system::http_proxy`  - HTTP proxy server
 * :code:`system::https_proxy` - HTTPS proxy server
 
@@ -305,3 +305,33 @@ The answers file is formatted in standard YAML. Below, we will discuss the vario
 
 
 If you have already installed using this method, you can find and update your answers file at `/opt/puppet/hieradata/answers.yaml`
+
+
+Known Issues
+************
+
+We currently do our best to detect the environment that you are in to provide a seemless experience. However, sometimes you may run into a case where we haven't found or explored yet. If you find this, please let us know. Even better, we love when our community submits Pull Requests!
+
+Does not install on RHEL AWS Images
+-----------------------------------
+
+During installation, you may receive an error about ``ruby-devel`` packages missing, or an inability to compile JSON. Currently, in order to bootstrap a RHEL box, you must ensure you have an active RedHat Satellite account to receive updates. A fix to remove development dependencies is underway.
+
+500 Errors on Connection
+------------------------
+
+When either attempting to connect to the WebUI or CLI, you may see ``500 Internal Error`` alerts. This has to do with the installer not automatically detecting the correct interfaces for StackStorm. While we work on a permanent fix, you can quickly get up and going by doing the following.
+
+* On your system, run ``ifconfig`` and pick a network interface that is externally excessible. Make note of the interface name. (e.g.: ``eth0``)
+* Open or create the file ``/opt/puppet/hieradata/answers.yaml``, and add a new line to tell the installer what interface to use.
+
+::
+    # For example, if eth0 was an exterally excessible network adapter
+    ---
+    system::ipaddress: ‘%{::ipaddress_eth0}’`
+
+
+Installation fails! Oh No!
+--------------------------
+
+As much as it pains us to say, sometimes the installation fails. Right now, the most likely cause for this is an upstream provider having a poor time at the moment of your install. We are actively working to reduce the upstream failure potiential. Best thing to do if something comes up is to simply run ``update-system``
