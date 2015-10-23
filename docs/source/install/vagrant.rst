@@ -52,7 +52,7 @@ In order to successfully deploy StackStorm to a Vagrant environment, you must en
 
 Once setup, the next step is to run the StackStorm installer. This will pull down and setup all the necessary items to run StackStorm Using this tool, you can quickly configure your StackStorm system including user accounts, ChatOps support, and enable Enterprise Features. Refer to :ref:`all_in_one-running_the_setup` section of :doc:`./all_in_one` for more information.
 
-Below is an aexample of a Vagrantfile capable of loading StackStorm. This minimal Vagrantfile will load up a machine and provision a clean StackStorm installation
+Below is an an example of a Vagrantfile capable of loading StackStorm. This minimal Vagrantfile will load up a machine and provision a clean StackStorm installation.This configuration also includes a `public_network` setting, which is necessary to allow your host environment to access the StackStorm guest machine. If you choose not to use this configuration, make sure that you have an interface configured that you can access via the Host Machine.
 
 ::
 
