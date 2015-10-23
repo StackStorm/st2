@@ -467,8 +467,10 @@ install_apt() {
   # Install packages
   echo "Installing ${APT_PACKAGE_LIST}"
   apt-get install -y ${APT_PACKAGE_LIST}
-  # Now that pip is installed set PIP=`which pip` again.
+  # Now that pip and virtualenv are installed set them with `which` again.
+  PYTHON=`which python2.7`
   PIP=`which pip`
+  VIRTUALENV=`which virtualenv`
   setup_rabbitmq
   install_pip
 }
