@@ -13,10 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import grp
 import os
 import shutil
-import subprocess
 import hashlib
 import json
 import stat
@@ -26,6 +24,7 @@ from git.repo import Repo
 from lockfile import LockFile
 
 from st2actions.runners.pythonrunner import Action
+from st2common.util.green import shell
 
 ALL_PACKS = '*'
 PACK_REPO_ROOT = 'packs'
@@ -150,10 +149,7 @@ class DownloadGitRepoAction(Action):
                 self.logger.debug('Moving pack from %s to %s.', abs_pack_temp_location, to)
                 shutil.move(abs_pack_temp_location, to)
                 # post move fix all permissions.
-                try:
-                    self._apply_pack_permissions(pack_path=dest_pack_path)
-                except:
-                    self.loggger.exception('Damn It!')
+                self._apply_pack_permissions(pack_path=dest_pack_path)
                 message = 'Success.'
             elif message:
                 message = 'Failure : %s' % message
@@ -167,7 +163,7 @@ class DownloadGitRepoAction(Action):
         # 1. switch owner group to configuered group
         pack_group = self.config.get(PACK_GROUP_CFG_KEY, None)
         if pack_group:
-            subprocess.call(['sudo', 'chgrp', '-R', pack_group, pack_path])
+            shell.run_command(['sudo', 'chgrp', '-R', pack_group, pack_path])
 
         # 2. Setup the right permissions and group ownership
         # These mask is same as mode = 775
