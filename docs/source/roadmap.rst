@@ -1,14 +1,14 @@
 Roadmap
 =======
 
-StackStorm is new and under active development. We are opening it early to engage community, get feedback,  refine directions, and welcome contributions. Below are key next items we see as top priorities.
+StackStorm is still under active development. We welcome community feedback to  refine directions, and encourage contributions. Below are key next items we see as top priorities.
 
-* **Complete DEB/RTM for st2 components:** Build self-sustaining RPM/DEB packages for all the StackStorm components, Mistral, Hubot and the other dependencies for a fast and reliable installation.
+* **Complete DEB/RPM for st2 components:** Build self-sustaining RPM/DEB packages for all the StackStorm components, Mistral, Hubot and the other dependencies for a fast and reliable installation.
 * **Docker based installer:** Complete the vision of OS independent, layered docker-based installer, to increase reliability, modularity, and speed of deployment.
 * **Migrate away from MongoDB:** Now that the models are stable, replace Mongo, to reduce operational overhead, improve performance, and simplify licensing.
 * **At-scale refinements:** Ensure event handling reliability, event storm resilience/throttling. Complete support for multi-node deployment of sensor containers and rule engines for resilience and throughput.
 * **Content management, revised for multi-node deployments:** provide platform support for content deployment to worker nodes with better integration with git/GitHub, to simplify development and deployment of "automation as code" at scale.
-* **Security tightening:** Complete security audit and address issues discovered so far.
+* **Security hardening:** Complete security audit and address issues discovered so far.
 * **History and Audit service:** History view with advanced search over years worth of execution records, over multiple versions of continuously upgraded StackStorm.
 * **Multi target configurations for integration packs:** For a given integration pack, define and manage multiple targets - sets of configurations, so that the user can choose which one to use for a given action.
 * **First class Windows support:** switch to pywinrm for better license. Remote PowerShell via Powershell.REST.API. Windows-native ActionRunners. Windows supported st2workroom.
