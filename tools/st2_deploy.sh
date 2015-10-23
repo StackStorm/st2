@@ -473,7 +473,8 @@ install_apt() {
 
   if [[ "$CONTAINER" == "DOCKER" ]]
   then
-    service mongod start
+    /etc/init.d/mongod status
+    sudo service mongod start
   fi
   
   install_pip
