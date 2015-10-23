@@ -533,13 +533,16 @@ setup_rabbitmq() {
 }
 
 setup_mongodb_systemd() {
+  echo "Configuring MongoDB..."
   # Enable and start MongoDB
   if ([[ "${DISTRO_NAME}" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]] || [[ "${DISTRO_NAME}" == "Scientific Linux" ]]) && [[ $DISTRO_VERSION =~ 7\.[0-9] ]]
   then
     systemctl enable mongod
     systemctl start mongod
   else
-    chkconfig mongod on
+    if [[ "$TYPE" == "rpms" ]]; then  
+        chkconfig mongod on
+    fi
     service mongod start
   fi
 }
