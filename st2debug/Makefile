@@ -57,7 +57,7 @@ endif
 .PHONY: all install wheelhouse
 all: install
 
-install: wheelhouse changelog
+install: wheelhouse injectdeps changelog
 
 post_install: bdist_wheel
 
@@ -79,6 +79,10 @@ wheelhouse: .stamp-wheelhouse
 .stamp-wheelhouse: populate_version requirements
 	# Install wheels into shared location
 	pip wheel --wheel-dir=$(WHEELDIR) -r requirements.txt
+	touch $@
+
+injectdeps: .stamp-injectdeps
+.stamp-injectdeps:
 	# We can modify requirements ONLY AFTER wheelhouse has been built
 	@echo "st2common" >> requirements.txt
 	touch $@
