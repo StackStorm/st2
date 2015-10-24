@@ -2,18 +2,6 @@ All-in-one Installer
 ********************
 |st2| provides an all-in-one installer aimed at assisting users with the initial setup and configuration. The installer comes pre-bundled in a number of different provisioning options for convenience, or can also be manually deployed and installed manually on a server.
 
-* Ubuntu 14.04
-* CentOS / RHEL 6.x and 7.x
-
-Certification is currently planned and/or underway for:
-
-* Debian 7/8
-
-If your platform is not listed here and you would like it to be, please drop us a line at `support@stackstorm.com <email:support@stackstorm.com>` and let us know.
-
-TL;DR
-#####
-
 That's OK! You're busy, we get it. How do you just get started? Get your own box, and run this command:
 
 ::
@@ -21,7 +9,7 @@ That's OK! You're busy, we get it. How do you just get started? Get your own box
    curl -sSL http://stackstorm.com/install.sh | sudo sh
 
 
-Want to learn more? Read on! We will make it worth your while.
+.. contents:: Want to learn more? Read on! We will make it worth your while.
 
 What is it?
 ###########
@@ -45,9 +33,22 @@ Using these three projects, it is possible to get |st2| setup with the following
 
 Optionally, you can also provide an Enterprise Key and get access to the following features:
 
-* |st2| FLOW - HTML5 based Graphical Workflow editor. Use this to visualize, edit, and share workflows. 
+* |st2| FLOW - HTML5 based Graphical Workflow editor. Use this to visualize, edit, and share workflows.
 * |st2| Role Based Access Control. Apply fine-grained controls to actions and rules to fit into the most complex of environments.
 * |st2| LDAP Authentication Support. Integrate with your existing authentication directory.G
+
+Supported Platforms
+###################
+
+At present, supported platforms are:
+* Ubuntu 14.04
+* CentOS / RHEL 6.x and 7.x
+
+Certification is currently planned and/or underway for:
+
+* Debian 7/8
+
+If your platform is not listed here and you would like it to be, please drop us a line at `support@stackstorm.com <email:support@stackstorm.com>`_ and let us know.
 
 Pre-Requisites
 ##############
@@ -63,24 +64,18 @@ Before getting started, it is necessary to do a bit of pre-planning to integrate
 
 The initial setup is designed to configure itself to a freshly deployed server with no additional services running. If you do not have or do not wish to provide SSL and SSH keys during the initial setup, |st2| will generate random new keys automatically.
 
-Sizing the Server
-=================
+.. rubric:: Sizing the Server
 
 A standard all-in-one installation has all of the various components of |st2|, as well as the supporting infrastructure components. While the system can operate with less equipped servers, these are recommended for the best experience while testing or deploying |st2|.
 
-Testing
--------
++--------------------------------------+-----------------------------------+
+|            Testing                   |         Production                |
++======================================+===================================+
+|  * Single or Dual CPU system         | * Quad core CPU system            |
+|  * At least 2GB of RAM               | * >16GB RAM                       |
+|  * Recommended EC2: **m3.medium**    | * Recommended EC2: **m4.xlarge**  |
++--------------------------------------+-----------------------------------+
 
-* Single or Dual CPU system
-* At least 2GB of RAM
-* Recommended EC2: **m3.medium**
-
-Production
-----------
-
-* Quad core CPU system
-* >16GB RAM
-* Recommended EC2: **m4.xlarge**
 
 Deployment Options
 ##################
@@ -130,7 +125,7 @@ Getting started with AWS is easy! Follow the instructions below to provision a s
 .. _all_in_one-running_the_setup:
 
 Running the Setup
-*****************
+#################
 Once the machine is provisioned, you will need to configure |st2| to integrate with your environment. Before you see the initial setup screen, you may be presented with a SSL certificate warning. A brand new self-signed SSL certificate was created, and you will need to trust this certificate to continue.
 
 Step 1: Configuring Hostname and SSL
@@ -187,7 +182,7 @@ In this step, you will setup ChatOps. ChatOps is a core feature of |st2|, allowi
 #. Click **Get Started**
 
 Changing Configuration
-**********************
+######################
 
 At any point after installation, it is possible to update the StackStorm configuration to reconfigure basic settings, SSL setup, ChatOps configuration. You can even upgrade a StackStorm community install to an Enterprise install very easily.
 
@@ -195,15 +190,14 @@ To update or change settings, you will create a configuration file at :code:`/op
 
 Make sure to protect this file, and make it only readable by the ``root`` user. This file could contain secrets.
 
+.. rubric:: Configurable Settings
 
-Configurable Settings
-=====================
 
 Below includes a list of settings that can be supplied to the All-in-one installer.
 
 
 System Configuration Values
----------------------------
+===========================
 
 These settings are used to inform NGINX setup, SSL setup, and any network proxy information.
 
@@ -214,7 +208,7 @@ These settings are used to inform NGINX setup, SSL setup, and any network proxy 
 * :code:`system::https_proxy` - HTTPS proxy server
 
 |st2| Configuration Values
---------------------------
+==========================
 
 * :code:`st2::version`                  - Version of |st2| to deploy (default: latest stable)
 * :code:`st2::revision`                 - Revision of |st2| to deploy (default: latest stable)
@@ -228,7 +222,7 @@ These settings are used to inform NGINX setup, SSL setup, and any network proxy 
 
 
 |st2| Enterprise Configuration Values
--------------------------------------
+=====================================
 
 * :code:`st2enterprise::token` - This is the Enterprise Auth Token provided by |st2| to enable the enterprise features. Visit https://stackstorm.com for more details
 * :code:`st2::ldap::host`      - LDAP host to connect to (e.g.: ldap.stackstorm.net)
@@ -241,7 +235,7 @@ These settings are used to inform NGINX setup, SSL setup, and any network proxy 
 
 
 Hubot Configuration Values
---------------------------
+==========================
 
 These values directly correspond to configure the Hubot adapter, Hubot environment variables, and required NPM libraries to get started. We have done our best to include several example configurations that you can [find in our |st2| workroom](https://github.com/StackStorm/st2workroom/blob/master/hieradata/workroom.yaml.example)
 
@@ -257,7 +251,7 @@ Below are the values you can set
 
 
 Example Answers File
---------------------
+====================
 
 ::
 
@@ -287,7 +281,7 @@ Example Answers File
       "hubot-stackstorm": ">= 0.1.0 < 0.2.0"
 
 Updating
-********
+########
 
 Once you've installed with the All-in-one installer, you will download the latest stable release. If you would like to upgrade to newer versions of StackStorm via the Installer, or follow a specific testing branch, you can do so with the following command:
 
@@ -304,7 +298,7 @@ Each stable release is tagged with a Git Tag, and you can provide that tag at ru
 
 
 Unattended Installation
-***********************
+#######################
 
 In addition to the GUI installation method, the All-in-one installer also provides the ability to provide an answers file to pre-seed the installation with values.
 
@@ -319,17 +313,17 @@ If you have already installed using this method, you can find and update your an
 
 
 Known Issues
-************
+############
 
 We currently do our best to detect the environment that you are in to provide a seemless experience. However, sometimes you may run into a case where we haven't found or explored yet. If you find this, please let us know. Even better, we love when our community submits Pull Requests!
 
 Does not install on RHEL AWS Images
------------------------------------
+===================================
 
 During installation, you may receive an error about ``ruby-devel`` packages missing, or an inability to compile JSON. Currently, in order to bootstrap a RHEL box, you must ensure you have an active RedHat Satellite account to receive updates. A fix to remove development dependencies is underway.
 
 500 Errors on Connection
-------------------------
+========================
 
 When either attempting to connect to the WebUI or CLI, you may see ``500 Internal Error`` alerts. This has to do with the installer not automatically detecting the correct interfaces for StackStorm. While we work on a permanent fix, you can quickly get up and going by doing the following.
 
@@ -343,12 +337,12 @@ When either attempting to connect to the WebUI or CLI, you may see ``500 Interna
 
 
 Installation fails! Oh No!
---------------------------
+==========================
 
 As much as it pains us to say, sometimes the installation fails. Right now, the most likely cause for this is an upstream provider having a poor time at the moment of your install. We are actively working to reduce the upstream failure potiential. Best thing to do if something comes up is to simply run ``update-system``
 
 Nginx fails to start w/ Self-signed SSL
---------------------------------------
+=========================================
 
 Maybe you're seeing this error:
 
