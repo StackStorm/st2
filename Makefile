@@ -119,6 +119,7 @@ flake8: requirements .flake8
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 contrib/packs/actions/pack_mgmt/
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 contrib/linux
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 scripts/
+	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 tools/
 
 .PHONY: lint
 lint: requirements .lint
