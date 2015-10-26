@@ -15,8 +15,10 @@
 
 import os
 import shlex
+import signal
 import subprocess
 from subprocess import list2cmdline
+from ctypes import cdll
 
 import six
 
@@ -31,6 +33,9 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
+
+# Constant taken from http://linux.die.net/include/linux/prctl.h
+PR_SET_PDEATHSIG = 1
 
 
 # pylint: disable=too-many-function-args
@@ -125,3 +130,30 @@ def quote_windows(value):
     """
     value = list2cmdline([value])
     return value
+
+
+def on_parent_exit(signame):
+    """
+    Return a function to be run in a child process which will trigger SIGNAME to be sent when the
+    parent process dies.
+    """
+    # Based on https://gist.github.com/evansd/2346614
+    libc = cdll['libc.so.6']
+    if not libc:
+        # libc, can't be found (e.g. running on non-Unix system), we cant ensure signal will be
+        # triggered
+        return
+
+    prctl = libc.prctl
+    if not prctl:
+        # Function not available
+        return
+
+    signum = getattr(signal, signame)
+
+    def set_parent_exit_signal():
+        # http://linux.die.net/man/2/prctl
+        result = prctl(PR_SET_PDEATHSIG, signum)
+        if result != 0:
+            raise Exception('prctl failed with error code %s' % result)
+    return set_parent_exit_signal

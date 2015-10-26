@@ -33,6 +33,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.services.access import create_token
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.api import get_full_public_api_url
+from st2common.util.shell import on_parent_exit
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
@@ -299,11 +300,10 @@ class ProcessSensorContainer(object):
         LOG.debug('Running sensor subprocess (cmd="%s")', cmd)
 
         # TODO: Intercept stdout and stderr for aggregated logging purposes
-        # Note: os.setsid only works on Unix, if we ever want Windows support we should use atexit
-        # handler to kill all the processes instead
         try:
             process = subprocess.Popen(args=args, stdin=None, stdout=None,
-                                       stderr=None, shell=False, env=env)
+                                       stderr=None, shell=False, env=env,
+                                       preexec_fn=on_parent_exit('SIGTERM'))
         except Exception as e:
             cmd = ' '.join(args)
             message = ('Failed to spawn process for sensor %s ("%s"): %s' %
