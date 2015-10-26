@@ -25,7 +25,7 @@ Configuration
 All-in-one installer
 ~~~~~~~~~~~~~~~~~~~~
 
-If you used the :doc:`All-in-one installer</all_in_one>` and configured ChatOps through that then we
+If you used the :doc:`/install/all_in_one` and configured ChatOps through that then we
 have already setup ChatOps for you so you can move to the next section.
 
 
