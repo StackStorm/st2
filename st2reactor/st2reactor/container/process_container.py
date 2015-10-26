@@ -361,6 +361,10 @@ class ProcessSensorContainer(object):
         """
         extra = {'sensor_id': sensor_id, 'sensor': sensor}
 
+        if self._stopped:
+            LOG.debug('Stopped, not respawning a dead sensor', extra=extra)
+            return
+
         should_respawn = self._should_respawn_sensor(sensor_id=sensor_id, sensor=sensor,
                                                      exit_code=exit_code)
 
