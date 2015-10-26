@@ -13,7 +13,7 @@ The end result is improved agility and enhanced trust between teams. What’s no
 TL;DR
 -----
 
-You're busy. We get it! We have an :doc:`./all_in_one` that is designed to get you up and running very quickly! Using this tool, you can seemlsessly install and configure ChatOps for many Chat Services. Head to the :doc:`./all_in_one` section, get setup, and then head back here once you're all finished!
+You're busy. We get it! We have an :doc:`/install/all_in_one` that is designed to get you up and running very quickly! Using this tool, you can seemlsessly install and configure ChatOps for many Chat Services. Head to the :doc:`/install/all_in_one` section, get setup, and then head back here once you're all finished!
 
 Architecture
 ------------
@@ -23,7 +23,7 @@ Architecture
 
     |st2| ChatOps Integration Overview
 
-ChatOps leverages two components within |st2| in order to provide a fluid user experience. These subsystems are the :doc:`aliases` and :doc:`notification` subsystems. You can learn more about each of these individual components in their corresponding sub-sections.
+ChatOps leverages two components within |st2| in order to provide a fluid user experience. These subsystems are the :doc:`aliases` and :doc:`notifications` subsystems. You can learn more about each of these individual components in their corresponding sub-sections.
 
 |st2| flavored ChatOps
 ----------------------
