@@ -106,6 +106,7 @@ pylint: requirements .pylint
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models contrib/linux || exit 1;
 	# Lint Python scripts
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models scripts/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
 
 .PHONY: flake8
 flake8: requirements .flake8
