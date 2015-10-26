@@ -1,7 +1,7 @@
 .. _ref-chatops:
 
 What is ChatOps
-==============
+===============
 
 ChatOps is a new operational paradigm where work that is already
 happening in the background today is brought into a common chatroom. By

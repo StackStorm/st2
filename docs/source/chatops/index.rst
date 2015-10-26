@@ -4,9 +4,9 @@ ChatOps
 What is it!?
 ------------
 
-ChatOps provides a new way of collaboration and work within your teams. Boiled down to its essence, ChatOps represents _conversation-driven development_. With ChatOps, it is possible to take operational and development workflows and expose them as commands that can be executed in a company chat room. In doing so, you are unifying the communication about what work should get done with actual history of the work being done. Deploying code from chat, viewing graphs from a TSDB or logging tool, or creating new Jira tickets are all examples of tasks that can be done via ChatOps.
+ChatOps provides a new way of collaboration and work within your teams. Boiled down to its essence, ChatOps represents **conversation-driven development**. With ChatOps, it is possible to take operational and development workflows and expose them as commands that can be executed in a company chat room. In doing so, you are unifying the communication about what work should get done with actual history of the work being done. Deploying code from chat, viewing graphs from a TSDB or logging tool, or creating new Jira tickets are all examples of tasks that can be done via ChatOps.
 
-Not only does ChatOps reduce the feedback loop of work output, it also empowers others to accomplish complex, self-service tasks that they otherwise would not be able to do. Combining ChatOps and |st2| is an ideal combination, where from Chat users will be able to execute actions and workflows to accelerate the IT delivery pipeline. In the same way, the ChatOps/|st2|combination also enhances user adoption of automation through transparency and consistent execution.
+Not only does ChatOps reduce the feedback loop of work output, it also empowers others to accomplish complex, self-service tasks that they otherwise would not be able to do. Combining ChatOps and |st2| is an ideal combination, where from Chat users will be able to execute actions and workflows to accelerate the IT delivery pipeline. In the same way, the ChatOps/|st2| combination also enhances user adoption of automation through transparency and consistent execution.
 
 The end result is improved agility and enhanced trust between teams. What’s not to love about this? It’s the reason we as a company are devoted to including it as a core part of our product.
 
@@ -53,6 +53,5 @@ Interested in learning more? Here are some things to get you started on your voy
     :maxdepth: 1
 
     chatops
-    chatops-configuration
     aliases
     notifications
