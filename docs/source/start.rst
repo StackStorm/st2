@@ -42,7 +42,7 @@ Python, and JavaScript bindings. Check the :doc:`CLI and Python Client </referen
 for details.
 
 From v0.8, |st2| ships with WebUI. With the default "all-in-one" installation, you can access it at
-https://hostname_or_ip or http://hostname_or_ip if SSL is not configured.
+http://hostname. If SSL is configured, the WebUI will redirect to https://hostname.
 
 Authenticate
 ------------
