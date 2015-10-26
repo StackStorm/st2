@@ -462,6 +462,10 @@ install_apt() {
   curl -Ss -k ${DOWNLOAD_SERVER}/deb/pubkey.gpg -o /tmp/stackstorm.repo.pubkey.gpg
   sudo apt-key add /tmp/stackstorm.repo.pubkey.gpg
 
+  if [[ "$CONTAINER" == "DOCKER"]]; then
+    echo "deb http://downloads-distro.mongodb.org/repo/debian-sysvinit dist 10gen" > /etc/apt/sources.list.d/mongodb.list
+  fi  
+    
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
   # Install packages
@@ -470,13 +474,7 @@ install_apt() {
   # Now that pip is installed set PIP=`which pip` again.
   PIP=`which pip`
   setup_rabbitmq
-
-  if [[ "$CONTAINER" == "DOCKER" ]]
-  then
-    /etc/init.d/mongod status
-    sudo service mongod start
-  fi
-  
+  setup_mongodb_systemd
   install_pip
 }
 
