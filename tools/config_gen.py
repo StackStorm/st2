@@ -50,6 +50,7 @@ AUTH_OPTIONS = {
         'port',
         'use_ssl',
         'cert',
+        'key',
         'backend',
         'backend_kwargs'
     ]
@@ -93,16 +94,20 @@ def _read_group(opt_group):
     if opt_group.name == 'auth':
         print(COMMON_AUTH_OPTIONS_COMMENT)
         print('')
-        options = [option for option in all_options if option['opt'].name in
+        common_options = [option for option in all_options if option['opt'].name in
                    AUTH_OPTIONS['common']]
-        _print_options(options=options)
+        _print_options(options=common_options)
 
         print('')
         print(STANDALONE_AUTH_OPTIONS_COMMENT)
         print('')
-        options = [option for option in all_options if option['opt'].name in
-                   AUTH_OPTIONS['standalone']]
-        _print_options(options=options)
+        standalone_options = [option for option in all_options if option['opt'].name in
+                              AUTH_OPTIONS['standalone']]
+        _print_options(options=standalone_options)
+
+        if len(common_options) + len(standalone_options) != len(all_options):
+            msg = ('Not all options are declared in AUTH_OPTIONS dict, please update it')
+            raise Exception(msg)
     else:
         options = all_options
         _print_options(options=options)
