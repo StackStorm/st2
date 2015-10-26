@@ -3,4 +3,4 @@
 * IRC: `#stackstorm on irc.freenode.org <http://webchat.freenode.net/?channels=stackstorm>`_
 * Support: support@stackstorm.com
 * Google Group: `stackstorm@googlegroups.com <https://groups.google.com/forum/#!forum/stackstorm>`_
-* **NEW**: Slack community channel: `stackstorm-community.slack.com <https://stackstorm-community.slack.com>`__ (Registr `here <https://stackstorm.typeform.com/to/K76GRP>`__.)
+* **NEW**: Slack community channel: `stackstorm-community.slack.com <https://stackstorm-community.slack.com>`__ (Register `here <https://stackstorm.typeform.com/to/K76GRP>`__.)
