@@ -91,15 +91,15 @@ def _read_group(opt_group):
     all_options = opt_group._opts.values()
 
     if opt_group.name == 'auth':
-        print COMMON_AUTH_OPTIONS_COMMENT
-        print ''
+        print(COMMON_AUTH_OPTIONS_COMMENT)
+        print('')
         options = [option for option in all_options if option['opt'].name in
                    AUTH_OPTIONS['common']]
         _print_options(options=options)
 
-        print ''
-        print STANDALONE_AUTH_OPTIONS_COMMENT
-        print ''
+        print('')
+        print(STANDALONE_AUTH_OPTIONS_COMMENT)
+        print('')
         options = [option for option in all_options if option['opt'].name in
                    AUTH_OPTIONS['standalone']]
         _print_options(options=options)
@@ -111,16 +111,16 @@ def _read_group(opt_group):
 def _read_groups(opt_groups):
     opt_groups = collections.OrderedDict(sorted(opt_groups.items()))
     for name, opt_group in six.iteritems(opt_groups):
-        print '[%s]' % name
+        print('[%s]' % name)
         _read_group(opt_group)
-        print ''
+        print('')
 
 
 def _print_options(options):
     for opt in options:
         opt = opt['opt']
-        print '# %s' % opt.help
-        print '%s = %s' % (opt.name, opt.default)
+        print('# %s' % opt.help)
+        print('%s = %s' % (opt.name, opt.default))
 
 
 def main(args):
