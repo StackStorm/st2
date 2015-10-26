@@ -277,6 +277,14 @@ class Shell(object):
             LOG.info('Skipping parsing CLI config')
             return client
 
+        # Ok to load config at this point.
+        rc_config = self._parse_config_file(args=args)
+
+        # Silence SSL warnings
+        silence_ssl_warnings = rc_config.get('general', {}).get('silence_ssl_warnings', False)
+        if silence_ssl_warnings:
+            requests.packages.urllib3.disable_warnings()
+
         # We skip automatic authentication for some commands such as auth
         try:
             command_class_name = args.func.im_class.__name__
@@ -294,17 +302,10 @@ class Shell(object):
             return client
 
         # If credentials are provided in the CLI config use them and try to authenticate
-        rc_config = self._parse_config_file(args=args)
-
         credentials = rc_config.get('credentials', {})
         username = credentials.get('username', None)
         password = credentials.get('password', None)
         cache_token = rc_config.get('cli', {}).get('cache_token', False)
-
-        # Silence SSL warnings
-        silence_ssl_warnings = rc_config.get('general', {}).get('silence_ssl_warnings', False)
-        if silence_ssl_warnings:
-            requests.packages.urllib3.disable_warnings()
 
         if username and password:
             # Credentials are provided, try to authenticate agaist the API
