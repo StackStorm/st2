@@ -138,14 +138,16 @@ def on_parent_exit(signame):
     parent process dies.
     """
     # Based on https://gist.github.com/evansd/2346614
-    libc = cdll['libc.so.6']
-    if not libc:
+    try:
+        libc = cdll['libc.so.6']
+    except OSError:
         # libc, can't be found (e.g. running on non-Unix system), we cant ensure signal will be
         # triggered
         return
 
-    prctl = libc.prctl
-    if not prctl:
+    try:
+        prctl = libc.prctl
+    except AttributeError:
         # Function not available
         return
 
