@@ -136,20 +136,24 @@ def on_parent_exit(signame):
     """
     Return a function to be run in a child process which will trigger SIGNAME to be sent when the
     parent process dies.
+
+    Based on https://gist.github.com/evansd/2346614
     """
-    # Based on https://gist.github.com/evansd/2346614
+    def noop():
+        pass
+
     try:
         libc = cdll['libc.so.6']
     except OSError:
         # libc, can't be found (e.g. running on non-Unix system), we cant ensure signal will be
         # triggered
-        return
+        return noop
 
     try:
         prctl = libc.prctl
     except AttributeError:
         # Function not available
-        return
+        return noop
 
     signum = getattr(signal, signame)
 
