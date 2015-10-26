@@ -70,7 +70,7 @@ The ``sensors`` folder contains sensors. See :doc:`Sensors </sensors>` for speci
       alias1.yaml
       alias2.yaml
 
-The ``aliases`` folder contains Action Aliases. See :doc:`Action Alias </aliases>` for specifics on writing Action Aliases.
+The ``aliases`` folder contains Action Aliases. See :doc:`Action Alias </chatops/aliases>` for specifics on writing Action Aliases.
 
 .. code-block:: bash
 
