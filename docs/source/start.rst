@@ -257,12 +257,6 @@ as ``{{system.my_parameter}}``. This creates ``user=stanley`` key-value pair:
 
 For more information on datastore, check :doc:`datastore`
 
-Troubleshooting
-----------------------
-If something goes wrong, follow :doc:`/troubleshooting/index` guide, and engage with developers at
-the community channel on slack at `stackstorm-community.slack.com <https://stackstorm-community.slack.com>`__.
-
-
 -------------------------------
 
 .. rubric:: What's Next?
