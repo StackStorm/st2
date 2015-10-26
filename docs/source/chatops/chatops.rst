@@ -85,7 +85,7 @@ If successful, proceed to the next section.
 Adding new ChatOps commands
 ===========================
 
-ChatOps uses :doc:`Action aliases </aliases>` to define new ChatOps commands.
+ChatOps uses :doc:`/chatops/aliases` to define new ChatOps commands.
 
 ::
 
