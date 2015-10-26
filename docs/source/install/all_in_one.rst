@@ -18,9 +18,9 @@ The All-in-one installer is an opinionated installation of |st2| that allows you
 
 The All-in-one installer is comprised of three |st2| projects. They are:
 
-* [puppet-st2](https://github.com/stackstorm/puppet-st2). This is our supported Puppet module used to install and setup |st2|.
-* [st2workroom](https://github.com/stackstorm/st2workroom). st2workroom scaffolding built around Puppet. It allows you to spin up Vagrant images or deploy on a bare-metal server in much the same way
-* [st2installer](https://github.com/stackstorm/st2installer). This is the GUI installer that is used to configure |st2|, the initial admin user to access the CLI and WebUI, and ChatOps. This application generates an answer file that is then passed to `st2workroom` to bootstrap your installation.
+* `puppet-st2 <https://github.com/stackstorm/puppet-st2>`_. This is our supported Puppet module used to install and setup |st2|.
+* `st2workroom <https://github.com/stackstorm/st2workroom>`_ is scaffolding built around Puppet. It allows you to spin up Vagrant images or deploy on a bare-metal server in much the same way
+* `st2installer <https://github.com/stackstorm/st2installer>`_. This is the GUI installer that is used to configure |st2|, the initial admin user to access the CLI and WebUI, and ChatOps. This application generates an answer file that is then passed to `st2workroom` to bootstrap your installation.
 
 Using these three projects, it is possible to get |st2| setup with the following components:
 
@@ -30,8 +30,9 @@ Using these three projects, it is possible to get |st2| setup with the following
 * MongoDB (supporting infrastructure)
 * RabbitMQ (supporting infrastructure)
 * PostgreSQL (supporting infrastructure)
+* nginx (SSL termination, WSGI, serving static content)
 
-Optionally, you can also provide an Enterprise Key and get access to the following features:
+Optionally, you can also provide an Enterprise License Key and get access to the following features:
 
 * |st2| FLOW - HTML5 based Graphical Workflow editor. Use this to visualize, edit, and share workflows.
 * |st2| Role Based Access Control. Apply fine-grained controls to actions and rules to fit into the most complex of environments.
@@ -41,6 +42,7 @@ Supported Platforms
 ###################
 
 At present, supported platforms are:
+
 * Ubuntu 14.04
 * CentOS / RHEL 6.x and 7.x
 
@@ -224,7 +226,7 @@ These settings are used to inform NGINX setup, SSL setup, and any network proxy 
 |st2| Enterprise Configuration Values
 =====================================
 
-* :code:`st2enterprise::token` - This is the Enterprise Auth Token provided by |st2| to enable the enterprise features. Visit https://stackstorm.com for more details
+* :code:`st2enterprise::token` - This is the Enterprise Auth Token provided by |st2| to enable the enterprise features. Visit `stackstorm.com <https://stackstorm.com/product#enterprise>`_ for more details.
 * :code:`st2::ldap::host`      - LDAP host to connect to (e.g.: ldap.stackstorm.net)
 * :code:`st2::ldap::port`      - LDAP port to connect to (default: 389)
 * :code:`st2::ldap::use_ssl`   - LDAP Enable SSL (default: false)
@@ -317,6 +319,7 @@ Known Issues
 
 We currently do our best to detect the environment that you are in to provide a seemless experience. However, sometimes you may run into a case where we haven't found or explored yet. If you find this, please let us know. Even better, we love when our community submits Pull Requests!
 
+
 Does not install on RHEL AWS Images
 ===================================
 
@@ -331,6 +334,7 @@ When either attempting to connect to the WebUI or CLI, you may see ``500 Interna
 * Open or create the file ``/opt/puppet/hieradata/answers.yaml``, and add a new line to tell the installer what interface to use.
 
 ::
+
     # For example, if eth0 was an exterally excessible network adapter
     ---
     system::ipaddress: ‘%{::ipaddress_eth0}’`

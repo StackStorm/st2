@@ -17,7 +17,7 @@ listed below are configured under the ``auth`` section in the configuration file
 be configured with different backends (i.e. PAM, LDAP, etc.) to handle the authentication. If
 backend is not specified, a htpasswd compatible flat file authentication backend is used. It is
 recommended that the service be configured to listen on https (use_ssl option) and be accessible
-to the st2 clients. 
+to the st2 clients.
 
 * ``host`` - Hostname for the service to listen on.
 * ``port`` - Port for the service to listen on.
@@ -51,7 +51,7 @@ Auth Backends
 The service can be configured with different backends (i.e. PAM, LDAP, etc.) to handle the
 authentication. If backend is not specified, a htpasswd compatible flat file authentication
 backend is used. The all-in-one installer and packages download and configure PAM by default. To
-use a different backend, select and install the appropriate python package from the |st2| 
+use a different backend, select and install the appropriate python package from the |st2|
 `community repos <https://github.com/StackStorm?utf8=✓&query=st2-auth>`_ and configure st2auth
 accordingly. For example, to install the package for the PAM backend manually, run the following
 command on the same server where st2auth is running.
@@ -83,18 +83,17 @@ The following is a list of auth backends for the community edition to help get t
 * `Flat File <https://github.com/StackStorm/st2-auth-backend-flat-file>`_
 * `OpenStack Keystone <https://github.com/StackStorm/st2-auth-backend-keystone>`_
 
-Auth Backends (Enterprise)
---------------------------
+LDAP (Enterprise Edition)
+-------------------------
 StackStorm developed auth backends such as LDAP are only available in the enterprise edition. For
 more information on the enterprise edition, please visit https://stackstorm.com/product/#enterprise.
 The auth backends included with the enterprise edition are developed, tested, maintained, and
-supported by the StackStorm team and the community contributed backends are developed and maintained
-by the community.
+supported by the StackStorm team.
 
 LDAP
 ^^^^
 The LDAP backend authenticates user against an LDAP server. The following is a list of
-configuration options for the backend. 
+configuration options for the backend.
 
 +----------+----------+---------+------------------------------------------------------------+
 | option   | required | default | description                                                |
