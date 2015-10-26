@@ -179,13 +179,18 @@ class ProcessSensorContainer(object):
     def stopped(self):
         return self._stopped
 
-    def shutdown(self):
+    def shutdown(self, force=False):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
         self._stopped = True
 
+        if force:
+            exit_timeout = 0
+        else:
+            exit_timeout = 5
+
         sensor_ids = self._sensors.keys()
         for sensor_id in sensor_ids:
-            self._stop_sensor_process(sensor_id=sensor_id)
+            self._stop_sensor_process(sensor_id=sensor_id, exit_timeout=exit_timeout)
 
         LOG.info('All sensors are shut down.')
 
@@ -294,6 +299,8 @@ class ProcessSensorContainer(object):
         LOG.debug('Running sensor subprocess (cmd="%s")', cmd)
 
         # TODO: Intercept stdout and stderr for aggregated logging purposes
+        # Note: os.setsid only works on Unix, if we ever want Windows support we should use atexit
+        # handler to kill all the processes instead
         try:
             process = subprocess.Popen(args=args, stdin=None, stdout=None,
                                        stderr=None, shell=False, env=env)
@@ -356,6 +363,7 @@ class ProcessSensorContainer(object):
 
         should_respawn = self._should_respawn_sensor(sensor_id=sensor_id, sensor=sensor,
                                                      exit_code=exit_code)
+        return
         if not should_respawn:
             LOG.debug('Not respawning a dead sensor', extra=extra)
             return
