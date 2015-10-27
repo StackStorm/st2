@@ -17,6 +17,27 @@ otherwise would not be able to do. Combining ChatOps and StackStorm is
 an ideal combination, where from Chat users will be able to execute
 actions and workflows to accelerate the IT delivery pipeline.
 
+Architecture
+============
+
+.. figure:: /_static/images/chatops_architecture.png
+    :align: center
+
+    |st2| ChatOps Integration Overview
+
+ChatOps leverages two components within |st2| in order to provide a fluid user experience. These subsystems are the :doc:`aliases` and :doc:`notifications` subsystems. You can learn more about each of these individual components in their corresponding sub-sections.
+
+|st2| flavored ChatOps
+======================
+
+Our goal with ChatOps is to take the patterns that are arising and make them consumable teams of all makeups. Behind our implementation of ChatOps lies the operational scalability and stability of |st2|, allowing you to grow and unleash the latent power of your existing teams. In addition to allowing integration with a plethora of existing plugins and patterns available in the larger |st2| and ChatOps communities, we add these features to the toolbelt:
+
+* History and Audit. Get complete history and audit trails of all commands executed via ChatOps. Learn and understand how people are consuming the automation via ChatOps. Enhance your understanding.
+* Workflow. Get real with workflow. Go beyond linear bash scripts and upgrade to parallel task execution.
+* Bring your favorite tools! Each bot comes with it’s own requirement to learn their language. Forget that mess! Bring the tools that make you productive.
+
+We want to make ChatOps approachable by every team in every circumstance. This means an understanding of how teams of all sizes run, in many different types of verticals. Issues like compliance, security, reliability: these concerns are on forefront of our minds when we think about what ChatOps means to us, and how it provides real-world value to you.
+
 .. _chatops-configuration:
 
 Configuration
