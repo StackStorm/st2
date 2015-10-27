@@ -109,7 +109,7 @@ def _register_api_opts():
     _register_opts(pecan_opts, group='api_pecan')
 
     messaging_opts = [
-        cfg.StrOpt('url', default='amqp://guest:guest@localhost:5672//',
+        cfg.StrOpt('url', default='amqp://guest:guest@127.0.0.1:5672//',
                    help='URL of the messaging server.'),
         cfg.ListOpt('cluster_urls', default=[],
                     help='URL of all the nodes in a messaging service cluster.')
