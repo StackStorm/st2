@@ -58,7 +58,7 @@ Supported Baseboxes
 We have currently done testing and certified that StackStorm Installer works properly on the following Vagrant Baseboxes:
 
 * `puppetlabs/centos-6.6-64-nocm`
-* `puppetlabs/centos-7-0-64-nocm`
+* `puppetlabs/centos-7.0-64-nocm`
 * `puppetlabs/ubuntu-14.04-64-nocm`
 
 It is very possible that other baseboxes with the same OS will work just fine. However, if you run into issues, these are boxes that should get you going without fuss. These are the same boxes that are used in the `st2workroom` project mentioned in the Quick Start Above.
