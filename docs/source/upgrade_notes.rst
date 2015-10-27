@@ -13,6 +13,12 @@ Upgrade Notes
   remove old queues run the migration script
   ${dist_packages}/st2common/bin/migrate_messaging_setup.py on installation. The migration
   script is run as part of st2_deploy.sh when you upgrade from versions >= 0.13 to 1.1.
+* Mistral moves to YAQL v1.0 and earlier versions of YAQL are deprecated. Expect some minor
+  syntax changes to YAQL expressions.
+* Mistral has implemented new YAQL functions such as env and task. The ``env()`` function replaces
+  ``$.__env`` when referencing environment variables from the data context. Given task1,
+  the function call ``task(task1).result``, replaces ``$.task1`` when referencing result of task1.
+  ``$.task1`` will still be supported until the next major release of Mistral.
 
 |st2| 0.11
 -------------
