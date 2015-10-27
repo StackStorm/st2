@@ -76,16 +76,20 @@ copyright = u'2014, StackStorm Inc'
 version = '.'.join(__version__.split('.')[:2])
 # The full version, including alpha/beta/rc tags.
 release = __version__
+# The complete list of current StackStorm versions.
+release_versions = ['1.1', '0.13', '0.12', '0.11', '0.9', '0.8']
 
 
 def previous_version(ver):
-    # XXX: on incrementing major version, minor version counter is lost!
-    major, minor = ver.split('.')
-    minor = int("".join(itertools.takewhile(str.isdigit, minor)))
-    prev = minor - 1
-    # Note(dzimine): work around CI/CD bug on v 0.10
-    prev = 9 if prev == 10 else prev
-    return ".".join([major, str(prev)])
+    if ver.endswith('dev'):
+        return release_versions[0]
+    major_minor = '.'.join(ver.split('.')[:2])
+    if major_minor in release_versions:
+        idx = release_versions.index(major_minor)
+        if idx + 1 < len(release_versions):
+            return release_versions[idx + 1]
+    # Better than broken return some value. Coontrol flow should not reach this point.
+    return release_versions[0]
 
 # The short versions of two previous releases, e.g. 0.8 and 0.7
 version_minus_1 = previous_version(version)
