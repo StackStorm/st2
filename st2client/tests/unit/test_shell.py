@@ -50,9 +50,9 @@ class TestShell(base.BaseCLITestCase):
         self.shell = Shell()
 
     def test_endpoints_default(self):
-        base_url = 'http://localhost'
-        auth_url = 'http://localhost:9100'
-        api_url = 'http://localhost:9101/v1'
+        base_url = 'http://127.0.0.1'
+        auth_url = 'http://127.0.0.1:9100'
+        api_url = 'http://127.0.0.1:9101/v1'
         args = ['trigger', 'list']
         parsed_args = self.shell.parser.parse_args(args)
         client = self.shell.get_client(parsed_args)
