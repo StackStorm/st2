@@ -104,6 +104,10 @@ If you would like to create a pack yourself then follow these *simple* steps. In
 .. note::
     All folders are optional. If a folder is present, it is introspected for content. So it is safe to skip a folder or keep it empty.
 
+The contents of ``pack.yaml`` should be as under.
+
+.. literalinclude:: /../../contrib/hello-st2/pack.yaml
+
 2. Create the action. The following example simply echoes a greeting.
 
 Copy the following content to actions/greet.yaml
