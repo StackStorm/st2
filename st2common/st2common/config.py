@@ -106,7 +106,7 @@ def register_opts(ignore_errors=False):
     messaging_opts = [
         # It would be nice to be able to deprecate url and completely switch to using
         # url. However, this will be a breaking change and will have impact so allowing both.
-        cfg.StrOpt('url', default='amqp://guest:guest@localhost:5672//',
+        cfg.StrOpt('url', default='amqp://guest:guest@127.0.0.1:5672//',
                    help='URL of the messaging server.'),
         cfg.ListOpt('cluster_urls', default=[],
                     help='URL of all the nodes in a messaging service cluster.')
@@ -114,7 +114,7 @@ def register_opts(ignore_errors=False):
     do_register_opts(messaging_opts, 'messaging', ignore_errors)
 
     syslog_opts = [
-        cfg.StrOpt('host', default='localhost',
+        cfg.StrOpt('host', default='127.0.0.1',
                    help='Host for the syslog server.'),
         cfg.IntOpt('port', default=514,
                    help='Port for the syslog server.'),
