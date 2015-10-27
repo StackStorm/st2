@@ -165,7 +165,7 @@ def register_opts(ignore_errors=False):
 
     # Mistral options
     mistral_opts = [
-        cfg.StrOpt('v2_base_url', default='http://localhost:8989/v2', help='v2 API root endpoint.'),
+        cfg.StrOpt('v2_base_url', default='http://127.0.0.1:8989/v2', help='v2 API root endpoint.'),
         cfg.IntOpt('max_attempts', default=180, help='Max attempts to reconnect.'),
         cfg.IntOpt('retry_wait', default=5, help='Seconds to wait before reconnecting.'),
         cfg.StrOpt('keystone_username', default=None, help='Username for authentication.'),
