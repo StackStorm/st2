@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SYSTEMDCTL=/usr/bin/systemctl
+SYSTEMDCTL=/bin/systemctl
 UPSTARTCTL=/sbin/initctl
 SPAWNSVC=st2actionrunner
 WORKERSVC=st2actionrunner-worker
