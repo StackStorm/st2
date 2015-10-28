@@ -4,11 +4,12 @@ examples.mistral-env-var:
     description: A basic workflow that illustrates how to get the workflow's env vars.
     type: direct
     output:
-        stdout: <% $.stdout %>
+        env: <% env() %>
+        url: <% $.url %> 
     tasks:
         task1:
             action: core.local
             input:
-                cmd: echo <% env().st2_execution_id %>
+                cmd: echo https://127.0.0.1:9101/history/<% env().st2_execution_id %>
             publish:
-                stdout: <% $.task1.stdout %>
+                url: <% $.task1.stdout %>

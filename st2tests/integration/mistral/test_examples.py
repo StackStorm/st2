@@ -25,7 +25,8 @@ class ExamplesTest(base.TestWorkflowExecution):
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
         tasks = {t['name']: t for t in execution.result['tasks']}
-        self.assertEqual(tasks['task1']['result']['stdout'], execution.id)
+        expected_output = 'https://127.0.0.1:9101/history/' + execution.id
+        self.assertEqual(tasks['task1']['result']['stdout'], expected_output)
 
     def test_branching(self):
         # Execute with path a.
