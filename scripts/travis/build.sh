@@ -15,7 +15,7 @@ elif [ ${TASK} == 'unit' ]; then
   make compile
   make .unit-tests-coverage-html
 elif [ ${TASK} == 'integration' ]; then
-  make .itests-coverage-html
+  sudo make .itests-coverage-html
 elif [ ${TASK} == 'mistral' ]; then
   make .mistral-itests-coverage-html
 else
