@@ -38,12 +38,12 @@ class SensorContainerTestCase(unittest2.TestCase):
     examples pack and sensors from the example pack must be registered.
     """
 
-    processes = []
+    processes = {}
 
     def tearDown(self):
         # Make sure we kill all the processes on teardown so they don't linger around if an
         # exception was thrown.
-        for proc in self.processes:
+        for pid, proc in self.processes.items():
             proc.kill()
 
     def test_child_processes_are_killed_on_sigint(self):
@@ -69,6 +69,8 @@ class SensorContainerTestCase(unittest2.TestCase):
         self.assertProcessExited(proc=pp)
         self.assertProcessExited(proc=children_pp[0])
 
+        del self.processes[process.pid]
+
     def test_child_processes_are_killed_on_sigterm(self):
         process = self._start_sensor_container()
 
@@ -92,6 +94,8 @@ class SensorContainerTestCase(unittest2.TestCase):
         self.assertProcessExited(proc=pp)
         self.assertProcessExited(proc=children_pp[0])
 
+        del self.processes[process.pid]
+
     def test_child_processes_are_killed_on_sigkill(self):
         process = self._start_sensor_container()
 
@@ -114,6 +118,8 @@ class SensorContainerTestCase(unittest2.TestCase):
         self.assertProcessExited(proc=pp)
         self.assertProcessExited(proc=children_pp[0])
 
+        del self.processes[process.pid]
+
     def assertProcessExited(self, proc):
         try:
             status = proc.status()
@@ -126,6 +132,7 @@ class SensorContainerTestCase(unittest2.TestCase):
     def _start_sensor_container(self):
         process = subprocess.Popen(CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    shell=False, preexec_fn=os.setsid)
+        self.processes[process.pid] = process
         return process
 
     def _get_container_process(self, pid):
