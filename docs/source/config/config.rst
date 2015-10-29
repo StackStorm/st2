@@ -230,7 +230,10 @@ Authentication
 Please refer to :doc:`../authentication` to learn details of authentication, integrations with
 various identity providers, managing API tokens.
 
+Configure ChatOps
+-----------------
 
+|st2| brings native two-way ChatOps support. To learn more about ChatOps, and how to configure it manually, please refer to :ref:`Configuration section under ChatOps <chatops-configuration>`.
 
 
 

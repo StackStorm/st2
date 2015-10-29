@@ -53,4 +53,4 @@ python ./st2client/setup.py develop
 st2 --version
 
 # start dev environment in screens
-./tools/launchdev.sh start
+./tools/launchdev.sh start -x

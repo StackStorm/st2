@@ -29,7 +29,7 @@ LOG = logging.getLogger(__name__)
 DEFAULT_API_PORT = 9101
 DEFAULT_AUTH_PORT = 9100
 
-DEFAULT_BASE_URL = 'http://localhost'
+DEFAULT_BASE_URL = 'http://127.0.0.1'
 DEFAULT_API_VERSION = 'v1'
 
 

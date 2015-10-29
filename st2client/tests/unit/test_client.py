@@ -44,8 +44,8 @@ class TestClientEndpoints(unittest2.TestCase):
             self.assertIsInstance(manager, models.ResourceManager)
 
     def test_default(self):
-        base_url = 'http://localhost'
-        api_url = 'http://localhost:9101/v1'
+        base_url = 'http://127.0.0.1'
+        api_url = 'http://127.0.0.1:9101/v1'
 
         client = Client()
         endpoints = client.endpoints

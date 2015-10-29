@@ -12,7 +12,6 @@ A sample config file with all the configuration options can be found at :github_
     :maxdepth: 1
 
     config
-    chatops
     webui
     windows_runners
 
