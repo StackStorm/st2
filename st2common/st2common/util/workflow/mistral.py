@@ -17,8 +17,10 @@ import copy
 import json
 import re
 
+import requests
 import six
 import yaml
+from mistralclient.api.base import APIException
 
 from st2common.exceptions.workflow import WorkflowDefinitionException
 from st2common import log as logging
@@ -212,3 +214,11 @@ def transform_definition(definition):
 
     # Return the same type as original input.
     return spec if is_dict else yaml.safe_dump(spec, default_flow_style=False)
+
+
+def retry_on_exceptions(exc):
+    LOG.debug('Determining if %s should be retried...', type(exc))
+    is_connection_error = isinstance(exc, requests.exceptions.ConnectionError)
+    is_duplicate_error = isinstance(exc, APIException) and 'Duplicate' in exc.error_message
+    is_messaging_error = isinstance(exc, APIException) and 'MessagingTimeout' in exc.error_message
+    return is_connection_error or is_duplicate_error or is_messaging_error

@@ -4,6 +4,9 @@ Changelog
 in development
 --------------
 
+* Refactor retries in the Mistral action runner to use exponential backoff. Configuration options
+  for Mistral have changed. (improvement)
+
 1.1.0 - October 27, 2015
 ------------------------
 

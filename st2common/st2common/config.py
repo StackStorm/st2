@@ -166,8 +166,9 @@ def register_opts(ignore_errors=False):
     # Mistral options
     mistral_opts = [
         cfg.StrOpt('v2_base_url', default='http://127.0.0.1:8989/v2', help='v2 API root endpoint.'),
-        cfg.IntOpt('max_attempts', default=180, help='Max attempts to reconnect.'),
-        cfg.IntOpt('retry_wait', default=5, help='Seconds to wait before reconnecting.'),
+        cfg.IntOpt('retry_exp_msec', default=1000, help='Multiplier for the exponential backoff.'),
+        cfg.IntOpt('retry_exp_max_msec', default=300000, help='Max time for each set of backoff.'),
+        cfg.IntOpt('retry_stop_max_msec', default=600000, help='Max time to stop retrying.'),
         cfg.StrOpt('keystone_username', default=None, help='Username for authentication.'),
         cfg.StrOpt('keystone_password', default=None, help='Password for authentication.'),
         cfg.StrOpt('keystone_project_name', default=None, help='OpenStack project scope.'),
