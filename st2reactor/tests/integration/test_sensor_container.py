@@ -53,7 +53,7 @@ class SensorContainerTestCase(unittest2.TestCase):
         eventlet.sleep(5)
 
         # Verify container process and children sensor / wrapper processes are running
-        pp = self._get_container_process(pid=process.pid)
+        pp = psutil.Process(process.pid)
         children_pp = pp.children()
         self.assertEqual(pp.cmdline()[1:], CMD)
         self.assertEqual(len(children_pp), 1)
@@ -78,7 +78,7 @@ class SensorContainerTestCase(unittest2.TestCase):
         eventlet.sleep(5)
 
         # Verify container process and children sensor / wrapper processes are running
-        pp = self._get_container_process(pid=process.pid)
+        pp = psutil.Process(process.pid)
         children_pp = pp.children()
         self.assertEqual(pp.cmdline()[1:], CMD)
         self.assertEqual(len(children_pp), 1)
@@ -103,7 +103,7 @@ class SensorContainerTestCase(unittest2.TestCase):
         eventlet.sleep(5)
 
         # Verify container process and children sensor / wrapper processes are running
-        pp = self._get_container_process(pid=process.pid)
+        pp = psutil.Process(process.pid)
         children_pp = pp.children()
         self.assertEqual(pp.cmdline()[1:], CMD)
         self.assertEqual(len(children_pp), 1)
@@ -134,12 +134,3 @@ class SensorContainerTestCase(unittest2.TestCase):
                                    shell=False, preexec_fn=os.setsid)
         self.processes[process.pid] = process
         return process
-
-    def _get_container_process(self, pid):
-        processes = psutil.process_iter()
-
-        for proc in processes:
-            if proc.pid == pid:
-                return proc
-
-        return None
