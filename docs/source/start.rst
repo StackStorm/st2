@@ -1,8 +1,8 @@
 Quick Start
 =================
 
-Got |st2| :doc:`installed </install/index>`? Enjoyed :doc:`the intro video <video>`? Let's give 
-it a try. This guide will walk you through |st2| basics and help you build and run a simple 
+Got |st2| :doc:`installed </install/index>`? Enjoyed :doc:`the intro video <video>`? Let's give
+it a try. This guide will walk you through |st2| basics and help you build and run a simple
 automation: a rule that triggers an action on external event.
 
 
@@ -17,7 +17,7 @@ The best way to explore |st2| is to use CLI. Start by firing a few commands:
     # Get help. It's a lot. Explore.
     st2 -h
 
-    # Authenticate and export the token. Make sure ST2_AUTH_URL and 
+    # Authenticate and export the token. Make sure ST2_AUTH_URL and
     # ST2_API_URL are set correctly (http vs https, endpoint, and etc).
     # Replace the username and password in the example below appropriately.
     export ST2_AUTH_TOKEN=`st2 auth -t -p pass123 admin`
@@ -36,9 +36,9 @@ The best way to explore |st2| is to use CLI. Start by firing a few commands:
     # Fire a shell comand on remote hosts. Requires passwordless SSH configured.
     st2 run core.remote hosts='localhost' -- uname -a
 
-The default “all-in-one” installation deploys the CLI along with the |st2| services. CLI can be 
-used to access |st2| service remotely. All |st2| operations are also available via REST API, 
-Python, and JavaScript bindings. Check the :doc:`CLI and Python Client </reference/cli>` reference 
+The default “all-in-one” installation deploys the CLI along with the |st2| services. CLI can be
+used to access |st2| service remotely. All |st2| operations are also available via REST API,
+Python, and JavaScript bindings. Check the :doc:`CLI and Python Client </reference/cli>` reference
 for details.
 
 From v0.8, |st2| ships with WebUI. With the default "all-in-one" installation, you can access it at
@@ -46,11 +46,11 @@ http://hostname. If SSL is configured, the WebUI will redirect to https://hostna
 
 Authenticate
 ------------
-If :doc:`authentication <authentication>` is enabled, obtain authentication token with 
+If :doc:`authentication <authentication>` is enabled, obtain authentication token with
 ``st2 auth <username>``, and supply the token to each st2 command using the ``--token`` or ``-t``
-parameter. For convenience, keep the credential in the CLI config file, or set the environment 
-variable ``ST2_AUTH_TOKEN``. When using environment variable, make sure that ``ST2_API_URL`` and 
-``ST2_AUTH_URL`` are set appropriately. The doc section on authentication 
+parameter. For convenience, keep the credential in the CLI config file, or set the environment
+variable ``ST2_AUTH_TOKEN``. When using environment variable, make sure that ``ST2_API_URL`` and
+``ST2_AUTH_URL`` are set appropriately. The doc section on authentication
 :ref:`usages <authentication-usage>` contains additional notes. A nice shortcut for now is:
 
 .. code-block:: bash
@@ -63,8 +63,8 @@ Work with Actions
 
 |st2| comes with a several generic actions out of the box. The catalog of actions can be easily
 extended by getting actions from the community or consuming your existing scripts (`more on that
-later`). Browse the catalog with ``st2 action list``. Action is referred to by `ref` as 
-``pack.action_name`` (e.g. ``core.local``). Learn about an action by doing 
+later`). Browse the catalog with ``st2 action list``. Action is referred to by `ref` as
+``pack.action_name`` (e.g. ``core.local``). Learn about an action by doing
 ``st2 action get <action>``, or, ``st2 run <action> --h (--help)``: the command shows the
 description along with action parameters so that you know how to run it from the CLI or use it
 in rules and workflows.
@@ -91,8 +91,8 @@ To run the action from the CLI, do
     # HTTP REST call to st2 action endpoint
     st2 run -j core.http url="http://docs.stackstorm.com" method="GET"
 
-Use ``core.remote`` action to run linux command on multiple hosts over ssh. This assumes that 
-passwordless SSH access is configured for the hosts, as described in :ref:`config-configure-ssh` 
+Use ``core.remote`` action to run linux command on multiple hosts over ssh. This assumes that
+passwordless SSH access is configured for the hosts, as described in :ref:`config-configure-ssh`
 section.
 
 .. code-block:: bash
@@ -102,8 +102,8 @@ section.
 .. note::
 
     For ``core.local`` and ``core.remote`` actions, we use ``--`` to separate action parameters
-    to ensure that options keys, like ``-l`` or ``-a`` are properly passed to the action. 
-    Alternatively, ``core.local`` and ``core.remote`` actions take the ``cmd`` parameter to pass 
+    to ensure that options keys, like ``-l`` or ``-a`` are properly passed to the action.
+    Alternatively, ``core.local`` and ``core.remote`` actions take the ``cmd`` parameter to pass
     crazily complex commands.
 
     When specifying a command using the command line tool, you also need to escape all the
@@ -142,7 +142,7 @@ Define a Rule
 -------------
 
 |st2| uses rules to fire actions or workflows when events happen. Events are typically monitored i
-by sensors. When a sensor catches an event, it fires a trigger. Trigger trips the rule, the rule 
+by sensors. When a sensor catches an event, it fires a trigger. Trigger trips the rule, the rule
 checks the criteria and if it matches, it runs an action. Easy enough. Let’s look at an example.
 
 Sample rule: :github_st2:`sample_rule_with_webhook.yaml
@@ -153,11 +153,11 @@ Sample rule: :github_st2:`sample_rule_with_webhook.yaml
 
 The rule definition is a YAML with three sections: trigger, criteria, and action. This example is
 setup to react on a webhook trigger and applies filtering criteria on the content of the trigger.
-The webhook in this example is setup to listen on the ``sample`` sub-url at 
+The webhook in this example is setup to listen on the ``sample`` sub-url at
 ``https://{host}:9101/v1/webhooks/sample``. When a POST is made on this URL, the trigger
 fires. If the criteria matches, value in payload is ``st2`` in this case, the payload will be
 appended to the file st2.webhook_sample.out in the home directory of the user setup to run |st2|.
-By default, ``stanley`` is the default user and the file will be located at 
+By default, ``stanley`` is the default user and the file will be located at
 ``/home/stanley/st2.webhook_sample.out``. See :doc:`rules` for detailed rule anatomy.
 
 Trigger payload is referred with ``{{trigger}}``. If the trigger payload is a valid JSON,
@@ -195,7 +195,7 @@ Deploy Rule
     st2 rule list --pack=examples
 
     # Get the rule that was just created
-    st2 rule get examples.webhook_file
+    st2 rule get examples.sample_rule_with_webhook
 
 Once the rule is created, the webhook begins to listen on ``https://{host}:9101/v1/webhooks/{url}``.
 Fire the POST, check out the file and see that it appends the payload if the name=Joe.
@@ -243,7 +243,7 @@ For more content - actions, sensors, rules - checkout `st2contrib`_ community re
 Datastore
 ---------
 
-While most data are retrieved as needed by |st2|, you may need to store and share some common 
+While most data are retrieved as needed by |st2|, you may need to store and share some common
 variables. Use |st2| datastore service to store the values and reference them in rules and workflows
 as ``{{system.my_parameter}}``. This creates ``user=stanley`` key-value pair:
 
