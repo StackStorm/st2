@@ -70,7 +70,7 @@ with when you setup chatops. An example is below:
 ::
 
     ---
-    name: "sample.notify_slack"
+    name: "notify_slack"
     pack: "examples"
     description: "Sample rule firing on action completion."
     enabled: true
@@ -94,7 +94,7 @@ you could pass ``data: "{{data}}"`` as a parameter. Again, selecting specific fi
 output (via jinja) is not supported yet.
 
 How do I setup notifications in action chain?
----------------------------------------------
+-----------st2api/st2api/controllers/v1/ruleviews.py----------------------------------
 
 The procedure here is the same if you want the same notify for all tasks in the chain. You would
 register an action meta with notify section. For example:
