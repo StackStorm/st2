@@ -29,7 +29,7 @@ ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.dev.conf')
 ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
 BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2sensorcontainer')
 BINARY = os.path.abspath(BINARY)
-CMD = [BINARY, '--config-file', ST2_CONFIG_PATH, '--sensor-ref=examples.SimplePollingSensor']
+CMD = [BINARY, '--config-file', ST2_CONFIG_PATH, '--sensor-ref=examples.SamplePollingSensor']
 
 
 class SensorContainerTestCase(unittest2.TestCase):
