@@ -23,6 +23,7 @@ from st2common.models.api.base import jsexpose
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import AliasExecutionAPI
 from st2common.models.api.auth import get_system_username
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 from st2common.models.utils import action_alias_utils, action_param_utils
@@ -45,7 +46,7 @@ CAST_OVERRIDES = {
 
 class ActionAliasExecutionController(rest.RestController):
 
-    @jsexpose(body_cls=AliasExecutionAPI, status_code=http_client.OK)
+    @jsexpose(body_cls=AliasExecutionAPI, status_code=http_client.CREATED)
     def post(self, payload):
         action_alias_name = payload.name if payload else None
 
@@ -87,7 +88,7 @@ class ActionAliasExecutionController(rest.RestController):
                                              notify=notify,
                                              context=context)
 
-        return str(execution.id)
+        return execution
 
     def _tokenize_alias_execution(self, alias_execution):
         tokens = alias_execution.strip().split(' ', 1)
@@ -139,7 +140,7 @@ class ActionAliasExecutionController(rest.RestController):
             liveaction = LiveActionDB(action=action_alias_db.action_ref, context=context,
                                       parameters=params, notify=notify)
             _, action_execution_db = action_service.request(liveaction)
-            return action_execution_db
+            return ActionExecutionAPI.from_model(action_execution_db)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             pecan.abort(http_client.BAD_REQUEST, str(e))
