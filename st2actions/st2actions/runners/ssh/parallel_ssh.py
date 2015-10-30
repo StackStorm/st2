@@ -26,6 +26,7 @@ from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
 from st2actions.runners.ssh.paramiko_ssh_bastion import ParamikoSSHBastionClient
 from st2actions.runners.ssh.paramiko_ssh import SSHCommandTimeoutError
 from st2common import log as logging
+from st2common.constants.runners import PARAMIKO_RUNNER_BASTION_HOST_SEPARATOR
 from st2common.exceptions.ssh import NoHostsConnectedToException
 import st2common.util.jsonify as jsonify
 from st2common.util import ip_utils
@@ -220,8 +221,8 @@ class ParallelSSHClient(object):
     def _connect(self, host, results, raise_on_any_error=False):
         bastion_hostname, bastion_port = None, None
 
-        if "!" in host:
-            (bastion, host) = string.split(host, "!")
+        if PARAMIKO_RUNNER_BASTION_HOST_SEPARATOR in host:
+            (bastion, host) = string.split(host, PARAMIKO_RUNNER_BASTION_HOST_SEPARATOR)
             (bastion_hostname, bastion_port) = self._get_host_port_info(bastion)
 
         (hostname, port) = self._get_host_port_info(host)
