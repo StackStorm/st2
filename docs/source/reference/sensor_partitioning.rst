@@ -50,7 +50,7 @@ To update the key value store use the following command:
 
 ::
 
-    st2 key set sensornode.example.net_f7aeb3ed.sensor_partition "examples.SimpleSensor, examples.SimplePollingSensor"
+    st2 key set sensornode.example.net_f7aeb3ed.sensor_partition "examples.SampleSensor, examples.SamplePollingSensor"
 
 
 Here the key name is of the format `{sensor_node_name}.sensor_partition`
@@ -76,8 +76,8 @@ File content is as follows:
     # /etc/st2/partition_file.yaml
     ---
     sensornode.example.net_f7aeb3ed:
-        - examples.SimplePollingSensor
-        - examples.SimpleSensor
+        - examples.SamplePollingSensor
+        - examples.SampleSensor
 
 
 Note that the key is of the format `{sensor_node_name}.sensor_partition`

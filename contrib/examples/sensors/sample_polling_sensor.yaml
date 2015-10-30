@@ -1,5 +1,5 @@
 ---
-  class_name: "SimplePollingSensor"
+  class_name: "SamplePollingSensor"
   entry_point: "sample_polling_sensor.py"
   description: "Simple polling sensor that emits triggers."
   poll_interval: 10

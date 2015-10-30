@@ -1,7 +1,7 @@
 from st2reactor.sensor.base import Sensor
 
 
-class SimpleSensor(Sensor):
+class SampleSensor(Sensor):
     """
     * self._sensor_service
         - provides utilities like

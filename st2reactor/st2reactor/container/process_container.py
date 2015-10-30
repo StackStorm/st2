@@ -33,6 +33,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.services.access import create_token
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.api import get_full_public_api_url
+from st2common.util.shell import on_parent_exit
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
@@ -179,13 +180,18 @@ class ProcessSensorContainer(object):
     def stopped(self):
         return self._stopped
 
-    def shutdown(self):
+    def shutdown(self, force=False):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
         self._stopped = True
 
+        if force:
+            exit_timeout = 0
+        else:
+            exit_timeout = 5
+
         sensor_ids = self._sensors.keys()
         for sensor_id in sensor_ids:
-            self._stop_sensor_process(sensor_id=sensor_id)
+            self._stop_sensor_process(sensor_id=sensor_id, exit_timeout=exit_timeout)
 
         LOG.info('All sensors are shut down.')
 
@@ -296,7 +302,8 @@ class ProcessSensorContainer(object):
         # TODO: Intercept stdout and stderr for aggregated logging purposes
         try:
             process = subprocess.Popen(args=args, stdin=None, stdout=None,
-                                       stderr=None, shell=False, env=env)
+                                       stderr=None, shell=False, env=env,
+                                       preexec_fn=on_parent_exit('SIGTERM'))
         except Exception as e:
             cmd = ' '.join(args)
             message = ('Failed to spawn process for sensor %s ("%s"): %s' %
@@ -354,8 +361,13 @@ class ProcessSensorContainer(object):
         """
         extra = {'sensor_id': sensor_id, 'sensor': sensor}
 
+        if self._stopped:
+            LOG.debug('Stopped, not respawning a dead sensor', extra=extra)
+            return
+
         should_respawn = self._should_respawn_sensor(sensor_id=sensor_id, sensor=sensor,
                                                      exit_code=exit_code)
+
         if not should_respawn:
             LOG.debug('Not respawning a dead sensor', extra=extra)
             return
