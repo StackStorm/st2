@@ -17,15 +17,14 @@ class ParamikoSSHBastionClient(ParamikoSSHClient):
         if bastion_key_files and bastion_key_material:
             raise ValueError('key_files and key_material arguments are mutually exclusive')
         self.bastion_hostname = bastion_hostname
-        self.bastion_port = bastion_port if bastion_port else port
-        self.bastion_username = bastion_username if bastion_username else username
-        self.bastion_password = bastion_password if bastion_password else password
-        self.bastion_key = bastion_key if bastion_key else key
-        self.bastion_key_files = bastion_key_files if bastion_key_files else key_files
-        self.bastion_key_material = bastion_key_material if bastion_key_material else key_material
+        self.bastion_port = bastion_port if bastion_port else self.port
+        self.bastion_username = bastion_username if bastion_username else self.username
+        self.bastion_password = bastion_password if bastion_password else self.password
+        self.bastion_key = bastion_key if bastion_key else self.key
+        self.bastion_key_files = bastion_key_files if bastion_key_files else self.key_files
+        self.bastion_key_material = bastion_key_material if bastion_key_material else self.key_material
         self.bastion_client = paramiko.SSHClient()
         self.bastion_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.bastion_sftp = None
 
     def connect(self):
         """
@@ -35,9 +34,9 @@ class ParamikoSSHBastionClient(ParamikoSSHClient):
                  False otherwise.
         :rtype: ``bool``
         """
-        bastion_conninfo = {'hostname': self.hostname,
-                            'port': self.port,
-                            'username': self.username,
+        bastion_conninfo = {'hostname': self.bastion_hostname,
+                            'port': self.bastion_port,
+                            'username': self.bastion_username,
                             'allow_agent': False,
                             'look_for_keys': False,
                             'timeout': self.timeout}
@@ -55,15 +54,14 @@ class ParamikoSSHBastionClient(ParamikoSSHClient):
             bastion_conninfo['allow_agent'] = True
             bastion_conninfo['look_for_keys'] = True
 
-        bastion_extra = {'_hostname': self.hostname,
-                         '_port': self.port,
-                         '_username': self.username,
+        bastion_extra = {'_hostname': self.bastion_hostname,
+                         '_port': self.bastion_port,
+                         '_username': self.bastion_username,
                          '_timeout': self.timeout}
 
-        self.logger.debug('Connecting to server', extra=bastion_extra)
+        self.logger.debug('Connecting to bastion host', extra=bastion_extra)
 
         self.bastion_client.connect(**bastion_conninfo)
-        self.bastion_sftp = self.client.open_sftp()
 
         transport = self.bastion_client.get_transport()
         real_addr = (self.hostname, self.port)
@@ -97,13 +95,12 @@ class ParamikoSSHBastionClient(ParamikoSSHClient):
 
         self.client.connect(**conninfo)
         self.sftp = self.client.open_sftp()
+
         return True
 
     def close(self):
         super(ParamikoSSHBastionClient, self).close()
 
         self.bastion_client.close()
-        if self.bastion_sftp:
-            self.bastion_sftp.close()
 
         return True
