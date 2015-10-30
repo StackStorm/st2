@@ -218,7 +218,7 @@ class ParallelSSHClient(object):
         return results
 
     def _connect(self, host, results, raise_on_any_error=False):
-        bastion_hostname, bastion_port = None
+        bastion_hostname, bastion_port = None, None
 
         if "!" in host:
             (bastion, host) = string.split(host, "!")
