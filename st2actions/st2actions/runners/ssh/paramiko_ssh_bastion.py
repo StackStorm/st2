@@ -46,7 +46,8 @@ class ParamikoSSHBastionClient(ParamikoSSHClient):
         self.bastion_password = bastion_password if bastion_password else self.password
         self.bastion_key = bastion_key if bastion_key else self.key
         self.bastion_key_files = bastion_key_files if bastion_key_files else self.key_files
-        self.bastion_key_material = bastion_key_material if bastion_key_material else self.key_material
+        self.bastion_key_material = bastion_key_material if bastion_key_material \
+            else self.key_material
         self.bastion_client = paramiko.SSHClient()
         self.bastion_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
