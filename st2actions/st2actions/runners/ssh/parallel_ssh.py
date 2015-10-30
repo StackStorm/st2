@@ -16,12 +16,14 @@
 import json
 import re
 import os
+import string
 import traceback
 
 import eventlet
 
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
+from st2actions.runners.ssh.paramiko_ssh_bastion import ParamikoSSHBastionClient
 from st2actions.runners.ssh.paramiko_ssh import SSHCommandTimeoutError
 from st2common import log as logging
 from st2common.exceptions.ssh import NoHostsConnectedToException
@@ -216,6 +218,12 @@ class ParallelSSHClient(object):
         return results
 
     def _connect(self, host, results, raise_on_any_error=False):
+        bastion_hostname, bastion_port = None
+
+        if "!" in host:
+            (bastion, host) = string.split(host, "!")
+            (bastion_hostname, bastion_port) = self._get_host_port_info(bastion)
+
         (hostname, port) = self._get_host_port_info(host)
 
         extra = {'host': host, 'port': port, 'user': self._ssh_user}
@@ -228,11 +236,18 @@ class ParallelSSHClient(object):
 
         LOG.debug('Connecting to host.', extra=extra)
 
-        client = ParamikoSSHClient(hostname, username=self._ssh_user,
-                                   password=self._ssh_password,
-                                   key=self._ssh_key_file,
-                                   key_material=self._ssh_key_material,
-                                   port=port)
+        if bastion_hostname:
+            client = ParamikoSSHBastionClient(hostname, bastion_hostname,
+                                              password=self._ssh_password,
+                                              key=self._ssh_key_file,
+                                              key_material=self._ssh_key_material,
+                                              port=port, bastion_port=bastion_port)
+        else:
+            client = ParamikoSSHClient(hostname, username=self._ssh_user,
+                                       password=self._ssh_password,
+                                       key=self._ssh_key_file,
+                                       key_material=self._ssh_key_material,
+                                       port=port)
         try:
             client.connect()
         except Exception as ex:
