@@ -63,6 +63,16 @@ When a pack is registered the aliases are not automatically loaded. To load all 
 .. code-block:: bash
 
    st2ctl reload --register-aliases
+   
+Removing
+~~~~~~~~
+
+When you like to remove an action alias, use -
+
+.. code-block:: bash
+
+   st2 action-alias delete ALIAS
+
 
 
 Supported formats
