@@ -382,6 +382,9 @@ If your script only uses positional arguments (which is usually the case for
 a lot of scripts out there), you simply need to declare parameters with correct
 value for the ``position`` attribute in the metadata file.
 
+The ``immutable`` value defines whether the default value of a parameter can be overridden.
+This is particular important if you expose commands via chatops and do not like security related parameters to be manipulated by user input.
+
 Example 1 - existing bash script with positional arguments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
