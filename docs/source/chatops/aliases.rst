@@ -62,7 +62,7 @@ When you like to remove an action alias, use -
 
 .. code-block:: bash
 
-   st2 action-alias delete ALIAS`
+   st2 action-alias delete ALIAS
 
 
 
