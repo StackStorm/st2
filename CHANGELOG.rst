@@ -22,6 +22,7 @@ in development
 * Fix a bug with a user inside the context of the live action which was created using alias
   execution endpoint incorrectly being set to the system user (``stanley``) instead of the
   authenticated user which triggered the execution. (bug fix)
+* Include state_info for Mistral workflow and tasks in the action execution result. (improvement)
 
 1.1.1 - November 13, 2015
 -------------------------

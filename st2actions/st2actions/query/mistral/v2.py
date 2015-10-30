@@ -62,7 +62,7 @@ class MistralResultsQuerier(Querier):
             raise
 
         try:
-            wf_state, output = self._get_workflow_result(mistral_exec_id)
+            result = self._get_workflow_result(mistral_exec_id)
         except requests.exceptions.ConnectionError:
             msg = 'Unable to connect to mistral.'
             trace = traceback.format_exc(10)
@@ -74,7 +74,7 @@ class MistralResultsQuerier(Querier):
             raise
 
         try:
-            tasks = self._get_workflow_tasks(mistral_exec_id)
+            result['tasks'] = self._get_workflow_tasks(mistral_exec_id)
         except requests.exceptions.ConnectionError:
             msg = 'Unable to connect to mistral.'
             trace = traceback.format_exc(10)
@@ -85,14 +85,8 @@ class MistralResultsQuerier(Querier):
                           execution_id, query_context)
             raise
 
-        status = self._determine_execution_status(execution_id, wf_state, tasks)
-
-        result = output or {}
-
-        if 'tasks' in result:
-            LOG.warn('[%s] Overwriting tasks in the workflow output.' % (execution_id))
-
-        result['tasks'] = tasks
+        status = self._determine_execution_status(
+            execution_id, result['extra']['state'], result['tasks'])
 
         LOG.debug('[%s] mistral workflow execution status: %s' % (execution_id, status))
         LOG.debug('[%s] mistral workflow execution result: %s' % (execution_id, result))
@@ -115,9 +109,14 @@ class MistralResultsQuerier(Querier):
         """
         execution = executions.ExecutionManager(self._client).get(exec_id)
 
-        output = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else None
+        result = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else {}
 
-        return (execution.state, output)
+        result['extra'] = {
+            'state': execution.state,
+            'state_info': execution.state_info
+        }
+
+        return result
 
     def _get_workflow_tasks(self, exec_id):
         """
@@ -134,15 +133,16 @@ class MistralResultsQuerier(Querier):
         """
         Format task result to follow the unified workflow result format.
         """
-        result = {}
-
-        result['id'] = task['id']
-        result['name'] = task['name']
-        result['workflow_execution_id'] = task.get('workflow_execution_id', None)
-        result['workflow_name'] = task['workflow_name']
-        result['created_at'] = task.get('created_at', None)
-        result['updated_at'] = task.get('updated_at', None)
-        result['state'] = task.get('state', None)
+        result = {
+            'id': task['id'],
+            'name': task['name'],
+            'workflow_execution_id': task.get('workflow_execution_id', None),
+            'workflow_name': task['workflow_name'],
+            'created_at': task.get('created_at', None),
+            'updated_at': task.get('updated_at', None),
+            'state': task.get('state', None),
+            'state_info': task.get('state_info', None)
+        }
 
         for attr in ['result', 'input', 'published']:
             result[attr] = jsonify.try_loads(task.get(attr, None))
