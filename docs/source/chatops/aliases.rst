@@ -46,6 +46,15 @@ Action Aliases are supplied in packs as yaml files.
 
 Each alias is a single yaml file with the alias and supporting multiple formats.
 
+Listing
+~~~~~~~
+
+To list all currently registered action aliases, use -
+
+.. code-block:: bash
+
+   st2 action-alias list
+
 Loading
 ~~~~~~~
 
