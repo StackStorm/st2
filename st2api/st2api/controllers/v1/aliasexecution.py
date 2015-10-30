@@ -82,6 +82,9 @@ class ActionAliasExecutionController(rest.RestController):
             'source_channel': payload.source_channel
         }
 
+        if hasattr(payload, 'notification_route'):
+            context['route'] = getattr(payload, 'notification_route')
+
         execution = self._schedule_execution(action_alias_db=action_alias_db,
                                              params=execution_parameters,
                                              notify=notify,
