@@ -2,8 +2,17 @@ import paramiko
 
 from paramiko_ssh import ParamikoSSHClient
 
+__all__ = [
+    'ParamikoSSHBastionClient'
+]
+
 
 class ParamikoSSHBastionClient(ParamikoSSHClient):
+    """
+    ParamikoSSHBastionClient utilizes a bastion host for bouncing the SSH connection.
+    Outside of the connect and close methods the underlying behaviour of ParamikoSSHClient
+    is not modified or overridden.
+    """
     def __init__(self,
                  hostname, bastion_hostname, port=22, username=None,
                  password=None, key=None, key_files=None,
@@ -65,11 +74,12 @@ class ParamikoSSHBastionClient(ParamikoSSHClient):
 
         transport = self.bastion_client.get_transport()
         real_addr = (self.hostname, self.port)
-        local_addr = ('127.0.0.1', 1234)  # as far as I can tell paramiko doesn't actually bind 1234
+        # no attempt is made to bind local_addr, so something very "wrong" is used
+        local_addr = ('256.256.256.256', 65536)
         channel = transport.open_channel("direct-tcpip", real_addr, local_addr)
 
-        conninfo = {'hostname': '127.0.0.1',
-                    'port': 1234,
+        conninfo = {'hostname': '256.256.256.256',
+                    'port': 65536,
                     'sock': channel,
                     'username': self.username,
                     'allow_agent': False,
