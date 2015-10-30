@@ -94,8 +94,8 @@ class ParamikoSSHBastionClient(ParamikoSSHClient):
         local_addr = ('256.256.256.256', 65536)
         channel = transport.open_channel("direct-tcpip", real_addr, local_addr)
 
-        conninfo = {'hostname': '256.256.256.256',
-                    'port': 65536,
+        conninfo = {'hostname': local_addr[0],
+                    'port': local_addr[1],
                     'sock': channel,
                     'username': self.username,
                     'allow_agent': False,
