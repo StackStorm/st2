@@ -67,7 +67,7 @@ class ParamikoSSHBastionClient(ParamikoSSHClient):
 
         transport = self.bastion_client.get_transport()
         real_addr = (self.hostname, self.port)
-        local_addr = ('127.0.0.1', 1234) # as far as I can tell paramiko doesn't actually bind 1234
+        local_addr = ('127.0.0.1', 1234)  # as far as I can tell paramiko doesn't actually bind 1234
         channel = transport.open_channel("direct-tcpip", real_addr, local_addr)
 
         conninfo = {'hostname': '127.0.0.1',
