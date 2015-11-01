@@ -80,7 +80,7 @@ class ParamikoSSHClient(object):
     # Connect socket timeout
     CONNECT_TIMEOUT = 60
 
-    def __init__(self, hostname, port=22, username=None, password=None,
+    def __init__(self, hostname, port=22, username=None, password=None, bastion_host=None,
                  key=None, key_files=None, key_material=None, timeout=None):
         """
         Authentication is always attempted in the following order:
@@ -111,6 +111,11 @@ class ParamikoSSHClient(object):
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.logger = logging.getLogger(__name__)
         self.sftp = None
+        self.bastion_host = bastion_host
+        if self.bastion_host:
+            self.bastion_client = paramiko.SSHClient()
+            self.bastion_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            self.bastion_socket = None
 
     def connect(self):
         """
@@ -143,6 +148,9 @@ class ParamikoSSHClient(object):
         extra = {'_hostname': self.hostname, '_port': self.port,
                  '_username': self.username, '_timeout': self.timeout}
         self.logger.debug('Connecting to server', extra=extra)
+
+        if self.bastion_host and self._bastion_connect():
+            conninfo['sock'] = self.bastion_socket
 
         self.client.connect(**conninfo)
         self.sftp = self.client.open_sftp()
@@ -433,6 +441,8 @@ class ParamikoSSHClient(object):
         self.client.close()
         if self.sftp:
             self.sftp.close()
+        if self.bastion_client:
+            self.bastion_client.close()
         return True
 
     def _consume_stdout(self, chan):
@@ -513,6 +523,51 @@ class ParamikoSSHClient(object):
             msg = 'Invalid or unsupported key type'
 
         raise paramiko.ssh_exception.SSHException(msg)
+
+    def _bastion_connect(self):
+        """
+        Connect to the bastion node over SSH.
+
+        :return: True if the connection has been successfully established,
+                 False otherwise.
+        :rtype: ``bool``
+        """
+        bastion_conninfo = {'hostname': self.bastion_host,
+                            'port': self.port,
+                            'username': self.username,
+                            'allow_agent': False,
+                            'look_for_keys': False,
+                            'timeout': self.timeout}
+
+        if self.password:
+            bastion_conninfo['password'] = self.password
+
+        if self.key_files:
+            bastion_conninfo['key_filename'] = self.key_files
+
+        if self.key_material:
+            bastion_conninfo['pkey'] = self._get_pkey_object(key_material=self.key_material)
+
+        if not self.password and not (self.key_files or self.key_material):
+            bastion_conninfo['allow_agent'] = True
+            bastion_conninfo['look_for_keys'] = True
+
+        bastion_extra = {'_hostname': self.bastion_host,
+                         '_port': self.port,
+                         '_username': self.username,
+                         '_timeout': self.timeout}
+
+        self.logger.debug('Connecting to bastion host', extra=bastion_extra)
+
+        self.bastion_client.connect(**bastion_conninfo)
+
+        transport = self.bastion_client.get_transport()
+        real_addr = (self.hostname, self.port)
+        # no attempt is made to bind local_addr, so something very "wrong" is used
+        local_addr = ('256.256.256.256', 65536)
+        self.bastion_socket = transport.open_channel("direct-tcpip", real_addr, local_addr)
+
+        return True
 
     def __repr__(self):
         return ('<ParamikoSSHClient hostname=%s,port=%s,username=%s,id=%s>' %
