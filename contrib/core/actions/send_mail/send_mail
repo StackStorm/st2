@@ -30,7 +30,7 @@ BODY="$@"
 if [[ "${CONTENT_TYPE}" = "text/html" ]]; then
   LINE_BREAK="<br><br>"
 else
-  LINE_BREAK="\n\n"
+  LINE_BREAK=""
 fi
 
 trimmed="${BODY// }"
