@@ -5,7 +5,23 @@ language: python
 python:
   - 2.7
 
+# Note: We enable artifacts addons since we upload integration tests logs to S3
+addons:
+  artifacts: true
+  s3_region: "us-west-2"
+
+addons:
+  artifacts:
+    paths:
+    - $(ls logs/st2*.log | tr "\n" ":")
+    - $(ls /tmp/st2*.log | tr "\n" ":")
+
 env:
+  global:
+    - ARTIFACTS_DEBUG=1
+    - "ARTIFACTS_BUCKET=st2travistestslogs"
+    - secure: "2k3NMsOqDOXZLGMo+fuTSl35VqR41cm7Z4ZPSduh2ceIMyhgtnKGmElklxV7DxaZtFgl0GD0EZWLSErqlOsjDdAA0IsBMzisQRMBWl+Rqpvjsn2P0jtZBPwe/5OPDpBUqE7t/BOaPBbyTSA9vtLPMhTWdDlR4l28NifAC+k977Q="
+    - secure: "AxPXLPSPGqa8lrwysXxTFHTdEVecK4ZhH91PFu6pZ+IfrSKLek23+CM08J50tmat991swSM8qodhIUfCcvJObcqDFbl295VPYM++H4U9w1dzi571WA0VKZLs3pBhwHf6ACnBX8bzxz3s/7+vE/g2bdrqI6Z6aK3UR98POjbsdOg="
   - TASK=checks
   - TASK=unit
   - TASK=integration
