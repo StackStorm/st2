@@ -254,6 +254,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
 
         mock.close()
 
+    @patch('paramiko.SSHClient', Mock)
     @patch.object(ParamikoSSHClient, 'exists', return_value=False)
     def test_put_dir(self, *args):
         mock = self.ssh_cli
