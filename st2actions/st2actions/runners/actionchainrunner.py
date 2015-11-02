@@ -36,6 +36,7 @@ from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import action_db as action_db_util
+from st2common.util import glob_match
 from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.util import jinja as jinja_utils
@@ -156,6 +157,7 @@ class ActionChainRunner(ActionRunner):
         # should happen outside the constructor.
         if getattr(self, 'liveaction', None):
             self._chain_notify = getattr(self.liveaction, 'notify', None)
+
         if self.runner_parameters:
             self._skip_notify_tasks = self.runner_parameters.get('skip_notify', [])
 
@@ -405,7 +407,17 @@ class ActionChainRunner(ActionRunner):
         return liveaction
 
     def _get_notify(self, action_node):
-        if action_node.name not in self._skip_notify_tasks:
+        get_notfify = False
+
+        if isinstance(self._skip_notify_tasks, basestring):
+            if glob_match.matches(action_node.name, self._skip_notify_tasks):
+                get_notfify = True
+
+        if (isinstance(self._skip_notify_tasks, list) and
+                action_node.name not in self._skip_notify_tasks):
+            get_notfify = True
+
+        if get_notfify:
             if action_node.notify:
                 task_notify = NotificationsHelper.to_model(action_node.notify)
                 return task_notify
