@@ -18,7 +18,10 @@ import signal
 import psutil
 import eventlet
 from eventlet.green import subprocess
+from oslo_config import cfg
 
+import st2tests.config
+from st2common.models.db import db_setup
 from st2common.util.green.shell import run_command
 from st2common.bootstrap.sensorsregistrar import register_sensors
 from st2tests.base import IntegrationTestCase
@@ -46,6 +49,14 @@ class SensorContainerTestCase(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super(SensorContainerTestCase, cls).setUpClass()
+
+        st2tests.config.parse_args()
+
+        username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
+        password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
+        cls.db_connection = db_setup(
+            cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
+            username=username, password=password, ensure_indexes=False)
 
         # Register sensors
         register_sensors(packs_base_paths=['/opt/stackstorm/packs'], use_pack_cache=False)

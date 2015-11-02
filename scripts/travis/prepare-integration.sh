@@ -54,6 +54,3 @@ st2 --version
 
 # start dev environment in screens
 ./tools/launchdev.sh start -x
-
-# Create virtualenv for examples pack which can be used by tests
-st2 packs.setup_virtualenv packs=examples
