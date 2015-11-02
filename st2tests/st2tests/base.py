@@ -327,6 +327,10 @@ class IntegrationTestCase(TestCase):
     It includes various utility functions and assert methods for working with processes.
     """
 
+    # Set to True to print process stdout and stderr in tearDown after killing the processes
+    # which are still alive
+    print_stdout_stderr_on_teardown = False
+
     processes = {}
 
     def tearDown(self):
@@ -334,12 +338,28 @@ class IntegrationTestCase(TestCase):
 
         # Make sure we kill all the processes on teardown so they don't linger around if an
         # exception was thrown.
-        for pid, proc in self.processes.items():
+        for pid, process in self.processes.items():
+
             try:
-                proc.kill()
+                process.kill()
             except OSError:
                 # Process already exited or similar
                 pass
+
+            if self.print_stdout_stderr_on_teardown:
+                try:
+                    stdout = process.stdout.read()
+                except:
+                    stdout = None
+
+                try:
+                    stderr = process.stderr.read()
+                except:
+                    stderr = None
+
+                print('Process "%s"' % (process.pid))
+                print('Stdout: %s' % (stdout))
+                print('Stderr: %s' % (stderr))
 
     def add_process(self, process):
         """

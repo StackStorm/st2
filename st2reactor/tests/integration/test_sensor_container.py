@@ -39,6 +39,8 @@ class SensorContainerTestCase(IntegrationTestCase):
     examples pack and sensors from the example pack must be registered.
     """
 
+    print_stdout_stderr_on_teardown = True
+
     def test_child_processes_are_killed_on_sigint(self):
         process = self._start_sensor_container()
 
