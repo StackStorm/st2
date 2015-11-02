@@ -22,6 +22,7 @@ from oslo_config import cfg
 
 import st2tests.config
 from st2common.models.db import db_setup
+from st2reactor.container.process_container import PROCESS_EXIT_TIMEOUT
 from st2common.util.green.shell import run_command
 from st2common.bootstrap.sensorsregistrar import register_sensors
 from st2tests.base import IntegrationTestCase
@@ -86,7 +87,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGINT causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(5 + 2)
+        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 1)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
@@ -111,7 +112,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGTERM causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(5 + 2)
+        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 1)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
@@ -123,7 +124,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(5)
+        eventlet.sleep(3)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
