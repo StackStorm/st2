@@ -52,6 +52,7 @@ class SensorContainerTestCase(IntegrationTestCase):
     @classmethod
     def setUpClass(cls):
         super(SensorContainerTestCase, cls).setUpClass()
+        return
 
         st2tests.config.parse_args()
 
