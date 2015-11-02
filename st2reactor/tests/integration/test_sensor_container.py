@@ -70,7 +70,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(5)
+        eventlet.sleep(3)
 
         # Assert process has started and is running
         self.assertProcessIsRunning(process=process)
@@ -86,7 +86,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGINT causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(8)
+        eventlet.sleep(5 + 2)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
@@ -98,7 +98,7 @@ class SensorContainerTestCase(IntegrationTestCase):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(5)
+        eventlet.sleep(3)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
@@ -111,7 +111,7 @@ class SensorContainerTestCase(IntegrationTestCase):
 
         # SIGTERM causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(8)
+        eventlet.sleep(5 + 2)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
