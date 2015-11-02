@@ -57,7 +57,6 @@ class SensorContainerTestCase(unittest2.TestCase):
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
-        #stdout, stderr = process.communicate()
         children_pp = pp.children()
         self.assertEqual(pp.cmdline()[1:], CMD)
         self.assertEqual(len(children_pp), 1)
