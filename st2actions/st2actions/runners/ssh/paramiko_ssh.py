@@ -112,6 +112,8 @@ class ParamikoSSHClient(object):
         self.logger = logging.getLogger(__name__)
         self.sftp = None
         self.bastion_host = bastion_host
+        self.bastion_client = None
+        self.bastion_socket = None
         if self.bastion_host:
             self.bastion_client = paramiko.SSHClient()
             self.bastion_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
