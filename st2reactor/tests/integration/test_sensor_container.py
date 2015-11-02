@@ -44,7 +44,11 @@ class SensorContainerTestCase(unittest2.TestCase):
         # Make sure we kill all the processes on teardown so they don't linger around if an
         # exception was thrown.
         for pid, proc in self.processes.items():
-            proc.kill()
+            try:
+                proc.kill()
+            except OSError:
+                # Process already exited or similar
+                pass
 
     def test_child_processes_are_killed_on_sigint(self):
         process = self._start_sensor_container()
