@@ -15,44 +15,66 @@
 import os
 import signal
 
-import unittest2
 import psutil
 import eventlet
 from eventlet.green import subprocess
+from oslo_config import cfg
+
+import st2tests.config
+from st2common.models.db import db_setup
+from st2reactor.container.process_container import PROCESS_EXIT_TIMEOUT
+from st2common.util.green.shell import run_command
+from st2common.bootstrap.sensorsregistrar import register_sensors
+from st2tests.base import IntegrationTestCase
 
 __all__ = [
     'SensorContainerTestCase'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.dev.conf')
+ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
 ST2_CONFIG_PATH = os.path.abspath(ST2_CONFIG_PATH)
 BINARY = os.path.join(BASE_DIR, '../../../st2reactor/bin/st2sensorcontainer')
 BINARY = os.path.abspath(BINARY)
 CMD = [BINARY, '--config-file', ST2_CONFIG_PATH, '--sensor-ref=examples.SamplePollingSensor']
 
 
-class SensorContainerTestCase(unittest2.TestCase):
+class SensorContainerTestCase(IntegrationTestCase):
     """
     Note: For those tests MongoDB must be running, virtualenv must exist for
     examples pack and sensors from the example pack must be registered.
     """
 
-    processes = {}
+    print_stdout_stderr_on_teardown = True
 
-    def tearDown(self):
-        # Make sure we kill all the processes on teardown so they don't linger around if an
-        # exception was thrown.
-        for pid, proc in self.processes.items():
-            proc.kill()
+    @classmethod
+    def setUpClass(cls):
+        super(SensorContainerTestCase, cls).setUpClass()
 
-    @unittest2.skipIf(True, 'Temporary disabled')
-    @unittest2.skipIf(os.environ.get('TRAVIS'), 'Running on travis')
+        st2tests.config.parse_args()
+
+        username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
+        password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
+        cls.db_connection = db_setup(
+            cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
+            username=username, password=password, ensure_indexes=False)
+
+        # Register sensors
+        register_sensors(packs_base_paths=['/opt/stackstorm/packs'], use_pack_cache=False)
+
+        # Create virtualenv for examples pack
+        virtualenv_path = '/opt/stackstorm/virtualenvs/examples'
+        cmd = ['virtualenv', '--system-site-packages', virtualenv_path]
+        run_command(cmd=cmd)
+
     def test_child_processes_are_killed_on_sigint(self):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(5)
+        eventlet.sleep(3)
+
+        # Assert process has started and is running
+        self.assertProcessIsRunning(process=process)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
@@ -65,21 +87,19 @@ class SensorContainerTestCase(unittest2.TestCase):
 
         # SIGINT causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(8)
+        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 1)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
         self.assertProcessExited(proc=children_pp[0])
 
-        del self.processes[process.pid]
+        self.remove_process(process=process)
 
-    @unittest2.skipIf(True, 'Temporary disabled')
-    @unittest2.skipIf(os.environ.get('TRAVIS'), 'Running on travis')
     def test_child_processes_are_killed_on_sigterm(self):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(5)
+        eventlet.sleep(3)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
@@ -92,21 +112,19 @@ class SensorContainerTestCase(unittest2.TestCase):
 
         # SIGTERM causes graceful shutdown so give it some time to gracefuly shut down the sensor
         # child processes
-        eventlet.sleep(8)
+        eventlet.sleep(PROCESS_EXIT_TIMEOUT + 1)
 
         # Verify parent and children processes have exited
         self.assertProcessExited(proc=pp)
         self.assertProcessExited(proc=children_pp[0])
 
-        del self.processes[process.pid]
+        self.remove_process(process=process)
 
-    @unittest2.skipIf(True, 'Temporary disabled')
-    @unittest2.skipIf(os.environ.get('TRAVIS'), 'Running on travis')
     def test_child_processes_are_killed_on_sigkill(self):
         process = self._start_sensor_container()
 
         # Give it some time to start up
-        eventlet.sleep(5)
+        eventlet.sleep(3)
 
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
@@ -124,19 +142,10 @@ class SensorContainerTestCase(unittest2.TestCase):
         self.assertProcessExited(proc=pp)
         self.assertProcessExited(proc=children_pp[0])
 
-        del self.processes[process.pid]
-
-    def assertProcessExited(self, proc):
-        try:
-            status = proc.status()
-        except psutil.NoSuchProcess:
-            status = 'exited'
-
-        if status not in ['exited', 'zombie']:
-            self.fail('Process with pid "%s" is still running' % (proc.pid))
+        self.remove_process(process=process)
 
     def _start_sensor_container(self):
         process = subprocess.Popen(CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    shell=False, preexec_fn=os.setsid)
-        self.processes[process.pid] = process
+        self.add_process(process=process)
         return process

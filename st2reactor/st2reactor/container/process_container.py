@@ -44,7 +44,6 @@ __all__ = [
 
 LOG = logging.getLogger('st2reactor.process_sensor_container')
 
-PROCESS_EXIT_TIMEOUT = 5  # how long to wait for process to exit after sending SIGKILL (in seconds)
 SUCCESS_EXIT_CODE = 0
 FAILURE_EXIT_CODE = 1
 
@@ -61,6 +60,10 @@ SENSOR_SUCCESSFUL_START_THRESHOLD = 10
 
 # How long to wait (in seconds) before respawning a dead process
 SENSOR_RESPAWN_DELAY = 2.5
+
+# How long to wait for process to exit after sending SIGTERM signal. If the process doesn't
+# exit in this amount of seconds, SIGKILL signal will be sent to the process.
+PROCESS_EXIT_TIMEOUT = 5
 
 # TODO: Allow multiple instances of the same sensor with different configuration
 # options - we need to update sensors for that and add "get_id" or similar
@@ -187,7 +190,7 @@ class ProcessSensorContainer(object):
         if force:
             exit_timeout = 0
         else:
-            exit_timeout = 5
+            exit_timeout = PROCESS_EXIT_TIMEOUT
 
         sensor_ids = self._sensors.keys()
         for sensor_id in sensor_ids:
@@ -261,7 +264,8 @@ class ProcessSensorContainer(object):
         python_path = get_sandbox_python_binary_path(pack=sensor['pack'])
 
         if virtualenv_path and not os.path.isdir(virtualenv_path):
-            msg = PACK_VIRTUALENV_DOESNT_EXIST % (sensor['pack'], sensor['pack'])
+            format_values = {'pack': sensor['pack'], 'virtualenv_path': virtualenv_path}
+            msg = PACK_VIRTUALENV_DOESNT_EXIST % format_values
             raise Exception(msg)
 
         trigger_type_refs = sensor['trigger_types'] or []
@@ -318,7 +322,7 @@ class ProcessSensorContainer(object):
 
         return process
 
-    def _stop_sensor_process(self, sensor_id, exit_timeout=5):
+    def _stop_sensor_process(self, sensor_id, exit_timeout=PROCESS_EXIT_TIMEOUT):
         """
         Stop a sensor process for the provided sensor.
 

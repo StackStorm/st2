@@ -120,7 +120,8 @@ class PythonRunner(ActionRunner):
         python_path = get_sandbox_python_binary_path(pack=pack)
 
         if virtualenv_path and not os.path.isdir(virtualenv_path):
-            msg = PACK_VIRTUALENV_DOESNT_EXIST % (pack, pack)
+            format_values = {'pack': pack, 'virtualenv_path': virtualenv_path}
+            msg = PACK_VIRTUALENV_DOESNT_EXIST % format_values
             raise Exception(msg)
 
         if not self.entry_point:
