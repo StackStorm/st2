@@ -6,6 +6,8 @@ in development
 
 * Refactor retries in the Mistral action runner to use exponential backoff. Configuration options
   for Mistral have changed. (improvement)
+* Add SSH bastion host support to the paramiko SSH runner. Utilizes same connection parameters as
+  the targeted box. (new feature, improvement) #2144, #2150 [Logan Attwood]
 
 1.1.0 - October 27, 2015
 ------------------------
