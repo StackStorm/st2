@@ -199,6 +199,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
+    @patch('paramiko.SSHClient', Mock)
     @patch.object(ParamikoSSHClient, '_consume_stdout',
                   MagicMock(return_value=StringIO('')))
     @patch.object(ParamikoSSHClient, '_consume_stderr',
@@ -236,6 +237,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
 
         mock.close()
 
+    @patch('paramiko.SSHClient', Mock)
     def test_delete_script(self):
         """
         Provide a basic test with 'delete' action.
