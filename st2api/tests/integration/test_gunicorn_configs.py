@@ -43,6 +43,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
                                    shell=True, preexec_fn=os.setsid)
         self.add_process(process=process)
         eventlet.sleep(5)
+        self.assertProcessIsRunning(process=process)
         response = requests.get('http://127.0.0.1:%s/v1/actions' % (port))
         self.assertEqual(response.status_code, httplib.OK)
         kill_process(process)
@@ -59,6 +60,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
 
         self.add_process(process=process)
         eventlet.sleep(5)
+        self.assertProcessIsRunning(process=process)
         response = requests.post('http://127.0.0.1:%s/tokens' % (port))
         self.assertEqual(response.status_code, httplib.UNAUTHORIZED)
         kill_process(process)
