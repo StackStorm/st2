@@ -19,6 +19,8 @@ import psutil
 import eventlet
 from eventlet.green import subprocess
 
+from st2common.util.green.shell import run_command
+from st2common.bootstrap.sensorsregistrar import register_sensors
 from st2tests.base import IntegrationTestCase
 
 __all__ = [
@@ -40,6 +42,18 @@ class SensorContainerTestCase(IntegrationTestCase):
     """
 
     print_stdout_stderr_on_teardown = True
+
+    @classmethod
+    def setUpClass(cls):
+        super(SensorContainerTestCase, cls).setUpClass()
+
+        # Register sensors
+        register_sensors(packs_base_paths=['/opt/stackstorm/packs'], use_pack_cache=False)
+
+        # Create virtualenv for examples pack
+        virtualenv_path = '/opt/stackstorm/virtualenvs/examples'
+        cmd = ['virtualenv', '--system-site-packages', virtualenv_path]
+        run_command(cmd=cmd)
 
     def test_child_processes_are_killed_on_sigint(self):
         process = self._start_sensor_container()
