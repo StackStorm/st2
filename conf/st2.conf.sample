@@ -1,3 +1,6 @@
+# Sample config which contains all the available options which the corresponding
+# descriptions
+
 [action_sensor]
 # Whether to enable or disable the ability to post a trigger on action.
 enable = True
