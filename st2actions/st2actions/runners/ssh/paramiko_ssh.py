@@ -124,13 +124,15 @@ class ParamikoSSHClient(object):
         """
         if self.bastion_host:
             self.logger.debug('Bastion host specified, connecting')
-            self.bastion_client = self._connect(self.bastion_host)
+            self.bastion_client = self._connect(host=self.bastion_host)
             transport = self.bastion_client.get_transport()
             real_addr = (self.hostname, self.port)
+            # fabric uses ('', 0) for direct-tcpip, this duplicates that behaviour
+            # see https://github.com/fabric/fabric/commit/c2a9bbfd50f560df6c6f9675603fb405c4071cad
             local_addr = ('', 0)
             self.bastion_socket = transport.open_channel('direct-tcpip', real_addr, local_addr)
 
-        self.client = self._connect(self.hostname, self.bastion_socket)
+        self.client = self._connect(host=self.hostname, socket=self.bastion_socket)
         self.sftp = self.client.open_sftp()
         return True
 
