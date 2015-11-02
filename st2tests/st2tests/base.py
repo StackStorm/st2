@@ -78,6 +78,17 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_CONFIG_PATH = os.path.join(BASE_DIR, '../conf/st2.conf')
 
 
+class BaseTestCase(TestCase):
+
+    @classmethod
+    def _register_packs(self):
+        """
+        Register all the packs inside the fixtures directory.
+        """
+        registrar = ResourceRegistrar(use_pack_cache=False)
+        registrar.register_packs(base_dirs=get_packs_base_paths())
+
+
 class EventletTestCase(TestCase):
     """
     Base test class which performs eventlet monkey patching before the tests run
@@ -105,7 +116,7 @@ class EventletTestCase(TestCase):
         )
 
 
-class BaseDbTestCase(TestCase):
+class BaseDbTestCase(BaseTestCase):
 
     # Set to True to enable printing of all the log messages to the console
     DISPLAY_LOG_MESSAGES = False
@@ -150,14 +161,6 @@ class BaseDbTestCase(TestCase):
         global ALL_MODELS
         for model in ALL_MODELS:
             model.drop_collection()
-
-    @classmethod
-    def _register_packs(self):
-        """
-        Register all the packs inside the fixtures directory.
-        """
-        registrar = ResourceRegistrar(use_pack_cache=False)
-        registrar.register_packs(base_dirs=get_packs_base_paths())
 
 
 class DbTestCase(BaseDbTestCase):
