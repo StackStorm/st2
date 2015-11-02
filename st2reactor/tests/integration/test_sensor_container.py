@@ -53,8 +53,12 @@ class SensorContainerTestCase(unittest2.TestCase):
         # Give it some time to start up
         eventlet.sleep(5)
 
+        # Assert process has started and is running
+        self.assertProcessIsRunning(process=process)
+
         # Verify container process and children sensor / wrapper processes are running
         pp = psutil.Process(process.pid)
+        #stdout, stderr = process.communicate()
         children_pp = pp.children()
         self.assertEqual(pp.cmdline()[1:], CMD)
         self.assertEqual(len(children_pp), 1)
@@ -122,6 +126,20 @@ class SensorContainerTestCase(unittest2.TestCase):
         self.assertProcessExited(proc=children_pp[0])
 
         del self.processes[process.pid]
+
+    def assertProcessIsRunning(self, process):
+        """
+        Assert that a long running process provided Process object as returned by subprocess.Popen
+        has succesfuly started and is running.
+        """
+        return_code = process.poll()
+
+        if return_code is not None:
+            stdout = process.stdout.read()
+            stderr = process.stderr.read()
+            msg = ('Process exited with code=%s.\nStdout:\n%s\n\nStderr:\n%s' %
+                   (return_code, stdout, stderr))
+            self.fail(msg)
 
     def assertProcessExited(self, proc):
         try:
