@@ -24,9 +24,10 @@ import sys
 import shutil
 import logging
 
-import eventlet
-from oslo_config import cfg
 import six
+import eventlet
+import psutil
+from oslo_config import cfg
 from unittest2 import TestCase
 
 from st2common.exceptions.db import StackStormDBObjectConflictError
@@ -54,7 +55,8 @@ __all__ = [
     'DbTestCase',
     'DbModelTestCase',
     'CleanDbTestCase',
-    'CleanFilesTestCase'
+    'CleanFilesTestCase',
+    'IntegrationTestCase'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -316,6 +318,65 @@ class CleanFilesTestCase(TestCase):
                 shutil.rmtree(file_path)
             except Exception:
                 pass
+
+
+class IntegrationTestCase(TestCase):
+    """
+    Base test class for integration tests to inherit from.
+
+    It includes various utility functions and assert methods for working with processes.
+    """
+
+    processes = {}
+
+    def tearDown(self):
+        super(IntegrationTestCase, self).tearDown()
+
+        # Make sure we kill all the processes on teardown so they don't linger around if an
+        # exception was thrown.
+        for pid, proc in self.processes.items():
+            try:
+                proc.kill()
+            except OSError:
+                # Process already exited or similar
+                pass
+
+    def add_process(self, process):
+        """
+        Add a process to the local data structure to make sure it will get killed and cleaned up on
+        tearDown.
+        """
+        self.processes[process.pid] = process
+
+    def remove_process(self, process):
+        """
+        Remove process from a local data structure.
+        """
+        if process.pid in self.processes:
+            del self.processes[process.pid]
+
+    def assertProcessIsRunning(self, process):
+        """
+        Assert that a long running process provided Process object as returned by subprocess.Popen
+        has succesfuly started and is running.
+        """
+        return_code = process.poll()
+
+        if return_code is not None:
+            stdout = process.stdout.read()
+            stderr = process.stderr.read()
+            msg = ('Process exited with code=%s.\nStdout:\n%s\n\nStderr:\n%s' %
+                   (return_code, stdout, stderr))
+            self.fail(msg)
+
+    def assertProcessExited(self, proc):
+        try:
+            status = proc.status()
+        except psutil.NoSuchProcess:
+            status = 'exited'
+
+        if status not in ['exited', 'zombie']:
+            self.fail('Process with pid "%s" is still running' % (proc.pid))
 
 
 class FakeResponse(object):

@@ -15,10 +15,11 @@
 import os
 import signal
 
-import unittest2
 import psutil
 import eventlet
 from eventlet.green import subprocess
+
+from st2tests.base import IntegrationTestCase
 
 __all__ = [
     'SensorContainerTestCase'
@@ -32,23 +33,11 @@ BINARY = os.path.abspath(BINARY)
 CMD = [BINARY, '--config-file', ST2_CONFIG_PATH, '--sensor-ref=examples.SamplePollingSensor']
 
 
-class SensorContainerTestCase(unittest2.TestCase):
+class SensorContainerTestCase(IntegrationTestCase):
     """
     Note: For those tests MongoDB must be running, virtualenv must exist for
     examples pack and sensors from the example pack must be registered.
     """
-
-    processes = {}
-
-    def tearDown(self):
-        # Make sure we kill all the processes on teardown so they don't linger around if an
-        # exception was thrown.
-        for pid, proc in self.processes.items():
-            try:
-                proc.kill()
-            except OSError:
-                # Process already exited or similar
-                pass
 
     def test_child_processes_are_killed_on_sigint(self):
         process = self._start_sensor_container()
@@ -76,7 +65,7 @@ class SensorContainerTestCase(unittest2.TestCase):
         self.assertProcessExited(proc=pp)
         self.assertProcessExited(proc=children_pp[0])
 
-        del self.processes[process.pid]
+        self.remove_process(process=process)
 
     def test_child_processes_are_killed_on_sigterm(self):
         process = self._start_sensor_container()
@@ -101,7 +90,7 @@ class SensorContainerTestCase(unittest2.TestCase):
         self.assertProcessExited(proc=pp)
         self.assertProcessExited(proc=children_pp[0])
 
-        del self.processes[process.pid]
+        self.remove_process(process=process)
 
     def test_child_processes_are_killed_on_sigkill(self):
         process = self._start_sensor_container()
@@ -125,33 +114,10 @@ class SensorContainerTestCase(unittest2.TestCase):
         self.assertProcessExited(proc=pp)
         self.assertProcessExited(proc=children_pp[0])
 
-        del self.processes[process.pid]
-
-    def assertProcessIsRunning(self, process):
-        """
-        Assert that a long running process provided Process object as returned by subprocess.Popen
-        has succesfuly started and is running.
-        """
-        return_code = process.poll()
-
-        if return_code is not None:
-            stdout = process.stdout.read()
-            stderr = process.stderr.read()
-            msg = ('Process exited with code=%s.\nStdout:\n%s\n\nStderr:\n%s' %
-                   (return_code, stdout, stderr))
-            self.fail(msg)
-
-    def assertProcessExited(self, proc):
-        try:
-            status = proc.status()
-        except psutil.NoSuchProcess:
-            status = 'exited'
-
-        if status not in ['exited', 'zombie']:
-            self.fail('Process with pid "%s" is still running' % (proc.pid))
+        self.remove_process(process=process)
 
     def _start_sensor_container(self):
         process = subprocess.Popen(CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    shell=False, preexec_fn=os.setsid)
-        self.processes[process.pid] = process
+        self.add_process(process=process)
         return process
