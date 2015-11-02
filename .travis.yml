@@ -13,8 +13,7 @@ addons:
 addons:
   artifacts:
     paths:
-    - $(ls logs/st2*.log | tr "\n" ":")
-    - $(ls /tmp/st2*.log | tr "\n" ":")
+      - $(ls /tmp/st2*.log | tr "\n" ":")
 
 env:
   global:
