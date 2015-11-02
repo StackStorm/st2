@@ -46,7 +46,6 @@ class SensorContainerTestCase(unittest2.TestCase):
         for pid, proc in self.processes.items():
             proc.kill()
 
-    @unittest2.skipIf(True, 'Temporary disabled')
     @unittest2.skipIf(os.environ.get('TRAVIS'), 'Running on travis')
     def test_child_processes_are_killed_on_sigint(self):
         process = self._start_sensor_container()
@@ -73,7 +72,6 @@ class SensorContainerTestCase(unittest2.TestCase):
 
         del self.processes[process.pid]
 
-    @unittest2.skipIf(True, 'Temporary disabled')
     @unittest2.skipIf(os.environ.get('TRAVIS'), 'Running on travis')
     def test_child_processes_are_killed_on_sigterm(self):
         process = self._start_sensor_container()
@@ -100,7 +98,6 @@ class SensorContainerTestCase(unittest2.TestCase):
 
         del self.processes[process.pid]
 
-    @unittest2.skipIf(True, 'Temporary disabled')
     @unittest2.skipIf(os.environ.get('TRAVIS'), 'Running on travis')
     def test_child_processes_are_killed_on_sigkill(self):
         process = self._start_sensor_container()
