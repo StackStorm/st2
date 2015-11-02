@@ -261,7 +261,8 @@ class ProcessSensorContainer(object):
         python_path = get_sandbox_python_binary_path(pack=sensor['pack'])
 
         if virtualenv_path and not os.path.isdir(virtualenv_path):
-            msg = PACK_VIRTUALENV_DOESNT_EXIST % (sensor['pack'], sensor['pack'])
+            format_values = {'pack': sensor['pack'], 'virtualenv_path': virtualenv_path}
+            msg = PACK_VIRTUALENV_DOESNT_EXIST % format_values
             raise Exception(msg)
 
         trigger_type_refs = sensor['trigger_types'] or []
