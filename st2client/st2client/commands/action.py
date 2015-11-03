@@ -927,6 +927,17 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, resource.ResourceCommand)
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
+        # We exclude "result" and / or "trigger_instance" attribute if it's not explicitly
+        # requested by user either via "--attr" flag or by default.
+        exclude_attributes = []
+
+        if 'result' not in args.attr:
+            exclude_attributes.append('result')
+        if 'trigger_instance' not in args.attr:
+            exclude_attributes.append('trigger_instance')
+
+        kwargs['params'] = {'exclude_attributes': ','.join(exclude_attributes)}
+
         execution = self.get_resource_by_id(id=args.id, **kwargs)
         return execution
 
