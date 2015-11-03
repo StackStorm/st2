@@ -135,11 +135,12 @@ Step 1: Configuring Hostname and SSL
 
 .. figure:: /_static/images/st2installer_step_1.png
 
-In this step, you will be setting up the networking for |st2|. Here, you will configure the hostname of the new server and optionally upload SSL certificates to be used by the |st2| WebUI, Auth, and API HTTP endpoints.
+In this step, you will be setting up the networking for |st2|. Here, you will configure the hostname of the new server and optionally upload SSL certificates to be used by the |st2| WebUI, Auth, and API HTTP endpoints. You will also specify your StackStorm Enterprise license key if you have one.
 
 #. Enter the FQDN of the |st2| server. This FQDN should be setup in your DNS server
 #. *(Optional)* Choose to send anonymous data to |st2|.
 #. Select either **Continue with self-signed** to continue with the automatically generated SSL certificates, or **Upload SSL Certificate** to upload public/private SSL keys.
+#. *(Optional)* Enable the Enterprise features. If you don't have a license key, request a 30-day trial at `stackstorm.com <https://stackstorm.com/product#enterprise>`_.
 #. Click **Next**
 
 Note: Uploaded SSL certificates should be in X509 ASCII/Base64 armored format.
