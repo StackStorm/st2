@@ -8,6 +8,9 @@ in development
   for Mistral have changed. (improvement)
 * Add SSH bastion host support to the paramiko SSH runner. Utilizes same connection parameters as
   the targeted box. (new feature, improvement) #2144, #2150 [Logan Attwood]
+* Improve speed of ``st2 execution list`` command by not requesting ``result`` and
+  ``trigger_instance`` attributes. The effect of this change will be especially pronounced for
+  installations with a lot of large executions.
 
 1.1.0 - October 27, 2015
 ------------------------
