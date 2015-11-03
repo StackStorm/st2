@@ -895,6 +895,10 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         if args.timestamp_lt:
             kwargs['timestamp_lt'] = args.timestamp_lt
 
+        # We exclude "result" and "trigger_instance" attributes which can contain a lot of data
+        # since they are not displayed nor used which speeds the common operation substantially.
+        kwargs['exclude_attributes'] = 'result,trigger_instance'
+
         return self.manager.query(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
