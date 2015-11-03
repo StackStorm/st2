@@ -17,6 +17,10 @@
 Module containing various debugging functionality.
 """
 
+import logging as stdlib_logging
+
+from st2common.logging.misc import set_log_level_for_all_loggers
+
 __all__ = [
     'enable_debugging',
     'disable_debugging',
@@ -29,6 +33,9 @@ ENABLE_DEBUGGING = False
 def enable_debugging():
     global ENABLE_DEBUGGING
     ENABLE_DEBUGGING = True
+
+    set_log_level_for_all_loggers(level=stdlib_logging.DEBUG)
+
     return ENABLE_DEBUGGING
 
 
