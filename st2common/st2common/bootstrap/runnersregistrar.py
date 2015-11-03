@@ -400,6 +400,15 @@ RUNNER_TYPES = [
 
     # Experimental runners below
     {
+        'name': 'announcement',
+        'aliases': [],
+        'description': 'A runner for emitting an announcement event on the stream.',
+        'enabled': True,
+        'runner_parameters': {
+        },
+        'runner_module': 'st2actions.runners.announcementrunner'
+    },
+    {
         'name': 'windows-cmd',
         'aliases': [],
         'description': 'A remote execution runner that executes commands'

@@ -1,0 +1,10 @@
+---
+description: Action that broadcasts the announcement to all stream consumers.
+enabled: true
+entry_point: ''
+name: announcement
+parameters:
+  message:
+    description: Message to broadcast.
+    type: string
+runner_type: announcement
