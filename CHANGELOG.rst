@@ -10,7 +10,10 @@ in development
   the targeted box. (new feature, improvement) #2144, #2150 [Logan Attwood]
 * Improve speed of ``st2 execution list`` command by not requesting ``result`` and
   ``trigger_instance`` attributes. The effect of this change will be especially pronounced for
-  installations with a lot of large executions.
+  installations with a lot of large executions (large execution for this purpose is an execution
+  with a large result).
+* Improve speed of ``st2 execution get`` command by not requesting ``result`` and
+  ``trigger_instance`` attributes.
 
 1.1.0 - October 27, 2015
 ------------------------
