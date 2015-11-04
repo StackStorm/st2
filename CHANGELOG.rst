@@ -14,6 +14,8 @@ in development
   with a large result).
 * Improve speed of ``st2 execution get`` command by not requesting ``result`` and
   ``trigger_instance`` attributes.
+* Now when running ``st2api`` service in debug mode (``--debug``) flag, all the JSON responses are
+  pretty indented.
 
 1.1.0 - October 27, 2015
 ------------------------
