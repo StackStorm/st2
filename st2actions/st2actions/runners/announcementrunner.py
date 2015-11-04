@@ -18,6 +18,8 @@ import uuid
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.exceptions import actionrunner as runnerexceptions
+from st2common.models.api.trace import TraceContext
 from st2common.transport.announcement import AnnouncementDispatcher
 
 LOG = logging.getLogger(__name__)
@@ -36,6 +38,19 @@ class AnnouncementRunner(ActionRunner):
         LOG.debug('Entering AnnouncementRunner.pre_run() for liveaction_id="%s"',
                   self.liveaction_id)
 
+        if not self.runner_parameters.get('experimental'):
+            message = ('Experimental flag is missing for action %s' % self.action.ref)
+            LOG.exception('Experimental runner is called without experimental flag.')
+            raise runnerexceptions.ActionRunnerPreRunError(message)
+
+        self._route = self.runner_parameters.get('route')
+
     def run(self, action_parameters):
-        self._dispatcher.dispatch('general', payload=action_parameters)
-        return (LIVEACTION_STATUS_SUCCEEDED, {'OK': True}, None)
+        trace_context = self.liveaction.context.get('trace_context', None)
+        if trace_context:
+            trace_context = TraceContext(**trace_context)
+
+        self._dispatcher.dispatch(self._route,
+                                  payload=action_parameters,
+                                  trace_context=trace_context)
+        return (LIVEACTION_STATUS_SUCCEEDED, action_parameters, None)

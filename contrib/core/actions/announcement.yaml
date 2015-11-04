@@ -4,7 +4,10 @@ enabled: true
 entry_point: ''
 name: announcement
 parameters:
+  experimental:
+    immutable: true
+    default: true
   message:
     description: Message to broadcast.
-    type: string
+    type: object
 runner_type: announcement

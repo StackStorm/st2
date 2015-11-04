@@ -37,19 +37,19 @@ class AnnouncementPublisher(object):
 
 class AnnouncementDispatcher(object):
     """
-    This trigger dispatcher dispatches trigger instances to a message queue (RabbitMQ).
+    This announcement dispatcher dispatches announcements to a message queue (RabbitMQ).
     """
 
     def __init__(self, logger=LOG):
         self._publisher = AnnouncementPublisher(urls=transport_utils.get_messaging_urls())
         self._logger = logger
 
-    def dispatch(self, routing_key, payload=None, trace_context=None):
+    def dispatch(self, routing_key, payload, trace_context=None):
         """
         Method which dispatches the announcement.
 
-        :param trigger: Full name / reference of the announcement.
-        :type trigger: ``str`` or ``object``
+        :param routing_key: Routing key of the announcement.
+        :type routing_key: ``str``
 
         :param payload: Announcement payload.
         :type payload: ``dict``

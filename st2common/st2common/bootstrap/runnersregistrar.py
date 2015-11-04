@@ -405,6 +405,20 @@ RUNNER_TYPES = [
         'description': 'A runner for emitting an announcement event on the stream.',
         'enabled': True,
         'runner_parameters': {
+            'experimental': {
+                'description': 'Flag to indicate acknowledment of using experimental runner',
+                'type': 'boolean',
+                'required': True,
+                'default': False
+            },
+            'route': {
+                'description': ('The routing_key used to route the message to consumers. '
+                                'Might be a list of words, delimited by dots.'),
+                'type': 'string',
+                'default': 'general',
+                'minLength': 1,
+                'maxLength': 255
+            }
         },
         'runner_module': 'st2actions.runners.announcementrunner'
     },
