@@ -6,7 +6,7 @@ on Ubuntu/Debian or RedHat/CentOS. Skip below if you want to learn about
 :doc:`puppet` or :doc:`chef`, or other installations approaches.
 
 
-.. note:: To install Enterprise Edition, enter your license key when prompted by graphical setup, or place it in the anwser file for unattended installation. To receive a key, request a free trial or obtain a license at `stackstorm.com/product <stackstorm.com/product/#enterprise>`_. If no license provided, StackStorm Community will be installed.
+.. note:: To install Enterprise Edition, enter your license key when prompted by graphical setup, or place it in the answer file for unattended installation. To receive a key, request a free trial or obtain a license at `stackstorm.com/product <stackstorm.com/product/#enterprise>`_. If no license provided, StackStorm Community will be installed.
 
 
 To install and run |st2| on a single Ubuntu/Debian or RedHat/CentOS box, with all dependencies,
