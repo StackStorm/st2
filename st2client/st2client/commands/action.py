@@ -824,7 +824,26 @@ class ActionExecutionBranch(resource.ResourceBranch):
 POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceled')
 
 
-class ActionExecutionListCommand(resource.ResourceCommand):
+class ActionExecutionReadCommand(resource.ResourceCommand):
+    """
+    Base class for read / view commands (list and get).
+    """
+
+    def _get_exclude_attributes(self, args):
+        """
+        Retrieve a list of exclude attributes for particular command line arguments.
+        """
+        exclude_attributes = []
+
+        if 'result' not in args.attr:
+            exclude_attributes.append('result')
+        if 'trigger_instance' not in args.attr:
+            exclude_attributes.append('trigger_instance')
+
+        return exclude_attributes
+
+
+class ActionExecutionListCommand(ActionExecutionReadCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'status', 'start_timestamp',
                           'end_timestamp']
     attribute_transform_functions = {
@@ -895,6 +914,12 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         if args.timestamp_lt:
             kwargs['timestamp_lt'] = args.timestamp_lt
 
+        # We exclude "result" and "trigger_instance" attributes which can contain a lot of data
+        # since they are not displayed nor used which speeds the common operation substantially.
+        exclude_attributes = self._get_exclude_attributes(args=args)
+        exclude_attributes = ','.join(exclude_attributes)
+        kwargs['exclude_attributes'] = exclude_attributes
+
         return self.manager.query(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
@@ -905,7 +930,7 @@ class ActionExecutionListCommand(resource.ResourceCommand):
                           attribute_transform_functions=self.attribute_transform_functions)
 
 
-class ActionExecutionGetCommand(ActionRunCommandMixin, resource.ResourceCommand):
+class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 
@@ -923,6 +948,13 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, resource.ResourceCommand)
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
+        # We exclude "result" and / or "trigger_instance" attribute if it's not explicitly
+        # requested by user either via "--attr" flag or by default.
+        exclude_attributes = self._get_exclude_attributes(args=args)
+        exclude_attributes = ','.join(exclude_attributes)
+
+        kwargs['params'] = {'exclude_attributes': exclude_attributes}
+
         execution = self.get_resource_by_id(id=args.id, **kwargs)
         return execution
 
