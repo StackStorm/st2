@@ -532,9 +532,9 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
         enabled = getattr(alias, 'enabled', True)
         action_ref = alias.action_ref
         formats = alias.formats
-        aliases = alias.aliases if hasattr(alias, 'aliases') else None
-        ack = alias.ack
-        result = alias.result
+        aliases = getattr(alias, 'aliases', None)
+        ack = getattr(alias, 'ack', None)
+        result = getattr(alias, 'result', None)
 
         model = cls.model(name=name, description=description, pack=pack, ref=ref, enabled=enabled,
                           action_ref=action_ref, formats=formats, aliases=aliases, ack=ack,
