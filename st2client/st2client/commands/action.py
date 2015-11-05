@@ -135,7 +135,7 @@ def format_execution_status(instance):
     Augment instance "status" attribute with number of seconds which have elapsed for all the
     executions which are in running state.
     """
-    if instance.status == LIVEACTION_STATUS_RUNNING:
+    if instance.status == LIVEACTION_STATUS_RUNNING and instance.start_timestamp:
         start_timestamp = instance.start_timestamp
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
