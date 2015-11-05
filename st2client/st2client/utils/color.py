@@ -72,14 +72,14 @@ def format_status(value):
 
     if len(split) == 2:
         status = split[0].strip()
-        reminder = '(' + split[1]
+        remainder = '(' + split[1]
     else:
         status = value
-        reminder = ''
+        remainder = ''
 
     color = STATUS_LOOKUP.get(status, DisplayColors.YELLOW)
     result = DisplayColors.colorize(status, color)
 
-    if reminder:
-        result = result + ' ' + reminder
+    if remainder:
+        result = result + ' ' + remainder
     return result
