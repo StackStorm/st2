@@ -497,6 +497,27 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
                 "type": "array",
                 "items": {"type": "string"},
                 "description": "Possible parameter format."
+            },
+            "aliases": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Parameter format hidden from public list."
+            },
+            "ack": {
+                "type": "object",
+                "properties": {
+                    "disabled": {"type": "boolean"},
+                    "format": {"type": "string"}
+                },
+                "description": "Acknowledgement message format."
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "disabled": {"type": "boolean"},
+                    "format": {"type": "string"}
+                },
+                "description": "Execution message format."
             }
         },
         "additionalProperties": False
@@ -511,9 +532,13 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
         enabled = getattr(alias, 'enabled', True)
         action_ref = alias.action_ref
         formats = alias.formats
+        aliases = alias.aliases if hasattr(alias, 'aliases') else None
+        ack = alias.ack
+        result = alias.result
 
         model = cls.model(name=name, description=description, pack=pack, ref=ref, enabled=enabled,
-                          action_ref=action_ref, formats=formats)
+                          action_ref=action_ref, formats=formats, aliases=aliases, ack=ack, 
+                          result=result)
         return model
 
 
