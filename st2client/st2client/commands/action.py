@@ -121,21 +121,29 @@ def format_wf_instances(instances):
     return instances
 
 
-def format_execution_status(instances):
+def format_execution_statuses(instances):
+    result = []
+    for instance in instances:
+        instance = format_execution_status(instance)
+        result.append(instance)
+
+    return result
+
+
+def format_execution_status(instance):
     """
     Augment instance "status" attribute with number of seconds which have elapsed for all the
     executions which are in running state.
     """
-    for instance in instances:
-        if instance.status == LIVEACTION_STATUS_RUNNING:
-            start_timestamp = instance.start_timestamp
-            start_timestamp = parse_isotime(start_timestamp)
-            start_timestamp = calendar.timegm(start_timestamp.timetuple())
-            now = int(time.time())
-            elapsed_seconds = (now - start_timestamp)
-            instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
+    if instance.status == LIVEACTION_STATUS_RUNNING:
+        start_timestamp = instance.start_timestamp
+        start_timestamp = parse_isotime(start_timestamp)
+        start_timestamp = calendar.timegm(start_timestamp.timetuple())
+        now = int(time.time())
+        elapsed_seconds = (now - start_timestamp)
+        instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
 
-    return instances
+    return instance
 
 
 class ActionBranch(resource.ResourceBranch):
@@ -943,7 +951,7 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
 
     def run_and_print(self, args, **kwargs):
         instances = format_wf_instances(self.run(args, **kwargs))
-        instances = format_execution_status(instances)
+        instances = format_execution_statuses(instances)
         # Add ellapsed time tostatus
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
@@ -983,6 +991,7 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadComman
     def run_and_print(self, args, **kwargs):
         try:
             execution = self.run(args, **kwargs)
+            execution = format_execution_status(execution)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
             raise OperationFailureException('Execution %s not found.' % (args.id))
