@@ -506,7 +506,7 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
             "ack": {
                 "type": "object",
                 "properties": {
-                    "disabled": {"type": "boolean"},
+                    "enabled": {"type": "boolean"},
                     "format": {"type": "string"}
                 },
                 "description": "Acknowledgement message format."
@@ -514,7 +514,7 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
             "result": {
                 "type": "object",
                 "properties": {
-                    "disabled": {"type": "boolean"},
+                    "enabled": {"type": "boolean"},
                     "format": {"type": "string"}
                 },
                 "description": "Execution message format."
