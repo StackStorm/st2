@@ -67,5 +67,19 @@ STATUS_LOOKUP = {
 
 
 def format_status(value):
-    color = STATUS_LOOKUP.get(value, DisplayColors.YELLOW)
-    return DisplayColors.colorize(value, color)
+    # Support status values with elapsed info
+    split = value.split('(', 1)
+
+    if len(split) == 2:
+        status = split[0].strip()
+        reminder = '(' + split[1]
+    else:
+        status = value
+        reminder = ''
+
+    color = STATUS_LOOKUP.get(status, DisplayColors.YELLOW)
+    result = DisplayColors.colorize(status, color)
+
+    if reminder:
+        result = result + ' ' + reminder
+    return result
