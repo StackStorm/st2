@@ -537,7 +537,7 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
         result = alias.result
 
         model = cls.model(name=name, description=description, pack=pack, ref=ref, enabled=enabled,
-                          action_ref=action_ref, formats=formats, aliases=aliases, ack=ack, 
+                          action_ref=action_ref, formats=formats, aliases=aliases, ack=ack,
                           result=result)
         return model
 
