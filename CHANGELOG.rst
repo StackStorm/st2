@@ -16,6 +16,8 @@ in development
   ``trigger_instance`` attributes.
 * Now when running ``st2api`` service in debug mode (``--debug``) flag, all the JSON responses are
   pretty indented.
+* When using ``st2 execution list`` and ``st2 execution get`` CLI commands, display execution
+  elapsed time in seconds for all the executions which are currently in "running" state.
 
 1.1.0 - October 27, 2015
 ------------------------
