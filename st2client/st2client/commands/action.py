@@ -19,6 +19,7 @@ import copy
 import json
 import logging
 import textwrap
+import calendar
 import time
 import six
 import sys
@@ -33,6 +34,7 @@ from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
 from st2client.utils import jsutil
 from st2client.utils.date import format_isodate
+from st2client.utils.date import parse as parse_isotime
 from st2client.utils.color import format_status
 
 LOG = logging.getLogger(__name__)
@@ -116,6 +118,23 @@ def format_wf_instances(instances):
             instance.id = WF_PREFIX + instance.id
         else:
             instance.id = NON_WF_PREFIX + instance.id
+    return instances
+
+
+def format_execution_status(instances):
+    """
+    Augment instance "status" attribute with number of seconds which have elapsed for all the
+    executions which are in running state.
+    """
+    for instance in instances:
+        if instance.status == LIVEACTION_STATUS_RUNNING:
+            start_timestamp = instance.start_timestamp
+            start_timestamp = parse_isotime(start_timestamp)
+            start_timestamp = calendar.timegm(start_timestamp.timetuple())
+            now = int(time.time())
+            elapsed_seconds = (now - start_timestamp)
+            instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
+
     return instances
 
 
@@ -924,6 +943,8 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
 
     def run_and_print(self, args, **kwargs):
         instances = format_wf_instances(self.run(args, **kwargs))
+        instances = format_execution_status(instances)
+        # Add ellapsed time tostatus
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json,
