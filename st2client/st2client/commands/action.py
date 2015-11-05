@@ -951,8 +951,11 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
 
     def run_and_print(self, args, **kwargs):
         instances = format_wf_instances(self.run(args, **kwargs))
-        instances = format_execution_statuses(instances)
-        # Add ellapsed time tostatus
+
+        if not args.json:
+            # Include elapsed time for running executions
+            instances = format_execution_statuses(instances)
+
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json,
@@ -991,7 +994,10 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadComman
     def run_and_print(self, args, **kwargs):
         try:
             execution = self.run(args, **kwargs)
-            execution = format_execution_status(execution)
+
+            if not args.json:
+                # Include elapsed time for running executions
+                execution = format_execution_status(execution)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
             raise OperationFailureException('Execution %s not found.' % (args.id))
