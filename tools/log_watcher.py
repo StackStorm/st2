@@ -107,7 +107,7 @@ def _get_log_count_dict():
 
 def _alert(fil, lines, logs, logs_level):
     print('WARNING: Too many logs!!!: File: %s, total lines: %d, log lines: %d, percent: %f, '
-          'logs: %s' % (fil, lines, logs, float(logs)/lines * 100, logs_level))
+          'logs: %s' % (fil, lines, logs, float(logs) / lines * 100, logs_level))
 
 
 def _match(line, match_strings):

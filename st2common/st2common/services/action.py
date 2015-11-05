@@ -17,9 +17,12 @@ import six
 
 from st2common import log as logging
 from st2common.constants import action as action_constants
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.exceptions.trace import TraceNotFoundException
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
+from st2common.services import trace as trace_service
 from st2common.util import date as date_utils
 from st2common.util import action_db as action_utils
 from st2common.util import schema as util_schema
@@ -27,7 +30,7 @@ from st2common.util import schema as util_schema
 
 __all__ = [
     'request',
-    'is_action_canceled'
+    'is_action_canceled_or_canceling'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -93,7 +96,22 @@ def request(liveaction):
 
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
+
+    # Get trace_db if it exists. This could throw. If it throws, we have to cleanup
+    # liveaction object so we don't see things in requested mode.
+    trace_db = None
+    try:
+        _, trace_db = trace_service.get_trace_db_by_live_action(liveaction)
+    except StackStormDBObjectNotFoundError as e:
+        _cleanup_liveaction(liveaction)
+        raise TraceNotFoundException(str(e))
+
     execution = executions.create_execution_object(liveaction, publish=False)
+
+    if trace_db:
+        trace_service.add_or_update_given_trace_db(
+            trace_db=trace_db,
+            action_executions=[str(execution.id)])
 
     # Assume that this is a creation.
     LiveAction.publish_create(liveaction)
@@ -107,14 +125,14 @@ def request(liveaction):
     return liveaction, execution
 
 
-def update_status(liveaction, new_status, publish=True):
+def update_status(liveaction, new_status, result=None, publish=True):
     if liveaction.status == new_status:
         return liveaction
 
     old_status = liveaction.status
 
     liveaction = action_utils.update_liveaction_status(
-        status=new_status, liveaction_id=liveaction.id, publish=False)
+        status=new_status, result=result, liveaction_id=liveaction.id, publish=False)
 
     action_execution = executions.update_execution(liveaction)
 
@@ -136,6 +154,40 @@ def update_status(liveaction, new_status, publish=True):
     return liveaction
 
 
-def is_action_canceled(liveaction_id):
+def is_action_canceled_or_canceling(liveaction_id):
     liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
-    return liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELED
+    return liveaction_db.status in [action_constants.LIVEACTION_STATUS_CANCELED,
+                                    action_constants.LIVEACTION_STATUS_CANCELING]
+
+
+def request_cancellation(liveaction, requester):
+    """
+    Request cancellation of an action execution.
+
+    :return: (liveaction, execution)
+    :rtype: tuple
+    """
+    if liveaction.status == action_constants.LIVEACTION_STATUS_CANCELING:
+        return liveaction
+
+    if liveaction.status not in action_constants.CANCELABLE_STATES:
+        raise Exception('Unable to cancel execution because it is already in a completed state.')
+
+    result = {
+        'message': 'Action canceled by user.',
+        'user': requester
+    }
+
+    update_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELING, result=result)
+
+    execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+
+    return (liveaction, execution)
+
+
+def _cleanup_liveaction(liveaction):
+    try:
+        LiveAction.delete(liveaction)
+    except:
+        LOG.exception('Failed cleaning up LiveAction: %s.', liveaction)
+        pass

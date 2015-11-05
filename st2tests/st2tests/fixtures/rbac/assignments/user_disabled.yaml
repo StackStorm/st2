@@ -1,0 +1,6 @@
+---
+    username: "user_disabled"
+    enabled: false
+    roles:
+        - "role_one"
+        - "observer"

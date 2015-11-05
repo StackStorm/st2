@@ -26,9 +26,9 @@ class TestBase(FunctionalTest):
         self.assertEqual(response.headers['Access-Control-Allow-Methods'],
                          'GET,POST,PUT,DELETE,OPTIONS')
         self.assertEqual(response.headers['Access-Control-Allow-Headers'],
-                         'Content-Type,Authorization,X-Auth-Token')
+                         'Content-Type,Authorization,X-Auth-Token,St2-Api-Key,X-Request-ID')
         self.assertEqual(response.headers['Access-Control-Expose-Headers'],
-                         'Content-Type,X-Limit,X-Total-Count')
+                         'Content-Type,X-Limit,X-Total-Count,X-Request-ID')
 
     def test_origin(self):
         response = self.app.get('/', headers={

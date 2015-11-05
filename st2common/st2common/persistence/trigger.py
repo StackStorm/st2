@@ -13,11 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
-
+from st2common import log as logging
 from st2common import transport
 from st2common.models.db.trigger import triggertype_access, trigger_access, triggerinstance_access
 from st2common.persistence.base import (Access, ContentPackResource)
+from st2common.transport import utils as transport_utils
+
+LOG = logging.getLogger(__name__)
 
 
 class TriggerType(ContentPackResource):
@@ -39,8 +41,41 @@ class Trigger(ContentPackResource):
     @classmethod
     def _get_publisher(cls):
         if not cls.publisher:
-            cls.publisher = transport.reactor.TriggerCUDPublisher(cfg.CONF.messaging.url)
+            cls.publisher = transport.reactor.TriggerCUDPublisher(
+                urls=transport_utils.get_messaging_urls())
         return cls.publisher
+
+    @classmethod
+    def delete_if_unreferenced(cls, model_object, publish=True, dispatch_trigger=True):
+        # Found in the innards of mongoengine.
+        # e.g. {'pk': ObjectId('5609e91832ed356d04a93cc0')}
+        delete_query = model_object._object_key
+        delete_query['ref_count__lte'] = 0
+        cls._get_impl().delete_by_query(**delete_query)
+
+        # Since delete_by_query cannot tell if teh delete actually happened check with a get call
+        # if the trigger was deleted. Unfortuantely, this opens up to races on delete.
+        confirmed_delete = False
+        try:
+            cls.get_by_id(model_object.id)
+        except ValueError:
+            confirmed_delete = True
+
+        # Publish internal event on the message bus
+        if confirmed_delete and publish:
+            try:
+                cls.publish_delete(model_object)
+            except Exception:
+                LOG.exception('Publish failed.')
+
+        # Dispatch trigger
+        if confirmed_delete and dispatch_trigger:
+            try:
+                cls.dispatch_delete_trigger(model_object)
+            except Exception:
+                LOG.exception('Trigger dispatch failed.')
+
+        return model_object
 
 
 class TriggerInstance(Access):

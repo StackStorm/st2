@@ -45,7 +45,8 @@ class CLIConfigParserTestCase(unittest2.TestCase):
             'general': {
                 'base_url': 'http://localhost',
                 'api_version': 'v1',
-                'cacert': 'cacartpath'
+                'cacert': 'cacartpath',
+                'silence_ssl_warnings': False
             },
             'cli': {
                 'debug': True,

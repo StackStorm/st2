@@ -15,17 +15,24 @@
 
 import six
 import jsonschema
+import pecan
 from pecan import abort
 from mongoengine import ValidationError
 
 from st2common import log as logging
-from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2api.controllers import resource
+from st2api.controllers.v1.ruleviews import RuleViewController
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.rule import Rule
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_api_permission
+from st2common.rbac.decorators import request_user_has_resource_db_permission
+from st2common.rbac.utils import assert_request_user_has_rule_trigger_and_action_permission
+from st2common.services.triggers import cleanup_trigger_db_for_rule, increment_trigger_ref_count
 
 http_client = six.moves.http_client
 
@@ -37,6 +44,7 @@ class RuleController(resource.ContentPackResourceController):
         Implements the RESTful web endpoint that handles
         the lifecycle of Rules in the system.
     """
+    views = RuleViewController()
 
     model = RuleAPI
     access = Rule
@@ -51,7 +59,18 @@ class RuleController(resource.ContentPackResourceController):
 
     include_reference = True
 
+    @request_user_has_permission(permission_type=PermissionType.RULE_LIST)
+    @jsexpose()
+    def get_all(self, **kwargs):
+        return super(RuleController, self)._get_all(**kwargs)
+
+    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_VIEW)
+    @jsexpose(arg_types=[str])
+    def get_one(self, ref_or_id):
+        return super(RuleController, self)._get_one(ref_or_id)
+
     @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
+    @request_user_has_resource_api_permission(permission_type=PermissionType.RULE_CREATE)
     def post(self, rule):
         """
             Create a new rule.
@@ -60,11 +79,19 @@ class RuleController(resource.ContentPackResourceController):
                 POST /rules/
         """
         try:
-            if not hasattr(rule, 'pack'):
-                setattr(rule, 'pack', DEFAULT_PACK_NAME)
             rule_db = RuleAPI.to_model(rule)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
+
+            # Check referenced trigger and action permissions
+            # Note: This needs to happen after "to_model" call since to_model performs some
+            # validation (trigger exists, etc.)
+            assert_request_user_has_rule_trigger_and_action_permission(request=pecan.request,
+                                                                       rule_api=rule)
+
             rule_db = Rule.add_or_update(rule_db)
+            # After the rule has been added modify the ref_count. This way a failure to add
+            # the rule due to violated constraints will have no impact on ref_count.
+            increment_trigger_ref_count(rule_api=rule)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s.', rule)
             abort(http_client.BAD_REQUEST, str(e))
@@ -85,6 +112,7 @@ class RuleController(resource.ContentPackResourceController):
 
         return rule_api
 
+    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_MODIFY)
     @jsexpose(arg_types=[str], body_cls=RuleAPI)
     def put(self, rule_ref_or_id, rule):
         rule_db = self._get_by_ref_or_id(rule_ref_or_id)
@@ -96,12 +124,25 @@ class RuleController(resource.ContentPackResourceController):
                             rule.id, rule_ref_or_id)
             old_rule_db = rule_db
             rule_db = RuleAPI.to_model(rule)
+
+            # Check referenced trigger and action permissions
+            # Note: This needs to happen after "to_model" call since to_model performs some
+            # validation (trigger exists, etc.)
+            assert_request_user_has_rule_trigger_and_action_permission(request=pecan.request,
+                                                                       rule_api=rule)
+
             rule_db.id = rule_ref_or_id
             rule_db = Rule.add_or_update(rule_db)
+            # After the rule has been added modify the ref_count. This way a failure to add
+            # the rule due to violated constraints will have no impact on ref_count.
+            increment_trigger_ref_count(rule_api=rule)
         except (ValueValidationException, jsonschema.ValidationError, ValueError) as e:
             LOG.exception('Validation failed for rule data=%s', rule)
             abort(http_client.BAD_REQUEST, str(e))
             return
+
+        # use old_rule_db for cleanup.
+        cleanup_trigger_db_for_rule(old_rule_db)
 
         extra = {'old_rule_db': old_rule_db, 'new_rule_db': rule_db}
         LOG.audit('Rule updated. Rule.id=%s.' % (rule_db.id), extra=extra)
@@ -109,6 +150,7 @@ class RuleController(resource.ContentPackResourceController):
 
         return rule_api
 
+    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_DELETE)
     @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, rule_ref_or_id):
         """
@@ -126,6 +168,9 @@ class RuleController(resource.ContentPackResourceController):
                           rule_ref_or_id)
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
+
+        # use old_rule_db for cleanup.
+        cleanup_trigger_db_for_rule(rule_db)
 
         extra = {'rule_db': rule_db}
         LOG.audit('Rule deleted. Rule.id=%s.' % (rule_db.id), extra=extra)

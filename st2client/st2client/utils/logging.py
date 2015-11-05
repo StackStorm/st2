@@ -18,7 +18,9 @@ from __future__ import absolute_import
 import logging
 
 __all__ = [
-    'LogLevelFilter'
+    'LogLevelFilter',
+    'set_log_level_for_all_handlers',
+    'set_log_level_for_all_loggers'
 ]
 
 
@@ -36,3 +38,31 @@ class LogLevelFilter(logging.Filter):
             return False
 
         return True
+
+
+def set_log_level_for_all_handlers(logger, level=logging.DEBUG):
+    """
+    Set a log level for all the handlers on the provided logger.
+    """
+    logger.setLevel(level)
+
+    handlers = logger.handlers
+    for handler in handlers:
+        handler.setLevel(level)
+
+    return logger
+
+
+def set_log_level_for_all_loggers(level=logging.DEBUG):
+    """
+    Set a log level for all the loggers and handlers to the provided level.
+    """
+    root_logger = logging.getLogger()
+    loggers = logging.Logger.manager.loggerDict.values()
+    loggers += [root_logger]
+
+    for logger in loggers:
+        if not isinstance(logger, logging.Logger):
+            continue
+
+        set_log_level_for_all_handlers(logger=logger)

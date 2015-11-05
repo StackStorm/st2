@@ -44,7 +44,6 @@ class CloudSlangRunnerTestCase(TestCase):
             csr.RUNNER_INPUTS: inputs,
             csr.RUNNER_TIMEOUT: timeout,
         }
-        tests_config._register_mistral_opts()
         runner.pre_run()
         self.assertEqual(runner.entry_point, entry_point)
         self.assertEqual(runner._inputs, inputs)

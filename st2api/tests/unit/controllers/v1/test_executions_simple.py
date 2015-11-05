@@ -31,9 +31,10 @@ from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.models.db.auth import TokenDB
 from st2common.persistence.auth import Token
+from st2common.persistence.trace import Trace
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest, AuthMiddlewareTest
+from tests import FunctionalTest
 
 
 ACTION_1 = {
@@ -231,7 +232,25 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(post_resp.status_int, 201)
         delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
         self.assertEqual(delete_resp.status_int, 200)
-        self.assertEqual(delete_resp.json['status'], 'canceled')
+        self.assertEqual(delete_resp.json['status'], 'canceling')
+        expected_result = {'message': 'Action canceled by user.', 'user': 'stanley'}
+        self.assertDictEqual(delete_resp.json['result'], expected_result)
+
+    def test_post_delete_trace(self):
+        LIVE_ACTION_TRACE = copy.copy(LIVE_ACTION_1)
+        LIVE_ACTION_TRACE['context'] = {'trace_context': {'trace_tag': 'balleilaka'}}
+        post_resp = self._do_post(LIVE_ACTION_TRACE)
+        self.assertEqual(post_resp.status_int, 201)
+        delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
+        self.assertEqual(delete_resp.status_int, 200)
+        self.assertEqual(delete_resp.json['status'], 'canceling')
+        trace_id = str(Trace.get_all()[0].id)
+        LIVE_ACTION_TRACE['context'] = {'trace_context': {'id_': trace_id}}
+        post_resp = self._do_post(LIVE_ACTION_TRACE)
+        self.assertEqual(post_resp.status_int, 201)
+        delete_resp = self._do_delete(self._get_actionexecution_id(post_resp))
+        self.assertEqual(delete_resp.status_int, 200)
+        self.assertEqual(delete_resp.json['status'], 'canceling')
 
     def test_post_parameter_validation_failed(self):
         execution = copy.deepcopy(LIVE_ACTION_1)
@@ -355,10 +374,18 @@ class TestActionExecutionController(FunctionalTest):
         return self.app.delete('/v1/executions/%s' % actionexecution_id,
                                expect_errors=expect_errors)
 
+
+# TestActionExecutionControllerAuthEnabled test section
+
 NOW = date_utils.get_datetime_utc_now()
 EXPIRY = NOW + datetime.timedelta(seconds=300)
 SYS_TOKEN = TokenDB(id=bson.ObjectId(), user='system', token=uuid.uuid4().hex, expiry=EXPIRY)
 USR_TOKEN = TokenDB(id=bson.ObjectId(), user='tokenuser', token=uuid.uuid4().hex, expiry=EXPIRY)
+
+FIXTURES_PACK = 'generic'
+FIXTURES = {
+    'users': ['system_user.yaml', 'token_user.yaml']
+}
 
 
 def mock_get_token(*args, **kwargs):
@@ -368,7 +395,9 @@ def mock_get_token(*args, **kwargs):
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
+class TestActionExecutionControllerAuthEnabled(FunctionalTest):
+
+    enable_auth = True
 
     @classmethod
     @mock.patch.object(
@@ -382,6 +411,9 @@ class TestActionExecutionControllerAuthEnabled(AuthMiddlewareTest):
         headers = {'content-type': 'application/json', 'X-Auth-Token': str(SYS_TOKEN.token)}
         post_resp = cls.app.post_json('/v1/actions', cls.action, headers=headers)
         cls.action['id'] = post_resp.json['id']
+
+        FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
+                                             fixtures_dict=FIXTURES)
 
     @classmethod
     @mock.patch.object(

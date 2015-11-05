@@ -1,11 +1,12 @@
 CLI and Python Client
 =========================
 
-Install from Source
+Install
 -------------------
 
-Git clone the |st2| repo locally, change directory to st2client, then
-run "python setup.py install".
+::
+
+  pip2.7 install st2client
 
 Endpoint Configuration
 ----------------------

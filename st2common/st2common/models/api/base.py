@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 import abc
 import copy
 import functools
@@ -23,14 +24,23 @@ import six
 from six.moves import http_client
 from webob import exc
 import pecan
-import pecan.jsonify
 import traceback
 from oslo_config import cfg
 
+from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.util import mongoescape as util_mongodb
 from st2common.util import schema as util_schema
+from st2common.util.debugging import is_enabled as is_debugging_enabled
 from st2common.util.jsonify import json_encode
 from st2common import log as logging
+
+__all__ = [
+    'BaseAPI',
+
+    'APIUIDMixin',
+
+    'jsexpose'
+]
 
 
 LOG = logging.getLogger(__name__)
@@ -47,7 +57,7 @@ class BaseAPI(object):
 
     def __repr__(self):
         name = type(self).__name__
-        attrs = ', '.join("'%s':%r" % item for item in six.iteritems(vars(self)))
+        attrs = ', '.join("'%s': %r" % item for item in six.iteritems(vars(self)))
         # The format here is so that eval can be applied.
         return "%s(**{%s})" % (name, attrs)
 
@@ -101,6 +111,26 @@ class BaseAPI(object):
         raise NotImplementedError()
 
 
+class APIUIDMixin(object):
+    """"
+    Mixin class for retrieving UID for API objects.
+    """
+
+    def get_uid(self):
+        # TODO: This is not the most efficient approach - refactor this functionality into util
+        # module and re-use it here and in the DB model
+        resource_db = self.to_model(self)
+        resource_uid = resource_db.get_uid()
+        return resource_uid
+
+    def get_pack_uid(self):
+        # TODO: This is not the most efficient approach - refactor this functionality into util
+        # module and re-use it here and in the DB model
+        resource_db = self.to_model(self)
+        pack_uid = resource_db.get_pack_uid()
+        return pack_uid
+
+
 def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='application/json'):
     """
     :param arg_types: A list of types for the function arguments.
@@ -123,6 +153,7 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
     def decorate(f):
         @functools.wraps(f)
         def callfunction(*args, **kwargs):
+            function_name = f.__name__
             args = list(args)
             types = copy.copy(arg_types)
             more = [args.pop(0)]
@@ -159,6 +190,17 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                 except Exception as e:
                     raise exc.HTTPInternalServerError(detail=e.message,
                                                       comment=traceback.format_exc())
+
+                # Set default pack if one is not provided for resource create
+                if function_name == 'post' and not hasattr(obj, 'pack'):
+                    extra = {
+                        'resource_api': obj,
+                        'default_pack_name': DEFAULT_PACK_NAME
+                    }
+                    LOG.debug('Pack not provided in the body, setting a default pack name',
+                              extra=extra)
+                    setattr(obj, 'pack', DEFAULT_PACK_NAME)
+
                 more.append(obj)
 
             args = tuple(more) + tuple(args)
@@ -171,12 +213,29 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                 pecan.response.status = status_code
                 return json_encode(None)
 
-            result = f(*args, **kwargs)
+            try:
+                result = f(*args, **kwargs)
+            except TypeError as e:
+                message = str(e)
+                # Invalid number of arguments passed to the function meaning invalid path was
+                # requested
+                # Note: The check is hacky, but it works for now.
+                func_name = f.__name__
+                pattern = '%s\(\) takes exactly \d+ arguments \(\d+ given\)' % (func_name)
+
+                if re.search(pattern, message):
+                    raise exc.HTTPNotFound()
+                else:
+                    raise e
 
             if status_code:
                 pecan.response.status = status_code
             if content_type == 'application/json':
-                return json_encode(result, indent=None)
+                if is_debugging_enabled():
+                    indent = 4
+                else:
+                    indent = None
+                return json_encode(result, indent=indent)
             else:
                 return result
 

@@ -14,22 +14,26 @@
 # limitations under the License.
 
 """
-This module contains common service setup code.
+This module contains common service setup and teardown code.
 """
 
 from __future__ import absolute_import
 
 import os
-import logging as stdlib_logging
 
 from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.models import db
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
-from st2common.logging.misc import set_log_level_for_all_loggers
-from st2common.transport.utils import register_exchanges
+from st2common.persistence import db_init
+from st2common.transport.bootstrap_utils import register_exchanges
 from st2common.signal_handlers import register_common_signal_handlers
+from st2common.util.debugging import enable_debugging
+from st2common.models.utils.profiling import enable_profiling
+from st2common import triggers
+
+from st2common.rbac.migrations import run_all as run_all_rbac_migrations
 
 __all__ = [
     'setup',
@@ -43,7 +47,8 @@ LOG = logging.getLogger(__name__)
 
 
 def setup(service, config, setup_db=True, register_mq_exchanges=True,
-          register_signal_handlers=True):
+          register_signal_handlers=True, register_internal_trigger_types=False,
+          run_migrations=True, config_args=None):
     """
     Common setup function.
 
@@ -54,6 +59,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     3. Set log level for all the loggers to DEBUG if --debug flag is present
     4. Registers RabbitMQ exchanges
     5. Registers common signal handlers
+    6. Register internal trigger types
 
     :param service: Name of the service.
     :param config: Config object to use to parse args.
@@ -63,7 +69,10 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     logging.setup(DEFAULT_LOGGING_CONF_PATH)
 
     # Parse args to setup config.
-    config.parse_args()
+    if config_args:
+        config.parse_args(config_args)
+    else:
+        config.parse_args()
 
     config_file_paths = cfg.CONF.config_file
     config_file_paths = [os.path.abspath(path) for path in config_file_paths]
@@ -77,18 +86,33 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     logging.setup(logging_config_path)
 
     if cfg.CONF.debug:
-        set_log_level_for_all_loggers(level=stdlib_logging.DEBUG)
+        enable_debugging()
 
     # All other setup which requires config to be parsed and logging to
     # be correctly setup.
     if setup_db:
         db_setup()
 
+    if cfg.CONF.debug or cfg.CONF.profile:
+        enable_profiling()
+
     if register_mq_exchanges:
         register_exchanges()
 
     if register_signal_handlers:
         register_common_signal_handlers()
+
+    if register_internal_trigger_types:
+        triggers.register_internal_trigger_types()
+
+    # TODO: This is a "not so nice" workaround until we have a proper migration system in place
+    if run_migrations:
+        run_all_rbac_migrations()
+
+    if cfg.CONF.rbac.enable and not cfg.CONF.auth.enable:
+        msg = ('Authentication is not enabled. RBAC only works when authentication is enabled.'
+               'You can either enable authentication or disable RBAC.')
+        raise Exception(msg)
 
 
 def teardown():
@@ -102,8 +126,10 @@ def db_setup():
     username = getattr(cfg.CONF.database, 'username', None)
     password = getattr(cfg.CONF.database, 'password', None)
 
-    connection = db.db_setup(db_name=cfg.CONF.database.db_name, db_host=cfg.CONF.database.host,
-                             db_port=cfg.CONF.database.port, username=username, password=password)
+    connection = db_init.db_setup_with_retry(
+        db_name=cfg.CONF.database.db_name, db_host=cfg.CONF.database.host,
+        db_port=cfg.CONF.database.port, username=username, password=password
+    )
     return connection
 
 

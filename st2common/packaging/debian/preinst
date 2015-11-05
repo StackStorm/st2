@@ -1,9 +1,10 @@
 #!/bin/bash
 
 set -e
+
 mkdir -p /var/log/st2
 mkdir -p /etc/st2
-mkdir -p /opt/stackstorm/packs/default
-mkdir -p /opt/stackstorm/packs/default/actions
-mkdir -p /opt/stackstorm/packs/default/sensors
-mkdir -p /opt/stackstorm/packs/default/rules
+mkdir -p /opt/stackstorm/packs
+mkdir -p /opt/stackstorm/rbac
+mkdir -p /opt/stackstorm/rbac/roles
+mkdir -p /opt/stackstorm/rbac/assignments

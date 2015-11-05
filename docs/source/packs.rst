@@ -4,7 +4,7 @@ Integration Packs
 What is a Pack?
 ---------------
 Pack is the unit of deployment for integrations and automations in order to extend |st2|. Typically a pack is organized along service or product boundaries e.g. AWS, Docker, Sensu etc. A pack can contain :doc:`Actions </actions>`, :doc:`Workflows </workflows>`,
-:doc:`Rules </rules>`, :doc:`Sensors </sensors>`.
+:doc:`Rules </rules>`, :doc:`Sensors </sensors>`, :doc:`Aliases <chatops/aliases>`.
 
 It is best to view a pack as the means to extend |st2| and allow it to integrate with an external systems. See `next section` to learn more about pack management.
 
@@ -19,7 +19,7 @@ into any additional directories which are specified in the ``packs_base_paths`` 
 
 If user wants |st2| to look for packs in additional directories, they can do that by setting the
 value of ``packs_base_paths`` in ``st2.conf`` (typically in :github_st2:`/etc/st2/st2.conf
-</conf/st2.prod.conf>`, as described in :doc:`Configuration <install/config>`). The value must be a
+</conf/st2.prod.conf>`, as described in :doc:`Configuration <config/config>`). The value must be a
 colon delimited string of directory paths.
 
 For example:
@@ -109,5 +109,6 @@ See :doc:`/reference/packs` for details on how to pack your integrations and aut
     - `st2incubator`_ - upcoming integration packs and productivity tools.
 * Learn how to write a pack and contribute to community  - :doc:`/reference/packs`
 * Learn how to write :ref:`custom sensors <ref-sensors-authoring-a-sensor>` and :ref:`custom actions <ref-actions-writing-custom>`
+* Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - a growing set of practical examples of automating with StackStorm.
 
 .. include:: /engage.rst

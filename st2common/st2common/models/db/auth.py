@@ -13,17 +13,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import mongoengine as me
+
+from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
+from st2common.constants.types import ResourceType
+from st2common.fields import ComplexDateTimeField
 from st2common.models.db import stormbase
+from st2common.services.rbac import get_roles_for_user
+from st2common.util import date as date_utils
 
 __all__ = [
     'UserDB',
-    'TokenDB'
+    'TokenDB',
+    'ApiKeyDB'
 ]
 
 
 class UserDB(stormbase.StormFoundationDB):
     name = me.StringField(required=True, unique=True)
+
+    def get_roles(self):
+        """
+        Retrieve roles assigned to that user.
+
+        :rtype: ``list`` of :class:`RoleDB`
+        """
+        result = get_roles_for_user(user_db=self)
+        return result
+
+    def get_permission_assingments(self):
+        # TODO
+        pass
 
 
 class TokenDB(stormbase.StormFoundationDB):
@@ -34,4 +55,41 @@ class TokenDB(stormbase.StormFoundationDB):
                             help_text='Arbitrary metadata associated with this token')
 
 
-MODELS = [UserDB, TokenDB]
+class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
+    """
+    """
+    RESOURCE_TYPE = ResourceType.API_KEY
+    UID_FIELDS = ['key_hash']
+
+    user = me.StringField(required=True)
+    key_hash = me.StringField(required=True, unique=True)
+    metadata = me.DictField(required=False,
+                            help_text='Arbitrary metadata associated with this token')
+    created_at = ComplexDateTimeField(default=date_utils.get_datetime_utc_now,
+                                      help_text='The creation time of this ApiKey.')
+    enabled = me.BooleanField(required=True, default=True,
+                              help_text='A flag indicating whether the ApiKey is enabled.')
+
+    meta = {
+        'indexes': [
+            {'fields': ['user']},
+            {'fields': ['key_hash']}
+        ]
+    }
+
+    def __init__(self, *args, **values):
+        super(ApiKeyDB, self).__init__(*args, **values)
+        self.uid = self.get_uid()
+
+    def mask_secrets(self, value):
+        result = copy.deepcopy(value)
+
+        # In theory the key_hash is safe to return as it is one way. On the other
+        # hand given that this is actually a secret no real point in letting the hash
+        # escape. Since uid contains key_hash masking that as well.
+        result['key_hash'] = MASKED_ATTRIBUTE_VALUE
+        result['uid'] = MASKED_ATTRIBUTE_VALUE
+        return result
+
+
+MODELS = [UserDB, TokenDB, ApiKeyDB]

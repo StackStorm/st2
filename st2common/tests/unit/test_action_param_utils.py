@@ -15,39 +15,63 @@
 # limitations under the License.
 
 import copy
+import six
 
-from unittest2 import TestCase
 from st2common.models.utils import action_param_utils
+from st2common.models.api.action import RunnerTypeAPI, ActionAPI
+from st2common.persistence.action import Action
+from st2common.persistence.runner import RunnerType
+from st2tests.base import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
 
-FIXTURES_PACK = 'generic'
-
-TEST_MODELS = {
-    'actions': ['action1.yaml'],
-    'runners': ['testrunner1.yaml']
+TEST_FIXTURES = {
+    'actions': [
+        'action1.yaml',
+        'action3.yaml'
+    ],
+    'runners': [
+        'testrunner1.yaml',
+        'testrunner3.yaml'
+    ]
 }
 
-FIXTURES = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
-                                        fixtures_dict=TEST_MODELS)
+PACK = 'generic'
+LOADER = FixturesLoader()
+FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 
 
-class ActionParamsUtilsTest(TestCase):
-    action_db = FIXTURES['actions']['action1.yaml']
-    runnertype_db = FIXTURES['runners']['testrunner1.yaml']
+class ActionParamsUtilsTest(DbTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(ActionParamsUtilsTest, cls).setUpClass()
+
+        cls.runnertype_dbs = {}
+        cls.action_dbs = {}
+
+        for _, fixture in six.iteritems(FIXTURES['runners']):
+            instance = RunnerTypeAPI(**fixture)
+            runnertype_db = RunnerType.add_or_update(RunnerTypeAPI.to_model(instance))
+            cls.runnertype_dbs[runnertype_db.name] = runnertype_db
+
+        for _, fixture in six.iteritems(FIXTURES['actions']):
+            instance = ActionAPI(**fixture)
+            action_db = Action.add_or_update(ActionAPI.to_model(instance))
+            cls.action_dbs[action_db.name] = action_db
 
     def test_merge_action_runner_params_meta(self):
         required, optional, immutable = action_param_utils.get_params_view(
-            action_db=ActionParamsUtilsTest.action_db,
-            runner_db=ActionParamsUtilsTest.runnertype_db)
+            action_db=self.action_dbs['action-1'],
+            runner_db=self.runnertype_dbs['test-runner-1'])
         merged = {}
         merged.update(required)
         merged.update(optional)
         merged.update(immutable)
 
         consolidated = action_param_utils.get_params_view(
-            action_db=ActionParamsUtilsTest.action_db,
-            runner_db=ActionParamsUtilsTest.runnertype_db,
+            action_db=self.action_dbs['action-1'],
+            runner_db=self.runnertype_dbs['test-runner-1'],
             merged_only=True)
 
         # Validate that merged_only view works.
@@ -70,8 +94,8 @@ class ActionParamsUtilsTest(TestCase):
 
     def test_merge_param_meta_values(self):
         runner_meta = copy.deepcopy(
-            ActionParamsUtilsTest.runnertype_db.runner_parameters['runnerdummy'])
-        action_meta = copy.deepcopy(ActionParamsUtilsTest.action_db.parameters['runnerdummy'])
+            self.runnertype_dbs['test-runner-1'].runner_parameters['runnerdummy'])
+        action_meta = copy.deepcopy(self.action_dbs['action-1'].parameters['runnerdummy'])
         merged_meta = action_param_utils._merge_param_meta_values(action_meta=action_meta,
                                                                   runner_meta=runner_meta)
 
@@ -81,3 +105,17 @@ class ActionParamsUtilsTest(TestCase):
         self.assertEqual(merged_meta['default'], action_meta['default'])
         # Immutability is set in action.
         self.assertEqual(merged_meta['immutable'], action_meta['immutable'])
+
+    def test_validate_action_inputs(self):
+        requires, unexpected = action_param_utils.validate_action_parameters(
+            self.action_dbs['action-1'].ref, {'foo': 'bar'})
+
+        self.assertListEqual(requires, ['actionstr'])
+        self.assertListEqual(unexpected, ['foo'])
+
+    def test_validate_overridden_action_inputs(self):
+        requires, unexpected = action_param_utils.validate_action_parameters(
+            self.action_dbs['action-3'].ref, {'k1': 'foo'})
+
+        self.assertListEqual(requires, [])
+        self.assertListEqual(unexpected, [])

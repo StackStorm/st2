@@ -64,6 +64,9 @@ To execute an action manually, you can use ``st2 run <action with parameters>`` 
    # Obtain execution results (the command below is provided as a tip in the output of the above command):
    st2 execution get 54fc83b9e11c711106a7ae01
 
+   # If you want to add a trace tag to execution when you run it, you can use:
+   st2 run core.local cmd=date --trace-tag="simple-date-check-`date +%s`"
+
 Action Runner
 ^^^^^^^^^^^^^
 
@@ -181,6 +184,51 @@ parameters (from_number, to_number, body).
 In the example above, ``to_number`` parameter contains attribute ``secret``
 which value is ``true``. If an attribute is marked as a secret, value of that
 attribute will be masked in the |st2| service logs.
+
+Parameters in actions
+~~~~~~~~~~~~~~~~~~~~~
+
+In the previous example, you probably noticed how you can access parameters from
+from key value store by using the ``system`` prefix in the template. You can also
+get access variables from the context of the execution. For example:
+
+.. code-block:: yaml
+
+    parameters:
+      user:
+        type: "string"
+        description: "User of this action."
+        required: true
+        default: "{{action_context.api_user}}"
+
+
+The prefix ``action_context`` is used to refer to variables in action context. Depending on how
+the execution is executed and nature of action (simple vs workflow), variables in action_context changes.
+
+A simple execution via the API will only contain variable ``user``. An execution triggered via
+chatops will contain variables such as ``api_user``, ``user`` and ``source_channel``. In
+chatops case, ``api_user`` is the user who's kicking off the chatops command from
+client and ``user`` is the |st2| user configured in hubot. ``source_channel`` is the channel
+in which the chatops command was kicked off.
+
+In case of action chains and workflows (see :doc:`Workflow </workflows>`), every task in the workflow could access the parent's ``execution_id``. For example, a task in action chain is
+shown below:
+
+.. code-block:: yaml
+
+    -
+      name: "c2"
+      ref: "core.local"
+      params:
+          cmd: "echo \"c2: parent exec is {{action_context.parent.execution_id}}.\""
+      on-success: "c3"
+      on-failure: "c4"
+
+
+.. note::
+
+  This is still an experimental feature and things are in the flux. You are advised not to
+  depend on them.
 
 Action Registration
 ~~~~~~~~~~~~~~~~~~~
@@ -333,6 +381,9 @@ value in the following format:
 If your script only uses positional arguments (which is usually the case for
 a lot of scripts out there), you simply need to declare parameters with correct
 value for the ``position`` attribute in the metadata file.
+
+The ``immutable`` value defines whether the default value of a parameter can be overridden.
+This is particular important if you expose commands via chatops and do not like security related parameters to be manipulated by user input.
 
 Example 1 - existing bash script with positional arguments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -505,8 +556,7 @@ To see other available predefined actions, run the command below.
 
     st2 action list --pack=core
 
-Community contributed actions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. rubric:: What's Next?
 
-More packs and actions contributed by the |st2| developers and
-community can be found in the `StackStorm contrib repo on Github <https://github.com/StackStorm/st2contrib/>`_.
+* Explore packs and actions contributed by |st2| developers and community in the `StackStorm st2contrib repo on Github <https://github.com/StackStorm/st2contrib/>`_.
+* Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - on creating actions, and other practical examples of automating with StackStorm.

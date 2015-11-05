@@ -41,34 +41,13 @@ __all__ = [
 
 
 class RunnerContainer(object):
-    def dispatch(self, liveaction_db):
-        action_db = get_action_by_ref(liveaction_db.action)
-        if not action_db:
-            raise Exception('Action %s not found in DB.' % (liveaction_db.action))
 
-        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
-
-        extra = {'liveaction_db': liveaction_db, 'runnertype_db': runnertype_db}
-        LOG.info('Dispatching Action to a runner', extra=extra)
-
-        # Get runner instance.
+    def _get_runner(self, runnertype_db, action_db, liveaction_db):
         runner = get_runner(runnertype_db.runner_module)
-        LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
-        # Invoke pre_run, run, post_run cycle.
-        liveaction_db = self._do_run(runner, runnertype_db, action_db, liveaction_db)
-
-        extra = {'result': liveaction_db.result}
-        LOG.debug('Runner do_run result', extra=extra)
-
-        extra = {'liveaction_db': liveaction_db}
-        LOG.audit('Liveaction completed', extra=extra)
-
-        return liveaction_db.result
-
-    def _do_run(self, runner, runnertype_db, action_db, liveaction_db):
         resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
                                                               action_db.entry_point)
+
         runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
@@ -82,8 +61,32 @@ class RunnerContainer(object):
         runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
                                                               action_db.entry_point)
 
-        # Create a temporary auth token which will be available during duration of the action
-        # execution
+        return runner
+
+    def dispatch(self, liveaction_db):
+        action_db = get_action_by_ref(liveaction_db.action)
+        if not action_db:
+            raise Exception('Action %s not found in DB.' % (liveaction_db.action))
+
+        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
+
+        extra = {'liveaction_db': liveaction_db, 'runnertype_db': runnertype_db}
+        LOG.info('Dispatching Action to a runner', extra=extra)
+
+        # Get runner instance.
+        runner = self._get_runner(runnertype_db, action_db, liveaction_db)
+        LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
+
+        # Process the request.
+        liveaction_db = (self._do_cancel(runner, runnertype_db, action_db, liveaction_db)
+                         if liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING
+                         else self._do_run(runner, runnertype_db, action_db, liveaction_db))
+
+        return liveaction_db.result
+
+    def _do_run(self, runner, runnertype_db, action_db, liveaction_db):
+        # Create a temporary auth token which will be available
+        # for the duration of the action execution.
         runner.auth_token = self._create_auth_token(runner.context)
 
         updated_liveaction_db = None
@@ -121,7 +124,7 @@ class RunnerContainer(object):
             # mark execution as failed.
             status = action_constants.LIVEACTION_STATUS_FAILED
             # include the error message and traceback to try and provide some hints.
-            result = {'message': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
+            result = {'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
             context = None
         finally:
             # Log action completion
@@ -129,10 +132,17 @@ class RunnerContainer(object):
             LOG.debug('Action "%s" completed.' % (action_db.name), extra=extra)
 
             # Always clean-up the auth_token
-            updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
-                                                                result, context)
-            executions.update_execution(updated_liveaction_db)
+            try:
+                LOG.debug('Setting status: %s for liveaction: %s', status, liveaction_db.id)
+                updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
+                                                                    result, context)
+            except:
+                error = 'Cannot update LiveAction object for id: %s, status: %s, result: %s.' % (
+                    liveaction_db.id, status, result)
+                LOG.exception(error)
+                raise
 
+            executions.update_execution(updated_liveaction_db)
             extra = {'liveaction_db': updated_liveaction_db}
             LOG.debug('Updated liveaction after run', extra=extra)
 
@@ -153,7 +163,31 @@ class RunnerContainer(object):
         runner.post_run(status, result)
         runner.container_service = None
 
+        LOG.debug('Runner do_run result', extra={'result': updated_liveaction_db.result})
+        LOG.audit('Liveaction completed', extra={'liveaction_db': updated_liveaction_db})
+
         return updated_liveaction_db
+
+    def _do_cancel(self, runner, runnertype_db, action_db, liveaction_db):
+        try:
+            extra = {'runner': runner}
+            LOG.debug('Performing cancel for runner: %s', (runner.runner_id), extra=extra)
+
+            runner.cancel()
+
+            liveaction_db = update_liveaction_status(
+                status=action_constants.LIVEACTION_STATUS_CANCELED,
+                end_timestamp=date_utils.get_datetime_utc_now(),
+                liveaction_db=liveaction_db)
+
+            executions.update_execution(liveaction_db)
+        except:
+            _, ex, tb = sys.exc_info()
+            # include the error message and traceback to try and provide some hints.
+            result = {'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
+            LOG.exception('Failed to cancel action %s.' % (liveaction_db.id), extra=result)
+
+        return liveaction_db
 
     def _update_live_action_db(self, liveaction_id, status, result, context):
         """

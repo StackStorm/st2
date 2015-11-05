@@ -55,7 +55,7 @@ class TestLocalShellRunner(TestCase):
         status, result, _ = runner.run({'chars': 1000})
         runner.post_run(status, result)
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEquals(len(result['stdout']), 1000 + 1)  # +1 for the newline
+        self.assertEquals(len(result['stdout']), 1000)
 
     def test_timeout(self):
         models = TestLocalShellRunner.fixtures_loader.load_models(
@@ -80,7 +80,7 @@ class TestLocalShellRunner(TestCase):
         status, result, _ = runner.run({'chars': char_count})
         runner.post_run(status, result)
         self.assertEquals(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        self.assertEquals(len(result['stdout']), char_count + 1)  # +1 for the newline
+        self.assertEquals(len(result['stdout']), char_count)
 
     def test_common_st2_env_vars_are_available_to_the_action(self):
         models = TestLocalShellRunner.fixtures_loader.load_models(

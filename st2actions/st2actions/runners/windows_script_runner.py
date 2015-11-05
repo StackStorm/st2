@@ -54,6 +54,8 @@ CREATE_DIRECTORY_TIMEOUT = 10
 DELETE_FILE_TIMEOUT = 10
 DELETE_DIRECTORY_TIMEOUT = 10
 
+POWERSHELL_COMMAND = 'powershell.exe -InputFormat None'
+
 
 def get_runner():
     return WindowsScriptRunner(str(uuid.uuid4()))
@@ -141,9 +143,9 @@ class WindowsScriptRunner(BaseWindowsRunner, ShellRunnerMixin):
         :type arguments: ``str``
         """
         if arguments is not None:
-            command = 'powershell.exe %s %s' % (quote_windows(script_path), arguments)
+            command = '%s %s %s' % (POWERSHELL_COMMAND, quote_windows(script_path), arguments)
         else:
-            command = 'powershell.exe %s' % (quote_windows(script_path))
+            command = '%s %s' % (POWERSHELL_COMMAND, quote_windows(script_path))
         args = self._get_winexe_command_args(host=self._host, username=self._username,
                                              password=self._password,
                                              command=command)

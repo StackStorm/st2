@@ -23,27 +23,27 @@ class WiringTest(base.TestWorkflowExecution):
     def test_basic_workflow(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'date'})
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution)
+        self._assert_success(execution, num_tasks=1)
         self.assertIn('stdout', execution.result)
 
     def test_basic_workbook(self):
         execution = self._execute_workflow('examples.mistral-workbook-basic', {'cmd': 'date'})
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution)
+        self._assert_success(execution, num_tasks=1)
         self.assertIn('stdout', execution.result)
 
     def test_complex_workbook(self):
         execution = self._execute_workflow(
             'examples.mistral-workbook-complex', {'vm_name': 'demo1'})
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution)
+        self._assert_success(execution, num_tasks=8)
         self.assertIn('vm_id', execution.result)
 
     def test_complex_workbook_subflow_actions(self):
         execution = self._execute_workflow(
             'examples.mistral-workbook-subflows', {'subject': 'st2', 'adjective': 'cool'})
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution)
+        self._assert_success(execution, num_tasks=2)
         self.assertIn('tagline', execution.result)
         self.assertEqual(execution.result['tagline'], 'st2 is cool!')
 
@@ -51,7 +51,7 @@ class WiringTest(base.TestWorkflowExecution):
         params = {'cmd': 'date', 'count': 8}
         execution = self._execute_workflow('examples.mistral-repeat', params)
         execution = self._wait_for_completion(execution)
-        self._assert_success(execution)
+        self._assert_success(execution, num_tasks=1)
         self.assertEqual(len(execution.result['result']), params['count'])
 
     def test_concurrent_load(self):
@@ -59,18 +59,23 @@ class WiringTest(base.TestWorkflowExecution):
         wf_params = {'vm_name': 'demo1'}
         executions = [self._execute_workflow(wf_name, wf_params) for i in range(3)]
 
-        def assert_successful_completion(execution):
-            eventlet.sleep(30)
-            execution = self._wait_for_completion(execution)
-            self._assert_success(execution)
-            self.assertIn('vm_id', execution.result)
+        eventlet.sleep(30)
 
-        threads = [eventlet.spawn(assert_successful_completion, execution)
-                   for execution in executions]
-
-        [thread.wait() for thread in threads]
+        for execution in executions:
+            e = self._wait_for_completion(execution)
+            self._assert_success(e, num_tasks=8)
+            self.assertIn('vm_id', e.result)
 
     def test_execution_failure(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'foo'})
         execution = self._wait_for_completion(execution)
         self._assert_failure(execution)
+
+    def test_cancellation(self):
+        execution = self._execute_workflow('examples.mistral-test-cancel', {'sleep': 10})
+        execution = self._wait_for_state(execution, ['running'])
+        self.st2client.liveactions.delete(execution)
+        execution = self._wait_for_completion(execution, expect_tasks_completed=False)
+        self._assert_canceled(execution, are_tasks_completed=False)
+        execution = self._wait_for_completion(execution, expect_tasks_completed=True)
+        self._assert_canceled(execution, are_tasks_completed=True)

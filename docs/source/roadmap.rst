@@ -1,23 +1,45 @@
 Roadmap
-===========
+=======
 
-StackStorm is new and under active development. We are opening it early to engage community, get  feedback, and refine directions, and welcome contributions. Below are key next items we see as top priorities.
+StackStorm is still under active development. We welcome community feedback to  refine directions, and encourage contributions. Below are key next items we see as top priorities.
 
-* **RBAC:** Role based access control for actions, triggers, rules, and datastore keys.
-* **Web UI advanced functionality:** visual workflow design representation, drag&drop workflow designer.
-* **Scale improvements:** refactoring and fixes to scale out better to manage large volumes of events and actions.
-* **Pack management:** Improve support for pack creation lifecycle. REST API to manage and configure packs installed in the system. Smoother integration with community content.
-* **Reliability:** Focus on availability of services and improve system reliability.
-* **Tags:** tag any resources, to handle actions, triggers and rules as their number grows to hundreds.
-* **Action Output Structure Definition**: enable optional definition of action payload, so that it can be introspected and used when passing data between actions in worfklows.
-* **Database:** move away from Mongo to Postgres and/or MySQL.
-* **Pluggable runners:** We have heard that a Ruby runner would be great.
-* **Datastore:**  Hierarchical, pluggable and secure datastore to bring together all the gnarly config and key spread in operations environments.
-* **Bugs and smaller improvements**
-* **Documentation:** generate REST API docs.
+* **Complete DEB/RPM for st2 components:** Build self-sustaining RPM/DEB packages for all the StackStorm components, Mistral, Hubot and the other dependencies for a fast and reliable installation.
+* **Docker based installer:** Complete the vision of OS independent, layered docker-based installer, to increase reliability, modularity, and speed of deployment.
+* **Migrate away from MongoDB:** Now that the models are stable, replace Mongo, to reduce operational overhead, improve performance, and simplify licensing.
+* **At-scale refinements:** Ensure event handling reliability, event storm resilience/throttling. Complete support for multi-node deployment of sensor containers and rule engines for resilience and throughput.
+* **Content management, revised for multi-node deployments:** provide platform support for content deployment to worker nodes with better integration with git/GitHub, to simplify development and deployment of "automation as code" at scale.
+* **Security hardening:** Complete security audit and address issues discovered so far.
+* **History and Audit service:** History view with advanced search over years worth of execution records, over multiple versions of continuously upgraded StackStorm.
+* **Multi target configurations for integration packs:** For a given integration pack, define and manage multiple targets - sets of configurations, so that the user can choose which one to use for a given action.
+* **First class Windows support:** switch to pywinrm for better license. Remote PowerShell via Powershell.REST.API. Windows-native ActionRunners. Windows supported st2workroom.
+* **Projects and Uber-flow:** introduce projects to group and manage rules and workflows. Handle versions and dependencies. "Productize" flow-rule-flow-rule chain pattern, aka "uber-flow". Manage large number of automations across users and teams, on a single StackStorm deployment at enterprise scale.
+* **RBAC refinements and improvements:**
+
+  * tag and property based filters, more refined and convenient access control
+  * permissions on key value objects, arbitrary triggers, support for a default role with is assigned to new users.
+  * WebUI for RBAC configuration
+  * RBAC for ChatOps - allow user to authenticate with StackStorm via bot on chat and when checking permissions directly check permissions of the user who triggered an action / ran a command. Allow introduce a special set of permission types for ChatOps.
+* **StackStorm Forge:** for Community and Enterprise integration and automation packs. Solve the problem of packs spread all over GitHub. Make integration and automation packs discoverable, continuously tested, and community rated
 * **More integration packs:** push more content to the community to help work with most common and widely used tool. Tell us if there is tool you love and think we should integrate with or better yet write a pack yourself.
+* **Action Output Structure Definition**: enable optional definition of action payload, so that it can be introspected and used when passing data between actions in workflows.
+* **Datastore:**  Hierarchical, pluggable and secure datastore to bring together all the gnarly config and key spread in operations environments.
+* **Documentation:** generate REST API docs.
+* **Flow v2:** Visualizing workflow executions. UI improvements, including more "operator" persona features.
+
 
 See :doc:`/changelog` for details on what is done.
+
+.. rubric:: Done in v1.1
+
+* **FLOW:** Visual workflow representation and drag-and-drop workflow designer.
+* **RBAC:** Role based access control for packs, actions, triggers and rules.
+* **Pluggable auth backends** including PAM, Keystone, Enterprise LDAP.
+* **All-in-one installer**: production ready single-box reference deployment with graphical setup wizard.
+* **RHEL 6 and 7 support**
+* **Trace-tags**: ability to track a complete chain of triggers, rules, executions, related to a given triggering event.
+* **Native SSH:** replace Fabric; Fabric based SSH still available and can be enabled via config.
+* **WebUI major face-lift**
+
 
 .. rubric:: Done in v0.11
 

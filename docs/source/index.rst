@@ -8,24 +8,27 @@ Contents:
 
     overview
     install/index
+    config/index
     video
     start
     packs
     actions
     runners
     rules
-    sensors
-    aliases
-    webhooks
-    datastore
     workflows
+    sensors
+    webhooks
+    chatops/index
+    policies
+    datastore
     history
-    authentication
+    traces
     cli
-    troubleshooting
-    resources/index
-    reference/index
+    authentication
+    rbac
+    REFERENCE  <reference/index>
+    troubleshooting/index
+    development/index
     changelog
     upgrade_notes
-    development/index
     roadmap

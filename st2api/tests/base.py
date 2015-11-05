@@ -13,26 +13,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pecan import load_app
+import mock
+import pecan
 from pecan.testing import load_test_app
 from oslo_config import cfg
-from webtest import TestApp
 
 
-import st2actions.bootstrap.runnersregistrar as runners_registrar
-from st2common.middleware import auth
-from st2tests import DbTestCase
+import st2common.bootstrap.runnersregistrar as runners_registrar
+from st2tests.base import DbTestCase
+from st2tests.base import CleanDbTestCase
 import st2tests.config as tests_config
 
 
 class FunctionalTest(DbTestCase):
+    """
+    Base test case class for testing API controllers with auth and RBAC disabled.
+    """
+    # By default auth is disabled
+    enable_auth = False
 
     @classmethod
     def setUpClass(cls):
         super(FunctionalTest, cls).setUpClass()
+        cls._do_setUpClass()
 
+    @classmethod
+    def _do_setUpClass(cls):
         tests_config.parse_args()
-        cfg.CONF.set_default('enable', False, group='auth')
+
+        cfg.CONF.set_default('enable', cls.enable_auth, group='auth')
+
+        cfg.CONF.set_override(name='enable', override=False, group='rbac')
 
         opts = cfg.CONF.api_pecan
         cfg_dict = {
@@ -42,7 +53,8 @@ class FunctionalTest(DbTestCase):
                 'modules': opts.modules,
                 'debug': opts.debug,
                 'auth_enable': opts.auth_enable,
-                'errors': {'__force_dict__': True}
+                'errors': {'__force_dict__': True},
+                'guess_content_type_from_ext': False
             }
         }
 
@@ -53,27 +65,40 @@ class FunctionalTest(DbTestCase):
         cls.app = load_test_app(config=cfg_dict)
 
 
-class AuthMiddlewareTest(DbTestCase):
+class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
+    """
+    Base test case class for testing API controllers with RBAC enabled.
+    """
+
+    pecan_request_context_mock = None
 
     @classmethod
     def setUpClass(cls):
-        super(AuthMiddlewareTest, cls).setUpClass()
-        tests_config.parse_args()
+        super(APIControllerWithRBACTestCase, cls).setUpClass()
 
-        opts = cfg.CONF.api_pecan
-        cfg_dict = {
-            'app': {
-                'root': opts.root,
-                'template_path': opts.template_path,
-                'modules': opts.modules,
-                'debug': opts.debug,
-                'auth_enable': opts.auth_enable,
-                'errors': {'__force_dict__': True}
+        # Make sure RBAC is enabeld
+        cfg.CONF.set_override(name='enable', override=True, group='rbac')
+
+    @classmethod
+    def tearDownClass(cls):
+        super(APIControllerWithRBACTestCase, cls).tearDownClass()
+
+    def tearDown(self):
+        super(APIControllerWithRBACTestCase, self).tearDown()
+
+        # Unpatch pecan.request.context (if patched)
+        if self.pecan_request_context_mock:
+            self.pecan_request_context_mock.stop()
+            del(type(pecan.request).context)
+
+    def use_user(self, user_db):
+        """
+        Select a user which is to be used by the HTTP request following this call.
+        """
+        mock_context = {
+            'auth': {
+                'user': user_db
             }
         }
-
-        # TODO(manas) : register action types here for now. RunnerType registration can be moved
-        # to posting to /runnertypes but that implies implementing POST.
-        runners_registrar.register_runner_types()
-
-        cls.app = TestApp(auth.AuthMiddleware(load_app(cfg_dict)))
+        self.pecan_request_context_mock = mock.PropertyMock(return_value=mock_context)
+        type(pecan.request).context = self.pecan_request_context_mock

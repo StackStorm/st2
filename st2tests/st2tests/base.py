@@ -19,16 +19,21 @@ except ImportError:
     import json
 
 import os
+import os.path
 import sys
 import shutil
+import logging
 
-import eventlet
-from oslo_config import cfg
 import six
+import eventlet
+import psutil
+from oslo_config import cfg
 from unittest2 import TestCase
 
 from st2common.exceptions.db import StackStormDBObjectConflictError
-from st2common.models.db import db_setup, db_teardown
+from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
+from st2common.bootstrap.base import ResourceRegistrar
+from st2common.content.utils import get_packs_base_paths
 import st2common.models.db.rule as rule_model
 import st2common.models.db.sensor as sensor_model
 import st2common.models.db.trigger as trigger_model
@@ -50,9 +55,11 @@ __all__ = [
     'DbTestCase',
     'DbModelTestCase',
     'CleanDbTestCase',
-    'CleanFilesTestCase'
+    'CleanFilesTestCase',
+    'IntegrationTestCase'
 ]
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ALL_MODELS = []
 ALL_MODELS.extend(rule_model.MODELS)
@@ -69,6 +76,17 @@ ALL_MODELS.extend(policy_model.MODELS)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_CONFIG_PATH = os.path.join(BASE_DIR, '../conf/st2.conf')
+
+
+class BaseTestCase(TestCase):
+
+    @classmethod
+    def _register_packs(self):
+        """
+        Register all the packs inside the fixtures directory.
+        """
+        registrar = ResourceRegistrar(use_pack_cache=False)
+        registrar.register_packs(base_dirs=get_packs_base_paths())
 
 
 class EventletTestCase(TestCase):
@@ -98,10 +116,19 @@ class EventletTestCase(TestCase):
         )
 
 
-class BaseDbTestCase(TestCase):
+class BaseDbTestCase(BaseTestCase):
+
+    # Set to True to enable printing of all the log messages to the console
+    DISPLAY_LOG_MESSAGES = False
+
     @classmethod
     def setUpClass(cls):
         st2tests.config.parse_args()
+
+        if cls.DISPLAY_LOG_MESSAGES:
+            config_path = os.path.join(BASE_DIR, '../conf/logging.conf')
+            logging.config.fileConfig(config_path,
+                                      disable_existing_loggers=False)
 
     @classmethod
     def _establish_connection_and_re_create_db(cls):
@@ -109,9 +136,13 @@ class BaseDbTestCase(TestCase):
         password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
         cls.db_connection = db_setup(
             cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-            username=username, password=password)
+            username=username, password=password, ensure_indexes=False)
         cls._drop_collections()
         cls.db_connection.drop_database(cfg.CONF.database.db_name)
+
+        # Explicity ensure indexes after we re-create the DB otherwise ensure_indexes could failure
+        # inside db_setup if test inserted invalid data
+        db_ensure_indexes()
 
     @classmethod
     def _drop_db(cls):
@@ -142,11 +173,15 @@ class DbTestCase(BaseDbTestCase):
 
     db_connection = None
     current_result = None
+    register_packs = False
 
     @classmethod
     def setUpClass(cls):
         BaseDbTestCase.setUpClass()
         cls._establish_connection_and_re_create_db()
+
+        if cls.register_packs:
+            cls._register_packs()
 
     @classmethod
     def tearDownClass(cls):
@@ -255,23 +290,116 @@ class CleanDbTestCase(BaseDbTestCase):
 
 class CleanFilesTestCase(TestCase):
     """
-    Base test class which deletes specified files and directories on tearDown.
+    Base test class which deletes specified files and directories on setUp and `tearDown.
     """
     to_delete_files = []
     to_delete_directories = []
 
+    def setUp(self):
+        super(CleanFilesTestCase, self).setUp()
+        self._delete_files()
+
     def tearDown(self):
+        super(CleanFilesTestCase, self).tearDown()
+        self._delete_files()
+
+    def _delete_files(self):
         for file_path in self.to_delete_files:
+            if not os.path.isfile(file_path):
+                continue
+
             try:
                 os.remove(file_path)
             except Exception:
                 pass
 
         for file_path in self.to_delete_directories:
+            if not os.path.isdir(file_path):
+                continue
+
             try:
                 shutil.rmtree(file_path)
             except Exception:
                 pass
+
+
+class IntegrationTestCase(TestCase):
+    """
+    Base test class for integration tests to inherit from.
+
+    It includes various utility functions and assert methods for working with processes.
+    """
+
+    # Set to True to print process stdout and stderr in tearDown after killing the processes
+    # which are still alive
+    print_stdout_stderr_on_teardown = False
+
+    processes = {}
+
+    def tearDown(self):
+        super(IntegrationTestCase, self).tearDown()
+
+        # Make sure we kill all the processes on teardown so they don't linger around if an
+        # exception was thrown.
+        for pid, process in self.processes.items():
+
+            try:
+                process.kill()
+            except OSError:
+                # Process already exited or similar
+                pass
+
+            if self.print_stdout_stderr_on_teardown:
+                try:
+                    stdout = process.stdout.read()
+                except:
+                    stdout = None
+
+                try:
+                    stderr = process.stderr.read()
+                except:
+                    stderr = None
+
+                print('Process "%s"' % (process.pid))
+                print('Stdout: %s' % (stdout))
+                print('Stderr: %s' % (stderr))
+
+    def add_process(self, process):
+        """
+        Add a process to the local data structure to make sure it will get killed and cleaned up on
+        tearDown.
+        """
+        self.processes[process.pid] = process
+
+    def remove_process(self, process):
+        """
+        Remove process from a local data structure.
+        """
+        if process.pid in self.processes:
+            del self.processes[process.pid]
+
+    def assertProcessIsRunning(self, process):
+        """
+        Assert that a long running process provided Process object as returned by subprocess.Popen
+        has succesfuly started and is running.
+        """
+        return_code = process.poll()
+
+        if return_code is not None:
+            stdout = process.stdout.read()
+            stderr = process.stderr.read()
+            msg = ('Process exited with code=%s.\nStdout:\n%s\n\nStderr:\n%s' %
+                   (return_code, stdout, stderr))
+            self.fail(msg)
+
+    def assertProcessExited(self, proc):
+        try:
+            status = proc.status()
+        except psutil.NoSuchProcess:
+            status = 'exited'
+
+        if status not in ['exited', 'zombie']:
+            self.fail('Process with pid "%s" is still running' % (proc.pid))
 
 
 class FakeResponse(object):

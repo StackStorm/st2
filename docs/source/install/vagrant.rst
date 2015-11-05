@@ -1,27 +1,83 @@
 Vagrant
-=================
-The following setup with vagrant is tested with `VirtualBox <https://www.virtualbox.org>`_. By default, the setup will install the latest stable release of |st2|. To override that with another version, ``export ST2VER=x.y.z``.
+=======
+
+|st2| provides pre-built Vagrant boxes for both `VirtualBox <https://www.virtualbox.org>`_ and `VMWare <https://www.vmware.com>`_ providers. By default, the setup will install the lastest stable release of |st2|. These boxes are hosted on the `Hashicorp Atlas <https://atlas.hashicorp.com/stackstorm/boxes/st2>`_ website.
+
+Using these vagrant images, it is possible to setup:
+
+* Spin up a test environment to play with StackStorm (`st2`)
+* Spin up a development environment to work with StackStorm (`st2dev`)
+* Begin building infrastructure patterns using pre-configured Config Management tools
+
+Quick Start
+-----------
+
+If you are new to Vagrant, or to StackStorm, we have made a repository all setup with the necessary configuration to run a Vagrant box. This includes pre-configured virtual machine settings out of the box. This is a great way to get started quickly and easily.
 
 ::
 
-    git clone https://github.com/StackStorm/st2express.git
-    cd st2express/vagrant/
-    vagrant up
+   git clone https://github.com/StackStorm/st2workroom.git st2workroom
+   cd st2workroom
+   vagrant up st2
 
-This will install all |st2| components along with the Mistral workflow engine on Ubuntu 14.04 virtual machine. Some console output in red is expected and can be safely ignored.  The setup will download additional packages from the internet. While waiting, check out |st2| :doc:`/video` for quick intro. If setup is successful, you will see the following console output. ::
 
-    ==========================================
+If you have previously used deployed |st2| and downloaded the st2express box it might be a good idea to update the box. If this is your absolute first install of |st2| then skip this step.
 
-              _   ___     ____  _  __ 
-             | | |__ \   / __ \| |/ / 
-          ___| |_   ) | | |  | | ' /  
-         / __| __| / /  | |  | |  <   
-         \__ \ |_ / /_  | |__| | . \  
-         |___/\__|____|  \____/|_|\_\ 
+::
 
-      st2 is installed and ready to use.
-    ========================================== 
+  vagrant box update st2
 
-Use ``vagrant ssh`` to login to the box. 
 
-.. include:: on_complete.rst
+This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
+
+.. include:: /_includes/install/ok.rst
+
+Once installed, you have the option of logging into the virtual machine with this command:
+
+::
+
+    vagrant ssh st2
+
+Likewise, you have the option to run the All-in-one GUI setup. Using this tool, you can quickly configure your StackStorm system including user accounts, ChatOps support, and enable Enterprise Features. Refer to :ref:`all_in_one-running_the_setup` section of :doc:`./all_in_one` for more information.
+
+NOTE: the `st2express/Vagrant <https://github.com/StackStorm/st2express>`__ is deprecated in _v0.13_.
+
+Requirements
+~~~~~~~~~~~~
+
+In order to successfully deploy StackStorm to a Vagrant environment, you must ensure the following conditions are satisified. Namely:
+
+* VM has >1GB RAM (2GB RAM recommended)
+* VM has a NIC interface the user can access from the host machine
+
+Once setup, the next step is to run the StackStorm installer. This will pull down and setup all the necessary items to run StackStorm Using this tool, you can quickly configure your StackStorm system including user accounts, ChatOps support, and enable Enterprise Features. Refer to :ref:`all_in_one-running_the_setup` section of :doc:`./all_in_one` for more information.
+
+Supported Baseboxes
+~~~~~~~~~~~~~~~~~~~
+
+We have currently done testing and certified that StackStorm Installer works properly on the following Vagrant Baseboxes:
+
+* `puppetlabs/centos-6.6-64-nocm`
+* `puppetlabs/centos-7.0-64-nocm`
+* `puppetlabs/ubuntu-14.04-64-nocm`
+
+It is very possible that other baseboxes with the same OS will work just fine. However, if you run into issues, these are boxes that should get you going without fuss. These are the same boxes that are used in the `st2workroom` project mentioned in the Quick Start Above.
+
+We are constantly striving to ensure that we have compatability with as many platforms as we can. However, if you find a basebox that doesn't work, please let us know and we'll be glad to take a look. We also love Pull Requests from the community, and might have some goodies if you help us out!
+
+Sample Vagrantfile
+~~~~~~~~~~~~~~~~~~
+
+Below is an an example of a Vagrantfile capable of loading StackStorm. This minimal Vagrantfile will load up a machine and provision a clean StackStorm installation.This configuration also includes a `public_network` setting, which is necessary to allow your host environment to access the StackStorm guest machine. If you choose not to use this configuration, make sure that you have an interface configured that you can access via the Host Machine.
+
+::
+
+    Vagrant.configure(2) do |config|
+      config.vm.network "public_network"
+      config.vm.box = "puppetlabs/ubuntu-14.04-64-nocm"
+      config.vm.provider "virtualbox" do |v|
+        v.memory = 1024
+      end
+      config.vm.provision "shell",
+          inline: "curl -sSL http://stackstorm.com/install.sh | sudo su"
+    end

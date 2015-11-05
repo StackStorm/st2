@@ -41,7 +41,6 @@ __all__ = [
     'ShellScriptAction',
     'RemoteAction',
     'RemoteScriptAction',
-    'ParamikoSSHCommandAction',
     'FabricRemoteAction',
     'FabricRemoteScriptAction',
     'ResolvedActionParameters'
@@ -53,6 +52,8 @@ LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 
 class ShellCommandAction(object):
+    EXPORT_CMD = 'export'
+
     def __init__(self, name, action_exec_id, command, user, env_vars=None, sudo=False,
                  timeout=None, cwd=None):
         self.name = name
@@ -80,6 +81,26 @@ class ShellCommandAction(object):
                 command = self.command
 
         return command
+
+    def get_timeout(self):
+        return self.timeout
+
+    def get_cwd(self):
+        return self.cwd
+
+    def _get_env_vars_export_string(self):
+        if self.env_vars:
+            # Envrionment variables could contain spaces and open us to shell
+            # injection attacks. Always quote the key and the value.
+            exports = ' '.join(
+                '%s=%s' % (quote_unix(k), quote_unix(v))
+                for k, v in self.env_vars.iteritems()
+            )
+            shell_env_str = '%s %s' % (ShellCommandAction.EXPORT_CMD, exports)
+        else:
+            shell_env_str = ''
+
+        return shell_env_str
 
     def _get_command_string(self, cmd, args):
         """
@@ -139,9 +160,11 @@ class ShellScriptAction(ShellCommandAction):
         self.positional_args = positional_args
 
     def get_full_command_string(self):
+        return self._format_command()
+
+    def _format_command(self):
         script_arguments = self._get_script_arguments(named_args=self.named_args,
                                                       positional_args=self.positional_args)
-
         if self.sudo:
             if script_arguments:
                 command = quote_unix('%s %s' % (self.script_local_path_abs, script_arguments))
@@ -167,7 +190,6 @@ class ShellScriptAction(ShellCommandAction):
                     command = '%s %s' % (script_path, script_arguments)
                 else:
                     command = script_path
-
         return command
 
     def _get_script_arguments(self, named_args=None, positional_args=None):
@@ -196,11 +218,13 @@ class ShellScriptAction(ShellCommandAction):
                     if value is True:
                         command_parts.append(arg)
                 else:
-                    command_parts.append('%s=%s' % (arg, quote_unix(str(value))))
+                    command_parts.append('%s=%s' % (quote_unix(arg), quote_unix(str(value))))
 
         # add the positional args
         if positional_args:
-            command_parts.append(positional_args)
+            quoted_pos_args = [quote_unix(pos_arg) for pos_arg in positional_args if pos_arg]
+            pos_args_string = ' '.join(quoted_pos_args)
+            command_parts.append(pos_args_string)
         return ' '.join(command_parts)
 
 
@@ -277,6 +301,7 @@ class RemoteAction(SSHCommandAction):
         str_rep.append('sudo: %s' % str(self.sudo))
         str_rep.append('parallel: %s' % str(self.parallel))
         str_rep.append('hosts: %s)' % str(self.hosts))
+        str_rep.append('timeout: %s)' % str(self.timeout))
 
         return ', '.join(str_rep)
 
@@ -304,6 +329,21 @@ class RemoteScriptAction(ShellScriptAction):
         self.parallel = parallel
         self.command = self._format_command()
         LOG.debug('RemoteScriptAction: command to run on remote box: %s', self.command)
+
+    def get_remote_script_abs_path(self):
+        return self.remote_script
+
+    def get_local_script_abs_path(self):
+        return self.script_local_path_abs
+
+    def get_remote_libs_path_abs(self):
+        return self.remote_libs_path_abs
+
+    def get_local_libs_path_abs(self):
+        return self.script_local_libs_path_abs
+
+    def get_remote_base_dir(self):
+        return self.remote_dir
 
     def _format_command(self):
         script_arguments = self._get_script_arguments(named_args=self.named_args,
@@ -333,10 +373,6 @@ class RemoteScriptAction(ShellScriptAction):
         str_rep.append('hosts: %s)' % self.hosts)
 
         return ', '.join(str_rep)
-
-
-class ParamikoSSHCommandAction(SSHCommandAction):
-    pass
 
 
 class FabricRemoteAction(RemoteAction):

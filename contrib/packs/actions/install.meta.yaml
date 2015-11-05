@@ -11,8 +11,7 @@
       type: "array"
       items:
         type: "string"
-      default:
-        - "*"
+      required: true
     repo_url:
       type: "string"
       default: "StackStorm/st2contrib"

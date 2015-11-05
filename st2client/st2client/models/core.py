@@ -167,6 +167,7 @@ class ResourceManager(object):
         limit = kwargs.pop('limit', None)
         pack = kwargs.pop('pack', None)
         prefix = kwargs.pop('prefix', None)
+        user = kwargs.pop('user', None)
 
         params = {}
         if limit and limit <= 0:
@@ -179,6 +180,9 @@ class ResourceManager(object):
 
         if prefix:
             params['prefix'] = prefix
+
+        if user:
+            params['user'] = user
 
         response = self.client.get(url=url, params=params, **kwargs)
         if response.status_code != 200:
@@ -333,7 +337,7 @@ class LiveActionResourceManager(ResourceManager):
 
 class TriggerInstanceResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def re_emit(self, trigger_instance_id):
+    def re_emit(self, trigger_instance_id, **kwargs):
         url = '/%s/%s/re_emit' % (self.resource.get_url_path_name(), trigger_instance_id)
         response = self.client.post(url, None)
         if response.status_code != 200:

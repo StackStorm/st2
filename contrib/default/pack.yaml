@@ -1,0 +1,6 @@
+---
+name: default
+description: Pack where all the resources which are created using the API and don't have a pack specified get saved.
+version: 0.1.0
+author : st2-dev
+email : info@stackstorm.com

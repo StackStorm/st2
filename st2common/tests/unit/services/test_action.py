@@ -57,7 +57,7 @@ ACTION = {
     'notify': {
         'on-complete': {
             'message': 'My awesome action is complete. Party time!!!',
-            'channels': ['notify.slack']
+            'routes': ['notify.slack']
         }
     }
 }
@@ -92,6 +92,11 @@ class TestActionExecutionService(DbTestCase):
         execution = action_db.get_liveaction_by_id(str(request.id))
         return request, execution
 
+    def _submit_cancellation(self, execution):
+        execution, _ = action_service.request_cancellation(execution, USERNAME)
+        execution = action_db.get_liveaction_by_id(execution.id)
+        return execution
+
     def test_request(self):
         request, execution = self._submit_request()
         self.assertIsNotNone(execution)
@@ -124,3 +129,32 @@ class TestActionExecutionService(DbTestCase):
         self.assertRaises(ValueError, action_service.request, execution)
         self.actiondb.enabled = True
         Action.add_or_update(self.actiondb)
+
+    def test_request_cancellation(self):
+        request, execution = self._submit_request()
+        self.assertIsNotNone(execution)
+        self.assertEqual(execution.id, request.id)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
+
+        # Update execution status to RUNNING.
+        action_service.update_status(execution, action_constants.LIVEACTION_STATUS_RUNNING, False)
+        execution = action_db.get_liveaction_by_id(execution.id)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        # Request cancellation.
+        execution = self._submit_cancellation(execution)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_CANCELING)
+
+    def test_request_cancellation_uncancelable_state(self):
+        request, execution = self._submit_request()
+        self.assertIsNotNone(execution)
+        self.assertEqual(execution.id, request.id)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
+
+        # Update execution status to FAILED.
+        action_service.update_status(execution, action_constants.LIVEACTION_STATUS_FAILED, False)
+        execution = action_db.get_liveaction_by_id(execution.id)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_FAILED)
+
+        # Request cancellation.
+        self.assertRaises(Exception, action_service.request_cancellation, execution)

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import eventlet
+import retrying
 import unittest2
 
 from st2client import client as st2
@@ -38,29 +38,41 @@ class TestWorkflowExecution(unittest2.TestCase):
 
         return execution
 
-    def _wait_for_completion(self, execution, wait=300):
-        for i in range(wait):
-            eventlet.sleep(3)
-            execution = self.st2client.liveactions.get_by_id(execution.id)
+    @retrying.retry(wait_fixed=3000, stop_max_delay=900000)
+    def _wait_for_state(self, execution, states):
+        execution = self.st2client.liveactions.get_by_id(execution.id)
+        self.assertIn(execution.status, states)
+        return execution
 
-            if execution.status in ['succeeded', 'failed']:
-                if hasattr(execution, 'result') and 'tasks' in execution.result:
-                    if ([task for task in execution.result['tasks']
-                         if task['state'] in ['SUCCESS', 'ERROR']]):
-                        break
+    @retrying.retry(wait_fixed=3000, stop_max_delay=900000)
+    def _wait_for_completion(self, execution, expect_tasks_completed=True):
+        execution = self._wait_for_state(execution, ['succeeded', 'failed', 'canceled'])
+        self.assertTrue(hasattr(execution, 'result'))
+        self.assertIn('tasks', execution.result)
+        self.assertGreater(len(execution.result['tasks']), 0)
+
+        if expect_tasks_completed:
+            tasks = execution.result['tasks']
+            self.assertTrue(all([t['state'] in ['SUCCESS', 'ERROR'] for t in tasks]))
 
         return execution
 
-    def _assert_success(self, execution):
+    def _assert_success(self, execution, num_tasks=0):
         self.assertEqual(execution.status, 'succeeded')
-        tasks = execution.result['tasks']
-        for task in tasks:
-            self.assertIn('state', task)
-            self.assertEqual(task['state'], 'SUCCESS')
+        tasks = execution.result.get('tasks', [])
+        self.assertEqual(num_tasks, len(tasks))
+        self.assertTrue(all([task['state'] == 'SUCCESS' for task in tasks]))
 
     def _assert_failure(self, execution):
         self.assertEqual(execution.status, 'failed')
         tasks = execution.result['tasks']
-        for task in tasks:
-            self.assertIn('state', task)
-            self.assertEqual(task['state'], 'ERROR')
+        self.assertTrue(any([task['state'] == 'ERROR' for task in tasks]))
+
+    def _assert_canceled(self, execution, are_tasks_completed=False):
+        self.assertEqual(execution.status, 'canceled')
+        tasks = execution.result['tasks']
+
+        if are_tasks_completed:
+            self.assertTrue(all([t['state'] in ['SUCCESS', 'ERROR'] for t in tasks]))
+        else:
+            self.assertTrue(any([t['state'] == 'RUNNING' for t in tasks]))

@@ -33,6 +33,12 @@ class TriggerTypeAPI(BaseAPI):
                 'type': 'string',
                 'default': None
             },
+            'ref': {
+                'type': 'string'
+            },
+            'uid': {
+                'type': 'string'
+            },
             'name': {
                 'type': 'string',
                 'required': True
@@ -90,6 +96,12 @@ class TriggerAPI(BaseAPI):
                 'type': 'string',
                 'default': None
             },
+            'ref': {
+                'type': 'string'
+            },
+            'uid': {
+                'type': 'string'
+            },
             'name': {
                 'type': 'string'
             },
@@ -113,6 +125,8 @@ class TriggerAPI(BaseAPI):
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         trigger = cls._from_model(model, mask_secrets=mask_secrets)
+        # Hide ref count from API.
+        trigger.pop('ref_count', None)
         return cls(**trigger)
 
     @classmethod

@@ -14,7 +14,7 @@
 # limitations under the License.
 
 PACK_VIRTUALENV_DOESNT_EXIST = '''
-Virtual environment for pack "%s" doesn\'t exist. If you haven\'t installed a pack using
-"packs.install" command, you can create a new virtual environment using
-"st2 run packs.setup_virtualenv packs=%s" command'
+Virtual environment (%(virtualenv_path)s) for pack "%(pack)s" doesn\'t exist. If you haven\'t
+installed a pack using "packs.install" command, you can create a new virtual environment using
+"st2 run packs.setup_virtualenv packs=%(pack)s" command'
 '''

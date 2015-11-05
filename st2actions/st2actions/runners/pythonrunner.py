@@ -29,10 +29,18 @@ from st2common import log as logging
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
+from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
+
+__all__ = [
+    'get_runner',
+
+    'PythonRunner',
+    'Action'
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -112,7 +120,8 @@ class PythonRunner(ActionRunner):
         python_path = get_sandbox_python_binary_path(pack=pack)
 
         if virtualenv_path and not os.path.isdir(virtualenv_path):
-            msg = PACK_VIRTUALENV_DOESNT_EXIST % (pack, pack)
+            format_values = {'pack': pack, 'virtualenv_path': virtualenv_path}
+            msg = PACK_VIRTUALENV_DOESNT_EXIST % format_values
             raise Exception(msg)
 
         if not self.entry_point:
@@ -130,6 +139,7 @@ class PythonRunner(ActionRunner):
         # We need to ensure all the st2 dependencies are also available to the
         # subprocess
         env = os.environ.copy()
+        env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
         env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
                                                     inherit_parent_virtualenv=True)
 

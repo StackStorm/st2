@@ -17,17 +17,21 @@ from st2api.controllers.v1.actions import ActionsController
 from st2api.controllers.v1.actionalias import ActionAliasController
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
 from st2api.controllers.v1.aliasexecution import ActionAliasExecutionController
+from st2api.controllers.v1.auth import ApiKeyController
 from st2api.controllers.v1.keyvalue import KeyValuePairController
 from st2api.controllers.v1.packs import PacksController
 from st2api.controllers.v1.policies import PolicyTypeController, PolicyController
+from st2api.controllers.v1.ruletypes import RuleTypesController
 from st2api.controllers.v1.rules import RuleController
 from st2api.controllers.v1.runnertypes import RunnerTypesController
 from st2api.controllers.v1.sensors import SensorTypeController, SensorInstanceController, \
     SensorExecutionController
 from st2api.controllers.v1.stream import StreamController
+from st2api.controllers.v1.traces import TracesController
 from st2api.controllers.v1.triggers import TriggerTypeController, TriggerController, \
     TriggerInstanceController
 from st2api.controllers.v1.webhooks import WebhooksController
+from st2api.controllers.v1.rbac import RBACController
 
 
 class RootController(object):
@@ -44,9 +48,13 @@ class RootController(object):
     triggertypes = TriggerTypeController()
     triggers = TriggerController()
     triggerinstances = TriggerInstanceController()
+    ruletypes = RuleTypesController()
     rules = RuleController()
     keys = KeyValuePairController()
     webhooks = WebhooksController()
     stream = StreamController()
     actionalias = ActionAliasController()
     aliasexecution = ActionAliasExecutionController()
+    traces = TracesController()
+    rbac = RBACController()
+    apikeys = ApiKeyController()

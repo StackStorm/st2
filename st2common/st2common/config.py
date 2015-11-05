@@ -49,6 +49,11 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(auth_opts, 'auth', ignore_errors)
 
+    rbac_opts = [
+        cfg.BoolOpt('enable', default=False, help='Enable RBAC.'),
+    ]
+    do_register_opts(rbac_opts, 'rbac', ignore_errors)
+
     system_user_opts = [
         cfg.StrOpt('user',
                    default='stanley',
@@ -89,17 +94,27 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('db_name', default='st2', help='name of database'),
         cfg.StrOpt('username', help='username for db login'),
         cfg.StrOpt('password', help='password for db login'),
+        cfg.IntOpt('connection_retry_max_delay_m', help='Connection retry total time (minutes).',
+                   default=3),
+        cfg.IntOpt('connection_retry_backoff_max_s', help='Connection retry backoff max (seconds).',
+                   default=10),
+        cfg.IntOpt('connection_retry_backoff_mul', help='Backoff multiplier (seconds).',
+                   default=1)
     ]
     do_register_opts(db_opts, 'database', ignore_errors)
 
     messaging_opts = [
-        cfg.StrOpt('url', default='amqp://guest:guest@localhost:5672//',
-                   help='URL of the messaging server.')
+        # It would be nice to be able to deprecate url and completely switch to using
+        # url. However, this will be a breaking change and will have impact so allowing both.
+        cfg.StrOpt('url', default='amqp://guest:guest@127.0.0.1:5672//',
+                   help='URL of the messaging server.'),
+        cfg.ListOpt('cluster_urls', default=[],
+                    help='URL of all the nodes in a messaging service cluster.')
     ]
     do_register_opts(messaging_opts, 'messaging', ignore_errors)
 
     syslog_opts = [
-        cfg.StrOpt('host', default='localhost',
+        cfg.StrOpt('host', default='127.0.0.1',
                    help='Host for the syslog server.'),
         cfg.IntOpt('port', default=514,
                    help='Port for the syslog server.'),
@@ -148,15 +163,31 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(coord_opts, 'coordination', ignore_errors)
 
+    # Mistral options
+    mistral_opts = [
+        cfg.StrOpt('v2_base_url', default='http://127.0.0.1:8989/v2', help='v2 API root endpoint.'),
+        cfg.IntOpt('retry_exp_msec', default=1000, help='Multiplier for the exponential backoff.'),
+        cfg.IntOpt('retry_exp_max_msec', default=300000, help='Max time for each set of backoff.'),
+        cfg.IntOpt('retry_stop_max_msec', default=600000, help='Max time to stop retrying.'),
+        cfg.StrOpt('keystone_username', default=None, help='Username for authentication.'),
+        cfg.StrOpt('keystone_password', default=None, help='Password for authentication.'),
+        cfg.StrOpt('keystone_project_name', default=None, help='OpenStack project scope.'),
+        cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.')
+    ]
+    do_register_opts(mistral_opts, group='mistral', ignore_errors=ignore_errors)
+
     # Common CLI options
     debug = cfg.BoolOpt('debug', default=False,
         help='Enable debug mode. By default this will set all log levels to DEBUG.')
+    profile = cfg.BoolOpt('profile', default=False,
+        help=('Enable profile mode. In the profile mode all the MongoDB queries and related '
+              'profile data are logged.'))
     use_debugger = cfg.BoolOpt('use-debugger', default=True,
         help='Enables debugger. Note that using this option changes how the '
              'eventlet library is used to support async IO. This could result in '
              'failures that do not occur under normal operation.')
 
-    cli_opts = [debug, use_debugger]
+    cli_opts = [debug, profile, use_debugger]
     do_register_cli_opts(cli_opts, ignore_errors=ignore_errors)
 
 

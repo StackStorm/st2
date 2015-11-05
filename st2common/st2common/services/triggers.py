@@ -40,9 +40,10 @@ LOG = logging.getLogger(__name__)
 def get_trigger_db_given_type_and_params(type=None, parameters=None):
     try:
         parameters = parameters or {}
+        trigger_dbs = Trigger.query(type=type,
+                                    parameters=parameters)
 
-        trigger_db = Trigger.query(type=type,
-                                   parameters=parameters).first()
+        trigger_db = trigger_dbs[0] if len(trigger_dbs) > 0 else None
 
         if not parameters and not trigger_db:
             # We need to do double query because some TriggeDB objects without
@@ -80,7 +81,6 @@ def _get_trigger_db(trigger):
         if name and pack:
             ref = ResourceReference.to_string_reference(name=name, pack=pack)
             return get_trigger_db_by_ref(ref)
-
         return get_trigger_db_given_type_and_params(type=trigger['type'],
                                                     parameters=trigger.get('parameters', {}))
     else:
@@ -175,9 +175,42 @@ def create_trigger_db_from_rule(rule):
             'triggertype. Cannot create trigger: %s.' % (trigger_dict))
 
     if not existing_trigger_db:
-        return create_or_update_trigger_db(trigger_dict)
+        trigger_db = create_or_update_trigger_db(trigger_dict)
+    else:
+        trigger_db = existing_trigger_db
 
-    return existing_trigger_db
+    # Special reference counting for trigger with parameters.
+    # if trigger_dict.get('parameters', None):
+    #     Trigger.update(trigger_db, inc__ref_count=1)
+
+    return trigger_db
+
+
+def increment_trigger_ref_count(rule_api):
+    """
+    Given the rule figures out the TriggerType with parameter and increments
+    reference count on the appropriate Trigger.
+
+    :param rule_api: Rule object used to infer the Trigger.
+    :type rule_api: ``RuleApi``
+    """
+    trigger_dict = _get_trigger_dict_given_rule(rule_api)
+
+    # Special reference counting for trigger with parameters.
+    if trigger_dict.get('parameters', None):
+        trigger_db = _get_trigger_db(trigger_dict)
+        Trigger.update(trigger_db, inc__ref_count=1)
+
+
+def cleanup_trigger_db_for_rule(rule_db):
+    # rule.trigger is actually trigger_db ref.
+    existing_trigger_db = get_trigger_db_by_ref(rule_db.trigger)
+    if not existing_trigger_db or not existing_trigger_db.parameters:
+        # nothing to be done here so moving on.
+        LOG.debug('ref_count decrement for %s not required.', existing_trigger_db)
+        return
+    Trigger.update(existing_trigger_db, dec__ref_count=1)
+    Trigger.delete_if_unreferenced(existing_trigger_db)
 
 
 def create_trigger_type_db(trigger_type):
@@ -260,13 +293,14 @@ def create_or_update_trigger_type_db(trigger_type):
 
 
 def _create_trigger_type(pack, name, description=None, payload_schema=None,
-                         parameters_schema=None):
+                         parameters_schema=None, tags=None):
     trigger_type = {
         'name': name,
         'pack': pack,
         'description': description,
         'payload_schema': payload_schema,
-        'parameters_schema': parameters_schema
+        'parameters_schema': parameters_schema,
+        'tags': tags
     }
 
     return create_or_update_trigger_type_db(trigger_type=trigger_type)
@@ -313,13 +347,15 @@ def _add_trigger_models(trigger_type):
     payload_schema = trigger_type['payload_schema'] if 'payload_schema' in trigger_type else {}
     parameters_schema = trigger_type['parameters_schema'] \
         if 'parameters_schema' in trigger_type else {}
+    tags = trigger_type.get('tags', [])
 
     trigger_type = _create_trigger_type(
         pack=pack,
         name=trigger_type['name'],
         description=description,
         payload_schema=payload_schema,
-        parameters_schema=parameters_schema
+        parameters_schema=parameters_schema,
+        tags=tags
     )
     trigger = _create_trigger(trigger_type=trigger_type)
     return (trigger_type, trigger)

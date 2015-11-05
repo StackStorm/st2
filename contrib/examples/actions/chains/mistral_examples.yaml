@@ -4,51 +4,11 @@
         name: "mistral-basic"
         ref: "examples.mistral-basic"
         params:
-          cmd: "hostname"
-        on-success: "mistral-handle-error"
-    -
-        name: "mistral-handle-error"
-        ref: "examples.mistral-handle-error"
-        params: {}
-        on-failure: "mistral-handle-retry"
-    -
-        name: "mistral-handle-retry"
-        ref: "examples.mistral-handle-retry"
-        params: {}
-        on-success: "mistral-repeat-with-items"
-    -
-        name: "mistral-repeat-with-items"
-        ref: "examples.mistral-repeat-with-items"
-        params:
-          cmds:
-            - "hostname"
-            - "date"
-        on-success: "mistral-repeat"
-    -
-        name: "mistral-repeat"
-        ref: "examples.mistral-repeat"
-        params:
-          cmd: "hostname"
-        on-success: "mistral-workbook-basic"
-    -
-        name: "mistral-workbook-basic"
-        ref: "examples.mistral-workbook-basic"
-        params:
-          cmd: "hostname"
+            cmd: "hostname"
         on-success: "mistral-workbook-complex"
     -
         name: "mistral-workbook-complex"
         ref: "examples.mistral-workbook-complex"
         params:
             vm_name: "fake-host-1"
-        on-success: "mistral-workbook-multiple-subflows"
-    -
-        name: "mistral-workbook-multiple-subflows"
-        ref: "examples.mistral-workbook-multiple-subflows"
-        params: {}
-        on-success: "mistral-workbook-subflows"
-    -
-        name: "mistral-workbook-subflows"
-        ref: "examples.mistral-workbook-subflows"
-        params: {}
   default: "mistral-basic"

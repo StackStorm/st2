@@ -15,10 +15,11 @@
 
 from kombu import Exchange, Queue
 
-from oslo_config import cfg
-
 from st2common import log as logging
+from st2common.constants.trace import TRACE_CONTEXT
+from st2common.models.api.trace import TraceContext
 from st2common.transport import publishers
+from st2common.transport import utils as transport_utils
 
 __all__ = [
     'TriggerCUDPublisher',
@@ -51,8 +52,8 @@ class SensorCUDPublisher(publishers.CUDPublisher):
     Publisher responsible for publishing Trigger model CUD events.
     """
 
-    def __init__(self, url):
-        super(SensorCUDPublisher, self).__init__(url, SENSOR_CUD_XCHG)
+    def __init__(self, urls):
+        super(SensorCUDPublisher, self).__init__(urls, SENSOR_CUD_XCHG)
 
 
 class SensorInstanceCUDPublisher(publishers.CUDPublisher):
@@ -69,13 +70,13 @@ class TriggerCUDPublisher(publishers.CUDPublisher):
     Publisher responsible for publishing Trigger model CUD events.
     """
 
-    def __init__(self, url):
-        super(TriggerCUDPublisher, self).__init__(url, TRIGGER_CUD_XCHG)
+    def __init__(self, urls):
+        super(TriggerCUDPublisher, self).__init__(urls, TRIGGER_CUD_XCHG)
 
 
 class TriggerInstancePublisher(object):
-    def __init__(self, url):
-        self._publisher = publishers.PoolPublisher(url=url)
+    def __init__(self, urls):
+        self._publisher = publishers.PoolPublisher(urls=urls)
 
     def publish_trigger(self, payload=None, routing_key=None):
         # TODO: We should use trigger reference as a routing key
@@ -88,10 +89,10 @@ class TriggerDispatcher(object):
     """
 
     def __init__(self, logger=LOG):
-        self._publisher = TriggerInstancePublisher(url=cfg.CONF.messaging.url)
+        self._publisher = TriggerInstancePublisher(urls=transport_utils.get_messaging_urls())
         self._logger = logger
 
-    def dispatch(self, trigger, payload=None):
+    def dispatch(self, trigger, payload=None, trace_context=None):
         """
         Method which dispatches the trigger.
 
@@ -100,12 +101,17 @@ class TriggerDispatcher(object):
 
         :param payload: Trigger payload.
         :type payload: ``dict``
+
+        :param trace_context: Trace context to associate with Trigger.
+        :type trace_context: ``TraceContext``
         """
         assert isinstance(payload, (type(None), dict))
+        assert isinstance(trace_context, (type(None), TraceContext))
 
         payload = {
             'trigger': trigger,
-            'payload': payload
+            'payload': payload,
+            TRACE_CONTEXT: trace_context
         }
         routing_key = 'trigger_instance'
 
@@ -113,8 +119,8 @@ class TriggerDispatcher(object):
         self._publisher.publish_trigger(payload=payload, routing_key=routing_key)
 
 
-def get_trigger_cud_queue(name, routing_key):
-    return Queue(name, TRIGGER_CUD_XCHG, routing_key=routing_key)
+def get_trigger_cud_queue(name, routing_key, exclusive=False):
+    return Queue(name, TRIGGER_CUD_XCHG, routing_key=routing_key, exclusive=exclusive)
 
 
 def get_trigger_instances_queue(name, routing_key):

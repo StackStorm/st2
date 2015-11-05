@@ -1,7 +1,7 @@
 from st2reactor.sensor.base import Sensor
 
 
-class SimpleSensor(Sensor):
+class SampleSensor(Sensor):
     """
     * self._sensor_service
         - provides utilities like
@@ -24,7 +24,14 @@ class SimpleSensor(Sensor):
         # interacting with your external system, you'd inherit from PollingSensor.)
         # For example, let's consider a simple flask app. You'd run the flask app here.
         # You can dispatch triggers using sensor_service like so:
-        # self._sensor_service(trigger_type_ref, payload)
+        # self._sensor_service(trigger, payload, trace_tag)
+        #   # You can refer to the trigger as dict
+        #   # { "name": ${trigger_name}, "pack": ${trigger_pack} }
+        #   # or just simply by reference as string.
+        #   # i.e. dispatch(${trigger_pack}.${trigger_name}, payload)
+        #   # E.g.: dispatch('examples.foo_sensor', {'k1': 'stuff', 'k2': 'foo'})
+        #   # trace_tag is a tag you would like to associate with the dispacthed TriggerInstance
+        #   # Typically the trace_tag is unique and a reference to an external event.
         pass
 
     def cleanup(self):

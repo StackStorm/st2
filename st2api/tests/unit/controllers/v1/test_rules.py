@@ -13,9 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import mock
 import six
 
+from st2common.constants.rules import RULE_TYPE_STANDARD, RULE_TYPE_BACKSTOP
+from st2common.constants.pack import DEFAULT_PACK_NAME
+from st2common.persistence.trigger import Trigger
 from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
@@ -55,6 +59,16 @@ class TestRuleController(FunctionalTest):
 
         file_name = 'cron_timer_rule_invalid_parameters.yaml'
         TestRuleController.RULE_2 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+        file_name = 'rule_no_enabled_attribute.yaml'
+        TestRuleController.RULE_3 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+        file_name = 'backstop_rule.yaml'
+        TestRuleController.RULE_4 = TestRuleController.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
@@ -112,11 +126,36 @@ class TestRuleController(FunctionalTest):
         expected_msg = 'Additional properties are not allowed (u\'minutex\' was unexpected)'
         self.assertTrue(expected_msg in post_resp.body)
 
+    def test_post_no_enabled_attribute_disabled_by_default(self):
+        post_resp = self.__do_post(TestRuleController.RULE_3)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
+        self.assertFalse(post_resp.json['enabled'])
+        self.__do_delete(self.__get_rule_id(post_resp))
+
     def test_put(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)
         update_input = post_resp.json
         update_input['enabled'] = not update_input['enabled']
         put_resp = self.__do_put(self.__get_rule_id(post_resp), update_input)
+        self.assertEqual(put_resp.status_int, http_client.OK)
+        self.__do_delete(self.__get_rule_id(put_resp))
+
+    def test_post_no_pack_info(self):
+        rule = copy.deepcopy(TestRuleController.RULE_1)
+        del rule['pack']
+        post_resp = self.__do_post(rule)
+        self.assertEqual(post_resp.json['pack'], DEFAULT_PACK_NAME)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
+        self.__do_delete(self.__get_rule_id(post_resp))
+
+    def test_put_no_pack_info(self):
+        post_resp = self.__do_post(TestRuleController.RULE_1)
+        test_rule = post_resp.json
+        if 'pack' in test_rule:
+            del test_rule['pack']
+        self.assertTrue('pack' not in test_rule)
+        put_resp = self.__do_put(self.__get_rule_id(post_resp), test_rule)
+        self.assertEqual(put_resp.json['pack'], DEFAULT_PACK_NAME)
         self.assertEqual(put_resp.status_int, http_client.OK)
         self.__do_delete(self.__get_rule_id(put_resp))
 
@@ -142,6 +181,30 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(get_resp.json['tags'], TestRuleController.RULE_1['tags'])
         self.__do_delete(rule_id)
 
+    def test_rule_without_type(self):
+        post_resp = self.__do_post(TestRuleController.RULE_1)
+        rule_id = self.__get_rule_id(post_resp)
+        get_resp = self.__do_get_one(rule_id)
+        self.assertEqual(get_resp.status_int, http_client.OK)
+        self.assertEqual(self.__get_rule_id(get_resp), rule_id)
+        assigned_rule_type = get_resp.json['type']
+        self.assertTrue(assigned_rule_type, 'rule_type should be assigned')
+        self.assertEqual(assigned_rule_type['ref'], RULE_TYPE_STANDARD,
+                         'rule_type should be standard')
+        self.__do_delete(rule_id)
+
+    def test_rule_with_type(self):
+        post_resp = self.__do_post(TestRuleController.RULE_4)
+        rule_id = self.__get_rule_id(post_resp)
+        get_resp = self.__do_get_one(rule_id)
+        self.assertEqual(get_resp.status_int, http_client.OK)
+        self.assertEqual(self.__get_rule_id(get_resp), rule_id)
+        assigned_rule_type = get_resp.json['type']
+        self.assertTrue(assigned_rule_type, 'rule_type should be assigned')
+        self.assertEqual(assigned_rule_type['ref'], RULE_TYPE_BACKSTOP,
+                         'rule_type should be backstop')
+        self.__do_delete(rule_id)
+
     @staticmethod
     def __get_rule_id(resp):
         return resp.json['id']
@@ -158,5 +221,108 @@ class TestRuleController(FunctionalTest):
         return self.app.put_json('/v1/rules/%s' % rule_id, rule, expect_errors=True)
 
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
+    def __do_delete(self, rule_id):
+        return self.app.delete('/v1/rules/%s' % rule_id)
+
+
+TEST_FIXTURES_2 = {
+    'runners': ['testrunner1.yaml'],
+    'actions': ['action1.yaml'],
+    'triggertypes': ['triggertype_with_parameter.yaml']
+}
+
+
+@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
+class TestRuleControllerTriggerCreator(FunctionalTest):
+
+    fixtures_loader = FixturesLoader()
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestRuleControllerTriggerCreator, cls).setUpClass()
+        cls.models = cls.fixtures_loader.save_fixtures_to_db(
+            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES_2)
+
+        # Don't load rule into DB as that is what is being tested.
+        file_name = 'rule_trigger_params.yaml'
+        cls.RULE_1 = cls.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+    def test_ref_count_trigger_increment(self):
+        post_resp = self.__do_post(self.RULE_1)
+        rule_1_id = self.__get_rule_id(post_resp)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
+        # ref_count is not served over API. Likely a choice that will prove unwise.
+        triggers = Trigger.get_all(**{'type': post_resp.json['trigger']['type']})
+        self.assertEqual(len(triggers), 1, 'Exactly 1 should exist')
+        self.assertEqual(triggers[0].ref_count, 1, 'ref_count should be 1')
+
+        # different rule same params
+        rule_2 = copy.copy(self.RULE_1)
+        rule_2['name'] = rule_2['name'] + '-2'
+        post_resp = self.__do_post(rule_2)
+        rule_2_id = self.__get_rule_id(post_resp)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
+        triggers = Trigger.get_all(**{'type': post_resp.json['trigger']['type']})
+        self.assertEqual(len(triggers), 1, 'Exactly 1 should exist')
+        self.assertEqual(triggers[0].ref_count, 2, 'ref_count should be 1')
+
+        self.__do_delete(rule_1_id)
+        self.__do_delete(rule_2_id)
+
+    def test_ref_count_trigger_decrement(self):
+        post_resp = self.__do_post(self.RULE_1)
+        rule_1_id = self.__get_rule_id(post_resp)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
+
+        rule_2 = copy.copy(self.RULE_1)
+        rule_2['name'] = rule_2['name'] + '-2'
+        post_resp = self.__do_post(rule_2)
+        rule_2_id = self.__get_rule_id(post_resp)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
+
+        # validate decrement
+        self.__do_delete(rule_1_id)
+        triggers = Trigger.get_all(**{'type': post_resp.json['trigger']['type']})
+        self.assertEqual(len(triggers), 1, 'Exactly 1 should exist')
+        self.assertEqual(triggers[0].ref_count, 1, 'ref_count should be 1')
+        self.__do_delete(rule_2_id)
+
+    def test_trigger_cleanup(self):
+        post_resp = self.__do_post(self.RULE_1)
+        rule_1_id = self.__get_rule_id(post_resp)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
+
+        rule_2 = copy.copy(self.RULE_1)
+        rule_2['name'] = rule_2['name'] + '-2'
+        post_resp = self.__do_post(rule_2)
+        rule_2_id = self.__get_rule_id(post_resp)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
+
+        triggers = Trigger.get_all(**{'type': post_resp.json['trigger']['type']})
+        self.assertEqual(len(triggers), 1, 'Exactly 1 should exist')
+        self.assertEqual(triggers[0].ref_count, 2, 'ref_count should be 1')
+
+        self.__do_delete(rule_1_id)
+        self.__do_delete(rule_2_id)
+
+        # validate cleanup
+        triggers = Trigger.get_all(**{'type': post_resp.json['trigger']['type']})
+        self.assertEqual(len(triggers), 0, 'Exactly 1 should exist')
+
+    @staticmethod
+    def __get_rule_id(resp):
+        return resp.json['id']
+
+    def __do_get_one(self, rule_id):
+        return self.app.get('/v1/rules/%s' % rule_id, expect_errors=True)
+
+    def __do_post(self, rule):
+        return self.app.post_json('/v1/rules', rule, expect_errors=True)
+
+    def __do_put(self, rule_id, rule):
+        return self.app.put_json('/v1/rules/%s' % rule_id, rule, expect_errors=True)
+
     def __do_delete(self, rule_id):
         return self.app.delete('/v1/rules/%s' % rule_id)

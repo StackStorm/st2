@@ -9,6 +9,15 @@ This pack contains actions for commonly used Linux commands and tools.
   and not directories (files don't need to exist yet when the sensor is ran
   though).
 
+Example:
+
+```yaml
+---
+file_watch_sensor:
+  file_paths:
+    - /opt/data/absolute_path_to_file.log
+```
+
 ## Sensors
 
 ### FileWatchSensor

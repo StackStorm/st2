@@ -29,7 +29,7 @@ LOG = logging.getLogger(__name__)
 DEFAULT_API_PORT = 9101
 DEFAULT_AUTH_PORT = 9100
 
-DEFAULT_BASE_URL = 'http://localhost'
+DEFAULT_BASE_URL = 'http://127.0.0.1'
 DEFAULT_API_VERSION = 'v1'
 
 
@@ -85,6 +85,8 @@ class Client(object):
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['ActionAlias'] = ActionAliasResourceManager(
             models.ActionAlias, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['ApiKey'] = ResourceManager(
+            models.ApiKey, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['LiveAction'] = LiveActionResourceManager(
             models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Policy'] = ResourceManager(
@@ -105,10 +107,16 @@ class Client(object):
             models.KeyValuePair, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Webhook'] = ResourceManager(
             models.Webhook, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Trace'] = ResourceManager(
+            models.Trace, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
 
     @property
     def actions(self):
         return self.managers['Action']
+
+    @property
+    def apikeys(self):
+        return self.managers['ApiKey']
 
     @property
     def keys(self):
@@ -149,3 +157,7 @@ class Client(object):
     @property
     def triggerinstances(self):
         return self.managers['TriggerInstance']
+
+    @property
+    def trace(self):
+        return self.managers['Trace']

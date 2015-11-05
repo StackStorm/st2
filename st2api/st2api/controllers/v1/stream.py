@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import pecan
+import six
 from pecan import Response
 from pecan.rest import RestController
 
@@ -34,10 +35,12 @@ def format(gen):
 
     for pack in gen:
         if not pack:
-            yield '\n'
+            # Note: gunicorn wsgi handler expect bytes, not unicode
+            yield six.binary_type('\n')
         else:
             (event, body) = pack
-            yield message % (event, json_encode(body, indent=None))
+            # Note: gunicorn wsgi handler expect bytes, not unicode
+            yield six.binary_type(message % (event, json_encode(body, indent=None)))
 
 
 class StreamController(RestController):

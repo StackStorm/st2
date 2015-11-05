@@ -112,12 +112,52 @@ class Access(object):
         return cls._get_impl().aggregate(*args, **kwargs)
 
     @classmethod
-    def add_or_update(cls, model_object, publish=True, dispatch_trigger=True):
+    def insert(cls, model_object, publish=True, dispatch_trigger=True,
+               log_not_unique_error_as_debug=False):
+        if model_object.id:
+            raise ValueError('id for object %s was unexpected.' % model_object)
+        try:
+            model_object = cls._get_impl().insert(model_object)
+        except NotUniqueError as e:
+            if log_not_unique_error_as_debug:
+                LOG.debug('Conflict while trying to save in DB.', exc_info=True)
+            else:
+                LOG.exception('Conflict while trying to save in DB.')
+            # On a conflict determine the conflicting object and return its id in
+            # the raised exception.
+            conflict_object = cls._get_by_object(model_object)
+            conflict_id = str(conflict_object.id) if conflict_object else None
+            message = str(e)
+            raise StackStormDBObjectConflictError(message=message, conflict_id=conflict_id,
+                                                  model_object=model_object)
+
+        # Publish internal event on the message bus
+        if publish:
+            try:
+                cls.publish_create(model_object)
+            except:
+                LOG.exception('Publish failed.')
+
+        # Dispatch trigger
+        if dispatch_trigger:
+            try:
+                cls.dispatch_create_trigger(model_object)
+            except:
+                LOG.exception('Trigger dispatch failed.')
+
+        return model_object
+
+    @classmethod
+    def add_or_update(cls, model_object, publish=True, dispatch_trigger=True,
+                      log_not_unique_error_as_debug=False):
         pre_persist_id = model_object.id
         try:
             model_object = cls._get_impl().add_or_update(model_object)
         except NotUniqueError as e:
-            LOG.exception('Conflict while trying to save in DB.')
+            if log_not_unique_error_as_debug:
+                LOG.debug('Conflict while trying to save in DB.', exc_info=True)
+            else:
+                LOG.exception('Conflict while trying to save in DB.')
             # On a conflict determine the conflicting object and return its id in
             # the raised exception.
             conflict_object = cls._get_by_object(model_object)
@@ -145,6 +185,35 @@ class Access(object):
                     cls.dispatch_update_trigger(model_object)
                 else:
                     cls.dispatch_create_trigger(model_object)
+            except:
+                LOG.exception('Trigger dispatch failed.')
+
+        return model_object
+
+    @classmethod
+    def update(cls, model_object, publish=True, dispatch_trigger=True, **kwargs):
+        """
+        Use this method when -
+        * upsert=False is desired
+        * special operators like push, push_all are to be used.
+        """
+        cls._get_impl().update(model_object, **kwargs)
+        # update does not return the object but a flag; likely success/fail but docs
+        # are not very good on this one so ignoring. Explicitly get the object from
+        # DB abd return.
+        model_object = cls.get_by_id(model_object.id)
+
+        # Publish internal event on the message bus
+        if publish:
+            try:
+                cls.publish_update(model_object)
+            except:
+                LOG.exception('Publish failed.')
+
+        # Dispatch trigger
+        if dispatch_trigger:
+            try:
+                cls.dispatch_update_trigger(model_object)
             except:
                 LOG.exception('Trigger dispatch failed.')
 

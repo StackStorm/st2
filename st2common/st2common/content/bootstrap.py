@@ -19,14 +19,22 @@ import sys
 from oslo_config import cfg
 
 from st2common import config
-from st2common.service_setup import db_setup
-from st2common.service_setup import db_teardown
-from st2common.logging.filters import LogLevelFilter
-from st2common.transport.utils import register_exchanges
+from st2common.script_setup import setup as common_setup
+from st2common.script_setup import teardown as common_teardown
+import st2common.bootstrap.sensorsregistrar as sensors_registrar
+import st2common.bootstrap.actionsregistrar as actions_registrar
+import st2common.bootstrap.aliasesregistrar as aliases_registrar
+import st2common.bootstrap.policiesregistrar as policies_registrar
+import st2common.bootstrap.runnersregistrar as runners_registrar
+import st2common.bootstrap.rulesregistrar as rules_registrar
+import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
 
+__all__ = [
+    'main'
+]
 
 LOG = logging.getLogger('st2common.content.bootstrap')
-cfg.CONF.register_cli_opt(cfg.BoolOpt('verbose', short='v', default=False))
+
 cfg.CONF.register_cli_opt(cfg.BoolOpt('experimental', default=False))
 
 
@@ -50,13 +58,11 @@ register_opts()
 
 def register_sensors():
     registered_count = 0
+
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering sensors ######################')
         LOG.info('=========================================================')
-        # Importing here to reduce scope of dependency. This way even if st2reactor
-        # is not installed bootstrap continues.
-        import st2reactor.bootstrap.sensorsregistrar as sensors_registrar
         registered_count = sensors_registrar.register_sensors(pack_dir=cfg.CONF.register.pack)
     except Exception:
         LOG.warning('Failed to register sensors.', exc_info=True)
@@ -90,18 +96,12 @@ def register_actions():
         LOG.info('=========================================================')
         LOG.info('############## Registering actions ######################')
         LOG.info('=========================================================')
-        # Importing here to reduce scope of dependency. This way even if st2action
-        # is not installed bootstrap continues.
-        import st2actions.bootstrap.runnersregistrar as runners_registrar
         runners_registrar.register_runner_types(experimental=cfg.CONF.experimental)
     except Exception as e:
         LOG.warning('Failed to register runner types: %s', e, exc_info=True)
         LOG.warning('Not registering stock runners .')
     else:
         try:
-            # Importing here to reduce scope of dependency. This way even if st2action
-            # is not installed bootstrap continues.
-            import st2actions.bootstrap.actionsregistrar as actions_registrar
             registered_count = actions_registrar.register_actions(pack_dir=cfg.CONF.register.pack)
         except Exception as e:
             LOG.warning('Failed to register actions: %s', e, exc_info=True)
@@ -110,33 +110,33 @@ def register_actions():
 
 
 def register_rules():
-    # Register rules.
+    # Register ruletypes and rules.
     registered_count = 0
 
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering rules ########################')
         LOG.info('=========================================================')
-        # Importing here to reduce scope of dependency. This way even if st2reactor
-        # is not installed bootstrap continues.
-        import st2reactor.bootstrap.rulesregistrar as rules_registrar
-        registered_count = rules_registrar.register_rules(pack_dir=cfg.CONF.register.pack)
+        rule_types_registrar.register_rule_types()
     except Exception as e:
-        LOG.warning('Failed to register rules: %s', e, exc_info=True)
+        LOG.warning('Failed to register rule types: %s', e, exc_info=True)
+    else:
+        try:
+            registered_count = rules_registrar.register_rules(pack_dir=cfg.CONF.register.pack)
+        except Exception as e:
+            LOG.warning('Failed to register rules: %s', e, exc_info=True)
 
-    LOG.info('Registered %s rules.' % (registered_count))
+    LOG.info('Registered %s rules.', registered_count)
 
 
 def register_aliases():
     # Register rules.
     registered_count = 0
+
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering aliases ######################')
         LOG.info('=========================================================')
-        import st2common.content.aliasesregistrar as aliases_registrar
-        # This count is broken. If register_aliases throws an exception it has
-        # no assigned value. (FIX ME!)
         registered_count = aliases_registrar.register_aliases(pack_dir=cfg.CONF.register.pack)
     except Exception:
         LOG.warning('Failed to register aliases.', exc_info=True)
@@ -146,23 +146,23 @@ def register_aliases():
 
 def register_policies():
     # Register policy types and policies.
+    registered_type_count = 0
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering policy types #################')
         LOG.info('=========================================================')
         import st2actions
-        import st2common.content.policiesregistrar as policies_registrar
         registered_type_count = policies_registrar.register_policy_types(st2actions)
     except Exception:
         LOG.warning('Failed to register policy types.', exc_info=True)
 
     LOG.info('Registered %s policy types.', registered_type_count)
 
+    registered_count = 0
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering policies #####################')
         LOG.info('=========================================================')
-        import st2common.content.policiesregistrar as policies_registrar
         registered_count = policies_registrar.register_policies()
     except Exception:
         LOG.warning('Failed to register policies.', exc_info=True)
@@ -199,32 +199,18 @@ def register_content():
         register_policies()
 
 
-def _setup(argv):
-    config.parse_args()
-
-    log_level = logging.DEBUG
-    logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s', level=log_level)
-
-    if not cfg.CONF.verbose:
-        # Note: We still want to print things at the following log levels: INFO, ERROR, CRITICAL
-        exclude_log_levels = [logging.AUDIT, logging.DEBUG]
-        handlers = logging.getLoggerClass().manager.root.handlers
-
-        for handler in handlers:
-            handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
-
-    db_setup()
-    register_exchanges()
+def setup(argv):
+    common_setup(config=config, setup_db=True, register_mq_exchanges=True)
 
 
-def _teardown():
-    db_teardown()
+def teardown():
+    common_teardown()
 
 
 def main(argv):
-    _setup(argv)
+    setup(argv)
     register_content()
-    _teardown()
+    teardown()
 
 
 # This script registers actions and rules from content-packs.

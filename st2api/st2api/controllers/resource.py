@@ -58,9 +58,13 @@ class ResourceController(rest.RestController):
     # A list of optional transformation functions for user provided filter values
     filter_transform_functions = {}
 
+    # Method responsible for retrieving an instance of the corresponding model DB object
+    get_one_db_method = None
+
     def __init__(self):
         self.supported_filters = copy.deepcopy(self.__class__.supported_filters)
         self.supported_filters.update(RESERVED_QUERY_PARAMS)
+        self.get_one_db_method = self._get_by_name_or_id
 
     @jsexpose()
     def get_all(self, **kwargs):
@@ -70,16 +74,20 @@ class ResourceController(rest.RestController):
     def get_one(self, id):
         return self._get_one_by_id(id=id)
 
-    def _get_all(self, exclude_fields=None, **kwargs):
+    def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
+                 **kwargs):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
+        kwargs = copy.deepcopy(kwargs)
+
         exclude_fields = exclude_fields or []
+        query_options = query_options if query_options else self.query_options
 
         # TODO: Why do we use comma delimited string, user can just specify
         # multiple values using ?sort=foo&sort=bar and we get a list back
-        sort = kwargs.get('sort').split(',') if kwargs.get('sort') else []
+        sort = sort.split(',') if sort else []
 
         db_sort_values = []
         for sort_key in sort:
@@ -99,12 +107,11 @@ class ResourceController(rest.RestController):
             sort_value = direction + self.supported_filters[sort_key]
             db_sort_values.append(sort_value)
 
-        default_sort_values = copy.copy(self.query_options.get('sort'))
+        default_sort_values = copy.copy(query_options.get('sort'))
         kwargs['sort'] = db_sort_values if db_sort_values else default_sort_values
 
         # TODO: To protect us from DoS, we need to make max_limit mandatory
-        offset = int(kwargs.pop('offset', 0))
-        limit = kwargs.pop('limit', None)
+        offset = int(offset)
 
         if limit and int(limit) > self.max_limit:
             limit = self.max_limit
@@ -124,9 +131,18 @@ class ResourceController(rest.RestController):
 
             filters['__'.join(v.split('.'))] = filter_value
 
-        LOG.info('GET all %s with filters=%s', pecan.request.path, filters)
+        extra = {
+            'filters': filters,
+            'sort': sort,
+            'offset': offset,
+            'limit': limit
+        }
+        LOG.info('GET all %s with filters=%s' % (pecan.request.path, filters), extra=extra)
 
         instances = self.access.query(exclude_fields=exclude_fields, **filters)
+        if limit == 1:
+            # Perform the filtering on the DB side
+            instances = instances.limit(limit)
 
         if limit:
             pecan.response.headers['X-Limit'] = str(limit)
@@ -181,7 +197,7 @@ class ResourceController(rest.RestController):
 
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
         result = self.model.from_model(instance, **from_model_kwargs)
-        LOG.debug('GET %s with name_or_odid=%s, client_result=%s', pecan.request.path, id, result)
+        LOG.debug('GET %s with name_or_id=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
 
@@ -227,6 +243,10 @@ class ResourceController(rest.RestController):
 class ContentPackResourceController(ResourceController):
     include_reference = False
 
+    def __init__(self):
+        super(ContentPackResourceController, self).__init__()
+        self.get_one_db_method = self._get_by_ref_or_id
+
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return self._get_one(ref_or_id)
@@ -235,11 +255,11 @@ class ContentPackResourceController(ResourceController):
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
-    def _get_one(self, ref_or_id):
+    def _get_one(self, ref_or_id, exclude_fields=None):
         LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
 
         try:
-            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+            instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
         except Exception as e:
             LOG.exception(e.message)
             pecan.abort(http_client.NOT_FOUND, e.message)
@@ -268,7 +288,7 @@ class ContentPackResourceController(ResourceController):
 
         return result
 
-    def _get_by_ref_or_id(self, ref_or_id):
+    def _get_by_ref_or_id(self, ref_or_id, exclude_fields=None):
         """
         Retrieve resource object by an id of a reference.
 
@@ -283,9 +303,9 @@ class ContentPackResourceController(ResourceController):
             is_reference = False
 
         if is_reference:
-            resource_db = self._get_by_ref(resource_ref=ref_or_id)
+            resource_db = self._get_by_ref(resource_ref=ref_or_id, exclude_fields=exclude_fields)
         else:
-            resource_db = self._get_by_id(resource_id=ref_or_id)
+            resource_db = self._get_by_id(resource_id=ref_or_id, exclude_fields=exclude_fields)
 
         if not resource_db:
             msg = 'Resource with a reference or id "%s" not found' % (ref_or_id)
@@ -293,21 +313,14 @@ class ContentPackResourceController(ResourceController):
 
         return resource_db
 
-    def _get_by_id(self, resource_id):
-        try:
-            resource_db = self.access.get_by_id(resource_id)
-        except Exception:
-            resource_db = None
-
-        return resource_db
-
-    def _get_by_ref(self, resource_ref):
+    def _get_by_ref(self, resource_ref, exclude_fields=None):
         try:
             ref = ResourceReference.from_string_reference(ref=resource_ref)
         except Exception:
             return None
 
-        resource_db = self.access.query(name=ref.name, pack=ref.pack).first()
+        resource_db = self.access.query(name=ref.name, pack=ref.pack,
+                                        exclude_fields=exclude_fields).first()
         return resource_db
 
     def _get_filters(self, **kwargs):

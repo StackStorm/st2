@@ -1,5 +1,36 @@
 #!/bin/bash
 
+function usage() {
+  echo ""
+  echo "Usage: $0"
+  echo ""
+  echo "Options:"
+  echo "  -w  Run Windows tests"
+  echo ""
+  >&2
+}
+
+RUN_WINDOWS_TESTS=false
+
+while getopts "w" o
+do
+    case "${o}" in
+        w)
+            RUN_WINDOWS_TESTS=true
+            ;;
+        \?)
+            usage
+            exit 2
+            ;;
+        :)
+            usage
+            exit 2
+            ;;
+    esac
+done
+
+shift $(($OPTIND-1))
+
 ## Script to install samples, tests, and run all workflows in tests pack.
 ERRORS=0
 PACKS="tests examples"
@@ -16,6 +47,25 @@ elif [[ -f "/etc/redhat-release" ]]; then
 else
   echo "Unknown Operating System"
   exit 2
+fi
+
+#Determine API HTTP Protocol
+PROTOCOL="http"
+ST2_CLI_CONFIG_FILE=`readlink -f ~/.st2/config`
+if [ ! -z ${ST2_API_URL+x} ]; then
+  if [[ ${ST2_API_URL} = https* ]]; then
+    PROTOCOL="https"
+  fi
+elif [ ! -z ${ST2_BASE_URL+x} ]; then
+  if [[ ${ST2_BASE_URL} = https* ]]; then
+    PROTOCOL="https"
+  fi
+elif [ -e "${ST2_CLI_CONFIG_FILE}" ]; then
+  if [ ! -z "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'https://(.+):9101'" ]; then
+    PROTOCOL="https"
+  elif [ ! -z "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'base_url\s?=\s?https'" ]; then
+    PROTOCOL="https"
+  fi
 fi
 
 # Install test prerequisites
@@ -35,6 +85,10 @@ for PACK in $PACKS; do
 
     EXITCODE=$?
     echo $INSTALL
+    if [ ${EXITCODE} -ne 0 ]; then
+      echo "st2-self-check failed.  See above."
+      exit 2
+    fi
   fi
 done
 
@@ -43,29 +97,44 @@ TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep
 
 # Run all the tests
 for TEST in $TEST_ACTION_LIST
-    do
-        echo -n "Attempting Test ${TEST}..."
-        TEST_OUTPUT=`st2 run ${TEST} token=${ST2_AUTH_TOKEN} -j`
-        CHECK_STATUS=`echo ${TEST_OUTPUT} | grep '"status": "succeeded"'`
-        if [ $? -ne 0 ]; then
-            echo -e "ERROR!"
-            #echo -e "FAILED!\nOUTPUT: ${TEST_OUTPUT}"
-            #exit 2
-        else
-            echo "OK!"
-        fi
-        ERRORS=$(($ERRORS + $?))
-    done
+do
+    # If -w option is not set, skip Windows related tests
+    # because smbclient is not installed by default.
+    if [ ${RUN_WINDOWS_TESTS} = "false" ] && [ ${TEST} = "tests.test_windows_runners" ]; then
+        echo "Skipping ${TEST}..."
+        continue
+    fi
+
+    echo -n "Attempting Test ${TEST}..."
+    RESULT_FILE=/tmp/${TEST}.out
+    st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} -j > ${RESULT_FILE}
+    CHECK_STATUS=`head -n 9 ${RESULT_FILE} | grep '"status": "succeeded"'`
+    if [ $? -ne 0 ]; then
+        echo -e "ERROR!"
+        ((ERRORS++))
+    else
+        echo "OK!"
+    fi
+done
 
 echo -n "Attempting Example examples.mistral_examples..."
-MISTRAL_EXAMPLES=`st2 run examples.mistral_examples -j`
-CHECK_STATUS=`echo ${MISTRAL_EXAMPLES} | grep '"status": "succeeded"'`
+RESULT_FILE=/tmp/examples.mistral_examples.out
+st2 run examples.mistral_examples -j > ${RESULT_FILE}
+CHECK_STATUS=`head -n 9 ${RESULT_FILE} | grep '"status": "succeeded"'`
+if [ $? -ne 0 ]; then
+    echo -e "ERROR!"
+    ((ERRORS++))
+else
+    echo "OK!"
+fi
+
 if [ $ERRORS -ne 0 ]; then
-    echo "ERROR!"
-    echo "Tests failed.  See above.  Also check the execution list for details."
+    echo "SELF CHECK FAILED!"
+    echo "st2-self-check failed.  See above.  Also check the execution list for details."
     echo "st2 execution list"
 else
-    echo -e "OK!"
+    echo "SELF CHECK SUCCEEDED!"
+    echo -e "st2-self-check succeeded."
 
 cat << EOF
 

@@ -1,12 +1,28 @@
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import copy
 import importlib
 
 import six
 import mongoengine
 
+from st2common import log as logging
 from st2common.util import isotime
 from st2common.models.db import stormbase
-from st2common import log as logging
+from st2common.models.utils.profiling import log_query_and_profile_data_for_queryset
 
 
 LOG = logging.getLogger(__name__)
@@ -27,16 +43,33 @@ MODEL_MODULE_NAMES = [
 ]
 
 
-def db_setup(db_name, db_host, db_port, username=None, password=None):
-    LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".' %
-             (db_name, db_host, db_port, str(username)))
+def get_model_classes():
+    """
+    Retrieve a list of all the defined model classes.
+
+    :rtype: ``list``
+    """
+    result = []
+    for module_name in MODEL_MODULE_NAMES:
+        module = importlib.import_module(module_name)
+        model_classes = getattr(module, 'MODELS', [])
+        result.extend(model_classes)
+
+    return result
+
+
+def db_setup(db_name, db_host, db_port, username=None, password=None,
+             ensure_indexes=True):
+    LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".',
+             db_name, db_host, db_port, str(username))
     connection = mongoengine.connection.connect(db_name, host=db_host,
                                                 port=db_port, tz_aware=True,
                                                 username=username, password=password)
 
     # Create all the indexes upfront to prevent race-conditions caused by
     # lazy index creation
-    db_ensure_indexes()
+    if ensure_indexes:
+        db_ensure_indexes()
 
     return connection
 
@@ -52,13 +85,11 @@ def db_ensure_indexes():
     are created in real-time and not in background).
     """
     LOG.debug('Ensuring database indexes...')
+    model_classes = get_model_classes()
 
-    for module_name in MODEL_MODULE_NAMES:
-        module = importlib.import_module(module_name)
-        model_classes = getattr(module, 'MODELS', [])
-        for cls in model_classes:
-            LOG.debug('Ensuring indexes for model "%s"...' % (cls.__name__))
-            cls.ensure_indexes()
+    for cls in model_classes:
+        LOG.debug('Ensuring indexes for model "%s"...' % (cls.__name__))
+        cls.ensure_indexes()
 
 
 def db_teardown():
@@ -89,6 +120,7 @@ class MongoDBAccess(object):
             instances = instances.exclude(*exclude_fields)
 
         instance = instances[0] if instances else None
+        log_query_and_profile_data_for_queryset(queryset=instances)
 
         if not instance and raise_exception:
             raise ValueError('Unable to find the %s instance. %s' % (self.model.__name__, kwargs))
@@ -98,7 +130,9 @@ class MongoDBAccess(object):
         return self.query(*args, **kwargs)
 
     def count(self, *args, **kwargs):
-        return self.model.objects(**kwargs).count()
+        result = self.model.objects(**kwargs).count()
+        log_query_and_profile_data_for_queryset(queryset=result)
+        return result
 
     def query(self, offset=0, limit=None, order_by=None, exclude_fields=None,
               **filters):
@@ -119,28 +153,46 @@ class MongoDBAccess(object):
 
         result = result.order_by(*order_by)
         result = result[offset:eop]
+        log_query_and_profile_data_for_queryset(queryset=result)
 
         return result
 
     def distinct(self, *args, **kwargs):
         field = kwargs.pop('field')
-        return self.model.objects(**kwargs).distinct(field)
+        result = self.model.objects(**kwargs).distinct(field)
+        log_query_and_profile_data_for_queryset(queryset=result)
+        return result
 
     def aggregate(self, *args, **kwargs):
         return self.model.objects(**kwargs)._collection.aggregate(*args, **kwargs)
 
-    @staticmethod
-    def add_or_update(instance):
+    def insert(self, instance):
+        instance = self.model.objects.insert(instance)
+        return self._undo_dict_field_escape(instance)
+
+    def add_or_update(self, instance):
         instance.save()
+        return self._undo_dict_field_escape(instance)
+
+    def update(self, instance, **kwargs):
+        return instance.update(**kwargs)
+
+    def delete(self, instance):
+        return instance.delete()
+
+    def delete_by_query(self, **query):
+        qs = self.model.objects.filter(**query)
+        qs.delete()
+        log_query_and_profile_data_for_queryset(queryset=qs)
+        # mongoengine does not return anything useful so cannot return anything meaningful.
+        return None
+
+    def _undo_dict_field_escape(self, instance):
         for attr, field in instance._fields.iteritems():
             if isinstance(field, stormbase.EscapedDictField):
                 value = getattr(instance, attr)
                 setattr(instance, attr, field.to_python(value))
         return instance
-
-    @staticmethod
-    def delete(instance):
-        instance.delete()
 
     def _process_null_filters(self, filters):
         result = copy.deepcopy(filters)

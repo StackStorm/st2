@@ -15,6 +15,7 @@
 
 from st2api.controllers.exp.actionalias import ActionAliasController
 from st2api.controllers.exp.aliasexecution import ActionAliasExecutionController
+from st2api.controllers.exp.validation import ValidationController
 
 
 class RootController(object):
@@ -23,3 +24,6 @@ class RootController(object):
     # Deprecated. Use /v1/ instead.
     actionalias = ActionAliasController()
     aliasexecution = ActionAliasExecutionController()
+
+    # Experimental
+    validation = ValidationController()

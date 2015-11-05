@@ -60,7 +60,7 @@ class TriggerInstanceBranch(resource.ResourceBranch):
 
 
 class TriggerInstanceListCommand(resource.ResourceCommand):
-    display_attributes = ['id', 'trigger', 'occurrence_time', 'payload']
+    display_attributes = ['id', 'trigger', 'occurrence_time']
 
     attribute_transform_functions = {
         'occurrence_time': format_isodate

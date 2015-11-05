@@ -23,8 +23,8 @@ from st2common.persistence.sensor import SensorType
 from st2common.persistence.trigger import Trigger
 from st2common.persistence.trigger import TriggerType
 from st2common.transport.publishers import PoolPublisher
-from st2reactor.bootstrap.sensorsregistrar import SensorsRegistrar
-from st2reactor.bootstrap.rulesregistrar import RulesRegistrar
+from st2common.bootstrap.sensorsregistrar import SensorsRegistrar
+from st2common.bootstrap.rulesregistrar import RulesRegistrar
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PACKS_DIR = os.path.join(CURRENT_DIR, '../fixtures/packs')
@@ -58,6 +58,19 @@ class SensorRegistrationTestCase(DbTestCase):
                                     pack_name='pack_with_sensor')
         self._validate_trigger_type(trigger_type_dbs, trigger_type_name='trigger_type_2',
                                     pack_name='pack_with_sensor')
+
+        self.assertEqual(sensor_dbs[1].name, 'TestSensorDisabled')
+        self.assertEqual(sensor_dbs[1].poll_interval, 10)
+        self.assertFalse(sensor_dbs[1].enabled)
+
+        self.assertEqual(trigger_type_dbs[0].name, 'trigger_type_1')
+        self.assertEqual(trigger_type_dbs[0].pack, 'pack_with_sensor')
+        self.assertEqual(len(trigger_type_dbs[0].tags), 0)
+        self.assertEqual(trigger_type_dbs[1].name, 'trigger_type_2')
+        self.assertEqual(trigger_type_dbs[1].pack, 'pack_with_sensor')
+        self.assertEqual(len(trigger_type_dbs[1].tags), 2)
+        self.assertEqual(trigger_type_dbs[1].tags[0].name, 'tag1name')
+        self.assertEqual(trigger_type_dbs[1].tags[0].value, 'tag1 value')
 
         # Verify second call to registration doesn't create a duplicate objects
         registrar.register_sensors_from_packs(base_dirs=[PACKS_DIR])

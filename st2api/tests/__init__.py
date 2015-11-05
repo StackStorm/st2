@@ -13,6 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tests.base import FunctionalTest, AuthMiddlewareTest
+from tests.base import FunctionalTest
 
-__all__ = ['FunctionalTest', 'AuthMiddlewareTest']
+__all__ = ['FunctionalTest']

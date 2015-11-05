@@ -1,0 +1,9 @@
+---
+name: greet.concurrency
+pack: hello-st2
+description: Limits the concurrent executions of the greet action.
+enabled: true
+resource_ref: hello-st2.greet
+policy_type: action.concurrency
+parameters:
+    threshold: 10

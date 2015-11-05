@@ -1,10 +1,16 @@
 Mistral
 =======
-`Mistral <https://wiki.openstack.org/wiki/Mistral>`_ is an OpenStack project that manages and executes workflows as a service. Mistral is installed as a separate service named "mistral" along with |st2|. A Mistral workflow can be defined as a |st2| action in a Mistral workbook using the `v2 DSL <https://wiki.openstack.org/wiki/Mistral/DSLv2>`_. Both workbook and workflow definitions are supported. On action execution, |st2| writes the definition to Mistral and executes the workflow. Workflow can invoke other |st2| actions natively as subtasks. |st2| handles the translations and calls transparently in Mistral and actively polls Mistral for execution results.  |st2| actions in the workflow can be traced back to the original parent action that invoked the workflow.
+`Mistral <http://docs.openstack.org/developer/mistral/overview.html>`_ is an OpenStack project that manages and executes workflows as a service. Mistral is installed as a separate service named "mistral" along with |st2|. A Mistral workflow can be defined as a |st2| action in a Mistral workbook using the `v2 DSL <http://docs.openstack.org/developer/mistral/dsl/dsl_v2.html>`_. YAQL is used for data referencing, conditions, and evaluations. Both workbook and workflow definitions are supported. On action execution, |st2| writes the definition to Mistral and executes the workflow. Workflow can invoke other |st2| actions natively as subtasks. |st2| handles the translations and calls transparently in Mistral and actively polls Mistral for execution results.  |st2| actions in the workflow can be traced back to the original parent action that invoked the workflow.
+
+**Essential Mistral Links:**
+
+* Mistral workflow definition language, aka `v2 DSL <http://docs.openstack.org/developer/mistral/dsl/dsl_v2.html>`_
+* `YAQL online evaluator <http://yaqluator.com/>`_
 
 Basic Workflow
 ++++++++++++++
-Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under **/usr/share/doc/st2/examples** if |st2| is already installed. The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. A task can reference any registered |st2| action directly. In this example, the run-cmd task is calling **core.local** and passing the cmd as input. **core.local** is an action that comes installed with |st2|. When the workflow is invoked, |st2| will translate the workflow definition appropriately before sending it to Mistral. Let's save this as mistral-basic.yaml at **/opt/stackstorm/packs/examples/actions/workflows** where |st2| is installed.
+Let's start with a very basic workflow that calls a |st2| action and notifies |st2| when the workflow is done. The files used in this example is also located under :github_st2:`/usr/share/doc/st2/examples </contrib/examples>` if |st2| is already installed (and you can :ref:`deploy examples <start-deploy-examples>`).
+The first task is named **run-cmd** that executes a shell command on the local server where st2 is installed. A task can reference any registered |st2| action directly. In this example, the run-cmd task is calling **core.local** and passing the cmd as input. **core.local** is an action that comes installed with |st2|. When the workflow is invoked, |st2| will translate the workflow definition appropriately before sending it to Mistral. Let's save this as mistral-basic.yaml at **/opt/stackstorm/packs/examples/actions/workflows** where |st2| is installed.
 
 .. literalinclude:: /../../contrib/examples/actions/workflows/mistral-basic.yaml
 
@@ -45,6 +51,10 @@ To display subtasks, run ``st2 execution get <execution-id> --tasks``.
 | 54ee54c91e2e24152b769a49 | core.local | stanley      | succeeded | Wed, 25 Feb 2015 23:03:37    | Wed, 25 Feb 2015 23:03:37    |
 |                          |            |              |           | UTC                          | UTC                          |
 +--------------------------+------------+--------------+-----------+------------------------------+------------------------------+
+
+Canceling Workflow Execution
+++++++++++++++++++++++++++++
+An execution of a Mistral workflow can be cancelled by running ``st2 execution cancel <execution-id>``. Workflow tasks that are still running will not be canceled and will run to completion. No new tasks for the workflow will be scheduled.
 
 Publishing variables in mistral workflows
 +++++++++++++++++++++++++++++++++++++++++
@@ -98,8 +108,7 @@ example of using ``ipv4_address`` from the above example in another task is show
 
         setup_ipv4_dns:
             action: rackspace.create_dns_record
-            policies:
-              wait-before: 1
+            wait-before: 1 # delay, in seconds
             input:
               name: '<% $.hostname %>.<% $.asg %>.<% $.domain %>'
               zone_id: <% $.dns_zone_id %>
@@ -122,4 +131,8 @@ To test out this workflow, save the metadata file to /opt/stackstorm/packs/examp
 
 More Examples
 +++++++++++++++++++
-There are more workflow examples under /usr/share/doc/st2/examples such as error handling, repeat, and retries. We will continue to share more of them at our github repos.
+There are more workflow examples under :github_st2:`/usr/share/doc/st2/examples </contrib/examples/actions/workflows/>` such as error handling, repeat, and retries.
+
+Check out this step-by-step tutorial on building a workflow in |st2| http://stackstorm.com/2015/07/08/automating-with-mistral-workflow/
+
+More details about Mistral can be found at http://docs.openstack.org/developer/mistral/.

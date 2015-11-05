@@ -1,12 +1,15 @@
 #!/bin/bash
 
-set -e
-
-LOGFILE="/tmp/st2_startup.log"
+LOGFILE="/dev/null"
 WEBUI_LOG_FILE="/var/log/st2/st2web.log"
-COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine mistral st2web st2resultstracker st2notifier"
+COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine st2web mistral st2resultstracker st2notifier"
 STANCONF="/etc/st2/st2.conf"
-PYTHON=`which python`
+PYTHON=`which python2.7`
+
+# Ensure global environment is sourced if exists
+# Does not happen consistently with all OSes we support.
+[ -r /etc/environment ] && . /etc/environment
+
 
 # AR is assumed to be an environment variable.
 if [ -z "$AR" ];
@@ -178,16 +181,17 @@ function st2start_classic(){
   nohup st2resultstracker --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup st2notifier --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup st2rulesengine --config-file ${STANCONF} &>> ${LOGFILE} &
+
+  # Only run WebUI HTTP Server if flag is not set
+  if [ -z "${ST2_DISABLE_HTTPSERVER}" ]; then
+    (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
+  fi
+
   if [[ "${CONTAINER}" == "DOCKER" ]]
   then
     /opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/mistral/cmd/launch.py --config-file /etc/mistral/mistral.conf --log-file /var/log/mistral.log &> /dev/null &
   else
     service mistral start
-  fi
-
-  # Only run WebUI HTTP Server if flag is not set
-  if [ -z "${ST2_DISABLE_HTTPSERVER}" ]; then
-    (cd /opt/stackstorm/static/webui && nohup python -m SimpleHTTPServer $WEBUI_PORT) &>> ${WEBUI_LOG_FILE} &
   fi
 }
 
@@ -366,6 +370,9 @@ function getpids(){
     if [[ "${COM}" == "st2web" && -z "${ST2_DISABLE_HTTPSERVER}" ]]
     then
       PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
+    elif [[ "${COM}" == "mistral" ]]
+    then
+      PID=`ps ax | grep -v grep | grep -v postgres | grep "${COM}" | awk '{print $1}'`
     else
       PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
     fi

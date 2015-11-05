@@ -25,7 +25,7 @@ class ActionAliasBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(ActionAliasBranch, self).__init__(
             ActionAlias, description, app, subparsers,
-            parent_parser=parent_parser, read_only=True,
+            parent_parser=parent_parser, read_only=False,
             commands={
                 'list': ActionAliasListCommand,
                 'get': ActionAliasGetCommand
@@ -33,7 +33,7 @@ class ActionAliasBranch(resource.ResourceBranch):
 
 
 class ActionAliasListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'pack', 'name', 'description', 'enabled']
+    display_attributes = ['ref', 'pack', 'description', 'enabled']
 
 
 class ActionAliasGetCommand(resource.ContentPackResourceGetCommand):

@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from itertools import chain
 from pecan.rest import RestController
 import six
 
@@ -23,6 +22,14 @@ from st2common.persistence.execution import ActionExecution
 
 LOG = logging.getLogger(__name__)
 
+# List of supported filters and relation between filter name and execution property it represents.
+# The same list is used both in ActionExecutionController to map filter names to properties and
+# in FiltersController below to generate a list of unique values for each filter for UI so user
+# could pick a filter from a drop down.
+# If filter is unique for every execution or repeats very rarely (ex. execution id or parent
+# reference) it should be also added to IGNORE_FILTERS to avoid bloating FiltersController
+# response. Failure to do so will eventually result in Chrome hanging out while opening History
+# tab of st2web.
 SUPPORTED_FILTERS = {
     'action': 'action.ref',
     'status': 'status',
@@ -34,42 +41,35 @@ SUPPORTED_FILTERS = {
     'trigger': 'trigger.name',
     'trigger_type': 'trigger_type.name',
     'trigger_instance': 'trigger_instance.id',
-    'user': 'liveaction.context.user'
+    'user': 'context.user'
 }
 
 # List of filters that are too broad to distinct by them and are very likely to represent 1 to 1
 # relation between filter and particular history record.
-IGNORE_FILTERS = ['parent', 'timestamp', 'liveaction']
+IGNORE_FILTERS = ['parent', 'timestamp', 'liveaction', 'trigger_instance']
+
+
+def csv(s):
+    return s.split(',')
 
 
 class FiltersController(RestController):
-    @jsexpose()
-    def get_all(self):
+    @jsexpose(arg_types=[csv])
+    def get_all(self, types=None):
         """
             List all distinct filters.
 
             Handles requests:
-                GET /executions/views/filters
+                GET /executions/views/filters[?types=action,rule]
+
+            :param types: Comma delimited string of filter types to output.
+            :type types: ``str``
         """
         filters = {}
 
         for name, field in six.iteritems(SUPPORTED_FILTERS):
-            if name not in IGNORE_FILTERS:
-                if isinstance(field, six.string_types):
-                    query = '$' + field
-                else:
-                    dot_notation = list(chain.from_iterable(
-                        ('$' + item, '.') for item in field
-                    ))
-                    dot_notation.pop(-1)
-                    query = {'$concat': dot_notation}
-
-                aggregate = ActionExecution.aggregate([
-                    {'$match': {'parent': None}},
-                    {'$group': {'_id': query}}
-                ])
-
-                filters[name] = [res['_id'] for res in aggregate['result'] if res['_id']]
+            if name not in IGNORE_FILTERS and (not types or name in types):
+                filters[name] = ActionExecution.distinct(field=field)
 
         return filters
 

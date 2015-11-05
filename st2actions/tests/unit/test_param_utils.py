@@ -24,6 +24,7 @@ from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import date as date_utils
+from st2common.models.utils import action_param_utils
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
@@ -51,7 +52,8 @@ class ParamsUtilsTest(DbTestCase):
             'some_key_that_aint_exist_in_action_or_runner': 'bar',
             'runnerint': 555,
             'runnerimmutable': 'failed_override',
-            'actionimmutable': 'failed_override'
+            'actionimmutable': 'failed_override',
+            'defaults_ovverriden_by_execution': 0,
         }
         liveaction_db = self._get_liveaction_model(params)
 
@@ -65,11 +67,16 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(runner_params.get('runnerstr'), 'defaultfoo')
         # Assert that a runner param from action exec is picked up.
         self.assertEqual(runner_params.get('runnerint'), 555)
-        # Assert that a runner param can be overriden by action param default.
+        # Assert that a runner param can be overridden by action param default.
         self.assertEqual(runner_params.get('runnerdummy'), 'actiondummy')
-        # Asser that runner param made immutable in action can use default value in runner.
+        # Assert that a runner param default can be overridden by 'falsey' action param default,
+        # (timeout: 0 case).
+        self.assertEqual(runner_params.get('runnerdefaultint'), 0)
+        # Assert that execution param overrides both runner and action params defaults.
+        self.assertEqual(runner_params.get('defaults_ovverriden_by_execution'), 0)
+        # Assert that runner param made immutable in action can use default value in runner.
         self.assertEqual(runner_params.get('runnerfoo'), 'FOO')
-        # Assert that an immutable param cannot be overriden by action param or execution param.
+        # Assert that an immutable param cannot be overridden by action param or execution param.
         self.assertEqual(runner_params.get('runnerimmutable'), 'runnerimmutable')
 
         # Asserts for action params.
@@ -77,7 +84,7 @@ class ParamsUtilsTest(DbTestCase):
         # Assert that a param that is provided in action exec that isn't in action or runner params
         # isn't in resolved params.
         self.assertEqual(action_params.get('some_key_that_aint_exist_in_action_or_runner'), None)
-        # Assert that an immutable param cannot be overriden by execution param.
+        # Assert that an immutable param cannot be overridden by execution param.
         self.assertEqual(action_params.get('actionimmutable'), 'actionimmutable')
         # Assert that none of runner params are present in action_params.
         for k in action_params:
@@ -104,9 +111,9 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(runner_params.get('runnerstr'), 'defaultfoo')
         # Assert that a runner param from action exec is picked up.
         self.assertEqual(runner_params.get('runnerint'), 555)
-        # Assert that a runner param can be overriden by action param default.
+        # Assert that a runner param can be overridden by action param default.
         self.assertEqual(runner_params.get('runnerdummy'), 'actiondummy')
-        # Assert that an immutable param cannot be overriden by action param or execution param.
+        # Assert that an immutable param cannot be overridden by action param or execution param.
         self.assertEqual(runner_params.get('runnerimmutable'), 'runnerimmutable')
 
         # Asserts for action params.
@@ -114,7 +121,7 @@ class ParamsUtilsTest(DbTestCase):
         # Assert that a param that is provided in action exec that isn't in action or runner params
         # isn't in resolved params.
         self.assertEqual(action_params.get('some_key_that_aint_exist_in_action_or_runner'), None)
-        # Assert that an immutable param cannot be overriden by execution param.
+        # Assert that an immutable param cannot be overridden by execution param.
         self.assertEqual(action_params.get('actionimmutable'), 'actionimmutable')
         # Assert that an action context param is set correctly.
         self.assertEqual(action_params.get('action_api_user'), 'noob')
@@ -141,7 +148,7 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(runner_params.get('runnerstr'), 'defaultfoo')
         # Assert that a runner param from action exec is picked up.
         self.assertEqual(runner_params.get('runnerint'), 555)
-        # Assert that an immutable param cannot be overriden by action param or execution param.
+        # Assert that an immutable param cannot be overridden by action param or execution param.
         self.assertEqual(runner_params.get('runnerimmutable'), 'runnerimmutable')
 
         # Asserts for action params.
@@ -167,7 +174,7 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(runner_params.get('runnerstr'), 'defaultfoo')
         # Assert that a runner param from action exec is picked up.
         self.assertEqual(runner_params.get('runnerint'), 555)
-        # Assert that a runner param can be overriden by action param default.
+        # Assert that a runner param can be overridden by action param default.
         self.assertEqual(runner_params.get('runnerdummy'), 'actiondummy')
 
         # Asserts for action params.
@@ -327,6 +334,12 @@ class ParamsUtilsTest(DbTestCase):
                                 action_context={},
                                 runnertype_parameter_info={},
                                 action_parameter_info={})
+
+    def test_cast_param_referenced_action_doesnt_exist(self):
+        # Make sure the function throws if the action doesnt exist
+        expected_msg = 'Action with ref "foo.doesntexist" doesn\'t exist'
+        self.assertRaisesRegexp(ValueError, expected_msg, action_param_utils.cast_params,
+                                action_ref='foo.doesntexist', params={})
 
     def _get_liveaction_model(self, params):
         status = 'initializing'

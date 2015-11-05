@@ -21,7 +21,7 @@ import mock
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-import st2actions.bootstrap.runnersregistrar as runners_registrar
+import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2actions.runners.localrunner import LocalShellRunner
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
@@ -35,6 +35,7 @@ from st2common.persistence.rule import Rule
 from st2common.persistence.runner import RunnerType
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2common.services import action as action_service
+from st2common.services import trace as trace_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 import st2common.util.action_db as action_utils
@@ -72,7 +73,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         super(TestActionExecutionHistoryWorker, self).tearDown()
 
     def test_basic_execution(self):
-        liveaction = LiveActionDB(action='core.local', parameters={'cmd': 'uname -a'})
+        liveaction = LiveActionDB(action='executions.local', parameters={'cmd': 'uname -a'})
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
@@ -82,7 +83,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.assertDictEqual(execution.trigger_type, {})
         self.assertDictEqual(execution.trigger_instance, {})
         self.assertDictEqual(execution.rule, {})
-        action = action_utils.get_action_by_ref('core.local')
+        action = action_utils.get_action_by_ref('executions.local')
         self.assertDictEqual(execution.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
@@ -100,13 +101,13 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.test_basic_execution()
 
     def test_chained_executions(self):
-        liveaction = LiveActionDB(action='core.chain')
+        liveaction = LiveActionDB(action='executions.chain')
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         execution = self._get_action_execution(liveaction__id=str(liveaction.id),
                                                raise_exception=True)
-        action = action_utils.get_action_by_ref('core.chain')
+        action = action_utils.get_action_by_ref('executions.chain')
         self.assertDictEqual(execution.action, vars(ActionAPI.from_model(action)))
         runner = RunnerType.get_by_name(action.runner_type['name'])
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
@@ -141,6 +142,9 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         rule = Rule.add_or_update(rule)
         trigger_instance = TriggerInstance.add_or_update(
             TriggerInstanceAPI.to_model(TriggerInstanceAPI(**docs['trigger_instance'])))
+        trace_service.add_or_update_given_trace_context(
+            trace_context={'trace_tag': 'test_triggered_execution_trace'},
+            trigger_instances=[str(trigger_instance.id)])
         enforcer = RuleEnforcer(trigger_instance, rule)
         enforcer.enforce()
 

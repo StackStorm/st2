@@ -1,10 +1,13 @@
+# Sample config which contains all the available options which the corresponding
+# descriptions
+
 [action_sensor]
 # Whether to enable or disable the ability to post a trigger on action.
 enable = True
 
 [actionrunner]
 # Python binary which will be used by Python actions.
-python_binary = /mnt/st2repos/st2/virtualenv/bin/python
+python_binary = /data/stanley/virtualenv/bin/python
 # location of the logging.conf file
 logging = conf/logging.conf
 
@@ -23,6 +26,9 @@ heartbeat = 25
 port = 9101
 
 [auth]
+# Common option - options below apply in both scenarios - when auth service is running as a WSGI
+# service (e.g. under Apache or Nginx) and when it's running in the standalone mode.
+
 # Enable authentication middleware.
 enable = True
 # Path to the logging config.
@@ -31,23 +37,27 @@ logging = conf/logging.conf
 api_url = None
 # Access token ttl in seconds.
 token_ttl = 86400
+# Authentication mode (proxy,standalone)
+mode = standalone
+# Specify to enable debug mode.
+debug = False
+
+# Standalone mode options - options below only apply when auth service is running in the standalone
+# mode.
+
 # Path to the SSL certificate file. Only used when "use_ssl" is specified.
 cert = /etc/apache2/ssl/mycert.crt
 # JSON serialized arguments which are passed to the authentication backend in a standalone mode.
 backend_kwargs = None
 # Host on which the service should listen on.
 host = 0.0.0.0
-# Authentication mode (proxy,standalone)
-mode = proxy
 # Path to the SSL private key file. Only used when "use_ssl" is specified.
 key = /etc/apache2/ssl/mycert.key
-# Specify to enable debug mode.
-debug = False
 # Specify to enable SSL / TLS mode
 use_ssl = False
 # Port on which the service should listen on.
 port = 9100
-# Authentication backend to use in a standalone mode (mongodb,flat_file).
+# Authentication backend to use in a standalone mode. Available backends: flat_file.
 backend = flat_file
 
 [cloudslang]
@@ -69,12 +79,18 @@ lock_timeout = 60
 [database]
 # username for db login
 username = None
-# password for db login
-password = None
+# Connection retry total time (minutes).
+connection_retry_max_delay_m = 3
+# Connection retry backoff max (seconds).
+connection_retry_backoff_max_s = 10
 # host of db server
 host = 0.0.0.0
 # name of database
 db_name = st2
+# Backoff multiplier (seconds).
+connection_retry_backoff_mul = 1
+# password for db login
+password = None
 # port of db server
 port = 27017
 
@@ -95,18 +111,32 @@ mask_secrets = True
 [messaging]
 # URL of the messaging server.
 url = amqp://guest:guest@localhost:5672//
+# URL of all the nodes in a messaging service cluster.
+cluster_urls = []
 
 [mistral]
-# Time in seconds to wait before retrying connection to Mistral.
+# Username for authentication.
+keystone_username = None
+# Seconds to wait before reconnecting.
 retry_wait = 5
-# Mistral v2 API server root endpoint.
+# OpenStack project scope.
+keystone_project_name = None
+# Password for authentication.
+keystone_password = None
+# Auth endpoint for Keystone.
+keystone_auth_url = None
+# v2 API root endpoint.
 v2_base_url = http://localhost:8989/v2
-# Maximum no of attempts made to connect to Mistral.
+# Max attempts to reconnect.
 max_attempts = 180
 
 [notifier]
 # Location of the logging configuration file.
 logging = conf/logging.notifier.conf
+
+[rbac]
+# Enable RBAC.
+enable = False
 
 [resultstracker]
 # Location of the logging configuration file.
@@ -129,12 +159,22 @@ version = 4
 draft = http://json-schema.org/draft-04/schema#
 
 [sensorcontainer]
+# Provider of sensor node partition config.
+partition_provider = {'name': 'default'}
 # location of the logging.conf file
 logging = conf/logging.sensorcontainer.conf
+# name of the sensor node.
+sensor_node_name = sensornode1
 
 [ssh_runner]
+# Max number of parallel remote SSH actions that should be run.  Works only with Paramiko SSH runner.
+max_parallel_actions = 50
+# Use the .ssh/config file. Useful to override ports etc.
+use_ssh_config = False
 # Location of the script on the remote filesystem.
 remote_dir = /tmp
+# Use Paramiko based SSH runner as the default remote runner. EXPERIMENTAL!!! USE AT YOUR OWN RISK.
+use_paramiko_ssh_runner = False
 # How partial success of actions run on multiple nodes should be treated.
 allow_partial_failure = False
 
@@ -163,4 +203,3 @@ user = stanley
 [timer]
 # Timezone pertaining to the location where st2 is run.
 local_timezone = America/Los_Angeles
-

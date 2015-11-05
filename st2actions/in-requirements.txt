@@ -1,0 +1,20 @@
+# Remeber to list implicit packages here, otherwise version won't be fixated!
+apscheduler
+python-dateutil
+eventlet
+git+https://github.com/StackStorm/fabric.git@stanley-patched#egg=fabric
+jinja2
+kombu
+git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
+oslo.config
+requests
+six
+pyyaml
+python-json-logger
+# needed by core "packs" pack
+gitpython
+lockfile
+# needed by core "linux" pack - TODO: create virtualenv for linux pack on postinst
+python-nmap
+pyinotify
+git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper

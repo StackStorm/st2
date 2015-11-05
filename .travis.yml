@@ -5,12 +5,33 @@ language: python
 python:
   - 2.7
 
+# Note: We enable artifacts addons since we upload integration tests logs to S3
+addons:
+  artifacts:
+    s3_region: "us-west-2"
+    paths:
+      - $(ls /tmp/st2*.log | tr "\n" ":")
+
 env:
-  - TASK=unit
-  - TASK=integration
+  global:
+    - ARTIFACTS_DEBUG=1
+    - ARTIFACTS_BUCKET=st2travistestslogs
+    - secure: "2k3NMsOqDOXZLGMo+fuTSl35VqR41cm7Z4ZPSduh2ceIMyhgtnKGmElklxV7DxaZtFgl0GD0EZWLSErqlOsjDdAA0IsBMzisQRMBWl+Rqpvjsn2P0jtZBPwe/5OPDpBUqE7t/BOaPBbyTSA9vtLPMhTWdDlR4l28NifAC+k977Q="
+    - secure: "AxPXLPSPGqa8lrwysXxTFHTdEVecK4ZhH91PFu6pZ+IfrSKLek23+CM08J50tmat991swSM8qodhIUfCcvJObcqDFbl295VPYM++H4U9w1dzi571WA0VKZLs3pBhwHf6ACnBX8bzxz3s/7+vE/g2bdrqI6Z6aK3UR98POjbsdOg="
+  matrix:
+    - TASK=checks
+    - TASK=unit
+    - TASK=integration
+    - TASK=mistral
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: TASK=mistral
 
 services:
   - mongodb
+  - postgresql
   - rabbitmq
 
 cache:
@@ -18,12 +39,15 @@ cache:
     - $HOME/.cache/pip/
 
 install:
+  - pip install --upgrade pip
   - pip install python-coveralls
+  - if [ ${TASK} != 'checks' ]; then pip install python-coveralls; fi
   - make requirements
-  - if [ ${TASK} = 'integration' ]; then sudo ./scripts/travis/prepare-integration.sh; fi
+  - if [ ${TASK} = 'integration' ] || [ ${TASK} = 'mistral' ]; then sudo -E ./scripts/travis/prepare-integration.sh; fi
+  - if [ ${TASK} = 'mistral' ]; then sudo -E ./scripts/travis/setup-mistral.sh; fi
 
 script:
   - ./scripts/travis/build.sh
 
 after_success:
-  - coveralls
+  - if [ ${TASK} != 'checks' ]; then coveralls; fi

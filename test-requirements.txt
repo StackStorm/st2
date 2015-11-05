@@ -10,4 +10,8 @@ tabulate
 unittest2
 sphinx
 git+https://github.com/StackStorm/sphinx-autobuild.git@develop
+# Required by st2client tests
+pyyaml
 RandomWords
+gunicorn>=19.3.0,<19.4
+psutil>=3.2.2,<3.3

@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.models.db.rule import rule_access
-from st2common.persistence.base import ContentPackResource
+from st2common.models.db.rule import rule_access, rule_type_access
+from st2common.persistence.base import Access, ContentPackResource
 
 
 class Rule(ContentPackResource):
@@ -23,3 +23,17 @@ class Rule(ContentPackResource):
     @classmethod
     def _get_impl(cls):
         return cls.impl
+
+
+class RuleType(Access):
+    impl = rule_type_access
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_by_object(cls, object):
+        # For RuleType name is unique.
+        name = getattr(object, 'name', '')
+        return cls.get_by_name(name)

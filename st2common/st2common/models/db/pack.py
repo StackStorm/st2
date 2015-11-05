@@ -17,16 +17,21 @@ import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
+from st2common.constants.types import ResourceType
 
 __all__ = [
     'PackDB'
 ]
 
 
-class PackDB(stormbase.StormFoundationDB):
+class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     """
     System entity which represents a pack.
     """
+
+    RESOURCE_TYPE = ResourceType.PACK
+    UID_FIELDS = ['ref']
+
     ref = me.StringField(required=True, unique=True)
     name = me.StringField(required=True, unique=True)
     description = me.StringField(required=True)
@@ -34,6 +39,16 @@ class PackDB(stormbase.StormFoundationDB):
     version = me.StringField(required=True)  # TODO: Enforce format
     author = me.StringField(required=True)
     email = me.EmailField(required=True)
+    files = me.ListField(field=me.StringField())
+
+    meta = {
+        'indexes': stormbase.UIDFieldMixin.get_indexes()
+    }
+
+    def __init__(self, *args, **values):
+        super(PackDB, self).__init__(*args, **values)
+        self.uid = self.get_uid()
+
 
 # specialized access objects
 pack_access = MongoDBAccess(PackDB)

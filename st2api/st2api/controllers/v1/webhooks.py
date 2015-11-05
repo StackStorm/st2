@@ -20,6 +20,7 @@ except ImportError:
 
 import six
 import pecan
+import uuid
 from pecan import abort
 from pecan.rest import RestController
 from six.moves.urllib import parse as urlparse
@@ -28,12 +29,18 @@ urljoin = urlparse.urljoin
 from st2common import log as logging
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
 from st2common.models.api.base import jsexpose
+from st2common.models.api.trace import TraceContext
 import st2common.services.triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_webhook_permission
+
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
+
+TRACE_TAG_HEADER = 'St2-Trace-Tag'
 
 
 class WebhooksController(RestController):
@@ -48,7 +55,8 @@ class WebhooksController(RestController):
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger,
                                                trigger_types=self._trigger_types,
-                                               queue_suffix='webhooks')
+                                               queue_suffix=self.__class__.__name__,
+                                               exclusive=True)
         self._trigger_watcher.start()
         self._register_webhook_trigger_types()
 
@@ -67,6 +75,7 @@ class WebhooksController(RestController):
 
         return hook
 
+    @request_user_has_webhook_permission(permission_type=PermissionType.WEBHOOK_SEND)
     @jsexpose(arg_types=[str], status_code=http_client.ACCEPTED)
     def post(self, *args, **kwargs):
         hook = '/'.join(args)  # TODO: There must be a better way to do this.
@@ -78,8 +87,13 @@ class WebhooksController(RestController):
             msg = 'Invalid JSON body: %s' % (body)
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
+        headers = self._get_headers_as_dict(pecan.request.headers)
+        # If webhook contains a trace-tag use that else create create a unique trace-tag.
+        trace_context = self._create_trace_context(trace_tag=headers.pop(TRACE_TAG_HEADER, None),
+                                                   hook=hook)
+
         if hook == 'st2' or hook == 'st2/':
-            return self._handle_st2_webhook(body)
+            return self._handle_st2_webhook(body, trace_context=trace_context)
 
         if not self._is_valid_hook(hook):
             self._log_request('Invalid hook.', pecan.request)
@@ -88,19 +102,20 @@ class WebhooksController(RestController):
 
         trigger = self._get_trigger_for_hook(hook)
         payload = {}
-        payload['headers'] = self._get_headers_as_dict(pecan.request.headers)
+
+        payload['headers'] = headers
         payload['body'] = body
-        self._trigger_dispatcher.dispatch(trigger, payload=payload)
+        self._trigger_dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
         return body
 
-    def _handle_st2_webhook(self, body):
+    def _handle_st2_webhook(self, body, trace_context):
         trigger = body.get('trigger', None)
         payload = body.get('payload', None)
         if not trigger:
             msg = 'Trigger not specified.'
             return pecan.abort(http_client.BAD_REQUEST, msg)
-        self._trigger_dispatcher.dispatch(trigger, payload=payload)
+        self._trigger_dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
         return body
 
@@ -115,7 +130,15 @@ class WebhooksController(RestController):
         for trigger_type in WEBHOOK_TRIGGER_TYPES.values():
             trigger_service.create_trigger_type_db(trigger_type)
 
+    def _create_trace_context(self, trace_tag, hook):
+        # if no trace_tag then create a unique one
+        if not trace_tag:
+            trace_tag = 'webhook-%s-%s' % (hook, uuid.uuid4().hex)
+        return TraceContext(trace_tag=trace_tag)
+
     def add_trigger(self, trigger):
+        # Note: Permission checking for creating and deleting a webhook is done during rule
+        # creation
         url = trigger['parameters']['url']
         LOG.info('Listening to endpoint: %s', urljoin(self._base_url, url))
         self._hooks[url] = trigger
@@ -124,6 +147,8 @@ class WebhooksController(RestController):
         pass
 
     def remove_trigger(self, trigger):
+        # Note: Permission checking for creating and deleting a webhook is done during rule
+        # creation
         url = trigger['parameters']['url']
 
         if url in self._hooks:

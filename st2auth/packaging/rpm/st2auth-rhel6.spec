@@ -11,6 +11,8 @@ Vendor: StackStorm
 Packager: Estee Tew <st2@stackstorm.com>
 Requires:       st2common
 
+%include %{_rpmconfigdir}/macros.python
+
 %description
 An automation plaform that needs a much better description than this.
 
@@ -23,14 +25,14 @@ sed -i -r "s~logs~/var/log/st2~g" conf/logging.conf
 %install
 
 mkdir -p %{buildroot}/etc/st2auth
-mkdir -p %{buildroot}/usr/local/lib/python2.7/site-packages/
+mkdir -p %{buildroot}%{python2_sitelib}
 mkdir -p %{buildroot}/usr/bin
-cp -R st2auth %{buildroot}/usr/local/lib/python2.7/site-packages/
+cp -R st2auth %{buildroot}%{python2_sitelib}/
 cp -R conf/* %{buildroot}/etc/st2auth
 install -m755 bin/st2auth %{buildroot}/usr/bin/st2auth
 
 %files
 
-/usr/local/lib/python2.7/site-packages/st2auth*
+/usr/lib/python2.7/site-packages/st2auth*
 /usr/bin/st2auth
 /etc/st2auth*

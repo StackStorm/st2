@@ -14,12 +14,20 @@
 
 import sys
 import os
+import glob
 import itertools
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '../../'))
+
+# Include Python modules for all the st2components
+st2_components_paths = glob.glob(ROOT_DIR + '/st2*')
+for module_path in st2_components_paths:
+    sys.path.append(module_path)
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../st2common'))
 sys.path.insert(0, os.path.abspath('./_themes'))
 
 from st2common import __version__
@@ -34,6 +42,8 @@ from st2common import __version__
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.viewcode',
     'sphinx.ext.todo',
     'sphinx.ext.extlinks',
 
@@ -66,16 +76,20 @@ copyright = u'2014, StackStorm Inc'
 version = '.'.join(__version__.split('.')[:2])
 # The full version, including alpha/beta/rc tags.
 release = __version__
+# The complete list of current StackStorm versions.
+release_versions = ['1.1', '0.13', '0.12', '0.11', '0.9', '0.8']
 
 
 def previous_version(ver):
-    # XXX: on incrementing major version, minor version counter is lost!
-    major, minor = ver.split('.')
-    minor = int("".join(itertools.takewhile(str.isdigit, minor)))
-    prev = minor - 1
-    # Note(dzimine): work around CI/CD bug on v 0.10
-    prev = 9 if prev == 10 else prev
-    return ".".join([major, str(prev)])
+    if ver.endswith('dev'):
+        return release_versions[0]
+    major_minor = '.'.join(ver.split('.')[:2])
+    if major_minor in release_versions:
+        idx = release_versions.index(major_minor)
+        if idx + 1 < len(release_versions):
+            return release_versions[idx + 1]
+    # Better than broken return some value. Coontrol flow should not reach this point.
+    return release_versions[0]
 
 # The short versions of two previous releases, e.g. 0.8 and 0.7
 version_minus_1 = previous_version(version)
@@ -120,10 +134,11 @@ todo_include_todos = True
 exclude_patterns = [
     '**/._*',
     'engage.rst',  # included file
-    'install/on_complete.rst', # included file
+    'install/on_complete.rst',  # included file
     'auth_usage.rst',
     'todo.rst',  # included file,
-    '_includes/*',  # includes files
+    '_includes/*',  # includes files,
+    'known_security_issues.rst',
 
 ]
 
@@ -151,6 +166,15 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 # keep_warnings = False
 
+# If true, Sphinx will warn about all references where the target cannot be
+# found. Default is False. You can activate this mode temporarily using the
+# -n command-line switch.
+nitpicky = True
+
+# XXX: temp fix before we figure how to make autodocs work
+nitpick_ignore = [
+    ('py:class', 'st2actions.runners.pythonrunner.Action'),
+    ('py:class', 'KeyValuePair')]
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -292,3 +316,8 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 # texinfo_no_detailmenu = False
+
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {'http://docs.python.org/': None}
+
+autoclass_content = 'both'

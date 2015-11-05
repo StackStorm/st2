@@ -5,37 +5,58 @@ Ubuntu / Debian
 
 --------------
 
-Prerequisites
-^^^^^^^^^^^^^
+.. warning::
 
-APT
-'''
+   WOWZERS! A **deprecation** notice! Please note that this documentation and associated DEB packages are undergoing review and maintenance. Our core packages for Debian and Ubuntu are undergoing a complete overhaul to incorporate `dh-virtualenv <http://dh-virtualenv.readthedocs.org>`_ into our base packages. As such, please consider these instructions **DEPRECATED** for the time being. Hold tight, these packages and docs are coming very soon.
+
+   If you are feeling adventurous and want to attempt an installation using this method, we have left this documentation here for you to better understand the internals of the system as it currently exists
+
+   In the meantime, please feel free to take a look at many of our installation methods, including our `All-in-one Installer </install/all_in_one.rst>`_.
+
+
+StackStorm APT Repositories
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This repository contains latest stable version of StackStorm components
+and dependencies:
+
+::
+
+  deb http://downloads.stackstorm.net/deb/ trusty_stable main
+
+
+This repository contains latest in development version of StackStorm components
+and dependencies:
+
+::
+
+  deb http://downloads.stackstorm.net/deb/ trusty_unstable main
+
+
+Pre-requisites
+^^^^^^^^^^^^^^
+
+APT dependencies
+''''''''''''''''
 
 ::
 
     aptlist='rabbitmq-server make python-virtualenv python-dev realpath python-pip mongodb mongodb-server gcc git mysql-server'
     apt-get install -y ${aptlist}
 
-Pip
-'''
+Pip dependencies
+''''''''''''''''
 
-The easiest way to install these is to use the requirements.txt file from the |st2| downloads server.  This is kept up to date for the version specified in the path.
+Use :github_st2:`requirements.txt </requirements.txt>` file from the release brunch of st2 source.
 
 ::
 
-    curl -q -k -O https://downloads.stackstorm.net/releases/st2/0.10dev/requirements.txt
-    pip install -r requirements.txt
+    curl -q -k -O https://raw.githubusercontent.com/StackStorm/st2/<VERSION>/requirements.txt
+    pip2.7 install -r requirements.txt
 
 RabbitMQ
 ''''''''
 
-In order to get the latest version of RabbitMQ, you will want to follow the directions on their site to do the installation.
-
-::
-
-    http://www.rabbitmq.com/install-debian.html
-
-Once you have RabbitMQ installed, you will need to run the following commands to enable certain plugins.
+Get the latest version of RabbitMQ, following the `RabbitMQ instllation instruction <http://www.rabbitmq.com/install-debian.html>`__. Once RabbitMQ is installed, run the following commands to enable management plugins.
 
 ::
 
@@ -49,43 +70,15 @@ You will also want to download the rabbitmqadmin script to make troubleshooting 
     curl -sS -o /usr/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
     chmod 755 /usr/bin/rabbitmqadmin
 
---------------
 
 Manual Installation
 ^^^^^^^^^^^^^^^^^^^
 
-You will need to download the following packages:
+Complete instructions coming soon, along with updated packages. Meantime, read and follow the :github_st2:`st2_deploy.sh </tools/st2_deploy.sh>` script or explore `Puppet modules <https://github.com/stackstorm/puppet-st2>`_.
 
- - st2reactor
- - st2common
- - st2client
- - st2auth
- - st2api
- - st2actions
- - st2debug
-
-The format of the DEB packages is like this: <component>_<version>-<build>_amd64.deb
-
-You can download the packages from this URL:
-::
-
-    https://downloads.stackstorm.net/releases/st2/0.10dev/debs/current/
-
---------------
 
 Configuration
 ^^^^^^^^^^^^^
 
-SSH
-'''
+See  :doc:`/config/config` for more information on setting up SSH access for a user.
 
-In order to run commands on remote you will need to setup a ssh keypair
-and place the private key in a location accessible by the user that the
-processes are running as.
-
-See  :doc:`/install/config` for more information on setting up SSH access for a user.
-
-Validating
-^^^^^^^^^^^^^^^^^^^^^
-
-.. include:: on_complete.rst

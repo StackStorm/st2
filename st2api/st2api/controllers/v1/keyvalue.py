@@ -40,8 +40,9 @@ class KeyValuePairController(RestController):
 
     # TODO: Port to use ResourceController
     def __init__(self):
-        self._coordinator = coordination.get_coordinator()
         super(KeyValuePairController, self).__init__()
+        self._coordinator = coordination.get_coordinator()
+        self.get_one_db_method = self.__get_by_name
 
     @jsexpose(arg_types=[str])
     def get_one(self, name):
@@ -92,6 +93,8 @@ class KeyValuePairController(RestController):
         Create a new entry or update an existing one.
         """
         lock_name = self._get_lock_name_for_key(name=name)
+
+        # TODO: Custom permission check since the key doesn't need to exist here
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):

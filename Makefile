@@ -14,7 +14,8 @@ COMPONENTS := $(wildcard st2*)
 
 # Components that implement a component-controlled test-runner. These components provide an
 # in-component Makefile. (Temporary fix until I can generalize the pecan unittest setup. -mar)
-COMPONENT_SPECIFIC_TESTS := st2tests
+# Note: We also want to ignore egg-info dir created during build
+COMPONENT_SPECIFIC_TESTS := st2tests st2client.egg-info
 
 # nasty hack to get a space into a variable
 space_char :=
@@ -26,12 +27,11 @@ COMPONENTS_TEST_COMMA := $(subst $(space_char),$(comma),$(COMPONENTS_TEST))
 
 PYTHON_TARGET := 2.7
 
-REQUIREMENTS := requirements.txt test-requirements.txt st2client/requirements.txt
-
+REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PIP_OPTIONS
-	PIP_OPTIONS := -U -q -r
+	PIP_OPTIONS := -U -q
 endif
 
 .PHONY: all
@@ -66,6 +66,7 @@ docs: requirements .docs
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-runner-parameters-documentation.py
 	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-internal-triggers-table.py
+	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-available-permission-types-table.py
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; $(SPHINXBUILD) -W -b html $(DOC_SOURCE_DIR) $(DOC_BUILD_DIR)/html
 	@echo
@@ -101,8 +102,11 @@ pylint: requirements .pylint
 	done
 	# Lint Python pack management actions
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models contrib/packs/actions/pack_mgmt/ || exit 1;
+	# Lint other packs
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models contrib/linux || exit 1;
 	# Lint Python scripts
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models scripts/*.py || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
 
 .PHONY: flake8
 flake8: requirements .flake8
@@ -114,7 +118,9 @@ flake8: requirements .flake8
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 $(COMPONENTS)
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 contrib/packs/actions/pack_mgmt/
+	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 contrib/linux
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 scripts/
+	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./.flake8 tools/
 
 .PHONY: lint
 lint: requirements .lint
@@ -179,13 +185,22 @@ distclean: clean
 	rm -rf $(VIRTUALENV_DIR)
 
 .PHONY: requirements
-requirements: virtualenv $(REQUIREMENTS)
+requirements: virtualenv .sdist-requirements
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
+
+	# Make sure we use latest version of pip
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade pip
+
+	# Generate all requirements to support current CI pipeline.
+	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
+
+	# Install requirements
+	#
 	for req in $(REQUIREMENTS); do \
-		echo "Installing $$req..." ; \
-		. $(VIRTUALENV_DIR)/bin/activate && pip install $(PIP_OPTIONS) $$req ; \
+			echo "Installing $$req..." ; \
+			$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
 	done
 
 .PHONY: virtualenv
@@ -225,13 +240,16 @@ tests: pytests
 pytests: compile requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: compile unit-tests itests clean
+.pytests: compile .unit-tests .itests clean
 
 .PHONY: .pytests-coverage
 .pytests-coverage: .unit-tests-coverage-html .itests-coverage-html clean
 
 .PHONY: unit-tests
-unit-tests:
+unit-tests: requirements .unit-tests
+
+.PHONY: .unit-tests
+.unit-tests:
 	@echo
 	@echo "==================== tests ===================="
 	@echo
@@ -302,7 +320,16 @@ mistral-itests: requirements .mistral-itests
 	@echo "==================== MISTRAL integration tests ===================="
 	@echo "The tests assume both st2 and mistral are running on localhost."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration/mistral || exit 1;
+
+.PHONY: .mistral-itests-coverage-html
+.mistral-itests-coverage-html:
+	@echo
+	@echo "==================== MISTRAL integration tests with coverage (HTML reports) ===================="
+	@echo "The tests assume both st2 and mistral are running on localhost."
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v --with-coverage \
+		--cover-inclusive --cover-html st2tests/integration/mistral || exit 1;
 
 .PHONY: rpms
 rpms:
@@ -329,3 +356,18 @@ debs:
 	rm -Rf ~/debbuild
 	$(foreach COM,$(COMPONENTS), pushd $(COM); make deb; popd;)
 	pushd st2client && make deb && popd
+
+# >>>>
+.PHONY: .sdist-requirements
+.sdist-requirements:
+	# Copy over shared dist utils module which is needed by setup.py
+	@for component in $(COMPONENTS_TEST); do\
+		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
+	done
+	
+	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
+	#@for component in $(COMPONENTS_TEST); do\
+	#	test -s $$component/README.rst || cp -f README.rst $$component/; \
+	#	cp -f CONTRIBUTING.rst $$component/; \
+	#	cp -f LICENSE $$component/; \
+	#done

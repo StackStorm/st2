@@ -51,5 +51,6 @@ class Trigger(core.Resource):
 
 
 class Rule(core.Resource):
+    _alias = 'Rule'
     _plural = 'Rules'
     _repr_attributes = ['name', 'pack', 'trigger', 'criteria', 'enabled']

@@ -1,5 +1,5 @@
 ---
-    name: "examples.webhook_file"
+    name: "sample_rule_with_webhook"
     pack: "examples"
     description: "Sample rule dumping webhook payload to a file."
     enabled: true
@@ -17,4 +17,4 @@
     action:
         ref: "core.local"
         parameters:
-            cmd: "echo \"{{trigger.body}}\" >> /tmp/st2.webhook_sample.out"
+            cmd: "echo \"{{trigger.body}}\" >> ~/st2.webhook_sample.out"

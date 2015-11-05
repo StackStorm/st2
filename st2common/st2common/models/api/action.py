@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from st2common.util import isotime
 from st2common.util import schema as util_schema
 from st2common import log as logging
 from st2common.models.api.base import BaseAPI
+from st2common.models.api.base import APIUIDMixin
 from st2common.models.api.tag import TagsHelper
 from st2common.models.api.notification import (NotificationSubSchemaAPI, NotificationsHelper)
 from st2common.models.db.action import ActionDB
@@ -28,9 +31,12 @@ from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.models.system.common import ResourceReference
 
 
-__all__ = ['ActionAPI',
-           'LiveActionAPI',
-           'RunnerTypeAPI']
+__all__ = [
+    'ActionAPI',
+    'ActionCreateAPI',
+    'LiveActionAPI',
+    'RunnerTypeAPI'
+]
 
 
 LOG = logging.getLogger(__name__)
@@ -118,8 +124,10 @@ class RunnerTypeAPI(BaseAPI):
         return model
 
 
-class ActionAPI(BaseAPI):
-    """The system entity that represents a Stack Action/Automation in the system."""
+class ActionAPI(BaseAPI, APIUIDMixin):
+    """
+    The system entity that represents a Stack Action/Automation in the system.
+    """
 
     model = ActionDB
     schema = {
@@ -134,6 +142,9 @@ class ActionAPI(BaseAPI):
             "ref": {
                 "description": "System computed user friendly reference for the action. \
                                 Provided value will be overridden by computed value.",
+                "type": "string"
+            },
+            "uid": {
                 "type": "string"
             },
             "name": {
@@ -233,6 +244,32 @@ class ActionAPI(BaseAPI):
                           ref=ref)
 
         return model
+
+
+class ActionCreateAPI(ActionAPI, APIUIDMixin):
+    """
+    API model for create action operations.
+    """
+    schema = copy.deepcopy(ActionAPI.schema)
+    schema['properties']['data_files'] = {
+        'description': 'Optional action script and data files which are written to the filesystem.',
+        'type': 'array',
+        'items': {
+            'type': 'object',
+            'properties': {
+                'file_path': {
+                    'type': 'string',
+                    'required': True
+                },
+                'content': {
+                    'type': 'string',
+                    'required': True
+                },
+            },
+            'additionalProperties': False
+        },
+        'default': []
+    }
 
 
 class LiveActionAPI(BaseAPI):
@@ -409,7 +446,7 @@ class ActionExecutionStateAPI(BaseAPI):
         return model
 
 
-class ActionAliasAPI(BaseAPI):
+class ActionAliasAPI(BaseAPI, APIUIDMixin):
     """
     Alias for an action in the system.
     """
@@ -428,6 +465,9 @@ class ActionAliasAPI(BaseAPI):
                                 Provided value will be overridden by computed value.",
                 "type": "string"
             },
+            "uid": {
+                "type": "string"
+            },
             "name": {
                 "type": "string",
                 "description": "Name of the action alias.",
@@ -440,7 +480,8 @@ class ActionAliasAPI(BaseAPI):
             },
             "description": {
                 "type": "string",
-                "description": "Description of the action alias."
+                "description": "Description of the action alias.",
+                "default": None
             },
             "enabled": {
                 "description": "Flag indicating of action alias is enabled.",
@@ -464,7 +505,7 @@ class ActionAliasAPI(BaseAPI):
     @classmethod
     def to_model(cls, alias):
         name = alias.name
-        description = alias.description
+        description = getattr(alias, 'description', None)
         pack = alias.pack
         ref = ResourceReference.to_string_reference(pack=pack, name=name)
         enabled = getattr(alias, 'enabled', True)
@@ -504,17 +545,23 @@ class AliasExecutionAPI(BaseAPI):
             "user": {
                 "type": "string",
                 "description": "User that requested the execution.",
-                "default": "channel"
+                "default": "channel"  # TODO: This value doesnt get set
             },
             "source_channel": {
                 "type": "string",
                 "description": "Channel from which the execution was requested. This is not the \
-                                channel as defined by the notification system."
+                                channel as defined by the notification system.",
+                "required": True
             },
             "notification_channel": {
                 "type": "string",
                 "description": "StackStorm notification channel to use to respond.",
-                "required": True
+                "required": False
+            },
+            "notification_route": {
+                "type": "string",
+                "description": "StackStorm notification route to use to respond.",
+                "required": False
             }
         },
         "additionalProperties": False

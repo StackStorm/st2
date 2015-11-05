@@ -14,8 +14,10 @@
 # limitations under the License.
 
 import ast
-import json
 import logging
+import sys
+
+import yaml
 
 from st2client import formatters
 from st2client.utils import jsutil
@@ -46,7 +48,16 @@ class ExecutionResult(formatters.Formatter):
                     if type(new_value) in [dict, list]:
                         value = new_value
                 if type(value) in [dict, list]:
-                    value = ('\n' if isinstance(value, dict) else '') + json.dumps(value, indent=4)
+                    # 1. To get a nice overhang indent get safe_dump to generate output with
+                    #    the attribute key and then remove the attribute key from the string.
+                    # 2. Drop the trailing newline
+                    # 3. Set width to maxint so pyyaml does not split text. Anything longer
+                    #    and likely we will see other issues like storage :P.
+                    formatted_value = yaml.safe_dump({attr: value},
+                                                     default_flow_style=False,
+                                                     width=sys.maxint,
+                                                     indent=2)[len(attr) + 2:-1]
+                    value = ('\n' if isinstance(value, dict) else '') + formatted_value
                 output += ('\n' if output else '') + '%s: %s' % \
                     (DisplayColors.colorize(attr, DisplayColors.BLUE), value)
         return strutil.unescape(output)

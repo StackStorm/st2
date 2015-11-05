@@ -24,14 +24,15 @@ from oslo_config import cfg
 from st2client.client import Client
 
 from st2common import log as logging
-from st2common.models.db import db_setup
+from st2common.logging.misc import set_log_level_for_all_loggers
+from st2common.models.api.trace import TraceContext
+from st2common.persistence.db_init import db_setup_with_retry
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
 from st2common.util.config_parser import ContentPackConfigParser
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2reactor.sensor.base import Sensor, PollingSensor
 from st2reactor.sensor import config
-from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2client.models.keyvalue import KeyValuePair
@@ -70,9 +71,10 @@ class SensorService(object):
         logger_name = '%s.%s' % (self._sensor_wrapper._logger.name, name)
         logger = logging.getLogger(logger_name)
         logger.propagate = True
+
         return logger
 
-    def dispatch(self, trigger, payload=None):
+    def dispatch(self, trigger, payload=None, trace_tag=None):
         """
         Method which dispatches the trigger.
 
@@ -81,8 +83,28 @@ class SensorService(object):
 
         :param payload: Trigger payload.
         :type payload: ``dict``
+
+        :param trace_tag: Tracer to track the triggerinstance.
+        :type trace_tags: ``str``
         """
-        self._dispatcher.dispatch(trigger, payload=payload)
+        # empty strings
+        trace_context = TraceContext(trace_tag=trace_tag) if trace_tag else None
+        self.dispatch_with_context(trigger, payload=payload, trace_context=trace_context)
+
+    def dispatch_with_context(self, trigger, payload=None, trace_context=None):
+        """
+        Method which dispatches the trigger.
+
+        :param trigger: Full name / reference of the trigger.
+        :type trigger: ``str``
+
+        :param payload: Trigger payload.
+        :type payload: ``dict``
+
+        :param trace_context: Trace context to associate with Trigger.
+        :type trace_context: ``st2common.api.models.api.trace.TraceContext``
+        """
+        self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
     ##################################
     # Methods for datastore management
@@ -298,20 +320,25 @@ class SensorWrapper(object):
         # 2. Establish DB connection
         username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
         password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-        db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-                 username=username, password=password)
+        db_setup_with_retry(cfg.CONF.database.db_name, cfg.CONF.database.host,
+                            cfg.CONF.database.port, username=username, password=password)
 
         # 3. Instantiate the watcher
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger,
                                                trigger_types=self._trigger_types,
-                                               queue_suffix='sensorwrapper')
+                                               queue_suffix='sensorwrapper_%s_%s' %
+                                               (self._pack, self._class_name),
+                                               exclusive=True)
 
         # 4. Set up logging
         self._logger = logging.getLogger('SensorWrapper.%s' %
                                          (self._class_name))
         logging.setup(cfg.CONF.sensorcontainer.logging)
+
+        if '--debug' in parent_args:
+            set_log_level_for_all_loggers()
 
         self._sensor_instance = self._get_sensor_instance()
 
@@ -401,18 +428,16 @@ class SensorWrapper(object):
         sensor_class_kwargs['sensor_service'] = SensorService(sensor_wrapper=self)
 
         sensor_config = self._get_sensor_config()
-
-        if self._pack not in SYSTEM_PACK_NAMES:
-            sensor_class_kwargs['config'] = sensor_config
+        sensor_class_kwargs['config'] = sensor_config
 
         if self._poll_interval and issubclass(sensor_class, PollingSensor):
             sensor_class_kwargs['poll_interval'] = self._poll_interval
 
         try:
             sensor_instance = sensor_class(**sensor_class_kwargs)
-        except Exception as e:
-            raise Exception('Failed to instantiate "%s" sensor class: %s' %
-                            (self._class_name, str(e)))
+        except Exception:
+            self._logger.exception('Failed to instantiate "%s" sensor class' % (self._class_name))
+            raise Exception('Failed to instantiate "%s" sensor class' % (self._class_name))
 
         return sensor_instance
 

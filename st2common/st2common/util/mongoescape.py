@@ -31,25 +31,38 @@ RULE_CRITERIA_UNESCAPE_TRANSLATION = dict(zip(RULE_CRITERIA_ESCAPED,
                                               RULE_CRITERIA_UNESCAPED))
 
 
+def _prep_work_items(d):
+    return [(k, v, d) for k, v in six.iteritems(d)]
+
+
 def _translate_chars(field, translation):
     # Only translate the fields of a dict
     if not isinstance(field, dict):
         return field
-    work_items = [(k, v, field) for k, v in six.iteritems(field)]
+
+    work_items = _prep_work_items(field)
+
     while len(work_items) > 0:
         work_item = work_items.pop(0)
         oldkey = work_item[0]
         value = work_item[1]
         work_field = work_item[2]
         newkey = oldkey
+
         for t_k, t_v in six.iteritems(translation):
             newkey = newkey.replace(t_k, t_v)
+
         if newkey != oldkey:
             work_field[newkey] = value
             del work_field[oldkey]
+
         if isinstance(value, dict):
-            nested_work_items = [(k, v, value) for k, v in six.iteritems(value)]
-            work_items.extend(nested_work_items)
+            work_items.extend(_prep_work_items(value))
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    work_items.extend(_prep_work_items(item))
+
     return field
 
 

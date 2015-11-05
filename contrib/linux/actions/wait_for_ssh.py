@@ -1,25 +1,27 @@
 #!/usr/bin/env python
 
+import time
+
 import paramiko
-import argparse
+
 from st2actions.runners.pythonrunner import Action
-import os, yaml, json, time
+
 
 class BaseAction(Action):
-
     def run(self, keyfile, username, hostname, ssh_timeout, retries):
- 
         key = paramiko.RSAKey.from_private_key_file(keyfile)
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        for x in range(retries):
+        for index in range(retries):
+            attempt = index + 1
+
             try:
+                self.logger.debug('SSH connection attempt: %s' % (attempt))
                 client.connect(hostname=hostname, username=username, pkey=key)
                 return True
-            except Exception, e: 
-                self.logger.info(e)
+            except Exception as e:
+                self.logger.info('Attempt %s failed (%s), sleeping...' % (attempt, str(e)))
                 time.sleep(ssh_timeout)
-            time.sleep(20)
-        self.logger.info("Exceeded max retries")
-        return False
+
+        raise Exception('Exceeded max retries (%s)' % (retries))

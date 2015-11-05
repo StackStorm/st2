@@ -28,12 +28,27 @@ class SensorBranch(resource.ResourceBranch):
                 'get': SensorGetCommand
             })
 
+        self.commands['enable'] = SensorEnableCommand(self.resource, self.app, self.subparsers)
+        self.commands['disable'] = SensorDisableCommand(self.resource, self.app, self.subparsers)
+
 
 class SensorListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'pack', 'name', 'trigger_types']
+    display_attributes = ['ref', 'pack', 'description', 'enabled']
 
 
 class SensorGetCommand(resource.ContentPackResourceGetCommand):
     display_attributes = ['all']
-    attribute_display_order = ['id', 'ref', 'pack', 'name', 'entry_point',
+    attribute_display_order = ['id', 'uid', 'ref', 'pack', 'name', 'enabled', 'entry_point',
                                'artifact_uri', 'trigger_types']
+
+
+class SensorEnableCommand(resource.ContentPackResourceEnableCommand):
+    display_attributes = ['all']
+    attribute_display_order = ['id', 'ref', 'pack', 'name', 'enabled', 'poll_interval',
+                               'entry_point', 'artifact_uri', 'trigger_types']
+
+
+class SensorDisableCommand(resource.ContentPackResourceDisableCommand):
+    display_attributes = ['all']
+    attribute_display_order = ['id', 'ref', 'pack', 'name', 'enabled', 'poll_interval',
+                               'entry_point', 'artifact_uri', 'trigger_types']

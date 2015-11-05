@@ -14,22 +14,21 @@
 # limitations under the License.
 
 import copy
-import eventlet
 import uuid
 
-import requests
+import retrying
 import six
 import yaml
 from mistralclient.api import client as mistral
-from mistralclient.api.base import APIException
 from oslo_config import cfg
 
-from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2actions.runners import AsyncActionRunner
-from st2actions.runners.mistral import utils
+from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common import log as logging
-from st2common.util.url import get_url_without_trailing_slash
 from st2common.models.api.notification import NotificationsHelper
+from st2common.util.workflow import mistral as utils
+from st2common.util.url import get_url_without_trailing_slash
+from st2common.util.api import get_full_public_api_url
 
 
 LOG = logging.getLogger(__name__)
@@ -48,7 +47,12 @@ class MistralRunner(AsyncActionRunner):
         self._on_behalf_user = cfg.CONF.system_user.user
         self._notify = None
         self._skip_notify_tasks = []
-        self._client = mistral.client(mistral_url=self.url)
+        self._client = mistral.client(
+            mistral_url=self.url,
+            username=cfg.CONF.mistral.keystone_username,
+            api_key=cfg.CONF.mistral.keystone_password,
+            project_name=cfg.CONF.mistral.keystone_project_name,
+            auth_url=cfg.CONF.mistral.keystone_auth_url)
 
     def pre_run(self):
         if getattr(self, 'liveaction', None):
@@ -131,7 +135,12 @@ class MistralRunner(AsyncActionRunner):
         else:
             raise Exception('There are no workflows in the workbook.')
 
-    def try_run(self, action_parameters):
+    @retrying.retry(
+        retry_on_exception=utils.retry_on_exceptions,
+        wait_exponential_multiplier=cfg.CONF.mistral.retry_exp_msec,
+        wait_exponential_max=cfg.CONF.mistral.retry_exp_max_msec,
+        stop_max_delay=cfg.CONF.mistral.retry_stop_max_msec)
+    def run(self, action_parameters):
         # Test connection
         self._client.workflows.list()
 
@@ -139,7 +148,8 @@ class MistralRunner(AsyncActionRunner):
         inputs = self.runner_parameters.get('context', dict())
         inputs.update(action_parameters)
 
-        endpoint = 'http://%s:%s/v1/actionexecutions' % (cfg.CONF.api.host, cfg.CONF.api.port)
+        api_url = get_full_public_api_url()
+        endpoint = api_url + '/actionexecutions'
 
         # Build context with additional information
         parent_context = {
@@ -221,24 +231,20 @@ class MistralRunner(AsyncActionRunner):
 
         return (status, partial_results, exec_context)
 
-    def run(self, action_parameters):
-        for i in range(cfg.CONF.mistral.max_attempts):
-            try:
-                return self.try_run(action_parameters)
-            except APIException as api_exc:
-                if 'Duplicate' not in api_exc.error_message:
-                    raise
-                LOG.exception(api_exc)
-            except requests.exceptions.ConnectionError as req_exc:
-                LOG.exception(req_exc)
-            except Exception:
-                raise
+    @retrying.retry(
+        retry_on_exception=utils.retry_on_exceptions,
+        wait_exponential_multiplier=cfg.CONF.mistral.retry_exp_msec,
+        wait_exponential_max=cfg.CONF.mistral.retry_exp_max_msec,
+        stop_max_delay=cfg.CONF.mistral.retry_stop_max_msec)
+    def cancel(self):
+        mistral_ctx = self.context.get('mistral', dict())
 
-            if i < cfg.CONF.mistral.max_attempts:
-                eventlet.sleep(cfg.CONF.mistral.retry_wait)
+        if not mistral_ctx.get('execution_id'):
+            raise Exception('Unable to cancel because mistral execution_id is missing.')
 
-        raise Exception('Failed to connect to mistral on %s. Make sure that mistral is running '
-                        'and that the url is set correctly in the config.', self.url)
+        # There is no cancellation state in Mistral. Pause the workflow so
+        # actions that are still executing can gracefully reach completion.
+        self._client.executions.update(mistral_ctx.get('execution_id'), 'PAUSED')
 
     @staticmethod
     def _build_mistral_context(parent, current):

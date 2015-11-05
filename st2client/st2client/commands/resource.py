@@ -398,6 +398,90 @@ class ContentPackResourceUpdateCommand(ResourceUpdateCommand):
     pk_argument_name = 'ref_or_id'
 
 
+class ResourceEnableCommand(ResourceCommand):
+    pk_argument_name = 'name_or_id'
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceEnableCommand, self).__init__(resource, 'enable',
+            'Enable an existing %s.' % resource.get_display_name().lower(),
+            *args, **kwargs)
+
+        argument = self.pk_argument_name
+        metavar = self._get_metavar_for_argument(argument=self.pk_argument_name)
+        help = self._get_help_for_argument(resource=resource,
+                                           argument=self.pk_argument_name)
+
+        self.parser.add_argument(argument,
+                                 metavar=metavar,
+                                 help=help)
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        resource_id = getattr(args, self.pk_argument_name, None)
+        instance = self.get_resource(resource_id, **kwargs)
+
+        data = instance.serialize()
+
+        if 'ref' in data:
+            del data['ref']
+
+        data['enabled'] = True
+        modified_instance = self.resource.deserialize(data)
+
+        return self.manager.update(modified_instance, **kwargs)
+
+    def run_and_print(self, args, **kwargs):
+        instance = self.run(args, **kwargs)
+        self.print_output(instance, table.PropertyValueTable,
+                          attributes=['all'], json=args.json)
+
+
+class ContentPackResourceEnableCommand(ResourceEnableCommand):
+    pk_argument_name = 'ref_or_id'
+
+
+class ResourceDisableCommand(ResourceCommand):
+    pk_argument_name = 'name_or_id'
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceDisableCommand, self).__init__(resource, 'disable',
+            'Disable an existing %s.' % resource.get_display_name().lower(),
+            *args, **kwargs)
+
+        argument = self.pk_argument_name
+        metavar = self._get_metavar_for_argument(argument=self.pk_argument_name)
+        help = self._get_help_for_argument(resource=resource,
+                                           argument=self.pk_argument_name)
+
+        self.parser.add_argument(argument,
+                                 metavar=metavar,
+                                 help=help)
+
+    @add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        resource_id = getattr(args, self.pk_argument_name, None)
+        instance = self.get_resource(resource_id, **kwargs)
+
+        data = instance.serialize()
+
+        if 'ref' in data:
+            del data['ref']
+
+        data['enabled'] = False
+        modified_instance = self.resource.deserialize(data)
+
+        return self.manager.update(modified_instance, **kwargs)
+
+    def run_and_print(self, args, **kwargs):
+        instance = self.run(args, **kwargs)
+        self.print_output(instance, table.PropertyValueTable,
+                          attributes=['all'], json=args.json)
+
+
+class ContentPackResourceDisableCommand(ResourceDisableCommand):
+    pk_argument_name = 'ref_or_id'
+
+
 class ResourceDeleteCommand(ResourceCommand):
     pk_argument_name = 'name_or_id'
 

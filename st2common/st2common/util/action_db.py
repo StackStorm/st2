@@ -48,8 +48,9 @@ def get_action_parameters_specs(action_ref):
     runner_type_name = action_db.runner_type['name']
     runner_type_db = get_runnertype_by_name(runnertype_name=runner_type_name)
 
-    parameters.update(action_db.parameters)
+    # Runner type parameters should be added first before the action parameters.
     parameters.update(runner_type_db['runner_parameters'])
+    parameters.update(action_db.parameters)
 
     return parameters
 
@@ -215,7 +216,6 @@ def get_args(action_parameters, action_db):
     for _, arg in six.iteritems(position_args_dict):
         positional_args.append(str(action_parameters.get(arg)))
         positional_args_keys.add(arg)
-    positional_args = ' '.join(positional_args)  # convert to string.
 
     named_args = {}
     for param in action_parameters:

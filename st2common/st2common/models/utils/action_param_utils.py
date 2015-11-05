@@ -83,6 +83,10 @@ def cast_params(action_ref, params, cast_overrides=None):
     """
     """
     action_db = action_db_util.get_action_by_ref(action_ref)
+
+    if not action_db:
+        raise ValueError('Action with ref "%s" doesn\'t exist' % (action_ref))
+
     action_parameters_schema = action_db.parameters
     runnertype_db = action_db_util.get_runnertype_by_name(action_db.runner_type['name'])
     runner_parameters_schema = runnertype_db.runner_parameters
@@ -113,3 +117,21 @@ def cast_params(action_ref, params, cast_overrides=None):
         LOG.debug('Casting param: %s of type %s to type: %s', v, type(v), parameter_type)
         params[k] = cast(v)
     return params
+
+
+def validate_action_parameters(action_ref, inputs):
+    input_set = set(inputs.keys())
+
+    # Get the list of action and runner parameters.
+    parameters = action_db_util.get_action_parameters_specs(action_ref)
+
+    # Check required parameters that have no default defined.
+    required = set([param for param, meta in six.iteritems(parameters)
+                    if meta.get('required', False) and 'default' not in meta])
+
+    requires = sorted(required.difference(input_set))
+
+    # Check unexpected parameters:
+    unexpected = sorted(input_set.difference(set(parameters.keys())))
+
+    return requires, unexpected
