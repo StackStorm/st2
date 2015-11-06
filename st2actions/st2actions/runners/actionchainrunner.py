@@ -412,8 +412,10 @@ class ActionChainRunner(ActionRunner):
         try:
             rendered_result = jinja_utils.render_values(mapping=action_node.publish, context=context)
         except Exception as e:
+            key = getattr(e, 'key', None)
+            value = getattr(e, 'value', None)
             msg = ('Failed rendering value for publish parameter "%s" in task "%s" (template string=%s): %s' %
-                   (e.key, action_node.name, e.value, str(e)))
+                   (key, action_node.name, value, str(e)))
             raise ParameterRenderingFailedException(msg)
 
         return rendered_result
@@ -434,8 +436,10 @@ class ActionChainRunner(ActionRunner):
         except Exception as e:
             LOG.exception('Jinja rendering for parameter "%s" failed.' % (e.key))
 
+            key = getattr(e, 'key', None)
+            value = getattr(e, 'value', None)
             msg = ('Failed rendering value for parameter "%s" in task "%s" (template string=%s): %s' %
-                   (e.key, action_node.name, e.value, str(e)))
+                   (key, action_node.name, value, str(e)))
             raise ParameterRenderingFailedException(msg)
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
