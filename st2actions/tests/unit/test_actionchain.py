@@ -234,30 +234,6 @@ class TestActionChainRunner(DbTestCase):
         self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError,
                                 expected_msg, chain_runner.pre_run)
 
-
-    @mock.patch.object(action_db_util, 'get_action_by_ref',
-                       mock.MagicMock(return_value=ACTION_1))
-    @mock.patch.object(action_service, 'request',
-                       return_value=(DummyActionExecution(status=LIVEACTION_STATUS_FAILED), None))
-    def test_chain_runner_broken_fail_path_st(self, request):
-        return
-        chain_runner = acr.get_runner()
-        chain_runner.entry_point = CHAIN_BROKEN_PATH
-        chain_runner.action = ACTION_1
-        chain_runner.container_service = RunnerContainerService()
-        chain_runner.pre_run()
-        status, result, _ = chain_runner.run({})
-
-        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
-
-        self.assertTrue('Failed to get next node "c1". Lookup failed:' in result['error'])
-        self.assertTrue('Unable to find node with name "c4"' in result['error'])
-        self.assertTrue('Traceback (most recent call last):' in result['traceback'])
-
-        # based on the chain the callcount is known to be 1. Not great but works.
-        self.assertEqual(request.call_count, 1)
-
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'request', side_effect=RuntimeError('Test Failure.'))
