@@ -6,7 +6,7 @@ That's OK! You're busy, we get it. How do you just get started? Get your own box
 
 ::
 
-   curl -sSL http://stackstorm.com/install.sh | sudo sh
+   curl -sSL https://stackstorm.com/install.sh | sudo sh
 
 
 .. contents:: Want to learn more? Read on! We will make it worth your while.
