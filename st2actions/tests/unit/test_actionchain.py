@@ -60,8 +60,10 @@ CHAIN_NO_DEFAULT = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'no_default_chain.yaml')
 CHAIN_NO_DEFAULT_2 = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'no_default_chain_2.yaml')
-CHAIN_BROKEN_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_broken_paths.yaml')
+CHAIN_BROKEN_ON_SUCCESS_PATH_STATIC_TASK_NAME = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_broken_on_success_path_static_task_name.yaml')
+CHAIN_BROKEN_ON_FAILURE_PATH_STATIC_TASK_NAME = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_broken_on_failure_path_static_task_name.yaml')
 CHAIN_FIRST_TASK_RENDER_FAIL_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_first_task_parameter_render_fail.yaml')
 CHAIN_SECOND_TASK_RENDER_FAIL_PATH = FixturesLoader().get_fixture_file_path_abs(
@@ -208,29 +210,37 @@ class TestActionChainRunner(DbTestCase):
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'request',
                        return_value=(DummyActionExecution(), None))
-    def test_chain_runner_broken_success_path(self, request):
+    def test_chain_runner_broken_on_success_path_static_task_name(self, request):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = CHAIN_BROKEN_PATH
+        chain_runner.entry_point = CHAIN_BROKEN_ON_SUCCESS_PATH_STATIC_TASK_NAME
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
-        chain_runner.pre_run()
-        status, result, _ = chain_runner.run({})
 
-        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        expected_msg = 'Unable to find node with name "c5"'
+        self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError,
+                                expected_msg, chain_runner.pre_run)
 
-        self.assertTrue('Failed to get next node "c1". Lookup failed:' in result['error'])
-        self.assertTrue('Unable to find node with name "c2"' in result['error'])
-        self.assertTrue('Traceback (most recent call last):' in result['traceback'])
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request',
+                       return_value=(DummyActionExecution(), None))
+    def test_chain_runner_broken_on_failure_path_static_task_name(self, request):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_BROKEN_ON_FAILURE_PATH_STATIC_TASK_NAME
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
 
-        # based on the chain the callcount is known to be 1. Not great but works.
-        self.assertEqual(request.call_count, 1)
+        expected_msg = 'Unable to find node with name "c6"'
+        self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError,
+                                expected_msg, chain_runner.pre_run)
+
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'request',
                        return_value=(DummyActionExecution(status=LIVEACTION_STATUS_FAILED), None))
-    def test_chain_runner_broken_fail_path(self, request):
+    def test_chain_runner_broken_fail_path_st(self, request):
+        return
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_BROKEN_PATH
         chain_runner.action = ACTION_1
