@@ -43,6 +43,10 @@ from st2common.util import jinja as jinja_utils
 
 LOG = logging.getLogger(__name__)
 RESULTS_KEY = '__results'
+JINJA_START_MARKERS = [
+    '{{',
+    '{%'
+]
 
 
 class ChainHolder(object):
@@ -63,6 +67,35 @@ class ChainHolder(object):
             self.vars = self._get_rendered_vars(self.actionchain.vars,
                                                 action_parameters=action_parameters)
 
+    def validate(self):
+        """
+        Function which performs a simple compile time validation.
+
+        Keep in mind that some variables are only resolved during run time which means we can
+        perform only simple validation during compile / create time.
+        """
+        all_nodes = self._get_all_nodes(action_chain=self.actionchain)
+        on_success_nodes = self._get_all_on_success_nodes(action_chain=self.actionchain)
+        on_failure_nodes = self._get_all_on_failure_nodes(action_chain=self.actionchain)
+
+        # 1. Check all the "on-success" paths
+        for node_name in on_success_nodes:
+            valid_name = self._is_valid_node_name(all_node_names=all_nodes, node_name=node_name)
+
+            if not valid_name:
+                msg = 'Unable to find node with name "%s".' % (node_name)
+                raise ValueError(msg)
+
+        # 2. Check all the "on-failure" paths
+        for node_name in on_failure_nodes:
+            valid_name = self._is_valid_node_name(all_node_names=all_nodes, node_name=node_name)
+
+            if not valid_name:
+                msg = 'Unable to find node with name "%s".' % (node_name)
+                raise ValueError(msg)
+
+        return True
+
     @staticmethod
     def _get_default(_actionchain):
         # default is defined
@@ -76,10 +109,10 @@ class ChainHolder(object):
         # 1. There are no loops in the chain. Even if there are loops there is
         #    at least 1 node which does not end up in this loop.
         # 2. There are no fragments in the chain.
-        all_nodes = [node.name for node in _actionchain.chain]
+        all_nodes = ChainHolder._get_all_nodes(action_chain=_actionchain)
         node_names = set(all_nodes)
-        on_success_nodes = set([node.on_success for node in _actionchain.chain])
-        on_failure_nodes = set([node.on_failure for node in _actionchain.chain])
+        on_success_nodes = ChainHolder._get_all_on_success_nodes(action_chain=_actionchain)
+        on_failure_nodes = ChainHolder._get_all_on_failure_nodes(action_chain=_actionchain)
         referenced_nodes = on_success_nodes | on_failure_nodes
         possible_default_nodes = node_names - referenced_nodes
         if possible_default_nodes:
@@ -90,6 +123,50 @@ class ChainHolder(object):
                     return node
         # If no node is found assume the first node in the chain list to be default.
         return _actionchain.chain[0].name
+
+    @staticmethod
+    def _get_all_nodes(action_chain):
+        """
+        Return names for all the nodes in the chain.
+        """
+        all_nodes = [node.name for node in action_chain.chain]
+        return all_nodes
+
+    @staticmethod
+    def _get_all_on_success_nodes(action_chain):
+        """
+        Return names for all the tasks referenced in "on-success".
+        """
+        on_success_nodes = set([node.on_success for node in action_chain.chain])
+        return on_success_nodes
+
+    @staticmethod
+    def _get_all_on_failure_nodes(action_chain):
+        """
+        Return names for all the tasks referenced in "on-failure".
+        """
+        on_failure_nodes = set([node.on_failure for node in action_chain.chain])
+        return on_failure_nodes
+
+    def _is_valid_node_name(self, all_node_names, node_name):
+        """
+        Function which validates that the provided node name is defined in the workflow definition
+        and it's valid.
+
+        Keep in mind that we can only perform validation for task names which don't include jinja
+        expressions since those are rendered at run time.
+        """
+        if not node_name:
+            # This task name needs to be resolved during run time so we cant validate the name now
+            return True
+
+        for jinja_start_marker in JINJA_START_MARKERS:
+            if jinja_start_marker in node_name:
+                # This task name needs to be resolved during run time so we cant validate the name
+                # now
+                return True
+
+        return node_name in all_node_names
 
     @staticmethod
     def _get_rendered_vars(vars, action_parameters):
@@ -158,6 +235,12 @@ class ActionChainRunner(ActionRunner):
             self._chain_notify = getattr(self.liveaction, 'notify', None)
         if self.runner_parameters:
             self._skip_notify_tasks = self.runner_parameters.get('skip_notify', [])
+
+        # Perform some pre-run chain validation
+        try:
+            self.chain_holder.validate()
+        except Exception as e:
+            raise runnerexceptions.ActionRunnerPreRunError(e.message)
 
     def run(self, action_parameters):
         result = {'tasks': []}  # holds final result we store
