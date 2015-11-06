@@ -408,7 +408,14 @@ class ActionChainRunner(ActionRunner):
         context.update(chain_vars)
         context.update({RESULTS_KEY: previous_execution_results})
         context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
-        rendered_result = jinja_utils.render_values(mapping=action_node.publish, context=context)
+
+        try:
+            rendered_result = jinja_utils.render_values(mapping=action_node.publish, context=context)
+        except Exception as e:
+            msg = ('Failed rendering value for publish parameter "%s" in task "%s" (template string=%s): %s' %
+                   (e.key, action_node.name, e.value, str(e)))
+            raise ParameterRenderingFailedException(msg)
+
         return rendered_result
 
     @staticmethod
@@ -425,8 +432,11 @@ class ActionChainRunner(ActionRunner):
             rendered_params = jinja_utils.render_values(mapping=action_node.params,
                                                         context=context)
         except Exception as e:
-            LOG.exception('Jinja rendering failed.')
-            raise ParameterRenderingFailedException(e)
+            LOG.exception('Jinja rendering for parameter "%s" failed.' % (e.key))
+
+            msg = ('Failed rendering value for parameter "%s" in task "%s" (template string=%s): %s' %
+                   (e.key, action_node.name, e.value, str(e)))
+            raise ParameterRenderingFailedException(msg)
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
 
