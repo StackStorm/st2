@@ -97,22 +97,22 @@ class ChainHolder(object):
         return True
 
     @staticmethod
-    def _get_default(_actionchain):
+    def _get_default(action_chain):
         # default is defined
-        if _actionchain.default:
-            return _actionchain.default
+        if action_chain.default:
+            return action_chain.default
         # no nodes in chain
-        if not _actionchain.chain:
+        if not action_chain.chain:
             return None
         # The first node with no references is the default node. Assumptions
         # that support this are :
         # 1. There are no loops in the chain. Even if there are loops there is
         #    at least 1 node which does not end up in this loop.
         # 2. There are no fragments in the chain.
-        all_nodes = ChainHolder._get_all_nodes(action_chain=_actionchain)
+        all_nodes = ChainHolder._get_all_nodes(action_chain=action_chain)
         node_names = set(all_nodes)
-        on_success_nodes = ChainHolder._get_all_on_success_nodes(action_chain=_actionchain)
-        on_failure_nodes = ChainHolder._get_all_on_failure_nodes(action_chain=_actionchain)
+        on_success_nodes = ChainHolder._get_all_on_success_nodes(action_chain=action_chain)
+        on_failure_nodes = ChainHolder._get_all_on_failure_nodes(action_chain=action_chain)
         referenced_nodes = on_success_nodes | on_failure_nodes
         possible_default_nodes = node_names - referenced_nodes
         if possible_default_nodes:
@@ -122,7 +122,7 @@ class ChainHolder(object):
                 if node in possible_default_nodes:
                     return node
         # If no node is found assume the first node in the chain list to be default.
-        return _actionchain.chain[0].name
+        return action_chain.chain[0].name
 
     @staticmethod
     def _get_all_nodes(action_chain):
