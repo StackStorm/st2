@@ -56,6 +56,8 @@ RUNNER = MODELS['runners']['testrunner1.yaml']
 
 CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain1.yaml')
+CHAIN_ACTION_CALL_NO_PARAMS_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_action_call_no_params.yaml')
 CHAIN_NO_DEFAULT = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'no_default_chain.yaml')
 CHAIN_NO_DEFAULT_2 = FixturesLoader().get_fixture_file_path_abs(
@@ -121,6 +123,26 @@ class TestActionChainRunner(DbTestCase):
     def test_chain_runner_success_path(self, request):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
+        chain_runner.action = ACTION_1
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
+                                                           pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
+        chain_runner.liveaction.notify = CHAIN_NOTIFY_DB
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        chain_runner.run({})
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # based on the chain the callcount is known to be 3. Not great but works.
+        self.assertEqual(request.call_count, 3)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_success_task_action_call_with_no_params(self, request):
+        # Make sure that the runner doesn't explode if task definition contains
+        # no "params" section
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_ACTION_CALL_NO_PARAMS_PATH
         chain_runner.action = ACTION_1
         action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
                                                            pack=ACTION_1.pack)
