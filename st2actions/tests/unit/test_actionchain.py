@@ -417,9 +417,14 @@ class TestActionChainRunner(DbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertEqual(len(result['tasks']), 1)
         self.assertEqual(result['tasks'][0]['name'], 'c1')
+
+        expected_error = ('Failed rendering value for action parameter "p1" in '
+                          'task "c2" (template string={{s1}}')
+
         self.assertTrue('error' in result)
         self.assertTrue('traceback' in result)
         self.assertTrue('Failed to run task "c2". Parameter rendering failed' in result['error'])
+        self.assertTrue(expected_error in result['error'])
         self.assertTrue('Traceback' in result['traceback'])
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
