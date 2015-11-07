@@ -496,7 +496,7 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
             "formats": {
                 "type": "array",
                 "items": {
-                    "anyOf": [ 
+                    "anyOf": [
                         {"type": "string"},
                         {
                             "type": "object",
