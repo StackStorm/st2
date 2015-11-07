@@ -29,6 +29,7 @@ from st2common.persistence.keyvalue import KeyValuePair
 from st2common.persistence.runner import RunnerType
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
+from st2common.exceptions.action import ParameterRenderingFailedException
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
@@ -90,6 +91,8 @@ CHAIN_WITH_SYSTEM_VARS = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_system_vars.yaml')
 CHAIN_WITH_PUBLISH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_publish.yaml')
+CHAIN_WITH_PUBLISH_PARAM_RENDERING_FAILURE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_publish_params_rendering_failure.yaml')
 CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_invalid_action.yaml')
 
@@ -419,7 +422,7 @@ class TestActionChainRunner(DbTestCase):
         self.assertEqual(result['tasks'][0]['name'], 'c1')
 
         expected_error = ('Failed rendering value for action parameter "p1" in '
-                          'task "c2" (template string={{s1}}')
+                          'task "c2" (template string={{s1}}):')
 
         self.assertTrue('error' in result)
         self.assertTrue('traceback' in result)
@@ -534,6 +537,31 @@ class TestActionChainRunner(DbTestCase):
                           'published_action_param': action_parameters['action_param_1']}
         mock_args, _ = request.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_publish_param_rendering_failure(self, request):
+        # Parameter rendering should result in a top level error which aborts
+        # the whole chain
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_PUBLISH_PARAM_RENDERING_FAILURE
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+
+        try:
+            chain_runner.run({})
+        except ParameterRenderingFailedException as e:
+            # TODO: Should we treat this as task error? Right now it bubbles all
+            # the way up and it's not really consistent with action param
+            # rendering failure
+            expected_error = ('Failed rendering value for publish parameter "p1" in '
+                              'task "c2" (template string={{ not_defined }}):')
+            self.assertTrue(expected_error in str(e))
+            pass
+        else:
+            self.fail('Exception was not thrown')
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=None))
