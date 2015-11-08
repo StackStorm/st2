@@ -80,7 +80,7 @@ class ParamikoSSHClient(object):
     # Connect socket timeout
     CONNECT_TIMEOUT = 60
 
-    def __init__(self, hostname, port=22, username=None, password=None,
+    def __init__(self, hostname, port=22, username=None, password=None, bastion_host=None,
                  key=None, key_files=None, key_material=None, timeout=None):
         """
         Authentication is always attempted in the following order:
@@ -107,10 +107,12 @@ class ParamikoSSHClient(object):
             self.key_files = key  # `key` arg is deprecated.
         self.timeout = timeout or ParamikoSSHClient.CONNECT_TIMEOUT
         self.key_material = key_material
-        self.client = paramiko.SSHClient()
-        self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        self.client = None
         self.logger = logging.getLogger(__name__)
         self.sftp = None
+        self.bastion_host = bastion_host
+        self.bastion_client = None
+        self.bastion_socket = None
 
     def connect(self):
         """
@@ -120,31 +122,17 @@ class ParamikoSSHClient(object):
                  False otherwise.
         :rtype: ``bool``
         """
-        conninfo = {'hostname': self.hostname,
-                    'port': self.port,
-                    'username': self.username,
-                    'allow_agent': False,
-                    'look_for_keys': False,
-                    'timeout': self.timeout}
+        if self.bastion_host:
+            self.logger.debug('Bastion host specified, connecting')
+            self.bastion_client = self._connect(host=self.bastion_host)
+            transport = self.bastion_client.get_transport()
+            real_addr = (self.hostname, self.port)
+            # fabric uses ('', 0) for direct-tcpip, this duplicates that behaviour
+            # see https://github.com/fabric/fabric/commit/c2a9bbfd50f560df6c6f9675603fb405c4071cad
+            local_addr = ('', 0)
+            self.bastion_socket = transport.open_channel('direct-tcpip', real_addr, local_addr)
 
-        if self.password:
-            conninfo['password'] = self.password
-
-        if self.key_files:
-            conninfo['key_filename'] = self.key_files
-
-        if self.key_material:
-            conninfo['pkey'] = self._get_pkey_object(key_material=self.key_material)
-
-        if not self.password and not (self.key_files or self.key_material):
-            conninfo['allow_agent'] = True
-            conninfo['look_for_keys'] = True
-
-        extra = {'_hostname': self.hostname, '_port': self.port,
-                 '_username': self.username, '_timeout': self.timeout}
-        self.logger.debug('Connecting to server', extra=extra)
-
-        self.client.connect(**conninfo)
+        self.client = self._connect(host=self.hostname, socket=self.bastion_socket)
         self.sftp = self.client.open_sftp()
         return True
 
@@ -433,6 +421,8 @@ class ParamikoSSHClient(object):
         self.client.close()
         if self.sftp:
             self.sftp.close()
+        if self.bastion_client:
+            self.bastion_client.close()
         return True
 
     def _consume_stdout(self, chan):
@@ -513,6 +503,52 @@ class ParamikoSSHClient(object):
             msg = 'Invalid or unsupported key type'
 
         raise paramiko.ssh_exception.SSHException(msg)
+
+    def _connect(self, host, socket=None):
+        """
+
+        :type host: ``str``
+        :param host: Host to connect to
+
+        :type socket: :class:`paramiko.Channel` or an opened :class:`socket.socket`
+        :param socket: If specified, won't open a socket for communication to the specified host
+                       and will use this instead
+
+        :return: A connected SSHClient
+        :rtype: :class:`paramiko.SSHClient`
+        """
+        conninfo = {'hostname': host,
+                    'port': self.port,
+                    'username': self.username,
+                    'allow_agent': False,
+                    'look_for_keys': False,
+                    'timeout': self.timeout}
+
+        if self.password:
+            conninfo['password'] = self.password
+
+        if self.key_files:
+            conninfo['key_filename'] = self.key_files
+
+        if self.key_material:
+            conninfo['pkey'] = self._get_pkey_object(key_material=self.key_material)
+
+        if not self.password and not (self.key_files or self.key_material):
+            conninfo['allow_agent'] = True
+            conninfo['look_for_keys'] = True
+
+        extra = {'_hostname': host, '_port': self.port,
+                 '_username': self.username, '_timeout': self.timeout}
+        self.logger.debug('Connecting to server', extra=extra)
+
+        if socket:
+            conninfo['sock'] = socket
+
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(**conninfo)
+
+        return client
 
     def __repr__(self):
         return ('<ParamikoSSHClient hostname=%s,port=%s,username=%s,id=%s>' %

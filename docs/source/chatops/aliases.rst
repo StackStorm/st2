@@ -46,6 +46,15 @@ Action Aliases are supplied in packs as yaml files.
 
 Each alias is a single yaml file with the alias and supporting multiple formats.
 
+Listing
+~~~~~~~
+
+To list all currently registered action aliases, use -
+
+.. code-block:: bash
+
+   st2 action-alias list
+
 Loading
 ~~~~~~~
 
@@ -54,6 +63,16 @@ When a pack is registered the aliases are not automatically loaded. To load all 
 .. code-block:: bash
 
    st2ctl reload --register-aliases
+   
+Removing
+~~~~~~~~
+
+When you like to remove an action alias, use -
+
+.. code-block:: bash
+
+   st2 action-alias delete ALIAS
+
 
 
 Supported formats
@@ -114,6 +133,13 @@ In this the action google.get_search_results would be called with the parameters
        query: StackStorm
        limit: 10
 
+Additional ChatOps parameters passed to the command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An execution triggered via chatops will contain variables such as ``action_context.api_user``, ``action_context.user`` and ``action_context.source_channel``. ``api_user`` is the user who's kicking off the chatops command from
+client and ``user`` is the |st2| user configured in hubot. ``source_channel`` is the channel
+in which the chatops command was kicked off.
+
 Multiple formats in single alias
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -145,4 +171,6 @@ ChatOps
 
 To see how to use aliases with your favorite Chat client and implement ChatOps in your infrastructure
 go `here <https://github.com/StackStorm/st2/blob/master/instructables/chatops.md>`_.
+
+
 

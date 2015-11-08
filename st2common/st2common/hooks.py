@@ -121,6 +121,9 @@ class AuthHook(PecanHook):
         if QUERY_PARAM_ATTRIBUTE_NAME in state.arguments.keywords:
             del state.arguments.keywords[QUERY_PARAM_ATTRIBUTE_NAME]
 
+        if QUERY_PARAM_API_KEY_ATTRIBUTE_NAME in state.arguments.keywords:
+            del state.arguments.keywords[QUERY_PARAM_API_KEY_ATTRIBUTE_NAME]
+
     def on_error(self, state, e):
         if isinstance(e, (auth_exceptions.NoAuthSourceProvidedError,
                           auth_exceptions.MultipleAuthSourcesError)):

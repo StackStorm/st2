@@ -99,8 +99,8 @@ def _purge_executions(timestamp=None, action_ref=None):
 
     def should_delete(execution_db):
         if action_ref != '':
-            return (execution_db.liveaction['action'] == action_ref
-                    and execution_db.start_timestamp < timestamp)
+            return (execution_db.liveaction['action'] == action_ref and
+                    execution_db.start_timestamp < timestamp)
         else:
             return execution_db.start_timestamp < timestamp
 

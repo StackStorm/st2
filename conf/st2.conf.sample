@@ -1,3 +1,6 @@
+# Sample config which contains all the available options which the corresponding
+# descriptions
+
 [action_sensor]
 # Whether to enable or disable the ability to post a trigger on action.
 enable = True
@@ -23,6 +26,9 @@ heartbeat = 25
 port = 9101
 
 [auth]
+# Common option - options below apply in both scenarios - when auth service is running as a WSGI
+# service (e.g. under Apache or Nginx) and when it's running in the standalone mode.
+
 # Enable authentication middleware.
 enable = True
 # Path to the logging config.
@@ -31,23 +37,27 @@ logging = conf/logging.conf
 api_url = None
 # Access token ttl in seconds.
 token_ttl = 86400
+# Authentication mode (proxy,standalone)
+mode = standalone
+# Specify to enable debug mode.
+debug = False
+
+# Standalone mode options - options below only apply when auth service is running in the standalone
+# mode.
+
 # Path to the SSL certificate file. Only used when "use_ssl" is specified.
 cert = /etc/apache2/ssl/mycert.crt
 # JSON serialized arguments which are passed to the authentication backend in a standalone mode.
 backend_kwargs = None
 # Host on which the service should listen on.
 host = 0.0.0.0
-# Authentication mode (proxy,standalone)
-mode = proxy
 # Path to the SSL private key file. Only used when "use_ssl" is specified.
 key = /etc/apache2/ssl/mycert.key
-# Specify to enable debug mode.
-debug = False
 # Specify to enable SSL / TLS mode
 use_ssl = False
 # Port on which the service should listen on.
 port = 9100
-# Authentication backend to use in a standalone mode (mongodb,flat_file).
+# Authentication backend to use in a standalone mode. Available backends: flat_file.
 backend = flat_file
 
 [cloudslang]
@@ -69,14 +79,26 @@ lock_timeout = 60
 [database]
 # username for db login
 username = None
-# password for db login
-password = None
+# Connection retry total time (minutes).
+connection_retry_max_delay_m = 3
+# Connection retry backoff max (seconds).
+connection_retry_backoff_max_s = 10
 # host of db server
 host = 0.0.0.0
 # name of database
 db_name = st2
+# Backoff multiplier (seconds).
+connection_retry_backoff_mul = 1
+# password for db login
+password = None
 # port of db server
 port = 27017
+
+[exporter]
+# location of the logging.exporter.conf file
+logging = conf/logging.exporter.conf
+# Directory to dump data to.
+dump_dir = /opt/stackstorm/exports/
 
 [log]
 # Controls if stderr should be redirected to the logs.

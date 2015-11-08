@@ -160,6 +160,34 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         mock.client.connect.assert_called_once_with(**expected_conn)
 
     @patch('paramiko.SSHClient', Mock)
+    def test_create_with_key_via_bastion(self):
+        conn_params = {'hostname': 'dummy.host.org',
+                       'bastion_host': 'bastion.host.org',
+                       'username': 'ubuntu',
+                       'key_files': 'id_rsa'}
+        mock = ParamikoSSHClient(**conn_params)
+        mock.connect()
+
+        expected_bastion_conn = {'username': 'ubuntu',
+                                 'allow_agent': False,
+                                 'hostname': 'bastion.host.org',
+                                 'look_for_keys': False,
+                                 'key_filename': 'id_rsa',
+                                 'timeout': 60,
+                                 'port': 22}
+        mock.bastion_client.connect.assert_called_once_with(**expected_bastion_conn)
+
+        expected_conn = {'username': 'ubuntu',
+                         'allow_agent': False,
+                         'hostname': 'dummy.host.org',
+                         'look_for_keys': False,
+                         'key_filename': 'id_rsa',
+                         'timeout': 60,
+                         'port': 22,
+                         'sock': mock.bastion_socket}
+        mock.client.connect.assert_called_once_with(**expected_conn)
+
+    @patch('paramiko.SSHClient', Mock)
     def test_create_with_password_and_key(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
@@ -199,6 +227,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
 
+    @patch('paramiko.SSHClient', Mock)
     @patch.object(ParamikoSSHClient, '_consume_stdout',
                   MagicMock(return_value=StringIO('')))
     @patch.object(ParamikoSSHClient, '_consume_stderr',
@@ -236,6 +265,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
 
         mock.close()
 
+    @patch('paramiko.SSHClient', Mock)
     def test_delete_script(self):
         """
         Provide a basic test with 'delete' action.
@@ -252,6 +282,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
 
         mock.close()
 
+    @patch('paramiko.SSHClient', Mock)
     @patch.object(ParamikoSSHClient, 'exists', return_value=False)
     def test_put_dir(self, *args):
         mock = self.ssh_cli

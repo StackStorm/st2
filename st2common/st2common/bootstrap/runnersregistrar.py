@@ -189,6 +189,13 @@ RUNNER_TYPES = [
                 'type': 'integer',
                 'default': 22,
                 'required': False
+            },
+            'bastion_host': {
+                'description': 'The host SSH connections will be proxied through. Note: This ' +
+                               'connection is made using the same parameters as the final ' +
+                               'connection, and is only used in ParamikoSSHRunner.',
+                'type': 'string',
+                'required': False
             }
         },
         'runner_module': 'st2actions.runners.remote_command_runner'
@@ -268,6 +275,13 @@ RUNNER_TYPES = [
                 'description': 'SSH port. Note: This parameter is used only in ParamikoSSHRunner.',
                 'type': 'integer',
                 'default': 22,
+                'required': False
+            },
+            'bastion_host': {
+                'description': 'The host SSH connections will be proxied through. Note: This ' +
+                               'connection is made using the same parameters as the final ' +
+                               'connection, and is only used in ParamikoSSHRunner.',
+                'type': 'string',
                 'required': False
             }
         },

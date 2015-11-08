@@ -1,8 +1,14 @@
 Scripted Installer
 ==================
 
-.. TODO:: Move deploy script aka st2_deploy.sh instructions here. Put a deprecation note and reference to new installer.
+.. warning::
 
+    Scripted installer is being replaced with production-ready :doc:`all_in_one`.
+
+    We still compile, build, test on CentOS 6, CentOS 7, and Ubuntu 14.04 and keep it around as a back stop
+    for those who can't use :doc:`all_in_one` for some reasons. Be aware that it is s **not intended for production:** no HTTPS, flat file htpasswd based authentication, running web services in built-in simple-http-service, etc. The code is available at `st2_deploy.sh <https://github.com/StackStorm/st2sandbox/blob/master/scripts/st2_deploy.sh>`_.
+
+    Note that the documentation has been updated assuming :doc:`all_in_one` in mind. For some `st2_deploy.sh` specific deployment configurations you may need to look at `Docs for v0.13 <http://docs.stackstorm.com/0.13/>`_
 
 To install and run |st2| on a single Ubuntu/Debian or RedHat/Fedora box, with all dependencies,
 download and run the deployment script.
@@ -48,14 +54,5 @@ and WebUI url:
 
 .. include:: on_complete.rst
 
-.. note::
-    We compile, build and test on CentOS 6, CentOS 7, and Ubuntu 14.04. The `st2_deploy.sh <https://github.com/StackStorm/st2sandbox/blob/master/scripts/st2_deploy.sh>`_
-    script should work for other versions, but if you find a problem, let us know. Fixes welcome :)
 
-    st2_deploy.sh script allows you to easily install and run |st2| with all the
-    dependencies on a single server. It's intended to be used for testing,
-    evaluation and POC. It doesn't use HTTPS, uses flat file
-    htpasswd based authentication, etc. - you should **not** use it 'as is' for production
-    deployments.
-
-    For production deployments use :doc:`all_in_one`, follow deb / rpm installation methods, or leverage puppet modules from `puppet-st2 <https://github.com/StackStorm/puppet-st2>`_.
+For production deployments use :doc:`all_in_one`, follow deb / rpm installation methods, or leverage puppet modules from `puppet-st2 <https://github.com/StackStorm/puppet-st2>`_.

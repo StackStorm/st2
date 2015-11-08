@@ -4,6 +4,24 @@ Changelog
 in development
 --------------
 
+* Refactor retries in the Mistral action runner to use exponential backoff. Configuration options
+  for Mistral have changed. (improvement)
+* Add SSH bastion host support to the paramiko SSH runner. Utilizes same connection parameters as
+  the targeted box. (new feature, improvement) #2144, #2150 [Logan Attwood]
+* Improve speed of ``st2 execution list`` command by not requesting ``result`` and
+  ``trigger_instance`` attributes. The effect of this change will be especially pronounced for
+  installations with a lot of large executions (large execution for this purpose is an execution
+  with a large result).
+* Improve speed of ``st2 execution get`` command by not requesting ``result`` and
+  ``trigger_instance`` attributes.
+* Now when running ``st2api`` service in debug mode (``--debug``) flag, all the JSON responses are
+  pretty indented.
+* When using ``st2 execution list`` and ``st2 execution get`` CLI commands, display execution
+  elapsed time in seconds for all the executions which are currently in "running" state.
+
+1.1.0 - October 27, 2015
+------------------------
+
 * Add YAQL v1.0 support to Mistral. Earlier versions are deprecated. (improvement)
 * Update CLI so ``st2 run`` / ``st2 execution run`` and ``st2 execution re-run`` commands exit with
   non-zero code if the action fails. (improvement)
@@ -82,6 +100,8 @@ in development
   [jsjeannotte]
 * Pack on install are now assigned an owner group. The ``pack_group`` property allows to pick this
   value and default is ``st2packs``. (new feature)
+* Make sure sensor container child processes (sensor instance processes) are killed and cleaned up
+  if the sensor container is forcefully terminated (SIGKILL). (bug fix, improvement)
 
 0.13.2 - September 09, 2015
 ---------------------------

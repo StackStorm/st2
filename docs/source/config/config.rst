@@ -188,9 +188,11 @@ There are a number of configurable options available under the mistral section i
 +=======================+========================================================+
 | v2_base_url           | Mistral API v2 root endpoint                           |
 +-----------------------+--------------------------------------------------------+
-| max_attempts          | Max attempts to reconnect on connection error.         |
+| retry_exp_msec        | Multiplier for the exponential backoff.                |
 +-----------------------+--------------------------------------------------------+
-| retry_wait            | Number of seconds to wait inbetween reconnection.      |
+| retry_exp_max_msec    | Max time for each set of backoff.                      |
++-----------------------+--------------------------------------------------------+
+| retry_stop_max_msec   | Max time to stop retrying.                             |
 +-----------------------+--------------------------------------------------------+
 | keystone_username     | Username for authentication with OpenStack Keystone.   |
 +-----------------------+--------------------------------------------------------+
@@ -203,12 +205,17 @@ There are a number of configurable options available under the mistral section i
 
 ::
 
-    # Example with basic options.
+    # Example with basic options. The v2_base_url is set to http://workflow.example.com:8989/v2.
+    # On connection error, the following configuration sets up the action runner to retry 
+    # connecting to mistral for up to 10 minutes. The retries is setup to be exponential for
+    # 5 minutes. So in this case, there will be two sets of exponential retries during
+    # the 10 minutes.
 
     [mistral]
     v2_base_url = http://workflow.example.com:8989/v2
-    max_attempts = 180
-    retry_wait = 5
+    retry_exp_msec = 1000
+    retry_exp_max_msec = 300000
+    retry_stop_max_msec = 600000
 
 ::
 
@@ -216,8 +223,9 @@ There are a number of configurable options available under the mistral section i
 
     [mistral]
     v2_base_url = http://workflow.example.com:8989/v2
-    max_attempts = 180
-    retry_wait = 5
+    retry_exp_msec = 1000
+    retry_exp_max_msec = 300000
+    retry_stop_max_msec = 600000
     keystone_username = mistral
     keystone_password = pass123
     keystone_project_name = default
@@ -230,7 +238,10 @@ Authentication
 Please refer to :doc:`../authentication` to learn details of authentication, integrations with
 various identity providers, managing API tokens.
 
+Configure ChatOps
+-----------------
 
+|st2| brings native two-way ChatOps support. To learn more about ChatOps, and how to configure it manually, please refer to :ref:`Configuration section under ChatOps <chatops-configuration>`.
 
 
 

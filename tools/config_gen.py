@@ -35,6 +35,37 @@ CONFIGS = ['st2actions.config',
 
 SKIP_GROUPS = ['api_pecan']
 
+# We group auth options together to nake it a bit more clear what applies where
+AUTH_OPTIONS = {
+    'common': [
+        'enable',
+        'mode',
+        'logging',
+        'api_url',
+        'token_ttl',
+        'debug'
+    ],
+    'standalone': [
+        'host',
+        'port',
+        'use_ssl',
+        'cert',
+        'key',
+        'backend',
+        'backend_kwargs'
+    ]
+}
+
+COMMON_AUTH_OPTIONS_COMMENT = """
+# Common option - options below apply in both scenarios - when auth service is running as a WSGI
+# service (e.g. under Apache or Nginx) and when it's running in the standalone mode.
+""".strip()
+
+STANDALONE_AUTH_OPTIONS_COMMENT = """
+# Standalone mode options - options below only apply when auth service is running in the standalone
+# mode.
+""".strip()
+
 
 def _import_config(config):
     try:
@@ -58,18 +89,43 @@ def _clear_config():
 
 
 def _read_group(opt_group):
-    for _, opt in six.iteritems(opt_group._opts):
-        opt = opt['opt']
-        print '# %s' % opt.help
-        print '%s = %s' % (opt.name, opt.default)
+    all_options = opt_group._opts.values()
+
+    if opt_group.name == 'auth':
+        print(COMMON_AUTH_OPTIONS_COMMENT)
+        print('')
+        common_options = [option for option in all_options if option['opt'].name in
+                   AUTH_OPTIONS['common']]
+        _print_options(options=common_options)
+
+        print('')
+        print(STANDALONE_AUTH_OPTIONS_COMMENT)
+        print('')
+        standalone_options = [option for option in all_options if option['opt'].name in
+                              AUTH_OPTIONS['standalone']]
+        _print_options(options=standalone_options)
+
+        if len(common_options) + len(standalone_options) != len(all_options):
+            msg = ('Not all options are declared in AUTH_OPTIONS dict, please update it')
+            raise Exception(msg)
+    else:
+        options = all_options
+        _print_options(options=options)
 
 
 def _read_groups(opt_groups):
     opt_groups = collections.OrderedDict(sorted(opt_groups.items()))
     for name, opt_group in six.iteritems(opt_groups):
-        print '[%s]' % name
+        print('[%s]' % name)
         _read_group(opt_group)
-        print ''
+        print('')
+
+
+def _print_options(options):
+    for opt in options:
+        opt = opt['opt']
+        print('# %s' % opt.help)
+        print('%s = %s' % (opt.name, opt.default))
 
 
 def main(args):

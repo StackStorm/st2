@@ -1,0 +1,7 @@
+---
+name: greet
+pack: hello-st2
+description: "Greet StackStorm"
+action_ref: "hello-st2.greet"
+formats:
+  - "greet {{greeting}}"

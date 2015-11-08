@@ -20,17 +20,16 @@ This module contains common service setup and teardown code.
 from __future__ import absolute_import
 
 import os
-import logging as stdlib_logging
 
 from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.models import db
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
-from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.persistence import db_init
 from st2common.transport.bootstrap_utils import register_exchanges
 from st2common.signal_handlers import register_common_signal_handlers
+from st2common.util.debugging import enable_debugging
 from st2common.models.utils.profiling import enable_profiling
 from st2common import triggers
 
@@ -87,7 +86,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     logging.setup(logging_config_path)
 
     if cfg.CONF.debug:
-        set_log_level_for_all_loggers(level=stdlib_logging.DEBUG)
+        enable_debugging()
 
     # All other setup which requires config to be parsed and logging to
     # be correctly setup.

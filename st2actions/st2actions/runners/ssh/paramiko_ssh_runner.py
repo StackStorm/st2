@@ -45,6 +45,7 @@ RUNNER_ENV = 'env'
 RUNNER_KWARG_OP = 'kwarg_op'
 RUNNER_TIMEOUT = 'timeout'
 RUNNER_SSH_PORT = 'port'
+RUNNER_BASTION_HOST = 'bastion_host'
 
 
 class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
@@ -62,6 +63,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._cwd = None
         self._env = None
         self._timeout = None
+        self._bastion_host = None
         self._on_behalf_user = cfg.CONF.system_user.user
 
         self._ssh_key_file = None
@@ -104,6 +106,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT,
                                                    FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT)
+        self._bastion_host = self.runner_parameters.get(RUNNER_BASTION_HOST, None)
 
         LOG.info('[BaseParallelSSHRunner="%s", liveaction_id="%s"] Finished pre_run.',
                  self.runner_id, self.liveaction_id)
@@ -118,6 +121,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
                 hosts=self._hosts,
                 user=self._username, password=self._password,
                 port=self._ssh_port, concurrency=concurrency,
+                bastion_host=self._bastion_host,
                 raise_on_any_error=False,
                 connect=True
             )
@@ -126,6 +130,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
                 hosts=self._hosts,
                 user=self._username, pkey_material=self._private_key,
                 port=self._ssh_port, concurrency=concurrency,
+                bastion_host=self._bastion_host,
                 raise_on_any_error=False,
                 connect=True
             )
@@ -134,6 +139,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
                 hosts=self._hosts,
                 user=self._username, pkey_file=self._ssh_key_file,
                 port=self._ssh_port, concurrency=concurrency,
+                bastion_host=self._bastion_host,
                 raise_on_any_error=False,
                 connect=True
             )
