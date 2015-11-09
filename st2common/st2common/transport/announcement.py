@@ -31,7 +31,7 @@ class AnnouncementPublisher(object):
     def __init__(self, urls):
         self._publisher = publishers.PoolPublisher(urls=urls)
 
-    def publish(self, payload=None, routing_key=None):
+    def publish(self, payload, routing_key):
         self._publisher.publish(payload, ANNOUNCEMENT_XCHG, routing_key)
 
 
@@ -70,5 +70,5 @@ class AnnouncementDispatcher(object):
         self._publisher.publish(payload=payload, routing_key=routing_key)
 
 
-def get_queue(name=None, routing_key=None, exclusive=False):
+def get_queue(name=None, routing_key='#', exclusive=False):
     return Queue(name, ANNOUNCEMENT_XCHG, routing_key=routing_key, exclusive=exclusive)
