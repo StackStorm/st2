@@ -124,8 +124,15 @@ class SensorContainerManager(object):
             LOG.info('sensor %s is not supported. Ignoring update.', self._get_sensor_ref(sensor))
             return
         sensor_ref = self._get_sensor_ref(sensor)
-        LOG.info('Sensor %s updated. Reloading sensor.', sensor_ref)
         sensor_obj = self._to_sensor_object(sensor)
+
+        # Handle disabling sensor
+        if not sensor.enabled:
+            LOG.info('Sensor %s disabled. Unloading sensor.', sensor_ref)
+            self._sensor_container.remove_sensor(sensor=sensor_obj)
+            return
+
+        LOG.info('Sensor %s updated. Reloading sensor.', sensor_ref)
         try:
             self._sensor_container.remove_sensor(sensor=sensor_obj)
         except:
