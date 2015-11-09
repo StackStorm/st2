@@ -90,7 +90,7 @@ def extend_with_default(validator_class):
 
 
 CustomValidator = create(
-    meta_schema=get_draft_schema(additional_properties=True),
+    meta_schema=get_draft_schema(version='custom', additional_properties=True),
     validators={
         u"$ref": _validators.ref,
         u"additionalItems": _validators.additionalItems,
@@ -118,7 +118,7 @@ CustomValidator = create(
         u"type": _validators.type_draft4,
         u"uniqueItems": _validators.uniqueItems,
     },
-    version="action_param",
+    version="custom_validator",
 )
 
 
