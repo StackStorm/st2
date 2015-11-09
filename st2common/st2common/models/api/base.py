@@ -44,7 +44,6 @@ __all__ = [
 
 
 LOG = logging.getLogger(__name__)
-VALIDATOR = util_schema.get_validator(assign_property_default=False)
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -71,7 +70,22 @@ class BaseAPI(object):
         return vars(self)
 
     def validate(self):
-        VALIDATOR(getattr(self, 'schema', {})).validate(vars(self))
+        """
+        Perform validation and return cleaned object on success.
+        """
+        schema = getattr(self, 'schema', {})
+        attributes = vars(self)
+
+        cleaned = util_schema.validate(instance=attributes, schema=schema,
+                                       cls=util_schema.CustomValidator, use_default=True)
+
+        # Note: For backward compatibility reasons, we re-assign attributes one the current
+        # instance instance of creating a new one
+        # return self.__class__(**cleaned)
+        for attribute_name, attribute_value in six.iteritems(cleaned):
+            setattr(self, attribute_name, attribute_value)
+
+        return self
 
     @classmethod
     def _from_model(cls, model, mask_secrets=False):

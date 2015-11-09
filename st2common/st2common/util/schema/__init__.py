@@ -100,6 +100,8 @@ def validate(instance, schema, cls=None, use_default=True, *args, **kwargs):
     Custom validate function which supports default arguments combined with the "required"
     property.
 
+    Note: This function returns cleaned instance with default values assigned.
+
     :param use_default: True to support the use of the optional default property.
     :type use_default: ``bool``
     """
@@ -118,8 +120,8 @@ def validate(instance, schema, cls=None, use_default=True, *args, **kwargs):
                 instance[property_name] = default_value
 
     # pylint: disable=assignment-from-no-return
-    result = jsonschema.validate(instance=instance, schema=schema, cls=cls, *args, **kwargs)
-    return result
+    jsonschema.validate(instance=instance, schema=schema, cls=cls, *args, **kwargs)
+    return instance
 
 
 VALIDATORS = {
