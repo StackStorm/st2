@@ -16,6 +16,11 @@ in development
   ``trigger_instance`` attributes.
 * Now when running ``st2api`` service in debug mode (``--debug``) flag, all the JSON responses are
   pretty indented.
+* When using ``st2 execution list`` and ``st2 execution get`` CLI commands, display execution
+  elapsed time in seconds for all the executions which are currently in "running" state.
+* Update action chain runner so it performs on-success and on-error task name validation during
+  pre_run time. This way common errors such as typos in the task names can be spotted early on
+  since there is no need to wait for the run time.
 
 1.1.0 - October 27, 2015
 ------------------------

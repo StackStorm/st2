@@ -32,6 +32,14 @@ LOG = logging.getLogger(__name__)
 MIN_ID_COL_WIDTH = 26
 DEFAULT_ATTRIBUTE_DISPLAY_ORDER = ['id', 'name', 'pack', 'description']
 
+# Attributes which contain bash escape sequences - we can't split those across multiple lines
+# since things would break
+COLORIZED_ATTRIBUTES = {
+    'status': {
+        'col_width': 40
+    }
+}
+
 
 class MultiColumnTable(formatters.Formatter):
 
@@ -59,10 +67,23 @@ class MultiColumnTable(formatters.Formatter):
                 first_col_width = col_width
 
             widths = []
+            subtract = None
             for index in range(0, len(attributes)):
+                attribute_name = attributes[index]
+
                 if index == 0:
                     widths.append(first_col_width)
                 else:
+                    if attribute_name in COLORIZED_ATTRIBUTES:
+                        col_width = COLORIZED_ATTRIBUTES[attribute_name]['col_width']
+                        subtract = col_width
+                    else:
+                        if subtract:
+                            # Make sure we make the next column less wide so we account for the
+                            # fixed width columns and make sure the table is not wider than the
+                            # terminal width.
+                            col_width = (col_width - subtract)
+                            subtract = None
                     widths.append(col_width)
 
         if not attributes or 'all' in attributes:

@@ -88,6 +88,10 @@ class Node(object):
             prop = string.replace(prop, '-', '_')
             setattr(self, prop, value)
 
+    def __repr__(self):
+        return ('<Node name=%s, ref=%s, on-success=%s, on-failure=%s>' %
+                (self.name, self.ref, self.on_success, self.on_failure))
+
 
 class ActionChain(object):
 

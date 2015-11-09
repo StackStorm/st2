@@ -21,7 +21,7 @@ from oslo_config import cfg
 
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.transport import liveaction, execution, publishers
+from st2common.transport import announcement, liveaction, execution, publishers
 from st2common.transport import utils as transport_utils
 from st2common import log as logging
 
@@ -31,11 +31,6 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
-
-QUEUE = Queue(None,
-              liveaction.LIVEACTION_XCHG,
-              routing_key=publishers.ANY_RK,
-              exclusive=True)
 
 _listener = None
 
@@ -49,6 +44,11 @@ class Listener(ConsumerMixin):
 
     def get_consumers(self, consumer, channel):
         return [
+            consumer(queues=[announcement.get_queue(routing_key=publishers.ANY_RK,
+                                                    exclusive=True)],
+                     accept=['pickle'],
+                     callbacks=[self.processor()]),
+
             consumer(queues=[execution.get_queue(routing_key=publishers.ANY_RK,
                                                  exclusive=True)],
                      accept=['pickle'],
@@ -62,14 +62,17 @@ class Listener(ConsumerMixin):
                      callbacks=[self.processor(LiveActionAPI)])
         ]
 
-    def processor(self, model):
+    def processor(self, model=None):
         def process(body, message):
             from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
             meta = message.delivery_info
             event_name = '%s__%s' % (meta.get('exchange'), meta.get('routing_key'))
 
             try:
-                self.emit(event_name, model.from_model(body, **from_model_kwargs))
+                if model:
+                    body = model.from_model(body, **from_model_kwargs)
+
+                self.emit(event_name, body)
             finally:
                 message.ack()
 

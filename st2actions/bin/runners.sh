@@ -1,19 +1,30 @@
 #!/bin/sh
 
+LSB_RELEASE=$(which lsb_release)
 SYSTEMDCTL=/bin/systemctl
 UPSTARTCTL=/sbin/initctl
 SPAWNSVC=st2actionrunner
 WORKERSVC=st2actionrunner-worker
 
+# Set default number of workers
 if [ -z "$WORKERS" ]; then
-  WORKERS=2
+  WORKERS=$(/usr/bin/nproc 2>/dev/null)
+  WORKERS="${WORKERS:-4}"
 fi
 
-# 1. Choose init type
-if [ -x $SYSTEMDCTL ]; then
+# 1. Choose init type on Debian containers use sysv
+if [ -x $LSB_RELEASE ]; then
+  if [ -f /.dockerenv ] && [ $($LSB_RELEASE -is) = Debian ]; then
+    sv=sysv
+    svbin=/etc/init.d/$WORKERSVC
+  fi
+fi
+
+# 2. Second criteria
+if [ -z "$sv" -a -x $SYSTEMDCTL ]; then
   sv=systemd
   svbin=$SYSTEMDCTL
-elif ( /sbin/start 2>&1 | grep -q "missing job name" ); then
+elif [ -z "$sv" ] && ( /sbin/start 2>&1 | grep -q "missing job name" ); then
   sv=upstart
   svbin=$UPSTARTCTL
 else

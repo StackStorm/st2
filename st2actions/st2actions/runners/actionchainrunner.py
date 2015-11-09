@@ -43,6 +43,10 @@ from st2common.util import jinja as jinja_utils
 
 LOG = logging.getLogger(__name__)
 RESULTS_KEY = '__results'
+JINJA_START_MARKERS = [
+    '{{',
+    '{%'
+]
 
 
 class ChainHolder(object):
@@ -63,23 +67,54 @@ class ChainHolder(object):
             self.vars = self._get_rendered_vars(self.actionchain.vars,
                                                 action_parameters=action_parameters)
 
+    def validate(self):
+        """
+        Function which performs a simple compile time validation.
+
+        Keep in mind that some variables are only resolved during run time which means we can
+        perform only simple validation during compile / create time.
+        """
+        all_nodes = self._get_all_nodes(action_chain=self.actionchain)
+
+        for node in self.actionchain.chain:
+            on_success_node_name = node.on_success
+            on_failure_node_name = node.on_failure
+
+            # Check "on-success" path
+            valid_name = self._is_valid_node_name(all_node_names=all_nodes,
+                                                  node_name=on_success_node_name)
+            if not valid_name:
+                msg = ('Unable to find node with name "%s" referenced in "on-success" in '
+                       'task "%s".' % (on_success_node_name, node.name))
+                raise ValueError(msg)
+
+            # Check "on-failure" path
+            valid_name = self._is_valid_node_name(all_node_names=all_nodes,
+                                                  node_name=on_failure_node_name)
+            if not valid_name:
+                msg = ('Unable to find node with name "%s" referenced in "on-failure" in '
+                       'task "%s".' % (on_failure_node_name, node.name))
+                raise ValueError(msg)
+
+        return True
+
     @staticmethod
-    def _get_default(_actionchain):
+    def _get_default(action_chain):
         # default is defined
-        if _actionchain.default:
-            return _actionchain.default
+        if action_chain.default:
+            return action_chain.default
         # no nodes in chain
-        if not _actionchain.chain:
+        if not action_chain.chain:
             return None
         # The first node with no references is the default node. Assumptions
         # that support this are :
         # 1. There are no loops in the chain. Even if there are loops there is
         #    at least 1 node which does not end up in this loop.
         # 2. There are no fragments in the chain.
-        all_nodes = [node.name for node in _actionchain.chain]
+        all_nodes = ChainHolder._get_all_nodes(action_chain=action_chain)
         node_names = set(all_nodes)
-        on_success_nodes = set([node.on_success for node in _actionchain.chain])
-        on_failure_nodes = set([node.on_failure for node in _actionchain.chain])
+        on_success_nodes = ChainHolder._get_all_on_success_nodes(action_chain=action_chain)
+        on_failure_nodes = ChainHolder._get_all_on_failure_nodes(action_chain=action_chain)
         referenced_nodes = on_success_nodes | on_failure_nodes
         possible_default_nodes = node_names - referenced_nodes
         if possible_default_nodes:
@@ -89,7 +124,51 @@ class ChainHolder(object):
                 if node in possible_default_nodes:
                     return node
         # If no node is found assume the first node in the chain list to be default.
-        return _actionchain.chain[0].name
+        return action_chain.chain[0].name
+
+    @staticmethod
+    def _get_all_nodes(action_chain):
+        """
+        Return names for all the nodes in the chain.
+        """
+        all_nodes = [node.name for node in action_chain.chain]
+        return all_nodes
+
+    @staticmethod
+    def _get_all_on_success_nodes(action_chain):
+        """
+        Return names for all the tasks referenced in "on-success".
+        """
+        on_success_nodes = set([node.on_success for node in action_chain.chain])
+        return on_success_nodes
+
+    @staticmethod
+    def _get_all_on_failure_nodes(action_chain):
+        """
+        Return names for all the tasks referenced in "on-failure".
+        """
+        on_failure_nodes = set([node.on_failure for node in action_chain.chain])
+        return on_failure_nodes
+
+    def _is_valid_node_name(self, all_node_names, node_name):
+        """
+        Function which validates that the provided node name is defined in the workflow definition
+        and it's valid.
+
+        Keep in mind that we can only perform validation for task names which don't include jinja
+        expressions since those are rendered at run time.
+        """
+        if not node_name:
+            # This task name needs to be resolved during run time so we cant validate the name now
+            return True
+
+        for jinja_start_marker in JINJA_START_MARKERS:
+            if jinja_start_marker in node_name:
+                # This task name needs to be resolved during run time so we cant validate the name
+                # now
+                return True
+
+        return node_name in all_node_names
 
     @staticmethod
     def _get_rendered_vars(vars, action_parameters):
@@ -158,6 +237,12 @@ class ActionChainRunner(ActionRunner):
             self._chain_notify = getattr(self.liveaction, 'notify', None)
         if self.runner_parameters:
             self._skip_notify_tasks = self.runner_parameters.get('skip_notify', [])
+
+        # Perform some pre-run chain validation
+        try:
+            self.chain_holder.validate()
+        except Exception as e:
+            raise runnerexceptions.ActionRunnerPreRunError(e.message)
 
     def run(self, action_parameters):
         result = {'tasks': []}  # holds final result we store
@@ -325,7 +410,17 @@ class ActionChainRunner(ActionRunner):
         context.update(chain_vars)
         context.update({RESULTS_KEY: previous_execution_results})
         context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
-        rendered_result = jinja_utils.render_values(mapping=action_node.publish, context=context)
+
+        try:
+            rendered_result = jinja_utils.render_values(mapping=action_node.publish,
+                                                        context=context)
+        except Exception as e:
+            key = getattr(e, 'key', None)
+            value = getattr(e, 'value', None)
+            msg = ('Failed rendering value for publish parameter "%s" in task "%s" '
+                   '(template string=%s): %s' % (key, action_node.name, value, str(e)))
+            raise ParameterRenderingFailedException(msg)
+
         return rendered_result
 
     @staticmethod
@@ -342,8 +437,13 @@ class ActionChainRunner(ActionRunner):
             rendered_params = jinja_utils.render_values(mapping=action_node.params,
                                                         context=context)
         except Exception as e:
-            LOG.exception('Jinja rendering failed.')
-            raise ParameterRenderingFailedException(e)
+            LOG.exception('Jinja rendering for parameter "%s" failed.' % (e.key))
+
+            key = getattr(e, 'key', None)
+            value = getattr(e, 'value', None)
+            msg = ('Failed rendering value for action parameter "%s" in task "%s" '
+                   '(template string=%s): %s') % (key, action_node.name, value, str(e))
+            raise ParameterRenderingFailedException(msg)
         LOG.debug('Rendered params: %s: Type: %s', rendered_params, type(rendered_params))
         return rendered_params
 
