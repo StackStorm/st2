@@ -154,3 +154,6 @@ class TraceContext(object):
 
     def __str__(self):
         return '{id_: %s, trace_tag: %s}' % (self.id_, self.trace_tag)
+
+    def __json__(self):
+        return vars(self)
