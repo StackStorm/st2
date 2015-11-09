@@ -20,7 +20,6 @@ import uuid
 
 import requests
 from oslo_config import cfg
-from six.moves.urllib import parse as urlparse
 
 from st2actions.runners import ActionRunner
 from st2common import __version__ as st2_version
@@ -124,15 +123,6 @@ class HttpRunner(ActionRunner):
                           headers=headers, cookies=self._cookies, auth=auth,
                           timeout=timeout, allow_redirects=self._allow_redirects,
                           proxies=proxies, files=files, verify=self._verify_ssl_cert)
-
-    def _params_to_dict(self, params):
-        if not params:
-            return {}
-
-        if isinstance(params, dict):
-            return params
-
-        return dict(urlparse.parse_qsl(params, keep_blank_values=True, strict_parsing=True))
 
     @staticmethod
     def _get_result_status(status_code):
