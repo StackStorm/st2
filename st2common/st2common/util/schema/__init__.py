@@ -22,7 +22,9 @@ __all__ = [
 PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)))
 SCHEMAS = {
     'draft4': jsonify.load_file('%s/draft4.json' % PATH),
-    'custom': jsonify.load_file('%s/custom.json' % PATH)
+    'custom': jsonify.load_file('%s/custom.json' % PATH),
+    # Custom schema for action params which doesn't allow parameter "type" attribute to be array
+    'action_params': jsonify.load_file('%s/action_params.json' % PATH)
 }
 
 SCHEMA_ANY_TYPE = {
