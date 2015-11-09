@@ -24,12 +24,20 @@ constructor.
 from astroid import MANAGER
 from astroid import scoped_nodes
 
+# A list of class names for which we want to skip the checks
+CLASS_NAME_BLACKLIST = [
+    'ExecutionParametersAPI'
+]
+
 
 def register(linter):
     pass
 
 
 def transform(cls):
+    if cls.name in CLASS_NAME_BLACKLIST:
+        return
+
     if cls.name.endswith('API') or 'schema' in cls.locals:
         # This is a class which defines attributes in "schema" variable using json schema.
         # Those attributes are then assigned during run time inside the constructor

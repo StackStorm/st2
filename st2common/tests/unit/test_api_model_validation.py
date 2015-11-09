@@ -17,6 +17,10 @@ import unittest2
 
 from st2common.models.api.base import BaseAPI
 
+__all__ = [
+    'APIModelValidationTestCase'
+]
+
 
 class MockAPIModel(BaseAPI):
     model = None
@@ -85,10 +89,14 @@ class APIModelValidationTestCase(unittest2.TestCase):
         self.assertEqual(getattr(mock_model_api, 'permission_grants', None), None)
 
         mock_model_api_validated = mock_model_api.validate()
-        self.assertEqual(mock_model_api.id, None)
+
+        # Validate it doesn't modify object in place
+        self.assertEqual(getattr(mock_model_api, 'id', 'notset'), 'notset')
         self.assertEqual(mock_model_api.name, 'name')
-        self.assertEqual(mock_model_api.enabled, True)
-        self.assertEqual(mock_model_api.permission_grants, [])
+        self.assertEqual(getattr(mock_model_api, 'enabled', None), None)
+
+        # Verify cleaned object
+        self.assertEqual(mock_model_api_validated.id, None)
         self.assertEqual(mock_model_api_validated.name, 'name')
         self.assertEqual(mock_model_api_validated.enabled, True)
         self.assertEqual(mock_model_api_validated.permission_grants, [])
@@ -101,11 +109,14 @@ class APIModelValidationTestCase(unittest2.TestCase):
         self.assertEqual(mock_model_api.permission_grants, [{}, {'description': 'test'}])
 
         mock_model_api_validated = mock_model_api.validate()
+
+        # Validate it doesn't modify object in place
         self.assertEqual(mock_model_api.name, 'name')
         self.assertEqual(mock_model_api.enabled, False)
-        self.assertEqual(mock_model_api.permission_grants,
-                         [{'resource_uid': 'unknown', 'enabled': True},
-                          {'resource_uid': 'unknown', 'enabled': True, 'description': 'test'}])
+        self.assertEqual(mock_model_api.permission_grants, [{}, {'description': 'test'}])
+
+        # Verify cleaned object
+        self.assertEqual(mock_model_api_validated.id, None)
         self.assertEqual(mock_model_api_validated.name, 'name')
         self.assertEqual(mock_model_api_validated.enabled, False)
         self.assertEqual(mock_model_api_validated.permission_grants,

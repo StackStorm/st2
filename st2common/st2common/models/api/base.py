@@ -72,6 +72,10 @@ class BaseAPI(object):
     def validate(self):
         """
         Perform validation and return cleaned object on success.
+
+        Note: This method doesn't mutate this object in place, but it returns a new one.
+
+        :return: Cleaned / validated object.
         """
         schema = getattr(self, 'schema', {})
         attributes = vars(self)
@@ -79,13 +83,7 @@ class BaseAPI(object):
         cleaned = util_schema.validate(instance=attributes, schema=schema,
                                        cls=util_schema.CustomValidator, use_default=True)
 
-        # Note: For backward compatibility reasons, we re-assign attributes one the current
-        # instance instance of creating a new one
-        # return self.__class__(**cleaned)
-        for attribute_name, attribute_value in six.iteritems(cleaned):
-            setattr(self, attribute_name, attribute_value)
-
-        return self
+        return self.__class__(**cleaned)
 
     @classmethod
     def _from_model(cls, model, mask_secrets=False):
@@ -197,7 +195,7 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
 
                 obj = body_cls(**data)
                 try:
-                    obj.validate()
+                    obj = obj.validate()
                 except jsonschema.ValidationError as e:
                     raise exc.HTTPBadRequest(detail=e.message,
                                              comment=traceback.format_exc())
