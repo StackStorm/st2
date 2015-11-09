@@ -25,6 +25,8 @@ from st2common.util import jsonify
 
 __all__ = [
     'get_validator',
+    'get_draft_schema',
+    'get_action_parameters_schema',
     'get_parameter_schema',
     'validate'
 ]
@@ -38,6 +40,7 @@ PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)))
 SCHEMAS = {
     'draft4': jsonify.load_file(os.path.join(PATH, 'draft4.json')),
     'custom': jsonify.load_file(os.path.join(PATH, 'custom.json')),
+
     # Custom schema for action params which doesn't allow parameter "type" attribute to be array
     'action_params': jsonify.load_file(os.path.join(PATH, 'action_params.json'))
 }
@@ -59,6 +62,10 @@ def get_draft_schema(version='custom', additional_properties=False):
     if additional_properties and 'additionalProperties' in schema:
         del schema['additionalProperties']
     return schema
+
+
+def get_action_parameters_schema(additional_properties=False):
+    return get_draft_schema(version='action_params', additional_properties=additional_properties)
 
 
 def extend_with_default(validator_class):
@@ -120,6 +127,9 @@ def assign_default_values(instance, schema):
     instance_is_dict = isinstance(instance, dict)
     instance_is_array = isinstance(instance, list)
 
+    if not instance_is_dict and not instance_is_array:
+        return instance
+
     properties = schema.get('properties', {})
 
     for property_name, property_data in six.iteritems(properties):
@@ -155,7 +165,7 @@ def validate(instance, schema, cls=None, use_default=True, *args, **kwargs):
 
     Note: This function returns cleaned instance with default values assigned.
 
-    :param use_default: True to support the use of the optional default property.
+    :param use_default: True to support the use of the optional "default" property.
     :type use_default: ``bool``
     """
     instance = copy.deepcopy(instance)
