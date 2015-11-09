@@ -25,7 +25,6 @@ __all__ = [
     'validate_trigger_parameters'
 ]
 
-VALIDATOR = util_schema.get_validator(assign_property_default=False)
 allowed_operators = criteria_operators.get_allowed_operators()
 
 
@@ -68,6 +67,6 @@ def validate_trigger_parameters(trigger_db):
         return None
 
     parameters_schema = SYSTEM_TRIGGER_TYPES[trigger_type_ref]['parameters_schema']
-    VALIDATOR(parameters_schema).validate(parameters)
-
-    return True
+    cleaned = util_schema.validate(instance=parameters, schema=parameters_schema,
+                                   cls=util_schema.CustomValidator, use_default=True)
+    return cleaned
