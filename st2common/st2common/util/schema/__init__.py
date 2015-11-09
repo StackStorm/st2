@@ -27,7 +27,7 @@ __all__ = [
     'get_validator',
     'get_draft_schema',
     'get_action_parameters_schema',
-    'get_parameter_schema',
+    'get_schema_for_action_parameters',
     'validate'
 ]
 
@@ -65,6 +65,9 @@ def get_draft_schema(version='custom', additional_properties=False):
 
 
 def get_action_parameters_schema(additional_properties=False):
+    """
+    Return a generic schema which is used for validating action parameters definition.
+    """
     return get_draft_schema(version='action_params', additional_properties=additional_properties)
 
 
@@ -191,21 +194,25 @@ def get_validator(version='custom', assign_property_default=False):
     return extend_with_default(validator) if assign_property_default else validator
 
 
-def get_parameter_schema(model):
-    # Dynamically construct JSON schema from the parameters metadata.
+def get_schema_for_action_parameters(action_db):
+    """
+    Dynamically construct JSON schema for the provided action from the parameters metadata.
+
+    Note: This schema is used to validate parameters which are passed to the action.
+    """
     def normalize(x):
         return {k: v if v else SCHEMA_ANY_TYPE for k, v in six.iteritems(x)}
 
     schema = {}
     from st2common.util.action_db import get_runnertype_by_name
-    runner_type = get_runnertype_by_name(model.runner_type['name'])
+    runner_type = get_runnertype_by_name(action_db.runner_type['name'])
 
     properties = normalize(runner_type.runner_parameters)
-    properties.update(normalize(model.parameters))
+    properties.update(normalize(action_db.parameters))
     if properties:
-        schema['title'] = model.name
-        if model.description:
-            schema['description'] = model.description
+        schema['title'] = action_db.name
+        if action_db.description:
+            schema['description'] = action_db.description
         schema['type'] = 'object'
         schema['properties'] = properties
         schema['additionalProperties'] = False

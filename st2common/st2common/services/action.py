@@ -70,7 +70,7 @@ def request(liveaction):
         liveaction.parameters = dict()
 
     # Validate action parameters.
-    schema = util_schema.get_parameter_schema(action_db)
+    schema = util_schema.get_schema_for_action_parameters(action_db)
     validator = util_schema.get_validator()
     util_schema.validate(liveaction.parameters, schema, validator, use_default=True)
 
