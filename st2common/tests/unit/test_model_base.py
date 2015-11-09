@@ -114,7 +114,7 @@ class TestModelBase(unittest.TestCase):
         f(self)
 
         APIModelMock.assert_called_once_with(a='b')
-        self.f.assert_called_once_with(self, (APIModelMock(),), {})
+        self.f.assert_called_once_with(self, (APIModelMock().validate(),), {})
 
     def test_expose_body(self):
         APIModelMock = mock.MagicMock()
@@ -126,7 +126,7 @@ class TestModelBase(unittest.TestCase):
         f(self)
 
         APIModelMock.assert_called_once_with(a='b')
-        self.f.assert_called_once_with(self, APIModelMock(), (), {})
+        self.f.assert_called_once_with(self, APIModelMock().validate(), (), {})
 
     def test_expose_body_and_arguments_unused(self):
         APIModelMock = mock.MagicMock()
@@ -138,7 +138,7 @@ class TestModelBase(unittest.TestCase):
         f(self, '11')
 
         APIModelMock.assert_called_once_with(a='b')
-        self.f.assert_called_once_with(self, APIModelMock(), ('11', ), {})
+        self.f.assert_called_once_with(self, APIModelMock().validate(), ('11', ), {})
 
     def test_expose_body_and_arguments_type_casting(self):
         APIModelMock = mock.MagicMock()
@@ -150,7 +150,7 @@ class TestModelBase(unittest.TestCase):
         f(self, '11')
 
         APIModelMock.assert_called_once_with(a='b')
-        self.f.assert_called_once_with(self, 11, APIModelMock(), (), {})
+        self.f.assert_called_once_with(self, 11, APIModelMock().validate(), (), {})
 
     @unittest.skip
     def test_expose_body_and_typed_arguments_unused(self):
@@ -163,7 +163,7 @@ class TestModelBase(unittest.TestCase):
         f(self, '11', 'some')
 
         APIModelMock.assert_called_once_with(a='b')
-        self.f.assert_called_once_with(self, 11, APIModelMock(), ('some', ), {})
+        self.f.assert_called_once_with(self, 11, APIModelMock().validate(), ('some', ), {})
 
     @unittest.skip
     def test_expose_body_and_typed_kw_unused(self):
