@@ -95,6 +95,40 @@ CustomValidator = create(
 )
 
 
+def assign_default_values(instance, schema):
+    """
+    Assign default values on the provided instance based on the schema default specification.
+    """
+    instance = copy.deepcopy(instance)
+    instance_is_dict = isinstance(instance, dict)
+    instance_is_array = isinstance(instance, list)
+
+    properties = schema.get('properties', {})
+
+    for property_name, property_data in six.iteritems(properties):
+        has_default_value = 'default' in property_data
+        default_value = property_data.get('default', None)
+
+        # Assign default value on the instance so the validation doesn't fail if requires is true
+        # but the value is not provided
+        if has_default_value:
+            if instance_is_dict and instance.get(property_name, None) is None:
+                instance[property_name] = default_value
+            elif instance_is_array:
+                for index, _ in enumerate(instance):
+                    if instance[index].get(property_name, None) is None:
+                        instance[index][property_name] = default_value
+
+        # Support for nested object / array properties
+        attribute_type = property_data.get('type', None)
+        schema_items = property_data.get('items', {})
+        if attribute_type == 'array' and schema_items and schema_items.get('properties', {}):
+            instance[property_name] = assign_default_values(instance=instance[property_name],
+                schema=schema['properties'][property_name]['items'])
+
+    return instance
+
+
 def validate(instance, schema, cls=None, use_default=True, *args, **kwargs):
     """
     Custom validate function which supports default arguments combined with the "required"
@@ -110,14 +144,7 @@ def validate(instance, schema, cls=None, use_default=True, *args, **kwargs):
     instance_is_dict = isinstance(instance, dict)
 
     if use_default and schema_type == 'object' and instance_is_dict:
-        properties = schema.get('properties', {})
-        for property_name, property_data in six.iteritems(properties):
-            default_value = property_data.get('default', None)
-
-            # Assign default value on the instance so the validation doesn't fail if requires is
-            # true but the value is not provided
-            if default_value is not None and instance.get(property_name, None) is None:
-                instance[property_name] = default_value
+        instance = assign_default_values(instance=instance, schema=schema)
 
     # pylint: disable=assignment-from-no-return
     jsonschema.validate(instance=instance, schema=schema, cls=cls, *args, **kwargs)
