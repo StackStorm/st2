@@ -33,7 +33,6 @@ def transform(cls):
     if cls.name.endswith('API') or 'schema' in cls.locals:
         # This is a class which defines attributes in "schema" variable using json schema.
         # Those attributes are then assigned during run time inside the constructor
-
         fqdn = cls.qname()
         module_name, class_name = fqdn.rsplit('.', 1)
 
@@ -49,6 +48,7 @@ def transform(cls):
         properties = schema.get('properties', {}).keys()
 
         for property_name in properties:
+            property_name = property_name.replace('-', '_')  # Note: We do the same in Python code
             cls.locals[property_name] = [scoped_nodes.Class(property_name, None)]
 
 

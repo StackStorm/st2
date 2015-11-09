@@ -82,6 +82,7 @@ def get_params_view(action_db=None, runner_db=None, merged_only=False):
 def cast_params(action_ref, params, cast_overrides=None):
     """
     """
+    params = params or {}
     action_db = action_db_util.get_action_by_ref(action_ref)
 
     if not action_db:
