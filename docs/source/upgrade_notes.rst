@@ -7,6 +7,9 @@ Upgrade Notes
 * Refactor retries in the Mistral action runner to use exponential backoff. Configuration options
   for Mistral have changed. The options ``max_attempts`` and ``retry_wait`` are deprecated. Please
   refer to the configuration section of docs for more details.
+* Change ``headers`` and ``params`` parameters in the ``core.http`` action from ``string`` to
+  ``object``. If you have any code or rules which calls this action, you need to update it to
+  pass in a new and correct type.
 
 |st2| 1.1
 ---------
