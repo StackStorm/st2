@@ -33,8 +33,7 @@ class RoleAPI(BaseAPI):
         'type': 'object',
         'properties': {
             'id': {
-                'type': 'string',
-                'default': None
+                'type': 'string'
             },
             'name': {
                 'type': 'string',
@@ -78,8 +77,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
             'name': {
                 'type': 'string',
                 'description': 'Role name',
-                'required': True,
-                'default': None
+                'required': True
             },
             'description': {
                 'type': 'string',
@@ -100,8 +98,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                         'resource_uid': {
                             'type': 'string',
                             'description': 'UID of a resource to which this grant applies to.',
-                            'required': False,
-                            'default': None
+                            'required': False
                         },
                         'permission_types': {
                             'type': 'array',
@@ -113,7 +110,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                                 # resource type in other place
                                 'enum': PermissionType.get_valid_values()
                             },
-                            'default': None
+                            'default': []
                         }
                     }
                 }
@@ -162,14 +159,12 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
             'username': {
                 'type': 'string',
                 'description': 'Username',
-                'required': True,
-                'default': None
+                'required': True
             },
             'description': {
                 'type': 'string',
                 'description': 'Assignment description',
-                'required': False,
-                'default': None
+                'required': False
             },
             'enabled': {
                 'type': 'boolean',

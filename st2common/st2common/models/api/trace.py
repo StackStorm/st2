@@ -48,8 +48,7 @@ class TraceAPI(BaseAPI):
         'properties': {
             'id': {
                 'description': 'The unique identifier for a Trace.',
-                'type': 'string',
-                'default': None
+                'type': 'string'
             },
             'trace_tag': {
                 'description': 'User assigned identifier for each Trace.',
