@@ -83,7 +83,7 @@ The ``policies`` folder contains Policies. See :doc:`Policies </policies>` for s
 
 My first pack
 -------------
-If you would like to create a pack yourself then follow these *simple* steps. In the example below, we will create a simple pack named **hello-st2**. The full example is also available at :github_st2:`st2/contrib/hello-st2 <st2/contrib/hello-st2>`.
+If you would like to create a pack yourself then follow these *simple* steps. In the example below, we will create a simple pack named **hello-st2**. The full example is also available at :github_st2:`st2/contrib/hello-st2 </contrib/hello-st2>`.
 
 1. First, let's create the pack folder structure and related files. Let's keep the metadata files such as pack.yaml, config.yaml, and requirements.txt empty for now.
 
