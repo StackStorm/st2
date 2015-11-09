@@ -35,10 +35,10 @@ class FakeModel(base.BaseAPI):
 
 @mock.patch.object(pecan, 'request', mock.MagicMock(json={'a': 'b'}))
 @mock.patch.object(pecan, 'response', mock.MagicMock())
-class TestModelBase(unittest.TestCase):
+class TestAPIModelBase(unittest.TestCase):
 
     def setUp(self):
-        super(TestModelBase, self).setUp()
+        super(TestAPIModelBase, self).setUp()
         self.f = mock.MagicMock(__name__="Name")
 
     def test_expose_decorator(self):
