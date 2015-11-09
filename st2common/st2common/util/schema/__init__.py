@@ -123,8 +123,10 @@ def assign_default_values(instance, schema):
         attribute_type = property_data.get('type', None)
         schema_items = property_data.get('items', {})
         if attribute_type == 'array' and schema_items and schema_items.get('properties', {}):
-            instance[property_name] = assign_default_values(instance=instance[property_name],
-                schema=schema['properties'][property_name]['items'])
+            array_instance = instance.get(property_name, [])
+            array_schema = schema['properties'][property_name]['items']
+            instance[property_name] = assign_default_values(instance=array_instance,
+                                                            schema=array_schema)
 
     return instance
 
