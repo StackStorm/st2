@@ -71,7 +71,6 @@ class HttpRunner(ActionRunner):
                                                           self._on_behalf_user)
         self._url = self.runner_parameters.get(RUNNER_URL, None)
         self._headers = self.runner_parameters.get(RUNNER_HEADERS, {})
-        self._headers = self._params_to_dict(self._headers)
 
         self._cookies = self.runner_parameters.get(RUNNER_COOKIES, None)
         self._allow_redirects = self.runner_parameters.get(RUNNER_ALLOW_REDIRECTS, False)
@@ -90,7 +89,6 @@ class HttpRunner(ActionRunner):
         timeout = float(action_parameters.get(ACTION_TIMEOUT, self._timeout))
         method = action_parameters.get(ACTION_METHOD, None)
         params = action_parameters.get(ACTION_QUERY_PARAMS, None)
-        params = self._params_to_dict(params)
         auth = action_parameters.get(ACTION_AUTH, {})
 
         file_name = action_parameters.get(FILE_NAME, None)
