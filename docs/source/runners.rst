@@ -111,6 +111,9 @@ Runner parameters
 
 .. include:: _includes/runner_parameters/http_request.rst
 
+Keep in mind that other parameters such as ``body``, ``method``, ``headers``, etc. are defined
+as part of the ``core.http`` action.
+
 Runner result
 ~~~~~~~~~~~~~
 
