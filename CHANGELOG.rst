@@ -21,6 +21,8 @@ in development
 * Update action chain runner so it performs on-success and on-error task name validation during
   pre_run time. This way common errors such as typos in the task names can be spotted early on
   since there is no need to wait for the run time.
+* Don't allow action parameter ``type`` attribute to be an array since rest of the code doesn't 
+  support parameters with multiple types.
 
 1.1.0 - October 27, 2015
 ------------------------
