@@ -241,7 +241,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
 
-        expected_msg = 'Unable to find node with name "c5"'
+        expected_msg = ('Unable to find node with name "c5" referenced in "on-success" '
+                        'in task "c2"')
         self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError,
                                 expected_msg, chain_runner.pre_run)
 
@@ -255,7 +256,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
 
-        expected_msg = 'Unable to find node with name "c6"'
+        expected_msg = ('Unable to find node with name "c6" referenced in "on-failure" '
+                        'in task "c2"')
         self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError,
                                 expected_msg, chain_runner.pre_run)
 

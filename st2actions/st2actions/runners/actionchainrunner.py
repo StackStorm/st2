@@ -75,23 +75,25 @@ class ChainHolder(object):
         perform only simple validation during compile / create time.
         """
         all_nodes = self._get_all_nodes(action_chain=self.actionchain)
-        on_success_nodes = self._get_all_on_success_nodes(action_chain=self.actionchain)
-        on_failure_nodes = self._get_all_on_failure_nodes(action_chain=self.actionchain)
 
-        # 1. Check all the "on-success" paths
-        for node_name in on_success_nodes:
-            valid_name = self._is_valid_node_name(all_node_names=all_nodes, node_name=node_name)
+        for node in self.actionchain.chain:
+            on_success_node_name = node.on_success
+            on_failure_node_name = node.on_failure
 
+            # Check "on-success" path
+            valid_name = self._is_valid_node_name(all_node_names=all_nodes,
+                                                  node_name=on_success_node_name)
             if not valid_name:
-                msg = 'Unable to find node with name "%s".' % (node_name)
+                msg = ('Unable to find node with name "%s" referenced in "on-success" in '
+                       'task "%s".' % (on_success_node_name, node.name))
                 raise ValueError(msg)
 
-        # 2. Check all the "on-failure" paths
-        for node_name in on_failure_nodes:
-            valid_name = self._is_valid_node_name(all_node_names=all_nodes, node_name=node_name)
-
+            # Check "on-failure" path
+            valid_name = self._is_valid_node_name(all_node_names=all_nodes,
+                                                  node_name=on_failure_node_name)
             if not valid_name:
-                msg = 'Unable to find node with name "%s".' % (node_name)
+                msg = ('Unable to find node with name "%s" referenced in "on-failure" in '
+                       'task "%s".' % (on_failure_node_name, node.name))
                 raise ValueError(msg)
 
         return True
