@@ -326,6 +326,10 @@ class ProcessSensorContainer(object):
         """
         process = self._processes[sensor_id]
 
+        # Delete sensor before terminating process so that it will not be
+        # respawned during termination
+        self._delete_sensor(sensor_id)
+
         # Terminate the process and wait for up to stop_timeout seconds for the
         # process to exit
         process.terminate()
@@ -345,8 +349,6 @@ class ProcessSensorContainer(object):
         if status is None:
             # Process hasn't exited yet, forcefully kill it
             process.kill()
-
-        self._delete_sensor(sensor_id)
 
     def _respawn_sensor(self, sensor_id, sensor, exit_code):
         """
