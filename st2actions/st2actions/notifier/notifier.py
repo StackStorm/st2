@@ -60,6 +60,9 @@ class Notifier(consumers.MessageHandler):
 
     def __init__(self, connection, queues, trigger_dispatcher=None):
         super(Notifier, self).__init__(connection, queues)
+        if not trigger_dispatcher:
+            print('Using default dispatcher...')
+            trigger_dispatcher = TriggerDispatcher(LOG)
         self._trigger_dispatcher = trigger_dispatcher
         self._notify_trigger = ResourceReference.to_string_reference(
             pack=NOTIFY_TRIGGER_TYPE['pack'],
@@ -112,6 +115,7 @@ class Notifier(consumers.MessageHandler):
                 notify_subsection=notify.on_complete,
                 default_message_suffix='completed.')
         if liveaction.status == LIVEACTION_STATUS_SUCCEEDED and notify.on_success:
+            print('Called post notify...')
             self._post_notify_subsection_triggers(
                 liveaction=liveaction, execution=execution,
                 notify_subsection=notify.on_success,
@@ -151,6 +155,7 @@ class Notifier(consumers.MessageHandler):
 
             payload['message'] = self._transform_message(message=message, context=jinja_context)
             payload['data'] = self._transform_data(data=data, context=jinja_context)
+            print('Jinja transformation done...')
             payload['data'] = data
             payload['execution_id'] = execution_id
             payload['status'] = liveaction.status
@@ -167,6 +172,7 @@ class Notifier(consumers.MessageHandler):
                     payload['route'] = route
                     # Deprecated. Only for backward compatibility reasons.
                     payload['channel'] = route
+                    print('Posting the trigger...')
                     LOG.debug('POSTing %s for %s. Payload - %s.', NOTIFY_TRIGGER_TYPE['name'],
                               liveaction.id, payload)
                     self._trigger_dispatcher.dispatch(self._notify_trigger, payload=payload,

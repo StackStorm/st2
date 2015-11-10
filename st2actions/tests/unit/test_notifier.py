@@ -32,10 +32,11 @@ from st2common.persistence.action import Action
 from st2common.persistence.policy import Policy
 from st2common.models.system.common import ResourceReference
 from st2common.util import date as date_utils
+from st2common.util import isotime
 
 ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][0]
 NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][1]
-MOCK_EXECUTION = ActionExecutionDB(id=bson.ObjectId(), result={})
+MOCK_EXECUTION = ActionExecutionDB(id=bson.ObjectId(), result={'stdout': 'stuff happens'})
 
 
 class NotifierTestCase(unittest2.TestCase):
@@ -106,4 +107,42 @@ class NotifierTestCase(unittest2.TestCase):
 
         dispatcher = NotifierTestCase.MockDispatcher(self)
         notifier = Notifier(connection=None, queues=[], trigger_dispatcher=dispatcher)
+        notifier.process(liveaction)
+
+    @mock.patch('st2common.util.action_db.get_action_by_ref', mock.MagicMock(
+        return_value=ActionDB(pack='core', name='local', runner_type={'name': 'run-local-cmd'})))
+    @mock.patch('st2common.util.action_db.get_runnertype_by_name', mock.MagicMock(
+        return_value=RunnerTypeDB(runner_parameters={'runner_foo': 'foo'})))
+    @mock.patch.object(Action, 'get_by_ref', mock.MagicMock(
+        return_value={'runner_type': {'name': 'run-local-cmd'}}))
+    @mock.patch.object(Policy, 'query', mock.MagicMock(
+        return_value=[]))
+    @mock.patch.object(Notifier, '_get_execution_for_liveaction', mock.MagicMock(
+        return_value=MOCK_EXECUTION))
+    @mock.patch.object(Notifier, '_post_generic_trigger', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(return_value={}))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    def test_notify_triggers_jinja_patterns(self, dispatch):
+        liveaction = LiveActionDB(action='core.local')
+        liveaction.description = ''
+        liveaction.status = 'succeeded'
+        liveaction.parameters = {'cmd': 'mamma mia', 'runner_foo': 'foo'}
+        on_success = NotificationSubSchema(message='Command {{cmd}} succeeded.',
+                                           data={'stdout': '{{stdout}}'})
+        liveaction.notify = NotificationSchema(on_success=on_success)
+        liveaction.start_timestamp = date_utils.get_datetime_utc_now()
+
+        notifier = Notifier(connection=None, queues=[])
+        notifier.process(liveaction)
+        exp = {'status': 'succeeded',
+               'start_timestamp': isotime.format(liveaction.start_timestamp, usec=True),
+               'route': 'notify.default', 'runner_ref': 'run-local-cmd',
+               'channel': 'notify.default', 'message': u'Command mamma mia succeeded.',
+               'data': {'result': '{}', 'stdout': '{{stdout}}'},
+               'action_ref': u'core.local',
+               'execution_id': str(MOCK_EXECUTION.id),
+               'end_timestamp': 'None'}
+        dispatch.assert_called_once_with('core.st2.generic.notifytrigger', payload=exp,
+                                         trace_context={})
         notifier.process(liveaction)
