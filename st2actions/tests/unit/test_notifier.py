@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import bson
 import mock
 import unittest2
 
@@ -22,10 +23,11 @@ tests_config.parse_args()
 from st2actions.notifier.notifier import Notifier
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.db.action import ActionDB
-from st2common.models.db.runner import RunnerTypeDB
+from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema
 from st2common.models.db.notification import NotificationSubSchema
+from st2common.models.db.runner import RunnerTypeDB
 from st2common.persistence.action import Action
 from st2common.persistence.policy import Policy
 from st2common.models.system.common import ResourceReference
@@ -33,7 +35,7 @@ from st2common.util import date as date_utils
 
 ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][0]
 NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][1]
-MOCK_EXECUTION_ID = '287r8383t5BDSVBNVDNBVD'
+MOCK_EXECUTION = ActionExecutionDB(id=bson.ObjectId(), result={})
 
 
 class NotifierTestCase(unittest2.TestCase):
@@ -57,7 +59,7 @@ class NotifierTestCase(unittest2.TestCase):
                 if args[0] == self.notify_trigger:
                     self.tester.assertEqual(payload['status'], 'succeeded')
                     self.tester.assertTrue('execution_id' in payload)
-                    self.tester.assertEqual(payload['execution_id'], MOCK_EXECUTION_ID)
+                    self.tester.assertEqual(payload['execution_id'], str(MOCK_EXECUTION.id))
                     self.tester.assertTrue('start_timestamp' in payload)
                     self.tester.assertTrue('end_timestamp' in payload)
                     self.tester.assertEqual('core.local', payload['action_ref'])
@@ -68,7 +70,7 @@ class NotifierTestCase(unittest2.TestCase):
                 if args[0] == self.action_trigger:
                     self.tester.assertEqual(payload['status'], 'succeeded')
                     self.tester.assertTrue('execution_id' in payload)
-                    self.tester.assertEqual(payload['execution_id'], MOCK_EXECUTION_ID)
+                    self.tester.assertEqual(payload['execution_id'], str(MOCK_EXECUTION.id))
                     self.tester.assertTrue('start_timestamp' in payload)
                     self.tester.assertEqual('core.local', payload['action_name'])
                     self.tester.assertEqual('core.local', payload['action_ref'])
@@ -88,8 +90,9 @@ class NotifierTestCase(unittest2.TestCase):
         return_value={'runner_type': {'name': 'run-local-cmd'}}))
     @mock.patch.object(Policy, 'query', mock.MagicMock(
         return_value=[]))
-    @mock.patch.object(Notifier, '_get_execution_id_for_liveaction', mock.MagicMock(
-        return_value=MOCK_EXECUTION_ID))
+    @mock.patch.object(Notifier, '_get_execution_for_liveaction', mock.MagicMock(
+        return_value=MOCK_EXECUTION))
+    @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(return_value={}))
     def test_notify_triggers(self):
         liveaction = LiveActionDB(action='core.local')
         liveaction.description = ''
