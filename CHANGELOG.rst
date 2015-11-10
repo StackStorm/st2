@@ -16,6 +16,7 @@ Changelog
   elapsed time in seconds for all the executions which are currently in "running" state.
 * Fix a race condition in sensor container where a sensor which takes <= 5 seconds to shut down
   could be respawned before it exited. (bug fix) #2187 [Kale Blankenship]
+* Add missing entry for ``st2notifier`` service to the logrotate config. (bug fix)
 
 1.1.0 - October 27, 2015
 ------------------------
