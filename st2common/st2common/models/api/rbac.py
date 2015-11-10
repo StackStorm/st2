@@ -33,8 +33,7 @@ class RoleAPI(BaseAPI):
         'type': 'object',
         'properties': {
             'id': {
-                'type': 'string',
-                'default': None
+                'type': 'string'
             },
             'name': {
                 'type': 'string',
@@ -78,8 +77,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
             'name': {
                 'type': 'string',
                 'description': 'Role name',
-                'required': True,
-                'default': None
+                'required': True
             },
             'description': {
                 'type': 'string',
@@ -100,8 +98,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                         'resource_uid': {
                             'type': 'string',
                             'description': 'UID of a resource to which this grant applies to.',
-                            'required': False,
-                            'default': None
+                            'required': False
                         },
                         'permission_types': {
                             'type': 'array',
@@ -113,7 +110,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                                 # resource type in other place
                                 'enum': PermissionType.get_valid_values()
                             },
-                            'default': None
+                            'default': []
                         }
                     }
                 }
@@ -124,7 +121,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
 
     def validate(self):
         # Parent JSON schema validation
-        super(RoleDefinitionFileFormatAPI, self).validate()
+        cleaned = super(RoleDefinitionFileFormatAPI, self).validate()
 
         # Custom validation
 
@@ -154,6 +151,8 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                                    'can be used without a resource id' % (permission_type))
                         raise ValueError(message)
 
+            return cleaned
+
 
 class UserRoleAssignmentFileFormatAPI(BaseAPI):
     schema = {
@@ -162,14 +161,12 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
             'username': {
                 'type': 'string',
                 'description': 'Username',
-                'required': True,
-                'default': None
+                'required': True
             },
             'description': {
                 'type': 'string',
                 'description': 'Assignment description',
-                'required': False,
-                'default': None
+                'required': False
             },
             'enabled': {
                 'type': 'boolean',
@@ -193,7 +190,7 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
 
     def validate(self, validate_role_exists=False):
         # Parent JSON schema validation
-        super(UserRoleAssignmentFileFormatAPI, self).validate()
+        cleaned = super(UserRoleAssignmentFileFormatAPI, self).validate()
 
         # Custom validation
         if validate_role_exists:
@@ -205,3 +202,5 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
             for role in roles:
                 if role not in role_names:
                     raise ValueError('Role "%s" doesn\'t exist in the database' % (role))
+
+        return cleaned

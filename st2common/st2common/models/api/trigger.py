@@ -30,8 +30,7 @@ class TriggerTypeAPI(BaseAPI):
         'type': 'object',
         'properties': {
             'id': {
-                'type': 'string',
-                'default': None
+                'type': 'string'
             },
             'ref': {
                 'type': 'string'
@@ -93,8 +92,7 @@ class TriggerAPI(BaseAPI):
         'type': 'object',
         'properties': {
             'id': {
-                'type': 'string',
-                'default': None
+                'type': 'string'
             },
             'ref': {
                 'type': 'string'
@@ -169,7 +167,6 @@ class TriggerInstanceAPI(BaseAPI):
             },
             'trigger': {
                 'type': 'string',
-                'default': None,
                 'required': True
             }
         },

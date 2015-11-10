@@ -44,7 +44,6 @@ __all__ = [
 
 
 LOG = logging.getLogger(__name__)
-VALIDATOR = util_schema.get_validator(assign_property_default=False)
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -71,7 +70,20 @@ class BaseAPI(object):
         return vars(self)
 
     def validate(self):
-        VALIDATOR(getattr(self, 'schema', {})).validate(vars(self))
+        """
+        Perform validation and return cleaned object on success.
+
+        Note: This method doesn't mutate this object in place, but it returns a new one.
+
+        :return: Cleaned / validated object.
+        """
+        schema = getattr(self, 'schema', {})
+        attributes = vars(self)
+
+        cleaned = util_schema.validate(instance=attributes, schema=schema,
+                                       cls=util_schema.CustomValidator, use_default=True)
+
+        return self.__class__(**cleaned)
 
     @classmethod
     def _from_model(cls, model, mask_secrets=False):
@@ -183,7 +195,7 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
 
                 obj = body_cls(**data)
                 try:
-                    obj.validate()
+                    obj = obj.validate()
                 except jsonschema.ValidationError as e:
                     raise exc.HTTPBadRequest(detail=e.message,
                                              comment=traceback.format_exc())

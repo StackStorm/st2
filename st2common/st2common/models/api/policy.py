@@ -31,8 +31,7 @@ class PolicyTypeAPI(BaseAPI):
         "type": "object",
         "properties": {
             "id": {
-                "type": "string",
-                "default": None
+                "type": "string"
             },
             "name": {
                 "type": "string",
@@ -84,8 +83,7 @@ class PolicyAPI(BaseAPI):
         "type": "object",
         "properties": {
             "id": {
-                "type": "string",
-                "default": None
+                "type": "string"
             },
             "name": {
                 "type": "string",

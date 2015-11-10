@@ -23,6 +23,10 @@ in development
   since there is no need to wait for the run time.
 * Change ``headers`` and ``params`` ``core.http`` action paramer type from ``string`` to
   ``object``.
+* Don't allow action parameter ``type`` attribute to be an array since rest of the code doesn't
+  support parameters with multiple types.
+* Fix trigger parameters validation for system triggers during rule creation - make sure we
+  validate the parameters before creating a TriggerDB object.
 
 1.1.0 - October 27, 2015
 ------------------------
