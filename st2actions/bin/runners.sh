@@ -13,7 +13,7 @@ if [ -z "$WORKERS" ]; then
 fi
 
 # 1. Choose init type on Debian containers use sysv
-if [ -x $LSB_RELEASE ]; then
+if [ -x "$LSB_RELEASE" ]; then
   if [ -f /.dockerenv ] && [ $($LSB_RELEASE -is) = Debian ]; then
     sv=sysv
     svbin=/etc/init.d/$WORKERSVC
