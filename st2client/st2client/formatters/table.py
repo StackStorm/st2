@@ -73,20 +73,21 @@ class MultiColumnTable(formatters.Formatter):
 
                 if index == 0:
                     widths.append(first_col_width)
+                    continue
+
+                if attribute_name in COLORIZED_ATTRIBUTES:
+                    current_col_width = COLORIZED_ATTRIBUTES[attribute_name]['col_width']
+                    subtract += (current_col_width - col_width)
                 else:
-                    if attribute_name in COLORIZED_ATTRIBUTES:
-                        current_col_width = COLORIZED_ATTRIBUTES[attribute_name]['col_width']
-                        subtract += (current_col_width - col_width)
+                    # Make sure we subtract the added width from the last column so we account
+                    # for fixed width columns and make sure table is not wider than the
+                    # terminal width.
+                    if index == (len(attributes) - 1) and subtract:
+                        current_col_width = (col_width - subtract)
+                        subtract = 0
                     else:
-                        # Make sure we subtract the added width from the last column so we account
-                        # for fixed width columns and make sure table is not wider than the
-                        # terminal width.
-                        if index == (len(attributes) - 1) and subtract:
-                            current_col_width = (col_width - subtract)
-                            subtract = 0
-                        else:
-                            current_col_width = col_width
-                    widths.append(current_col_width)
+                        current_col_width = col_width
+                widths.append(current_col_width)
 
         if not attributes or 'all' in attributes:
             attributes = sorted([attr for attr in entries[0].__dict__
