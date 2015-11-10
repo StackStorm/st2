@@ -34,6 +34,7 @@ from st2common.services import trace as trace_service
 from st2common.transport import consumers, liveaction, publishers
 from st2common.transport import utils as transport_utils
 from st2common.transport.reactor import TriggerDispatcher
+from st2common.util import isotime
 from st2common.util import jinja as jinja_utils
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
@@ -158,8 +159,8 @@ class Notifier(consumers.MessageHandler):
 
             payload['execution_id'] = execution_id
             payload['status'] = liveaction.status
-            payload['start_timestamp'] = str(liveaction.start_timestamp)
-            payload['end_timestamp'] = str(liveaction.end_timestamp)
+            payload['start_timestamp'] = isotime.format(liveaction.start_timestamp)
+            payload['end_timestamp'] = isotime.format(liveaction.end_timestamp)
             payload['action_ref'] = liveaction.action
             payload['runner_ref'] = self._get_runner_ref(liveaction.action)
 

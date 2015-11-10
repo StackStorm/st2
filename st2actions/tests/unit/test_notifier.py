@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+
 import bson
 import mock
 import unittest2
@@ -32,6 +34,7 @@ from st2common.persistence.action import Action
 from st2common.persistence.policy import Policy
 from st2common.models.system.common import ResourceReference
 from st2common.util import date as date_utils
+from st2common.util import isotime
 
 ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][0]
 NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][1]
@@ -103,6 +106,7 @@ class NotifierTestCase(unittest2.TestCase):
         liveaction.notify = NotificationSchema(on_success=on_success,
                                                on_failure=on_failure)
         liveaction.start_timestamp = date_utils.get_datetime_utc_now()
+        liveaction.end_timestamp = liveaction.start_timestamp + datetime.timedelta(seconds=50)
 
         dispatcher = NotifierTestCase.MockDispatcher(self)
         notifier = Notifier(connection=None, queues=[], trigger_dispatcher=dispatcher)
@@ -131,17 +135,18 @@ class NotifierTestCase(unittest2.TestCase):
                                            data={'stdout': '{{stdout}}'})
         liveaction.notify = NotificationSchema(on_success=on_success)
         liveaction.start_timestamp = date_utils.get_datetime_utc_now()
+        liveaction.end_timestamp = liveaction.start_timestamp + datetime.timedelta(seconds=50)
 
         notifier = Notifier(connection=None, queues=[])
         notifier.process(liveaction)
         exp = {'status': 'succeeded',
-               'start_timestamp': str(liveaction.start_timestamp),
+               'start_timestamp': isotime.format(liveaction.start_timestamp),
                'route': 'notify.default', 'runner_ref': 'run-local-cmd',
                'channel': 'notify.default', 'message': u'Command mamma mia succeeded.',
                'data': {'result': '{}', 'stdout': 'stuff happens'},
                'action_ref': u'core.local',
                'execution_id': str(MOCK_EXECUTION.id),
-               'end_timestamp': 'None'}
+               'end_timestamp': isotime.format(liveaction.end_timestamp)}
         dispatch.assert_called_once_with('core.st2.generic.notifytrigger', payload=exp,
                                          trace_context={})
         notifier.process(liveaction)
