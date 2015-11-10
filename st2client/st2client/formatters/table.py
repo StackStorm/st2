@@ -30,6 +30,11 @@ LOG = logging.getLogger(__name__)
 # Minimum width for the ID to make sure the ID column doesn't wrap across
 # multiple lines
 MIN_ID_COL_WIDTH = 26
+
+# Minimum width for a column
+MIN_COL_WIDTH = 5
+
+# Default attribute display order to use if one is not provided
 DEFAULT_ATTRIBUTE_DISPLAY_ORDER = ['id', 'name', 'pack', 'description']
 
 # Attributes which contain bash escape sequences - we can't split those across multiple lines
@@ -80,13 +85,17 @@ class MultiColumnTable(formatters.Formatter):
                     subtract += (current_col_width - col_width)
                 else:
                     # Make sure we subtract the added width from the last column so we account
-                    # for fixed width columns and make sure table is not wider than the
+                    # for the fixed width columns and make sure table is not wider than the
                     # terminal width.
                     if index == (len(attributes) - 1) and subtract:
                         current_col_width = (col_width - subtract)
-                        subtract = 0
+
+                        if current_col_width <= MIN_COL_WIDTH:
+                            # Make sure column width is always grater than MIN_COL_WIDTH
+                            current_col_width = MIN_COL_WIDTH
                     else:
                         current_col_width = col_width
+
                 widths.append(current_col_width)
 
         if not attributes or 'all' in attributes:
