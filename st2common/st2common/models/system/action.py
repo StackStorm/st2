@@ -50,6 +50,17 @@ LOG = logging.getLogger(__name__)
 
 LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 
+# Flags which are passed to every sudo invocation
+SUDO_COMMON_OPTIONS = [
+    '-E'  # we want to preserve the environment of the user which ran sudo
+]
+
+# Flags which are only passed to sudo when not running as current user and when
+# -u flag is used
+SUDO_DIFFERENT_USER_OPTIONS = [
+    '-H'  # we want $HOME to reflect home dir for the requested user
+]
+
 
 class ShellCommandAction(object):
     EXPORT_CMD = 'export'
@@ -70,13 +81,16 @@ class ShellCommandAction(object):
         # environment variables
         if self.sudo:
             command = quote_unix(self.command)
-            command = 'sudo -E -- bash -c %s' % (command)
+            sudo_arguments = ' '.join(self._get_common_sudo_arguments())
+            command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
         else:
             if self.user and self.user != LOGGED_USER_USERNAME:
                 # Need to use sudo to run as a different user
                 user = quote_unix(self.user)
+                sudo_arguments = ' '.join(self._get_user_sudo_arguments(user=user))
                 command = quote_unix(self.command)
-                command = 'sudo -E -H -u %s -- bash -c %s' % (user, command)
+
+                command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
             else:
                 command = self.command
 
@@ -87,6 +101,16 @@ class ShellCommandAction(object):
 
     def get_cwd(self):
         return self.cwd
+
+    def _get_common_sudo_arguments(self):
+        flags = copy.copy(SUDO_COMMON_OPTIONS)
+        return flags
+
+    def _get_user_sudo_arguments(self, user):
+        flags = self._get_common_sudo_arguments()
+        flags += copy.copy(SUDO_DIFFERENT_USER_OPTIONS)
+        flags += ['-u', user]
+        return flags
 
     def _get_env_vars_export_string(self):
         if self.env_vars:
@@ -171,7 +195,8 @@ class ShellScriptAction(ShellCommandAction):
             else:
                 command = quote_unix(self.script_local_path_abs)
 
-            command = 'sudo -E -- bash -c %s' % (command)
+            sudo_arguments = ' '.join(self._get_common_sudo_arguments())
+            command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
         else:
             if self.user and self.user != LOGGED_USER_USERNAME:
                 # Need to use sudo to run as a different user
@@ -182,7 +207,8 @@ class ShellScriptAction(ShellCommandAction):
                 else:
                     command = quote_unix(self.script_local_path_abs)
 
-                command = 'sudo -E -H -u %s -- bash -c %s' % (user, command)
+                sudo_arguments = ' '.join(self._get_user_sudo_arguments(user=user))
+                command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
             else:
                 script_path = quote_unix(self.script_local_path_abs)
 
