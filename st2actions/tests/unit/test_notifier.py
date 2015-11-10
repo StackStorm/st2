@@ -32,7 +32,6 @@ from st2common.persistence.action import Action
 from st2common.persistence.policy import Policy
 from st2common.models.system.common import ResourceReference
 from st2common.util import date as date_utils
-from st2common.util import isotime
 
 ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][0]
 NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][1]
@@ -136,10 +135,10 @@ class NotifierTestCase(unittest2.TestCase):
         notifier = Notifier(connection=None, queues=[])
         notifier.process(liveaction)
         exp = {'status': 'succeeded',
-               'start_timestamp': isotime.format(liveaction.start_timestamp, usec=True),
+               'start_timestamp': str(liveaction.start_timestamp),
                'route': 'notify.default', 'runner_ref': 'run-local-cmd',
                'channel': 'notify.default', 'message': u'Command mamma mia succeeded.',
-               'data': {'result': '{}', 'stdout': '{{stdout}}'},
+               'data': {'result': '{}', 'stdout': 'stuff happens'},
                'action_ref': u'core.local',
                'execution_id': str(MOCK_EXECUTION.id),
                'end_timestamp': 'None'}
