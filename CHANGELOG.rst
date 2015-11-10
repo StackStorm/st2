@@ -27,6 +27,8 @@ in development
   support parameters with multiple types.
 * Fix trigger parameters validation for system triggers during rule creation - make sure we
   validate the parameters before creating a TriggerDB object.
+* Fix a race condition in sensor container where a sensor which takes <= 5 seconds to shut down
+  could be respawned before it exited. (bug fix) #2187 [Kale Blankenship]
 
 1.1.0 - October 27, 2015
 ------------------------
