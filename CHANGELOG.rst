@@ -31,6 +31,7 @@ in development
   could be respawned before it exited. (bug fix) #2187 [Kale Blankenship]
 * Update local runner so all the commands which are executed as a different user and result in
   using sudo set $HOME variable to the home directory of the target user. (improvement)
+* Add missing entry for ``st2notifier`` service to the logrotate config. (bug fix)
 
 1.1.0 - October 27, 2015
 ------------------------
