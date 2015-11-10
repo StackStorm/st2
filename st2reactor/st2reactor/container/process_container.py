@@ -55,7 +55,7 @@ WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 SENSOR_MAX_RESPAWN_COUNTS = 2
 
 # How many seconds after the sensor has been started we should wait before considering sensor as
-# being started and running successfuly
+# being started and running successfully
 SENSOR_SUCCESSFUL_START_THRESHOLD = 10
 
 # How long to wait (in seconds) before respawning a dead process
