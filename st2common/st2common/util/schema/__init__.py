@@ -71,24 +71,6 @@ def get_action_parameters_schema(additional_properties=False):
     return get_draft_schema(version='action_params', additional_properties=additional_properties)
 
 
-def extend_with_default(validator_class):
-    validate_properties = validator_class.VALIDATORS["properties"]
-
-    def set_defaults(validator, properties, instance, schema):
-        for error in validate_properties(
-            validator, properties, instance, schema,
-        ):
-            yield error
-
-        for property, subschema in six.iteritems(properties):
-            if "default" in subschema:
-                instance.setdefault(property, subschema["default"])
-
-    return jsonschema.validators.extend(
-        validator_class, {"properties": set_defaults},
-    )
-
-
 CustomValidator = create(
     meta_schema=get_draft_schema(version='custom', additional_properties=True),
     validators={
@@ -189,9 +171,9 @@ VALIDATORS = {
 }
 
 
-def get_validator(version='custom', assign_property_default=False):
+def get_validator(version='custom'):
     validator = VALIDATORS[version]
-    return extend_with_default(validator) if assign_property_default else validator
+    return validator
 
 
 def get_schema_for_action_parameters(action_db):
