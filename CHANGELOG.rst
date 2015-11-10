@@ -29,6 +29,8 @@ in development
   validate the parameters before creating a TriggerDB object.
 * Fix a race condition in sensor container where a sensor which takes <= 5 seconds to shut down
   could be respawned before it exited. (bug fix) #2187 [Kale Blankenship]
+* Update local runner so all the commands which are executed as a different user and result in
+  using sudo set $HOME variable to the home directory of the target user. (improvement)
 
 1.1.0 - October 27, 2015
 ------------------------

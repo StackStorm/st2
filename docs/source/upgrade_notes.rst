@@ -10,6 +10,14 @@ Upgrade Notes
 * Change ``headers`` and ``params`` parameters in the ``core.http`` action from ``string`` to
   ``object``. If you have any code or rules which calls this action, you need to update it to
   pass in a new and correct type.
+* Local runner has been updated so all the commands which are executed as a different user and
+  result in using sudo set ``$HOME`` variable to the home directory of the target user. Previously,
+  $HOME variable reflected the home directory of the user which executed sudo and under which
+  action runner is running.
+
+  Keep in mind that this condition is only met if action runner is running as root and / or if
+  action runner is running a system user (stanley) and a different user is requested when running
+  a command using ``user`` parameter.
 
 |st2| 1.1
 ---------
