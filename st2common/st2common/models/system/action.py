@@ -76,7 +76,7 @@ class ShellCommandAction(object):
                 # Need to use sudo to run as a different user
                 user = quote_unix(self.user)
                 command = quote_unix(self.command)
-                command = 'sudo -E -u %s -- bash -c %s' % (user, command)
+                command = 'sudo -E -i -u %s -- bash -c %s' % (user, command)
             else:
                 command = self.command
 
@@ -182,7 +182,7 @@ class ShellScriptAction(ShellCommandAction):
                 else:
                     command = quote_unix(self.script_local_path_abs)
 
-                command = 'sudo -E -u %s -- bash -c %s' % (user, command)
+                command = 'sudo -E -i -u %s -- bash -c %s' % (user, command)
             else:
                 script_path = quote_unix(self.script_local_path_abs)
 
