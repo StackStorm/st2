@@ -36,7 +36,7 @@ DEFAULT_ATTRIBUTE_DISPLAY_ORDER = ['id', 'name', 'pack', 'description']
 # since things would break
 COLORIZED_ATTRIBUTES = {
     'status': {
-        'col_width': 24
+        'col_width': 24  # Note: len('succeed' + ' (XXXX elapsed)') <= 24
     }
 }
 
