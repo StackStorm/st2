@@ -58,7 +58,7 @@ SUDO_COMMON_OPTIONS = [
 # Flags which are only passed to sudo when not running as current user and when
 # -u flag is used
 SUDO_DIFFERENT_USER_OPTIONS = [
-    '-H'  # we want $HOME to reflect home dir for the requested user
+    '-H'  # we want $HOME to reflect the home directory of the requested / target user
 ]
 
 
@@ -77,19 +77,17 @@ class ShellCommandAction(object):
         self.cwd = cwd
 
     def get_full_command_string(self):
-        # Note: We pass -E to sudo because we want to preserve user provided
-        # environment variables
+        # Note: We pass -E to sudo because we want to preserve user provided environment variables
         if self.sudo:
             command = quote_unix(self.command)
             sudo_arguments = ' '.join(self._get_common_sudo_arguments())
             command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
         else:
             if self.user and self.user != LOGGED_USER_USERNAME:
-                # Need to use sudo to run as a different user
+                # Need to use sudo to run as a different (requested) user
                 user = quote_unix(self.user)
                 sudo_arguments = ' '.join(self._get_user_sudo_arguments(user=user))
                 command = quote_unix(self.command)
-
                 command = 'sudo %s -- bash -c %s' % (sudo_arguments, command)
             else:
                 command = self.command
@@ -103,10 +101,21 @@ class ShellCommandAction(object):
         return self.cwd
 
     def _get_common_sudo_arguments(self):
+        """
+        Retrieve a list of flags which are passed to sudo on every invocation.
+
+        :rtype: ``list``
+        """
         flags = copy.copy(SUDO_COMMON_OPTIONS)
         return flags
 
     def _get_user_sudo_arguments(self, user):
+        """
+        Retrieve a list of flags which are passed to sudo when running as a different user and "-u"
+        flag is used.
+
+        :rtype: ``list``
+        """
         flags = self._get_common_sudo_arguments()
         flags += copy.copy(SUDO_DIFFERENT_USER_OPTIONS)
         flags += ['-u', user]
