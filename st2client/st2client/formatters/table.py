@@ -30,13 +30,18 @@ LOG = logging.getLogger(__name__)
 # Minimum width for the ID to make sure the ID column doesn't wrap across
 # multiple lines
 MIN_ID_COL_WIDTH = 26
+
+# Minimum width for a column
+MIN_COL_WIDTH = 5
+
+# Default attribute display order to use if one is not provided
 DEFAULT_ATTRIBUTE_DISPLAY_ORDER = ['id', 'name', 'pack', 'description']
 
 # Attributes which contain bash escape sequences - we can't split those across multiple lines
 # since things would break
 COLORIZED_ATTRIBUTES = {
     'status': {
-        'col_width': 40
+        'col_width': 24  # Note: len('succeed' + ' (XXXX elapsed)') <= 24
     }
 }
 
@@ -67,24 +72,31 @@ class MultiColumnTable(formatters.Formatter):
                 first_col_width = col_width
 
             widths = []
-            subtract = None
+            subtract = 0
             for index in range(0, len(attributes)):
                 attribute_name = attributes[index]
 
                 if index == 0:
                     widths.append(first_col_width)
+                    continue
+
+                if attribute_name in COLORIZED_ATTRIBUTES:
+                    current_col_width = COLORIZED_ATTRIBUTES[attribute_name]['col_width']
+                    subtract += (current_col_width - col_width)
                 else:
-                    if attribute_name in COLORIZED_ATTRIBUTES:
-                        col_width = COLORIZED_ATTRIBUTES[attribute_name]['col_width']
-                        subtract = col_width
+                    # Make sure we subtract the added width from the last column so we account
+                    # for the fixed width columns and make sure table is not wider than the
+                    # terminal width.
+                    if index == (len(attributes) - 1) and subtract:
+                        current_col_width = (col_width - subtract)
+
+                        if current_col_width <= MIN_COL_WIDTH:
+                            # Make sure column width is always grater than MIN_COL_WIDTH
+                            current_col_width = MIN_COL_WIDTH
                     else:
-                        if subtract:
-                            # Make sure we make the next column less wide so we account for the
-                            # fixed width columns and make sure the table is not wider than the
-                            # terminal width.
-                            col_width = (col_width - subtract)
-                            subtract = None
-                    widths.append(col_width)
+                        current_col_width = col_width
+
+                widths.append(current_col_width)
 
         if not attributes or 'all' in attributes:
             attributes = sorted([attr for attr in entries[0].__dict__
