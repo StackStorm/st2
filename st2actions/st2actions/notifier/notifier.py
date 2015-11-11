@@ -137,7 +137,20 @@ class Notifier(consumers.MessageHandler):
             payload = {}
             message = notify_subsection.message or (
                 'Action ' + liveaction.action + ' ' + default_message_suffix)
-            data = notify_subsection.data or {}  # XXX: Handle Jinja
+            data = notify_subsection.data or {}
+
+            jinja_context = self._build_jinja_context(liveaction=liveaction, execution=execution)
+
+            try:
+                message = self._transform_message(message=message,
+                                                  context=jinja_context)
+            except:
+                LOG.exception('Failed (Jinja) transforming `message`.')
+
+            try:
+                data = self._transform_data(data=data, context=jinja_context)
+            except:
+                LOG.exception('Failed (Jinja) transforming `data`.')
 
             # At this point convert result to a string. This restricts the rulesengines
             # ability to introspect the result. On the other handle atleast a json usable
@@ -147,16 +160,8 @@ class Notifier(consumers.MessageHandler):
             # TODO: Use to_serializable_dict
             data['result'] = json.dumps(liveaction.result)
 
-            jinja_context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
-            jinja_context.update(liveaction.parameters)
-            jinja_context.update({ACTION_CONTEXT_KV_PREFIX: liveaction.context})
-            jinja_context.update(execution.result)
-
-            # XXX: These could throw exceptions but looking at jinja util code,
-            # it appears we'll never throw which is bizzare!
-            payload['message'] = self._transform_message(message=message, context=jinja_context)
-            payload['data'] = self._transform_data(data=data, context=jinja_context)
-
+            payload['message'] = message
+            payload['data'] = data
             payload['execution_id'] = execution_id
             payload['status'] = liveaction.status
             payload['start_timestamp'] = isotime.format(liveaction.start_timestamp)
@@ -181,6 +186,13 @@ class Notifier(consumers.MessageHandler):
 
             if len(failed_routes) > 0:
                 raise Exception('Failed notifications to routes: %s' % ', '.join(failed_routes))
+
+    def _build_jinja_context(self, liveaction, execution):
+        context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
+        context.update(liveaction.parameters)
+        context.update({ACTION_CONTEXT_KV_PREFIX: liveaction.context})
+        context.update(execution.result)
+        return context
 
     def _transform_message(self, message, context=None):
         mapping = {'message': message}
