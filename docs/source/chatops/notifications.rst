@@ -56,7 +56,6 @@ is presented below.
         - slack
         message: '"@channel: Woohoo!"'
 
-The message doesn't support jinja templating yet. This support will be added in the future.
 Also, when the notification triggers are sent out, the message supplied along with a ``data``
 field containing the results of the execution are sent out. The rule can use these two fields -
 ``message`` and ``data`` - and send it out as part of the action.
@@ -90,11 +89,33 @@ with when you setup chatops. An example is below:
 As you can see, this rule is setup for notification route ``slack``. The action section shows
 that ``slack.post_message`` is the one what would be kicked off. We are skipping the ``data`` part
 of the trigger for brevity. If you had a slack action that also consumed some data as JSON string,
-you could pass ``data: "{{data}}"`` as a parameter. Again, selecting specific fields from the
-output (via jinja) is not supported yet.
+you could pass ``data: "{{data}}"`` as a parameter.
+
+Jinja templating in ``message`` and ``data``
+--------------------------------------------
+
+As of release 1.2, Jinja templating is supported for both ``message`` and ``data``. The jinja
+context available for use are parameters of action and runner ({{cmd}}), keys in execution results
+({{stdout}}, {{stderr}} for example), anything in action context ({{action_context.user}})
+and anything in key-value store ({{system.foo}}). Some examples are shown below.
+
+::
+
+  on-success:
+    routes:
+      - slack
+    message: '"@channel: Woohoo!". Action run by user {{action_context.user}} succeeded.'
+
+  on-success:
+    routes:
+      - email
+    message: '"@channel: Woohoo!". Action run by user {{action_context.user}} succeeded.'
+    data:
+      cmd: "{{cmd}}"
+      stdout: "{{stdout}}"
 
 How do I setup notifications in action chain?
------------st2api/st2api/controllers/v1/ruleviews.py----------------------------------
+---------------------------------------------
 
 The procedure here is the same if you want the same notify for all tasks in the chain. You would
 register an action meta with notify section. For example:
@@ -129,7 +150,7 @@ How do I setup different notifications for different tasks in the chain?
 
 The ``notify`` subsection is the same format as you have seen in examples above. You basically
 place the subsection in action chain tasks. If you have a notify section for the action meta
-and there is a notify section in the task, the task one will override. The relvant section of chain
+and there is a notify section in the task, the task one will override. The relevant section of chain
 action with task notify is shown below.
 
 ::
