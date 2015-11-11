@@ -17,7 +17,7 @@ listed below are configured under the ``auth`` section in the configuration file
 be configured with different backends (i.e. PAM, LDAP, etc.) to handle the authentication. If
 backend is not specified, a htpasswd compatible flat file authentication backend is used. It is
 recommended that the service be configured to listen on https (use_ssl option) and be accessible
-to the st2 clients. 
+to the st2 clients.
 
 * ``host`` - Hostname for the service to listen on.
 * ``port`` - Port for the service to listen on.
@@ -46,13 +46,12 @@ After the configuration change, restart all st2 components.
 
     st2ctl restart
 
-Authentication Backends
------------------------
-
+Auth Backends
+-------------
 The service can be configured with different backends (i.e. PAM, LDAP, etc.) to handle the
 authentication. If backend is not specified, a htpasswd compatible flat file authentication
 backend is used. The all-in-one installer and packages download and configure PAM by default. To
-use a different backend, select and install the appropriate python package from the |st2| 
+use a different backend, select and install the appropriate python package from the |st2|
 `community repos <https://github.com/StackStorm?utf8=✓&query=st2-auth>`_ and configure st2auth
 accordingly. For example, to install the package for the PAM backend manually, run the following
 command on the same server where st2auth is running.
@@ -78,17 +77,59 @@ repo. The following is a sample auth section in the config file for the PAM back
     api_url = https://myhost.examples.com:9101
     debug = False
 
-StackStorm developed auth backends such as LDAP are only available in the enterprise edition. For 
-more information on the enterprise edition, please visit https://stackstorm.com/product/#enterprise.
-The auth backends included with the enterprise edition are developed, tested, maintained, and
-supported by the StackStorm team and the community contributed backends are developed and maintained
-by the community.
-
-The following is a list of backends that StackStorm has developed to get things started.
+The following is a list of auth backends for the community edition to help get things started.
 
 * `PAM <https://github.com/StackStorm/st2-auth-backend-pam>`_
 * `Flat File <https://github.com/StackStorm/st2-auth-backend-flat-file>`_
 * `OpenStack Keystone <https://github.com/StackStorm/st2-auth-backend-keystone>`_
+
+LDAP (Enterprise Edition)
+-------------------------
+StackStorm developed auth backends such as LDAP are only available in the enterprise edition. For
+more information on the enterprise edition, please visit https://stackstorm.com/product/#enterprise.
+The auth backends included with the enterprise edition are developed, tested, maintained, and
+supported by the StackStorm team.
+
+LDAP
+^^^^
+The LDAP backend authenticates user against an LDAP server. The following is a list of
+configuration options for the backend.
+
++----------+----------+---------+------------------------------------------------------------+
+| option   | required | default | description                                                |
++==========+==========+=========+============================================================+
+| users_ou | yes      |         | OU of the user accounts                                    |
++----------+----------+---------+------------------------------------------------------------+
+| host     | yes      |         | Hostname of the LDAP server                                |
++----------+----------+---------+------------------------------------------------------------+
+| port     | yes      |         | Port of the LDAP server                                    |
++----------+----------+---------+------------------------------------------------------------+
+| use_ssl  | no       | false   | Use LDAPS to connect                                       |
++----------+----------+---------+------------------------------------------------------------+
+| use_tls  | no       | false   | Start TLS on LDAP to connect                               |
++----------+----------+---------+------------------------------------------------------------+
+| cacert   | no       | None    | Path to the CA cert used to validate certificate           |
++----------+----------+---------+------------------------------------------------------------+
+| id_attr  | no       | uid     | Field name of the user ID attribute                        |
++----------+----------+---------+------------------------------------------------------------+
+| scope    | no       | subtree | Search scope (base, onelevel, or subtree)                  |
++----------+----------+---------+------------------------------------------------------------+
+
+The following is a sample auth section for the LDAP backend in the st2 config file.
+
+.. sourcecode:: ini
+
+    [auth]
+    mode = standalone
+    backend = ldap
+    backend_kwargs = {"users_ou": "ou=users,dc=example,dc=com", "host": "identity.example.com", "port": 636, "use_ssl": true, "cacert": "/path/to/cacert.pem"}
+    enable = True
+    use_ssl = True
+    cert = /path/to/mycert.crt
+    key = /path/to/mycert.key
+    logging = /path/to/st2auth.logging.conf
+    api_url = https://myhost.example.com:9101/
+    debug = False
 
 Running the Service
 -------------------
@@ -177,7 +218,7 @@ If an API Key is disabled it will disallow access until that API key is enabled 
 good way to temporarily revoke access of an external service to |st2|.
 
 API Key Usage
-~~~~~~~~~~~~~
+^^^^^^^^^^^^^
 
 API keys are designed for API access. As of now they cannot be used via clients like the UI and CLI.
 

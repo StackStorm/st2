@@ -48,8 +48,7 @@ class TraceAPI(BaseAPI):
         'properties': {
             'id': {
                 'description': 'The unique identifier for a Trace.',
-                'type': 'string',
-                'default': None
+                'type': 'string'
             },
             'trace_tag': {
                 'description': 'User assigned identifier for each Trace.',
@@ -154,3 +153,6 @@ class TraceContext(object):
 
     def __str__(self):
         return '{id_: %s, trace_tag: %s}' % (self.id_, self.trace_tag)
+
+    def __json__(self):
+        return vars(self)

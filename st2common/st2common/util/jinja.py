@@ -151,7 +151,15 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             reverse_json_dumps = True
         else:
             v = str(v)
-        rendered_v = env.from_string(v).render(context)
+
+        try:
+            rendered_v = env.from_string(v).render(context)
+        except Exception as e:
+            # Attach key and value which failed the rendering
+            e.key = k
+            e.value = v
+            raise e
+
         # no change therefore no templatization so pick params from original to retain
         # original type
         if rendered_v == v:

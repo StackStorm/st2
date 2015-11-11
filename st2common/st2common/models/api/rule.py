@@ -78,8 +78,7 @@ class RuleTypeAPI(BaseAPI):
         'properties': {
             'id': {
                 'description': 'The unique identifier for the action runner.',
-                'type': 'string',
-                'default': None
+                'type': 'string'
             },
             'name': {
                 'description': 'The name of the action runner.',
@@ -143,8 +142,7 @@ class RuleAPI(BaseAPI, APIUIDMixin):
         'type': 'object',
         'properties': {
             'id': {
-                'type': 'string',
-                'default': None
+                'type': 'string'
             },
             "ref": {
                 "description": "System computed user friendly reference for the action. \
@@ -224,12 +222,19 @@ class RuleAPI(BaseAPI, APIUIDMixin):
         kwargs['name'] = getattr(rule, 'name', None)
         kwargs['description'] = getattr(rule, 'description', None)
 
+        # Validate trigger parameters
+        # Note: This must happen before we create a trigger, otherwise create trigger could fail
+        # with a cryptic error
+        trigger = getattr(rule, 'trigger', {})
+        trigger_type_ref = trigger.get('type', None)
+        parameters = trigger.get('parameters', {})
+
+        validator.validate_trigger_parameters(trigger_type_ref=trigger_type_ref,
+                                              parameters=parameters)
+
         # Create a trigger for the provided rule
         trigger_db = TriggerService.create_trigger_db_from_rule(rule)
         kwargs['trigger'] = reference.get_str_resource_ref_from_model(trigger_db)
-
-        # Validate trigger parameters
-        validator.validate_trigger_parameters(trigger_db=trigger_db)
 
         kwargs['pack'] = getattr(rule, 'pack', DEFAULT_PACK_NAME)
         kwargs['ref'] = ResourceReference.to_string_reference(pack=kwargs['pack'],

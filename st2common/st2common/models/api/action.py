@@ -55,8 +55,7 @@ class RunnerTypeAPI(BaseAPI):
         "properties": {
             "id": {
                 "description": "The unique identifier for the action runner.",
-                "type": "string",
-                "default": None
+                "type": "string"
             },
             "name": {
                 "description": "The name of the action runner.",
@@ -88,7 +87,7 @@ class RunnerTypeAPI(BaseAPI):
                 "description": "Input parameters for the action runner.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_draft_schema()
+                    "^\w+$": util_schema.get_action_parameters_schema()
                 }
             }
         },
@@ -179,7 +178,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "description": "Input parameters for the action.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_draft_schema()
+                    "^\w+$": util_schema.get_action_parameters_schema()
                 },
                 "default": {}
             },
@@ -480,8 +479,7 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
             },
             "description": {
                 "type": "string",
-                "description": "Description of the action alias.",
-                "default": None
+                "description": "Description of the action alias."
             },
             "enabled": {
                 "description": "Flag indicating of action alias is enabled.",

@@ -25,8 +25,8 @@ parameters:
     description: Path to the file to upload
     type: string
   headers:
-    description: 'HTTP headers to use with the request. Example: ''content-type=application/json&x-foo=bar''.'
-    type: string
+    description: 'HTTP headers to use with the request.'
+    type: object
   method:
     description: HTTP method to use.
     enum:
@@ -36,9 +36,8 @@ parameters:
     - PUT
     - DELETE
   params:
-    description: Query params to be used with the HTTP request. This can be of the
-      form 'foo=bar&baz=1'.
-    type: string
+    description: Query params to be used with the HTTP request.
+    type: object
   timeout:
     default: 60
     description: Timeout for the HTTP request.

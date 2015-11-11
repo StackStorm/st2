@@ -119,7 +119,8 @@ class LinksAnalyzer(object):
             rule_links.append((depth, rule_link))
             if rule_link._dest_action_ref in processed:
                 continue
-            self._do_analyze(rule_link._dest_action_ref, rule_links=rule_links, processed=processed, depth=depth+1)
+            self._do_analyze(rule_link._dest_action_ref, rule_links=rule_links,
+                             processed=processed, depth=depth + 1)
         return rule_links
 
 
@@ -146,7 +147,8 @@ class Grapher(object):
             if rule_link._dest_action_ref not in nodes:
                 nodes.add(rule_link._dest_action_ref)
                 dot.node(rule_link._dest_action_ref, rule_link._dest_action_ref)
-            dot.edge(rule_link._source_action_ref, rule_link._dest_action_ref, constraint='true', label=rule_link._rule_ref)
+            dot.edge(rule_link._source_action_ref, rule_link._dest_action_ref, constraint='true',
+                     label=rule_link._rule_ref)
         output_path = os.path.join(os.getcwd(), out_file)
         dot.format = 'png'
         dot.render(output_path)

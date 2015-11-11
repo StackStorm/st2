@@ -38,6 +38,13 @@ Installing on Fedora
 
     sudo yum install samba-client winexe
 
+Note: In Fedora 22 and above, yum package manager has been replaced with dnf,
+so you need to use ``dnf`` instead of yum to install the packages.
+
+.. sourcecode:: bash
+
+    sudo dnf install samba-client winexe
+
 Supported Windows Versions
 --------------------------
 

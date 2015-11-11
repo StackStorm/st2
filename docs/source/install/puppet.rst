@@ -10,14 +10,7 @@ As of this writing, the following operating systems are supported:
 
 * Ubuntu 14.04 LTS
 * RedHat/CentOS 7.x
-* Fedora 20
-
-Support under development:
- 
 * RedHat/CentOS 6.x
-
-Note: A Puppet module for RHEL 6.x exists at https://github.com/StackStorm/puppet-st2-el6. This module is being merged into the mainline module shortly.
-
 
 Installation
 ------------

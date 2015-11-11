@@ -24,13 +24,13 @@ import six
 from six.moves import http_client
 from webob import exc
 import pecan
-import pecan.jsonify
 import traceback
 from oslo_config import cfg
 
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.util import mongoescape as util_mongodb
 from st2common.util import schema as util_schema
+from st2common.util.debugging import is_enabled as is_debugging_enabled
 from st2common.util.jsonify import json_encode
 from st2common import log as logging
 
@@ -44,7 +44,6 @@ __all__ = [
 
 
 LOG = logging.getLogger(__name__)
-VALIDATOR = util_schema.get_validator(assign_property_default=False)
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -71,7 +70,20 @@ class BaseAPI(object):
         return vars(self)
 
     def validate(self):
-        VALIDATOR(getattr(self, 'schema', {})).validate(vars(self))
+        """
+        Perform validation and return cleaned object on success.
+
+        Note: This method doesn't mutate this object in place, but it returns a new one.
+
+        :return: Cleaned / validated object.
+        """
+        schema = getattr(self, 'schema', {})
+        attributes = vars(self)
+
+        cleaned = util_schema.validate(instance=attributes, schema=schema,
+                                       cls=util_schema.CustomValidator, use_default=True)
+
+        return self.__class__(**cleaned)
 
     @classmethod
     def _from_model(cls, model, mask_secrets=False):
@@ -183,7 +195,7 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
 
                 obj = body_cls(**data)
                 try:
-                    obj.validate()
+                    obj = obj.validate()
                 except jsonschema.ValidationError as e:
                     raise exc.HTTPBadRequest(detail=e.message,
                                              comment=traceback.format_exc())
@@ -231,7 +243,11 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
             if status_code:
                 pecan.response.status = status_code
             if content_type == 'application/json':
-                return json_encode(result, indent=None)
+                if is_debugging_enabled():
+                    indent = 4
+                else:
+                    indent = None
+                return json_encode(result, indent=indent)
             else:
                 return result
 

@@ -24,8 +24,7 @@ class SensorTypeAPI(BaseAPI):
         'type': 'object',
         'properties': {
             'id': {
-                'type': 'string',
-                'default': None
+                'type': 'string'
             },
             'ref': {
                 'type': 'string'

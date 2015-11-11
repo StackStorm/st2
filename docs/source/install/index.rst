@@ -6,15 +6,17 @@ on Ubuntu/Debian or RedHat/CentOS. Skip below if you want to learn about
 :doc:`puppet` or :doc:`chef`, or other installations approaches.
 
 
+.. note:: To install Enterprise Edition, enter your license key when prompted by graphical setup, or place it in the answer file for unattended installation. To receive a key, request a free trial or obtain a license at `stackstorm.com/product <stackstorm.com/product/#enterprise>`_. If no license provided, StackStorm Community will be installed.
+
 
 To install and run |st2| on a single Ubuntu/Debian or RedHat/CentOS box, with all dependencies,
 run the bootstrap script:
 
 ::
 
-    curl -sSL https://stackstorm.com/install.sh | sudo sh
+    curl -sSL http://stackstorm.com/install.sh | sudo sh
 
-You will need elevated privileges in order to run this script. This will download and deploy the stable release of |st2| (currently |release|). Check out :doc:`all_in_one` to learn how to provide anser file, get latest development version, and other details. Installation should take about 20 min. *Yes, we are working on making it faster!*. Grab a coffee and watch :doc:`/video` while it is being installed. Once completed, you will see the following console output. Read it :)
+You will need elevated privileges in order to run this script. This will download and deploy the stable release of |st2| (currently |release|). Check out :doc:`all_in_one` to learn how to provide answer file, get latest development version, and other details. Installation should take about 20 min. *Yes, we are working on making it faster!* Grab a coffee and watch :doc:`/video` while it is being installed. Once completed, you will see the following console output. Read it :)
 
 ::
 
@@ -43,7 +45,7 @@ Visit the setup URL output, ``https://<HOST>/setup`` and proceed to :ref:`all_in
 
 .. include:: on_complete.rst
 
-.. note:: The :doc:`st2_deploy` which was a primary way to deploy up to v0.13 is avaialbe, although being deprecated by the new :doc:`all_in_one`
+.. note:: The :doc:`st2_deploy` which was a primary way to deploy up to v0.13 is available, although being deprecated by the new :doc:`all_in_one`
 
 .. rubric:: More Installations
 

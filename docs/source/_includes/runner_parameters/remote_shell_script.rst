@@ -5,6 +5,7 @@
 * ``env`` (object) - Environment variables which will be available to the script(e.g. key1=val1,key2=val2)
 * ``sudo`` (boolean) - The remote command will be executed with sudo.
 * ``kwarg_op`` (string) - Operator to use in front of keyword args i.e. "--" or "-".
+* ``bastion_host`` (string) - The host SSH connections will be proxied through. Note: This connection is made using the same parameters as the final connection, and is only used in ParamikoSSHRunner.
 * ``password`` (string) - Password used to log in. If not provided, private key from the config file is used.
 * ``parallel`` (boolean) - Default to parallel execution.
 * ``port`` (integer) - SSH port. Note: This parameter is used only in ParamikoSSHRunner.

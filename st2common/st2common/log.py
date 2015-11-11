@@ -64,7 +64,19 @@ def decorate_log_method(func):
         # Prefix extra keys with underscore
         if 'extra' in kwargs:
             kwargs['extra'] = prefix_dict_keys(dictionary=kwargs['extra'], prefix='_')
-        return func(*args, **kwargs)
+
+        try:
+            return func(*args, **kwargs)
+        except TypeError as e:
+            # In some version of Python 2.7, logger.exception doesn't take any kwargs so we need
+            # this hack :/
+            # See:
+            # - https://docs.python.org/release/2.7.3/library/logging.html#logging.Logger.exception
+            # - https://docs.python.org/release/2.7.7/library/logging.html#logging.Logger.exception
+            if 'got an unexpected keyword argument \'extra\'' in str(e):
+                kwargs.pop('extra', None)
+                return func(*args, **kwargs)
+            raise e
     return func_wrapper
 
 

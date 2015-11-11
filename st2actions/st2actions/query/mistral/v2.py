@@ -6,6 +6,7 @@ from mistralclient.api.v2 import tasks
 from mistralclient.api.v2 import executions
 from oslo_config import cfg
 import requests
+import retrying
 
 from st2actions.query.base import Querier
 from st2common.constants import action as action_constants
@@ -13,6 +14,7 @@ from st2common import log as logging
 from st2common.services import action as action_service
 from st2common.util import jsonify
 from st2common.util.url import get_url_without_trailing_slash
+from st2common.util.workflow import mistral as utils
 
 
 LOG = logging.getLogger(__name__)
@@ -38,6 +40,11 @@ class MistralResultsQuerier(Querier):
             project_name=cfg.CONF.mistral.keystone_project_name,
             auth_url=cfg.CONF.mistral.keystone_auth_url)
 
+    @retrying.retry(
+        retry_on_exception=utils.retry_on_exceptions,
+        wait_exponential_multiplier=cfg.CONF.mistral.retry_exp_msec,
+        wait_exponential_max=cfg.CONF.mistral.retry_exp_max_msec,
+        stop_max_delay=cfg.CONF.mistral.retry_stop_max_msec)
     def query(self, execution_id, query_context):
         """
         Queries mistral for workflow results using v2 APIs.

@@ -33,6 +33,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.services.access import create_token
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.api import get_full_public_api_url
+from st2common.util.shell import on_parent_exit
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
@@ -43,7 +44,6 @@ __all__ = [
 
 LOG = logging.getLogger('st2reactor.process_sensor_container')
 
-PROCESS_EXIT_TIMEOUT = 5  # how long to wait for process to exit after sending SIGKILL (in seconds)
 SUCCESS_EXIT_CODE = 0
 FAILURE_EXIT_CODE = 1
 
@@ -55,11 +55,15 @@ WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 SENSOR_MAX_RESPAWN_COUNTS = 2
 
 # How many seconds after the sensor has been started we should wait before considering sensor as
-# being started and running successfuly
+# being started and running successfully
 SENSOR_SUCCESSFUL_START_THRESHOLD = 10
 
 # How long to wait (in seconds) before respawning a dead process
 SENSOR_RESPAWN_DELAY = 2.5
+
+# How long to wait for process to exit after sending SIGTERM signal. If the process doesn't
+# exit in this amount of seconds, SIGKILL signal will be sent to the process.
+PROCESS_EXIT_TIMEOUT = 5
 
 # TODO: Allow multiple instances of the same sensor with different configuration
 # options - we need to update sensors for that and add "get_id" or similar
@@ -179,13 +183,18 @@ class ProcessSensorContainer(object):
     def stopped(self):
         return self._stopped
 
-    def shutdown(self):
+    def shutdown(self, force=False):
         LOG.info('Container shutting down. Invoking cleanup on sensors.')
         self._stopped = True
 
+        if force:
+            exit_timeout = 0
+        else:
+            exit_timeout = PROCESS_EXIT_TIMEOUT
+
         sensor_ids = self._sensors.keys()
         for sensor_id in sensor_ids:
-            self._stop_sensor_process(sensor_id=sensor_id)
+            self._stop_sensor_process(sensor_id=sensor_id, exit_timeout=exit_timeout)
 
         LOG.info('All sensors are shut down.')
 
@@ -255,7 +264,8 @@ class ProcessSensorContainer(object):
         python_path = get_sandbox_python_binary_path(pack=sensor['pack'])
 
         if virtualenv_path and not os.path.isdir(virtualenv_path):
-            msg = PACK_VIRTUALENV_DOESNT_EXIST % (sensor['pack'], sensor['pack'])
+            format_values = {'pack': sensor['pack'], 'virtualenv_path': virtualenv_path}
+            msg = PACK_VIRTUALENV_DOESNT_EXIST % format_values
             raise Exception(msg)
 
         trigger_type_refs = sensor['trigger_types'] or []
@@ -296,7 +306,8 @@ class ProcessSensorContainer(object):
         # TODO: Intercept stdout and stderr for aggregated logging purposes
         try:
             process = subprocess.Popen(args=args, stdin=None, stdout=None,
-                                       stderr=None, shell=False, env=env)
+                                       stderr=None, shell=False, env=env,
+                                       preexec_fn=on_parent_exit('SIGTERM'))
         except Exception as e:
             cmd = ' '.join(args)
             message = ('Failed to spawn process for sensor %s ("%s"): %s' %
@@ -311,7 +322,7 @@ class ProcessSensorContainer(object):
 
         return process
 
-    def _stop_sensor_process(self, sensor_id, exit_timeout=5):
+    def _stop_sensor_process(self, sensor_id, exit_timeout=PROCESS_EXIT_TIMEOUT):
         """
         Stop a sensor process for the provided sensor.
 
@@ -325,6 +336,10 @@ class ProcessSensorContainer(object):
         :type exit__timeout: ``int``
         """
         process = self._processes[sensor_id]
+
+        # Delete sensor before terminating process so that it will not be
+        # respawned during termination
+        self._delete_sensor(sensor_id)
 
         # Terminate the process and wait for up to stop_timeout seconds for the
         # process to exit
@@ -346,16 +361,19 @@ class ProcessSensorContainer(object):
             # Process hasn't exited yet, forcefully kill it
             process.kill()
 
-        self._delete_sensor(sensor_id)
-
     def _respawn_sensor(self, sensor_id, sensor, exit_code):
         """
         Method for respawning a sensor which died with a non-zero exit code.
         """
         extra = {'sensor_id': sensor_id, 'sensor': sensor}
 
+        if self._stopped:
+            LOG.debug('Stopped, not respawning a dead sensor', extra=extra)
+            return
+
         should_respawn = self._should_respawn_sensor(sensor_id=sensor_id, sensor=sensor,
                                                      exit_code=exit_code)
+
         if not should_respawn:
             LOG.debug('Not respawning a dead sensor', extra=extra)
             return

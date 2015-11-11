@@ -4,6 +4,38 @@ Changelog
 in development
 --------------
 
+* Refactor retries in the Mistral action runner to use exponential backoff. Configuration options
+  for Mistral have changed. (improvement)
+* Add SSH bastion host support to the paramiko SSH runner. Utilizes same connection parameters as
+  the targeted box. (new feature, improvement) #2144, #2150 [Logan Attwood]
+* Improve speed of ``st2 execution list`` command by not requesting ``result`` and
+  ``trigger_instance`` attributes. The effect of this change will be especially pronounced for
+  installations with a lot of large executions (large execution for this purpose is an execution
+  with a large result).
+* Improve speed of ``st2 execution get`` command by not requesting ``result`` and
+  ``trigger_instance`` attributes.
+* Now when running ``st2api`` service in debug mode (``--debug``) flag, all the JSON responses are
+  pretty indented.
+* When using ``st2 execution list`` and ``st2 execution get`` CLI commands, display execution
+  elapsed time in seconds for all the executions which are currently in "running" state.
+* Update action chain runner so it performs on-success and on-error task name validation during
+  pre_run time. This way common errors such as typos in the task names can be spotted early on
+  since there is no need to wait for the run time.
+* Change ``headers`` and ``params`` ``core.http`` action paramer type from ``string`` to
+  ``object``.
+* Don't allow action parameter ``type`` attribute to be an array since rest of the code doesn't
+  support parameters with multiple types.
+* Fix trigger parameters validation for system triggers during rule creation - make sure we
+  validate the parameters before creating a TriggerDB object.
+* Fix a race condition in sensor container where a sensor which takes <= 5 seconds to shut down
+  could be respawned before it exited. (bug fix) #2187 [Kale Blankenship]
+* Update local runner so all the commands which are executed as a different user and result in
+  using sudo set $HOME variable to the home directory of the target user. (improvement)
+* Add missing entry for ``st2notifier`` service to the logrotate config. (bug fix)
+
+1.1.0 - October 27, 2015
+------------------------
+
 * Add YAQL v1.0 support to Mistral. Earlier versions are deprecated. (improvement)
 * Update CLI so ``st2 run`` / ``st2 execution run`` and ``st2 execution re-run`` commands exit with
   non-zero code if the action fails. (improvement)
@@ -68,10 +100,22 @@ in development
 * Add option to verify SSL cert for HTTPS request to the core.http action. (new feature)
 * Update remote runner to include stdout and stderr which was consumed so far when a timeout
   occurs. (improvement)
-* Fix st2-self-check script to check whether to use http/https when connecting to st2, to disable Windows test by default, and to check test status correctly. (bug-fix)
+* Fix st2-self-check script to check whether to use http/https when connecting to st2, to disable
+  Windows test by default, and to check test status correctly. (bug-fix)
 * Reduce the wait time between message consumption by TriggerWatcher to avoid latency (improvement)
 * Use exclusive messaging Qs for TriggerWatcher to avoid having to deal with old messages
   and related migration scripts. (bug-fix)
+* Allow user to specify value for the ``From`` field in the ``sendmail`` action by passing ``from``
+  parameter to the action. (improvement)
+  [pixelrebel]
+* Allow user to update / reinstall Python dependencies listed in ``requirements.txt`` inside the
+  pack virtual environment by passing ``update=True`` parameter to ``packs.setup_virtualenv``
+  action or by using new ``packs.update_virtualenv`` action. (new feature)
+  [jsjeannotte]
+* Pack on install are now assigned an owner group. The ``pack_group`` property allows to pick this
+  value and default is ``st2packs``. (new feature)
+* Make sure sensor container child processes (sensor instance processes) are killed and cleaned up
+  if the sensor container is forcefully terminated (SIGKILL). (bug fix, improvement)
 
 0.13.2 - September 09, 2015
 ---------------------------

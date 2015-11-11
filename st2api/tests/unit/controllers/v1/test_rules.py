@@ -72,6 +72,11 @@ class TestRuleController(FunctionalTest):
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
+        file_name = 'date_timer_rule_invalid_parameters.yaml'
+        TestRuleController.RULE_5 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
     @classmethod
     def tearDownClass(cls):
         TestRuleController.fixtures_loader.delete_fixtures_from_db(
@@ -124,6 +129,13 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         expected_msg = 'Additional properties are not allowed (u\'minutex\' was unexpected)'
+        self.assertTrue(expected_msg in post_resp.body)
+
+    def test_post_trigger_parameter_schema_validation_fails_missing_required_param(self):
+        post_resp = self.__do_post(TestRuleController.RULE_5)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+
+        expected_msg = '\'date\' is a required property'
         self.assertTrue(expected_msg in post_resp.body)
 
     def test_post_no_enabled_attribute_disabled_by_default(self):

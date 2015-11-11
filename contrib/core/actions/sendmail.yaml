@@ -4,19 +4,25 @@ enabled: true
 entry_point: send_mail/send_mail
 name: sendmail
 parameters:
+  from:
+    description: Sender email address.
+    position: 0
+    required: false
+    type: string
+    default: "stanley"
   to:
     description: Recipient email address.
-    position: 0
+    position: 1
     required: true
     type: string
   subject:
     description: Subject of the email.
-    position: 1
+    position: 2
     required: true
     type: string
   send_empty_body:
     description: Send a message even if the body is empty.
-    position: 2
+    position: 3
     required: false
     type: boolean
     default: True
@@ -27,10 +33,10 @@ parameters:
       - "text/plain"
       - "text/html"
     default: "text/html"
-    position: 3
+    position: 4
   body:
     description: Body of the email.
-    position: 4
+    position: 5
     required: true
     type: string
   sudo:

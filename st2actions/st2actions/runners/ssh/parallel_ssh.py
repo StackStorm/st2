@@ -36,7 +36,7 @@ class ParallelSSHClient(object):
     CONNECT_ERROR = 'Cannot connect to host.'
 
     def __init__(self, hosts, user=None, password=None, pkey_file=None, pkey_material=None, port=22,
-                 concurrency=10, raise_on_any_error=False, connect=True):
+                 bastion_host=None, concurrency=10, raise_on_any_error=False, connect=True):
         self._ssh_user = user
         self._ssh_key_file = pkey_file
         self._ssh_key_material = pkey_material
@@ -44,6 +44,7 @@ class ParallelSSHClient(object):
         self._hosts = hosts
         self._successful_connects = 0
         self._ssh_port = port
+        self._bastion_host = bastion_host
 
         if not hosts:
             raise Exception('Need an non-empty list of hosts to talk to.')

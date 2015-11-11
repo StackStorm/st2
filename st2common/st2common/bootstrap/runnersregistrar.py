@@ -189,6 +189,13 @@ RUNNER_TYPES = [
                 'type': 'integer',
                 'default': 22,
                 'required': False
+            },
+            'bastion_host': {
+                'description': 'The host SSH connections will be proxied through. Note: This ' +
+                               'connection is made using the same parameters as the final ' +
+                               'connection, and is only used in ParamikoSSHRunner.',
+                'type': 'string',
+                'required': False
             }
         },
         'runner_module': 'st2actions.runners.remote_command_runner'
@@ -268,6 +275,13 @@ RUNNER_TYPES = [
                 'description': 'SSH port. Note: This parameter is used only in ParamikoSSHRunner.',
                 'type': 'integer',
                 'default': 22,
+                'required': False
+            },
+            'bastion_host': {
+                'description': 'The host SSH connections will be proxied through. Note: This ' +
+                               'connection is made using the same parameters as the final ' +
+                               'connection, and is only used in ParamikoSSHRunner.',
+                'type': 'string',
                 'required': False
             }
         },
@@ -385,6 +399,29 @@ RUNNER_TYPES = [
     },
 
     # Experimental runners below
+    {
+        'name': 'announcement',
+        'aliases': [],
+        'description': 'A runner for emitting an announcement event on the stream.',
+        'enabled': True,
+        'runner_parameters': {
+            'experimental': {
+                'description': 'Flag to indicate acknowledment of using experimental runner',
+                'type': 'boolean',
+                'required': True,
+                'default': False
+            },
+            'route': {
+                'description': ('The routing_key used to route the message to consumers. '
+                                'Might be a list of words, delimited by dots.'),
+                'type': 'string',
+                'default': 'general',
+                'minLength': 1,
+                'maxLength': 255
+            }
+        },
+        'runner_module': 'st2actions.runners.announcementrunner'
+    },
     {
         'name': 'windows-cmd',
         'aliases': [],

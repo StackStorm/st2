@@ -14,14 +14,12 @@
 # limitations under the License.
 
 import copy
-import eventlet
 import uuid
 
-import requests
+import retrying
 import six
 import yaml
 from mistralclient.api import client as mistral
-from mistralclient.api.base import APIException
 from oslo_config import cfg
 
 from st2actions.runners import AsyncActionRunner
@@ -137,7 +135,12 @@ class MistralRunner(AsyncActionRunner):
         else:
             raise Exception('There are no workflows in the workbook.')
 
-    def try_run(self, action_parameters):
+    @retrying.retry(
+        retry_on_exception=utils.retry_on_exceptions,
+        wait_exponential_multiplier=cfg.CONF.mistral.retry_exp_msec,
+        wait_exponential_max=cfg.CONF.mistral.retry_exp_max_msec,
+        stop_max_delay=cfg.CONF.mistral.retry_stop_max_msec)
+    def run(self, action_parameters):
         # Test connection
         self._client.workflows.list()
 
@@ -228,25 +231,11 @@ class MistralRunner(AsyncActionRunner):
 
         return (status, partial_results, exec_context)
 
-    def run(self, action_parameters):
-        for i in range(cfg.CONF.mistral.max_attempts):
-            try:
-                return self.try_run(action_parameters)
-            except APIException as api_exc:
-                if 'Duplicate' not in api_exc.error_message:
-                    raise
-                LOG.exception(api_exc)
-            except requests.exceptions.ConnectionError as req_exc:
-                LOG.exception(req_exc)
-            except Exception:
-                raise
-
-            if i < cfg.CONF.mistral.max_attempts:
-                eventlet.sleep(cfg.CONF.mistral.retry_wait)
-
-        raise Exception('Failed to connect to mistral on %s. Make sure that mistral is running '
-                        'and that the url is set correctly in the config.', self.url)
-
+    @retrying.retry(
+        retry_on_exception=utils.retry_on_exceptions,
+        wait_exponential_multiplier=cfg.CONF.mistral.retry_exp_msec,
+        wait_exponential_max=cfg.CONF.mistral.retry_exp_max_msec,
+        stop_max_delay=cfg.CONF.mistral.retry_stop_max_msec)
     def cancel(self):
         mistral_ctx = self.context.get('mistral', dict())
 

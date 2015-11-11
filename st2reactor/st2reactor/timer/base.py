@@ -30,6 +30,7 @@ import st2common.services.triggers as trigger_services
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import date as date_utils
+from st2common.util import schema as util_schema
 
 LOG = logging.getLogger(__name__)
 
@@ -82,8 +83,10 @@ class St2Timer(object):
         trigger_type_ref = trigger['type']
         trigger_type = TIMER_TRIGGER_TYPES[trigger_type_ref]
         try:
-            jsonschema.validate(trigger['parameters'],
-                                trigger_type['parameters_schema'])
+            util_schema.validate(instance=trigger['parameters'],
+                                 schema=trigger_type['parameters_schema'],
+                                 cls=util_schema.CustomValidator,
+                                 use_default=True)
         except jsonschema.ValidationError as e:
             LOG.error('Exception scheduling timer: %s, %s',
                       trigger['parameters'], e, exc_info=True)

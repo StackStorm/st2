@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 """
 
 Tags: Load test, stress test.
@@ -69,7 +68,7 @@ def _inject_instances(trigger, rate_per_trigger, duration, payload={}):
         dispatcher.dispatch(trigger, payload)
         delta = random.expovariate(rate_per_trigger)
         eventlet.sleep(delta)
-        elapsed = (date_utils.get_datetime_utc_now() - start).seconds/60.0
+        elapsed = (date_utils.get_datetime_utc_now() - start).seconds / 60.0
         count += 1
 
     print('%s: Emitted %d triggers in %d seconds' % (trigger, count, elapsed))
@@ -110,7 +109,7 @@ def main():
             print('Triggers=%s' % triggers)
 
     rate = cfg.CONF.rate
-    rate_per_trigger = int(rate/len(triggers))
+    rate_per_trigger = int(rate / len(triggers))
     duration = cfg.CONF.duration
 
     dispatcher_pool = eventlet.GreenPool(len(triggers))
