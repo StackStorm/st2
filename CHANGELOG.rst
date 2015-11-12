@@ -17,6 +17,8 @@ Changelog
 * Fix a race condition in sensor container where a sensor which takes <= 5 seconds to shut down
   could be respawned before it exited. (bug fix) #2187 [Kale Blankenship]
 * Add missing entry for ``st2notifier`` service to the logrotate config. (bug fix)
+* Allow action parameter values who's type is ``object`` to contain special characters such as
+  ``.`` and ``$`` in the parameter value. (bug fix, improvement)
 
 1.1.0 - October 27, 2015
 ------------------------
