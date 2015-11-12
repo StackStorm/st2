@@ -18,6 +18,8 @@ Upgrade Notes
   Keep in mind that this condition is only met if action runner is running as root and / or if
   action runner is running a system user (stanley) and a different user is requested when running
   a command using ``user`` parameter.
+* Support of default values is added to the API model. As a result, input parameters defined in 
+  the action metadata that is type of string no longer supports None or null.
 
 |st2| 1.1
 ---------

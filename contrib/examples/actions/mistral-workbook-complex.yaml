@@ -5,20 +5,12 @@ entry_point: workflows/mistral-workbook-complex.yaml
 name: mistral-workbook-complex
 pack: examples
 parameters:
-  context:
-    default: {}
-    immutable: true
-    type: object
   cpu_cores:
     default: 1
     type: integer
   memory_mb:
     default: 1024
     type: integer
-  task:
-    default: null
-    immutable: true
-    type: string
   vm_name:
     required: true
     type: string

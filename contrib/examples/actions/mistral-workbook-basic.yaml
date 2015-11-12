@@ -8,16 +8,4 @@ parameters:
   cmd:
     required: true
     type: string
-  context:
-    default: {}
-    immutable: true
-    type: object
-  task:
-    default: null
-    immutable: true
-    type: string
-  workflow:
-    default: null
-    immutable: true
-    type: string
 runner_type: mistral-v2

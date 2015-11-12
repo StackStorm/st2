@@ -5,14 +5,6 @@ entry_point: workflows/mistral-workbook-multiple-subflows.yaml
 name: mistral-workbook-multiple-subflows
 pack: examples
 parameters:
-  context:
-    default: {}
-    immutable: true
-    type: object
-  task:
-    default: null
-    immutable: true
-    type: string
   workflow:
     default: examples.mistral-workbook-multiple-subflows.main
     immutable: true
