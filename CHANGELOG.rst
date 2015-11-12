@@ -32,6 +32,8 @@ in development
 * Update local runner so all the commands which are executed as a different user and result in
   using sudo set $HOME variable to the home directory of the target user. (improvement)
 * Add missing entry for ``st2notifier`` service to the logrotate config. (bug fix)
+* Allow action parameter values who's type is ``object`` to contain special characters such as
+  ``.`` and ``$`` in the parameter value. (bug fix, improvement)
 
 1.1.0 - October 27, 2015
 ------------------------
