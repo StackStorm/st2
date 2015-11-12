@@ -12,8 +12,11 @@ Those libraries are developed and maintained by |st2| developers.
 Python
 ~~~~~~
 
-Source code: https://github.com/StackStorm/st2/tree/master/st2client
-Package: https://pypi.python.org/pypi/st2client
++-----------------+---------------------------------------------------------+
+| **Source code** | https://github.com/StackStorm/st2/tree/master/st2client |
++-----------------+---------------------------------------------------------+
+| **Package**     | https://pypi.python.org/pypi/st2client                  |
++-----------------+---------------------------------------------------------+
 
 Installation:
 
@@ -24,17 +27,19 @@ Installation:
 JavaScript (client side, backend)
 ---------------------------------
 
-This library works on the server side (node.js) and inside the browser.
+This library works on the server side (Node.js) and inside the browser.
 
-Source code: https://github.com/StackStorm/st2client.js
-Package: https://www.npmjs.com/package/st2client
++-----------------+---------------------------------------------------------+
+| **Source code** | https://github.com/StackStorm/st2client.js              |
++-----------------+---------------------------------------------------------+
+| **Package**     | https://www.npmjs.com/package/st2client                 |
++-----------------+---------------------------------------------------------+
 
 Installation:
 
 .. sourcecode:: bash
 
     npm install st2client
-
 
 Unofficial Client Libraries
 ---------------------------
@@ -44,8 +49,11 @@ Those libraries are developed and maintained by |st2| community members.
 C# / .net
 ---------
 
-Source code: https://github.com/tonybaloney/St2Client
-Package: https://www.nuget.org/packages/St2.Client/
++-----------------+---------------------------------------------------------+
+| **Source code** | https://github.com/tonybaloney/St2Client                |
++-----------------+---------------------------------------------------------+
+| **Package**     | https://www.nuget.org/packages/St2.Client/              |
++-----------------+---------------------------------------------------------+
 
 .. sourcecode:: bash
 
@@ -56,8 +64,13 @@ PowerShell module
 
 Provides a client to talk to a StackStorm API via PowerShell.
 
-Source code: https://github.com/tonybaloney/St2Client
-Package: https://www.nuget.org/packages/St2.Client/
++-----------------+---------------------------------------------------------+
+| **Source code** | https://github.com/tonybaloney/St2Client                |
++-----------------+---------------------------------------------------------+
+| **Package**     | https://www.nuget.org/packages/St2.Client/              |
++-----------------+---------------------------------------------------------+
+
+Installation:
 
 .. sourcecode:: bash
 
