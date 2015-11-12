@@ -24,9 +24,9 @@ in development
 * Change ``headers`` and ``params`` ``core.http`` action paramer type from ``string`` to
   ``object``.
 * Don't allow action parameter ``type`` attribute to be an array since rest of the code doesn't
-  support parameters with multiple types.
+  support parameters with multiple types. (improvement)
 * Fix trigger parameters validation for system triggers during rule creation - make sure we
-  validate the parameters before creating a TriggerDB object.
+  validate the parameters before creating a TriggerDB object. (bug fix)
 * Fix a race condition in sensor container where a sensor which takes <= 5 seconds to shut down
   could be respawned before it exited. (bug fix) #2187 [Kale Blankenship]
 * Update local runner so all the commands which are executed as a different user and result in
