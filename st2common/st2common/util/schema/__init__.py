@@ -116,7 +116,6 @@ def assign_default_values(instance, schema):
         return instance
 
     properties = schema.get('properties', {})
-
     for property_name, property_data in six.iteritems(properties):
         has_default_value = 'default' in property_data
         default_value = property_data.get('default', None)
@@ -137,17 +136,23 @@ def assign_default_values(instance, schema):
 
         # Array
         if attribute_type == 'array' and schema_items and schema_items.get('properties', {}):
-            array_instance = instance.get(property_name, [])
+            array_instance = instance.get(property_name, None)
             array_schema = schema['properties'][property_name]['items']
-            instance[property_name] = assign_default_values(instance=array_instance,
-                                                            schema=array_schema)
+
+            if array_instance is not None:
+                # Note: We don't perform subschema assignment if no value is provided
+                instance[property_name] = assign_default_values(instance=array_instance,
+                                                                schema=array_schema)
 
         # Object
         if attribute_type == 'object' and property_data.get('properties', {}):
-            object_instance = instance.get(property_name, {})
+            object_instance = instance.get(property_name, None)
             object_schema = schema['properties'][property_name]
-            instance[property_name] = assign_default_values(instance=object_instance,
-                                                            schema=object_schema)
+
+            if object_instance is not None:
+                # Note: We don't perform subschema assignment if no value is provided
+                instance[property_name] = assign_default_values(instance=object_instance,
+                                                                schema=object_schema)
 
     return instance
 
