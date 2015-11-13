@@ -25,7 +25,7 @@ Contents:
     traces
     cli
     authentication
-    rbac
+    rbac (role based access control)
     client_libraries
     reference <reference/index>
     troubleshooting/index
