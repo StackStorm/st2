@@ -1,8 +1,8 @@
 Changelog
 =========
 
-1.1.1 - in development
-----------------------
+1.1.1 - November 13, 2015
+-------------------------
 
 * Improve speed of ``st2 execution list`` command by not requesting ``result`` and
   ``trigger_instance`` attributes. The effect of this change will be especially pronounced for
