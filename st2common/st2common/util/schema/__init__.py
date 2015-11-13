@@ -131,14 +131,23 @@ def assign_default_values(instance, schema):
                     if instance[index].get(property_name, None) is None:
                         instance[index][property_name] = default_value
 
-        # Support for nested object / array properties
+        # Support for nested properties (array and object)
         attribute_type = property_data.get('type', None)
         schema_items = property_data.get('items', {})
+
+        # Array
         if attribute_type == 'array' and schema_items and schema_items.get('properties', {}):
             array_instance = instance.get(property_name, [])
             array_schema = schema['properties'][property_name]['items']
             instance[property_name] = assign_default_values(instance=array_instance,
                                                             schema=array_schema)
+
+        # Object
+        if attribute_type == 'object' and property_data.get('properties', {}):
+            object_instance = instance.get(property_name, {})
+            object_schema = schema['properties'][property_name]
+            instance[property_name] = assign_default_values(instance=object_instance,
+                                                            schema=object_schema)
 
     return instance
 
