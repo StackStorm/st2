@@ -180,7 +180,7 @@ class MistralRunner(AsyncActionRunner):
             'env': {
                 'st2_execution_id': self.execution_id,
                 'st2_liveaction_id': self.liveaction_id,
-                'st2_action_public_url': public_api_url,
+                'st2_action_api_url': public_api_url,
                 '__actions': {
                     'st2.action': {
                         'st2_context': st2_execution_context
