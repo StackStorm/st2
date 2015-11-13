@@ -171,7 +171,11 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('keystone_username', default=None, help='Username for authentication.'),
         cfg.StrOpt('keystone_password', default=None, help='Password for authentication.'),
         cfg.StrOpt('keystone_project_name', default=None, help='OpenStack project scope.'),
-        cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.')
+        cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.'),
+
+        cfg.StrOpt('api_url', default=None, help=('URL Mistral uses to talk back to the API.'
+            'If not provided it defaults to public API URL. Note: This needs to be a base '
+            'URL without API version'))
     ]
     do_register_opts(mistral_opts, group='mistral', ignore_errors=ignore_errors)
 
