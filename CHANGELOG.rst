@@ -34,6 +34,9 @@ in development
 * Add missing entry for ``st2notifier`` service to the logrotate config. (bug fix)
 * Allow action parameter values who's type is ``object`` to contain special characters such as
   ``.`` and ``$`` in the parameter value. (bug fix, improvement)
+* Allow user to specify URL which Mistral uses to talk to StackStorm API using ``mistral.api_url``
+  configuration option. If this option is not provided it defaults to the old behavior of using the
+  public API url (``auth.api_url`` setting). (improvement)
 
 1.1.0 - October 27, 2015
 ------------------------
