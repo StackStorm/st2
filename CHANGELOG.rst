@@ -1,6 +1,28 @@
 Changelog
 =========
 
+1.1.1 - November 13, 2015
+-------------------------
+
+* Improve speed of ``st2 execution list`` command by not requesting ``result`` and
+  ``trigger_instance`` attributes. The effect of this change will be especially pronounced for
+  installations with a lot of large executions (large execution for this purpose is an execution
+  with a large result).
+* Improve speed of ``st2 execution get`` command by not requesting ``result`` and
+  ``trigger_instance`` attributes.
+* Now when running ``st2api`` service in debug mode (``--debug``) flag, all the JSON responses are
+  pretty indented.
+* When using ``st2 execution list`` and ``st2 execution get`` CLI commands, display execution
+  elapsed time in seconds for all the executions which are currently in "running" state.
+* Fix a race condition in sensor container where a sensor which takes <= 5 seconds to shut down
+  could be respawned before it exited. (bug fix) #2187 [Kale Blankenship]
+* Add missing entry for ``st2notifier`` service to the logrotate config. (bug fix)
+* Allow action parameter values who's type is ``object`` to contain special characters such as
+  ``.`` and ``$`` in the parameter value. (bug fix, improvement)
+* Allow user to specify URL which Mistral uses to talk to StackStorm API using ``mistral.api_url``
+  configuration option. If this option is not provided it defaults to the old behavior of using the
+  public API url (``auth.api_url`` setting). (improvement)
+
 1.1.0 - October 27, 2015
 ------------------------
 

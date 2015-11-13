@@ -19,6 +19,7 @@ import copy
 import json
 import logging
 import textwrap
+import calendar
 import time
 import six
 import sys
@@ -33,6 +34,7 @@ from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
 from st2client.utils import jsutil
 from st2client.utils.date import format_isodate
+from st2client.utils.date import parse as parse_isotime
 from st2client.utils.color import format_status
 
 LOG = logging.getLogger(__name__)
@@ -117,6 +119,31 @@ def format_wf_instances(instances):
         else:
             instance.id = NON_WF_PREFIX + instance.id
     return instances
+
+
+def format_execution_statuses(instances):
+    result = []
+    for instance in instances:
+        instance = format_execution_status(instance)
+        result.append(instance)
+
+    return result
+
+
+def format_execution_status(instance):
+    """
+    Augment instance "status" attribute with number of seconds which have elapsed for all the
+    executions which are in running state.
+    """
+    if instance.status == LIVEACTION_STATUS_RUNNING and instance.start_timestamp:
+        start_timestamp = instance.start_timestamp
+        start_timestamp = parse_isotime(start_timestamp)
+        start_timestamp = calendar.timegm(start_timestamp.timetuple())
+        now = int(time.time())
+        elapsed_seconds = (now - start_timestamp)
+        instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
+
+    return instance
 
 
 class ActionBranch(resource.ResourceBranch):
@@ -824,7 +851,26 @@ class ActionExecutionBranch(resource.ResourceBranch):
 POSSIBLE_ACTION_STATUS_VALUES = ('succeeded', 'running', 'scheduled', 'failed', 'canceled')
 
 
-class ActionExecutionListCommand(resource.ResourceCommand):
+class ActionExecutionReadCommand(resource.ResourceCommand):
+    """
+    Base class for read / view commands (list and get).
+    """
+
+    def _get_exclude_attributes(self, args):
+        """
+        Retrieve a list of exclude attributes for particular command line arguments.
+        """
+        exclude_attributes = []
+
+        if 'result' not in args.attr:
+            exclude_attributes.append('result')
+        if 'trigger_instance' not in args.attr:
+            exclude_attributes.append('trigger_instance')
+
+        return exclude_attributes
+
+
+class ActionExecutionListCommand(ActionExecutionReadCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'status', 'start_timestamp',
                           'end_timestamp']
     attribute_transform_functions = {
@@ -895,17 +941,28 @@ class ActionExecutionListCommand(resource.ResourceCommand):
         if args.timestamp_lt:
             kwargs['timestamp_lt'] = args.timestamp_lt
 
+        # We exclude "result" and "trigger_instance" attributes which can contain a lot of data
+        # since they are not displayed nor used which speeds the common operation substantially.
+        exclude_attributes = self._get_exclude_attributes(args=args)
+        exclude_attributes = ','.join(exclude_attributes)
+        kwargs['exclude_attributes'] = exclude_attributes
+
         return self.manager.query(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
         instances = format_wf_instances(self.run(args, **kwargs))
+
+        if not args.json:
+            # Include elapsed time for running executions
+            instances = format_execution_statuses(instances)
+
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json,
                           attribute_transform_functions=self.attribute_transform_functions)
 
 
-class ActionExecutionGetCommand(ActionRunCommandMixin, resource.ResourceCommand):
+class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 
@@ -923,6 +980,13 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, resource.ResourceCommand)
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
+        # We exclude "result" and / or "trigger_instance" attribute if it's not explicitly
+        # requested by user either via "--attr" flag or by default.
+        exclude_attributes = self._get_exclude_attributes(args=args)
+        exclude_attributes = ','.join(exclude_attributes)
+
+        kwargs['params'] = {'exclude_attributes': exclude_attributes}
+
         execution = self.get_resource_by_id(id=args.id, **kwargs)
         return execution
 
@@ -930,6 +994,10 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, resource.ResourceCommand)
     def run_and_print(self, args, **kwargs):
         try:
             execution = self.run(args, **kwargs)
+
+            if not args.json:
+                # Include elapsed time for running executions
+                execution = format_execution_status(execution)
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
             raise OperationFailureException('Execution %s not found.' % (args.id))

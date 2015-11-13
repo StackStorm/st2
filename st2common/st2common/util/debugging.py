@@ -13,4 +13,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = '1.1.1'
+"""
+Module containing various debugging functionality.
+"""
+
+import logging as stdlib_logging
+
+from st2common.logging.misc import set_log_level_for_all_loggers
+
+__all__ = [
+    'enable_debugging',
+    'disable_debugging',
+    'is_enabled'
+]
+
+ENABLE_DEBUGGING = False
+
+
+def enable_debugging():
+    global ENABLE_DEBUGGING
+    ENABLE_DEBUGGING = True
+
+    set_log_level_for_all_loggers(level=stdlib_logging.DEBUG)
+
+    return ENABLE_DEBUGGING
+
+
+def disable_debugging():
+    global ENABLE_DEBUGGING
+    ENABLE_DEBUGGING = False
+    return ENABLE_DEBUGGING
+
+
+def is_enabled():
+    global ENABLE_DEBUGGING
+    return ENABLE_DEBUGGING

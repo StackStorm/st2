@@ -10,6 +10,12 @@ fi
 PACK=$1
 PY27=`which python2.7`
 
+TESTSBRANCH=$2
+if [ -z "$TESTSBRANCH" ]; then
+  echo "Using branch master..."
+  TESTSBRANCH='master'
+fi
+
 TESTSREPO='https://github.com/StackStorm/st2tests.git'
 TESTSPATH="/opt/stackstorm/packs"
 VENVSPATH="/opt/stackstorm/virtualenvs"
@@ -21,7 +27,7 @@ if [ -d ${TMPPATH} ]; then
 fi
 
 echo -e "Cloning st2tests to ${TMPPATH}..."
-git clone ${TESTSREPO} ${TMPPATH}
+git clone -b ${TESTSBRANCH} ${TESTSREPO} ${TMPPATH}
 
 echo -e "Checking if ${PACK} pack is installed..."
 CHECK=`st2 action list | grep '${PACK}.' &> /dev/null`
