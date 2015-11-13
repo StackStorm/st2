@@ -175,7 +175,7 @@ def register_opts(ignore_errors=False):
 
         cfg.StrOpt('api_url', default=None, help=('URL Mistral uses to talk back to the API.'
             'If not provided it defaults to public API URL. Note: This needs to be a base '
-            'URL without API version'))
+            'URL without API version (e.g. http://127.0.0.1:9101)'))
     ]
     do_register_opts(mistral_opts, group='mistral', ignore_errors=ignore_errors)
 
