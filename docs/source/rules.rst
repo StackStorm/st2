@@ -227,13 +227,13 @@ If the rule with the same name already exists, the above command will return an 
 .. code-block:: bash
 
     ERROR: 409 Client Error: Conflict
-    MESSAGE: Tried to save duplicate unique keys (E11000 duplicate key error index: st2.rule_d_b.$name_1  dup key: { : "examples.webhook_file" })
+    MESSAGE: Tried to save duplicate unique keys (E11000 duplicate key error index: st2.rule_d_b.$uid_1  dup key: { : "rule:examples:sample_rule_with_webhook" })
 
 To update the rule, edit the rule definition file and run ``st2 rule update`` command, as in the following example:
 
 .. code-block:: bash
 
-    st2 rule update examples.webhook_file /usr/share/doc/st2/examples/rules/sample_rule_with_webhook.yaml
+    st2 rule update examples.sample_rule_with_webhook /usr/share/doc/st2/examples/rules/sample_rule_with_webhook.yaml
 
 .. note::
 
@@ -244,13 +244,13 @@ To see all the rules, or to get an individual rule, use commands below:
 .. code-block:: bash
 
     st2 rule list
-    st2 rule get examples.webhook_file
+    st2 rule get examples.sample_rule_with_webhook
 
-To undeploy a rule, run ``st2 rule delete ${RULE_NAME_OR_ID}``. For example, to undeploy the examples.webhook_file rule we deployed previously, run:
+To undeploy a rule, run ``st2 rule delete ${RULE_NAME_OR_ID}``. For example, to undeploy the examples.sample_rule_with_webhook rule we deployed previously, run:
 
 .. code-block:: bash
 
-    st2 rule delete examples.webhook_file
+    st2 rule delete examples.sample_rule_with_webhook
 
 
 Rule location

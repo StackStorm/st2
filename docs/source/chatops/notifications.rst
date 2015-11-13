@@ -70,7 +70,7 @@ with when you setup chatops. An example is below:
 ::
 
     ---
-    name: "sample.notify_slack"
+    name: "notify_slack"
     pack: "examples"
     description: "Sample rule firing on action completion."
     enabled: true

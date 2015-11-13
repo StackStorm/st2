@@ -1,22 +1,22 @@
 ---
-    name: "sample.on_actiontrigger"
-    pack: "examples"
-    description: "Sample rule firing on action completion."
-    enabled: true
+name: "sample_rule_with_actiontrigger"
+pack: "examples"
+description: "Sample rule firing on action completion."
+enabled: true
 
-    trigger:
-        type: "core.st2.generic.actiontrigger"
-        parameters: {}
+trigger:
+    type: "core.st2.generic.actiontrigger"
+    parameters: {}
 
-    criteria:
-        trigger.action_name:
-            pattern: "local"
-            type: "equals"
-        trigger.status:
-            pattern: "error"
-            type: "equals"
+criteria:
+    trigger.action_name:
+        pattern: "local"
+        type: "equals"
+    trigger.status:
+        pattern: "error"
+        type: "equals"
 
-    action:
-        ref: "core.local"
-        parameters:
-            cmd: "echo \"{{trigger.start_timestamp}}\""
+action:
+    ref: "core.local"
+    parameters:
+        cmd: "echo \"{{trigger.start_timestamp}}\""
