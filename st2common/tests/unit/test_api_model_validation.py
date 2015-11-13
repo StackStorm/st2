@@ -131,7 +131,6 @@ class MockAPIModel2(BaseAPI):
 
 class APIModelValidationTestCase(unittest2.TestCase):
     def test_validate_default_values_are_set(self):
-        return
         # no "permission_grants" attribute
         mock_model_api = MockAPIModel(name='name')
         self.assertEqual(getattr(mock_model_api, 'id', 'notset'), 'notset')
