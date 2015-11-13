@@ -116,7 +116,7 @@ class ConnectionRetryWrapper(object):
                 wrapped_callback(connection=connection, channel=channel)
                 should_stop = True
             except connection.connection_errors + connection.channel_errors as e:
-                self._logger.error('Connection or channel error identified.')
+                self._logger.exception('Connection or channel error identified.')
                 should_stop, wait = self._retry_context.test_should_stop()
                 # reset channel to None to avoid any channel closing errors. At this point
                 # in case of an exception there should be no channel but that is better to
@@ -138,8 +138,8 @@ class ConnectionRetryWrapper(object):
                 connection.ensure_connection()
 
             except Exception as e:
-                self._logger.error('Connections to rabbitmq cannot be re-established: %s',
-                                   e.message)
+                self._logger.exception('Connections to rabbitmq cannot be re-established: %s',
+                                       e.message)
                 # Not being able to publish a message could be a significant issue for an app.
                 raise
             finally:
