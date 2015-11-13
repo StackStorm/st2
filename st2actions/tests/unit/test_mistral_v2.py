@@ -195,6 +195,7 @@ class MistralRunnerTest(DbTestCase):
         env = {
             'st2_execution_id': str(execution.id),
             'st2_liveaction_id': str(liveaction.id),
+            'st2_action_api_url': 'http://0.0.0.0:9101/v1',
             '__actions': {
                 'st2.action': {
                     'st2_context': {
@@ -244,6 +245,7 @@ class MistralRunnerTest(DbTestCase):
         env = {
             'st2_execution_id': str(execution.id),
             'st2_liveaction_id': str(liveaction.id),
+            'st2_action_api_url': 'https://0.0.0.0:9101/v1',
             '__actions': {
                 'st2.action': {
                     'st2_context': {
@@ -294,6 +296,7 @@ class MistralRunnerTest(DbTestCase):
         env = {
             'st2_execution_id': str(execution.id),
             'st2_liveaction_id': str(liveaction.id),
+            'st2_action_api_url': 'http://0.0.0.0:9101/v1',
             '__actions': {
                 'st2.action': {
                     'st2_context': {
