@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 
-class MockAPIModel(BaseAPI):
+class MockAPIModel1(BaseAPI):
     model = None
     schema = {
         'title': 'MockAPIModel',
@@ -132,7 +132,7 @@ class MockAPIModel2(BaseAPI):
 class APIModelValidationTestCase(unittest2.TestCase):
     def test_validate_default_values_are_set(self):
         # no "permission_grants" attribute
-        mock_model_api = MockAPIModel(name='name')
+        mock_model_api = MockAPIModel1(name='name')
         self.assertEqual(getattr(mock_model_api, 'id', 'notset'), 'notset')
         self.assertEqual(mock_model_api.name, 'name')
         self.assertEqual(getattr(mock_model_api, 'enabled', None), None)
@@ -152,8 +152,8 @@ class APIModelValidationTestCase(unittest2.TestCase):
         self.assertEqual(mock_model_api_validated.permission_grants, [])
 
         # "permission_grants" attribute present, but child missing
-        mock_model_api = MockAPIModel(name='name', enabled=False,
-                                      permission_grants=[{}, {'description': 'test'}])
+        mock_model_api = MockAPIModel1(name='name', enabled=False,
+                                       permission_grants=[{}, {'description': 'test'}])
         self.assertEqual(mock_model_api.name, 'name')
         self.assertEqual(mock_model_api.enabled, False)
         self.assertEqual(mock_model_api.permission_grants, [{}, {'description': 'test'}])
@@ -172,6 +172,24 @@ class APIModelValidationTestCase(unittest2.TestCase):
         self.assertEqual(mock_model_api_validated.permission_grants,
                          [{'resource_uid': 'unknown', 'enabled': True},
                           {'resource_uid': 'unknown', 'enabled': True, 'description': 'test'}])
+
+    def test_validate_nested_attribute_with_default_not_provided(self):
+        mock_model_api = MockAPIModel2()
+        self.assertEqual(getattr(mock_model_api, 'id', 'notset'), 'notset')
+        self.assertEqual(getattr(mock_model_api, 'permission_grants', 'notset'), 'notset')
+        self.assertEqual(getattr(mock_model_api, 'parameters', 'notset'), 'notset')
+
+        mock_model_api_validated = mock_model_api.validate()
+
+        # Validate it doesn't modify object in place
+        self.assertEqual(getattr(mock_model_api, 'id', 'notset'), 'notset')
+        self.assertEqual(getattr(mock_model_api, 'permission_grants', 'notset'), 'notset')
+        self.assertEqual(getattr(mock_model_api, 'parameters', 'notset'), 'notset')
+
+        # Verify cleaned object
+        self.assertEqual(mock_model_api_validated.id, None)
+        self.assertEqual(mock_model_api_validated.permission_grants, [])
+        self.assertEqual(getattr(mock_model_api_validated, 'parameters', 'notset'), 'notset')
 
     def test_validate_allow_default_none_for_any_type(self):
         mock_model_api = MockAPIModel2(permission_grants=[{'description': 'test'}],
