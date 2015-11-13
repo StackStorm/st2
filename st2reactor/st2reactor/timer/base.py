@@ -86,7 +86,8 @@ class St2Timer(object):
             util_schema.validate(instance=trigger['parameters'],
                                  schema=trigger_type['parameters_schema'],
                                  cls=util_schema.CustomValidator,
-                                 use_default=True)
+                                 use_default=True,
+                                 allow_default_none=True)
         except jsonschema.ValidationError as e:
             LOG.error('Exception scheduling timer: %s, %s',
                       trigger['parameters'], e, exc_info=True)
