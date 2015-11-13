@@ -112,6 +112,8 @@ url = amqp://guest:guest@localhost:5672//
 cluster_urls = []
 
 [mistral]
+# URL Mistral uses to talk back to the API.If not provided it defaults to public API URL. Note: This needs to be a base URL without API version
+api_url = None
 # Username for authentication.
 keystone_username = None
 # Seconds to wait before reconnecting.
