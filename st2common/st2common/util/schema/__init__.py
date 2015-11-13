@@ -213,7 +213,7 @@ def validate(instance, schema, cls=None, use_default=True, allow_default_none=Fa
     instance_is_dict = isinstance(instance, dict)
 
     if use_default and allow_default_none:
-        schema = modify_schema_allow_default_none(schema)
+        schema = modify_schema_allow_default_none(schema=schema)
 
     if use_default and schema_type == 'object' and instance_is_dict:
         instance = assign_default_values(instance=instance, schema=schema)
