@@ -29,6 +29,7 @@ from st2common.models.api.notification import NotificationsHelper
 from st2common.util.workflow import mistral as utils
 from st2common.util.url import get_url_without_trailing_slash
 from st2common.util.api import get_full_public_api_url
+from st2common.util.api import get_mistral_api_url
 
 
 LOG = logging.getLogger(__name__)
@@ -148,8 +149,13 @@ class MistralRunner(AsyncActionRunner):
         inputs = self.runner_parameters.get('context', dict())
         inputs.update(action_parameters)
 
-        api_url = get_full_public_api_url()
+        # This URL is used by Mistral to talk back to the API
+        api_url = get_mistral_api_url()
         endpoint = api_url + '/actionexecutions'
+
+        # This URL is available in the context and can be used by the users inside a workflow,
+        # similar to "ST2_ACTION_API_URL" environment variable available to actions
+        public_api_url = get_full_public_api_url()
 
         # Build context with additional information
         parent_context = {
@@ -177,6 +183,7 @@ class MistralRunner(AsyncActionRunner):
             'env': {
                 'st2_execution_id': self.execution_id,
                 'st2_liveaction_id': self.liveaction_id,
+                'st2_action_public_url': public_api_url,
                 '__actions': {
                     'st2.action': {
                         'st2_context': st2_execution_context
