@@ -27,10 +27,12 @@ class PackAPI(BaseAPI):
         'type': 'object',
         'properties': {
             'id': {
-                'type': 'string'
+                'type': 'string',
+                'default': None
             },
             'ref': {
-                'type': 'string'
+                'type': 'string',
+                'default': None
             },
             "uid": {
                 "type": "string"

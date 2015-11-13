@@ -55,7 +55,8 @@ class RunnerTypeAPI(BaseAPI):
         "properties": {
             "id": {
                 "description": "The unique identifier for the action runner.",
-                "type": "string"
+                "type": "string",
+                "default": None
             },
             "name": {
                 "description": "The name of the action runner.",
@@ -479,7 +480,8 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
             },
             "description": {
                 "type": "string",
-                "description": "Description of the action alias."
+                "description": "Description of the action alias.",
+                "default": None
             },
             "enabled": {
                 "description": "Flag indicating of action alias is enabled.",
