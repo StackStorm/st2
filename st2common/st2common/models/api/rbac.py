@@ -113,7 +113,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                                 # resource type in other place
                                 'enum': PermissionType.get_valid_values()
                             },
-                            'default': None
+                            'default': []
                         }
                     }
                 }
