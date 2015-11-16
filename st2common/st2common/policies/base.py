@@ -20,9 +20,14 @@ import six
 
 from st2common import log as logging
 from st2common.persistence import policy as policy_access
-
+from st2common.services import coordination
 
 LOG = logging.getLogger(__name__)
+
+__all__ = [
+    'ResourcePolicyApplicator',
+    'get_driver'
+]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -42,6 +47,10 @@ class ResourcePolicyApplicator(object):
 
         :rtype: ``object``
         """
+        # Warn users that the coordination service is not configured
+        if not coordination.configured():
+            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
+
         return target
 
     def apply_after(self, target):
@@ -53,6 +62,10 @@ class ResourcePolicyApplicator(object):
 
         :rtype: ``object``
         """
+        # Warn users that the coordination service is not configured
+        if not coordination.configured():
+            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
+
         return target
 
 
