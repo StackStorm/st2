@@ -56,7 +56,7 @@ class TestAliasExecution(FunctionalTest):
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, DummyActionExecution(id_=1)))
-    def testBasicExecution(self, request):
+    def test_basic_execution(self, request):
         command = 'Lorem ipsum value1 dolor sit "value2 value3" amet.'
         post_resp = self._do_post(alias_execution=self.alias1, command=command)
         self.assertEqual(post_resp.status_int, 200)
@@ -65,7 +65,7 @@ class TestAliasExecution(FunctionalTest):
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, DummyActionExecution(id_=1)))
-    def testExecutionWithArrayTypeSingleValue(self, request):
+    def test_execution_with_array_type_single_value(self, request):
         command = 'Lorem ipsum value1 dolor sit value2 amet.'
         post_resp = self._do_post(alias_execution=self.alias2, command=command)
         self.assertEqual(post_resp.status_int, 200)
@@ -74,7 +74,7 @@ class TestAliasExecution(FunctionalTest):
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, DummyActionExecution(id_=1)))
-    def testExecutionWithArrayTypeMultiValue(self, request):
+    def test_execution_with_array_type_multi_value(self, request):
         command = 'Lorem ipsum value1 dolor sit "value2, value3" amet.'
         post_resp = self._do_post(alias_execution=self.alias2, command=command)
         self.assertEqual(post_resp.status_int, 200)
