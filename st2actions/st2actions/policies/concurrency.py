@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2common.persistence import action as action_access
@@ -34,7 +32,8 @@ class ConcurrencyApplicator(base.ResourcePolicyApplicator):
         self.threshold = kwargs.get('threshold', 0)
 
     def _get_lock_uid(self, target):
-        return json.dumps({'policy_type': self._policy_type, 'action': target.action})
+        values = {'policy_type': self._policy_type, 'action': target.action}
+        return self._get_lock_name(values=values)
 
     def _apply_before(self, target):
         # Get the count of scheduled instances of the action.
