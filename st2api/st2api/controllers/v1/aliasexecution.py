@@ -16,6 +16,7 @@
 import jsonschema
 import pecan
 import six
+from oslo_config import cfg
 from pecan import rest
 
 from st2common import log as logging
@@ -78,7 +79,7 @@ class ActionAliasExecutionController(rest.RestController):
         context = {
             'action_alias_ref': reference.get_ref_from_model(action_alias_db),
             'api_user': payload.user,
-            'user': get_system_username(),
+            'user': self._get_requester(),
             'source_channel': payload.source_channel
         }
 
@@ -88,6 +89,14 @@ class ActionAliasExecutionController(rest.RestController):
                                              context=context)
 
         return str(execution.id)
+
+    def _get_requester(self):
+        # Retrieve username of the authed user (note - if auth is disabled, user will not be
+        # set so we fall back to the system user name)
+        auth_context = pecan.request.context.get('auth', None)
+        user_db = auth_context.get('user', None) if auth_context else None
+
+        return user_db.name if user_db else cfg.CONF.system_user.user
 
     def _tokenize_alias_execution(self, alias_execution):
         tokens = alias_execution.strip().split(' ', 1)
