@@ -52,7 +52,7 @@ class AliasExecutionTestCase(FunctionalTest):
 
     @classmethod
     def setUpClass(cls):
-        super(TestAliasExecution, cls).setUpClass()
+        super(AliasExecutionTestCase, cls).setUpClass()
         cls.models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                           fixtures_dict=TEST_MODELS)
         cls.alias1 = cls.models['aliases']['alias1.yaml']
