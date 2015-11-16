@@ -32,6 +32,10 @@ TEST_LOAD_MODELS = {
     'aliases': ['alias3.yaml']
 }
 
+__all__ = [
+    'AliasExecutionTestCase'
+]
+
 
 class DummyActionExecution(object):
     def __init__(self, id_=None, status=LIVEACTION_STATUS_SUCCEEDED, result=''):
@@ -40,7 +44,7 @@ class DummyActionExecution(object):
         self.result = result
 
 
-class TestAliasExecution(FunctionalTest):
+class AliasExecutionTestCase(FunctionalTest):
 
     models = None
     alias1 = None
