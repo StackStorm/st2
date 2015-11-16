@@ -121,7 +121,7 @@ class ActionChain(object):
 
     def __init__(self, **kw):
         util_schema.validate(instance=kw, schema=self.schema, cls=util_schema.CustomValidator,
-                             use_default=False)
+                             use_default=False, allow_default_none=True)
 
         for prop in six.iterkeys(self.schema.get('properties', [])):
             value = kw.get(prop, None)

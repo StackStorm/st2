@@ -68,5 +68,6 @@ def validate_trigger_parameters(trigger_type_ref, parameters):
 
     parameters_schema = SYSTEM_TRIGGER_TYPES[trigger_type_ref]['parameters_schema']
     cleaned = util_schema.validate(instance=parameters, schema=parameters_schema,
-                                   cls=util_schema.CustomValidator, use_default=True)
+                                   cls=util_schema.CustomValidator, use_default=True,
+                                   allow_default_none=True)
     return cleaned
