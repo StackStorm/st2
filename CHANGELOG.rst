@@ -19,6 +19,9 @@ in development
   validate the parameters before creating a TriggerDB object. (bug fix)
 * Update local runner so all the commands which are executed as a different user and result in
   using sudo set $HOME variable to the home directory of the target user. (improvement)
+* Fix a bug with a user inside the context of the live action which was created using alias
+  execution endpoint incorrectly being set to the system user (``stanley``) instead of the
+  authenticated user which triggered the execution. (bug fix)
 
 1.1.1 - November 13, 2015
 -------------------------

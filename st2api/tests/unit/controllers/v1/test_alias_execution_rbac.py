@@ -15,10 +15,10 @@
 
 import mock
 
-from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.services import action as action_service
 from st2tests.fixturesloader import FixturesLoader
-from tests import FunctionalTest
+from tests.base import APIControllerWithRBACTestCase
+from tests.unit.controllers.v1.test_alias_execution import DummyActionExecution
 
 FIXTURES_PACK = 'aliases'
 
@@ -33,57 +33,34 @@ TEST_LOAD_MODELS = {
 }
 
 __all__ = [
-    'AliasExecutionTestCase'
+    'AliasExecutionWithRBACTestCase'
 ]
 
 
-class DummyActionExecution(object):
-    def __init__(self, id_=None, status=LIVEACTION_STATUS_SUCCEEDED, result=''):
-        self.id = id_
-        self.status = status
-        self.result = result
+class AliasExecutionWithRBACTestCase(APIControllerWithRBACTestCase):
 
+    def setUp(self):
+        super(AliasExecutionWithRBACTestCase, self).setUp()
 
-class AliasExecutionTestCase(FunctionalTest):
-
-    models = None
-    alias1 = None
-    alias2 = None
-
-    @classmethod
-    def setUpClass(cls):
-        super(AliasExecutionTestCase, cls).setUpClass()
-        cls.models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
+        self.models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                           fixtures_dict=TEST_MODELS)
-        cls.alias1 = cls.models['aliases']['alias1.yaml']
-        cls.alias2 = cls.models['aliases']['alias2.yaml']
+        self.alias1 = self.models['aliases']['alias1.yaml']
+        self.alias2 = self.models['aliases']['alias2.yaml']
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, DummyActionExecution(id_=1)))
-    def test_basic_execution(self, request):
-        command = 'Lorem ipsum value1 dolor sit "value2 value3" amet.'
-        post_resp = self._do_post(alias_execution=self.alias1, command=command)
-        self.assertEqual(post_resp.status_int, 200)
-        expected_parameters = {'param1': 'value1', 'param2': 'value2 value3'}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+    def test_live_action_context_user_is_set_to_authenticated_user(self, request):
+        # Verify that the user inside the context of live action is set to authenticated user
+        # which hit the endpoint. This is important for RBAC and many other things.
+        user_db = self.users['admin']
+        self.use_user(user_db)
 
-    @mock.patch.object(action_service, 'request',
-                       return_value=(None, DummyActionExecution(id_=1)))
-    def test_execution_with_array_type_single_value(self, request):
-        command = 'Lorem ipsum value1 dolor sit value2 amet.'
-        post_resp = self._do_post(alias_execution=self.alias2, command=command)
-        self.assertEqual(post_resp.status_int, 200)
-        expected_parameters = {'param1': 'value1', 'param3': ['value2']}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
-
-    @mock.patch.object(action_service, 'request',
-                       return_value=(None, DummyActionExecution(id_=1)))
-    def test_execution_with_array_type_multi_value(self, request):
         command = 'Lorem ipsum value1 dolor sit "value2, value3" amet.'
         post_resp = self._do_post(alias_execution=self.alias2, command=command)
         self.assertEqual(post_resp.status_int, 200)
-        expected_parameters = {'param1': 'value1', 'param3': ['value2', 'value3']}
-        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+
+        live_action_db = request.call_args[0][0]
+        self.assertEquals(live_action_db.context['user'], 'admin')
 
     def _do_post(self, alias_execution, command, expect_errors=False):
         execution = {'name': alias_execution.name,

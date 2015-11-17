@@ -43,6 +43,7 @@ from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
+from st2common.util.api import get_requester
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
@@ -82,14 +83,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         'result',
         'trigger_instance'
     ]
-
-    def _get_requester(self):
-        # Retrieve username of the authed user (note - if auth is disabled, user will not be
-        # set so we fall back to the system user name)
-        auth_context = pecan.request.context.get('auth', None)
-        user_db = auth_context.get('user', None) if auth_context else None
-
-        return user_db.name if user_db else cfg.CONF.system_user.user
 
     def _get_from_model_kwargs_for_request(self, request):
         """
@@ -134,7 +127,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
-        liveaction.context['user'] = self._get_requester()
+        liveaction.context['user'] = get_requester()
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
@@ -393,7 +386,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         try:
             (liveaction_db, execution_db) = action_service.request_cancellation(
-                liveaction_db, self._get_requester())
+                liveaction_db, get_requester())
         except:
             LOG.exception('Failed requesting cancellation for liveaction %s.', liveaction_db.id)
             abort(http_client.INTERNAL_SERVER_ERROR, 'Failed canceling execution.')
