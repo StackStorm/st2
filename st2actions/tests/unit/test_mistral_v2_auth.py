@@ -231,7 +231,7 @@ class MistralAuthTest(DbTestCase):
             cfg.CONF.mistral.keystone_password,
             cfg.CONF.mistral.keystone_project_name,
             cfg.CONF.mistral.keystone_auth_url,
-            None, 'publicURL', 'workflow', None, None, None, False)
+            None, 'publicURL', 'workflow', None, None, None)
 
         executions.ExecutionManager.create.assert_called_with(
             WF1_NAME, workflow_input=workflow_input, env=env)
