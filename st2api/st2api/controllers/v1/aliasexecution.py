@@ -16,7 +16,6 @@
 import jsonschema
 import pecan
 import six
-from oslo_config import cfg
 from pecan import rest
 
 from st2common import log as logging
@@ -31,6 +30,7 @@ from st2common.persistence.actionalias import ActionAlias
 from st2common.services import action as action_service
 from st2common.util import action_db as action_utils
 from st2common.util import reference
+from st2common.util.api import get_requester
 from st2common.rbac.types import PermissionType
 from st2common.rbac.utils import assert_request_user_has_resource_db_permission
 
@@ -79,7 +79,7 @@ class ActionAliasExecutionController(rest.RestController):
         context = {
             'action_alias_ref': reference.get_ref_from_model(action_alias_db),
             'api_user': payload.user,
-            'user': self._get_requester(),
+            'user': get_requester(),
             'source_channel': payload.source_channel
         }
 
@@ -89,14 +89,6 @@ class ActionAliasExecutionController(rest.RestController):
                                              context=context)
 
         return str(execution.id)
-
-    def _get_requester(self):
-        # Retrieve username of the authed user (note - if auth is disabled, user will not be
-        # set so we fall back to the system user name)
-        auth_context = pecan.request.context.get('auth', None)
-        user_db = auth_context.get('user', None) if auth_context else None
-
-        return user_db.name if user_db else cfg.CONF.system_user.user
 
     def _tokenize_alias_execution(self, alias_execution):
         tokens = alias_execution.strip().split(' ', 1)
