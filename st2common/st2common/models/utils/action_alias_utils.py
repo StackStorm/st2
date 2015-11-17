@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import re
+from st2common.exceptions import content
 
 __all__ = [
     'ActionAliasFormatParser'
@@ -38,27 +39,33 @@ class ActionAliasFormatParser(object):
         # compiling them into a list.
         # "test {{ url = http://google.com }} {{ extra = Test }}" will become
         # [ ["url", "http://google.com"], ["extra", "Test"] ]
-        params_list = re.findall(r'{{\s*(.+?)\s*(?:=\s*(.+?))?\s*}}',
-                                 self._format, re.DOTALL)
+        params = re.findall(r'{{\s*(.+?)\s*(?:=\s*[\'"]?(.+?)[\'"]?)?\s*}}',
+                            self._format, re.DOTALL)
 
         # Now we're transforming our format string into a regular expression,
         # substituting {{ ... }} with regex named groups, so that param_stream
-        # matched against this expression yields a dict of all its params.
-        reg = re.sub(r'\s+{{\s*(\S+)\s*=.+?}}', r'(?:\s+(?P<\1>.+?))?',
+        # matched against this expression yields a dict of params with values.
+        reg = re.sub(r'\s+{{\s*(\S+)\s*=.+?}}',
+                     r'(?:\s+[\'"]?(?P<\1>.+?)[\'"]?)?',
                      self._format)
-        reg = re.sub(r'{{\s*(.+?)\s*}}', r'(?P<\1>.+?)', reg)
+        reg = re.sub(r'{{\s*(.+?)\s*}}',
+                     r'[\'"]?(?P<\1>.+?)[\'"]?',
+                     reg)
 
         # We're augmenting the expression to include an arbitrary number of
         # optional parameters at the end.
-        reg = reg + r'(\s+)?(\s?(\S+)\s*=\s*(\S+))*$'
+        reg = reg + r'(\s+)?(\s?(\S+)\s*=\s*[\'"]?(\S+)[\'"]?)*$'
 
         # Now we're matching param_stream against our format string regex,
         # getting a dict of values. We'll also get default values from
-        # params_list if something is not present.
-        match = re.match(reg, self._param_stream, re.DOTALL)
-        if match:
-            values_dict = match.groupdict()
-            for param in params_list:
-                result[param[0]] = values_dict[param[0]] or param[1]
+        # "params" list if something is not present.
+        matched_stream = re.match(reg, self._param_stream, re.DOTALL)
+        if matched_stream:
+            values = matched_stream.groupdict()
+        for param in params:
+            result[param[0]] = values[param[0]] if matched_stream else param[1]
+
+        if not self._param_stream and not result:
+            raise content.ParseException('No stream or defaults provided!')
 
         return result
