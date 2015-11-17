@@ -28,9 +28,6 @@ __all__ = [
     'ExecutionRetryPolicyApplicator'
 ]
 
-# In context of new execadd original execution id, policy ref, etc
-# retry means re-running an action new execution with same parameters
-
 LOG = logging.getLogger(__name__)
 
 VALID_RETRY_STATUSES = [
