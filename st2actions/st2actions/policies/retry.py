@@ -48,7 +48,6 @@ class RetryOnPolicy(Enum):
 
 
 class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
-    # TODO: Retry or ReRun?
     def __init__(self, policy_ref, policy_type, retry_on, max_retry_count=2):
         """
         :param retry_on: Condition to retry the execution on.
@@ -57,6 +56,7 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
         :param max_retry_count: Maximum number of times to try to retry an action.
         :type max_retry_count: ``int``
         """
+        # TODO: Also support sleep delay before retrying
         super(ExecutionRetryPolicyApplicator, self).__init__(policy_ref=policy_ref,
                                                              policy_type=policy_type)
 
@@ -99,13 +99,13 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
 
         if has_failed and self.retry_on == RetryOnPolicy.FAILURE:
             extra['failure'] = True
-            LOG.info('Policy matched, retrying action execution...', extra=extra)
+            LOG.info('Policy matched (failure), retrying action execution...', extra=extra)
             self._re_run_live_action(live_action_db=live_action_db)
             return target
 
         if has_timed_out and self.retry_on == RetryOnPolicy.TIMEOUT:
             extra['timeout'] = True
-            LOG.info('Policy matched, retrying action execution...', extra=extra)
+            LOG.info('Policy matched (timeout), retrying action execution...', extra=extra)
             self._re_run_live_action(live_action_db=live_action_db)
             return target
 
@@ -117,6 +117,8 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
 
         :rtype: ``int``
         """
+        # TODO: Ideally we would store retry_count in zookeeper or similar and use locking so we
+        # can run multiple instances of st2notififer
         context = getattr(live_action_db, 'context', {})
         retry_count = context.get('policies', {}).get('retry_count', 0)
 
