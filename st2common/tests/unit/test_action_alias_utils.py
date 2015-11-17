@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from unittest2 import TestCase
-from st2common.exceptions import content
 from st2common.exceptions.content import ParseException
 from st2common.models.utils.action_alias_utils import ActionAliasFormatParser
 
