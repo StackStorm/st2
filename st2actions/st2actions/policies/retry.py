@@ -38,6 +38,9 @@ VALID_RETRY_STATUSES = [
     LIVEACTION_STATUS_TIMED_OUT
 ]
 
+# Maximum value for "max_retry_count" parameter
+MAXIMUM_RETRY_COUNT = 5
+
 
 class RetryOnPolicy(Enum):
     FAILURE = 'failure'  # Retry on execution failure
@@ -60,6 +63,9 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
         if retry_on not in RetryOnPolicy.get_valid_values():
             raise ValueError('Invalid value for "retry_on" parameter')
 
+        if max_retry_count > MAXIMUM_RETRY_COUNT:
+            raise ValueError('Maximum retry count is %s' % (MAXIMUM_RETRY_COUNT))
+
         self.retry_on = retry_on
         self.max_retry_count = max_retry_count
 
@@ -72,8 +78,7 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
         target = super(ExecutionRetryPolicyApplicator, self).apply_before(target=target)
 
         live_action_db = target
-        context = getattr(live_action_db, 'context', {})
-        retry_count = context.get('retry_count', 0)
+        retry_count = self._get_live_action_retry_count(live_action_db=live_action_db)
 
         extra = {'live_action_db': live_action_db, 'policy_ref': self._policy_ref,
                  'retry_on': self.retry_on, 'max_retry_count': self.max_retry_count,
@@ -85,8 +90,8 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
                       extra=extra)
             return target
 
-        if retry_count >= self.max_retry_count:
-            LOG.info('Maximum retry count has been reached, not retrying', extra)
+        if (retry_count + 1) > self.max_retry_count:
+            LOG.info('Maximum retry count has been reached, not retrying', extra=extra)
             return target
 
         has_failed = live_action_db.status == LIVEACTION_STATUS_FAILED
@@ -94,30 +99,44 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
 
         if has_failed and self.retry_on == RetryOnPolicy.FAILURE:
             extra['failure'] = True
-            LOG.INFO('Policy matched, retrying action execution...', extra=extra)
+            LOG.info('Policy matched, retrying action execution...', extra=extra)
             self._re_run_live_action(live_action_db=live_action_db)
-            # Retry
             return target
 
         if has_timed_out and self.retry_on == RetryOnPolicy.TIMEOUT:
             extra['timeout'] = True
-            LOG.INFO('Policy matched, retrying action execution...', extra=extra)
-            # Retry
+            LOG.info('Policy matched, retrying action execution...', extra=extra)
+            self._re_run_live_action(live_action_db=live_action_db)
             return target
 
         return target
 
-    def _re_run_live_action(self, live_action_db):
+    def _get_live_action_retry_count(self, live_action_db):
+        """
+        Retrieve current retry count for the provided live action.
+
+        :rtype: ``int``
+        """
         context = getattr(live_action_db, 'context', {})
-        retry_count = context.get('retry_count', 0)
+        retry_count = context.get('policies', {}).get('retry_count', 0)
 
+        return retry_count
+
+    def _re_run_live_action(self, live_action_db):
+        retry_count = self._get_live_action_retry_count(live_action_db=live_action_db)
+
+        # Add additional policy specific info to the context
+        context = getattr(live_action_db, 'context', {})
         new_context = copy.deepcopy(context)
-        new_context['applied_policy'] = self._policy_ref
-        new_context['retry_count'] = (retry_count + 1)
+        new_context['policies'] = {
+            'applied_policy': self._policy_ref,
+            'retry_count': (retry_count + 1),
+            'retried_liveaction_id': str(live_action_db.id)
+        }
 
-        action_ref = live_action_db.action['ref']
+        action_ref = live_action_db.action
         parameters = live_action_db.parameters
-        new_live_action_db = LiveActionDB(action_ref=action_ref, parameters=parameters,
+        new_live_action_db = LiveActionDB(action=action_ref, parameters=parameters,
                                           context=new_context)
         _, action_execution_db = action_services.request(new_live_action_db)
         return action_execution_db
