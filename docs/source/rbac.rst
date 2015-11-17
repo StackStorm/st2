@@ -195,6 +195,9 @@ system user (``stanley``).
 /aliasexecutions/) using hubot is a StackStorm user which is configured in hubot
 (``ST2_AUTH_USERNAME`` - by default that is ``chatops_bot``).
 
+By default, ``stanley`` and ``chatops_bot`` user have ``admin`` role assignment to them, which
+means they have all the permissions.
+
 Defining roles and assignments
 ------------------------------
 
