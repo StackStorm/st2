@@ -51,10 +51,7 @@ class ActionAliasFormatParser(object):
         reg = re.sub(r'{{\s*(.+?)\s*}}',
                      r'[\'"]?(?P<\1>.+?)[\'"]?',
                      reg)
-
-        # We're augmenting the expression to include an arbitrary number of
-        # optional parameters at the end.
-        reg = reg + r'(\s+)?(\s?(\S+)\s*=\s*[\'"]?(\S+)[\'"]?)*$'
+        reg = reg + r'\s*$'
 
         # Now we're matching param_stream against our format string regex,
         # getting a dict of values. We'll also get default values from
@@ -63,9 +60,10 @@ class ActionAliasFormatParser(object):
         if matched_stream:
             values = matched_stream.groupdict()
         for param in params:
-            result[param[0]] = values[param[0]] if matched_stream else param[1]
+            matched_value = values[param[0]] if matched_stream else None
+            result[param[0]] = matched_value or param[1]
 
-        if not self._param_stream and not result:
-            raise content.ParseException('No stream or defaults provided!')
+        if self._format and not (self._param_stream or any(result.values())):
+            raise content.ParseException('No value supplied and no default value found.')
 
         return result
