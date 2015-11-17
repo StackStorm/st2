@@ -1,0 +1,19 @@
+---
+name: retry
+description: Retry (re-run) failed or timed out action.
+enabled: true
+resource_type: action
+module: st2actions.policies.retry
+parameters:
+    retry_on:
+        type: string
+        description: Condition to retry on.
+        required: true
+        enum:
+            - failure
+            - timeout
+    max_retry_count:
+        type: integer
+        description: Maximum number of times to retry before giving up.
+        required: true
+        default: 2
