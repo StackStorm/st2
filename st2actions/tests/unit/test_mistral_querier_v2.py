@@ -16,18 +16,28 @@
 import copy
 import datetime
 import json
+import requests
 import uuid
 
 import mock
+from mock import call
 
 from mistralclient.api.v2 import executions
 from mistralclient.api.v2 import tasks
+from oslo_config import cfg
+
+import st2tests.config as tests_config
+tests_config.parse_args()
 
 from st2actions.query.mistral import v2 as mistral
 from st2common.constants import action as action_constants
 from st2common.services import action as action_service
 from st2tests import DbTestCase
 
+# Set defaults for retry options.
+cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
+cfg.CONF.set_override('retry_exp_max_msec', 100, group='mistral')
+cfg.CONF.set_override('retry_stop_max_msec', 300, group='mistral')
 
 MOCK_WF_TASKS_SUCCEEDED = [
     {'name': 'task1', 'state': 'SUCCESS'},
@@ -230,3 +240,78 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_SUCCEEDED, status)
         self.assertDictEqual(expected, result)
+
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
+        mock.MagicMock(side_effect=[
+            requests.exceptions.ConnectionError(),
+            MOCK_WF_EX]))
+    @mock.patch.object(
+        tasks.TaskManager, 'list',
+        mock.MagicMock(return_value=MOCK_WF_EX_TASKS))
+    @mock.patch.object(
+        action_service, 'is_action_canceled_or_canceling',
+        mock.MagicMock(return_value=False))
+    def test_query_get_workflow_retry(self):
+        (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
+
+        expected = {
+            'k1': 'v1',
+            'tasks': copy.deepcopy(MOCK_WF_EX_TASKS_DATA),
+            'extra': {
+                'state': MOCK_WF_EX.state,
+                'state_info': MOCK_WF_EX.state_info
+            }
+        }
+
+        for task in expected['tasks']:
+            task['input'] = json.loads(task['input'])
+            task['result'] = json.loads(task['result'])
+            task['published'] = json.loads(task['published'])
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_SUCCEEDED, status)
+        self.assertDictEqual(expected, result)
+
+        calls = [call(MOCK_QRY_CONTEXT['mistral']['execution_id']) for i in range(0, 2)]
+        executions.ExecutionManager.get.assert_has_calls(calls)
+
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
+        mock.MagicMock(return_value=MOCK_WF_EX))
+    @mock.patch.object(
+        tasks.TaskManager, 'list',
+        mock.MagicMock(side_effect=[
+            requests.exceptions.ConnectionError(),
+            MOCK_WF_EX_TASKS]))
+    @mock.patch.object(
+        action_service, 'is_action_canceled_or_canceling',
+        mock.MagicMock(return_value=False))
+    def test_query_get_workflow_tasks_retry(self):
+        (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
+
+        expected = {
+            'k1': 'v1',
+            'tasks': copy.deepcopy(MOCK_WF_EX_TASKS_DATA),
+            'extra': {
+                'state': MOCK_WF_EX.state,
+                'state_info': MOCK_WF_EX.state_info
+            }
+        }
+
+        for task in expected['tasks']:
+            task['input'] = json.loads(task['input'])
+            task['result'] = json.loads(task['result'])
+            task['published'] = json.loads(task['published'])
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_SUCCEEDED, status)
+        self.assertDictEqual(expected, result)
+
+        mock_call = call(workflow_execution_id=MOCK_QRY_CONTEXT['mistral']['execution_id'])
+        calls = [mock_call for i in range(0, 2)]
+        tasks.TaskManager.list.assert_has_calls(calls)
+
+    def test_query_missing_context(self):
+        self.assertRaises(Exception, self.querier.query, uuid.uuid4().hex, {})
+
+    def test_query_missing_mistral_execution_id(self):
+        self.assertRaises(Exception, self.querier.query, uuid.uuid4().hex, {'mistral': {}})
