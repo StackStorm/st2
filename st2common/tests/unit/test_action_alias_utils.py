@@ -15,292 +15,17 @@
 
 from unittest2 import TestCase
 from st2common.exceptions import content
-from st2common.models.utils.action_alias_utils import DefaultParser, StringValueParser
-from st2common.models.utils.action_alias_utils import JsonValueParser, ActionAliasFormatParser
 from st2common.exceptions.content import ParseException
-
-
-class TestDefaultParser(TestCase):
-
-    def testDefaultParsing(self):
-        stream = 'some meaningful value1 something else skippable value2 still more skip.'
-
-        start = len('some meaningful ')
-        self.assertTrue(DefaultParser.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = DefaultParser.parse(start, stream)
-        self.assertEqual(value, 'value1')
-
-        start = len('some meaningful value1 something else skippable ')
-        self.assertTrue(DefaultParser.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = DefaultParser.parse(start, stream)
-        self.assertEqual(value, 'value2')
-
-    def testEndStringParsing(self):
-        stream = 'some meaningful value1'
-
-        start = len('some meaningful ')
-        self.assertTrue(DefaultParser.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = DefaultParser.parse(start, stream)
-        self.assertEqual(value, 'value1')
-
-
-STR_DOUBLE_QUOTE_PARSER = StringValueParser(start='"', end='"', escape='\\')
-
-
-class Test_DQ_StringValueParser(TestCase):
-
-    def testStringParsing(self):
-        stream = 'some meaningful "spaced value1" something else skippable "double spaced value2"' \
-                 'still more skip.'
-
-        start = len('some meaningful ')
-        self.assertTrue(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = STR_DOUBLE_QUOTE_PARSER.parse(start, stream)
-        self.assertEqual(value, 'spaced value1')
-
-        start = len('some meaningful "spaced value1" something else skippable ')
-        self.assertTrue(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = STR_DOUBLE_QUOTE_PARSER.parse(start, stream)
-        self.assertEqual(value, 'double spaced value2')
-
-        start = len(stream) - 2
-        self.assertFalse(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]),
-                         'Should not be parsable.')
-
-    def testEndStringParsing(self):
-        stream = 'some meaningful "spaced value1"'
-
-        start = len('some meaningful ')
-        self.assertTrue(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = STR_DOUBLE_QUOTE_PARSER.parse(start, stream)
-        self.assertEqual(value, 'spaced value1')
-
-    def testEscapedStringParsing(self):
-        stream = 'some meaningful "spaced \\"value1" something else skippable ' \
-                 '"double spaced value2" still more skip.'
-
-        start = len('some meaningful ')
-        self.assertTrue(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = STR_DOUBLE_QUOTE_PARSER.parse(start, stream)
-        self.assertEqual(value, 'spaced \\"value1')
-
-        start = len('some meaningful "spaced \\"value1" something else skippable ')
-        self.assertTrue(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = STR_DOUBLE_QUOTE_PARSER.parse(start, stream)
-        self.assertEqual(value, 'double spaced value2')
-
-        start = len(stream) - 2
-        self.assertFalse(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]),
-                         'Should not be parsable.')
-
-    def testIncompleteStringParsing(self):
-        stream = 'some meaningful "spaced .'
-
-        start = len('some meaningful ')
-        self.assertTrue(STR_DOUBLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
-        try:
-            STR_DOUBLE_QUOTE_PARSER.parse(start, stream)
-            self.assertTrue(False, 'Parsing failure expected.')
-        except content.ParseException:
-            self.assertTrue(True)
-
-
-STR_SINGLE_QUOTE_PARSER = StringValueParser(start='\'', end='\'', escape='\\')
-
-
-class Test_SQ_StringValueParser(TestCase):
-
-    def testStringParsing(self):
-        stream = "some meaningful 'spaced value1' something else skippable 'double spaced value2'" \
-                 "still more skip."
-
-        start = len('some meaningful ')
-        self.assertTrue(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = STR_SINGLE_QUOTE_PARSER.parse(start, stream)
-        self.assertEqual(value, 'spaced value1')
-
-        start = len("some meaningful 'spaced value1' something else skippable ")
-        self.assertTrue(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = STR_SINGLE_QUOTE_PARSER.parse(start, stream)
-        self.assertEqual(value, 'double spaced value2')
-
-        start = len(stream) - 2
-        self.assertFalse(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]),
-                         'Should not be parsable.')
-
-    def testEndStringParsing(self):
-        stream = "some meaningful 'spaced value1'"
-
-        start = len('some meaningful ')
-        self.assertTrue(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = STR_SINGLE_QUOTE_PARSER.parse(start, stream)
-        self.assertEqual(value, 'spaced value1')
-
-    def testEscapedStringParsing(self):
-        stream = "some meaningful 'spaced \\'value1' something else skippable " \
-                 "\'double spaced value2\' still more skip."
-
-        start = len('some meaningful ')
-        self.assertTrue(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = STR_SINGLE_QUOTE_PARSER.parse(start, stream)
-        self.assertEqual(value, "spaced \\'value1")
-
-        start = len("some meaningful 'spaced \\'value1' something else skippable ")
-        self.assertTrue(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = STR_SINGLE_QUOTE_PARSER.parse(start, stream)
-        self.assertEqual(value, 'double spaced value2')
-
-        start = len(stream) - 2
-        self.assertFalse(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]),
-                         'Should not be parsable.')
-
-    def testIncompleteStringParsing(self):
-        stream = "some meaningful 'spaced ."
-
-        start = len('some meaningful ')
-        self.assertTrue(STR_SINGLE_QUOTE_PARSER.is_applicable(stream[start]), 'Should be parsable.')
-        try:
-            STR_SINGLE_QUOTE_PARSER.parse(start, stream)
-            self.assertTrue(False, 'Parsing failure expected.')
-        except content.ParseException:
-            self.assertTrue(True)
-
-
-class TestJsonValueParser(TestCase):
-
-    def testJsonParsing(self):
-        stream = 'some meaningful {"a": "b"} something else skippable {"c": "d"} end.'
-
-        start = len('some meaningful ')
-        self.assertTrue(JsonValueParser.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = JsonValueParser.parse(start, stream)
-        self.assertEqual(value, '{"a": "b"}')
-
-        start = len('some meaningful {"a": "b"} something else skippable ')
-        self.assertTrue(JsonValueParser.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = JsonValueParser.parse(start, stream)
-        self.assertEqual(value, '{"c": "d"}')
-
-        start = len(stream) - 2
-        self.assertFalse(JsonValueParser.is_applicable(stream[start]), 'Should not be parsable.')
-
-    def testEndJsonParsing(self):
-        stream = 'some meaningful {"a": "b"}'
-
-        start = len('some meaningful ')
-        self.assertTrue(JsonValueParser.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = JsonValueParser.parse(start, stream)
-        self.assertEqual(value, '{"a": "b"}')
-
-    def testComplexJsonParsing(self):
-        stream = 'some meaningful {"a": "b", "c": "d", "e": {"f": "g"}, "h": [1, 2]}'
-
-        start = len('some meaningful ')
-        self.assertTrue(JsonValueParser.is_applicable(stream[start]), 'Should be parsable.')
-        _, value, _ = JsonValueParser.parse(start, stream)
-        self.assertEqual(value, '{"a": "b", "c": "d", "e": {"f": "g"}, "h": [1, 2]}')
-
-    def testIncompleteStringParsing(self):
-        stream = 'some meaningful {"a":'
-
-        start = len('some meaningful ')
-        self.assertTrue(JsonValueParser.is_applicable(stream[start]), 'Should be parsable.')
-        try:
-            JsonValueParser.parse(start, stream)
-            self.assertTrue(False, 'Parsing failure expected.')
-        except content.ParseException:
-            self.assertTrue(True)
+from st2common.models.utils.action_alias_utils import ActionAliasFormatParser
 
 
 class TestActionAliasParser(TestCase):
-    def test_default_key_value_param_parsing(self):
-        # Empty string
+    def testEmptyString(self):
         alias_format = ''
         param_stream = ''
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {})
-
-        # 1 key value pair provided in the param stream
-        alias_format = ''
-        param_stream = 'a=foobar1'
-        parser = ActionAliasFormatParser(alias_format, param_stream)
-        extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': 'foobar1'})
-
-        alias_format = ''
-        param_stream = 'foo a=foobar2 poonies bar'
-        parser = ActionAliasFormatParser(alias_format, param_stream)
-        extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': 'foobar2'})
-
-        # Multiple params provided
-        alias_format = ''
-        param_stream = 'a=foobar1 b=boobar2 c=coobar3'
-        parser = ActionAliasFormatParser(alias_format, param_stream)
-        extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': 'foobar1', 'b': 'boobar2', 'c': 'coobar3'})
-
-        # Multiple params provided
-        alias_format = ''
-        param_stream = 'a=foobar4 b=boobar5 c=coobar6'
-        parser = ActionAliasFormatParser(alias_format, param_stream)
-        extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': 'foobar4', 'b': 'boobar5', 'c': 'coobar6'})
-
-        # Multiple params provided
-        alias_format = ''
-        param_stream = 'mixed a=foobar1 some more b=boobar2 text c=coobar3 yeah'
-        parser = ActionAliasFormatParser(alias_format, param_stream)
-        extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': 'foobar1', 'b': 'boobar2', 'c': 'coobar3'})
-
-        # Param with quotes, make sure they are stripped
-        alias_format = ''
-        param_stream = 'mixed a="foobar1"'
-        parser = ActionAliasFormatParser(alias_format, param_stream)
-        extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': 'foobar1'})
-
-        # Param with quotes, make sure they are stripped
-        alias_format = ''
-        param_stream = 'mixed a="foobar test" ponies a'
-        parser = ActionAliasFormatParser(alias_format, param_stream)
-        extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': 'foobar test'})
-
-        # Param with quotes, make sure they are stripped
-        alias_format = ''
-        param_stream = "mixed a='foobar1 ponies' test"
-        parser = ActionAliasFormatParser(alias_format, param_stream)
-        extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': 'foobar1 ponies'})
-
-        # Param with quotes, make sure they are stripped
-        alias_format = ''
-        param_stream = 'mixed a="foobar1"'
-        parser = ActionAliasFormatParser(alias_format, param_stream)
-        extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': 'foobar1'})
-
-        # Mixed format and kv params
-        alias_format = 'somestuff {{a}} more stuff {{b}}'
-        param_stream = 'somestuff a=foobar more stuff coobar'
-        parser = ActionAliasFormatParser(alias_format, param_stream)
-        extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': 'foobar', 'b': 'coobar'})
-
-        alias_format = 'somestuff {{a}} more stuff {{b}}'
-        param_stream = 'somestuff ponies more stuff coobar'
-        parser = ActionAliasFormatParser(alias_format, param_stream)
-        extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': 'ponies', 'b': 'coobar'})
-
-        alias_format = 'somestuff {{a}} more stuff {{b}}'
-        param_stream = 'somestuff ponies more stuff coobar b=foo'
-        parser = ActionAliasFormatParser(alias_format, param_stream)
-        extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': 'ponies', 'b': 'foo'})
 
     def testSimpleParsing(self):
         alias_format = 'skip {{a}} more skip {{b}} and skip more.'
@@ -332,7 +57,7 @@ class TestActionAliasParser(TestCase):
 
     def testMixedParsing(self):
         alias_format = 'skip {{a}} more skip {{b}}.'
-        param_stream = 'skip {"a": "b", "c": "d"} more skip x'
+        param_stream = 'skip {"a": "b", "c": "d"} more skip x.'
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {'a': '{"a": "b", "c": "d"}', 'b': 'x'})
@@ -345,8 +70,8 @@ class TestActionAliasParser(TestCase):
         self.assertEqual(extracted_values, {'d': 'test', 'e': 'test'})
 
     def test_stream_is_not_none_some_default_values(self):
-        alias_format = 'skip {{d=test}} more skip {{e=test}}.'
-        param_stream = 'skip ponies'
+        alias_format = 'skip {{d=test}} more skip {{e=test}}'
+        param_stream = 'skip ponies more skip'
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {'d': 'ponies', 'e': 'test'})
