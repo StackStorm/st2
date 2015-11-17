@@ -181,6 +181,23 @@ belong to the action with that parent pack.
 On top of that, granting ``action_execute`` on a particular pack or action also grants
 ``execution_rerun`` and ``execution_stop`` to all the executions which belong to that action.
 
+Permissions and executions which are not triggered via the API
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Normally when an execution is triggered via the API (POST to /actionexecutions/), authenticated
+StackStorm user which triggered the execution is the effective user for the RBAC purposes, but
+there are some exceptions which are described below.
+
+**Rules** - Effective user for the executions which are triggered by the rule right now is a
+system user (``stanley``).
+
+**ChatOps** - Effective user for the executions which are triggered via ChatOps (POST to
+/aliasexecutions/) using hubot is a StackStorm user which is configured in hubot
+(``ST2_AUTH_USERNAME`` - by default that is ``chatops_bot``).
+
+By default, ``stanley`` and ``chatops_bot`` user have ``admin`` role assignment to them, which
+means they have all the permissions.
+
 Defining roles and assignments
 ------------------------------
 
@@ -275,6 +292,7 @@ Administrator of StackStorm on a box that is running StackStorm.
 
 User creation
 ~~~~~~~~~~~~~
+
 All user and password management is kept outside of StackStorm. Documentation on :doc:`authentication <authentication>` describes how to confirgure StackStorm with various identity providers.
 
 For sake of this example let us assume that the identify provider is managed by the OS on which StackStorm runs.
@@ -296,6 +314,7 @@ Once this user is created StackStorm will allow access to this user. (Optional) 
 
 Role creation
 ~~~~~~~~~~~~~
+
 A newly created user has no assigned permissions. Each permission must be explicitly assigned to a user. To assign
 permission grants StackStorm requires creation of a role and then associating this role with a user. In this case we are trying to create a pack owner role.
 
@@ -335,6 +354,7 @@ See :ref:`available permission types<ref-rbac-available-permission-types>` for a
 
 Role assignment
 ~~~~~~~~~~~~~~~
+
 Creation of a role is followed by assignment of a role to the user. Create file `/opt/stackstorm/rbac/assignments/rbacu1.yaml`
 with the following content -
 
@@ -350,6 +370,7 @@ with the following content -
 
 Applying RBAC
 ~~~~~~~~~~~~~
+
 As a StackStorm administrator and on a box with StackStrom installed run -
 
 .. sourcecode:: bash
@@ -361,6 +382,7 @@ StackStorm know of the latest changes to RBAC permission grants.
 
 Validation
 ~~~~~~~~~~
+
 Lets take what we have achieved for a spin using the StackStorm CLI.
 
 1. Setup Authentication token.
