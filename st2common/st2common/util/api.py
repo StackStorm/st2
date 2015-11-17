@@ -86,4 +86,10 @@ def get_requester():
     auth_context = pecan.request.context.get('auth', None)
     user_db = auth_context.get('user', None) if auth_context else None
 
-    return user_db.name if user_db else cfg.CONF.system_user.user
+    if cfg.CONF.auth.enable and not user_db:
+        LOG.warn('auth is disabled, falling back to system_user')
+        username = cfg.CONF.system_user.user
+    else:
+        username = user_db.name
+
+    return username
