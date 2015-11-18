@@ -45,9 +45,9 @@ LOG = logging.getLogger(__name__)
 ACTIONUPDATE_WORK_Q = liveaction.get_queue('st2.notifiers.work',
                                            routing_key=publishers.UPDATE_RK)
 ACTION_COMPLETE_STATES = [
-        LIVEACTION_STATUS_SUCCEEDED,
-        LIVEACTION_STATUS_FAILED,
-        LIVEACTION_STATUS_TIMED_OUT,
+    LIVEACTION_STATUS_SUCCEEDED,
+    LIVEACTION_STATUS_FAILED,
+    LIVEACTION_STATUS_TIMED_OUT,
 ]
 
 ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
