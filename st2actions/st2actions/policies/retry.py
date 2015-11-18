@@ -142,7 +142,7 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
         # TODO: Ideally we would store retry_count in zookeeper or similar and use locking so we
         # can run multiple instances of st2notififer
         context = getattr(live_action_db, 'context', {})
-        retry_count = context.get('policies', {}).get('retry_count', 0)
+        retry_count = context.get('policies', {}).get('retry', {}).get('retry_count', 0)
 
         return retry_count
 
@@ -152,12 +152,12 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
         # Add additional policy specific info to the context
         context = getattr(live_action_db, 'context', {})
         new_context = copy.deepcopy(context)
-        new_context['policies'] = {
+        new_context['policies'] = {}
+        new_context['policies']['retry'] = {
             'applied_policy': self._policy_ref,
             'retry_count': (retry_count + 1),
             'retried_liveaction_id': str(live_action_db.id)
         }
-
         action_ref = live_action_db.action
         parameters = live_action_db.parameters
         new_live_action_db = LiveActionDB(action=action_ref, parameters=parameters,
