@@ -61,10 +61,10 @@ class MistralResultsQuerier(Querier):
         try:
             result = self._get_workflow_result(mistral_exec_id)
             result['tasks'] = self._get_workflow_tasks(mistral_exec_id)
-        except Exception as e:
+        except Exception:
             LOG.exception('[%s] Unable to fetch mistral workflow result and tasks. %s',
                           execution_id, query_context)
-            raise e
+            raise
 
         status = self._determine_execution_status(
             execution_id, result['extra']['state'], result['tasks'])
@@ -73,12 +73,6 @@ class MistralResultsQuerier(Querier):
         LOG.debug('[%s] mistral workflow execution result: %s' % (execution_id, result))
 
         return (status, result)
-
-    def _get_execution_tasks_url(self, exec_id):
-        return self._base_url + '/executions/' + exec_id + '/tasks'
-
-    def _get_execution_url(self, exec_id):
-        return self._base_url + '/executions/' + exec_id
 
     def _get_workflow_result(self, exec_id):
         """
