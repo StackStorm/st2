@@ -14,6 +14,9 @@
 # limitations under the License.
 
 import copy
+import functools
+
+import eventlet
 
 from st2common import log as logging
 from st2common.models.db.liveaction import LiveActionDB
@@ -38,6 +41,9 @@ VALID_RETRY_STATUSES = [
 # Maximum value for "max_retry_count" parameter
 MAXIMUM_RETRY_COUNT = 5
 
+# Maximum value for "delay" parameter
+MAXIMUM_DELAY = 5
+
 
 class RetryOnPolicy(Enum):
     FAILURE = 'failure'  # Retry on execution failure
@@ -45,13 +51,16 @@ class RetryOnPolicy(Enum):
 
 
 class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
-    def __init__(self, policy_ref, policy_type, retry_on, max_retry_count=2):
+    def __init__(self, policy_ref, policy_type, retry_on, max_retry_count=2, delay=None):
         """
         :param retry_on: Condition to retry the execution on.
         :type retry_on: ``str``
 
         :param max_retry_count: Maximum number of times to try to retry an action.
         :type max_retry_count: ``int``
+
+        :param delay: How long to wait before retrying an execution.
+        :type delay: ``float``
         """
         # TODO: Also support sleep delay before retrying
         super(ExecutionRetryPolicyApplicator, self).__init__(policy_ref=policy_ref,
@@ -63,8 +72,12 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
         if max_retry_count > MAXIMUM_RETRY_COUNT:
             raise ValueError('Maximum retry count is %s' % (MAXIMUM_RETRY_COUNT))
 
+        if delay > MAXIMUM_DELAY:
+            raise ValueError('Maximum delay is %s' % (MAXIMUM_DELAY))
+
         self.retry_on = retry_on
         self.max_retry_count = max_retry_count
+        self.delay = delay or 0
 
     def apply_before(self, target):
         # Nothing to do here
@@ -94,16 +107,28 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
         has_failed = live_action_db.status == LIVEACTION_STATUS_FAILED
         has_timed_out = live_action_db.status == LIVEACTION_STATUS_TIMED_OUT
 
+        # TODO: This is not crash and restart safe, switch to using "DELAYED"
+        # status
+        if self.delay > 0:
+            re_run_live_action = functools.partial(eventlet.spawn_after, self.delay,
+                                                   self._re_run_live_action,
+                                                   live_action_db=live_action_db)
+        else:
+            re_run_live_action = functools.partial(self._re_run_live_action,
+                                                   live_action_db=live_action_db)
+
         if has_failed and self.retry_on == RetryOnPolicy.FAILURE:
             extra['failure'] = True
-            LOG.info('Policy matched (failure), retrying action execution...', extra=extra)
-            self._re_run_live_action(live_action_db=live_action_db)
+            LOG.info('Policy matched (failure), retrying action execution in %s seconds...' %
+                     (self.delay), extra=extra)
+            re_run_live_action()
             return target
 
         if has_timed_out and self.retry_on == RetryOnPolicy.TIMEOUT:
             extra['timeout'] = True
-            LOG.info('Policy matched (timeout), retrying action execution...', extra=extra)
-            self._re_run_live_action(live_action_db=live_action_db)
+            LOG.info('Policy matched (timeout), retrying action execution in %s seconds...' %
+                     (self.delay), extra=extra)
+            re_run_live_action()
             return target
 
         return target

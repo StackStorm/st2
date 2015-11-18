@@ -17,3 +17,7 @@ parameters:
         description: Maximum number of times to retry before giving up.
         required: true
         default: 2
+    delay:
+        type: integer
+        description: Number of seconds to wait before retrying the execution.
+        required: false
