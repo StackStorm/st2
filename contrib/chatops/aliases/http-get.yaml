@@ -1,0 +1,10 @@
+---
+name: "get"
+action_ref: "core.http"
+description: "Make http GET request"
+formats:
+    - "http get {{ url }}" # `!http get http://httpbin.org/get` is a nice candidate for testing
+ack:
+  format: "requesting..."
+result:
+  format: "done, here it is: {{ execution.result.body }}"

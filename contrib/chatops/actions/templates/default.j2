@@ -1,0 +1,44 @@
+{%- macro serialize(iter, prefix='') -%}
+  {% for key, value in iter -%}
+    {{ prefix }}{{ key }} : {% if value is mapping -%}
+      {{ '\n' + serialize(six.iteritems(value), prefix+'  ') }}
+    {%- elif value is string and (value | trim).split('\n') | length > 1 %}
+      {{ '\n' + prefix + '  ' + value | trim | replace('\n', '@')}}
+    {% else -%}
+      {{ value | trim }}
+    {% endif %}
+  {% endfor %}
+{%- endmacro %}
+
+Action {{ execution.action.ref }} completed.
+status : {{ execution.status }}
+execution: {{ execution.id }}
+
+{% if execution.result -%}
+result :
+--------
+{% if execution.runner['name'] in ('http-request',) -%}
+  {# TODO: is there are conceptual difference between it and default? #}
+  {{ serialize(six.iteritems(execution.result)) }}
+{% elif execution.runner['name'] in ('run-python', 'python-script', 'windows-cmd', 'windows-script',) -%}
+  {{ serialize(six.iteritems(execution.result)
+               | selectattr('0', 'in', ['result', 'stdout', 'stderr', 'exit_code'])
+               | selectattr('1')) }}
+{% elif execution.runner['name'] in ('remote-shell-cmd','remote-shell-script',) -%}
+  {% for key, value in six.iteritems(execution.result) -%}
+    {{key}} : {{ '\n' + serialize(six.iteritems(value)
+                        | selectattr('0', 'in', ['stdout', 'stderr', 'return_code', 'error'])
+                        | selectattr('1'), '  ') }}
+  {% endfor %}
+{% elif execution.runner['name'] in ('local-shell-cmd','local-shell-script') -%}
+  {{ serialize(six.iteritems(execution.result)
+               | selectattr('0', 'in', ['stdout', 'stderr', 'return_code', 'error'])
+               | selectattr('1')) }}
+{% else -%}
+  {% if execution.result is mapping -%}
+    {{ serialize(six.iteritems(execution.result)) }}
+  {% else -%}
+    {{ execution.result }}
+  {% endif %}
+{% endif %}
+{% endif %}
