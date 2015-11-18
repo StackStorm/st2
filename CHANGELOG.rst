@@ -26,6 +26,9 @@ in development
 * Introduce a new ``timeout`` action execution status which represents an action execution
   timeout. Previously, executions which timed out had status set to ``failure``. Keep in mind
   that timeout is just a special type of a failure. (new feature)
+* ``--debug`` flag no longer implies profiling mode. If you want to enable profiling mode, you need
+  to explicitly pass ``--profile`` flag to the binary. To reproduce the old behavior, simply pass
+  both flags to the binary - ``--debug --profile``.
 
 1.1.1 - November 13, 2015
 -------------------------
