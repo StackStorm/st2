@@ -46,6 +46,8 @@ cp -R contrib/packs %{buildroot}/opt/stackstorm/packs/
 chmod -R 775 %{buildroot}/opt/stackstorm/packs/packs
 cp -R contrib/linux %{buildroot}/opt/stackstorm/packs/
 chmod -R 775 %{buildroot}/opt/stackstorm/packs/linux
+cp -R contrib/chatops %{buildroot}/opt/stackstorm/packs/
+chmod -R 775 %{buildroot}/opt/stackstorm/packs/chatops
 cp -R contrib/examples %{buildroot}/usr/share/doc/st2/
 chmod -R 775 %{buildroot}/usr/share/doc/st2/examples
 cp -R docs/* %{buildroot}/usr/share/doc/st2/

@@ -1,0 +1,17 @@
+---
+name: "notify"
+pack: "chatops"
+enabled: true
+description: "Notification rule to send results of action executions to stream for chatops"
+trigger:
+  type: "core.st2.generic.notifytrigger"
+criteria:
+  trigger.route:
+    pattern: "hubot"
+    type: "equals"
+action:
+  ref: chatops.post_result
+  parameters:
+    channel: "{{trigger.data.source_channel}}"
+    user: "{{trigger.data.user}}"
+    result: "{{trigger}}"
