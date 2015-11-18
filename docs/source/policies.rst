@@ -60,7 +60,7 @@ Configuration example for Redis. ::
 Retry
 -----
 
-Retry policy (``actions.retry``) allows you to automatically retry (re-run) an action when a
+Retry policy (``action.retry``) allows you to automatically retry (re-run) an action when a
 particular failure condition is met. Right now we support retrying actions which have failed or
 timed out.
 
