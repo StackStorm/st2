@@ -1,11 +1,9 @@
-import traceback
 import uuid
 
 from mistralclient.api import client as mistral
 from mistralclient.api.v2 import tasks
 from mistralclient.api.v2 import executions
 from oslo_config import cfg
-import requests
 import retrying
 
 from st2actions.query.base import Querier
@@ -57,33 +55,16 @@ class MistralResultsQuerier(Querier):
         """
         mistral_exec_id = query_context.get('mistral', {}).get('execution_id', None)
         if not mistral_exec_id:
-            LOG.exception('[%s] Missing mistral workflow execution ID in query context. %s',
-                          execution_id, query_context)
-            raise
+            raise Exception('[%s] Missing mistral workflow execution ID in query context. %s',
+                            execution_id, query_context)
 
         try:
             result = self._get_workflow_result(mistral_exec_id)
-        except requests.exceptions.ConnectionError:
-            msg = 'Unable to connect to mistral.'
-            trace = traceback.format_exc(10)
-            LOG.exception(msg)
-            return (action_constants.LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
-        except:
-            LOG.exception('[%s] Unable to fetch mistral workflow execution status and output. %s',
-                          execution_id, query_context)
-            raise
-
-        try:
             result['tasks'] = self._get_workflow_tasks(mistral_exec_id)
-        except requests.exceptions.ConnectionError:
-            msg = 'Unable to connect to mistral.'
-            trace = traceback.format_exc(10)
-            LOG.exception(msg)
-            return (action_constants.LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
-        except:
-            LOG.exception('[%s] Unable to fetch mistral workflow tasks. %s',
+        except Exception as e:
+            LOG.exception('[%s] Unable to fetch mistral workflow result and tasks. %s',
                           execution_id, query_context)
-            raise
+            raise e
 
         status = self._determine_execution_status(
             execution_id, result['extra']['state'], result['tasks'])
