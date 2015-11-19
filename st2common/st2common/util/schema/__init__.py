@@ -28,6 +28,7 @@ __all__ = [
     'get_draft_schema',
     'get_action_parameters_schema',
     'get_schema_for_action_parameters',
+    'get_schema_for_resource_parameters',
     'validate'
 ]
 
@@ -253,6 +254,24 @@ def get_schema_for_action_parameters(action_db):
         schema['title'] = action_db.name
         if action_db.description:
             schema['description'] = action_db.description
+        schema['type'] = 'object'
+        schema['properties'] = properties
+        schema['additionalProperties'] = False
+
+    return schema
+
+
+def get_schema_for_resource_parameters(parameters_schema):
+    """
+    Dynamically construct JSON schema for the provided resource from the parameters metadata.
+    """
+    def normalize(x):
+        return {k: v if v else SCHEMA_ANY_TYPE for k, v in six.iteritems(x)}
+
+    schema = {}
+    properties = {}
+    properties.update(normalize(parameters_schema))
+    if properties:
         schema['type'] = 'object'
         schema['properties'] = properties
         schema['additionalProperties'] = False
