@@ -96,6 +96,14 @@ class ChainHolder(object):
                        'task "%s".' % (on_failure_node_name, node.name))
                 raise ValueError(msg)
 
+        # check if node specified in default is valid.
+        if self.actionchain.default:
+            valid_name = self._is_valid_node_name(all_node_names=all_nodes,
+                                                  node_name=self.actionchain.default)
+            if not valid_name:
+                msg = ('Unable to find node with name "%s" referenced in "default".' %
+                       self.actionchain.default)
+                raise ValueError(msg)
         return True
 
     @staticmethod
