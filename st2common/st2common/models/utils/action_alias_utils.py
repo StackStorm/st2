@@ -53,13 +53,13 @@ class ActionAliasFormatParser(object):
         # compiling them into a list.
         # "test {{ url = http://google.com }} {{ extra = Test }}" will become
         # [ ["url", "http://google.com"], ["extra", "Test"] ]
-        params = re.findall(r'{{\s*(.+?)\s*(?:=\s*[\'"]?(.+?)[\'"]?)?\s*}}',
+        params = re.findall(r'{{\s*(.+?)\s*(?:=\s*[\'"]?({.+?}|.+?)[\'"]?)?\s*}}',
                             self._format, re.DOTALL)
 
         # Now we're transforming our format string into a regular expression,
         # substituting {{ ... }} with regex named groups, so that param_stream
         # matched against this expression yields a dict of params with values.
-        reg = re.sub(r'\s+{{\s*(\S+)\s*=.+?}}',
+        reg = re.sub(r'\s+{{\s*(\S+)\s*=(?:{.+?}|.+?)}}',
                      r'(?:\s+[\'"]?(?P<\1>.+?)[\'"]?)?',
                      self._format)
         reg = re.sub(r'{{\s*(.+?)\s*}}',
