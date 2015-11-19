@@ -345,7 +345,9 @@ class ParallelSSHClient(object):
 
         if isinstance(exc, SSHCommandTimeoutError):
             return_code = -9
+            timeout = True
         else:
+            timeout = False
             return_code = 255
 
         stdout = getattr(exc, 'stdout', None) or ''
@@ -354,6 +356,7 @@ class ParallelSSHClient(object):
         error_dict = {
             'failed': True,
             'succeeded': False,
+            'timeout':  timeout,
             'return_code': return_code,
             'stdout': stdout,
             'stderr': stderr,

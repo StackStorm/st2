@@ -23,7 +23,9 @@ from st2actions.runners import ShellRunnerMixin
 from st2actions.runners import ActionRunner
 from st2actions.runners.ssh.parallel_ssh import ParallelSSHClient
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
 from st2common.exceptions.ssh import InvalidCredentialsException
@@ -162,17 +164,31 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
     @staticmethod
     def _get_result_status(result, allow_partial_failure):
         success = not allow_partial_failure
+        timeout = True
+
         for r in six.itervalues(result):
             r_succeess = r.get('succeeded', False) if r else False
+            r_timeout = r.get('timeout', False) if r else False
+
+            timeout &= r_timeout
+
             if allow_partial_failure:
                 success |= r_succeess
                 if success:
-                    return LIVEACTION_STATUS_SUCCEEDED
+                    break
             else:
                 success &= r_succeess
                 if not success:
-                    return LIVEACTION_STATUS_FAILED
-        return LIVEACTION_STATUS_SUCCEEDED if success else LIVEACTION_STATUS_FAILED
+                    break
+
+        if success:
+            status = LIVEACTION_STATUS_SUCCEEDED
+        elif timeout:
+            # Note: Right now we only set status to timeout if all the hosts have timed out
+            status = LIVEACTION_STATUS_TIMED_OUT
+        else:
+            status = LIVEACTION_STATUS_FAILED
+        return status
 
 
 def get_runner():
