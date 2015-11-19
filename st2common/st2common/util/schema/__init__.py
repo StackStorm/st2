@@ -241,22 +241,19 @@ def get_schema_for_action_parameters(action_db):
 
     Note: This schema is used to validate parameters which are passed to the action.
     """
-    def normalize(x):
-        return {k: v if v else SCHEMA_ANY_TYPE for k, v in six.iteritems(x)}
-
-    schema = {}
     from st2common.util.action_db import get_runnertype_by_name
     runner_type = get_runnertype_by_name(action_db.runner_type['name'])
 
-    properties = normalize(runner_type.runner_parameters)
-    properties.update(normalize(action_db.parameters))
-    if properties:
+    parameters_schema = {}
+    parameters_schema.update(runner_type.runner_parameters)
+    parameters_schema.update(action_db.parameters)
+
+    schema = get_schema_for_resource_parameters(parameters_schema=parameters_schema)
+
+    if parameters_schema:
         schema['title'] = action_db.name
         if action_db.description:
             schema['description'] = action_db.description
-        schema['type'] = 'object'
-        schema['properties'] = properties
-        schema['additionalProperties'] = False
 
     return schema
 
