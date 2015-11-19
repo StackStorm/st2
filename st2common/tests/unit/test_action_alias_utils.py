@@ -26,6 +26,53 @@ class TestActionAliasParser(TestCase):
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {})
 
+    def testArbitraryPairs(self):
+        # single-word param
+        alias_format = ''
+        param_stream = 'a=foobar1'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'foobar1'})
+
+        # multi-word double-quoted param
+        alias_format = ''
+        param_stream = 'foo a="foobar2 poonies bar"'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'foobar2 poonies bar'})
+
+        # multi-word single-quoted param
+        alias_format = ''
+        param_stream = 'foo a=\'foobar2 poonies bar\''
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'foobar2 poonies bar'})
+
+        # JSON param
+        alias_format = ''
+        param_stream = 'foo a={"foobar2": "poonies"}'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': '{"foobar2": "poonies"}'})
+
+        # Multiple mixed params
+        alias_format = ''
+        param_stream = 'a=foobar1 b="boobar2 3 4" c=\'coobar3 4\' d={"a": "b"}'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'foobar1',
+                                            'b': 'boobar2 3 4',
+                                            'c': 'coobar3 4',
+                                            'd': '{"a": "b"}'})
+
+        # Params along with a "normal" alias format
+        alias_format = '{{ captain }} is my captain'
+        param_stream = 'Malcolm Reynolds is my captain weirdo="River Tam"'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'captain': 'Malcolm Reynolds',
+                                            'weirdo': 'River Tam'})
+
     def testSimpleParsing(self):
         alias_format = 'skip {{a}} more skip {{b}} and skip more.'
         param_stream = 'skip a1 more skip b1 and skip more.'

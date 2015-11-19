@@ -34,7 +34,21 @@ class ActionAliasFormatParser(object):
         # As there's a lot of questions about using regular expressions,
         # I'll try to be thorough when documenting this code.
 
-        # Firstly, we'll match parameters with default values in form of
+        # We're parsing the arbitrary key-value pairs at the end of the stream
+        # to support passing of parameters not specified in the format string,
+        # and cutting them from the stream as they're no longer needed.
+        # Possible values are quoted strings, a word, or anything inside "{}".
+        pairs_match = r'(?:^|\s+)(\S+)=("(.*?)"|\'(.*?)\'|({.*?})|(\S+))'
+        extra = re.match(r'.*?((' + pairs_match + r'\s*)*)$',
+                         self._param_stream, re.DOTALL)
+        if extra:
+            kv_pairs = re.findall(pairs_match,
+                                  extra.group(1), re.DOTALL)
+            for pair in kv_pairs:
+                result[pair[0]] = ''.join(pair[2:])
+            self._param_stream = self._param_stream.replace(extra.group(1), '')
+
+        # Now we'll match parameters with default values in form of
         # {{ value = parameter }} (and all possible permutations of spaces),
         # compiling them into a list.
         # "test {{ url = http://google.com }} {{ extra = Test }}" will become
