@@ -38,12 +38,6 @@ VALID_RETRY_STATUSES = [
     LIVEACTION_STATUS_TIMED_OUT
 ]
 
-# Maximum value for "max_retry_count" parameter
-MAXIMUM_RETRY_COUNT = 5
-
-# Maximum value for "delay" parameter
-MAXIMUM_DELAY = 5
-
 
 class RetryOnPolicy(Enum):
     FAILURE = 'failure'  # Retry on execution failure
@@ -62,18 +56,8 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
         :param delay: How long to wait before retrying an execution.
         :type delay: ``float``
         """
-        # TODO: Also support sleep delay before retrying
         super(ExecutionRetryPolicyApplicator, self).__init__(policy_ref=policy_ref,
                                                              policy_type=policy_type)
-
-        if retry_on not in RetryOnPolicy.get_valid_values():
-            raise ValueError('Invalid value for "retry_on" parameter')
-
-        if max_retry_count > MAXIMUM_RETRY_COUNT:
-            raise ValueError('Maximum retry count is %s' % (MAXIMUM_RETRY_COUNT))
-
-        if delay > MAXIMUM_DELAY:
-            raise ValueError('Maximum delay is %s' % (MAXIMUM_DELAY))
 
         self.retry_on = retry_on
         self.max_retry_count = max_retry_count
