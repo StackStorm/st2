@@ -16,8 +16,11 @@
 import os
 import six
 
-import st2tests
+import jsonschema
 
+import st2tests
+import st2actions
+from st2common.bootstrap.policiesregistrar import PolicyRegistrar
 from st2common.bootstrap.policiesregistrar import register_policy_types, register_policies
 from st2common.models.api.action import ActionAPI, RunnerTypeAPI
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
@@ -26,6 +29,7 @@ from st2common.persistence.policy import PolicyType, Policy
 from st2common.persistence.runner import RunnerType
 from st2common.policies import ResourcePolicyApplicator, get_driver
 from st2tests import DbTestCase, fixturesloader
+from st2tests.fixturesloader import get_fixtures_base_path
 
 
 TEST_FIXTURES = {
@@ -95,6 +99,13 @@ class PolicyTest(DbTestCase):
 
 class PolicyBootstrapTest(DbTestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        super(PolicyBootstrapTest, cls).setUpClass()
+
+        # Register common policy types
+        register_policy_types(st2actions)
+
     def test_register_policy_types(self):
         self.assertEqual(register_policy_types(st2tests), 2)
 
@@ -107,8 +118,9 @@ class PolicyBootstrapTest(DbTestCase):
         self.assertEqual(type2.resource_type, 'action')
 
     def test_register_policies(self):
+        # Note: Only one policy should be registered since second one fails validation
         pack_dir = os.path.join(fixturesloader.get_fixtures_base_path(), 'dummy_pack_1')
-        self.assertEqual(register_policies(pack_dir=pack_dir), 2)
+        self.assertEqual(register_policies(pack_dir=pack_dir), 1)
 
         p1 = Policy.get_by_ref('dummy_pack_1.test_policy_1')
         self.assertEqual(p1.name, 'test_policy_1')
@@ -117,8 +129,25 @@ class PolicyBootstrapTest(DbTestCase):
         self.assertEqual(p1.policy_type, 'action.concurrency')
 
         p2 = Policy.get_by_ref('dummy_pack_1.test_policy_2')
-        self.assertEqual(p2.name, 'test_policy_2')
-        self.assertEqual(p2.pack, 'dummy_pack_1')
-        self.assertEqual(p2.resource_ref, 'dummy_pack_1.local')
-        self.assertEqual(p2.policy_type, 'action.mock_policy_error')
-        self.assertEqual(p2.resource_ref, 'dummy_pack_1.local')
+        self.assertEqual(p2, None)
+
+    def test_register_policy_invalid_policy_type_references(self):
+        # Policy references an invalid (inexistent) policy type
+        registrar = PolicyRegistrar()
+        policy_path = os.path.join(get_fixtures_base_path(),
+                                   'dummy_pack_1/policies/policy_2.yaml')
+
+        expected_msg = 'Referenced policy_type "action.mock_policy_error" doesnt exist'
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_policy,
+                                pack='dummy_pack_1', policy=policy_path)
+
+    def test_make_sure_policy_parameters_are_validated_during_register(self):
+        # Policy where specified parameters fail schema validation
+        registrar = PolicyRegistrar()
+        policy_path = os.path.join(get_fixtures_base_path(),
+                                   'dummy_pack_1/policies/policy_3.yaml')
+
+        expected_msg = '100 is greater than the maximum of 5'
+        self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
+                                registrar._register_policy, pack='dummy_pack_1',
+                                policy=policy_path)
