@@ -45,6 +45,7 @@ TEST_FIXTURES = {
     ]
 }
 
+
 class PolicyTest(DbTestCase):
 
     @classmethod

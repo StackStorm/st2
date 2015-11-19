@@ -356,7 +356,7 @@ class ParallelSSHClient(object):
         error_dict = {
             'failed': True,
             'succeeded': False,
-            'timeout':  timeout,
+            'timeout': timeout,
             'return_code': return_code,
             'stdout': stdout,
             'stderr': stderr,
