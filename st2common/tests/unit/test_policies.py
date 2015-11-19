@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import os
-import six
 
 import jsonschema
 
@@ -22,16 +21,13 @@ import st2tests
 import st2actions
 from st2common.bootstrap.policiesregistrar import PolicyRegistrar
 from st2common.bootstrap.policiesregistrar import register_policy_types, register_policies
-from st2common.models.api.action import ActionAPI, RunnerTypeAPI
-from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
-from st2common.persistence.action import Action
 from st2common.persistence.policy import PolicyType, Policy
-from st2common.persistence.runner import RunnerType
 from st2common.policies import ResourcePolicyApplicator, get_driver
 from st2tests import DbTestCase, fixturesloader
+from st2tests.fixturesloader import FixturesLoader
 from st2tests.fixturesloader import get_fixtures_base_path
 
-
+PACK = 'generic'
 TEST_FIXTURES = {
     'runners': [
         'testrunner1.yaml'
@@ -49,32 +45,15 @@ TEST_FIXTURES = {
     ]
 }
 
-PACK = 'generic'
-LOADER = fixturesloader.FixturesLoader()
-FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
-
-
 class PolicyTest(DbTestCase):
 
     @classmethod
     def setUpClass(cls):
         super(PolicyTest, cls).setUpClass()
 
-        for _, fixture in six.iteritems(FIXTURES['runners']):
-            instance = RunnerTypeAPI(**fixture)
-            RunnerType.add_or_update(RunnerTypeAPI.to_model(instance))
-
-        for _, fixture in six.iteritems(FIXTURES['actions']):
-            instance = ActionAPI(**fixture)
-            Action.add_or_update(ActionAPI.to_model(instance))
-
-        for _, fixture in six.iteritems(FIXTURES['policytypes']):
-            instance = PolicyTypeAPI(**fixture)
-            PolicyType.add_or_update(PolicyTypeAPI.to_model(instance))
-
-        for _, fixture in six.iteritems(FIXTURES['policies']):
-            instance = PolicyAPI(**fixture)
-            Policy.add_or_update(PolicyAPI.to_model(instance))
+        loader = FixturesLoader()
+        loader.save_fixtures_to_db(fixtures_pack=PACK,
+                                   fixtures_dict=TEST_FIXTURES)
 
     def test_get_by_ref(self):
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
