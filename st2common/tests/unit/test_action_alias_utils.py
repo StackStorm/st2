@@ -106,7 +106,56 @@ class TestActionAliasParser(TestCase):
         param_stream = 'skip {"a": "b", "c": "d"} more skip x.'
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': '{"a": "b", "c": "d"}', 'b': 'x'})
+        self.assertEqual(extracted_values, {'a': '{"a": "b", "c": "d"}',
+                                            'b': 'x'})
+
+    def testParamSpaces(self):
+        alias_format = 's {{a}} more {{ b }} more {{ c=99 }} more {{ d = 99 }}'
+        param_stream = 's one more two more three more'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'one', 'b': 'two',
+                                            'c': 'three', 'd': '99'})
+
+    def testEnclosedDefaults(self):
+        alias_format = 'skip {{ a = value }} more'
+        param_stream = 'skip one more'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'one'})
+
+        alias_format = 'skip {{ a = value }} more'
+        param_stream = 'skip more'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'value'})
+
+    def testKeyValueCombinations(self):
+        # one-word value, single extra pair
+        alias_format = 'testing {{ a }}'
+        param_stream = 'testing value b=value2'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'value',
+                                            'b': 'value2'})
+
+        # default value, single extra pair with quotes
+        alias_format = 'testing {{ a=new }}'
+        param_stream = 'testing b="another value"'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'new',
+                                            'b': 'another value'})
+
+        # multiple values and multiple extra pairs
+        alias_format = 'testing {{ b=abc }} {{ c=xyz }}'
+        param_stream = 'testing newvalue d={"1": "2"} e="long value"'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'b': 'newvalue',
+                                            'c': 'xyz',
+                                            'd': '{"1": "2"}',
+                                            'e': 'long value'})
 
     def test_stream_is_none_with_all_default_values(self):
         alias_format = 'skip {{d=test}} more skip {{e=test}}.'
