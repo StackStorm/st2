@@ -29,6 +29,8 @@ in development
 * ``--debug`` flag no longer implies profiling mode. If you want to enable profiling mode, you need
   to explicitly pass ``--profile`` flag to the binary. To reproduce the old behavior, simply pass
   both flags to the binary - ``--debug --profile``.
+* Fix policy loading and registering - make sure we validate policy parameters against the
+  parameters schema when loading / registering policies. (bug fix, improvement)
 
 1.1.1 - November 13, 2015
 -------------------------
