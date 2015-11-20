@@ -18,6 +18,8 @@ import traceback
 import uuid
 import datetime
 
+from jsonschema import exceptions as json_schema_exceptions
+
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import ACTION_KV_PREFIX
@@ -96,6 +98,14 @@ class ChainHolder(object):
                        'task "%s".' % (on_failure_node_name, node.name))
                 raise ValueError(msg)
 
+        # check if node specified in default is valid.
+        if self.actionchain.default:
+            valid_name = self._is_valid_node_name(all_node_names=all_nodes,
+                                                  node_name=self.actionchain.default)
+            if not valid_name:
+                msg = ('Unable to find node with name "%s" referenced in "default".' %
+                       self.actionchain.default)
+                raise ValueError(msg)
         return True
 
     @staticmethod
@@ -226,6 +236,12 @@ class ActionChainRunner(ActionRunner):
 
         try:
             self.chain_holder = ChainHolder(chainspec, self.action_name)
+        except json_schema_exceptions.ValidationError as e:
+            # preserve the whole nasty jsonschema message as that is better to get to the
+            # root cause
+            message = str(e)
+            LOG.exception('Failed to instantiate ActionChain.')
+            raise runnerexceptions.ActionRunnerPreRunError(message)
         except Exception as e:
             message = e.message or str(e)
             LOG.exception('Failed to instantiate ActionChain.')
