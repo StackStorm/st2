@@ -18,6 +18,8 @@ import traceback
 import uuid
 import datetime
 
+from jsonschema import exceptions as json_schema_exceptions
+
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import ACTION_KV_PREFIX
@@ -234,6 +236,12 @@ class ActionChainRunner(ActionRunner):
 
         try:
             self.chain_holder = ChainHolder(chainspec, self.action_name)
+        except json_schema_exceptions.ValidationError as e:
+            # preserve the whole nasty jsonschema message as that is better to get to the
+            # root cause
+            message = str(e)
+            LOG.exception('Failed to instantiate ActionChain.')
+            raise runnerexceptions.ActionRunnerPreRunError(message)
         except Exception as e:
             message = e.message or str(e)
             LOG.exception('Failed to instantiate ActionChain.')
