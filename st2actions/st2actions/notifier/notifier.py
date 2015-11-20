@@ -19,9 +19,7 @@ from kombu import Connection
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
-from st2common.constants.action import LIVEACTION_STATUS_FAILED
-from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants import action as action_constants
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.api.trace import TraceContext
 from st2common.models.db.liveaction import LiveActionDB
@@ -45,9 +43,10 @@ LOG = logging.getLogger(__name__)
 ACTIONUPDATE_WORK_Q = liveaction.get_queue('st2.notifiers.work',
                                            routing_key=publishers.UPDATE_RK)
 ACTION_COMPLETE_STATES = [
-    LIVEACTION_STATUS_SUCCEEDED,
-    LIVEACTION_STATUS_FAILED,
-    LIVEACTION_STATUS_TIMED_OUT,
+    action_constants.LIVEACTION_STATUS_SUCCEEDED,
+    action_constants.LIVEACTION_STATUS_FAILED,
+    action_constants.LIVEACTION_STATUS_TIMED_OUT,
+    action_constants.LIVEACTION_STATUS_CANCELED
 ]
 
 ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
@@ -112,12 +111,12 @@ class Notifier(consumers.MessageHandler):
                 liveaction=liveaction, execution_id=execution_id,
                 notify_subsection=notify.on_complete,
                 default_message_suffix='completed.')
-        if liveaction.status == LIVEACTION_STATUS_SUCCEEDED and notify.on_success:
+        if liveaction.status == action_constants.LIVEACTION_STATUS_SUCCEEDED and notify.on_success:
             self._post_notify_subsection_triggers(
                 liveaction=liveaction, execution_id=execution_id,
                 notify_subsection=notify.on_success,
                 default_message_suffix='succeeded.')
-        if liveaction.status == LIVEACTION_STATUS_FAILED and notify.on_failure:
+        if liveaction.status == action_constants.LIVEACTION_STATUS_FAILED and notify.on_failure:
             self._post_notify_subsection_triggers(
                 liveaction=liveaction, execution_id=execution_id,
                 notify_subsection=notify.on_failure,
