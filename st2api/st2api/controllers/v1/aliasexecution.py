@@ -16,13 +16,16 @@
 import jsonschema
 import pecan
 import six
+import jinja2
 from pecan import rest
 
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import AliasExecutionAPI
+from st2common.models.api.action import ActionAliasAPI
 from st2common.models.api.auth import get_system_username
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 from st2common.models.utils import action_alias_utils, action_param_utils
@@ -46,7 +49,7 @@ CAST_OVERRIDES = {
 
 class ActionAliasExecutionController(rest.RestController):
 
-    @jsexpose(body_cls=AliasExecutionAPI, status_code=http_client.OK)
+    @jsexpose(body_cls=AliasExecutionAPI, status_code=http_client.CREATED)
     def post(self, payload):
         action_alias_name = payload.name if payload else None
 
@@ -88,7 +91,19 @@ class ActionAliasExecutionController(rest.RestController):
                                              notify=notify,
                                              context=context)
 
-        return str(execution.id)
+        result = {
+            'execution': execution,
+            'actionalias': ActionAliasAPI.from_model(action_alias_db)
+        }
+
+        if action_alias_db.ack and 'format' in action_alias_db.ack:
+            jinja = jinja2.Environment(trim_blocks=True, lstrip_blocks=True)
+            jinja.tests['in'] = lambda item, list: item in list
+            result.update({
+                'message': jinja.from_string(action_alias_db.ack['format']).render(result)
+            })
+
+        return result
 
     def _tokenize_alias_execution(self, alias_execution):
         tokens = alias_execution.strip().split(' ', 1)
@@ -140,7 +155,7 @@ class ActionAliasExecutionController(rest.RestController):
             liveaction = LiveActionDB(action=action_alias_db.action_ref, context=context,
                                       parameters=params, notify=notify)
             _, action_execution_db = action_service.request(liveaction)
-            return action_execution_db
+            return ActionExecutionAPI.from_model(action_execution_db)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             pecan.abort(http_client.BAD_REQUEST, str(e))
