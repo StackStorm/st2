@@ -371,37 +371,37 @@ class ActionChainRunner(ActionRunner):
                     self._stopped = action_service.is_action_canceled_or_canceling(
                         self.liveaction_id)
 
-                if not self._stopped:
-                    try:
-                        if not liveaction or liveaction.status in FAILED_STATES:
-                            if liveaction.status == LIVEACTION_STATUS_TIMED_OUT:
-                                timeout = True
-                            else:
-                                fail = True
-
-                            action_node = self.chain_holder.get_next_node(action_node.name,
-                                                                          condition='on-failure')
-                        elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
-                            action_node = self.chain_holder.get_next_node(action_node.name,
-                                                                          condition='on-success')
-                    except Exception as e:
-                        LOG.exception('Failed to get next node "%s".', action_node.name)
-
-                        fail = True
-                        error = ('Failed to get next node "%s". Lookup failed: %s' %
-                                 (action_node.name, str(e)))
-                        trace = traceback.format_exc(10)
-                        top_level_error = {
-                            'error': error,
-                            'traceback': trace
-                        }
-                        # reset action_node here so that chain breaks on failure.
-                        action_node = None
-                        break
-                else:
+                if self._stopped:
                     LOG.info('Chain execution (%s) canceled by user.', self.liveaction_id)
                     status = LIVEACTION_STATUS_CANCELED
                     return (status, result, None)
+
+                try:
+                    if not liveaction or liveaction.status in FAILED_STATES:
+                        if liveaction and liveaction.status == LIVEACTION_STATUS_TIMED_OUT:
+                            timeout = True
+                        else:
+                            fail = True
+
+                        action_node = self.chain_holder.get_next_node(action_node.name,
+                                                                      condition='on-failure')
+                    elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
+                        action_node = self.chain_holder.get_next_node(action_node.name,
+                                                                      condition='on-success')
+                except Exception as e:
+                    LOG.exception('Failed to get next node "%s".', action_node.name)
+
+                    fail = True
+                    error = ('Failed to get next node "%s". Lookup failed: %s' %
+                             (action_node.name, str(e)))
+                    trace = traceback.format_exc(10)
+                    top_level_error = {
+                        'error': error,
+                        'traceback': trace
+                    }
+                    # reset action_node here so that chain breaks on failure.
+                    action_node = None
+                    break
 
         if fail:
             status = LIVEACTION_STATUS_FAILED
