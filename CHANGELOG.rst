@@ -31,6 +31,8 @@ in development
   both flags to the binary - ``--debug --profile``.
 * Fix policy loading and registering - make sure we validate policy parameters against the
   parameters schema when loading / registering policies. (bug fix, improvement)
+* Fix action chain so it doesn't end up in an infinite loop if an action which is part of the chain
+  is canceled. (bug fix)
 
 1.1.1 - November 13, 2015
 -------------------------
