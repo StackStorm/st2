@@ -23,8 +23,12 @@ from jsonschema import exceptions as json_schema_exceptions
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import ACTION_KV_PREFIX
-from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED)
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
+from st2common.constants.action import COMPLETED_STATES
+from st2common.constants.action import FAILED_STATES
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
 from st2common.exceptions.action import (ParameterRenderingFailedException,
@@ -291,6 +295,7 @@ class ActionChainRunner(ActionRunner):
 
         while action_node:
             fail = False
+            timeout = False
             error = None
             liveaction = None
 
@@ -368,8 +373,12 @@ class ActionChainRunner(ActionRunner):
 
                 if not self._stopped:
                     try:
-                        if not liveaction or liveaction.status == LIVEACTION_STATUS_FAILED:
-                            fail = True
+                        if not liveaction or liveaction.status in FAILED_STATES:
+                            if liveaction.status == LIVEACTION_STATUS_TIMED_OUT:
+                                timeout = True
+                            else:
+                                fail = True
+
                             action_node = self.chain_holder.get_next_node(action_node.name,
                                                                           condition='on-failure')
                         elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
@@ -396,6 +405,8 @@ class ActionChainRunner(ActionRunner):
 
         if fail:
             status = LIVEACTION_STATUS_FAILED
+        elif timeout:
+            status = LIVEACTION_STATUS_TIMED_OUT
         else:
             status = LIVEACTION_STATUS_SUCCEEDED
 
@@ -494,9 +505,7 @@ class ActionChainRunner(ActionRunner):
             LOG.exception('Failed to schedule liveaction.')
             raise e
 
-        while (wait_for_completion and
-               liveaction.status != LIVEACTION_STATUS_SUCCEEDED and
-               liveaction.status != LIVEACTION_STATUS_FAILED):
+        while (wait_for_completion and liveaction.status not in COMPLETED_STATES):
             eventlet.sleep(1)
             liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
 
