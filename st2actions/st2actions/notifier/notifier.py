@@ -19,7 +19,9 @@ from kombu import Connection
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.api.trace import TraceContext
 from st2common.models.db.liveaction import LiveActionDB
@@ -42,7 +44,12 @@ LOG = logging.getLogger(__name__)
 
 ACTIONUPDATE_WORK_Q = liveaction.get_queue('st2.notifiers.work',
                                            routing_key=publishers.UPDATE_RK)
-ACTION_COMPLETE_STATES = [LIVEACTION_STATUS_FAILED, LIVEACTION_STATUS_SUCCEEDED]
+ACTION_COMPLETE_STATES = [
+    LIVEACTION_STATUS_SUCCEEDED,
+    LIVEACTION_STATUS_FAILED,
+    LIVEACTION_STATUS_TIMED_OUT,
+]
+
 ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
 # XXX: Fix this nasty positional dependency.
 ACTION_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][0]
@@ -63,16 +70,20 @@ class Notifier(consumers.MessageHandler):
             name=ACTION_TRIGGER_TYPE['name'])
 
     def process(self, liveaction):
-        LOG.debug('Processing liveaction. %s', liveaction)
+        live_action_id = str(liveaction.id)
+        extra = {'live_action_db': liveaction}
+        LOG.debug('Processing liveaction %s', live_action_id, extra=extra)
 
         if liveaction.status not in ACTION_COMPLETE_STATES:
+            LOG.debug('Skipping processing of liveaction %s since it\'s not in a completed state' %
+                      (live_action_id), extra=extra)
             return
 
         execution_id = self._get_execution_id_for_liveaction(liveaction)
 
         if not execution_id:
             LOG.exception('Execution object corresponding to LiveAction %s not found.',
-                          str(liveaction.id))
+                          live_action_id, extra=extra)
             return None
 
         self._apply_post_run_policies(liveaction=liveaction, execution_id=execution_id)
@@ -193,12 +204,17 @@ class Notifier(consumers.MessageHandler):
 
     def _apply_post_run_policies(self, liveaction=None, execution_id=None):
         # Apply policies defined for the action.
-        for policy_db in Policy.query(resource_ref=liveaction.action):
+        policy_dbs = Policy.query(resource_ref=liveaction.action)
+        LOG.debug('Applying %s post_run policies' % (len(policy_dbs)))
+
+        for policy_db in policy_dbs:
             driver = policies.get_driver(policy_db.ref,
                                          policy_db.policy_type,
                                          **policy_db.parameters)
 
             try:
+                LOG.debug('Applying post_run policy "%s" (%s) for liveaction %s' %
+                          (policy_db.ref, policy_db.policy_type, str(liveaction.id)))
                 liveaction = driver.apply_after(liveaction)
             except:
                 LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)

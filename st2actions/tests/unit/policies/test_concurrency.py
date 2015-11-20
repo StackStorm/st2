@@ -14,15 +14,11 @@
 # limitations under the License.
 
 import mock
-import six
 
 from st2common.constants import action as action_constants
-from st2common.models.api.action import ActionAPI, RunnerTypeAPI
-from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.models.db.action import LiveActionDB
-from st2common.persistence.action import Action, LiveAction
-from st2common.persistence.policy import PolicyType, Policy
-from st2common.persistence.runner import RunnerType
+from st2common.persistence.action import LiveAction
+from st2common.persistence.policy import Policy
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
@@ -31,7 +27,7 @@ from st2tests.fixturesloader import FixturesLoader
 from tests.unit.base import MockLiveActionPublisher
 from tests.unit.test_runner import TestRunner
 
-
+PACK = 'generic'
 TEST_FIXTURES = {
     'runners': [
         'testrunner1.yaml'
@@ -47,9 +43,6 @@ TEST_FIXTURES = {
     ]
 }
 
-PACK = 'generic'
-LOADER = FixturesLoader()
-FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 NON_EMPTY_RESULT = 'non-empty'
 
 SCHEDULED_STATES = [
@@ -79,21 +72,9 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         EventletTestCase.setUpClass()
         DbTestCase.setUpClass()
 
-        for _, fixture in six.iteritems(FIXTURES['runners']):
-            instance = RunnerTypeAPI(**fixture)
-            RunnerType.add_or_update(RunnerTypeAPI.to_model(instance))
-
-        for _, fixture in six.iteritems(FIXTURES['actions']):
-            instance = ActionAPI(**fixture)
-            Action.add_or_update(ActionAPI.to_model(instance))
-
-        for _, fixture in six.iteritems(FIXTURES['policytypes']):
-            instance = PolicyTypeAPI(**fixture)
-            PolicyType.add_or_update(PolicyTypeAPI.to_model(instance))
-
-        for _, fixture in six.iteritems(FIXTURES['policies']):
-            instance = PolicyAPI(**fixture)
-            Policy.add_or_update(PolicyAPI.to_model(instance))
+        loader = FixturesLoader()
+        loader.save_fixtures_to_db(fixtures_pack=PACK,
+                                   fixtures_dict=TEST_FIXTURES)
 
     def test_over_threshold(self):
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')

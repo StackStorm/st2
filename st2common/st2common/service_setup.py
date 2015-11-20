@@ -88,13 +88,13 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     if cfg.CONF.debug:
         enable_debugging()
 
+    if cfg.CONF.profile:
+        enable_profiling()
+
     # All other setup which requires config to be parsed and logging to
     # be correctly setup.
     if setup_db:
         db_setup()
-
-    if cfg.CONF.debug or cfg.CONF.profile:
-        enable_profiling()
 
     if register_mq_exchanges:
         register_exchanges()
