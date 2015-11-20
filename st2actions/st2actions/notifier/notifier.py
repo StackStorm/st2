@@ -22,6 +22,8 @@ from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.action import FAILED_STATES
+from st2common.constants.action import COMPLETED_STATES
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.api.trace import TraceContext
 from st2common.models.db.liveaction import LiveActionDB
@@ -44,11 +46,6 @@ LOG = logging.getLogger(__name__)
 
 ACTIONUPDATE_WORK_Q = liveaction.get_queue('st2.notifiers.work',
                                            routing_key=publishers.UPDATE_RK)
-ACTION_COMPLETE_STATES = [
-    LIVEACTION_STATUS_SUCCEEDED,
-    LIVEACTION_STATUS_FAILED,
-    LIVEACTION_STATUS_TIMED_OUT,
-]
 
 ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
 # XXX: Fix this nasty positional dependency.
@@ -74,7 +71,7 @@ class Notifier(consumers.MessageHandler):
         extra = {'live_action_db': liveaction}
         LOG.debug('Processing liveaction %s', live_action_id, extra=extra)
 
-        if liveaction.status not in ACTION_COMPLETE_STATES:
+        if liveaction.status not in COMPLETED_STATES:
             LOG.debug('Skipping processing of liveaction %s since it\'s not in a completed state' %
                       (live_action_id), extra=extra)
             return
@@ -117,7 +114,7 @@ class Notifier(consumers.MessageHandler):
                 liveaction=liveaction, execution_id=execution_id,
                 notify_subsection=notify.on_success,
                 default_message_suffix='succeeded.')
-        if liveaction.status == LIVEACTION_STATUS_FAILED and notify.on_failure:
+        if liveaction.status in COMPLETED_STATES and notify.on_failure:
             self._post_notify_subsection_triggers(
                 liveaction=liveaction, execution_id=execution_id,
                 notify_subsection=notify.on_failure,
