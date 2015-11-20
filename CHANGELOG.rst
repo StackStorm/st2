@@ -31,6 +31,7 @@ in development
   both flags to the binary - ``--debug --profile``.
 * Fix policy loading and registering - make sure we validate policy parameters against the
   parameters schema when loading / registering policies. (bug fix, improvement)
+* Fix policy trigger for action execution cancellation. (bug fix)
 
 1.1.1 - November 13, 2015
 -------------------------
