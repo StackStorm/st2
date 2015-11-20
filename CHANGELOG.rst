@@ -23,6 +23,8 @@ in development
   execution endpoint incorrectly being set to the system user (``stanley``) instead of the
   authenticated user which triggered the execution. (bug fix)
 * Include state_info for Mistral workflow and tasks in the action execution result. (improvement)
+* Improve error reporting for static error in ActionChain definition e.g. incorrect reference
+  in default etc. (improvement)
 
 1.1.1 - November 13, 2015
 -------------------------
