@@ -497,7 +497,11 @@ class ActionChainRunner(ActionRunner):
 
         return liveaction
 
-    def _run_action(self, liveaction, wait_for_completion=True):
+    def _run_action(self, liveaction, wait_for_completion=True, sleep_delay=1.0):
+        """
+        :param sleep_delay: Number of seconds to wait during "is completed" polls.
+        :type sleep_delay: ``float``
+        """
         try:
             liveaction, _ = action_service.request(liveaction)
         except Exception as e:
@@ -506,7 +510,7 @@ class ActionChainRunner(ActionRunner):
             raise e
 
         while (wait_for_completion and liveaction.status not in COMPLETED_STATES):
-            eventlet.sleep(1)
+            eventlet.sleep(sleep_delay)
             liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
 
         return liveaction
