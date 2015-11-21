@@ -32,6 +32,8 @@ in development
 * Fix policy loading and registering - make sure we validate policy parameters against the
   parameters schema when loading / registering policies. (bug fix, improvement)
 * Fix policy trigger for action execution cancellation. (bug fix)
+* Improve error reporting for static error in ActionChain definition e.g. incorrect reference
+  in default etc. (improvement)
 
 1.1.1 - November 13, 2015
 -------------------------
