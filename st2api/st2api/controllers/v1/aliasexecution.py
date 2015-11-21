@@ -16,9 +16,7 @@
 import jsonschema
 import pecan
 import six
-import jinja2
 from pecan import rest
-
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -34,6 +32,7 @@ from st2common.services import action as action_service
 from st2common.util import action_db as action_utils
 from st2common.util import reference
 from st2common.util.api import get_requester
+from st2common.util.jinja import render_values as render
 from st2common.rbac.types import PermissionType
 from st2common.rbac.utils import assert_request_user_has_resource_db_permission
 
@@ -97,10 +96,9 @@ class ActionAliasExecutionController(rest.RestController):
         }
 
         if action_alias_db.ack and 'format' in action_alias_db.ack:
-            jinja = jinja2.Environment(trim_blocks=True, lstrip_blocks=True)
-            jinja.tests['in'] = lambda item, list: item in list
             result.update({
-                'message': jinja.from_string(action_alias_db.ack['format']).render(result)
+                'message': render({'alias': action_alias_db.ack['format']},
+                                  {'alias': result})['alias']
             })
 
         return result

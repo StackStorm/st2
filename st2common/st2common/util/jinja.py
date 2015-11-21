@@ -119,8 +119,11 @@ def get_jinja_environment(allow_undefined=False):
 
     '''
     undefined = jinja2.Undefined if allow_undefined else jinja2.StrictUndefined
-    env = jinja2.Environment(undefined=undefined)
+    env = jinja2.Environment(undefined=undefined,
+                             trim_blocks=True,
+                             lstrip_blocks=True)
     env.filters.update(CustomFilters.get_filters())
+    env.tests['in'] = lambda item, list: item in list
     return env
 
 
