@@ -34,6 +34,11 @@ in development
 * Fix policy trigger for action execution cancellation. (bug fix)
 * Improve error reporting for static error in ActionChain definition e.g. incorrect reference
   in default etc. (improvement)
+* Allow user to pass ``env`` parameter to ``packs.setup_virtualenv`` and ``packs.install``
+  action.
+
+  This comes handy if user wants pip to use an HTTP(s) proxy (HTTP_PROXY and HTTPS_PROXY
+  environment variable) when installing pack dependencies. (new feature)
 
 1.1.1 - November 13, 2015
 -------------------------
