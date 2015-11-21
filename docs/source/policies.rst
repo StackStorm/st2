@@ -10,7 +10,8 @@ To list the types of policy that is available for configuration, run the command
 Policy configuration files are expected to be located under the ``policies`` folder in related packs, similar to actions and rules. Policies can be loaded into |st2| via ``st2ctl reload --register-policies``. Once policies are loaded into |st2|, run the command ``st2 policy list`` to view the list of policies in effect.
 
 Concurrency
-+++++++++++
+-----------
+
 The concurrency policy enforces the number of executions that can run simultaneously for a specified action. There are two forms of concurrency policy: ``action.concurrency`` and ``action.concurrency.attr``.
 
 The ``action.concurrency`` policy basically limites the concurrenct executions for the action. The following is an example of a policy file with concurrency defined for ``demo.my_action``. Please note that the resource_ref and policy_type are the fully qualified name for the action and policy type respectively. The ``threshold`` parameter defines how many concurrency instances allowed. In this example, no more than 10 instances of ``demo.my_action`` can be run simultaneously. Any execution requests passed threshold will be postponed.
@@ -55,3 +56,18 @@ Configuration example for Redis. ::
 
     [coordination]
     url = redis://username:password@host:port
+
+Retry
+-----
+
+Retry policy (``action.retry``) allows you to automatically retry (re-run) an action when a
+particular failure condition is met. Right now we support retrying actions which have failed or
+timed out.
+
+The example below shows how to automatically retry ``core.http`` action for up to two times if it
+times out.
+
+.. literalinclude:: /../../contrib/hello-st2/policies/retry_core_http_on_timeout.yaml
+
+Keep in mind that retrying an execution results in a new execution which shares all the attributes
+from the retried execution (parameters, context, etc).

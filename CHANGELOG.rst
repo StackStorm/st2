@@ -23,6 +23,15 @@ in development
   execution endpoint incorrectly being set to the system user (``stanley``) instead of the
   authenticated user which triggered the execution. (bug fix)
 * Include state_info for Mistral workflow and tasks in the action execution result. (improvement)
+* Introduce a new ``timeout`` action execution status which represents an action execution
+  timeout. Previously, executions which timed out had status set to ``failure``. Keep in mind
+  that timeout is just a special type of a failure. (new feature)
+* ``--debug`` flag no longer implies profiling mode. If you want to enable profiling mode, you need
+  to explicitly pass ``--profile`` flag to the binary. To reproduce the old behavior, simply pass
+  both flags to the binary - ``--debug --profile``.
+* Fix policy loading and registering - make sure we validate policy parameters against the
+  parameters schema when loading / registering policies. (bug fix, improvement)
+* Fix policy trigger for action execution cancellation. (bug fix)
 * Improve error reporting for static error in ActionChain definition e.g. incorrect reference
   in default etc. (improvement)
 

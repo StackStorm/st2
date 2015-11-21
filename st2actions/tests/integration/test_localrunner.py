@@ -66,7 +66,7 @@ class TestLocalShellRunner(TestCase):
         runner.pre_run()
         status, result, _ = runner.run({})
         runner.post_run(status, result)
-        self.assertEquals(status, action_constants.LIVEACTION_STATUS_FAILED)
+        self.assertEquals(status, action_constants.LIVEACTION_STATUS_TIMED_OUT)
 
     def test_large_stdout(self):
         models = TestLocalShellRunner.fixtures_loader.load_models(

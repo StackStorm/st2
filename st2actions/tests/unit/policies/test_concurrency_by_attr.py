@@ -14,15 +14,11 @@
 # limitations under the License.
 
 import mock
-import six
 
 from st2common.constants import action as action_constants
-from st2common.models.api.action import ActionAPI, RunnerTypeAPI
-from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.models.db.action import LiveActionDB
-from st2common.persistence.action import Action, LiveAction
-from st2common.persistence.policy import PolicyType, Policy
-from st2common.persistence.runner import RunnerType
+from st2common.persistence.action import LiveAction
+from st2common.persistence.policy import Policy
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
@@ -31,7 +27,7 @@ from st2tests.fixturesloader import FixturesLoader
 from tests.unit.base import MockLiveActionPublisher
 from tests.unit.test_runner import TestRunner
 
-
+PACK = 'generic'
 TEST_FIXTURES = {
     'runners': [
         'testrunner1.yaml'
@@ -47,9 +43,6 @@ TEST_FIXTURES = {
     ]
 }
 
-PACK = 'generic'
-LOADER = FixturesLoader()
-FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
 NON_EMPTY_RESULT = 'non-empty'
 
 SCHEDULED_STATES = [
@@ -73,25 +66,20 @@ SCHEDULED_STATES = [
     LiveActionPublisher, 'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
-    def setUp(self):
+
+    @classmethod
+    def setUpClass(cls):
         EventletTestCase.setUpClass()
         DbTestCase.setUpClass()
 
-        for _, fixture in six.iteritems(FIXTURES['runners']):
-            instance = RunnerTypeAPI(**fixture)
-            RunnerType.add_or_update(RunnerTypeAPI.to_model(instance))
+        loader = FixturesLoader()
+        loader.save_fixtures_to_db(fixtures_pack=PACK,
+                                   fixtures_dict=TEST_FIXTURES)
 
-        for _, fixture in six.iteritems(FIXTURES['actions']):
-            instance = ActionAPI(**fixture)
-            Action.add_or_update(ActionAPI.to_model(instance))
-
-        for _, fixture in six.iteritems(FIXTURES['policytypes']):
-            instance = PolicyTypeAPI(**fixture)
-            PolicyType.add_or_update(PolicyTypeAPI.to_model(instance))
-
-        for _, fixture in six.iteritems(FIXTURES['policies']):
-            instance = PolicyAPI(**fixture)
-            Policy.add_or_update(PolicyAPI.to_model(instance))
+    def tearDown(self):
+        for liveaction in LiveAction.get_all():
+            action_service.update_status(
+                liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
 
     def test_over_threshold(self):
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency.attr')
@@ -102,10 +90,8 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
             liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu'})
             action_service.request(liveaction)
 
-        scheduled = LiveAction.get_all()
+        scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
-        for liveaction in scheduled:
-            self.assertIn(liveaction.status, SCHEDULED_STATES)
 
         # Execution is expected to be delayed since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu'})
@@ -123,6 +109,38 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
         # Mark one of the execution as completed.
         action_service.update_status(
             scheduled[0], action_constants.LIVEACTION_STATUS_SUCCEEDED, publish=True)
+
+        # Execution is expected to be rescheduled.
+        liveaction = LiveAction.get_by_id(str(delayed.id))
+        self.assertIn(liveaction.status, SCHEDULED_STATES)
+
+    def test_on_cancellation(self):
+        policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency.attr')
+        self.assertGreater(policy_db.parameters['threshold'], 0)
+        self.assertIn('actionstr', policy_db.parameters['attributes'])
+
+        for i in range(0, policy_db.parameters['threshold']):
+            liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu'})
+            action_service.request(liveaction)
+
+        scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
+        self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
+
+        # Execution is expected to be delayed since concurrency threshold is reached.
+        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu'})
+        liveaction, _ = action_service.request(liveaction)
+        delayed = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(delayed.status, action_constants.LIVEACTION_STATUS_DELAYED)
+
+        # Execution is expected to be scheduled since concurrency threshold is not reached.
+        # The execution with actionstr "fu" is over the threshold but actionstr "bar" is not.
+        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'bar'})
+        liveaction, _ = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertIn(liveaction.status, SCHEDULED_STATES)
+
+        # Cancel execution.
+        action_service.request_cancellation(scheduled[0], 'stanley')
 
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(delayed.id))
