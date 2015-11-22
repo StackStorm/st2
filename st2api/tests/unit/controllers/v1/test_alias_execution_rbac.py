@@ -15,10 +15,11 @@
 
 import mock
 
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.models.db.execution import ActionExecutionDB
 from st2common.services import action as action_service
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
-from tests.unit.controllers.v1.test_alias_execution import DummyActionExecution
 
 FIXTURES_PACK = 'aliases'
 
@@ -32,6 +33,10 @@ TEST_LOAD_MODELS = {
     'aliases': ['alias3.yaml']
 }
 
+EXECUTION = ActionExecutionDB(id='54e657d60640fd16887d6855',
+                              status=LIVEACTION_STATUS_SUCCEEDED,
+                              result='')
+
 __all__ = [
     'AliasExecutionWithRBACTestCase'
 ]
@@ -43,12 +48,12 @@ class AliasExecutionWithRBACTestCase(APIControllerWithRBACTestCase):
         super(AliasExecutionWithRBACTestCase, self).setUp()
 
         self.models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
-                                                          fixtures_dict=TEST_MODELS)
+                                                           fixtures_dict=TEST_MODELS)
         self.alias1 = self.models['aliases']['alias1.yaml']
         self.alias2 = self.models['aliases']['alias2.yaml']
 
     @mock.patch.object(action_service, 'request',
-                       return_value=(None, DummyActionExecution(id_=1)))
+                       return_value=(None, EXECUTION))
     def test_live_action_context_user_is_set_to_authenticated_user(self, request):
         # Verify that the user inside the context of live action is set to authenticated user
         # which hit the endpoint. This is important for RBAC and many other things.
@@ -57,7 +62,7 @@ class AliasExecutionWithRBACTestCase(APIControllerWithRBACTestCase):
 
         command = 'Lorem ipsum value1 dolor sit "value2, value3" amet.'
         post_resp = self._do_post(alias_execution=self.alias2, command=command)
-        self.assertEqual(post_resp.status_int, 200)
+        self.assertEqual(post_resp.status_int, 201)
 
         live_action_db = request.call_args[0][0]
         self.assertEquals(live_action_db.context['user'], 'admin')
