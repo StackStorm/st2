@@ -20,6 +20,7 @@ from st2actions.container.service import RunnerContainerService
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.models.api.notification import NotificationsHelper
@@ -175,6 +176,43 @@ class TestActionChainRunner(DbTestCase):
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         # based on the chain the callcount is known to be 3. Not great but works.
         self.assertEqual(request.call_count, 3)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_task_is_canceled_while_running(self, request):
+        # Second task in the action is CANCELED, make sure runner doesn't get stuck in an infinite
+        # loop
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_2_PATH
+        chain_runner.action = ACTION_1
+
+        original_run_action = chain_runner._run_action
+
+        def mock_run_action(*args, **kwargs):
+            original_live_action = args[0]
+            if original_live_action.action == 'wolfpack.a2':
+                status = LIVEACTION_STATUS_CANCELED
+            else:
+                status = LIVEACTION_STATUS_SUCCEEDED
+            request.return_value = (DummyActionExecution(status=status), None)
+            liveaction = original_run_action(*args, **kwargs)
+            return liveaction
+
+        chain_runner._run_action = mock_run_action
+
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
+                                                           pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, _, _ = chain_runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_CANCELED)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # Chain count should be 2 since the last task doesn't get called since the second one was
+        # canceled
+        self.assertEqual(request.call_count, 2)
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))

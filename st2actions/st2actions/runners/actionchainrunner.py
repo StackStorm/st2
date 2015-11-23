@@ -377,14 +377,22 @@ class ActionChainRunner(ActionRunner):
                     return (status, result, None)
 
                 try:
-                    if not liveaction or liveaction.status in LIVEACTION_FAILED_STATES:
+                    if not liveaction:
+                        fail = True
+                        action_node = self.chain_holder.get_next_node(action_node.name,
+                                                                      condition='on-failure')
+                    elif liveaction.status in LIVEACTION_FAILED_STATES:
                         if liveaction and liveaction.status == LIVEACTION_STATUS_TIMED_OUT:
                             timeout = True
                         else:
                             fail = True
-
                         action_node = self.chain_holder.get_next_node(action_node.name,
                                                                       condition='on-failure')
+                    elif liveaction.status == LIVEACTION_STATUS_CANCELED:
+                        # User canceled an action (task) in the workflow - cancel the execution of
+                        # rest of the workflow
+                        self._stopped = True
+                        LOG.info('Chain execution (%s) canceled by user.', self.liveaction_id)
                     elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
                         action_node = self.chain_holder.get_next_node(action_node.name,
                                                                       condition='on-success')
@@ -402,6 +410,11 @@ class ActionChainRunner(ActionRunner):
                     # reset action_node here so that chain breaks on failure.
                     action_node = None
                     break
+
+                if self._stopped:
+                    LOG.info('Chain execution (%s) canceled by user.', self.liveaction_id)
+                    status = LIVEACTION_STATUS_CANCELED
+                    return (status, result, None)
 
         if fail:
             status = LIVEACTION_STATUS_FAILED
@@ -503,6 +516,7 @@ class ActionChainRunner(ActionRunner):
         :type sleep_delay: ``float``
         """
         try:
+            # request return canceled
             liveaction, _ = action_service.request(liveaction)
         except Exception as e:
             liveaction.status = LIVEACTION_STATUS_FAILED
