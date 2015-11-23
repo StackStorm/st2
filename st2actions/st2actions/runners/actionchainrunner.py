@@ -27,8 +27,8 @@ from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
-from st2common.constants.action import COMPLETED_STATES
-from st2common.constants.action import FAILED_STATES
+from st2common.constants.action import LIVEACTION_COMPLETED_STATES
+from st2common.constants.action import LIVEACTION_FAILED_STATES
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
 from st2common.exceptions.action import (ParameterRenderingFailedException,
@@ -377,7 +377,7 @@ class ActionChainRunner(ActionRunner):
                     return (status, result, None)
 
                 try:
-                    if not liveaction or liveaction.status in FAILED_STATES:
+                    if not liveaction or liveaction.status in LIVEACTION_FAILED_STATES:
                         if liveaction and liveaction.status == LIVEACTION_STATUS_TIMED_OUT:
                             timeout = True
                         else:
@@ -509,7 +509,7 @@ class ActionChainRunner(ActionRunner):
             LOG.exception('Failed to schedule liveaction.')
             raise e
 
-        while (wait_for_completion and liveaction.status not in COMPLETED_STATES):
+        while (wait_for_completion and liveaction.status not in LIVEACTION_COMPLETED_STATES):
             eventlet.sleep(sleep_delay)
             liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
 
