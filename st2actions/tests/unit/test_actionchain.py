@@ -20,6 +20,7 @@ from st2actions.container.service import RunnerContainerService
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.models.api.notification import NotificationsHelper
 from st2common.models.db.liveaction import LiveActionDB
@@ -57,6 +58,8 @@ RUNNER = MODELS['runners']['testrunner1.yaml']
 
 CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain1.yaml')
+CHAIN_2_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain2.yaml')
 CHAIN_ACTION_CALL_NO_PARAMS_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_action_call_no_params.yaml')
 CHAIN_NO_DEFAULT = FixturesLoader().get_fixture_file_path_abs(
@@ -136,6 +139,39 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
         chain_runner.run({})
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # based on the chain the callcount is known to be 3. Not great but works.
+        self.assertEqual(request.call_count, 3)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_chain_second_task_times_out(self, request):
+        # Second task in the chain times out so the action chain status should be timeout
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_2_PATH
+        chain_runner.action = ACTION_1
+
+        original_run_action = chain_runner._run_action
+
+        def mock_run_action(*args, **kwargs):
+            original_live_action = args[0]
+            liveaction = original_run_action(*args, **kwargs)
+            if original_live_action.action == 'wolfpack.a2':
+                # Mock a timeout for second task
+                liveaction.status = LIVEACTION_STATUS_TIMED_OUT
+            return liveaction
+
+        chain_runner._run_action = mock_run_action
+
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
+                                                           pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, _, _ = chain_runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_TIMED_OUT)
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         # based on the chain the callcount is known to be 3. Not great but works.
         self.assertEqual(request.call_count, 3)
