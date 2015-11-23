@@ -20,8 +20,6 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
-from st2common.constants.action import LIVEACTION_STATUS_FAILED
-from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import FAILED_STATES
 from st2common.constants.action import COMPLETED_STATES
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
@@ -114,7 +112,7 @@ class Notifier(consumers.MessageHandler):
                 liveaction=liveaction, execution_id=execution_id,
                 notify_subsection=notify.on_success,
                 default_message_suffix='succeeded.')
-        if liveaction.status in COMPLETED_STATES and notify.on_failure:
+        if liveaction.status in FAILED_STATES and notify.on_failure:
             self._post_notify_subsection_triggers(
                 liveaction=liveaction, execution_id=execution_id,
                 notify_subsection=notify.on_failure,
