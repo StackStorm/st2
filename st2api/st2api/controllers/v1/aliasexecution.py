@@ -97,8 +97,7 @@ class ActionAliasExecutionController(rest.RestController):
 
         if action_alias_db.ack and 'format' in action_alias_db.ack:
             result.update({
-                'message': render({'alias': action_alias_db.ack['format']},
-                                  {'alias': result})['alias']
+                'message': render({'alias': action_alias_db.ack['format']}, result)['alias']
             })
 
         return result
