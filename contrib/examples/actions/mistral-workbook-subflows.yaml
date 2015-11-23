@@ -8,19 +8,7 @@ parameters:
   adjective:
     default: awesome
     type: string
-  context:
-    default: {}
-    immutable: true
-    type: object
   subject:
     default: StackStorm
-    type: string
-  task:
-    default: null
-    immutable: true
-    type: string
-  workflow:
-    default: null
-    immutable: true
     type: string
 runner_type: mistral-v2

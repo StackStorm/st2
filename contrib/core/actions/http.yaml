@@ -41,5 +41,5 @@ parameters:
   timeout:
     default: 60
     description: Timeout for the HTTP request.
-    type: integer
+    type: number
 runner_type: "http-request"

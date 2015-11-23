@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pecan
+
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -21,7 +23,10 @@ from st2common.util.url import get_url_without_trailing_slash
 
 __all__ = [
     'get_base_public_api_url',
-    'get_full_public_api_url'
+    'get_full_public_api_url',
+    'get_mistral_api_url',
+
+    'get_requester'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -53,3 +58,38 @@ def get_full_public_api_url(api_version=DEFAULT_API_VERSION):
     api_url = get_base_public_api_url()
     api_url = '%s/%s' % (api_url, api_version)
     return api_url
+
+
+def get_mistral_api_url(api_version=DEFAULT_API_VERSION):
+    """
+    Return a URL which Mistral uses to talk back to the StackStorm API.
+
+    Note: If not provided it defaults to the public API url.
+    """
+    if cfg.CONF.mistral.api_url:
+        api_url = get_url_without_trailing_slash(cfg.CONF.mistral.api_url)
+        api_url = '%s/%s' % (api_url, api_version)
+    else:
+        LOG.warn('"mistral.api_url" not set, using auth.api_url')
+        api_url = get_full_public_api_url(api_version=api_version)
+
+    return api_url
+
+
+def get_requester():
+    """
+    Retrieve username of the authed user (note - if auth is disabled, user will not be
+    set so we fall back to the system user name)
+
+    :rtype: ``str``
+    """
+    auth_context = pecan.request.context.get('auth', None)
+    user_db = auth_context.get('user', None) if auth_context else None
+
+    if not user_db:
+        LOG.warn('auth is disabled, falling back to system_user')
+        username = cfg.CONF.system_user.user
+    else:
+        username = user_db.name
+
+    return username

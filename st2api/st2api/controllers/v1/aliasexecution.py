@@ -30,6 +30,7 @@ from st2common.persistence.actionalias import ActionAlias
 from st2common.services import action as action_service
 from st2common.util import action_db as action_utils
 from st2common.util import reference
+from st2common.util.api import get_requester
 from st2common.rbac.types import PermissionType
 from st2common.rbac.utils import assert_request_user_has_resource_db_permission
 
@@ -78,7 +79,7 @@ class ActionAliasExecutionController(rest.RestController):
         context = {
             'action_alias_ref': reference.get_ref_from_model(action_alias_db),
             'api_user': payload.user,
-            'user': get_system_username(),
+            'user': get_requester(),
             'source_channel': payload.source_channel
         }
 

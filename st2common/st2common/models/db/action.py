@@ -73,7 +73,7 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     runner_type = me.DictField(
         required=True, default={},
         help_text='The action runner to use for executing the action.')
-    parameters = me.DictField(
+    parameters = stormbase.EscapedDynamicField(
         help_text='The specification for parameters for the action.')
     notify = me.EmbeddedDocumentField(NotificationSchema)
 

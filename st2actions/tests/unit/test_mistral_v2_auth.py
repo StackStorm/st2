@@ -152,6 +152,7 @@ class MistralAuthTest(DbTestCase):
         env = {
             'st2_execution_id': str(execution.id),
             'st2_liveaction_id': str(liveaction.id),
+            'st2_action_api_url': 'http://0.0.0.0:9101/v1',
             '__actions': {
                 'st2.action': {
                     'st2_context': {
@@ -209,6 +210,7 @@ class MistralAuthTest(DbTestCase):
         env = {
             'st2_execution_id': str(execution.id),
             'st2_liveaction_id': str(liveaction.id),
+            'st2_action_api_url': 'http://0.0.0.0:9101/v1',
             '__actions': {
                 'st2.action': {
                     'st2_context': {
@@ -229,7 +231,7 @@ class MistralAuthTest(DbTestCase):
             cfg.CONF.mistral.keystone_password,
             cfg.CONF.mistral.keystone_project_name,
             cfg.CONF.mistral.keystone_auth_url,
-            None, 'publicURL', 'workflow', None, None, None)
+            None, 'publicURL', 'workflow', None, None, None, False)
 
         executions.ExecutionManager.create.assert_called_with(
             WF1_NAME, workflow_input=workflow_input, env=env)

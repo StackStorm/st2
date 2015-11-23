@@ -78,7 +78,8 @@ class RuleTypeAPI(BaseAPI):
         'properties': {
             'id': {
                 'description': 'The unique identifier for the action runner.',
-                'type': 'string'
+                'type': 'string',
+                'default': None
             },
             'name': {
                 'description': 'The name of the action runner.',
@@ -142,7 +143,8 @@ class RuleAPI(BaseAPI, APIUIDMixin):
         'type': 'object',
         'properties': {
             'id': {
-                'type': 'string'
+                'type': 'string',
+                'default': None
             },
             "ref": {
                 "description": "System computed user friendly reference for the action. \

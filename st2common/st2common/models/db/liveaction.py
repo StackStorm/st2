@@ -59,7 +59,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
     action = me.StringField(
         required=True,
         help_text='Reference to the action that has to be executed.')
-    parameters = me.DictField(
+    parameters = stormbase.EscapedDynamicField(
         default={},
         help_text='The key-value pairs passed as to the action runner & execution.')
     result = stormbase.EscapedDynamicField(

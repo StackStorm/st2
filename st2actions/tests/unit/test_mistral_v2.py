@@ -35,8 +35,8 @@ tests_config.parse_args()
 
 # Set defaults for retry options.
 cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
-cfg.CONF.set_override('retry_exp_max_msec', 100, group='mistral')
-cfg.CONF.set_override('retry_stop_max_msec', 300, group='mistral')
+cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
+cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
 
 import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2actions.handlers.mistral import MistralCallbackHandler
@@ -195,6 +195,7 @@ class MistralRunnerTest(DbTestCase):
         env = {
             'st2_execution_id': str(execution.id),
             'st2_liveaction_id': str(liveaction.id),
+            'st2_action_api_url': 'http://0.0.0.0:9101/v1',
             '__actions': {
                 'st2.action': {
                     'st2_context': {
@@ -244,6 +245,7 @@ class MistralRunnerTest(DbTestCase):
         env = {
             'st2_execution_id': str(execution.id),
             'st2_liveaction_id': str(liveaction.id),
+            'st2_action_api_url': 'https://0.0.0.0:9101/v1',
             '__actions': {
                 'st2.action': {
                     'st2_context': {
@@ -294,6 +296,7 @@ class MistralRunnerTest(DbTestCase):
         env = {
             'st2_execution_id': str(execution.id),
             'st2_liveaction_id': str(liveaction.id),
+            'st2_action_api_url': 'http://0.0.0.0:9101/v1',
             '__actions': {
                 'st2.action': {
                     'st2_context': {
@@ -700,7 +703,7 @@ class MistralRunnerTest(DbTestCase):
         # This test initially setup mock for action_executions.ActionExecutionManager.update
         # to fail the first 4 times and return success on the 5th times. The max attempts
         # is set to 3. We expect only 3 calls to pass thru the update method.
-        calls = [call('12345', state='SUCCESS', output=NON_EMPTY_RESULT) for i in range(0, 3)]
+        calls = [call('12345', state='SUCCESS', output=NON_EMPTY_RESULT) for i in range(0, 2)]
         action_executions.ActionExecutionManager.update.assert_has_calls(calls)
 
     @mock.patch.object(
@@ -800,7 +803,7 @@ class MistralRunnerTest(DbTestCase):
         requester = cfg.CONF.system_user.user
         liveaction, execution = action_service.request_cancellation(liveaction, requester)
 
-        calls = [call(WF1_EXEC.get('id'), 'PAUSED') for i in range(0, 3)]
+        calls = [call(WF1_EXEC.get('id'), 'PAUSED') for i in range(0, 2)]
         executions.ExecutionManager.update.assert_has_calls(calls)
 
         liveaction = LiveAction.get_by_id(str(liveaction.id))

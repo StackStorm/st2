@@ -20,6 +20,12 @@ from oslo_config import cfg
 
 
 import st2common.bootstrap.runnersregistrar as runners_registrar
+from st2common.rbac.types import SystemRole
+from st2common.persistence.auth import User
+from st2common.persistence.rbac import UserRoleAssignment
+from st2common.models.db.auth import UserDB
+from st2common.models.db.rbac import UserRoleAssignmentDB
+from st2common.rbac.migrations import run_all as run_all_rbac_migrations
 from st2tests.base import DbTestCase
 from st2tests.base import CleanDbTestCase
 import st2tests.config as tests_config
@@ -82,6 +88,26 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
     @classmethod
     def tearDownClass(cls):
         super(APIControllerWithRBACTestCase, cls).tearDownClass()
+
+    def setUp(self):
+        super(APIControllerWithRBACTestCase, self).setUp()
+
+        self.users = {}
+
+        # Run RBAC migrations
+        run_all_rbac_migrations()
+
+        # Insert mock users with default role assignments
+        role_names = [SystemRole.SYSTEM_ADMIN, SystemRole.ADMIN, SystemRole.OBSERVER]
+        for role_name in role_names:
+            user_db = UserDB(name=role_name)
+            user_db = User.add_or_update(user_db)
+            self.users[role_name] = user_db
+
+            role_assignment_db = UserRoleAssignmentDB(
+                user=user_db.name,
+                role=role_name)
+            UserRoleAssignment.add_or_update(role_assignment_db)
 
     def tearDown(self):
         super(APIControllerWithRBACTestCase, self).tearDown()

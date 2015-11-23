@@ -18,6 +18,8 @@ Upgrade Notes
   Keep in mind that this condition is only met if action runner is running as root and / or if
   action runner is running a system user (stanley) and a different user is requested when running
   a command using ``user`` parameter.
+* Support of default values is added to the API model. As a result, input parameters defined in 
+  the action metadata that is type of string no longer supports None or null.
 
 |st2| 1.1
 ---------
@@ -51,7 +53,8 @@ Changes
   syntax changes to YAQL expressions.
 * Mistral has implemented new YAQL function for referencing environment variables in the data
   context. The ``env()`` function replaces ``$.__env`` when referencing the environment variables.
-  Referencing ``$.__env`` will lead to YAQL evaluation errors. Please update your workflows
+  For example, ``$.__env.st2_execution_id`` becomes ``env().st2_execution_id``.
+  **WARNING**: Referencing ``$.__env`` will lead to YAQL evaluation errors! Please update your workflows
   accordingly.
 * Mistral has implemented new YAQL function for referencing task result. Given task1,
   the function call ``task(task1).result``, replaces ``$.task1`` when referencing result of task1.

@@ -81,7 +81,8 @@ class BaseAPI(object):
         attributes = vars(self)
 
         cleaned = util_schema.validate(instance=attributes, schema=schema,
-                                       cls=util_schema.CustomValidator, use_default=True)
+                                       cls=util_schema.CustomValidator, use_default=True,
+                                       allow_default_none=True)
 
         return self.__class__(**cleaned)
 

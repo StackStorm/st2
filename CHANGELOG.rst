@@ -8,6 +8,36 @@ in development
   for Mistral have changed. (improvement)
 * Add SSH bastion host support to the paramiko SSH runner. Utilizes same connection parameters as
   the targeted box. (new feature, improvement) #2144, #2150 [Logan Attwood]
+* Update action chain runner so it performs on-success and on-error task name validation during
+  pre_run time. This way common errors such as typos in the task names can be spotted early on
+  since there is no need to wait for the run time.
+* Change ``headers`` and ``params`` ``core.http`` action paramer type from ``string`` to
+  ``object``.
+* Don't allow action parameter ``type`` attribute to be an array since rest of the code doesn't
+  support parameters with multiple types. (improvement)
+* Fix trigger parameters validation for system triggers during rule creation - make sure we
+  validate the parameters before creating a TriggerDB object. (bug fix)
+* Update local runner so all the commands which are executed as a different user and result in
+  using sudo set $HOME variable to the home directory of the target user. (improvement)
+* Fix a bug with a user inside the context of the live action which was created using alias
+  execution endpoint incorrectly being set to the system user (``stanley``) instead of the
+  authenticated user which triggered the execution. (bug fix)
+* Include state_info for Mistral workflow and tasks in the action execution result. (improvement)
+* Introduce a new ``timeout`` action execution status which represents an action execution
+  timeout. Previously, executions which timed out had status set to ``failure``. Keep in mind
+  that timeout is just a special type of a failure. (new feature)
+* ``--debug`` flag no longer implies profiling mode. If you want to enable profiling mode, you need
+  to explicitly pass ``--profile`` flag to the binary. To reproduce the old behavior, simply pass
+  both flags to the binary - ``--debug --profile``.
+* Fix policy loading and registering - make sure we validate policy parameters against the
+  parameters schema when loading / registering policies. (bug fix, improvement)
+* Fix policy trigger for action execution cancellation. (bug fix)
+* Improve error reporting for static error in ActionChain definition e.g. incorrect reference
+  in default etc. (improvement)
+
+1.1.1 - November 13, 2015
+-------------------------
+
 * Improve speed of ``st2 execution list`` command by not requesting ``result`` and
   ``trigger_instance`` attributes. The effect of this change will be especially pronounced for
   installations with a lot of large executions (large execution for this purpose is an execution
@@ -18,20 +48,14 @@ in development
   pretty indented.
 * When using ``st2 execution list`` and ``st2 execution get`` CLI commands, display execution
   elapsed time in seconds for all the executions which are currently in "running" state.
-* Update action chain runner so it performs on-success and on-error task name validation during
-  pre_run time. This way common errors such as typos in the task names can be spotted early on
-  since there is no need to wait for the run time.
-* Change ``headers`` and ``params`` ``core.http`` action paramer type from ``string`` to
-  ``object``.
-* Don't allow action parameter ``type`` attribute to be an array since rest of the code doesn't
-  support parameters with multiple types.
-* Fix trigger parameters validation for system triggers during rule creation - make sure we
-  validate the parameters before creating a TriggerDB object.
 * Fix a race condition in sensor container where a sensor which takes <= 5 seconds to shut down
   could be respawned before it exited. (bug fix) #2187 [Kale Blankenship]
-* Update local runner so all the commands which are executed as a different user and result in
-  using sudo set $HOME variable to the home directory of the target user. (improvement)
 * Add missing entry for ``st2notifier`` service to the logrotate config. (bug fix)
+* Allow action parameter values who's type is ``object`` to contain special characters such as
+  ``.`` and ``$`` in the parameter value. (bug fix, improvement)
+* Allow user to specify URL which Mistral uses to talk to StackStorm API using ``mistral.api_url``
+  configuration option. If this option is not provided it defaults to the old behavior of using the
+  public API url (``auth.api_url`` setting). (improvement)
 
 1.1.0 - October 27, 2015
 ------------------------
