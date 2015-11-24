@@ -34,6 +34,8 @@ in development
 * Fix policy trigger for action execution cancellation. (bug fix)
 * Improve error reporting for static error in ActionChain definition e.g. incorrect reference
   in default etc. (improvement)
+* Fix action chain so it doesn't end up in an infinite loop if an action which is part of the chain
+  is canceled. (bug fix)
 
 1.1.1 - November 13, 2015
 -------------------------

@@ -23,8 +23,12 @@ from jsonschema import exceptions as json_schema_exceptions
 from st2actions.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import ACTION_KV_PREFIX
-from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED)
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
+from st2common.constants.action import LIVEACTION_COMPLETED_STATES
+from st2common.constants.action import LIVEACTION_FAILED_STATES
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.content.loader import MetaLoader
 from st2common.exceptions.action import (ParameterRenderingFailedException,
@@ -291,6 +295,7 @@ class ActionChainRunner(ActionRunner):
 
         while action_node:
             fail = False
+            timeout = False
             error = None
             liveaction = None
 
@@ -366,36 +371,55 @@ class ActionChainRunner(ActionRunner):
                     self._stopped = action_service.is_action_canceled_or_canceling(
                         self.liveaction_id)
 
-                if not self._stopped:
-                    try:
-                        if not liveaction or liveaction.status == LIVEACTION_STATUS_FAILED:
-                            fail = True
-                            action_node = self.chain_holder.get_next_node(action_node.name,
-                                                                          condition='on-failure')
-                        elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
-                            action_node = self.chain_holder.get_next_node(action_node.name,
-                                                                          condition='on-success')
-                    except Exception as e:
-                        LOG.exception('Failed to get next node "%s".', action_node.name)
+                if self._stopped:
+                    LOG.info('Chain execution (%s) canceled by user.', self.liveaction_id)
+                    status = LIVEACTION_STATUS_CANCELED
+                    return (status, result, None)
 
+                try:
+                    if not liveaction:
                         fail = True
-                        error = ('Failed to get next node "%s". Lookup failed: %s' %
-                                 (action_node.name, str(e)))
-                        trace = traceback.format_exc(10)
-                        top_level_error = {
-                            'error': error,
-                            'traceback': trace
-                        }
-                        # reset action_node here so that chain breaks on failure.
-                        action_node = None
-                        break
-                else:
+                        action_node = self.chain_holder.get_next_node(action_node.name,
+                                                                      condition='on-failure')
+                    elif liveaction.status in LIVEACTION_FAILED_STATES:
+                        if liveaction and liveaction.status == LIVEACTION_STATUS_TIMED_OUT:
+                            timeout = True
+                        else:
+                            fail = True
+                        action_node = self.chain_holder.get_next_node(action_node.name,
+                                                                      condition='on-failure')
+                    elif liveaction.status == LIVEACTION_STATUS_CANCELED:
+                        # User canceled an action (task) in the workflow - cancel the execution of
+                        # rest of the workflow
+                        self._stopped = True
+                        LOG.info('Chain execution (%s) canceled by user.', self.liveaction_id)
+                    elif liveaction.status == LIVEACTION_STATUS_SUCCEEDED:
+                        action_node = self.chain_holder.get_next_node(action_node.name,
+                                                                      condition='on-success')
+                except Exception as e:
+                    LOG.exception('Failed to get next node "%s".', action_node.name)
+
+                    fail = True
+                    error = ('Failed to get next node "%s". Lookup failed: %s' %
+                             (action_node.name, str(e)))
+                    trace = traceback.format_exc(10)
+                    top_level_error = {
+                        'error': error,
+                        'traceback': trace
+                    }
+                    # reset action_node here so that chain breaks on failure.
+                    action_node = None
+                    break
+
+                if self._stopped:
                     LOG.info('Chain execution (%s) canceled by user.', self.liveaction_id)
                     status = LIVEACTION_STATUS_CANCELED
                     return (status, result, None)
 
         if fail:
             status = LIVEACTION_STATUS_FAILED
+        elif timeout:
+            status = LIVEACTION_STATUS_TIMED_OUT
         else:
             status = LIVEACTION_STATUS_SUCCEEDED
 
@@ -486,18 +510,21 @@ class ActionChainRunner(ActionRunner):
 
         return liveaction
 
-    def _run_action(self, liveaction, wait_for_completion=True):
+    def _run_action(self, liveaction, wait_for_completion=True, sleep_delay=1.0):
+        """
+        :param sleep_delay: Number of seconds to wait during "is completed" polls.
+        :type sleep_delay: ``float``
+        """
         try:
+            # request return canceled
             liveaction, _ = action_service.request(liveaction)
         except Exception as e:
             liveaction.status = LIVEACTION_STATUS_FAILED
             LOG.exception('Failed to schedule liveaction.')
             raise e
 
-        while (wait_for_completion and
-               liveaction.status != LIVEACTION_STATUS_SUCCEEDED and
-               liveaction.status != LIVEACTION_STATUS_FAILED):
-            eventlet.sleep(1)
+        while (wait_for_completion and liveaction.status not in LIVEACTION_COMPLETED_STATES):
+            eventlet.sleep(sleep_delay)
             liveaction = action_db_util.get_liveaction_by_id(liveaction.id)
 
         return liveaction
