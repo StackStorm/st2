@@ -44,8 +44,6 @@ class ActionAliasFormatParser(object):
         if extra:
             kv_pairs = re.findall(pairs_match,
                                   extra.group(1), re.DOTALL)
-            for pair in kv_pairs:
-                result[pair[0]] = ''.join(pair[2:])
             self._param_stream = self._param_stream.replace(extra.group(1), '')
         self._param_stream = " %s " % self._param_stream
 
@@ -75,12 +73,19 @@ class ActionAliasFormatParser(object):
         # Now we're matching param_stream against our format string regex,
         # getting a dict of values. We'll also get default values from
         # "params" list if something is not present.
+        # Priority, from lowest to highest:
+        # 1. Default parameters
+        # 2. Matched parameters
+        # 3. Extra parameters
         matched_stream = re.match(reg, self._param_stream, re.DOTALL)
         if matched_stream:
             values = matched_stream.groupdict()
         for param in params:
             matched_value = values[param[0]] if matched_stream else None
             result[param[0]] = matched_value or param[1]
+        if extra:
+            for pair in kv_pairs:
+                result[pair[0]] = ''.join(pair[2:])
 
         if self._format and not (self._param_stream.strip() or any(result.values())):
             raise content.ParseException('No value supplied and no default value found.')
