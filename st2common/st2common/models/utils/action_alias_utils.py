@@ -77,7 +77,6 @@ class ActionAliasFormatParser(object):
         # "params" list if something is not present.
         matched_stream = re.match(reg, self._param_stream, re.DOTALL)
         if matched_stream:
-            print matched_stream.groupdict()
             values = matched_stream.groupdict()
         for param in params:
             matched_value = values[param[0]] if matched_stream else None
