@@ -186,3 +186,17 @@ class TestActionAliasParser(TestCase):
         expected_msg = 'No value supplied and no default value found.'
         self.assertRaisesRegexp(ParseException, expected_msg,
                                 parser.get_extracted_param_value)
+
+    def test_all_the_things(self):
+        # this is the most insane example I could come up with
+        alias_format = "{{ p0='http' }} g {{ p1=p }} a " + \
+                       "{{ url }} {{ p2={'a':'b'} }} {{ p3={{ e.i }} }}"
+        param_stream = "g a http://google.com {{ execution.id }} p4='testing' p5={'a':'c'}"
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'p0': 'http', 'p1': 'p',
+                                            'url': 'http://google.com',
+                                            'p2': '{{ execution.id }}',
+                                            'p3': '{{ e.i }}',
+                                            'p4': 'testing', 'p5': "{'a':'c'}" })
+

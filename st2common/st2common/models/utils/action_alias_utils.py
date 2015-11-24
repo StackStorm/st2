@@ -47,6 +47,7 @@ class ActionAliasFormatParser(object):
             for pair in kv_pairs:
                 result[pair[0]] = ''.join(pair[2:])
             self._param_stream = self._param_stream.replace(extra.group(1), '')
+        self._param_stream = " %s " % self._param_stream
 
         # Now we'll match parameters with default values in form of
         # {{ value = parameter }} (and all possible permutations of spaces),
@@ -59,25 +60,30 @@ class ActionAliasFormatParser(object):
         # Now we're transforming our format string into a regular expression,
         # substituting {{ ... }} with regex named groups, so that param_stream
         # matched against this expression yields a dict of params with values.
-        reg = re.sub(r'\s+{{\s*(\S+)\s*=(?:{.+?}|.+?)}}',
-                     r'(?:\s+[\'"]?(?P<\1>.+?)[\'"]?)?',
+        param_match = r'["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
+        reg = re.sub(r'(\s*){{\s*([^=]+?)\s*}}(?=\s+{{[^}]+?=)',
+                     r'\s*' + param_match + r'\s+',
                      self._format)
-        reg = re.sub(r'{{\s*(.+?)\s*}}',
-                     r'[\'"]?(?P<\1>.+?)[\'"]?',
+        reg = re.sub(r'(\s*){{\s*(\S+)\s*=\s*(?:{.+?}|.+?)\s*}}(\s*)',
+                     r'(?:\s*' + param_match + r'\s+)?\s*',
                      reg)
-        reg = reg + r'\s*$'
+        reg = re.sub(r'(\s*){{\s*(.+?)\s*}}(\s*)',
+                     r'\s*' + param_match + r'\3',
+                     reg)
+        reg = '^\s*' + reg + r'\s*$'
 
         # Now we're matching param_stream against our format string regex,
         # getting a dict of values. We'll also get default values from
         # "params" list if something is not present.
         matched_stream = re.match(reg, self._param_stream, re.DOTALL)
         if matched_stream:
+            print matched_stream.groupdict()
             values = matched_stream.groupdict()
         for param in params:
             matched_value = values[param[0]] if matched_stream else None
             result[param[0]] = matched_value or param[1]
 
-        if self._format and not (self._param_stream or any(result.values())):
+        if self._format and not (self._param_stream.strip() or any(result.values())):
             raise content.ParseException('No value supplied and no default value found.')
 
         return result
