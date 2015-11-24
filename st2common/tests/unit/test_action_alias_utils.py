@@ -198,5 +198,4 @@ class TestActionAliasParser(TestCase):
                                             'url': 'http://google.com',
                                             'p2': '{{ execution.id }}',
                                             'p3': '{{ e.i }}',
-                                            'p4': 'testing', 'p5': "{'a':'c'}" })
-
+                                            'p4': 'testing', 'p5': "{'a':'c'}"})
