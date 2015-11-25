@@ -36,6 +36,7 @@ in development
   in default etc. (improvement)
 * Fix action chain so it doesn't end up in an infinite loop if an action which is part of the chain
   is canceled. (bug fix)
+* Allow jinja templating to be used in ``message`` and ``data`` field for notifications.(new feature)
 
 1.1.1 - November 13, 2015
 -------------------------
