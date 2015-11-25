@@ -107,7 +107,13 @@ class ActionAliasExecutionController(rest.RestController):
         return (tokens[0], tokens[1] if len(tokens) > 1 else None)
 
     def _extract_parameters(self, action_alias_db, format_str, param_stream):
-        if action_alias_db.formats and format_str in action_alias_db.formats:
+        formats = []
+        for formatstring in action_alias_db.formats:
+            if 'representation' in formatstring:
+                formats.extend(formatstring['representation'])
+            else:
+                formats.append(formatstring)
+        if formats and format_str in formats:
             alias_format = format_str
         else:
             alias_format = None
