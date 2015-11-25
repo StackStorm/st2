@@ -23,6 +23,7 @@ timestamp.
 """
 
 from datetime import datetime
+import pytz
 import sys
 
 from oslo_config import cfg
@@ -59,8 +60,8 @@ def _register_cli_opts():
     cli_opts = [
         cfg.StrOpt('timestamp', default=None,
                    help='Will delete execution and liveaction models older than ' +
-                   'this timestamp. ' +
-                   'Example value: 2015-03-13T19:01:27.255542Z'),
+                   'this UTC timestamp. ' +
+                   'Example value: 2015-03-13T19:01:27.255542Z.'),
         cfg.StrOpt('action-ref', default='',
                    help='action-ref to delete executions for.'),
     ]
@@ -145,6 +146,7 @@ def main():
         return 1
     else:
         timestamp = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
+        timestamp = timestamp.replace(tzinfo=pytz.UTC)
 
     # Purge models.
     purge_executions(timestamp=timestamp, action_ref=action_ref)

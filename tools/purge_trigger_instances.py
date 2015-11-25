@@ -23,6 +23,7 @@ timestamp.
 """
 
 from datetime import datetime
+import pytz
 import sys
 
 from oslo_config import cfg
@@ -51,7 +52,7 @@ def _register_cli_opts():
     cli_opts = [
         cfg.StrOpt('timestamp', default=None,
                    help='Will delete trigger instances older than ' +
-                   'this timestamp. ' +
+                   'this UTC timestamp. ' +
                    'Example value: 2015-03-13T19:01:27.255542Z')
     ]
     _do_register_cli_opts(cli_opts)
@@ -101,6 +102,7 @@ def main():
         return 1
     else:
         timestamp = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
+        timestamp = timestamp.replace(tzinfo=pytz.UTC)
 
     # Purge models.
     purge_trigger_instances(timestamp=timestamp)
