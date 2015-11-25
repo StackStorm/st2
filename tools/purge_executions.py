@@ -92,8 +92,7 @@ def _purge_liveaction_models(execution_db):
             try:
                 LiveAction.delete(liveaction_db)
             except:
-                LOG.exception('Zombie LiveAction left in db: %s. Exception: %s',
-                              liveaction_db)
+                LOG.exception('Zombie LiveAction left in db: %s.', liveaction_db)
 
 
 def _should_delete(execution_db, action_ref, timestamp):
