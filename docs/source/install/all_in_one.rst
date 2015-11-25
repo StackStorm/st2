@@ -313,7 +313,7 @@ The answers file is formatted in standard YAML. Below, we will discuss the vario
 
 ::
 
-   curl -sSL http://stackstorm.com/install.sh | sudo sh "-a <answers_file>.yaml"
+   curl -sSL http://stackstorm.com/install.sh | sudo sh -s -- -a <answers_file>.yaml
 
 
 If you have already installed using this method, you can find and update your answers file at `/opt/puppet/hieradata/answers.yaml`
