@@ -95,8 +95,9 @@ Jinja templating in ``message`` and ``data``
 --------------------------------------------
 
 As of release 1.2, Jinja templating is supported for both ``message`` and ``data``. The jinja
-context available for use are parameters of action and runner ({{cmd}}), keys in execution results
-({{stdout}}, {{stderr}} for example), anything in action context ({{action_context.user}})
+context available for use are parameters of action and runner ({{action_parameters.cmd}}),
+keys in execution results ({{action_results.stdout}}, {{action_results.stderr}} for example),
+anything in action context ({{action_context.user}})
 and anything in key-value store ({{system.foo}}). Some examples are shown below.
 
 ::
@@ -111,8 +112,8 @@ and anything in key-value store ({{system.foo}}). Some examples are shown below.
       - email
     message: '"@channel: Woohoo!". Action run by user {{action_context.user}} succeeded.'
     data:
-      cmd: "{{cmd}}"
-      stdout: "{{stdout}}"
+      cmd: "{{action_parameters.cmd}}"
+      stdout: "{{action_results.stdout}}"
 
 How do I setup notifications in action chain?
 ---------------------------------------------

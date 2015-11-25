@@ -37,6 +37,8 @@ from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import isotime
 from st2common.util import jinja as jinja_utils
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
+from st2common.constants.action import ACTION_PARAMETERS_KV_PREFIX
+from st2common.constants.action import ACTION_RESULTS_KV_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.services.keyvalues import KeyValueLookup
 
@@ -189,9 +191,9 @@ class Notifier(consumers.MessageHandler):
 
     def _build_jinja_context(self, liveaction, execution):
         context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
-        context.update(liveaction.parameters)
+        context.update({ACTION_PARAMETERS_KV_PREFIX: liveaction.parameters})
         context.update({ACTION_CONTEXT_KV_PREFIX: liveaction.context})
-        context.update(execution.result)
+        context.update({ACTION_RESULTS_KV_PREFIX: execution.result})
         return context
 
     def _transform_message(self, message, context=None):

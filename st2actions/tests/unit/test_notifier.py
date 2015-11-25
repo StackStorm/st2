@@ -131,8 +131,8 @@ class NotifierTestCase(unittest2.TestCase):
         liveaction.description = ''
         liveaction.status = 'succeeded'
         liveaction.parameters = {'cmd': 'mamma mia', 'runner_foo': 'foo'}
-        on_success = NotificationSubSchema(message='Command {{cmd}} succeeded.',
-                                           data={'stdout': '{{stdout}}'})
+        on_success = NotificationSubSchema(message='Command {{action_parameters.cmd}} succeeded.',
+                                           data={'stdout': '{{action_results.stdout}}'})
         liveaction.notify = NotificationSchema(on_success=on_success)
         liveaction.start_timestamp = date_utils.get_datetime_utc_now()
         liveaction.end_timestamp = liveaction.start_timestamp + datetime.timedelta(seconds=50)
