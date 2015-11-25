@@ -22,7 +22,8 @@ timestamp.
 *** RISK RISK RISK. You will lose data. Run at your own risk. ***
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
+import sys
 
 from oslo_config import cfg
 
@@ -33,17 +34,16 @@ from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
-from st2common.util import date as date_utils
 from st2common.util import isotime
 
 LOG = logging.getLogger(__name__)
-DEFAULT_TIMEDELTA_DAYS = 30  # in days
 DELETED_COUNT = 0
 
 IN_PROGRESS_STATES = [action_constants.LIVEACTION_STATUS_RUNNING,
                       action_constants.LIVEACTION_STATUS_SCHEDULED,
                       action_constants.LIVEACTION_STATUS_REQUESTED,
-                      action_constants.LIVEACTION_STATUS_CANCELING]
+                      action_constants.LIVEACTION_STATUS_CANCELING,
+                      action_constants.LIVEACTION_STATUS_DELAYED]
 
 
 def _do_register_cli_opts(opts, ignore_errors=False):
@@ -59,7 +59,7 @@ def _register_cli_opts():
     cli_opts = [
         cfg.StrOpt('timestamp', default=None,
                    help='Will delete data older than ' +
-                   'this timestamp. (default 48 hours). ' +
+                   'this timestamp. (default 30 days). ' +
                    'Example value: 2015-03-13T19:01:27.255542Z'),
         cfg.StrOpt('action-ref', default='',
                    help='action-ref to delete executions for.')
@@ -67,7 +67,7 @@ def _register_cli_opts():
     _do_register_cli_opts(cli_opts)
 
 
-def _purge_action_models(execution_db):
+def _purge_liveaction_models(execution_db):
     liveaction_id = execution_db.liveaction.get('id', None)
 
     if not liveaction_id:
@@ -88,11 +88,12 @@ def _purge_action_models(execution_db):
         LOG.exception('Exception deleting Execution model: %s',
                       execution_db)
     else:
-        try:
-            LiveAction.delete(liveaction_db)
-        except:
-            LOG.exception('Zombie LiveAction left in db: %s. Exception: %s',
-                          liveaction_db)
+        if liveaction_db:
+            try:
+                LiveAction.delete(liveaction_db)
+            except:
+                LOG.exception('Zombie LiveAction left in db: %s. Exception: %s',
+                              liveaction_db)
 
 
 def _should_delete(execution_db, action_ref, timestamp):
@@ -120,12 +121,13 @@ def purge_executions(timestamp=None, action_ref=None):
     # XXX: Think about paginating this call.
     filters = {'end_timestamp__lt': isotime.parse(timestamp)}
     executions = ActionExecution.query(**filters)
-    executions_to_delete = filter(_should_delete, executions, action_ref, timestamp)
+    executions_to_delete = [execution for execution in executions
+                            if _should_delete(execution, action_ref, timestamp)]
     LOG.info('#### Total number of executions to delete: %d' % len(executions_to_delete))
 
     # Purge execution and liveaction models now
     for execution_db in executions_to_delete:
-        _purge_action_models(execution_db)
+        _purge_liveaction_models(execution_db)
 
     # Print stats
     LOG.info('#### Total execution models deleted: %d' % DELETED_COUNT)
@@ -140,10 +142,12 @@ def main():
     action_ref = cfg.CONF.action_ref
 
     if not timestamp:
-        now = date_utils.get_datetime_utc_now()
-        timestamp = now - timedelta(days=DEFAULT_TIMEDELTA_DAYS)
+        LOG.error('Please supply a timestamp for purging models. Aborting.')
+        return 1
     else:
         timestamp = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
+
+    LOG.info('Tool will start to purge all executions older than %s. Continue (Y/N)?', timestamp)
 
     # Purge models.
     purge_executions(timestamp=timestamp, action_ref=action_ref)
@@ -151,4 +155,4 @@ def main():
     common_teardown()
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
