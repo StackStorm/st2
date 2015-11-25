@@ -28,6 +28,7 @@ from oslo_config import cfg
 
 from st2common import config
 from st2common import log as logging
+from st2common.constants import action as action_constants
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2common.persistence.liveaction import LiveAction
@@ -36,8 +37,13 @@ from st2common.util import date as date_utils
 from st2common.util import isotime
 
 LOG = logging.getLogger(__name__)
-DEFAULT_TIMEDELTA_DAYS = 2  # in days
+DEFAULT_TIMEDELTA_DAYS = 30  # in days
 DELETED_COUNT = 0
+
+IN_PROGRESS_STATES = [action_constants.LIVEACTION_STATUS_RUNNING,
+                      action_constants.LIVEACTION_STATUS_SCHEDULED,
+                      action_constants.LIVEACTION_STATUS_REQUESTED,
+                      action_constants.LIVEACTION_STATUS_CANCELING]
 
 
 def _do_register_cli_opts(opts, ignore_errors=False):
@@ -89,6 +95,17 @@ def _purge_action_models(execution_db):
                           liveaction_db)
 
 
+def _should_delete(execution_db, action_ref, timestamp):
+    if execution_db.status in IN_PROGRESS_STATES:
+        return False
+
+    if action_ref != '':
+        return (execution_db.liveaction['action'] == action_ref and
+                execution_db.start_timestamp < timestamp)
+    else:
+        return execution_db.start_timestamp < timestamp
+
+
 def purge_executions(timestamp=None, action_ref=None):
     if not timestamp:
         LOG.error('Specify a valid timestamp to purge.')
@@ -100,17 +117,10 @@ def purge_executions(timestamp=None, action_ref=None):
     LOG.info('Purging executions older than timestamp: %s' %
              timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'))
 
-    def should_delete(execution_db):
-        if action_ref != '':
-            return (execution_db.liveaction['action'] == action_ref and
-                    execution_db.start_timestamp < timestamp)
-        else:
-            return execution_db.start_timestamp < timestamp
-
     # XXX: Think about paginating this call.
-    filters = {'start_timestamp__lt': isotime.parse(timestamp)}
+    filters = {'end_timestamp__lt': isotime.parse(timestamp)}
     executions = ActionExecution.query(**filters)
-    executions_to_delete = filter(should_delete, executions)
+    executions_to_delete = filter(_should_delete, executions, action_ref, timestamp)
     LOG.info('#### Total number of executions to delete: %d' % len(executions_to_delete))
 
     # Purge execution and liveaction models now
