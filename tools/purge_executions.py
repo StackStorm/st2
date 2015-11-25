@@ -58,16 +58,16 @@ def _do_register_cli_opts(opts, ignore_errors=False):
 def _register_cli_opts():
     cli_opts = [
         cfg.StrOpt('timestamp', default=None,
-                   help='Will delete data older than ' +
-                   'this timestamp. (default 30 days). ' +
+                   help='Will delete execution and liveaction models older than ' +
+                   'this timestamp. ' +
                    'Example value: 2015-03-13T19:01:27.255542Z'),
         cfg.StrOpt('action-ref', default='',
-                   help='action-ref to delete executions for.')
+                   help='action-ref to delete executions for.'),
     ]
     _do_register_cli_opts(cli_opts)
 
 
-def _purge_liveaction_models(execution_db):
+def _purge_models(execution_db):
     liveaction_id = execution_db.liveaction.get('id', None)
 
     if not liveaction_id:
@@ -126,7 +126,7 @@ def purge_executions(timestamp=None, action_ref=None):
 
     # Purge execution and liveaction models now
     for execution_db in executions_to_delete:
-        _purge_liveaction_models(execution_db)
+        _purge_models(execution_db)
 
     # Print stats
     LOG.info('#### Total execution models deleted: %d' % DELETED_COUNT)
@@ -145,8 +145,6 @@ def main():
         return 1
     else:
         timestamp = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
-
-    LOG.info('Tool will start to purge all executions older than %s. Continue (Y/N)?', timestamp)
 
     # Purge models.
     purge_executions(timestamp=timestamp, action_ref=action_ref)
