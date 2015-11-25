@@ -36,6 +36,8 @@ in development
   in default etc. (improvement)
 * Fix action chain so it doesn't end up in an infinite loop if an action which is part of the chain
   is canceled. (bug fix)
+* Add tools for purging executions (also, liveactions with it) and trigger instances older than
+  certain UTC timestamp from the db in bulk.
 
 1.1.1 - November 13, 2015
 -------------------------
