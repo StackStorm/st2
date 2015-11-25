@@ -16,7 +16,7 @@
 
 
 """
-A utility script that purges st2 executions older than certain
+A utility script that purges trigger instances older than certain
 timestamp.
 
 *** RISK RISK RISK. You will lose data. Run at your own risk. ***
@@ -95,7 +95,6 @@ def main():
 
     # Get config values
     timestamp = cfg.CONF.timestamp
-    action_ref = cfg.CONF.action_ref
 
     if not timestamp:
         LOG.error('Please supply a timestamp for purging models. Aborting.')
@@ -104,7 +103,7 @@ def main():
         timestamp = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
 
     # Purge models.
-    purge_trigger_instances(timestamp=timestamp, action_ref=action_ref)
+    purge_trigger_instances(timestamp=timestamp)
 
     common_teardown()
 
