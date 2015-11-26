@@ -64,6 +64,10 @@ def _register_cli_opts():
                    'Example value: 2015-03-13T19:01:27.255542Z.'),
         cfg.StrOpt('action-ref', default='',
                    help='action-ref to delete executions for.'),
+        cfg.BoolOpt('purge-incomplete', default=False,
+                    help='Purge all models irrespective of their ``status``.' +
+                    'By default, only executions in completed states such as "succeeeded" ' +
+                    ', "failed", "canceled" and "timed_out" are deleted.'),
     ]
     _do_register_cli_opts(cli_opts)
 
@@ -96,8 +100,8 @@ def _purge_models(execution_db):
                 LOG.exception('Zombie LiveAction left in db: %s.', liveaction_db)
 
 
-def _should_delete(execution_db, action_ref, timestamp):
-    if execution_db.status in IN_PROGRESS_STATES:
+def _should_delete(execution_db, action_ref, timestamp, purge_incomplete=False):
+    if not purge_incomplete and execution_db.status in IN_PROGRESS_STATES:
         return False
 
     if action_ref != '':
@@ -107,7 +111,7 @@ def _should_delete(execution_db, action_ref, timestamp):
         return execution_db.start_timestamp < timestamp
 
 
-def purge_executions(timestamp=None, action_ref=None):
+def purge_executions(timestamp=None, action_ref=None, purge_incomplete=False):
     if not timestamp:
         LOG.error('Specify a valid timestamp to purge.')
         return
@@ -122,7 +126,10 @@ def purge_executions(timestamp=None, action_ref=None):
     filters = {'end_timestamp__lt': isotime.parse(timestamp)}
     executions = ActionExecution.query(**filters)
     executions_to_delete = [execution for execution in executions
-                            if _should_delete(execution, action_ref, timestamp)]
+                            if _should_delete(
+                                execution_db=execution, action_ref=action_ref,
+                                timestamp=timestamp,
+                                purge_incomplete=purge_incomplete)]
     LOG.info('#### Total number of executions to delete: %d' % len(executions_to_delete))
 
     # Purge execution and liveaction models now
@@ -140,6 +147,7 @@ def main():
     # Get config values
     timestamp = cfg.CONF.timestamp
     action_ref = cfg.CONF.action_ref
+    purge_incomplete = cfg.CONF.purge_incomplete
 
     if not timestamp:
         LOG.error('Please supply a timestamp for purging models. Aborting.')
@@ -149,7 +157,7 @@ def main():
         timestamp = timestamp.replace(tzinfo=pytz.UTC)
 
     # Purge models.
-    purge_executions(timestamp=timestamp, action_ref=action_ref)
+    purge_executions(timestamp=timestamp, action_ref=action_ref, purge_incomplete=purge_incomplete)
 
     common_teardown()
 

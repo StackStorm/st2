@@ -168,3 +168,29 @@ class TestPurgeExecutions(CleanDbTestCase):
 
         exec_model['status'] = action_constants.LIVEACTION_STATUS_REQUESTED
         self.assertEqual(_should_delete(exec_model, action_ref='', timestamp=timestamp), False)
+
+    def test_purge_incomplete(self):
+        now = date_utils.get_datetime_utc_now()
+
+        # Write one execution after cut-off threshold
+        exec_model = self.models['executions']['execution1.yaml']
+        exec_model['start_timestamp'] = now - timedelta(days=15)
+        exec_model['end_timestamp'] = now - timedelta(days=14)
+        exec_model['id'] = bson.ObjectId()
+
+        timestamp = now - timedelta(days=10)
+        exec_model['status'] = action_constants.LIVEACTION_STATUS_REQUESTED
+        self.assertEqual(_should_delete(exec_model, action_ref='', timestamp=timestamp,
+                                        purge_incomplete=True), True)
+
+        exec_model['status'] = action_constants.LIVEACTION_STATUS_RUNNING
+        self.assertEqual(_should_delete(exec_model, action_ref='', timestamp=timestamp,
+                                        purge_incomplete=True), True)
+
+        exec_model['status'] = action_constants.LIVEACTION_STATUS_CANCELING
+        self.assertEqual(_should_delete(exec_model, action_ref='', timestamp=timestamp,
+                                        purge_incomplete=True), True)
+
+        exec_model['status'] = action_constants.LIVEACTION_STATUS_DELAYED
+        self.assertEqual(_should_delete(exec_model, action_ref='', timestamp=timestamp,
+                                        purge_incomplete=True), True)

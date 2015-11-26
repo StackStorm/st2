@@ -23,6 +23,14 @@ to the tool.
 
     tools/purge_executions.py --timestamp="2015-11-25T21:45:00.000000Z" --action-ref="core.localzz"
 
+By default, only executions in completed state viz ``succeeded``, ``failed``, ``canceled``
+and ``timed_out`` are deleted. If you want to purge all models irrespective of status,
+you can pass the --purge-incomplete option to the script.
+
+::
+
+    tools/purge_executions.py --timestamp="2015-11-25T21:45:00.000000Z" --purge-incomplete
+
 Depending on how much data there is, the tool might be running longer. Therefore, please run it
 inside a screen/tmux session. For example,
 
