@@ -17,6 +17,7 @@ chain:
     publish:
       message: "{{format_result.result}}"
     on-success: "post_message"
+    on-failure: "skip_message"
   -
     name: "post_message"
     ref: "chatops.post_message"
@@ -25,3 +26,6 @@ chain:
       channel: "{{channel}}"
       whisper: "{{whisper}}"
       message: "{{message}}"
+  -
+    name: "skip_message"
+    ref: "chatops.skip_message"
