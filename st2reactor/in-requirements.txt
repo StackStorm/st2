@@ -6,4 +6,5 @@ jsonpath-rw
 jsonschema
 kombu
 oslo.config
+stevedore
 six

@@ -1,10 +1,10 @@
 # Remeber to list implicit packages here, otherwise version won't be fixated!
 eventlet
 oslo.config
+stevedore
 passlib
 pymongo
 six
-stevedore
 git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
 # For backward compatibility reasons, flat file backend is installed by default
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
