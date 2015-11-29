@@ -20,9 +20,14 @@ import six
 
 from st2common import log as logging
 from st2common.persistence import policy as policy_access
-
+from st2common.services import coordination
 
 LOG = logging.getLogger(__name__)
+
+__all__ = [
+    'ResourcePolicyApplicator',
+    'get_driver'
+]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -42,6 +47,10 @@ class ResourcePolicyApplicator(object):
 
         :rtype: ``object``
         """
+        # Warn users that the coordination service is not configured
+        if not coordination.configured():
+            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
+
         return target
 
     def apply_after(self, target):
@@ -53,7 +62,28 @@ class ResourcePolicyApplicator(object):
 
         :rtype: ``object``
         """
+        # Warn users that the coordination service is not configured
+        if not coordination.configured():
+            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
+
         return target
+
+    def _get_lock_name(self, values):
+        """
+        Return a safe string which can be used as a lock name.
+
+        :param values: Dictionary with values to use in the lock name.
+        :type values: ``dict``
+
+        :rtype: ``st``
+        """
+        lock_uid = []
+
+        for key, value in six.iteritems(values):
+            lock_uid.append('%s=%s' % (key, value))
+
+        lock_uid = ','.join(lock_uid)
+        return lock_uid
 
 
 def get_driver(policy_ref, policy_type, **parameters):

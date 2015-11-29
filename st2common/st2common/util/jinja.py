@@ -119,8 +119,11 @@ def get_jinja_environment(allow_undefined=False):
 
     '''
     undefined = jinja2.Undefined if allow_undefined else jinja2.StrictUndefined
-    env = jinja2.Environment(undefined=undefined)
+    env = jinja2.Environment(undefined=undefined,
+                             trim_blocks=True,
+                             lstrip_blocks=True)
     env.filters.update(CustomFilters.get_filters())
+    env.tests['in'] = lambda item, list: item in list
     return env
 
 
@@ -151,7 +154,15 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             reverse_json_dumps = True
         else:
             v = str(v)
-        rendered_v = env.from_string(v).render(context)
+
+        try:
+            rendered_v = env.from_string(v).render(context)
+        except Exception as e:
+            # Attach key and value which failed the rendering
+            e.key = k
+            e.value = v
+            raise e
+
         # no change therefore no templatization so pick params from original to retain
         # original type
         if rendered_v == v:

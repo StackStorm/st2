@@ -27,6 +27,7 @@ from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.util.misc import strip_shell_chars
 from st2common.util.green.shell import run_command
@@ -167,5 +168,11 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         if error:
             result['error'] = error
 
-        status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
+        if exit_code == 0:
+            status = LIVEACTION_STATUS_SUCCEEDED
+        elif timed_out:
+            status = LIVEACTION_STATUS_TIMED_OUT
+        else:
+            status = LIVEACTION_STATUS_FAILED
+
         return (status, jsonify.json_loads(result, LocalShellRunner.KEYS_TO_TRANSFORM), None)

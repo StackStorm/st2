@@ -113,7 +113,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                                 # resource type in other place
                                 'enum': PermissionType.get_valid_values()
                             },
-                            'default': None
+                            'default': []
                         }
                     }
                 }
@@ -124,7 +124,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
 
     def validate(self):
         # Parent JSON schema validation
-        super(RoleDefinitionFileFormatAPI, self).validate()
+        cleaned = super(RoleDefinitionFileFormatAPI, self).validate()
 
         # Custom validation
 
@@ -153,6 +153,8 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                         message = ('Invalid permission type "%s". Only "list" permission types '
                                    'can be used without a resource id' % (permission_type))
                         raise ValueError(message)
+
+            return cleaned
 
 
 class UserRoleAssignmentFileFormatAPI(BaseAPI):
@@ -193,7 +195,7 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
 
     def validate(self, validate_role_exists=False):
         # Parent JSON schema validation
-        super(UserRoleAssignmentFileFormatAPI, self).validate()
+        cleaned = super(UserRoleAssignmentFileFormatAPI, self).validate()
 
         # Custom validation
         if validate_role_exists:
@@ -205,3 +207,5 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
             for role in roles:
                 if role not in role_names:
                     raise ValueError('Role "%s" doesn\'t exist in the database' % (role))
+
+        return cleaned

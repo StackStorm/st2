@@ -1,6 +1,8 @@
 All-in-one Installer
 ********************
-|st2| provides an all-in-one installer aimed at assisting users with the initial setup and configuration. The installer comes pre-bundled in a number of different provisioning options for convenience, or can also be manually deployed and installed manually on a server.
+|st2| provides an all-in-one installer aimed at assisting users with the initial setup and configuration.
+
+.. rubric:: TL;DR
 
 That's OK! You're busy, we get it. How do you just get started? Get your own box, and run this command:
 
@@ -8,6 +10,7 @@ That's OK! You're busy, we get it. How do you just get started? Get your own box
 
    curl -sSL https://install.stackstorm.com/ | sudo sh
 
+If you're installing *Enterprise Edition*, enter your license key when prompted. With no enterprise key, StackStorm community will be installed.
 
 .. contents:: Want to learn more? Read on! We will make it worth your while.
 
@@ -36,7 +39,7 @@ Optionally, you can also provide an Enterprise License Key and get access to the
 
 * |st2| FLOW - HTML5 based Graphical Workflow editor. Use this to visualize, edit, and share workflows.
 * |st2| Role Based Access Control. Apply fine-grained controls to actions and rules to fit into the most complex of environments.
-* |st2| LDAP Authentication Support. Integrate with your existing authentication directory.G
+* |st2| LDAP Authentication Support. Integrate with your existing authentication directory.
 
 Supported Platforms
 ###################
@@ -299,6 +302,7 @@ Each stable release is tagged with a Git Tag, and you can provide that tag at ru
 
    ENV=master update-system
 
+.. warning:: The update described here only applies for deployments provisioned by All-in-one installer v1.1 and above. To migrate from Scripted Installer deployments, custom deployments, or for pre v1 beta All-in-one installations, use the migration path as described in `Upgrade Notes <../upgrade_notes.html>`_.
 
 Unattended Installation
 #######################
@@ -309,7 +313,7 @@ The answers file is formatted in standard YAML. Below, we will discuss the vario
 
 ::
 
-   curl -sSL https://install.stackstorm.com/ | sudo sh "-a <answers_file>.yaml"
+   curl -sSL https://install.stackstorm.com/ | sudo sh -s -- -a <answers_file>.yaml
 
 
 If you have already installed using this method, you can find and update your answers file at `/opt/puppet/hieradata/answers.yaml`

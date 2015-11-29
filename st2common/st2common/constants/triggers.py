@@ -185,12 +185,10 @@ WEBHOOKS_PARAMETERS_SCHEMA = {
     'type': 'object',
     'properties': {
         'url': {
-            'type': 'string'
+            'type': 'string',
+            'required': True
         }
     },
-    'required': [
-        'url'
-    ],
     'additionalProperties': False
 }
 
@@ -220,16 +218,15 @@ INTERVAL_PARAMETERS_SCHEMA = {
             "type": "string"
         },
         "unit": {
-            "enum": ["weeks", "days", "hours", "minutes", "seconds"]
+            "enum": ["weeks", "days", "hours", "minutes", "seconds"],
+            "required": True
         },
         "delta": {
-            "type": "integer"
+            "type": "integer",
+            "required": True
+
         }
     },
-    "required": [
-        "unit",
-        "delta"
-    ],
     "additionalProperties": False
 }
 
@@ -241,12 +238,10 @@ DATE_PARAMETERS_SCHEMA = {
         },
         "date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "required": True
         }
     },
-    "required": [
-        "date"
-    ],
     "additionalProperties": False
 }
 

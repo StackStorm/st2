@@ -29,7 +29,7 @@ from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
-from st2common.constants.action import CANCELABLE_STATES
+from st2common.constants.action import LIVEACTION_CANCELABLE_STATES
 from st2common.exceptions.trace import TraceNotFoundException
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.base import jsexpose
@@ -43,6 +43,7 @@ from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
+from st2common.util.api import get_requester
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
@@ -82,14 +83,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         'result',
         'trigger_instance'
     ]
-
-    def _get_requester(self):
-        # Retrieve username of the authed user (note - if auth is disabled, user will not be
-        # set so we fall back to the system user name)
-        auth_context = pecan.request.context.get('auth', None)
-        user_db = auth_context.get('user', None) if auth_context else None
-
-        return user_db.name if user_db else cfg.CONF.system_user.user
 
     def _get_from_model_kwargs_for_request(self, request):
         """
@@ -134,7 +127,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
-        liveaction.context['user'] = self._get_requester()
+        liveaction.context['user'] = get_requester()
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
@@ -245,7 +238,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         'trigger_instance'
     ]
 
-    class ExecutionParameters(object):
+    class ExecutionParametersAPI(object):
         def __init__(self, parameters=None):
             self.parameters = parameters or {}
 
@@ -253,9 +246,9 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
             if self.parameters:
                 assert isinstance(self.parameters, dict)
 
-            return True
+            return self
 
-    @jsexpose(body_cls=ExecutionParameters, status_code=http_client.CREATED)
+    @jsexpose(body_cls=ExecutionParametersAPI, status_code=http_client.CREATED)
     def post(self, execution_parameters, execution_id):
         """
         Re-run the provided action execution optionally specifying override parameters.
@@ -388,12 +381,12 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         if liveaction_db.status == LIVEACTION_STATUS_CANCELED:
             abort(http_client.OK, 'Action is already in "canceled" state.')
 
-        if liveaction_db.status not in CANCELABLE_STATES:
+        if liveaction_db.status not in LIVEACTION_CANCELABLE_STATES:
             abort(http_client.OK, 'Action cannot be canceled. State = %s.' % liveaction_db.status)
 
         try:
             (liveaction_db, execution_db) = action_service.request_cancellation(
-                liveaction_db, self._get_requester())
+                liveaction_db, get_requester())
         except:
             LOG.exception('Failed requesting cancellation for liveaction %s.', liveaction_db.id)
             abort(http_client.INTERNAL_SERVER_ERROR, 'Failed canceling execution.')

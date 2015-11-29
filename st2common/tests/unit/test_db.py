@@ -317,7 +317,7 @@ class ActionModelTest(DbTestCase):
         retrieved = Action.get_by_id(saved.id)
 
         # validate generated schema
-        schema = util_schema.get_parameter_schema(retrieved)
+        schema = util_schema.get_schema_for_action_parameters(retrieved)
         self.assertDictEqual(schema, PARAM_SCHEMA)
         validator = util_schema.get_validator()
         validator.check_schema(schema)

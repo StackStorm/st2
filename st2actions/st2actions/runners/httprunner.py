@@ -20,12 +20,13 @@ import uuid
 
 import requests
 from oslo_config import cfg
-from six.moves.urllib import parse as urlparse
 
 from st2actions.runners import ActionRunner
 from st2common import __version__ as st2_version
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 
 LOG = logging.getLogger(__name__)
 SUCCESS_STATUS_CODES = [code for code in range(200, 207)]
@@ -71,7 +72,6 @@ class HttpRunner(ActionRunner):
                                                           self._on_behalf_user)
         self._url = self.runner_parameters.get(RUNNER_URL, None)
         self._headers = self.runner_parameters.get(RUNNER_HEADERS, {})
-        self._headers = self._params_to_dict(self._headers)
 
         self._cookies = self.runner_parameters.get(RUNNER_COOKIES, None)
         self._allow_redirects = self.runner_parameters.get(RUNNER_ALLOW_REDIRECTS, False)
@@ -81,16 +81,22 @@ class HttpRunner(ActionRunner):
 
     def run(self, action_parameters):
         client = self._get_http_client(action_parameters)
-        output = client.run()
-        status = HttpRunner._get_result_status(output.get('status_code', None))
-        return (status, output, None)
+
+        try:
+            result = client.run()
+        except requests.exceptions.Timeout as e:
+            result = {'error': str(e)}
+            status = LIVEACTION_STATUS_TIMED_OUT
+        else:
+            status = HttpRunner._get_result_status(result.get('status_code', None))
+
+        return (status, result, None)
 
     def _get_http_client(self, action_parameters):
         body = action_parameters.get(ACTION_BODY, None)
         timeout = float(action_parameters.get(ACTION_TIMEOUT, self._timeout))
         method = action_parameters.get(ACTION_METHOD, None)
         params = action_parameters.get(ACTION_QUERY_PARAMS, None)
-        params = self._params_to_dict(params)
         auth = action_parameters.get(ACTION_AUTH, {})
 
         file_name = action_parameters.get(FILE_NAME, None)
@@ -126,15 +132,6 @@ class HttpRunner(ActionRunner):
                           headers=headers, cookies=self._cookies, auth=auth,
                           timeout=timeout, allow_redirects=self._allow_redirects,
                           proxies=proxies, files=files, verify=self._verify_ssl_cert)
-
-    def _params_to_dict(self, params):
-        if not params:
-            return {}
-
-        if isinstance(params, dict):
-            return params
-
-        return dict(urlparse.parse_qsl(params, keep_blank_values=True, strict_parsing=True))
 
     @staticmethod
     def _get_result_status(status_code):

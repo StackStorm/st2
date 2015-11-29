@@ -20,6 +20,8 @@ from st2actions.container.service import RunnerContainerService
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_CANCELED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.models.api.notification import NotificationsHelper
 from st2common.models.db.liveaction import LiveActionDB
@@ -29,6 +31,7 @@ from st2common.persistence.keyvalue import KeyValuePair
 from st2common.persistence.runner import RunnerType
 from st2common.services import action as action_service
 from st2common.util import action_db as action_db_util
+from st2common.exceptions.action import ParameterRenderingFailedException
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
@@ -56,12 +59,20 @@ RUNNER = MODELS['runners']['testrunner1.yaml']
 
 CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain1.yaml')
+CHAIN_2_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain2.yaml')
+CHAIN_ACTION_CALL_NO_PARAMS_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_action_call_no_params.yaml')
 CHAIN_NO_DEFAULT = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'no_default_chain.yaml')
 CHAIN_NO_DEFAULT_2 = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'no_default_chain_2.yaml')
-CHAIN_BROKEN_PATH = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_broken_paths.yaml')
+CHAIN_BAD_DEFAULT = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'bad_default_chain.yaml')
+CHAIN_BROKEN_ON_SUCCESS_PATH_STATIC_TASK_NAME = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_broken_on_success_path_static_task_name.yaml')
+CHAIN_BROKEN_ON_FAILURE_PATH_STATIC_TASK_NAME = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_broken_on_failure_path_static_task_name.yaml')
 CHAIN_FIRST_TASK_RENDER_FAIL_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_first_task_parameter_render_fail.yaml')
 CHAIN_SECOND_TASK_RENDER_FAIL_PATH = FixturesLoader().get_fixture_file_path_abs(
@@ -86,6 +97,8 @@ CHAIN_WITH_SYSTEM_VARS = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_system_vars.yaml')
 CHAIN_WITH_PUBLISH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_publish.yaml')
+CHAIN_WITH_PUBLISH_PARAM_RENDERING_FAILURE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_publish_params_rendering_failure.yaml')
 CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_invalid_action.yaml')
 
@@ -119,6 +132,96 @@ class TestActionChainRunner(DbTestCase):
     def test_chain_runner_success_path(self, request):
         chain_runner = acr.get_runner()
         chain_runner.entry_point = CHAIN_1_PATH
+        chain_runner.action = ACTION_1
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
+                                                           pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
+        chain_runner.liveaction.notify = CHAIN_NOTIFY_DB
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        chain_runner.run({})
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # based on the chain the callcount is known to be 3. Not great but works.
+        self.assertEqual(request.call_count, 3)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_chain_second_task_times_out(self, request):
+        # Second task in the chain times out so the action chain status should be timeout
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_2_PATH
+        chain_runner.action = ACTION_1
+
+        original_run_action = chain_runner._run_action
+
+        def mock_run_action(*args, **kwargs):
+            original_live_action = args[0]
+            liveaction = original_run_action(*args, **kwargs)
+            if original_live_action.action == 'wolfpack.a2':
+                # Mock a timeout for second task
+                liveaction.status = LIVEACTION_STATUS_TIMED_OUT
+            return liveaction
+
+        chain_runner._run_action = mock_run_action
+
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
+                                                           pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, _, _ = chain_runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_TIMED_OUT)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # based on the chain the callcount is known to be 3. Not great but works.
+        self.assertEqual(request.call_count, 3)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_task_is_canceled_while_running(self, request):
+        # Second task in the action is CANCELED, make sure runner doesn't get stuck in an infinite
+        # loop
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_2_PATH
+        chain_runner.action = ACTION_1
+
+        original_run_action = chain_runner._run_action
+
+        def mock_run_action(*args, **kwargs):
+            original_live_action = args[0]
+            if original_live_action.action == 'wolfpack.a2':
+                status = LIVEACTION_STATUS_CANCELED
+            else:
+                status = LIVEACTION_STATUS_SUCCEEDED
+            request.return_value = (DummyActionExecution(status=status), None)
+            liveaction = original_run_action(*args, **kwargs)
+            return liveaction
+
+        chain_runner._run_action = mock_run_action
+
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
+                                                           pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, _, _ = chain_runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_CANCELED)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # Chain count should be 2 since the last task doesn't get called since the second one was
+        # canceled
+        self.assertEqual(request.call_count, 2)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_success_task_action_call_with_no_params(self, request):
+        # Make sure that the runner doesn't explode if task definition contains
+        # no "params" section
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_ACTION_CALL_NO_PARAMS_PATH
         chain_runner.action = ACTION_1
         action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
                                                            pack=ACTION_1.pack)
@@ -170,6 +273,18 @@ class TestActionChainRunner(DbTestCase):
         # based on the chain the callcount is known to be 2.
         self.assertEqual(request.call_count, 2)
 
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_bad_default(self, request):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_BAD_DEFAULT
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        expected_msg = 'Unable to find node with name "bad_default" referenced in "default".'
+        self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError,
+                                expected_msg, chain_runner.pre_run)
+
     @mock.patch('eventlet.sleep', mock.MagicMock())
     @mock.patch.object(action_db_util, 'get_liveaction_by_id', mock.MagicMock(
         return_value=DummyActionExecution()))
@@ -208,45 +323,31 @@ class TestActionChainRunner(DbTestCase):
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'request',
                        return_value=(DummyActionExecution(), None))
-    def test_chain_runner_broken_success_path(self, request):
+    def test_chain_runner_broken_on_success_path_static_task_name(self, request):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = CHAIN_BROKEN_PATH
+        chain_runner.entry_point = CHAIN_BROKEN_ON_SUCCESS_PATH_STATIC_TASK_NAME
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
-        chain_runner.pre_run()
-        status, result, _ = chain_runner.run({})
 
-        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
-
-        self.assertTrue('Failed to get next node "c1". Lookup failed:' in result['error'])
-        self.assertTrue('Unable to find node with name "c2"' in result['error'])
-        self.assertTrue('Traceback (most recent call last):' in result['traceback'])
-
-        # based on the chain the callcount is known to be 1. Not great but works.
-        self.assertEqual(request.call_count, 1)
+        expected_msg = ('Unable to find node with name "c5" referenced in "on-success" '
+                        'in task "c2"')
+        self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError,
+                                expected_msg, chain_runner.pre_run)
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
     @mock.patch.object(action_service, 'request',
-                       return_value=(DummyActionExecution(status=LIVEACTION_STATUS_FAILED), None))
-    def test_chain_runner_broken_fail_path(self, request):
+                       return_value=(DummyActionExecution(), None))
+    def test_chain_runner_broken_on_failure_path_static_task_name(self, request):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = CHAIN_BROKEN_PATH
+        chain_runner.entry_point = CHAIN_BROKEN_ON_FAILURE_PATH_STATIC_TASK_NAME
         chain_runner.action = ACTION_1
         chain_runner.container_service = RunnerContainerService()
-        chain_runner.pre_run()
-        status, result, _ = chain_runner.run({})
 
-        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
-        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
-
-        self.assertTrue('Failed to get next node "c1". Lookup failed:' in result['error'])
-        self.assertTrue('Unable to find node with name "c4"' in result['error'])
-        self.assertTrue('Traceback (most recent call last):' in result['traceback'])
-
-        # based on the chain the callcount is known to be 1. Not great but works.
-        self.assertEqual(request.call_count, 1)
+        expected_msg = ('Unable to find node with name "c6" referenced in "on-failure" '
+                        'in task "c2"')
+        self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError,
+                                expected_msg, chain_runner.pre_run)
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
@@ -409,9 +510,14 @@ class TestActionChainRunner(DbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertEqual(len(result['tasks']), 1)
         self.assertEqual(result['tasks'][0]['name'], 'c1')
+
+        expected_error = ('Failed rendering value for action parameter "p1" in '
+                          'task "c2" (template string={{s1}}):')
+
         self.assertTrue('error' in result)
         self.assertTrue('traceback' in result)
         self.assertTrue('Failed to run task "c2". Parameter rendering failed' in result['error'])
+        self.assertTrue(expected_error in result['error'])
         self.assertTrue('Traceback' in result['traceback'])
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
@@ -521,6 +627,31 @@ class TestActionChainRunner(DbTestCase):
                           'published_action_param': action_parameters['action_param_1']}
         mock_args, _ = request.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_publish_param_rendering_failure(self, request):
+        # Parameter rendering should result in a top level error which aborts
+        # the whole chain
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_PUBLISH_PARAM_RENDERING_FAILURE
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+
+        try:
+            chain_runner.run({})
+        except ParameterRenderingFailedException as e:
+            # TODO: Should we treat this as task error? Right now it bubbles all
+            # the way up and it's not really consistent with action param
+            # rendering failure
+            expected_error = ('Failed rendering value for publish parameter "p1" in '
+                              'task "c2" (template string={{ not_defined }}):')
+            self.assertTrue(expected_error in str(e))
+            pass
+        else:
+            self.fail('Exception was not thrown')
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=None))

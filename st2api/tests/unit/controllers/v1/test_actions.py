@@ -208,6 +208,20 @@ ACTION_12 = {
     ]
 }
 
+# Action with invalid parameter type attribute
+ACTION_13 = {
+    'name': 'st2.dummy.action2',
+    'description': 'test description',
+    'enabled': True,
+    'pack': 'dummy_pack_1',
+    'entry_point': '/tmp/test/action1.sh',
+    'runner_type': 'local-shell-script',
+    'parameters': {
+        'a': {'type': ['string', 'object'], 'default': 'A1'},
+        'b': {'type': 'string', 'default': 'B1'}
+    }
+}
+
 
 class TestActionController(FunctionalTest, CleanFilesTestCase):
     register_packs = True
@@ -324,6 +338,15 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         self.assertDictContainsSubset({'enabled': False}, data)
 
         self.__do_delete(self.__get_action_id(post_resp))
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_post_parameter_type_is_array_and_invalid(self):
+        post_resp = self.__do_post(ACTION_13, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 400)
+
+        expected_error = '[u\'string\', u\'object\'] is not valid under any of the given schemas'
+        self.assertTrue(expected_error in post_resp.body)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))

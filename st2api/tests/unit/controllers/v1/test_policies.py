@@ -119,6 +119,10 @@ class PolicyControllerTest(FunctionalTest):
     def setUpClass(cls):
         super(PolicyControllerTest, cls).setUpClass()
 
+        for _, fixture in six.iteritems(FIXTURES['policytypes']):
+            instance = PolicyTypeAPI(**fixture)
+            PolicyType.add_or_update(PolicyTypeAPI.to_model(instance))
+
         for _, fixture in six.iteritems(FIXTURES['policies']):
             instance = PolicyAPI(**fixture)
             Policy.add_or_update(PolicyAPI.to_model(instance))
@@ -248,7 +252,7 @@ class PolicyControllerTest(FunctionalTest):
             'name': 'myaction.mypolicy',
             'pack': 'mypack',
             'resource_ref': 'mypack.myaction',
-            'policy_type': FIXTURES['policytypes'].values()[0]['name'],
+            'policy_type': 'action.' + FIXTURES['policytypes'].values()[0]['name'],
             'parameters': {
                 'k1': 'v1'
             }

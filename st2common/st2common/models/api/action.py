@@ -88,7 +88,7 @@ class RunnerTypeAPI(BaseAPI):
                 "description": "Input parameters for the action runner.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_draft_schema()
+                    "^\w+$": util_schema.get_action_parameters_schema()
                 }
             }
         },
@@ -179,7 +179,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "description": "Input parameters for the action.",
                 "type": "object",
                 "patternProperties": {
-                    "^\w+$": util_schema.get_draft_schema()
+                    "^\w+$": util_schema.get_action_parameters_schema()
                 },
                 "default": {}
             },
@@ -495,8 +495,38 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
             },
             "formats": {
                 "type": "array",
-                "items": {"type": "string"},
+                "items": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {
+                            "type": "object",
+                            "properties": {
+                                "display": {"type": "string"},
+                                "representation": {
+                                    "type": "array",
+                                    "items": {"type": "string"}
+                                }
+                            }
+                        }
+                    ]
+                },
                 "description": "Possible parameter format."
+            },
+            "ack": {
+                "type": "object",
+                "properties": {
+                    "enabled": {"type": "boolean"},
+                    "format": {"type": "string"}
+                },
+                "description": "Acknowledgement message format."
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "enabled": {"type": "boolean"},
+                    "format": {"type": "string"}
+                },
+                "description": "Execution message format."
             }
         },
         "additionalProperties": False
@@ -511,9 +541,11 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
         enabled = getattr(alias, 'enabled', True)
         action_ref = alias.action_ref
         formats = alias.formats
+        ack = getattr(alias, 'ack', None)
+        result = getattr(alias, 'result', None)
 
         model = cls.model(name=name, description=description, pack=pack, ref=ref, enabled=enabled,
-                          action_ref=action_ref, formats=formats)
+                          action_ref=action_ref, formats=formats, ack=ack, result=result)
         return model
 
 

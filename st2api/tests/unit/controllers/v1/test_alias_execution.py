@@ -16,6 +16,7 @@
 import mock
 
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.models.db.execution import ActionExecutionDB
 from st2common.services import action as action_service
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
@@ -32,15 +33,16 @@ TEST_LOAD_MODELS = {
     'aliases': ['alias3.yaml']
 }
 
+EXECUTION = ActionExecutionDB(id='54e657d60640fd16887d6855',
+                              status=LIVEACTION_STATUS_SUCCEEDED,
+                              result='')
 
-class DummyActionExecution(object):
-    def __init__(self, id_=None, status=LIVEACTION_STATUS_SUCCEEDED, result=''):
-        self.id = id_
-        self.status = status
-        self.result = result
+__all__ = [
+    'AliasExecutionTestCase'
+]
 
 
-class TestAliasExecution(FunctionalTest):
+class AliasExecutionTestCase(FunctionalTest):
 
     models = None
     alias1 = None
@@ -48,36 +50,36 @@ class TestAliasExecution(FunctionalTest):
 
     @classmethod
     def setUpClass(cls):
-        super(TestAliasExecution, cls).setUpClass()
+        super(AliasExecutionTestCase, cls).setUpClass()
         cls.models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                           fixtures_dict=TEST_MODELS)
         cls.alias1 = cls.models['aliases']['alias1.yaml']
         cls.alias2 = cls.models['aliases']['alias2.yaml']
 
     @mock.patch.object(action_service, 'request',
-                       return_value=(None, DummyActionExecution(id_=1)))
-    def testBasicExecution(self, request):
+                       return_value=(None, EXECUTION))
+    def test_basic_execution(self, request):
         command = 'Lorem ipsum value1 dolor sit "value2 value3" amet.'
         post_resp = self._do_post(alias_execution=self.alias1, command=command)
-        self.assertEqual(post_resp.status_int, 200)
+        self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param2': 'value2 value3'}
         self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',
-                       return_value=(None, DummyActionExecution(id_=1)))
-    def testExecutionWithArrayTypeSingleValue(self, request):
+                       return_value=(None, EXECUTION))
+    def test_execution_with_array_type_single_value(self, request):
         command = 'Lorem ipsum value1 dolor sit value2 amet.'
         post_resp = self._do_post(alias_execution=self.alias2, command=command)
-        self.assertEqual(post_resp.status_int, 200)
+        self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param3': ['value2']}
         self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
 
     @mock.patch.object(action_service, 'request',
-                       return_value=(None, DummyActionExecution(id_=1)))
-    def testExecutionWithArrayTypeMultiValue(self, request):
+                       return_value=(None, EXECUTION))
+    def test_execution_with_array_type_multi_value(self, request):
         command = 'Lorem ipsum value1 dolor sit "value2, value3" amet.'
         post_resp = self._do_post(alias_execution=self.alias2, command=command)
-        self.assertEqual(post_resp.status_int, 200)
+        self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param3': ['value2', 'value3']}
         self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
 

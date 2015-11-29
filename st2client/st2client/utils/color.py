@@ -36,9 +36,11 @@ DISABLED = os.environ.get('ST2_COLORIZE', '')
 
 class DisplayColors(object):
     RED = '\033[91m'
+    PURPLE = '\033[35m'
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
     BLUE = '\033[94m'
+    BROWN = '\033[33m'
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
@@ -62,7 +64,9 @@ class DisplayColors(object):
 STATUS_LOOKUP = {
     'succeeded': DisplayColors.GREEN,
     'delayed': DisplayColors.BLUE,
-    'failed': DisplayColors.RED
+    'failed': DisplayColors.RED,
+    'timeout': DisplayColors.BROWN,
+    'running': DisplayColors.YELLOW
 }
 
 

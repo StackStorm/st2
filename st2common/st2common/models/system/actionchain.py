@@ -19,8 +19,6 @@ import string
 from st2common.util import schema as util_schema
 from st2common.models.api.notification import NotificationSubSchemaAPI
 
-VALIDATOR = util_schema.get_validator(assign_property_default=False)
-
 
 class Node(object):
 
@@ -88,6 +86,10 @@ class Node(object):
             prop = string.replace(prop, '-', '_')
             setattr(self, prop, value)
 
+    def __repr__(self):
+        return ('<Node name=%s, ref=%s, on-success=%s, on-failure=%s>' %
+                (self.name, self.ref, self.on_success, self.on_failure))
+
 
 class ActionChain(object):
 
@@ -118,7 +120,8 @@ class ActionChain(object):
     }
 
     def __init__(self, **kw):
-        VALIDATOR(self.schema).validate(kw)
+        util_schema.validate(instance=kw, schema=self.schema, cls=util_schema.CustomValidator,
+                             use_default=False, allow_default_none=True)
 
         for prop in six.iterkeys(self.schema.get('properties', [])):
             value = kw.get(prop, None)

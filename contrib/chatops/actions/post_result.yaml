@@ -1,0 +1,23 @@
+---
+name: "post_result"
+pack: chatops
+runner_type: "action-chain"
+description: "Post an execution result to stream for chatops"
+enabled: true
+entry_point: "workflows/post_result.yaml"
+parameters:
+  user:
+    type: "string"
+    description: "Explicitly notify a user"
+  whisper:
+    type: "boolean"
+    description: "Send a private message to user"
+    default: false
+  result:
+    type: "object"
+    description: "Result to send"
+    required: true
+  channel:
+    type: "string"
+    description: "Channel to post to"
+    required: true
