@@ -39,7 +39,7 @@ Optionally, you can also provide an Enterprise License Key and get access to the
 
 * |st2| FLOW - HTML5 based Graphical Workflow editor. Use this to visualize, edit, and share workflows.
 * |st2| Role Based Access Control. Apply fine-grained controls to actions and rules to fit into the most complex of environments.
-* |st2| LDAP Authentication Support. Integrate with your existing authentication directory.G
+* |st2| LDAP Authentication Support. Integrate with your existing authentication directory.
 
 Supported Platforms
 ###################
