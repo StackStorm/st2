@@ -10,7 +10,7 @@ Here are some examples of usages.
 * Select values for a key from a list of dictionary.
 * Filter the list where one or more fields match condition(s).
 * Transform a list to dictionary or vice versa.
-* Simple arithmetics.
+* Simple arithmetic.
 * Evaluation of boolean logic.
 * Any combination of select, filter, transform, and evaluate.
 
