@@ -14,7 +14,7 @@ run the bootstrap script:
 
 ::
 
-    curl -sSL http://stackstorm.com/install.sh | sudo sh
+    curl -sSL https://install.stackstorm.com/ | sudo sh
 
 You will need elevated privileges in order to run this script. This will download and deploy the stable release of |st2| (currently |release|). Check out :doc:`all_in_one` to learn how to provide answer file, get latest development version, and other details. Installation should take about 20 min. *Yes, we are working on making it faster!* Grab a coffee and watch :doc:`/video` while it is being installed. Once completed, you will see the following console output. Read it :)
 
