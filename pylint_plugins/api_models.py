@@ -21,7 +21,10 @@ Those classes dyamically assign attributes defined in the schema on the class in
 constructor.
 """
 
+import six
+
 from astroid import MANAGER
+from astroid import nodes
 from astroid import scoped_nodes
 
 # A list of class names for which we want to skip the checks
@@ -53,11 +56,33 @@ def transform(cls):
             # Not a class we are interested in
             return
 
-        properties = schema.get('properties', {}).keys()
-
-        for property_name in properties:
+        properties = schema.get('properties', {})
+        for property_name, property_data in six.iteritems(properties):
             property_name = property_name.replace('-', '_')  # Note: We do the same in Python code
-            cls.locals[property_name] = [scoped_nodes.Class(property_name, None)]
+            property_type = property_data.get('type', None)
+
+            if isinstance(property_type, (list, tuple)):
+                # Hack for attributes with multiple types (e.g. string, null)
+                property_type = property_type[0]
+
+            if property_type == 'object':
+                node = nodes.Dict()
+            elif property_type == 'array':
+                node = nodes.List()
+            elif property_type == 'integer':
+                node = scoped_nodes.builtin_lookup('int')[1][0]
+            elif property_type == 'number':
+                node = scoped_nodes.builtin_lookup('float')[1][0]
+            elif property_type == 'string':
+                node = scoped_nodes.builtin_lookup('str')[1][0]
+            elif property_type == 'boolean':
+                node = scoped_nodes.builtin_lookup('bool')[1][0]
+            elif property_type == 'null':
+                node = scoped_nodes.builtin_lookup('None')[1][0]
+            else:
+                node = scoped_nodes.Class(property_name, None)
+
+            cls.locals[property_name] = [node]
 
 
 MANAGER.register_transform(scoped_nodes.Class, transform)
