@@ -40,4 +40,5 @@ class FormatResultAction(Action):
                     raise Exception("Output of this template is disabled.")
                 if 'format' in alias.result:
                     template = alias.result['format']
+
         return self.jinja.from_string(template).render(context)
