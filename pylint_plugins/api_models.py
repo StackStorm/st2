@@ -65,9 +65,14 @@ def transform(cls):
                 node = nodes.Dict()
             elif property_type == 'array':
                 node = nodes.List()
-            else:
-                # Unknown type
-                node = scoped_nodes.Class(property_name, None)
+            elif property_type == 'integer':
+                node = scoped_nodes.builtin_lookup('int')[1][0]
+            elif property_type == 'number':
+                node = scoped_nodes.builtin_lookup('float')[1][0]
+            elif property_type == 'string':
+                node = scoped_nodes.builtin_lookup('str')[1][0]
+            elif property_type == 'boolean':
+                node = scoped_nodes.builtin_lookup('bool')[1][0]
 
             cls.locals[property_name] = [node]
 
