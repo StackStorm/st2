@@ -16,20 +16,25 @@
 import json
 
 from st2common import log as logging
+from st2common.constants import action as action_constants
 from st2common.constants.trace import TRACE_CONTEXT
+from st2common.models.api.trace import TraceContext
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.rule_enforcement import RuleEnforcementDB
+from st2common.models.utils import action_param_utils
+from st2common.models.api.auth import get_system_username
+from st2common.persistence.rule_enforcement import RuleEnforcement
+from st2common.services import action as action_service
+from st2common.services import trace as trace_service
 from st2common.util import reference
 from st2common.util import action_db as action_db_util
 from st2reactor.rules.datatransform import get_transformer
-from st2common.services import action as action_service
-from st2common.services import trace as trace_service
-from st2common.models.api.trace import TraceContext
-from st2common.models.db.liveaction import LiveActionDB
-from st2common.models.utils import action_param_utils
-from st2common.constants import action as action_constants
-from st2common.models.api.auth import get_system_username
 
 
 LOG = logging.getLogger('st2reactor.ruleenforcement.enforce')
+
+EXEC_KICKED_OFF_STATES = [action_constants.LIVEACTION_STATUS_SCHEDULED,
+                          action_constants.LIVEACTION_STATUS_REQUESTED]
 
 
 class RuleEnforcer(object):
@@ -46,7 +51,7 @@ class RuleEnforcer(object):
             raise ValueError(message)
 
     def enforce(self):
-        # TODO: Refactor this to avoid additiona lookup in cast_params
+        # TODO: Refactor this to avoid additional lookup in cast_params
         # TODO: rename self.rule.action -> self.rule.action_exec_spec
         action_ref = self.rule.action['ref']
         action_db = action_db_util.get_action_by_ref(action_ref)
@@ -69,21 +74,29 @@ class RuleEnforcer(object):
             TRACE_CONTEXT: trace_context
         }
 
-        liveaction_db = RuleEnforcer._invoke_action(self.rule.action, data, context)
-        if not liveaction_db:
-            extra = {'trigger_instance_db': self.trigger_instance, 'rule_db': self.rule}
-            LOG.audit('Rule enforcement failed. Liveaction for Action %s failed. '
+        extra = {'trigger_instance_db': self.trigger_instance, 'rule_db': self.rule}
+        enforcement_db = RuleEnforcementDB(trigger_instance=str(self.trigger_instance.id))
+        try:
+            execution_db = RuleEnforcer._invoke_action(self.rule.action, data, context)
+            execution_db.execution_id = str(execution_db.id)
+        except:
+            LOG.exception('Failed kicking off execution for rule %s.', self.rule, extra=extra)
+            return None
+        finally:
+            self._update_enforcement(enforcement_db)
+
+        extra['execution_db'] = execution_db
+        if execution_db.status not in EXEC_KICKED_OFF_STATES:
+            LOG.audit('Rule enforcement failed. Execution of Action %s failed. '
                       'TriggerInstance: %s and Rule: %s',
                       self.rule.action.name, self.trigger_instance, self.rule,
                       extra=extra)
-            return None
+            return execution_db
 
-        extra = {'trigger_instance_db': self.trigger_instance, 'rule_db': self.rule,
-                 'liveaction_db': liveaction_db}
-        LOG.audit('Rule enforced. Liveaction %s, TriggerInstance %s and Rule %s.',
-                  liveaction_db, self.trigger_instance, self.rule, extra=extra)
+        LOG.audit('Rule enforced. Execution %s, TriggerInstance %s and Rule %s.',
+                  execution_db, self.trigger_instance, self.rule, extra=extra)
 
-        return liveaction_db
+        return execution_db
 
     def _update_trace(self):
         """
@@ -103,6 +116,13 @@ class RuleEnforcer(object):
                                                               rules=[str(self.rule.id)])
         return vars(TraceContext(id_=str(trace_db.id), trace_tag=trace_db.trace_tag))
 
+    def _update_enforcement(self, enforcement_db):
+        try:
+            RuleEnforcement.add_or_update(enforcement_db)
+        except:
+            extra = {'enforcement_db': enforcement_db}
+            LOG.exception('Failed writing enforcement model to db.', extra=extra)
+
     @staticmethod
     def _invoke_action(action_exec_spec, params, context=None):
         """
@@ -120,9 +140,6 @@ class RuleEnforcer(object):
         # prior to shipping off the params cast them to the right type.
         params = action_param_utils.cast_params(action_ref, params)
         liveaction = LiveActionDB(action=action_ref, context=context, parameters=params)
-        liveaction, _ = action_service.request(liveaction)
+        liveaction, execution = action_service.request(liveaction)
 
-        if liveaction.status == action_constants.LIVEACTION_STATUS_REQUESTED:
-            return liveaction
-        else:
-            return None
+        return execution
