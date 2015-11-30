@@ -5,6 +5,7 @@ kombu
 mongoengine
 pymongo
 oslo.config
+stevedore
 pymongo
 six
 git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan

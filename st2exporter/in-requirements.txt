@@ -3,3 +3,4 @@ six
 eventlet
 kombu
 oslo.config
+stevedore

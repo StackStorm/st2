@@ -6,6 +6,7 @@ jsonschema
 kombu
 mongoengine
 oslo.config
+stevedore
 paramiko
 pyyaml
 pymongo
