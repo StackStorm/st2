@@ -16,6 +16,7 @@
 import jsonschema
 import pecan
 import six
+import collections
 from pecan import rest
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
@@ -109,7 +110,8 @@ class ActionAliasExecutionController(rest.RestController):
     def _extract_parameters(self, action_alias_db, format_str, param_stream):
         formats = []
         for formatstring in action_alias_db.formats:
-            if 'representation' in formatstring:
+            if (isinstance(formatstring, collections.Mapping) and
+               'representation' in formatstring and formatstring['representation']):
                 formats.extend(formatstring['representation'])
             else:
                 formats.append(formatstring)

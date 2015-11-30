@@ -4,4 +4,5 @@
     description: "DON'T CARE"
     action_ref: "wolfpack.action1"
     formats:
-        - "Lorem ipsum {{param1}} dolor sit {{param3}} amet."
+        - display: "Help entry doesn't matter."
+          representation: "Lorem ipsum {{param1}} dolor sit {{param3}} amet."
