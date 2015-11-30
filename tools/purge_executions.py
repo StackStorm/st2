@@ -30,6 +30,7 @@ from oslo_config import cfg
 
 from st2common import config
 from st2common import log as logging
+from st2common.constants import action as action_constants
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2common.persistence.liveaction import LiveAction
@@ -38,6 +39,11 @@ from st2common.util import isotime
 
 LOG = logging.getLogger(__name__)
 DELETED_COUNT = 0
+
+DONE_STATES = [action_constants.LIVEACTION_STATUS_SUCCEEDED,
+               action_constants.LIVEACTION_STATUS_FAILED,
+               action_constants.LIVEACTION_STATUS_TIMED_OUT,
+               action_constants.LIVEACTION_STATUS_CANCELED]
 
 
 def _do_register_cli_opts(opts, ignore_errors=False):
@@ -110,7 +116,7 @@ def purge_executions(timestamp=None, action_ref=None, purge_incomplete=False):
     else:
         filters['end_timestamp__lt'] = isotime.parse(timestamp)
         filters['start_timestamp__lt'] = isotime.parse(timestamp)
-        filters['status'] = {"$in": ["succeeded", "failed", "timeout", "canceled"]}
+        filters['status'] = {"$in": DONE_STATES}
 
     # XXX: Think about paginating this call.
     executions = ActionExecution.query(**filters)
