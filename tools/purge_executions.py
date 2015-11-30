@@ -30,7 +30,6 @@ from oslo_config import cfg
 
 from st2common import config
 from st2common import log as logging
-from st2common.constants import action as action_constants
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2common.persistence.liveaction import LiveAction
@@ -39,12 +38,6 @@ from st2common.util import isotime
 
 LOG = logging.getLogger(__name__)
 DELETED_COUNT = 0
-
-IN_PROGRESS_STATES = [action_constants.LIVEACTION_STATUS_RUNNING,
-                      action_constants.LIVEACTION_STATUS_SCHEDULED,
-                      action_constants.LIVEACTION_STATUS_REQUESTED,
-                      action_constants.LIVEACTION_STATUS_CANCELING,
-                      action_constants.LIVEACTION_STATUS_DELAYED]
 
 
 def _do_register_cli_opts(opts, ignore_errors=False):
@@ -100,40 +93,31 @@ def _purge_models(execution_db):
                 LOG.exception('Zombie LiveAction left in db: %s.', liveaction_db)
 
 
-def _should_delete(execution_db, action_ref, timestamp, purge_incomplete=False):
-    if not purge_incomplete and execution_db.status in IN_PROGRESS_STATES:
-        return False
-
-    if action_ref != '':
-        return (execution_db.liveaction['action'] == action_ref and
-                execution_db.start_timestamp < timestamp)
-    else:
-        return execution_db.start_timestamp < timestamp
-
-
 def purge_executions(timestamp=None, action_ref=None, purge_incomplete=False):
     if not timestamp:
         LOG.error('Specify a valid timestamp to purge.')
         return
 
-    if not action_ref:
-        action_ref = ''
-
     LOG.info('Purging executions older than timestamp: %s' %
              timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'))
 
+    filters = {}
+    if action_ref:
+        filters['action__ref'] = action_ref
+
+    if purge_incomplete:
+        filters['start_timestamp__lt'] = isotime.parse(timestamp)
+    else:
+        filters['end_timestamp__lt'] = isotime.parse(timestamp)
+        filters['start_timestamp__lt'] = isotime.parse(timestamp)
+        filters['status'] = {"$in": ["succeeded", "failed", "timeout", "canceled"]}
+
     # XXX: Think about paginating this call.
-    filters = {'end_timestamp__lt': isotime.parse(timestamp)}
     executions = ActionExecution.query(**filters)
-    executions_to_delete = [execution for execution in executions
-                            if _should_delete(
-                                execution_db=execution, action_ref=action_ref,
-                                timestamp=timestamp,
-                                purge_incomplete=purge_incomplete)]
-    LOG.info('#### Total number of executions to delete: %d' % len(executions_to_delete))
+    LOG.info('#### Total number of executions to delete: %d' % len(executions))
 
     # Purge execution and liveaction models now
-    for execution_db in executions_to_delete:
+    for execution_db in executions:
         _purge_models(execution_db)
 
     # Print stats
@@ -142,7 +126,7 @@ def purge_executions(timestamp=None, action_ref=None, purge_incomplete=False):
 
 def main():
     _register_cli_opts()
-    common_setup(config=config, setup_db=True, register_mq_exchanges=True)
+    common_setup(config=config, setup_db=True, register_mq_exchanges=False)
 
     # Get config values
     timestamp = cfg.CONF.timestamp
