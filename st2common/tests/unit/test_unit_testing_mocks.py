@@ -15,8 +15,8 @@
 
 import unittest2
 
-from st2tests.mocks import MockSensorWrapper
-from st2tests.mocks import MockSensorService
+from st2tests.mocks.sensor import MockSensorWrapper
+from st2tests.mocks.sensor import MockSensorService
 
 
 class MockSensorServiceTestCase(unittest2.TestCase):
