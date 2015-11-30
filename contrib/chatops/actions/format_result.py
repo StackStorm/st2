@@ -36,9 +36,9 @@ class FormatResultAction(Action):
 
             result = getattr(alias, 'result', None)
             if result:
-                enabled = result.get('enabled', True)
-
-                if enabled and 'format' in alias.result:
+                if not result.get('enabled', True):
+                    raise Exception("Output of this template is disabled.")
+                if 'format' in alias.result:
                     template = alias.result['format']
 
         return self.jinja.from_string(template).render(context)

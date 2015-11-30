@@ -22,7 +22,7 @@ from jsonschema import exceptions as json_schema_exceptions
 
 from st2actions.runners import ActionRunner
 from st2common import log as logging
-from st2common.constants.action import ACTION_KV_PREFIX
+from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
@@ -472,7 +472,7 @@ class ActionChainRunner(ActionRunner):
         context.update(chain_vars)
         context.update({RESULTS_KEY: results})
         context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
-        context.update({ACTION_KV_PREFIX: chain_context})
+        context.update({ACTION_CONTEXT_KV_PREFIX: chain_context})
         try:
             rendered_params = jinja_utils.render_values(mapping=action_node.params,
                                                         context=context)

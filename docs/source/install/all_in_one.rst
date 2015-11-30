@@ -8,7 +8,7 @@ That's OK! You're busy, we get it. How do you just get started? Get your own box
 
 ::
 
-   curl -sSL http://stackstorm.com/install.sh | sudo sh
+   curl -sSL https://install.stackstorm.com/ | sudo sh
 
 If you're installing *Enterprise Edition*, enter your license key when prompted. With no enterprise key, StackStorm community will be installed.
 
@@ -39,7 +39,7 @@ Optionally, you can also provide an Enterprise License Key and get access to the
 
 * |st2| FLOW - HTML5 based Graphical Workflow editor. Use this to visualize, edit, and share workflows.
 * |st2| Role Based Access Control. Apply fine-grained controls to actions and rules to fit into the most complex of environments.
-* |st2| LDAP Authentication Support. Integrate with your existing authentication directory.G
+* |st2| LDAP Authentication Support. Integrate with your existing authentication directory.
 
 Supported Platforms
 ###################
@@ -92,7 +92,7 @@ Bring Your Own Box
 
 ::
 
-   curl -sSL http://stackstorm.com/install.sh | sudo sh
+   curl -sSL https://install.stackstorm.com/ | sudo sh
 
 You will need elevated privileges in order to run this script. This will boot up a fresh |st2| installation along with the Mistral workflow engine on Ubuntu 14.04 LTS. While loading, some console output in red is expected and can be safely ignored. Once completed, you will see the following console output.
 
@@ -313,7 +313,7 @@ The answers file is formatted in standard YAML. Below, we will discuss the vario
 
 ::
 
-   curl -sSL http://stackstorm.com/install.sh | sudo sh -s -- -a <answers_file>.yaml
+   curl -sSL https://install.stackstorm.com/ | sudo sh -s -- -a <answers_file>.yaml
 
 
 If you have already installed using this method, you can find and update your answers file at `/opt/puppet/hieradata/answers.yaml`
