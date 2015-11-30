@@ -92,7 +92,7 @@ def purge_trigger_instances(timestamp=None):
 
 def main():
     _register_cli_opts()
-    common_setup(config=config, setup_db=True, register_mq_exchanges=True)
+    common_setup(config=config, setup_db=True, register_mq_exchanges=False)
 
     # Get config values
     timestamp = cfg.CONF.timestamp
