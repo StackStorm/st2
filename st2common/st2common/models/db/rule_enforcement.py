@@ -13,31 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.util.enum import Enum
+import mongoengine as me
 
-__all__ = [
-    'ResourceType'
-]
+from st2common.fields import ComplexDateTimeField
+from st2common.models.db import MongoDBAccess
+from st2common.models.db import stormbase
+from st2common.util import date as date_utils
 
 
-class ResourceType(Enum):
-    """
-    Enum representing a valid resource type in a system.
-    """
+class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
+    trigger_instance_id = me.StringField(required=True)
+    execution_id = me.StringField(required=False)
+    timestamp = ComplexDateTimeField(
+        default=date_utils.get_datetime_utc_now,
+        help_text='The timestamp when the rule enforcement was created.')
 
-    PACK = 'pack'
-    ACTION = 'action'
-    ACTION_ALIAS = 'action_alias'
-    SENSOR_TYPE = 'sensor_type'
-    TRIGGER_TYPE = 'trigger_type'
-    TRIGGER = 'trigger'
-    TRIGGER_INSTANCE = 'trigger_instance'
-    RULE = 'rule'
-    RULE_ENFORCEMENT = 'rule_enforcement'
+rule_enforcement_access = MongoDBAccess(RuleEnforcementDB)
 
-    EXECUTION = 'execution'
-    KEY_VALUE_PAIR = 'key_value_pair'
-
-    WEBHOOK = 'webhook'
-    API_KEY = 'api_key'
-    UNKNOWN = 'unknown'
+MODELS = [RuleEnforcementDB]
