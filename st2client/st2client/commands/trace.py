@@ -63,13 +63,17 @@ class TraceBranch(resource.ResourceBranch):
 class SingleTraceDisplayMixin(object):
 
     def print_trace_details(self, trace, args, **kwargs):
-        options = {'attributes': TRACE_HEADER_DISPLAY_ORDER}
+        options = {'attributes': TRACE_ATTRIBUTE_DISPLAY_ORDER if args.json else TRACE_HEADER_DISPLAY_ORDER}
         options['json'] = args.json
         options['attribute_transform_functions'] = self.attribute_transform_functions
 
         formatter = execution_formatter.ExecutionResult
 
         self.print_output(trace, formatter, **options)
+
+        # Everything should be printed if we are printing json.
+        if args.json:
+          return
 
         components = []
         if any(attr in args.attr for attr in TRIGGER_INSTANCE_DISPLAY_OPTIONS):
