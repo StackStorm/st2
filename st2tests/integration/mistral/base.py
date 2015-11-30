@@ -65,12 +65,12 @@ class TestWorkflowExecution(unittest2.TestCase):
 
     def _assert_failure(self, execution):
         self.assertEqual(execution.status, 'failed')
-        tasks = execution.result['tasks']
+        tasks = execution.result.get('tasks', [])
         self.assertTrue(any([task['state'] == 'ERROR' for task in tasks]))
 
     def _assert_canceled(self, execution, are_tasks_completed=False):
         self.assertEqual(execution.status, 'canceled')
-        tasks = execution.result['tasks']
+        tasks = execution.result.get('tasks', [])
 
         if are_tasks_completed:
             self.assertTrue(all([t['state'] in ['SUCCESS', 'ERROR'] for t in tasks]))

@@ -20,7 +20,7 @@ import six
 
 from jinja2 import Template, Environment, StrictUndefined, meta, exceptions
 from st2common import log as logging
-from st2common.constants.action import ACTION_KV_PREFIX
+from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.exceptions import actionrunner
 from st2common.services.keyvalues import KeyValueLookup
@@ -305,7 +305,7 @@ def get_rendered_params(runner_parameters, action_parameters, action_context,
     # a runner parameter is overridden in an action it is likely that a runner parameter could
     # depend on an action parameter.
     render_context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
-    render_context[ACTION_KV_PREFIX] = action_context
+    render_context[ACTION_CONTEXT_KV_PREFIX] = action_context
     renderable_params, context = _renderable_context_param_split(action_parameters,
                                                                  runner_parameters,
                                                                  render_context)

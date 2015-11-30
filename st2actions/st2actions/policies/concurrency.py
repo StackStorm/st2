@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2common.persistence import action as action_access
@@ -34,7 +32,8 @@ class ConcurrencyApplicator(base.ResourcePolicyApplicator):
         self.threshold = kwargs.get('threshold', 0)
 
     def _get_lock_uid(self, target):
-        return json.dumps({'policy_type': self._policy_type, 'action': target.action})
+        values = {'policy_type': self._policy_type, 'action': target.action}
+        return self._get_lock_name(values=values)
 
     def _apply_before(self, target):
         # Get the count of scheduled instances of the action.
@@ -65,15 +64,13 @@ class ConcurrencyApplicator(base.ResourcePolicyApplicator):
         return target
 
     def apply_before(self, target):
+        target = super(ConcurrencyApplicator, self).apply_before(target=target)
+
         # Exit if target not in schedulable state.
         if target.status != action_constants.LIVEACTION_STATUS_REQUESTED:
             LOG.debug('The live action is not schedulable therefore the policy '
                       '"%s" cannot be applied. %s', self._policy_ref, target)
             return target
-
-        # Warn users that the coordination service is not configured.
-        if not coordination.configured():
-            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
 
         # Acquire a distributed lock before querying the database to make sure that only one
         # scheduler is scheduling execution for this action. Even if the coordination service
@@ -97,9 +94,7 @@ class ConcurrencyApplicator(base.ResourcePolicyApplicator):
                 requests[0], action_constants.LIVEACTION_STATUS_REQUESTED, publish=True)
 
     def apply_after(self, target):
-        # Warn users that the coordination service is not configured.
-        if not coordination.configured():
-            LOG.warn('Coordination service is not configured. Policy enforcement is best effort.')
+        target = super(ConcurrencyApplicator, self).apply_after(target=target)
 
         # Acquire a distributed lock before querying the database to make sure that only one
         # scheduler is scheduling execution for this action. Even if the coordination service

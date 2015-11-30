@@ -103,7 +103,7 @@ class Querier(object):
             self._delete_state_object(query_context)
             return
 
-        if status in action_constants.COMPLETED_STATES:
+        if status in action_constants.LIVEACTION_COMPLETED_STATES:
             action_db = get_action_by_ref(liveaction_db.action)
             if not action_db:
                 LOG.exception('Unable to invoke post run. Action %s '
@@ -128,7 +128,7 @@ class Querier(object):
         liveaction_db.result = results
 
         # Action has completed, record end_timestamp
-        if (liveaction_db.status in action_constants.COMPLETED_STATES and
+        if (liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES and
                 not liveaction_db.end_timestamp):
             liveaction_db.end_timestamp = date_utils.get_datetime_utc_now()
 

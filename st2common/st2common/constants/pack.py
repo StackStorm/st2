@@ -19,6 +19,7 @@ __all__ = [
     'PACKS_PACK_NAME',
     'LINUX_PACK_NAME',
     'SYSTEM_PACK_NAMES',
+    'CHATOPS_PACK_NAME',
     'USER_PACK_NAME_BLACKLIST',
     'BASE_PACK_REQUIREMENTS',
     'MANIFEST_FILE_NAME'
@@ -39,8 +40,12 @@ LINUX_PACK_NAME = 'linux'
 # Name of the default pack
 DEFAULT_PACK_NAME = 'default'
 
+# Name of the chatops pack
+CHATOPS_PACK_NAME = 'chatops'
+
 # A list of system pack names
 SYSTEM_PACK_NAMES = [
+    CHATOPS_PACK_NAME,
     SYSTEM_PACK_NAME,
     PACKS_PACK_NAME,
     LINUX_PACK_NAME

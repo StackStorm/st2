@@ -79,5 +79,5 @@ Below is an an example of a Vagrantfile capable of loading StackStorm. This mini
         v.memory = 1024
       end
       config.vm.provision "shell",
-          inline: "curl -sSL http://stackstorm.com/install.sh | sudo su"
+          inline: "curl -sSL https://install.stackstorm.com/ | sudo su"
     end

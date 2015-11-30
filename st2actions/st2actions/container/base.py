@@ -115,7 +115,7 @@ class RunnerContainer(object):
             except:
                 pass
 
-            action_completed = status in action_constants.COMPLETED_STATES
+            action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
             if isinstance(runner, AsyncActionRunner) and not action_completed:
                 self._setup_async_query(liveaction_db.id, runnertype_db, context)
         except:
@@ -151,7 +151,7 @@ class RunnerContainer(object):
             # actions in the workflow. If the auth token is deleted here, then the actions
             # in the workflow will fail with unauthorized exception.
             is_async_runner = isinstance(runner, AsyncActionRunner)
-            action_completed = status in action_constants.COMPLETED_STATES
+            action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
 
             if not is_async_runner or (is_async_runner and action_completed):
                 try:
@@ -194,7 +194,7 @@ class RunnerContainer(object):
         Update LiveActionDB object for the provided liveaction id.
         """
         liveaction_db = get_liveaction_by_id(liveaction_id)
-        if status in action_constants.COMPLETED_STATES:
+        if status in action_constants.LIVEACTION_COMPLETED_STATES:
             end_timestamp = date_utils.get_datetime_utc_now()
         else:
             end_timestamp = None
