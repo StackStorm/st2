@@ -1,7 +1,0 @@
----
-name: "skip_message"
-pack: chatops
-runner_type: "run-python"
-description: "Skip sending an execution result for chatops"
-enabled: true
-entry_point: "skip_message.py"
