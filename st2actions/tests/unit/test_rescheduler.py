@@ -34,7 +34,7 @@ from st2common.transport.publishers import CUDPublisher
 from st2common.util import date as date_utils
 from st2tests import DbTestCase, fixturesloader
 from tests.unit.base import MockLiveActionPublisher
-from tests.unit.test_runner import TestRunner
+from st2tests.mocks.runner import TestRunner
 
 
 TEST_FIXTURES = {
