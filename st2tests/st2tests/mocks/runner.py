@@ -20,17 +20,17 @@ from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED)
 
 __all__ = [
     'get_runner',
-    'TestRunner'
+    'MockActionRunner'
 ]
 
 
 def get_runner():
-    return TestRunner()
+    return MockActionRunner()
 
 
-class TestRunner(ActionRunner):
+class MockActionRunner(ActionRunner):
     def __init__(self):
-        super(TestRunner, self).__init__(runner_id='1')
+        super(MockActionRunner, self).__init__(runner_id='1')
 
         self.pre_run_called = False
         self.run_called = False
