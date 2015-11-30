@@ -15,7 +15,7 @@
 
 import six
 from pecan.rest import RestController
-from six.moves.urllib import parse as urlparse
+from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 
 __all__ = [
     'BaseRestControllerMixin'

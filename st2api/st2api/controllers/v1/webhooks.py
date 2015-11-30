@@ -23,7 +23,7 @@ import pecan
 import uuid
 from pecan import abort
 from pecan.rest import RestController
-from six.moves.urllib import parse as urlparse
+from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 urljoin = urlparse.urljoin
 
 from st2common import log as logging
