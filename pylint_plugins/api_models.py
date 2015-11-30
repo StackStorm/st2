@@ -61,6 +61,10 @@ def transform(cls):
             property_name = property_name.replace('-', '_')  # Note: We do the same in Python code
             property_type = property_data.get('type', None)
 
+            if isinstance(property_type, (list, tuple)):
+                # Hack for attributes with multiple types (e.g. string, null)
+                property_type = property_type[0]
+
             if property_type == 'object':
                 node = nodes.Dict()
             elif property_type == 'array':
@@ -73,6 +77,10 @@ def transform(cls):
                 node = scoped_nodes.builtin_lookup('str')[1][0]
             elif property_type == 'boolean':
                 node = scoped_nodes.builtin_lookup('bool')[1][0]
+            elif property_type == 'null':
+                node = scoped_nodes.builtin_lookup('None')[1][0]
+            else:
+                node = scoped_nodes.Class(property_name, None)
 
             cls.locals[property_name] = [node]
 
