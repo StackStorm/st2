@@ -98,9 +98,10 @@ class ActionRunner(object):
         pass
 
     def post_run(self, status, result):
-        if self.callback and not (set(['url', 'source']) - set(self.callback.keys())):
-            handler = handlers.get_handler(self.callback['source'])
-            handler.callback(self.callback['url'],
+        callback = self.callback or {}
+        if callback and not (set(['url', 'source']) - set(callback.keys())):
+            handler = handlers.get_handler(callback['source'])
+            handler.callback(callback['url'],
                              self.context,
                              status,
                              result)
