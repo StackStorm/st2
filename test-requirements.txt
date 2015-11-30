@@ -1,7 +1,8 @@
 coverage
 pep8>=1.6.0,<1.7
 flake8>=2.3.0,<2.4
-pylint>=1.4.3,<1.5
+astroid==1.3.8
+pylint==1.5.0
 pylint-plugin-utils>=0.2.3,<0.3
 ipython
 mock>=1.0
