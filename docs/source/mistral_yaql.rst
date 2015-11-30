@@ -5,7 +5,14 @@ workflows. There will be many cases where you did not author the actions but the
 decide from the result of the action whether to continue or there's a need to transform the 
 result to another value or structure for the next action in the workflow.
 
-Here are some examples of usages.
+Here are use cases where YAQL can be applied in Mistral workflows.
+
+* Define input values that are passed to tasks.
+* Define output values published from tasks and workflows.
+* Define conditions that determine transitions between tasks.
+
+Knowing where YAQL can be applied in Mistral workflows, the following are some cool stuffs
+that you can do with YAQL.
 
 * Select values for a key from a list of dictionary.
 * Filter the list where one or more fields match condition(s).
