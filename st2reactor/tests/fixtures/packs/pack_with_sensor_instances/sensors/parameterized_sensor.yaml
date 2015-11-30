@@ -1,0 +1,15 @@
+---
+  class_name: "ParameterizedSensor"
+  entry_point: "test_sensor.py"
+  description: "Parameterized test sensor"
+  poll_interval: 10
+  trigger_types:
+    -
+      name: "trigger_type_3"
+      description: "1"
+    -
+      name: "trigger_type_4"
+      description: "2"
+  parameters_schema:
+    input_1:
+        type: string

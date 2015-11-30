@@ -1,0 +1,10 @@
+---
+pack: generic
+description: fixture sensor1
+artifact_uri: 'file:///generic/sample_sensor.py'
+class_name: 'ParameterizedSensor'
+enabled: True
+trigger_types: []
+parameters_schema:
+    input_1:
+        type: string

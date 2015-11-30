@@ -26,7 +26,7 @@ from st2common.models.api.auth import ApiKeyAPI, UserAPI
 from st2common.models.api.execution import (ActionExecutionAPI)
 from st2common.models.api.policy import (PolicyTypeAPI, PolicyAPI)
 from st2common.models.api.rule import (RuleAPI)
-from st2common.models.api.sensor import SensorTypeAPI
+from st2common.models.api.sensor import (SensorTypeAPI, SensorInstanceAPI, SensorExecutionAPI)
 from st2common.models.api.trace import TraceAPI
 from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
 
@@ -39,7 +39,7 @@ from st2common.models.db.runner import RunnerTypeDB
 from st2common.models.db.execution import (ActionExecutionDB)
 from st2common.models.db.policy import (PolicyTypeDB, PolicyDB)
 from st2common.models.db.rule import RuleDB
-from st2common.models.db.sensor import SensorTypeDB
+from st2common.models.db.sensor import (SensorTypeDB, SensorInstanceDB, SensorExecutionDB)
 from st2common.models.db.trace import TraceDB
 from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB, TriggerInstanceDB)
 from st2common.persistence.action import Action
@@ -51,15 +51,16 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.persistence.policy import (PolicyType, Policy)
 from st2common.persistence.rule import Rule
-from st2common.persistence.sensor import SensorType
+from st2common.persistence.sensor import (SensorType, SensorInstance, SensorExecution)
 from st2common.persistence.trace import Trace
 from st2common.persistence.trigger import (Trigger, TriggerType, TriggerInstance)
 
 
 ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'aliases', 'executions', 'liveactions',
-                       'policies', 'policytypes', 'rules', 'runners', 'sensors',
-                       'triggertypes', 'triggers', 'triggerinstances', 'traces', 'apikeys',
-                       'users']
+                       'policies', 'policytypes', 'rules', 'runners', 'sensors', 'sensorinstances',
+                       'sensorexecutions', 'triggertypes', 'triggers', 'triggerinstances', 'traces',
+                       'apikeys', 'users']
+
 ALLOWED_FIXTURES = copy.copy(ALLOWED_DB_FIXTURES)
 ALLOWED_FIXTURES.extend(['actionchains', 'workflows'])
 
@@ -75,6 +76,8 @@ FIXTURE_DB_MODEL = {
     'rules': RuleDB,
     'runners': RunnerTypeDB,
     'sensors': SensorTypeDB,
+    'sensorinstances': SensorInstanceDB,
+    'sensorexecutions': SensorExecutionDB,
     'traces': TraceDB,
     'triggertypes': TriggerTypeDB,
     'triggers': TriggerDB,
@@ -94,6 +97,8 @@ FIXTURE_API_MODEL = {
     'rules': RuleAPI,
     'runners': RunnerTypeAPI,
     'sensors': SensorTypeAPI,
+    'sensorinstances': SensorInstanceAPI,
+    'sensorexecutions': SensorExecutionAPI,
     'traces': TraceAPI,
     'triggertypes': TriggerTypeAPI,
     'triggers': TriggerAPI,
@@ -114,6 +119,8 @@ FIXTURE_PERSISTENCE_MODEL = {
     'rules': Rule,
     'runners': RunnerType,
     'sensors': SensorType,
+    'sensorinstances': SensorInstance,
+    'sensorexecutions': SensorExecution,
     'traces': Trace,
     'triggertypes': TriggerType,
     'triggers': Trigger,
@@ -213,6 +220,7 @@ class FixturesLoader(object):
 
         return all_fixtures
 
+
     def load_models(self, fixtures_pack='generic', fixtures_dict=None):
         """
         Loads fixtures specified in fixtures_dict as db models. This method must be
@@ -276,8 +284,10 @@ class FixturesLoader(object):
         :param raise_on_fail: Optional If True, raises exception if delete fails on any fixture.
         :type raise_on_fail: ``boolean``
         """
+
         if not fixtures_dict:
             return
+
         fixtures_pack_path = self._validate_fixtures_pack(fixtures_pack)
         self._validate_fixture_dict(fixtures_dict)
 

@@ -43,6 +43,9 @@ TRIGGER_INSTANCE_XCHG = Exchange('st2.trigger_instances_dispatch', type='topic')
 # Exchane for Sensor CUD events
 SENSOR_CUD_XCHG = Exchange('st2.sensor', type='topic')
 
+# Exchane for SensorInstance CUD events
+SENSOR_INSTANCE_CUD_XCHG = Exchange('st2.sensor_instance', type='topic')
+
 
 class SensorCUDPublisher(publishers.CUDPublisher):
     """
@@ -51,6 +54,15 @@ class SensorCUDPublisher(publishers.CUDPublisher):
 
     def __init__(self, urls):
         super(SensorCUDPublisher, self).__init__(urls, SENSOR_CUD_XCHG)
+
+
+class SensorInstanceCUDPublisher(publishers.CUDPublisher):
+    """
+    Publisher responsible for publishing Trigger model CUD events.
+    """
+
+    def __init__(self, url):
+        super(SensorInstanceCUDPublisher, self).__init__(url, SENSOR_INSTANCE_CUD_XCHG)
 
 
 class TriggerCUDPublisher(publishers.CUDPublisher):

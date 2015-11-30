@@ -14,8 +14,9 @@
 # limitations under the License.
 
 from st2common import transport
-from st2common.models.db.sensor import sensor_type_access
-from st2common.persistence.base import ContentPackResource
+from st2common.models.db.sensor import sensor_type_access, sensor_instance_access, \
+    sensor_execution_access
+from st2common.persistence.base import Access, ContentPackResource
 from st2common.transport import utils as transport_utils
 
 
@@ -33,3 +34,26 @@ class SensorType(ContentPackResource):
             cls.publisher = transport.reactor.SensorCUDPublisher(
                 urls=transport_utils.get_messaging_urls())
         return cls.publisher
+
+
+class SensorInstance(ContentPackResource):
+    impl = sensor_instance_access
+    publisher = None
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+    @classmethod
+    def _get_publisher(cls):
+        if not cls.publisher:
+            cls.publisher = transport.reactor.SensorInstanceCUDPublisher(cfg.CONF.messaging.url)
+        return cls.publisher
+
+
+class SensorExecution(Access):
+    impl = sensor_execution_access
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl

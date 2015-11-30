@@ -20,7 +20,9 @@ from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
 
 __all__ = [
-    'SensorTypeDB'
+    'SensorTypeDB',
+    'SensorInstanceDB',
+    'SensorExecutionDB'
 ]
 
 
@@ -49,6 +51,32 @@ class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
     poll_interval = me.IntField()
     enabled = me.BooleanField(default=True,
                               help_text=u'Flag indicating whether the sensor is enabled.')
+    parameters_schema = me.DictField(default={})
+
+
+class SensorInstanceDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin):
+    """
+    An instance of a SensorType which can be run. SensorInstance is a uniquely referenceable
+    i.e. its identity is independent of SensorType and does not even have to come from the
+    same pack as the SensorType.
+    """
+    name = me.StringField(required=True)
+    pack = me.StringField(required=True, unique_with='name')
+    sensor_type = me.StringField(required=True, help_text='')
+    poll_interval = me.IntField()
+    enabled = me.BooleanField(default=True,
+                              help_text=u'Flag indicating whether the sensor instance is enabled.')
+    parameters = me.DictField()
+
+
+class SensorExecutionDB(stormbase.StormFoundationDB):
+    """
+    An execution of a SensorInstance. This is a system generated object and captures some runtime
+    information about the execution of SensorInstance like the SensorNode it executed on etc.
+    """
+    status = me.StringField()
+    sensor_node = me.StringField(required=True)
+    sensor_instance = me.StringField(required=True)
 
     meta = {
         'indexes': stormbase.UIDFieldMixin.get_indexes()
@@ -60,5 +88,7 @@ class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         self.uid = self.get_uid()
 
 sensor_type_access = MongoDBAccess(SensorTypeDB)
+sensor_instance_access = MongoDBAccess(SensorInstanceDB)
+sensor_execution_access = MongoDBAccess(SensorExecutionDB)
 
-MODELS = [SensorTypeDB]
+MODELS = [SensorTypeDB, SensorInstanceDB, SensorExecutionDB]

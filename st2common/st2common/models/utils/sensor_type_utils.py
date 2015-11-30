@@ -17,11 +17,13 @@ import os
 
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.constants.sensors import MINIMUM_POLL_INTERVAL
-from st2common.models.db.sensor import SensorTypeDB
+from st2common.models.db.sensor import SensorTypeDB, SensorInstanceDB, SensorExecutionDB
 from st2common.services import triggers as trigger_service
 
 __all__ = [
     'to_sensor_db_model',
+    'to_sensor_instance_db_model',
+    'to_sensor_execution_db_model',
     'get_sensor_entry_point'
 ]
 
@@ -44,6 +46,7 @@ def to_sensor_db_model(sensor_api_model=None):
     trigger_types = getattr(sensor_api_model, 'trigger_types', [])
     poll_interval = getattr(sensor_api_model, 'poll_interval', None)
     enabled = getattr(sensor_api_model, 'enabled', True)
+    parameters_schema = getattr(sensor_api_model, 'parameters_schema', {})
 
     poll_interval = getattr(sensor_api_model, 'poll_interval', None)
     if poll_interval and (poll_interval < MINIMUM_POLL_INTERVAL):
@@ -62,7 +65,46 @@ def to_sensor_db_model(sensor_api_model=None):
                                entry_point=entry_point,
                                trigger_types=trigger_type_refs,
                                poll_interval=poll_interval,
-                               enabled=enabled)
+                               enabled=enabled,
+                               parameters_schema=parameters_schema)
+
+
+def to_sensor_instance_db_model(sensor_instance_api_model):
+    """
+    Converts a SensorInstanceAPI model to DB model.
+
+    :param sensor_instance_api_model: SensorInstanceAPI object.
+    :type sensor_instance_api_model: :class:`SensorInstanceAPI`
+
+    :rtype: :class:`SensorInstanceDB`
+    """
+    name = getattr(sensor_instance_api_model, 'name', None)
+    pack = getattr(sensor_instance_api_model, 'pack', None)
+    sensor_type = getattr(sensor_instance_api_model, 'sensor_type', None)
+    poll_interval = getattr(sensor_instance_api_model, 'poll_interval', None)
+    enabled = getattr(sensor_instance_api_model, 'enabled', True)
+    parameters_schema = getattr(sensor_instance_api_model, 'parameters_schema', {})
+
+    return SensorInstanceDB(name=name, pack=pack, sensor_type=sensor_type,
+                            poll_interval=poll_interval, enabled=enabled,
+                            parameters_schema=parameters_schema)
+
+
+def to_sensor_execution_db_model(sensor_execution_api_model):
+    """
+    Converts a SensorExecutionAPI model to DB model.
+
+    :param sensor_execution_api_model: SensorExecutionAPI object.
+    :type sensor_execution_api_model: :class:`SensorExecutionAPI`
+
+    :rtype: :class:`SensorExecutionDB`
+    """
+    status = getattr(sensor_execution_api_model, 'status', None)
+    sensor_node = getattr(sensor_execution_api_model, 'sensor_node', None)
+    sensor_instance = getattr(sensor_execution_api_model, 'sensor_instance', None)
+
+    return SensorExecutionDB(status=status, sensor_node=sensor_node,
+                             sensor_instance=sensor_instance)
 
 
 def _create_trigger_types(trigger_types):
@@ -82,12 +124,13 @@ def _create_trigger_types(trigger_types):
 
 
 def _create_sensor_type(pack=None, name=None, description=None, artifact_uri=None,
-                        entry_point=None, trigger_types=None, poll_interval=10, enabled=True):
+                        entry_point=None, trigger_types=None, poll_interval=10, enabled=True,
+                        parameters_schema={}):
 
     sensor_type = SensorTypeDB(pack=pack, name=name, description=description,
                                artifact_uri=artifact_uri, entry_point=entry_point,
                                poll_interval=poll_interval, enabled=enabled,
-                               trigger_types=trigger_types)
+                               trigger_types=trigger_types, parameters_schema=parameters_schema)
     return sensor_type
 
 

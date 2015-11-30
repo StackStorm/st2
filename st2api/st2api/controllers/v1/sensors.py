@@ -19,8 +19,8 @@ from mongoengine import ValidationError
 
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
-from st2common.persistence.sensor import SensorType
-from st2common.models.api.sensor import SensorTypeAPI
+from st2common.persistence.sensor import SensorType, SensorInstance, SensorExecution
+from st2common.models.api.sensor import SensorTypeAPI, SensorInstanceAPI, SensorExecutionAPI
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2api.controllers import resource
@@ -99,3 +99,28 @@ class SensorTypeController(resource.ContentPackResourceController):
         sensor_type_api = SensorTypeAPI.from_model(sensor_type_db)
 
         return sensor_type_api
+
+class SensorInstanceController(resource.ContentPackResourceController):
+    model = SensorInstanceAPI
+    access = SensorInstance
+    supported_filters = {
+        'name': 'name',
+        'pack': 'pack',
+        'type': 'sensor_type'
+    }
+
+    options = {
+        'sort': ['pack', 'name']
+    }
+
+    include_reference = True
+
+
+class SensorExecutionController(resource.ResourceController):
+    model = SensorExecutionAPI
+    access = SensorExecution
+    supported_filters = {
+        'sensor_node': 'sensor_node',
+        'sensor_instance': 'sensor_instance',
+        'status': 'status'
+    }
