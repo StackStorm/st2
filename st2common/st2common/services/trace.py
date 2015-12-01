@@ -189,14 +189,15 @@ def add_or_update_given_trace_context(trace_context, action_executions=None, rul
     :type trace_context: ``dict`` or ``TraceContext``
 
     :param action_executions: The action_execution to be added to the Trace. Should a list
-                              of object_ids.
+                              of object_ids or a dict containing object_ids and causal_component.
     :type action_executions: ``list``
 
-    :param rules: The rules to be added to the Trace. Should a list of object_ids.
+    :param rules: The rules to be added to the Trace.  Should a list of object_ids or a dict
+                  containing object_ids and causal_component.
     :type rules: ``list``
 
     :param trigger_instances: The trigger_instances to be added to the Trace. Should a list
-                              of object_ids.
+                              of object_ids or a dict containing object_ids and causal_component.
     :type trigger_instances: ``list``
 
     :rtype: ``TraceDB``
@@ -221,14 +222,15 @@ def add_or_update_given_trace_db(trace_db, action_executions=None, rules=None,
     :type trace_db: ``TraceDB``
 
     :param action_executions: The action_execution to be added to the Trace. Should a list
-                              of object_ids.
+                              of object_ids or a dict containing object_ids and causal_component.
     :type action_executions: ``list``
 
-    :param rules: The rules to be added to the Trace. Should a list of object_ids.
+    :param rules: The rules to be added to the Trace. Should a list of object_ids or a dict
+                  containing object_ids and causal_component.
     :type rules: ``list``
 
     :param trigger_instances: The trigger_instances to be added to the Trace. Should a list
-                              of object_ids.
+                              of object_ids or a dict containing object_ids and causal_component.
     :type trigger_instances: ``list``
 
     :rtype: ``TraceDB``
@@ -238,16 +240,16 @@ def add_or_update_given_trace_db(trace_db, action_executions=None, rules=None,
 
     if not action_executions:
         action_executions = []
-    action_executions = [TraceComponentDB(object_id=action_execution)
+    action_executions = [_to_trace_component_db(component=action_execution)
                          for action_execution in action_executions]
 
     if not rules:
         rules = []
-    rules = [TraceComponentDB(object_id=rule) for rule in rules]
+    rules = [_to_trace_component_db(component=rule) for rule in rules]
 
     if not trigger_instances:
         trigger_instances = []
-    trigger_instances = [TraceComponentDB(object_id=trigger_instance)
+    trigger_instances = [_to_trace_component_db(component=trigger_instance)
                          for trigger_instance in trigger_instances]
 
     # If an id exists then this is an update and we do not want to perform
@@ -263,3 +265,23 @@ def add_or_update_given_trace_db(trace_db, action_executions=None, rules=None,
     trace_db.trigger_instances = trigger_instances
 
     return Trace.add_or_update(trace_db)
+
+
+def _to_trace_component_db(component):
+    """
+    Take the component as string or a dict and will construct a TraceComponentDB.
+
+    :param component: Should identify the component. If a string should be id of the
+                      component. If a dict should contain id and the causal_component.
+    :type component: ``bson.ObjectId`` or ``dict``
+
+    :rtype: ``TraceComponentDB``
+    """
+    if not isinstance(component, (basestring, dict)):
+        print type(component)
+        raise ValueError('Expected component to be str or dict')
+
+    object_id = component if isinstance(component, basestring) else component['id']
+    causal_component = component.get('causal_component', {}) if isinstance(component, dict) else {}
+
+    return TraceComponentDB(object_id=object_id, causal_component=causal_component)

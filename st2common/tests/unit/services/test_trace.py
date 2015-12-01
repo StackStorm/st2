@@ -253,9 +253,9 @@ class TestTraceService(DbTestCase):
         # Now add more TraceComponents and validated that they are added properly.
         saved = trace_service.add_or_update_given_trace_db(
             retrieved_trace_db,
-            action_executions=[bson.ObjectId(), bson.ObjectId()],
-            rules=[bson.ObjectId()],
-            trigger_instances=[bson.ObjectId(), bson.ObjectId(), bson.ObjectId()])
+            action_executions=[str(bson.ObjectId()), str(bson.ObjectId())],
+            rules=[str(bson.ObjectId())],
+            trigger_instances=[str(bson.ObjectId()), str(bson.ObjectId()), str(bson.ObjectId())])
         retrieved_trace_db = Trace.get_by_id(saved.id)
         self.assertEqual(len(retrieved_trace_db.action_executions), 3,
                          'Expected updated action_executions.')
