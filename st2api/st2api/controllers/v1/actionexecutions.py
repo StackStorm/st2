@@ -267,7 +267,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         'trigger_instance'
     ]
 
-    class ExecutionParametersAPI(object):
+    class ExecutionSpecificationAPI(object):
         def __init__(self, parameters=None):
             self.parameters = parameters or {}
 
@@ -277,8 +277,8 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             return self
 
-    @jsexpose(body_cls=ExecutionParametersAPI, status_code=http_client.CREATED)
-    def post(self, execution_parameters, execution_id):
+    @jsexpose(body_cls=ExecutionSpecificationAPI, status_code=http_client.CREATED)
+    def post(self, spec, execution_id):
         """
         Re-run the provided action execution optionally specifying override parameters.
 
@@ -286,7 +286,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             POST /executions/<id>/re_run
         """
-        parameters = execution_parameters.parameters
+        parameters = spec.parameters
 
         # Note: We only really need parameters here
         existing_execution = self._get_one(id=execution_id, exclude_fields=self.exclude_fields)
