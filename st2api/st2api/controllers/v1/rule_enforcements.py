@@ -44,7 +44,7 @@ class RuleEnforcementController(resource.ResourceController):
     def get_all(self, **kwargs):
         return super(RuleEnforcementController, self)._get_all(**kwargs)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_VIEW)
+    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return super(RuleEnforcementController, self)._get_one(ref_or_id)

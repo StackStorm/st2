@@ -74,6 +74,7 @@ class PermissionType(Enum):
     RULE_ALL = 'rule_all'
 
     RULE_ENFORCEMENT_LIST = 'rule_enforcement_list'
+    RULE_ENFORCEMENT_VIEW = 'rule_enforcement_view'
 
     # TODO - Maybe "datastore_item" / key_value_item ?
     KEY_VALUE_VIEW = 'key_value_pair_view'
@@ -246,6 +247,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
     ],
     ResourceType.RULE_ENFORCEMENT: [
         PermissionType.RULE_ENFORCEMENT_LIST,
+        PermissionType.RULE_ENFORCEMENT_VIEW,
     ],
     ResourceType.EXECUTION: [
         PermissionType.EXECUTION_LIST,
