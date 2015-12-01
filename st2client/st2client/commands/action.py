@@ -496,6 +496,10 @@ class ActionRunCommandMixin(object):
             return value
 
         result = {}
+
+        if not args.parameters:
+            return result
+
         for idx in range(len(args.parameters)):
             arg = args.parameters[idx]
             if '=' in arg:
@@ -1046,9 +1050,14 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         self.parser.add_argument('id', nargs='?',
                                  metavar='id',
                                  help='ID of action execution to re-run ')
-        self.parser.add_argument('parameters', nargs='*',
-                                 help='List of keyword args, positional args, '
-                                      'and optional args for the action.')
+
+        group = self.parser.add_mutually_exclusive_group()
+        group.add_argument('--parameters', nargs='*',
+                           help='List of keyword args, positional args, '
+                                'and optional args for the action.')
+        group.add_argument('--tasks', nargs='*',
+                           help='Name of the workflow tasks to re-run.')
+
         self.parser.add_argument('-a', '--async',
                                  action='store_true', dest='async',
                                  help='Do not wait for action to finish.')
@@ -1083,9 +1092,13 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         action_parameters = self._get_action_parameters_from_args(action=action, runner=runner,
                                                                   args=args)
 
-        execution = action_exec_mgr.re_run(execution_id=args.id, parameters=action_parameters,
+        execution = action_exec_mgr.re_run(execution_id=args.id,
+                                           parameters=action_parameters,
+                                           tasks=args.tasks,
                                            **kwargs)
+
         execution = self._get_execution_result(execution=execution,
                                                action_exec_mgr=action_exec_mgr,
                                                args=args, **kwargs)
+
         return execution

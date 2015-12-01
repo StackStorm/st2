@@ -268,12 +268,20 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
     ]
 
     class ExecutionSpecificationAPI(object):
-        def __init__(self, parameters=None):
+        def __init__(self, parameters=None, tasks=None):
             self.parameters = parameters or {}
+            self.tasks = tasks or []
 
         def validate(self):
+            if self.tasks and self.parameters:
+                raise ValueError('Parameters override is not supported when '
+                                 're-running task(s) for a workflow.')
+
             if self.parameters:
                 assert isinstance(self.parameters, dict)
+
+            if self.tasks:
+                assert isinstance(self.tasks, list)
 
             return self
 
@@ -286,14 +294,14 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             POST /executions/<id>/re_run
         """
-        parameters = spec.parameters
-
-        # Note: We only really need parameters here
         existing_execution = self._get_one(id=execution_id, exclude_fields=self.exclude_fields)
+
+        if spec.tasks and existing_execution.runner['name'] != 'mistral-v2':
+            raise ValueError('Task option is only supported for Mistral workflows.')
 
         # Merge in any parameters provided by the user
         new_parameters = copy.deepcopy(getattr(existing_execution, 'parameters', {}))
-        new_parameters.update(parameters)
+        new_parameters.update(spec.parameters)
 
         # Create object for the new execution
         action_ref = existing_execution.action['ref']
