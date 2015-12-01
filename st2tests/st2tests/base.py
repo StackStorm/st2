@@ -46,8 +46,9 @@ import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
 
-
 import st2tests.config
+from st2tests.mocks.sensor import MockSensorWrapper
+from st2tests.mocks.sensor import MockSensorService
 
 
 __all__ = [
@@ -400,6 +401,61 @@ class IntegrationTestCase(TestCase):
 
         if status not in ['exited', 'zombie']:
             self.fail('Process with pid "%s" is still running' % (proc.pid))
+
+
+class BaseSensorTestCase(TestCase):
+    """
+    Base class for sensor tests.
+
+    This class provides some utility methods for verifying that a trigger has
+    been dispatched, etc.
+    """
+
+    def setUp(self):
+        super(BaseSensorTestCase, self).setUp()
+
+        sensor_wrapper = MockSensorWrapper(pack='tests', class_name='tests')
+        self.sensor_service = MockSensorService(sensor_wrapper=sensor_wrapper)
+
+    def get_dispatched_triggers(self):
+        return self.sensor_service.dispatched_triggers
+
+    def get_last_dispatched_trigger(self):
+        return self.sensor_service.dispatched_triggers[-1]
+
+    def assertTriggerDispatched(self, trigger, payload=None, trace_context=None):
+        """
+        Assert that the trigger with the provided values has been dispatched.
+
+        :param trigger: Name of the trigger.
+        :type trigger: ``str``
+
+        :param paylod: Trigger payload (optional). If not provided, only trigger name is matched.
+        type: payload: ``object``
+
+        :param trace_context: Trigger trace context (optional). If not provided, only trigger name
+                              is matched.
+        type: payload: ``object``
+        """
+        dispatched_triggers = self.get_dispatched_triggers()
+        for item in dispatched_triggers:
+            trigger_matches = (item['trigger'] == trigger)
+
+            if payload:
+                payload_matches = (item['payload'] == payload)
+            else:
+                payload_matches = True
+
+            if trace_context:
+                trace_context_matches = (item['trace_context'] == trace_context)
+            else:
+                trace_context_matches = True
+
+            if trigger_matches and payload_matches and trace_context_matches:
+                return True
+
+        msg = 'Trigger "%s" hasn\'t been dispatched' % (trigger)
+        raise AssertionError(msg)
 
 
 class FakeResponse(object):

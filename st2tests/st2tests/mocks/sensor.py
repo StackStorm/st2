@@ -45,7 +45,7 @@ class MockSensorService(SensorService):
         self._datastore_items = {}
 
         # Holds a list of triggers which were dispatched
-        self._dispatched_triggers = []
+        self.dispatched_triggers = []
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):
         item = {
@@ -53,7 +53,7 @@ class MockSensorService(SensorService):
             'payload': payload,
             'trace_context': trace_context
         }
-        self._dispatched_triggers.append(item)
+        self.dispatched_triggers.append(item)
 
     def list_values(self, local=True, prefix=None):
         key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
@@ -99,41 +99,3 @@ class MockSensorService(SensorService):
 
         del self._datastore_items[name]
         return True
-
-    ##########################
-    # Custom assertion methods
-    ##########################
-
-    def assertTriggerDispatched(self, trigger, payload=None, trace_context=None):
-        """
-        Assert that the trigger with the provided values has been dispatched.
-
-        :param trigger: Name of the trigger.
-        :type trigger: ``str``
-
-        :param paylod: Trigger payload (optional). If not provided, only trigger name is matched.
-        type: payload: ``object``
-
-        :param trace_context: Trigger trace context (optional). If not provided, only trigger name
-                              is matched.
-        type: payload: ``object``
-        """
-
-        for item in self._dispatched_triggers:
-            trigger_matches = (item['trigger'] == trigger)
-
-            if payload:
-                payload_matches = (item['payload'] == payload)
-            else:
-                payload_matches = True
-
-            if trace_context:
-                trace_context_matches = (item['trace_context'] == trace_context)
-            else:
-                trace_context_matches = True
-
-            if trigger_matches and payload_matches and trace_context_matches:
-                return True
-
-        msg = 'Trigger "%s" hasn\'t been dispatched' % (trigger)
-        raise AssertionError(msg)
