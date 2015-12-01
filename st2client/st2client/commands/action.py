@@ -243,7 +243,7 @@ class ActionRunCommandMixin(object):
         task_list_arg_grp = root_arg_grp.add_argument_group()
         task_list_arg_grp.add_argument('--raw', action='store_true',
                                        help='Raw output, don\'t shot sub-tasks for workflows.')
-        task_list_arg_grp.add_argument('--tasks', action='store_true',
+        task_list_arg_grp.add_argument('--show-tasks', action='store_true',
                                        help='Whether to show sub-tasks of an execution.')
         task_list_arg_grp.add_argument('--depth', type=int, default=-1,
                                        help='Depth to which to show sub-tasks. \
@@ -280,16 +280,16 @@ class ActionRunCommandMixin(object):
         runner_type = execution.action.get('runner_type', 'unknown')
         is_workflow_action = runner_type in WORKFLOW_RUNNER_TYPES
 
-        tasks = getattr(args, 'tasks', False)
+        show_tasks = getattr(args, 'show_tasks', False)
         raw = getattr(args, 'raw', False)
         detail = getattr(args, 'detail', False)
         key = getattr(args, 'key', None)
         attr = getattr(args, 'attr', [])
 
-        if tasks and not is_workflow_action:
-            raise ValueError('--tasks option can only be used with workflow actions')
+        if show_tasks and not is_workflow_action:
+            raise ValueError('--show-tasks option can only be used with workflow actions')
 
-        if not raw and not detail and (tasks or is_workflow_action):
+        if not raw and not detail and (show_tasks or is_workflow_action):
             self._run_and_print_child_task_list(execution=execution, args=args, **kwargs)
         else:
             instance = execution
