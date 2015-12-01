@@ -84,6 +84,50 @@ If ``$.path = b``, then task ``b``. Finally task ``c`` is executed if neither.
 
 .. literalinclude:: /../../contrib/examples/actions/workflows/mistral-branching.yaml
 
+The statement ``with-items`` in Mistral is used to execute an action over iteration of one or more
+list of items. The following is a sample Mistral workflow that iterate over the list of given names
+to invoke the action to create individual VM.
+
+.. code-block:: yaml
+
+    version: '2.0'
+
+    examples.create-vms:
+        type: direct
+        input:
+            - names
+        tasks:
+            task1:
+                with-items: name in <% $.names %>
+                action: examples.create-vm
+                input:
+                    name: <% $.name %>
+
+``with-items`` can take more than one lists as the following example illustrates. In this case,
+a list of VMs and IP addresses are passed as inputs and then iterated thru step by step together.
+
+.. code-block:: yaml
+
+    version: '2.0'
+
+    examples.create-vms:
+        type: direct
+        input:
+            - names
+            - ips
+        tasks:
+            task1:
+                with-items:
+                    - name in <% $.names %>
+                    - ip in <% $.ips %>
+                action: examples.create-vm
+                input:
+                    name: <% $.name %>
+                    ip: <% $.ip %>
+
+The sections below go thru additional YAQL examples on how to work with lists and dictionaries
+that can be used in more advanced ``with-items`` use cases.
+
 Dictionaries
 ++++++++++++
 To create a dictionary, use the ``dict`` function. For example, ``<% dict(a=>123, b=>true) %>``
