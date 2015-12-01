@@ -7,12 +7,21 @@ This section includes information on pack testing - where to put the tests,
 how to write the tests, mock classes which can be used to make testing
 easier, etc.
 
-Test File Locations
--------------------
+Test File Locations and Names
+-----------------------------
 
 All the test files should go into ``<pack name>/tests/`` directory. If tests
 include any fixtures, they should be put in the ``<pack name>/tests/fixtures/``
 directory.
+
+Test files should follow the following naming conventions:
+
+* ``test_action_<action name>.py`` for action tests. For example, if the action
+  is named ``parse_xml``, the file should be named
+  ``test_action_parse_xml.py``.
+* ``test_sensor_<sensor name>.py`` for sensor tests. For example, if the sensor
+  is named ``GithubEvents``, the file should be named
+  ``test_sensor_github_events.py``.
 
 General Testing Conventions
 ---------------------------
