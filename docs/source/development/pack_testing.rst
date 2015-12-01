@@ -47,6 +47,16 @@ in the tests.
   allows you to assert that a specific trigger has been dispatched using
   ``assertTriggerDispatched`` method.
 
+Dependencies
+------------
+
+In addition to all the |st2| and pack dependencies listed in
+``requirements.txt`` and ``requirements-tests.txt``, the following libraries are
+also available by default inside the tests:
+
+* ``unittest2``
+* ``mock``
+
 Running Tests
 -------------
 
