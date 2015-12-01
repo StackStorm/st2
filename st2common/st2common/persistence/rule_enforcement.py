@@ -17,7 +17,7 @@ from st2common.models.db.rule_enforcement import rule_enforcement_access
 from st2common.persistence.base import Access
 
 
-class RuleType(Access):
+class RuleEnforcement(Access):
     impl = rule_enforcement_access
 
     @classmethod

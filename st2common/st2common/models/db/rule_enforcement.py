@@ -24,6 +24,8 @@ from st2common.util import date as date_utils
 class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
     trigger_instance_id = me.StringField(required=True)
     execution_id = me.StringField(required=False)
+    rule_ref = me.StringField(required=True)
+    rule_id = me.StringField(required=False)
     timestamp = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
         help_text='The timestamp when the rule enforcement was created.')

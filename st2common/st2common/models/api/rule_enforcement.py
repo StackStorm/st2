@@ -31,10 +31,20 @@ class RuleEnforcementAPI(BaseAPI):
                 'description': 'The unique identifier for the trigger instance ' +
                                'that flipped the rule.',
                 'type': 'string',
-                'default': None
+                'required': True
             },
             'execution_id': {
                 'description': 'ID of the action execution that was invoked as a response.',
+                'type': 'string',
+                'required': True
+            },
+            'rule_ref': {
+                'description': 'Reference to the rule object.',
+                'type': 'string',
+                'required': True
+            },
+            'rule_id': {
+                'description': 'ID of the corresponding rule.',
                 'type': 'string',
                 'required': True
             },
@@ -52,11 +62,14 @@ class RuleEnforcementAPI(BaseAPI):
         trigger_instance_id = getattr(rule_enforcement, 'trigger_instance_id', None)
         execution_id = getattr(rule_enforcement, 'execution_id', None)
         timestamp = getattr(rule_enforcement, 'timestamp', None)
+        rule_ref = getattr(rule_enforcement, 'rule_ref', None)
+        rule_id = getattr(rule_enforcement, 'rule_id', None)
+
         if timestamp:
             timestamp = isotime.parse(timestamp)
 
         return cls.model(trigger_instance_id=trigger_instance_id, execution_id=execution_id,
-                         timestamp=timestamp)
+                         timestamp=timestamp, rule_ref=rule_ref, rule_id=rule_id)
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
