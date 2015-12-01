@@ -48,7 +48,7 @@ class RootController(object):
     triggerinstances = TriggerInstanceController()
     ruletypes = RuleTypesController()
     rules = RuleController()
-    rule_enforcements = RuleEnforcementController()
+    ruleenforcements = RuleEnforcementController()
     keys = KeyValuePairController()
     webhooks = WebhooksController()
     stream = StreamController()

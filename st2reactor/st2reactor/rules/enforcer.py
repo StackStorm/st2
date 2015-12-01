@@ -80,7 +80,7 @@ class RuleEnforcer(object):
                                            rule_id=str(self.rule.id))
         try:
             execution_db = RuleEnforcer._invoke_action(self.rule.action, data, context)
-            execution_db.execution_id = str(execution_db.id)
+            enforcement_db.execution_id = str(execution_db.id)
         except:
             LOG.exception('Failed kicking off execution for rule %s.', self.rule, extra=extra)
             return None

@@ -23,10 +23,23 @@ from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 from st2common.rbac.types import PermissionType
+from st2common.util import isotime
+
 
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
+
+
+SUPPORTED_FILTERS = {
+    'rule_ref': 'rule_ref',
+    'rule_id': 'rule_id',
+    'execution': 'execution_id',
+    'trigger_instance': 'trigger_instance_id',
+    'created_at': 'created_at',
+    'created_at_gt': 'created_at.gt',
+    'created_at_lt': 'created_at.lt'
+}
 
 
 class RuleEnforcementController(resource.ResourceController):
@@ -34,9 +47,16 @@ class RuleEnforcementController(resource.ResourceController):
     model = RuleEnforcementAPI
     access = RuleEnforcement
 
-    supported_filters = {
-        'rule_ref': 'rule_ref',
-        'rule_id': 'rule_id'
+    # ResourceController attributes
+    query_options = {
+        'sort': ['-created_at', 'rule_ref']
+    }
+
+    supported_filters = SUPPORTED_FILTERS
+    filter_transform_functions = {
+        'created_at': lambda value: isotime.parse(value=value),
+        'created_at_gt': lambda value: isotime.parse(value=value),
+        'created_at_lt': lambda value: isotime.parse(value=value)
     }
 
     @request_user_has_permission(permission_type=PermissionType.RULE_ENFORCEMENT_LIST)
