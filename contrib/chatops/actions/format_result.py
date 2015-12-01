@@ -37,7 +37,7 @@ class FormatResultAction(Action):
             result = getattr(alias, 'result', None)
             if result:
                 if not result.get('enabled', True):
-                    return ""
+                    raise Exception("Output of this template is disabled.")
                 if 'format' in alias.result:
                     template = alias.result['format']
 
