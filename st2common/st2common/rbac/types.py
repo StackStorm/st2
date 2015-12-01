@@ -73,6 +73,8 @@ class PermissionType(Enum):
     RULE_DELETE = 'rule_delete'
     RULE_ALL = 'rule_all'
 
+    RULE_ENFORCEMENT_LIST = 'rule_enforcement_list'
+
     # TODO - Maybe "datastore_item" / key_value_item ?
     KEY_VALUE_VIEW = 'key_value_pair_view'
     KEY_VALUE_SET = 'key_value_pair_set'
@@ -162,6 +164,7 @@ class ResourceType(Enum):
     ACTION = SystemResourceType.ACTION
     ACTION_ALIAS = SystemResourceType.ACTION_ALIAS
     RULE = SystemResourceType.RULE
+    RULE_ENFORCEMENT = SystemResourceType.RULE_ENFORCEMENT
 
     EXECUTION = SystemResourceType.EXECUTION
     KEY_VALUE_PAIR = SystemResourceType.KEY_VALUE_PAIR
@@ -241,6 +244,9 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.RULE_DELETE,
         PermissionType.RULE_ALL
     ],
+    ResourceType.RULE_ENFORCEMENT: [
+        PermissionType.RULE_ENFORCEMENT_LIST,
+    ],
     ResourceType.EXECUTION: [
         PermissionType.EXECUTION_LIST,
         PermissionType.EXECUTION_VIEW,
@@ -305,9 +311,9 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.ACTION_ALIAS_CREATE: ('Ability to create a new action alias. Also implies '
                                          ' "action_alias_view" permission.'),
     PermissionType.ACTION_ALIAS_MODIFY: ('Ability to modify (update) an existing action alias. '
-                                        'Also implies "action_alias_view" permission.'),
+                                         'Also implies "action_alias_view" permission.'),
     PermissionType.ACTION_ALIAS_DELETE: ('Ability to delete an existing action alias. Also '
-                                        'imples "action_alias_view" permission.'),
+                                         'imples "action_alias_view" permission.'),
     PermissionType.ACTION_ALIAS_ALL: ('Ability to perform all the supported operations on a '
                                       'particular action alias.'),
 

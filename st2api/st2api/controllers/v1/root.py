@@ -23,6 +23,7 @@ from st2api.controllers.v1.packs import PacksController
 from st2api.controllers.v1.policies import PolicyTypeController, PolicyController
 from st2api.controllers.v1.ruletypes import RuleTypesController
 from st2api.controllers.v1.rules import RuleController
+from st2api.controllers.v1.rule_enforcements import RuleEnforcementController
 from st2api.controllers.v1.runnertypes import RunnerTypesController
 from st2api.controllers.v1.sensors import SensorTypeController
 from st2api.controllers.v1.stream import StreamController
@@ -47,6 +48,7 @@ class RootController(object):
     triggerinstances = TriggerInstanceController()
     ruletypes = RuleTypesController()
     rules = RuleController()
+    rule_enforcements = RuleEnforcementController()
     keys = KeyValuePairController()
     webhooks = WebhooksController()
     stream = StreamController()
