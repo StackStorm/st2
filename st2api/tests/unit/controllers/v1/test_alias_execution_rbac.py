@@ -70,7 +70,7 @@ class AliasExecutionWithRBACTestCase(APIControllerWithRBACTestCase):
     def _do_post(self, alias_execution, command, expect_errors=False):
         if (isinstance(alias_execution.formats[0], dict) and
            alias_execution.formats[0].get('representation')):
-            representation = alias_execution.formats[0].get('representation')
+            representation = alias_execution.formats[0].get('representation')[0]
         else:
             representation = alias_execution.formats[0]
         execution = {'name': alias_execution.name,
