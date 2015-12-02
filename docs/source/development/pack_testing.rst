@@ -68,9 +68,9 @@ sensor and action modules directly in your code.
 For example, if you have an action named ``actions/parse_xml.py`` you can do the
 following inside your test module:
 
-```python
-import parse_xml
-```
+.. sourcecode:: python
+
+    import parse_xml
 
 Keep in mind that both sensor and action modules are not namespaced which means
 sensor and action module names need to be unique to avoid conflicts.
@@ -81,15 +81,15 @@ Running Tests
 To run all the tests in a particular pack you can use the ``run-pack-tests.sh``
 script from the ``st2contrib`` repository as shown below.
 
-```bash
-./scripts/run-pack-tests.sh <pack path>
-```
+.. sourcecode:: bash
+
+    ./scripts/run-pack-tests.sh <pack path>
 
 For example:
 
-```bash
-./scripts/run-pack-tests.sh packs/example
-```
+.. sourcecode:: bash
+
+    ./scripts/run-pack-tests.sh packs/example
 
 Continous Integration
 ---------------------
