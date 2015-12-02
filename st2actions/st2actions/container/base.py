@@ -44,6 +44,10 @@ __all__ = [
 
 class RunnerContainer(object):
 
+    def _get_rerun_reference(self, context):
+        execution_id = context.get('re-run', {}).get('ref')
+        return ActionExecution.get_by_id(execution_id) if execution_id else None
+
     def _get_runner(self, runnertype_db, action_db, liveaction_db):
         runner = get_runner(runnertype_db.runner_module)
 
@@ -62,6 +66,10 @@ class RunnerContainer(object):
         runner.callback = getattr(liveaction_db, 'callback', dict())
         runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
                                                               action_db.entry_point)
+
+        # For re-run, get the ActionExecutionDB in which the re-run is based on.
+        rerun_ref_id = runner.context.get('re-run', {}).get('ref')
+        runner.rerun_ex_ref = ActionExecution.get(id=rerun_ref_id) if rerun_ref_id else None
 
         return runner
 

@@ -136,12 +136,21 @@ class MistralRunner(AsyncActionRunner):
         else:
             raise Exception('There are no workflows in the workbook.')
 
+    def _get_resume_options(self):
+        return self.context.get('re-run', {})
+
     @retrying.retry(
         retry_on_exception=utils.retry_on_exceptions,
         wait_exponential_multiplier=cfg.CONF.mistral.retry_exp_msec,
         wait_exponential_max=cfg.CONF.mistral.retry_exp_max_msec,
         stop_max_delay=cfg.CONF.mistral.retry_stop_max_msec)
     def run(self, action_parameters):
+        resume_options = self._get_resume_options()
+        tasks = resume_options.get('tasks', [])
+        resume = self.rerun_ex_ref and tasks
+        return self.resume(self.rerun_ex_ref, tasks) if resume else self.start(action_parameters)
+
+    def start(self, action_parameters):
         # Test connection
         self._client.workflows.list()
 
@@ -237,6 +246,9 @@ class MistralRunner(AsyncActionRunner):
         LOG.info('Mistral query context is %s' % exec_context)
 
         return (status, partial_results, exec_context)
+
+    def resume(self, ex_ref, tasks):
+        raise NotImplementedError()
 
     @retrying.retry(
         retry_on_exception=utils.retry_on_exceptions,

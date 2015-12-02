@@ -83,6 +83,7 @@ class ActionRunner(object):
         self.context = None
         self.callback = None
         self.auth_token = None
+        self.rerun_ex_ref = None
 
     @abc.abstractmethod
     def pre_run(self):
