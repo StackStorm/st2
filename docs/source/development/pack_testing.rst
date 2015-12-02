@@ -43,9 +43,13 @@ in the tests.
 * ``st2tests.mocks.sensor.MockSensorWrapper`` - Mock ``SensorWrapper`` class.
 * ``st2tests.mocks.sensor.MockSensorService`` - Mock ``SensorService`` class.
   This class mock methods which operate on the datastore items (``list_values``,
-  ``get_value``, ``set_value``, ``delete_value``). In addition to that, it also
-  allows you to assert that a specific trigger has been dispatched using
-  ``assertTriggerDispatched`` method.
+  ``get_value``, ``set_value``, ``delete_value``).
+
+In addition to the mock classes, |st2| also provides base class for sensor
+tests - ``st2tests.base.BaseSensorTestCase``. This class provides utility
+functions for making sensor testing easier such as returning a sensor class
+instance with ``sensor_service`` correctly populated, method for asserting
+that trigger has been dispatched (``assertTriggerDispatched``) and more.
 
 Dependencies
 ------------
@@ -56,6 +60,20 @@ also available by default inside the tests:
 
 * ``unittest2``
 * ``mock``
+
+In addition those dependencies, sensors (``<pack name>/sensors/``) and actions
+(``<pack name>/actions/``) directory is added to PYTHONPATH meaning you can import
+sensor and action modules directly in your code.
+
+For example, if you have an action named ``actions/parse_xml.py`` you can do the
+following inside your test module:
+
+```python
+import parse_xml
+```
+
+Keep in mind that both sensor and action modules are not namespaced which means
+sensor and action module names need to be unique to avoid conflicts.
 
 Running Tests
 -------------
