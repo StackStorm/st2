@@ -434,7 +434,7 @@ class BaseSensorTestCase(TestCase):
         if poll_interval is not None:
             kwargs['poll_interval'] = poll_interval
 
-        instance = self.sensor_cls(**kwargs)
+        instance = self.sensor_cls(**kwargs)  # pylint: disable=not-callable
         return instance
 
     def get_dispatched_triggers(self):
