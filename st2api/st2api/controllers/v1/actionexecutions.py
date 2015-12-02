@@ -305,10 +305,22 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
         # Create object for the new execution
         action_ref = existing_execution.action['ref']
-        new_liveaction = LiveActionDB(action=action_ref, parameters=new_parameters)
 
-        result = self._handle_schedule_execution(liveaction=new_liveaction)
-        return result
+        # Include additional option(s) for the execution
+        context = {
+            're-run': {
+                'ref': execution_id,
+            }
+        }
+
+        if spec.tasks:
+            context['re-run']['tasks'] = spec.tasks
+
+        new_liveaction = LiveActionDB(action=action_ref,
+                                      context=context,
+                                      parameters=new_parameters)
+
+        return self._handle_schedule_execution(liveaction=new_liveaction)
 
 
 class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceController):

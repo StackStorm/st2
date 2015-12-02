@@ -420,6 +420,15 @@ class TestActionExecutionController(FunctionalTest):
 
         self.assertEqual(re_run_resp.status_int, 201)
 
+        expected_context = {
+            'user': 'stanley',
+            're-run': {
+                'ref': execution_id
+            }
+        }
+
+        self.assertDictEqual(re_run_resp.json['context'], expected_context)
+
     def test_re_run_workflow_task_success(self):
         # Create a new execution
         post_resp = self._do_post(LIVE_ACTION_4)
@@ -433,6 +442,16 @@ class TestActionExecutionController(FunctionalTest):
 
         self.assertEqual(re_run_resp.status_int, 201)
 
+        expected_context = {
+            'user': 'stanley',
+            're-run': {
+                'ref': execution_id,
+                'tasks': data['tasks']
+            }
+        }
+
+        self.assertDictEqual(re_run_resp.json['context'], expected_context)
+
     def test_re_run_workflow_tasks_success(self):
         # Create a new execution
         post_resp = self._do_post(LIVE_ACTION_4)
@@ -445,6 +464,16 @@ class TestActionExecutionController(FunctionalTest):
                                          data, expect_errors=True)
 
         self.assertEqual(re_run_resp.status_int, 201)
+
+        expected_context = {
+            'user': 'stanley',
+            're-run': {
+                'ref': execution_id,
+                'tasks': data['tasks']
+            }
+        }
+
+        self.assertDictEqual(re_run_resp.json['context'], expected_context)
 
     def test_re_run_failure_tasks_option_for_non_workflow(self):
         # Create a new execution
