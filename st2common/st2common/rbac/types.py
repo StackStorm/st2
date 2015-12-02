@@ -337,6 +337,9 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.RULE_ALL: ('Ability to perform all the supported operations on a particular '
                               'rule.'),
 
+    PermissionType.RULE_ENFORCEMENT_LIST: 'Ability to list (view all) rule enforcements.',
+    PermissionType.RULE_ENFORCEMENT_VIEW: 'Ability to view a rule enforcement.',
+
     PermissionType.WEBHOOK_CREATE: ('Ability to create a new webhook.'),
     PermissionType.WEBHOOK_SEND: ('Ability to send / POST data to an existing webhook.'),
     PermissionType.WEBHOOK_DELETE: ('Ability to delete an existing webhook.'),
