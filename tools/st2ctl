@@ -23,6 +23,7 @@ if [ -z "$WEBUI_PORT" ];
 fi
 
 DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
+OSXTEST=`sw_vers -productName`
 
 if [[ "$DEBTEST" == "Ubuntu" ]]; then
   TYPE="debs"
@@ -30,6 +31,9 @@ if [[ "$DEBTEST" == "Ubuntu" ]]; then
 elif [[ -f "/etc/redhat-release" ]]; then
   TYPE="rpms"
   PYTHONPACK="/usr/lib/python2.7/site-packages"
+elif [[ "$OSXTEST" == "Mac OS X" ]]; then
+  TYPE=""
+  PYTHONPACK=`python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"`
 else
   echo "Unknown Operating System"
   exit 2

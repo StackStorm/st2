@@ -21,7 +21,8 @@ __all__ = [
     'SYSTEM_PACK_NAMES',
     'USER_PACK_NAME_BLACKLIST',
     'BASE_PACK_REQUIREMENTS',
-    'MANIFEST_FILE_NAME'
+    'MANIFEST_FILE_NAME',
+    'LIBS_DIR'
 ]
 
 # A list of allowed characters for the pack name
@@ -60,3 +61,5 @@ BASE_PACK_REQUIREMENTS = [
 
 # Name of the pack manifest file
 MANIFEST_FILE_NAME = 'pack.yaml'
+
+LIBS_DIR = 'lib'
