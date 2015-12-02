@@ -411,11 +411,31 @@ class BaseSensorTestCase(TestCase):
     been dispatched, etc.
     """
 
+    sensor_cls = None
+
     def setUp(self):
         super(BaseSensorTestCase, self).setUp()
 
-        sensor_wrapper = MockSensorWrapper(pack='tests', class_name='tests')
+        class_name = self.sensor_cls.__name__
+        sensor_wrapper = MockSensorWrapper(pack='tests', class_name=class_name)
         self.sensor_service = MockSensorService(sensor_wrapper=sensor_wrapper)
+
+    def get_sensor_instance(self, config=None, poll_interval=None):
+        """
+        Retrieve instance of the sensor class.
+        """
+        kwargs = {
+            'sensor_service': self.sensor_service
+        }
+
+        if config:
+            kwargs['config'] = config
+
+        if poll_interval is not None:
+            kwargs['poll_interval'] = poll_interval
+
+        instance = self.sensor_cls(**kwargs)
+        return instance
 
     def get_dispatched_triggers(self):
         return self.sensor_service.dispatched_triggers
