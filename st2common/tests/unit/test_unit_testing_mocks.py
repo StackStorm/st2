@@ -15,31 +15,45 @@
 
 import unittest2
 
+from st2tests.base import BaseSensorTestCase
 from st2tests.mocks.sensor import MockSensorWrapper
 from st2tests.mocks.sensor import MockSensorService
+
+__all__ = [
+    'BaseSensorTestCaseTestCase',
+    'MockSensorServiceTestCase'
+]
+
+
+class MockSensorClass(object):
+    pass
+
+
+class BaseSensorTestCaseTestCase(BaseSensorTestCase):
+    sensor_cls = MockSensorClass
+
+    def test_dispatch_and_assertTriggerDispacthed(self):
+        sensor_service = self.sensor_service
+
+        expected_msg = 'Trigger "nope" hasn\'t been dispatched'
+        self.assertRaisesRegexp(AssertionError, expected_msg,
+                                self.assertTriggerDispatched, trigger='nope')
+
+        sensor_service.dispatch(trigger='test1', payload={'a': 'b'})
+        result = self.assertTriggerDispatched(trigger='test1')
+        self.assertTrue(result)
+        result = self.assertTriggerDispatched(trigger='test1', payload={'a': 'b'})
+        self.assertTrue(result)
+        expected_msg = 'Trigger "test1" hasn\'t been dispatched'
+        self.assertRaisesRegexp(AssertionError, expected_msg,
+                                self.assertTriggerDispatched,
+                                trigger='test1',
+                                payload={'a': 'c'})
 
 
 class MockSensorServiceTestCase(unittest2.TestCase):
     def setUp(self):
         self._mock_sensor_wrapper = MockSensorWrapper(pack='dummy', class_name='test')
-
-    def test_dispatch(self):
-        sensor_service = MockSensorService(sensor_wrapper=self._mock_sensor_wrapper)
-
-        expected_msg = 'Trigger "nope" hasn\'t been dispatched'
-        self.assertRaisesRegexp(AssertionError, expected_msg,
-                                sensor_service.assertTriggerDispatched, trigger='nope')
-
-        sensor_service.dispatch(trigger='test1', payload={'a': 'b'})
-        result = sensor_service.assertTriggerDispatched(trigger='test1')
-        self.assertTrue(result)
-        result = sensor_service.assertTriggerDispatched(trigger='test1', payload={'a': 'b'})
-        self.assertTrue(result)
-        expected_msg = 'Trigger "test1" hasn\'t been dispatched'
-        self.assertRaisesRegexp(AssertionError, expected_msg,
-                                sensor_service.assertTriggerDispatched,
-                                trigger='test1',
-                                payload={'a': 'c'})
 
     def test_list_set_get_delete_values(self):
         sensor_service = MockSensorService(sensor_wrapper=self._mock_sensor_wrapper)
