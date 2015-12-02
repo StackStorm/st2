@@ -30,6 +30,20 @@ TraceComponentAPISchema = {
             'description': 'The start time when the action is executed.',
             'type': 'string',
             'pattern': isotime.ISO8601_UTC_REGEX
+        },
+        'causal_component': {
+            'type': 'object',
+            'description': 'Component that is the cause or the predecesor.',
+            'properties': {
+                'id': {
+                    'description': 'Id of the causal component.',
+                    'type': 'string'
+                },
+                'type': {
+                    'description': 'Type of the causal component.',
+                    'type': 'string'
+                }
+            }
         }
     },
     'additionalProperties': False
@@ -83,7 +97,8 @@ class TraceAPI(BaseAPI):
     @classmethod
     def to_component_model(cls, component):
         values = {
-            'object_id': component['object_id']
+            'object_id': component['object_id'],
+            'causal_component': component.get('causal_component', {})
         }
         updated_at = component.get('updated_at', None)
         if updated_at:
@@ -117,7 +132,8 @@ class TraceAPI(BaseAPI):
     @classmethod
     def from_component_model(cls, component_model):
         return {'object_id': component_model.object_id,
-                'updated_at': isotime.format(component_model.updated_at, offset=False)}
+                'updated_at': isotime.format(component_model.updated_at, offset=False),
+                'causal_component': component_model.causal_component}
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
