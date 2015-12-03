@@ -1,0 +1,79 @@
+# Setup in CircleCI account the following ENV variables:
+# BINTRAY_ACCOUNT
+# BINTRAY_API_KEY
+# DOCKER_USER
+# DOCKER_EMAIL
+# DOCKER_PASSWORD
+general:
+  # Don't run CI for PR, only for major branches
+  branches:
+    only:
+      - master
+      - /v[0-9]+(\.[0-9]+)*/
+  build_dir: st2-packages
+  artifacts:
+    - /tmp/st2-packages
+
+machine:
+  # Overwrite these ENV variables in parametrized (manual/API) builds
+  environment:
+    ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
+    ST2_DOCKERFILES_REPO: https://github.com/StackStorm/st2-dockerfiles
+    BUILD_DOCKER: 1
+    DEPLOY_DOCKER: 1
+    DEPLOY_PACKAGES: 0
+  pre:
+    # Paswordless SSH between parallel build nodes
+    - sudo cp /home/ubuntu/.ssh/config /root/.ssh/config
+    # Need latest Docker version for some features to work (CircleCI by default works with outdated version)
+    - |
+      sudo curl -L -o /usr/bin/docker 'http://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.0-circleci'
+      sudo chmod 0755 /usr/bin/docker
+  services:
+    - docker
+    - mongodb
+    - postgresql
+    - rabbitmq-server
+
+checkout:
+  post:
+    - git clone ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
+    - .circle/vars.sh
+
+dependencies:
+  cache_directories:
+    - ~/.cache/pip
+  pre:
+    - sudo .circle/configure-services.sh
+    - sudo .circle/fix-cache-permissions.sh
+    - sudo pip install docker-compose
+    - docker-compose version
+    - docker version
+  override:
+    - .circle/docker-compose.sh pull ${DISTRO}
+  post:
+    - .circle/docker-compose.sh build ${DISTRO}
+
+test:
+  override:
+    - .circle/docker-compose.sh test ${DISTRO}:
+        parallel: true
+  post:
+    - .circle/docker.sh build st2bundle
+    - .circle/docker.sh build st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
+    - .circle/docker.sh run st2api
+    - .circle/docker.sh test st2api 'st2 --version'
+
+deployment:
+  stable:
+    branch: /v[0-9]+(\.[0-9]+)*/
+    commands:
+      - .circle/bintray.sh deploy debian /tmp/st2-packages
+      - .circle/docker.sh deploy st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
+
+deployment:
+  unstable:
+    branch: master
+    commands:
+      - .circle/bintray.sh deploy debian /tmp/st2-packages
+      - .circle/docker.sh deploy st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
