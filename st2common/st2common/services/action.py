@@ -112,7 +112,9 @@ def request(liveaction):
     if trace_db:
         trace_service.add_or_update_given_trace_db(
             trace_db=trace_db,
-            action_executions=[str(execution.id)])
+            action_executions=[
+                trace_service.get_trace_component_for_action_execution(execution)
+            ])
 
     # Assume that this is a creation.
     LiveAction.publish_create(liveaction)

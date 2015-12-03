@@ -312,7 +312,7 @@ class TestTraceService(DbTestCase):
             trace_context,
             action_executions=[{'id': action_execution_id,
                                 'causal_component': {'id': '%s:%s' % (rule_id, trigger_instance_id),
-                                                     'type':'rule'}}],
+                                                     'type': 'rule'}}],
             rules=[{'id': rule_id,
                     'causal_component': {'id': trigger_instance_id, 'type': 'trigger-instance'}}],
             trigger_instances=[trigger_instance_id])
@@ -328,7 +328,7 @@ class TestTraceService(DbTestCase):
                          'Expected updated action_executions.')
         self.assertEqual(retrieved_trace_db.action_executions[0].causal_component,
                          {'id': '%s:%s' % (rule_id, trigger_instance_id),
-                          'type':'rule'},
+                          'type': 'rule'},
                          'Expected updated action_executions.')
 
         self.assertEqual(len(retrieved_trace_db.rules), 1, 'Expected updated rules.')

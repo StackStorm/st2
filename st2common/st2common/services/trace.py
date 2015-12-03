@@ -16,11 +16,13 @@
 from mongoengine import ValidationError
 
 from st2common import log as logging
+from st2common.constants.triggers import ACTION_SENSOR_TRIGGER, NOTIFY_TRIGGER
 from st2common.constants.trace import TRACE_CONTEXT
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.trace import UniqueTraceNotFoundException
 from st2common.models.api.trace import TraceContext
 from st2common.models.db.trace import TraceDB, TraceComponentDB
+from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.trace import Trace
 
@@ -32,8 +34,17 @@ __all__ = [
     'get_trace_db_by_trigger_instance',
     'get_trace',
     'add_or_update_given_trace_context',
-    'add_or_update_given_trace_db'
+    'add_or_update_given_trace_db',
+    'get_trace_component_for_action_execution',
+    'get_trace_component_for_rule',
+    'get_trace_component_for_trigger_instance'
 ]
+
+
+ACTION_SENSOR_TRIGGER_REF = ResourceReference.to_string_reference(
+    pack=ACTION_SENSOR_TRIGGER['pack'], name=ACTION_SENSOR_TRIGGER['name'])
+NOTIFY_TRIGGER_REF = ResourceReference.to_string_reference(
+    pack=NOTIFY_TRIGGER['pack'], name=NOTIFY_TRIGGER['name'])
 
 
 def _get_valid_trace_context(trace_context):
@@ -265,6 +276,75 @@ def add_or_update_given_trace_db(trace_db, action_executions=None, rules=None,
     trace_db.trigger_instances = trigger_instances
 
     return Trace.add_or_update(trace_db)
+
+
+def get_trace_component_for_action_execution(action_execution_db):
+    """
+    Returns the trace_component compatible dict representation of an actionexecution.
+
+    :param action_execution_db: ActionExecution to translate
+    :type action_execution_db: ActionExecutionDB
+
+    :rtype: ``dict``
+    """
+    if not action_execution_db:
+        raise ValueError('action_execution_db expected.')
+    trace_component = {'id': str(action_execution_db.id)}
+    causal_component = {}
+    if action_execution_db.rule and action_execution_db.trigger_instance:
+        # Once RuleEnforcement is available that can be used instead.
+        causal_component['type'] = 'rule'
+        causal_component['id'] = '%s:%s' % (action_execution_db.rule['id'],
+                                            action_execution_db.trigger_instance['id'])
+    trace_component['causal_component'] = causal_component
+    return trace_component
+
+
+def get_trace_component_for_rule(rule_db, trigger_instance_db):
+    """
+    Returns the trace_component compatible dict representation of a rule.
+
+    :param rule_db: The rule to translate
+    :type rule_db: RuleDB
+
+    :param trigger_instance_db: The TriggerInstance with causal relation to rule_db
+    :type trigger_instance_db: TriggerInstanceDB
+
+    :rtype: ``dict``
+    """
+    trace_component = {}
+    trace_component = {'id': str(rule_db.id)}
+    causal_component = {}
+    if trigger_instance_db:
+        # Once RuleEnforcement is available that can be used instead.
+        causal_component['type'] = 'trigger_instance'
+        causal_component['id'] = str(trigger_instance_db.id)
+    trace_component['causal_component'] = causal_component
+    return trace_component
+
+
+def get_trace_component_for_trigger_instance(trigger_instance_db):
+    """
+    Returns the trace_component compatible dict representation of a triggerinstance.
+
+    :param trigger_instance_db: The TriggerInstance to translate
+    :type trigger_instance_db: TriggerInstanceDB
+
+    :rtype: ``dict``
+    """
+    trace_component = {}
+    trace_component = {'id': str(trigger_instance_db.id)}
+    causal_component = {}
+    # Special handling for ACTION_SENSOR_TRIGGER and NOTIFY_TRIGGER where we
+    # know how to maintain the links.
+    if trigger_instance_db.trigger == ACTION_SENSOR_TRIGGER_REF or \
+       trigger_instance_db.trigger == NOTIFY_TRIGGER_REF:
+        # Once RuleEnforcement is available that can be used instead.
+        causal_component['type'] = 'action_execution'
+        # For both action trigger and notidy trigger execution_id is stored in the payload.
+        causal_component['id'] = trigger_instance_db.payload['execution_id']
+    trace_component['causal_component'] = causal_component
+    return trace_component
 
 
 def _to_trace_component_db(component):
