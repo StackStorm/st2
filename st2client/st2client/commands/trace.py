@@ -175,6 +175,17 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
 
     pk_argument_name = 'id'
 
+    def __init__(self, resource, *args, **kwargs):
+        super(TraceGetCommand, self).__init__(resource, *args, **kwargs)
+
+        self.group = self.parser.add_mutually_exclusive_group()
+
+        # Causation chains
+        self.group.add_argument('-e', '--execution', help='Execution to show causation chain.')
+        self.group.add_argument('-r', '--rule', help='Rule to show causation chain.')
+        self.group.add_argument('-g', '--trigger-instance',
+                                help='TriggerInstance to show causation chain.')
+
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
