@@ -30,6 +30,9 @@ class NoopRunner(ActionRunner):
     def __init__(self, runner_id):
         super(NoopRunner, self).__init__(runner_id=runner_id)
 
+    def pre_run(self):
+        pass
+
     def run(self, action_parameters):
 
         LOG.info('Executing action via NoopRunner: %s', self.runner_id)
