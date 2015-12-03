@@ -57,7 +57,10 @@ __all__ = [
     'DbModelTestCase',
     'CleanDbTestCase',
     'CleanFilesTestCase',
-    'IntegrationTestCase'
+    'IntegrationTestCase',
+
+    'BaseSensorTestCase',
+    'BaseActionTestCase'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -476,6 +479,14 @@ class BaseSensorTestCase(TestCase):
 
         msg = 'Trigger "%s" hasn\'t been dispatched' % (trigger)
         raise AssertionError(msg)
+
+
+class BaseActionTestCase(TestCase):
+    """
+    Base class for action tests.
+    """
+
+    sensor_cls = None
 
 
 class FakeResponse(object):

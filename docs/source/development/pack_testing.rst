@@ -31,8 +31,25 @@ full blown integration and end to end tests would be very time consuming and
 hard so the convention is to write unit tests and mock the responses and method
 calls where necessary.
 
+Base Test Classes and Mock Classes
+----------------------------------
+
+To make testing easier, |st2| provides some base test and mock classes you can
+you in the tests
+
+Base Test Classes
+~~~~~~~~~~~~~~~~~
+
+* ``st2tests.base.BaseSensorTestCase`` - Base class for all the sensor test
+  cases. This class provides utility methods for making sensor testing easier
+  such as returning a sensor class instance with ``sensor_service`` correctly
+  populated, method for asserting that trigger has been dispatched
+  (``assertTriggerDispatched``) and more.
+* ``st2tests.base.BaseActionTestCase`` - Base class for all the action test
+  cases.
+
 Mock Classes
-------------
+~~~~~~~~~~~~
 
 To make testing easier, |st2| provides some mock classes which you can use
 in the tests.
@@ -44,12 +61,6 @@ in the tests.
 * ``st2tests.mocks.sensor.MockSensorService`` - Mock ``SensorService`` class.
   This class mock methods which operate on the datastore items (``list_values``,
   ``get_value``, ``set_value``, ``delete_value``).
-
-In addition to the mock classes, |st2| also provides base class for sensor
-tests - ``st2tests.base.BaseSensorTestCase``. This class provides utility
-functions for making sensor testing easier such as returning a sensor class
-instance with ``sensor_service`` correctly populated, method for asserting
-that trigger has been dispatched (``assertTriggerDispatched``) and more.
 
 Dependencies
 ------------
@@ -78,18 +89,33 @@ sensor and action module names need to be unique to avoid conflicts.
 Running Tests
 -------------
 
-To run all the tests in a particular pack you can use the ``run-pack-tests.sh``
-script from the ``st2contrib`` repository as shown below.
+To run all the tests in a particular pack you can use the ``st2-run-pack-tests``
+script (``st2common/bin/st2-run-pack-tests``) from the ``st2`` repository as 
+shown below.
 
 .. sourcecode:: bash
 
-    ./scripts/run-pack-tests.sh <pack path>
+    ./st2common/bin/st2-run-pack-tests -p <pack path>
 
 For example:
 
 .. sourcecode:: bash
 
-    ./scripts/run-pack-tests.sh packs/example
+    ./st2common/bin/st2-run-pack-tests -p /data/st2contrib/packs/docker/
+
+By default, this script will create and use a new temporary virtual environment
+for each pack test run and install all the dependencies which are required to run
+the tests inside this virtual environment.
+
+If you want to avoid virtual environment creation (e.g. virtual environment
+already exists or you have created one manually), you can pass ``-x`` flag to
+the script. This flag will tell it to skip virtual environment creation, but all
+the necessary dependencies will still be installed.
+
+If you are running this script inside a development VM (st2express /
+st2workroom), you can safely pass ``-x`` flag to the script since a virtual
+environment should already be created and all the necessary |st2| dependencies
+should be available in ``PYTHONPATH``.
 
 Continous Integration
 ---------------------

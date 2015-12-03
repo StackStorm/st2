@@ -1,3 +1,4 @@
+ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/bash
 TOX_DIR := .tox
 VIRTUALENV_DIR ?= virtualenv
@@ -330,6 +331,16 @@ mistral-itests: requirements .mistral-itests
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v --with-coverage \
 		--cover-inclusive --cover-html st2tests/integration/mistral || exit 1;
+
+.PHONY: packs-tests
+packs-tests: requirements .packs-tests
+
+.PHONY: .packs-tests
+.packs-tests:
+	@echo
+	@echo "==================== packs-tests ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -x -p FILENAME
 
 .PHONY: rpms
 rpms:
