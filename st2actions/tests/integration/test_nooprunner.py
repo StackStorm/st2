@@ -45,7 +45,7 @@ class TestNoopRunner(TestCase):
         self.assertEquals(result['return_code'], 0)
 
     @staticmethod
-    def _get_runner(self, action_db):
+    def _get_runner(action_db):
         runner = nooprunner.NoopRunner(uuid.uuid4().hex)
         runner.container_service = RunnerContainerService()
         runner.action = action_db

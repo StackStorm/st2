@@ -33,7 +33,7 @@ class NoopRunner(ActionRunner):
     def run(self, action_parameters):
 
         LOG.info('Executing action via NoopRunner: %s', self.runner_id)
-        LOG.info('[Action info] name: %s, Id: %s' ,
+        LOG.info('[Action info] name: %s, Id: %s',
                  self.action_name, str(self.execution_id))
 
         result = {
