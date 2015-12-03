@@ -29,9 +29,9 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
     rule_ref = me.StringField(required=True)
     rule_id = me.StringField(required=False)
     rule_uid = me.StringField(required=False)
-    created_at = ComplexDateTimeField(
+    enforced_at = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
-        help_text='The timestamp when the rule enforcement was created.')
+        help_text='The timestamp when the rule enforcement happened.')
 
     # XXX: Note the following method is exposed so loggers in rbac resolvers can log objects
     # with a consistent get_uid interface.

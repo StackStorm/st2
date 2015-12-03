@@ -36,9 +36,9 @@ SUPPORTED_FILTERS = {
     'rule_id': 'rule_id',
     'execution': 'execution_id',
     'trigger_instance': 'trigger_instance_id',
-    'created_at': 'created_at',
-    'created_at_gt': 'created_at.gt',
-    'created_at_lt': 'created_at.lt'
+    'enforced_at': 'enforced_at',
+    'enforced_at_gt': 'enforced_at.gt',
+    'enforced_at_lt': 'enforced_at.lt'
 }
 
 
@@ -49,14 +49,14 @@ class RuleEnforcementController(resource.ResourceController):
 
     # ResourceController attributes
     query_options = {
-        'sort': ['-created_at', 'rule_ref']
+        'sort': ['-enforced_at', 'rule_ref']
     }
 
     supported_filters = SUPPORTED_FILTERS
     filter_transform_functions = {
-        'created_at': lambda value: isotime.parse(value=value),
-        'created_at_gt': lambda value: isotime.parse(value=value),
-        'created_at_lt': lambda value: isotime.parse(value=value)
+        'enforced_at': lambda value: isotime.parse(value=value),
+        'enforced_at_gt': lambda value: isotime.parse(value=value),
+        'enforced_at_lt': lambda value: isotime.parse(value=value)
     }
 
     @request_user_has_permission(permission_type=PermissionType.RULE_ENFORCEMENT_LIST)

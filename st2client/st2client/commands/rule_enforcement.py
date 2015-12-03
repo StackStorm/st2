@@ -33,9 +33,9 @@ class RuleEnforcementBranch(resource.ResourceBranch):
 
 class RuleEnforcementGetCommand(resource.ResourceGetCommand):
     display_attributes = ['id', 'rule_ref', 'trigger_instance_id',
-                          'execution_id', 'created_at']
+                          'execution_id', 'enforced_at']
     attribute_display_order = ['id', 'rule_ref', 'trigger_instance_id',
-                               'execution_id', 'created_at']
+                               'execution_id', 'enforced_at']
 
     pk_argument_name = 'id'
 
@@ -47,12 +47,12 @@ class RuleEnforcementGetCommand(resource.ResourceGetCommand):
 
 class RuleEnforcementListCommand(resource.ResourceCommand):
     display_attributes = ['id', 'rule_ref', 'trigger_instance_id',
-                          'execution_id', 'created_at']
+                          'execution_id', 'enforced_at']
     attribute_display_order = ['id', 'rule_ref', 'trigger_instance_id',
-                               'execution_id', 'created_at']
+                               'execution_id', 'enforced_at']
 
     attribute_transform_functions = {
-        'created_at': format_isodate
+        'enforced_at': format_isodate
     }
 
     def __init__(self, resource, *args, **kwargs):
@@ -103,9 +103,9 @@ class RuleEnforcementListCommand(resource.ResourceCommand):
         if args.execution:
             kwargs['execution'] = args.execution
         if args.timestamp_gt:
-            kwargs['created_at_gt'] = args.timestamp_gt
+            kwargs['enforced_at_gt'] = args.timestamp_gt
         if args.timestamp_lt:
-            kwargs['created_at_lt'] = args.timestamp_lt
+            kwargs['enforced_at_lt'] = args.timestamp_lt
 
         return self.manager.query(limit=args.last, **kwargs)
 

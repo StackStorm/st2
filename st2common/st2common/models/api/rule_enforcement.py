@@ -53,7 +53,7 @@ class RuleEnforcementAPI(BaseAPI):
                 'type': 'string',
                 'required': True
             },
-            'created_at': {
+            'enforced_at': {
                 'description': 'Timestamp when rule enforcement happened.',
                 'type': 'string',
                 'required': True
@@ -66,20 +66,20 @@ class RuleEnforcementAPI(BaseAPI):
     def to_model(cls, rule_enforcement):
         trigger_instance_id = getattr(rule_enforcement, 'trigger_instance_id', None)
         execution_id = getattr(rule_enforcement, 'execution_id', None)
-        created_at = getattr(rule_enforcement, 'created_at', None)
+        enforced_at = getattr(rule_enforcement, 'enforced_at', None)
         rule_ref = getattr(rule_enforcement, 'rule_ref', None)
         rule_id = getattr(rule_enforcement, 'rule_id', None)
 
-        if created_at:
-            created_at = isotime.parse(created_at)
+        if enforced_at:
+            enforced_at = isotime.parse(enforced_at)
 
         return cls.model(trigger_instance_id=trigger_instance_id, execution_id=execution_id,
-                         created_at=created_at, rule_ref=rule_ref, rule_id=rule_id)
+                         enforced_at=enforced_at, rule_ref=rule_ref, rule_id=rule_id)
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
-        created_at = isotime.format(model.created_at, offset=False)
-        doc['created_at'] = created_at
+        enforced_at = isotime.format(model.enforced_at, offset=False)
+        doc['enforced_at'] = enforced_at
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}
         return cls(**attrs)
