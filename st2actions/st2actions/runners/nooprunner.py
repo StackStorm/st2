@@ -40,8 +40,6 @@ class NoopRunner(ActionRunner):
             'failed': False,
             'succeeded': True,
             'return_code': 0,
-            'stdout': "",
-            'stderr': ""
         }
 
         status = LIVEACTION_STATUS_SUCCEEDED

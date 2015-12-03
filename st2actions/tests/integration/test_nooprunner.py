@@ -43,7 +43,6 @@ class TestNoopRunner(TestCase):
         self.assertEquals(result['failed'], False)
         self.assertEquals(result['succeeded'], True)
         self.assertEquals(result['return_code'], 0)
-        self.assertEquals(result['stdout'], "")
 
     @staticmethod
     def _get_runner(self, action_db):
