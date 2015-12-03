@@ -114,6 +114,9 @@ if [ "${CREATE_VIRTUALENV}" = true ]; then
     mkdir -p ${VIRTUALENVS_DIR}
     virtualenv --system-site-packages ${VIRTUALENV_DIR}
 
+    # Make sure virtualenv is using latest pip version
+    ${VIRTUALENV_DIR}/bin/pip install --upgrade pip
+
     # Activate created virtualenv
     source ${VIRTUALENV_DIR}/bin/activate
 fi
