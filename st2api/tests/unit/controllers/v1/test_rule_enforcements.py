@@ -54,7 +54,7 @@ class TestRuleEnforcementController(FunctionalTest):
         self.assertEqual(resp.status_int, http_client.NOT_FOUND)
 
     def test_filter_by_rule_ref(self):
-        resp = self.app.get('/v1/ruleenforcements/?rule_ref=golden_rule')
+        resp = self.app.get('/v1/ruleenforcements/?rule_ref=wolfpack.golden_rule')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 1)
 

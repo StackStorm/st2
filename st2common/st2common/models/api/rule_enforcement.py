@@ -48,6 +48,11 @@ class RuleEnforcementAPI(BaseAPI):
                 'type': 'string',
                 'required': True
             },
+            'rule_uid': {
+                'description': 'UID of the corresponding rule.',
+                'type': 'string',
+                'required': True
+            },
             'created_at': {
                 'description': 'Timestamp when rule enforcement happened.',
                 'type': 'string',
