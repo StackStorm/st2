@@ -31,8 +31,25 @@ full blown integration and end to end tests would be very time consuming and
 hard so the convention is to write unit tests and mock the responses and method
 calls where necessary.
 
+Base Test Classes and Mock Classes
+----------------------------------
+
+To make testing easier, |st2| provides some base test and mock classes you can
+you in the tests
+
+Base Test Classes
+~~~~~~~~~~~~~~~~~
+
+* ``st2tests.base.BaseSensorTestCase`` - Base class for all the sensor test
+  cases. This class provides utility methods for making sensor testing easier
+  such as returning a sensor class instance with ``sensor_service`` correctly
+  populated, method for asserting that trigger has been dispatched
+  (``assertTriggerDispatched``) and more.
+* ``st2tests.base.BaseActionTestCase`` - Base class for all the action test
+  cases.
+
 Mock Classes
-------------
+~~~~~~~~~~~~
 
 To make testing easier, |st2| provides some mock classes which you can use
 in the tests.
@@ -44,12 +61,6 @@ in the tests.
 * ``st2tests.mocks.sensor.MockSensorService`` - Mock ``SensorService`` class.
   This class mock methods which operate on the datastore items (``list_values``,
   ``get_value``, ``set_value``, ``delete_value``).
-
-In addition to the mock classes, |st2| also provides base class for sensor
-tests - ``st2tests.base.BaseSensorTestCase``. This class provides utility
-functions for making sensor testing easier such as returning a sensor class
-instance with ``sensor_service`` correctly populated, method for asserting
-that trigger has been dispatched (``assertTriggerDispatched``) and more.
 
 Dependencies
 ------------
