@@ -77,3 +77,10 @@ deployment:
     commands:
       - .circle/bintray.sh deploy debian /tmp/st2-packages
       - .circle/docker.sh deploy st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
+
+experimental:
+  notify:
+    branches:
+      only:
+        - master
+        - /v[0-9]+(\.[0-9]+)*/
