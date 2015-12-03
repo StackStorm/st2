@@ -54,3 +54,11 @@ class Rule(core.Resource):
     _alias = 'Rule'
     _plural = 'Rules'
     _repr_attributes = ['name', 'pack', 'trigger', 'criteria', 'enabled']
+
+
+class RuleEnforcement(core.Resource):
+    _alias = 'Rule-Enforcement'
+    _plural = 'RuleEnforcements'
+    _display_name = 'Rule Enforcement'
+    _plural_display_name = 'Rule Enforcements'
+    _repr_attributes = ['id', 'trigger_instance_id', 'execution_id', 'rule_ref', 'created_at']
