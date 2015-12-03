@@ -1,0 +1,169 @@
+#!/usr/bin/env bash
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Script which prepares the environment and runs tests for a particular pack
+# Note: This script will create a new temporary virtual environment for each
+# run by default. If you don't want this behavior (e.g. virtual environment
+# already exists), you should pass "-x" flag to the script.
+
+##################
+# Common functions
+##################
+
+function join { local IFS="$1"; shift; echo "$*"; }
+
+###########
+# Constants
+###########
+
+# A list of dependencies which are installed and available to every pack tests
+PACK_TEST_PYTHON_DEPENDENCIES=(
+    'mock>=1.3.0,<2.0'
+    'unittest2>=1.1.0,<2.0'
+    'nose>=1.3.7'
+)
+VIRTUALENVS_DIR="/tmp/st2-pack-tests-virtualenvs"
+
+###########
+# Variables
+###########
+
+ST2_PIP_OPTIONS=${ST2_PIP_OPTIONS:-"-q"}
+CREATE_VIRTUALENV=true
+
+####################
+# Script beings here
+####################
+
+while getopts ":p:x" o; do
+    case "${o}" in
+        p)
+            PACK_PATH=${OPTARG}
+            ;;
+        x)
+            CREATE_VIRTUALENV=false
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            usage
+            exit 2
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument." >&2
+            usage
+            exit 2
+            ;;
+    esac
+done
+
+PACK_PATH=$(readlink -f ${PACK_PATH})
+if [ ! ${PACK_PATH} ]; then
+    echo "Usage: $0 -p <pack path> [-x]"
+    exit 2
+fi
+
+if [ ! -d ${PACK_PATH} ]; then
+    echo "Invalid pack path: ${PACK_PATH}"
+    exit 3
+fi
+
+SCRIPT_PATH=$(readlink -f $0)
+DIRECTORY_PATH=$(dirname ${SCRIPT_PATH})
+
+PACK_NAME=$(basename ${PACK_PATH})
+PACK_TESTS_PATH="${PACK_PATH}/tests/"
+
+SENSORS_PATH="${PACK_PATH}/sensors/"
+ACTIONS_PATH="${PACK_PATH}/actions/"
+
+# Bail early if no tests are found, this way we don't need to wait for
+# environment set up.
+if [  ! -d ${PACK_TESTS_PATH} ]; then
+    echo "Running tests for pack: ${PACK_NAME}"
+    echo "No tests found."
+    exit 0
+fi
+
+###################
+# Environment setup
+###################
+
+ST2_REPO_PATH=${ST2_REPO_PATH}
+
+PACK_REQUIREMENTS_FILE="${PACK_PATH}/requirements.txt"
+PACK_TESTS_REQUIREMENTS_FILE="${PACK_PATH}/requirements-tests.txt"
+
+# Create virtualenv
+VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
+
+if [ "${CREATE_VIRTUALENV}" = true ]; then
+    echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
+    mkdir -p ${VIRTUALENVS_DIR}
+    virtualenv --system-site-packages ${VIRTUALENV_DIR}
+
+    # Activate created virtualenv
+    source ${VIRTUALENV_DIR}/bin/activate
+fi
+
+# Note: If we are running outside of st2, we need to add all the st2 components
+# to PYTHONPATH
+if [ ${ST2_REPO_PATH} ]; then
+    ST2_REPO_PATH=${ST2_REPO_PATH:-/tmp/st2}
+    ST2_COMPONENTS=$(find ${ST2_REPO_PATH}/* -maxdepth 0 -name "st2*" -type d)
+    PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):${SENSORS_PATH}:${ACTIONS_PATH}"
+else
+    # ST2_REPO_PATH not provided, assume all the st2 component packages are
+    # already in PYTHONPATH
+    PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):${SENSORS_PATH}:${ACTIONS_PATH}"
+fi
+
+# Install st2 dependencies
+if [ ${ST2_REPO_PATH} ]; then
+    pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/requirements.txt
+    pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/test-requirements.txt
+fi
+
+# Install global test dependencies
+for dependency in ${PACK_TEST_PYTHON_DEPENDENCIES[@]}; do
+    pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${dependency}"
+done
+
+# Install pack dependencies
+if [ -f ${PACK_REQUIREMENTS_FILE} ]; then
+    pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_REQUIREMENTS_FILE}
+fi
+
+# Install pack test dependencies (if any)
+if [ -f ${PACK_TESTS_REQUIREMENTS_FILE} ]; then
+    pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_TESTS_REQUIREMENTS_FILE}
+fi
+
+# Set PYTHONPATH, make sure it contains st2 components in PATH
+export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
+
+echo "Running tests for pack: ${PACK_NAME}"
+nosetests -s -v ${PACK_TESTS_PATH}
+TESTS_EXIT_CODE=$?
+
+# Clean up and unset the variables
+if [ "${CREATE_VIRTUALENV}" = true ]; then
+    deactivate
+fi
+
+unset PYTHONPATH
+
+# Exit
+exit ${TESTS_EXIT_CODE}
