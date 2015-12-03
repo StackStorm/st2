@@ -525,7 +525,7 @@ RUNNER_TYPES = [
     {
         'name': 'noop',
         'aliases': [],
-        'description': 'A runner that does absolutely nothing',
+        'description': 'A runner that returns a static response regardless of input parameters',
         'enabled': True,
         'runner_parameters': {},
         'runner_module': 'st2actions.runners.nooprunner'
