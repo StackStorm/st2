@@ -181,6 +181,15 @@ belong to the action with that parent pack.
 On top of that, granting ``action_execute`` on a particular pack or action also grants
 ``execution_rerun`` and ``execution_stop`` to all the executions which belong to that action.
 
+**Rule enforcements**
+
+Rule enforcements (models that represent when a rule actually evaluated resulted in an action)
+inherit permissions from the rule they belong and from the rule's parent pack. This means, if
+a user has a ``rule_view`` permission on a particular rule, then they also have permissions to
+view the rule enforcement model for the rule. Similarly, if you grant ``rule_view`` to a
+parent pack of the rule, user will be able to see all enforcements of rules belonging to that
+pack. Note that rule enforcements are ``operational models``. You cannot create/modify/delete them via API. So permissions other than ``view`` and ``list`` do not make sense.
+
 Permissions and executions which are not triggered via the API
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
