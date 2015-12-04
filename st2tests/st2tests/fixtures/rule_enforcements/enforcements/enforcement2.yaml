@@ -5,4 +5,5 @@
   rule_id: "565e15c032ed35086c54f332"
   rule_ref: "wolfpack.golden_rule"
   rule_uid: "rule:wolfpack:st2.webhook.github.pulls.merge.sample"
+  rule_pack: "wolfpack"
   trigger_instance_id: "565e15cd32ed350857dfa61d"

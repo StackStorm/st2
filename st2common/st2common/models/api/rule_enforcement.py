@@ -53,6 +53,11 @@ class RuleEnforcementAPI(BaseAPI):
                 'type': 'string',
                 'required': True
             },
+            'rule_pack': {
+                'description': 'Pack of the corresponding rule.',
+                'type': 'string',
+                'required': True
+            },
             'enforced_at': {
                 'description': 'Timestamp when rule enforcement happened.',
                 'type': 'string',
@@ -69,12 +74,15 @@ class RuleEnforcementAPI(BaseAPI):
         enforced_at = getattr(rule_enforcement, 'enforced_at', None)
         rule_ref = getattr(rule_enforcement, 'rule_ref', None)
         rule_id = getattr(rule_enforcement, 'rule_id', None)
+        rule_uid = getattr(rule_enforcement, 'rule_uid', None)
+        rule_pack = getattr(rule_enforcement, 'rule_pack', None)
 
         if enforced_at:
             enforced_at = isotime.parse(enforced_at)
 
         return cls.model(trigger_instance_id=trigger_instance_id, execution_id=execution_id,
-                         enforced_at=enforced_at, rule_ref=rule_ref, rule_id=rule_id)
+                         enforced_at=enforced_at, rule_ref=rule_ref, rule_id=rule_id,
+                         rule_uid=rule_uid, rule_pack=rule_pack)
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):

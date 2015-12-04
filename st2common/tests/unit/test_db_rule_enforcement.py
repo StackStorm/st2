@@ -27,12 +27,12 @@ SKIP_DELETE = False
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class RuleEnforcementModelTest(DbTestCase):
 
-    def test_triggertype_crud(self):
+    def test_ruleenforcment_crud(self):
         saved = RuleEnforcementModelTest._create_save_rule_enforcement()
         retrieved = RuleEnforcement.get_by_id(saved.id)
         self.assertEqual(saved.rule_ref, retrieved.rule_ref,
                          'Same rule enforcement was not returned.')
-        self.assertTrue(retrieved.created_at is not None)
+        self.assertTrue(retrieved.enforced_at is not None)
         # test update
         RULE_ID = str(bson.ObjectId())
         self.assertEqual(retrieved.rule_id, None)
@@ -52,7 +52,7 @@ class RuleEnforcementModelTest(DbTestCase):
     @staticmethod
     def _create_save_rule_enforcement():
         created = RuleEnforcementDB(trigger_instance_id=str(bson.ObjectId()),
-                                    rule_ref='foo_pack.foo_rule',
+                                    rule_ref='foo_pack.foo_rule', rule_pack='foo_pack',
                                     execution_id=str(bson.ObjectId()))
         return RuleEnforcement.add_or_update(created)
 
