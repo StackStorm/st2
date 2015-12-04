@@ -149,11 +149,11 @@ for dependency in ${PACK_TEST_PYTHON_DEPENDENCIES[@]}; do
     pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${dependency}"
 done
 
-echo "Install pack dependencies"
+#echo "Install pack dependencies"
 # Install pack dependencies
-if [ -f ${PACK_REQUIREMENTS_FILE} ]; then
-    pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_REQUIREMENTS_FILE}
-fi
+#if [ -f ${PACK_REQUIREMENTS_FILE} ]; then
+#    pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_REQUIREMENTS_FILE}
+#fi
 
 echo "Install pack test dependencies"
 # Install pack test dependencies (if any)
