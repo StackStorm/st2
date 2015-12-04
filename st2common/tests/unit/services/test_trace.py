@@ -311,10 +311,10 @@ class TestTraceService(DbTestCase):
         trace_db = trace_service.add_or_update_given_trace_context(
             trace_context,
             action_executions=[{'id': action_execution_id,
-                                'causal_component': {'id': '%s:%s' % (rule_id, trigger_instance_id),
-                                                     'type': 'rule'}}],
+                                'caused_by': {'id': '%s:%s' % (rule_id, trigger_instance_id),
+                                              'type': 'rule'}}],
             rules=[{'id': rule_id,
-                    'causal_component': {'id': trigger_instance_id, 'type': 'trigger-instance'}}],
+                    'caused_by': {'id': trigger_instance_id, 'type': 'trigger-instance'}}],
             trigger_instances=[trigger_instance_id])
         post_add_or_update_traces = len(Trace.get_all())
 
@@ -326,14 +326,14 @@ class TestTraceService(DbTestCase):
                          'Expected updated action_executions.')
         self.assertEqual(retrieved_trace_db.action_executions[0].object_id, action_execution_id,
                          'Expected updated action_executions.')
-        self.assertEqual(retrieved_trace_db.action_executions[0].causal_component,
+        self.assertEqual(retrieved_trace_db.action_executions[0].caused_by,
                          {'id': '%s:%s' % (rule_id, trigger_instance_id),
                           'type': 'rule'},
                          'Expected updated action_executions.')
 
         self.assertEqual(len(retrieved_trace_db.rules), 1, 'Expected updated rules.')
         self.assertEqual(retrieved_trace_db.rules[0].object_id, rule_id, 'Expected updated rules.')
-        self.assertEqual(retrieved_trace_db.rules[0].causal_component,
+        self.assertEqual(retrieved_trace_db.rules[0].caused_by,
                          {'id': trigger_instance_id, 'type': 'trigger-instance'},
                          'Expected updated rules.')
 
@@ -341,7 +341,7 @@ class TestTraceService(DbTestCase):
                          'Expected updated trigger_instances.')
         self.assertEqual(retrieved_trace_db.trigger_instances[0].object_id, trigger_instance_id,
                          'Expected updated trigger_instances.')
-        self.assertEqual(retrieved_trace_db.trigger_instances[0].causal_component, {},
+        self.assertEqual(retrieved_trace_db.trigger_instances[0].caused_by, {},
                          'Expected updated rules.')
 
         Trace.delete(retrieved_trace_db)

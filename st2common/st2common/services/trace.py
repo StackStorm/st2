@@ -200,15 +200,15 @@ def add_or_update_given_trace_context(trace_context, action_executions=None, rul
     :type trace_context: ``dict`` or ``TraceContext``
 
     :param action_executions: The action_execution to be added to the Trace. Should a list
-                              of object_ids or a dict containing object_ids and causal_component.
+                              of object_ids or a dict containing object_ids and caused_by.
     :type action_executions: ``list``
 
     :param rules: The rules to be added to the Trace.  Should a list of object_ids or a dict
-                  containing object_ids and causal_component.
+                  containing object_ids and caused_by.
     :type rules: ``list``
 
     :param trigger_instances: The trigger_instances to be added to the Trace. Should a list
-                              of object_ids or a dict containing object_ids and causal_component.
+                              of object_ids or a dict containing object_ids and caused_by.
     :type trigger_instances: ``list``
 
     :rtype: ``TraceDB``
@@ -233,15 +233,15 @@ def add_or_update_given_trace_db(trace_db, action_executions=None, rules=None,
     :type trace_db: ``TraceDB``
 
     :param action_executions: The action_execution to be added to the Trace. Should a list
-                              of object_ids or a dict containing object_ids and causal_component.
+                              of object_ids or a dict containing object_ids and caused_by.
     :type action_executions: ``list``
 
     :param rules: The rules to be added to the Trace. Should a list of object_ids or a dict
-                  containing object_ids and causal_component.
+                  containing object_ids and caused_by.
     :type rules: ``list``
 
     :param trigger_instances: The trigger_instances to be added to the Trace. Should a list
-                              of object_ids or a dict containing object_ids and causal_component.
+                              of object_ids or a dict containing object_ids and caused_by.
     :type trigger_instances: ``list``
 
     :rtype: ``TraceDB``
@@ -290,13 +290,13 @@ def get_trace_component_for_action_execution(action_execution_db):
     if not action_execution_db:
         raise ValueError('action_execution_db expected.')
     trace_component = {'id': str(action_execution_db.id)}
-    causal_component = {}
+    caused_by = {}
     if action_execution_db.rule and action_execution_db.trigger_instance:
         # Once RuleEnforcement is available that can be used instead.
-        causal_component['type'] = 'rule'
-        causal_component['id'] = '%s:%s' % (action_execution_db.rule['id'],
-                                            action_execution_db.trigger_instance['id'])
-    trace_component['causal_component'] = causal_component
+        caused_by['type'] = 'rule'
+        caused_by['id'] = '%s:%s' % (action_execution_db.rule['id'],
+                                     action_execution_db.trigger_instance['id'])
+    trace_component['caused_by'] = caused_by
     return trace_component
 
 
@@ -314,12 +314,12 @@ def get_trace_component_for_rule(rule_db, trigger_instance_db):
     """
     trace_component = {}
     trace_component = {'id': str(rule_db.id)}
-    causal_component = {}
+    caused_by = {}
     if trigger_instance_db:
         # Once RuleEnforcement is available that can be used instead.
-        causal_component['type'] = 'trigger_instance'
-        causal_component['id'] = str(trigger_instance_db.id)
-    trace_component['causal_component'] = causal_component
+        caused_by['type'] = 'trigger_instance'
+        caused_by['id'] = str(trigger_instance_db.id)
+    trace_component['caused_by'] = caused_by
     return trace_component
 
 
@@ -334,16 +334,16 @@ def get_trace_component_for_trigger_instance(trigger_instance_db):
     """
     trace_component = {}
     trace_component = {'id': str(trigger_instance_db.id)}
-    causal_component = {}
+    caused_by = {}
     # Special handling for ACTION_SENSOR_TRIGGER and NOTIFY_TRIGGER where we
     # know how to maintain the links.
     if trigger_instance_db.trigger == ACTION_SENSOR_TRIGGER_REF or \
        trigger_instance_db.trigger == NOTIFY_TRIGGER_REF:
         # Once RuleEnforcement is available that can be used instead.
-        causal_component['type'] = 'action_execution'
+        caused_by['type'] = 'action_execution'
         # For both action trigger and notidy trigger execution_id is stored in the payload.
-        causal_component['id'] = trigger_instance_db.payload['execution_id']
-    trace_component['causal_component'] = causal_component
+        caused_by['id'] = trigger_instance_db.payload['execution_id']
+    trace_component['caused_by'] = caused_by
     return trace_component
 
 
@@ -352,7 +352,7 @@ def _to_trace_component_db(component):
     Take the component as string or a dict and will construct a TraceComponentDB.
 
     :param component: Should identify the component. If a string should be id of the
-                      component. If a dict should contain id and the causal_component.
+                      component. If a dict should contain id and the caused_by.
     :type component: ``bson.ObjectId`` or ``dict``
 
     :rtype: ``TraceComponentDB``
@@ -362,6 +362,6 @@ def _to_trace_component_db(component):
         raise ValueError('Expected component to be str or dict')
 
     object_id = component if isinstance(component, basestring) else component['id']
-    causal_component = component.get('causal_component', {}) if isinstance(component, dict) else {}
+    caused_by = component.get('caused_by', {}) if isinstance(component, dict) else {}
 
-    return TraceComponentDB(object_id=object_id, causal_component=causal_component)
+    return TraceComponentDB(object_id=object_id, caused_by=caused_by)
