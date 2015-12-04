@@ -43,6 +43,8 @@ in development
 * Introducing `noop` runner and `core.noop` action. Returns consistent success in a WF regardless of
   user input. (new feature)
 * Add missing indexes on trigger_instance_d_b collection. (bug fix)
+* Add mock classes (``st2tests.mocks.*``) for easier unit testing of the packs. (new feature)
+* Add a script (``./st2common/bin/st2-run-pack-tests``) for running pack tests. (new feature)
 
 1.1.1 - November 13, 2015
 -------------------------
