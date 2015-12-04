@@ -39,6 +39,8 @@ in development
 * Allow jinja templating to be used in ``message`` and ``data`` field for notifications.(new feature)
 * Add tools for purging executions (also, liveactions with it) and trigger instances older than
   certain UTC timestamp from the db in bulk.
+* Add ability to write rule enforcement (models that represent a rule evaluation that resulted
+  in an action execution) to db to help debugging rules easier. Also, CLI bindings to list and view these models are added. (new-feature)
 
 1.1.1 - November 13, 2015
 -------------------------
