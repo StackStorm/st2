@@ -42,6 +42,7 @@ in development
 * Fix json representation of trace in cli. (bug fix)
 * Introducing `noop` runner and `core.noop` action. Returns consistent success in a WF regardless of
   user input. (new feature)
+* Add missing indexes on trigger_instance_d_b collection. (bug fix)
 
 1.1.1 - November 13, 2015
 -------------------------

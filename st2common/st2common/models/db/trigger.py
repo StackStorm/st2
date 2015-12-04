@@ -108,6 +108,14 @@ class TriggerInstanceDB(stormbase.StormFoundationDB):
     payload = stormbase.EscapedDictField()
     occurrence_time = me.DateTimeField()
 
+    meta = {
+        'indexes': [
+            {'fields': ['occurrence_time']},
+            {'fields': ['trigger']},
+            {'fields': ['-occurrence_time', 'trigger']}
+        ]
+    }
+
 # specialized access objects
 triggertype_access = MongoDBAccess(TriggerTypeDB)
 trigger_access = MongoDBAccess(TriggerDB)
