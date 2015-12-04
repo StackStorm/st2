@@ -138,23 +138,14 @@ fi
 
 # Install st2 dependencies
 if [ ${ST2_REPO_PATH} ]; then
-    echo "Install st2 test dependencies"
     pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/test-requirements.txt
 fi
 
-echo "Install global test dependencies"
 # Install global test dependencies
 for dependency in ${PACK_TEST_PYTHON_DEPENDENCIES[@]}; do
     pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${dependency}"
 done
 
-#echo "Install pack dependencies"
-# Install pack dependencies
-#if [ -f ${PACK_REQUIREMENTS_FILE} ]; then
-#    pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_REQUIREMENTS_FILE}
-#fi
-
-echo "Install pack test dependencies"
 # Install pack test dependencies (if any)
 if [ -f ${PACK_TESTS_REQUIREMENTS_FILE} ]; then
     pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_TESTS_REQUIREMENTS_FILE}
