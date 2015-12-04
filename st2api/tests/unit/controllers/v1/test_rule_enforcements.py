@@ -73,11 +73,11 @@ class TestRuleEnforcementController(FunctionalTest):
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 1)
 
-    def test_filter_by_created_at(self):
-        resp = self.app.get('/v1/ruleenforcements/?created_at_gt=2015-12-01T21:49:01.000000Z')
+    def test_filter_by_enforced_at(self):
+        resp = self.app.get('/v1/ruleenforcements/?enforced_at_gt=2015-12-01T21:49:01.000000Z')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 2)
 
-        resp = self.app.get('/v1/ruleenforcements/?created_at_lt=2015-12-01T21:49:01.000000Z')
+        resp = self.app.get('/v1/ruleenforcements/?enforced_at_lt=2015-12-01T21:49:01.000000Z')
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 1)

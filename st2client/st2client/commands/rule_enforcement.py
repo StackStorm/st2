@@ -79,12 +79,12 @@ class RuleEnforcementListCommand(resource.ResourceCommand):
 
         self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
                                  default=None,
-                                 help=('Only return enforcements with created_at '
+                                 help=('Only return enforcements with enforced_at '
                                        'greater than the one provided. '
                                        'Use time in the format 2000-01-01T12:00:00.000Z'))
         self.parser.add_argument('-tl', '--timestamp-lt', type=str, dest='timestamp_lt',
                                  default=None,
-                                 help=('Only return enforcements with created_at '
+                                 help=('Only return enforcements with enforced_at '
                                        'lower than the one provided. '
                                        'Use time in the format 2000-01-01T12:00:00.000Z'))
         # Display options
