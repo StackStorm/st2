@@ -478,6 +478,7 @@ class RuleEnforcementPermissionsResolver(PermissionsResolver):
 
     def user_has_permission(self, user_db, permission_type):
         assert permission_type in [PermissionType.RULE_ENFORCEMENT_LIST]
+        permission_type = PermissionType.RULE_LIST
         return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
@@ -499,10 +500,18 @@ class RuleEnforcementPermissionsResolver(PermissionsResolver):
 
         # Check custom roles
         rule_uid = getattr(resource_db, 'rule_uid', None)
-        if not rule_uid:
-            LOG.error('Rule UID not present in enforcement object. ' +
+        rule_id = getattr(resource_db, 'rule_id', None)
+        rule_pack = getattr(resource_db, 'rule_pack', None)
+
+        if not rule_uid or not rule_id or not rule_pack:
+            LOG.error('Rule UID or ID or PACK not present in enforcement object. ' +
+                      ('UID = %s, ID = %s, PACK = %s' % (rule_uid, rule_id, rule_pack)) +
                       'Cannot assess access permissions without it. Defaulting to DENY.')
             return False
+
+        # TODO: Add utility methods for constructing uids from parts
+        pack_db = PackDB(ref=rule_pack)
+        rule_pack_uid = pack_db.get_uid()
 
         if permission_type == PermissionType.RULE_ENFORCEMENT_VIEW:
             rule_permission_type = PermissionType.RULE_VIEW
@@ -510,6 +519,18 @@ class RuleEnforcementPermissionsResolver(PermissionsResolver):
             rule_permission_type = PermissionType.RULE_LIST
         else:
             raise ValueError('Invalid permission type: %s' % (permission_type))
+
+        # Check grants on the pack of the rule to which enforcement belongs to
+        resource_types = [ResourceType.PACK]
+        permission_types = [PermissionType.RULE_ALL, rule_permission_type]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=rule_pack_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+
+        if len(permission_grants) >= 1:
+            self._log('Found a grant on the enforcement rule parent pack', extra=log_context)
+            return True
 
         # Check grants on the rule the enforcement belongs to
         resource_types = [ResourceType.RULE]
