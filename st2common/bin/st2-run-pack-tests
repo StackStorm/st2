@@ -89,6 +89,10 @@ PACK_TESTS_PATH="${PACK_PATH}/tests/"
 SENSORS_PATH="${PACK_PATH}/sensors/"
 ACTIONS_PATH="${PACK_PATH}/actions/"
 
+echo " Pack Path: $PACK_PATH"
+echo " Sensors Path: $SENSORS_PATH"
+echo " Actions Path: $ACTIONS_PATH"
+
 # Bail early if no tests are found, this way we don't need to wait for
 # environment set up.
 if [  ! -d ${PACK_TESTS_PATH} ]; then
@@ -106,10 +110,13 @@ ST2_REPO_PATH=${ST2_REPO_PATH}
 PACK_REQUIREMENTS_FILE="${PACK_PATH}/requirements.txt"
 PACK_TESTS_REQUIREMENTS_FILE="${PACK_PATH}/requirements-tests.txt"
 
-# Create virtualenv
-VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
+
 
 if [ "${CREATE_VIRTUALENV}" = true ]; then
+
+    # Create virtualenv
+    VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
+
     echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
     mkdir -p ${VIRTUALENVS_DIR}
     virtualenv --system-site-packages ${VIRTUALENV_DIR}
