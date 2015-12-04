@@ -89,10 +89,6 @@ PACK_TESTS_PATH="${PACK_PATH}/tests/"
 SENSORS_PATH="${PACK_PATH}/sensors/"
 ACTIONS_PATH="${PACK_PATH}/actions/"
 
-echo " Pack Path: $PACK_PATH"
-echo " Sensors Path: $SENSORS_PATH"
-echo " Actions Path: $ACTIONS_PATH"
-
 # Bail early if no tests are found, this way we don't need to wait for
 # environment set up.
 if [  ! -d ${PACK_TESTS_PATH} ]; then
