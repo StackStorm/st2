@@ -1,0 +1,7 @@
+---
+description: Action that does nothing
+enabled: true
+entry_point: ''
+name: noop
+parameters: {}
+runner_type: "noop"
