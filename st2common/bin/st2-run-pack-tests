@@ -138,8 +138,7 @@ fi
 
 # Install st2 dependencies
 if [ ${ST2_REPO_PATH} ]; then
-    echo "Install st2 dependencies"
-    pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/requirements.txt
+    echo "Install st2 test dependencies"
     pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/test-requirements.txt
 fi
 
