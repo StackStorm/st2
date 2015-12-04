@@ -1,4 +1,5 @@
 # Setup in CircleCI account the following ENV variables:
+# BINTRAY_ORGANIZATION
 # BINTRAY_ACCOUNT
 # BINTRAY_API_KEY
 # DOCKER_USER
@@ -12,10 +13,9 @@ general:
       - /v[0-9]+(\.[0-9]+)*/
   build_dir: st2-packages
   artifacts:
-    - /tmp/st2-packages
+    - ~/packages
 
 machine:
-  # Overwrite these ENV variables in parametrized (manual/API) builds
   environment:
     DISTROS: "wheezy jessie trusty centos7"
     NOTESTS: "centos7"
@@ -23,10 +23,9 @@ machine:
     ST2_DOCKERFILES_REPO: https://github.com/StackStorm/st2-dockerfiles
     BUILD_DOCKER: 1
     DEPLOY_DOCKER: 1
-    DEPLOY_PACKAGES: 0
+    DEPLOY_PACKAGES: 1
   pre:
-    # Paswordless SSH between parallel build nodes
-    - sudo cp /home/ubuntu/.ssh/config /root/.ssh/config
+    - mkdir -p ~/packages
     # Need latest Docker version for some features to work (CircleCI by default works with outdated version)
     - |
       sudo curl -L -o /usr/bin/docker 'http://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.0-circleci'
@@ -39,7 +38,7 @@ machine:
 
 checkout:
   post:
-    - git clone ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
+    - git clone --depth 1 ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
     - .circle/buildenv.sh
 
 dependencies:
@@ -60,6 +59,9 @@ test:
   override:
     - .circle/docker-compose.sh test ${DISTRO}:
         parallel: true
+    # Copy all Packages to node0
+    - rsync -rv /tmp/st2-packages/ node0:~/packages/${DISTRO}:
+        parallel: true
   post:
     - .circle/docker.sh build st2bundle
     - .circle/docker.sh build st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
@@ -67,17 +69,21 @@ test:
     - .circle/docker.sh test st2api 'st2 --version'
 
 deployment:
-  stable:
-    branch: /v[0-9]+(\.[0-9]+)*/
+  publish:
+    owner: StackStorm
+    branch:
+      - master
+      - /v[0-9]+(\.[0-9]+)*/
     commands:
-      - .circle/bintray.sh deploy debian /tmp/st2-packages
-      - .circle/docker.sh deploy st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
-
-deployment:
-  unstable:
-    branch: master
-    commands:
-      - .circle/bintray.sh deploy debian /tmp/st2-packages
+      # Deploy to Bintray all artifacts for respective distros in parallel
+      - |
+        DISTROS=($DISTROS)
+        for i in $(seq 0 $((CIRCLE_NODE_TOTAL-1))); do
+          echo Deploying Bintray artifacts for "${DISTROS[$i]}" ...
+          .circle/bintray.sh deploy ${DISTROS[$i]}_staging ~/packages/${DISTROS[$i]} &
+        done
+        wait
+      - echo Web Hook triggering st2 Staging box with build context payload will be here
       - .circle/docker.sh deploy st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
 
 experimental:
