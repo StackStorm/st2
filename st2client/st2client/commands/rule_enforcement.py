@@ -74,6 +74,8 @@ class RuleEnforcementListCommand(resource.ResourceCommand):
 
         self.group.add_argument('--execution',
                                 help='Execution id to filter the list.')
+        self.group.add_argument('--rule',
+                                help='Rule ref to filter the list.')
 
         self.parser.add_argument('-tg', '--timestamp-gt', type=str, dest='timestamp_gt',
                                  default=None,
@@ -102,6 +104,8 @@ class RuleEnforcementListCommand(resource.ResourceCommand):
             kwargs['trigger_instance'] = args.trigger_instance
         if args.execution:
             kwargs['execution'] = args.execution
+        if args.rule:
+            kwargs['rule_ref'] = args.rule
         if args.timestamp_gt:
             kwargs['enforced_at_gt'] = args.timestamp_gt
         if args.timestamp_lt:
