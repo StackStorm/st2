@@ -199,4 +199,69 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
             raise OperationFailureException('Trace %s not found.' % (args.id))
+        trace = self._filter_trace_components(trace=trace, args=args)
         return self.print_trace_details(trace=trace, args=args)
+
+    def _filter_trace_components(self, trace, args):
+        """
+        This function walks up the component causal chain. It only returns
+        properties in the causal chain and nothing else.
+        """
+        # check if any filtering is desired
+        if not (args.execution or args.rule or args.trigger_instance):
+            return trace
+
+        component_id = None
+        component_type = None
+
+        # pick the right component type
+        if args.execution:
+            component_id = args.execution
+            component_type = 'action_execution'
+        elif args.rule:
+            component_id = args.rule
+            component_type = 'rule'
+        elif args.trigger_instance:
+            component_id = args.trigger_instance
+            component_type = 'trigger_instance'
+
+        # Initialize collection to use
+        action_executions = []
+        rules = []
+        trigger_instances = []
+
+        # setup flag to properly manage termination conditions
+        search_target_found = component_id and component_type
+
+        while search_target_found:
+            components_list = []
+            if component_type == 'action_execution':
+                components_list = trace.action_executions
+                to_update_list = action_executions
+            elif component_type == 'rule':
+                components_list = trace.rules
+                to_update_list = rules
+            elif component_type == 'trigger_instance':
+                components_list = trace.trigger_instances
+                to_update_list = trigger_instances
+            # Look for search_target in the right collection and
+            # once found look up the caused_by to keep movig up
+            # the chain.
+            search_target_found = False
+            for component in components_list:
+                test_id = component['object_id']
+                if test_id == component_id:
+                    to_update_list.append(component)
+                    caused_by = component.get('caused_by', {})
+                    component_id = caused_by.get('id', None)
+                    component_type = caused_by.get('type', None)
+                    # Why? Coz I am evil.
+                    if component_type == 'rule' and ':' in component_id:
+                        component_id = component_id.split(':')[0]
+                    search_target_found = True
+                    break
+
+        trace.action_executions = action_executions
+        trace.rules = rules
+        trace.trigger_instances = trigger_instances
+        return trace
