@@ -2,7 +2,6 @@
 apscheduler>=3.0.0rc1
 bencode<1.1,>=1.0
 eventlet>=0.13.0
-git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/fabric.git@stanley-patched#egg=fabric
 git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
@@ -19,7 +18,6 @@ oslo.config<1.13,>=1.12.1
 paramiko<1.16,>=1.15.2
 passlib<1.7,>=1.6.2
 prettytable
-pyinotify<=0.10,>=0.9.5
 pymongo<3.0
 python-dateutil
 python-gnupg<0.4,>=0.3.7

@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import platform
+
 import unittest2
 
 from st2common.models.system.action import RemoteAction
@@ -134,4 +136,10 @@ class FabricRemoteActionTestCase(unittest2.TestCase):
         settings = remote_action._get_settings()
         self.assertEqual(settings['user'], 'test1')
         self.assertEqual(settings['password'], 'testpass1')
-        self.assertTrue('/tmp/' in settings['key_filename'])
+
+        if platform.system() == 'Darwin':
+            tmp_dir = '/var/folders/'
+        else:
+            tmp_dir = '/tmp/'
+
+        self.assertTrue(tmp_dir in settings['key_filename'])
