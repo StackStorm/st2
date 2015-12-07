@@ -25,7 +25,7 @@ from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
 from tests.unit.base import MockLiveActionPublisher
-from tests.unit.test_runner import TestRunner
+from st2tests.mocks.runner import MockActionRunner
 
 PACK = 'generic'
 TEST_FIXTURES = {
@@ -53,7 +53,7 @@ SCHEDULED_STATES = [
 
 
 @mock.patch.object(
-    TestRunner, 'run',
+    MockActionRunner, 'run',
     mock.MagicMock(
         return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
 @mock.patch.object(

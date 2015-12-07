@@ -521,6 +521,14 @@ RUNNER_TYPES = [
             }
         },
         'runner_module': 'st2actions.runners.cloudslang.cloudslang_runner'
+    },
+    {
+        'name': 'noop',
+        'aliases': [],
+        'description': 'A runner that returns a static response regardless of input parameters',
+        'enabled': True,
+        'runner_parameters': {},
+        'runner_module': 'st2actions.runners.nooprunner'
     }
 ]
 

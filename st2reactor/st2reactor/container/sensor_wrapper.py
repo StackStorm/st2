@@ -123,17 +123,9 @@ class SensorService(object):
         :rtype: ``list`` of :class:`KeyValuePair`
         """
         client = self._get_api_client()
-
         self._logger.audit('Retrieving all the value from the datastore')
 
-        if local:
-            key_prefix = self._get_datastore_key_prefix() + self.DATASTORE_NAME_SEPARATOR
-
-            if prefix:
-                key_prefix += prefix
-        else:
-            key_prefix = prefix
-
+        key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
         kvps = client.keys.get_all(prefix=key_prefix)
         return kvps
 
@@ -152,11 +144,9 @@ class SensorService(object):
 
         :rtype: ``str`` or ``None``
         """
-        if local:
-            name = self._get_key_name_with_sensor_prefix(name=name)
+        name = self._get_full_key_name(name=name, local=local)
 
         client = self._get_api_client()
-
         self._logger.audit('Retrieving value from the datastore (name=%s)', name)
 
         try:
@@ -191,8 +181,7 @@ class SensorService(object):
         :return: ``True`` on success, ``False`` otherwise.
         :rtype: ``bool``
         """
-        if local:
-            name = self._get_key_name_with_sensor_prefix(name=name)
+        name = self._get_full_key_name(name=name, local=local)
 
         value = str(value)
         client = self._get_api_client()
@@ -226,8 +215,7 @@ class SensorService(object):
         :return: ``True`` on success, ``False`` otherwise.
         :rtype: ``bool``
         """
-        if local:
-            name = self._get_key_name_with_sensor_prefix(name=name)
+        name = self._get_full_key_name(name=name, local=local)
 
         client = self._get_api_client()
 
@@ -261,6 +249,35 @@ class SensorService(object):
             self._client = Client(api_url=api_url)
 
         return self._client
+
+    def _get_full_key_name(self, name, local):
+        """
+        Retrieve a full key name.
+
+        :rtype: ``str``
+        """
+        if local:
+            name = self._get_key_name_with_sensor_prefix(name=name)
+
+        return name
+
+    def _get_full_key_prefix(self, local, prefix=None):
+        if local:
+            key_prefix = self._get_sensor_local_key_name_prefix()
+
+            if prefix:
+                key_prefix += prefix
+        else:
+            key_prefix = prefix
+
+        return key_prefix
+
+    def _get_sensor_local_key_name_prefix(self):
+        """
+        Retrieve key prefix which is local to this sensor.
+        """
+        key_prefix = self._get_datastore_key_prefix() + self.DATASTORE_NAME_SEPARATOR
+        return key_prefix
 
     def _get_key_name_with_sensor_prefix(self, name):
         """

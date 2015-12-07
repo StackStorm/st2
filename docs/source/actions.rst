@@ -300,7 +300,7 @@ very simple.
 
 You just need to follow the steps described below:
 
-1. Make sure the script comforms to the conventions described above
+1. Make sure the script conforms to the conventions described above
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You should make sure that the script exits with a zero status code on success

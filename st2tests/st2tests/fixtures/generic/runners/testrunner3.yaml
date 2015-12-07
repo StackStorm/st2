@@ -2,7 +2,7 @@
 description: Mock runner to test parameter override.
 enabled: true
 name: test-runner-3
-runner_module: tests.unit.test_runner
+runner_module: st2tests.mocks.runner
 runner_parameters:
   k1:
     type: string

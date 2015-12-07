@@ -13,9 +13,9 @@ parameters:
     type: "boolean"
     description: "Send a private message to user"
     default: false
-  result:
-    type: "object"
-    description: "Result to send"
+  execution_id:
+    type: "string"
+    description: "ID of an execution to send"
     required: true
   channel:
     type: "string"
