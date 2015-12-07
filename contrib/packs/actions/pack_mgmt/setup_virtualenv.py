@@ -160,14 +160,7 @@ class SetupVirtualEnvironmentAction(Action):
         Install requirements from a file.
         """
         pip_path = os.path.join(virtualenv_path, 'bin/pip')
-
         cmd = [pip_path, 'install', '-U', '-r', requirements_file_path]
-
-        #cmd = [pip_path, 'install', '-U', '--process-dependency-links',
-        #       '--trusted-host', 'pypi.plexxi.com', '--trusted-host',
-        #       'pypi-devel.plexxi.com','-r', requirements_file_path]
-
-        self.logger.info('pip command: %s' % cmd)
         env = self._get_env_for_subprocess_command()
         exit_code, stdout, stderr = run_command(cmd=cmd, env=env)
 
