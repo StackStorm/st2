@@ -415,13 +415,11 @@ class RuleEnforcementPermissionsResolverTestCase(BasePermissionsResolverTestCase
             permission_types=all_permission_types))
 
         # Custom role - "rule_modify" grant on rule_1
-        # XXX: This test is failing because I think there is a bug in
-        # get_all_permission_grants_for_user.
-        # user_db = self.users['custom_role_rule_modify_grant']
-        # resource_db = self.resources['rule_enforcement_1']
+        user_db = self.users['custom_role_rule_modify_grant']
+        resource_db = self.resources['rule_enforcement_1']
 
-        # # "modify" also grants "view"
-        # self.assertTrue(resolver.user_has_resource_db_permission(
-        #     user_db=user_db,
-        #     resource_db=resource_db,
-        #     permission_type=PermissionType.RULE_ENFORCEMENT_VIEW))
+        # "modify" also grants "view"
+        self.assertTrue(resolver.user_has_resource_db_permission(
+            user_db=user_db,
+            resource_db=resource_db,
+            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW))

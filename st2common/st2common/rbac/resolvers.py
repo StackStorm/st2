@@ -471,11 +471,6 @@ class RuleEnforcementPermissionsResolver(PermissionsResolver):
     """
     resource_type = ResourceType.RULE_ENFORCEMENT
 
-    view_grant_permission_types = [
-        PermissionType.RULE_ENFORCEMENT_LIST,
-        PermissionType.RULE_ENFORCEMENT_VIEW,
-    ]
-
     def user_has_permission(self, user_db, permission_type):
         assert permission_type in [PermissionType.RULE_ENFORCEMENT_LIST]
         permission_type = PermissionType.RULE_LIST
@@ -513,6 +508,7 @@ class RuleEnforcementPermissionsResolver(PermissionsResolver):
         pack_db = PackDB(ref=rule_pack)
         rule_pack_uid = pack_db.get_uid()
 
+        rule_permission_type = None
         if permission_type == PermissionType.RULE_ENFORCEMENT_VIEW:
             rule_permission_type = PermissionType.RULE_VIEW
         elif permission_type == PermissionType.RULE_ENFORCEMENT_LIST:
@@ -520,9 +516,17 @@ class RuleEnforcementPermissionsResolver(PermissionsResolver):
         else:
             raise ValueError('Invalid permission type: %s' % (permission_type))
 
+        permission_types = [PermissionType.RULE_ALL, rule_permission_type]
+
+        view_permission_type = PermissionType.get_permission_type(resource_type=ResourceType.RULE,
+                                                                  permission_name='view')
+
+        if rule_permission_type == view_permission_type:
+            permission_types = (RulePermissionsResolver.view_grant_permission_types[:] +
+                                [rule_permission_type])
+
         # Check grants on the pack of the rule to which enforcement belongs to
         resource_types = [ResourceType.PACK]
-        permission_types = [PermissionType.RULE_ALL, rule_permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=rule_pack_uid,
                                                                resource_types=resource_types,
@@ -534,7 +538,6 @@ class RuleEnforcementPermissionsResolver(PermissionsResolver):
 
         # Check grants on the rule the enforcement belongs to
         resource_types = [ResourceType.RULE]
-        permission_types = [PermissionType.RULE_ALL, rule_permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=rule_uid,
                                                                resource_types=resource_types,
