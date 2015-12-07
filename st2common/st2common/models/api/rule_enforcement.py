@@ -53,11 +53,6 @@ class RuleEnforcementAPI(BaseAPI):
                 'type': 'string',
                 'required': True
             },
-            'rule_pack': {
-                'description': 'Pack of the corresponding rule.',
-                'type': 'string',
-                'required': True
-            },
             'enforced_at': {
                 'description': 'Timestamp when rule enforcement happened.',
                 'type': 'string',

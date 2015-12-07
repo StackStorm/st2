@@ -34,6 +34,12 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
         default=date_utils.get_datetime_utc_now,
         help_text='The timestamp when the rule enforcement happened.')
 
+    meta = {
+        'indexes': [
+            {'fields': ['rule_ref']},
+        ]
+    }
+
     # XXX: Note the following method is exposed so loggers in rbac resolvers can log objects
     # with a consistent get_uid interface.
     def get_uid(self):
