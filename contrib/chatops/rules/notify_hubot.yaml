@@ -14,4 +14,4 @@ action:
   parameters:
     channel: "{{trigger.data.source_channel}}"
     user: "{{trigger.data.user}}"
-    result: "{{trigger}}"
+    execution_id: "{{trigger.execution_id}}"
