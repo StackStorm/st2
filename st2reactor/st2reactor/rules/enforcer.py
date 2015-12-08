@@ -114,8 +114,11 @@ class RuleEnforcer(object):
         # This would signify some sort of coding error so assert.
         assert trace_db
 
-        trace_db = trace_service.add_or_update_given_trace_db(trace_db=trace_db,
-                                                              rules=[str(self.rule.id)])
+        trace_db = trace_service.add_or_update_given_trace_db(
+            trace_db=trace_db,
+            rules=[
+                trace_service.get_trace_component_for_rule(self.rule, self.trigger_instance)
+            ])
         return vars(TraceContext(id_=str(trace_db.id), trace_tag=trace_db.trace_tag))
 
     def _update_enforcement(self, enforcement_db):

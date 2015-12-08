@@ -253,9 +253,9 @@ class TestTraceService(DbTestCase):
         # Now add more TraceComponents and validated that they are added properly.
         saved = trace_service.add_or_update_given_trace_db(
             retrieved_trace_db,
-            action_executions=[bson.ObjectId(), bson.ObjectId()],
-            rules=[bson.ObjectId()],
-            trigger_instances=[bson.ObjectId(), bson.ObjectId(), bson.ObjectId()])
+            action_executions=[str(bson.ObjectId()), str(bson.ObjectId())],
+            rules=[str(bson.ObjectId())],
+            trigger_instances=[str(bson.ObjectId()), str(bson.ObjectId()), str(bson.ObjectId())])
         retrieved_trace_db = Trace.get_by_id(saved.id)
         self.assertEqual(len(retrieved_trace_db.action_executions), 3,
                          'Expected updated action_executions.')
@@ -298,6 +298,51 @@ class TestTraceService(DbTestCase):
                          'Expected updated trigger_instances.')
         self.assertEqual(retrieved_trace_db.trigger_instances[0].object_id, trigger_instance_id,
                          'Expected updated trigger_instances.')
+
+        Trace.delete(retrieved_trace_db)
+
+    def test_add_or_update_given_trace_context_new_with_causals(self):
+        trace_context = {'trace_tag': 'causal_test_trace'}
+        action_execution_id = 'action_execution_1'
+        rule_id = 'rule_1'
+        trigger_instance_id = 'trigger_instance_1'
+
+        pre_add_or_update_traces = len(Trace.get_all())
+        trace_db = trace_service.add_or_update_given_trace_context(
+            trace_context,
+            action_executions=[{'id': action_execution_id,
+                                'caused_by': {'id': '%s:%s' % (rule_id, trigger_instance_id),
+                                              'type': 'rule'}}],
+            rules=[{'id': rule_id,
+                    'caused_by': {'id': trigger_instance_id, 'type': 'trigger-instance'}}],
+            trigger_instances=[trigger_instance_id])
+        post_add_or_update_traces = len(Trace.get_all())
+
+        self.assertTrue(post_add_or_update_traces > pre_add_or_update_traces,
+                        'Expected new Trace to be created.')
+
+        retrieved_trace_db = Trace.get_by_id(trace_db.id)
+        self.assertEqual(len(retrieved_trace_db.action_executions), 1,
+                         'Expected updated action_executions.')
+        self.assertEqual(retrieved_trace_db.action_executions[0].object_id, action_execution_id,
+                         'Expected updated action_executions.')
+        self.assertEqual(retrieved_trace_db.action_executions[0].caused_by,
+                         {'id': '%s:%s' % (rule_id, trigger_instance_id),
+                          'type': 'rule'},
+                         'Expected updated action_executions.')
+
+        self.assertEqual(len(retrieved_trace_db.rules), 1, 'Expected updated rules.')
+        self.assertEqual(retrieved_trace_db.rules[0].object_id, rule_id, 'Expected updated rules.')
+        self.assertEqual(retrieved_trace_db.rules[0].caused_by,
+                         {'id': trigger_instance_id, 'type': 'trigger-instance'},
+                         'Expected updated rules.')
+
+        self.assertEqual(len(retrieved_trace_db.trigger_instances), 1,
+                         'Expected updated trigger_instances.')
+        self.assertEqual(retrieved_trace_db.trigger_instances[0].object_id, trigger_instance_id,
+                         'Expected updated trigger_instances.')
+        self.assertEqual(retrieved_trace_db.trigger_instances[0].caused_by, {},
+                         'Expected updated rules.')
 
         Trace.delete(retrieved_trace_db)
 
