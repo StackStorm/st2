@@ -59,7 +59,7 @@ class RuleEnforcementAPI(BaseAPI):
                 'type': 'string',
                 'required': True
             },
-            'rule': RuleReferenceSpec,
+            'rule': RuleReferenceSpec.schema,
             'enforced_at': {
                 'description': 'Timestamp when rule enforcement happened.',
                 'type': 'string',
