@@ -179,7 +179,12 @@ def request_cancellation(liveaction, requester):
         'user': requester
     }
 
-    update_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELING, result=result)
+    # There is real work only when liveaction is still running.
+    status = (action_constants.LIVEACTION_STATUS_CANCELING
+              if liveaction.status == action_constants.LIVEACTION_STATUS_RUNNING
+              else action_constants.LIVEACTION_STATUS_CANCELED)
+
+    update_status(liveaction, status, result=result)
 
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
