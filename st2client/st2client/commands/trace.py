@@ -260,16 +260,27 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
             # once found look up the caused_by to keep movig up
             # the chain.
             search_target_found = False
+            # init to default value
+            component_caused_by_id = None
             for component in components_list:
                 test_id = component['object_id']
                 if test_id == component_id:
-                    to_update_list.append(component)
                     caused_by = component.get('caused_by', {})
                     component_id = caused_by.get('id', None)
                     component_type = caused_by.get('type', None)
-                    # Why? Coz I am evil.
-                    if component_type == 'rule' and ':' in component_id:
-                        component_id = component_id.split(':')[0]
+                    # If provided the component_caused_by_id must match as well. This is mostly
+                    # applicable for rules since the same rule may appear multiple times and can
+                    # only be distinguished by causing TriggerInstance.
+                    if component_caused_by_id and component_caused_by_id != component_id:
+                        continue
+                    component_caused_by_id = None
+                    to_update_list.append(component)
+                    # In some cases the component_id and the causing component are combined to
+                    # provide the complete causation chain. Think rule + triggerinstance
+                    if ':' in component_id:
+                        component_id_split = component_id.split(':')
+                        component_id = component_id_split[0]
+                        component_caused_by_id = component_id_split[1]
                     search_target_found = True
                     break
 
