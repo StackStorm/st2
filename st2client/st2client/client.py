@@ -109,6 +109,8 @@ class Client(object):
             models.Webhook, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Trace'] = ResourceManager(
             models.Trace, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['RuleEnforcement'] = ResourceManager(
+            models.RuleEnforcement, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
 
     @property
     def actions(self):
@@ -161,3 +163,7 @@ class Client(object):
     @property
     def trace(self):
         return self.managers['Trace']
+
+    @property
+    def ruleenforcements(self):
+        return self.managers['RuleEnforcement']

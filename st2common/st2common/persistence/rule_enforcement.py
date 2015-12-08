@@ -13,31 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.util.enum import Enum
-
-__all__ = [
-    'ResourceType'
-]
+from st2common.models.db.rule_enforcement import rule_enforcement_access
+from st2common.persistence.base import Access
 
 
-class ResourceType(Enum):
-    """
-    Enum representing a valid resource type in a system.
-    """
+class RuleEnforcement(Access):
+    impl = rule_enforcement_access
 
-    PACK = 'pack'
-    ACTION = 'action'
-    ACTION_ALIAS = 'action_alias'
-    SENSOR_TYPE = 'sensor_type'
-    TRIGGER_TYPE = 'trigger_type'
-    TRIGGER = 'trigger'
-    TRIGGER_INSTANCE = 'trigger_instance'
-    RULE = 'rule'
-    RULE_ENFORCEMENT = 'rule_enforcement'
-
-    EXECUTION = 'execution'
-    KEY_VALUE_PAIR = 'key_value_pair'
-
-    WEBHOOK = 'webhook'
-    API_KEY = 'api_key'
-    UNKNOWN = 'unknown'
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl

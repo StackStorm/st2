@@ -54,6 +54,8 @@ in development
 * Support for formatting of alias acknowledgement and result messages in AliasExecution. (new feature)
 * Support for "representation+value" format strings in aliases. (new feature)
 * Support for disabled result and acknowledgement messages in aliases. (new feature)
+* Add ability to write rule enforcement (models that represent a rule evaluation that resulted
+  in an action execution) to db to help debugging rules easier. Also, CLI bindings to list and view these models are added. (new-feature)
 
 1.1.1 - November 13, 2015
 -------------------------

@@ -35,6 +35,7 @@ from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.content.utils import get_packs_base_paths
 import st2common.models.db.rule as rule_model
+import st2common.models.db.rule_enforcement as rule_enforcement_model
 import st2common.models.db.sensor as sensor_model
 import st2common.models.db.trigger as trigger_model
 import st2common.models.db.action as action_model
@@ -77,6 +78,7 @@ ALL_MODELS.extend(executionstate_model.MODELS)
 ALL_MODELS.extend(liveaction_model.MODELS)
 ALL_MODELS.extend(actionalias_model.MODELS)
 ALL_MODELS.extend(policy_model.MODELS)
+ALL_MODELS.extend(rule_enforcement_model.MODELS)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_CONFIG_PATH = os.path.join(BASE_DIR, '../conf/st2.conf')

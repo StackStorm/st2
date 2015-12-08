@@ -39,6 +39,7 @@ TEST_FIXTURES = {
     'triggertypes': ['triggertype1.yaml'],
     'executions': ['execution1.yaml'],
     'liveactions': ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml'],
+    'enforcements': ['enforcement1.yaml']
 }
 
 MOCK_ACTION_1 = {
@@ -117,6 +118,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         #  alias_model = self.models['aliases']['alias1.yaml']
         sensor_model = self.models['sensors']['sensor1.yaml']
         rule_model = self.models['rules']['rule1.yaml']
+        enforcement_model = self.models['enforcements']['enforcement1.yaml']
         execution_model = self.models['executions']['execution1.yaml']
 
         supported_endpoints = [
@@ -220,6 +222,15 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             {
                 'path': '/v1/rules/%s' % (rule_model.ref),
                 'method': 'DELETE'
+            },
+            # Rule enforcements
+            {
+                'path': '/v1/ruleenforcements',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/ruleenforcements/%s' % (enforcement_model.id),
+                'method': 'GET'
             },
             # Action Executions
             {
