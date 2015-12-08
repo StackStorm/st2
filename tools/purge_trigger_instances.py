@@ -26,6 +26,7 @@ from datetime import datetime
 import pytz
 import sys
 
+from mongoengine.errors import InvalidQueryError
 from oslo_config import cfg
 
 from st2common import config
@@ -58,36 +59,28 @@ def _register_cli_opts():
     _do_register_cli_opts(cli_opts)
 
 
-def _purge_model(instance):
-    try:
-        TriggerInstance.delete(instance)
-    except:
-        LOG.exception('Exception deleting instance %s.', instance)
-    else:
-        global DELETED_COUNT
-        DELETED_COUNT += 1
-
-
 def purge_trigger_instances(timestamp=None):
     if not timestamp:
         LOG.error('Specify a valid timestamp to purge.')
-        return
+        return 2
 
     LOG.info('Purging trigger instances older than timestamp: %s' %
              timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'))
 
     # XXX: Think about paginating this call.
-    filters = {'occurrence_time__lt': isotime.parse(timestamp)}
-    instances = TriggerInstance.query(**filters)
-
-    LOG.info('#### Total number of trigger instances to delete: %d' % len(instances))
-
-    # Purge execution and liveaction models now
-    for instance in instances:
-        _purge_model(instance)
+    query_filters = {'occurrence_time__lt': isotime.parse(timestamp)}
+    try:
+        TriggerInstance.delete_by_query(**query_filters)
+    except InvalidQueryError:
+        LOG.exception('Bad query (%s) used to delete trigger instances. ' +
+                      'Please contact support.', query_filters)
+        return 3
+    except:
+        LOG.exception('Deleting instances using query_filters %s failed.', query_filters)
+        return 4
 
     # Print stats
-    LOG.info('#### Total trigger instances deleted: %d' % DELETED_COUNT)
+    LOG.info('#### Trigger instances deleted.')
 
 
 def main():
@@ -105,9 +98,10 @@ def main():
         timestamp = timestamp.replace(tzinfo=pytz.UTC)
 
     # Purge models.
-    purge_trigger_instances(timestamp=timestamp)
-
-    common_teardown()
+    try:
+        return purge_trigger_instances(timestamp=timestamp)
+    finally:
+        common_teardown()
 
 if __name__ == '__main__':
     sys.exit(main())

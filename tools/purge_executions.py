@@ -22,10 +22,12 @@ timestamp.
 *** RISK RISK RISK. You will lose data. Run at your own risk. ***
 """
 
+import copy
 from datetime import datetime
 import pytz
 import sys
 
+from mongoengine.errors import InvalidQueryError
 from oslo_config import cfg
 
 from st2common import config
@@ -38,7 +40,6 @@ from st2common.persistence.execution import ActionExecution
 from st2common.util import isotime
 
 LOG = logging.getLogger(__name__)
-DELETED_COUNT = 0
 
 DONE_STATES = [action_constants.LIVEACTION_STATUS_SUCCEEDED,
                action_constants.LIVEACTION_STATUS_FAILED,
@@ -71,45 +72,15 @@ def _register_cli_opts():
     _do_register_cli_opts(cli_opts)
 
 
-def _purge_models(execution_db):
-    liveaction_id = execution_db.liveaction.get('id', None)
-
-    if not liveaction_id:
-        LOG.error('Invalid LiveAction id. Skipping delete: %s', execution_db)
-
-    liveaction_db = None
-    try:
-        liveaction_db = LiveAction.get_by_id(liveaction_id)
-    except:
-        LOG.exception('LiveAction with id: %s not found. Skipping delete.', liveaction_id)
-    else:
-        global DELETED_COUNT
-        DELETED_COUNT += 1
-
-    try:
-        ActionExecution.delete(execution_db)
-    except:
-        LOG.exception('Exception deleting Execution model: %s',
-                      execution_db)
-    else:
-        if liveaction_db:
-            try:
-                LiveAction.delete(liveaction_db)
-            except:
-                LOG.exception('Zombie LiveAction left in db: %s.', liveaction_db)
-
-
 def purge_executions(timestamp=None, action_ref=None, purge_incomplete=False):
     if not timestamp:
         LOG.error('Specify a valid timestamp to purge.')
-        return
+        return 1
 
     LOG.info('Purging executions older than timestamp: %s' %
              timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'))
 
     filters = {}
-    if action_ref:
-        filters['action__ref'] = action_ref
 
     if purge_incomplete:
         filters['start_timestamp__lt'] = isotime.parse(timestamp)
@@ -118,16 +89,43 @@ def purge_executions(timestamp=None, action_ref=None, purge_incomplete=False):
         filters['start_timestamp__lt'] = isotime.parse(timestamp)
         filters['status'] = {"$in": DONE_STATES}
 
-    # XXX: Think about paginating this call.
-    executions = ActionExecution.query(**filters)
-    LOG.info('#### Total number of executions to delete: %d' % len(executions))
+    exec_filters = copy.copy(filters)
+    if action_ref:
+        exec_filters['action__ref'] = action_ref
 
-    # Purge execution and liveaction models now
-    for execution_db in executions:
-        _purge_models(execution_db)
+    liveaction_filters = copy.copy(filters)
+    if action_ref:
+        liveaction_filters['action'] = action_ref
 
-    # Print stats
-    LOG.info('#### Total execution models deleted: %d' % DELETED_COUNT)
+    try:
+        ActionExecution.delete_by_query(**exec_filters)
+    except InvalidQueryError:
+        LOG.exception('Bad query (%s) used to delete execution instances. ' +
+                      'Please contact support.', exec_filters)
+        return 2
+    except:
+        LOG.exception('Deletion of execution models failed for query with filters: %s.',
+                      exec_filters)
+
+    try:
+        LiveAction.delete_by_query(**liveaction_filters)
+    except InvalidQueryError:
+        LOG.exception('Bad query (%s) used to delete liveaction instances. ' +
+                      'Please contact support.', liveaction_filters)
+        return 3
+    except:
+        LOG.exception('Deletion of liveaction models failed for query with filters: %s.',
+                      liveaction_filters)
+
+    zombie_execution_instances = len(ActionExecution.query(**exec_filters))
+    zombie_liveaction_instances = len(LiveAction.query(**liveaction_filters))
+
+    if (zombie_execution_instances > 0) or (zombie_liveaction_instances > 0):
+        LOG.error('Zombie execution instances left: %d.', zombie_execution_instances)
+        LOG.error('Zombie liveaction instances left: %s.', zombie_liveaction_instances)
+    else:
+        # Print stats
+        LOG.info('#### All execution models less than timestamp %s were deleted.', timestamp)
 
 
 def main():
@@ -147,9 +145,12 @@ def main():
         timestamp = timestamp.replace(tzinfo=pytz.UTC)
 
     # Purge models.
-    purge_executions(timestamp=timestamp, action_ref=action_ref, purge_incomplete=purge_incomplete)
+    try:
+        return purge_executions(timestamp=timestamp, action_ref=action_ref,
+                                purge_incomplete=purge_incomplete)
+    finally:
+        common_teardown()
 
-    common_teardown()
 
 if __name__ == '__main__':
     sys.exit(main())

@@ -84,3 +84,7 @@ class TriggerInstance(Access):
     @classmethod
     def _get_impl(cls):
         return cls.impl
+
+    @classmethod
+    def delete_by_query(cls, **query):
+        return cls._get_impl().delete_by_query(**query)
