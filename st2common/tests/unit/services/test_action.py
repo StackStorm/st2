@@ -158,3 +158,13 @@ class TestActionExecutionService(DbTestCase):
 
         # Request cancellation.
         self.assertRaises(Exception, action_service.request_cancellation, execution)
+
+    def test_request_cancellation_on_idle_execution(self):
+        request, execution = self._submit_request()
+        self.assertIsNotNone(execution)
+        self.assertEqual(execution.id, request.id)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
+
+        # Request cancellation.
+        execution = self._submit_cancellation(execution)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_CANCELED)

@@ -48,10 +48,6 @@ MOCK_RESULT = {
 @mock.patch.object(LocalShellRunner, 'run',
                    mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_RUNNING,
                                                 'Non-empty', None)))
-@mock.patch.object(CUDPublisher, 'publish_create',
-                   mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
-@mock.patch.object(LiveActionPublisher, 'publish_state',
-                   mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class ExecutionCancellationTest(DbTestCase):
 
     @classmethod
@@ -64,6 +60,10 @@ class ExecutionCancellationTest(DbTestCase):
     def tearDown(self):
         super(ExecutionCancellationTest, self).tearDown()
 
+    @mock.patch.object(CUDPublisher, 'publish_create',
+                       mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
+    @mock.patch.object(LiveActionPublisher, 'publish_state',
+                       mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
     def test_basic_cancel(self):
         liveaction = LiveActionDB(action='executions.local', parameters={'cmd': 'uname -a'})
         liveaction, _ = action_service.request(liveaction)
@@ -76,6 +76,10 @@ class ExecutionCancellationTest(DbTestCase):
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
         self.assertDictEqual(liveaction.result, MOCK_RESULT)
 
+    @mock.patch.object(CUDPublisher, 'publish_create',
+                       mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
+    @mock.patch.object(LiveActionPublisher, 'publish_state',
+                       mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
     @mock.patch.object(ActionRunner, 'cancel',
                        mock.MagicMock(side_effect=Exception('Mock cancellation failure.')))
     def test_failed_cancel(self):
@@ -91,3 +95,21 @@ class ExecutionCancellationTest(DbTestCase):
         ActionRunner.cancel.assert_called_once_with()
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)
+
+    @mock.patch.object(CUDPublisher, 'publish_create', mock.MagicMock(return_value=None))
+    @mock.patch.object(LiveActionPublisher, 'publish_state', mock.MagicMock(return_value=None))
+    @mock.patch.object(ActionRunner, 'cancel', mock.MagicMock(return_value=None))
+    def test_noop_cancel(self):
+        liveaction = LiveActionDB(action='executions.local', parameters={'cmd': 'uname -a'})
+        liveaction, _ = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_REQUESTED)
+
+        # Cancel execution.
+        action_service.request_cancellation(liveaction, cfg.CONF.system_user.user)
+
+        # Cancel is only called when liveaction is still in running state.
+        # Otherwise, the cancellation is only a state change.
+        self.assertFalse(ActionRunner.cancel.called)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
