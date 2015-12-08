@@ -1,6 +1,7 @@
 # Packages versions fixed for the whole st2 stack
 eventlet>=0.13.0
 oslo.config>=1.12.1,<1.13
+oslo.utils<3.1.0
 six==1.9.0
 pyyaml>=3.11,<4.0
 requests[security]>=2.7.0,<3.0

@@ -516,7 +516,8 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
                 "type": "object",
                 "properties": {
                     "enabled": {"type": "boolean"},
-                    "format": {"type": "string"}
+                    "format": {"type": "string"},
+                    "append_url": {"type": "boolean"}
                 },
                 "description": "Acknowledgement message format."
             },

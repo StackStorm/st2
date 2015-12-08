@@ -104,11 +104,11 @@ See :doc:`/reference/packs` for details on how to pack your integrations and aut
 .. rubric:: What's Next?
 
 * Explore existing packs from `StackStorm community <http:://www.stackstorm.com/community/>`__:
-
     - `st2contrib`_ - ready-to-use integration packs to many common products and tools.
     - `st2incubator`_ - upcoming integration packs and productivity tools.
 * Learn how to write a pack and contribute to community  - :doc:`/reference/packs`
 * Learn how to write :ref:`custom sensors <ref-sensors-authoring-a-sensor>` and :ref:`custom actions <ref-actions-writing-custom>`
 * Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - a growing set of practical examples of automating with StackStorm.
+* For information on pack testing, please see :doc:`Pack Testing </development/pack_testing>` page.
 
 .. include:: /engage.rst

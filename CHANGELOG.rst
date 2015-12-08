@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+1.2.0 - December 07, 2015
+-------------------------
+
 * Refactor retries in the Mistral action runner to use exponential backoff. Configuration options
   for Mistral have changed. (improvement)
 * Add SSH bastion host support to the paramiko SSH runner. Utilizes same connection parameters as
@@ -40,6 +44,18 @@ in development
 * Add tools for purging executions (also, liveactions with it) and trigger instances older than
   certain UTC timestamp from the db in bulk.
 * Fix json representation of trace in cli. (bug fix)
+* Introducing `noop` runner and `core.noop` action. Returns consistent success in a WF regardless of
+  user input. (new feature)
+* Add missing indexes on trigger_instance_d_b collection. (bug fix)
+* Add mock classes (``st2tests.mocks.*``) for easier unit testing of the packs. (new feature)
+* Add a script (``./st2common/bin/st2-run-pack-tests``) for running pack tests. (new feature)
+* Modify ActionAliasFormatParser to work with regular expressions and support more flexible parameter matching. (improvement)
+* Move ChatOps pack to st2 core.
+* Support for formatting of alias acknowledgement and result messages in AliasExecution. (new feature)
+* Support for "representation+value" format strings in aliases. (new feature)
+* Support for disabled result and acknowledgement messages in aliases. (new feature)
+* Add ability to write rule enforcement (models that represent a rule evaluation that resulted
+  in an action execution) to db to help debugging rules easier. Also, CLI bindings to list and view these models are added. (new-feature)
 
 1.1.1 - November 13, 2015
 -------------------------

@@ -109,7 +109,7 @@ class ActionAliasExecutionController(rest.RestController):
     def _extract_parameters(self, action_alias_db, format_str, param_stream):
         formats = []
         for formatstring in action_alias_db.formats:
-            if 'representation' in formatstring:
+            if isinstance(formatstring, dict) and formatstring.get('representation'):
                 formats.extend(formatstring['representation'])
             else:
                 formats.append(formatstring)
