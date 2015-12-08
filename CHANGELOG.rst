@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+* Ability to view causation chains in Trace. This helps reduce the noise when using Trace to
+  identify specific issues. (new-feature)
+* Filter Trace components by model types to only view ActionExecutions, Rules or TriggerInstances.
+  (new-feature)
+
 
 1.2.0 - December 07, 2015
 -------------------------
