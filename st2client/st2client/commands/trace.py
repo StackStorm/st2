@@ -210,7 +210,9 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
         except resource.ResourceNotFoundError:
             self.print_not_found(args.id)
             raise OperationFailureException('Trace %s not found.' % (args.id))
+        # First filter for causation chains
         trace = self._filter_trace_components(trace=trace, args=args)
+        # next filter for display purposes
         trace = self._apply_display_filters(trace=trace, args=args)
         return self.print_trace_details(trace=trace, args=args)
 
@@ -277,7 +279,7 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
                     to_update_list.append(component)
                     # In some cases the component_id and the causing component are combined to
                     # provide the complete causation chain. Think rule + triggerinstance
-                    if ':' in component_id:
+                    if component_id and ':' in component_id:
                         component_id_split = component_id.split(':')
                         component_id = component_id_split[0]
                         component_caused_by_id = component_id_split[1]
@@ -299,7 +301,7 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
             return trace
 
         if not args.show_executions:
-            trace.executions = []
+            trace.action_executions = []
 
         if not args.show_rules:
             trace.rules = []
