@@ -178,13 +178,24 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
     def __init__(self, resource, *args, **kwargs):
         super(TraceGetCommand, self).__init__(resource, *args, **kwargs)
 
-        self.group = self.parser.add_mutually_exclusive_group()
-
         # Causation chains
-        self.group.add_argument('-e', '--execution', help='Execution to show causation chain.')
-        self.group.add_argument('-r', '--rule', help='Rule to show causation chain.')
-        self.group.add_argument('-g', '--trigger-instance',
-                                help='TriggerInstance to show causation chain.')
+        self.causation_group = self.parser.add_mutually_exclusive_group()
+
+        self.causation_group.add_argument('-e', '--execution',
+                                          help='Execution to show causation chain.')
+        self.causation_group.add_argument('-r', '--rule', help='Rule to show causation chain.')
+        self.causation_group.add_argument('-g', '--trigger-instance',
+                                          help='TriggerInstance to show causation chain.')
+
+        # display filter group
+        self.display_filter_group = self.parser.add_argument_group()
+
+        self.display_filter_group.add_argument('--show-executions', action='store_true',
+                                              help='Only show executions.')
+        self.display_filter_group.add_argument('--show-rules', action='store_true',
+                                              help='Only show rules.')
+        self.display_filter_group.add_argument('--show-trigger-instances', action='store_true',
+                                              help='Only show trigger instances.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -200,6 +211,7 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
             self.print_not_found(args.id)
             raise OperationFailureException('Trace %s not found.' % (args.id))
         trace = self._filter_trace_components(trace=trace, args=args)
+        trace = self._apply_display_filters(trace=trace, args=args)
         return self.print_trace_details(trace=trace, args=args)
 
     def _filter_trace_components(self, trace, args):
@@ -264,4 +276,24 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
         trace.action_executions = action_executions
         trace.rules = rules
         trace.trigger_instances = trigger_instances
+        return trace
+
+    def _apply_display_filters(self, trace, args):
+        """
+        This function looks at the disaply filters to determine which components
+        should be displayed.
+        """
+        # If all the filters are false nothing is to be filtered.
+        if not(args.show_executions or args.show_rules or args.show_trigger_instances):
+            return trace
+
+        if not args.show_executions:
+            trace.executions = []
+
+        if not args.show_rules:
+            trace.rules = []
+
+        if not args.show_trigger_instances:
+            trace.trigger_instances = []
+
         return trace
