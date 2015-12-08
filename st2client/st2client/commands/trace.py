@@ -216,7 +216,8 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
         trace = self._apply_display_filters(trace=trace, args=args)
         return self.print_trace_details(trace=trace, args=args)
 
-    def _filter_trace_components(self, trace, args):
+    @staticmethod
+    def _filter_trace_components(trace, args):
         """
         This function walks up the component causal chain. It only returns
         properties in the causal chain and nothing else.
@@ -291,7 +292,8 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
         trace.trigger_instances = trigger_instances
         return trace
 
-    def _apply_display_filters(self, trace, args):
+    @staticmethod
+    def _apply_display_filters(trace, args):
         """
         This function looks at the disaply filters to determine which components
         should be displayed.
