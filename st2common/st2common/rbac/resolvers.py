@@ -24,6 +24,7 @@ import logging as stdlib_logging
 from st2common import log as logging
 from st2common.models.db.pack import PackDB
 from st2common.models.db.webhook import WebhookDB
+from st2common.models.system.common import ResourceReference
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPE
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
@@ -494,9 +495,10 @@ class RuleEnforcementPermissionsResolver(PermissionsResolver):
             return True
 
         # Check custom roles
-        rule_uid = getattr(resource_db, 'rule_uid', None)
-        rule_id = getattr(resource_db, 'rule_id', None)
-        rule_pack = getattr(resource_db, 'rule_pack', None)
+        rule_spec = getattr(resource_db, 'rule', None)
+        rule_uid = rule_spec.uid
+        rule_id = rule_spec.id
+        rule_pack = ResourceReference.get_pack(rule_spec.ref)
 
         if not rule_uid or not rule_id or not rule_pack:
             LOG.error('Rule UID or ID or PACK not present in enforcement object. ' +

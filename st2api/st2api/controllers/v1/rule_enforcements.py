@@ -32,8 +32,8 @@ LOG = logging.getLogger(__name__)
 
 
 SUPPORTED_FILTERS = {
-    'rule_ref': 'rule_ref',
-    'rule_id': 'rule_id',
+    'rule_ref': 'rule.ref',
+    'rule_id': 'rule.id',
     'execution': 'execution_id',
     'trigger_instance': 'trigger_instance_id',
     'enforced_at': 'enforced_at',
@@ -49,7 +49,7 @@ class RuleEnforcementController(resource.ResourceController):
 
     # ResourceController attributes
     query_options = {
-        'sort': ['-enforced_at', 'rule_ref']
+        'sort': ['-enforced_at', 'rule.ref']
     }
 
     supported_filters = SUPPORTED_FILTERS

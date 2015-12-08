@@ -75,11 +75,9 @@ class RuleEnforcer(object):
         }
 
         extra = {'trigger_instance_db': self.trigger_instance, 'rule_db': self.rule}
+        rule_spec = {'ref': self.rule.ref, 'id': str(self.rule.id), 'uid': self.rule.uid}
         enforcement_db = RuleEnforcementDB(trigger_instance_id=str(self.trigger_instance.id),
-                                           rule_ref=self.rule.ref,
-                                           rule_uid=self.rule.uid,
-                                           rule_id=str(self.rule.id),
-                                           rule_pack=self.rule.pack)
+                                           rule=rule_spec)
         try:
             execution_db = RuleEnforcer._invoke_action(self.rule.action, data, context)
             enforcement_db.execution_id = str(execution_db.id)

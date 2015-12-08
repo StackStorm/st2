@@ -46,9 +46,9 @@ class RuleEnforcementGetCommand(resource.ResourceGetCommand):
 
 
 class RuleEnforcementListCommand(resource.ResourceCommand):
-    display_attributes = ['id', 'rule_ref', 'trigger_instance_id',
+    display_attributes = ['id', 'rule.ref', 'trigger_instance_id',
                           'execution_id', 'enforced_at']
-    attribute_display_order = ['id', 'rule_ref', 'trigger_instance_id',
+    attribute_display_order = ['id', 'rule.ref', 'trigger_instance_id',
                                'execution_id', 'enforced_at']
 
     attribute_transform_functions = {

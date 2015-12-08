@@ -93,10 +93,9 @@ class RuleEnforcementPermissionsResolverTestCase(BasePermissionsResolverTestCase
 
         rule_enforcement_1_db = RuleEnforcementDB(trigger_instance_id=str(bson.ObjectId()),
                                                   execution_id=str(bson.ObjectId()),
-                                                  rule_ref=rule_1_db.ref,
-                                                  rule_uid=rule_1_db.uid,
-                                                  rule_id=str(rule_1_db.id),
-                                                  rule_pack=rule_1_db.pack)
+                                                  rule={'ref': rule_1_db.ref,
+                                                        'uid': rule_1_db.uid,
+                                                        'id': str(rule_1_db.id)})
         rule_enforcement_1_db = RuleEnforcement.add_or_update(rule_enforcement_1_db)
         self.resources['rule_enforcement_1'] = rule_enforcement_1_db
 
@@ -106,10 +105,9 @@ class RuleEnforcementPermissionsResolverTestCase(BasePermissionsResolverTestCase
 
         rule_enforcement_2_db = RuleEnforcementDB(trigger_instance_id=str(bson.ObjectId()),
                                                   execution_id=str(bson.ObjectId()),
-                                                  rule_ref=rule_2_db.ref,
-                                                  rule_uid=rule_2_db.uid,
-                                                  rule_id=str(rule_2_db.id),
-                                                  rule_pack=rule_2_db.pack)
+                                                  rule={'ref': rule_2_db.ref,
+                                                        'uid': rule_2_db.uid,
+                                                        'id': str(rule_2_db.id)})
         rule_enforcement_2_db = RuleEnforcement.add_or_update(rule_enforcement_2_db)
         self.resources['rule_enforcement_2'] = rule_enforcement_2_db
 
@@ -119,10 +117,9 @@ class RuleEnforcementPermissionsResolverTestCase(BasePermissionsResolverTestCase
 
         rule_enforcement_3_db = RuleEnforcementDB(trigger_instance_id=str(bson.ObjectId()),
                                                   execution_id=str(bson.ObjectId()),
-                                                  rule_ref=rule_3_db.ref,
-                                                  rule_uid=rule_3_db.uid,
-                                                  rule_id=str(rule_3_db.id),
-                                                  rule_pack=rule_3_db.pack)
+                                                  rule={'ref': rule_3_db.ref,
+                                                        'uid': rule_3_db.uid,
+                                                        'id': str(rule_3_db.id)})
         rule_enforcement_3_db = RuleEnforcement.add_or_update(rule_enforcement_3_db)
         self.resources['rule_enforcement_3'] = rule_enforcement_3_db
 

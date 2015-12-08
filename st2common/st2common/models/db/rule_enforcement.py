@@ -21,22 +21,39 @@ from st2common.models.db import stormbase
 from st2common.util import date as date_utils
 
 
+class RuleReferenceSpecDB(me.EmbeddedDocument):
+    ref = me.StringField(unique=False,
+                         help_text='Reference to rule.',
+                         required=True)
+    id = me.StringField(required=False,
+                        help_text='Rule ID.')
+    uid = me.StringField(required=True,
+                         help_text='Rule UID.')
+
+    def __str__(self):
+        result = []
+        result.append('RuleReferenceSpecDB@')
+        result.append(str(id(self)))
+        result.append('(ref="%s", ' % self.ref)
+        result.append('id="%s", ' % self.id)
+        result.append('uid="%s")' % self.uid)
+
+        return ''.join(result)
+
+
 class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
     UID_FIELDS = ['id']
 
     trigger_instance_id = me.StringField(required=True)
     execution_id = me.StringField(required=False)
-    rule_ref = me.StringField(required=True)
-    rule_id = me.StringField(required=False)
-    rule_uid = me.StringField(required=False)
-    rule_pack = me.StringField(required=False)
+    rule = me.EmbeddedDocumentField(RuleReferenceSpecDB, required=True)
     enforced_at = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
         help_text='The timestamp when the rule enforcement happened.')
 
     meta = {
         'indexes': [
-            {'fields': ['rule_ref']},
+            {'fields': ['rule.ref']},
         ]
     }
 

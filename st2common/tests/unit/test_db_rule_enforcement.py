@@ -30,16 +30,16 @@ class RuleEnforcementModelTest(DbTestCase):
     def test_ruleenforcment_crud(self):
         saved = RuleEnforcementModelTest._create_save_rule_enforcement()
         retrieved = RuleEnforcement.get_by_id(saved.id)
-        self.assertEqual(saved.rule_ref, retrieved.rule_ref,
+        self.assertEqual(saved.rule.ref, retrieved.rule.ref,
                          'Same rule enforcement was not returned.')
         self.assertTrue(retrieved.enforced_at is not None)
         # test update
         RULE_ID = str(bson.ObjectId())
-        self.assertEqual(retrieved.rule_id, None)
-        retrieved.rule_id = RULE_ID
+        self.assertEqual(retrieved.rule.id, None)
+        retrieved.rule.id = RULE_ID
         saved = RuleEnforcement.add_or_update(retrieved)
         retrieved = RuleEnforcement.get_by_id(saved.id)
-        self.assertEqual(retrieved.rule_id, RULE_ID,
+        self.assertEqual(retrieved.rule.id, RULE_ID,
                          'Update to rule enforcement failed.')
         # cleanup
         RuleEnforcementModelTest._delete([retrieved])
@@ -52,7 +52,8 @@ class RuleEnforcementModelTest(DbTestCase):
     @staticmethod
     def _create_save_rule_enforcement():
         created = RuleEnforcementDB(trigger_instance_id=str(bson.ObjectId()),
-                                    rule_ref='foo_pack.foo_rule', rule_pack='foo_pack',
+                                    rule={'ref': 'foo_pack.foo_rule',
+                                          'uid': 'rule:foo_pack:foo_rule'},
                                     execution_id=str(bson.ObjectId()))
         return RuleEnforcement.add_or_update(created)
 

@@ -16,8 +16,29 @@
 import six
 
 from st2common.models.api.base import BaseAPI
-from st2common.models.db.rule_enforcement import RuleEnforcementDB
+from st2common.models.db.rule_enforcement import RuleEnforcementDB, RuleReferenceSpecDB
 from st2common.util import isotime
+
+
+class RuleReferenceSpec(BaseAPI):
+    schema = {
+        'type': 'object',
+        'properties': {
+            'ref': {
+                'type': 'string',
+                'required': True,
+            },
+            'uid': {
+                'type': 'string',
+                'required': True,
+            },
+            'id': {
+                'type': 'string',
+                'required': False,
+            },
+        },
+        'additionalProperties': False
+    }
 
 
 class RuleEnforcementAPI(BaseAPI):
@@ -38,21 +59,7 @@ class RuleEnforcementAPI(BaseAPI):
                 'type': 'string',
                 'required': True
             },
-            'rule_ref': {
-                'description': 'Reference to the rule object.',
-                'type': 'string',
-                'required': True
-            },
-            'rule_id': {
-                'description': 'ID of the corresponding rule.',
-                'type': 'string',
-                'required': True
-            },
-            'rule_uid': {
-                'description': 'UID of the corresponding rule.',
-                'type': 'string',
-                'required': True
-            },
+            'rule': RuleReferenceSpec,
             'enforced_at': {
                 'description': 'Timestamp when rule enforcement happened.',
                 'type': 'string',
@@ -67,17 +74,16 @@ class RuleEnforcementAPI(BaseAPI):
         trigger_instance_id = getattr(rule_enforcement, 'trigger_instance_id', None)
         execution_id = getattr(rule_enforcement, 'execution_id', None)
         enforced_at = getattr(rule_enforcement, 'enforced_at', None)
-        rule_ref = getattr(rule_enforcement, 'rule_ref', None)
-        rule_id = getattr(rule_enforcement, 'rule_id', None)
-        rule_uid = getattr(rule_enforcement, 'rule_uid', None)
-        rule_pack = getattr(rule_enforcement, 'rule_pack', None)
+
+        rule_ref_model = dict(getattr(rule_enforcement, 'rule', {}))
+        rule = RuleReferenceSpecDB(ref=rule_ref_model['ref'], id=rule_ref_model['id'],
+                                   uid=rule_ref_model['uid'])
 
         if enforced_at:
             enforced_at = isotime.parse(enforced_at)
 
         return cls.model(trigger_instance_id=trigger_instance_id, execution_id=execution_id,
-                         enforced_at=enforced_at, rule_ref=rule_ref, rule_id=rule_id,
-                         rule_uid=rule_uid, rule_pack=rule_pack)
+                         enforced_at=enforced_at, rule=rule)
 
     @classmethod
     def from_model(cls, model, mask_secrets=False):
