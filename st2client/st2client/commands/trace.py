@@ -26,7 +26,7 @@ TRACE_ATTRIBUTE_DISPLAY_ORDER = ['id', 'trace_tag', 'action_executions', 'rules'
 
 TRACE_HEADER_DISPLAY_ORDER = ['id', 'trace_tag', 'start_timestamp']
 
-TRACE_COMPONENT_DISPLAY_LABELS = ['id', 'type', 'updated_at']
+TRACE_COMPONENT_DISPLAY_LABELS = ['id', 'type', 'ref', 'updated_at']
 
 TRACE_DISPLAY_ATTRIBUTES = ['all']
 
@@ -80,16 +80,19 @@ class SingleTraceDisplayMixin(object):
         if any(attr in args.attr for attr in TRIGGER_INSTANCE_DISPLAY_OPTIONS):
             components.extend([Resource(**{'id': trigger_instance['object_id'],
                                            'type': TriggerInstance._alias.lower(),
+                                           'ref': trigger_instance['ref'],
                                            'updated_at': trigger_instance['updated_at']})
                                for trigger_instance in trace.trigger_instances])
         if any(attr in args.attr for attr in ['all', 'rules']):
             components.extend([Resource(**{'id': rule['object_id'],
                                            'type': Rule._alias.lower(),
+                                           'ref': rule['ref'],
                                            'updated_at': rule['updated_at']})
                                for rule in trace.rules])
         if any(attr in args.attr for attr in ACTION_EXECUTION_DISPLAY_OPTIONS):
             components.extend([Resource(**{'id': execution['object_id'],
                                            'type': LiveAction._alias.lower(),
+                                           'ref': execution['ref'],
                                            'updated_at': execution['updated_at']})
                                for execution in trace.action_executions])
         if components:
