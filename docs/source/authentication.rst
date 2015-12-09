@@ -34,7 +34,7 @@ to the st2 clients.
 * ``api_url`` - Authentication service also acts as a service catalog. It returns a URL to the API
   endpoint on successful authentication. This information is used by clients such as command line
   tool and web UI. The setting needs to contain a public base URL to the API endpoint (excluding
-  the API version). Example: ``https://myhost.example.com:9101/``
+  the API version). Example: ``https://myhost.example.com/api/``
 * ``enable`` - Authentication is not enabled for the |st2| API until this is set to True. If
   running |st2| on multiple servers, please ensure that this is set to True on all |st2|
   configuration files.
@@ -74,7 +74,7 @@ repo. The following is a sample auth section in the config file for the PAM back
     cert = /path/to/ssl/cert/file
     key = /path/to/ssl/key/file
     logging = /etc/st2/st2auth.logging.conf
-    api_url = https://myhost.examples.com:9101
+    api_url = https://myhost.examples.com/api/
     debug = False
 
 The following is a list of auth backends for the community edition to help get things started.
@@ -128,7 +128,7 @@ The following is a sample auth section for the LDAP backend in the st2 config fi
     cert = /path/to/mycert.crt
     key = /path/to/mycert.key
     logging = /path/to/st2auth.logging.conf
-    api_url = https://myhost.example.com:9101/
+    api_url = https://myhost.example.com/api/
     debug = False
 
 Running the Service
@@ -161,18 +161,18 @@ Run the following curl commands to test.
 .. sourcecode:: bash
 
     # If use_ssl is set to True, the following will fail because SSL is required.
-    curl -X POST http://myhost.example.com:9100/v1/tokens
+    curl -X POST http://myhost.example.com/auth/v1/tokens
 
     # The following will fail with 401 unauthorized. Please note that this is executed with "-k" to skip SSL cert verification.
-    curl -X POST -k https://myhost.example.com:9100/v1/tokens
+    curl -X POST -k https://myhost.example.com/auth/v1/tokens
 
     # The following will succeed and return a valid token. Please note that this is executed with "-k" to skip SSL cert verification.
-    curl -X POST -k -u yourusername:yourpassword https://myhost.example.com:9100/v1/tokens
+    curl -X POST -k -u yourusername:yourpassword https://myhost.example.com/auth/v1/tokens
 
     # The following will verify the SSL cert, succeed, and return a valid token.
-    curl -X POST --cacert /path/to/cacert.pem -u yourusername:yourpassword https://myhost.example.com:9100/v1/tokens
+    curl -X POST --cacert /path/to/cacert.pem -u yourusername:yourpassword https://myhost.example.com/auth/v1/tokens
 
-.. note:: Until version 0.13 of StackStorm, auth APIs were unversioned. If your version is 0.13 or below, skip v1 in the URL paths above.
+.. note:: Until version 1.2 of StackStorm, auth APIs were served from its own port. If your version is 1.1.1 or below, replace '/api' with ':9100'.
 
 .. _authentication-usage:
 
@@ -224,9 +224,9 @@ API keys are designed for API access. As of now they cannot be used via clients 
 
 The following are sample API calls via curl using API Keys. ::
 
-    curl -H "St2-Api-Key: <API-KEY-VALUE>" http://myhost.example.com:9101/v1/actions
+    curl -H "St2-Api-Key: <API-KEY-VALUE>" https://myhost.example.com/api/v1/actions
 
-    curl https://myhost.example.com:9101/v1/actions?st2-api-key=<API-KEY-VALUE>
+    curl https://myhost.example.com/api/v1/actions?st2-api-key=<API-KEY-VALUE>
 
 
 .. _htpasswd: https://httpd.apache.org/docs/2.2/programs/htpasswd.html
