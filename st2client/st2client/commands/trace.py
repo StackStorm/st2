@@ -196,6 +196,8 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
                                               help='Only show rules.')
         self.display_filter_group.add_argument('--show-trigger-instances', action='store_true',
                                               help='Only show trigger instances.')
+        self.display_filter_group.add_argument('--hide-noop-triggers', action='store_true',
+                                              help='Hide trigger instances that lead to no execution.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -299,7 +301,25 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
         should be displayed.
         """
         # If all the filters are false nothing is to be filtered.
-        if not(args.show_executions or args.show_rules or args.show_trigger_instances):
+        all_component_types = not(args.show_executions or
+                                  args.show_rules or
+                                  args.show_trigger_instances)
+
+        # check if noop_triggers are to be hidden. This check applies whenever TriggerInstances
+        # are to be shown.
+        if (all_component_types or args.show_trigger_instances) and args.hide_noop_triggers:
+            filtered_trigger_instances = []
+            for trigger_instance in trace.trigger_instances:
+                is_noop_trigger_instance = True
+                for rule in trace.rules:
+                    caused_by_id = rule.get('caused_by', {}).get('id', None)
+                    if caused_by_id == trigger_instance['object_id']:
+                        is_noop_trigger_instance = False
+                if not is_noop_trigger_instance:
+                    filtered_trigger_instances.append(trigger_instance)
+            trace.trigger_instances = filtered_trigger_instances
+
+        if all_component_types:
             return trace
 
         if not args.show_executions:
