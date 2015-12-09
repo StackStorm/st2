@@ -289,7 +289,10 @@ def get_trace_component_for_action_execution(action_execution_db):
     """
     if not action_execution_db:
         raise ValueError('action_execution_db expected.')
-    trace_component = {'id': str(action_execution_db.id)}
+    trace_component = {
+        'id': str(action_execution_db.id),
+        'ref': str(action_execution_db.action.get('ref', ''))
+    }
     caused_by = {}
     if action_execution_db.rule and action_execution_db.trigger_instance:
         # Once RuleEnforcement is available that can be used instead.
@@ -313,7 +316,7 @@ def get_trace_component_for_rule(rule_db, trigger_instance_db):
     :rtype: ``dict``
     """
     trace_component = {}
-    trace_component = {'id': str(rule_db.id)}
+    trace_component = {'id': str(rule_db.id), 'ref': rule_db.ref}
     caused_by = {}
     if trigger_instance_db:
         # Once RuleEnforcement is available that can be used instead.
@@ -333,13 +336,15 @@ def get_trace_component_for_trigger_instance(trigger_instance_db):
     :rtype: ``dict``
     """
     trace_component = {}
-    trace_component = {'id': str(trigger_instance_db.id)}
+    trace_component = {
+        'id': str(trigger_instance_db.id),
+        'ref':trigger_instance_db.trigger
+    }
     caused_by = {}
     # Special handling for ACTION_SENSOR_TRIGGER and NOTIFY_TRIGGER where we
     # know how to maintain the links.
     if trigger_instance_db.trigger == ACTION_SENSOR_TRIGGER_REF or \
        trigger_instance_db.trigger == NOTIFY_TRIGGER_REF:
-        # Once RuleEnforcement is available that can be used instead.
         caused_by['type'] = 'action_execution'
         # For both action trigger and notidy trigger execution_id is stored in the payload.
         caused_by['id'] = trigger_instance_db.payload['execution_id']
@@ -362,6 +367,7 @@ def _to_trace_component_db(component):
         raise ValueError('Expected component to be str or dict')
 
     object_id = component if isinstance(component, basestring) else component['id']
+    ref = component.get('ref', '') if isinstance(component, dict) else ''
     caused_by = component.get('caused_by', {}) if isinstance(component, dict) else {}
 
-    return TraceComponentDB(object_id=object_id, caused_by=caused_by)
+    return TraceComponentDB(object_id=object_id, ref=ref, caused_by=caused_by)
