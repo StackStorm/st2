@@ -338,7 +338,7 @@ def get_trace_component_for_trigger_instance(trigger_instance_db):
     trace_component = {}
     trace_component = {
         'id': str(trigger_instance_db.id),
-        'ref':trigger_instance_db.trigger
+        'ref': trigger_instance_db.trigger
     }
     caused_by = {}
     # Special handling for ACTION_SENSOR_TRIGGER and NOTIFY_TRIGGER where we

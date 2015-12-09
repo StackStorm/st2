@@ -26,7 +26,7 @@ TraceComponentAPISchema = {
             'description': 'Id of the component',
             'required': True
         },
-        'ref':  {
+        'ref': {
             'type': 'string',
             'description': 'ref of the component',
             'required': False
