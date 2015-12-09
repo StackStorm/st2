@@ -8,7 +8,8 @@ in development
   identify specific issues. (new-feature)
 * Filter Trace components by model types to only view ActionExecutions, Rules or TriggerInstances.
   (new-feature)
-
+* Include ref of the most meaningful object in each trace component. (new-feature)
+* Ability to hide trigger-instance that do not yield a rule enforcement. (new-feature)
 
 1.2.0 - December 07, 2015
 -------------------------
