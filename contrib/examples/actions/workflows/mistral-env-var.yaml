@@ -5,11 +5,11 @@ examples.mistral-env-var:
     type: direct
     output:
         env: <% env() %>
-        url: <% $.url %> 
+        url: <% $.url %>
     tasks:
         task1:
             action: core.local
             input:
-                cmd: echo https://127.0.0.1:9101/history/<% env().st2_execution_id %>
+                cmd: echo http://127.0.0.1:9101/executions/<% env().st2_execution_id %>
             publish:
                 url: <% $.task1.stdout %>
