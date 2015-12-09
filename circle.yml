@@ -5,8 +5,6 @@
 # DOCKER_USER
 # DOCKER_EMAIL
 # DOCKER_PASSWORD
-# ST2_HOOK_URL
-# ST2_API_KEY
 general:
   # Don't run CI for PR, only for major branches
   branches:
@@ -48,7 +46,6 @@ dependencies:
     - ~/.cache/pip
   pre:
     - sudo .circle/configure-services.sh
-    - pip install requests
     - sudo .circle/fix-cache-permissions.sh
     - sudo pip install docker-compose
     - docker-compose version
@@ -86,8 +83,8 @@ deployment:
           .circle/bintray.sh deploy ${DISTROS[$i]}_staging ~/packages/${DISTROS[$i]} &
         done
         wait
-      - .circle/hook_st2.py ~/packages
       - .circle/docker.sh deploy st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
+      - .circle/save_payload.py ~/packages
 
 experimental:
   notify:
