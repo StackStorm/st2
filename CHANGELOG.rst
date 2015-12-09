@@ -55,7 +55,10 @@ in development
 * Support for "representation+value" format strings in aliases. (new feature)
 * Support for disabled result and acknowledgement messages in aliases. (new feature)
 * Add ability to write rule enforcement (models that represent a rule evaluation that resulted
-  in an action execution) to db to help debugging rules easier. Also, CLI bindings to list and view these models are added. (new-feature)
+  in an action execution) to db to help debugging rules easier. Also, CLI bindings to list
+  and view these models are added. (new-feature)
+* Purge tool now uses delete_by_query and offloads delete to mongo and doesn't perform app side
+  explicit model deletion to improve speed. (improvement)
 
 1.1.1 - November 13, 2015
 -------------------------
