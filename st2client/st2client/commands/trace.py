@@ -196,8 +196,8 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
                                               help='Only show rules.')
         self.display_filter_group.add_argument('--show-trigger-instances', action='store_true',
                                               help='Only show trigger instances.')
-        self.display_filter_group.add_argument('--hide-noop-triggers', action='store_true',
-                                              help='Hide trigger instances that lead to no execution.')
+        self.display_filter_group.add_argument('-n', '--hide-noop-triggers', action='store_true',
+                                              help='Hide noop trigger instances.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
