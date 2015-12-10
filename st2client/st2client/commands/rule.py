@@ -35,7 +35,7 @@ class RuleBranch(resource.ResourceBranch):
 
 
 class RuleListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'pack', 'description', 'enabled']
+    display_attributes = ['ref', 'trigger.ref', 'action.ref', 'enabled']
 
     def __init__(self, resource, *args, **kwargs):
         super(RuleListCommand, self).__init__(resource, *args, **kwargs)
