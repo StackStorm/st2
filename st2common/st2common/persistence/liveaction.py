@@ -33,3 +33,7 @@ class LiveAction(persistence.StatusBasedResource):
             cls.publisher = transport.liveaction.LiveActionPublisher(
                 urls=transport_utils.get_messaging_urls())
         return cls.publisher
+
+    @classmethod
+    def delete_by_query(cls, **query):
+        return cls._get_impl().delete_by_query(**query)
