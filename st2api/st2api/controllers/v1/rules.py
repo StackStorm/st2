@@ -50,7 +50,9 @@ class RuleController(resource.ContentPackResourceController):
     access = Rule
     supported_filters = {
         'name': 'name',
-        'pack': 'pack'
+        'pack': 'pack',
+        'action': 'action.ref',
+        'trigger': 'trigger'
     }
 
     query_options = {

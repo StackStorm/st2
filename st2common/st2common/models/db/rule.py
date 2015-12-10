@@ -87,7 +87,10 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
                               help_text=u'Flag indicating whether the rule is enabled.')
 
     meta = {
-        'indexes': stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()
+        'indexes': [
+            {'fields': ['action.ref']},
+            {'fields': ['trigger']}
+        ] + stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()
     }
 
     def __init__(self, *args, **values):
