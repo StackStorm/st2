@@ -23,8 +23,13 @@ TraceComponentAPISchema = {
     'properties': {
         'object_id': {
             'type': 'string',
-            'description': 'Message to use for notification',
+            'description': 'Id of the component',
             'required': True
+        },
+        'ref': {
+            'type': 'string',
+            'description': 'ref of the component',
+            'required': False
         },
         'updated_at': {
             'description': 'The start time when the action is executed.',
@@ -98,6 +103,7 @@ class TraceAPI(BaseAPI):
     def to_component_model(cls, component):
         values = {
             'object_id': component['object_id'],
+            'ref': component['ref'],
             'caused_by': component.get('caused_by', {})
         }
         updated_at = component.get('updated_at', None)
@@ -132,6 +138,7 @@ class TraceAPI(BaseAPI):
     @classmethod
     def from_component_model(cls, component_model):
         return {'object_id': component_model.object_id,
+                'ref': component_model.ref,
                 'updated_at': isotime.format(component_model.updated_at, offset=False),
                 'caused_by': component_model.caused_by}
 

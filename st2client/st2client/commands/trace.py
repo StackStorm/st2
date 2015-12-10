@@ -26,7 +26,7 @@ TRACE_ATTRIBUTE_DISPLAY_ORDER = ['id', 'trace_tag', 'action_executions', 'rules'
 
 TRACE_HEADER_DISPLAY_ORDER = ['id', 'trace_tag', 'start_timestamp']
 
-TRACE_COMPONENT_DISPLAY_LABELS = ['id', 'type', 'updated_at']
+TRACE_COMPONENT_DISPLAY_LABELS = ['id', 'type', 'ref', 'updated_at']
 
 TRACE_DISPLAY_ATTRIBUTES = ['all']
 
@@ -80,16 +80,19 @@ class SingleTraceDisplayMixin(object):
         if any(attr in args.attr for attr in TRIGGER_INSTANCE_DISPLAY_OPTIONS):
             components.extend([Resource(**{'id': trigger_instance['object_id'],
                                            'type': TriggerInstance._alias.lower(),
+                                           'ref': trigger_instance['ref'],
                                            'updated_at': trigger_instance['updated_at']})
                                for trigger_instance in trace.trigger_instances])
         if any(attr in args.attr for attr in ['all', 'rules']):
             components.extend([Resource(**{'id': rule['object_id'],
                                            'type': Rule._alias.lower(),
+                                           'ref': rule['ref'],
                                            'updated_at': rule['updated_at']})
                                for rule in trace.rules])
         if any(attr in args.attr for attr in ACTION_EXECUTION_DISPLAY_OPTIONS):
             components.extend([Resource(**{'id': execution['object_id'],
                                            'type': LiveAction._alias.lower(),
+                                           'ref': execution['ref'],
                                            'updated_at': execution['updated_at']})
                                for execution in trace.action_executions])
         if components:
@@ -196,6 +199,8 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
                                               help='Only show rules.')
         self.display_filter_group.add_argument('--show-trigger-instances', action='store_true',
                                               help='Only show trigger instances.')
+        self.display_filter_group.add_argument('-n', '--hide-noop-triggers', action='store_true',
+                                              help='Hide noop trigger instances.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -299,7 +304,25 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
         should be displayed.
         """
         # If all the filters are false nothing is to be filtered.
-        if not(args.show_executions or args.show_rules or args.show_trigger_instances):
+        all_component_types = not(args.show_executions or
+                                  args.show_rules or
+                                  args.show_trigger_instances)
+
+        # check if noop_triggers are to be hidden. This check applies whenever TriggerInstances
+        # are to be shown.
+        if (all_component_types or args.show_trigger_instances) and args.hide_noop_triggers:
+            filtered_trigger_instances = []
+            for trigger_instance in trace.trigger_instances:
+                is_noop_trigger_instance = True
+                for rule in trace.rules:
+                    caused_by_id = rule.get('caused_by', {}).get('id', None)
+                    if caused_by_id == trigger_instance['object_id']:
+                        is_noop_trigger_instance = False
+                if not is_noop_trigger_instance:
+                    filtered_trigger_instances.append(trigger_instance)
+            trace.trigger_instances = filtered_trigger_instances
+
+        if all_component_types:
             return trace
 
         if not args.show_executions:
