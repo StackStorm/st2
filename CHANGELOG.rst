@@ -13,6 +13,7 @@ in development
 * Change the rule list columns in the CLI from ref, pack, description and enabled to ref, trigger.ref,
   action.ref and enabled. This aligns closer the UI and also brings important information front and
   center. (improvement)
+* Action and Trigger filters for rule list (new-feature)
 
 1.2.0 - December 07, 2015
 -------------------------
