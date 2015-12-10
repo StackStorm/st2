@@ -10,9 +10,6 @@ in development
   (new-feature)
 * Include ref of the most meaningful object in each trace component. (new-feature)
 * Ability to hide trigger-instance that do not yield a rule enforcement. (new-feature)
-* Change the rule list columns in the CLI from ref, pack, description and enabled to ref, trigger.ref,
-  action.ref and enabled. This aligns closer the UI and also brings important information front and
-  center. (improvement)
 
 1.2.0 - December 07, 2015
 -------------------------
