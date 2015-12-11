@@ -33,7 +33,8 @@ LOG = logging.getLogger(__name__)
 
 
 class RuleTester(object):
-    def __init__(self, rule_file_path, rule_ref, trigger_instance_file_path, trigger_instance_id):
+    def __init__(self, rule_file_path=None, rule_ref=None, trigger_instance_file_path=None,
+                 trigger_instance_id=None):
         """
         :param rule_file_path: Path to the file containing rule definition.
         :type rule_file_path: ``str``
