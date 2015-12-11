@@ -49,7 +49,7 @@ class MockSensorService(SensorService):
 
     def get_logger(self, name):
         return None
-        
+
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):
         item = {
             'trigger': trigger,
