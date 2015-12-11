@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import six
 from jsonpath_rw import parse
 
@@ -28,7 +29,7 @@ LOG = logging.getLogger('st2reactor.ruleenforcement.filter')
 
 
 class RuleFilter(object):
-    def __init__(self, trigger_instance, trigger, rule):
+    def __init__(self, trigger_instance, trigger, rule, extra_info=False):
         """
         :param trigger_instance: TriggerInstance DB object.
         :type trigger_instance: :class:`TriggerInstanceDB``
@@ -42,6 +43,7 @@ class RuleFilter(object):
         self.trigger_instance = trigger_instance
         self.trigger = trigger
         self.rule = rule
+        self.extra_info = extra_info
 
         # Base context used with a logger
         self._base_logger_context = {
@@ -56,7 +58,7 @@ class RuleFilter(object):
 
         :rtype: ``bool``
         """
-        LOG.info('Validating rule %s for %s.', self.rule.id, self.trigger['name'],
+        LOG.info('Validating rule %s for %s.', self.rule.ref, self.trigger['name'],
                  extra=self._base_logger_context)
 
         if not self.rule.enabled:
@@ -75,8 +77,18 @@ class RuleFilter(object):
 
         for criterion_k in criteria.keys():
             criterion_v = criteria[criterion_k]
-            is_rule_applicable = self._check_criterion(criterion_k, criterion_v, payload_lookup)
+            is_rule_applicable, payload_value, criterion_pattern = self._check_criterion(
+                criterion_k, criterion_v, payload_lookup)
             if not is_rule_applicable:
+                if self.extra_info:
+                    extra = {
+                        'key': criterion_k,
+                        'type': criterion_v['type'],
+                        'pattern': criterion_pattern,
+                        'payload_value': payload_value
+                    }
+                    LOG.info('Validation for rule %s failed on -\n%s', self.rule.ref,
+                             json.dumps(extra, indent=4))
                 break
 
         if not is_rule_applicable:
@@ -122,7 +134,7 @@ class RuleFilter(object):
                           extra=self._base_logger_context)
             return False
 
-        return result
+        return result, payload_value, criteria_pattern
 
     def _render_criteria_pattern(self, criteria_pattern):
         if not criteria_pattern:
