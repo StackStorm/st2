@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+* Allow user to pass ``env`` parameter to ``packs.setup_virtualenv`` and ``packs.install``
+  action.
+
+  This comes handy if user wants pip to use an HTTP(s) proxy (HTTP_PROXY and HTTPS_PROXY
+  environment variable) when installing pack dependencies. (new feature)
 * Ability to view causation chains in Trace. This helps reduce the noise when using Trace to
   identify specific issues. (new-feature)
 * Filter Trace components by model types to only view ActionExecutions, Rules or TriggerInstances.
