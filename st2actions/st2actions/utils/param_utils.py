@@ -31,8 +31,6 @@ from st2common.util.compat import to_unicode
 LOG = logging.getLogger(__name__)
 
 __all__ = [
-    'get_resolved_params',
-    'get_rendered_params',
     'get_finalized_params',
 ]
 
@@ -97,7 +95,7 @@ def _get_resolved_action_params(runner_parameters, action_parameters,
     return resolved_params
 
 
-def get_resolved_params(runnertype_parameter_info, action_parameter_info, actionexec_parameters):
+def _get_resolved_params(runnertype_parameter_info, action_parameter_info, actionexec_parameters):
     '''
     Looks at the parameter values from runner, action and action execution to fully resolve the
     values. Resolution is the process of determinig the value of a parameter by taking into
@@ -294,7 +292,7 @@ def _cast_params(rendered, parameter_schemas):
     return casted_params
 
 
-def get_rendered_params(runner_parameters, action_parameters, action_context,
+def _get_rendered_params(runner_parameters, action_parameters, action_context,
                         runnertype_parameter_info, action_parameter_info):
     '''
     Renders the templates in runner_parameters and action_parameters. Using the type information
@@ -329,11 +327,11 @@ def get_finalized_params(runnertype_parameter_info, action_parameter_info, livea
         1. Split the parameters into those consumed by runner and action into separate dicts.
         2. Render any templates in the parameters.
     '''
-    runner_params, action_params = get_resolved_params(runnertype_parameter_info,
-                                                       action_parameter_info,
-                                                       liveaction_parameters)
-    runner_params, action_params = get_rendered_params(runner_params, action_params,
-                                                       action_context,
-                                                       runnertype_parameter_info,
-                                                       action_parameter_info)
+    runner_params, action_params = _get_resolved_params(runnertype_parameter_info,
+                                                        action_parameter_info,
+                                                        liveaction_parameters)
+    runner_params, action_params = _get_rendered_params(runner_params, action_params,
+                                                        action_context,
+                                                        runnertype_parameter_info,
+                                                        action_parameter_info)
     return (runner_params, action_params)

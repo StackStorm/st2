@@ -56,11 +56,13 @@ class ParamsUtilsTest(DbTestCase):
             'defaults_ovverriden_by_execution': 0,
         }
         liveaction_db = self._get_liveaction_model(params)
+        action_context = {'api_user': None}
 
-        runner_params, action_params = param_utils.get_resolved_params(
+        runner_params, action_params = param_utils.get_finalized_params(
             ParamsUtilsTest.runnertype_db.runner_parameters,
             ParamsUtilsTest.action_db.parameters,
-            liveaction_db.parameters)
+            liveaction_db.parameters,
+            action_context)
 
         # Asserts for runner params.
         # Assert that default values for runner params are resolved.
@@ -163,11 +165,13 @@ class ParamsUtilsTest(DbTestCase):
             'actionimmutable': 'failed_override'
         }
         liveaction_db = self._get_liveaction_model(params)
+        action_context = {'api_user': None}
 
-        runner_params, action_params = param_utils.get_resolved_params(
+        runner_params, action_params = param_utils.get_finalized_params(
             ParamsUtilsTest.runnertype_db.runner_parameters,
             ParamsUtilsTest.action_db.parameters,
-            liveaction_db.parameters)
+            liveaction_db.parameters,
+            action_context)
 
         # Asserts for runner params.
         # Assert that default values for runner params are resolved.
@@ -183,61 +187,125 @@ class ParamsUtilsTest(DbTestCase):
         # isn't in resolved params.
         self.assertEqual(action_params.get('some_key_that_aint_exist_in_action_or_runner'), None)
 
-    def test_get_rendered_params_empty(self):
-        runner_params = {}
-        action_params = {}
+    def test_get_finalized_params_empty(self):
+        params = {}
         runner_param_info = {}
         action_param_info = {}
         action_context = {}
-        r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, action_context, runner_param_info, action_param_info)
-        self.assertEqual(r_runner_params, runner_params)
-        self.assertEqual(r_action_params, action_params)
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+        self.assertEqual(r_runner_params, params)
+        self.assertEqual(r_action_params, params)
 
-    def test_get_rendered_params_none(self):
-        runner_params = {'r1': None}
-        action_params = {'a1': None}
+    def test_get_finalized_params_none(self):
+        params = {
+            'r1': None,
+            'a1': None
+        }
         runner_param_info = {'r1': {}}
         action_param_info = {'a1': {}}
         action_context = {'api_user': None}
-        r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, action_context, runner_param_info, action_param_info)
-        self.assertEqual(r_runner_params, runner_params)
-        self.assertEqual(r_action_params, action_params)
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+        self.assertEqual(r_runner_params, {'r1': None})
+        self.assertEqual(r_action_params, {'a1': None})
 
-    def test_get_rendered_params_no_cast(self):
-        runner_params = {'r1': '{{r2}}', 'r2': 1}
-        action_params = {'a1': True, 'a2': '{{r1}} {{a1}}', 'a3': '{{action_context.api_user}}'}
+    def test_get_finalized_params_no_cast(self):
+        params = {
+            'r1': '{{r2}}',
+            'r2': 1,
+            'a1': True,
+            'a2': '{{r1}} {{a1}}',
+            'a3': '{{action_context.api_user}}'
+        }
         runner_param_info = {'r1': {}, 'r2': {}}
         action_param_info = {'a1': {}, 'a2': {}, 'a3': {}}
         action_context = {'api_user': 'noob'}
-        r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, action_context, runner_param_info, action_param_info)
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
         self.assertEqual(r_runner_params, {'r1': u'1', 'r2': 1})
         self.assertEqual(r_action_params, {'a1': True, 'a2': u'1 True', 'a3': 'noob'})
 
-    def test_get_rendered_params_with_cast(self):
+    def test_get_finalized_params_with_cast(self):
         # Note : In this test runner_params.r1 has a string value. However per runner_param_info the
         # type is an integer. The expected type is considered and cast is performed accordingly.
-        runner_params = {'r1': '{{r2}}', 'r2': 1}
-        action_params = {'a1': True, 'a2': '{{a1}}', 'a3': '{{action_context.api_user}}'}
+        params = {
+            'r1': '{{r2}}',
+            'r2': 1,
+            'a1': True,
+            'a2': '{{a1}}',
+            'a3': '{{action_context.api_user}}'
+        }
         runner_param_info = {'r1': {'type': 'integer'}, 'r2': {'type': 'integer'}}
         action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'boolean'}, 'a3': {}}
         action_context = {'api_user': 'noob'}
-        r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, action_context, runner_param_info, action_param_info)
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
         self.assertEqual(r_runner_params, {'r1': 1, 'r2': 1})
         self.assertEqual(r_action_params, {'a1': True, 'a2': True, 'a3': 'noob'})
 
-    def test_get_rendered_params_non_existent_template_key_in_action_context(self):
-        runner_params = {'r1': 'foo', 'r2': 2}
-        action_params = {'a1': 'i love tests', 'a2': '{{action_context.lorem_ipsum}}'}
+    def test_get_finalized_params_with_cast_overriden(self):
+        params = {
+            'r1': '{{r2}}',
+            'r2': 1,
+            'a1': '{{r1}}',
+            'a2': '{{r1}}',
+            'a3': '{{r1}}'
+        }
+        runner_param_info = {'r1': {'type': 'integer'}, 'r2': {'type': 'integer'}}
+        action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'string'}, 'a3': {'type': 'integer'}, 'r1': {'type': 'string'}}
+        action_context = {'api_user': 'noob'}
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+        self.assertEqual(r_runner_params, {'r1': 1, 'r2': 1})
+        self.assertEqual(r_action_params, {'a1': 1, 'a2': u'1', 'a3': 1})
+
+    def test_get_finalized_params_cross_talk_no_cast(self):
+        params = {
+            'r1': '{{a1}}',
+            'r2': 1,
+            'a1': True,
+            'a2': '{{r1}} {{a1}}',
+            'a3': '{{action_context.api_user}}'
+        }
+        runner_param_info = {'r1': {}, 'r2': {}}
+        action_param_info = {'a1': {}, 'a2': {}, 'a3': {}}
+        action_context = {'api_user': 'noob'}
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+        self.assertEqual(r_runner_params, {'r1': u'True', 'r2': 1})
+        self.assertEqual(r_action_params, {'a1': True, 'a2': u'True True', 'a3': 'noob'})
+
+    def test_get_finalized_params_cross_talk_with_cast(self):
+        params = {
+            'r1': '{{a1}}',
+            'r2': 1,
+            'r3': 1,
+            'a1': True,
+            'a2': '{{r1}},{{a1}},{{a3}},{{r3}}',
+            'a3': '{{a1}}'
+        }
+        runner_param_info = {'r1': {'type': 'boolean'}, 'r2': {'type': 'integer'}, 'r3': {}}
+        action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'array'}, 'a3': {}}
+        action_context = {}
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+        self.assertEqual(r_runner_params, {'r1': True, 'r2': 1, 'r3': 1})
+        self.assertEqual(r_action_params, {'a1': True, 'a2': (True, True, True, 1), 'a3': u'True'})
+
+    def test_get_finalized_params_non_existent_template_key_in_action_context(self):
+        params = {
+            'r1': 'foo',
+            'r2': 2,
+            'a1': 'i love tests',
+            'a2': '{{action_context.lorem_ipsum}}'
+        }
         runner_param_info = {'r1': {'type': 'string'}, 'r2': {'type': 'integer'}}
         action_param_info = {'a1': {'type': 'string'}, 'a2': {'type': 'string'}}
         action_context = {'api_user': 'noob', 'source_channel': 'reddit'}
         try:
-            r_runner_params, r_action_params = param_utils.get_rendered_params(
-                runner_params, action_params, action_context, runner_param_info, action_param_info)
+            r_runner_params, r_action_params = param_utils.get_finalized_params(
+                runner_param_info, action_param_info, params, action_context)
             self.fail('This should have thrown because we are trying to deref a key in ' +
                       'action context that ain\'t exist.')
         except actionrunner.ActionRunnerException as e:
@@ -258,17 +326,16 @@ class ParamsUtilsTest(DbTestCase):
         }
         self.assertEqual(result, expected)
 
-    def test_get_rendered_params_with_casting_unicode_values(self):
-        runner_params = {}
-        action_params = {'a1': 'unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2'}
+    def test_get_finalized_params_with_casting_unicode_values(self):
+        params = {'a1': 'unicode1 ٩(̾●̮̮̃̾•̃̾)۶ unicode2'}
 
         runner_param_info = {}
         action_param_info = {'a1': {'type': 'string'}}
 
         action_context = {}
 
-        r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, action_context, runner_param_info, action_param_info)
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
 
         expected_action_params = {
             'a1': (u'unicode1 \xd9\xa9(\xcc\xbe\xe2\x97\x8f\xcc\xae\xcc\xae\xcc'
@@ -277,63 +344,74 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(r_runner_params, {})
         self.assertEqual(r_action_params, expected_action_params)
 
-    def test_get_rendered_params_with_dict(self):
+    def test_get_finalized_params_with_dict(self):
         # Note : In this test runner_params.r1 has a string value. However per runner_param_info the
         # type is an integer. The expected type is considered and cast is performed accordingly.
-        runner_params = {'r1': '{{r2}}', 'r2': {'r2.1': 1}}
-        action_params = {'a1': True, 'a2': '{{a1}}'}
+        params = {
+            'r1': '{{r2}}',
+            'r2': {'r2.1': 1},
+            'a1': True,
+            'a2': '{{a1}}'
+        }
         runner_param_info = {'r1': {'type': 'object'}, 'r2': {'type': 'object'}}
         action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'boolean'}}
-        r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, {}, runner_param_info, action_param_info)
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, {})
         self.assertEqual(r_runner_params, {'r1': {'r2.1': 1}, 'r2': {'r2.1': 1}})
         self.assertEqual(r_action_params, {'a1': True, 'a2': True})
 
-    def test_get_rendered_params_with_list(self):
+    def test_get_finalized_params_with_list(self):
         # Note : In this test runner_params.r1 has a string value. However per runner_param_info the
         # type is an integer. The expected type is considered and cast is performed accordingly.
-        runner_params = {'r1': '{{r2}}', 'r2': ['1', '2']}
-        action_params = {'a1': True, 'a2': '{{a1}}'}
+        params = {
+            'r1': '{{r2}}',
+            'r2': ['1', '2'],
+            'a1': True,
+            'a2': '{{a1}}'
+        }
         runner_param_info = {'r1': {'type': 'array'}, 'r2': {'type': 'array'}}
         action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'boolean'}}
-        r_runner_params, r_action_params = param_utils.get_rendered_params(
-            runner_params, action_params, {}, runner_param_info, action_param_info)
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, {})
         self.assertEqual(r_runner_params, {'r1': ['1', '2'], 'r2': ['1', '2']})
         self.assertEqual(r_action_params, {'a1': True, 'a2': True})
 
-    def test_get_rendered_params_with_cyclic_dependency(self):
-        runner_params = {'r1': '{{r2}}', 'r2': '{{r1}}'}
+    def test_get_finalized_params_with_cyclic_dependency(self):
+        params = {'r1': '{{r2}}', 'r2': '{{r1}}'}
+        runner_param_info = {'r1': {}, 'r2': {}}
+        action_param_info = {}
         test_pass = True
         try:
-            param_utils.get_rendered_params(runner_params, {}, {}, {}, {})
+            param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
             test_pass = False
         except actionrunner.ActionRunnerException as e:
             test_pass = e.message.find('Cyclic') == 0
         self.assertTrue(test_pass)
 
-    def test_get_rendered_params_with_missing_dependency(self):
-        runner_params = {'r1': '{{r3}}', 'r2': '{{r3}}'}
+    def test_get_finalized_params_with_missing_dependency(self):
+        params = {'r1': '{{r3}}', 'r2': '{{r3}}'}
+        runner_param_info = {'r1': {}, 'r2': {}}
+        action_param_info = {}
         test_pass = True
         try:
-            param_utils.get_rendered_params(runner_params, {}, {}, {}, {})
+            param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
             test_pass = False
         except actionrunner.ActionRunnerException as e:
             test_pass = e.message.find('Dependecy') == 0
         self.assertTrue(test_pass)
 
-    def test_get_rendered_params_param_rendering_failure(self):
-        runner_params = {}
-        action_params = {'cmd': '{{a2.foo}}', 'a2': 'test'}
+    def test_get_finalized_params_param_rendering_failure(self):
+        params = {'cmd': '{{a2.foo}}', 'a2': 'test'}
+        action_param_info = {'cmd': {}, 'a2': {}}
 
         expected_msg = 'Failed to render parameter "cmd": .*'
         self.assertRaisesRegexp(actionrunner.ActionRunnerException,
                                 expected_msg,
-                                param_utils.get_rendered_params,
-                                runner_parameters=runner_params,
-                                action_parameters=action_params,
-                                action_context={},
+                                param_utils.get_finalized_params,
                                 runnertype_parameter_info={},
-                                action_parameter_info={})
+                                action_parameter_info=action_param_info,
+                                liveaction_parameters=params,
+                                action_context={})
 
     def test_cast_param_referenced_action_doesnt_exist(self):
         # Make sure the function throws if the action doesnt exist
