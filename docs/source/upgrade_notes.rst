@@ -18,8 +18,17 @@ Upgrade Notes
   Keep in mind that this condition is only met if action runner is running as root and / or if
   action runner is running a system user (stanley) and a different user is requested when running
   a command using ``user`` parameter.
-* Support of default values is added to the API model. As a result, input parameters defined in 
+* Support of default values is added to the API model. As a result, input parameters defined in
   the action metadata that is type of string no longer supports None or null.
+* New ``timeout`` action execution status has been introduced. This status is a special type of
+  a failure and implies an action timeout.
+
+ All the existing runners (local, remote, python, http, action chain) have been updated to utilize
+ this new status when applicable. Previously, if an action timed out, status was set to ``failed``
+ and the timeout could only be inferred from the error message in the result object.
+
+ If you have code which checks for an action failure you need to update it to also check for
+ ``timeout`` in addition to ``failed`` status.
 
 |st2| 1.1
 ---------

@@ -23,6 +23,7 @@ env:
     - TASK=unit
     - TASK=integration
     - TASK=mistral
+    - TASK=packs-tests
 
 matrix:
   fast_finish: true

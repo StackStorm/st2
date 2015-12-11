@@ -19,7 +19,9 @@ from kombu import Connection
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common.constants import action as action_constants
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_FAILED_STATES
+from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.api.trace import TraceContext
 from st2common.models.db.liveaction import LiveActionDB
@@ -32,6 +34,13 @@ from st2common.services import trace as trace_service
 from st2common.transport import consumers, liveaction, publishers
 from st2common.transport import utils as transport_utils
 from st2common.transport.reactor import TriggerDispatcher
+from st2common.util import isotime
+from st2common.util import jinja as jinja_utils
+from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
+from st2common.constants.action import ACTION_PARAMETERS_KV_PREFIX
+from st2common.constants.action import ACTION_RESULTS_KV_PREFIX
+from st2common.constants.system import SYSTEM_KV_PREFIX
+from st2common.services.keyvalues import KeyValueLookup
 
 __all__ = [
     'Notifier',
@@ -42,12 +51,6 @@ LOG = logging.getLogger(__name__)
 
 ACTIONUPDATE_WORK_Q = liveaction.get_queue('st2.notifiers.work',
                                            routing_key=publishers.UPDATE_RK)
-ACTION_COMPLETE_STATES = [
-    action_constants.LIVEACTION_STATUS_SUCCEEDED,
-    action_constants.LIVEACTION_STATUS_FAILED,
-    action_constants.LIVEACTION_STATUS_TIMED_OUT,
-    action_constants.LIVEACTION_STATUS_CANCELED
-]
 
 ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
 # XXX: Fix this nasty positional dependency.
@@ -60,6 +63,8 @@ class Notifier(consumers.MessageHandler):
 
     def __init__(self, connection, queues, trigger_dispatcher=None):
         super(Notifier, self).__init__(connection, queues)
+        if not trigger_dispatcher:
+            trigger_dispatcher = TriggerDispatcher(LOG)
         self._trigger_dispatcher = trigger_dispatcher
         self._notify_trigger = ResourceReference.to_string_reference(
             pack=NOTIFY_TRIGGER_TYPE['pack'],
@@ -73,34 +78,34 @@ class Notifier(consumers.MessageHandler):
         extra = {'live_action_db': liveaction}
         LOG.debug('Processing liveaction %s', live_action_id, extra=extra)
 
-        if liveaction.status not in ACTION_COMPLETE_STATES:
+        if liveaction.status not in LIVEACTION_COMPLETED_STATES:
             LOG.debug('Skipping processing of liveaction %s since it\'s not in a completed state' %
                       (live_action_id), extra=extra)
             return
 
-        execution_id = self._get_execution_id_for_liveaction(liveaction)
+        execution = self._get_execution_for_liveaction(liveaction)
 
-        if not execution_id:
+        if not execution:
             LOG.exception('Execution object corresponding to LiveAction %s not found.',
                           live_action_id, extra=extra)
             return None
 
-        self._apply_post_run_policies(liveaction=liveaction, execution_id=execution_id)
+        self._apply_post_run_policies(liveaction=liveaction)
 
         if liveaction.notify is not None:
-            self._post_notify_triggers(liveaction=liveaction, execution_id=execution_id)
+            self._post_notify_triggers(liveaction=liveaction, execution=execution)
 
-        self._post_generic_trigger(liveaction=liveaction, execution_id=execution_id)
+        self._post_generic_trigger(liveaction=liveaction, execution=execution)
 
-    def _get_execution_id_for_liveaction(self, liveaction):
+    def _get_execution_for_liveaction(self, liveaction):
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
         if not execution:
             return None
 
-        return str(execution.id)
+        return execution
 
-    def _post_notify_triggers(self, liveaction=None, execution_id=None):
+    def _post_notify_triggers(self, liveaction=None, execution=None):
         notify = getattr(liveaction, 'notify', None)
 
         if not notify:
@@ -108,31 +113,46 @@ class Notifier(consumers.MessageHandler):
 
         if notify.on_complete:
             self._post_notify_subsection_triggers(
-                liveaction=liveaction, execution_id=execution_id,
+                liveaction=liveaction, execution=execution,
                 notify_subsection=notify.on_complete,
                 default_message_suffix='completed.')
-        if liveaction.status == action_constants.LIVEACTION_STATUS_SUCCEEDED and notify.on_success:
+        if liveaction.status == LIVEACTION_STATUS_SUCCEEDED and notify.on_success:
             self._post_notify_subsection_triggers(
-                liveaction=liveaction, execution_id=execution_id,
+                liveaction=liveaction, execution=execution,
                 notify_subsection=notify.on_success,
                 default_message_suffix='succeeded.')
-        if liveaction.status == action_constants.LIVEACTION_STATUS_FAILED and notify.on_failure:
+        if liveaction.status in LIVEACTION_FAILED_STATES and notify.on_failure:
             self._post_notify_subsection_triggers(
-                liveaction=liveaction, execution_id=execution_id,
+                liveaction=liveaction, execution=execution,
                 notify_subsection=notify.on_failure,
                 default_message_suffix='failed.')
 
-    def _post_notify_subsection_triggers(self, liveaction=None, execution_id=None,
+    def _post_notify_subsection_triggers(self, liveaction=None, execution=None,
                                          notify_subsection=None,
                                          default_message_suffix=None):
         routes = (getattr(notify_subsection, 'routes') or
                   getattr(notify_subsection, 'channels', None))
 
+        execution_id = str(execution.id)
+
         if routes and len(routes) >= 1:
             payload = {}
             message = notify_subsection.message or (
                 'Action ' + liveaction.action + ' ' + default_message_suffix)
-            data = notify_subsection.data or {}  # XXX: Handle Jinja
+            data = notify_subsection.data or {}
+
+            jinja_context = self._build_jinja_context(liveaction=liveaction, execution=execution)
+
+            try:
+                message = self._transform_message(message=message,
+                                                  context=jinja_context)
+            except:
+                LOG.exception('Failed (Jinja) transforming `message`.')
+
+            try:
+                data = self._transform_data(data=data, context=jinja_context)
+            except:
+                LOG.exception('Failed (Jinja) transforming `data`.')
 
             # At this point convert result to a string. This restricts the rulesengines
             # ability to introspect the result. On the other handle atleast a json usable
@@ -146,8 +166,8 @@ class Notifier(consumers.MessageHandler):
             payload['data'] = data
             payload['execution_id'] = execution_id
             payload['status'] = liveaction.status
-            payload['start_timestamp'] = str(liveaction.start_timestamp)
-            payload['end_timestamp'] = str(liveaction.end_timestamp)
+            payload['start_timestamp'] = isotime.format(liveaction.start_timestamp)
+            payload['end_timestamp'] = isotime.format(liveaction.end_timestamp)
             payload['action_ref'] = liveaction.action
             payload['runner_ref'] = self._get_runner_ref(liveaction.action)
 
@@ -169,6 +189,22 @@ class Notifier(consumers.MessageHandler):
             if len(failed_routes) > 0:
                 raise Exception('Failed notifications to routes: %s' % ', '.join(failed_routes))
 
+    def _build_jinja_context(self, liveaction, execution):
+        context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
+        context.update({ACTION_PARAMETERS_KV_PREFIX: liveaction.parameters})
+        context.update({ACTION_CONTEXT_KV_PREFIX: liveaction.context})
+        context.update({ACTION_RESULTS_KV_PREFIX: execution.result})
+        return context
+
+    def _transform_message(self, message, context=None):
+        mapping = {'message': message}
+        context = context or {}
+        return (jinja_utils.render_values(mapping=mapping, context=context)).get('message',
+                                                                                 message)
+
+    def _transform_data(self, data, context=None):
+        return jinja_utils.render_values(mapping=data, context=context)
+
     def _get_trace_context(self, execution_id):
         trace_db = trace_service.get_trace_db_by_action_execution(
             action_execution_id=execution_id)
@@ -178,11 +214,12 @@ class Notifier(consumers.MessageHandler):
         # it shall be created downstream. Sure this is impl leakage of some sort.
         return None
 
-    def _post_generic_trigger(self, liveaction=None, execution_id=None):
+    def _post_generic_trigger(self, liveaction=None, execution=None):
         if not ACTION_SENSOR_ENABLED:
             LOG.debug('Action trigger is disabled, skipping trigger dispatch...')
             return
 
+        execution_id = str(execution.id)
         payload = {'execution_id': execution_id,
                    'status': liveaction.status,
                    'start_timestamp': str(liveaction.start_timestamp),
@@ -201,7 +238,7 @@ class Notifier(consumers.MessageHandler):
         self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload,
                                           trace_context=trace_context)
 
-    def _apply_post_run_policies(self, liveaction=None, execution_id=None):
+    def _apply_post_run_policies(self, liveaction=None):
         # Apply policies defined for the action.
         policy_dbs = Policy.query(resource_ref=liveaction.action)
         LOG.debug('Applying %s post_run policies' % (len(policy_dbs)))

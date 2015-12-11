@@ -16,11 +16,13 @@
 from mongoengine import ValidationError
 
 from st2common import log as logging
+from st2common.constants.triggers import ACTION_SENSOR_TRIGGER, NOTIFY_TRIGGER
 from st2common.constants.trace import TRACE_CONTEXT
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.trace import UniqueTraceNotFoundException
 from st2common.models.api.trace import TraceContext
 from st2common.models.db.trace import TraceDB, TraceComponentDB
+from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.trace import Trace
 
@@ -32,8 +34,17 @@ __all__ = [
     'get_trace_db_by_trigger_instance',
     'get_trace',
     'add_or_update_given_trace_context',
-    'add_or_update_given_trace_db'
+    'add_or_update_given_trace_db',
+    'get_trace_component_for_action_execution',
+    'get_trace_component_for_rule',
+    'get_trace_component_for_trigger_instance'
 ]
+
+
+ACTION_SENSOR_TRIGGER_REF = ResourceReference.to_string_reference(
+    pack=ACTION_SENSOR_TRIGGER['pack'], name=ACTION_SENSOR_TRIGGER['name'])
+NOTIFY_TRIGGER_REF = ResourceReference.to_string_reference(
+    pack=NOTIFY_TRIGGER['pack'], name=NOTIFY_TRIGGER['name'])
 
 
 def _get_valid_trace_context(trace_context):
@@ -189,14 +200,15 @@ def add_or_update_given_trace_context(trace_context, action_executions=None, rul
     :type trace_context: ``dict`` or ``TraceContext``
 
     :param action_executions: The action_execution to be added to the Trace. Should a list
-                              of object_ids.
+                              of object_ids or a dict containing object_ids and caused_by.
     :type action_executions: ``list``
 
-    :param rules: The rules to be added to the Trace. Should a list of object_ids.
+    :param rules: The rules to be added to the Trace.  Should a list of object_ids or a dict
+                  containing object_ids and caused_by.
     :type rules: ``list``
 
     :param trigger_instances: The trigger_instances to be added to the Trace. Should a list
-                              of object_ids.
+                              of object_ids or a dict containing object_ids and caused_by.
     :type trigger_instances: ``list``
 
     :rtype: ``TraceDB``
@@ -221,14 +233,15 @@ def add_or_update_given_trace_db(trace_db, action_executions=None, rules=None,
     :type trace_db: ``TraceDB``
 
     :param action_executions: The action_execution to be added to the Trace. Should a list
-                              of object_ids.
+                              of object_ids or a dict containing object_ids and caused_by.
     :type action_executions: ``list``
 
-    :param rules: The rules to be added to the Trace. Should a list of object_ids.
+    :param rules: The rules to be added to the Trace. Should a list of object_ids or a dict
+                  containing object_ids and caused_by.
     :type rules: ``list``
 
     :param trigger_instances: The trigger_instances to be added to the Trace. Should a list
-                              of object_ids.
+                              of object_ids or a dict containing object_ids and caused_by.
     :type trigger_instances: ``list``
 
     :rtype: ``TraceDB``
@@ -238,16 +251,16 @@ def add_or_update_given_trace_db(trace_db, action_executions=None, rules=None,
 
     if not action_executions:
         action_executions = []
-    action_executions = [TraceComponentDB(object_id=action_execution)
+    action_executions = [_to_trace_component_db(component=action_execution)
                          for action_execution in action_executions]
 
     if not rules:
         rules = []
-    rules = [TraceComponentDB(object_id=rule) for rule in rules]
+    rules = [_to_trace_component_db(component=rule) for rule in rules]
 
     if not trigger_instances:
         trigger_instances = []
-    trigger_instances = [TraceComponentDB(object_id=trigger_instance)
+    trigger_instances = [_to_trace_component_db(component=trigger_instance)
                          for trigger_instance in trigger_instances]
 
     # If an id exists then this is an update and we do not want to perform
@@ -263,3 +276,98 @@ def add_or_update_given_trace_db(trace_db, action_executions=None, rules=None,
     trace_db.trigger_instances = trigger_instances
 
     return Trace.add_or_update(trace_db)
+
+
+def get_trace_component_for_action_execution(action_execution_db):
+    """
+    Returns the trace_component compatible dict representation of an actionexecution.
+
+    :param action_execution_db: ActionExecution to translate
+    :type action_execution_db: ActionExecutionDB
+
+    :rtype: ``dict``
+    """
+    if not action_execution_db:
+        raise ValueError('action_execution_db expected.')
+    trace_component = {
+        'id': str(action_execution_db.id),
+        'ref': str(action_execution_db.action.get('ref', ''))
+    }
+    caused_by = {}
+    if action_execution_db.rule and action_execution_db.trigger_instance:
+        # Once RuleEnforcement is available that can be used instead.
+        caused_by['type'] = 'rule'
+        caused_by['id'] = '%s:%s' % (action_execution_db.rule['id'],
+                                     action_execution_db.trigger_instance['id'])
+    trace_component['caused_by'] = caused_by
+    return trace_component
+
+
+def get_trace_component_for_rule(rule_db, trigger_instance_db):
+    """
+    Returns the trace_component compatible dict representation of a rule.
+
+    :param rule_db: The rule to translate
+    :type rule_db: RuleDB
+
+    :param trigger_instance_db: The TriggerInstance with causal relation to rule_db
+    :type trigger_instance_db: TriggerInstanceDB
+
+    :rtype: ``dict``
+    """
+    trace_component = {}
+    trace_component = {'id': str(rule_db.id), 'ref': rule_db.ref}
+    caused_by = {}
+    if trigger_instance_db:
+        # Once RuleEnforcement is available that can be used instead.
+        caused_by['type'] = 'trigger_instance'
+        caused_by['id'] = str(trigger_instance_db.id)
+    trace_component['caused_by'] = caused_by
+    return trace_component
+
+
+def get_trace_component_for_trigger_instance(trigger_instance_db):
+    """
+    Returns the trace_component compatible dict representation of a triggerinstance.
+
+    :param trigger_instance_db: The TriggerInstance to translate
+    :type trigger_instance_db: TriggerInstanceDB
+
+    :rtype: ``dict``
+    """
+    trace_component = {}
+    trace_component = {
+        'id': str(trigger_instance_db.id),
+        'ref': trigger_instance_db.trigger
+    }
+    caused_by = {}
+    # Special handling for ACTION_SENSOR_TRIGGER and NOTIFY_TRIGGER where we
+    # know how to maintain the links.
+    if trigger_instance_db.trigger == ACTION_SENSOR_TRIGGER_REF or \
+       trigger_instance_db.trigger == NOTIFY_TRIGGER_REF:
+        caused_by['type'] = 'action_execution'
+        # For both action trigger and notidy trigger execution_id is stored in the payload.
+        caused_by['id'] = trigger_instance_db.payload['execution_id']
+    trace_component['caused_by'] = caused_by
+    return trace_component
+
+
+def _to_trace_component_db(component):
+    """
+    Take the component as string or a dict and will construct a TraceComponentDB.
+
+    :param component: Should identify the component. If a string should be id of the
+                      component. If a dict should contain id and the caused_by.
+    :type component: ``bson.ObjectId`` or ``dict``
+
+    :rtype: ``TraceComponentDB``
+    """
+    if not isinstance(component, (basestring, dict)):
+        print type(component)
+        raise ValueError('Expected component to be str or dict')
+
+    object_id = component if isinstance(component, basestring) else component['id']
+    ref = component.get('ref', '') if isinstance(component, dict) else ''
+    caused_by = component.get('caused_by', {}) if isinstance(component, dict) else {}
+
+    return TraceComponentDB(object_id=object_id, ref=ref, caused_by=caused_by)

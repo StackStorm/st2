@@ -159,7 +159,8 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
 class PermissionsResolverUtilsTestCase(unittest2.TestCase):
     def test_get_resolver_for_resource_type_valid_resource_type(self):
         valid_resources_types = [ResourceType.PACK, ResourceType.SENSOR, ResourceType.ACTION,
-                                 ResourceType.RULE, ResourceType.EXECUTION,
+                                 ResourceType.RULE, ResourceType.RULE_ENFORCEMENT,
+                                 ResourceType.EXECUTION,
                                  ResourceType.KEY_VALUE_PAIR,
                                  ResourceType.WEBHOOK]
 

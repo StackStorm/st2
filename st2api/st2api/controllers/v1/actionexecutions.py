@@ -29,7 +29,7 @@ from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
-from st2common.constants.action import CANCELABLE_STATES
+from st2common.constants.action import LIVEACTION_CANCELABLE_STATES
 from st2common.exceptions.trace import TraceNotFoundException
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.base import jsexpose
@@ -381,7 +381,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         if liveaction_db.status == LIVEACTION_STATUS_CANCELED:
             abort(http_client.OK, 'Action is already in "canceled" state.')
 
-        if liveaction_db.status not in CANCELABLE_STATES:
+        if liveaction_db.status not in LIVEACTION_CANCELABLE_STATES:
             abort(http_client.OK, 'Action cannot be canceled. State = %s.' % liveaction_db.status)
 
         try:

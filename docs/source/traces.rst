@@ -146,6 +146,24 @@ Get
 
     $ st2 trace get <trace-id>
 
+* View the causation chain in a trace for an action execution. Similarly for rule and trigger-instance.
+
+.. code-block:: bash
+
+    $ st2 trace get <trace-id> -e
+
+* View specific type in a trace.
+
+.. code-block:: bash
+
+    $ st2 trace get <trace-id> --show-executions
+
+* Hide noop trigger instances. These are trigger instances which do no lead to a rule enforcement.
+
+.. code-block:: bash
+
+    $ st2 trace get <trace-id> --hide-noop-triggers
+
 
 Is everythign traced?
 ---------------------

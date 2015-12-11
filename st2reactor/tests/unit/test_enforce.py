@@ -16,6 +16,7 @@
 import mock
 
 from st2common.models.db.trigger import TriggerInstanceDB
+from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.services import action as action_service
 from st2common.util import reference
@@ -43,8 +44,11 @@ MOCK_TRIGGER_INSTANCE.occurrence_time = date_utils.get_datetime_utc_now()
 
 MOCK_LIVEACTION = LiveActionDB()
 MOCK_LIVEACTION.id = 'liveaction-test-1.id'
-MOCK_LIVEACTION.name = 'liveaction-test-1.name'
 MOCK_LIVEACTION.status = 'requested'
+
+MOCK_EXECUTION = ActionExecutionDB()
+MOCK_EXECUTION.id = 'exec-test-1.id'
+MOCK_EXECUTION.status = 'requested'
 
 
 class EnforceTest(DbTestCase):
@@ -64,18 +68,18 @@ class EnforceTest(DbTestCase):
             cls.models['triggers']['trigger1.yaml'])
 
     @mock.patch.object(action_service, 'request', mock.MagicMock(
-        return_value=(MOCK_LIVEACTION, None)))
+        return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
     def test_ruleenforcement_occurs(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule1.yaml'])
-        liveaction_db = enforcer.enforce()
-        self.assertTrue(liveaction_db is not None)
+        execution_db = enforcer.enforce()
+        self.assertTrue(execution_db is not None)
 
     @mock.patch.object(action_service, 'request', mock.MagicMock(
-        return_value=(MOCK_LIVEACTION, None)))
+        return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
     def test_ruleenforcement_casts(self):
         enforcer = RuleEnforcer(MOCK_TRIGGER_INSTANCE, self.models['rules']['rule2.yaml'])
-        liveaction_db = enforcer.enforce()
-        self.assertTrue(liveaction_db is not None)
+        execution_db = enforcer.enforce()
+        self.assertTrue(execution_db is not None)
         self.assertTrue(action_service.request.called)
         self.assertTrue(isinstance(action_service.request.call_args[0][0].parameters['objtype'],
                                    dict))

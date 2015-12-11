@@ -26,6 +26,7 @@ from st2common.models.api.auth import ApiKeyAPI, UserAPI
 from st2common.models.api.execution import (ActionExecutionAPI)
 from st2common.models.api.policy import (PolicyTypeAPI, PolicyAPI)
 from st2common.models.api.rule import (RuleAPI)
+from st2common.models.api.rule_enforcement import RuleEnforcementAPI
 from st2common.models.api.sensor import SensorTypeAPI
 from st2common.models.api.trace import TraceAPI
 from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI, TriggerInstanceAPI)
@@ -39,6 +40,7 @@ from st2common.models.db.runner import RunnerTypeDB
 from st2common.models.db.execution import (ActionExecutionDB)
 from st2common.models.db.policy import (PolicyTypeDB, PolicyDB)
 from st2common.models.db.rule import RuleDB
+from st2common.models.db.rule_enforcement import RuleEnforcementDB
 from st2common.models.db.sensor import SensorTypeDB
 from st2common.models.db.trace import TraceDB
 from st2common.models.db.trigger import (TriggerDB, TriggerTypeDB, TriggerInstanceDB)
@@ -51,6 +53,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.persistence.policy import (PolicyType, Policy)
 from st2common.persistence.rule import Rule
+from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.persistence.sensor import SensorType
 from st2common.persistence.trace import Trace
 from st2common.persistence.trigger import (Trigger, TriggerType, TriggerInstance)
@@ -59,7 +62,7 @@ from st2common.persistence.trigger import (Trigger, TriggerType, TriggerInstance
 ALLOWED_DB_FIXTURES = ['actions', 'actionstates', 'aliases', 'executions', 'liveactions',
                        'policies', 'policytypes', 'rules', 'runners', 'sensors',
                        'triggertypes', 'triggers', 'triggerinstances', 'traces', 'apikeys',
-                       'users']
+                       'users', 'enforcements']
 ALLOWED_FIXTURES = copy.copy(ALLOWED_DB_FIXTURES)
 ALLOWED_FIXTURES.extend(['actionchains', 'workflows'])
 
@@ -68,6 +71,7 @@ FIXTURE_DB_MODEL = {
     'aliases': ActionAliasDB,
     'actionstates': ActionExecutionStateDB,
     'apikeys': ApiKeyDB,
+    'enforcements': RuleEnforcementDB,
     'executions': ActionExecutionDB,
     'liveactions': LiveActionDB,
     'policies': PolicyDB,
@@ -87,6 +91,7 @@ FIXTURE_API_MODEL = {
     'aliases': ActionAliasAPI,
     'actionstates': ActionExecutionStateAPI,
     'apikeys': ApiKeyAPI,
+    'enforcements': RuleEnforcementAPI,
     'executions': ActionExecutionAPI,
     'liveactions': LiveActionAPI,
     'policies': PolicyAPI,
@@ -107,6 +112,7 @@ FIXTURE_PERSISTENCE_MODEL = {
     'aliases': ActionAlias,
     'actionstates': ActionExecutionState,
     'apikeys': ApiKey,
+    'enforcements': RuleEnforcement,
     'executions': ActionExecution,
     'liveactions': LiveAction,
     'policies': Policy,

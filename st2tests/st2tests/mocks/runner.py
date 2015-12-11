@@ -13,24 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    import simplejson as json
-except:
-    import json
+import json
 
 from st2actions.runners import ActionRunner
 from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED)
 
-RAISE_PROPERTY = 'raise'
+__all__ = [
+    'get_runner',
+    'MockActionRunner'
+]
 
 
 def get_runner():
-    return TestRunner()
+    return MockActionRunner()
 
 
-class TestRunner(ActionRunner):
+class MockActionRunner(ActionRunner):
     def __init__(self):
-        super(TestRunner, self).__init__(runner_id='1')
+        super(MockActionRunner, self).__init__(runner_id='1')
+
         self.pre_run_called = False
         self.run_called = False
         self.post_run_called = False
@@ -41,20 +42,25 @@ class TestRunner(ActionRunner):
     def run(self, action_params):
         self.run_called = True
         result = {}
-        if self.runner_parameters.get(RAISE_PROPERTY, False):
+
+        if self.runner_parameters.get('raise', False):
             raise Exception('Raise required.')
-        else:
-            result = {
-                'ran': True,
-                'action_params': action_params
-            }
-        context = {
+
+        default_result = {
+            'ran': True,
+            'action_params': action_params
+        }
+        default_context = {
             'third_party_system': {
                 'ref_id': '1234'
             }
         }
 
-        return (LIVEACTION_STATUS_SUCCEEDED, json.dumps(result), context)
+        status = self.runner_parameters.get('mock_status', LIVEACTION_STATUS_SUCCEEDED)
+        result = self.runner_parameters.get('mock_result', default_result)
+        context = self.runner_parameters.get('mock_context', default_context)
+
+        return (status, json.dumps(result), context)
 
     def post_run(self, status, result):
         self.post_run_called = True
