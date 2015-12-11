@@ -14,6 +14,7 @@ in development
   action.ref and enabled. This aligns closer the UI and also brings important information front and
   center. (improvement)
 * Action and Trigger filters for rule list (new-feature)
+* Support for object already present in the DB for ``st2-rule-tester`` (improvement)
 
 1.2.0 - December 07, 2015
 -------------------------
