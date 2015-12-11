@@ -357,7 +357,10 @@ Output:
 
 .. code-block:: bash
 
-    === RULE MATCHES ===
+    2015-12-11 14:35:03,249 INFO [-] Connecting to database "st2" @ "0.0.0.0:27017" as user "None".
+    2015-12-11 14:35:03,318 INFO [-] Validating rule irc.relayed_matched_irc_message for pubmsg.
+    2015-12-11 14:35:03,331 INFO [-] 1 rule(s) found to enforce for pubmsg.
+    2015-12-11 14:35:03,333 INFO [-] === RULE MATCHES ===
     0
 
 .. code-block:: bash
@@ -369,7 +372,17 @@ Output:
 
 .. code-block:: bash
 
-    === RULE DOES NOT MATCH ===
+    2015-12-11 14:35:57,380 INFO [-] Connecting to database "st2" @ "0.0.0.0:27017" as user "None".
+    2015-12-11 14:35:57,444 INFO [-] Validating rule irc.relayed_matched_irc_message for pubmsg.
+    2015-12-11 14:35:57,459 INFO [-] Validation for rule irc.relayed_matched_irc_message failed on -
+    {
+        "pattern": "StackStorm",
+        "type": "icontains",
+        "payload_value": "blah blah",
+        "key": "trigger.message"
+    }
+    2015-12-11 14:35:57,461 INFO [-] 0 rule(s) found to enforce for pubmsg.
+    2015-12-11 14:35:57,462 INFO [-] === RULE DOES NOT MATCH ===
     1
 
 If you are debugging and would like to see the list of trigger instances sent to |st2|,
