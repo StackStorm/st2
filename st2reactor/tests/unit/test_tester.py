@@ -18,7 +18,6 @@ import os
 import mock
 
 from st2common.transport.publishers import PoolPublisher
-import st2reactor.container.utils as container_utils
 from st2reactor.rules.tester import RuleTester
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
@@ -36,6 +35,7 @@ TEST_MODELS_TRIGGERS = {
 TEST_MODELS_RULES = {
     'rules': ['rule1.yaml']
 }
+
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class RuleTesterTestCase(CleanDbTestCase):
