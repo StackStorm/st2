@@ -375,12 +375,10 @@ Output:
     2015-12-11 14:35:57,380 INFO [-] Connecting to database "st2" @ "0.0.0.0:27017" as user "None".
     2015-12-11 14:35:57,444 INFO [-] Validating rule irc.relayed_matched_irc_message for pubmsg.
     2015-12-11 14:35:57,459 INFO [-] Validation for rule irc.relayed_matched_irc_message failed on -
-    {
-        "pattern": "StackStorm",
-        "type": "icontains",
-        "payload_value": "blah blah",
-        "key": "trigger.message"
-    }
+      key: trigger.message
+      pattern: StackStorm
+      type: icontains
+      payload: blah blah
     2015-12-11 14:35:57,461 INFO [-] 0 rule(s) found to enforce for pubmsg.
     2015-12-11 14:35:57,462 INFO [-] === RULE DOES NOT MATCH ===
     1
@@ -403,12 +401,10 @@ Output:
     2015-12-11 15:24:16,459 INFO [-] Connecting to database "st2" @ "0.0.0.0:27017" as user "None".
     2015-12-11 15:24:16,527 INFO [-] Validating rule my_pack.fire_on_execution for st2.generic.actiontrigger.
     2015-12-11 15:24:16,542 INFO [-] Validation for rule my_pack.fire_on_execution failed on -
-    {
-        "pattern": "succeeded",
-        "type": "iequals",
-        "payload_value": "failed",
-        "key": "trigger.status"
-    }
+      key: trigger.status
+      pattern: succeeded
+      type: iequals
+      payload: failed
     2015-12-11 15:24:16,545 INFO [-] 0 rule(s) found to enforce for st2.generic.actiontrigger.
     2015-12-11 15:24:16,546 INFO [-] === RULE DOES NOT MATCH ===
 

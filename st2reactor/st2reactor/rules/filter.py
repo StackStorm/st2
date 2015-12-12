@@ -81,14 +81,15 @@ class RuleFilter(object):
                 criterion_k, criterion_v, payload_lookup)
             if not is_rule_applicable:
                 if self.extra_info:
-                    extra = {
-                        'key': criterion_k,
-                        'type': criterion_v['type'],
-                        'pattern': criterion_pattern,
-                        'payload_value': payload_value
-                    }
-                    LOG.info('Validation for rule %s failed on -\n%s', self.rule.ref,
-                             json.dumps(extra, indent=4))
+                    criteria_extra_info = '\n'.join([
+                        '  key: %s' % criterion_k,
+                        '  pattern: %s' % criterion_pattern,
+                        '  type: %s' % criterion_v['type'],
+                        '  payload: %s' % payload_value
+                    ])
+                    LOG.info('Validation for rule %s failed on criteria -\n%s', self.rule.ref,
+                             criteria_extra_info,
+                             extra=self._base_logger_context)
                 break
 
         if not is_rule_applicable:
