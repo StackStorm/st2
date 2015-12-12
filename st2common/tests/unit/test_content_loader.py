@@ -36,7 +36,7 @@ class ContentLoaderTest(unittest2.TestCase):
         loader = ContentPackLoader()
         fail_pack_path = os.path.join(RESOURCES_DIR, 'packs/pack2')
         self.assertTrue(os.path.exists(fail_pack_path))
-        self.assertRaises(ValueError, loader._get_sensors, fail_pack_path)
+        self.assertEqual(loader._get_sensors(fail_pack_path), None)
 
     def test_invalid_content_type(self):
         packs_base_path = os.path.join(RESOURCES_DIR, 'packs/')
@@ -81,6 +81,5 @@ class ContentLoaderTest(unittest2.TestCase):
         loader = ContentPackLoader()
         pack_path = os.path.join(RESOURCES_DIR, 'packs/pack2')
 
-        message_regex = 'No sensors found'
-        self.assertRaisesRegexp(ValueError, message_regex, loader.get_content_from_pack,
-                                pack_dir=pack_path, content_type='sensors')
+        result = loader.get_content_from_pack(pack_dir=pack_path, content_type='sensors')
+        self.assertEqual(result, None)
