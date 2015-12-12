@@ -59,7 +59,10 @@ class ActionsRegistrar(ResourceRegistrar):
                 actions = self._get_actions_from_pack(actions_dir)
                 count = self._register_actions_from_pack(pack=pack, actions=actions)
                 registered_count += count
-            except:
+            except Exception as e:
+                if self._fail_on_failure:
+                    raise e
+
                 LOG.exception('Failed registering all actions from pack: %s', actions_dir)
 
         return registered_count
@@ -88,7 +91,10 @@ class ActionsRegistrar(ResourceRegistrar):
         try:
             actions = self._get_actions_from_pack(actions_dir=actions_dir)
             registered_count = self._register_actions_from_pack(pack=pack, actions=actions)
-        except:
+        except Exception as e:
+            if self._fail_on_failure:
+                raise e
+
             LOG.exception('Failed registering all actions from pack: %s', actions_dir)
 
         return registered_count
@@ -143,7 +149,10 @@ class ActionsRegistrar(ResourceRegistrar):
             try:
                 LOG.debug('Loading action from %s.', action)
                 self._register_action(pack, action)
-            except Exception:
+            except Exception as e:
+                if self._fail_on_failure:
+                    raise e
+
                 LOG.exception('Unable to register action: %s', action)
                 continue
             else:
@@ -152,14 +161,16 @@ class ActionsRegistrar(ResourceRegistrar):
         return registered_count
 
 
-def register_actions(packs_base_paths=None, pack_dir=None, use_pack_cache=True):
+def register_actions(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
+                     fail_on_failure=False):
     if packs_base_paths:
         assert isinstance(packs_base_paths, list)
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()
 
-    registrar = ActionsRegistrar(use_pack_cache=use_pack_cache)
+    registrar = ActionsRegistrar(use_pack_cache=use_pack_cache,
+                                 fail_on_failure=fail_on_failure)
 
     if pack_dir:
         result = registrar.register_actions_from_pack(pack_dir=pack_dir)

@@ -55,7 +55,10 @@ class RulesRegistrar(ResourceRegistrar):
                 rules = self._get_rules_from_pack(rules_dir)
                 count = self._register_rules_from_pack(pack, rules)
                 registered_count += count
-            except:
+            except Exception as e:
+                if self._fail_on_failure:
+                    raise e
+
                 LOG.exception('Failed registering all rules from pack: %s', rules_dir)
 
         return registered_count
@@ -84,7 +87,10 @@ class RulesRegistrar(ResourceRegistrar):
         try:
             rules = self._get_rules_from_pack(rules_dir=rules_dir)
             registered_count = self._register_rules_from_pack(pack=pack, rules=rules)
-        except:
+        except Exception as e:
+            if self._fail_on_failure:
+                raise e
+
             LOG.exception('Failed registering all rules from pack: %s', rules_dir)
 
         return registered_count
@@ -95,6 +101,7 @@ class RulesRegistrar(ResourceRegistrar):
     def _register_rules_from_pack(self, pack, rules):
         registered_count = 0
 
+        # TODO: Refactor this monstrosity
         for rule in rules:
             LOG.debug('Loading rule from %s.', rule)
             try:
@@ -151,8 +158,10 @@ class RulesRegistrar(ResourceRegistrar):
                 # lead to removal of a Trigger so now is a good time for book-keeping.
                 if existing:
                     cleanup_trigger_db_for_rule(existing)
+            except Exception as e:
+                if self._fail_on_failure:
+                    raise e
 
-            except:
                 LOG.exception('Failed registering rule from %s.', rule)
             else:
                 registered_count += 1
@@ -160,14 +169,16 @@ class RulesRegistrar(ResourceRegistrar):
         return registered_count
 
 
-def register_rules(packs_base_paths=None, pack_dir=None, use_pack_cache=True):
+def register_rules(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
+                   fail_on_failure=False):
     if packs_base_paths:
         assert isinstance(packs_base_paths, list)
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()
 
-    registrar = RulesRegistrar(use_pack_cache=use_pack_cache)
+    registrar = RulesRegistrar(use_pack_cache=use_pack_cache,
+                               fail_on_failure=fail_on_failure)
 
     if pack_dir:
         result = registrar.register_rules_from_pack(pack_dir=pack_dir)
