@@ -357,7 +357,10 @@ Output:
 
 .. code-block:: bash
 
-    === RULE MATCHES ===
+    2015-12-11 14:35:03,249 INFO [-] Connecting to database "st2" @ "0.0.0.0:27017" as user "None".
+    2015-12-11 14:35:03,318 INFO [-] Validating rule irc.relayed_matched_irc_message for pubmsg.
+    2015-12-11 14:35:03,331 INFO [-] 1 rule(s) found to enforce for pubmsg.
+    2015-12-11 14:35:03,333 INFO [-] === RULE MATCHES ===
     0
 
 .. code-block:: bash
@@ -369,8 +372,44 @@ Output:
 
 .. code-block:: bash
 
-    === RULE DOES NOT MATCH ===
+    2015-12-11 14:35:57,380 INFO [-] Connecting to database "st2" @ "0.0.0.0:27017" as user "None".
+    2015-12-11 14:35:57,444 INFO [-] Validating rule irc.relayed_matched_irc_message for pubmsg.
+    2015-12-11 14:35:57,459 INFO [-] Validation for rule irc.relayed_matched_irc_message failed on -
+      key: trigger.message
+      pattern: StackStorm
+      type: icontains
+      payload: blah blah
+    2015-12-11 14:35:57,461 INFO [-] 0 rule(s) found to enforce for pubmsg.
+    2015-12-11 14:35:57,462 INFO [-] === RULE DOES NOT MATCH ===
     1
+
+``st2-rule-tester`` further allows a kind of post-mortem debugging where you can answer the
+question ``Why did my rule not match the trigger that just fired?``. This means there is known ``Rule`` identifiable by its reference loaded in StackStorm and similarly a
+TriggerInstance with a known id.
+
+Lets say we have rule reference `my_pack.fire_on_execution` and a trigger instance `566b4be632ed352a09cd347d`
+
+.. code-block:: bash
+
+    st2-rule-tester --rule-ref=my_pack.fire_on_execution --trigger-instance-id=566b4be632ed352a09cd347d --config-file=/etc/st2/st2.conf
+    echo $?
+
+Output:
+
+.. code-block:: bash
+
+    2015-12-11 15:24:16,459 INFO [-] Connecting to database "st2" @ "0.0.0.0:27017" as user "None".
+    2015-12-11 15:24:16,527 INFO [-] Validating rule my_pack.fire_on_execution for st2.generic.actiontrigger.
+    2015-12-11 15:24:16,542 INFO [-] Validation for rule my_pack.fire_on_execution failed on -
+      key: trigger.status
+      pattern: succeeded
+      type: iequals
+      payload: failed
+    2015-12-11 15:24:16,545 INFO [-] 0 rule(s) found to enforce for st2.generic.actiontrigger.
+    2015-12-11 15:24:16,546 INFO [-] === RULE DOES NOT MATCH ===
+
+
+The output also identifies source of the mismatch i.e. whether it was the trigger type that did not match or one of the criteria.
 
 If you are debugging and would like to see the list of trigger instances sent to |st2|,
 you can use the CLI to do so.
