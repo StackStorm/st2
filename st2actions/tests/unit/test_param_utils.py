@@ -46,52 +46,6 @@ class ParamsUtilsTest(DbTestCase):
     action_system_default_db = FIXTURES['actions']['action_system_default.yaml']
     runnertype_db = FIXTURES['runners']['testrunner1.yaml']
 
-    def test_get_resolved_params(self):
-        params = {
-            'actionstr': 'foo',
-            'some_key_that_aint_exist_in_action_or_runner': 'bar',
-            'runnerint': 555,
-            'runnerimmutable': 'failed_override',
-            'actionimmutable': 'failed_override',
-            'defaults_ovverriden_by_execution': 0,
-        }
-        liveaction_db = self._get_liveaction_model(params)
-        action_context = {'api_user': None}
-
-        runner_params, action_params = param_utils.get_finalized_params(
-            ParamsUtilsTest.runnertype_db.runner_parameters,
-            ParamsUtilsTest.action_db.parameters,
-            liveaction_db.parameters,
-            action_context)
-
-        # Asserts for runner params.
-        # Assert that default values for runner params are resolved.
-        self.assertEqual(runner_params.get('runnerstr'), 'defaultfoo')
-        # Assert that a runner param from action exec is picked up.
-        self.assertEqual(runner_params.get('runnerint'), 555)
-        # Assert that a runner param can be overridden by action param default.
-        self.assertEqual(runner_params.get('runnerdummy'), 'actiondummy')
-        # Assert that a runner param default can be overridden by 'falsey' action param default,
-        # (timeout: 0 case).
-        self.assertEqual(runner_params.get('runnerdefaultint'), 0)
-        # Assert that execution param overrides both runner and action params defaults.
-        self.assertEqual(runner_params.get('defaults_ovverriden_by_execution'), 0)
-        # Assert that runner param made immutable in action can use default value in runner.
-        self.assertEqual(runner_params.get('runnerfoo'), 'FOO')
-        # Assert that an immutable param cannot be overridden by action param or execution param.
-        self.assertEqual(runner_params.get('runnerimmutable'), 'runnerimmutable')
-
-        # Asserts for action params.
-        self.assertEqual(action_params.get('actionstr'), 'foo')
-        # Assert that a param that is provided in action exec that isn't in action or runner params
-        # isn't in resolved params.
-        self.assertEqual(action_params.get('some_key_that_aint_exist_in_action_or_runner'), None)
-        # Assert that an immutable param cannot be overridden by execution param.
-        self.assertEqual(action_params.get('actionimmutable'), 'actionimmutable')
-        # Assert that none of runner params are present in action_params.
-        for k in action_params:
-            self.assertTrue(k not in runner_params, 'Param ' + k + ' is a runner param.')
-
     def test_get_finalized_params(self):
         params = {
             'actionstr': 'foo',
@@ -115,6 +69,9 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(runner_params.get('runnerint'), 555)
         # Assert that a runner param can be overridden by action param default.
         self.assertEqual(runner_params.get('runnerdummy'), 'actiondummy')
+        # Assert that a runner param default can be overridden by 'falsey' action param default,
+        # (timeout: 0 case).
+        self.assertEqual(runner_params.get('runnerdefaultint'), 0)
         # Assert that an immutable param cannot be overridden by action param or execution param.
         self.assertEqual(runner_params.get('runnerimmutable'), 'runnerimmutable')
 
@@ -157,7 +114,7 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(action_params.get('actionstr'), 'foo')
         self.assertEqual(action_params.get('actionnumber'), 1.0)
 
-    def test_get_resolved_params_action_immutable(self):
+    def test_get_finalized_params_action_immutable(self):
         params = {
             'actionstr': 'foo',
             'some_key_that_aint_exist_in_action_or_runner': 'bar',
@@ -293,6 +250,31 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(r_runner_params, {'r1': True, 'r2': 1, 'r3': 1})
         self.assertEqual(r_action_params, {'a1': True, 'a2': (True, True, True, 1), 'a3': u'True'})
 
+    def test_get_finalized_params_order(self):
+        params = {
+            'r1': 'p1',
+            'r2': 'p2',
+            'r3': 'p3',
+            'a1': 'p4',
+            'a2': 'p5'
+        }
+        runner_param_info = {'r1': {}, 'r2': {'default': 'r2'}, 'r3': {'default': 'r3'}}
+        action_param_info = {'a1': {}, 'a2': {'default': 'a2'}, 'r3': {'default': 'a3'}}
+        action_context = {'api_user': 'noob'}
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+        self.assertEqual(r_runner_params, {'r1': u'p1', 'r2': u'p2', 'r3': u'p3'})
+        self.assertEqual(r_action_params, {'a1': u'p4', 'a2': u'p5'})
+
+        params = {}
+        runner_param_info = {'r1': {}, 'r2': {'default': 'r2'}, 'r3': {'default': 'r3'}}
+        action_param_info = {'a1': {}, 'a2': {'default': 'a2'}, 'r3': {'default': 'a3'}}
+        action_context = {'api_user': 'noob'}
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+        self.assertEqual(r_runner_params, {'r1': None, 'r2': u'r2', 'r3': u'a3'})
+        self.assertEqual(r_action_params, {'a1': None, 'a2': u'a2'})
+
     def test_get_finalized_params_non_existent_template_key_in_action_context(self):
         params = {
             'r1': 'foo',
@@ -391,6 +373,17 @@ class ParamsUtilsTest(DbTestCase):
     def test_get_finalized_params_with_missing_dependency(self):
         params = {'r1': '{{r3}}', 'r2': '{{r3}}'}
         runner_param_info = {'r1': {}, 'r2': {}}
+        action_param_info = {}
+        test_pass = True
+        try:
+            param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
+            test_pass = False
+        except actionrunner.ActionRunnerException as e:
+            test_pass = e.message.find('Dependecy') == 0
+        self.assertTrue(test_pass)
+
+        params = {}
+        runner_param_info = {'r1': {'default': '{{r3}}'}, 'r2': {'default': '{{r3}}'}}
         action_param_info = {}
         test_pass = True
         try:

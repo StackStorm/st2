@@ -23,6 +23,7 @@ import pecan
 from pecan import abort
 from six.moves import http_client
 
+from st2actions.utils import param_utils
 from st2api.controllers.base import BaseRestControllerMixin
 from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import ExecutionViewsController
@@ -44,6 +45,7 @@ from st2common.util import jsonify
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util.api import get_requester
+from st2common.util import schema as util_schema
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
@@ -138,8 +140,24 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             liveaction.context.update(context)
 
         # Schedule the action execution.
-        liveactiondb = LiveActionAPI.to_model(liveaction)
-        _, actionexecutiondb = action_service.request(liveactiondb)
+        liveaction_db = LiveActionAPI.to_model(liveaction)
+
+        action_db = action_utils.get_action_by_ref(liveaction_db.action)
+        if not action_db:
+            raise Exception('Action %s not found in DB.' % (liveaction_db.action))
+
+        runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
+
+        # Validate action parameters.
+        schema = util_schema.get_schema_for_action_parameters(action_db)
+        validator = util_schema.get_validator()
+        util_schema.validate(liveaction.parameters, schema, validator, use_default=True,
+                             allow_default_none=True)
+
+        liveaction_db.parameters = param_utils.render_live_params(runnertype_db.runner_parameters,
+            action_db.parameters, liveaction_db.parameters, liveaction_db.context)
+
+        _, actionexecutiondb = action_service.request(liveaction_db)
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
         return ActionExecutionAPI.from_model(actionexecutiondb, from_model_kwargs)
 

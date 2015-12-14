@@ -93,7 +93,7 @@ class RunnerContainer(object):
         try:
             # Finalized parameters are resolved and then rendered. This process could
             # fail. Handle the exception and report the error correctly.
-            runner_params, action_params = param_utils.get_finalized_params(
+            runner_params, action_params = param_utils.render_final_params(
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
                 liveaction_db.context)
             runner.runner_parameters = runner_params

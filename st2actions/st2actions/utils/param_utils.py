@@ -13,12 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-
 import six
 import networkx as nx
 
-from jinja2 import Environment, StrictUndefined, meta
+from jinja2 import meta
 from st2common import log as logging
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
@@ -26,11 +24,14 @@ from st2common.exceptions import actionrunner
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util.casts import get_cast
 from st2common.util.compat import to_unicode
+from st2common.util import jinja as jinja_utils
 
 
 LOG = logging.getLogger(__name__)
 
 __all__ = [
+    'render_live_params',
+    'render_final_params',
     'get_finalized_params',
 ]
 
@@ -68,8 +69,11 @@ def _cast(v, parameter_schema):
     return cast(v)
 
 
-def process(G, name, value):
-    env = Environment(undefined=StrictUndefined)
+def _process(G, name, value):
+    '''
+    Determines whether parameter is a template or a value. Adds graph nodes and edges accordingly.
+    '''
+    env = jinja_utils.get_jinja_environment()
     if isinstance(value, str):
         value = to_unicode(value)
     template_ast = env.parse(value)
@@ -81,29 +85,29 @@ def process(G, name, value):
     else:
         G.add_node(name, value=value)
 
-def render_live_params(runnertype_parameter_info, action_parameter_info, liveaction_parameters,
-                       action_context):
+
+def render_live_params(runnertype_parameter_info, action_parameter_info, params, action_context):
     '''
-    This function would happen on a st2api side and would only apply to manual action invocations
-    and calls from mistral
+    Renders list of parameters. Ensures that there's no cyclic or missing dependencies. Returns a
+    dict of plain rendered parameters.
     '''
     render_context = {}
-    env = Environment(undefined=StrictUndefined)
+    env = jinja_utils.get_jinja_environment()
 
     G = nx.DiGraph()
     G.add_node(SYSTEM_KV_PREFIX, value=KeyValueLookup())
     G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
 
-    for name, value in six.iteritems(liveaction_parameters):
-        process(G, name, value)
+    for name, value in six.iteritems(params):
+        _process(G, name, value)
 
     for name, value in six.iteritems(runnertype_parameter_info):
-        if 'default' in value and name not in liveaction_parameters or value.get('immutable', False):
-            process(G, name, value['default'])
+        if name not in params or value.get('immutable', False):
+            _process(G, name, value.get('default', None))
 
     for name, value in six.iteritems(action_parameter_info):
-        if 'default' in value and name not in liveaction_parameters or value.get('immutable', False):
-            process(G, name, value['default'])
+        if name not in params or value.get('immutable', False):
+            _process(G, name, value.get('default', None))
 
     for name in G.nodes():
         if 'value' not in G.node[name] and 'template' not in G.node[name]:
@@ -126,43 +130,48 @@ def render_live_params(runnertype_parameter_info, action_parameter_info, liveact
         if 'value' in node:
             render_context[name] = node['value']
 
-    params = {}
-    for name in liveaction_parameters:
+    result = {}
+    for name in params:
         schema = {}
         if (name in action_parameter_info):
             schema = action_parameter_info[name]
         if (name in runnertype_parameter_info):
             schema = runnertype_parameter_info[name]
-        params[name] = _cast(render_context[name], schema)
+        result[name] = _cast(render_context[name], schema)
 
-    return params
+    return result
 
 
-def render_final_params(runnertype_parameter_info, action_parameter_info, liveaction_parameters,
-                        action_context):
+def render_final_params(runnertype_parameter_info, action_parameter_info, params, action_context):
     '''
-    This one would later became `get_finalized_params` and will be handling both calls from api and
-    those that came from action_chain and rule engine.
+    Renders missing parameters required for action to execute. Treats parameters from the dict as
+    plain values instead of trying to render them again. Returns dicts for action and runner
+    parameters.
     '''
     render_context = {}
-    env = Environment(undefined=StrictUndefined)
+    env = jinja_utils.get_jinja_environment()
 
     G = nx.DiGraph()
     G.add_node(SYSTEM_KV_PREFIX, value=KeyValueLookup())
     G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
 
-    params = copy.copy(liveaction_parameters)
-
     for name, value in six.iteritems(params):
-        process(G, name, value)
+        # by that point, all params should already be resolved so any template should be treated as
+        # a value
+        G.add_node(name, value=value)
 
     for name, value in six.iteritems(runnertype_parameter_info):
-        if 'default' in value and name not in params or value.get('immutable', False):
-            process(G, name, value['default'])
+        if name not in params or value.get('immutable', False):
+            _process(G, name, value.get('default', None))
 
     for name, value in six.iteritems(action_parameter_info):
-        if 'default' in value and name not in params or value.get('immutable', False):
-            process(G, name, value['default'])
+        if name not in params or value.get('immutable', False):
+            _process(G, name, value.get('default', None))
+
+    for name in G.nodes():
+        if 'value' not in G.node[name] and 'template' not in G.node[name]:
+            msg = 'Dependecy unsatisfied in %s' % name
+            raise actionrunner.ActionRunnerException(msg)
 
     if not nx.is_directed_acyclic_graph(G):
         msg = 'Cyclic dependecy found'
@@ -182,7 +191,8 @@ def render_final_params(runnertype_parameter_info, action_parameter_info, liveac
         if name in render_context:
             render_context[name] = _cast(render_context[name], schema)
 
-    runner_params, action_params = _split_params(runnertype_parameter_info, action_parameter_info, render_context)
+    runner_params, action_params = _split_params(runnertype_parameter_info, action_parameter_info,
+                                                 render_context)
 
     return (runner_params, action_params)
 
@@ -190,8 +200,8 @@ def render_final_params(runnertype_parameter_info, action_parameter_info, liveac
 def get_finalized_params(runnertype_parameter_info, action_parameter_info, liveaction_parameters,
                          action_context):
     '''
-    I'm leaving both functions in the same file for now just to keep tests intact, make sure I
-    haven't messed up the logic and to make it easier for you to understand what's happening there.
+    Left here to keep tests running. Later we would need to split tests so they start testing each
+    function separately.
     '''
 
     params = render_live_params(runnertype_parameter_info, action_parameter_info,
