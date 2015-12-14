@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+* Allow user to pass ``env`` parameter to ``packs.setup_virtualenv`` and ``packs.install``
+  action.
+
+  This comes handy if user wants pip to use an HTTP(s) proxy (HTTP_PROXY and HTTPS_PROXY
+  environment variable) when installing pack dependencies. (new feature)
 * Ability to view causation chains in Trace. This helps reduce the noise when using Trace to
   identify specific issues. (new-feature)
 * Filter Trace components by model types to only view ActionExecutions, Rules or TriggerInstances.
@@ -14,6 +19,7 @@ in development
   action.ref and enabled. This aligns closer the UI and also brings important information front and
   center. (improvement)
 * Action and Trigger filters for rule list (new-feature)
+* Add missing logrotate config entry for ``st2auth`` service. #2294 [Vignesh Terafast]
 * Support for object already present in the DB for ``st2-rule-tester`` (improvement)
 
 1.2.0 - December 07, 2015
