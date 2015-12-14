@@ -4,10 +4,80 @@ Changelog
 in development
 --------------
 
+* Allow user to pass ``env`` parameter to ``packs.setup_virtualenv`` and ``packs.install``
+  action.
+
+  This comes handy if user wants pip to use an HTTP(s) proxy (HTTP_PROXY and HTTPS_PROXY
+  environment variable) when installing pack dependencies. (new feature)
+* Ability to view causation chains in Trace. This helps reduce the noise when using Trace to
+  identify specific issues. (new-feature)
+* Filter Trace components by model types to only view ActionExecutions, Rules or TriggerInstances.
+  (new-feature)
+* Include ref of the most meaningful object in each trace component. (new-feature)
+* Ability to hide trigger-instance that do not yield a rule enforcement. (new-feature)
+* Change the rule list columns in the CLI from ref, pack, description and enabled to ref, trigger.ref,
+  action.ref and enabled. This aligns closer the UI and also brings important information front and
+  center. (improvement)
+* Action and Trigger filters for rule list (new-feature)
+
+1.2.0 - December 07, 2015
+-------------------------
+
 * Refactor retries in the Mistral action runner to use exponential backoff. Configuration options
   for Mistral have changed. (improvement)
 * Add SSH bastion host support to the paramiko SSH runner. Utilizes same connection parameters as
   the targeted box. (new feature, improvement) #2144, #2150 [Logan Attwood]
+* Update action chain runner so it performs on-success and on-error task name validation during
+  pre_run time. This way common errors such as typos in the task names can be spotted early on
+  since there is no need to wait for the run time.
+* Change ``headers`` and ``params`` ``core.http`` action paramer type from ``string`` to
+  ``object``.
+* Don't allow action parameter ``type`` attribute to be an array since rest of the code doesn't
+  support parameters with multiple types. (improvement)
+* Fix trigger parameters validation for system triggers during rule creation - make sure we
+  validate the parameters before creating a TriggerDB object. (bug fix)
+* Update local runner so all the commands which are executed as a different user and result in
+  using sudo set $HOME variable to the home directory of the target user. (improvement)
+* Fix a bug with a user inside the context of the live action which was created using alias
+  execution endpoint incorrectly being set to the system user (``stanley``) instead of the
+  authenticated user which triggered the execution. (bug fix)
+* Include state_info for Mistral workflow and tasks in the action execution result. (improvement)
+* Introduce a new ``timeout`` action execution status which represents an action execution
+  timeout. Previously, executions which timed out had status set to ``failure``. Keep in mind
+  that timeout is just a special type of a failure. (new feature)
+* ``--debug`` flag no longer implies profiling mode. If you want to enable profiling mode, you need
+  to explicitly pass ``--profile`` flag to the binary. To reproduce the old behavior, simply pass
+  both flags to the binary - ``--debug --profile``.
+* Fix policy loading and registering - make sure we validate policy parameters against the
+  parameters schema when loading / registering policies. (bug fix, improvement)
+* Fix policy trigger for action execution cancellation. (bug fix)
+* Improve error reporting for static error in ActionChain definition e.g. incorrect reference
+  in default etc. (improvement)
+* Fix action chain so it doesn't end up in an infinite loop if an action which is part of the chain
+  is canceled. (bug fix)
+* Allow jinja templating to be used in ``message`` and ``data`` field for notifications.(new feature)
+* Add tools for purging executions (also, liveactions with it) and trigger instances older than
+  certain UTC timestamp from the db in bulk.
+* Fix json representation of trace in cli. (bug fix)
+* Introducing `noop` runner and `core.noop` action. Returns consistent success in a WF regardless of
+  user input. (new feature)
+* Add missing indexes on trigger_instance_d_b collection. (bug fix)
+* Add mock classes (``st2tests.mocks.*``) for easier unit testing of the packs. (new feature)
+* Add a script (``./st2common/bin/st2-run-pack-tests``) for running pack tests. (new feature)
+* Modify ActionAliasFormatParser to work with regular expressions and support more flexible parameter matching. (improvement)
+* Move ChatOps pack to st2 core.
+* Support for formatting of alias acknowledgement and result messages in AliasExecution. (new feature)
+* Support for "representation+value" format strings in aliases. (new feature)
+* Support for disabled result and acknowledgement messages in aliases. (new feature)
+* Add ability to write rule enforcement (models that represent a rule evaluation that resulted
+  in an action execution) to db to help debugging rules easier. Also, CLI bindings to list
+  and view these models are added. (new-feature)
+* Purge tool now uses delete_by_query and offloads delete to mongo and doesn't perform app side
+  explicit model deletion to improve speed. (improvement)
+
+1.1.1 - November 13, 2015
+-------------------------
+
 * Improve speed of ``st2 execution list`` command by not requesting ``result`` and
   ``trigger_instance`` attributes. The effect of this change will be especially pronounced for
   installations with a lot of large executions (large execution for this purpose is an execution
@@ -18,20 +88,14 @@ in development
   pretty indented.
 * When using ``st2 execution list`` and ``st2 execution get`` CLI commands, display execution
   elapsed time in seconds for all the executions which are currently in "running" state.
-* Update action chain runner so it performs on-success and on-error task name validation during
-  pre_run time. This way common errors such as typos in the task names can be spotted early on
-  since there is no need to wait for the run time.
-* Change ``headers`` and ``params`` ``core.http`` action paramer type from ``string`` to
-  ``object``.
-* Don't allow action parameter ``type`` attribute to be an array since rest of the code doesn't
-  support parameters with multiple types.
-* Fix trigger parameters validation for system triggers during rule creation - make sure we
-  validate the parameters before creating a TriggerDB object.
 * Fix a race condition in sensor container where a sensor which takes <= 5 seconds to shut down
   could be respawned before it exited. (bug fix) #2187 [Kale Blankenship]
-* Update local runner so all the commands which are executed as a different user and result in
-  using sudo set $HOME variable to the home directory of the target user. (improvement)
 * Add missing entry for ``st2notifier`` service to the logrotate config. (bug fix)
+* Allow action parameter values who's type is ``object`` to contain special characters such as
+  ``.`` and ``$`` in the parameter value. (bug fix, improvement)
+* Allow user to specify URL which Mistral uses to talk to StackStorm API using ``mistral.api_url``
+  configuration option. If this option is not provided it defaults to the old behavior of using the
+  public API url (``auth.api_url`` setting). (improvement)
 
 1.1.0 - October 27, 2015
 ------------------------

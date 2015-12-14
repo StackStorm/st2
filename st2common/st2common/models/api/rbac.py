@@ -33,7 +33,8 @@ class RoleAPI(BaseAPI):
         'type': 'object',
         'properties': {
             'id': {
-                'type': 'string'
+                'type': 'string',
+                'default': None
             },
             'name': {
                 'type': 'string',
@@ -77,7 +78,8 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
             'name': {
                 'type': 'string',
                 'description': 'Role name',
-                'required': True
+                'required': True,
+                'default': None
             },
             'description': {
                 'type': 'string',
@@ -98,7 +100,8 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                         'resource_uid': {
                             'type': 'string',
                             'description': 'UID of a resource to which this grant applies to.',
-                            'required': False
+                            'required': False,
+                            'default': None
                         },
                         'permission_types': {
                             'type': 'array',
@@ -161,12 +164,14 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
             'username': {
                 'type': 'string',
                 'description': 'Username',
-                'required': True
+                'required': True,
+                'default': None
             },
             'description': {
                 'type': 'string',
                 'description': 'Assignment description',
-                'required': False
+                'required': False,
+                'default': None
             },
             'enabled': {
                 'type': 'boolean',

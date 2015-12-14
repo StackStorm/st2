@@ -1,11 +1,9 @@
-import traceback
 import uuid
 
 from mistralclient.api import client as mistral
 from mistralclient.api.v2 import tasks
 from mistralclient.api.v2 import executions
 from oslo_config import cfg
-import requests
 import retrying
 
 from st2actions.query.base import Querier
@@ -57,53 +55,24 @@ class MistralResultsQuerier(Querier):
         """
         mistral_exec_id = query_context.get('mistral', {}).get('execution_id', None)
         if not mistral_exec_id:
-            LOG.exception('[%s] Missing mistral workflow execution ID in query context. %s',
-                          execution_id, query_context)
-            raise
+            raise Exception('[%s] Missing mistral workflow execution ID in query context. %s',
+                            execution_id, query_context)
 
         try:
-            wf_state, output = self._get_workflow_result(mistral_exec_id)
-        except requests.exceptions.ConnectionError:
-            msg = 'Unable to connect to mistral.'
-            trace = traceback.format_exc(10)
-            LOG.exception(msg)
-            return (action_constants.LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
-        except:
-            LOG.exception('[%s] Unable to fetch mistral workflow execution status and output. %s',
+            result = self._get_workflow_result(mistral_exec_id)
+            result['tasks'] = self._get_workflow_tasks(mistral_exec_id)
+        except Exception:
+            LOG.exception('[%s] Unable to fetch mistral workflow result and tasks. %s',
                           execution_id, query_context)
             raise
 
-        try:
-            tasks = self._get_workflow_tasks(mistral_exec_id)
-        except requests.exceptions.ConnectionError:
-            msg = 'Unable to connect to mistral.'
-            trace = traceback.format_exc(10)
-            LOG.exception(msg)
-            return (action_constants.LIVEACTION_STATUS_RUNNING, {'error': msg, 'traceback': trace})
-        except:
-            LOG.exception('[%s] Unable to fetch mistral workflow tasks. %s',
-                          execution_id, query_context)
-            raise
-
-        status = self._determine_execution_status(execution_id, wf_state, tasks)
-
-        result = output or {}
-
-        if 'tasks' in result:
-            LOG.warn('[%s] Overwriting tasks in the workflow output.' % (execution_id))
-
-        result['tasks'] = tasks
+        status = self._determine_execution_status(
+            execution_id, result['extra']['state'], result['tasks'])
 
         LOG.debug('[%s] mistral workflow execution status: %s' % (execution_id, status))
         LOG.debug('[%s] mistral workflow execution result: %s' % (execution_id, result))
 
         return (status, result)
-
-    def _get_execution_tasks_url(self, exec_id):
-        return self._base_url + '/executions/' + exec_id + '/tasks'
-
-    def _get_execution_url(self, exec_id):
-        return self._base_url + '/executions/' + exec_id
 
     def _get_workflow_result(self, exec_id):
         """
@@ -115,9 +84,14 @@ class MistralResultsQuerier(Querier):
         """
         execution = executions.ExecutionManager(self._client).get(exec_id)
 
-        output = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else None
+        result = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else {}
 
-        return (execution.state, output)
+        result['extra'] = {
+            'state': execution.state,
+            'state_info': execution.state_info
+        }
+
+        return result
 
     def _get_workflow_tasks(self, exec_id):
         """
@@ -134,15 +108,16 @@ class MistralResultsQuerier(Querier):
         """
         Format task result to follow the unified workflow result format.
         """
-        result = {}
-
-        result['id'] = task['id']
-        result['name'] = task['name']
-        result['workflow_execution_id'] = task.get('workflow_execution_id', None)
-        result['workflow_name'] = task['workflow_name']
-        result['created_at'] = task.get('created_at', None)
-        result['updated_at'] = task.get('updated_at', None)
-        result['state'] = task.get('state', None)
+        result = {
+            'id': task['id'],
+            'name': task['name'],
+            'workflow_execution_id': task.get('workflow_execution_id', None),
+            'workflow_name': task['workflow_name'],
+            'created_at': task.get('created_at', None),
+            'updated_at': task.get('updated_at', None),
+            'state': task.get('state', None),
+            'state_info': task.get('state_info', None)
+        }
 
         for attr in ['result', 'input', 'published']:
             result[attr] = jsonify.try_loads(task.get(attr, None))

@@ -28,6 +28,7 @@ __all__ = [
     'get_draft_schema',
     'get_action_parameters_schema',
     'get_schema_for_action_parameters',
+    'get_schema_for_resource_parameters',
     'validate'
 ]
 
@@ -116,7 +117,6 @@ def assign_default_values(instance, schema):
         return instance
 
     properties = schema.get('properties', {})
-
     for property_name, property_data in six.iteritems(properties):
         has_default_value = 'default' in property_data
         default_value = property_data.get('default', None)
@@ -131,19 +131,75 @@ def assign_default_values(instance, schema):
                     if instance[index].get(property_name, None) is None:
                         instance[index][property_name] = default_value
 
-        # Support for nested object / array properties
+        # Support for nested properties (array and object)
         attribute_type = property_data.get('type', None)
         schema_items = property_data.get('items', {})
+
+        # Array
         if attribute_type == 'array' and schema_items and schema_items.get('properties', {}):
-            array_instance = instance.get(property_name, [])
+            array_instance = instance.get(property_name, None)
             array_schema = schema['properties'][property_name]['items']
-            instance[property_name] = assign_default_values(instance=array_instance,
-                                                            schema=array_schema)
+
+            if array_instance is not None:
+                # Note: We don't perform subschema assignment if no value is provided
+                instance[property_name] = assign_default_values(instance=array_instance,
+                                                                schema=array_schema)
+
+        # Object
+        if attribute_type == 'object' and property_data.get('properties', {}):
+            object_instance = instance.get(property_name, None)
+            object_schema = schema['properties'][property_name]
+
+            if object_instance is not None:
+                # Note: We don't perform subschema assignment if no value is provided
+                instance[property_name] = assign_default_values(instance=object_instance,
+                                                                schema=object_schema)
 
     return instance
 
 
-def validate(instance, schema, cls=None, use_default=True, *args, **kwargs):
+def modify_schema_allow_default_none(schema):
+    """
+    Manipulate the provided schema so None is also an allowed value for each attribute which
+    defines a default value of None.
+    """
+    schema = copy.deepcopy(schema)
+
+    properties = schema.get('properties', {})
+    for property_name, property_data in six.iteritems(properties):
+        has_default_value = 'default' in property_data
+        default_value = property_data.get('default', None)
+
+        if has_default_value and default_value is None:
+            # Allow "None" to be also used as a valid attribute value
+            property_type = schema['properties'][property_name]['type']
+
+            if isinstance(property_type, list) and 'null' not in property_type:
+                schema['properties'][property_name]['type'].append('null')
+            elif isinstance(property_type, six.string_types) and 'null' not in property_type:
+                schema['properties'][property_name]['type'] = [property_type, 'null']
+
+        # Support for nested properties (array and object)
+        attribute_type = property_data.get('type', None)
+        schema_items = property_data.get('items', {})
+
+        # Array
+        if attribute_type == 'array' and schema_items and schema_items.get('properties', {}):
+            array_schema = schema_items
+            array_schema = modify_schema_allow_default_none(schema=array_schema)
+            schema['properties'][property_name]['items'] = array_schema
+
+        # Object
+        if attribute_type == 'object' and property_data.get('properties', {}):
+            object_schema = property_data
+            object_schema = modify_schema_allow_default_none(schema=object_schema)
+            schema['properties'][property_name] = object_schema
+
+    return schema
+
+
+def validate(instance, schema, cls=None, use_default=True, allow_default_none=False, *args,
+             **kwargs):
     """
     Custom validate function which supports default arguments combined with the "required"
     property.
@@ -156,6 +212,9 @@ def validate(instance, schema, cls=None, use_default=True, *args, **kwargs):
     instance = copy.deepcopy(instance)
     schema_type = schema.get('type', None)
     instance_is_dict = isinstance(instance, dict)
+
+    if use_default and allow_default_none:
+        schema = modify_schema_allow_default_none(schema=schema)
 
     if use_default and schema_type == 'object' and instance_is_dict:
         instance = assign_default_values(instance=instance, schema=schema)
@@ -182,20 +241,36 @@ def get_schema_for_action_parameters(action_db):
 
     Note: This schema is used to validate parameters which are passed to the action.
     """
+    from st2common.util.action_db import get_runnertype_by_name
+    runner_type = get_runnertype_by_name(action_db.runner_type['name'])
+
+    parameters_schema = {}
+    parameters_schema.update(runner_type.runner_parameters)
+    parameters_schema.update(action_db.parameters)
+
+    schema = get_schema_for_resource_parameters(parameters_schema=parameters_schema)
+
+    if parameters_schema:
+        schema['title'] = action_db.name
+        if action_db.description:
+            schema['description'] = action_db.description
+
+    return schema
+
+
+def get_schema_for_resource_parameters(parameters_schema):
+    """
+    Dynamically construct JSON schema for the provided resource from the parameters metadata.
+    """
     def normalize(x):
         return {k: v if v else SCHEMA_ANY_TYPE for k, v in six.iteritems(x)}
 
     schema = {}
-    from st2common.util.action_db import get_runnertype_by_name
-    runner_type = get_runnertype_by_name(action_db.runner_type['name'])
-
-    properties = normalize(runner_type.runner_parameters)
-    properties.update(normalize(action_db.parameters))
+    properties = {}
+    properties.update(normalize(parameters_schema))
     if properties:
-        schema['title'] = action_db.name
-        if action_db.description:
-            schema['description'] = action_db.description
         schema['type'] = 'object'
         schema['properties'] = properties
         schema['additionalProperties'] = False
+
     return schema

@@ -46,6 +46,8 @@ cp -R contrib/packs %{buildroot}/opt/stackstorm/packs/
 chmod -R 775 %{buildroot}/opt/stackstorm/packs/packs
 cp -R contrib/linux %{buildroot}/opt/stackstorm/packs/
 chmod -R 775 %{buildroot}/opt/stackstorm/packs/linux
+cp -R contrib/chatops %{buildroot}/opt/stackstorm/packs/
+chmod -R 775 %{buildroot}/opt/stackstorm/packs/chatops
 cp -R contrib/examples %{buildroot}/usr/share/doc/st2/
 chmod -R 775 %{buildroot}/usr/share/doc/st2/examples
 cp -R docs/* %{buildroot}/usr/share/doc/st2/
@@ -58,6 +60,7 @@ install rbac/assignments/sample.yaml %{buildroot}/opt/stackstorm/rbac/assignment
 install -m755 bin/st2-register-content %{buildroot}/usr/bin/st2-register-content
 install -m755 bin/st2-bootstrap-rmq %{buildroot}/usr/bin/st2-bootstrap-rmq
 install -m755 bin/st2-apply-rbac-definitions %{buildroot}/usr/bin/st2-apply-rbac-definitions
+install -m755 bin/st2-run-pack-tests %{buildroot}/usr/bin/st2-run-pack-tests
 install -m755 tools/st2ctl %{buildroot}/usr/bin/st2ctl
 install -m755 tools/st2-setup-tests %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-setup-tests
 install -m755 tools/st2-setup-examples %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-setup-examples
@@ -75,5 +78,6 @@ install -m755 tools/migrate_triggers_to_include_ref_count.py %{buildroot}/usr/li
 /usr/bin/st2-register-content
 /usr/bin/st2-bootstrap-rmq
 /usr/bin/st2-apply-rbac-definitions
+/usr/bin/st2-run-pack-tests
 /usr/bin/st2ctl
 /etc/logrotate.d/st2.conf

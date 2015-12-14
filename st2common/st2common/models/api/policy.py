@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.persistence.policy import PolicyType
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.policy import PolicyTypeDB, PolicyDB
 from st2common import log as logging
@@ -31,7 +32,8 @@ class PolicyTypeAPI(BaseAPI):
         "type": "object",
         "properties": {
             "id": {
-                "type": "string"
+                "type": "string",
+                "default": None
             },
             "name": {
                 "type": "string",
@@ -83,7 +85,8 @@ class PolicyAPI(BaseAPI):
         "type": "object",
         "properties": {
             "id": {
-                "type": "string"
+                "type": "string",
+                "default": None
             },
             "name": {
                 "type": "string",
@@ -128,6 +131,27 @@ class PolicyAPI(BaseAPI):
         },
         "additionalProperties": False
     }
+
+    def validate(self):
+        # Validate policy itself
+        cleaned = super(PolicyAPI, self).validate()
+
+        # Validate policy parameters
+        policy_type_db = PolicyType.get_by_ref(cleaned.policy_type)
+        if not policy_type_db:
+            raise ValueError('Referenced policy_type "%s" doesnt exist' % (cleaned.policy_type))
+
+        parameters_schema = policy_type_db.parameters
+        parameters = getattr(cleaned, 'parameters', {})
+        schema = util_schema.get_schema_for_resource_parameters(
+            parameters_schema=parameters_schema)
+        validator = util_schema.get_validator()
+        cleaned_parameters = util_schema.validate(parameters, schema, validator, use_default=True,
+                                                  allow_default_none=True)
+
+        cleaned.parameters = cleaned_parameters
+
+        return cleaned
 
     @classmethod
     def to_model(cls, instance):

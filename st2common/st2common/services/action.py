@@ -72,7 +72,8 @@ def request(liveaction):
     # Validate action parameters.
     schema = util_schema.get_schema_for_action_parameters(action_db)
     validator = util_schema.get_validator()
-    util_schema.validate(liveaction.parameters, schema, validator, use_default=True)
+    util_schema.validate(liveaction.parameters, schema, validator, use_default=True,
+                         allow_default_none=True)
 
     # validate that no immutable params are being overriden. Although possible to
     # ignore the override it is safer to inform the user to avoid surprises.
@@ -111,7 +112,9 @@ def request(liveaction):
     if trace_db:
         trace_service.add_or_update_given_trace_db(
             trace_db=trace_db,
-            action_executions=[str(execution.id)])
+            action_executions=[
+                trace_service.get_trace_component_for_action_execution(execution)
+            ])
 
     # Assume that this is a creation.
     LiveAction.publish_create(liveaction)
@@ -170,7 +173,7 @@ def request_cancellation(liveaction, requester):
     if liveaction.status == action_constants.LIVEACTION_STATUS_CANCELING:
         return liveaction
 
-    if liveaction.status not in action_constants.CANCELABLE_STATES:
+    if liveaction.status not in action_constants.LIVEACTION_CANCELABLE_STATES:
         raise Exception('Unable to cancel execution because it is already in a completed state.')
 
     result = {
@@ -178,7 +181,12 @@ def request_cancellation(liveaction, requester):
         'user': requester
     }
 
-    update_status(liveaction, action_constants.LIVEACTION_STATUS_CANCELING, result=result)
+    # There is real work only when liveaction is still running.
+    status = (action_constants.LIVEACTION_STATUS_CANCELING
+              if liveaction.status == action_constants.LIVEACTION_STATUS_RUNNING
+              else action_constants.LIVEACTION_STATUS_CANCELED)
+
+    update_status(liveaction, status, result=result)
 
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 

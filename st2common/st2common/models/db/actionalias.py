@@ -58,8 +58,13 @@ class ActionAliasDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         required=True,
         help_text='Reference of the Action map this alias.')
     formats = me.ListField(
-        field=me.StringField(),
         help_text='Possible parameter formats that an alias supports.')
+    ack = me.DictField(
+        help_text='Parameters pertaining to the acknowledgement message.'
+    )
+    result = me.DictField(
+        help_text='Parameters pertaining to the execution result message.'
+    )
 
     meta = {
         'indexes': ['name']

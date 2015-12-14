@@ -20,6 +20,7 @@
       ref: "packs.setup_virtualenv"
       params:
         packs: "{{virtualenv_prerun.result}}"
+        env: "{{env}}"
       on-success: "reload"
     -
       name: "reload"

@@ -54,7 +54,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         help_text='The timestamp when the liveaction was created.')
     end_timestamp = ComplexDateTimeField(
         help_text='The timestamp when the liveaction has finished.')
-    parameters = me.DictField(
+    parameters = stormbase.EscapedDynamicField(
         default={},
         help_text='The key-value pairs passed as to the action runner & action.')
     result = stormbase.EscapedDynamicField(
