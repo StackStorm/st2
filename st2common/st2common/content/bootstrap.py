@@ -70,10 +70,11 @@ def register_sensors():
         registered_count = sensors_registrar.register_sensors(pack_dir=pack_dir,
                                                               fail_on_failure=fail_on_failure)
     except Exception as e:
+        exc_info = not fail_on_failure
+        LOG.warning('Failed to register sensors: %s', e, exc_info=exc_info)
+
         if fail_on_failure:
             raise e
-
-        LOG.warning('Failed to register sensors: %s', e, exc_info=True)
 
     LOG.info('Registered %s sensors.' % (registered_count))
 
@@ -100,10 +101,11 @@ def register_actions():
         registered_count = actions_registrar.register_actions(pack_dir=pack_dir,
                                                               fail_on_failure=fail_on_failure)
     except Exception as e:
+        exc_info = not fail_on_failure
+        LOG.warning('Failed to register actions: %s', e, exc_info=exc_info)
+
         if fail_on_failure:
             raise e
-
-        LOG.warning('Failed to register actions: %s', e, exc_info=True)
 
     LOG.info('Registered %s actions.' % (registered_count))
 
@@ -128,10 +130,11 @@ def register_rules():
         registered_count = rules_registrar.register_rules(pack_dir=pack_dir,
                                                           fail_on_failure=fail_on_failure)
     except Exception as e:
+        exc_info = not fail_on_failure
+        LOG.warning('Failed to register rules: %s', e, exc_info=exc_info)
+
         if fail_on_failure:
             raise e
-
-        LOG.warning('Failed to register rules: %s', e, exc_info=True)
 
     LOG.info('Registered %s rules.', registered_count)
 
@@ -183,11 +186,11 @@ def register_policies():
         registered_count = policies_registrar.register_policies(pack_dir=pack_dir,
                                                                 fail_on_failure=fail_on_failure)
     except Exception as e:
-        LOG.warning('Failed to register policies.', exc_info=True)
+        exc_info = not fail_on_failure
+        LOG.warning('Failed to register policies: %s', e, exc_info=exc_info)
+
         if fail_on_failure:
             raise e
-
-        LOG.warning('Failed to register policies.', exc_info=True)
 
     LOG.info('Registered %s policies.', registered_count)
 
