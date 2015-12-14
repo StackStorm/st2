@@ -23,7 +23,6 @@ import pecan
 from pecan import abort
 from six.moves import http_client
 
-from st2actions.utils import param_utils
 from st2api.controllers.base import BaseRestControllerMixin
 from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import ExecutionViewsController
@@ -45,6 +44,7 @@ from st2common.util import jsonify
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util.api import get_requester
+from st2common.util import param as param_utils
 from st2common.util import schema as util_schema
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission

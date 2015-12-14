@@ -16,15 +16,15 @@
 
 import mock
 
-import st2actions.utils.param_utils as param_utils
 from st2common.exceptions import actionrunner
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.models.utils import action_param_utils
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import date as date_utils
-from st2common.models.utils import action_param_utils
+from st2common.util import param as param_utils
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 
@@ -210,7 +210,8 @@ class ParamsUtilsTest(DbTestCase):
             'a3': '{{r1}}'
         }
         runner_param_info = {'r1': {'type': 'integer'}, 'r2': {'type': 'integer'}}
-        action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'string'}, 'a3': {'type': 'integer'}, 'r1': {'type': 'string'}}
+        action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'string'},
+                             'a3': {'type': 'integer'}, 'r1': {'type': 'string'}}
         action_context = {'api_user': 'noob'}
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, action_context)

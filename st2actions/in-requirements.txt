@@ -19,4 +19,3 @@ lockfile
 python-nmap
 pyinotify
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
-networkx
