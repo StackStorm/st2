@@ -19,6 +19,7 @@ in development
   action.ref and enabled. This aligns closer the UI and also brings important information front and
   center. (improvement)
 * Action and Trigger filters for rule list (new-feature)
+* Add missing logrotate config entry for ``st2auth`` service. #2294 [Vignesh Terafast]
 
 1.2.0 - December 07, 2015
 -------------------------
