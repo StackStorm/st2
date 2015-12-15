@@ -1,0 +1,12 @@
+log_file_paths:
+    st2_log_files_path: /var/log/st2/*.log
+    mistral_log_files_path: /var/log/mistral*.log
+conf_file_paths:
+    st2_config_file_path: /etc/st2/st2.conf
+    mistral_config_file_path: /etc/mistral/mistral.conf
+s3_bucket:
+    url: https://st2debuginfo.s3.amazonaws.com/
+gpg:
+    gpg_key_fingerprint: BDE989A1F308B18D29789C717064B11C82F62D6F
+rpm:
+    rpm_output_file_path: /tmp/installed_rpm_info.txt

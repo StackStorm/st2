@@ -38,6 +38,7 @@ import argparse
 import platform
 import tempfile
 import httplib
+import ConfigParser
 
 import six
 import yaml
@@ -73,6 +74,7 @@ GPG_INSTALLED = find_executable('gpg') is not None
 ST2_LOG_FILES_PATH = '/var/log/st2/*.log'
 MISTRAL_LOG_FILES_PATH = '/var/log/mistral*.log'
 
+RPM_OUTPUT_FILE_PATH = "/tmp/installed_rpm_info.txt"
 LOG_FILE_PATHS = [
     ST2_LOG_FILES_PATH,
     MISTRAL_LOG_FILES_PATH
@@ -111,7 +113,40 @@ try:
 except Exception:
     pass
 
+def get_config_details(conf_file_name, section_name):
+    """
+    To get the configurations from st2 config file
+    """
 
+    with open(conf_file_name, 'r') as f: 
+	conf = yaml.load(f)
+    if section_name == 'log_file_path':
+	log_files = conf.get('log_file_paths', None)
+        if log_files is not None:
+	    LOG_FILE_PATHS = log_files.values()
+	    return LOG_FILE_PATHS
+
+    if section_name == 'config_file_path':
+	conf_files = conf.get('conf_file_paths', None)
+        if conf_files is not None:
+	    CONFIG_FILE_PATHS = conf_files.values()
+	    return CONFIG_FILE_PATHS
+    if section_name == 'st2_config_file_name':
+	ST2_CONFIG_FILE_NAME = os.path.split(conf['conf_file_paths']['st2_config_file_path'])[1]
+	return ST2_CONFIG_FILE_NAME
+    if section_name == 'mistral_config_file_name':
+	MISTRAL_CONFIG_FILE_NAME = os.path.split(conf['conf_file_paths']['mistral_config_file_path'])[1]
+	return MISTRAL_CONFIG_FILE_NAME
+    if section_name == 's3_bucket_url':
+	S3_BUCKET_URL = conf['s3_bucket']['url']
+	return S3_BUCKET_URL
+    if section_name == 'gpg_key_fingerprint':
+	gpg_fingerprint = conf['gpg']['gpg_key_fingerprint']
+        return gpg_fingerprint	
+    if section_name == 'rpm_file_path':
+	RPM_OUTPUT_FILE_NAME = conf['rpm']['rpm_output_file_path']
+	return RPM_OUTPUT_FILE_NAME
+   
 def setup_logging():
     root = LOG
     root.setLevel(logging.INFO)
@@ -121,7 +156,6 @@ def setup_logging():
     formatter = logging.Formatter('%(asctime)s  %(levelname)s - %(message)s')
     ch.setFormatter(formatter)
     root.addHandler(ch)
-
 
 def get_system_information():
     """
@@ -211,9 +245,19 @@ def get_system_information():
 
     return system_information
 
+def get_installed_rpm(output_file_path):
 
-def create_archive(include_logs, include_configs, include_content, include_system_info,
-                   user_info=None, debug=False):
+    """"
+    Get the installed argumment by executing 'rpm -qa' command and redirect outpput to a file.
+    :return: Path of the output file
+    :rtype: ``str``
+    """
+    os.system("rpm -qa > %s" % output_file_path)
+    return output_file_path
+
+
+def create_archive(include_logs, include_configs, include_content, include_system_info, include_rpm_info,
+                   user_info=None, debug=False, config_yaml=False):
     """
     Create an archive with debugging information.
 
@@ -235,7 +279,8 @@ def create_archive(include_logs, include_configs, include_content, include_syste
         'configs': os.path.join(temp_dir_path, 'configs/'),
         'content': os.path.join(temp_dir_path, 'content/'),
         'system_info': os.path.join(temp_dir_path, 'system_info.yaml'),
-        'user_info': os.path.join(temp_dir_path, 'user_info.yaml')
+        'user_info': os.path.join(temp_dir_path, 'user_info.yaml'),
+        'rpm_info': os.path.join(temp_dir_path, 'rpm_info.txt')
     }
 
     for directory_name in DIRECTORY_STRUCTURE:
@@ -245,18 +290,30 @@ def create_archive(include_logs, include_configs, include_content, include_syste
     # 2. Moves all the files to the temporary directory
     LOG.info('Collecting files...')
 
+    if config_yaml:
+	log_files_paths = get_config_details(config_yaml, 'log_file_path')
+	rpm_output_file = get_config_details(config_yaml, 'rpm_file_path')
+	config_files_paths = get_config_details(config_yaml, 'config_file_path')
+	st2_conf_file_name = get_config_details(config_yaml, 'st2_config_file_name')
+        mistral_conf_file_name = get_config_details(config_yaml, 'mistral_config_file_name')
+    else:
+	st2_conf_file_name = ST2_CONFIG_FILE_NAME
+	mistral_conf_file_name = MISTRAL_CONFIG_FILE_NAME
+	log_files_paths = LOG_FILE_PATHS
+	rpm_output_file = RPM_OUTPUT_FILE_PATH
+	config_files_paths = CONFIG_FILE_PATHS
+
     # Logs
     if include_logs:
         LOG.debug('Including log files')
-
-        for file_path_glob in LOG_FILE_PATHS:
+        for file_path_glob in log_files_paths:
             log_file_list = get_full_file_list(file_path_glob=file_path_glob)
             copy_files(file_paths=log_file_list, destination=output_paths['logs'])
 
     # Config files
     if include_configs:
         LOG.debug('Including config files')
-        copy_files(file_paths=CONFIG_FILE_PATHS, destination=output_paths['configs'])
+        copy_files(file_paths=config_files_paths, destination=output_paths['configs'])
 
     # Content
     if include_content:
@@ -287,12 +344,22 @@ def create_archive(include_logs, include_configs, include_content, include_syste
 
         with open(output_paths['user_info'], 'w') as fp:
             fp.write(user_info)
+    if include_rpm_info:
+	LOG.debug('Including the installed rpms detailes')
+	    
+	rpm_output_file_path = get_installed_rpm(rpm_output_file)
+        fd = open(rpm_output_file_path, 'r')
+	file_content = fd.read()
+        fd.close()
+	with open(output_paths['rpm_info'], 'w') as fp:
+	    fp.write(file_content)
 
     # Configs
-    st2_config_path = os.path.join(output_paths['configs'], ST2_CONFIG_FILE_NAME)
+    st2_config_path = os.path.join(output_paths['configs'], st2_conf_file_name)
     process_st2_config(config_path=st2_config_path)
 
-    mistral_config_path = os.path.join(output_paths['configs'], MISTRAL_CONFIG_FILE_NAME)
+    
+    mistral_config_path = os.path.join(output_paths['configs'], mistral_conf_file_name)
     process_mistral_config(config_path=mistral_config_path)
 
     # Content
@@ -325,7 +392,7 @@ def create_archive(include_logs, include_configs, include_content, include_syste
     return output_file_path
 
 
-def encrypt_archive(archive_file_path, debug=False):
+def encrypt_archive(archive_file_path, debug=False, config_yaml=False):
     """
     Encrypt archive with debugging information using our public key.
 
@@ -345,38 +412,47 @@ def encrypt_archive(archive_file_path, debug=False):
     # pylint: disable=no-member
     assert import_result.count == 1
 
+    if config_yaml:
+	gpg_key_finger_print = get_config_details(config_yaml, 'gpg_key_fingerprint') 
+    else:
+	gpg_key_finger_print = GPG_KEY_FINGERPRINT
     encrypted_archive_output_file_path = archive_file_path + '.asc'
     with open(archive_file_path, 'rb') as fp:
         gpg.encrypt_file(fp,
-                         recipients=GPG_KEY_FINGERPRINT,
+                         recipients=gpg_key_finger_print,
                          always_trust=True,
                          output=encrypted_archive_output_file_path)
-
     return encrypted_archive_output_file_path
 
 
-def upload_archive(archive_file_path):
+def upload_archive(archive_file_path, config_yaml=False):
     assert archive_file_path.endswith('.asc')
 
     LOG.debug('Uploading tarball...')
     files = {'file': open(archive_file_path, 'rb')}
     file_name = os.path.split(archive_file_path)[1]
-    url = S3_BUCKET_URL + file_name
+    if config_yaml:
+	bucket_url = get_config_details(config_yaml, 's3_bucket_url')
+    else:
+	bucket_url = S3_BUCKET_URL
+
+    url = bucket_url + file_name
     assert url.startswith('https://')
 
     response = requests.put(url=url, files=files)
     assert response.status_code == httplib.OK
 
 
-def create_and_review_archive(include_logs, include_configs, include_content, include_system_info,
-                              user_info=None, debug=False):
+def create_and_review_archive(include_logs, include_configs, include_content, include_system_info,include_rpm_info,
+                              user_info=None, debug=False, config_yaml=False):
     try:
         plain_text_output_path = create_archive(include_logs=include_logs,
                                                 include_configs=include_configs,
                                                 include_content=include_content,
                                                 include_system_info=include_system_info,
+                                                include_rpm_info=include_rpm_info,
                                                 user_info=user_info,
-                                                debug=debug)
+                                                debug=debug, config_yaml=config_yaml)
     except Exception:
         LOG.exception('Failed to generate tarball', exc_info=True)
     else:
@@ -384,17 +460,18 @@ def create_and_review_archive(include_logs, include_configs, include_content, in
                  (plain_text_output_path))
 
 
-def create_and_upload_archive(include_logs, include_configs, include_content, include_system_info,
-                              user_info=None, debug=False):
+def create_and_upload_archive(include_logs, include_configs, include_content, include_system_info, include_rpm_info,
+                              user_info=None, debug=False, config_yaml=False):
     try:
         plain_text_output_path = create_archive(include_logs=include_logs,
                                                 include_configs=include_configs,
                                                 include_content=include_content,
                                                 include_system_info=include_system_info,
+                                                include_rpm_info=include_rpm_info,
                                                 user_info=user_info,
-                                                debug=debug)
-        encrypted_output_path = encrypt_archive(archive_file_path=plain_text_output_path)
-        upload_archive(archive_file_path=encrypted_output_path)
+                                                debug=debug, config_yaml=config_yaml)
+        encrypted_output_path = encrypt_archive(archive_file_path=plain_text_output_path, config_yaml=config_yaml)
+        upload_archive(archive_file_path=encrypted_output_path, config_yaml=config_yaml)
     except Exception:
         LOG.exception('Failed to upload tarball to StackStorm', exc_info=True)
         plain_text_output_path = None
@@ -425,16 +502,20 @@ def main():
                         help='Don\'t include content packs in the generated tarball')
     parser.add_argument('--exclude-system-info', action='store_true', default=False,
                         help='Don\'t include system information in the generated tarball')
+    parser.add_argument('--exclude-rpm-info', action='store_true', default=False,
+                        help='Don\'t include installed RPMs information in the generated tarball')
     parser.add_argument('--yes', action='store_true', default=False,
                         help='Run in non-interactive mode and answer "yes" to all the questions')
     parser.add_argument('--review', action='store_true', default=False,
                         help='Generate the tarball, but don\'t encrypt and upload it')
     parser.add_argument('--debug', action='store_true', default=False,
                         help='Enable debug mode')
+    parser.add_argument('--config', action='store', default=False,
+                        help='Get required configurations from config file')
     args = parser.parse_args()
 
     arg_names = ['exclude_logs', 'exclude_configs', 'exclude_content',
-                 'exclude_system_info']
+                 'exclude_system_info', 'exclude_rpm_info']
 
     abort = True
     for arg_name in arg_names:
@@ -476,17 +557,20 @@ def main():
 
     setup_logging()
 
+
     if args.review:
         create_and_review_archive(include_logs=not args.exclude_logs,
                                   include_configs=not args.exclude_configs,
                                   include_content=not args.exclude_content,
                                   include_system_info=not args.exclude_system_info,
+                                  include_rpm_info=not args.exclude_rpm_info,
                                   user_info=user_info,
-                                  debug=args.debug)
+                                  debug=args.debug, config_yaml=args.config)
     else:
         create_and_upload_archive(include_logs=not args.exclude_logs,
                                   include_configs=not args.exclude_configs,
                                   include_content=not args.exclude_content,
                                   include_system_info=not args.exclude_system_info,
+                                  include_rpm_info=not args.exclude_rpm_info,
                                   user_info=user_info,
-                                  debug=args.debug)
+                                  debug=args.debug, config_yaml=args.config)
