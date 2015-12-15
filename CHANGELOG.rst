@@ -19,6 +19,8 @@ in development
   action.ref and enabled. This aligns closer the UI and also brings important information front and
   center. (improvement)
 * Action and Trigger filters for rule list (new-feature)
+* Add missing logrotate config entry for ``st2auth`` service. #2294 [Vignesh Terafast]
+* Support for object already present in the DB for ``st2-rule-tester`` (improvement)
 * Add ``--register-fail-on-failure`` flag to ``st2-register-content`` script. If this flag is
   provided, the script will fail and exit with non-zero status code if registering some resource
   fails. (new feature)
