@@ -17,6 +17,10 @@
 Mock classes for use in pack testing.
 """
 
+from logging import RootLogger
+
+from mock import Mock
+
 from st2reactor.container.sensor_wrapper import SensorService
 from st2client.models.keyvalue import KeyValuePair
 
@@ -40,6 +44,10 @@ class MockSensorService(SensorService):
     def __init__(self, sensor_wrapper):
         self._sensor_wrapper = sensor_wrapper
 
+        # Holds a mock logger instance
+        # We use a Mock class so use can assert logger was called with particular arguments
+        self._logger = Mock(spec=RootLogger)
+
         # Holds mock KeyValuePair objects
         # Key is a KeyValuePair name and value is the KeyValuePair object
         self._datastore_items = {}
@@ -48,7 +56,7 @@ class MockSensorService(SensorService):
         self.dispatched_triggers = []
 
     def get_logger(self, name):
-        return None
+        return self._logger
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):
         item = {
