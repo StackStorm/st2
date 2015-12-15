@@ -18,13 +18,13 @@ from datetime import timedelta
 import bson
 import copy
 
+from st2common.cmd.purge_executions import purge_executions
 from st2common.constants import action as action_constants
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.util import date as date_utils
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
-from tools.purge_executions import purge_executions
 
 TEST_FIXTURES = {
     'executions': [
