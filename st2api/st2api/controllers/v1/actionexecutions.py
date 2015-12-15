@@ -141,25 +141,16 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         # Schedule the action execution.
         liveaction_db = LiveActionAPI.to_model(liveaction)
+        liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
 
         action_db = action_utils.get_action_by_ref(liveaction_db.action)
-        if not action_db:
-            raise Exception('Action %s not found in DB.' % (liveaction_db.action))
-
         runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
-
-        # Validate action parameters.
-        schema = util_schema.get_schema_for_action_parameters(action_db)
-        validator = util_schema.get_validator()
-        util_schema.validate(liveaction.parameters, schema, validator, use_default=True,
-                             allow_default_none=True)
-
         liveaction_db.parameters = param_utils.render_live_params(runnertype_db.runner_parameters,
             action_db.parameters, liveaction_db.parameters, liveaction_db.context)
 
-        _, actionexecutiondb = action_service.request(liveaction_db)
+        _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
-        return ActionExecutionAPI.from_model(actionexecutiondb, from_model_kwargs)
+        return ActionExecutionAPI.from_model(actionexecution_db, from_model_kwargs)
 
     def _get_result_object(self, id):
         """
