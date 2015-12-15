@@ -156,6 +156,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         except ParamException as e:
             raise ValueValidationException(str(e))
 
+        liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
+
         _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
         return ActionExecutionAPI.from_model(actionexecution_db, from_model_kwargs)
