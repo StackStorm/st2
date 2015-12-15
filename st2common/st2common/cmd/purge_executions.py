@@ -24,7 +24,6 @@ timestamp.
 import copy
 from datetime import datetime
 import pytz
-import sys
 
 from mongoengine.errors import InvalidQueryError
 from oslo_config import cfg
