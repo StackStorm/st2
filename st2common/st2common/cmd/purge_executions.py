@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -25,7 +24,6 @@ timestamp.
 import copy
 from datetime import datetime
 import pytz
-import sys
 
 from mongoengine.errors import InvalidQueryError
 from oslo_config import cfg
@@ -150,7 +148,3 @@ def main():
                                 purge_incomplete=purge_incomplete)
     finally:
         common_teardown()
-
-
-if __name__ == '__main__':
-    sys.exit(main())

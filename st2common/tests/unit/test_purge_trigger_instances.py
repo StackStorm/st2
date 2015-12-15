@@ -15,11 +15,11 @@
 
 from datetime import timedelta
 
+from st2common.cmd.purge_trigger_instances import purge_trigger_instances
 from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.persistence.trigger import TriggerInstance
 from st2common.util import date as date_utils
 from st2tests.base import CleanDbTestCase
-from tools.purge_trigger_instances import purge_trigger_instances
 
 
 class TestPurgeTriggerInstances(CleanDbTestCase):
