@@ -47,6 +47,9 @@ class MockSensorService(SensorService):
         # Holds a list of triggers which were dispatched
         self.dispatched_triggers = []
 
+    def get_logger(self, name):
+        return None
+
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):
         item = {
             'trigger': trigger,
