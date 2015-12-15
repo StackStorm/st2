@@ -24,6 +24,9 @@ in development
 * Add ``--register-fail-on-failure`` flag to ``st2-register-content`` script. If this flag is
   provided, the script will fail and exit with non-zero status code if registering some resource
   fails. (new feature)
+* Add a missing ``getLogger`` method to the `MockSensorService``. This method now returns an
+  instance of ``Mock`` class which allows user to assert that a particular message has been 
+  logged. [Tim Ireland, Tomaz Muraus]
 
 1.2.0 - December 07, 2015
 -------------------------
