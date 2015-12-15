@@ -17,7 +17,7 @@ tools/st2-self-check usr/lib/python2.7/dist-packages/st2common/bin/
 tools/migrate_rules_to_include_pack.py usr/lib/python2.7/dist-packages/st2common/bin/
 tools/migrate_triggers_to_include_ref_count.py usr/lib/python2.7/dist-packages/st2common/bin/
 tools/migrate_messaging_setup.py usr/lib/python2.7/dist-packages/st2common/bin/
-tools/st2-purge-executions.py usr/lib/python2.7/dist-packages/st2common/bin/
-tools/st2-purge-trigger-instances.py usr/lib/python2.7/dist-packages/st2common/bin/
+tools/st2-purge-executions usr/bin/
+tools/st2-purge-trigger-instances usr/bin/
 rbac/roles/sample.yaml opt/stackstorm/rbac/roles/
 rbac/assignments/sample.yaml opt/stackstorm/rbac/assignments/

@@ -68,8 +68,8 @@ install -m755 tools/st2-self-check %{buildroot}/usr/lib/python2.7/site-packages/
 install -m755 tools/migrate_rules_to_include_pack.py %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/
 install -m755 tools/migrate_messaging_setup.py %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/migrate_rules_to_include_pack.py
 install -m755 tools/migrate_triggers_to_include_ref_count.py %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/migrate_triggers_to_include_ref_count.py
-install -m755 tools/st2-purge-executions.py %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-purge-executions.py
-install -m755 tools/st2-purge-trigger-instances.py %{buildroot}/usr/lib/python2.7/site-packages/st2common/bin/st2-purge-trigger-instances.py
+install -m755 tools/st2-purge-executions %{buildroot}/usr/bin/st2-purge-executions
+install -m755 tools/st2-purge-trigger-instances.py %{buildroot}/usr/bin/st2-purge-trigger-instances
 
 %files
 %{python2_sitelib}/st2common*

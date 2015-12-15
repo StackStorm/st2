@@ -11,7 +11,7 @@ Purging executions older than some timestamp
 
 ::
 
-    st2-purge-executions.py --timestamp="2015-11-25T21:45:00.000000Z"
+    st2-purge-executions --timestamp="2015-11-25T21:45:00.000000Z"
 
 The timestamp provided is interpreted as UTC timestamp. Please perform all necessary timezone
 conversions and specify UTC timestamp.
@@ -21,7 +21,7 @@ to the tool.
 
 ::
 
-    st2-purge-executions.py --timestamp="2015-11-25T21:45:00.000000Z" --action-ref="core.localzz"
+    st2-purge-executions --timestamp="2015-11-25T21:45:00.000000Z" --action-ref="core.localzz"
 
 By default, only executions in completed state viz ``succeeded``, ``failed``, ``canceled``
 and ``timed_out`` are deleted. If you want to purge all models irrespective of status,
@@ -29,21 +29,21 @@ you can pass the --purge-incomplete option to the script.
 
 ::
 
-    st2-purge-executions.py --timestamp="2015-11-25T21:45:00.000000Z" --purge-incomplete
+    st2-purge-executions --timestamp="2015-11-25T21:45:00.000000Z" --purge-incomplete
 
 Depending on how much data there is, the tool might be running longer. Therefore, please run it
 inside a screen/tmux session. For example,
 
 ::
 
-    screen -d -m -S purge-execs st2-purge-executions.py --timestamp="2015-11-25T21:45:00.000000Z"
+    screen -d -m -S purge-execs st2-purge-executions --timestamp="2015-11-25T21:45:00.000000Z"
 
 Purging trigger instances older than some timestamp
 ---------------------------------------------------
 
 ::
 
-    st2-purge-trigger-instances.py --timestamp="2015-11-25T21:45:00.000000Z"
+    st2-purge-trigger-instances --timestamp="2015-11-25T21:45:00.000000Z"
 
 Again, the timestamp provided is interpreted as UTC timestamp. Please perform all necessary timezone
 conversions and specify UTC timestamp.
@@ -53,4 +53,4 @@ inside a screen/tmux session. For example,
 
 ::
 
-    screen -d -m -S purge-instances st2-purge-trigger-instances.py --timestamp="2015-11-25T21:45:00.000000Z"
+    screen -d -m -S purge-instances st2-purge-trigger-instances --timestamp="2015-11-25T21:45:00.000000Z"
