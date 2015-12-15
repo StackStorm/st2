@@ -56,7 +56,10 @@ class AliasesRegistrar(ResourceRegistrar):
                 aliases = self._get_aliases_from_pack(aliases_dir)
                 count = self._register_aliases_from_pack(pack=pack, aliases=aliases)
                 registered_count += count
-            except:
+            except Exception as e:
+                if self._fail_on_failure:
+                    raise e
+
                 LOG.exception('Failed registering all aliases from pack: %s', aliases_dir)
 
         return registered_count
@@ -85,9 +88,12 @@ class AliasesRegistrar(ResourceRegistrar):
         try:
             aliases = self._get_aliases_from_pack(aliases_dir=aliases_dir)
             registered_count = self._register_aliases_from_pack(pack=pack, aliases=aliases)
-        except:
+        except Exception as e:
+            if self._fail_on_failure:
+                raise e
+
             LOG.exception('Failed registering all aliases from pack: %s', aliases_dir)
-            return 0
+            return registered_count
 
         return registered_count
 
@@ -129,7 +135,10 @@ class AliasesRegistrar(ResourceRegistrar):
             try:
                 LOG.debug('Loading alias from %s.', alias)
                 self._register_action_alias(pack, alias)
-            except Exception:
+            except Exception as e:
+                if self._fail_on_failure:
+                    raise e
+
                 LOG.exception('Unable to register alias: %s', alias)
                 continue
             else:
@@ -138,14 +147,17 @@ class AliasesRegistrar(ResourceRegistrar):
         return registered_count
 
 
-def register_aliases(packs_base_paths=None, pack_dir=None):
+def register_aliases(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
+                     fail_on_failure=False):
+
     if packs_base_paths:
         assert isinstance(packs_base_paths, list)
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()
 
-    registrar = AliasesRegistrar()
+    registrar = AliasesRegistrar(use_pack_cache=use_pack_cache,
+                                 fail_on_failure=fail_on_failure)
 
     if pack_dir:
         result = registrar.register_aliases_from_pack(pack_dir=pack_dir)

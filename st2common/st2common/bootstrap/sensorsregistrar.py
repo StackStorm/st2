@@ -61,6 +61,9 @@ class SensorsRegistrar(ResourceRegistrar):
                 count = self._register_sensors_from_pack(pack=pack, sensors=sensors)
                 registered_count += count
             except Exception as e:
+                if self._fail_on_failure:
+                    raise e
+
                 LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir,
                               str(e))
 
@@ -91,6 +94,9 @@ class SensorsRegistrar(ResourceRegistrar):
             sensors = self._get_sensors_from_pack(sensors_dir=sensors_dir)
             registered_count = self._register_sensors_from_pack(pack=pack, sensors=sensors)
         except Exception as e:
+            if self._fail_on_failure:
+                raise e
+
             LOG.exception('Failed registering all sensors from pack "%s": %s', sensors_dir, str(e))
 
         return registered_count
@@ -105,6 +111,9 @@ class SensorsRegistrar(ResourceRegistrar):
             try:
                 self._register_sensor_from_pack(pack=pack, sensor=sensor)
             except Exception as e:
+                if self._fail_on_failure:
+                    raise e
+
                 LOG.debug('Failed to register sensor "%s": %s', sensor, str(e))
             else:
                 LOG.debug('Sensor "%s" successfully registered', sensor)
@@ -154,14 +163,16 @@ class SensorsRegistrar(ResourceRegistrar):
         return sensor_model
 
 
-def register_sensors(packs_base_paths=None, pack_dir=None, use_pack_cache=True):
+def register_sensors(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
+                     fail_on_failure=False):
     if packs_base_paths:
         assert isinstance(packs_base_paths, list)
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()
 
-    registrar = SensorsRegistrar(use_pack_cache=use_pack_cache)
+    registrar = SensorsRegistrar(use_pack_cache=use_pack_cache,
+                                 fail_on_failure=fail_on_failure)
 
     if pack_dir:
         result = registrar.register_sensors_from_pack(pack_dir=pack_dir)

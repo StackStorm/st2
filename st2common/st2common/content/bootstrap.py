@@ -46,7 +46,9 @@ def register_opts():
         cfg.BoolOpt('rules', default=False, help='Register rules.'),
         cfg.BoolOpt('aliases', default=False, help='Register aliases.'),
         cfg.BoolOpt('policies', default=False, help='Register policies.'),
-        cfg.StrOpt('pack', default=None, help='Directory to the pack to register content from.')
+        cfg.StrOpt('pack', default=None, help='Directory to the pack to register content from.'),
+        cfg.BoolOpt('fail-on-failure', default=False, help=('Exit with non-zero of resource '
+                                                            'registration fails.'))
     ]
     try:
         cfg.CONF.register_cli_opts(content_opts, group='register')
@@ -56,15 +58,23 @@ register_opts()
 
 
 def register_sensors():
+    pack_dir = cfg.CONF.register.pack
+    fail_on_failure = cfg.CONF.register.fail_on_failure
+
     registered_count = 0
 
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering sensors ######################')
         LOG.info('=========================================================')
-        registered_count = sensors_registrar.register_sensors(pack_dir=cfg.CONF.register.pack)
+        registered_count = sensors_registrar.register_sensors(pack_dir=pack_dir,
+                                                              fail_on_failure=fail_on_failure)
     except Exception as e:
-        LOG.warning('Failed to register sensors: %s', e, exc_info=True)
+        exc_info = not fail_on_failure
+        LOG.warning('Failed to register sensors: %s', e, exc_info=exc_info)
+
+        if fail_on_failure:
+            raise e
 
     LOG.info('Registered %s sensors.' % (registered_count))
 
@@ -72,6 +82,9 @@ def register_sensors():
 def register_actions():
     # Register runnertypes and actions. The order is important because actions require action
     # types to be present in the system.
+    pack_dir = cfg.CONF.register.pack
+    fail_on_failure = cfg.CONF.register.fail_on_failure
+
     registered_count = 0
 
     try:
@@ -82,17 +95,26 @@ def register_actions():
     except Exception as e:
         LOG.warning('Failed to register runner types: %s', e, exc_info=True)
         LOG.warning('Not registering stock runners .')
-    else:
-        try:
-            registered_count = actions_registrar.register_actions(pack_dir=cfg.CONF.register.pack)
-        except Exception as e:
-            LOG.warning('Failed to register actions: %s', e, exc_info=True)
+        return
+
+    try:
+        registered_count = actions_registrar.register_actions(pack_dir=pack_dir,
+                                                              fail_on_failure=fail_on_failure)
+    except Exception as e:
+        exc_info = not fail_on_failure
+        LOG.warning('Failed to register actions: %s', e, exc_info=exc_info)
+
+        if fail_on_failure:
+            raise e
 
     LOG.info('Registered %s actions.' % (registered_count))
 
 
 def register_rules():
     # Register ruletypes and rules.
+    pack_dir = cfg.CONF.register.pack
+    fail_on_failure = cfg.CONF.register.fail_on_failure
+
     registered_count = 0
 
     try:
@@ -102,25 +124,37 @@ def register_rules():
         rule_types_registrar.register_rule_types()
     except Exception as e:
         LOG.warning('Failed to register rule types: %s', e, exc_info=True)
-    else:
-        try:
-            registered_count = rules_registrar.register_rules(pack_dir=cfg.CONF.register.pack)
-        except Exception as e:
-            LOG.warning('Failed to register rules: %s', e, exc_info=True)
+        return
+
+    try:
+        registered_count = rules_registrar.register_rules(pack_dir=pack_dir,
+                                                          fail_on_failure=fail_on_failure)
+    except Exception as e:
+        exc_info = not fail_on_failure
+        LOG.warning('Failed to register rules: %s', e, exc_info=exc_info)
+
+        if fail_on_failure:
+            raise e
 
     LOG.info('Registered %s rules.', registered_count)
 
 
 def register_aliases():
-    # Register rules.
+    pack_dir = cfg.CONF.register.pack
+    fail_on_failure = cfg.CONF.register.fail_on_failure
+
     registered_count = 0
 
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering aliases ######################')
         LOG.info('=========================================================')
-        registered_count = aliases_registrar.register_aliases(pack_dir=cfg.CONF.register.pack)
-    except Exception:
+        registered_count = aliases_registrar.register_aliases(pack_dir=pack_dir,
+                                                              fail_on_failure=fail_on_failure)
+    except Exception as e:
+        if fail_on_failure:
+            raise e
+
         LOG.warning('Failed to register aliases.', exc_info=True)
 
     LOG.info('Registered %s aliases.', registered_count)
@@ -128,7 +162,11 @@ def register_aliases():
 
 def register_policies():
     # Register policy types and policies.
+    pack_dir = cfg.CONF.register.pack
+    fail_on_failure = cfg.CONF.register.fail_on_failure
+
     registered_type_count = 0
+
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering policy types #################')
@@ -145,9 +183,14 @@ def register_policies():
         LOG.info('=========================================================')
         LOG.info('############## Registering policies #####################')
         LOG.info('=========================================================')
-        registered_count = policies_registrar.register_policies()
-    except Exception:
-        LOG.warning('Failed to register policies.', exc_info=True)
+        registered_count = policies_registrar.register_policies(pack_dir=pack_dir,
+                                                                fail_on_failure=fail_on_failure)
+    except Exception as e:
+        exc_info = not fail_on_failure
+        LOG.warning('Failed to register policies: %s', e, exc_info=exc_info)
+
+        if fail_on_failure:
+            raise e
 
     LOG.info('Registered %s policies.', registered_count)
 
