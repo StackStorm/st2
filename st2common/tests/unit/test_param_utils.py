@@ -16,7 +16,7 @@
 
 import mock
 
-from st2common.exceptions import actionrunner
+from st2common.exceptions.param import ParamException
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.keyvalue import KeyValuePairDB
@@ -291,7 +291,7 @@ class ParamsUtilsTest(DbTestCase):
                 runner_param_info, action_param_info, params, action_context)
             self.fail('This should have thrown because we are trying to deref a key in ' +
                       'action context that ain\'t exist.')
-        except actionrunner.ActionRunnerException as e:
+        except ParamException as e:
             error_msg = 'Failed to render parameter "a2": \'dict object\' ' + \
                         'has no attribute \'lorem_ipsum\''
             self.assertTrue(error_msg in e.message)
@@ -367,7 +367,7 @@ class ParamsUtilsTest(DbTestCase):
         try:
             param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
             test_pass = False
-        except actionrunner.ActionRunnerException as e:
+        except ParamException as e:
             test_pass = e.message.find('Cyclic') == 0
         self.assertTrue(test_pass)
 
@@ -379,7 +379,7 @@ class ParamsUtilsTest(DbTestCase):
         try:
             param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
             test_pass = False
-        except actionrunner.ActionRunnerException as e:
+        except ParamException as e:
             test_pass = e.message.find('Dependecy') == 0
         self.assertTrue(test_pass)
 
@@ -390,7 +390,7 @@ class ParamsUtilsTest(DbTestCase):
         try:
             param_utils.get_finalized_params(runner_param_info, action_param_info, params, {})
             test_pass = False
-        except actionrunner.ActionRunnerException as e:
+        except ParamException as e:
             test_pass = e.message.find('Dependecy') == 0
         self.assertTrue(test_pass)
 
@@ -399,7 +399,7 @@ class ParamsUtilsTest(DbTestCase):
         action_param_info = {'cmd': {}, 'a2': {}}
 
         expected_msg = 'Failed to render parameter "cmd": .*'
-        self.assertRaisesRegexp(actionrunner.ActionRunnerException,
+        self.assertRaisesRegexp(ParamException,
                                 expected_msg,
                                 param_utils.get_finalized_params,
                                 runnertype_parameter_info={},

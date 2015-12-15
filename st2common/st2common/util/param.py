@@ -20,7 +20,7 @@ from jinja2 import meta
 from st2common import log as logging
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.system import SYSTEM_KV_PREFIX
-from st2common.exceptions import actionrunner
+from st2common.exceptions.param import ParamException
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util.casts import get_cast
 from st2common.util.compat import to_unicode
@@ -112,11 +112,11 @@ def render_live_params(runnertype_parameter_info, action_parameter_info, params,
     for name in G.nodes():
         if 'value' not in G.node[name] and 'template' not in G.node[name]:
             msg = 'Dependecy unsatisfied in %s' % name
-            raise actionrunner.ActionRunnerException(msg)
+            raise ParamException(msg)
 
     if not nx.is_directed_acyclic_graph(G):
         msg = 'Cyclic dependecy found'
-        raise actionrunner.ActionRunnerException(msg)
+        raise ParamException(msg)
 
     for name in nx.topological_sort(G):
         node = G.node[name]
@@ -126,7 +126,7 @@ def render_live_params(runnertype_parameter_info, action_parameter_info, params,
             except Exception as e:
                 LOG.debug('Failed to render %s: %s', name, e, exc_info=True)
                 msg = 'Failed to render parameter "%s": %s' % (name, str(e))
-                raise actionrunner.ActionRunnerException(msg)
+                raise ParamException(msg)
         if 'value' in node:
             render_context[name] = node['value']
 
@@ -171,11 +171,11 @@ def render_final_params(runnertype_parameter_info, action_parameter_info, params
     for name in G.nodes():
         if 'value' not in G.node[name] and 'template' not in G.node[name]:
             msg = 'Dependecy unsatisfied in %s' % name
-            raise actionrunner.ActionRunnerException(msg)
+            raise ParamException(msg)
 
     if not nx.is_directed_acyclic_graph(G):
         msg = 'Cyclic dependecy found'
-        raise actionrunner.ActionRunnerException(msg)
+        raise ParamException(msg)
 
     for name in nx.topological_sort(G):
         node = G.node[name]

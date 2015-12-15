@@ -30,6 +30,8 @@ from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.constants.action import LIVEACTION_CANCELABLE_STATES
+from st2common.exceptions.param import ParamException
+from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.trace import TraceNotFoundException
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.base import jsexpose
@@ -45,7 +47,6 @@ from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util.api import get_requester
 from st2common.util import param as param_utils
-from st2common.util import schema as util_schema
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
@@ -120,6 +121,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             abort(http_client.BAD_REQUEST, re.sub("u'([^']*)'", r"'\1'", e.message))
         except TraceNotFoundException as e:
             abort(http_client.BAD_REQUEST, str(e))
+        except ValueValidationException as e:
+            raise e
         except Exception as e:
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
@@ -145,8 +148,13 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         action_db = action_utils.get_action_by_ref(liveaction_db.action)
         runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
-        liveaction_db.parameters = param_utils.render_live_params(runnertype_db.runner_parameters,
-            action_db.parameters, liveaction_db.parameters, liveaction_db.context)
+
+        try:
+            liveaction_db.parameters = param_utils.render_live_params(
+                runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
+                liveaction_db.context)
+        except ParamException as e:
+            raise ValueValidationException(str(e))
 
         _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
