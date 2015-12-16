@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import uuid
 from st2common import log as logging
 from st2actions.runners import ActionRunner
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
