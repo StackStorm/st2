@@ -149,12 +149,13 @@ def abandon_execution_if_incomplete(liveaction_id, publish=True):
     if liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES:
         return
     liveaction_db = action_utils.update_liveaction_status(
-                status=action_constants.LIVEACTION_STATUS_ABANDONED,
-                liveaction_db=liveaction_db,
-                result={})
+        status=action_constants.LIVEACTION_STATUS_ABANDONED,
+        liveaction_db=liveaction_db,
+        result={})
     execution_db = update_execution(liveaction_db, publish=publish)
     LOG.info('Marked execution %s as %s.', execution_db.id,
              action_constants.LIVEACTION_STATUS_ABANDONED)
+
 
 def is_execution_canceled(execution_id):
     try:
