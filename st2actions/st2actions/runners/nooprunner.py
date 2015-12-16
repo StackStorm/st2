@@ -20,6 +20,13 @@ import st2common.util.jsonify as jsonify
 
 LOG = logging.getLogger(__name__)
 
+__all__ = [
+    'get_runner'
+]
+
+def get_runner():
+    return NoopRunner(str(uuid.uuid4()))
+
 
 class NoopRunner(ActionRunner):
     """
