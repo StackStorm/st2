@@ -50,6 +50,9 @@ class RulesRegistrar(ResourceRegistrar):
         content = self._pack_loader.get_content(base_dirs=base_dirs,
                                                 content_type='rules')
         for pack, rules_dir in six.iteritems(content):
+            if not rules_dir:
+                LOG.debug('Pack %s does not contain rules.', pack)
+                continue
             try:
                 LOG.debug('Registering rules from pack: %s', pack)
                 rules = self._get_rules_from_pack(rules_dir)
