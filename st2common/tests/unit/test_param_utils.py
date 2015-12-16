@@ -394,6 +394,21 @@ class ParamsUtilsTest(DbTestCase):
             test_pass = e.message.find('Dependecy') == 0
         self.assertTrue(test_pass)
 
+    def test_get_finalized_params_no_double_rendering(self):
+        params = {
+            'r1': '{{ action_context.h1 }}{{ action_context.h2 }}'
+        }
+        runner_param_info = {'r1': {}}
+        action_param_info = {}
+        action_context = {
+            'h1': '{',
+            'h2': '{ missing }}'
+        }
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+        self.assertEqual(r_runner_params, {'r1': '{{ missing }}'})
+        self.assertEqual(r_action_params, {})
+
     def test_get_finalized_params_param_rendering_failure(self):
         params = {'cmd': '{{a2.foo}}', 'a2': 'test'}
         action_param_info = {'cmd': {}, 'a2': {}}

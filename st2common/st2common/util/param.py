@@ -28,11 +28,11 @@ from st2common.util import jinja as jinja_utils
 
 
 LOG = logging.getLogger(__name__)
+ENV = jinja_utils.get_jinja_environment()
 
 __all__ = [
     'render_live_params',
     'render_final_params',
-    'get_finalized_params',
 ]
 
 
@@ -69,14 +69,28 @@ def _cast(v, parameter_schema):
     return cast(v)
 
 
+def _create_graph(action_context):
+    '''
+    Creates a generic directed graph for depencency tree and fills it with basic context variables
+    '''
+    G = nx.DiGraph()
+    G.add_node(SYSTEM_KV_PREFIX, value=KeyValueLookup())
+    G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
+    return G
+
+
 def _process(G, name, value):
     '''
     Determines whether parameter is a template or a value. Adds graph nodes and edges accordingly.
     '''
-    env = jinja_utils.get_jinja_environment()
+    # Jinja defaults to ascii parser in python 2.x unless you set utf-8 support on per module level
+    # Instead we're just assuming every string to be a unicode string
     if isinstance(value, str):
         value = to_unicode(value)
-    template_ast = env.parse(value)
+    template_ast = ENV.parse(value)
+    # Dependencies of the node represent jinja variables used in the template
+    # We're connecting nodes with an edge for every depencency to traverse them in the right order
+    # and also make sure that we don't have missing or cyclic dependencies upfront.
     dependencies = meta.find_undeclared_variables(template_ast)
     if dependencies:
         G.add_node(name, template=value)
@@ -86,29 +100,20 @@ def _process(G, name, value):
         G.add_node(name, value=value)
 
 
-def render_live_params(runnertype_parameter_info, action_parameter_info, params, action_context):
+def _process_defaults(G, schemas):
     '''
-    Renders list of parameters. Ensures that there's no cyclic or missing dependencies. Returns a
-    dict of plain rendered parameters.
+    Process dependencies for parameters default values in the order schemas are defined.
     '''
-    render_context = {}
-    env = jinja_utils.get_jinja_environment()
+    for schema in schemas:
+        for name, value in six.iteritems(schema):
+            if name not in G.node or value.get('immutable', False):
+                _process(G, name, value.get('default', None))
 
-    G = nx.DiGraph()
-    G.add_node(SYSTEM_KV_PREFIX, value=KeyValueLookup())
-    G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
 
-    for name, value in six.iteritems(params):
-        _process(G, name, value)
-
-    for name, value in six.iteritems(runnertype_parameter_info):
-        if name not in params or value.get('immutable', False):
-            _process(G, name, value.get('default', None))
-
-    for name, value in six.iteritems(action_parameter_info):
-        if name not in params or value.get('immutable', False):
-            _process(G, name, value.get('default', None))
-
+def _validate(G):
+    '''
+    Validates dependency graph to ensure it has no missing or cyclic dependencies
+    '''
     for name in G.nodes():
         if 'value' not in G.node[name] and 'template' not in G.node[name]:
             msg = 'Dependecy unsatisfied in %s' % name
@@ -118,83 +123,81 @@ def render_live_params(runnertype_parameter_info, action_parameter_info, params,
         msg = 'Cyclic dependecy found'
         raise ParamException(msg)
 
+
+def _render(node, render_context):
+    '''
+    Render the node depending on its type
+    '''
+    if 'template' in node:
+        return ENV.from_string(node['template']).render(render_context)
+    if 'value' in node:
+        return node['value']
+
+
+def _resolve_dependencies(G):
+    '''
+    Traverse the dependency graph starting from resolved nodes
+    '''
+    context = {}
     for name in nx.topological_sort(G):
         node = G.node[name]
-        if 'template' in node:
-            try:
-                render_context[name] = env.from_string(node['template']).render(render_context)
-            except Exception as e:
-                LOG.debug('Failed to render %s: %s', name, e, exc_info=True)
-                msg = 'Failed to render parameter "%s": %s' % (name, str(e))
-                raise ParamException(msg)
-        if 'value' in node:
-            render_context[name] = node['value']
+        try:
+            context[name] = _render(node, context)
+        except Exception as e:
+            LOG.debug('Failed to render %s: %s', name, e, exc_info=True)
+            msg = 'Failed to render parameter "%s": %s' % (name, str(e))
+            raise ParamException(msg)
+    return context
 
+
+def _cast_params_from(params, context, schemas):
+    '''
+    Pick a list of parameters from context and cast each of them according to the schemas provided
+    '''
     result = {}
     for name in params:
-        schema = {}
-        if (name in action_parameter_info):
-            schema = action_parameter_info[name]
-        if (name in runnertype_parameter_info):
-            schema = runnertype_parameter_info[name]
-        result[name] = _cast(render_context[name], schema)
-
+        param_schema = {}
+        for schema in schemas:
+            if name in schema:
+                param_schema = schema[name]
+        result[name] = _cast(context[name], param_schema)
     return result
 
 
-def render_final_params(runnertype_parameter_info, action_parameter_info, params, action_context):
+def render_live_params(runner_parameters, action_parameters, params, action_context):
+    '''
+    Renders list of parameters. Ensures that there's no cyclic or missing dependencies. Returns a
+    dict of plain rendered parameters.
+    '''
+    G = _create_graph(action_context)
+
+    [_process(G, name, value) for name, value in six.iteritems(params)]
+    _process_defaults(G, [action_parameters, runner_parameters])
+    _validate(G)
+
+    context = _resolve_dependencies(G)
+    live_params = _cast_params_from(params, context, [action_parameters, runner_parameters])
+
+    return live_params
+
+
+def render_final_params(runner_parameters, action_parameters, params, action_context):
     '''
     Renders missing parameters required for action to execute. Treats parameters from the dict as
     plain values instead of trying to render them again. Returns dicts for action and runner
     parameters.
     '''
-    render_context = {}
-    env = jinja_utils.get_jinja_environment()
+    G = _create_graph(action_context)
 
-    G = nx.DiGraph()
-    G.add_node(SYSTEM_KV_PREFIX, value=KeyValueLookup())
-    G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
+    # by that point, all params should already be resolved so any template should be treated value
+    [G.add_node(name, value=value) for name, value in six.iteritems(params)]
+    _process_defaults(G, [action_parameters, runner_parameters])
+    _validate(G)
 
-    for name, value in six.iteritems(params):
-        # by that point, all params should already be resolved so any template should be treated as
-        # a value
-        G.add_node(name, value=value)
+    context = _resolve_dependencies(G)
+    context = _cast_params_from(context, context, [action_parameters, runner_parameters])
 
-    for name, value in six.iteritems(runnertype_parameter_info):
-        if name not in params or value.get('immutable', False):
-            _process(G, name, value.get('default', None))
-
-    for name, value in six.iteritems(action_parameter_info):
-        if name not in params or value.get('immutable', False):
-            _process(G, name, value.get('default', None))
-
-    for name in G.nodes():
-        if 'value' not in G.node[name] and 'template' not in G.node[name]:
-            msg = 'Dependecy unsatisfied in %s' % name
-            raise ParamException(msg)
-
-    if not nx.is_directed_acyclic_graph(G):
-        msg = 'Cyclic dependecy found'
-        raise ParamException(msg)
-
-    for name in nx.topological_sort(G):
-        node = G.node[name]
-        schema = {}
-        if (name in action_parameter_info):
-            schema = action_parameter_info[name]
-        if (name in runnertype_parameter_info):
-            schema = runnertype_parameter_info[name]
-        if 'template' in node:
-            render_context[name] = env.from_string(node['template']).render(render_context)
-        if 'value' in node:
-            render_context[name] = node['value']
-        if name in render_context:
-            render_context[name] = _cast(render_context[name], schema)
-
-    runner_params, action_params = _split_params(runnertype_parameter_info, action_parameter_info,
-                                                 render_context)
-
-    return (runner_params, action_params)
+    return _split_params(runner_parameters, action_parameters, context)
 
 
 def get_finalized_params(runnertype_parameter_info, action_parameter_info, liveaction_parameters,
@@ -203,7 +206,6 @@ def get_finalized_params(runnertype_parameter_info, action_parameter_info, livea
     Left here to keep tests running. Later we would need to split tests so they start testing each
     function separately.
     '''
-
     params = render_live_params(runnertype_parameter_info, action_parameter_info,
                                 liveaction_parameters, action_context)
     return render_final_params(runnertype_parameter_info, action_parameter_info, params,
