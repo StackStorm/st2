@@ -59,8 +59,8 @@ in the tests.
   from the ``run`` method.
 * ``st2tests.mocks.sensor.MockSensorWrapper`` - Mock ``SensorWrapper`` class.
 * ``st2tests.mocks.sensor.MockSensorService`` - Mock ``SensorService`` class.
-  This class mock methods which operate on the datastore items (``list_values``,
-  ``get_value``, ``set_value``, ``delete_value``).
+  This class mock methods which operate on the datastore items (``get_logger`,
+  ``list_values``, ``get_value``, ``set_value``, ``delete_value``).
 
 Dependencies
 ------------
@@ -90,7 +90,7 @@ Running Tests
 -------------
 
 To run all the tests in a particular pack you can use the ``st2-run-pack-tests``
-script (``st2common/bin/st2-run-pack-tests``) from the ``st2`` repository as 
+script (``st2common/bin/st2-run-pack-tests``) from the ``st2`` repository as
 shown below.
 
 .. sourcecode:: bash
@@ -116,6 +116,14 @@ If you are running this script inside a development VM (st2express /
 st2workroom), you can safely pass ``-x`` flag to the script since a virtual
 environment should already be created and all the necessary |st2| dependencies
 should be available in ``PYTHONPATH``.
+
+Sample Tests
+------------
+
+You can find some sample tests on the links below.
+
+* Sensor - `test_sensor_docker_sensor <https://github.com/StackStorm/st2contrib/blob/master/packs/docker/tests/test_sensor_docker_sensor.py>`_
+* Action - `test_action_parse <https://github.com/StackStorm/st2contrib/blob/master/packs/csv/tests/test_action_parse.py>`_
 
 Continous Integration
 ---------------------

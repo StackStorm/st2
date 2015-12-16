@@ -55,6 +55,24 @@ class MockSensorServiceTestCase(unittest2.TestCase):
     def setUp(self):
         self._mock_sensor_wrapper = MockSensorWrapper(pack='dummy', class_name='test')
 
+    def test_get_logger(self):
+        sensor_service = MockSensorService(sensor_wrapper=self._mock_sensor_wrapper)
+        logger = sensor_service.get_logger('test')
+        logger.info('test info')
+        logger.debug('test debug')
+
+        self.assertEqual(len(logger.method_calls), 2)
+
+        method_name, method_args, method_kwargs = tuple(logger.method_calls[0])
+        self.assertEqual(method_name, 'info')
+        self.assertEqual(method_args, ('test info',))
+        self.assertEqual(method_kwargs, {})
+
+        method_name, method_args, method_kwargs = tuple(logger.method_calls[1])
+        self.assertEqual(method_name, 'debug')
+        self.assertEqual(method_args, ('test debug',))
+        self.assertEqual(method_kwargs, {})
+
     def test_list_set_get_delete_values(self):
         sensor_service = MockSensorService(sensor_wrapper=self._mock_sensor_wrapper)
 
