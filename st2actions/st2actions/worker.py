@@ -92,8 +92,12 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
     def shutdown(self):
         super(ActionExecutionDispatcher, self).shutdown()
         # Abandon running executions if incomplete
-        for liveaction_id in self._running_liveactions:
-            executions.abandon_execution_if_incomplete(liveaction_id=liveaction_id)
+        while self._running_liveactions:
+            liveaction_id = self._running_liveactions.pop()
+            try:
+                executions.abandon_execution_if_incomplete(liveaction_id=liveaction_id)
+            except:
+                LOG.exception('Failed to abandon liveaction %s.', liveaction_id)
 
     def _run_action(self, liveaction_db):
         # stamp liveaction with process_info
