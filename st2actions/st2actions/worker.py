@@ -91,15 +91,9 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
 
     def shutdown(self):
         super(ActionExecutionDispatcher, self).shutdown()
-        # Abandon running executions.
+        # Abandon running executions if incomplete
         for liveaction_id in self._running_liveactions:
-            liveaction_db = action_utils.update_liveaction_status(
-                status=action_constants.LIVEACTION_STATUS_ABANDONED,
-                liveaction_id=liveaction_id,
-                result={})
-            execution_db = executions.update_execution(liveaction_db)
-            LOG.info('Marked execution %s as %s.', execution_db.id,
-                     action_constants.LIVEACTION_STATUS_ABANDONED)
+            executions.abandon_execution_if_incomplete(liveaction_id=liveaction_id)
 
     def _run_action(self, liveaction_db):
         # stamp liveaction with process_info
