@@ -13,12 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import uuid
 from st2common import log as logging
 from st2actions.runners import ActionRunner
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 import st2common.util.jsonify as jsonify
 
 LOG = logging.getLogger(__name__)
+
+__all__ = [
+    'get_runner'
+]
+
+
+def get_runner():
+    return NoopRunner(str(uuid.uuid4()))
 
 
 class NoopRunner(ActionRunner):
