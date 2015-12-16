@@ -47,6 +47,7 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
     def __init__(self, connection, queues):
         super(ActionExecutionDispatcher, self).__init__(connection, queues)
         self.container = RunnerContainer()
+        self._running_liveactions = set()
 
     def process(self, liveaction):
         """Dispatches the LiveAction to appropriate action runner.
@@ -88,6 +89,18 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
                 if liveaction.status == action_constants.LIVEACTION_STATUS_SCHEDULED
                 else self._cancel_action(liveaction_db))
 
+    def shutdown(self):
+        super(ActionExecutionDispatcher, self).shutdown()
+        # Abandon running executions.
+        for liveaction_id in self._running_liveactions:
+            liveaction_db = action_utils.update_liveaction_status(
+                status=action_constants.LIVEACTION_STATUS_ABANDONED,
+                liveaction_id=liveaction_id,
+                result={})
+            execution_db = executions.update_execution(liveaction_db)
+            LOG.info('Marked execution %s as %s.', execution_db.id,
+                     action_constants.LIVEACTION_STATUS_ABANDONED)
+
     def _run_action(self, liveaction_db):
         # stamp liveaction with process_info
         runner_info = system_info.get_process_info()
@@ -97,6 +110,8 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
             status=action_constants.LIVEACTION_STATUS_RUNNING,
             runner_info=runner_info,
             liveaction_id=liveaction_db.id)
+
+        self._running_liveactions.add(liveaction_db.id)
 
         action_execution_db = executions.update_execution(liveaction_db)
 
@@ -125,6 +140,8 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
                 result={'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))})
             executions.update_execution(liveaction_db)
             raise
+        finally:
+            self._running_liveactions.remove(liveaction_db.id)
 
         return result
 
