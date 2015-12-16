@@ -54,6 +54,9 @@ class ActionsRegistrar(ResourceRegistrar):
                                                 content_type='actions')
 
         for pack, actions_dir in six.iteritems(content):
+            if not actions_dir:
+                LOG.debug('Pack %s does not contain actions.', pack)
+                continue
             try:
                 LOG.debug('Registering actions from pack %s:, dir: %s', pack, actions_dir)
                 actions = self._get_actions_from_pack(actions_dir)

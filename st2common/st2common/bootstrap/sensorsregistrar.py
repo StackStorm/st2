@@ -55,6 +55,9 @@ class SensorsRegistrar(ResourceRegistrar):
                                                 content_type='sensors')
 
         for pack, sensors_dir in six.iteritems(content):
+            if not sensors_dir:
+                LOG.debug('Pack %s does not contain sensors.', pack)
+                continue
             try:
                 LOG.debug('Registering sensors from pack %s:, dir: %s', pack, sensors_dir)
                 sensors = self._get_sensors_from_pack(sensors_dir)

@@ -57,6 +57,9 @@ class PolicyRegistrar(ResourceRegistrar):
                                                 content_type='policies')
 
         for pack, policies_dir in six.iteritems(content):
+            if not policies_dir:
+                LOG.debug('Pack %s does not contain policies.', pack)
+                continue
             try:
                 LOG.debug('Registering policies from pack %s:, dir: %s', pack, policies_dir)
                 policies = self._get_policies_from_pack(policies_dir)

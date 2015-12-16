@@ -51,6 +51,9 @@ class AliasesRegistrar(ResourceRegistrar):
                                                 content_type='aliases')
 
         for pack, aliases_dir in six.iteritems(content):
+            if not aliases_dir:
+                LOG.debug('Pack %s does not contain aliases.', pack)
+                continue
             try:
                 LOG.debug('Registering aliases from pack %s:, dir: %s', pack, aliases_dir)
                 aliases = self._get_aliases_from_pack(aliases_dir)
