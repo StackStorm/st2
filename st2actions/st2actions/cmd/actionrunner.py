@@ -23,8 +23,7 @@ eventlet.monkey_patch(
 def _setup_sigterm_handler():
 
         def sigterm_handler(signum=None, frame=None):
-            # This will cause SystemExit to be throw and we call sensor_container.shutdown()
-            # there which cleans things up.
+            # This will cause SystemExit to be throw and allow for component cleanup.
             sys.exit(0)
 
         # Register a SIGTERM signal handler which calls sys.exit which causes SystemExit to
