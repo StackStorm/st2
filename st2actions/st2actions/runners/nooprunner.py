@@ -25,6 +25,7 @@ __all__ = [
     'get_runner'
 ]
 
+
 def get_runner():
     return NoopRunner(str(uuid.uuid4()))
 
