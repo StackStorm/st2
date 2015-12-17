@@ -35,7 +35,7 @@ eventlet.monkey_patch(
     time=True)
 
 
-LOG = logging.getLogger('st2reactor.bin.sensors_manager')
+LOG = logging.getLogger('st2reactor.bin.sensormanager')
 
 
 def _setup():
