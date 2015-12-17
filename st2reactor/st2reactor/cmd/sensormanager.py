@@ -22,6 +22,7 @@ from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.exceptions.sensors import SensorNotFoundException
+from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2reactor.sensor import config
 from st2reactor.container.manager import SensorContainerManager
 from st2reactor.container.partitioner_lookup import get_sensors_partitioner
@@ -59,6 +60,6 @@ def main():
         return 1
     except:
         LOG.exception('(PID:%s) SensorContainer quit due to exception.', os.getpid())
-        return 2
+        return FAILURE_EXIT_CODE
     finally:
         _teardown()
