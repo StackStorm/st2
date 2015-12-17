@@ -28,7 +28,8 @@ in development
   instance of ``Mock`` class which allows user to assert that a particular message has been
   logged. [Tim Ireland, Tomaz Muraus]
 * Introduce a new ``abandoned`` state that is applied to executions that we cannot guarantee as
-  completed. Typically happen when an actionrunner currently running some executions quits.
+  completed. Typically happen when an actionrunner currently running some executions quits or is killed
+  via TERM.
 
 1.2.0 - December 07, 2015
 -------------------------
