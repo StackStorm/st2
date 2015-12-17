@@ -18,13 +18,16 @@ from datetime import timedelta
 import bson
 import copy
 
-from st2common.cmd.purge_executions import purge_executions
+from st2common import log as logging
+from st2reactor.garbage_collector.executions import purge_executions
 from st2common.constants import action as action_constants
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.util import date as date_utils
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
+
+LOG = logging.getLogger(__name__)
 
 TEST_FIXTURES = {
     'executions': [
@@ -60,7 +63,10 @@ class TestPurgeExecutions(CleanDbTestCase):
 
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
-        purge_executions()
+
+        expected_msg = 'Specify a valid timestamp'
+        self.assertRaisesRegexp(ValueError, expected_msg, purge_executions,
+                                logger=LOG, timestamp=None)
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
 
@@ -75,11 +81,11 @@ class TestPurgeExecutions(CleanDbTestCase):
 
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
-        purge_executions(action_ref='core.localzzz', timestamp=now - timedelta(days=10))
+        purge_executions(logger=LOG, action_ref='core.localzzz', timestamp=now - timedelta(days=10))
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
 
-        purge_executions(action_ref='core.local', timestamp=now - timedelta(days=10))
+        purge_executions(logger=LOG, action_ref='core.local', timestamp=now - timedelta(days=10))
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 0)
 
@@ -103,7 +109,7 @@ class TestPurgeExecutions(CleanDbTestCase):
         ActionExecution.add_or_update(exec_model)
 
         execs = ActionExecution.get_all()
-        purge_executions(timestamp=now - timedelta(days=20))
+        purge_executions(logger=LOG, timestamp=now - timedelta(days=20))
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
 
@@ -131,7 +137,7 @@ class TestPurgeExecutions(CleanDbTestCase):
         executions = ActionExecution.get_all()
         self.assertEqual(len(liveactions), 1)
         self.assertEqual(len(executions), 1)
-        purge_executions(timestamp=now - timedelta(days=10))
+        purge_executions(logger=LOG, timestamp=now - timedelta(days=10))
         liveactions = LiveAction.get_all()
         executions = ActionExecution.get_all()
         self.assertEqual(len(executions), 0)
@@ -173,7 +179,7 @@ class TestPurgeExecutions(CleanDbTestCase):
         ActionExecution.add_or_update(exec_model)
 
         self.assertEqual(len(ActionExecution.get_all()), 5)
-        purge_executions(timestamp=now - timedelta(days=10), purge_incomplete=False)
+        purge_executions(logger=LOG, timestamp=now - timedelta(days=10), purge_incomplete=False)
         self.assertEqual(len(ActionExecution.get_all()), 5)
-        purge_executions(timestamp=now - timedelta(days=10), purge_incomplete=True)
+        purge_executions(logger=LOG, timestamp=now - timedelta(days=10), purge_incomplete=True)
         self.assertEqual(len(ActionExecution.get_all()), 0)
