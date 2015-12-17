@@ -122,15 +122,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def test_abandon_executions(self):
         liveaction_db = self.MODELS['liveactions']['liveaction1.yaml']
-        execution_db = executions_util.create_execution_object(liveaction_db)
-        execution_db = executions_util.abandon_execution_if_incomplete(
-            liveaction_id=str(liveaction_db.id))
-        self.assertEquals(execution_db.status, 'abandoned')
-
-    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-    def test_abandon_executions(self):
-        liveaction_db = self.MODELS['liveactions']['liveaction1.yaml']
-        execution_db = executions_util.create_execution_object(liveaction_db)
+        executions_util.create_execution_object(liveaction_db)
         execution_db = executions_util.abandon_execution_if_incomplete(
             liveaction_id=str(liveaction_db.id))
         self.assertEquals(execution_db.status, 'abandoned')
@@ -138,7 +130,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def test_abandon_executions_on_complete(self):
         liveaction_db = self.MODELS['liveactions']['successful_liveaction.yaml']
-        execution_db = executions_util.create_execution_object(liveaction_db)
+        executions_util.create_execution_object(liveaction_db)
         expected_msg = 'LiveAction %s already in a completed state %s\.' % \
                        (str(liveaction_db.id), liveaction_db.status)
         self.assertRaisesRegexp(ValueError, expected_msg,
