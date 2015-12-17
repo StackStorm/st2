@@ -54,7 +54,7 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-SKIPPED = ['id', 'callback', 'action', 'runner_info']
+SKIPPED = ['id', 'callback', 'action', 'runner_info', 'parameters']
 
 
 def _decompose_liveaction(liveaction_db):
@@ -77,6 +77,7 @@ def create_execution_object(liveaction, publish=True):
 
     attrs = {
         'action': vars(ActionAPI.from_model(action_db)),
+        'parameters': liveaction['parameters'],
         'runner': vars(RunnerTypeAPI.from_model(runner))
     }
     attrs.update(_decompose_liveaction(liveaction))

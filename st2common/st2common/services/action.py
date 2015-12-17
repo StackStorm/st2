@@ -30,6 +30,8 @@ from st2common.util import schema as util_schema
 
 __all__ = [
     'request',
+    'create_request',
+    'publish_request',
     'is_action_canceled_or_canceling'
 ]
 
@@ -42,9 +44,9 @@ def _get_immutable_params(parameters):
     return [k for k, v in six.iteritems(parameters) if v.get('immutable', False)]
 
 
-def request(liveaction):
+def create_request(liveaction):
     """
-    Request an action execution.
+    Create an action execution.
 
     :return: (liveaction, execution)
     :rtype: tuple
@@ -116,6 +118,16 @@ def request(liveaction):
                 trace_service.get_trace_component_for_action_execution(execution)
             ])
 
+    return liveaction, execution
+
+
+def publish_request(liveaction, execution):
+    """
+    Publish an action execution.
+
+    :return: (liveaction, execution)
+    :rtype: tuple
+    """
     # Assume that this is a creation.
     LiveAction.publish_create(liveaction)
     LiveAction.publish_status(liveaction)
@@ -124,6 +136,13 @@ def request(liveaction):
     extra = {'liveaction_db': liveaction, 'execution_db': execution}
     LOG.audit('Action execution requested. LiveAction.id=%s, ActionExecution.id=%s' %
               (liveaction.id, execution.id), extra=extra)
+
+    return liveaction, execution
+
+
+def request(liveaction):
+    liveaction, execution = create_request(liveaction)
+    liveaction, execution = publish_request(liveaction, execution)
 
     return liveaction, execution
 
