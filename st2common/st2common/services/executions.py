@@ -147,7 +147,8 @@ def abandon_execution_if_incomplete(liveaction_id, publish=True):
     liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
     # No need to abandon and already complete action
     if liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES:
-        return
+        raise ValueError('LiveAction %s already in a completed state %s.' %
+                         (liveaction_id, liveaction_db.status))
     liveaction_db = action_utils.update_liveaction_status(
         status=action_constants.LIVEACTION_STATUS_ABANDONED,
         liveaction_db=liveaction_db,
@@ -155,6 +156,7 @@ def abandon_execution_if_incomplete(liveaction_id, publish=True):
     execution_db = update_execution(liveaction_db, publish=publish)
     LOG.info('Marked execution %s as %s.', execution_db.id,
              action_constants.LIVEACTION_STATUS_ABANDONED)
+    return execution_db
 
 
 def is_execution_canceled(execution_id):

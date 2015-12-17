@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
 import six
 
 from st2common.constants import action as action_constants
@@ -22,6 +23,7 @@ from st2common.models.api.rule import RuleAPI
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.persistence.execution import ActionExecution
+from st2common.transport.publishers import PoolPublisher
 import st2common.services.executions as executions_util
 import st2common.util.action_db as action_utils
 
@@ -34,7 +36,8 @@ tests_config.parse_args()
 FIXTURES_PACK = 'generic'
 
 TEST_FIXTURES = {
-    'liveactions': ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml'],
+    'liveactions': ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml',
+                    'successful_liveaction.yaml'],
     'actions': ['local.yaml'],
     'executions': ['execution1.yaml'],
     'runners': ['run-local.yaml'],
@@ -109,15 +112,38 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         self.assertEquals(execution.liveaction['id'], str(liveaction.id))
 
     def test_execution_creation_chains(self):
-        """
-        Test children and parent relationship is established.
-        """
         childliveaction = self.MODELS['liveactions']['childliveaction.yaml']
         child_exec = executions_util.create_execution_object(childliveaction)
         parent_execution_id = childliveaction.context['parent']['execution_id']
         parent_execution = ActionExecution.get_by_id(parent_execution_id)
         child_execs = parent_execution.children
         self.assertTrue(str(child_exec.id) in child_execs)
+
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
+    def test_abandon_executions(self):
+        liveaction_db = self.MODELS['liveactions']['liveaction1.yaml']
+        execution_db = executions_util.create_execution_object(liveaction_db)
+        execution_db = executions_util.abandon_execution_if_incomplete(
+            liveaction_id=str(liveaction_db.id))
+        self.assertEquals(execution_db.status, 'abandoned')
+
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
+    def test_abandon_executions(self):
+        liveaction_db = self.MODELS['liveactions']['liveaction1.yaml']
+        execution_db = executions_util.create_execution_object(liveaction_db)
+        execution_db = executions_util.abandon_execution_if_incomplete(
+            liveaction_id=str(liveaction_db.id))
+        self.assertEquals(execution_db.status, 'abandoned')
+
+    @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
+    def test_abandon_executions_on_complete(self):
+        liveaction_db = self.MODELS['liveactions']['successful_liveaction.yaml']
+        execution_db = executions_util.create_execution_object(liveaction_db)
+        expected_msg = 'LiveAction %s already in a completed state %s\.' % \
+                       (str(liveaction_db.id), liveaction_db.status)
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                executions_util.abandon_execution_if_incomplete,
+                                liveaction_id=str(liveaction_db.id))
 
     def _get_action_execution(self, **kwargs):
         return ActionExecution.get(**kwargs)
