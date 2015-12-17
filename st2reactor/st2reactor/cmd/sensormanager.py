@@ -27,6 +27,10 @@ from st2reactor.sensor import config
 from st2reactor.container.manager import SensorContainerManager
 from st2reactor.container.partitioner_lookup import get_sensors_partitioner
 
+__all__ = [
+    'main'
+]
+
 eventlet.monkey_patch(
     os=True,
     select=True,
