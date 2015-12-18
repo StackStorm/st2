@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 from datetime import timedelta
 
 import bson
-import copy
 
 from st2common import log as logging
 from st2reactor.garbage_collector.executions import purge_executions
