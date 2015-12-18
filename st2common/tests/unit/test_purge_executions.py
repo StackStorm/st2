@@ -54,7 +54,7 @@ class TestPurgeExecutions(CleanDbTestCase):
 
     def test_no_timestamp_doesnt_delete_things(self):
         now = date_utils.get_datetime_utc_now()
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = now - timedelta(days=15)
         exec_model['end_timestamp'] = now - timedelta(days=14)
         exec_model['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -72,7 +72,7 @@ class TestPurgeExecutions(CleanDbTestCase):
 
     def test_purge_executions_with_action_ref(self):
         now = date_utils.get_datetime_utc_now()
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = now - timedelta(days=15)
         exec_model['end_timestamp'] = now - timedelta(days=14)
         exec_model['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -93,7 +93,7 @@ class TestPurgeExecutions(CleanDbTestCase):
         now = date_utils.get_datetime_utc_now()
 
         # Write one execution after cut-off threshold
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = now - timedelta(days=15)
         exec_model['end_timestamp'] = now - timedelta(days=14)
         exec_model['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -101,7 +101,7 @@ class TestPurgeExecutions(CleanDbTestCase):
         ActionExecution.add_or_update(exec_model)
 
         # Write one execution before cut-off threshold
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = now - timedelta(days=22)
         exec_model['end_timestamp'] = now - timedelta(days=21)
         exec_model['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -118,14 +118,14 @@ class TestPurgeExecutions(CleanDbTestCase):
         start_ts = now - timedelta(days=15)
         end_ts = now - timedelta(days=14)
 
-        liveaction_model = copy.copy(self.models['liveactions']['liveaction4.yaml'])
+        liveaction_model = copy.deepcopy(self.models['liveactions']['liveaction4.yaml'])
         liveaction_model['start_timestamp'] = start_ts
         liveaction_model['end_timestamp'] = end_ts
         liveaction_model['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
         liveaction = LiveAction.add_or_update(liveaction_model)
 
         # Write one execution before cut-off threshold
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = start_ts
         exec_model['end_timestamp'] = end_ts
         exec_model['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -148,31 +148,31 @@ class TestPurgeExecutions(CleanDbTestCase):
         start_ts = now - timedelta(days=15)
 
         # Write executions before cut-off threshold
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = start_ts
         exec_model['status'] = action_constants.LIVEACTION_STATUS_SCHEDULED
         exec_model['id'] = bson.ObjectId()
         ActionExecution.add_or_update(exec_model)
 
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = start_ts
         exec_model['status'] = action_constants.LIVEACTION_STATUS_RUNNING
         exec_model['id'] = bson.ObjectId()
         ActionExecution.add_or_update(exec_model)
 
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = start_ts
         exec_model['status'] = action_constants.LIVEACTION_STATUS_DELAYED
         exec_model['id'] = bson.ObjectId()
         ActionExecution.add_or_update(exec_model)
 
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = start_ts
         exec_model['status'] = action_constants.LIVEACTION_STATUS_CANCELING
         exec_model['id'] = bson.ObjectId()
         ActionExecution.add_or_update(exec_model)
 
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = start_ts
         exec_model['status'] = action_constants.LIVEACTION_STATUS_REQUESTED
         exec_model['id'] = bson.ObjectId()
