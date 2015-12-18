@@ -136,16 +136,16 @@ def get_config_details(yaml_file_name, section_name):
     if section_name == 'st2_config_file_name':
         st2_config_file_name = os.path.split(
                                   conf['conf_file_paths']['st2_config_file_path'])[1]
-	return st2_config_file_name
+        return st2_config_file_name
     if section_name == 'mistral_config_file_name':
         mistral_config_file_name = os.path.split(
-                                  conf['conf_file_paths']['mistral_config_file_path'])[1]
-	return mistral_config_file_name
+                    conf['conf_file_paths']['mistral_config_file_path'])[1]
+        return mistral_config_file_name
     if section_name == 's3_bucket_url':
 	s3_bucket_url = conf['s3_bucket']['url']
 	return s3_bucket_url
     if section_name == 'gpg_key_fingerprint':
-	gpg_fingerprint = conf['gpg']['gpg_key_fingerprint']
+        gpg_fingerprint = conf['gpg']['gpg_key_fingerprint']
         return gpg_fingerprint	
     if section_name == 'gpg_key':
         gpg_key_path = conf['gpg']['gpg_key_path']
@@ -378,7 +378,7 @@ def create_archive(include_logs, include_configs, include_content, include_syste
             fp.write(user_info)
 
     if include_shell_commands and config_yaml:
-	LOG.debug('Including the required shell commands output files')
+        LOG.debug('Including the required shell commands output files')
         shell_commands_output_paths = get_commands_output(config_yaml)
         copy_files(file_paths=shell_commands_output_paths, destination=output_paths['commands']) 
 
@@ -482,14 +482,13 @@ def create_and_review_archive(include_logs, include_configs, include_content, in
 
 
 def create_and_upload_archive(include_logs, include_configs, include_content,
-                             include_system_info, include_shell_commands, user_info=None,
-                             debug=False, config_yaml=None):
+                                include_system_info, include_shell_commands, user_info=None,
+                                debug=False, config_yaml=None):
     if config_yaml:
         s3_bucket_url = get_config_details(config_yaml, 's3_bucket_url')
         gpg_key_fingerprint = get_config_details(config_yaml, 'gpg_key_fingerprint')
         gpg_key = get_config_details(config_yaml, 'gpg_key')
         company_name = get_config_details(config_yaml, 'company_name')
-
     else:
         s3_bucket_url = S3_BUCKET_URL
         gpg_key_fingerprint = GPG_KEY_FINGERPRINT
