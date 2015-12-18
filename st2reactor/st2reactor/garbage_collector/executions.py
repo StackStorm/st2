@@ -70,6 +70,10 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
     if action_ref:
         liveaction_filters['action'] = action_ref
 
+    # TODO: Update this code to return statistics on deleted objects once we
+    # upgrade to newer version of MongoDB where delete_by_query actually returns
+    # some data
+
     try:
         ActionExecution.delete_by_query(**exec_filters)
     except InvalidQueryError as e:
