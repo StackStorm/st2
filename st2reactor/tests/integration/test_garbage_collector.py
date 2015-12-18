@@ -25,20 +25,11 @@ from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.execution import ActionExecution
 from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
-from st2tests.fixturesloader import FixturesLoader
 
 __all__ = [
     'GarbageCollectorServiceTestCase'
 ]
 
-TEST_FIXTURES = {
-    'executions': [
-        'execution1.yaml'
-    ],
-    'liveactions': [
-        'liveaction4.yaml'
-    ]
-}
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, '../../../conf/st2.tests.conf')
@@ -55,9 +46,6 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
 
     def setUp(self):
         super(GarbageCollectorServiceTestCase, self).setUp()
-        fixtures_loader = FixturesLoader()
-        self.models = fixtures_loader.load_models(fixtures_pack='generic',
-                                                  fixtures_dict=TEST_FIXTURES)
 
     def test_garbage_collection(self):
         now = date_utils.get_datetime_utc_now()
