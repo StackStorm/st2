@@ -73,7 +73,6 @@ GPG_INSTALLED = find_executable('gpg') is not None
 ST2_LOG_FILES_PATH = '/var/log/st2/*.log'
 MISTRAL_LOG_FILES_PATH = '/var/log/mistral*.log'
 
-#RPM_OUTPUT_FILE_PATH = "/tmp/installed_rpm_info.txt"
 LOG_FILE_PATHS = [
     ST2_LOG_FILES_PATH,
     MISTRAL_LOG_FILES_PATH
@@ -90,14 +89,12 @@ CONFIG_FILE_PATHS = [
     MISTRAL_CONFIG_FILE_PATH
 ]
 
-# Global variables
-global company_name
-
 # Directory structure inside tarball
 DIRECTORY_STRUCTURE = [
     'configs/',
     'logs/',
-    'content/'
+    'content/',
+    'commands/'
 ]
 
 # Options which should be removed from the st2 config
@@ -115,6 +112,7 @@ try:
 except Exception:
     pass
 
+
 def get_config_details(yaml_file_name, section_name):
     """
     To get the configurations from st2 config file.
@@ -123,7 +121,6 @@ def get_config_details(yaml_file_name, section_name):
     :return: requested option from config file
     :rtype: ``str`` or ``list``
     """
-
     with open(yaml_file_name, 'r') as yaml_file: 
 	conf = yaml.load(yaml_file)
     if section_name == 'log_file_path':
@@ -137,10 +134,12 @@ def get_config_details(yaml_file_name, section_name):
 	    config_file_paths = conf_files.values()
 	    return config_file_paths
     if section_name == 'st2_config_file_name':
-	st2_config_file_name = os.path.split(conf['conf_file_paths']['st2_config_file_path'])[1]
+        st2_config_file_name = os.path.split(
+                                  conf['conf_file_paths']['st2_config_file_path'])[1]
 	return st2_config_file_name
     if section_name == 'mistral_config_file_name':
-	mistral_config_file_name = os.path.split(conf['conf_file_paths']['mistral_config_file_path'])[1]
+        mistral_config_file_name = os.path.split(
+                                  conf['conf_file_paths']['mistral_config_file_path'])[1]
 	return mistral_config_file_name
     if section_name == 's3_bucket_url':
 	s3_bucket_url = conf['s3_bucket']['url']
@@ -148,6 +147,11 @@ def get_config_details(yaml_file_name, section_name):
     if section_name == 'gpg_key_fingerprint':
 	gpg_fingerprint = conf['gpg']['gpg_key_fingerprint']
         return gpg_fingerprint	
+    if section_name == 'gpg_key':
+        gpg_key_path = conf['gpg']['gpg_key_path']
+        with open(gpg_key_path, 'r') as file_content:
+            gpg_key = file_content.read()
+        return gpg_key
     if section_name == 'shell_commands':
 	commands_dict = conf.get('shell_commands', None)
 	shell_commands = commands_dict.values()    
@@ -185,7 +189,7 @@ def get_system_information():
         'stackstorm': {},
         'mistral': {}
     }
-
+    
     # Operating system information
     system_information['operating_system']['system'] = platform.system()
     system_information['operating_system']['release'] = platform.release()
@@ -228,8 +232,9 @@ def get_system_information():
         # Unsupported platform
         system_information['hardware']['memory'] = 'unsupported platform'
 
-    # StackStorm informatio['stackstorm']['version'] = st2_version
-
+    # StackStorm information
+    system_information['stackstorm']['version'] = st2_version
+    
     st2common_path = st2common.__file__
     st2common_path = os.path.dirname(st2common_path)
 
@@ -256,6 +261,19 @@ def get_system_information():
     return system_information
 
 
+def format_output_filename(cmd):
+    """"
+    Format the file name such as removing white spaces and special characters.
+    :param cmd: shell command
+    :return: formatted output file name
+    :rtype: ``str``
+    """
+    for char in cmd:
+        if char in ' !@#$%^&*()[]{};:,./<>?\|`~=+"':
+            cmd = cmd.replace(char, "")
+    return cmd
+
+    
 def get_commands_output(config_yaml):
     """"
     Get output of the required shell command and redirect the output to a file.
@@ -266,14 +284,14 @@ def get_commands_output(config_yaml):
     commands_list = get_config_details(config_yaml, 'shell_commands')
     output_files_list = []
     for cmd in commands_list:
-       output_file = "/tmp/%s.txt" % cmd
+       output_file = "/tmp/%s.txt" % format_output_filename(cmd)
        os.system("%s > '%s'" % (cmd, output_file))
        output_files_list.append(output_file)
     return output_files_list
 
 
-def create_archive(include_logs, include_configs, include_content, include_system_info, include_shell_commands,
-                   user_info=None, debug=False, config_yaml=None):
+def create_archive(include_logs, include_configs, include_content, include_system_info,
+                   include_shell_commands, user_info=None, debug=False, config_yaml=None):
     """
     Create an archive with debugging information.
 
@@ -298,8 +316,7 @@ def create_archive(include_logs, include_configs, include_content, include_syste
         'system_info': os.path.join(temp_dir_path, 'system_info.yaml'),
         'user_info': os.path.join(temp_dir_path, 'user_info.yaml')
     }
-    if config_yaml:
-        DIRECTORY_STRUCTURE.append('commands/')
+
     for directory_name in DIRECTORY_STRUCTURE:
         full_path = os.path.join(temp_dir_path, directory_name)
         os.mkdir(full_path)
@@ -310,13 +327,13 @@ def create_archive(include_logs, include_configs, include_content, include_syste
     if config_yaml:
         st2_conf_file_name = get_config_details(config_yaml, 'st2_config_file_name')
         mistral_conf_file_name = get_config_details(config_yaml, 'mistral_config_file_name')
-	log_files_paths = get_config_details(config_yaml, 'log_file_path')
-	config_files_paths = get_config_details(config_yaml, 'config_file_path')
+        log_files_paths = get_config_details(config_yaml, 'log_file_path')
+        config_files_paths = get_config_details(config_yaml, 'config_file_path')
     else:
-	st2_conf_file_name = ST2_CONFIG_FILE_NAME
-	mistral_conf_file_name = MISTRAL_CONFIG_FILE_NAME
-	log_files_paths = LOG_FILE_PATHS
-	config_files_paths = CONFIG_FILE_PATHS
+        st2_conf_file_name = ST2_CONFIG_FILE_NAME
+        mistral_conf_file_name = MISTRAL_CONFIG_FILE_NAME
+        log_files_paths = LOG_FILE_PATHS
+        config_files_paths = CONFIG_FILE_PATHS
 
     # Logs
     if include_logs:
@@ -359,9 +376,9 @@ def create_archive(include_logs, include_configs, include_content, include_syste
 
         with open(output_paths['user_info'], 'w') as fp:
             fp.write(user_info)
+
     if include_shell_commands and config_yaml:
-	LOG.debug('Including the shell comamnds output files')
-	
+	LOG.debug('Including the required shell commands output files')
         shell_commands_output_paths = get_commands_output(config_yaml)
         copy_files(file_paths=shell_commands_output_paths, destination=output_paths['commands']) 
 
@@ -403,7 +420,8 @@ def create_archive(include_logs, include_configs, include_content, include_syste
     return output_file_path
 
 
-def encrypt_archive(archive_file_path, debug=False, key_fingerprint=GPG_KEY_FINGERPRINT):
+def encrypt_archive(archive_file_path, debug=False, key_fingerprint=GPG_KEY_FINGERPRINT,
+                                                    key_gpg=GPG_KEY):
     """
     Encrypt archive with debugging information using our public key.
 
@@ -419,7 +437,7 @@ def encrypt_archive(archive_file_path, debug=False, key_fingerprint=GPG_KEY_FING
     gpg = gnupg.GPG(verbose=debug)
 
     # Import our public key
-    import_result = gpg.import_keys(GPG_KEY)
+    import_result = gpg.import_keys(key_gpg)
     # pylint: disable=no-member
     assert import_result.count == 1
 
@@ -445,8 +463,9 @@ def upload_archive(archive_file_path, bucket_url=S3_BUCKET_URL):
     assert response.status_code == httplib.OK
 
 
-def create_and_review_archive(include_logs, include_configs, include_content, include_system_info,include_shell_commands,
-                              user_info=None, debug=False, config_yaml=None):
+def create_and_review_archive(include_logs, include_configs, include_content, include_system_info,
+                              include_shell_commands, user_info=None, debug=False,
+                              config_yaml=None):
     try:
         plain_text_output_path = create_archive(include_logs=include_logs,
                                                 include_configs=include_configs,
@@ -462,15 +481,20 @@ def create_and_review_archive(include_logs, include_configs, include_content, in
                  (plain_text_output_path))
 
 
-def create_and_upload_archive(include_logs, include_configs, include_content, include_system_info, include_shell_commands,
-                              user_info=None, debug=False, config_yaml=None):
-    global company_name
+def create_and_upload_archive(include_logs, include_configs, include_content,
+                             include_system_info, include_shell_commands, user_info=None,
+                             debug=False, config_yaml=None):
     if config_yaml:
         s3_bucket_url = get_config_details(config_yaml, 's3_bucket_url')
         gpg_key_fingerprint = get_config_details(config_yaml, 'gpg_key_fingerprint')
+        gpg_key = get_config_details(config_yaml, 'gpg_key')
+        company_name = get_config_details(config_yaml, 'company_name')
+
     else:
         s3_bucket_url = S3_BUCKET_URL
         gpg_key_fingerprint = GPG_KEY_FINGERPRINT
+        gpg_key = GPG_KEY
+        company_name = 'StackStorm'
     try:
         plain_text_output_path = create_archive(include_logs=include_logs,
                                                 include_configs=include_configs,
@@ -479,7 +503,9 @@ def create_and_upload_archive(include_logs, include_configs, include_content, in
                                                 include_shell_commands=include_shell_commands,
                                                 user_info=user_info,
                                                 debug=debug, config_yaml=config_yaml)
-        encrypted_output_path = encrypt_archive(archive_file_path=plain_text_output_path, key_fingerprint=gpg_key_fingerprint)
+        encrypted_output_path = encrypt_archive(archive_file_path=plain_text_output_path,
+                                                key_fingerprint=gpg_key_fingerprint,
+                                                key_gpg=gpg_key)
         upload_archive(archive_file_path=encrypted_output_path, bucket_url=s3_bucket_url)
     except Exception:
         LOG.exception('Failed to upload tarball to %s' % company_name, exc_info=True)
@@ -487,7 +513,8 @@ def create_and_upload_archive(include_logs, include_configs, include_content, in
         encrypted_output_path = None
     else:
         tarball_name = os.path.basename(encrypted_output_path)
-        LOG.info('Debug tarball successfully uploaded to %s (name=%s)' % (company_name, tarball_name))
+        LOG.info('Debug tarball successfully uploaded to %s (name=%s)' % (
+                                                            company_name, tarball_name))
         LOG.info('When communicating with support, please let them know the tarball name - %s' %
                  (tarball_name))
 
@@ -512,7 +539,7 @@ def main():
     parser.add_argument('--exclude-system-info', action='store_true', default=False,
                         help='Don\'t include system information in the generated tarball')
     parser.add_argument('--exclude-shell-commands', action='store_true', default=False,
-                        help='Don\'t include installed RPMs information in the generated tarball')
+                        help='Don\'t include shell commands output in the generated tarball')
     parser.add_argument('--yes', action='store_true', default=False,
                         help='Run in non-interactive mode and answer "yes" to all the questions')
     parser.add_argument('--review', action='store_true', default=False,
@@ -522,8 +549,7 @@ def main():
     parser.add_argument('--config', action='store', default=None,
                         help='Get required configurations from config file')
     args = parser.parse_args()
-
-    global company_name
+    
     if args.config:
         company_name = get_config_details(args.config, 'company_name')
         arg_names = ['exclude_logs', 'exclude_configs', 'exclude_content',
@@ -541,11 +567,11 @@ def main():
     if abort:
         print('Generated tarball would be empty. Aborting.')
         sys.exit(2)
-
+    
     submited_content = [name.replace('exclude_', '') for name in arg_names if
                         not getattr(args, name, False)]
     submited_content = ', '.join(submited_content)
-     		
+
     if not args.yes and not args.review:
         # When not running in review mode, GPG needs to be installed and
         # available
@@ -553,7 +579,8 @@ def main():
             msg = ('"gpg" binary not found, can\'t proceed. Make sure "gpg" is installed '
                    'and available in PATH.')
             raise ValueError(msg)
-        print('This will submit the following information to %s: %s' % (company_name, submited_content))
+        print('This will submit the following information to %s: %s' % (company_name,
+                                                                        submited_content))
         value = six.moves.input('Are you sure you want to proceed? [y/n] ')
         if value.strip().lower() not in ['y', 'yes']:
             print('Aborting')
