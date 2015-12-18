@@ -99,14 +99,16 @@ class GarbageCollectorService(object):
         if self._action_executions_ttl >= MINIMUM_TTL_DAYS:
             self._purge_action_executions()
         else:
-            LOG.debug('Skipping garbage collection for action executions since it\'s not configured')
+            LOG.debug('Skipping garbage collection for action executions since it\'s not '
+                      'configured')
 
         # Note: We sleep for a bit between garbage collection of each object
         # type to prevent busy waiting
         if self._trigger_instances_ttl >= MINIMUM_TTL_DAYS:
             self._purge_trigger_instances()
         else:
-            LOG.debug('Skipping garbage collection for trigger instances since it\'s not configured')
+            LOG.debug('Skipping garbage collection for trigger instances since it\'s not '
+                      'configured')
 
     def _purge_action_executions(self):
         """

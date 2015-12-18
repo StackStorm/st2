@@ -54,9 +54,11 @@ def _register_garbage_collector_opts():
 
     ttl_opts = [
         cfg.IntOpt('action_executions_ttl', default=None,
-                   help='Action executions older than this value (days) will be automatically deleted.'),
+                   help=('Action executions older than this value (days) will be automatically '
+                         'deleted.')),
         cfg.IntOpt('trigger_instances_ttl', default=None,
-                   help='Trigger instances older than this value (days) will be automatically deleted.')
+                   help=('Trigger instances older than this value (days) will be automatically '
+                         'deleted.'))
     ]
     CONF.register_opts(ttl_opts, group='garbagecollector')
 
