@@ -24,18 +24,17 @@ timestamp.
 from datetime import datetime
 import pytz
 
-from mongoengine.errors import InvalidQueryError
 from oslo_config import cfg
 
 from st2common import config
 from st2common import log as logging
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
-from st2common.persistence.trigger import TriggerInstance
-from st2common.util import isotime
+from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
+from st2common.constants.exit_codes import FAILURE_EXIT_CODE
+from st2reactor.garbage_collector.trigger_instances import purge_trigger_instances
 
 LOG = logging.getLogger(__name__)
-DELETED_COUNT = 0
 
 
 def _do_register_cli_opts(opts, ignore_errors=False):
@@ -57,30 +56,6 @@ def _register_cli_opts():
     _do_register_cli_opts(cli_opts)
 
 
-def purge_trigger_instances(timestamp=None):
-    if not timestamp:
-        LOG.error('Specify a valid timestamp to purge.')
-        return 2
-
-    LOG.info('Purging trigger instances older than timestamp: %s' %
-             timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'))
-
-    # XXX: Think about paginating this call.
-    query_filters = {'occurrence_time__lt': isotime.parse(timestamp)}
-    try:
-        TriggerInstance.delete_by_query(**query_filters)
-    except InvalidQueryError:
-        LOG.exception('Bad query (%s) used to delete trigger instances. ' +
-                      'Please contact support.', query_filters)
-        return 3
-    except:
-        LOG.exception('Deleting instances using query_filters %s failed.', query_filters)
-        return 4
-
-    # Print stats
-    LOG.info('#### Trigger instances deleted.')
-
-
 def main():
     _register_cli_opts()
     common_setup(config=config, setup_db=True, register_mq_exchanges=False)
@@ -97,6 +72,11 @@ def main():
 
     # Purge models.
     try:
-        return purge_trigger_instances(timestamp=timestamp)
+        purge_trigger_instances(logger=LOG, timestamp=timestamp)
+    except Exception as e:
+        LOG.exception(str(e))
+        return FAILURE_EXIT_CODE
     finally:
         common_teardown()
+
+    return SUCCESS_EXIT_CODE
