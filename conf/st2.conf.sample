@@ -100,6 +100,16 @@ logging = conf/logging.exporter.conf
 # Directory to dump data to.
 dump_dir = /opt/stackstorm/exports/
 
+[garbagecollector]
+# Action executions older than this value (days) will be automatically deleted.
+action_executions_ttl = None
+# Trigger instances older than this value (days) will be automatically deleted.
+trigger_instances_ttl = None
+# Location of the logging configuration file.
+logging = conf/logging.garbagecollector.conf
+# How often to check database for old data and perform garbage collection.
+collection_interval = 500
+
 [log]
 # Controls if stderr should be redirected to the logs.
 redirect_stderr = False
@@ -110,17 +120,17 @@ mask_secrets = True
 
 [messaging]
 # URL of the messaging server.
-url = amqp://guest:guest@localhost:5672//
+url = amqp://guest:guest@127.0.0.1:5672//
 # URL of all the nodes in a messaging service cluster.
 cluster_urls = []
 
 [mistral]
 # URL Mistral uses to talk back to the API.If not provided it defaults to public API URL. Note: This needs to be a base URL without API version (e.g. http://127.0.0.1:9101)
 api_url = None
+# Multiplier for the exponential backoff.
+retry_exp_msec = 1000
 # Username for authentication.
 keystone_username = None
-# Seconds to wait before reconnecting.
-retry_wait = 5
 # OpenStack project scope.
 keystone_project_name = None
 # Password for authentication.
@@ -128,9 +138,11 @@ keystone_password = None
 # Auth endpoint for Keystone.
 keystone_auth_url = None
 # v2 API root endpoint.
-v2_base_url = http://localhost:8989/v2
-# Max attempts to reconnect.
-max_attempts = 180
+v2_base_url = http://127.0.0.1:8989/v2
+# Max time to stop retrying.
+retry_stop_max_msec = 600000
+# Max time for each set of backoff.
+retry_exp_max_msec = 300000
 
 [notifier]
 # Location of the logging configuration file.
@@ -182,7 +194,7 @@ allow_partial_failure = False
 
 [syslog]
 # Host for the syslog server.
-host = localhost
+host = 127.0.0.1
 # Transport protocol to use (udp / tcp).
 protocol = udp
 # Port for the syslog server.
