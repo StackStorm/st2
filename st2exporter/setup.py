@@ -41,9 +41,6 @@ setup(
     zip_safe=False,
     include_package_data=True,
     packages=find_packages(exclude=['setuptools', 'tests']),
-    scripts=[
-        'bin/st2exporter'
-    ],
     entry_points={
         'console_scripts': [
             'st2exporter = st2exporter.cmd.st2exporter_starter.main',

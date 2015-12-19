@@ -41,11 +41,6 @@ setup(
     zip_safe=False,
     include_package_data=True,
     packages=find_packages(exclude=['setuptools', 'tests']),
-    scripts=[
-        'bin/st2-bootstrap-rmq',
-        'bin/st2-register-content',
-        'bin/st2-apply-rbac-definitions'
-    ],
     entry_points={
         'console_scripts': [
             'st2-apply-rbac-definitions = st2common.cmd.apply_rbac_definitions.main',

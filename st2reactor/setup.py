@@ -41,12 +41,6 @@ setup(
     zip_safe=False,
     include_package_data=True,
     packages=find_packages(exclude=['setuptools', 'tests']),
-    scripts=[
-        'bin/st2-rule-tester',
-        'bin/st2-trigger-refire',
-        'bin/st2rulesengine',
-        'bin/st2sensorcontainer'
-    ],
     entry_points={
         'console_scripts': [
             'st2-rule-tester = st2reactor.cmd.rule_tester.main',

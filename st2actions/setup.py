@@ -41,12 +41,6 @@ setup(
     zip_safe=False,
     include_package_data=True,
     packages=find_packages(exclude=['setuptools', 'tests']),
-    scripts=[
-        'bin/st2actionrunner',
-        'bin/st2notifier',
-        'bin/st2resultstracker',
-        'bin/runners.sh'
-    ],
     entry_points={
         'console_scripts': [
             'st2actionrunner = st2actions.cmd.actionrunner.main',
