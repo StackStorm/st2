@@ -42,6 +42,7 @@ Learn how to define and run the workflows:
 
     actionchain
     mistral
+    mistral_yaql
     cloudslang
 
 .. DZ: Deliberately commenting this out here.# .. include:: engage.rst

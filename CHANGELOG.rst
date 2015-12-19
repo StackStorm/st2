@@ -4,6 +4,36 @@ Changelog
 in development
 --------------
 
+* Allow user to pass ``env`` parameter to ``packs.setup_virtualenv`` and ``packs.install``
+  action.
+
+  This comes handy if user wants pip to use an HTTP(s) proxy (HTTP_PROXY and HTTPS_PROXY
+  environment variable) when installing pack dependencies. (new feature)
+* Ability to view causation chains in Trace. This helps reduce the noise when using Trace to
+  identify specific issues. (new-feature)
+* Filter Trace components by model types to only view ActionExecutions, Rules or TriggerInstances.
+  (new-feature)
+* Include ref of the most meaningful object in each trace component. (new-feature)
+* Ability to hide trigger-instance that do not yield a rule enforcement. (new-feature)
+* Change the rule list columns in the CLI from ref, pack, description and enabled to ref, trigger.ref,
+  action.ref and enabled. This aligns closer the UI and also brings important information front and
+  center. (improvement)
+* Action and Trigger filters for rule list (new-feature)
+* Add missing logrotate config entry for ``st2auth`` service. #2294 [Vignesh Terafast]
+* Support for object already present in the DB for ``st2-rule-tester`` (improvement)
+* Add ``--register-fail-on-failure`` flag to ``st2-register-content`` script. If this flag is
+  provided, the script will fail and exit with non-zero status code if registering some resource
+  fails. (new feature)
+* Add a missing ``get_logger`` method to the `MockSensorService``. This method now returns an
+  instance of ``Mock`` class which allows user to assert that a particular message has been
+  logged. [Tim Ireland, Tomaz Muraus]
+* Introduce a new ``abandoned`` state that is applied to executions that we cannot guarantee as
+  completed. Typically happen when an actionrunner currently running some executions quits or is killed
+  via TERM.
+
+1.2.0 - December 07, 2015
+-------------------------
+
 * Refactor retries in the Mistral action runner to use exponential backoff. Configuration options
   for Mistral have changed. (improvement)
 * Add SSH bastion host support to the paramiko SSH runner. Utilizes same connection parameters as
@@ -37,6 +67,24 @@ in development
 * Fix action chain so it doesn't end up in an infinite loop if an action which is part of the chain
   is canceled. (bug fix)
 * Allow jinja templating to be used in ``message`` and ``data`` field for notifications.(new feature)
+* Add tools for purging executions (also, liveactions with it) and trigger instances older than
+  certain UTC timestamp from the db in bulk.
+* Fix json representation of trace in cli. (bug fix)
+* Introducing `noop` runner and `core.noop` action. Returns consistent success in a WF regardless of
+  user input. (new feature)
+* Add missing indexes on trigger_instance_d_b collection. (bug fix)
+* Add mock classes (``st2tests.mocks.*``) for easier unit testing of the packs. (new feature)
+* Add a script (``./st2common/bin/st2-run-pack-tests``) for running pack tests. (new feature)
+* Modify ActionAliasFormatParser to work with regular expressions and support more flexible parameter matching. (improvement)
+* Move ChatOps pack to st2 core.
+* Support for formatting of alias acknowledgement and result messages in AliasExecution. (new feature)
+* Support for "representation+value" format strings in aliases. (new feature)
+* Support for disabled result and acknowledgement messages in aliases. (new feature)
+* Add ability to write rule enforcement (models that represent a rule evaluation that resulted
+  in an action execution) to db to help debugging rules easier. Also, CLI bindings to list
+  and view these models are added. (new-feature)
+* Purge tool now uses delete_by_query and offloads delete to mongo and doesn't perform app side
+  explicit model deletion to improve speed. (improvement)
 
 1.1.1 - November 13, 2015
 -------------------------

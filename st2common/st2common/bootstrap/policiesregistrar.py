@@ -57,12 +57,18 @@ class PolicyRegistrar(ResourceRegistrar):
                                                 content_type='policies')
 
         for pack, policies_dir in six.iteritems(content):
+            if not policies_dir:
+                LOG.debug('Pack %s does not contain policies.', pack)
+                continue
             try:
                 LOG.debug('Registering policies from pack %s:, dir: %s', pack, policies_dir)
                 policies = self._get_policies_from_pack(policies_dir)
                 count = self._register_policies_from_pack(pack=pack, policies=policies)
                 registered_count += count
-            except:
+            except Exception as e:
+                if self._fail_on_failure:
+                    raise e
+
                 LOG.exception('Failed registering all policies from pack: %s', policies_dir)
 
         return registered_count
@@ -76,6 +82,7 @@ class PolicyRegistrar(ResourceRegistrar):
         """
         pack_dir = pack_dir[:-1] if pack_dir.endswith('/') else pack_dir
         _, pack = os.path.split(pack_dir)
+
         policies_dir = self._pack_loader.get_content_from_pack(pack_dir=pack_dir,
                                                                content_type='policies')
 
@@ -86,14 +93,17 @@ class PolicyRegistrar(ResourceRegistrar):
         if not policies_dir:
             return registered_count
 
-        LOG.debug('Registering policies from pack %s:, dir: %s', pack, policies_dir)
+        LOG.debug('Registering policies from pack %s, dir: %s', pack, policies_dir)
 
         try:
             policies = self._get_policies_from_pack(policies_dir=policies_dir)
             registered_count = self._register_policies_from_pack(pack=pack, policies=policies)
-        except:
+        except Exception as e:
+            if self._fail_on_failure:
+                raise e
+
             LOG.exception('Failed registering all policies from pack: %s', policies_dir)
-            return 0
+            return registered_count
 
         return registered_count
 
@@ -107,7 +117,10 @@ class PolicyRegistrar(ResourceRegistrar):
             try:
                 LOG.debug('Loading policy from %s.', policy)
                 self._register_policy(pack, policy)
-            except Exception:
+            except Exception as e:
+                if self._fail_on_failure:
+                    raise e
+
                 LOG.exception('Unable to register policy: %s', policy)
                 continue
             else:
@@ -179,14 +192,16 @@ def register_policy_types(module):
     return registered_count
 
 
-def register_policies(packs_base_paths=None, pack_dir=None):
+def register_policies(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
+                     fail_on_failure=False):
     if packs_base_paths:
         assert isinstance(packs_base_paths, list)
 
     if not packs_base_paths:
         packs_base_paths = content_utils.get_packs_base_paths()
 
-    registrar = PolicyRegistrar()
+    registrar = PolicyRegistrar(use_pack_cache=use_pack_cache,
+                                fail_on_failure=fail_on_failure)
 
     if pack_dir:
         result = registrar.register_policies_from_pack(pack_dir=pack_dir)

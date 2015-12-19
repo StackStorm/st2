@@ -31,9 +31,11 @@ class TraceComponentDB(me.EmbeddedDocument):
     """
     """
     object_id = me.StringField()
+    ref = me.StringField(default='')
     updated_at = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
         help_text='The timestamp when the TraceComponent was included.')
+    caused_by = me.DictField(help_text='Causal component.')
 
     def __str__(self):
         return 'TraceComponentDB@(object_id:{}, updated_at:{})'.format(

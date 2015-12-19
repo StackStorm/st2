@@ -3,6 +3,14 @@ Upgrade Notes
 
 |st2| In Development
 --------------------
+* New ``abandoned`` action execution status has been introduced. State is applied to action execution
+  when an actionrunner currently running some executions quits or is killed via TERM.This is therefore
+  effectively a failure state as |st2| can no longer validate the state of this execution. Being a
+  failure state any code that checks for an action failure should be updated to check for ``abandoned``
+  state in addition to ``failed`` and ``timeout``.
+
+|st2| 1.2
+---------
 
 * Refactor retries in the Mistral action runner to use exponential backoff. Configuration options
   for Mistral have changed. The options ``max_attempts`` and ``retry_wait`` are deprecated. Please

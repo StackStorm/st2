@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import os
-import uuid
 
 from oslo_config import cfg
 import six
@@ -189,7 +188,3 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         else:
             status = LIVEACTION_STATUS_FAILED
         return status
-
-
-def get_runner():
-    return BaseParallelSSHRunner(str(uuid.uuid4()))

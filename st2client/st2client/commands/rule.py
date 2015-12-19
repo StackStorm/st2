@@ -36,6 +36,36 @@ class RuleBranch(resource.ResourceBranch):
 
 class RuleListCommand(resource.ContentPackResourceListCommand):
     display_attributes = ['ref', 'pack', 'description', 'enabled']
+    display_attributes_iftt = ['ref', 'trigger.ref', 'action.ref', 'enabled']
+
+    def __init__(self, resource, *args, **kwargs):
+        super(RuleListCommand, self).__init__(resource, *args, **kwargs)
+
+        self.group = self.parser.add_argument_group()
+        self.parser.add_argument('-n', '--last', type=int, dest='last',
+                                 default=50,
+                                 help=('List N most recent %s; '
+                                       'list all if 0.' %
+                                       resource.get_plural_display_name().lower()))
+        self.parser.add_argument('--iftt', action='store_true',
+                                 help='Show trigger and action in display list.')
+        self.group.add_argument('-c', '--action',
+                                help='Action reference to filter the list.')
+        self.group.add_argument('-g', '--trigger',
+                                help='Trigger type reference to filter the list.')
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        # Filtering options
+        if args.action:
+            kwargs['action'] = args.action
+        if args.trigger:
+            kwargs['trigger'] = args.trigger
+        if args.iftt:
+            # switch attr to display the trigger and action
+            args.attr = self.display_attributes_iftt
+
+        return self.manager.query(limit=args.last, **kwargs)
 
 
 class RuleGetCommand(resource.ContentPackResourceGetCommand):
