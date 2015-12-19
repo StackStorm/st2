@@ -143,7 +143,7 @@ of attributes which can be present in the metadata file is included below.
 * ``runner_type`` - The type of runner to execute the action.
 * ``enabled`` - Action cannot be invoked when disabled.
 * ``entry_point`` - Location of the action launch script relative to the /opt/stackstorm/packs/${pack_name}/actions/.
-* ``parameters`` - A dictionary of parameters and optional metadata describing type and default. The metadata is structured data following the [jsonschema][1] specification draft 4. If metadata is provided, input args are validated on action execution. Otherwise, validation is skipped.
+* ``parameters`` - A dictionary of parameters and optional metadata describing type and default. The metadata is structured data following the `JSON Schema`_ specification draft 4. If metadata is provided, input args are validated on action execution. Otherwise, validation is skipped.
 
 Below you can find a sample metadata for a Python action which sends an SMS via
 the Twilio web service.
@@ -560,3 +560,5 @@ To see other available predefined actions, run the command below.
 
 * Explore packs and actions contributed by |st2| developers and community in the `StackStorm st2contrib repo on Github <https://github.com/StackStorm/st2contrib/>`_.
 * Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - on creating actions, and other practical examples of automating with StackStorm.
+
+.. _JSON Schema: http://json-schema.org/documentation.html
