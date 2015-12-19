@@ -103,7 +103,7 @@ See :doc:`/reference/packs` for details on how to pack your integrations and aut
 
 .. rubric:: What's Next?
 
-* Explore existing packs from `StackStorm community <http:://www.stackstorm.com/community/>`__:
+* Explore existing packs from `StackStorm community <http://www.stackstorm.com/community/>`__:
 
     - `st2contrib`_ - ready-to-use integration packs to many common products and tools.
     - `st2incubator`_ - upcoming integration packs and productivity tools.
