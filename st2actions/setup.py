@@ -46,5 +46,17 @@ setup(
         'bin/st2notifier',
         'bin/st2resultstracker',
         'bin/runners.sh'
+    ],
+    entry_points={
+        'console_scripts': [
+            'st2actionrunner = st2actions.cmd.actionrunner.main',
+            'st2notifier = st2actions.cmd.st2notifier.main',
+            'st2resultstracker = st2actions.cmd.st2resultstracker.main'
     ]
+    },
+    options={
+          'build_scripts': {
+              'executable': '/usr/share/python/st2actions/bin/python',
+          },
+    }
 )
