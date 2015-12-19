@@ -111,4 +111,4 @@ See :doc:`/reference/packs` for details on how to pack your integrations and aut
 * Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - a growing set of practical examples of automating with StackStorm.
 * For information on pack testing, please see :doc:`Pack Testing </development/pack_testing>` page.
 
-.. include:: /engage.rst
+.. include:: /__engage.rst
