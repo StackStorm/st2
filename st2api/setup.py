@@ -41,7 +41,14 @@ setup(
     zip_safe=False,
     include_package_data=True,
     packages=find_packages(exclude=['setuptools', 'tests']),
-    scripts=[
-        'bin/st2api'
+    entry_points={
+        'console_scripts': [
+            'st2api = st2api.cmd.api.main',
     ]
+    },
+    options={
+          'build_scripts': {
+              'executable': '/usr/share/python/st2api/bin/python',
+          },
+    }
 )
