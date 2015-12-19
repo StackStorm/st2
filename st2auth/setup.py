@@ -44,5 +44,15 @@ setup(
     packages=find_packages(exclude=['setuptools', 'tests']),
     scripts=[
         'bin/st2auth'
+    ],
+    entry_points={
+        'console_scripts': [
+            'st2auth = st2auth.cmd.api.main',
     ]
+    },
+    options={
+          'build_scripts': {
+              'executable': '/usr/share/python/st2auth/bin/python',
+          },
+    }
 )

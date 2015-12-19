@@ -43,5 +43,15 @@ setup(
     packages=find_packages(exclude=['setuptools', 'tests']),
     scripts=[
         'bin/st2exporter'
+    ],
+    entry_points={
+        'console_scripts': [
+            'st2exporter = st2exporter.cmd.st2exporter_starter.main',
     ]
+    },
+    options={
+          'build_scripts': {
+              'executable': '/usr/share/python/st2exporter/bin/python',
+          },
+    }
 )

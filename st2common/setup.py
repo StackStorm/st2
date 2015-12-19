@@ -45,5 +45,19 @@ setup(
         'bin/st2-bootstrap-rmq',
         'bin/st2-register-content',
         'bin/st2-apply-rbac-definitions'
+    ],
+    entry_points={
+        'console_scripts': [
+            'st2-apply-rbac-definitions = st2common.cmd.apply_rbac_definitions.main',
+            'st2-bootstrap-rmq = st2common.transport.bootstrap.main',
+            'st2-purge-executions = st2common.cmd.purge_executions.main',
+            'st2-purge-trigger-instances = st2common.cmd.purge_trigger_instances.main',
+            'st2-register-content = st2common.content.bootstrap.main'
     ]
+    },
+    options={
+          'build_scripts': {
+              'executable': '/usr/share/python/st2common/bin/python',
+          },
+    }
 )

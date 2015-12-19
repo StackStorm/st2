@@ -46,5 +46,18 @@ setup(
         'bin/st2-trigger-refire',
         'bin/st2rulesengine',
         'bin/st2sensorcontainer'
+    ],
+    entry_points={
+        'console_scripts': [
+            'st2-rule-tester = st2reactor.cmd.rule_tester.main',
+            'st2-trigger-refire = st2reactor.cmd.st2_trigger_re_fire.main',
+            'st2rulesengine = st2reactor.cmd.rulesengine.main',
+            'st2sensorcontainer = st2reactor.cmd.sensorcontainer.main'
     ]
+    },
+    options={
+          'build_scripts': {
+              'executable': '/usr/share/python/st2reactor/bin/python',
+          },
+    }
 )

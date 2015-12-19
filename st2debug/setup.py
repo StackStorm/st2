@@ -43,5 +43,15 @@ setup(
     packages=find_packages(exclude=['setuptools', 'tests']),
     scripts=[
         'bin/st2-submit-debug-info'
+    ],
+    entry_points={
+        'console_scripts': [
+            'st2-submit-debug-info = st2debug.cmd.submit_debug_info.main',
     ]
+    },
+    options={
+          'build_scripts': {
+              'executable': '/usr/share/python/st2debug/bin/python',
+          },
+    }
 )
