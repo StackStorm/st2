@@ -182,7 +182,7 @@ Usage
 Once st2auth is setup, API calls require token to be passed via the headers and the CLI calls
 require the token to be included as a CLI argument or be provided as an environment variable.
 
-.. include:: auth_usage.rst
+.. include:: __auth_usage.rst
 
 .. _authentication-apikeys:
 
