@@ -137,6 +137,8 @@ class GarbageCollectorService(object):
         timestamp_str = isotime.format(dt=timestamp)
         LOG.info('Deleting action executions older than: %s' % (timestamp_str))
 
+        assert timestamp < utc_now
+
         try:
             purge_executions(logger=LOG, timestamp=timestamp)
         except Exception as e:
@@ -159,6 +161,8 @@ class GarbageCollectorService(object):
 
         timestamp_str = isotime.format(dt=timestamp)
         LOG.info('Deleting trigger instances older than: %s' % (timestamp_str))
+
+        assert timestamp < utc_now
 
         try:
             purge_trigger_instances(logger=LOG, timestamp=timestamp)
