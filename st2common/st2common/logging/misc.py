@@ -98,7 +98,8 @@ def get_logger_name_for_module(module):
     start_index = 0
     for index, component in enumerate(reversed(split)):
         if component.startswith('st2'):
-            start_index = (len(split) - index)
+            start_index = ((len(split) - 1) - index)
+            break
 
     split = split[start_index:]
     name = '.'.join(split) + '.' + module_name
