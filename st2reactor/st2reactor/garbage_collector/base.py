@@ -31,8 +31,8 @@ from st2common.constants.garbage_collection import DEFAULT_COLLECTION_INTERVAL
 from st2common.constants.garbage_collection import MINIMUM_TTL_DAYS
 from st2common.util import isotime
 from st2common.util.date import get_datetime_utc_now
-from st2reactor.garbage_collector.executions import purge_executions
-from st2reactor.garbage_collector.trigger_instances import purge_trigger_instances
+from st2common.garbage_collection.executions import purge_executions
+from st2common.garbage_collection.trigger_instances import purge_trigger_instances
 
 __all__ = [
     'GarbageCollectorService'

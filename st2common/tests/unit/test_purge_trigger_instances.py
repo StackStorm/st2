@@ -16,7 +16,7 @@
 from datetime import timedelta
 
 from st2common import log as logging
-from st2reactor.garbage_collector.trigger_instances import purge_trigger_instances
+from st2common.garbage_collection.trigger_instances import purge_trigger_instances
 from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.persistence.trigger import TriggerInstance
 from st2common.util import date as date_utils
@@ -46,7 +46,7 @@ class TestPurgeTriggerInstances(CleanDbTestCase):
         self.assertEqual(len(TriggerInstance.get_all()), 1)
         expected_msg = 'Specify a valid timestamp'
         self.assertRaisesRegexp(ValueError, expected_msg,
-                purge_trigger_instances,
+                                purge_trigger_instances,
                                 logger=LOG, timestamp=None)
         self.assertEqual(len(TriggerInstance.get_all()), 1)
 

@@ -32,8 +32,7 @@ from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
-# TODO: Move to st2common
-from st2reactor.garbage_collector.executions import purge_executions
+from st2common.garbage_collection.executions import purge_executions
 
 LOG = logging.getLogger(__name__)
 

@@ -19,7 +19,7 @@ from datetime import timedelta
 import bson
 
 from st2common import log as logging
-from st2reactor.garbage_collector.executions import purge_executions
+from st2common.garbage_collection.executions import purge_executions
 from st2common.constants import action as action_constants
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
