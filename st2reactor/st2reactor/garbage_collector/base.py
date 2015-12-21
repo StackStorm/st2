@@ -59,6 +59,10 @@ class GarbageCollectorService(object):
     def run(self):
         self._register_signal_handlers()
 
+        # Wait a couple of seconds before performing initial collection to prevent thundering herd
+        # effect when restarting multiple services at the same time
+        eventlet.sleep(5)
+
         try:
             self._main_loop()
         except greenlet.GreenletExit:
