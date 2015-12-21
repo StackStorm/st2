@@ -17,6 +17,7 @@
 Garbage collection service which deletes old data from the database.
 """
 
+import signal
 import datetime
 
 import eventlet
@@ -56,6 +57,8 @@ class GarbageCollectorService(object):
         self._running = True
 
     def run(self):
+        self._register_signal_handlers()
+
         try:
             self._main_loop()
         except greenlet.GreenletExit:
@@ -66,6 +69,13 @@ class GarbageCollectorService(object):
             return FAILURE_EXIT_CODE
 
         return SUCCESS_EXIT_CODE
+
+    def _register_signal_handlers(self):
+        signal.signal(signal.SIGUSR2, self.handle_sigusr2)
+
+    def handle_sigusr2(self, signal_number, stack_frame):
+        LOG.info('Forcing garbage collection...')
+        self._perform_garbage_collection()
 
     def shutdown(self):
         self._running = False
