@@ -54,4 +54,4 @@ def purge_trigger_instances(logger, timestamp):
         logger.exception('Deleting instances using query_filters %s failed.', query_filters)
 
     # Print stats
-    logger.info('#### Trigger instances deleted.')
+    logger.info('All trigger instance models older than timestamp %s were deleted.', timestamp)

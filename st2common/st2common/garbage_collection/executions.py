@@ -100,6 +100,6 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
     if (zombie_execution_instances > 0) or (zombie_liveaction_instances > 0):
         logger.error('Zombie execution instances left: %d.', zombie_execution_instances)
         logger.error('Zombie liveaction instances left: %s.', zombie_liveaction_instances)
-    else:
-        # Print stats
-        logger.info('#### All execution models less than timestamp %s were deleted.', timestamp)
+
+    # Print stats
+    logger.info('All execution models older than timestamp %s were deleted.', timestamp)
