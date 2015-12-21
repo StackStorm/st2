@@ -132,7 +132,7 @@ class GarbageCollectorService(object):
         timestamp = (utc_now - datetime.timedelta(days=self._action_executions_ttl))
 
         # Another sanity check to make sure we don't delete new executions
-        if timestamp >= (utc_now - datetime.timedelta(days=MINIMUM_TTL_DAYS)):
+        if timestamp > (utc_now - datetime.timedelta(days=MINIMUM_TTL_DAYS)):
             raise ValueError('Calculated timestamp would violate the minimum TTL constraint')
 
         timestamp_str = isotime.format(dt=timestamp)
@@ -157,7 +157,7 @@ class GarbageCollectorService(object):
         timestamp = (utc_now - datetime.timedelta(days=self._trigger_instances_ttl))
 
         # Another sanity check to make sure we don't delete new executions
-        if timestamp >= (utc_now - datetime.timedelta(days=MINIMUM_TTL_DAYS)):
+        if timestamp > (utc_now - datetime.timedelta(days=MINIMUM_TTL_DAYS)):
             raise ValueError('Calculated timestamp would violate the minimum TTL constraint')
 
         timestamp_str = isotime.format(dt=timestamp)
