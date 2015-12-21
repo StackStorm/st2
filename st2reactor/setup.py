@@ -46,5 +46,6 @@ setup(
         'bin/st2-trigger-refire',
         'bin/st2rulesengine',
         'bin/st2sensorcontainer'
+        'bin/st2garbagecollector'
     ]
 )
