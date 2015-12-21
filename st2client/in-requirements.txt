@@ -1,7 +1,8 @@
-# Remeber to list implicit packages here, otherwise version won't be fixated!
+# Remember to list implicit packages here, otherwise version won't be fixed!
 prettytable
 python-dateutil
 pyyaml
 jsonpath-rw
 requests
 six
+certifi
