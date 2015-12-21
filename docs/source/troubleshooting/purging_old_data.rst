@@ -58,8 +58,8 @@ to the tool.
 
     st2-purge-executions --timestamp="2015-11-25T21:45:00.000000Z" --action-ref="core.localzz"
 
-By default, only executions in completed state viz ``succeeded``, ``failed``, ``canceled``
-and ``timed_out`` are deleted. If you want to purge all models irrespective of status,
+By default, only executions in completed state viz ``succeeded``, ``failed``, ``canceled``, ``timeout``
+and ``abandoned`` are deleted. If you want to purge all models irrespective of status,
 you can pass the --purge-incomplete option to the script.
 
 ::
