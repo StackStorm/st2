@@ -19,6 +19,7 @@ import sys
 import eventlet
 
 from st2common import log as logging
+from st2common.logging.misc import get_logger_name_for_module
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
@@ -36,7 +37,8 @@ eventlet.monkey_patch(
     thread=False if '--use-debugger' in sys.argv else True,
     time=True)
 
-LOG = logging.getLogger('st2reactor.bin.garbagecollector')
+LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
+LOG = logging.getLogger(LOGGER_NAME)
 
 
 def _setup():
