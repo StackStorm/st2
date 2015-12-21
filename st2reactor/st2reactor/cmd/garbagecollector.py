@@ -17,6 +17,7 @@ import os
 import sys
 
 import eventlet
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.logging.misc import get_logger_name_for_module
@@ -53,7 +54,9 @@ def _teardown():
 def main():
     try:
         _setup()
-        garbage_collector = GarbageCollectorService()
+
+        collection_interval = cfg.CONF.garbagecollector.collection_interval
+        garbage_collector = GarbageCollectorService(collection_interval=collection_interval)
         exit_code = garbage_collector.run()
     except SystemExit as exit_code:
         return exit_code

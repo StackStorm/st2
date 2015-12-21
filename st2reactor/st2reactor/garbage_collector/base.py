@@ -26,6 +26,8 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
+from st2common.constants.garbage_collection import DEFAULT_COLLECTION_INTERVAL
+from st2common.constants.garbage_collection import MINIMUM_TTL_DAYS
 from st2common.util import isotime
 from st2common.util.date import get_datetime_utc_now
 from st2reactor.garbage_collector.executions import purge_executions
@@ -35,17 +37,11 @@ __all__ = [
     'GarbageCollectorService'
 ]
 
-# TODO: Make config option
-DEFAULT_COLLECT_INTERVAL = 300
-
-# Minimum value for TTL. If user supplies value lower than this, we will throw.
-MINIMUM_TTL_DAYS = 7
-
 LOG = logging.getLogger(__name__)
 
 
 class GarbageCollectorService(object):
-    def __init__(self, collection_interval=60):
+    def __init__(self, collection_interval=DEFAULT_COLLECTION_INTERVAL):
         """
         :param collection_interval: How often to check database for old data and perform garbage
                collection.

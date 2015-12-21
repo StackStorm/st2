@@ -17,6 +17,7 @@ from oslo_config import cfg
 
 import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
+from st2common.constants.garbage_collection import DEFAULT_COLLECTION_INTERVAL
 common_config.register_opts()
 
 CONF = cfg.CONF
@@ -47,7 +48,7 @@ def _register_garbage_collector_opts():
     CONF.register_opts(logging_opts, group='garbagecollector')
 
     common_opts = [
-        cfg.IntOpt('collection_interval', default=500,
+        cfg.IntOpt('collection_interval', default=DEFAULT_COLLECTION_INTERVAL,
                    help='How often to check database for old data and perform garbage collection.')
     ]
     CONF.register_opts(common_opts, group='garbagecollector')
