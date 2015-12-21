@@ -68,7 +68,8 @@ class GarbageCollectorService(object):
         except greenlet.GreenletExit:
             self._running = False
             return SUCCESS_EXIT_CODE
-        except Exception:
+        except Exception as e:
+            LOG.exception('Exception in the garbage collector: %s' % (str(e)))
             self._running = False
             return FAILURE_EXIT_CODE
 
