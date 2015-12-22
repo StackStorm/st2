@@ -31,6 +31,7 @@ cp -R st2reactor %{buildroot}%{python2_sitelib}/
 cp -R conf/* %{buildroot}/etc/st2reactor
 install -m755 bin/st2sensorcontainer %{buildroot}/usr/bin/st2sensorcontainer
 install -m755 bin/st2rulesengine %{buildroot}/usr/bin/st2rulesengine
+install -m755 bin/st2garbagecollector %{buildroot}/usr/bin/st2garbagecollector
 install -m755 bin/st2-rule-tester %{buildroot}/usr/bin/st2-rule-tester
 
 %files
@@ -38,5 +39,6 @@ install -m755 bin/st2-rule-tester %{buildroot}/usr/bin/st2-rule-tester
 /usr/lib/python2.7/site-packages/st2reactor*
 /usr/bin/st2sensorcontainer
 /usr/bin/st2rulesengine
+/usr/bin/st2garbagecollector
 /usr/bin/st2-rule-tester
 /etc/st2reactor*

@@ -15,12 +15,12 @@
 # limitations under the License.
 
 #
-#   st2 sensor_container
+#   st2 garbage_collector
 #
 
 import sys
 
-from st2reactor.cmd import sensormanager
+from st2reactor.cmd import garbagecollector
 
 if __name__ == '__main__':
-    sys.exit(sensormanager.main())
+    sys.exit(garbagecollector.main())

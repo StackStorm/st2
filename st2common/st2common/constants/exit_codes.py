@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.7
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -12,15 +11,11 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License.
 
-#
-#   st2 sensor_container
-#
+__all__ = [
+    'SUCCESS_EXIT_CODE',
+    'FAILURE_EXIT_CODE'
+]
 
-import sys
-
-from st2reactor.cmd import sensormanager
-
-if __name__ == '__main__':
-    sys.exit(sensormanager.main())
+SUCCESS_EXIT_CODE = 0
+FAILURE_EXIT_CODE = 1

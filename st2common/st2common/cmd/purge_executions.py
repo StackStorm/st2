@@ -21,28 +21,20 @@ timestamp.
 *** RISK RISK RISK. You will lose data. Run at your own risk. ***
 """
 
-import copy
 from datetime import datetime
 import pytz
 
-from mongoengine.errors import InvalidQueryError
 from oslo_config import cfg
 
 from st2common import config
 from st2common import log as logging
-from st2common.constants import action as action_constants
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
-from st2common.persistence.liveaction import LiveAction
-from st2common.persistence.execution import ActionExecution
-from st2common.util import isotime
+from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
+from st2common.constants.exit_codes import FAILURE_EXIT_CODE
+from st2common.garbage_collection.executions import purge_executions
 
 LOG = logging.getLogger(__name__)
-
-DONE_STATES = [action_constants.LIVEACTION_STATUS_SUCCEEDED,
-               action_constants.LIVEACTION_STATUS_FAILED,
-               action_constants.LIVEACTION_STATUS_TIMED_OUT,
-               action_constants.LIVEACTION_STATUS_CANCELED]
 
 
 def _do_register_cli_opts(opts, ignore_errors=False):
@@ -70,62 +62,6 @@ def _register_cli_opts():
     _do_register_cli_opts(cli_opts)
 
 
-def purge_executions(timestamp=None, action_ref=None, purge_incomplete=False):
-    if not timestamp:
-        LOG.error('Specify a valid timestamp to purge.')
-        return 1
-
-    LOG.info('Purging executions older than timestamp: %s' %
-             timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ'))
-
-    filters = {}
-
-    if purge_incomplete:
-        filters['start_timestamp__lt'] = isotime.parse(timestamp)
-    else:
-        filters['end_timestamp__lt'] = isotime.parse(timestamp)
-        filters['start_timestamp__lt'] = isotime.parse(timestamp)
-        filters['status'] = {"$in": DONE_STATES}
-
-    exec_filters = copy.copy(filters)
-    if action_ref:
-        exec_filters['action__ref'] = action_ref
-
-    liveaction_filters = copy.copy(filters)
-    if action_ref:
-        liveaction_filters['action'] = action_ref
-
-    try:
-        ActionExecution.delete_by_query(**exec_filters)
-    except InvalidQueryError:
-        LOG.exception('Bad query (%s) used to delete execution instances. ' +
-                      'Please contact support.', exec_filters)
-        return 2
-    except:
-        LOG.exception('Deletion of execution models failed for query with filters: %s.',
-                      exec_filters)
-
-    try:
-        LiveAction.delete_by_query(**liveaction_filters)
-    except InvalidQueryError:
-        LOG.exception('Bad query (%s) used to delete liveaction instances. ' +
-                      'Please contact support.', liveaction_filters)
-        return 3
-    except:
-        LOG.exception('Deletion of liveaction models failed for query with filters: %s.',
-                      liveaction_filters)
-
-    zombie_execution_instances = len(ActionExecution.query(**exec_filters))
-    zombie_liveaction_instances = len(LiveAction.query(**liveaction_filters))
-
-    if (zombie_execution_instances > 0) or (zombie_liveaction_instances > 0):
-        LOG.error('Zombie execution instances left: %d.', zombie_execution_instances)
-        LOG.error('Zombie liveaction instances left: %s.', zombie_liveaction_instances)
-    else:
-        # Print stats
-        LOG.info('#### All execution models less than timestamp %s were deleted.', timestamp)
-
-
 def main():
     _register_cli_opts()
     common_setup(config=config, setup_db=True, register_mq_exchanges=False)
@@ -142,9 +78,13 @@ def main():
         timestamp = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
         timestamp = timestamp.replace(tzinfo=pytz.UTC)
 
-    # Purge models.
     try:
-        return purge_executions(timestamp=timestamp, action_ref=action_ref,
-                                purge_incomplete=purge_incomplete)
+        purge_executions(logger=LOG, timestamp=timestamp, action_ref=action_ref,
+                         purge_incomplete=purge_incomplete)
+    except Exception as e:
+        LOG.exception(str(e))
+        return FAILURE_EXIT_CODE
     finally:
         common_teardown()
+
+    return SUCCESS_EXIT_CODE

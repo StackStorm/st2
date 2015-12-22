@@ -30,6 +30,9 @@ in development
 * Introduce a new ``abandoned`` state that is applied to executions that we cannot guarantee as
   completed. Typically happen when an actionrunner currently running some executions quits or is killed
   via TERM.
+* Add new ``st2garbagecollector`` service which periodically deletes old data from the database
+  as configured in the config. By default, no old data is deleted unless explicitly configured in
+  the config.
 
 1.2.0 - December 07, 2015
 -------------------------

@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.7
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,13 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-#   st2 sensor_container
-#
+import unittest2
 
-import sys
-
+from st2common.logging.misc import get_logger_name_for_module
 from st2reactor.cmd import sensormanager
+from st2actions.runners import pythonrunner
+from st2actions import runners
 
-if __name__ == '__main__':
-    sys.exit(sensormanager.main())
+__all__ = [
+    'LoggingMiscUtilsTestCase'
+]
+
+
+class LoggingMiscUtilsTestCase(unittest2.TestCase):
+    def test_get_logger_name_for_module(self):
+        logger_name = get_logger_name_for_module(sensormanager)
+        self.assertEqual(logger_name, 'st2reactor.cmd.sensormanager')
+
+        logger_name = get_logger_name_for_module(pythonrunner)
+        self.assertEqual(logger_name, 'st2actions.runners.pythonrunner')
+
+        logger_name = get_logger_name_for_module(runners)
+        self.assertEqual(logger_name, 'st2actions.runners.__init__')
