@@ -10,6 +10,11 @@ PYTHON=`which python2.7`
 # Does not happen consistently with all OSes we support.
 [ -r /etc/environment ] && . /etc/environment
 
+# In short, currently the best assumption for new packages
+if [ -d "/usr/share/python/st2common" ] || [ -d "/usr/share/python/st2" ]; then
+  NEW_PACKAGES="true"
+  NG_INIT="true"
+fi
 
 # AR is assumed to be an environment variable.
 if [ -z "$AR" ];
@@ -349,7 +354,11 @@ function reopen_component_log_files() {
 
 function register_content() {
   echo "Registering content...[flags = ${REGISTER_FLAGS}]"
-  $PYTHON ${PYTHONPACK}/st2common/bin/st2-register-content --config-file ${STANCONF} ${REGISTER_FLAGS}
+  if [ "${NEW_PACKAGES}" = "true" ]; then
+    st2-register-content --config-file ${STANCONF} ${REGISTER_FLAGS}
+  else
+    $PYTHON ${PYTHONPACK}/st2common/bin/st2-register-content --config-file ${STANCONF} ${REGISTER_FLAGS}
+  fi
 }
 
 clean_db() {
