@@ -22,3 +22,4 @@ stevedore>=1.7.0,<1.8
 bencode>=1.0,<1.1
 paramiko>=1.15.2,<1.16
 networkx==1.10
+virtualenv>=13.1.2,<14.0
