@@ -414,8 +414,10 @@ case ${1} in
     ;;
   restart-component)
     restart_component ${2}
+    exitcode=$?
     sleep 1
     getpids
+    exit ${exitcode}
     ;;
   reopen-log-files)
     reopen_component_log_files ${2}
