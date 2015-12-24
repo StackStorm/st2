@@ -147,6 +147,12 @@ compile:
 	@echo "Removing all .pyc files"
 	find $(COMPONENTS)  -name \*.pyc -type f -print0 | xargs -0 -I {} rm {}
 
+
+.PHONY: .st2client-dependencies-check
+.st2client-dependencies-check:
+	@echo "Checking for st2common imports inside st2client"
+	find ${ROOT_DIR}/st2client/st2client/ -name \*.py -type f -print0 | xargs -0 cat | grep st2common ; test $$? -eq 1
+
 .PHONY: .cleandocs
 .cleandocs:
 	@echo "Removing generated documentation"
