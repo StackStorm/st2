@@ -153,6 +153,14 @@ compile:
 	@echo "Checking for st2common imports inside st2client"
 	find ${ROOT_DIR}/st2client/st2client/ -name \*.py -type f -print0 | xargs -0 cat | grep st2common ; test $$? -eq 1
 
+.PHONY: .st2common-circular-dependencies-check
+.st2common-circular-dependencies-check:
+	@echo "Checking st2common for circular dependencies"
+	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py \) -type f -print0 | xargs -0 cat | grep st2actions ;  test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
+
 .PHONY: .cleandocs
 .cleandocs:
 	@echo "Removing generated documentation"
