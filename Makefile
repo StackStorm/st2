@@ -147,7 +147,6 @@ compile:
 	@echo "Removing all .pyc files"
 	find $(COMPONENTS)  -name \*.pyc -type f -print0 | xargs -0 -I {} rm {}
 
-
 .PHONY: .st2client-dependencies-check
 .st2client-dependencies-check:
 	@echo "Checking for st2common imports inside st2client"
