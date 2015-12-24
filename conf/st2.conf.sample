@@ -108,7 +108,7 @@ trigger_instances_ttl = None
 # Location of the logging configuration file.
 logging = conf/logging.garbagecollector.conf
 # How often to check database for old data and perform garbage collection.
-collection_interval = 500
+collection_interval = 600
 
 [log]
 # Controls if stderr should be redirected to the logs.

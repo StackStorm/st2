@@ -82,7 +82,7 @@ def set_log_level_for_all_loggers(level=logging.DEBUG):
 def get_logger_name_for_module(module):
     """
     Retrieve fully qualified logger name for current module (e.g.
-    st2reactor.cmd.sensormanager)
+    st2common.cmd.sensormanager)
 
     :type: ``str``
     """
