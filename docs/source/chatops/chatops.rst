@@ -144,7 +144,7 @@ reload Hubot. Do this with the following commands:
 ::
 
     $ sudo st2ctl reload
-    $ sudo /etc/init.d/docker-hubot restart
+    $ sudo service docker-hubot restart
 
 This will register the aliases we created, and tell Hubot to go and
 refresh its command list.
