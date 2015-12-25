@@ -76,9 +76,9 @@ StackStorm installation, you will need to set the following environment
 variables:
 
 -  ``ST2_API`` - FQDN + port to StackStorm endpoint. Typically:
-   ``http://<host>:9101``
+   ``https://<host>/api``
 -  ``ST2_AUTH_URL`` - FQDN + port to StackStorm Auth endpoint:
-   ``http://<host>:9100``
+   ``https://<host>/auth``
 -  ``ST2_AUTH_USERNAME`` - StackStorm installation username
 -  ``ST2_AUTH_PASSWORD`` - StackStorm installation password
 
@@ -95,11 +95,11 @@ And should get something like this back:
 
 .. figure:: /_static/images/chatops_the_rules.png
 
-Now, install the ``hubot`` pack into your StackStorm installation.
+Now, install the ``chatops`` pack into your StackStorm installation.
 
 ::
 
-      $ st2 run packs.install packs=hubot,st2
+      $ st2 run packs.install packs=chatops,st2
 
 If successful, proceed to the next section.
 
@@ -111,7 +111,7 @@ ChatOps uses :doc:`/chatops/aliases` to define new ChatOps commands.
 ::
 
     $ cd /opt/stackstorm/packs/
-    $ mkdir -p chatops/{actions,rules,sensors,aliases}
+    $ mkdir -p my-chatops/{actions,rules,sensors,aliases}
 
 Now, let's configure an alias and setup an action to be used in ChatOps.
 For this example, let's download a pack from our ``st2contrib``
@@ -123,14 +123,14 @@ repository, the Google pack. This will provide us with the action
     $ st2 run packs.install packs=google
 
 Now, let's setup an alias. For purpose of this setup aliases are stored
-in the directory ``/opt/stackstorm/packs/chatops/aliases`` on the
+in the directory ``/opt/stackstorm/packs/my-chatops/aliases`` on the
 filesystem. We have already created this directory in a previous step.
 Create a new file called ``google.yaml``, and add the following
 contents.
 
 .. code:: yaml
 
-    # packs/chatops/aliases/google.yaml
+    # packs/my-chatops/aliases/google.yaml
     ---
     name: "google_query"
     description: "Perform a google search"
@@ -153,3 +153,5 @@ You should now be able to go into your chatroom, and execute the command
 ``hubot: google awesome``, and StackStorm will take care of the rest.
 
 .. figure:: /_static/images/chatops_command_out.png
+
+To customize the command output you can use Jinja templates as described in :doc:`aliases`.
