@@ -33,7 +33,7 @@ Upgrade Notes
 Upgrading from 1.1
 ~~~~~~~~~~~~~~~
 
-To upgrade a pre-1.2.0 StackStorm instance provisioned with the [All-in-One Installer](https://docs.stackstorm.com/install/all_in_one.html), you will need to perform the following steps:
+To upgrade a pre-1.2.0 StackStorm instance provisioned with the :doc:`install/all_in_one`, you will need to perform the following steps:
 
   1. Back up `/opt/puppet/hieradata/answers.json`.
 
@@ -64,7 +64,7 @@ To upgrade a pre-1.2.0 StackStorm instance provisioned with the [All-in-One Inst
   sudo service docker-hubot restart
   ```
 
-To verify the upgrade, please follow the link to run the [self-verification script](https://docs.stackstorm.com/troubleshooting/self_verification.html).
+To verify the upgrade, please follow the link to run the :doc:`self-verification script <troubleshooting/self_verification>`.
 
 |st2| 1.1
 ---------
