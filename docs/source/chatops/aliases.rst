@@ -63,7 +63,7 @@ When a pack is registered the aliases are not automatically loaded. To load all 
 .. code-block:: bash
 
    st2ctl reload --register-aliases
-   
+
 Removing
 ~~~~~~~~
 
@@ -112,6 +112,17 @@ In this case the query has a default value assigned which will be used if not va
 Therefore,  simple ``google`` instead of ``google StackStorm`` would still result in assumption of the
 default value much like how an Action default parameter values are interpretted.
 
+Regular expressions
+~~~~~~~~~~~~~~~~~~~
+
+It is possible to use regular expressions in the format string:
+
+.. code-block:: yaml
+
+    formats:
+      - "(google|look for) {{query=StackStorm}}[!.]?"
+
+They can be as complex as you want, just exercise reasonable caution as regexes tend to be difficult to debug.
 
 Key-Value parameters
 ~~~~~~~~~~~~~~~~~~~~
@@ -165,6 +176,97 @@ The above alias supports the following commands -
     !sensors list pack=examples
     !list sensors from examples
     !list sensors from examples limit=2
+
+"Display-representation" format objects
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, every format string is exposed in Hubot help as is. This is not always desirable in case you want to make a complicated regex, have ten very similar format strings to "humanize" the input, or hide one of the strings for any other reason.
+
+In this case, instead of having a string in `formats`, you can write an object with a `display` parameter (a string that will show up in help) and a `representation` list (matches that Hubot will actually look for):
+
+.. code-block:: yaml
+
+    formats:
+      - display: "google {{query}}"
+        representation:
+          - "(google|look for) {{query=StackStorm}}[!.]?"
+          - "search google for {{query}}"
+
+This will work as follows:
+
+  - the `display` string (`google {{query}}`) will be exposed via the `!help` command.
+  - strings from the `representation` list (`(google|look for) {{query=StackStorm}}[!.]?` regex, and `search google for {{query}}` string) will be matched by Hubot.
+
+You can use both strings and display-representation objects in `formats` at the same time:
+
+.. code-block:: yaml
+
+    formats:
+      - display: "google {{query}}"
+        representation:
+          - "(google|look for) {{query=StackStorm}}[!.]?"
+          - "search google for {{query}}"
+      - "find me some {{query}}"
+      - "find me some {{query}} in {{engine}}"
+
+Acknowledgement options
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Hubot will acknowledge every ChatOps command with a random message containing StackStorm execution ID and a link to the Web UI. It's possible to customize this message in your alias definition:
+
+.. code-block:: yaml
+
+    ack:
+      format: "acknowledged!"
+      append_url: false
+
+The `format` parameter will customize your message, and the `append_url` flag controls the Web UI link at the end. It is also possible to use Jinja in the format string, with `actionalias` and `execution` comprising the Jinja context:
+
+.. code-block:: yaml
+
+    ack:
+      format: "Executing `{{ actionalias.ref }}`, your ID is `{{ execution.id[:2] }}..{{ execution.id[-2:] }}`"
+
+The `enabled` parameter controls whether the message will be sent. It defaults to `true`, and setting it to `false` will disable the acknowledgement message altogether:
+
+.. code-block:: yaml
+
+    ack:
+      enabled: false
+
+Result options
+^^^^^^^^^^^^^^
+
+Same as with `ack`, you can configure `result` to disable result messages or set a custom format so that Hubot would output a nicely formatted list, filter strings, or switch the message text depending on execution status:
+
+.. code-block:: yaml
+
+    result:
+      format: |
+        {% if execution.result.result|length %}
+        found something for you:
+        {% for article in execution.result.result %}
+        {{ loop.index }}. *{{ article.title }}*: {{ article.url }}
+        {% endfor %}
+        {% else %}
+        couldn't find anything, sorry!
+        {% endif %}
+
+To disable the result message, you can use the `enabled` flag same way as in `ack`.
+
+Plaintext/attachment (slack-only)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Slack uses attachments to format the result message. While we found attachments to be the best way to handle very long messages (which StackStorm execution results tend to be), sometimes you want part of your message — or all of it — in plaintext. Use `{~}` as a delimiter to do that:
+
+.. code-block:: yaml
+
+    result:
+      format: "action completed! {~} {{ execution.result.result }}"
+
+In this case "action completed!" will be output in plaintext, and the execution result will follow as attachment.
+
+`{~}` can also be put at the end of the string to output the whole message in plaintext.
 
 ChatOps
 ^^^^^^^

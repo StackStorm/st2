@@ -39,7 +39,7 @@ Upgrade Notes
  ``timeout`` in addition to ``failed`` status.
 
 Upgrading from 1.1
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 
 To upgrade a pre-1.2.0 StackStorm instance provisioned with the :doc:`install/all_in_one`, you will need to perform the following steps:
 
