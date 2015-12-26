@@ -1,6 +1,6 @@
 #!/bin/sh
 
-LSB_RELEASE=$(which lsb_release)
+INITCOMM=$(cat /proc/1/comm)
 SYSTEMDCTL=/bin/systemctl
 UPSTARTCTL=/sbin/initctl
 SPAWNSVC=st2actionrunner
@@ -12,23 +12,19 @@ if [ -z "$WORKERS" ]; then
   WORKERS="${WORKERS:-4}"
 fi
 
-# 1. Choose init type on Debian containers use sysv
-if [ -x "$LSB_RELEASE" ]; then
-  if [ -f /.dockerenv ] && [ $($LSB_RELEASE -is) = Debian ]; then
-    sv=sysv
-    svbin=/etc/init.d/$WORKERSVC
-  fi
-fi
-
-# 2. Second criteria
-if [ -z "$sv" -a -x $SYSTEMDCTL ]; then
+## Use running init system detection criterias
+#
+if [ -d /run/systemd/system ]; then
+  # systemd is running
   sv=systemd
   svbin=$SYSTEMDCTL
-elif [ -z "$sv" ] && ( /sbin/start 2>&1 | grep -q "missing job name" ); then
+elif [ "$INITCOMM" = init ] && ($UPSTARTCTL version 2>&1); then
+  # init is running and upstart has been detected
   sv=upstart
   svbin=$UPSTARTCTL
 else
-  # Old debians, amazon etc
+  # In all other cases which may apply to older debians, redhats and
+  # centos, amazon etc.
   sv=sysv
   svbin=/etc/init.d/$WORKERSVC
   if [ ! -x $svbin ]; then
@@ -38,7 +34,8 @@ else
   fi
 fi
 
-# 2. Spwan workers
+## Spwan workers
+#
 action="$1"; shift;
 rs=0
 i=1
