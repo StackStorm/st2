@@ -52,6 +52,9 @@ ACTION = {
         'a': {
             'type': 'string',
             'default': 'abc'
+        },
+        'b': {
+            'type': 'string'
         }
     },
     'notify': {
@@ -114,6 +117,16 @@ class TestActionExecutionService(DbTestCase):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'a': 123}
         liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
         self.assertRaises(jsonschema.ValidationError, action_service.request, liveaction)
+
+    def test_request_optional_parameter_none_value(self):
+        parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'a': None}
+        request = LiveActionDB(action=ACTION_REF, parameters=parameters)
+        request, _ = action_service.request(request)
+
+    def test_request_optional_parameter_none_value_no_default(self):
+        parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'b': None}
+        request = LiveActionDB(action=ACTION_REF, parameters=parameters)
+        request, _ = action_service.request(request)
 
     def test_request_nonexistent_action(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}

@@ -29,6 +29,13 @@ __all__ = [
     'get_action_parameters_schema',
     'get_schema_for_action_parameters',
     'get_schema_for_resource_parameters',
+    'is_property_type_single',
+    'is_property_type_list',
+    'is_property_type_anyof',
+    'is_property_type_oneof',
+    'is_property_nullable',
+    'is_attribute_type_array',
+    'is_attribute_type_object',
     'validate'
 ]
 
@@ -105,6 +112,47 @@ CustomValidator = create(
 )
 
 
+def is_property_type_single(property_schema):
+    return (isinstance(property_schema, dict) and
+            'anyOf' not in property_schema.keys() and
+            'oneOf' not in property_schema.keys() and
+            not isinstance(property_schema.get('type', 'string'), list))
+
+
+def is_property_type_list(property_schema):
+    return (isinstance(property_schema, dict) and
+            isinstance(property_schema.get('type', 'string'), list))
+
+
+def is_property_type_anyof(property_schema):
+    return isinstance(property_schema, dict) and 'anyOf' in property_schema.keys()
+
+
+def is_property_type_oneof(property_schema):
+    return isinstance(property_schema, dict) and 'oneOf' in property_schema.keys()
+
+
+def is_property_nullable(property_type_schema):
+    # For anyOf and oneOf, the property_schema is a list of types.
+    if isinstance(property_type_schema, list):
+        return len([t for t in property_type_schema
+                    if ((isinstance(t, six.string_types) and t == 'null') or
+                        (isinstance(t, dict) and t.get('type', 'string') == 'null'))]) > 0
+
+    return (isinstance(property_type_schema, dict) and
+            property_type_schema.get('type', 'string') == 'null')
+
+
+def is_attribute_type_array(attribute_type):
+    return (attribute_type == 'array' or
+            (isinstance(attribute_type, list) and 'array' in attribute_type))
+
+
+def is_attribute_type_object(attribute_type):
+    return (attribute_type == 'object' or
+            (isinstance(attribute_type, list) and 'object' in attribute_type))
+
+
 def assign_default_values(instance, schema):
     """
     Assign default values on the provided instance based on the schema default specification.
@@ -117,6 +165,7 @@ def assign_default_values(instance, schema):
         return instance
 
     properties = schema.get('properties', {})
+
     for property_name, property_data in six.iteritems(properties):
         has_default_value = 'default' in property_data
         default_value = property_data.get('default', None)
@@ -136,7 +185,8 @@ def assign_default_values(instance, schema):
         schema_items = property_data.get('items', {})
 
         # Array
-        if attribute_type == 'array' and schema_items and schema_items.get('properties', {}):
+        if (is_attribute_type_array(attribute_type) and
+                schema_items and schema_items.get('properties', {})):
             array_instance = instance.get(property_name, None)
             array_schema = schema['properties'][property_name]['items']
 
@@ -146,7 +196,7 @@ def assign_default_values(instance, schema):
                                                                 schema=array_schema)
 
         # Object
-        if attribute_type == 'object' and property_data.get('properties', {}):
+        if is_attribute_type_object(attribute_type) and property_data.get('properties', {}):
             object_instance = instance.get(property_name, None)
             object_schema = schema['properties'][property_name]
 
@@ -164,33 +214,42 @@ def modify_schema_allow_default_none(schema):
     defines a default value of None.
     """
     schema = copy.deepcopy(schema)
-
     properties = schema.get('properties', {})
+
     for property_name, property_data in six.iteritems(properties):
+        is_optional = not property_data.get('required', False)
         has_default_value = 'default' in property_data
         default_value = property_data.get('default', None)
+        property_schema = schema['properties'][property_name]
 
-        if has_default_value and default_value is None:
-            # Allow "None" to be also used as a valid attribute value
-            property_type = schema['properties'][property_name]['type']
-
-            if isinstance(property_type, list) and 'null' not in property_type:
-                schema['properties'][property_name]['type'].append('null')
-            elif isinstance(property_type, six.string_types) and 'null' not in property_type:
-                schema['properties'][property_name]['type'] = [property_type, 'null']
+        if (has_default_value or is_optional) and default_value is None:
+            # If property is anyOf and oneOf then it has to be process differently.
+            if (is_property_type_anyof(property_schema) and
+                    not is_property_nullable(property_schema['anyOf'])):
+                property_schema['anyOf'].append({'type': 'null'})
+            elif (is_property_type_oneof(property_schema) and
+                    not is_property_nullable(property_schema['oneOf'])):
+                property_schema['oneOf'].append({'type': 'null'})
+            elif (is_property_type_list(property_schema) and
+                    not is_property_nullable(property_schema.get('type'))):
+                property_schema['type'].append('null')
+            elif (is_property_type_single(property_schema) and
+                    not is_property_nullable(property_schema.get('type'))):
+                property_schema['type'] = [property_schema.get('type', 'string'), 'null']
 
         # Support for nested properties (array and object)
         attribute_type = property_data.get('type', None)
         schema_items = property_data.get('items', {})
 
         # Array
-        if attribute_type == 'array' and schema_items and schema_items.get('properties', {}):
+        if (is_attribute_type_array(attribute_type) and
+                schema_items and schema_items.get('properties', {})):
             array_schema = schema_items
             array_schema = modify_schema_allow_default_none(schema=array_schema)
             schema['properties'][property_name]['items'] = array_schema
 
         # Object
-        if attribute_type == 'object' and property_data.get('properties', {}):
+        if is_attribute_type_object(attribute_type) and property_data.get('properties', {}):
             object_schema = property_data
             object_schema = modify_schema_allow_default_none(schema=object_schema)
             schema['properties'][property_name] = object_schema
@@ -221,6 +280,7 @@ def validate(instance, schema, cls=None, use_default=True, allow_default_none=Fa
 
     # pylint: disable=assignment-from-no-return
     jsonschema.validate(instance=instance, schema=schema, cls=cls, *args, **kwargs)
+
     return instance
 
 

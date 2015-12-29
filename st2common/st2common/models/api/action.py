@@ -289,6 +289,7 @@ class LiveActionAPI(BaseAPI):
             },
             "status": {
                 "description": "The current status of the action execution.",
+                "type": "string",
                 "enum": LIVEACTION_STATUSES
             },
             "start_timestamp": {
@@ -317,7 +318,8 @@ class LiveActionAPI(BaseAPI):
                             {"type": "integer"},
                             {"type": "number"},
                             {"type": "object"},
-                            {"type": "string"}
+                            {"type": "string"},
+                            {"type": "null"}
                         ]
                     }
                 }
