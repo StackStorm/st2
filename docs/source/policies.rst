@@ -34,7 +34,7 @@ The ``action.concurrency.attr`` policy limits the executions for the action by i
     description: Limits the concurrent executions for my action.
     enabled: true
     resource_ref: demo.my_remote_action
-    policy_type: action.concurrency
+    policy_type: action.concurrency.attr
     parameters:
         threshold: 10
         attributes:
@@ -55,7 +55,7 @@ Configuration example for ZooKeeper. ::
 Configuration example for Redis. ::
 
     [coordination]
-    url = redis://username:password@host:port
+    url = redis://password@host:port
 
 Retry
 -----

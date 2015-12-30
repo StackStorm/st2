@@ -81,5 +81,7 @@ install -m755 tools/migrate_triggers_to_include_ref_count.py %{buildroot}/usr/li
 /usr/bin/st2-bootstrap-rmq
 /usr/bin/st2-apply-rbac-definitions
 /usr/bin/st2-run-pack-tests
+/usr/bin/st2-purge-executions
+/usr/bin/st2-purge-trigger-instances
 /usr/bin/st2ctl
 /etc/logrotate.d/st2.conf

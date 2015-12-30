@@ -159,7 +159,7 @@ class PolicyRegistrar(ResourceRegistrar):
 def register_policy_types(module):
     registered_count = 0
     mod_path = os.path.dirname(os.path.realpath(sys.modules[module.__name__].__file__))
-    path = '%s/policies/meta' % mod_path
+    path = os.path.join(mod_path, 'policies/meta')
 
     files = []
     for ext in ALLOWED_EXTS:

@@ -18,6 +18,7 @@ import sys
 
 from oslo_config import cfg
 
+import st2common
 from st2common import config
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
@@ -171,8 +172,7 @@ def register_policies():
         LOG.info('=========================================================')
         LOG.info('############## Registering policy types #################')
         LOG.info('=========================================================')
-        import st2actions
-        registered_type_count = policies_registrar.register_policy_types(st2actions)
+        registered_type_count = policies_registrar.register_policy_types(st2common)
     except Exception:
         LOG.warning('Failed to register policy types.', exc_info=True)
 

@@ -76,9 +76,9 @@ StackStorm installation, you will need to set the following environment
 variables:
 
 -  ``ST2_API`` - FQDN + port to StackStorm endpoint. Typically:
-   ``http://<host>:9101``
+   ``https://<host>:443/api``
 -  ``ST2_AUTH_URL`` - FQDN + port to StackStorm Auth endpoint:
-   ``http://<host>:9100``
+   ``https://<host>:443/auth``
 -  ``ST2_AUTH_USERNAME`` - StackStorm installation username
 -  ``ST2_AUTH_PASSWORD`` - StackStorm installation password
 
@@ -144,7 +144,7 @@ reload Hubot. Do this with the following commands:
 ::
 
     $ sudo st2ctl reload
-    $ sudo service hubot restart
+    $ sudo service docker-hubot restart
 
 This will register the aliases we created, and tell Hubot to go and
 refresh its command list.

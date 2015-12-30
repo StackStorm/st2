@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.7
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,13 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-#   st2 sensor_container
-#
+__all__ = [
+    'DEFAULT_COLLECTION_INTERVAL',
+    'MINIMUM_TTL_DAYS'
+]
 
-import sys
 
-from st2reactor.cmd import sensormanager
+# Default garbage collection interval (in seconds)
+DEFAULT_COLLECTION_INTERVAL = 600
 
-if __name__ == '__main__':
-    sys.exit(sensormanager.main())
+# Minimum value for the TTL. If user supplies value lower than this, we will throw.
+MINIMUM_TTL_DAYS = 7

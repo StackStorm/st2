@@ -19,12 +19,18 @@ import sys
 import eventlet
 
 from st2common import log as logging
+from st2common.logging.misc import get_logger_name_for_module
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.exceptions.sensors import SensorNotFoundException
+from st2common.constants.exit_codes import FAILURE_EXIT_CODE
 from st2reactor.sensor import config
 from st2reactor.container.manager import SensorContainerManager
 from st2reactor.container.partitioner_lookup import get_sensors_partitioner
+
+__all__ = [
+    'main'
+]
 
 eventlet.monkey_patch(
     os=True,
@@ -34,7 +40,8 @@ eventlet.monkey_patch(
     time=True)
 
 
-LOG = logging.getLogger('st2reactor.bin.sensors_manager')
+LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
+LOG = logging.getLogger(LOGGER_NAME)
 
 
 def _setup():
@@ -59,6 +66,6 @@ def main():
         return 1
     except:
         LOG.exception('(PID:%s) SensorContainer quit due to exception.', os.getpid())
-        return 2
+        return FAILURE_EXIT_CODE
     finally:
         _teardown()

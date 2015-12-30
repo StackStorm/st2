@@ -154,7 +154,7 @@ Sample rule: :github_st2:`sample_rule_with_webhook.yaml
 The rule definition is a YAML with three sections: trigger, criteria, and action. This example is
 setup to react on a webhook trigger and applies filtering criteria on the content of the trigger.
 The webhook in this example is setup to listen on the ``sample`` sub-url at
-``https://{host}:9101/v1/webhooks/sample``. When a POST is made on this URL, the trigger
+``https://{host}/api/v1/webhooks/sample``. When a POST is made on this URL, the trigger
 fires. If the criteria matches, value in payload is ``st2`` in this case, the payload will be
 appended to the file st2.webhook_sample.out in the home directory of the user setup to run |st2|.
 By default, ``stanley`` is the default user and the file will be located at
@@ -197,13 +197,13 @@ Deploy Rule
     # Get the rule that was just created
     st2 rule get examples.sample_rule_with_webhook
 
-Once the rule is created, the webhook begins to listen on ``https://{host}:9101/v1/webhooks/{url}``.
+Once the rule is created, the webhook begins to listen on ``https://{host}/api/v1/webhooks/{url}``.
 Fire the POST, check out the file and see that it appends the payload if the name=Joe.
 
 .. code-block:: bash
 
     # Post to the webhook
-    curl -k https://localhost:9101/v1/webhooks/sample -d '{"foo": "bar", "name": "st2"}' -H 'Content-Type: application/json' -H 'X-Auth-Token: put_token_here'
+    curl -k https://localhost/api/v1/webhooks/sample -d '{"foo": "bar", "name": "st2"}' -H 'Content-Type: application/json' -H 'X-Auth-Token: put_token_here'
 
     # Check if the action got executed (this shows last action)
     st2 execution list -n 1
@@ -212,7 +212,7 @@ Fire the POST, check out the file and see that it appends the payload if the nam
     sudo tail /home/stanley/st2.webhook_sample.out
 
     # And for fun, same post with |st2|
-    st2 run core.http method=POST body='{"you": "too", "name": "st2"}' url=https://localhost:9101/v1/webhooks/sample headers='x-auth-token=put_token_here;content-type=application/json' verify_ssl_cert=False
+    st2 run core.http method=POST body='{"you": "too", "name": "st2"}' url=https://localhost/api/v1/webhooks/sample headers='x-auth-token=put_token_here;content-type=application/json' verify_ssl_cert=False
 
     # Check that the rule worked. By default, st2 runs as the stanley user.
     sudo tail /home/stanley/st2.webhook_sample.out
@@ -271,6 +271,4 @@ For more information on datastore, check :doc:`datastore`
 * Use workflows to stitch actions into higher level automations - :doc:`/workflows`.
 * Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - a growing set of practical examples of automating with StackStorm.
 
-
 .. include:: __engage.rst
-
