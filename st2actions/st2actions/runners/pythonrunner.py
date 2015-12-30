@@ -18,14 +18,16 @@ import sys
 import abc
 import json
 import uuid
+import logging
+import logging.config
 import logging as stdlib_logging
 
 import six
 from eventlet.green import subprocess
 
 from st2actions.runners import ActionRunner
+from st2actions import config as action_config
 from st2common.util.green.shell import run_command
-from st2common import log as logging
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
@@ -84,16 +86,9 @@ class Action(object):
         Set up a logger which logs all the messages with level DEBUG
         and above to stderr.
         """
+        logging.config.fileConfig(action_config.get_logging_config_path())
         logger_name = 'actions.python.%s' % (self.__class__.__name__)
         logger = logging.getLogger(logger_name)
-
-        console = stdlib_logging.StreamHandler()
-        console.setLevel(stdlib_logging.DEBUG)
-
-        formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-        console.setFormatter(formatter)
-        logger.addHandler(console)
-        logger.setLevel(stdlib_logging.DEBUG)
 
         return logger
 

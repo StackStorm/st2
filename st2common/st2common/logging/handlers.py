@@ -17,6 +17,7 @@ import os
 import socket
 import time
 import logging
+import sys
 
 from oslo_config import cfg
 
@@ -37,7 +38,8 @@ class FormatNamedFileHandler(logging.handlers.RotatingFileHandler):
         format_values = {
             'timestamp': timestamp,
             'ts': isotime_str,
-            'pid': pid
+            'pid': pid,
+            'pack': os.path.abspath(os.path.dirname(sys.argv[2])).split('/')[-2]
         }
         filename = filename.format(**format_values)
         super(FormatNamedFileHandler, self).__init__(filename, mode=mode, maxBytes=maxBytes,
