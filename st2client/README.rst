@@ -20,7 +20,7 @@ client will assume localhost and default ports.
    server URL is provided, it will override the base URL and default
    port.
 -  ST2\_API\_URL - Endpoint for the Action REST API (i.e.
-   http://localhost:9101) for managing actions, executions, triggers,
+   https://example.com/api) for managing actions, executions, triggers,
    rules and reusable configuration data.
 
 The default endpoint configuration can be explicitly specified at the
