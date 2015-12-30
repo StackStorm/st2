@@ -54,6 +54,9 @@ def parse_args():
                         help='Specify path to fixed-requirements.txt file.')
     parser.add_argument('-o', '--output-file', default='requirements.txt',
                         help='Specify path to the resulting requirements file.')
+    parser.add_argument('--skip', default=None,
+                        help=('Comma delimited list of requirements to not '
+                              'include in the generated file.'))
     if len(sys.argv) < 2:
         parser.print_help()
         sys.exit(1)
@@ -104,10 +107,13 @@ def merge_source_requirements(sources):
     return merged_requirements
 
 
-def write_requirements(sources=None, fixed_requirements=None, output_file=None):
+def write_requirements(sources=None, fixed_requirements=None, output_file=None,
+                       skip=None):
     """
     Write resulting requirements taking versions from the fixed_requirements.
     """
+    skip = skip or []
+
     requirements = merge_source_requirements(sources)
     fixed = load_requirements(locate_file(fixed_requirements, must_exist=True))
 
@@ -127,6 +133,9 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None):
     lines_to_write = []
     links = set()
     for req in requirements:
+        if req.req.project_name in skip:
+            continue
+
         # we don't have any idea how to process links, so just add them
         if req.link and req.link not in links:
             links.add(req.link)
@@ -153,6 +162,13 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None):
 if __name__ == '__main__':
     check_pip_version()
     args = parse_args()
+
+    if args['skip']:
+        skip = args['skip'].split(',')
+    else:
+        skip = None
+
     write_requirements(sources=args['source_requirements'],
                        fixed_requirements=args['fixed_requirements'],
-                       output_file=args['output_file'])
+                       output_file=args['output_file'],
+                       skip=skip)
