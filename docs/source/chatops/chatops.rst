@@ -76,9 +76,9 @@ StackStorm installation, you will need to set the following environment
 variables:
 
 -  ``ST2_API`` - FQDN + port to StackStorm endpoint. Typically:
-   ``https://<host>/api``
+   ``https://<host>:443/api``
 -  ``ST2_AUTH_URL`` - FQDN + port to StackStorm Auth endpoint:
-   ``https://<host>/auth``
+   ``https://<host>:443/auth``
 -  ``ST2_AUTH_USERNAME`` - StackStorm installation username
 -  ``ST2_AUTH_PASSWORD`` - StackStorm installation password
 

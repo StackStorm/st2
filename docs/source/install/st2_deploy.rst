@@ -52,7 +52,7 @@ and WebUI url:
 
     st2 auth testu -p testp
 
-.. include:: on_complete.rst
+.. include:: __on_complete.rst
 
 
 For production deployments use :doc:`all_in_one`, follow deb / rpm installation methods, or leverage puppet modules from `puppet-st2 <https://github.com/StackStorm/puppet-st2>`_.

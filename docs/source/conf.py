@@ -15,7 +15,6 @@
 import sys
 import os
 import glob
-import itertools
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '../../'))
@@ -133,11 +132,9 @@ todo_include_todos = True
 # dzimine: '**/._*' exclues files my Sublime creates on NFS mount.
 exclude_patterns = [
     '**/._*',
-    'engage.rst',  # included file
-    'install/on_complete.rst',  # included file
-    'auth_usage.rst',
-    'todo.rst',  # included file,
-    '_includes/*',  # includes files,
+    '**/__*', '__*',  # Naming convension for include files
+    '_includes/*',  # includes files
+    'todo.rst',
     'known_security_issues.rst',
 
 ]

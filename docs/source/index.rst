@@ -26,8 +26,7 @@ Contents:
     cli
     authentication
     rbac
-    client_libraries
-    reference <reference/index>
+    reference/index
     troubleshooting/index
     development/index
     changelog

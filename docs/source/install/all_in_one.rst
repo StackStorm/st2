@@ -55,6 +55,8 @@ Certification is currently planned and/or underway for:
 
 If your platform is not listed here and you would like it to be, please drop us a line at `support@stackstorm.com <email:support@stackstorm.com>`_ and let us know.
 
+.. include:: __note_tested_env.rst
+
 Pre-Requisites
 ##############
 
@@ -322,7 +324,9 @@ If you have already installed using this method, you can find and update your an
 Known Issues
 ############
 
-We currently do our best to detect the environment that you are in to provide a seemless experience. However, sometimes you may run into a case where we haven't found or explored yet. If you find this, please let us know. Even better, we love when our community submits Pull Requests!
+We currently do our best to detect the environment that you are in to provide a seemless experience. However, given the variety of platforms, environments, installed packages, netwwork settings and other variations, you may run into a case where we haven't found or explored yet. If you find this, please let us know. Even better, we love when our community submits Pull Requests!
+
+Some known issues listed below. For more possible troubles and workarounds, check `StackStorm Support Knowledge Base <https://stackstorm.reamaze.com/>`_.
 
 
 Does not install on RHEL AWS Images

@@ -111,7 +111,7 @@ Configuring PowerShell
   ----                           -----
   PSVersion                      4.0
   ...
-  
+
 
 Additional resources and links
 ------------------------------
@@ -119,4 +119,4 @@ Additional resources and links
 * `Enable or Disable the File and Printer Sharing Firewall Rule <https://technet.microsoft.com/en-us/library/cc737069(v=ws.10).aspx>`_
 * `Enable or Disable the Remote Desktop Firewall Rule <https://technet.microsoft.com/en-us/library/cc736451(v=ws.10).aspx>`_
 
-.. include:: /engage.rst
+.. include:: /__engage.rst

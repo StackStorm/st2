@@ -23,5 +23,5 @@ Use the supervisor script to manage |st2| services: ::
 * How to configure and use :doc:`authentication <../authentication>`.
 * Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - a growing set of practical examples of automating with StackStorm.
 
-.. include:: /engage.rst
+.. include:: /__engage.rst
 
