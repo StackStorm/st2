@@ -38,6 +38,42 @@ Upgrade Notes
  If you have code which checks for an action failure you need to update it to also check for
  ``timeout`` in addition to ``failed`` status.
 
+Upgrading from 1.1
+~~~~~~~~~~~~~~~~~~
+
+To upgrade a pre-1.2.0 StackStorm instance provisioned with the :doc:`install/all_in_one`, you will need to perform the following steps:
+
+  1. Back up `/opt/puppet/hieradata/answers.json`.
+
+  2. Update (or insert) the following lines in `/opt/puppet/hieradata/answers.yaml`:
+
+  ```
+  st2::version: 1.2.0
+  st2::revision: 8
+  st2::mistral_git_branch: st2-1.2.0
+  hubot::docker: true
+  ```
+
+  If `answers.yaml` does not exist, create it. If you changed any install parameters manually (e.g. password, ChatOps token, SSH user), put these values into `answers.yaml` as well, otherwise they'll be overwritten.
+
+  3. If you're running ChatOps, stop the Hubot service with `service hubot stop`.
+
+  4. Remove `/etc/facter/facts.d/st2web_bootstrapped.txt` and execute `update-system`:
+
+  ```
+  sudo rm /etc/facter/facts.d/st2web_bootstrapped.txt
+  sudo update-system
+  ```
+
+  5. After the update is done, restart StackStorm and hubot:
+
+  ```
+  sudo st2ctl restart
+  sudo service docker-hubot restart
+  ```
+
+To verify the upgrade, please follow the link to run the :doc:`self-verification script <troubleshooting/self_verification>`.
+
 |st2| 1.1
 ---------
 
