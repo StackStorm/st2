@@ -1,11 +1,11 @@
 Reference
 =========
 
-Contents:
 
 .. toctree::
    :maxdepth: 3
 
+   client_libraries
    cli
    api
    packs

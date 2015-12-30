@@ -271,5 +271,4 @@ For more information on datastore, check :doc:`datastore`
 * Use workflows to stitch actions into higher level automations - :doc:`/workflows`.
 * Check out `tutorials on stackstorm.com <http://stackstorm.com/category/tutorials/>`__ - a growing set of practical examples of automating with StackStorm.
 
-
-.. include:: engage.rst
+.. include:: __engage.rst
