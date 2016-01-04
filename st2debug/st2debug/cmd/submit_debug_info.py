@@ -44,6 +44,7 @@ import yaml
 import gnupg
 import requests
 from distutils.spawn import find_executable
+from subprocess import PIPE, Popen
 
 import st2common
 from st2common.content.utils import get_packs_base_paths
@@ -148,9 +149,7 @@ def get_config_details(yaml_file_name, section_name):
         gpg_fingerprint = conf['gpg']['gpg_key_fingerprint']
         return gpg_fingerprint	
     if section_name == 'gpg_key':
-        gpg_key_path = conf['gpg']['gpg_key_path']
-        with open(gpg_key_path, 'r') as file_content:
-            gpg_key = file_content.read()
+        gpg_key = conf['gpg']['gpg_key']
         return gpg_key
     if section_name == 'shell_commands':
 	commands_dict = conf.get('shell_commands', None)
@@ -285,7 +284,10 @@ def get_commands_output(config_yaml):
     output_files_list = []
     for cmd in commands_list:
        output_file = "/tmp/%s.txt" % format_output_filename(cmd)
-       os.system("%s > '%s'" % (cmd, output_file))
+       process = Popen(cmd, shell=True, stdout=PIPE)
+       output = process.stdout.read()
+       with open(output_file, 'w') as fp:
+          fp.write(output)
        output_files_list.append(output_file)
     return output_files_list
 
