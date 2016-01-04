@@ -101,6 +101,8 @@ CHAIN_WITH_PUBLISH_PARAM_RENDERING_FAILURE = FixturesLoader().get_fixture_file_p
     FIXTURES_PACK, 'actionchains', 'chain_publish_params_rendering_failure.yaml')
 CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_invalid_action.yaml')
+CHAIN_WITH_PARAMS_AND_PARAMETERS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_with_params_and_parameters.yaml')
 
 CHAIN_NOTIFY_API = {'notify': {'on-complete': {'message': 'foo happened.'}}}
 CHAIN_NOTIFY_DB = NotificationsHelper.to_model(CHAIN_NOTIFY_API)
@@ -673,6 +675,17 @@ class TestActionChainRunner(DbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertTrue(expected_error in output['error'])
         self.assertTrue('Traceback' in output['traceback'], output['traceback'])
+
+    def test_exception_is_thrown_if_both_params_and_parameters_attributes_are_provided(self):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_PARAMS_AND_PARAMETERS_ATTRIBUTE
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+
+        expected_msg = ('Either "params" or "parameters" attribute needs to be provided, but '
+                       'not both')
+        self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError, expected_msg,
+                                chain_runner.pre_run)
 
     @classmethod
     def tearDownClass(cls):
