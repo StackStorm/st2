@@ -74,10 +74,10 @@ Rule:
 
     ...
     trigger:
-            type: "mypack.mytrigger"
+        type: "mypack.mytrigger"
 
     criteria:
-        trigger.attribute1
+        trigger.body.payload.attribute1:
             type: "equals"
             pattern: "value1"
 
