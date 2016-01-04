@@ -55,6 +55,7 @@ JINJA_START_MARKERS = [
 ]
 PUBLISHED_VARS_KEY = 'published'
 
+
 class ChainHolder(object):
 
     def __init__(self, chainspec, chainname):
