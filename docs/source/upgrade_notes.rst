@@ -3,11 +3,18 @@ Upgrade Notes
 
 |st2| In Development
 --------------------
+
 * New ``abandoned`` action execution status has been introduced. State is applied to action execution
   when an actionrunner currently running some executions quits or is killed via TERM.This is therefore
   effectively a failure state as |st2| can no longer validate the state of this execution. Being a
   failure state any code that checks for an action failure should be updated to check for ``abandoned``
   state in addition to ``failed`` and ``timeout``.
+
+* ``params`` attribute in the action chain task definition has been replaced with the new
+  ``parameters`` attribute. This way it's now consistent with the attribute name in the action
+  metadata file. For backward compatibility reason, old parameter name will still be supported
+  until the next major release, but you are encouraged to update your action chain definitions
+  to use the new parameters name.
 
 |st2| 1.2
 ---------
