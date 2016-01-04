@@ -7,7 +7,7 @@ chain:
     -
         name: "get_host"
         ref: "core.local"
-        params:
+        parameters:
             cmd: hostname | tr -d ' \n'
         publish:
             # Publish a variable to shortcut a long expression
@@ -29,14 +29,14 @@ chain:
         name: say_the_names
         description: Print out all the interesting stuff. In real life we post to chatops.
         ref: "core.local"
-        params:
+        parameters:
             cmd: "echo host={{host}}, domain={{domain}}, fqdn={{fqdn}}, api_url={{api_url}}, webui_url={{webui_url}}"
         on-success: call_api
     -
         name: call_api
         description: Check the API endpoint
         ref: "core.http"
-        params:
+        parameters:
             method: GET
             url: "{{ api_url }}/{{paths.api[0]}}"
         on-success: call_webui
@@ -44,7 +44,7 @@ chain:
         name: call_webui
         description: Check that WebUI is serving
         ref: "core.http"
-        params:
+        parameters:
             method: GET
             url: "{{ webui_url }}/{{paths.webui}}"
             allow_redirects: True
