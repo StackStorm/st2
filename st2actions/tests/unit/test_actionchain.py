@@ -103,6 +103,10 @@ CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_invalid_action.yaml')
 CHAIN_WITH_PARAMS_AND_PARAMETERS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_params_and_parameters.yaml')
+CHAIN_WITH_PARAMS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_params_attribute.yaml')
+CHAIN_WITH_PARAMETERS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_parameters_attribute.yaml')
 
 CHAIN_NOTIFY_API = {'notify': {'on-complete': {'message': 'foo happened.'}}}
 CHAIN_NOTIFY_DB = NotificationsHelper.to_model(CHAIN_NOTIFY_API)
@@ -686,6 +690,32 @@ class TestActionChainRunner(DbTestCase):
                        'not both')
         self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError, expected_msg,
                                 chain_runner.pre_run)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_params_and_parameters_attributes_both_work(self, _):
+        # "params" attribute used
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_PARAMS_ATTRIBUTE
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+
+        action_parameters = {}
+        status, output, _ = chain_runner.run(action_parameters=action_parameters)
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+
+        # "parameters" attribute used
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_PARAMETERS_ATTRIBUTE
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+
+        action_parameters = {}
+        status, output, _ = chain_runner.run(action_parameters=action_parameters)
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
 
     @classmethod
     def tearDownClass(cls):

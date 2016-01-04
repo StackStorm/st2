@@ -106,9 +106,9 @@ class Node(object):
     def get_parameters(self):
         # Note: "params" is old deprecated attribute which will be removed in a future release
         params = getattr(self, 'params', {})
-        parameters = getattr(self, 'parameters', params)
+        parameters = getattr(self, 'parameters', {})
 
-        return parameters
+        return parameters or params
 
     def __repr__(self):
         return ('<Node name=%s, ref=%s, on-success=%s, on-failure=%s>' %
