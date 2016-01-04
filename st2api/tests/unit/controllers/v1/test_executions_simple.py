@@ -32,6 +32,7 @@ from st2common.util import date as date_utils
 from st2common.models.db.auth import TokenDB
 from st2common.persistence.auth import Token
 from st2common.persistence.trace import Trace
+from st2common.services import trace as trace_service
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
@@ -420,10 +421,16 @@ class TestActionExecutionController(FunctionalTest):
 
         self.assertEqual(re_run_resp.status_int, 201)
 
+        # Get the trace
+        trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
+
         expected_context = {
             'user': 'stanley',
             're-run': {
                 'ref': execution_id
+            },
+            'trace_context': {
+                'id_': str(trace.id)
             }
         }
 
@@ -442,11 +449,17 @@ class TestActionExecutionController(FunctionalTest):
 
         self.assertEqual(re_run_resp.status_int, 201)
 
+        # Get the trace
+        trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
+
         expected_context = {
             'user': 'stanley',
             're-run': {
                 'ref': execution_id,
                 'tasks': data['tasks']
+            },
+            'trace_context': {
+                'id_': str(trace.id)
             }
         }
 
@@ -465,11 +478,17 @@ class TestActionExecutionController(FunctionalTest):
 
         self.assertEqual(re_run_resp.status_int, 201)
 
+        # Get the trace
+        trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
+
         expected_context = {
             'user': 'stanley',
             're-run': {
                 'ref': execution_id,
                 'tasks': data['tasks']
+            },
+            'trace_context': {
+                'id_': str(trace.id)
             }
         }
 

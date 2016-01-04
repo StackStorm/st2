@@ -43,6 +43,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
+from st2common.services import trace as trace_service
 from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
@@ -315,6 +316,13 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
         if spec.tasks:
             context['re-run']['tasks'] = spec.tasks
+
+        # Add trace to the new execution
+        trace = trace_service.get_trace_db_by_action_execution(
+            action_execution_id=existing_execution.id)
+
+        if trace:
+            context['trace_context'] = {'id_': str(trace.id)}
 
         new_liveaction = LiveActionDB(action=action_ref,
                                       context=context,
