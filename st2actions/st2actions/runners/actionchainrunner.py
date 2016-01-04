@@ -53,7 +53,7 @@ JINJA_START_MARKERS = [
     '{{',
     '{%'
 ]
-
+PUBLISHED_VARS_KEY = 'published'
 
 class ChainHolder(object):
 
@@ -265,7 +265,7 @@ class ActionChainRunner(ActionRunner):
             raise runnerexceptions.ActionRunnerPreRunError(e.message)
 
     def run(self, action_parameters):
-        result = {'tasks': []}  # holds final result we store
+        result = {'tasks': [], PUBLISHED_VARS_KEY: {}}  # holds final result we store
         context_result = {}  # holds result which is used for the template context purposes
         top_level_error = None  # stores a reference to a top level error
         fail = True
@@ -354,6 +354,7 @@ class ActionChainRunner(ActionRunner):
 
                 if rendered_publish_vars:
                     self.chain_holder.vars.update(rendered_publish_vars)
+                    result[PUBLISHED_VARS_KEY].update(rendered_publish_vars)
             finally:
                 # Record result and resolve a next node based on the task success or failure
                 updated_at = date_utils.get_datetime_utc_now()
