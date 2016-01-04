@@ -164,7 +164,7 @@ By default, the logs can be found in ``/var/log/st2``.
       class=handlers.RotatingFileHandler
       level=DEBUG
       formatter=verboseConsoleFormatter
-      args=("logs/st2api.log", , "a", 100000000, 5)
+      args=("logs/st2api.log", "a", 100000000, 5)
 
   In this case the log file will be rotated when it reaches 100000000 bytes (100
   MB) and a maximum of 5 old log files will be kept. For more information, see
