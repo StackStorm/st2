@@ -101,12 +101,12 @@ CHAIN_WITH_PUBLISH_PARAM_RENDERING_FAILURE = FixturesLoader().get_fixture_file_p
     FIXTURES_PACK, 'actionchains', 'chain_publish_params_rendering_failure.yaml')
 CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_invalid_action.yaml')
-CHAIN_WITH_PARAMS_AND_PARAMETERS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_with_params_and_parameters.yaml')
-CHAIN_WITH_PARAMS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_params_attribute.yaml')
-CHAIN_WITH_PARAMETERS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
-    FIXTURES_PACK, 'actionchains', 'chain_parameters_attribute.yaml')
+CHAIN_ACTION_PARAMS_AND_PARAMETERS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_action_params_and_parameters.yaml')
+CHAIN_ACTION_PARAMS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_action_params_attribute.yaml')
+CHAIN_ACTION_PARAMETERS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_action_parameters_attribute.yaml')
 
 CHAIN_NOTIFY_API = {'notify': {'on-complete': {'message': 'foo happened.'}}}
 CHAIN_NOTIFY_DB = NotificationsHelper.to_model(CHAIN_NOTIFY_API)
@@ -682,7 +682,7 @@ class TestActionChainRunner(DbTestCase):
 
     def test_exception_is_thrown_if_both_params_and_parameters_attributes_are_provided(self):
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = CHAIN_WITH_PARAMS_AND_PARAMETERS_ATTRIBUTE
+        chain_runner.entry_point = CHAIN_ACTION_PARAMS_AND_PARAMETERS_ATTRIBUTE
         chain_runner.action = ACTION_2
         chain_runner.container_service = RunnerContainerService()
 
@@ -697,7 +697,7 @@ class TestActionChainRunner(DbTestCase):
     def test_params_and_parameters_attributes_both_work(self, _):
         # "params" attribute used
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = CHAIN_WITH_PARAMS_ATTRIBUTE
+        chain_runner.entry_point = CHAIN_ACTION_PARAMS_ATTRIBUTE
         chain_runner.action = ACTION_2
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
@@ -708,7 +708,7 @@ class TestActionChainRunner(DbTestCase):
 
         # "parameters" attribute used
         chain_runner = acr.get_runner()
-        chain_runner.entry_point = CHAIN_WITH_PARAMETERS_ATTRIBUTE
+        chain_runner.entry_point = CHAIN_ACTION_PARAMETERS_ATTRIBUTE
         chain_runner.action = ACTION_2
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
