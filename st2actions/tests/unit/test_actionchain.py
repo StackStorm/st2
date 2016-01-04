@@ -703,6 +703,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.pre_run()
 
         original_build_liveaction_object = chain_runner._build_liveaction_object
+
         def mock_build_liveaction_object(action_node, resolved_params, parent_context):
             # Verify parameters are correctly passed to the action
             self.assertEqual(resolved_params, {'pparams': 'v1'})
