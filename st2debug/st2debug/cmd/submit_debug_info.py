@@ -152,9 +152,9 @@ def get_config_details(yaml_file_name, section_name):
         gpg_key = conf['gpg']['gpg_key']
         return gpg_key
     if section_name == 'shell_commands':
-	commands_dict = conf.get('shell_commands', None)
-	shell_commands = commands_dict.values()    
-	return shell_commands
+        commands_dict = conf.get('shell_commands', None)
+        shell_commands = commands_dict.values()
+        return shell_commands
     if section_name == 'company_name':
         name_dict = conf.get('company_name', None) 
         return name_dict['name']
@@ -272,7 +272,7 @@ def format_output_filename(cmd):
             cmd = cmd.replace(char, "")
     return cmd
 
-    
+
 def get_commands_output(config_yaml):
     """"
     Get output of the required shell command and redirect the output to a file.
@@ -283,12 +283,12 @@ def get_commands_output(config_yaml):
     commands_list = get_config_details(config_yaml, 'shell_commands')
     output_files_list = []
     for cmd in commands_list:
-       output_file = "/tmp/%s.txt" % format_output_filename(cmd)
-       process = Popen(cmd, shell=True, stdout=PIPE)
-       output = process.stdout.read()
-       with open(output_file, 'w') as fp:
-          fp.write(output)
-       output_files_list.append(output_file)
+        output_file = "/tmp/%s.txt" % format_output_filename(cmd)
+        process = Popen(cmd, shell=True, stdout=PIPE)
+        output = process.stdout.read()
+        with open(output_file, 'w') as fp:
+            fp.write(output)
+        output_files_list.append(output_file)
     return output_files_list
 
 
