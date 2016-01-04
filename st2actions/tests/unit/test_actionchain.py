@@ -702,6 +702,16 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
 
+        original_build_liveaction_object = chain_runner._build_liveaction_object
+        def mock_build_liveaction_object(action_node, resolved_params, parent_context):
+            # Verify parameters are correctly passed to the action
+            self.assertEqual(resolved_params, {'pparams': 'v1'})
+            original_build_liveaction_object(action_node=action_node,
+                                             resolved_params=resolved_params,
+                                             parent_context=parent_context)
+
+        chain_runner._build_liveaction_object = mock_build_liveaction_object
+
         action_parameters = {}
         status, output, _ = chain_runner.run(action_parameters=action_parameters)
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
@@ -712,6 +722,15 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.action = ACTION_2
         chain_runner.container_service = RunnerContainerService()
         chain_runner.pre_run()
+
+        def mock_build_liveaction_object(action_node, resolved_params, parent_context):
+            # Verify parameters are correctly passed to the action
+            self.assertEqual(resolved_params, {'pparameters': 'v1'})
+            original_build_liveaction_object(action_node=action_node,
+                                             resolved_params=resolved_params,
+                                             parent_context=parent_context)
+
+        chain_runner._build_liveaction_object = mock_build_liveaction_object
 
         action_parameters = {}
         status, output, _ = chain_runner.run(action_parameters=action_parameters)
