@@ -76,7 +76,7 @@ version = '.'.join(__version__.split('.')[:2])
 # The full version, including alpha/beta/rc tags.
 release = __version__
 # The complete list of current StackStorm versions.
-release_versions = ['1.1', '0.13', '0.12', '0.11', '0.9', '0.8']
+release_versions = ['1.2', '1.1', '0.13', '0.12', '0.11', '0.9', '0.8']
 
 
 def previous_version(ver):
@@ -87,8 +87,8 @@ def previous_version(ver):
         idx = release_versions.index(major_minor)
         if idx + 1 < len(release_versions):
             return release_versions[idx + 1]
-    # Better than broken return some value. Coontrol flow should not reach this point.
-    return release_versions[0]
+    # Better than broken return some value. Control flow should not reach this point.
+    return "unknown"
 
 # The short versions of two previous releases, e.g. 0.8 and 0.7
 version_minus_1 = previous_version(version)
