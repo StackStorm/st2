@@ -16,6 +16,8 @@
 import copy
 import re
 import httplib
+import sys
+import traceback
 
 import jsonschema
 from oslo_config import cfg
@@ -28,7 +30,7 @@ from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUS_CANCELED
+from st2common.constants.action import LIVEACTION_STATUS_CANCELED, LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_CANCELABLE_STATES
 from st2common.exceptions.param import ParamException
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -153,7 +155,15 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             liveaction_db.parameters = param_utils.render_live_params(
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
                 liveaction_db.context)
-        except ParamException as e:
+        except ParamException:
+            # By this point the execution is already in the DB therefore need to mark it failed.
+            _, e, tb = sys.exc_info()
+            action_service.update_status(
+                liveaction=liveaction_db,
+                new_status=LIVEACTION_STATUS_FAILED,
+                result={'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))})
+            # Might be a good idea to return the actual ActionExecution rather than bubble up
+            # the execption.
             raise ValueValidationException(str(e))
 
         liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
