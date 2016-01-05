@@ -25,6 +25,7 @@ workflows:
                     - configure_vm
                     - notify
             create_vm:
+                wait-before: 1
                 workflow: create_vm
                 input:
                     name: <% $.vm_name %>
@@ -48,6 +49,7 @@ workflows:
                     - close_request
                     - notify
             close_request:
+                action: std.noop
                 publish:
                     status_message: "VM request is fulfilled."
                 on-success:
