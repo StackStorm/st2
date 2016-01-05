@@ -613,6 +613,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.entry_point = CHAIN_WITH_PUBLISH
         chain_runner.action = ACTION_2
         chain_runner.container_service = RunnerContainerService()
+        chain_runner.runner_parameters = {'display_published': True}
         chain_runner.pre_run()
 
         action_parameters = {'action_param_1': 'test value 1'}
