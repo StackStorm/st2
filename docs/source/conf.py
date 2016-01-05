@@ -270,7 +270,7 @@ html_context = {
     'source_suffix': source_suffix,
     'versions': [
         ('latest', 'http://docs.stackstorm.com/latest'),
-        (version, 'http://docs.stackstorm.com/latest'),
+        (version, 'http://docs.stackstorm.com/%s' % version),
         (version_minus_1, 'http://docs.stackstorm.com/%s' % version_minus_1),
         (version_minus_2, 'http://docs.stackstorm.com/%s' % version_minus_2),
     ],
