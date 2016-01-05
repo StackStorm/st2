@@ -125,15 +125,15 @@ def get_config_details(yaml_file_name, section_name):
     with open(yaml_file_name, 'r') as yaml_file: 
 	conf = yaml.load(yaml_file)
     if section_name == 'log_file_path':
-	log_files = conf.get('log_file_paths', None)
+        log_files = conf.get('log_file_paths', None)
         if log_files is not None:
-	    log_file_paths = log_files.values()
-	    return log_file_paths
+            log_file_paths = log_files.values()
+            return log_file_paths
     if section_name == 'config_file_path':
-	conf_files = conf.get('conf_file_paths', None)
+        conf_files = conf.get('conf_file_paths', None)
         if conf_files is not None:
-	    config_file_paths = conf_files.values()
-	    return config_file_paths
+            config_file_paths = conf_files.values()
+            return config_file_paths
     if section_name == 'st2_config_file_name':
         st2_config_file_name = os.path.split(
                                   conf['conf_file_paths']['st2_config_file_path'])[1]
@@ -143,8 +143,8 @@ def get_config_details(yaml_file_name, section_name):
                     conf['conf_file_paths']['mistral_config_file_path'])[1]
         return mistral_config_file_name
     if section_name == 's3_bucket_url':
-	s3_bucket_url = conf['s3_bucket']['url']
-	return s3_bucket_url
+        s3_bucket_url = conf['s3_bucket']['url']
+        return s3_bucket_url
     if section_name == 'gpg_key_fingerprint':
         gpg_fingerprint = conf['gpg']['gpg_key_fingerprint']
         return gpg_fingerprint	
