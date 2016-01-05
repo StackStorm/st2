@@ -49,6 +49,7 @@ workflows:
                     - close_request
                     - notify
             close_request:
+                action: std.noop
                 publish:
                     status_message: "VM request is fulfilled."
                 on-success:
