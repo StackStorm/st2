@@ -14,13 +14,14 @@
 # limitations under the License.
 
 import six
-import string
 
 from st2common.util import schema as util_schema
 from st2common.models.api.notification import NotificationSubSchemaAPI
 
 
 class Node(object):
+    # pylint: disable=no-member
+    # pylint: disable=function-redefined
 
     schema = {
         "title": "Node",
@@ -87,14 +88,53 @@ class Node(object):
     def __init__(self, **kw):
         for prop in six.iterkeys(self.schema.get('properties', [])):
             value = kw.get(prop, None)
+
             # having '-' in the property name lead to challenges in referencing the property.
             # At hindsight the schema property should've been on_success rather than on-success.
-            prop = string.replace(prop, '-', '_')
-            setattr(self, prop, value)
+            prop = prop.replace('-', '_')
+
+            # Note: We prefix attributes with "_" so we can implement property getters for all the
+            # attribute. This is only really needed for deprecated "params" attribute and should be
+            # replaced once we remove "params" attribute.
+            setattr(self, '_' + prop, value)
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def ref(self):
+        return self._ref
+
+    @property
+    def params(self):
+        # Note: "params" is old deprecated attribute which will be removed in a future release
+        return self.parameters
+
+    @property
+    def parameters(self):
+        return self._get_parameters()
+
+    @property
+    def on_success(self):
+        return self._on_success
+
+    @property
+    def on_failure(self):
+        return self._on_failure
+
+    @property
+    def publish(self):
+        return self._publish
+
+    @property
+    def notify(self):
+        return self._notify
 
     def validate(self):
-        params = getattr(self, 'params', {})
-        parameters = getattr(self, 'parameters', {})
+        # TODO: We should also validate properties against the json schema here
+        params = getattr(self, '_params', {})
+        parameters = getattr(self, '_parameters', {})
 
         if params and parameters:
             msg = ('Either "params" or "parameters" attribute needs to be provided, but not '
@@ -103,10 +143,10 @@ class Node(object):
 
         return self
 
-    def get_parameters(self):
+    def _get_parameters(self):
         # Note: "params" is old deprecated attribute which will be removed in a future release
-        params = getattr(self, 'params', {})
-        parameters = getattr(self, 'parameters', {})
+        params = getattr(self, '_params', {})
+        parameters = getattr(self, '_parameters', {})
 
         return parameters or params
 
