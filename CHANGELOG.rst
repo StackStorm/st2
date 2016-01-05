@@ -33,6 +33,8 @@ in development
 * Add new ``st2garbagecollector`` service which periodically deletes old data from the database
   as configured in the config. By default, no old data is deleted unless explicitly configured in
   the config.
+* Allow user to specify TTL when creating datastore item using CLI with the ``--ttl`` option.
+  (improvement)
 
 1.2.0 - December 07, 2015
 -------------------------
