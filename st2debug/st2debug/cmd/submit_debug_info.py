@@ -122,8 +122,8 @@ def get_config_details(yaml_file_name, section_name):
     :return: requested option from config file
     :rtype: ``str`` or ``list``
     """
-    with open(yaml_file_name, 'r') as yaml_file: 
-	conf = yaml.load(yaml_file)
+    with open(yaml_file_name, 'r') as yaml_file:
+        conf = yaml.load(yaml_file)
     if section_name == 'log_file_path':
         log_files = conf.get('log_file_paths', None)
         if log_files is not None:
@@ -503,7 +503,8 @@ def create_and_upload_archive(include_logs, include_configs, include_content,
                                                 include_system_info=include_system_info,
                                                 include_shell_commands=include_shell_commands,
                                                 user_info=user_info,
-                                                debug=debug, config_yaml=config_yaml)
+                                                debug=debug,
+                                                config_yaml=config_yaml)
         encrypted_output_path = encrypt_archive(archive_file_path=plain_text_output_path,
                                                 key_fingerprint=gpg_key_fingerprint,
                                                 key_gpg=gpg_key)
@@ -607,7 +608,8 @@ def main():
                                   include_system_info=not args.exclude_system_info,
                                   include_shell_commands=not args.exclude_shell_commands,
                                   user_info=user_info,
-                                  debug=args.debug, config_yaml=args.config)
+                                  debug=args.debug,
+                                  config_yaml=args.config)
     else:
         create_and_upload_archive(include_logs=not args.exclude_logs,
                                   include_configs=not args.exclude_configs,
@@ -615,4 +617,5 @@ def main():
                                   include_system_info=not args.exclude_system_info,
                                   include_shell_commands=not args.exclude_shell_commands,
                                   user_info=user_info,
-                                  debug=args.debug, config_yaml=args.config)
+                                  debug=args.debug,
+                                  config_yaml=args.config)
