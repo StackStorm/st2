@@ -33,8 +33,8 @@ in development
 * Add new ``st2garbagecollector`` service which periodically deletes old data from the database
   as configured in the config. By default, no old data is deleted unless explicitly configured in
   the config.
-* All published variables are now available in the result of ActionChain execution under the
-  ``published`` property.
+* All published variables can be available in the result of ActionChain execution under the
+  ``published`` property if ``display_published`` property is specified.
 
 1.2.0 - December 07, 2015
 -------------------------

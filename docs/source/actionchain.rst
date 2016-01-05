@@ -98,7 +98,7 @@ ActionChain offers the convinience of named variables. Global vars are set at th
 Tasks publish new variables with the ``publish`` keyword. Variables are handy when you need to mash up
 a reusable value from the input, globals, DataStore values, and results of multiple actions executions.
 All variables are referred with Jinja syntax. The cumulative published variables are also available in the result of an
-ActionChain execution under the ``published`` property.
+ActionChain execution under the ``published`` property is ``display_published`` property was supplied.
 
 .. code-block:: yaml
 
