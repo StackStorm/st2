@@ -163,6 +163,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                 liveaction=liveaction_db,
                 new_status=LIVEACTION_STATUS_FAILED,
                 result={'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))})
+            # Might be a good idea to return the actual ActionExecution rather than bubble up
+            # the execption.
             raise ValueValidationException(str(e))
 
         liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
