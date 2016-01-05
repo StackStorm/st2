@@ -477,7 +477,7 @@ class ActionChainRunner(ActionRunner):
         context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
         context.update({ACTION_CONTEXT_KV_PREFIX: chain_context})
         try:
-            rendered_params = jinja_utils.render_values(mapping=action_node.parameters,
+            rendered_params = jinja_utils.render_values(mapping=action_node.get_parameters(),
                                                         context=context)
         except Exception as e:
             LOG.exception('Jinja rendering for parameter "%s" failed.' % (e.key))
