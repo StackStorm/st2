@@ -3,12 +3,12 @@
     -
         name: "mistral-basic"
         ref: "examples.mistral-basic"
-        params:
+        parameters:
             cmd: "hostname"
         on-success: "mistral-workbook-complex"
     -
         name: "mistral-workbook-complex"
         ref: "examples.mistral-workbook-complex"
-        params:
+        parameters:
             vm_name: "fake-host-1"
   default: "mistral-basic"

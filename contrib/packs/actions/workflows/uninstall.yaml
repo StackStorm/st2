@@ -3,18 +3,18 @@
     -
       name: "unregister"
       ref: "packs.unload"
-      params:
+      parameters:
         packs: "{{packs}}"
       on-success: "delete"
     -
       name: "delete"
       ref: "packs.delete"
-      params:
+      parameters:
         packs: "{{packs}}"
       on-success: "restart-sensor-container"
     -
       name: "restart-sensor-container"
       ref: "packs.restart_component"
-      params:
+      parameters:
         servicename: "st2sensorcontainer"
   default: "unregister"
