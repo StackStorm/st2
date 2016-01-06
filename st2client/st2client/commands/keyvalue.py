@@ -99,7 +99,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
                                  metavar='name',
                                  help='Name of the key value pair.')
         self.parser.add_argument('value', help='Value paired with the key.')
-        self.parser.add_argument('-l' ,'--ttl', dest='ttl', type=int, default=None,
+        self.parser.add_argument('-l', '--ttl', dest='ttl', type=int, default=None,
                                  help='TTL (in seconds) for this value.')
 
     @add_auth_token_to_kwargs_from_cli
