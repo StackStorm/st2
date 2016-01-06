@@ -373,6 +373,11 @@ RUNNER_TYPES = [
                 'description': 'List of tasks to skip notifications for.',
                 'type': 'array',
                 'default': []
+            },
+            'display_published': {
+                'description': 'Intermediate published variables will be stored and displayed.',
+                'type': 'boolean',
+                'default': False
             }
         },
         'runner_module': 'st2actions.runners.actionchainrunner'

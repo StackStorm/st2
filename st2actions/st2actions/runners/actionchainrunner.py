@@ -53,6 +53,7 @@ JINJA_START_MARKERS = [
     '{{',
     '{%'
 ]
+PUBLISHED_VARS_KEY = 'published'
 
 
 class ChainHolder(object):
@@ -225,6 +226,7 @@ class ActionChainRunner(ActionRunner):
         self._meta_loader = MetaLoader()
         self._stopped = False
         self._skip_notify_tasks = []
+        self._display_published = False
         self._chain_notify = None
 
     def pre_run(self):
@@ -260,6 +262,7 @@ class ActionChainRunner(ActionRunner):
             self._chain_notify = getattr(self.liveaction, 'notify', None)
         if self.runner_parameters:
             self._skip_notify_tasks = self.runner_parameters.get('skip_notify', [])
+            self._display_published = self.runner_parameters.get('display_published', False)
 
         # Perform some pre-run chain validation
         try:
@@ -268,7 +271,11 @@ class ActionChainRunner(ActionRunner):
             raise runnerexceptions.ActionRunnerPreRunError(e.message)
 
     def run(self, action_parameters):
-        result = {'tasks': []}  # holds final result we store
+        # holds final result we store.
+        result = {'tasks': []}
+        # published variables are to be stored for display.
+        if self._display_published:
+            result[PUBLISHED_VARS_KEY] = {}
         context_result = {}  # holds result which is used for the template context purposes
         top_level_error = None  # stores a reference to a top level error
         fail = True
@@ -357,6 +364,8 @@ class ActionChainRunner(ActionRunner):
 
                 if rendered_publish_vars:
                     self.chain_holder.vars.update(rendered_publish_vars)
+                    if self._display_published:
+                        result[PUBLISHED_VARS_KEY].update(rendered_publish_vars)
             finally:
                 # Record result and resolve a next node based on the task success or failure
                 updated_at = date_utils.get_datetime_utc_now()

@@ -33,6 +33,10 @@ in development
 * Add new ``st2garbagecollector`` service which periodically deletes old data from the database
   as configured in the config. By default, no old data is deleted unless explicitly configured in
   the config.
+* All published variables can be available in the result of ActionChain execution under the
+  ``published`` property if ``display_published`` property is specified.
+* Allow user to specify TTL when creating datastore item using CLI with the ``--ttl`` option.
+  (improvement)
 * Deprecated ``params`` action attribute in the action chain definition in favor of the new 
   ``parameters`` attribute. (improvement)
 
