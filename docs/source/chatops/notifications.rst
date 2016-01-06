@@ -159,7 +159,7 @@ action with task notify is shown below.
     -
       name: "make_reqmnts"
       ref: "core.remote"
-      params:
+      parameters:
         cmd: "cd {{repo_target}} && make requirements"
         hosts: "{{build_server}}"
         timeout: 300
@@ -172,7 +172,7 @@ action with task notify is shown below.
     -
       name: "make_lint"
       ref: "core.remote"
-      params:
+      parameters:
         cmd: "cd {{repo_target}} && make .lint"  # .flake8 and .pylint
         hosts: "{{build_server}}"
         timeout: 180
