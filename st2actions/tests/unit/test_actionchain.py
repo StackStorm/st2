@@ -613,10 +613,11 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.entry_point = CHAIN_WITH_PUBLISH
         chain_runner.action = ACTION_2
         chain_runner.container_service = RunnerContainerService()
+        chain_runner.runner_parameters = {'display_published': True}
         chain_runner.pre_run()
 
         action_parameters = {'action_param_1': 'test value 1'}
-        chain_runner.run(action_parameters=action_parameters)
+        _, result, _ = chain_runner.run(action_parameters=action_parameters)
 
         # We also assert that the action parameters are available in the
         # "publish" scope
@@ -627,6 +628,9 @@ class TestActionChainRunner(DbTestCase):
                           'published_action_param': action_parameters['action_param_1']}
         mock_args, _ = request.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
+        # Assert that the variables are correctly published
+        self.assertEqual(result['published'],
+                         {'published_action_param': u'test value 1', 'o1': u'published'})
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))

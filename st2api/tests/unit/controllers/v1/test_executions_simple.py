@@ -284,6 +284,16 @@ class TestActionExecutionController(FunctionalTest):
         post_resp = self._do_post(execution, expect_errors=False)
         self.assertEqual(post_resp.status_int, 201)
 
+    def test_post_parameter_render_failed(self):
+        execution = copy.deepcopy(LIVE_ACTION_1)
+
+        # Runner type does not expects additional properties.
+        execution['parameters']['hosts'] = '{{ABSENT}}'
+        post_resp = self._do_post(execution, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 400)
+        self.assertEqual(post_resp.json['faultstring'],
+                         'Dependecy unsatisfied in ABSENT')
+
     def test_post_with_st2_context_in_headers(self):
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1))
         self.assertEqual(resp.status_int, 201)
