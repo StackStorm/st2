@@ -11,4 +11,5 @@ parameters:
     type: string
   sudo:
     immutable: true
+    type: boolean
 runner_type: "local-shell-cmd"
