@@ -35,6 +35,8 @@ in development
   the config.
 * All published variables can be available in the result of ActionChain execution under the
   ``published`` property if ``display_published`` property is specified.
+* Allow user to specify TTL when creating datastore item using CLI with the ``--ttl`` option.
+  (improvement)
 
 1.2.0 - December 07, 2015
 -------------------------
