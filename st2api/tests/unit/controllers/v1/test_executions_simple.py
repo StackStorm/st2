@@ -272,7 +272,7 @@ class TestActionExecutionController(FunctionalTest):
         execution['parameters'] = {"hosts": "localhost", "cmd": 1000}
         post_resp = self._do_post(execution, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
-        self.assertEqual(post_resp.json['faultstring'], "1000 is not of type 'string'")
+        self.assertEqual(post_resp.json['faultstring'], "1000 is not of type 'string', 'null'")
 
         # Runner type expects parameters "cmd" to be str.
         execution['parameters'] = {"hosts": "localhost", "cmd": "1000", "c": 1}
@@ -293,6 +293,12 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(post_resp.status_int, 400)
         self.assertEqual(post_resp.json['faultstring'],
                          'Dependecy unsatisfied in ABSENT')
+
+    def test_post_parameter_validation_explicit_none(self):
+        execution = copy.deepcopy(LIVE_ACTION_1)
+        execution['parameters']['a'] = None
+        post_resp = self._do_post(execution)
+        self.assertEqual(post_resp.status_int, 201)
 
     def test_post_with_st2_context_in_headers(self):
         resp = self._do_post(copy.deepcopy(LIVE_ACTION_1))
