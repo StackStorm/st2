@@ -18,7 +18,6 @@ import sys
 import abc
 import json
 import uuid
-import logging
 import logging.config
 import logging as stdlib_logging
 
