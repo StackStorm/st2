@@ -61,12 +61,15 @@ class ChainHolder(object):
     def __init__(self, chainspec, chainname):
         self.actionchain = actionchain.ActionChain(**chainspec)
         self.chainname = chainname
+
         if not self.actionchain.default:
             default = self._get_default(self.actionchain)
             self.actionchain.default = default
+
         LOG.debug('Using %s as default for %s.', self.actionchain.default, self.chainname)
         if not self.actionchain.default:
             raise Exception('Failed to find default node in %s.' % (self.chainname))
+
         self.vars = {}
 
     def init_vars(self, action_parameters):
@@ -483,7 +486,7 @@ class ActionChainRunner(ActionRunner):
         context.update({SYSTEM_KV_PREFIX: KeyValueLookup()})
         context.update({ACTION_CONTEXT_KV_PREFIX: chain_context})
         try:
-            rendered_params = jinja_utils.render_values(mapping=action_node.params,
+            rendered_params = jinja_utils.render_values(mapping=action_node.get_parameters(),
                                                         context=context)
         except Exception as e:
             LOG.exception('Jinja rendering for parameter "%s" failed.' % (e.key))

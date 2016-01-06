@@ -2,13 +2,13 @@
 chain:
 - name: c1
   on-success: c2
-  params:
+  parameters:
     booltype: true
     inttype: '{{inttype}}'
     strtype: '{{strtype}}'
   ref: wolfpack.a2
 - name: c2
-  params:
+  parameters:
     booltype: true
     inttype: '{{inttype}}'
     strtype: '{{o1}}'

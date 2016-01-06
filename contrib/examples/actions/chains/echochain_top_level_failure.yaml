@@ -3,7 +3,7 @@
         -
             name: "c1"
             ref: "core.local"
-            params:
+            parameters:
                 cmd: "echo c1"
             on-success: "c2"
             on-failure: "c4"
@@ -14,7 +14,7 @@
         -
             name: "c3"
             ref: "core.local"
-            params:
+            parameters:
                 cmd: "echo c3"
 
     default: "c1"

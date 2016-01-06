@@ -3,7 +3,7 @@
     -
       name: "check_load"
       ref: "linux.check_loadavg"
-      params:
+      parameters:
         hosts: "{{hostname}}"
         period: "all"
       on-success: "d_state_processes"
@@ -11,7 +11,7 @@
     -
       name: "d_state_processes"
       ref: "linux.check_processes"
-      params:
+      parameters:
         hosts: "{{hostname}}"
         search: "state"
         criteria: "D"
@@ -21,7 +21,7 @@
     -
       name: "r_state_processes"
       ref: "linux.check_processes"
-      params:
+      parameters:
         hosts: "{{hostname}}"
         search: "state"
         criteria: "R"
@@ -31,7 +31,7 @@
     -
       name: "netstat"
       ref: "linux.netstat_grep"
-      params:
+      parameters:
         hosts: "{{hostname}}"
         pids: "{{d_state_processes[hostname].stderr}} {{r_state_processes[hostname].stderr}}"
       on-success: "lsof"
@@ -39,13 +39,13 @@
     -
       name: "lsof"
       ref: "linux.lsof_pids"
-      params:
+      parameters:
         hosts: "{{hostname}}"
         pids: "{{d_state_processes[hostname].stderr}} {{r_state_processes[hostname].stderr}}"
       on-success: "dump_results"
     -
       name: "dump_results"
       ref: "core.local"
-      params:
+      parameters:
         cmd: "echo 'ST2 Workflow\tdiag_loadavg:\t{{__results}}' >> /tmp/diag_loadavg && echo 'Output written to file /tmp/diag_loadavg'"
   default: "check_load"

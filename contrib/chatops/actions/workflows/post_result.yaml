@@ -3,7 +3,7 @@ chain:
   -
     name: "get_execution"
     ref: "st2.executions.get"
-    params:
+    parameters:
       id: "{{execution_id}}"
       exclude: []
     publish:
@@ -12,7 +12,7 @@ chain:
   -
     name: "format_result"
     ref: "chatops.format_result"
-    params:
+    parameters:
       execution: "{{execution}}"
     publish:
       message: "{{format_result.result}}"
@@ -20,7 +20,7 @@ chain:
   -
     name: "post_message"
     ref: "chatops.post_message"
-    params:
+    parameters:
       user: "{{user}}"
       channel: "{{channel}}"
       whisper: "{{whisper}}"

@@ -67,7 +67,7 @@ For a user to provide input to an ActionChain the input parameters must be defin
 
    ---
       # ...
-      params:
+      parameters:
          input1:
             type: "string"
             required: true
@@ -83,7 +83,7 @@ The input parameter ``input1`` can now be referenced in the parameters field of 
          -
             name: "action1"
             ref: "core.local"
-            params:
+            parameters:
                action1_input: "{{input1}}"
       # ...
 
@@ -154,13 +154,13 @@ and prints it to standard output.
             -
                 name: "task1"
                 ref: "core.local"
-                params:
+                parameters:
                     cmd: "date"
                 on-success: "task2"
             -
                 name: "task2"
                 ref: "mypack.workflow2"
-                params:
+                parameters:
                     date: "{{ task1.stdout }}"  # Here we pass result from "task1" as a "date" action parameter to the action "workflow2"
 
 ``workflow2.meta.yaml``
@@ -188,7 +188,7 @@ and prints it to standard output.
             -
                 name: "task1"
                 ref: "core.local"
-                params:
+                parameters:
                     cmd: "echo {{ date }}"  # Here we echo the variable "date" which was passed to the workflow as an action parameter
 
 The example above applies to a scenario where you have two related workflows

@@ -3,20 +3,23 @@ chain:
 - name: c1
   on-failure: c4
   on-success: c2
+  params:
+    p1: v1
+  parameters:
+    p2: v2
   ref: wolfpack.a1
 - name: c2
   on-failure: c4
   on-success: c3
-  publish:
-    # We reference variable which is not defined / available in the context
-    p1: "{{ not_defined }}"
+  params:
+    p1: v1
   ref: wolfpack.a2
 - name: c3
   on-failure: c4
-  parameters: {}
+  params: {}
   ref: wolfpack.a3
 - name: c4
-  parameters:
+  params:
     actionstr: "{{action_context.parent.execution_id}}"
   ref: wolfpack.action-4-action-context-param
 default: c1
