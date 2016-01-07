@@ -28,6 +28,7 @@ from st2api.controllers import resource
 from st2api.controllers.v1.actionviews import ActionViewsController
 from st2common import log as logging
 from st2common.constants.triggers import ACTION_FILE_WRITTEN_TRIGGER
+from st2common.exceptions.action import InvalidActionParameterException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.base import jsexpose
 from st2common.persistence.action import Action
@@ -94,9 +95,16 @@ class ActionsController(resource.ContentPackResourceController):
             Handles requests:
                 POST /actions/
         """
-        # Perform validation
-        validate_not_part_of_system_pack(action)
-        action_validator.validate_action(action)
+
+        try:
+            # Perform validation
+            validate_not_part_of_system_pack(action)
+            action_validator.validate_action(action)
+        except (ValidationError, ValueError,
+                ValueValidationException, InvalidActionParameterException) as e:
+            LOG.exception('Unable to create action data=%s', action)
+            abort(http_client.BAD_REQUEST, str(e))
+            return
 
         # Write pack data files to disk (if any are provided)
         data_files = getattr(action, 'data_files', [])

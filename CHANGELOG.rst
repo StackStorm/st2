@@ -41,6 +41,7 @@ in development
   execution. (bug fix)
 * Deprecated ``params`` action attribute in the action chain definition in favor of the new
   ``parameters`` attribute. (improvement)
+* Fix action parameters validation so that only a selected set of attributes can be overriden for any runner parameters. (bug fix)
 
 1.2.0 - December 07, 2015
 -------------------------

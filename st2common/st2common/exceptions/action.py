@@ -13,14 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.exceptions import StackStormBaseException
+
 __all__ = [
-    'ParameterRenderingFailedException'
+    'ParameterRenderingFailedException',
+    'InvalidActionReferencedException',
+    'InvalidActionParameterException'
 ]
 
 
-class ParameterRenderingFailedException(Exception):
+class ParameterRenderingFailedException(StackStormBaseException):
     pass
 
 
-class InvalidActionReferencedException(Exception):
+class InvalidActionReferencedException(StackStormBaseException):
+    pass
+
+
+class InvalidActionParameterException(StackStormBaseException):
     pass

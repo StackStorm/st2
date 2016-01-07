@@ -21,6 +21,7 @@ import jsonschema
 from jsonschema import _validators
 from jsonschema.validators import create
 
+from st2common.exceptions.action import InvalidActionParameterException
 from st2common.util import jsonify
 
 __all__ = [
@@ -63,6 +64,13 @@ SCHEMA_ANY_TYPE = {
         {"type": "string"}
     ]
 }
+
+RUNNER_PARAM_OVERRIDABLE_ATTRS = [
+    'default',
+    'description',
+    'immutable',
+    'required'
+]
 
 
 def get_draft_schema(version='custom', additional_properties=False):
@@ -268,6 +276,7 @@ def validate(instance, schema, cls=None, use_default=True, allow_default_none=Fa
     :param use_default: True to support the use of the optional "default" property.
     :type use_default: ``bool``
     """
+
     instance = copy.deepcopy(instance)
     schema_type = schema.get('type', None)
     instance_is_dict = isinstance(instance, dict)
@@ -304,9 +313,20 @@ def get_schema_for_action_parameters(action_db):
     from st2common.util.action_db import get_runnertype_by_name
     runner_type = get_runnertype_by_name(action_db.runner_type['name'])
 
-    parameters_schema = {}
-    parameters_schema.update(runner_type.runner_parameters)
-    parameters_schema.update(action_db.parameters)
+    parameters_schema = copy.deepcopy(runner_type.runner_parameters)
+
+    for name, schema in six.iteritems(action_db.parameters):
+        if name not in parameters_schema.keys():
+            parameters_schema.update({name: schema})
+        else:
+            for attribute, value in six.iteritems(schema):
+                if (attribute not in RUNNER_PARAM_OVERRIDABLE_ATTRS and
+                        parameters_schema[name].get(attribute) != value):
+                    raise InvalidActionParameterException(
+                        'The attribute "%s" for the runner parameter "%s" cannot'
+                        'be overridden.' % (attribute, name))
+
+                parameters_schema[name][attribute] = value
 
     schema = get_schema_for_resource_parameters(parameters_schema=parameters_schema)
 
