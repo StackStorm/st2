@@ -340,6 +340,28 @@ class ActionModelTest(DbTestCase):
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
+    def test_parameters_schema_runner_and_action_parameters_are_correctly_merged(self):
+        # Test that the runner and action parameters are correctly deep merged when building
+        # action parameters schema
+
+        self._create_save_runnertype(metadata=True)
+
+        action_db = mock.Mock()
+        action_db.runner_type = {'name': 'python'}
+        action_db.parameters = {'r1': {'immutable': True}}
+
+        schema = util_schema.get_schema_for_action_parameters(action_db=action_db)
+        expected = {
+            u'type': u'object',
+            u'properties': {
+                u'r1a': {
+                    u'type': u'string'
+                }
+            },
+            'immutable': True
+        }
+        self.assertEqual(schema['properties']['r1'], expected)
+
     @staticmethod
     def _create_save_runnertype(metadata=False):
         created = RunnerTypeDB()
