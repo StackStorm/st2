@@ -300,7 +300,7 @@ RUNNER_TYPES = [
             },
             'headers': {
                 'description': 'HTTP headers for the request.',
-                'type': 'string'
+                'type': 'object'
             },
             'cookies': {
                 'description': 'Optional cookies to send with the request.',
