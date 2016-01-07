@@ -17,12 +17,12 @@ import os
 import copy
 
 import six
-import m9dicts
 import jsonschema
 from jsonschema import _validators
 from jsonschema.validators import create
 
 from st2common.util import jsonify
+from st2common.util.misc import deep_update
 
 __all__ = [
     'get_validator',
@@ -305,12 +305,11 @@ def get_schema_for_action_parameters(action_db):
     from st2common.util.action_db import get_runnertype_by_name
     runner_type = get_runnertype_by_name(action_db.runner_type['name'])
 
-    # Note: We need to perform a deep merge because user can only specify a single parameter 
+    # Note: We need to perform a deep merge because user can only specify a single parameter
     # attribute when overriding it in an action metadata.
-    parameters_schema = m9dicts.make()
-    parameters_schema.update(m9dicts.make(runner_type.runner_parameters))
-    parameters_schema.update(m9dicts.make(action_db.parameters))
-    parameters_schema = dict(parameters_schema)
+    parameters_schema = {}
+    deep_update(parameters_schema, runner_type.runner_parameters)
+    deep_update(parameters_schema, action_db.parameters)
 
     schema = get_schema_for_resource_parameters(parameters_schema=parameters_schema)
 

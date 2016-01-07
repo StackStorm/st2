@@ -23,4 +23,3 @@ bencode>=1.0,<1.1
 paramiko>=1.15.2,<1.16
 networkx==1.10
 virtualenv>=13.1.2,<14.0
-m9dicts>=0.1.0,<0.2.0
