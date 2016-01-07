@@ -39,7 +39,7 @@ in development
   (improvement)
 * Fix validation error when None is passed explicitly to an optional argument on action
   execution. (bug fix)
-* Deprecated ``params`` action attribute in the action chain definition in favor of the new 
+* Deprecated ``params`` action attribute in the action chain definition in favor of the new
   ``parameters`` attribute. (improvement)
 
 1.2.0 - December 07, 2015
