@@ -15,10 +15,12 @@
 
 import six
 
+from st2common.exceptions.action import InvalidActionParameterException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
 from st2common.util.action_db import get_runnertype_by_name
+from st2common.util import schema as util_schema
 from st2common.content.utils import get_packs_base_paths
 from st2common.content.utils import check_pack_content_directory_exists
 
@@ -58,18 +60,27 @@ def _is_valid_pack(pack):
 
 
 def _validate_parameters(action_params=None, runner_params=None):
-    for param, action_param_meta in six.iteritems(action_params):
+    for action_param, action_param_meta in six.iteritems(action_params):
+        # Check if overridden runner parameters are permitted.
+        if action_param in runner_params:
+            for action_param_attr, value in six.iteritems(action_param_meta):
+                if (action_param_attr not in util_schema.RUNNER_PARAM_OVERRIDABLE_ATTRS and
+                        runner_params[action_param].get(action_param_attr) != value):
+                    raise InvalidActionParameterException(
+                        'The attribute "%s" for the runner parameter "%s" cannot '
+                        'be overridden.' % (action_param_attr, action_param))
+
         if 'immutable' in action_param_meta:
-            if param in runner_params:
-                runner_param_meta = runner_params[param]
+            if action_param in runner_params:
+                runner_param_meta = runner_params[action_param]
                 if 'immutable' in runner_param_meta:
-                    msg = 'Param %s is declared immutable in runner. ' % param + \
+                    msg = 'Param %s is declared immutable in runner. ' % action_param + \
                           'Cannot override in action.'
                     raise ValueValidationException(msg)
                 if 'default' not in action_param_meta and 'default' not in runner_param_meta:
-                    msg = 'Immutable param %s requires a default value.' % param
+                    msg = 'Immutable param %s requires a default value.' % action_param
                     raise ValueValidationException(msg)
             else:
                 if 'default' not in action_param_meta:
-                    msg = 'Immutable param %s requires a default value.' % param
+                    msg = 'Immutable param %s requires a default value.' % action_param
                     raise ValueValidationException(msg)

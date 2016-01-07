@@ -17,8 +17,6 @@ parameters:
     type: string
   runnerdummy:
     default: actiondummy
-    type: string
   runnerimmutable:
     default: failed_override
-    type: string
 runner_type: test-async-runner-1

@@ -21,12 +21,9 @@ parameters:
   runnerdummy:
     default: actiondummy
     immutable: true
-    type: string
   runnerfoo:
     default: FOO
     immutable: true
-    type: string
   runnerimmutable:
     default: failed_override
-    type: string
 runner_type: test-runner-1

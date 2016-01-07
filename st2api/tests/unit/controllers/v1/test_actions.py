@@ -222,6 +222,34 @@ ACTION_13 = {
     }
 }
 
+ACTION_14 = {
+    'name': 'st2.dummy.action14',
+    'description': 'test description',
+    'enabled': True,
+    'pack': 'dummy_pack_1',
+    'entry_point': '/tmp/test/action1.sh',
+    'runner_type': 'local-shell-script',
+    'parameters': {
+        'a': {'type': 'string', 'default': 'A1'},
+        'b': {'type': 'string', 'default': 'B1'},
+        'sudo': {'type': 'string'}
+    }
+}
+
+ACTION_15 = {
+    'name': 'st2.dummy.action15',
+    'description': 'test description',
+    'enabled': True,
+    'pack': 'dummy_pack_1',
+    'entry_point': '/tmp/test/action1.sh',
+    'runner_type': 'local-shell-script',
+    'parameters': {
+        'a': {'type': 'string', 'default': 'A1'},
+        'b': {'type': 'string', 'default': 'B1'},
+        'sudo': {'default': True, 'immutable': True}
+    }
+}
+
 
 class TestActionController(FunctionalTest, CleanFilesTestCase):
     register_packs = True
@@ -432,6 +460,15 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
     def test_post_invalid_runner_type(self):
         post_resp = self.__do_post(ACTION_5, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
+
+    def test_post_override_runner_param_not_allowed(self):
+        post_resp = self.__do_post(ACTION_14, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 400)
+        self.assertIn('cannot be overridden', post_resp.json.get('faultstring'))
+
+    def test_post_override_runner_param_allowed(self):
+        post_resp = self.__do_post(ACTION_15)
+        self.assertEqual(post_resp.status_int, 201)
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))

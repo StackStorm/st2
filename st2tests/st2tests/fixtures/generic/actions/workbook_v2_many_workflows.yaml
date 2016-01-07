@@ -14,5 +14,4 @@ parameters:
   workflow:
     default: generic.workbook_v2_many_workflows.main
     immutable: true
-    type: string
 runner_type: mistral-v2
