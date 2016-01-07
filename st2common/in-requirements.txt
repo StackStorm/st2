@@ -19,3 +19,4 @@ bencode
 ipaddr
 git+https://github.com/StackStorm/fabric.git@stanley-patched#egg=fabric
 git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
+m9dicts
