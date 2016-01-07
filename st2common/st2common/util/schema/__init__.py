@@ -305,6 +305,8 @@ def get_schema_for_action_parameters(action_db):
     from st2common.util.action_db import get_runnertype_by_name
     runner_type = get_runnertype_by_name(action_db.runner_type['name'])
 
+    # Note: We need to perform a deep merge because user can only specify a single parameter 
+    # attribute when overriding it in an action metadata.
     parameters_schema = m9dicts.make()
     parameters_schema.update(m9dicts.make(runner_type.runner_parameters))
     parameters_schema.update(m9dicts.make(action_db.parameters))
