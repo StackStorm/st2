@@ -228,5 +228,37 @@ The following are sample API calls via curl using API Keys. ::
 
     curl https://myhost.example.com/api/v1/actions?st2-api-key=<API-KEY-VALUE>
 
+Sending authentication token or API key to the API
+--------------------------------------------------
+
+When authenticating against the |st2| API, authentication token or API key
+(but not both), should be provided in the HTTP request headers. The headers are
+named ``X-Auth-Token`` and ``St2-Api-Key`` respectively.
+
+If for some reason you can't specify auth token or API key in the headers (e.g.
+you are using a third party service to integrate with |st2| and this service
+doesn't allow you to specify custom headers), you can provide it as a query
+parameter named ``x-auth-token`` and ``st2-api-key`` respectively.
+
+Keep in mind that using HTTP header is preferred since some of the web servers
+and third party services log query parameters which are sent with each request
+which could be a security risk.
+
+Below you can find some examples on how to send authentication token and API
+key in the headers and as a query parameter using cURL.
+
+Providing it in the request headers:
+
+.. sourcecode:: bash
+
+    curl -H "X-Auth-Token: <auth token value>" https://myhost.example.com/api/v1/actions
+    curl -H "St2-Api-Key: <api key value>" https://myhost.example.com/api/v1/actions
+
+Providing it as a query parameter:
+
+.. sourcecode:: bash
+
+    curl "https://myhost.example.com/api/v1/actions?x-auth-token=<auth token value>"
+    curl "https://myhost.example.com/api/v1/actions?st2-api-key=<api key value>"
 
 .. _htpasswd: https://httpd.apache.org/docs/2.2/programs/htpasswd.html
