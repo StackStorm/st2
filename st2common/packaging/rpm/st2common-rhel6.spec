@@ -50,7 +50,6 @@ cp -R contrib/chatops %{buildroot}/opt/stackstorm/packs/
 chmod -R 775 %{buildroot}/opt/stackstorm/packs/chatops
 cp -R contrib/examples %{buildroot}/usr/share/doc/st2/
 chmod -R 775 %{buildroot}/usr/share/doc/st2/examples
-cp -R docs/* %{buildroot}/usr/share/doc/st2/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 cp -R bin %{buildroot}/%{python2_sitelib}/st2common/
 install st2/st2.conf %{buildroot}/etc/st2/st2.conf
