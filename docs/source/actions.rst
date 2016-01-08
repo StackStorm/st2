@@ -266,6 +266,23 @@ various runners.
   scripts are copied from a pack to the target machine prior to execution.
   Defaults to ``/tmp``.
 
+Overriding Runner Parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Parameters of runners can be overridden. Sometimes it's necessary to customize and simplify an
+action. Take the following ``linux.rsync`` action that is included in the linux pack on st2 install.
+The linux.rsync action overrides the ``cmd`` parameter in the ``run-remote`` runner with the
+``rsync`` command with appropriate args passed from the action parameters defined for the
+linux.rsync action.
+
+.. literalinclude:: /../../contrib/linux/actions/rsync.yaml
+
+Not all attributes for the runner parameters can be overridden. Only ``default``, ``description``,
+``enum``, ``immutable``, and ``required`` attributes can be overridden. Overriding attributes such
+as ``type`` and ``position`` are not allowed because overriding them can potentially break the
+action since the runner will not be able to consume the type of value being passed (i.e. runner
+parameter is expecting an integer but a string is passed).
+
 Common environment variables available to the actions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
