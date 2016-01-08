@@ -15,7 +15,6 @@
 
 import six
 
-from st2common.exceptions.action import InvalidActionParameterException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
@@ -66,11 +65,9 @@ def _validate_parameters(action_ref, action_params=None, runner_params=None):
         # Check if overridden runner parameters are permitted.
         if action_param in runner_params:
             for action_param_attr, value in six.iteritems(action_param_meta):
-                if (action_param_attr not in util_schema.RUNNER_PARAM_OVERRIDABLE_ATTRS and
-                        runner_params[action_param].get(action_param_attr) != value):
-                    raise InvalidActionParameterException(
-                        'The attribute "%s" for the runner parameter "%s" in action "%s" '
-                        'cannot be overridden.' % (action_param_attr, action_param, action_ref))
+                util_schema.validate_runner_parameter_attribute_override(
+                    action_ref, action_param, action_param_attr,
+                    value, runner_params[action_param].get(action_param_attr))
 
         if 'immutable' in action_param_meta:
             if action_param in runner_params:
