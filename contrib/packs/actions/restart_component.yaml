@@ -10,7 +10,7 @@
       immutable: true
     cmd:
       immutable: true
-      default: "st2ctl restart-component {{servicename}}"
+      default: "restart {{servicename}}"
     servicename:
       type: "string"
       required: true
