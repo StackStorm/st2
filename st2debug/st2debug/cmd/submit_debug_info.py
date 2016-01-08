@@ -381,7 +381,7 @@ def create_archive(include_logs, include_configs, include_content, include_syste
     if include_shell_commands and config_yaml:
         LOG.debug('Including the required shell commands output files')
         shell_commands_output_paths = get_commands_output(config_yaml)
-        copy_files(file_paths=shell_commands_output_paths, destination=output_paths['commands']) 
+        copy_files(file_paths=shell_commands_output_paths, destination=output_paths['commands'])
 
     # Configs
     st2_config_path = os.path.join(output_paths['configs'], st2_conf_file_name)
