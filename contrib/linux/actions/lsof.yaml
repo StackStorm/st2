@@ -8,7 +8,6 @@
     cmd:
       immutable: true
       default: "lsof {{args}}"
-      position: 0
     args:
       description: "Command line arguments"
       default: " "

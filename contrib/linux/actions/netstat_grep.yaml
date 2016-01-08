@@ -8,7 +8,6 @@
     cmd:
       immutable: true
       default: "for pid in {{pids}}; do netstat -pant | grep $pid; done; exit 0"
-      position: 0
     pids:
       description: "List of pids"
       required: true
