@@ -304,6 +304,15 @@ def get_validator(version='custom'):
     return validator
 
 
+def validate_runner_parameter_attribute_override(
+        action_ref, param_name, attr_name, runner_param_attr_value, action_param_attr_value):
+    if (attr_name not in RUNNER_PARAM_OVERRIDABLE_ATTRS and
+            action_param_attr_value != runner_param_attr_value):
+        raise InvalidActionParameterException(
+            'The attribute "%s" for the runner parameter "%s" in action "%s" '
+            'cannot be overridden.' % (attr_name, param_name, action_ref))
+
+
 def get_schema_for_action_parameters(action_db):
     """
     Dynamically construct JSON schema for the provided action from the parameters metadata.
@@ -320,11 +329,9 @@ def get_schema_for_action_parameters(action_db):
             parameters_schema.update({name: schema})
         else:
             for attribute, value in six.iteritems(schema):
-                if (attribute not in RUNNER_PARAM_OVERRIDABLE_ATTRS and
-                        parameters_schema[name].get(attribute) != value):
-                    raise InvalidActionParameterException(
-                        'The attribute "%s" for the runner parameter "%s" cannot'
-                        'be overridden.' % (attribute, name))
+                validate_runner_parameter_attribute_override(
+                    action_db.ref, name, attribute,
+                    value, parameters_schema[name].get(attribute))
 
                 parameters_schema[name][attribute] = value
 
