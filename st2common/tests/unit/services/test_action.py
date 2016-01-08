@@ -235,7 +235,13 @@ class TestActionExecutionService(DbTestCase):
     def test_request_override_runner_parameter_type_attribute_value_changed(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
         request = LiveActionDB(action=ACTION_OVR_PARAM_BAD_ATTR_REF, parameters=parameters)
-        self.assertRaises(InvalidActionParameterException, action_service.request, request)
+
+        with self.assertRaises(InvalidActionParameterException) as ex_ctx:
+            request, _ = action_service.request(request)
+
+        expected = ('The attribute "type" for the runner parameter "sudo" in '
+                    'action "default.my.sudo.invalid.action" cannot be overridden.')
+        self.assertEqual(str(ex_ctx.exception), expected)
 
     def test_request_override_runner_parameter_type_attribute_no_value_changed(self):
         parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}

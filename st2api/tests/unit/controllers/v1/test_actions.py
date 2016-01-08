@@ -464,7 +464,9 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
     def test_post_override_runner_param_not_allowed(self):
         post_resp = self.__do_post(ACTION_14, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
-        self.assertIn('cannot be overridden', post_resp.json.get('faultstring'))
+        expected = ('The attribute "type" for the runner parameter "sudo" '
+                    'in action "dummy_pack_1.st2.dummy.action14" cannot be overridden.')
+        self.assertEqual(post_resp.json.get('faultstring'), expected)
 
     def test_post_override_runner_param_allowed(self):
         post_resp = self.__do_post(ACTION_15)

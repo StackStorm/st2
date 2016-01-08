@@ -323,8 +323,8 @@ def get_schema_for_action_parameters(action_db):
                 if (attribute not in RUNNER_PARAM_OVERRIDABLE_ATTRS and
                         parameters_schema[name].get(attribute) != value):
                     raise InvalidActionParameterException(
-                        'The attribute "%s" for the runner parameter "%s" cannot'
-                        'be overridden.' % (attribute, name))
+                        'The attribute "%s" for the runner parameter "%s" in action "%s" '
+                        'cannot be overridden.' % (attribute, name, action_db.ref))
 
                 parameters_schema[name][attribute] = value
 

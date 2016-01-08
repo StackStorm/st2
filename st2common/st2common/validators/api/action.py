@@ -23,6 +23,7 @@ from st2common.util.action_db import get_runnertype_by_name
 from st2common.util import schema as util_schema
 from st2common.content.utils import get_packs_base_paths
 from st2common.content.utils import check_pack_content_directory_exists
+from st2common.models.system.common import ResourceReference
 
 
 LOG = logging.getLogger(__name__)
@@ -41,7 +42,8 @@ def validate_action(action_api):
         raise ValueValidationException(msg)
 
     # Check if parameters defined are valid.
-    _validate_parameters(action_api.parameters, runner_db.runner_parameters)
+    action_ref = ResourceReference.to_string_reference(pack=action_api.pack, name=action_api.name)
+    _validate_parameters(action_ref, action_api.parameters, runner_db.runner_parameters)
 
 
 def _get_runner_model(action_api):
@@ -59,7 +61,7 @@ def _is_valid_pack(pack):
     return check_pack_content_directory_exists(pack=pack, content_type='actions')
 
 
-def _validate_parameters(action_params=None, runner_params=None):
+def _validate_parameters(action_ref, action_params=None, runner_params=None):
     for action_param, action_param_meta in six.iteritems(action_params):
         # Check if overridden runner parameters are permitted.
         if action_param in runner_params:
@@ -67,8 +69,8 @@ def _validate_parameters(action_params=None, runner_params=None):
                 if (action_param_attr not in util_schema.RUNNER_PARAM_OVERRIDABLE_ATTRS and
                         runner_params[action_param].get(action_param_attr) != value):
                     raise InvalidActionParameterException(
-                        'The attribute "%s" for the runner parameter "%s" cannot '
-                        'be overridden.' % (action_param_attr, action_param))
+                        'The attribute "%s" for the runner parameter "%s" in action "%s" '
+                        'cannot be overridden.' % (action_param_attr, action_param, action_ref))
 
         if 'immutable' in action_param_meta:
             if action_param in runner_params:
