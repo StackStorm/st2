@@ -10,7 +10,7 @@
       immutable: true
     cmd:
       immutable: true
-      default: "restart {{servicename}}"
+      default: "service {{servicename}} restart"
     servicename:
       type: "string"
       required: true
