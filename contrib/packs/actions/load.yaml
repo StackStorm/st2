@@ -10,10 +10,14 @@
       default: true
     cmd:
       immutable: true
-      default: "st2-register-content --config-file /etc/st2/st2.conf{% for item in register.split(',') %} --register-{{ item|trim }}{% endfor %}"
+      default: "st2-register-content --config-file {{config_file}}{% for item in register.split(',') %} --register-{{ item|trim }}{% endfor %}"
     register:
       type: "string"
       default: "actions,aliases,sensors"
       description: "Possible options are all, sensors, actions, rules, aliases."
+    config_file:
+      type: "string"
+      decription: "Path to st2.conf"
+      default: "/etc/st2/st2.conf"
     kwarg_op:
       immutable: true
