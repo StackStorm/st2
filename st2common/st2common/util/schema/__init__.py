@@ -68,6 +68,7 @@ SCHEMA_ANY_TYPE = {
 RUNNER_PARAM_OVERRIDABLE_ATTRS = [
     'default',
     'description',
+    'enum',
     'immutable',
     'required'
 ]
