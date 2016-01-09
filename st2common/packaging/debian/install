@@ -4,7 +4,6 @@ contrib/packs opt/stackstorm/packs/
 contrib/linux opt/stackstorm/packs/
 contrib/chatops opt/stackstorm/packs/
 contrib/examples usr/share/doc/st2/
-docs usr/share/doc/st2/
 st2common usr/lib/python2.7/dist-packages/
 bin usr/lib/python2.7/dist-packages/st2common/
 bin/* usr/bin/
