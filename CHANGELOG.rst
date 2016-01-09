@@ -15,9 +15,9 @@ in development
   (new-feature)
 * Include ref of the most meaningful object in each trace component. (new-feature)
 * Ability to hide trigger-instance that do not yield a rule enforcement. (new-feature)
-* Change the rule list columns in the CLI from ref, pack, description and enabled to ref, trigger.ref,
-  action.ref and enabled. This aligns closer the UI and also brings important information front and
-  center. (improvement)
+* Change the rule list columns in the CLI from ref, pack, description and enabled to ref,
+  trigger.ref, action.ref and enabled. This aligns closer the UI and also brings important
+  information front and center. (improvement)
 * Action and Trigger filters for rule list (new-feature)
 * Add missing logrotate config entry for ``st2auth`` service. #2294 [Vignesh Terafast]
 * Support for object already present in the DB for ``st2-rule-tester`` (improvement)
@@ -28,8 +28,8 @@ in development
   instance of ``Mock`` class which allows user to assert that a particular message has been
   logged. [Tim Ireland, Tomaz Muraus]
 * Introduce a new ``abandoned`` state that is applied to executions that we cannot guarantee as
-  completed. Typically happen when an actionrunner currently running some executions quits or is killed
-  via TERM.
+  completed. Typically happen when an actionrunner currently running some executions quits or is
+  killed via TERM.
 * Add new ``st2garbagecollector`` service which periodically deletes old data from the database
   as configured in the config. By default, no old data is deleted unless explicitly configured in
   the config.
@@ -41,8 +41,10 @@ in development
   execution. (bug fix)
 * Deprecated ``params`` action attribute in the action chain definition in favor of the new
   ``parameters`` attribute. (improvement)
-* Fix action parameters validation so that only a selected set of attributes can be overriden for any runner parameters. (bug fix)
+* Fix action parameters validation so that only a selected set of attributes can be overriden for
+  any runner parameters. (bug fix)
 * Fix type in the headers parameter for the http-request runner. (bug fix)
+* Fix runaway action triggers caused by state miscalculation for mistral workflow. (bug fix) 
 
 1.2.0 - December 07, 2015
 -------------------------
