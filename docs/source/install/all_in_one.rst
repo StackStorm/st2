@@ -250,7 +250,7 @@ These values directly correspond to configure the Hubot adapter, Hubot environme
 If for whatever reason your chat client is not listed as an example, it is possible to add *any* Hubot chat service via this method. Refer to the plugin details for more information. In general, you'll need to understand the NPM dependencies, and any environment variables that need to be set.
 
 Below are the values you can set
-
+* :code:`hubot::docker`            - Boolean: Should puppet install hubot? Required if you're not using /setup to enable hubot.
 * :code:`hubot::chat_alias`        - A short for a command used at the beginning of task. (e.g.: !)
 * :code:`hubot::adapter`           - The name of the npm adapter used to connect to your chat service
 * :code:`hubot::env_export`        - A hash of all environment variables necessary to configure the :code:`hubot::adapter`
@@ -269,6 +269,7 @@ Example Answers File
     st2enterprise::token: myawesometokentogetenterprisefeatures
     st2::version: 1.0.0
     st2::revision: 1
+    hubot::docker: True
     hubot::chat_alias: "!"
     hubot::adapter: "hipchat"
     hubot::env_export:
