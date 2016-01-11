@@ -9,7 +9,7 @@ fi
 if [ ${TASK} == 'checks' ]; then
   # compile .py files, useful as compatibility syntax check
   make compile
-  make pylint flake8 docs .st2client-dependencies-check .st2common-circular-dependencies-check
+  make pylint flake8 .st2client-dependencies-check .st2common-circular-dependencies-check
 elif [ ${TASK} == 'unit' ]; then
   # compile .py files, useful as compatibility syntax check
   make compile

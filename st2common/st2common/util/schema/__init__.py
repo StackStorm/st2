@@ -21,6 +21,7 @@ import jsonschema
 from jsonschema import _validators
 from jsonschema.validators import create
 
+from st2common.exceptions.action import InvalidActionParameterException
 from st2common.util import jsonify
 from st2common.util.misc import deep_update
 
@@ -64,6 +65,14 @@ SCHEMA_ANY_TYPE = {
         {"type": "string"}
     ]
 }
+
+RUNNER_PARAM_OVERRIDABLE_ATTRS = [
+    'default',
+    'description',
+    'enum',
+    'immutable',
+    'required'
+]
 
 
 def get_draft_schema(version='custom', additional_properties=False):
@@ -269,6 +278,7 @@ def validate(instance, schema, cls=None, use_default=True, allow_default_none=Fa
     :param use_default: True to support the use of the optional "default" property.
     :type use_default: ``bool``
     """
+
     instance = copy.deepcopy(instance)
     schema_type = schema.get('type', None)
     instance_is_dict = isinstance(instance, dict)
@@ -296,6 +306,21 @@ def get_validator(version='custom'):
     return validator
 
 
+def validate_runner_parameter_attribute_override(action_ref, param_name, attr_name,
+                                                 runner_param_attr_value, action_param_attr_value):
+    """
+    Validate that the provided parameter from the action schema can override the
+    runner parameter.
+    """
+    param_values_are_the_same = action_param_attr_value == runner_param_attr_value
+    if (attr_name not in RUNNER_PARAM_OVERRIDABLE_ATTRS and not param_values_are_the_same):
+        raise InvalidActionParameterException(
+            'The attribute "%s" for the runner parameter "%s" in action "%s" '
+            'cannot be overridden.' % (attr_name, param_name, action_ref))
+
+    return True
+
+
 def get_schema_for_action_parameters(action_db):
     """
     Dynamically construct JSON schema for the provided action from the parameters metadata.
@@ -310,6 +335,22 @@ def get_schema_for_action_parameters(action_db):
     parameters_schema = {}
     deep_update(parameters_schema, runner_type.runner_parameters)
     deep_update(parameters_schema, action_db.parameters)
+
+    # Perform validation, make sure user is not providing parameters which can't
+    # be overriden
+    runner_parameter_names = runner_type.runner_parameters.keys()
+
+    for name, schema in six.iteritems(action_db.parameters):
+        if name not in runner_parameter_names:
+            continue
+
+        for attribute, value in six.iteritems(schema):
+            runner_param_value = runner_type.runner_parameters[name].get(attribute)
+            validate_runner_parameter_attribute_override(action_ref=action_db.ref,
+                                                         param_name=name,
+                                                         attr_name=attribute,
+                                                         runner_param_attr_value=runner_param_value,
+                                                         action_param_attr_value=value)
 
     schema = get_schema_for_resource_parameters(parameters_schema=parameters_schema)
 
