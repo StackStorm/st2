@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import collections
 
 import six
 
@@ -92,3 +93,18 @@ def rstrip_last_char(input_str, char_to_strip):
         return input_str[:-len(char_to_strip)]
 
     return input_str
+
+
+def deep_update(d, u):
+    """
+    Perform deep merge / update of the target dict.
+    """
+
+    for k, v in u.iteritems():
+        if isinstance(v, collections.Mapping):
+            r = deep_update(d.get(k, {}), v)
+            d[k] = r
+        else:
+            d[k] = u[k]
+
+    return d
