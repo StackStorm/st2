@@ -115,71 +115,97 @@ class MistralQuerierTest(DbTestCase):
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=False))
     def test_determine_status_wf_running_tasks_running(self):
-        status = self.querier._determine_execution_status(uuid.uuid4().hex,
-                                                          'RUNNING',
-                                                          MOCK_WF_TASKS_RUNNING)
-
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_RUNNING)
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=False))
     def test_determine_status_wf_running_tasks_completed(self):
-        status = self.querier._determine_execution_status(uuid.uuid4().hex,
-                                                          'RUNNING',
-                                                          MOCK_WF_TASKS_SUCCEEDED)
-
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_SUCCEEDED)
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=False))
     def test_determine_status_wf_succeeded_tasks_completed(self):
-        status = self.querier._determine_execution_status(uuid.uuid4().hex,
-                                                          'SUCCESS',
-                                                          MOCK_WF_TASKS_SUCCEEDED)
-
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'SUCCESS', MOCK_WF_TASKS_SUCCEEDED)
         self.assertEqual(action_constants.LIVEACTION_STATUS_SUCCEEDED, status)
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=False))
     def test_determine_status_wf_succeeded_tasks_running(self):
-        status = self.querier._determine_execution_status(uuid.uuid4().hex,
-                                                          'SUCCESS',
-                                                          MOCK_WF_TASKS_RUNNING)
-
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'SUCCESS', MOCK_WF_TASKS_RUNNING)
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=False))
     def test_determine_status_wf_errored_tasks_completed(self):
-        status = self.querier._determine_execution_status(uuid.uuid4().hex,
-                                                          'ERROR',
-                                                          MOCK_WF_TASKS_SUCCEEDED)
-
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'ERROR', MOCK_WF_TASKS_SUCCEEDED)
         self.assertEqual(action_constants.LIVEACTION_STATUS_FAILED, status)
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=False))
     def test_determine_status_wf_errored_tasks_running(self):
-        status = self.querier._determine_execution_status(uuid.uuid4().hex,
-                                                          'ERROR',
-                                                          MOCK_WF_TASKS_RUNNING)
-
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'ERROR', MOCK_WF_TASKS_RUNNING)
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=True))
-    def test_determine_status_wf_incomplete_tasks_completed_exec_canceled(self):
-        status = self.querier._determine_execution_status(uuid.uuid4().hex,
-                                                          'PAUSED',
-                                                          MOCK_WF_TASKS_SUCCEEDED)
-
+    def test_determine_status_wf_canceled_tasks_completed(self):
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'PAUSED', MOCK_WF_TASKS_SUCCEEDED)
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELED, status)
+
+    @mock.patch.object(
+        action_service, 'is_action_canceled_or_canceling',
+        mock.MagicMock(return_value=True))
+    def test_determine_status_wf_canceled_tasks_running(self):
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'PAUSED', MOCK_WF_TASKS_RUNNING)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELED, status)
+
+    @mock.patch.object(
+        action_service, 'is_action_canceled_or_canceling',
+        mock.MagicMock(return_value=True))
+    def test_determine_status_wf_canceled_exec_running_tasks_completed(self):
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_SUCCEEDED)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+
+    @mock.patch.object(
+        action_service, 'is_action_canceled_or_canceling',
+        mock.MagicMock(return_value=True))
+    def test_determine_status_wf_canceled_exec_running_tasks_running(self):
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_RUNNING)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+
+    @mock.patch.object(
+        action_service, 'is_action_canceled_or_canceling',
+        mock.MagicMock(return_value=False))
+    def test_determine_status_wf_running_exec_paused_tasks_completed(self):
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'PAUSED', MOCK_WF_TASKS_SUCCEEDED)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+
+    @mock.patch.object(
+        action_service, 'is_action_canceled_or_canceling',
+        mock.MagicMock(return_value=False))
+    def test_determine_status_wf_running_exec_paused_tasks_running(self):
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'PAUSED', MOCK_WF_TASKS_RUNNING)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
     @mock.patch.object(
         executions.ExecutionManager, 'get',
