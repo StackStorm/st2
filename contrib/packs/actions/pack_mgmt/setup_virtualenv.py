@@ -125,6 +125,8 @@ class SetupVirtualEnvironmentAction(Action):
 
     def _create_virtualenv(self, virtualenv_path):
         python_binary = cfg.CONF.actionrunner.python_binary
+        virtualenv_binary = cfg.CONF.actionrunner.virtualenv_binary
+        virtualenv_opts = cfg.CONF.actionrunner.virtualenv_opts
 
         if not os.path.isfile(python_binary):
             raise Exception('Python binary "%s" doesn\'t exist' % (python_binary))
@@ -132,8 +134,15 @@ class SetupVirtualEnvironmentAction(Action):
         self.logger.debug('Creating virtualenv in "%s" using Python binary "%s"' %
                           (virtualenv_path, python_binary))
 
-        cmd = ['virtualenv', '-p', python_binary, '--system-site-packages', virtualenv_path]
-        exit_code, _, stderr = run_command(cmd=cmd)
+        cmd = [virtualenv_binary, '-p', python_binary]
+        cmd.extend(virtualenv_opts)
+        cmd.extend([virtualenv_path])
+        self.logger.debug('Running command "%s" to create virtualenv.', ' '.join(cmd))
+
+        try:
+            exit_code, _, stderr = run_command(cmd=cmd)
+        except OSError:
+            raise Exception('Virtualenv binary "%s" doesn\'t exist.' % virtualenv_binary)
 
         if exit_code != 0:
             raise Exception('Failed to create virtualenv in "%s": %s' %
