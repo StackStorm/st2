@@ -24,7 +24,6 @@ import six
 from eventlet.green import subprocess
 
 from st2actions.runners import ActionRunner
-from st2actions import config as action_config
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
@@ -81,13 +80,14 @@ class Action(object):
 
     def _set_up_logger(self):
         """
-        Set up a logger which logs all the messages with level DEBUG
+        Set up a logger which logs all the messages with level INFO
         and above to stderr.
         """
-	logging.config.fileConfig(action_config.get_logging_config_path())
+        from st2actions import config as action_config
+        logging.config.fileConfig(action_config.get_logging_config_path())
         logger_name = 'actions.python.%s' % (self.__class__.__name__)
         logger = logging.getLogger(logger_name)
-
+        
         return logger
 
 
