@@ -107,6 +107,8 @@ CHAIN_ACTION_PARAMS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_action_params_attribute.yaml')
 CHAIN_ACTION_PARAMETERS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_action_parameters_attribute.yaml')
+CHAIN_ACTION_INVALID_PARAMETER_TYPE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_invalid_parameter_type_passed_to_action.yaml')
 
 CHAIN_NOTIFY_API = {'notify': {'on-complete': {'message': 'foo happened.'}}}
 CHAIN_NOTIFY_DB = NotificationsHelper.to_model(CHAIN_NOTIFY_API)
@@ -662,6 +664,22 @@ class TestActionChainRunner(DbTestCase):
             pass
         else:
             self.fail('Exception was not thrown')
+
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_2))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_task_passes_invalid_parameter_type_to_action(self, mock_request):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_ACTION_INVALID_PARAMETER_TYPE
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+
+        action_parameters = {}
+        expected_msg = 'Failed to cast value "stringnotanarray" for parameter "arrtype" of type "array"'
+        self.assertRaisesRegexp(ValueError, expected_msg, chain_runner.run,
+                                action_parameters=action_parameters)
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=None))
