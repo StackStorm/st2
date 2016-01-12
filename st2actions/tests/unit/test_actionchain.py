@@ -665,7 +665,6 @@ class TestActionChainRunner(DbTestCase):
         else:
             self.fail('Exception was not thrown')
 
-
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_2))
     @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
@@ -677,7 +676,8 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.pre_run()
 
         action_parameters = {}
-        expected_msg = 'Failed to cast value "stringnotanarray" for parameter "arrtype" of type "array"'
+        expected_msg = ('Failed to cast value "stringnotanarray" for parameter '
+                        '"arrtype" of type "array"')
         self.assertRaisesRegexp(ValueError, expected_msg, chain_runner.run,
                                 action_parameters=action_parameters)
 
