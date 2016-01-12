@@ -47,6 +47,7 @@ setup(
         'bin/st2-apply-rbac-definitions',
         'bin/st2-purge-executions',
         'bin/st2-purge-trigger-instances',
-        'bin/st2-run-pack-tests'
+        'bin/st2-run-pack-tests',
+        'bin/st2ctl',
     ]
 )
