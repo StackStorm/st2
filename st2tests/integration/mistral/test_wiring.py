@@ -77,5 +77,3 @@ class WiringTest(base.TestWorkflowExecution):
         self.st2client.liveactions.delete(execution)
         execution = self._wait_for_completion(execution, expect_tasks_completed=False)
         self._assert_canceled(execution, are_tasks_completed=False)
-        execution = self._wait_for_completion(execution, expect_tasks_completed=True)
-        self._assert_canceled(execution, are_tasks_completed=True)
