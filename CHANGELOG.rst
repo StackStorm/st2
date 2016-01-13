@@ -44,7 +44,9 @@ in development
 * Fix action parameters validation so that only a selected set of attributes can be overriden for
   any runner parameters. (bug fix)
 * Fix type in the headers parameter for the http-request runner. (bug fix)
-* Fix runaway action triggers caused by state miscalculation for mistral workflow. (bug fix) 
+* Fix runaway action triggers caused by state miscalculation for mistral workflow. (bug fix)
+* Use ``--always-copy`` option when creating virtualenv for packs from packs.setup_virtualenv action. This is required when st2actionrunner is kicked off
+from python within a virtualenv.
 
 1.2.0 - December 07, 2015
 -------------------------
