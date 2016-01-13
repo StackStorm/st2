@@ -162,29 +162,41 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
 
     @staticmethod
     def _get_result_status(result, allow_partial_failure):
-        success = not allow_partial_failure
-        timeout = True
 
         if 'error' in result and 'traceback' in result:
             # Assume this is a global failure where the result dictionary doesn't contain entry
             # per host
+            timeout = False
             success = result.get('succeeded', False)
-        else:
-            for r in six.itervalues(result):
-                r_succeess = r.get('succeeded', False) if r else False
-                r_timeout = r.get('timeout', False) if r else False
+            status = BaseParallelSSHRunner._get_status_for_success_and_timeout(success=success,
+                                                                               timeout=timeout)
+            return status
 
-                timeout &= r_timeout
+        success = not allow_partial_failure
+        timeout = True
 
-                if allow_partial_failure:
-                    success |= r_succeess
-                    if success:
-                        break
-                else:
-                    success &= r_succeess
-                    if not success:
-                        break
+        for r in six.itervalues(result):
+            r_succeess = r.get('succeeded', False) if r else False
+            r_timeout = r.get('timeout', False) if r else False
 
+            timeout &= r_timeout
+
+            if allow_partial_failure:
+                success |= r_succeess
+                if success:
+                    break
+            else:
+                success &= r_succeess
+                if not success:
+                    break
+
+        status = BaseParallelSSHRunner._get_status_for_success_and_timeout(success=success,
+                                                                           timeout=timeout)
+
+        return status
+
+    @staticmethod
+    def _get_status_for_success_and_timeout(success, timeout):
         if success:
             status = LIVEACTION_STATUS_SUCCEEDED
         elif timeout:
@@ -193,3 +205,5 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         else:
             status = LIVEACTION_STATUS_FAILED
         return status
+
+
