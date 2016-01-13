@@ -165,20 +165,25 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         success = not allow_partial_failure
         timeout = True
 
-        for r in six.itervalues(result):
-            r_succeess = r.get('succeeded', False) if r else False
-            r_timeout = r.get('timeout', False) if r else False
+        if 'error' in result and 'traceback' in result:
+            # Assume this is a global failure where the result dictionary doesn't contain entry
+            # per host
+            success = result.get('succeeded', False)
+        else:
+            for r in six.itervalues(result):
+                r_succeess = r.get('succeeded', False) if r else False
+                r_timeout = r.get('timeout', False) if r else False
 
-            timeout &= r_timeout
+                timeout &= r_timeout
 
-            if allow_partial_failure:
-                success |= r_succeess
-                if success:
-                    break
-            else:
-                success &= r_succeess
-                if not success:
-                    break
+                if allow_partial_failure:
+                    success |= r_succeess
+                    if success:
+                        break
+                else:
+                    success &= r_succeess
+                    if not success:
+                        break
 
         if success:
             status = LIVEACTION_STATUS_SUCCEEDED
