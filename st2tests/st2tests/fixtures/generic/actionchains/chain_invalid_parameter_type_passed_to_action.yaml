@@ -1,0 +1,7 @@
+---
+chain:
+- name: c1
+  ref: wolfpack.a2
+  parameters:
+    arrtype: "stringnotanarray"
+default: c1
