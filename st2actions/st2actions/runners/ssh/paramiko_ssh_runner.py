@@ -205,5 +205,3 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         else:
             status = LIVEACTION_STATUS_FAILED
         return status
-
-
