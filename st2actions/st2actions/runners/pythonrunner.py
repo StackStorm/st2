@@ -86,7 +86,7 @@ class Action(object):
         if '/opt/' in BASE_DIR:
             from st2actions import config as action_config
             config_path = action_config.get_logging_config_path()
-        elif '/src/' in BASE_DIR:
+        else:
             config_path = os.path.join(BASE_DIR, '../../conf/logging.conf')
         logging.config.fileConfig(config_path, disable_existing_loggers=False)
         logger_name = 'actions.python.%s' % (self.__class__.__name__)
