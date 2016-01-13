@@ -131,6 +131,9 @@ class SetupVirtualEnvironmentAction(Action):
         if not os.path.isfile(python_binary):
             raise Exception('Python binary "%s" doesn\'t exist' % (python_binary))
 
+        if not os.path.isfile(virtualenv_binary):
+            raise Exception('Virtualenv binary "%s" doesn\'t exist.' % (virtualenv_binary))
+
         self.logger.debug('Creating virtualenv in "%s" using Python binary "%s"' %
                           (virtualenv_path, python_binary))
 
@@ -141,8 +144,9 @@ class SetupVirtualEnvironmentAction(Action):
 
         try:
             exit_code, _, stderr = run_command(cmd=cmd)
-        except OSError:
-            raise Exception('Virtualenv binary "%s" doesn\'t exist.' % virtualenv_binary)
+        except OSError as e:
+            raise Exception('Error executing command %s. %s.' % (' '.join(cmd),
+                                                                 e.message))
 
         if exit_code != 0:
             raise Exception('Failed to create virtualenv in "%s": %s' %
