@@ -44,16 +44,18 @@ import yaml
 import gnupg
 import requests
 from distutils.spawn import find_executable
-from subprocess import PIPE, Popen
 
 import st2common
 from st2common.content.utils import get_packs_base_paths
 from st2common import __version__ as st2_version
 from st2common import config
 from st2common.util import date as date_utils
+from st2common.util.shell import run_command
 from st2debug.constants import GPG_KEY
 from st2debug.constants import GPG_KEY_FINGERPRINT
 from st2debug.constants import S3_BUCKET_URL
+from st2debug.constants import COMPANY_NAME
+from st2debug.constants import ARG_NAMES
 from st2debug.utils.fs import copy_files
 from st2debug.utils.fs import get_full_file_list
 from st2debug.utils.fs import get_dirs_in_path
@@ -282,11 +284,10 @@ def get_commands_output(config_yaml):
     commands_list = get_config_details(config_yaml, 'shell_commands')
     output_files_list = []
     for cmd in commands_list:
-        output_file = "/tmp/%s.txt" % format_output_filename(cmd)
-        process = Popen(cmd, shell=True, stdout=PIPE)
-        output = process.stdout.read()
+        output_file = os.path.join('/tmp', '%s.txt' % format_output_filename(cmd))
+        exit_code, stdout, _ = run_command(cmd=cmd, shell=True)
         with open(output_file, 'w') as fp:
-            fp.write(output)
+            fp.write(stdout)
         output_files_list.append(output_file)
     return output_files_list
 
@@ -494,7 +495,7 @@ def create_and_upload_archive(include_logs, include_configs, include_content,
         s3_bucket_url = S3_BUCKET_URL
         gpg_key_fingerprint = GPG_KEY_FINGERPRINT
         gpg_key = GPG_KEY
-        company_name = 'StackStorm'
+        company_name = COMPANY_NAME
     try:
         plain_text_output_path = create_archive(include_logs=include_logs,
                                                 include_configs=include_configs,
@@ -551,14 +552,12 @@ def main():
                         help='Get required configurations from config file')
     args = parser.parse_args()
 
+    arg_names = ARG_NAMES
     if args.config:
         company_name = get_config_details(args.config, 'company_name')
-        arg_names = ['exclude_logs', 'exclude_configs', 'exclude_content',
-                     'exclude_system_info', 'exclude_shell_commands']
+        arg_names.append('exclude_shell_commands')
     else:
-        company_name = 'StackStorm'
-        arg_names = ['exclude_logs', 'exclude_configs', 'exclude_content',
-                     'exclude_system_info']
+        company_name = COMPANY_NAME
 
     abort = True
     for arg_name in arg_names:
