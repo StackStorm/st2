@@ -83,11 +83,11 @@ class Action(object):
         Set up a logger which logs all the messages with level INFO
         and above to stderr.
         """
-        from st2actions import config as action_config
-        logging.config.fileConfig(action_config.get_logging_config_path())
+        config_path = os.path.join(BASE_DIR, '../../conf/logging.conf')
+        logging.config.fileConfig(config_path,
+                                      disable_existing_loggers=False)
         logger_name = 'actions.python.%s' % (self.__class__.__name__)
         logger = logging.getLogger(logger_name)
-        
         return logger
 
 
