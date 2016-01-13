@@ -83,9 +83,12 @@ class Action(object):
         Set up a logger which logs all the messages with level INFO
         and above to stderr.
         """
-        config_path = os.path.join(BASE_DIR, '../../conf/logging.conf')
-        logging.config.fileConfig(config_path,
-                                      disable_existing_loggers=False)
+        if '/opt/' in BASE_DIR:
+            from st2actions import config as action_config
+            config_path = action_config.get_logging_config_path()
+        elif '/src/' in BASE_DIR:
+            config_path = os.path.join(BASE_DIR, '../../conf/logging.conf')
+        logging.config.fileConfig(config_path, disable_existing_loggers=False)
         logger_name = 'actions.python.%s' % (self.__class__.__name__)
         logger = logging.getLogger(logger_name)
         return logger
