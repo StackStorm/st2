@@ -47,6 +47,8 @@ in development
 * Fix runaway action triggers caused by state miscalculation for mistral workflow. (bug fix)
 * Throw a more friendly error message if casting parameter value fails because the value contains
   an invalid type or similar. (improvement)
+* Use ``--always-copy`` option when creating virtualenv for packs from packs.setup_virtualenv
+  action. This is required when st2actionrunner is kicked off from python within a virtualenv.
 
 1.2.0 - December 07, 2015
 -------------------------
