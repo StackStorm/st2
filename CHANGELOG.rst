@@ -57,6 +57,7 @@ in development
 * Fix runaway action triggers caused by state miscalculation for mistral workflow. (bug fix) 
 * The ``--tasks`` option in the CLI for ``st2 execution get`` and ``st2 run`` will be renamed to
   ``--show-tasks`` to avoid conflict with the tasks option in st2 execution re-run.
+* Add option to rerun one or more tasks in mistral workflow that has errored. (new-feature)
 
 1.2.0 - December 07, 2015
 -------------------------
