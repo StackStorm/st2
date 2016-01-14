@@ -49,6 +49,8 @@ in development
   an invalid type or similar. (improvement)
 * Use ``--always-copy`` option when creating virtualenv for packs from packs.setup_virtualenv
   action. This is required when st2actionrunner is kicked off from python within a virtualenv.
+* Fix a bug in the remote script runner which would throw an exception if a remote script action
+  caused a top level failure (e.g. copying artifacts to a remote host failed). (bug-fix)
 
 1.2.0 - December 07, 2015
 -------------------------
