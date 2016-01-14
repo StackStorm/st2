@@ -32,6 +32,7 @@ from st2common.util import date as date_utils
 from st2common.models.db.auth import TokenDB
 from st2common.persistence.auth import Token
 from st2common.persistence.trace import Trace
+from st2common.services import trace as trace_service
 from st2common.transport.publishers import PoolPublisher
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
@@ -97,6 +98,25 @@ ACTION_3 = {
     }
 }
 
+ACTION_4 = {
+    'name': 'st2.dummy.action4',
+    'description': 'another test description',
+    'enabled': True,
+    'entry_point': '/tmp/test/workflows/action4.yaml',
+    'pack': 'starterpack',
+    'runner_type': 'mistral-v2',
+    'parameters': {
+        'a': {
+            'type': 'string',
+            'default': 'abc'
+        },
+        'b': {
+            'type': 'number',
+            'default': 123
+        }
+    }
+}
+
 LIVE_ACTION_1 = {
     'action': 'sixpack.st2.dummy.action1',
     'parameters': {
@@ -123,6 +143,10 @@ LIVE_ACTION_3 = {
     }
 }
 
+LIVE_ACTION_4 = {
+    'action': 'starterpack.st2.dummy.action4',
+}
+
 
 class FakeResponse(object):
 
@@ -146,21 +170,29 @@ class TestActionExecutionController(FunctionalTest):
         return_value=True))
     def setUpClass(cls):
         super(TestActionExecutionController, cls).setUpClass()
+
         cls.action1 = copy.deepcopy(ACTION_1)
         post_resp = cls.app.post_json('/v1/actions', cls.action1)
         cls.action1['id'] = post_resp.json['id']
+
         cls.action2 = copy.deepcopy(ACTION_2)
         post_resp = cls.app.post_json('/v1/actions', cls.action2)
         cls.action2['id'] = post_resp.json['id']
+
         cls.action3 = copy.deepcopy(ACTION_3)
         post_resp = cls.app.post_json('/v1/actions', cls.action3)
         cls.action3['id'] = post_resp.json['id']
+
+        cls.action4 = copy.deepcopy(ACTION_4)
+        post_resp = cls.app.post_json('/v1/actions', cls.action4)
+        cls.action4['id'] = post_resp.json['id']
 
     @classmethod
     def tearDownClass(cls):
         cls.app.delete('/v1/actions/%s' % cls.action1['id'])
         cls.app.delete('/v1/actions/%s' % cls.action2['id'])
         cls.app.delete('/v1/actions/%s' % cls.action3['id'])
+        cls.app.delete('/v1/actions/%s' % cls.action4['id'])
         super(TestActionExecutionController, cls).tearDownClass()
 
     def test_get_one(self):
@@ -369,12 +401,127 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(post_resp.status_int, 201)
         execution_id = self._get_actionexecution_id(post_resp)
 
-        # Re-run created execution (override parameter with an invalid value)
+        # Re-run created execution (override parameter and task together)
         data = {'parameters': {'a': 1000}}
         re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
                                          data, expect_errors=True)
         self.assertEqual(re_run_resp.status_int, 400)
         self.assertIn('1000 is not of type \'string\'', re_run_resp.json['faultstring'])
+
+    def test_re_run_workflow_success(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_4)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (tasks option for non workflow)
+        data = {}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
+                                         data, expect_errors=True)
+
+        self.assertEqual(re_run_resp.status_int, 201)
+
+        # Get the trace
+        trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
+
+        expected_context = {
+            'user': 'stanley',
+            're-run': {
+                'ref': execution_id
+            },
+            'trace_context': {
+                'id_': str(trace.id)
+            }
+        }
+
+        self.assertDictEqual(re_run_resp.json['context'], expected_context)
+
+    def test_re_run_workflow_task_success(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_4)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (tasks option for non workflow)
+        data = {'tasks': ['x']}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
+                                         data, expect_errors=True)
+
+        self.assertEqual(re_run_resp.status_int, 201)
+
+        # Get the trace
+        trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
+
+        expected_context = {
+            'user': 'stanley',
+            're-run': {
+                'ref': execution_id,
+                'tasks': data['tasks']
+            },
+            'trace_context': {
+                'id_': str(trace.id)
+            }
+        }
+
+        self.assertDictEqual(re_run_resp.json['context'], expected_context)
+
+    def test_re_run_workflow_tasks_success(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_4)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (tasks option for non workflow)
+        data = {'tasks': ['x', 'y']}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
+                                         data, expect_errors=True)
+
+        self.assertEqual(re_run_resp.status_int, 201)
+
+        # Get the trace
+        trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
+
+        expected_context = {
+            'user': 'stanley',
+            're-run': {
+                'ref': execution_id,
+                'tasks': data['tasks']
+            },
+            'trace_context': {
+                'id_': str(trace.id)
+            }
+        }
+
+        self.assertDictEqual(re_run_resp.json['context'], expected_context)
+
+    def test_re_run_failure_tasks_option_for_non_workflow(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (tasks option for non workflow)
+        data = {'tasks': ['x']}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
+                                         data, expect_errors=True)
+
+        self.assertEqual(re_run_resp.status_int, 400)
+        self.assertIn('only supported for Mistral workflows', re_run_resp.json['faultstring'])
+
+    def test_re_run_workflow_failure_given_both_params_and_tasks(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_4)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (override parameter with an invalid value)
+        data = {'parameters': {'a': 'xyz'}, 'tasks': ['x']}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
+                                         data, expect_errors=True)
+
+        self.assertEqual(re_run_resp.status_int, 500)
+        self.assertIn('not supported when re-running task(s) for a workflow',
+                      re_run_resp.json['faultstring'])
 
     @staticmethod
     def _get_actionexecution_id(resp):

@@ -320,12 +320,13 @@ class ActionAliasResourceManager(ResourceManager):
 
 class LiveActionResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def re_run(self, execution_id, parameters=None, **kwargs):
+    def re_run(self, execution_id, parameters=None, tasks=None, **kwargs):
         url = '/%s/%s/re_run' % (self.resource.get_url_path_name(), execution_id)
 
-        data = {}
-        if parameters:
-            data['parameters'] = parameters
+        data = {
+            'parameters': parameters,
+            'tasks': tasks
+        }
 
         response = self.client.post(url, data, **kwargs)
         if response.status_code != 200:

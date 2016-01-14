@@ -1,0 +1,7 @@
+---
+name: mistral-test-rerun
+description: A sample workflow used to test the rerun feature.
+pack: examples
+runner_type: mistral-v2
+entry_point: workflows/mistral-test-rerun.yaml
+enabled: true

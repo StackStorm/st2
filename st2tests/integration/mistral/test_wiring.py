@@ -16,6 +16,8 @@
 import ast
 import eventlet
 
+from st2client import models
+
 from integration.mistral import base
 
 
@@ -96,3 +98,37 @@ class WiringTest(base.TestWorkflowExecution):
         self.assertGreater(len(task_results), 0)
         expected_state_info = {'error': 'Execution canceled by user.'}
         self.assertDictEqual(ast.literal_eval(task_results[0]['state_info']), expected_state_info)
+
+    def test_basic_rerun(self):
+        switch = 'mistral-test-rerun-switch'
+
+        self.st2client.keys.update(models.KeyValuePair(name=switch, value='1'))
+        execution = self._execute_workflow('examples.mistral-test-rerun')
+        execution = self._wait_for_completion(execution)
+        self._assert_failure(execution)
+        orig_st2_ex_id = execution.id
+        orig_wf_ex_id = execution.context['mistral']['execution_id']
+
+        self.st2client.keys.update(models.KeyValuePair(name=switch, value='0'))
+        execution = self.st2client.liveactions.re_run(orig_st2_ex_id)
+        self.assertNotEqual(execution.id, orig_st2_ex_id)
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertNotEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
+
+    def test_basic_rerun_task(self):
+        switch = 'mistral-test-rerun-switch'
+
+        self.st2client.keys.update(models.KeyValuePair(name=switch, value='1'))
+        execution = self._execute_workflow('examples.mistral-test-rerun')
+        execution = self._wait_for_completion(execution)
+        self._assert_failure(execution)
+        orig_st2_ex_id = execution.id
+        orig_wf_ex_id = execution.context['mistral']['execution_id']
+
+        self.st2client.keys.update(models.KeyValuePair(name=switch, value='0'))
+        execution = self.st2client.liveactions.re_run(orig_st2_ex_id, tasks=['task1'])
+        self.assertNotEqual(execution.id, orig_st2_ex_id)
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)

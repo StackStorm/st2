@@ -136,19 +136,7 @@ class MistralRunner(AsyncActionRunner):
         else:
             raise Exception('There are no workflows in the workbook.')
 
-    @retrying.retry(
-        retry_on_exception=utils.retry_on_exceptions,
-        wait_exponential_multiplier=cfg.CONF.mistral.retry_exp_msec,
-        wait_exponential_max=cfg.CONF.mistral.retry_exp_max_msec,
-        stop_max_delay=cfg.CONF.mistral.retry_stop_max_msec)
-    def run(self, action_parameters):
-        # Test connection
-        self._client.workflows.list()
-
-        # Setup inputs for the workflow execution.
-        inputs = self.runner_parameters.get('context', dict())
-        inputs.update(action_parameters)
-
+    def _construct_workflow_execution_options(self):
         # This URL is used by Mistral to talk back to the API
         api_url = get_mistral_api_url()
         endpoint = api_url + '/actionexecutions'
@@ -192,6 +180,30 @@ class MistralRunner(AsyncActionRunner):
             }
         }
 
+        return options
+
+    def _get_resume_options(self):
+        return self.context.get('re-run', {})
+
+    @retrying.retry(
+        retry_on_exception=utils.retry_on_exceptions,
+        wait_exponential_multiplier=cfg.CONF.mistral.retry_exp_msec,
+        wait_exponential_max=cfg.CONF.mistral.retry_exp_max_msec,
+        stop_max_delay=cfg.CONF.mistral.retry_stop_max_msec)
+    def run(self, action_parameters):
+        resume_options = self._get_resume_options()
+        tasks = resume_options.get('tasks', [])
+        resume = self.rerun_ex_ref and tasks
+        return self.resume(self.rerun_ex_ref, tasks) if resume else self.start(action_parameters)
+
+    def start(self, action_parameters):
+        # Test connection
+        self._client.workflows.list()
+
+        # Setup inputs for the workflow execution.
+        inputs = self.runner_parameters.get('context', dict())
+        inputs.update(action_parameters)
+
         # Get workbook/workflow definition from file.
         with open(self.entry_point, 'r') as def_file:
             def_yaml = def_file.read()
@@ -210,6 +222,9 @@ class MistralRunner(AsyncActionRunner):
         def_dict_xformed = utils.transform_definition(def_dict)
         def_yaml_xformed = yaml.safe_dump(def_dict_xformed, default_flow_style=False)
 
+        # Construct additional options for the workflow execution
+        options = self._construct_workflow_execution_options()
+
         # Save workbook/workflow definition.
         if is_workbook:
             self._save_workbook(action_ref, def_yaml_xformed)
@@ -222,6 +237,51 @@ class MistralRunner(AsyncActionRunner):
             execution = self._client.executions.create(action_ref,
                                                        workflow_input=inputs,
                                                        **options)
+
+        status = LIVEACTION_STATUS_RUNNING
+        partial_results = {'tasks': []}
+
+        # pylint: disable=no-member
+        current_context = {
+            'execution_id': str(execution.id),
+            'workflow_name': execution.workflow_name
+        }
+
+        exec_context = self.context
+        exec_context = self._build_mistral_context(exec_context, current_context)
+        LOG.info('Mistral query context is %s' % exec_context)
+
+        return (status, partial_results, exec_context)
+
+    def resume(self, ex_ref, task_names):
+        mistral_ctx = ex_ref.context.get('mistral', dict())
+
+        if not mistral_ctx.get('execution_id'):
+            raise Exception('Unable to rerun because mistral execution_id is missing.')
+
+        execution = self._client.executions.get(mistral_ctx.get('execution_id'))
+
+        # pylint: disable=no-member
+        if execution.state not in ['ERROR']:
+            raise Exception('Workflow execution is not in a rerunable state.')
+
+        # pylint: disable=no-member
+        tasks = {task.name: task.to_dict()
+                 for task in self._client.tasks.list(workflow_execution_id=execution.id)
+                 if task.name in task_names and task.state == 'ERROR'}
+
+        missing_tasks = list(set(task_names) - set(tasks.keys()))
+        if missing_tasks:
+            raise Exception('Only tasks in error state can be rerun. Unable to identify '
+                            'rerunable tasks: %s. Please make sure that the task name is correct '
+                            'and the task is in rerunable state.' % ', '.join(missing_tasks))
+
+        # Construct additional options for the workflow execution
+        options = self._construct_workflow_execution_options()
+
+        for task in tasks.values():
+            # pylint: disable=unexpected-keyword-arg
+            self._client.tasks.rerun(task['id'], env=options.get('env', None))
 
         status = LIVEACTION_STATUS_RUNNING
         partial_results = {'tasks': []}
