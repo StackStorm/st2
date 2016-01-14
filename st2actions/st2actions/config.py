@@ -17,7 +17,6 @@
 Configuration options registration and useful routines.
 """
 
-import os
 import sys
 
 from oslo_config import cfg
@@ -42,19 +41,11 @@ def _register_common_opts():
 
 
 def _register_action_runner_opts():
-    default_python_bin_path = sys.executable
-    base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
-    default_virtualenv_bin_path = os.path.join(base_dir, 'virtualenv')
     logging_opts = [
         cfg.StrOpt('logging', default='conf/logging.conf',
                    help='location of the logging.conf file'),
-        cfg.StrOpt('python_binary', default=default_python_bin_path,
-                   help='Python binary which will be used by Python actions.'),
-        cfg.StrOpt('virtualenv_binary', default=default_virtualenv_bin_path,
-                   help='Virtualenv binary which should be used to create pack virtualenvs.'),
-        cfg.ListOpt('virtualenv_opts', default=['--always-copy', '--system-site-packages'],
-                    help='List of virtualenv options to be passsed to "virtualenv" command that ' +
-                         'creates pack virtualenv.')
+        cfg.StrOpt('python_binary', default=sys.executable,
+                   help='Python binary which will be used by Python actions.')
     ]
     CONF.register_opts(logging_opts, group='actionrunner')
 
