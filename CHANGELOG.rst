@@ -51,6 +51,8 @@ in development
   action. This is required when st2actionrunner is kicked off from python within a virtualenv.
 * Fix a bug in the remote script runner which would throw an exception if a remote script action
   caused a top level failure (e.g. copying artifacts to a remote host failed). (bug-fix)
+* Display execution parameters when using ``st2 execution get <execution id>`` CLI command for
+  workflow executions. (improvement)
 
 1.2.0 - December 07, 2015
 -------------------------
