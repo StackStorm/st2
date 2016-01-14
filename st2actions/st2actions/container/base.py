@@ -186,6 +186,10 @@ class RunnerContainer(object):
                 liveaction_db=liveaction_db)
 
             executions.update_execution(liveaction_db)
+
+            LOG.debug('Performing post_run for runner: %s', runner.runner_id)
+            runner.post_run(liveaction_db.status, {'error': 'Execution canceled by user.'})
+            runner.container_service = None
         except:
             _, ex, tb = sys.exc_info()
             # include the error message and traceback to try and provide some hints.
