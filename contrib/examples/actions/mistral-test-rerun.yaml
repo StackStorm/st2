@@ -5,3 +5,7 @@ pack: examples
 runner_type: mistral-v2
 entry_point: workflows/mistral-test-rerun.yaml
 enabled: true
+parameters:
+    tempfile:
+        type: string
+        required: true

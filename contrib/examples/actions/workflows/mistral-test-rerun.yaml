@@ -3,8 +3,10 @@ version: '2.0'
 examples.mistral-test-rerun:
     description: A sample workflow used to test the rerun feature.
     type: direct
+    input:
+        - tempfile
     tasks:
         task1:
             action: core.local
             input:
-                cmd: "exit `st2 key get mistral-test-rerun-switch | grep value | awk '{print $4}'`"
+                cmd: "exit `cat <% $.tempfile %>`"
