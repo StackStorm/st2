@@ -52,7 +52,7 @@ def _register_action_runner_opts():
                    help='Python binary which will be used by Python actions.'),
         cfg.StrOpt('virtualenv_binary', default=default_virtualenv_bin_path,
                    help='Virtualenv binary which should be used to create pack virtualenvs.'),
-        cfg.ListOpt('virtualenv_opts', default=['--always-copy', '--system-site-packages'],
+        cfg.ListOpt('virtualenv_opts', default=['--system-site-packages'],
                     help='List of virtualenv options to be passsed to "virtualenv" command that ' +
                          'creates pack virtualenv.')
     ]
