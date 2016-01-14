@@ -314,7 +314,7 @@ class ActionRunCommandMixin(object):
         action_exec_mgr = self.app.client.managers['LiveAction']
 
         instance = execution
-        options = {'attributes': ['id', 'action.ref', 'status', 'start_timestamp',
+        options = {'attributes': ['id', 'action.ref', 'parameters', 'status', 'start_timestamp',
                                   'end_timestamp']}
         options['json'] = args.json
         options['attribute_transform_functions'] = self.attribute_transform_functions
