@@ -102,6 +102,7 @@ class WiringTest(base.TestWorkflowExecution):
     def test_basic_rerun(self):
         switch = 'mistral-test-rerun-switch'
 
+        # Rerun the workflow from the beginning.
         self.st2client.keys.update(models.KeyValuePair(name=switch, value='1'))
         execution = self._execute_workflow('examples.mistral-test-rerun')
         execution = self._wait_for_completion(execution)
@@ -116,9 +117,7 @@ class WiringTest(base.TestWorkflowExecution):
         self._assert_success(execution, num_tasks=1)
         self.assertNotEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
 
-    def test_basic_rerun_task(self):
-        switch = 'mistral-test-rerun-switch'
-
+        # Rerun the workflow from the failed task.
         self.st2client.keys.update(models.KeyValuePair(name=switch, value='1'))
         execution = self._execute_workflow('examples.mistral-test-rerun')
         execution = self._wait_for_completion(execution)
