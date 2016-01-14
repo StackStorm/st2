@@ -13,7 +13,7 @@ logging = conf/logging.conf
 
 [api]
 # List of origins allowed
-allow_origin = http://localhost:3000  # comma separated list allowed here.
+allow_origin = ['http://localhost:3000']
 # location of the logging.conf file
 logging = conf/logging.conf
 # True to mask secrets in API responses
@@ -114,7 +114,7 @@ collection_interval = 600
 # Controls if stderr should be redirected to the logs.
 redirect_stderr = False
 # Exclusion list of loggers to omit.
-excludes =
+excludes = 
 # True to mask secrets in the log files.
 mask_secrets = True
 
@@ -122,7 +122,7 @@ mask_secrets = True
 # URL of the messaging server.
 url = amqp://guest:guest@127.0.0.1:5672//
 # URL of all the nodes in a messaging service cluster.
-cluster_urls = # comma separated list or URLs allowed here.
+cluster_urls = []
 
 [mistral]
 # URL Mistral uses to talk back to the API.If not provided it defaults to public API URL. Note: This needs to be a base URL without API version (e.g. http://127.0.0.1:9101)
