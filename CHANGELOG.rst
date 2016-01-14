@@ -53,6 +53,7 @@ in development
   caused a top level failure (e.g. copying artifacts to a remote host failed). (bug-fix)
 * Display execution parameters when using ``st2 execution get <execution id>`` CLI command for
   workflow executions. (improvement)
+* Fix execution cancellation for task of mistral workflow. (bug fix)
 
 1.2.0 - December 07, 2015
 -------------------------
