@@ -236,7 +236,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
         if getattr(action, 'notify', None):
             notify = NotificationsHelper.to_model(action.notify)
         else:
-            notify = None
+            notify = NotificationsHelper.to_model({})
 
         model = cls.model(name=name, description=description, enable=enabled, enabled=enabled,
                           entry_point=entry_point, pack=pack, runner_type=runner_type,
