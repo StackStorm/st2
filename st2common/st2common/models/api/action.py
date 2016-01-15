@@ -237,8 +237,9 @@ class ActionAPI(BaseAPI, APIUIDMixin):
             notify = NotificationsHelper.to_model(action.notify)
         else:
             # We use embedded document model for ``notify`` in action model. If notify is
-            # unspecified, we set notify to None. Mongoengine interprets None as unmodified
-            # field therefore doesn't delete the embedded document.
+            # set notify to None, Mongoengine interprets ``None`` as unmodified
+            # field therefore doesn't delete the embedded document. Therefore, we need
+            # to use an empty document.
             notify = NotificationsHelper.to_model({})
 
         model = cls.model(name=name, description=description, enable=enabled, enabled=enabled,
