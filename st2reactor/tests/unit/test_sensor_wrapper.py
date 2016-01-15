@@ -185,4 +185,4 @@ class SensorServiceTestCase(unittest2.TestCase):
     def _set_mock_api_client(self, mock_api_client):
         mock_method = mock.Mock()
         mock_method.return_value = mock_api_client
-        self._sensor_service._get_api_client = mock_method
+        self._sensor_service._datastore_service._get_api_client = mock_method
