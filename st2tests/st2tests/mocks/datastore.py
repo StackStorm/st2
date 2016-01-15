@@ -30,6 +30,9 @@ class MockDatastoreService(DatastoreService):
     Mock DatastoreService for use in testing.
     """
     def __init__(self, logger, pack_name, class_name, api_username):
+        self._pack_name = pack_name
+        self._class_name = class_name
+
         # Holds mock KeyValuePair objects
         # Key is a KeyValuePair name and value is the KeyValuePair object
         self._datastore_items = {}

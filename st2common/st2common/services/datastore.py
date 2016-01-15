@@ -21,8 +21,7 @@ from st2common.util.api import get_full_public_api_url
 
 class DatastoreService(object):
     """
-    Instance of this class is passed to the python action runner and exposes "public"
-    methods which can be called by the action.
+    Class provides public methods for accessing datastore items.
     """
 
     DATASTORE_NAME_SEPARATOR = ':'
