@@ -521,7 +521,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         # Now post the same action with no notify
         ACTION_WITHOUT_NOTIFY = copy.copy(ACTION_WITH_NOTIFY)
         del ACTION_WITHOUT_NOTIFY['notify']
-        put_resp = self.__do_put(action_id, ACTION_WITHOUT_NOTIFY)
+        self.__do_put(action_id, ACTION_WITHOUT_NOTIFY)
         # Validate that notify section has vanished
         get_resp = self.__do_get_one(action_id)
         self.assertEqual(get_resp.json['notify'], {})
