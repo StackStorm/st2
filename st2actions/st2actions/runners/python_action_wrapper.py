@@ -57,7 +57,6 @@ class PythonActionWrapper(object):
         self._parent_args = parent_args or []
         self._class_name = None
         self._logger = logging.getLogger('PythonActionWrapper')
-        # logging.setup(cfg.CONF.actionrunner.logging)
 
         try:
             config.parse_args(args=self._parent_args)
