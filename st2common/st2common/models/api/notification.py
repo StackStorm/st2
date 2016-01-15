@@ -86,9 +86,6 @@ class NotificationsHelper(object):
             notify['on-failure'] = NotificationsHelper._from_model_sub_schema(
                 notify_model.on_failure)
 
-        if not notify:
-            return None
-
         return notify
 
     @staticmethod
