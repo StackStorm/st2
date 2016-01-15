@@ -250,6 +250,25 @@ ACTION_15 = {
     }
 }
 
+ACTION_WITH_NOTIFY = {
+    'name': 'st2.dummy.action_notify_test',
+    'description': 'test description',
+    'enabled': True,
+    'pack': 'dummy_pack_1',
+    'entry_point': '/tmp/test/action1.sh',
+    'runner_type': 'local-shell-script',
+    'parameters': {
+        'a': {'type': 'string', 'default': 'A1'},
+        'b': {'type': 'string', 'default': 'B1'},
+        'sudo': {'default': True, 'immutable': True}
+    },
+    'notify': {
+        'on-complete': {
+            'message': 'Woohoo! I completed!!!'
+        }
+    }
+}
+
 
 class TestActionController(FunctionalTest, CleanFilesTestCase):
     register_packs = True
@@ -488,6 +507,24 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(self.__get_action_id(get_resp), action_id)
         self.assertEqual(get_resp.json['tags'], ACTION_1['tags'])
+        self.__do_delete(action_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_action_with_notify_update(self):
+        post_resp = self.__do_post(ACTION_WITH_NOTIFY)
+        action_id = self.__get_action_id(post_resp)
+        get_resp = self.__do_get_one(action_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self.__get_action_id(get_resp), action_id)
+        self.assertTrue(get_resp.json['notify']['on-complete'] is not None)
+        # Now post the same action with no notify
+        ACTION_WITHOUT_NOTIFY = copy.copy(ACTION_WITH_NOTIFY)
+        del ACTION_WITHOUT_NOTIFY['notify']
+        put_resp = self.__do_put(action_id, ACTION_WITHOUT_NOTIFY)
+        # Validate that notify section has vanished
+        get_resp = self.__do_get_one(action_id)
+        self.assertEqual(get_resp.json['notify'], {})
         self.__do_delete(action_id)
 
     # TODO: Re-enable those tests after we ensure DB is flushed in setUp
