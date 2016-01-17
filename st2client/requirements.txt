@@ -5,3 +5,4 @@ python-dateutil
 pyyaml<4.0,>=3.11
 requests<3.0,>=2.7.0
 six==1.9.0
+certifi>=2015.11.20.1
