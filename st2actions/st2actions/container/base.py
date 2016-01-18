@@ -64,7 +64,7 @@ class RunnerContainer(object):
                                             action_db=action_db, liveaction_db=liveaction_db)
         else:
             liveaction_db = self._do_run(runner=runner, runnertype_db=runnertype_db,
-                                        action_db=action_db, liveaction_db=liveaction_db)
+                                         action_db=action_db, liveaction_db=liveaction_db)
 
         return liveaction_db.result
 
