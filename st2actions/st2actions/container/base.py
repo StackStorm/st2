@@ -137,7 +137,7 @@ class RunnerContainer(object):
             self._clean_up_auth_token(runner=runner, status=status)
 
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
-        runner.post_run(status, result)
+        runner.post_run(status=status, result=result)
         runner.container_service = None
 
         LOG.debug('Runner do_run result', extra={'result': updated_liveaction_db.result})
@@ -160,7 +160,8 @@ class RunnerContainer(object):
             executions.update_execution(liveaction_db)
 
             LOG.debug('Performing post_run for runner: %s', runner.runner_id)
-            runner.post_run(liveaction_db.status, {'error': 'Execution canceled by user.'})
+            result = {'error': 'Execution canceled by user.'}
+            runner.post_run(status=liveaction_db.status, result=result)
             runner.container_service = None
         except:
             _, ex, tb = sys.exc_info()
