@@ -44,35 +44,6 @@ __all__ = [
 
 class RunnerContainer(object):
 
-    def _get_rerun_reference(self, context):
-        execution_id = context.get('re-run', {}).get('ref')
-        return ActionExecution.get_by_id(execution_id) if execution_id else None
-
-    def _get_runner(self, runnertype_db, action_db, liveaction_db):
-        runner = get_runner(runnertype_db.runner_module)
-
-        resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
-                                                              action_db.entry_point)
-
-        runner.container_service = RunnerContainerService()
-        runner.action = action_db
-        runner.action_name = action_db.name
-        runner.liveaction = liveaction_db
-        runner.liveaction_id = str(liveaction_db.id)
-        runner.execution = ActionExecution.get(liveaction__id=runner.liveaction_id)
-        runner.execution_id = str(runner.execution.id)
-        runner.entry_point = resolved_entry_point
-        runner.context = getattr(liveaction_db, 'context', dict())
-        runner.callback = getattr(liveaction_db, 'callback', dict())
-        runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
-                                                              action_db.entry_point)
-
-        # For re-run, get the ActionExecutionDB in which the re-run is based on.
-        rerun_ref_id = runner.context.get('re-run', {}).get('ref')
-        runner.rerun_ex_ref = ActionExecution.get(id=rerun_ref_id) if rerun_ref_id else None
-
-        return runner
-
     def dispatch(self, liveaction_db):
         action_db = get_action_by_ref(liveaction_db.action)
         if not action_db:
@@ -248,6 +219,35 @@ class RunnerContainer(object):
     def _get_action_libs_abs_path(self, pack, entry_point):
         return RunnerContainerService.get_action_libs_abs_path(pack=pack,
                                                                entry_point=entry_point)
+
+    def _get_rerun_reference(self, context):
+        execution_id = context.get('re-run', {}).get('ref')
+        return ActionExecution.get_by_id(execution_id) if execution_id else None
+
+    def _get_runner(self, runnertype_db, action_db, liveaction_db):
+        runner = get_runner(runnertype_db.runner_module)
+
+        resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
+                                                              action_db.entry_point)
+
+        runner.container_service = RunnerContainerService()
+        runner.action = action_db
+        runner.action_name = action_db.name
+        runner.liveaction = liveaction_db
+        runner.liveaction_id = str(liveaction_db.id)
+        runner.execution = ActionExecution.get(liveaction__id=runner.liveaction_id)
+        runner.execution_id = str(runner.execution.id)
+        runner.entry_point = resolved_entry_point
+        runner.context = getattr(liveaction_db, 'context', dict())
+        runner.callback = getattr(liveaction_db, 'callback', dict())
+        runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
+                                                              action_db.entry_point)
+
+        # For re-run, get the ActionExecutionDB in which the re-run is based on.
+        rerun_ref_id = runner.context.get('re-run', {}).get('ref')
+        runner.rerun_ex_ref = ActionExecution.get(id=rerun_ref_id) if rerun_ref_id else None
+
+        return runner
 
     def _create_auth_token(self, context):
         if not context:
