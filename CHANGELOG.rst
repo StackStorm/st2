@@ -54,10 +54,12 @@ in development
 * Display execution parameters when using ``st2 execution get <execution id>`` CLI command for
   workflow executions. (improvement)
 * Fix execution cancellation for task of mistral workflow. (bug fix)
-* Fix runaway action triggers caused by state miscalculation for mistral workflow. (bug fix) 
+* Fix runaway action triggers caused by state miscalculation for mistral workflow. (bug fix)
 * The ``--tasks`` option in the CLI for ``st2 execution get`` and ``st2 run`` will be renamed to
   ``--show-tasks`` to avoid conflict with the tasks option in st2 execution re-run.
 * Add option to rerun one or more tasks in mistral workflow that has errored. (new-feature)
+* Make sure action specific short lived authentication token is deleted immediately when execution
+  is canceled. (improvement)
 
 1.2.0 - December 07, 2015
 -------------------------
