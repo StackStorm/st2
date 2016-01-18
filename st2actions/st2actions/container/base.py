@@ -88,7 +88,7 @@ class RunnerContainer(object):
         LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Process the request.
-        liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING:
+        if liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING:
             liveaction_db = self._do_cancel(runner=runner, runnertype_db=runnertype_db,
                                             action_db=action_db, liveaction_db=liveaction_db)
         else:
@@ -220,9 +220,9 @@ class RunnerContainer(object):
             except:
                 LOG.exception('Unable to clean-up auth_token.')
 
-           return True
+            return True
 
-       return False
+        return False
 
     def _update_live_action_db(self, liveaction_id, status, result, context):
         """
