@@ -162,18 +162,8 @@ class RunnerContainer(object):
             extra = {'liveaction_db': updated_liveaction_db}
             LOG.debug('Updated liveaction after run', extra=extra)
 
-            # Deletion of the runner generated auth token is delayed until the token expires.
-            # Async actions such as Mistral workflows uses the auth token to launch other
-            # actions in the workflow. If the auth token is deleted here, then the actions
-            # in the workflow will fail with unauthorized exception.
-            is_async_runner = isinstance(runner, AsyncActionRunner)
-            action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
-
-            if not is_async_runner or (is_async_runner and action_completed):
-                try:
-                    self._delete_auth_token(runner.auth_token)
-                except:
-                    LOG.exception('Unable to clean-up auth_token.')
+            # Always clean-up the auth_token
+            self._clean_up_auth_token(runner=runner, status=status)
 
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
         runner.post_run(status, result)
@@ -206,8 +196,33 @@ class RunnerContainer(object):
             # include the error message and traceback to try and provide some hints.
             result = {'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
             LOG.exception('Failed to cancel action %s.' % (liveaction_db.id), extra=result)
+        finally:
+            # Always clean-up the auth_token
+            status = liveaction_db.status
+            self._clean_up_auth_token(runner=runner, status=status)
 
         return liveaction_db
+
+    def _clean_up_auth_token(self, runner, status):
+        """
+        Clean up the temporary auth token for the current action.
+        """
+        # Deletion of the runner generated auth token is delayed until the token expires.
+        # Async actions such as Mistral workflows uses the auth token to launch other
+        # actions in the workflow. If the auth token is deleted here, then the actions
+        # in the workflow will fail with unauthorized exception.
+        is_async_runner = isinstance(runner, AsyncActionRunner)
+        action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
+
+        if not is_async_runner or (is_async_runner and action_completed):
+            try:
+                self._delete_auth_token(runner.auth_token)
+            except:
+                LOG.exception('Unable to clean-up auth_token.')
+
+           return True
+
+       return False
 
     def _update_live_action_db(self, liveaction_id, status, result, context):
         """
