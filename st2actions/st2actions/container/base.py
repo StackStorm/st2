@@ -88,9 +88,12 @@ class RunnerContainer(object):
         LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Process the request.
-        liveaction_db = (self._do_cancel(runner, runnertype_db, action_db, liveaction_db)
-                         if liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING
-                         else self._do_run(runner, runnertype_db, action_db, liveaction_db))
+        liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING:
+            liveaction_db = self._do_cancel(runner=runner, runnertype_db=runnertype_db,
+                                            action_db=action_db, liveaction_db=liveaction_db)
+        else:
+            liveaction_db = self._do_run(runner=runner, runnertype_db=runnertype_db,
+                                        action_db=action_db, liveaction_db=liveaction_db)
 
         return liveaction_db.result
 
