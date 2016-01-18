@@ -88,18 +88,21 @@ class PythonActionWrapper(object):
         config_parser = ContentPackConfigParser(pack_name=self._pack)
         config = config_parser.get_action_config(action_file_path=self._file_path)
 
-        action_cls.datastore = DatastoreService(logger=self._set_up_logger(),
-                                                pack_name=self._pack,
-                                                class_name=action_cls.__name__,
-                                                api_username="action_service")
         if config:
             LOG.info('Using config "%s" for action "%s"' % (config.file_path,
                                                             self._file_path))
 
-            return action_cls(config=config.config)
+            action_instance = action_cls(config=config.config)
         else:
             LOG.info('No config found for action "%s"' % (self._file_path))
-            return action_cls(config={})
+            action_instance = action_cls(config={})
+
+        action_instance.datastore = DatastoreService(logger=self._set_up_logger(),
+                                                     pack_name=self._pack,
+                                                     class_name=action_cls.__name__,
+                                                     api_username="action_service")
+        return action_instance
+
 
     def _set_up_logger(self):
         """

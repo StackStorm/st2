@@ -74,6 +74,7 @@ class Action(object):
         """
         self.config = config or {}
         self.logger = self._set_up_logger()
+        self.datastore = None # Instance of DatastoreService is added in PythonActionWrapper._get_action_instance
 
     @abc.abstractmethod
     def run(self, **kwargs):
