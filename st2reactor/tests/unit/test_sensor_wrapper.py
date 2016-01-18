@@ -6,9 +6,7 @@ import mock
 import st2tests.config as tests_config
 from st2tests.base import TESTS_CONFIG_PATH
 from st2reactor.container.sensor_wrapper import SensorWrapper
-from st2reactor.container.sensor_wrapper import SensorService
 from st2reactor.sensor.base import Sensor, PollingSensor
-from st2client.models.keyvalue import KeyValuePair
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
@@ -93,96 +91,3 @@ class SensorWrapperTestCase(unittest2.TestCase):
         self.assertIsNotNone(wrapper._sensor_instance)
         self.assertIsInstance(wrapper._sensor_instance, PollingSensor)
         self.assertEquals(wrapper._sensor_instance._poll_interval, poll_interval)
-
-
-class SensorServiceTestCase(unittest2.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super(SensorServiceTestCase, cls).setUpClass()
-        tests_config.parse_args()
-
-    def setUp(self):
-        super(SensorServiceTestCase, self).setUp()
-
-        file_path = os.path.join(RESOURCES_DIR, 'test_sensor.py')
-        trigger_types = ['trigger1', 'trigger2']
-        parent_args = ['--config-file', TESTS_CONFIG_PATH]
-        wrapper = SensorWrapper(pack='core', file_path=file_path,
-                                class_name='TestSensor',
-                                trigger_types=trigger_types,
-                                parent_args=parent_args)
-        self._sensor_service = SensorService(sensor_wrapper=wrapper)
-        self._sensor_service._get_api_client = mock.Mock()
-
-    def test_datastore_operations_list_values(self):
-        # Verify prefix filtering
-        mock_api_client = mock.Mock()
-        mock_api_client.keys.get_all.return_value = []
-        self._set_mock_api_client(mock_api_client)
-
-        self._sensor_service.list_values(local=True, prefix=None)
-        mock_api_client.keys.get_all.assert_called_with(prefix='core.TestSensor:')
-        self._sensor_service.list_values(local=True, prefix='ponies')
-        mock_api_client.keys.get_all.assert_called_with(prefix='core.TestSensor:ponies')
-
-        self._sensor_service.list_values(local=False, prefix=None)
-        mock_api_client.keys.get_all.assert_called_with(prefix=None)
-        self._sensor_service.list_values(local=False, prefix='ponies')
-        mock_api_client.keys.get_all.assert_called_with(prefix='ponies')
-
-        # No values in the datastore
-        mock_api_client = mock.Mock()
-        mock_api_client.keys.get_all.return_value = []
-        self._set_mock_api_client(mock_api_client)
-
-        values = self._sensor_service.list_values(local=True)
-        self.assertEqual(values, [])
-        values = self._sensor_service.list_values(local=False)
-        self.assertEqual(values, [])
-
-        # Values in the datastore
-        kvp1 = KeyValuePair()
-        kvp1.name = 'test1'
-        kvp1.value = 'bar'
-        kvp2 = KeyValuePair()
-        kvp2.name = 'test2'
-        kvp2.value = 'bar'
-        mock_return_value = [kvp1, kvp2]
-        mock_api_client.keys.get_all.return_value = mock_return_value
-        self._set_mock_api_client(mock_api_client)
-
-        values = self._sensor_service.list_values(local=True)
-        self.assertEqual(len(values), 2)
-        self.assertEqual(values, mock_return_value)
-
-    def test_datastore_operations_get_value(self):
-        mock_api_client = mock.Mock()
-        kvp1 = KeyValuePair()
-        kvp1.name = 'test1'
-        kvp1.value = 'bar'
-        mock_api_client.keys.get_by_id.return_value = kvp1
-        self._set_mock_api_client(mock_api_client)
-
-        value = self._sensor_service.get_value(name='test1', local=False)
-        self.assertEqual(value, kvp1.value)
-
-    def test_datastore_operations_set_value(self):
-        mock_api_client = mock.Mock()
-        mock_api_client.keys.update.return_value = True
-        self._set_mock_api_client(mock_api_client)
-
-        value = self._sensor_service.set_value(name='test1', value='foo', local=False)
-        self.assertTrue(value)
-
-    def test_datastore_operations_delete_value(self):
-        mock_api_client = mock.Mock()
-        mock_api_client.keys.delete.return_value = True
-        self._set_mock_api_client(mock_api_client)
-
-        value = self._sensor_service.delete_value(name='test', local=False)
-        self.assertTrue(value)
-
-    def _set_mock_api_client(self, mock_api_client):
-        mock_method = mock.Mock()
-        mock_method.return_value = mock_api_client
-        self._sensor_service._datastore_service._get_api_client = mock_method

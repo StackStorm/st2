@@ -103,7 +103,6 @@ class PythonActionWrapper(object):
                                                      api_username="action_service")
         return action_instance
 
-
     def _set_up_logger(self):
         """
         Set up a logger which logs all the messages with level DEBUG
