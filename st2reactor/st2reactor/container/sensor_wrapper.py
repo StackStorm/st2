@@ -52,8 +52,6 @@ class SensorService(object):
     methods which can be called by the sensor.
     """
 
-    DATASTORE_NAME_SEPARATOR = ':'
-
     def __init__(self, sensor_wrapper):
         self._sensor_wrapper = sensor_wrapper
         self._logger = self._sensor_wrapper._logger
