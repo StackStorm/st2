@@ -155,8 +155,10 @@ class ActionsController(resource.ContentPackResourceController):
 
         try:
             action_db = ActionAPI.to_model(action)
+            LOG.debug('/actions/ PUT incoming action: %s', action_db)
             action_db.id = action_id
             action_db = Action.add_or_update(action_db)
+            LOG.debug('/actions/ PUT after add_or_update: %s', action_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Unable to update action data=%s', action)
             abort(http_client.BAD_REQUEST, str(e))
