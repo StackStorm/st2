@@ -22,6 +22,14 @@ class NotificationsHelperTestCase(unittest2.TestCase):
 
     def test_model_transformations(self):
         notify = {}
+
+        notify_model = NotificationsHelper.to_model(notify)
+        self.assertEqual(notify_model.on_success, None)
+        self.assertEqual(notify_model.on_failure, None)
+        self.assertEqual(notify_model.on_complete, None)
+        notify_api = NotificationsHelper.from_model(notify_model)
+        self.assertEqual(notify_api, {})
+
         notify['on-complete'] = {
             'message': 'Action completed.',
             'data': {

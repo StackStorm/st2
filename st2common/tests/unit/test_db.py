@@ -303,6 +303,12 @@ class ActionModelTest(DbTestCase):
         retrieved = Action.get_by_id(saved.id)
         self.assertEqual(retrieved.notify.on_complete.message, on_complete.message)
 
+        # Now reset notify in action to empty and validate it's gone.
+        retrieved.notify = NotificationSchema(on_complete=None)
+        saved = Action.add_or_update(retrieved)
+        retrieved = Action.get_by_id(saved.id)
+        self.assertEqual(retrieved.notify.on_complete, None)
+
         # cleanup
         self._delete([retrieved])
         try:
