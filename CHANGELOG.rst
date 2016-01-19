@@ -62,6 +62,7 @@ in development
   the notify section from the db. (bug fix)
 * Make sure action specific short lived authentication token is deleted immediately when execution
   is canceled. (improvement)
+* Add datastore access to Python actions. (new-feature) #2396 [Kale Blankenship]
 
 1.2.0 - December 07, 2015
 -------------------------
