@@ -62,6 +62,8 @@ in development
   the notify section from the db. (bug fix)
 * Make sure action specific short lived authentication token is deleted immediately when execution
   is canceled. (improvement)
+* Ignore lock release errors which could occur while reopening log files. This error could simply
+  indicate that the lock was never acquired.
 
 1.2.0 - December 07, 2015
 -------------------------
