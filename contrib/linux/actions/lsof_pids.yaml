@@ -8,7 +8,6 @@
     cmd:
       immutable: true
       default: "for pid in {{pids}}; do lsof -p $pid; done"
-      position: 0
     pids:
       description: "List of pids"
       required: true

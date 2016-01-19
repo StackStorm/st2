@@ -13,18 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 from datetime import timedelta
 
 import bson
-import copy
 
-from st2common.cmd.purge_executions import purge_executions
+from st2common import log as logging
+from st2common.garbage_collection.executions import purge_executions
 from st2common.constants import action as action_constants
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.util import date as date_utils
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
+
+LOG = logging.getLogger(__name__)
 
 TEST_FIXTURES = {
     'executions': [
@@ -51,7 +54,7 @@ class TestPurgeExecutions(CleanDbTestCase):
 
     def test_no_timestamp_doesnt_delete_things(self):
         now = date_utils.get_datetime_utc_now()
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = now - timedelta(days=15)
         exec_model['end_timestamp'] = now - timedelta(days=14)
         exec_model['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -60,13 +63,16 @@ class TestPurgeExecutions(CleanDbTestCase):
 
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
-        purge_executions()
+
+        expected_msg = 'Specify a valid timestamp'
+        self.assertRaisesRegexp(ValueError, expected_msg, purge_executions,
+                                logger=LOG, timestamp=None)
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
 
     def test_purge_executions_with_action_ref(self):
         now = date_utils.get_datetime_utc_now()
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = now - timedelta(days=15)
         exec_model['end_timestamp'] = now - timedelta(days=14)
         exec_model['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -75,11 +81,11 @@ class TestPurgeExecutions(CleanDbTestCase):
 
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
-        purge_executions(action_ref='core.localzzz', timestamp=now - timedelta(days=10))
+        purge_executions(logger=LOG, action_ref='core.localzzz', timestamp=now - timedelta(days=10))
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
 
-        purge_executions(action_ref='core.local', timestamp=now - timedelta(days=10))
+        purge_executions(logger=LOG, action_ref='core.local', timestamp=now - timedelta(days=10))
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 0)
 
@@ -87,7 +93,7 @@ class TestPurgeExecutions(CleanDbTestCase):
         now = date_utils.get_datetime_utc_now()
 
         # Write one execution after cut-off threshold
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = now - timedelta(days=15)
         exec_model['end_timestamp'] = now - timedelta(days=14)
         exec_model['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -95,7 +101,7 @@ class TestPurgeExecutions(CleanDbTestCase):
         ActionExecution.add_or_update(exec_model)
 
         # Write one execution before cut-off threshold
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = now - timedelta(days=22)
         exec_model['end_timestamp'] = now - timedelta(days=21)
         exec_model['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -103,7 +109,7 @@ class TestPurgeExecutions(CleanDbTestCase):
         ActionExecution.add_or_update(exec_model)
 
         execs = ActionExecution.get_all()
-        purge_executions(timestamp=now - timedelta(days=20))
+        purge_executions(logger=LOG, timestamp=now - timedelta(days=20))
         execs = ActionExecution.get_all()
         self.assertEqual(len(execs), 1)
 
@@ -112,14 +118,14 @@ class TestPurgeExecutions(CleanDbTestCase):
         start_ts = now - timedelta(days=15)
         end_ts = now - timedelta(days=14)
 
-        liveaction_model = copy.copy(self.models['liveactions']['liveaction4.yaml'])
+        liveaction_model = copy.deepcopy(self.models['liveactions']['liveaction4.yaml'])
         liveaction_model['start_timestamp'] = start_ts
         liveaction_model['end_timestamp'] = end_ts
         liveaction_model['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
         liveaction = LiveAction.add_or_update(liveaction_model)
 
         # Write one execution before cut-off threshold
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = start_ts
         exec_model['end_timestamp'] = end_ts
         exec_model['status'] = action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -131,7 +137,7 @@ class TestPurgeExecutions(CleanDbTestCase):
         executions = ActionExecution.get_all()
         self.assertEqual(len(liveactions), 1)
         self.assertEqual(len(executions), 1)
-        purge_executions(timestamp=now - timedelta(days=10))
+        purge_executions(logger=LOG, timestamp=now - timedelta(days=10))
         liveactions = LiveAction.get_all()
         executions = ActionExecution.get_all()
         self.assertEqual(len(executions), 0)
@@ -142,38 +148,38 @@ class TestPurgeExecutions(CleanDbTestCase):
         start_ts = now - timedelta(days=15)
 
         # Write executions before cut-off threshold
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = start_ts
         exec_model['status'] = action_constants.LIVEACTION_STATUS_SCHEDULED
         exec_model['id'] = bson.ObjectId()
         ActionExecution.add_or_update(exec_model)
 
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = start_ts
         exec_model['status'] = action_constants.LIVEACTION_STATUS_RUNNING
         exec_model['id'] = bson.ObjectId()
         ActionExecution.add_or_update(exec_model)
 
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = start_ts
         exec_model['status'] = action_constants.LIVEACTION_STATUS_DELAYED
         exec_model['id'] = bson.ObjectId()
         ActionExecution.add_or_update(exec_model)
 
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = start_ts
         exec_model['status'] = action_constants.LIVEACTION_STATUS_CANCELING
         exec_model['id'] = bson.ObjectId()
         ActionExecution.add_or_update(exec_model)
 
-        exec_model = copy.copy(self.models['executions']['execution1.yaml'])
+        exec_model = copy.deepcopy(self.models['executions']['execution1.yaml'])
         exec_model['start_timestamp'] = start_ts
         exec_model['status'] = action_constants.LIVEACTION_STATUS_REQUESTED
         exec_model['id'] = bson.ObjectId()
         ActionExecution.add_or_update(exec_model)
 
         self.assertEqual(len(ActionExecution.get_all()), 5)
-        purge_executions(timestamp=now - timedelta(days=10), purge_incomplete=False)
+        purge_executions(logger=LOG, timestamp=now - timedelta(days=10), purge_incomplete=False)
         self.assertEqual(len(ActionExecution.get_all()), 5)
-        purge_executions(timestamp=now - timedelta(days=10), purge_incomplete=True)
+        purge_executions(logger=LOG, timestamp=now - timedelta(days=10), purge_incomplete=True)
         self.assertEqual(len(ActionExecution.get_all()), 0)

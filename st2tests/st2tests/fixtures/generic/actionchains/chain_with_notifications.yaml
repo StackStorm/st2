@@ -3,7 +3,7 @@
         -
             name: "c1"
             ref: "wolfpack.a1"
-            params:
+            parameters:
                 p1: "v1"
             on-success: "c2"
             on-failure: "c4"
@@ -26,10 +26,10 @@
         -
             name: "c2"
             ref: "wolfpack.a2"
-            params:
+            parameters:
                 p1: "v1"
             on-failure: "c4"
         -
             name: "c4"
             ref: "wolfpack.a1"
-            params: {}
+            parameters: {}

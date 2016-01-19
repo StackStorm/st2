@@ -7,7 +7,7 @@ parameters:
   auth:
     type: string
   headers:
-    type: string
+    type: object
   method:
     default: GET
     enum:

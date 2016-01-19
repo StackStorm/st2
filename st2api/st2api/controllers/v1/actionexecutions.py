@@ -16,6 +16,8 @@
 import copy
 import re
 import httplib
+import sys
+import traceback
 
 import jsonschema
 from oslo_config import cfg
@@ -28,7 +30,7 @@ from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUS_CANCELED
+from st2common.constants.action import LIVEACTION_STATUS_CANCELED, LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_CANCELABLE_STATES
 from st2common.exceptions.param import ParamException
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -41,6 +43,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
+from st2common.services import trace as trace_service
 from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
@@ -153,7 +156,15 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             liveaction_db.parameters = param_utils.render_live_params(
                 runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
                 liveaction_db.context)
-        except ParamException as e:
+        except ParamException:
+            # By this point the execution is already in the DB therefore need to mark it failed.
+            _, e, tb = sys.exc_info()
+            action_service.update_status(
+                liveaction=liveaction_db,
+                new_status=LIVEACTION_STATUS_FAILED,
+                result={'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))})
+            # Might be a good idea to return the actual ActionExecution rather than bubble up
+            # the execption.
             raise ValueValidationException(str(e))
 
         liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
@@ -257,18 +268,26 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         'trigger_instance'
     ]
 
-    class ExecutionParametersAPI(object):
-        def __init__(self, parameters=None):
+    class ExecutionSpecificationAPI(object):
+        def __init__(self, parameters=None, tasks=None):
             self.parameters = parameters or {}
+            self.tasks = tasks or []
 
         def validate(self):
+            if self.tasks and self.parameters:
+                raise ValueError('Parameters override is not supported when '
+                                 're-running task(s) for a workflow.')
+
             if self.parameters:
                 assert isinstance(self.parameters, dict)
 
+            if self.tasks:
+                assert isinstance(self.tasks, list)
+
             return self
 
-    @jsexpose(body_cls=ExecutionParametersAPI, status_code=http_client.CREATED)
-    def post(self, execution_parameters, execution_id):
+    @jsexpose(body_cls=ExecutionSpecificationAPI, status_code=http_client.CREATED)
+    def post(self, spec, execution_id):
         """
         Re-run the provided action execution optionally specifying override parameters.
 
@@ -276,21 +295,40 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             POST /executions/<id>/re_run
         """
-        parameters = execution_parameters.parameters
-
-        # Note: We only really need parameters here
         existing_execution = self._get_one(id=execution_id, exclude_fields=self.exclude_fields)
+
+        if spec.tasks and existing_execution.runner['name'] != 'mistral-v2':
+            raise ValueError('Task option is only supported for Mistral workflows.')
 
         # Merge in any parameters provided by the user
         new_parameters = copy.deepcopy(getattr(existing_execution, 'parameters', {}))
-        new_parameters.update(parameters)
+        new_parameters.update(spec.parameters)
 
         # Create object for the new execution
         action_ref = existing_execution.action['ref']
-        new_liveaction = LiveActionDB(action=action_ref, parameters=new_parameters)
 
-        result = self._handle_schedule_execution(liveaction=new_liveaction)
-        return result
+        # Include additional option(s) for the execution
+        context = {
+            're-run': {
+                'ref': execution_id,
+            }
+        }
+
+        if spec.tasks:
+            context['re-run']['tasks'] = spec.tasks
+
+        # Add trace to the new execution
+        trace = trace_service.get_trace_db_by_action_execution(
+            action_execution_id=existing_execution.id)
+
+        if trace:
+            context['trace_context'] = {'id_': str(trace.id)}
+
+        new_liveaction = LiveActionDB(action=action_ref,
+                                      context=context,
+                                      parameters=new_parameters)
+
+        return self._handle_schedule_execution(liveaction=new_liveaction)
 
 
 class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceController):

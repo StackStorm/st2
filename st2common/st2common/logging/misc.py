@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import os.path
 import logging
 
 __all__ = [
@@ -76,3 +77,31 @@ def set_log_level_for_all_loggers(level=logging.DEBUG):
             continue
 
         set_log_level_for_all_handlers(logger=logger)
+
+
+def get_logger_name_for_module(module):
+    """
+    Retrieve fully qualified logger name for current module (e.g.
+    st2common.cmd.sensormanager)
+
+    :type: ``str``
+    """
+    module_file = module.__file__
+    base_dir = os.path.dirname(os.path.abspath(module_file))
+    module_name = os.path.basename(module_file)
+    module_name = module_name.replace('.pyc', '').replace('.py', '')
+
+    split = base_dir.split(os.path.sep)
+    split = [component for component in split if component]
+
+    # Find first component which starts with st2 and use that as a starting point
+    start_index = 0
+    for index, component in enumerate(reversed(split)):
+        if component.startswith('st2'):
+            start_index = ((len(split) - 1) - index)
+            break
+
+    split = split[start_index:]
+    name = '.'.join(split) + '.' + module_name
+
+    return name

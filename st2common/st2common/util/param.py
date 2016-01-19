@@ -106,8 +106,11 @@ def _process_defaults(G, schemas):
     '''
     for schema in schemas:
         for name, value in six.iteritems(schema):
-            if name not in G.node or value.get('immutable', False):
-                _process(G, name, value.get('default', None))
+            absent = name not in G.node
+            is_none = G.node.get(name, {}).get('value') is None
+            immutable = value.get('immutable', False)
+            if absent or is_none or immutable:
+                _process(G, name, value.get('default'))
 
 
 def _validate(G):

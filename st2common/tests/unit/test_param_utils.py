@@ -276,6 +276,14 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(r_runner_params, {'r1': None, 'r2': u'r2', 'r3': u'a3'})
         self.assertEqual(r_action_params, {'a1': None, 'a2': u'a2'})
 
+        params = {}
+        runner_param_info = {'r1': {}, 'r2': {'default': 'r2'}, 'r3': {}}
+        action_param_info = {'r1': {}, 'r2': {}, 'r3': {'default': 'a3'}}
+        action_context = {'api_user': 'noob'}
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+        self.assertEqual(r_runner_params, {'r1': None, 'r2': u'r2', 'r3': u'a3'})
+
     def test_get_finalized_params_non_existent_template_key_in_action_context(self):
         params = {
             'r1': 'foo',

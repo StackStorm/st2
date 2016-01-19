@@ -50,7 +50,6 @@ cp -R contrib/chatops %{buildroot}/opt/stackstorm/packs/
 chmod -R 775 %{buildroot}/opt/stackstorm/packs/chatops
 cp -R contrib/examples %{buildroot}/usr/share/doc/st2/
 chmod -R 775 %{buildroot}/usr/share/doc/st2/examples
-cp -R docs/* %{buildroot}/usr/share/doc/st2/
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 cp -R bin %{buildroot}/%{python2_sitelib}/st2common/
 install st2/st2.conf %{buildroot}/etc/st2/st2.conf
@@ -81,5 +80,7 @@ install -m755 tools/migrate_triggers_to_include_ref_count.py %{buildroot}/usr/li
 /usr/bin/st2-bootstrap-rmq
 /usr/bin/st2-apply-rbac-definitions
 /usr/bin/st2-run-pack-tests
+/usr/bin/st2-purge-executions
+/usr/bin/st2-purge-trigger-instances
 /usr/bin/st2ctl
 /etc/logrotate.d/st2.conf

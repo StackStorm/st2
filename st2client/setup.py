@@ -32,13 +32,15 @@ apply_vagrant_workaround()
 setup(
     name=ST2_COMPONENT,
     version=__version__,
-    description='CLI and python client library for the StackStorm (st2) automation platform.',
+    description=('Python client library and CLI for the StackStorm (st2) event-driven '
+                 'automation platform.'),
     author='StackStorm',
     author_email='info@stackstorm.com',
     license='Apache License (2.0)',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Information Technology',
+        'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: POSIX :: Linux',
