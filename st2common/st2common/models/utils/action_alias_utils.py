@@ -59,14 +59,14 @@ class ActionAliasFormatParser(object):
         # substituting {{ ... }} with regex named groups, so that param_stream
         # matched against this expression yields a dict of params with values.
         param_match = r'["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
-        reg = re.sub(r'(\s*){{\s*([^=]+?)\s*}}(?=\s+{{[^}]+?=)',
-                     r'\s*' + param_match + r'\s+',
+        reg = re.sub(r'(\s*){{\s*([^=}]+?)\s*}}(?![\'"]?\s+}})',
+                     r'\1' + param_match,
                      self._format)
-        reg = re.sub(r'(\s*){{\s*(\S+)\s*=\s*(?:{.+?}|.+?)\s*}}(\s*)',
-                     r'(?:\s*' + param_match + r'\s+)?\s*',
+        reg = re.sub(r'(\s*){{\s*(\S+)\s*=\s*(?:{.+?}|.+?)\s*}}',
+                     r'(?:\1' + param_match + r')?',
                      reg)
-        reg = re.sub(r'(\s*){{\s*(.+?)\s*}}(\s*)',
-                     r'\s*' + param_match + r'\3',
+        reg = re.sub(r'(\s*){{\s*(.+?)\s*}}',
+                     r'\1' + param_match,
                      reg)
         reg = '^\s*' + reg + r'\s*$'
 
