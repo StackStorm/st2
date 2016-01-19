@@ -110,55 +110,45 @@ REMOVE_VALUE_NAME = '**removed**'
 
 OUTPUT_FILENAME_TEMPLATE = 'st2-debug-output-%(hostname)s-%(date)s.tar.gz'
 
+# Global variables
+global debug_info_config_file_options
+
 try:
     config.parse_args(args=[])
 except Exception:
     pass
 
 
-def get_config_details(yaml_file_name, section_name):
+def load_config_yaml_file(yaml_file_name):
+    """
+    To convert config yaml file into dict.
+    :param yaml_file_name: config yaml file name
+    """
+    global debug_info_config_file_options
+
+    with open(yaml_file_name, 'r') as yaml_file:
+        debug_info_config_file_options = yaml.load(yaml_file)
+
+
+def get_config_details(section_name, option_name=None):
     """
     To get the configurations from st2 config file.
-    :param yaml_file_name: config yaml file name
-    :section_name: option to get config from yaml file
-    :return: requested option from config file
+    :param section_name: section name
+    :param option_name: option name
+    :return: return requested option string if option_name provided else
+             return list of conf/log/ file paths or list of list commands
     :rtype: ``str`` or ``list``
     """
-    with open(yaml_file_name, 'r') as yaml_file:
-        conf = yaml.load(yaml_file)
-    if section_name == 'log_file_path':
-        log_files = conf.get('log_file_paths', None)
-        if log_files is not None:
-            log_file_paths = log_files.values()
-            return log_file_paths
-    if section_name == 'config_file_path':
-        conf_files = conf.get('conf_file_paths', None)
-        if conf_files is not None:
-            config_file_paths = conf_files.values()
-            return config_file_paths
-    if section_name == 'st2_config_file_name':
-        st2_config_file_name = os.path.split(conf['conf_file_paths']['st2_config_file_path'])[1]
-        return st2_config_file_name
-    if section_name == 'mistral_config_file_name':
-        mistral_config_file_name = os.path.split(conf['conf_file_paths']
-                                                 ['mistral_config_file_path'])[1]
-        return mistral_config_file_name
-    if section_name == 's3_bucket_url':
-        s3_bucket_url = conf['s3_bucket']['url']
-        return s3_bucket_url
-    if section_name == 'gpg_key_fingerprint':
-        gpg_fingerprint = conf['gpg']['gpg_key_fingerprint']
-        return gpg_fingerprint
-    if section_name == 'gpg_key':
-        gpg_key = conf['gpg']['gpg_key']
-        return gpg_key
-    if section_name == 'shell_commands':
-        commands_dict = conf.get('shell_commands', None)
-        shell_commands = commands_dict.values()
-        return shell_commands
-    if section_name == 'company_name':
-        name_dict = conf.get('company_name', None)
-        return name_dict['name']
+    global debug_info_config_file_options
+
+    for key, value in debug_info_config_file_options.iteritems():
+        if key == section_name:
+            if option_name:
+                return value[option_name]
+            else:
+                return value.values()
+    else:
+        print('section name "%s" is not exist' % section_name)
 
 
 def setup_logging():
@@ -281,7 +271,7 @@ def get_commands_output(config_yaml):
     :return: output file paths
     :rtype: ``list``
     """
-    commands_list = get_config_details(config_yaml, 'shell_commands')
+    commands_list = get_config_details('shell_commands')
     output_files_list = []
     for cmd in commands_list:
         output_file = os.path.join('/tmp', '%s.txt' % format_output_filename(cmd))
@@ -327,10 +317,13 @@ def create_archive(include_logs, include_configs, include_content, include_syste
     LOG.info('Collecting files...')
 
     if config_yaml:
-        st2_conf_file_name = get_config_details(config_yaml, 'st2_config_file_name')
-        mistral_conf_file_name = get_config_details(config_yaml, 'mistral_config_file_name')
-        log_files_paths = get_config_details(config_yaml, 'log_file_path')
-        config_files_paths = get_config_details(config_yaml, 'config_file_path')
+        st2_conf_file_name = os.path.split(get_config_details('conf_file_paths',
+                                           option_name='st2_config_file_path')
+                                           )[1]
+        mistral_conf_file_name = os.path.split(get_config_details('conf_file_paths',
+                                               option_name='mistral_config_file_path'))[1]
+        log_files_paths = get_config_details('log_file_paths')
+        config_files_paths = get_config_details('conf_file_paths')
     else:
         st2_conf_file_name = ST2_CONFIG_FILE_NAME
         mistral_conf_file_name = MISTRAL_CONFIG_FILE_NAME
@@ -487,10 +480,10 @@ def create_and_upload_archive(include_logs, include_configs, include_content,
                               include_system_info, include_shell_commands=False,
                               user_info=None, debug=False, config_yaml=None):
     if config_yaml:
-        s3_bucket_url = get_config_details(config_yaml, 's3_bucket_url')
-        gpg_key_fingerprint = get_config_details(config_yaml, 'gpg_key_fingerprint')
-        gpg_key = get_config_details(config_yaml, 'gpg_key')
-        company_name = get_config_details(config_yaml, 'company_name')
+        s3_bucket_url = get_config_details('s3_bucket', option_name='url')
+        gpg_key_fingerprint = get_config_details('gpg', option_name='gpg_key_fingerprint')
+        gpg_key = get_config_details('gpg', option_name='gpg_key')
+        company_name = get_config_details('company_name', option_name='name')
     else:
         s3_bucket_url = S3_BUCKET_URL
         gpg_key_fingerprint = GPG_KEY_FINGERPRINT
@@ -554,7 +547,8 @@ def main():
 
     arg_names = ARG_NAMES
     if args.config:
-        company_name = get_config_details(args.config, 'company_name')
+        load_config_yaml_file(args.config)
+        company_name = get_config_details('company_name', option_name='name')
         arg_names.append('exclude_shell_commands')
     else:
         company_name = COMPANY_NAME
