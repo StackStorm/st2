@@ -153,7 +153,8 @@ class MistralRunnerTest(DbTestCase):
         liveaction2, execution2 = action_service.request(liveaction2)
         liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
         self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
-        MistralRunner.resume.assert_called_with(execution1, context['re-run']['tasks'])
+        MistralRunner.resume.assert_called_with(ex_ref=execution1,
+                                                task_names=context['re-run']['tasks'])
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',

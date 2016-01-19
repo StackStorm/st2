@@ -194,7 +194,13 @@ class MistralRunner(AsyncActionRunner):
         resume_options = self._get_resume_options()
         tasks = resume_options.get('tasks', [])
         resume = self.rerun_ex_ref and tasks
-        return self.resume(self.rerun_ex_ref, tasks) if resume else self.start(action_parameters)
+
+        if resume:
+            result = self.resume(ex_ref=self.rerun_ex_ref, task_names=tasks)
+        else:
+            result = self.start(action_parameters=action_parameters)
+
+        return result
 
     def start(self, action_parameters):
         # Test connection
