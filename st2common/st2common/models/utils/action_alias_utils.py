@@ -60,7 +60,7 @@ class ActionAliasFormatParser(object):
         # matched against this expression yields a dict of params with values.
         param_match = r'["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
         reg = re.sub(r'(\s*){{\s*([^=]+?)\s*}}(?=\s+{{[^}]+?=)',
-                     r'\s*' + param_match + r'\s+',
+                     r'\1' + param_match + r'\s*',
                      self._format)
         reg = re.sub(r'(\s*){{\s*(\S+)\s*=\s*(?:{.+?}|.+?)\s*}}(\s*)',
                      r'(?:\s*' + param_match + r'\s+)?\s*',
