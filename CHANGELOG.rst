@@ -62,6 +62,8 @@ in development
   the notify section from the db. (bug fix)
 * Make sure action specific short lived authentication token is deleted immediately when execution
   is canceled. (improvement)
+* Replace ``chatops.format_result`` with ``chatops.format_execution_result`` and remove dependency
+  on st2 pack from st2contrib.
 
 1.2.0 - December 07, 2015
 -------------------------
