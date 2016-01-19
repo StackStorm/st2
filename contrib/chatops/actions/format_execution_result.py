@@ -50,5 +50,5 @@ class FormatResultAction(Action):
         execution = self.client.liveactions.get_by_id(id=execution_id)
         if not execution:
             return None
-        excludes = ["trigger", "trigger_type", "trigger_instance", "liveaction", "context"]
+        excludes = ["trigger", "trigger_type", "trigger_instance", "liveaction"]
         return execution.to_dict(exclude_attributes= excludes)
