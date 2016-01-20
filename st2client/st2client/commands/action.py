@@ -1050,14 +1050,11 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         self.parser.add_argument('id', nargs='?',
                                  metavar='id',
                                  help='ID of action execution to re-run ')
-
-        group = self.parser.add_mutually_exclusive_group()
-        group.add_argument('--parameters', nargs='*',
-                           help='List of keyword args, positional args, '
-                                'and optional args for the action.')
-        group.add_argument('--tasks', nargs='*',
-                           help='Name of the workflow tasks to re-run.')
-
+        self.parser.add_argument('parameters', nargs='*',
+                                 help='List of keyword args, positional args, '
+                                      'and optional args for the action.')
+        self.parser.add_argument('--tasks', nargs='*',
+                                 help='Name of the workflow tasks to re-run.')
         self.parser.add_argument('-a', '--async',
                                  action='store_true', dest='async',
                                  help='Do not wait for action to finish.')
