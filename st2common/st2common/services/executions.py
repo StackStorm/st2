@@ -168,6 +168,19 @@ def is_execution_canceled(execution_id):
         return False  # XXX: What to do here?
 
 
+def get_parent_context(liveaction_db):
+    """
+    Returns context of the parent execution.
+
+    :return: If found the parent context else None.
+    :rtype: dict
+    """
+    context = getattr(liveaction_db, 'context', None)
+    if not context:
+        return None
+    return liveaction_db.context.get('parent', None)
+
+
 class AscendingSortedDescendantView(object):
     def __init__(self):
         self._result = []
