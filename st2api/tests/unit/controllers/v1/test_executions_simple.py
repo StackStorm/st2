@@ -519,7 +519,7 @@ class TestActionExecutionController(FunctionalTest):
         re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
                                          data, expect_errors=True)
 
-        self.assertEqual(re_run_resp.status_int, 500)
+        self.assertEqual(re_run_resp.status_int, 400)
         self.assertIn('not supported when re-running task(s) for a workflow',
                       re_run_resp.json['faultstring'])
 
