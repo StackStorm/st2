@@ -62,6 +62,8 @@ in development
   the notify section from the db. (bug fix)
 * Make sure action specific short lived authentication token is deleted immediately when execution
   is canceled. (improvement)
+* Ignore lock release errors which could occur while reopening log files. This error could simply
+  indicate that the lock was never acquired.
 * Replace ``chatops.format_result`` with ``chatops.format_execution_result`` and remove dependency
   on st2 pack from st2contrib.
 

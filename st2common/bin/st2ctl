@@ -57,14 +57,25 @@ function validate_in_components() {
 
 function st2start() {
   for COM in ${COMPONENTS}; do
-    service ${COM} start
+    service_manager ${COM} start
   done
 }
 
 function st2stop() {
   for COM in ${COMPONENTS}; do
-    service ${COM} stop
+    service_manager ${COM} stop
   done
+}
+
+function service_manager() {
+  if [ -d /run/systemd/system ]; then
+    systemctl "${2}" "${1}"
+  elif command -v service 2>/dev/null; then
+    service "${1}" "${2}"
+  else
+    echo -e "\e[31mError: Unsupported service manager in the system! \e[0m\n"
+    exit 1
+  fi
 }
 
 # Next candidate for removal

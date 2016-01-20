@@ -43,12 +43,21 @@ def reopen_log_files(handlers):
 
         LOG.info('Re-opening log file "%s" with mode "%s"\n' %
                  (handler.baseFilename, handler.mode))
+
         try:
             handler.acquire()
             handler.stream.close()
             handler.stream = open(handler.baseFilename, handler.mode)
         finally:
-            handler.release()
+            try:
+                handler.release()
+            except RuntimeError as e:
+                if 'cannot release' in str(e):
+                    # Release failed which most likely indicates that acquire failed
+                    # and lock was never acquired
+                    LOG.warn('Failed to release lock', exc_info=True)
+                else:
+                    raise e
 
 
 def set_log_level_for_all_handlers(logger, level=logging.DEBUG):
