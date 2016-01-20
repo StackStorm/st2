@@ -197,7 +197,7 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                 obj = body_cls(**data)
                 try:
                     obj = obj.validate()
-                except jsonschema.ValidationError as e:
+                except (jsonschema.ValidationError, ValueError) as e:
                     raise exc.HTTPBadRequest(detail=e.message,
                                              comment=traceback.format_exc())
                 except Exception as e:
