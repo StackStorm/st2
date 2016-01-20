@@ -54,8 +54,9 @@ def create_request(liveaction):
     # Use the user context from the parent action execution. Subtasks in a workflow
     # action can be invoked by a system user and so we want to use the user context
     # from the original workflow action.
-    if getattr(liveaction, 'context', None) and 'parent' in liveaction.context:
-        parent_user = liveaction.context['parent'].get('user', None)
+    parent_context = get_parent_context(liveaction)
+    if parent_context:
+        parent_user = parent_context.get('user', None)
         if parent_user:
             liveaction.context['user'] = parent_user
 
@@ -210,6 +211,19 @@ def request_cancellation(liveaction, requester):
     execution = ActionExecution.get(liveaction__id=str(liveaction.id))
 
     return (liveaction, execution)
+
+
+def get_parent_context(liveaction_db):
+    """
+    Returns context of the parent execution.
+
+    :return: If found the parent context else None.
+    :rtype: dict
+    """
+    context = getattr(liveaction_db, 'context', None)
+    if not context:
+        return None
+    return liveaction_db.context.get('parent', None)
 
 
 def _cleanup_liveaction(liveaction):

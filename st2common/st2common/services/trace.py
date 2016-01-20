@@ -25,6 +25,7 @@ from st2common.models.db.trace import TraceDB, TraceComponentDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.trace import Trace
+from st2common.services import action as action_service
 
 LOG = logging.getLogger(__name__)
 
@@ -163,8 +164,9 @@ def get_trace_db_by_live_action(liveaction):
         return (created, trace_db)
     # 2. If not found then check if parent context contains an execution_id.
     #    This cover case for child execution of a workflow.
-    if not trace_context and 'parent' in liveaction.context:
-        parent_execution_id = liveaction.context['parent'].get('execution_id', None)
+    parent_context = action_service.get_parent_context(liveaction_db=liveaction)
+    if not trace_context and parent_context:
+        parent_execution_id = parent_context.get('execution_id', None)
         if parent_execution_id:
             # go straight to a trace_db. If there is a parent execution then that must
             # be associated with a Trace.
