@@ -111,11 +111,6 @@ def request_user_has_resource_db_permission(permission_type):
         @wraps(func)
         def func_wrapper(*args, **kwargs):
             controller_instance = args[0]
-
-            if len(args) < 2:
-                # Invalid number of args, missing resource id
-                raise ValueError('Invalid path - missing resource id, name or ref')
-
             resource_id = args[1]  # Note: This can either be id, name or ref
 
             get_one_db_method = controller_instance.get_one_db_method
