@@ -278,12 +278,15 @@ def add_or_update_given_trace_db(trace_db, action_executions=None, rules=None,
     return Trace.add_or_update(trace_db)
 
 
-def get_trace_component_for_action_execution(action_execution_db):
+def get_trace_component_for_action_execution(action_execution_db, liveaction_db):
     """
     Returns the trace_component compatible dict representation of an actionexecution.
 
     :param action_execution_db: ActionExecution to translate
     :type action_execution_db: ActionExecutionDB
+
+    :param liveaction_db: LiveAction corresponding to the supplied ActionExecution
+    :type liveaction_db: LiveActionDB
 
     :rtype: ``dict``
     """
@@ -294,11 +297,15 @@ def get_trace_component_for_action_execution(action_execution_db):
         'ref': str(action_execution_db.action.get('ref', ''))
     }
     caused_by = {}
-    if action_execution_db.rule and action_execution_db.trigger_instance:
+    if liveaction_db and 'parent' in liveaction_db.context:
+        caused_by['type'] = 'action_execution'
+        caused_by['id'] = liveaction_db.context['parent'].get('execution_id', None)
+    elif action_execution_db.rule and action_execution_db.trigger_instance:
         # Once RuleEnforcement is available that can be used instead.
         caused_by['type'] = 'rule'
         caused_by['id'] = '%s:%s' % (action_execution_db.rule['id'],
                                      action_execution_db.trigger_instance['id'])
+
     trace_component['caused_by'] = caused_by
     return trace_component
 

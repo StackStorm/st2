@@ -115,7 +115,7 @@ def create_request(liveaction):
         trace_service.add_or_update_given_trace_db(
             trace_db=trace_db,
             action_executions=[
-                trace_service.get_trace_component_for_action_execution(execution)
+                trace_service.get_trace_component_for_action_execution(execution, liveaction)
             ])
 
     return liveaction, execution
