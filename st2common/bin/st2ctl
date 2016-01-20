@@ -171,7 +171,7 @@ case ${1} in
     ;;
   restart-component)
     validate_in_components ${2}
-    service ${2} restart
+    service_manager ${2} restart
     ;;
   reopen-log-files)
     validate_in_components ${2}
