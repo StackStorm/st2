@@ -64,6 +64,8 @@ in development
   is canceled. (improvement)
 * Ignore lock release errors which could occur while reopening log files. This error could simply
   indicate that the lock was never acquired.
+* Replace ``chatops.format_result`` with ``chatops.format_execution_result`` and remove dependency
+  on st2 pack from st2contrib.
 
 1.2.0 - December 07, 2015
 -------------------------
