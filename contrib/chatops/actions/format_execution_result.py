@@ -19,7 +19,8 @@ class FormatResultAction(Action):
         with open(os.path.join(path, 'templates/default.j2'), 'r') as f:
             self.default_template = f.read()
 
-    def run(self, execution):
+    def run(self, execution_id):
+        execution = self._get_execution(execution_id)
         context = {
             'six': six,
             'execution': execution
@@ -42,3 +43,12 @@ class FormatResultAction(Action):
                     template = alias.result['format']
 
         return self.jinja.from_string(template).render(context)
+
+    def _get_execution(self, execution_id):
+        if not execution_id:
+            raise ValueError('Invalid execution_id provided.')
+        execution = self.client.liveactions.get_by_id(id=execution_id)
+        if not execution:
+            return None
+        excludes = ["trigger", "trigger_type", "trigger_instance", "liveaction"]
+        return execution.to_dict(exclude_attributes= excludes)
