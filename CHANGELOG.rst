@@ -66,6 +66,7 @@ in development
   indicate that the lock was never acquired.
 * Replace ``chatops.format_result`` with ``chatops.format_execution_result`` and remove dependency
   on st2 pack from st2contrib.
+* Trace also maintains causation chain through workflows.
 
 1.2.0 - December 07, 2015
 -------------------------
