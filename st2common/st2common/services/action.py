@@ -54,8 +54,9 @@ def create_request(liveaction):
     # Use the user context from the parent action execution. Subtasks in a workflow
     # action can be invoked by a system user and so we want to use the user context
     # from the original workflow action.
-    if getattr(liveaction, 'context', None) and 'parent' in liveaction.context:
-        parent_user = liveaction.context['parent'].get('user', None)
+    parent_context = executions.get_parent_context(liveaction)
+    if parent_context:
+        parent_user = parent_context.get('user', None)
         if parent_user:
             liveaction.context['user'] = parent_user
 
@@ -115,7 +116,7 @@ def create_request(liveaction):
         trace_service.add_or_update_given_trace_db(
             trace_db=trace_db,
             action_executions=[
-                trace_service.get_trace_component_for_action_execution(execution)
+                trace_service.get_trace_component_for_action_execution(execution, liveaction)
             ])
 
     return liveaction, execution
