@@ -18,7 +18,8 @@ if [ -d /run/systemd/system ]; then
   # systemd is running
   sv=systemd
   svbin=$SYSTEMDCTL
-elif [ "$INITCOMM" = init ] && ($UPSTARTCTL version 2>&1); then
+elif [ "$INITCOMM" = init ] && ($UPSTARTCTL version 2>&1) &&
+        [ -f /etc/init/$WORKERSVC.conf ]; then
   # init is running and upstart has been detected
   sv=upstart
   svbin=$UPSTARTCTL
