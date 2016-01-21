@@ -456,6 +456,7 @@ class TestTraceService(DbTestCase):
         }
         self.assertEqual(trace_component, expected)
 
+
 class TestTraceContext(TestCase):
 
     def test_str_method(self):
