@@ -131,13 +131,12 @@ class MistralResultsQuerier(Querier):
         # Identify the list of tasks that are not in completed states.
         active_tasks = [t for t in tasks if t['state'] not in DONE_STATES]
 
-        # On cancellation, mistral workflow executions are paused so that tasks can
-        # gracefully reach completion. If any task is not completed, do not mark st2
-        # action execution for the workflow complete. By marking the st2 action execution
-        # as running, this will keep the query for this mistral workflow execution active.
-        if wf_state not in DONE_STATES and not active_tasks and is_action_canceled:
+        # On cancellation, mistral workflow executions are paused so that tasks
+        # can gracefully reach completion. This is only temporary until a canceled
+        # status is added to mistral.
+        if (wf_state in DONE_STATES or wf_state == 'PAUSED') and is_action_canceled:
             status = action_constants.LIVEACTION_STATUS_CANCELED
-        elif wf_state in DONE_STATES and active_tasks:
+        elif wf_state in DONE_STATES and not is_action_canceled and active_tasks:
             status = action_constants.LIVEACTION_STATUS_RUNNING
         elif wf_state not in DONE_STATES:
             status = action_constants.LIVEACTION_STATUS_RUNNING

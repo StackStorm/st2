@@ -5,6 +5,7 @@ action:
   id: 54c6bb640640fd5211edef0c
   name: someworkflow
   pack: traces
+  ref: traces.someworkflow
   parameters:
     actionimmutable:
       default: actionimmutable

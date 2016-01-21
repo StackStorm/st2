@@ -8,7 +8,6 @@
     cmd:
       immutable: true
       default: "vmstat {{args}}"
-      position: 0
     args:
       description: "Command line arguments"
       default: " "

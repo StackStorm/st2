@@ -29,7 +29,7 @@ from astroid import scoped_nodes
 
 # A list of class names for which we want to skip the checks
 CLASS_NAME_BLACKLIST = [
-    'ExecutionParametersAPI'
+    'ExecutionSpecificationAPI'
 ]
 
 

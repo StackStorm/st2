@@ -116,7 +116,14 @@ def cast_params(action_ref, params, cast_overrides=None):
                       parameter_type)
             continue
         LOG.debug('Casting param: %s of type %s to type: %s', v, type(v), parameter_type)
-        params[k] = cast(v)
+
+        try:
+            params[k] = cast(v)
+        except Exception:
+            msg = ('Failed to cast value "%s" for parameter "%s" of type "%s". Perhaphs the '
+                   'value is of an invalid type?' % (v, k, parameter_type))
+            raise ValueError(msg)
+
     return params
 
 

@@ -3,26 +3,26 @@
         -
             name: "c1"
             ref: "core.local"
-            params:
+            parameters:
                 cmd: "echo c1"
             on-success: "c2"
             on-failure: "c4"
         -
             name: "c2"
             ref: "core.local"
-            params:
+            parameters:
                 cmd: "echo \"c2: parent exec is {{action_context.parent.execution_id}}.\""
             on-success: "c3"
             on-failure: "c4"
         -
             name: "c3"
             ref: "core.local"
-            params:
+            parameters:
                 cmd: "echo c3"
             on-failure: "c4"
         -
             name: "c4"
             ref: "core.local"
-            params:
+            parameters:
                 cmd: "echo fail c4"
     default: "c1"

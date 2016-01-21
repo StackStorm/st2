@@ -1,7 +1,7 @@
 ---
 chain:
 - name: c1
-  params:
+  parameters:
     p1:
       p1.1: '{{s1}}'
       p1.2: '{{s2}}'

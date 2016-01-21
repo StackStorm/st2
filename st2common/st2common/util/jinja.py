@@ -144,6 +144,13 @@ def render_values(mapping=None, context=None, allow_undefined=False):
     if not context or not mapping:
         return mapping
 
+    # Add in special __context variable that provides an easy way to get access to entire context.
+    # This mean __context is a reserve key word although backwards compat is preserved by making
+    # sure that real context is updated later and therefore will override the __context value.
+    super_context = {}
+    super_context['__context'] = context
+    super_context.update(context)
+
     env = get_jinja_environment(allow_undefined=allow_undefined)
     rendered_mapping = {}
     for k, v in six.iteritems(mapping):
@@ -156,7 +163,7 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             v = str(v)
 
         try:
-            rendered_v = env.from_string(v).render(context)
+            rendered_v = env.from_string(v).render(super_context)
         except Exception as e:
             # Attach key and value which failed the rendering
             e.key = k

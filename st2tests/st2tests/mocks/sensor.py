@@ -17,6 +17,10 @@
 Mock classes for use in pack testing.
 """
 
+from logging import RootLogger
+
+from mock import Mock
+
 from st2reactor.container.sensor_wrapper import SensorService
 from st2client.models.keyvalue import KeyValuePair
 
@@ -40,12 +44,26 @@ class MockSensorService(SensorService):
     def __init__(self, sensor_wrapper):
         self._sensor_wrapper = sensor_wrapper
 
+        # Holds a mock logger instance
+        # We use a Mock class so use can assert logger was called with particular arguments
+        self._logger = Mock(spec=RootLogger)
+
         # Holds mock KeyValuePair objects
         # Key is a KeyValuePair name and value is the KeyValuePair object
         self._datastore_items = {}
 
         # Holds a list of triggers which were dispatched
         self.dispatched_triggers = []
+
+    def get_logger(self, name):
+        """
+        Return mock logger instance.
+
+        Keep in mind that this method returns Mock class instance which means you can use all the
+        usual Mock class methods to assert that a particular message has been logged / logger has
+        been called with particular arguments.
+        """
+        return self._logger
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):
         item = {
@@ -56,6 +74,9 @@ class MockSensorService(SensorService):
         self.dispatched_triggers.append(item)
 
     def list_values(self, local=True, prefix=None):
+        """
+        Return a list of all values stored in a dictionary which is local to this class.
+        """
         key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
 
         if not key_prefix:
@@ -69,6 +90,9 @@ class MockSensorService(SensorService):
         return result
 
     def get_value(self, name, local=True):
+        """
+        Return a particular value stored in a dictionary which is local to this class.
+        """
         name = self._get_full_key_name(name=name, local=local)
 
         if name not in self._datastore_items:
@@ -78,6 +102,9 @@ class MockSensorService(SensorService):
         return kvp.value
 
     def set_value(self, name, value, ttl=None, local=True):
+        """
+        Store a value in a dictionary which is local to this class.
+        """
         if ttl:
             raise ValueError('MockSensorService.set_value doesn\'t support "ttl" argument')
 
@@ -92,6 +119,9 @@ class MockSensorService(SensorService):
         return True
 
     def delete_value(self, name, local=True):
+        """
+        Delete a value from a dictionary which is local to this class.
+        """
         name = self._get_full_key_name(name=name, local=local)
 
         if name not in self._datastore_items:

@@ -1,26 +1,17 @@
 ---
 chain:
   -
-    name: "get_execution"
-    ref: "st2.executions.get"
-    params:
-      id: "{{execution_id}}"
-      exclude: []
+    name: "format_execution_result"
+    ref: "chatops.format_execution_result"
+    parameters:
+      execution_id: "{{execution_id}}"
     publish:
-      execution: "{{get_execution.result}}"
-    on-success: "format_result"
-  -
-    name: "format_result"
-    ref: "chatops.format_result"
-    params:
-      execution: "{{execution}}"
-    publish:
-      message: "{{format_result.result}}"
+      message: "{{format_execution_result.result}}"
     on-success: "post_message"
   -
     name: "post_message"
     ref: "chatops.post_message"
-    params:
+    parameters:
       user: "{{user}}"
       channel: "{{channel}}"
       whisper: "{{whisper}}"

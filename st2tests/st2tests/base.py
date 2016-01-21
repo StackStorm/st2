@@ -488,7 +488,7 @@ class BaseActionTestCase(TestCase):
     Base class for action tests.
     """
 
-    sensor_cls = None
+    action_cls = None
 
 
 class FakeResponse(object):

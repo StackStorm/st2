@@ -133,7 +133,7 @@ class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):
         # First create remote execution directory.
         remote_dir = remote_action.get_remote_base_dir()
         LOG.debug('Creating remote execution dir.', extra={'_path': remote_dir})
-        self._parallel_ssh_client.mkdir(path=remote_action.get_remote_base_dir())
+        mkdir_result = self._parallel_ssh_client.mkdir(path=remote_action.get_remote_base_dir())
 
         # Copy the script to remote dir in remote host.
         local_script_abs_path = remote_action.get_local_script_abs_path()
@@ -142,18 +142,21 @@ class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):
         extra = {'_local_script': local_script_abs_path, '_remote_script': remote_script_abs_path,
                  'mode': file_mode}
         LOG.debug('Copying local script to remote box.', extra=extra)
-        self._parallel_ssh_client.put(local_path=local_script_abs_path,
-                                      remote_path=remote_script_abs_path,
-                                      mirror_local_mode=False, mode=file_mode)
+        put_result_1 = self._parallel_ssh_client.put(local_path=local_script_abs_path,
+                                                     remote_path=remote_script_abs_path,
+                                                     mirror_local_mode=False, mode=file_mode)
 
         # If `lib` exist for the script, copy that to remote host.
         local_libs_path = remote_action.get_local_libs_path_abs()
         if os.path.exists(local_libs_path):
             extra = {'_local_libs': local_libs_path, '_remote_path': remote_dir}
             LOG.debug('Copying libs to remote host.', extra=extra)
-            self._parallel_ssh_client.put(local_path=local_libs_path,
-                                          remote_path=remote_dir,
-                                          mirror_local_mode=True)
+            put_result_2 = self._parallel_ssh_client.put(local_path=local_libs_path,
+                                                         remote_path=remote_dir,
+                                                         mirror_local_mode=True)
+
+        result = mkdir_result or put_result_1 or put_result_2
+        return result
 
     def _run_script_on_remote_host(self, remote_action):
         command = remote_action.get_full_command_string()

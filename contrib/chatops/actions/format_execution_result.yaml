@@ -1,0 +1,12 @@
+---
+name: "format_execution_result"
+pack: chatops
+runner_type: "run-python"
+description: "Format an execution result for chatops"
+enabled: true
+entry_point: "format_execution_result.py"
+parameters:
+  execution_id:
+    type: "string"
+    description: "Id of execution to format"
+    required: true

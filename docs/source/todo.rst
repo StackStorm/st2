@@ -1,4 +1,0 @@
-TODOs for Docs
-====================
-    .. todolist::
-

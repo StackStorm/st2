@@ -17,8 +17,8 @@ general:
 
 machine:
   environment:
-    DISTROS: "wheezy jessie trusty centos7"
-    NOTESTS: "centos7"
+    DISTROS: "wheezy jessie trusty el6 el7"
+    NOTESTS: "el7"
     ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
     ST2_DOCKERFILES_REPO: https://github.com/StackStorm/st2-dockerfiles
     BUILD_DOCKER: 1

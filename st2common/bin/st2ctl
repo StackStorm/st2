@@ -1,0 +1,208 @@
+#!/bin/bash
+
+if [ $(id -u) -ne 0 ]; then
+    echo "Please run with root privileges"
+    exit 1
+fi
+
+LOGFILE="/dev/null"
+COMPONENTS="st2actionrunner st2api st2auth st2garbagecollector st2notifier st2resultstracker st2rulesengine st2sensorcontainer st2web mistral"
+STANCONF="/etc/st2/st2.conf"
+WEBUI_PORT=${WEBUI_PORT:-8080}
+
+# Ensure global environment is sourced if exists
+# Does not happen consistently with all OSes we support.
+[ -r /etc/environment ] && . /etc/environment
+
+
+function print_usage() {
+    echo "Usage: st2ctl {start, stop, restart, status}"
+    echo
+    echo "Usage: st2ctl {restart-component}"
+    echo "positional arguments:"
+    echo "  component           Name of the st2 service to restart."
+    echo "                      ${COMPONENTS}"
+    echo
+    echo "Usage: st2ctl {reopen-log-files}"
+    echo "positional arguments:"
+    echo "  component           Name of the st2 service to reopen the log files for."
+    echo "                      ${COMPONENTS}"
+    echo
+    echo "Usage: st2ctl {reload, clean}"
+    echo "optional arguments:"
+    echo "  --register-all      Register all."
+    echo "  --register-sensors  Register all sensors."
+    echo "  --register-rules    Register all rules."
+    echo "  --register-actions  Register all actions."
+    echo "  --register-aliases  Register all aliases."
+    echo "  --register-policies Register all policies."
+    echo "  --verbose           Output additional debug and informational messages."
+}
+
+function validate_in_components() {
+  COM=${1}
+
+  if [ -z ${COM} ]; then
+    echo -e "\e[31mError: Component is required! \e[0m\n"
+    print_usage
+    exit 1
+  fi
+
+  if [[ " ${COMPONENTS} " != *" ${COM} "* ]]; then
+    echo -e "\e[31mError: Invalid component provided: ${COM} \e[0m\n"
+    print_usage
+    exit 1
+  fi
+}
+
+function st2start() {
+  for COM in ${COMPONENTS}; do
+    service_manager ${COM} start
+  done
+}
+
+function st2stop() {
+  for COM in ${COMPONENTS}; do
+    service_manager ${COM} stop
+  done
+}
+
+function service_manager() {
+  if [ -d /run/systemd/system ]; then
+    systemctl "${2}" "${1}"
+  elif command -v service 2>/dev/null; then
+    service "${1}" "${2}"
+  else
+    echo -e "\e[31mError: Unsupported service manager in the system! \e[0m\n"
+    exit 1
+  fi
+}
+
+# Next candidate for removal
+# after we implement native `service st2component reopen` (nginx example) for each component
+function reopen_component_log_files() {
+  COM=${1}
+
+  PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
+  if [[ ! -z ${PID} ]]; then
+    for p in ${PID}; do
+      echo "Sending SIGUSR1 to ${COM} PID: ${p}"
+      kill -USR1 ${p}
+    done
+  else
+    echo "${COM} is not running"
+    return 1
+  fi
+}
+
+function register_content() {
+  ALLOWED_REGISTER_FLAGS='--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --verbose'
+  DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors'
+  flags="${@}"
+
+  if [ ! -z ${1} ]; then
+    for flag in ${flags}; do
+      if [[ " ${ALLOWED_REGISTER_FLAGS} " != *" $flag "* ]]; then # argument not allowed
+        echo -e "\e[31mError: Invalid flag provided: ${flag} \e[0m\n"
+        print_usage
+        exit 1
+      fi
+    done
+  fi
+
+  if [ -z ${1} ]; then
+    REGISTER_FLAGS=${DEFAULT_REGISTER_FLAGS}
+  elif [ ${1} == '--verbose' ] && [ -z ${2} ]; then
+    REGISTER_FLAGS="$DEFAULT_REGISTER_FLAGS ${1}"
+  else
+    REGISTER_FLAGS=${flags}
+  fi
+
+  echo "Registering content...[flags = ${REGISTER_FLAGS}]"
+  st2-register-content --config-file ${STANCONF} ${REGISTER_FLAGS}
+}
+
+function clean_db() {
+  echo "Dropping st2 Database..."
+  mongo st2 --eval "db.dropDatabase();"
+}
+
+function clean_logs() {
+  echo "Cleaning st2 Logs..."
+  rm -Rf /var/log/st2/*
+}
+
+function getpids() {
+  echo "##### st2 components status #####"
+
+  for COM in ${COMPONENTS}; do
+    if [[ "${COM}" == "st2web" && -z "${ST2_DISABLE_HTTPSERVER}" ]]; then
+      PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
+    elif [[ "${COM}" == "mistral" ]]; then
+      PID=`ps ax | grep -v grep | grep -v postgres | grep "${COM}" | awk '{print $1}'`
+    else
+      PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
+    fi
+
+    if [[ ! -z ${PID} ]]; then
+      for p in ${PID}; do
+        echo "${COM} PID: ${p}"
+      done
+    else
+      echo "${COM} is not running."
+    fi
+  done
+}
+
+
+case ${1} in
+  start)
+    st2start
+    getpids
+    ;;
+  stop)
+    st2stop
+    ;;
+  restart)
+    st2stop
+    sleep 1
+    st2start
+    getpids
+    ;;
+  restart-component)
+    validate_in_components ${2}
+    service_manager ${2} restart
+    ;;
+  reopen-log-files)
+    validate_in_components ${2}
+    if reopen_component_log_files ${2}; then
+      sleep 1
+      getpids
+    fi
+    ;;
+  reload)
+    register_content ${@:2}
+    getpids
+    ;;
+  clean)
+    echo "This will drop the database and delete all logs.  Are you sure [y/n]?"
+    read verify
+    if [[ "$verify" == "y" ]]; then
+      st2stop
+      clean_db
+      clean_logs
+      register_content ${@:2}
+      st2start
+      getpids
+    else
+      exit
+    fi
+    ;;
+  status)
+    getpids
+    ;;
+  *)
+    print_usage
+    exit 1
+    ;;
+esac
