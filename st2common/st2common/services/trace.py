@@ -299,7 +299,8 @@ def get_trace_component_for_action_execution(action_execution_db, liveaction_db)
         'ref': str(action_execution_db.action.get('ref', ''))
     }
     caused_by = {}
-    if liveaction_db and 'parent' in liveaction_db.context:
+    parent_context = executions.get_parent_context(liveaction_db=liveaction_db)
+    if liveaction_db and parent_context:
         caused_by['type'] = 'action_execution'
         caused_by['id'] = liveaction_db.context['parent'].get('execution_id', None)
     elif action_execution_db.rule and action_execution_db.trigger_instance:
