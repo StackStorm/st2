@@ -178,7 +178,7 @@ def get_parent_context(liveaction_db):
     context = getattr(liveaction_db, 'context', None)
     if not context:
         return None
-    return liveaction_db.context.get('parent', None)
+    return context.get('parent', None)
 
 
 class AscendingSortedDescendantView(object):
