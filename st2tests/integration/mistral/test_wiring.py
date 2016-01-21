@@ -142,3 +142,26 @@ class WiringTest(base.TestWorkflowExecution):
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
         self.assertEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
+
+    def test_rerun_subflow_task(self):
+        fd, path = tempfile.mkstemp()
+        os.chmod(path, 0666)
+
+        with open(path, 'w') as f:
+            f.write('1')
+
+        workflow_name = 'examples.mistral-test-rerun-subflow'
+        execution = self._execute_workflow(workflow_name, {'tempfile': path})
+        execution = self._wait_for_completion(execution)
+        self._assert_failure(execution)
+        orig_st2_ex_id = execution.id
+        orig_wf_ex_id = execution.context['mistral']['execution_id']
+
+        with open(path, 'w') as f:
+            f.write('0')
+
+        execution = self.st2client.liveactions.re_run(orig_st2_ex_id, tasks=['task1.task1'])
+        self.assertNotEqual(execution.id, orig_st2_ex_id)
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+        self.assertEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)

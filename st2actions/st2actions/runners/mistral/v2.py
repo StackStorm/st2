@@ -259,6 +259,36 @@ class MistralRunner(AsyncActionRunner):
 
         return (status, partial_results, exec_context)
 
+    def _get_tasks(self, wf_ex_id, full_task_name, task_name, executions):
+        task_exs = self._client.tasks.list(workflow_execution_id=wf_ex_id)
+
+        if '.' in task_name:
+            dot_pos = task_name.index('.')
+            parent_task_name = task_name[:dot_pos]
+            task_name = task_name[dot_pos + 1:]
+
+            parent_task_ids = [task.id for task in task_exs if task.name == parent_task_name]
+
+            workflow_ex_ids = [wf_ex.id for wf_ex in executions
+                               if (getattr(wf_ex, 'task_execution_id', None) and
+                                   wf_ex.task_execution_id in parent_task_ids)]
+
+            tasks = {}
+
+            for sub_wf_ex_id in workflow_ex_ids:
+                tasks.update(self._get_tasks(sub_wf_ex_id, full_task_name, task_name, executions))
+
+            return tasks
+
+        # pylint: disable=no-member
+        tasks = {
+            full_task_name: task.to_dict()
+            for task in task_exs
+            if task.name == task_name and task.state == 'ERROR'
+        }
+
+        return tasks
+
     def resume(self, ex_ref, task_names):
         mistral_ctx = ex_ref.context.get('mistral', dict())
 
@@ -271,10 +301,12 @@ class MistralRunner(AsyncActionRunner):
         if execution.state not in ['ERROR']:
             raise Exception('Workflow execution is not in a rerunable state.')
 
-        # pylint: disable=no-member
-        tasks = {task.name: task.to_dict()
-                 for task in self._client.tasks.list(workflow_execution_id=execution.id)
-                 if task.name in task_names and task.state == 'ERROR'}
+        executions = self._client.executions.list()
+
+        tasks = {}
+
+        for task_name in task_names:
+            tasks.update(self._get_tasks(execution.id, task_name, task_name, executions))
 
         missing_tasks = list(set(task_names) - set(tasks.keys()))
         if missing_tasks:
