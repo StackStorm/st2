@@ -6,9 +6,8 @@ After=network.target
 Type=simple
 User=st2
 Group=st2
-Environment="DAEMON_ARGS=--config-file /etc/st2/st2.conf"
 EnvironmentFile=-/etc/sysconfig/st2api
-ExecStart=/usr/share/python/st2/bin/st2api $DAEMON_ARGS
+ExecStart=/usr/share/python/st2/bin/gunicorn_pecan /usr/share/python/st2/lib/python2.7/site-packages/st2api/gunicorn_config.py -k eventlet -b 127.0.0.1:9101 --threads 10 --workers 1
 TimeoutSec=60
 PrivateTmp=true
 Restart=on-failure

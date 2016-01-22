@@ -6,9 +6,8 @@ After=network.target
 Type=simple
 User=st2
 Group=st2
-Environment="DAEMON_ARGS=--config-file /etc/st2/st2.conf"
 EnvironmentFile=-/etc/sysconfig/st2auth
-ExecStart=/usr/share/python/st2auth/bin/st2auth $DAEMON_ARGS
+ExecStart=/usr/share/python/st2auth/bin/uwsgi --ini /etc/uwsgi.d/st2auth.ini
 TimeoutSec=60
 PrivateTmp=true
 Restart=on-failure
