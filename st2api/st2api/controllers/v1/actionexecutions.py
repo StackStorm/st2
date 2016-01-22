@@ -269,12 +269,13 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
     ]
 
     class ExecutionSpecificationAPI(object):
-        def __init__(self, parameters=None, tasks=None):
+        def __init__(self, parameters=None, tasks=None, reset=None):
             self.parameters = parameters or {}
             self.tasks = tasks or []
+            self.reset = reset or []
 
         def validate(self):
-            if self.tasks and self.parameters:
+            if (self.tasks or self.reset) and self.parameters:
                 raise ValueError('Parameters override is not supported when '
                                  're-running task(s) for a workflow.')
 
@@ -283,6 +284,12 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             if self.tasks:
                 assert isinstance(self.tasks, list)
+
+            if self.reset:
+                assert isinstance(self.reset, list)
+
+            if list(set(self.reset) - set(self.tasks)):
+                raise ValueError('List of tasks to reset does not match the tasks to rerun.')
 
             return self
 
@@ -316,6 +323,9 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
         if spec.tasks:
             context['re-run']['tasks'] = spec.tasks
+
+        if spec.reset:
+            context['re-run']['reset'] = spec.reset
 
         # Add trace to the new execution
         trace = trace_service.get_trace_db_by_action_execution(

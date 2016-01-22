@@ -170,8 +170,65 @@ class MistralRunnerTest(DbTestCase):
         liveaction2, execution2 = action_service.request(liveaction2)
         liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
         self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
-        MistralRunner.resume.assert_called_with(ex_ref=execution1,
-                                                task_names=context['re-run']['tasks'])
+
+        task_specs = {
+            'x': {
+                'reset': False
+            }
+        }
+
+        MistralRunner.resume.assert_called_with(ex_ref=execution1, task_specs=task_specs)
+
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF1))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
+    @mock.patch.object(
+        MistralRunner, 'resume',
+        mock.MagicMock(
+            return_value=(action_constants.LIVEACTION_STATUS_RUNNING,
+                          {'tasks': []},
+                          {'execution_id': str(uuid.uuid4())})
+        )
+    )
+    def test_resume_option_reset_tasks(self):
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
+        liveaction1 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        liveaction1, execution1 = action_service.request(liveaction1)
+        self.assertFalse(MistralRunner.resume.called)
+
+        # Rerun the execution.
+        context = {
+            're-run': {
+                'ref': execution1.id,
+                'tasks': ['x', 'y'],
+                'reset': ['y']
+            }
+        }
+
+        liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
+        liveaction2, execution2 = action_service.request(liveaction2)
+        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
+        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        task_specs = {
+            'x': {
+                'reset': False
+            },
+            'y': {
+                'reset': True
+            }
+        }
+
+        MistralRunner.resume.assert_called_with(ex_ref=execution1, task_specs=task_specs)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -355,7 +412,11 @@ class MistralRunnerTest(DbTestCase):
             'st2_action_api_url': 'http://0.0.0.0:9101/v1'
         }
 
-        tasks.TaskManager.rerun.assert_called_with(WB1_SUB1_TASK2['id'], env=expected_env)
+        tasks.TaskManager.rerun.assert_called_with(
+            WB1_SUB1_TASK2['id'],
+            reset=False,
+            env=expected_env
+        )
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -399,3 +460,75 @@ class MistralRunnerTest(DbTestCase):
         liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
         self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Unable to identify', liveaction2.result.get('error'))
+
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF1))
+    @mock.patch.object(
+        workbooks.WorkbookManager, 'create',
+        mock.MagicMock(return_value=WB1))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=executions.Execution(None, WB1_MAIN_EXEC)))
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
+        mock.MagicMock(return_value=executions.Execution(None, WB1_MAIN_EXEC_ERRORED)))
+    @mock.patch.object(
+        executions.ExecutionManager, 'list',
+        mock.MagicMock(
+            return_value=[
+                executions.Execution(None, WB1_MAIN_EXEC_ERRORED),
+                executions.Execution(None, WB1_SUB1_EXEC_ERRORED)]))
+    @mock.patch.object(
+        tasks.TaskManager, 'list',
+        mock.MagicMock(side_effect=[WB1_MAIN_TASKS, WB1_SUB1_TASKS]))
+    @mock.patch.object(
+        tasks.TaskManager, 'rerun',
+        mock.MagicMock(return_value=None))
+    def test_resume_and_reset_subworkflow_task(self):
+        MistralRunner.entry_point = mock.PropertyMock(return_value=WB1_YAML_FILE_PATH)
+        liveaction1 = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
+        liveaction1, execution1 = action_service.request(liveaction1)
+
+        # Rerun the execution.
+        context = {
+            're-run': {
+                'ref': execution1.id,
+                'tasks': ['greet.say-friend'],
+                'reset': ['greet.say-friend']
+            }
+        }
+
+        liveaction2 = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS, context=context)
+        liveaction2, execution2 = action_service.request(liveaction2)
+        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
+
+        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        expected_env = {
+            'st2_liveaction_id': str(liveaction2.id),
+            'st2_execution_id': str(execution2.id),
+            '__actions': {
+                'st2.action': {
+                    'st2_context': {
+                        'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
+                        'notify': {},
+                        'parent': {
+                            're-run': context['re-run'],
+                            'execution_id': str(execution2.id)
+                        },
+                        'skip_notify_tasks': []
+                    }
+                }
+            },
+            'st2_action_api_url': 'http://0.0.0.0:9101/v1'
+        }
+
+        tasks.TaskManager.rerun.assert_called_with(
+            WB1_SUB1_TASK2['id'],
+            reset=True,
+            env=expected_env
+        )

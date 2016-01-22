@@ -1,0 +1,11 @@
+---
+name: mistral-test-rerun-with-items
+description: A sample workflow used to test the rerun feature.
+pack: examples
+runner_type: mistral-v2
+entry_point: workflows/mistral-test-rerun-with-items.yaml
+enabled: true
+parameters:
+    tempfile:
+        type: string
+        required: true
