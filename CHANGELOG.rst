@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+1.3.0 - January 22, 2016
+------------------------
+
 * Allow user to pass ``env`` parameter to ``packs.setup_virtualenv`` and ``packs.install``
   action.
 
