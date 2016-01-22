@@ -192,11 +192,18 @@ class MistralRunner(AsyncActionRunner):
         stop_max_delay=cfg.CONF.mistral.retry_stop_max_msec)
     def run(self, action_parameters):
         resume_options = self._get_resume_options()
-        tasks = resume_options.get('tasks', [])
-        resume = self.rerun_ex_ref and tasks
+
+        tasks_to_reset = resume_options.get('reset', [])
+
+        task_specs = {
+            task_name: {'reset': task_name in tasks_to_reset}
+            for task_name in resume_options.get('tasks', [])
+        }
+
+        resume = self.rerun_ex_ref and task_specs
 
         if resume:
-            result = self.resume(ex_ref=self.rerun_ex_ref, task_names=tasks)
+            result = self.resume(ex_ref=self.rerun_ex_ref, task_specs=task_specs)
         else:
             result = self.start(action_parameters=action_parameters)
 
@@ -289,7 +296,7 @@ class MistralRunner(AsyncActionRunner):
 
         return tasks
 
-    def resume(self, ex_ref, task_names):
+    def resume(self, ex_ref, task_specs):
         mistral_ctx = ex_ref.context.get('mistral', dict())
 
         if not mistral_ctx.get('execution_id'):
@@ -305,10 +312,10 @@ class MistralRunner(AsyncActionRunner):
 
         tasks = {}
 
-        for task_name in task_names:
+        for task_name, task_spec in six.iteritems(task_specs):
             tasks.update(self._get_tasks(execution.id, task_name, task_name, executions))
 
-        missing_tasks = list(set(task_names) - set(tasks.keys()))
+        missing_tasks = list(set(task_specs.keys()) - set(tasks.keys()))
         if missing_tasks:
             raise Exception('Only tasks in error state can be rerun. Unable to identify '
                             'rerunable tasks: %s. Please make sure that the task name is correct '
@@ -317,9 +324,13 @@ class MistralRunner(AsyncActionRunner):
         # Construct additional options for the workflow execution
         options = self._construct_workflow_execution_options()
 
-        for task in tasks.values():
+        for task_name, task_obj in six.iteritems(tasks):
             # pylint: disable=unexpected-keyword-arg
-            self._client.tasks.rerun(task['id'], env=options.get('env', None))
+            self._client.tasks.rerun(
+                task_obj['id'],
+                reset=task_specs[task_name].get('reset', False),
+                env=options.get('env', None)
+            )
 
         status = LIVEACTION_STATUS_RUNNING
         partial_results = {'tasks': []}
