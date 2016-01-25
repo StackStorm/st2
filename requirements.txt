@@ -34,3 +34,4 @@ semver>=2.1.2
 six==1.9.0
 stevedore<1.8,>=1.7.0
 tooz==1.20.0
+virtualenv<14.0,>=13.1.2
