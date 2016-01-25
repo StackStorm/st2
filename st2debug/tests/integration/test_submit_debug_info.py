@@ -31,6 +31,7 @@ FIXTURES_DIR = os.path.join(BASE_DIR, 'fixtures')
 GPG_INSTALLED = find_executable('gpg') is not None
 SUBMIT_DEBUG_YAML_FILE = os.path.join(FIXTURES_DIR, 'submit-debug-info.yaml')
 
+
 @unittest2.skipIf(not GPG_INSTALLED, 'gpg binary not available')
 class SubmitDebugInfoTestCase(CleanFilesTestCase):
     def setUp(self):
@@ -121,7 +122,7 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         self.assertTrue(os.path.isdir(pack_dir))
         self.assertTrue(not os.path.exists(config_path))
 
-    def test_create_archive_include_all_with_shell_commands(self):
+    def test_create_archive_include_all_with_config_option(self):
         # Load the submit debug info yaml file
         st2debug.cmd.submit_debug_info.load_config_yaml_file(SUBMIT_DEBUG_YAML_FILE)
         archive_path = create_archive(include_logs=True, include_configs=True,
@@ -152,12 +153,12 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         # Verify logs have been copied
         logs_path = os.path.join(extract_path, 'logs')
         log_files = os.listdir(logs_path)
-        self.assertTrue(len(log_files), 2)
+        self.assertTrue(len(log_files), 16)
 
         # Verify commands output have been copied
         commands_path = os.path.join(extract_path, 'commands')
         commands_output = os.listdir(commands_path)
-        self.assertTrue(len(log_files), 1)
+        self.assertTrue(len(commands_output), 1)
 
         # Verify configs have been copied
         st2_config_path = os.path.join(extract_path, 'configs', 'st2.conf')
