@@ -1,0 +1,55 @@
+---
+log_file_paths:
+    mistral_log_files_path: /var/log/mistral/*
+    message_files_path: /var/log/messages*
+    mongodb_log_files_path: /var/log/mongod/*
+    nginx_log_files_path: /var/log/nginx/*
+    postgres_log_files_path: /var/lib/pgsql/9.5/data/pg_log/*
+    rabbitmq_log_files_path: /var/log/rabbitmq/*
+    redis_log_files_path: /var/log/redis/*
+    salt_log_files_path: /var/log/*salt.log
+    st2_log_files_path: /var/log/st2/*.log
+    yum_log_files_path: /var/log/yum.log
+conf_file_paths:
+    st2_config_file_path: /etc/st2/st2.conf
+    mistral_config_file_path: /etc/mistral/mistral.conf
+s3_bucket:
+    url: https://plexxi-support.s3.amazonaws.com/connect/
+gpg:
+    gpg_key_fingerprint: 61765A448C8115A958CB01DE747C61F1FF67E6B8
+    gpg_key: |
+          -----BEGIN PGP PUBLIC KEY BLOCK-----
+          Version: GnuPG v2.0.14 (GNU/Linux)
+          
+          mQENBFZ7zZkBCACrSqIElndvQfog9TyzkG0p399+t+JSZ8CQBs0PvOXro4UGlgsz
+          7dUfVPu/yOgtuByTQ6HR+F2zHtZVZIYANE+42fncz8aDIKwesGLtbglyOcon80sn
+          XYon7KUBTy39x1hDZE5idghMw6uDhEbxCFW8WFkRxZtNhKmKLxmVQRF6F31St/LK
+          ddaw2jszI/ekpEcGRSaPuxOfptUPkfqN+ItbIqcOJQpLi6GkyNVBX9USkIUl5UpP
+          q+jTczCJYs5vMhxKHktoElRbcEwA+LOZXEuMCzoqfqIsppv+nYCTdQBpL0dRW692
+          zzWwRSRVlnW6lNrJWo3V9fM6NttteVBQ4/rlABEBAAG0MnBsZXh4aSAodG8gc3Vi
+          bWl0IGRlYnVnIGluZm8pIDxzdXBwb3J0QHBsZXh4aS5jb20+iQE4BBMBAgAiBQJW
+          e82ZAhsDBgsJCAcDAgYVCAIJCgsEFgIDAQIeAQIXgAAKCRB0fGHx/2fmuLAzB/9o
+          olpnnPgkIqwSeBvdb1Elo3hiBu1/xJBqL0n0M0eevwlo2udDWvWbPAi5m9NDqYOy
+          BMoweqW6yP6OmaZmuysN2L3lTAabjDGZCPynfazPYErRYD4N9scDRgAR6Hb2P3Cj
+          42to9JEQlTw7LGYDEvKBnGqRqIjv8UfYj6nHH7tW6XBJo3Me1CFsOC+dQkDbG3w7
+          Gatv0JAOYVkZcHEzLQutbCO2EdVi8RU/H5/F1obbjz1ZOuMxLwt5rDrY4SQpFwBM
+          VJchI8HYogqwaitzR1alsVQ5IKdIS0Dw24gv4oRkZCpe/AFrp4LHQ7tnu/6iD06i
+          vHuwdSZ38Al5xrEvCMz/uQENBFZ7zZkBCADqTPUuVN4JcD26GLMMGEhiXaMeY03j
+          qJBUXEoZRfgE9+/BCQzYLkOci1BjISlTMfrFob7Gi9gC/rrrI5ZE9TLTjKeiDjv8
+          xVDUuxqUDtBchJCJXoSvXlEi1ZfI4UQ1qk+m/2eRyicPuRz7Gg+JhR5hzM7g3YKS
+          wbJ2cX+TyBYLtPijpbGiAcs/vdYu7TZRfeOFGdcirtiByRGKh7WXB9qaqrsH+y05
+          8J6YMvVZi1u3fZemPl01UedRP412Bbzym89ozkuhCexPU2cB1uf3SREpzj4kEWPd
+          IrgqCGZCzpPS9CDAt5KIZzyjdCrVuF26C+bMn4r91mPag3m7ecC4p5lzABEBAAGJ
+          AR8EGAECAAkFAlZ7zZkCGwwACgkQdHxh8f9n5rgTzgf+PunMeCZyYmm2HRi4R8D/
+          mtx8FXjZc3/IvJ5AZAUPNGhqRInHRRRuIi/Ff8yKFwIBoYvPwQ2HFovIb14oVgeN
+          dvfSlndY1GtgbbYjeKHydNI7r41oW2vO+3AAs9sUrY2BotTGYciXaPmFcFW5aozI
+          hEEHYx/KajN0vCpQkKa3lWzviszak0nLs1TO8ppNPHgv3otNVFhLWZiIzv/A4LTY
+          WwShxYmHXZfu8p4wVeYNhT/g0ThFz8QpnzpZBO8PfROTS/5/v7aJrmkUTY/tTDhb
+          VDEaUjnGCtgflosRXd/uUK+VP0FibjJnP+W93PThnkpTJmFCuy5WPJlBYPHAMmZF
+          Tg==
+          =qDpc
+          -----END PGP PUBLIC KEY BLOCK-----
+shell_commands:
+    cmd1: rpm -qa
+company_name:
+    name: Plexxi
