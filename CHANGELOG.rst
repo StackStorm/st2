@@ -1,9 +1,11 @@
 Changelog
 =========
 
-in development
---------------
+1.3.2 - January 25, 2016
+------------------------
 
+- Make sure ``setup.py`` of ``st2client`` package doesn't rely on functionality which is only
+  available in newer versions of pip.
 
 1.3.0 - January 22, 2016
 ------------------------
