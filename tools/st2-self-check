@@ -106,7 +106,7 @@ do
     fi
 
     echo -n "Attempting Test ${TEST}..."
-    st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} --attr status | grep "succeeded"
+    st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} | grep "status" | grep -q "succeeded"
     if [ $? -ne 0 ]; then
         echo -e "ERROR!"
         ((ERRORS++))
@@ -116,7 +116,7 @@ do
 done
 
 echo -n "Attempting Example examples.mistral_examples..."
-st2 run examples.mistral_examples --attr status | grep "succeeded"
+st2 run examples.mistral_examples | grep "status" | grep -q "succeeded"
 if [ $? -ne 0 ]; then
     echo -e "ERROR!"
     ((ERRORS++))
