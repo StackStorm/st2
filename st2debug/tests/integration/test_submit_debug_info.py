@@ -157,8 +157,8 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
 
         # Verify commands output have been copied
         commands_path = os.path.join(extract_path, 'commands')
-        commands_output = os.listdir(commands_path)
-        self.assertTrue(len(commands_output), 1)
+        command_files = os.listdir(commands_path)
+        self.assertTrue(len(command_files), 1)
 
         # Verify configs have been copied
         st2_config_path = os.path.join(extract_path, 'configs', 'st2.conf')
