@@ -1,55 +1,68 @@
 ---
 log_file_paths:
-    mistral_log_files_path: /var/log/mistral/*
-    message_files_path: /var/log/messages*
-    mongodb_log_files_path: /var/log/mongod/*
-    nginx_log_files_path: /var/log/nginx/*
-    postgres_log_files_path: /var/lib/pgsql/9.5/data/pg_log/*
-    rabbitmq_log_files_path: /var/log/rabbitmq/*
-    redis_log_files_path: /var/log/redis/*
-    salt_log_files_path: /var/log/*salt.log
     st2_log_files_path: /var/log/st2/*.log
-    yum_log_files_path: /var/log/yum.log
+    mistral_log_files_path: /var/log/mistral/*
 conf_file_paths:
     st2_config_file_path: /etc/st2/st2.conf
     mistral_config_file_path: /etc/mistral/mistral.conf
 s3_bucket:
-    url: https://plexxi-support.s3.amazonaws.com/connect/
+    url: https://st2debuginfo.s3.amazonaws.com/connect/
 gpg:
-    gpg_key_fingerprint: 61765A448C8115A958CB01DE747C61F1FF67E6B8
+    gpg_key_fingerprint: BDE989A1F308B18D29789C717064B11C82F62D6F
     gpg_key: |
           -----BEGIN PGP PUBLIC KEY BLOCK-----
-          Version: GnuPG v2.0.14 (GNU/Linux)
-          
-          mQENBFZ7zZkBCACrSqIElndvQfog9TyzkG0p399+t+JSZ8CQBs0PvOXro4UGlgsz
-          7dUfVPu/yOgtuByTQ6HR+F2zHtZVZIYANE+42fncz8aDIKwesGLtbglyOcon80sn
-          XYon7KUBTy39x1hDZE5idghMw6uDhEbxCFW8WFkRxZtNhKmKLxmVQRF6F31St/LK
-          ddaw2jszI/ekpEcGRSaPuxOfptUPkfqN+ItbIqcOJQpLi6GkyNVBX9USkIUl5UpP
-          q+jTczCJYs5vMhxKHktoElRbcEwA+LOZXEuMCzoqfqIsppv+nYCTdQBpL0dRW692
-          zzWwRSRVlnW6lNrJWo3V9fM6NttteVBQ4/rlABEBAAG0MnBsZXh4aSAodG8gc3Vi
-          bWl0IGRlYnVnIGluZm8pIDxzdXBwb3J0QHBsZXh4aS5jb20+iQE4BBMBAgAiBQJW
-          e82ZAhsDBgsJCAcDAgYVCAIJCgsEFgIDAQIeAQIXgAAKCRB0fGHx/2fmuLAzB/9o
-          olpnnPgkIqwSeBvdb1Elo3hiBu1/xJBqL0n0M0eevwlo2udDWvWbPAi5m9NDqYOy
-          BMoweqW6yP6OmaZmuysN2L3lTAabjDGZCPynfazPYErRYD4N9scDRgAR6Hb2P3Cj
-          42to9JEQlTw7LGYDEvKBnGqRqIjv8UfYj6nHH7tW6XBJo3Me1CFsOC+dQkDbG3w7
-          Gatv0JAOYVkZcHEzLQutbCO2EdVi8RU/H5/F1obbjz1ZOuMxLwt5rDrY4SQpFwBM
-          VJchI8HYogqwaitzR1alsVQ5IKdIS0Dw24gv4oRkZCpe/AFrp4LHQ7tnu/6iD06i
-          vHuwdSZ38Al5xrEvCMz/uQENBFZ7zZkBCADqTPUuVN4JcD26GLMMGEhiXaMeY03j
-          qJBUXEoZRfgE9+/BCQzYLkOci1BjISlTMfrFob7Gi9gC/rrrI5ZE9TLTjKeiDjv8
-          xVDUuxqUDtBchJCJXoSvXlEi1ZfI4UQ1qk+m/2eRyicPuRz7Gg+JhR5hzM7g3YKS
-          wbJ2cX+TyBYLtPijpbGiAcs/vdYu7TZRfeOFGdcirtiByRGKh7WXB9qaqrsH+y05
-          8J6YMvVZi1u3fZemPl01UedRP412Bbzym89ozkuhCexPU2cB1uf3SREpzj4kEWPd
-          IrgqCGZCzpPS9CDAt5KIZzyjdCrVuF26C+bMn4r91mPag3m7ecC4p5lzABEBAAGJ
-          AR8EGAECAAkFAlZ7zZkCGwwACgkQdHxh8f9n5rgTzgf+PunMeCZyYmm2HRi4R8D/
-          mtx8FXjZc3/IvJ5AZAUPNGhqRInHRRRuIi/Ff8yKFwIBoYvPwQ2HFovIb14oVgeN
-          dvfSlndY1GtgbbYjeKHydNI7r41oW2vO+3AAs9sUrY2BotTGYciXaPmFcFW5aozI
-          hEEHYx/KajN0vCpQkKa3lWzviszak0nLs1TO8ppNPHgv3otNVFhLWZiIzv/A4LTY
-          WwShxYmHXZfu8p4wVeYNhT/g0ThFz8QpnzpZBO8PfROTS/5/v7aJrmkUTY/tTDhb
-          VDEaUjnGCtgflosRXd/uUK+VP0FibjJnP+W93PThnkpTJmFCuy5WPJlBYPHAMmZF
-          Tg==
-          =qDpc
-          -----END PGP PUBLIC KEY BLOCK-----
+          Version: GnuPG v1
+
+          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
+          =asEc
+          -----END PGP PUBLIC KEY BLOCK-----      
 shell_commands:
     cmd1: rpm -qa
 company_name:
-    name: Plexxi
+    name: MyCompany

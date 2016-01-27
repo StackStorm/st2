@@ -153,7 +153,7 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         # Verify logs have been copied
         logs_path = os.path.join(extract_path, 'logs')
         log_files = os.listdir(logs_path)
-        self.assertTrue(len(log_files), 16)
+        self.assertTrue(len(log_files), 2)
 
         # Verify commands output have been copied
         commands_path = os.path.join(extract_path, 'commands')
