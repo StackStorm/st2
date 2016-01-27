@@ -1,4 +1,5 @@
 # Remeber to list implicit packages here, otherwise version won't be fixated!
+bcrypt
 eventlet
 oslo.config
 passlib
