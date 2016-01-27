@@ -5,12 +5,8 @@ SYSTEMDCTL=/bin/systemctl
 UPSTARTCTL=/sbin/initctl
 SPAWNSVC=st2actionrunner
 WORKERSVC=st2actionrunner-worker
-
 # Set default number of workers
-if [ -z "$WORKERS" ]; then
-  WORKERS=$(/usr/bin/nproc 2>/dev/null)
-  WORKERS="${WORKERS:-4}"
-fi
+WORKERS="${WORKERS:-10}"
 
 ## Use running init system detection criterias
 #
