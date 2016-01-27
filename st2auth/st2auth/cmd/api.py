@@ -40,7 +40,8 @@ LOG = logging.getLogger(__name__)
 
 def _setup():
     common_setup(service='auth', config=config, setup_db=True, register_mq_exchanges=False,
-                 register_signal_handlers=True)
+                 register_signal_handlers=True, register_internal_trigger_types=False,
+                 run_migrations=False)
 
     if cfg.CONF.auth.mode not in VALID_MODES:
         raise ValueError('Valid modes are: %s' % (','.join(VALID_MODES)))
