@@ -88,6 +88,32 @@ class TestClientEndpoints(unittest2.TestCase):
         self.assertEqual(endpoints['base'], base_url)
         self.assertEqual(endpoints['api'], api_url)
 
+    def test_cacert_arg(self):
+        # Valid value, boolean True
+        base_url = 'http://www.stackstorm.com'
+        api_url = 'http://www.st2.com:9101/v1'
+
+        client = Client(base_url=base_url, api_url=api_url, cacert=True)
+        self.assertEqual(client.cacert, True)
+
+        # Valid value, boolean False
+        base_url = 'http://www.stackstorm.com'
+        api_url = 'http://www.st2.com:9101/v1'
+
+        client = Client(base_url=base_url, api_url=api_url, cacert=False)
+        self.assertEqual(client.cacert, False)
+
+        # Valid value, existing path to a CA bundle
+        cacert = os.path.abspath(__file__)
+        client = Client(base_url=base_url, api_url=api_url, cacert=cacert)
+        self.assertEqual(client.cacert, cacert)
+
+        # Invalid value, path to the bundle doesn't exist
+        cacert = os.path.abspath(__file__)
+        expected_msg = 'CA cert file "doesntexist" does not exist'
+        self.assertRaisesRegexp(ValueError, expected_msg, Client, base_url=base_url,
+                                api_url=api_url, cacert='doesntexist')
+
     def test_args_base_only(self):
         base_url = 'http://www.stackstorm.com'
         api_url = 'http://www.stackstorm.com:9101/v1'
