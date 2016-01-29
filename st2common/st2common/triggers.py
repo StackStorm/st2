@@ -71,8 +71,13 @@ def register_internal_trigger_types():
             is_action_trigger = trigger_definition['name'] == ACTION_SENSOR_TRIGGER['name']
             if is_action_trigger and not action_sensor_enabled:
                 continue
-
-            trigger_type_db = _register_internal_trigger_type(trigger_definition=trigger_definition)
-            registered_trigger_types_db.append(trigger_type_db)
+            try:
+                trigger_type_db = _register_internal_trigger_type(
+                    trigger_definition=trigger_definition)
+            except:
+                LOG.warning('Failed registering internal trigger: %s.', trigger_definition,
+                            exc_info=True)
+            else:
+                registered_trigger_types_db.append(trigger_type_db)
 
     return registered_trigger_types_db
