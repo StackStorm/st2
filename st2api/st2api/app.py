@@ -51,6 +51,9 @@ def setup_app(config=None, run_common_setup=True):
     LOG.info('Creating st2api: %s as Pecan app.', VERSION_STRING)
 
     if run_common_setup:
+        # This should be called in gunicorn case because we only want
+        # workers to connect to db, rabbbitmq etc. In standalone HTTP
+        # server case, this setup would have already occurred.
         common_setup(service='api', config=st2api_config, setup_db=True,
                      register_mq_exchanges=True,
                      register_signal_handlers=True,
@@ -58,9 +61,14 @@ def setup_app(config=None, run_common_setup=True):
                      run_migrations=True,
                      config_args=config.config_args)
 
-    # Irrespective of the supplied config, always use the pecan config generated from options
-    # to setup the pecan app.
-    config.app = _get_pecan_config().app
+    default_pecan_config = _get_pecan_config()
+    if not config:
+        # standalone HTTP server case
+        config = default_pecan_config
+    else:
+        # gunicorn case
+        config.app = default_pecan_config.app
+
     app_conf = dict(config.app)
 
     active_hooks = [hooks.RequestIDHook(), hooks.JSONErrorResponseHook(), hooks.LoggingHook()]
