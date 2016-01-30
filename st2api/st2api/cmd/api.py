@@ -71,7 +71,7 @@ def _run_server():
     # will still want to kill long running stream requests.
     register_api_signal_handlers(handler_func=queue_shutdown)
 
-    wsgi.server(sock, app.setup_app(), custom_pool=worker_pool)
+    wsgi.server(sock, app.setup_app(run_common_setup=False), custom_pool=worker_pool)
     return 0
 
 
