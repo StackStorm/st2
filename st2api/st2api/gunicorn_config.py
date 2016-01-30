@@ -26,6 +26,8 @@ __all__ = [
     'app'
 ]
 
+bind = '127.0.0.1:9101'
+
 config_args = ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')]
 
 app = {
