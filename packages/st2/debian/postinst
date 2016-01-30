@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for st2bundle
+# postinst script for st2
 #
 # see: dh_installdeb(1)
 

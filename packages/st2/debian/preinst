@@ -1,5 +1,5 @@
 #!/bin/sh
-# preinst script for st2bundle
+# preinst script for st2
 #
 # see: dh_installdeb(1)
 
