@@ -51,11 +51,12 @@ class WebhooksController(RestController):
         self._trigger_types = WEBHOOK_TRIGGER_TYPES.keys()
 
         self._trigger_dispatcher = TriggerDispatcher(LOG)
+        queue_suffix = self.__class__.__name__ + ':' + str(uuid.uuid4())
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger,
                                                trigger_types=self._trigger_types,
-                                               queue_suffix=self.__class__.__name__,
+                                               queue_suffix=queue_suffix,
                                                exclusive=True)
         self._trigger_watcher.start()
         self._register_webhook_trigger_types()
