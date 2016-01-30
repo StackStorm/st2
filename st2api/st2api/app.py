@@ -29,7 +29,7 @@ LOG = logging.getLogger(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def __get_pecan_config():
+def _get_pecan_config():
     opts = cfg.CONF.api_pecan
 
     cfg_dict = {
@@ -51,14 +51,16 @@ def setup_app(config=None, run_common_setup=True):
     LOG.info('Creating st2api: %s as Pecan app.', VERSION_STRING)
 
     if run_common_setup:
-        common_setup(service='api', config=st2api_config, setup_db=True, register_mq_exchanges=True,
-                     register_signal_handlers=True, register_internal_trigger_types=True,
+        common_setup(service='api', config=st2api_config, setup_db=True,
+                     register_mq_exchanges=True,
+                     register_signal_handlers=True,
+                     register_internal_trigger_types=True,
                      run_migrations=True,
                      config_args=config.config_args)
 
     # Irrespective of the supplied config, always use the pecan config generated from options
     # to setup the pecan app.
-    config.app = __get_pecan_config().app
+    config.app = _get_pecan_config().app
     app_conf = dict(config.app)
 
     active_hooks = [hooks.RequestIDHook(), hooks.JSONErrorResponseHook(), hooks.LoggingHook()]
