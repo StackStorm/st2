@@ -8,7 +8,7 @@ User=st2
 Group=st2
 Environment="DAEMON_ARGS=--config-file /etc/st2/st2.conf"
 EnvironmentFile=-/etc/sysconfig/st2rulesengine
-ExecStart=/usr/share/python/st2/bin/st2rulesengine $DAEMON_ARGS
+ExecStart=/opt/stackstorm/st2/bin/st2rulesengine $DAEMON_ARGS
 TimeoutSec=60
 PrivateTmp=true
 Restart=on-failure
