@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import eventlet
 import os
-import sys
 
 import pecan
 from oslo_config import cfg
@@ -29,13 +27,6 @@ from st2common.service_setup import setup as common_setup
 
 LOG = logging.getLogger(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-eventlet.monkey_patch(
-    os=True,
-    select=True,
-    socket=True,
-    thread=False if '--use-debugger' in sys.argv else True,
-    time=True)
 
 
 def __get_pecan_config():
