@@ -13,19 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import eventlet
 import os
+import sys
 
 import pecan
 from oslo_config import cfg
 from pecan.middleware.static import StaticFileMiddleware
 
+from st2api import config as st2api_config
 from st2common import hooks
 from st2common import log as logging
 from st2common.constants.system import VERSION_STRING
-
+from st2common.service_setup import setup as common_setup
 
 LOG = logging.getLogger(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+eventlet.monkey_patch(
+    os=True,
+    select=True,
+    socket=True,
+    thread=False if '--use-debugger' in sys.argv else True,
+    time=True)
 
 
 def __get_pecan_config():
@@ -46,13 +56,19 @@ def __get_pecan_config():
     return pecan.configuration.conf_from_dict(cfg_dict)
 
 
-def setup_app(config=None):
-    LOG.info(VERSION_STRING)
-    LOG.info('Creating %s as Pecan app.' % __name__)
+def setup_app(config=None, run_common_setup=True):
+    LOG.info('Creating st2api: %s as Pecan app.', VERSION_STRING)
 
-    if not config:
-        config = __get_pecan_config()
+    if run_common_setup:
+        # raise Exception('fkdhfs')
+        common_setup(service='api', config=st2api_config, setup_db=True, register_mq_exchanges=True,
+                     register_signal_handlers=True, register_internal_trigger_types=True,
+                     run_migrations=True,
+                     config_args=config.config_args)
 
+    # Irrespective of the supplied config, always use the pecan config generated from options
+    # to setup the pecan app.
+    config.app = __get_pecan_config().app
     app_conf = dict(config.app)
 
     active_hooks = [hooks.RequestIDHook(), hooks.JSONErrorResponseHook(), hooks.LoggingHook()]
