@@ -25,6 +25,7 @@ from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.constants.auth import VALID_MODES
 from st2auth import config
+config.register_opts()
 from st2auth import app
 
 
@@ -73,7 +74,7 @@ def _run_server():
     LOG.info('(PID=%s) ST2 Auth API is serving on %s://%s:%s.', os.getpid(),
              'https' if use_ssl else 'http', host, port)
 
-    wsgi.server(socket, app.setup_app(run_common_setup=False))
+    wsgi.server(socket, app.setup_app())
     return 0
 
 

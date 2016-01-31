@@ -39,13 +39,15 @@ def _get_pecan_config():
     return pecan.configuration.conf_from_dict(config)
 
 
-def setup_app(config=None, run_common_setup=True):
+def setup_app(config=None):
     LOG.info('Creating st2auth: %s as Pecan app.', VERSION_STRING)
 
-    if run_common_setup:
+    is_gunicorn = getattr(config, 'is_gunicorn', False)
+    if is_gunicorn:
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
         # server case, this setup would have already occurred.
+        st2auth_config.register_opts()
         common_setup(service='auth', config=st2auth_config, setup_db=True,
                      register_mq_exchanges=False,
                      register_signal_handlers=True,
@@ -53,13 +55,13 @@ def setup_app(config=None, run_common_setup=True):
                      run_migrations=False,
                      config_args=config.config_args)
 
-    default_pecan_config = _get_pecan_config()
     if not config:
         # standalone HTTP server case
-        config = default_pecan_config
+        config = _get_pecan_config()
     else:
         # gunicorn case
-        config.app = default_pecan_config.app
+        if is_gunicorn:
+            config.app = _get_pecan_config().app
 
     app_conf = dict(config.app)
 
