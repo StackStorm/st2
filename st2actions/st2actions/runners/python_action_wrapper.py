@@ -97,18 +97,22 @@ class PythonActionWrapper(object):
             LOG.info('No config found for action "%s"' % (self._file_path))
             action_instance = action_cls(config={})
 
-        action_instance.datastore = DatastoreService(logger=self._set_up_logger(),
+        # Setup action_instance proeprties
+        action_instance.logger = self._set_up_logger(action_cls.__name__)
+        action_instance.datastore = DatastoreService(logger=action_instance.logger,
                                                      pack_name=self._pack,
                                                      class_name=action_cls.__name__,
                                                      api_username="action_service")
+
         return action_instance
 
-    def _set_up_logger(self):
+    def _set_up_logger(self, action_name):
         """
         Set up a logger which logs all the messages with level DEBUG
         and above to stderr.
         """
-        logger = logging.getLogger('PythonActionWrapper')
+        logger_name = 'actions.python.%s' % (action_name)
+        logger = logging.getLogger(logger_name)
 
         console = stdlib_logging.StreamHandler()
         console.setLevel(stdlib_logging.DEBUG)
