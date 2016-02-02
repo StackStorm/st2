@@ -19,16 +19,17 @@ import pecan
 from oslo_config import cfg
 from pecan.middleware.static import StaticFileMiddleware
 
+from st2api import config as st2api_config
 from st2common import hooks
 from st2common import log as logging
 from st2common.constants.system import VERSION_STRING
-
+from st2common.service_setup import setup as common_setup
 
 LOG = logging.getLogger(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def __get_pecan_config():
+def _get_pecan_config():
     opts = cfg.CONF.api_pecan
 
     cfg_dict = {
@@ -47,15 +48,33 @@ def __get_pecan_config():
 
 
 def setup_app(config=None):
-    LOG.info(VERSION_STRING)
-    LOG.info('Creating %s as Pecan app.' % __name__)
+    LOG.info('Creating st2api: %s as Pecan app.', VERSION_STRING)
+
+    is_gunicorn = getattr(config, 'is_gunicorn', False)
+    if is_gunicorn:
+        st2api_config.register_opts()
+        # This should be called in gunicorn case because we only want
+        # workers to connect to db, rabbbitmq etc. In standalone HTTP
+        # server case, this setup would have already occurred.
+        common_setup(service='api', config=st2api_config, setup_db=True,
+                     register_mq_exchanges=True,
+                     register_signal_handlers=True,
+                     register_internal_trigger_types=True,
+                     run_migrations=True,
+                     config_args=config.config_args)
 
     if not config:
-        config = __get_pecan_config()
+        # standalone HTTP server case
+        config = _get_pecan_config()
+    else:
+        # gunicorn case
+        if is_gunicorn:
+            config.app = _get_pecan_config().app
 
     app_conf = dict(config.app)
 
-    active_hooks = [hooks.RequestIDHook(), hooks.JSONErrorResponseHook(), hooks.LoggingHook()]
+    active_hooks = [hooks.RequestIDHook(), hooks.JSONErrorResponseHook(),
+                    hooks.LoggingHook()]
 
     if cfg.CONF.auth.enable:
         active_hooks.append(hooks.AuthHook())
