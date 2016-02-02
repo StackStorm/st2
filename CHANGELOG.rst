@@ -1,11 +1,19 @@
 Changelog
 =========
 
-1.3.2 - January 25, 2016
+1.3.1 - January 25, 2016
 ------------------------
 
-- Make sure ``setup.py`` of ``st2client`` package doesn't rely on functionality which is only
+* Make sure ``setup.py`` of ``st2client`` package doesn't rely on functionality which is only
   available in newer versions of pip.
+* Changes to gunicorn configuration for both st2api and st2auth so common service setup code
+  is only run in workers and not master. (bug-fix)
+* Fix an issue where trigger watcher cannot get messages from queue if multiple API processes
+  are spun up. Now each trigger watcher gets its own queue and therefore there are no locking
+  issues. (bug-fix)
+* Dev environment by default now uses gunicorn to spin API and AUTH processes. (improvement)
+* Allow user to pass a boolean value for the cacert st2client constructor argument. This way it
+  now mimics the behavior of the verify argument of the requests.request method. (improvement)
 
 1.3.0 - January 22, 2016
 ------------------------

@@ -91,7 +91,7 @@ def create_request(liveaction):
     # XXX: There are cases when we don't want notifications to be sent for a particular
     # execution. So we should look at liveaction.parameters['notify']
     # and not set liveaction.notify.
-    if action_db.notify:
+    if not _is_notify_empty(action_db.notify):
         liveaction.notify = action_db.notify
 
     # Write to database and send to message queue.
@@ -219,3 +219,13 @@ def _cleanup_liveaction(liveaction):
     except:
         LOG.exception('Failed cleaning up LiveAction: %s.', liveaction)
         pass
+
+
+def _is_notify_empty(notify_db):
+    """
+    notify_db is considered to be empty if notify_db is None and neither
+    of on_complete, on_success and on_failure have values.
+    """
+    if not notify_db:
+        return True
+    return not (notify_db.on_complete or notify_db.on_success or notify_db.on_failure)

@@ -78,6 +78,3 @@ def _register_app_opts():
                    help='location of the logging.conf file')
     ]
     CONF.register_opts(logging_opts, group='api')
-
-
-register_opts()

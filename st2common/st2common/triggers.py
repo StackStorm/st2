@@ -47,9 +47,8 @@ def _register_internal_trigger_type(trigger_definition):
                           trigger_type_db.get_reference().ref)
             raise
         except StackStormDBObjectConflictError:
-            LOG.exception('Shadow trigger creation of "%s" failed with uniqueness conflict.',
-                          trigger_type_db.get_reference().ref)
-            raise
+            LOG.debug('Shadow trigger "%s" already exists. Ignoring.',
+                      trigger_type_db.get_reference().ref, exc_info=True)
 
     return trigger_type_db
 
@@ -71,8 +70,13 @@ def register_internal_trigger_types():
             is_action_trigger = trigger_definition['name'] == ACTION_SENSOR_TRIGGER['name']
             if is_action_trigger and not action_sensor_enabled:
                 continue
-
-            trigger_type_db = _register_internal_trigger_type(trigger_definition=trigger_definition)
-            registered_trigger_types_db.append(trigger_type_db)
+            try:
+                trigger_type_db = _register_internal_trigger_type(
+                    trigger_definition=trigger_definition)
+            except:
+                LOG.exception('Failed registering internal trigger: %s.', trigger_definition)
+                raise
+            else:
+                registered_trigger_types_db.append(trigger_type_db)
 
     return registered_trigger_types_db
