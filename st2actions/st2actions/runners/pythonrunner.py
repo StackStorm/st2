@@ -18,7 +18,6 @@ import sys
 import abc
 import json
 import uuid
-import logging as stdlib_logging
 
 import six
 from eventlet.green import subprocess
