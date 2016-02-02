@@ -1050,14 +1050,16 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         self.parser.add_argument('id', nargs='?',
                                  metavar='id',
                                  help='ID of action execution to re-run ')
-
-        group = self.parser.add_mutually_exclusive_group()
-        group.add_argument('--parameters', nargs='*',
-                           help='List of keyword args, positional args, '
-                                'and optional args for the action.')
-        group.add_argument('--tasks', nargs='*',
-                           help='Name of the workflow tasks to re-run.')
-
+        self.parser.add_argument('parameters', nargs='*',
+                                 help='List of keyword args, positional args, '
+                                      'and optional args for the action.')
+        self.parser.add_argument('--tasks', nargs='*',
+                                 help='Name of the workflow tasks to re-run.')
+        self.parser.add_argument('--no-reset', dest='no_reset', nargs='*',
+                                 help='Name of the with-items tasks to not reset. This only '
+                                      'applies to Mistral workflows. By default, all iterations '
+                                      'for with-items tasks is rerun. If no reset, only failed '
+                                      ' iterations are rerun.')
         self.parser.add_argument('-a', '--async',
                                  action='store_true', dest='async',
                                  help='Do not wait for action to finish.')
@@ -1095,6 +1097,7 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         execution = action_exec_mgr.re_run(execution_id=args.id,
                                            parameters=action_parameters,
                                            tasks=args.tasks,
+                                           no_reset=args.no_reset,
                                            **kwargs)
 
         execution = self._get_execution_result(execution=execution,

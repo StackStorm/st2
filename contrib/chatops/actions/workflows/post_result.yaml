@@ -1,21 +1,12 @@
 ---
 chain:
   -
-    name: "get_execution"
-    ref: "st2.executions.get"
+    name: "format_execution_result"
+    ref: "chatops.format_execution_result"
     parameters:
-      id: "{{execution_id}}"
-      exclude: []
+      execution_id: "{{execution_id}}"
     publish:
-      execution: "{{get_execution.result}}"
-    on-success: "format_result"
-  -
-    name: "format_result"
-    ref: "chatops.format_result"
-    parameters:
-      execution: "{{execution}}"
-    publish:
-      message: "{{format_result.result}}"
+      message: "{{format_execution_result.result}}"
     on-success: "post_message"
   -
     name: "post_message"

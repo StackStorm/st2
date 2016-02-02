@@ -320,12 +320,19 @@ class ActionAliasResourceManager(ResourceManager):
 
 class LiveActionResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def re_run(self, execution_id, parameters=None, tasks=None, **kwargs):
+    def re_run(self, execution_id, parameters=None, tasks=None, no_reset=None, **kwargs):
         url = '/%s/%s/re_run' % (self.resource.get_url_path_name(), execution_id)
+
+        tasks = tasks or []
+        no_reset = no_reset or []
+
+        if list(set(no_reset) - set(tasks)):
+            raise ValueError('List of tasks to reset does not match the tasks to rerun.')
 
         data = {
             'parameters': parameters,
-            'tasks': tasks
+            'tasks': tasks,
+            'reset': list(set(tasks) - set(no_reset))
         }
 
         response = self.client.post(url, data, **kwargs)

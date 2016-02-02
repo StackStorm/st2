@@ -192,11 +192,18 @@ class MistralRunner(AsyncActionRunner):
         stop_max_delay=cfg.CONF.mistral.retry_stop_max_msec)
     def run(self, action_parameters):
         resume_options = self._get_resume_options()
-        tasks = resume_options.get('tasks', [])
-        resume = self.rerun_ex_ref and tasks
+
+        tasks_to_reset = resume_options.get('reset', [])
+
+        task_specs = {
+            task_name: {'reset': task_name in tasks_to_reset}
+            for task_name in resume_options.get('tasks', [])
+        }
+
+        resume = self.rerun_ex_ref and task_specs
 
         if resume:
-            result = self.resume(ex_ref=self.rerun_ex_ref, task_names=tasks)
+            result = self.resume(ex_ref=self.rerun_ex_ref, task_specs=task_specs)
         else:
             result = self.start(action_parameters=action_parameters)
 
@@ -259,7 +266,37 @@ class MistralRunner(AsyncActionRunner):
 
         return (status, partial_results, exec_context)
 
-    def resume(self, ex_ref, task_names):
+    def _get_tasks(self, wf_ex_id, full_task_name, task_name, executions):
+        task_exs = self._client.tasks.list(workflow_execution_id=wf_ex_id)
+
+        if '.' in task_name:
+            dot_pos = task_name.index('.')
+            parent_task_name = task_name[:dot_pos]
+            task_name = task_name[dot_pos + 1:]
+
+            parent_task_ids = [task.id for task in task_exs if task.name == parent_task_name]
+
+            workflow_ex_ids = [wf_ex.id for wf_ex in executions
+                               if (getattr(wf_ex, 'task_execution_id', None) and
+                                   wf_ex.task_execution_id in parent_task_ids)]
+
+            tasks = {}
+
+            for sub_wf_ex_id in workflow_ex_ids:
+                tasks.update(self._get_tasks(sub_wf_ex_id, full_task_name, task_name, executions))
+
+            return tasks
+
+        # pylint: disable=no-member
+        tasks = {
+            full_task_name: task.to_dict()
+            for task in task_exs
+            if task.name == task_name and task.state == 'ERROR'
+        }
+
+        return tasks
+
+    def resume(self, ex_ref, task_specs):
         mistral_ctx = ex_ref.context.get('mistral', dict())
 
         if not mistral_ctx.get('execution_id'):
@@ -271,12 +308,14 @@ class MistralRunner(AsyncActionRunner):
         if execution.state not in ['ERROR']:
             raise Exception('Workflow execution is not in a rerunable state.')
 
-        # pylint: disable=no-member
-        tasks = {task.name: task.to_dict()
-                 for task in self._client.tasks.list(workflow_execution_id=execution.id)
-                 if task.name in task_names and task.state == 'ERROR'}
+        executions = self._client.executions.list()
 
-        missing_tasks = list(set(task_names) - set(tasks.keys()))
+        tasks = {}
+
+        for task_name, task_spec in six.iteritems(task_specs):
+            tasks.update(self._get_tasks(execution.id, task_name, task_name, executions))
+
+        missing_tasks = list(set(task_specs.keys()) - set(tasks.keys()))
         if missing_tasks:
             raise Exception('Only tasks in error state can be rerun. Unable to identify '
                             'rerunable tasks: %s. Please make sure that the task name is correct '
@@ -285,9 +324,13 @@ class MistralRunner(AsyncActionRunner):
         # Construct additional options for the workflow execution
         options = self._construct_workflow_execution_options()
 
-        for task in tasks.values():
+        for task_name, task_obj in six.iteritems(tasks):
             # pylint: disable=unexpected-keyword-arg
-            self._client.tasks.rerun(task['id'], env=options.get('env', None))
+            self._client.tasks.rerun(
+                task_obj['id'],
+                reset=task_specs[task_name].get('reset', False),
+                env=options.get('env', None)
+            )
 
         status = LIVEACTION_STATUS_RUNNING
         partial_results = {'tasks': []}
