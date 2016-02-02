@@ -10,6 +10,9 @@ in development
   processes are spun up. Now each trigger watcher gets its own queue and therefore
   there are no locking issues. (bug-fix)
 * Dev environment by default now uses gunicorn to spin API and AUTH processes. (improvement)
+* Allow user to pass a boolean value for the ``cacert`` st2client constructor argument. This way
+  it now mimics the behavior of the ``verify`` argument of the ``requests.request`` method.
+  (improvement)
 
 1.3.0 - January 22, 2016
 ------------------------
