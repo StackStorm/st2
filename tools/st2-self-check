@@ -79,7 +79,7 @@ for PACK in $PACKS; do
     if [ "$PACK" == "tests" ]; then
       ARG="tests"
     else
-      ARG="" 
+      ARG=""
     fi
     INSTALL=`${PYTHONPACK}/st2common/bin/st2-setup-${PACK} ${ARG}`
 
@@ -106,9 +106,7 @@ do
     fi
 
     echo -n "Attempting Test ${TEST}..."
-    RESULT_FILE=/tmp/${TEST}.out
-    st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} -j > ${RESULT_FILE}
-    CHECK_STATUS=`head -n 9 ${RESULT_FILE} | grep '"status": "succeeded"'`
+    st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} | grep "status" | grep -q "succeeded"
     if [ $? -ne 0 ]; then
         echo -e "ERROR!"
         ((ERRORS++))
@@ -118,9 +116,7 @@ do
 done
 
 echo -n "Attempting Example examples.mistral_examples..."
-RESULT_FILE=/tmp/examples.mistral_examples.out
-st2 run examples.mistral_examples -j > ${RESULT_FILE}
-CHECK_STATUS=`head -n 9 ${RESULT_FILE} | grep '"status": "succeeded"'`
+st2 run examples.mistral_examples | grep "status" | grep -q "succeeded"
 if [ $? -ne 0 ]; then
     echo -e "ERROR!"
     ((ERRORS++))
@@ -138,8 +134,8 @@ else
 
 cat << EOF
 
-############################################################# 
-###################################################   ####### 
+#############################################################
+###################################################   #######
 ###############################################   /~\   #####
 ############################################   _- \`~~~', ####
 ##########################################  _-~       )  ####

@@ -16,9 +16,11 @@
 import pecan
 from oslo_config import cfg
 
+from st2auth import config as st2auth_config
 from st2common import hooks
 from st2common import log as logging
-
+from st2common.constants.system import VERSION_STRING
+from st2common.service_setup import setup as common_setup
 
 LOG = logging.getLogger(__name__)
 
@@ -38,15 +40,37 @@ def _get_pecan_config():
 
 
 def setup_app(config=None):
+    LOG.info('Creating st2auth: %s as Pecan app.', VERSION_STRING)
+
+    is_gunicorn = getattr(config, 'is_gunicorn', False)
+    if is_gunicorn:
+        # This should be called in gunicorn case because we only want
+        # workers to connect to db, rabbbitmq etc. In standalone HTTP
+        # server case, this setup would have already occurred.
+        st2auth_config.register_opts()
+        common_setup(service='auth', config=st2auth_config, setup_db=True,
+                     register_mq_exchanges=False,
+                     register_signal_handlers=True,
+                     register_internal_trigger_types=False,
+                     run_migrations=False,
+                     config_args=config.config_args)
 
     if not config:
+        # standalone HTTP server case
         config = _get_pecan_config()
+    else:
+        # gunicorn case
+        if is_gunicorn:
+            config.app = _get_pecan_config().app
 
     app_conf = dict(config.app)
 
-    return pecan.make_app(
+    app = pecan.make_app(
         app_conf.pop('root'),
         logging=getattr(config, 'logging', {}),
         hooks=[hooks.JSONErrorResponseHook(), hooks.CorsHook()],
         **app_conf
     )
+    LOG.info('%s app created.' % __name__)
+
+    return app
