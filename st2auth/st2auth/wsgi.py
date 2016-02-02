@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from pecan import load_app
 from oslo_config import cfg
 
@@ -22,7 +24,7 @@ from st2common import log as logging
 from st2common.persistence import db_init
 
 
-cfg.CONF(args=['--config-file', '/etc/st2/st2.conf'])
+cfg.CONF(args=['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')])
 
 logging.setup(cfg.CONF.auth.logging)
 
