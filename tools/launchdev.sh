@@ -181,7 +181,8 @@ function st2start(){
         echo '  using uwsgi for auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-auth ./virtualenv/bin/uwsgi \
-            --socket 127.0.0.1:9100 --wsgi-file ./st2auth/st2auth/wsgi.py --processes 1
+            --http 127.0.0.1:9100 --wsgi-file ./st2auth/st2auth/wsgi.py --processes 1 --threads 10 \
+            --buffer-size=32768
     elif [ "${use_gunicorn}" = true ]; then
         echo '  using guicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
