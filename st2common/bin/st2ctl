@@ -1,9 +1,5 @@
 #!/bin/bash
 
-if [ $(id -u) -ne 0 ]; then
-    echo "Please run with root privileges"
-    exit 1
-fi
 
 LOGFILE="/dev/null"
 COMPONENTS="st2actionrunner st2api st2auth st2garbagecollector st2notifier st2resultstracker st2rulesengine st2sensorcontainer st2web mistral"
@@ -37,6 +33,15 @@ function print_usage() {
     echo "  --register-aliases  Register all aliases."
     echo "  --register-policies Register all policies."
     echo "  --verbose           Output additional debug and informational messages."
+    echo ""
+    echo "Most commands require elevated privileges."
+}
+
+function must_be_root() {
+    if [ $(id -u) -ne 0 ]; then
+        echo "Please run this command with root privileges"
+        exit 1
+    fi
 }
 
 function validate_in_components() {
@@ -157,23 +162,28 @@ function getpids() {
 
 case ${1} in
   start)
+    must_be_root
     st2start
     getpids
     ;;
   stop)
+    must_be_root
     st2stop
     ;;
   restart)
+    must_be_root  
     st2stop
     sleep 1
     st2start
     getpids
     ;;
   restart-component)
+    must_be_root
     validate_in_components ${2}
     service_manager ${2} restart
     ;;
   reopen-log-files)
+    must_be_root
     validate_in_components ${2}
     if reopen_component_log_files ${2}; then
       sleep 1
@@ -185,6 +195,7 @@ case ${1} in
     getpids
     ;;
   clean)
+    must_be_root
     echo "This will drop the database and delete all logs.  Are you sure [y/n]?"
     read verify
     if [[ "$verify" == "y" ]]; then
