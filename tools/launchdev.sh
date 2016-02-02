@@ -7,16 +7,20 @@ function usage() {
 subcommand=$1; shift
 runner_count=1
 use_gunicorn=true
+use_uwsgi_for_auth=false
 copy_examples=false
 load_content=true
 
-while getopts ":r:gxc" o; do
+while getopts ":r:gxcu" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
             ;;
         g)
             use_gunicorn=false
+            ;;
+        u)
+            use_uwsgi_for_auth=true
             ;;
         x)
             copy_examples=true
@@ -173,7 +177,12 @@ function st2start(){
 
     # Run the auth API server
     echo 'Starting screen session st2-auth...'
-    if [ "${use_gunicorn}" = true ]; then
+    if [ "${use_uwsgi_for_auth}" = true ]; then
+        echo '  using uwsgi for auth...'
+        export ST2_CONFIG_PATH=${ST2_CONF}
+        screen -d -m -S st2-auth ./virtualenv/bin/uwsgi \
+            --socket 127.0.0.1:9100 --wsgi-file ./st2auth/st2auth/wsgi.py --processes 1
+    elif [ "${use_gunicorn}" = true ]; then
         echo '  using guicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-auth ./virtualenv/bin/gunicorn_pecan \

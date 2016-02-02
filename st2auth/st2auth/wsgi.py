@@ -17,6 +17,7 @@ from pecan import load_app
 from oslo_config import cfg
 
 from st2auth import config  # noqa
+config.register_opts()
 from st2common import log as logging
 from st2common.persistence import db_init
 
