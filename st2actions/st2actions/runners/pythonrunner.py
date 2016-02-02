@@ -73,32 +73,13 @@ class Action(object):
         :type config: ``dict``
         """
         self.config = config or {}
-        self.logger = self._set_up_logger()
-
-        # Instance of DatastoreService is added in PythonActionWrapper._get_action_instance
+        # logger and datastore are assigned in PythonActionWrapper._get_action_instance
+        self.logger = None
         self.datastore = None
 
     @abc.abstractmethod
     def run(self, **kwargs):
         pass
-
-    def _set_up_logger(self):
-        """
-        Set up a logger which logs all the messages with level DEBUG
-        and above to stderr.
-        """
-        logger_name = 'actions.python.%s' % (self.__class__.__name__)
-        logger = logging.getLogger(logger_name)
-
-        console = stdlib_logging.StreamHandler()
-        console.setLevel(stdlib_logging.DEBUG)
-
-        formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-        console.setFormatter(formatter)
-        logger.addHandler(console)
-        logger.setLevel(stdlib_logging.DEBUG)
-
-        return logger
 
 
 class PythonRunner(ActionRunner):
