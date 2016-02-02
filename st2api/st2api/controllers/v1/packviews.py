@@ -80,7 +80,7 @@ class BaseFileController(BasePacksController):
         return file_stats.st_size, file_stats.st_mtime
 
     def _get_file_content(self, file_path):
-        with codecs.open(file_path, 'r+b') as fp:
+        with codecs.open(file_path, 'rb') as fp:
             content = fp.read()
 
         return content

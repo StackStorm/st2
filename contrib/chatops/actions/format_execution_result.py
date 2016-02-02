@@ -1,9 +1,9 @@
-import jinja2
 import six
 import os
 
 from st2actions.runners.pythonrunner import Action
 from st2client.client import Client
+from st2common.util import jinja as jinja_utils
 
 
 class FormatResultAction(Action):
@@ -12,7 +12,7 @@ class FormatResultAction(Action):
         api_url = os.environ.get('ST2_ACTION_API_URL', None)
         token = os.environ.get('ST2_ACTION_AUTH_TOKEN', None)
         self.client = Client(api_url=api_url, token=token)
-        self.jinja = jinja2.Environment(trim_blocks=True, lstrip_blocks=True)
+        self.jinja = jinja_utils.get_jinja_environment()
         self.jinja.tests['in'] = lambda item, list: item in list
 
         path = os.path.dirname(os.path.realpath(__file__))
