@@ -4,6 +4,12 @@ Changelog
 in development
 --------------
 
+* Changes to gunicorn configuration for both st2api and st2auth so common service
+  setup code is only run in workers and not master. (bug-fix)
+* Fix an issue where trigger watcher cannot get messages from queue if multiple API
+  processes are spun up. Now each trigger watcher gets its own queue and therefore
+  there are no locking issues. (bug-fix)
+* Dev environment by default now uses gunicorn to spin API and AUTH processes. (improvement)
 * Allow user to pass a boolean value for the ``cacert`` st2client constructor argument. This way
   it now mimics the behavior of the ``verify`` argument of the ``requests.request`` method.
   (improvement)
