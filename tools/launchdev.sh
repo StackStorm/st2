@@ -128,7 +128,7 @@ function st2start(){
     # Run the st2 API server
     echo 'Starting screen session st2-api...'
     if [ "${use_gunicorn}" = true ]; then
-        echo '  using guicorn to run st2-api...'
+        echo '  using gunicorn to run st2-api...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-api ./virtualenv/bin/gunicorn_pecan \
             ./st2api/st2api/gunicorn_config.py -k eventlet -b 127.0.0.1:9101 --workers 1
@@ -184,7 +184,7 @@ function st2start(){
             --http 127.0.0.1:9100 --wsgi-file ./st2auth/st2auth/wsgi.py --processes 1 --threads 10 \
             --buffer-size=32768
     elif [ "${use_gunicorn}" = true ]; then
-        echo '  using guicorn to run st2-auth...'
+        echo '  using gunicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-auth ./virtualenv/bin/gunicorn_pecan \
             ./st2auth/st2auth/gunicorn_config.py -k eventlet -b 127.0.0.1:9100 --workers 1
@@ -241,6 +241,11 @@ function st2stop(){
     if [ $? == 0 ]; then
         echo 'Killing existing st2 screen sessions...'
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -P
+    fi
+
+    if [ "${use_gunicorn}" = true ]; then
+        ps -e | grep "[s]t2auth/gunicorn_config.py\|[s]t2api/gunicorn_config.py" | \
+            cut -d " " -f1 | awk '{print $1}'  | xargs -L 1 kill
     fi
 }
 
