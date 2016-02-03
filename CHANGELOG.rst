@@ -13,6 +13,7 @@ in development
 * Allow user to pass a boolean value for the ``cacert`` st2client constructor argument. This way
   it now mimics the behavior of the ``verify`` argument of the ``requests.request`` method.
   (improvement)
+* Add datastore access to Python actions. (new-feature) #2396 [Kale Blankenship]
 
 1.3.0 - January 22, 2016
 ------------------------

@@ -16,6 +16,7 @@
 import sys
 import json
 import argparse
+import logging as stdlib_logging
 
 from st2common import log as logging
 from st2actions import config
@@ -23,6 +24,8 @@ from st2actions.runners.pythonrunner import Action
 from st2common.util import loader as action_loader
 from st2common.util.config_parser import ContentPackConfigParser
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
+from st2common.service_setup import db_setup
+from st2common.services.datastore import DatastoreService
 
 __all__ = [
     'PythonActionWrapper'
@@ -46,10 +49,14 @@ class PythonActionWrapper(object):
         :param parent_args: Command line arguments passed to the parent process.
         :type parse_args: ``list``
         """
+        db_setup()
+
         self._pack = pack
         self._file_path = file_path
         self._parameters = parameters or {}
         self._parent_args = parent_args or []
+        self._class_name = None
+        self._logger = logging.getLogger('PythonActionWrapper')
 
         try:
             config.parse_args(args=self._parent_args)
@@ -85,10 +92,37 @@ class PythonActionWrapper(object):
             LOG.info('Using config "%s" for action "%s"' % (config.file_path,
                                                             self._file_path))
 
-            return action_cls(config=config.config)
+            action_instance = action_cls(config=config.config)
         else:
             LOG.info('No config found for action "%s"' % (self._file_path))
-            return action_cls(config={})
+            action_instance = action_cls(config={})
+
+        # Setup action_instance proeprties
+        action_instance.logger = self._set_up_logger(action_cls.__name__)
+        action_instance.datastore = DatastoreService(logger=action_instance.logger,
+                                                     pack_name=self._pack,
+                                                     class_name=action_cls.__name__,
+                                                     api_username="action_service")
+
+        return action_instance
+
+    def _set_up_logger(self, action_name):
+        """
+        Set up a logger which logs all the messages with level DEBUG
+        and above to stderr.
+        """
+        logger_name = 'actions.python.%s' % (action_name)
+        logger = logging.getLogger(logger_name)
+
+        console = stdlib_logging.StreamHandler()
+        console.setLevel(stdlib_logging.DEBUG)
+
+        formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        console.setFormatter(formatter)
+        logger.addHandler(console)
+        logger.setLevel(stdlib_logging.DEBUG)
+
+        return logger
 
 
 if __name__ == '__main__':
