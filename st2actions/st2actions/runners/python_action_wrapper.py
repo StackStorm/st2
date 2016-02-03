@@ -49,7 +49,6 @@ class PythonActionWrapper(object):
         :param parent_args: Command line arguments passed to the parent process.
         :type parse_args: ``list``
         """
-        db_setup()
 
         self._pack = pack
         self._file_path = file_path
@@ -62,6 +61,8 @@ class PythonActionWrapper(object):
             config.parse_args(args=self._parent_args)
         except Exception:
             pass
+        else:
+            db_setup()
 
     def run(self):
         action = self._get_action_instance()
@@ -140,6 +141,7 @@ if __name__ == '__main__':
     parameters = args.parameters
     parameters = json.loads(parameters) if parameters else {}
     parent_args = json.loads(args.parent_args) if args.parent_args else []
+
     assert isinstance(parent_args, list)
 
     obj = PythonActionWrapper(pack=args.pack,
