@@ -244,8 +244,10 @@ function st2stop(){
     fi
 
     if [ "${use_gunicorn}" = true ]; then
-        ps -ef | grep "[s]t2auth/gunicorn_config.py\|[s]t2api/gunicorn_config.py" | \
-            awk '{print $2}' | xargs -L 1 kill
+        pids=`ps -ef | grep "[s]t2auth/gunicorn_config.py\|[s]t2api/gunicorn_config.py" | awk '{print $2}'`
+        if [ -n "$pids" ]; then
+            echo $pids | xargs -L 1 kill
+        fi
     fi
 }
 
