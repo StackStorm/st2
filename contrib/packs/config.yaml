@@ -1,2 +1,30 @@
 ---
 pack_group: st2packs
+
+repositories:
+  default:
+    protocol: "ssh"
+    server: "github.com"
+    port: ~
+    subtree: false
+
+  # To deploy a pack from a forked st2contrib on GitHub update & uncomment the following
+  # ! packs deploy me/st2contrib/<pack_name>
+  #me/st2contrib:
+  #  protocol: "https"
+  #  server: "github.com"
+  #  repo: "st2contrib"
+  #  user: "me"
+  #  port: ~
+  #  subtree: true
+
+  st2contrib:
+    protocol: "https"
+    repo: "st2contrib"
+    server: "github.com"
+    user: "StackStorm"
+    port: ~
+    subtree: true
+    auto_deployment:
+      branch: "master"
+      notify_channel: "community"

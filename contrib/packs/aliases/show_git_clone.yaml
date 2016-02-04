@@ -1,0 +1,17 @@
+---
+name: "show_git_clone"
+pack: "packs"
+description: "Show the Git clone command for a given pack"
+action_ref: "packs.pack_to_git_url"
+formats:
+  - "show git clone {{pack_to_expand}}"
+ack:
+  enabled: false
+result:
+  format: |
+    {% if execution.status == "succeeded"  %}
+    The following will clone this Repository:{~}
+    ```git clone {{ execution.result.result.url }}```
+    {% else %}
+    Sorry I don't know about that Git Repository: {{ execution.result.result.git_repo }}: {{ execution.result.result.error }} {~}
+    {% endif %}

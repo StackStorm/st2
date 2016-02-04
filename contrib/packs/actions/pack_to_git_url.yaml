@@ -1,0 +1,14 @@
+---
+  description: "For supplied ST2 pack name return the Git URL and extra information required for install."
+  enabled: true
+  entry_point: 'pack_to_git_url.py'
+  name: "pack_to_git_url"
+  pack: "packs"
+
+  parameters:
+    pack_to_expand:
+      type: "string"
+      description: "The ST2 pack you would like expanded to an git URL"
+      required: true
+
+  runner_type: "python-script"
