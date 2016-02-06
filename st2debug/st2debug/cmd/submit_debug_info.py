@@ -264,10 +264,9 @@ def format_output_filename(cmd):
     return cmd
 
 
-def get_commands_output(config_yaml):
+def get_commands_output():
     """"
     Get output of the required shell command and redirect the output to a file.
-    :param config_yaml: config yaml file name
     :return: output file paths
     :rtype: ``list``
     """
@@ -348,7 +347,7 @@ def create_archive(include_logs, include_configs, include_content, include_syste
 
         packs_base_paths = get_packs_base_paths()
         for index, packs_base_path in enumerate(packs_base_paths, 1):
-            dst = os.path.join(output_paths['content'], 'dir-%s' % (index))
+            dst = os.path.join(output_paths['content'], 'dir-%s' % index)
 
             try:
                 shutil.copytree(src=packs_base_path, dst=dst)
@@ -374,7 +373,7 @@ def create_archive(include_logs, include_configs, include_content, include_syste
 
     if include_shell_commands and config_yaml:
         LOG.debug('Including the required shell commands output files')
-        shell_commands_output_paths = get_commands_output(config_yaml)
+        shell_commands_output_paths = get_commands_output()
         copy_files(file_paths=shell_commands_output_paths, destination=output_paths['commands'])
 
     # Configs
@@ -473,7 +472,7 @@ def create_and_review_archive(include_logs, include_configs, include_content, in
         LOG.exception('Failed to generate tarball', exc_info=True)
     else:
         LOG.info('Debug tarball successfully generated and can be reviewed at: %s' %
-                 (plain_text_output_path))
+                 plain_text_output_path)
 
 
 def create_and_upload_archive(include_logs, include_configs, include_content,
@@ -511,7 +510,7 @@ def create_and_upload_archive(include_logs, include_configs, include_content,
         LOG.info('Debug tarball successfully uploaded to %s (name=%s)' %
                  (company_name, tarball_name))
         LOG.info('When communicating with support, please let them know the tarball name - %s' %
-                 (tarball_name))
+                 tarball_name)
 
     finally:
         # Remove tarballs
