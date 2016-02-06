@@ -82,7 +82,9 @@ GPG_KEY_FINGERPRINT = 'BDE989A1F308B18D29789C717064B11C82F62D6F'
 # by everyone, but only reeadable by StackStorm)
 S3_BUCKET_URL = 'https://st2debuginfo.s3.amazonaws.com/'
 
-# Default company name and the arguments list.
+# Default company name used in interactive prompts
 COMPANY_NAME = 'StackStorm'
+
+# Default command line argument list
 ARG_NAMES = ['exclude_logs', 'exclude_configs', 'exclude_content',
              'exclude_system_info']
