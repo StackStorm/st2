@@ -1,6 +1,6 @@
 ---
 version: '2.0'
-name: packs.pack_deploy
+name: packs.deploy
 description: A workflow to handle ST2 pack deloyments.
 
 workflows:
@@ -8,9 +8,9 @@ workflows:
   entry:
     type: direct
     input:
-      - install_pack
+      - packs
+      - repo_name
       - branch
-      - key
       - message
       - author
       - auto_deploy
@@ -18,7 +18,7 @@ workflows:
     output:
       repo_url: <% $.repo_url %>
       branch: <% $.branch %>
-      pack: <% $.pack %>
+      packs: <% $.packs %>
 
     tasks:
       auto_or_manual:
@@ -32,8 +32,9 @@ workflows:
         workflow: install
 
         input:
+          repo_name: <% $.repo_name %>
           branch: <% $.branch %>
-          install_pack: <% $.install_pack %>
+          packs: <% $.packs %>
 
         publish:
           repo_url: <% $.do_manual_install.repo_url %>
@@ -44,8 +45,7 @@ workflows:
 
         input:
           branch: <% $.branch %>
-          repository: <% $.install_pack %>
-          key: <% $.key %>
+          repo_name: <% $.repo_name %>
           message: <% $.message %>
           author: <% $.author %>
 
@@ -57,8 +57,7 @@ workflows:
     type: direct
     input:
       - branch
-      - repository
-      - key
+      - repo_name
       - message
       - author
 
@@ -67,17 +66,17 @@ workflows:
       pack: <% $.pack %>
 
     tasks:
-      check_auto_deploy:
+      auto_deploy_repo:
         # [365, 26]
-        action: packs.check_pack_auto_deploy
+        action: packs.auto_deploy_repo
 
         input:
           branch: <% $.branch %>
-          repository: <% $.repository %>
+          repo_name: <% $.repo_name %>
 
         publish:
-          notify_channel: <% $.check_auto_deploy.result.notify_channel %>
-          deployment_branch: <% $.check_auto_deploy.result.deployment_branch %>
+          notify_channel: <% $.auto_deploy_repo.result.notify_channel %>
+          deployment_branch: <% $.auto_deploy_repo.result.deployment_branch %>
 
         on-success:
           - auto_deploy_install
@@ -90,7 +89,8 @@ workflows:
         workflow: install
 
         input:
-          install_pack: <% $.repository %>
+          repo_name: <% $.repo_name %>
+          packs: [ <% $.repo_name %> ]
           branch: <% $.deployment_branch %>
 
         publish:
@@ -107,14 +107,14 @@ workflows:
         action: chatops.post_message
         input:
           channel:  <% $.notify_channel %>
-          message: "Failure in auto deployment of *<% $.repository %>* (branch: _<% $.deployment_branch %>_) triggered via commit by _<% $.author %>_!{~}```<% $.message %>```"
+          message: "Failure in auto deployment of *<% $.repo_name %>* (branch: _<% $.deployment_branch %>_) triggered via commit by _<% $.author %>_!{~}```<% $.message %>```"
 
       notify_success:
         # [105, 230]
         action: chatops.post_message
         input:
           channel: <% $.notify_channel %>
-          message: "Auto deployment of *<% $.repository %>* (branch: _<% $.deployment_branch %>_) triggered via commit by _<% $.author %>_!{~}```<% $.message %>```"
+          message: "Auto deployment of *<% $.repo_name %>* (branch: _<% $.deployment_branch %>_) triggered via commit by _<% $.author %>_!{~}```<% $.message %>```"
 
       no_auto_deploy:
         # [495, 128]
@@ -124,27 +124,26 @@ workflows:
           repo_url: ~
           pack: ~
 
-
   install:
     type: direct
     input:
+      - repo_name
       - branch
-      - install_pack
+      - packs
 
     output: 
       repo_url: <% $.repo_url %> 
-      pack: <% $.pack %>
+      pack: <% $.packs %>
 
     tasks:
-      pack_to_git_url:
-        action:  packs.pack_to_git_url
+      expand_repo_name:
+        action:  packs.expand_repo_name
         input:
-          pack_to_expand: <% $.install_pack %>
+          repo_name: <% $.repo_name %>
 
         publish:
-          repo_url: <% $.pack_to_git_url.result.url %>
-          pack:    <% $.pack_to_git_url.result.pack %>
-          subtree: <% $.pack_to_git_url.result.subtree %>
+          repo_url: <% $.expand_repo_name.result.repo_url %>
+          subtree: <% $.expand_repo_name.result.subtree %>
 
         on-success:
           - packs_install
@@ -152,7 +151,7 @@ workflows:
       packs_install:
         action: packs.install
         input:
-          packs: [ <% $.pack %>  ]
+          packs: <% $.packs %>
           repo_url: <% $.repo_url %>
           branch: <% $.branch %>
           subtree: <% $.subtree %>

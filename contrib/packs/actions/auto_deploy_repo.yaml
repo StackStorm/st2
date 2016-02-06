@@ -1,8 +1,8 @@
 ---
   description: "Check if a given branch in a ST2 Pack's Git repository should be auto deployed"
   enabled: true
-  entry_point: 'check_pack_auto_deploy.py'
-  name: "check_pack_auto_deploy"
+  entry_point: 'auto_deploy_repo.py'
+  name: "auto_deploy_repo"
   pack: "packs"
 
   parameters:
@@ -10,9 +10,9 @@
       type: "string"
       description: "The branch in the ST2 Packs Git repository"
       required: true
-    repository:
+    repo_name:
       type: "string"
-      description: "The Git repository for the ST2 pack."
+      description: "The repo_name to check for auto deployment."
       required: true
 
   runner_type: "python-script"

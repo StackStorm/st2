@@ -1,19 +1,19 @@
 ---
 name: "deploy_pack"
-action_ref: "packs.pack_deploy"
+action_ref: "packs.deploy"
 pack: "packs"
 description: "Download StackStorm packs via ChatOps"
 formats:
-  - "pack deploy {{install_pack}} {{branch=master}}"
+  - "pack deploy {{repo_name}} {{packs}} {{branch=master}}"
 ack:
   enabled: True
   append_url: false
-  format: Deploying *{{ execution.parameters.install_pack }}* from _{{ execution.parameters.branch }}_ for you....
+  format: Deploying the requested pack(s) from *{{execution.parameters.repo_name}}* for you....
 result:
   format: |
     {% if execution.status == "succeeded" %}
-    Successful deployment of *{{ execution.result.pack }}*!{~}
+    Successful deployment of {% for pack in execution.result.packs %}*{{pack}}* {% endfor %}!{~}
     from {{ execution.result.repo_url }} (branch: _{{ execution.parameters.branch }}_).
     {% else %}
-    Deployment failed of *{{ execution.parameters.install_pack }}*, please check {{ execution.id }} for details. {~}
+    Deployment failed of {% for pack in execution.parameters.packs %}*{{pack}}* {% endfor %}, from *{{execution.parameters.repo_name}}*. Please check {{ execution.id }} for details. {~}
     {% endif %}
