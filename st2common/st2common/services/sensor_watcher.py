@@ -17,13 +17,13 @@
 # XXX: Refactor.
 
 import eventlet
-import uuid
 from kombu.mixins import ConsumerMixin
 from kombu import Connection
 
 from st2common import log as logging
 from st2common.transport import reactor, publishers
 from st2common.transport import utils as transport_utils
+import st2common.util.queues as queue_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -103,9 +103,8 @@ class SensorWatcher(ConsumerMixin):
 
     @staticmethod
     def _get_queue(queue_suffix):
-        if not queue_suffix:
-            # pick last 10 digits of uuid. Arbitrary but unique enough for the TriggerWatcher.
-            u_hex = uuid.uuid4().hex
-            queue_suffix = uuid.uuid4().hex[len(u_hex) - 10:]
-        queue_name = 'st2.sensor.watch.%s' % queue_suffix
+        queue_name = queue_utils.get_queue_name(queue_name_base='st2.sensor.watch',
+                                                queue_name_suffix=queue_suffix,
+                                                add_random_uuid_to_suffix=True
+                                                )
         return reactor.get_sensor_cud_queue(queue_name, routing_key='#')

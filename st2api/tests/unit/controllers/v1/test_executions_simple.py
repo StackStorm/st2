@@ -494,6 +494,36 @@ class TestActionExecutionController(FunctionalTest):
 
         self.assertDictEqual(re_run_resp.json['context'], expected_context)
 
+    def test_re_run_workflow_tasks_reset_success(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_4)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (tasks option for non workflow)
+        data = {'tasks': ['x', 'y'], 'reset': ['y']}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
+                                         data, expect_errors=True)
+
+        self.assertEqual(re_run_resp.status_int, 201)
+
+        # Get the trace
+        trace = trace_service.get_trace_db_by_action_execution(action_execution_id=execution_id)
+
+        expected_context = {
+            'user': 'stanley',
+            're-run': {
+                'ref': execution_id,
+                'tasks': data['tasks'],
+                'reset': data['reset']
+            },
+            'trace_context': {
+                'id_': str(trace.id)
+            }
+        }
+
+        self.assertDictEqual(re_run_resp.json['context'], expected_context)
+
     def test_re_run_failure_tasks_option_for_non_workflow(self):
         # Create a new execution
         post_resp = self._do_post(LIVE_ACTION_1)
@@ -521,6 +551,36 @@ class TestActionExecutionController(FunctionalTest):
 
         self.assertEqual(re_run_resp.status_int, 400)
         self.assertIn('not supported when re-running task(s) for a workflow',
+                      re_run_resp.json['faultstring'])
+
+    def test_re_run_workflow_failure_given_both_params_and_reset_tasks(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_4)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (override parameter with an invalid value)
+        data = {'parameters': {'a': 'xyz'}, 'reset': ['x']}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
+                                         data, expect_errors=True)
+
+        self.assertEqual(re_run_resp.status_int, 400)
+        self.assertIn('not supported when re-running task(s) for a workflow',
+                      re_run_resp.json['faultstring'])
+
+    def test_re_run_workflow_failure_invalid_reset_tasks(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_4)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (override parameter with an invalid value)
+        data = {'tasks': ['x'], 'reset': ['y']}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id),
+                                         data, expect_errors=True)
+
+        self.assertEqual(re_run_resp.status_int, 400)
+        self.assertIn('tasks to reset does not match the tasks to rerun',
                       re_run_resp.json['faultstring'])
 
     @staticmethod

@@ -10,7 +10,7 @@ general:
   branches:
     only:
       - master
-      - /v[0-9]+(\.[0-9]+)*/
+      - /v[0-9]+\.[0-9]+/
   build_dir: st2-packages
   artifacts:
     - ~/packages
@@ -63,7 +63,7 @@ test:
     - rsync -rv /tmp/st2-packages/ node0:~/packages/${DISTRO}:
         parallel: true
   post:
-    - .circle/docker.sh build st2bundle
+    - .circle/docker.sh build st2
     - .circle/docker.sh build st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
     - .circle/docker.sh run st2api
     - .circle/docker.sh test st2api 'st2 --version'
@@ -73,7 +73,7 @@ deployment:
     owner: StackStorm
     branch:
       - master
-      - /v[0-9]+(\.[0-9]+)*/
+      - /v[0-9]+\.[0-9]+/
     commands:
       # Deploy to Bintray all artifacts for respective distros in parallel
       - |
@@ -91,4 +91,4 @@ experimental:
     branches:
       only:
         - master
-        - /v[0-9]+(\.[0-9]+)*/
+        - /v[0-9]+\.[0-9]+/

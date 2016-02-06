@@ -29,7 +29,7 @@ def add_ssl_verify_to_kwargs(func):
     def decorate(*args, **kwargs):
         if isinstance(args[0], HTTPClient) and 'https' in getattr(args[0], 'root', ''):
             cacert = getattr(args[0], 'cacert', None)
-            kwargs['verify'] = cacert if cacert else False
+            kwargs['verify'] = cacert if cacert is not None else False
         return func(*args, **kwargs)
     return decorate
 
