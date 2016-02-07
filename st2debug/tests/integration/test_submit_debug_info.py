@@ -127,17 +127,16 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
                              required_directories=['logs', 'configs', 'content'])
 
     def _create_config_yaml_file(self):
-        config_data = {'log_file_paths':
-                           {'st2_log_files_path': os.path.join(FIXTURES_DIR, 'logs/st2*.log')},
-                       'conf_file_paths':
-                           {'st2_config_file_path': os.path.join(FIXTURES_DIR, 'configs/st2.conf'),
-                            'mistral_config_file_path':
-                                os.path.join(FIXTURES_DIR, 'configs/mistral.conf')},
-                       's3_bucket': {'url': S3_BUCKET_URL},
-                       'gpg': {'gpg_key_fingerprint': GPG_KEY_FINGERPRINT,
-                               'gpg_key': GPG_KEY},
-                       'shell_commands': {'cmd': 'rpm -qa'},
-                       'company_name': {'name': 'MyCompany'}}
+        config_data = dict(
+            log_file_paths={'st2_log_files_path': os.path.join(FIXTURES_DIR, 'logs/st2*.log')},
+            conf_file_paths={
+                'st2_config_file_path': os.path.join(FIXTURES_DIR, 'configs/st2.conf'),
+                'mistral_config_file_path': os.path.join(FIXTURES_DIR, 'configs/mistral.conf')},
+            s3_bucket={'url': S3_BUCKET_URL},
+            gpg={'gpg_key_fingerprint': GPG_KEY_FINGERPRINT,
+                 'gpg_key': GPG_KEY},
+            shell_commands={'cmd': 'rpm -qa'},
+            company_name={'name': 'MyCompany'})
 
         with open(SUBMIT_DEBUG_YAML_FILE, 'w') as outfile:
             outfile.write(yaml.dump(config_data, default_flow_style=False))
