@@ -59,21 +59,13 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         st2debug.cmd.submit_debug_info.get_packs_base_paths = mock.Mock()
         st2debug.cmd.submit_debug_info.get_packs_base_paths.return_value = return_value
 
-    def test_create_archive_include_all(self):
-        archive_path = create_archive(include_logs=True, include_configs=True,
-                                      include_content=True,
-                                      include_system_info=True)
-
+    def _verify_archive(self, archive_path, extract_path, required_directories):
         # Verify archive has been created
         self.assertTrue(os.path.isfile(archive_path))
         self.to_delete_files.append(archive_path)
 
-        extract_path = tempfile.mkdtemp()
         self.to_delete_directories.append(extract_path)
         self._extract_archive(archive_path=archive_path, extract_path=extract_path)
-
-        # Verify all the required directories have been created
-        required_directories = ['logs', 'configs', 'content']
 
         for directory_name in required_directories:
             full_path = os.path.join(extract_path, directory_name)
@@ -122,6 +114,15 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         self.assertTrue(os.path.isdir(pack_dir))
         self.assertTrue(not os.path.exists(config_path))
 
+    def test_create_archive_include_all(self):
+        archive_path = create_archive(include_logs=True, include_configs=True,
+                                      include_content=True,
+                                      include_system_info=True)
+        extract_path = tempfile.mkdtemp()
+        self._verify_archive(archive_path=archive_path,
+                             extract_path=extract_path,
+                             required_directories=['logs', 'configs', 'content'])
+
     def test_create_archive_include_all_with_config_option(self):
         # Load the submit debug info yaml file
         st2debug.cmd.submit_debug_info.load_config_yaml_file(SUBMIT_DEBUG_YAML_FILE)
@@ -130,66 +131,15 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
                                       include_system_info=True,
                                       include_shell_commands=True,
                                       config_yaml=SUBMIT_DEBUG_YAML_FILE)
-
-        # Verify archive has been created
-        self.assertTrue(os.path.isfile(archive_path))
-        self.to_delete_files.append(archive_path)
-
         extract_path = tempfile.mkdtemp()
-        self.to_delete_directories.append(extract_path)
-        self._extract_archive(archive_path=archive_path, extract_path=extract_path)
-
-        # Verify all the required directories have been created
-        required_directories = ['logs', 'configs', 'content', 'commands']
-
-        for directory_name in required_directories:
-            full_path = os.path.join(extract_path, directory_name)
-            self.assertTrue(os.path.isdir(full_path))
-
-        # Verify system info file has ben created
-        full_path = os.path.join(extract_path, 'system_info.yaml')
-        self.assertTrue(os.path.isfile(full_path))
-
-        # Verify logs have been copied
-        logs_path = os.path.join(extract_path, 'logs')
-        log_files = os.listdir(logs_path)
-        self.assertTrue(len(log_files), 2)
+        self._verify_archive(archive_path=archive_path,
+                             extract_path=extract_path,
+                             required_directories=['logs', 'configs', 'content', 'commands'])
 
         # Verify commands output have been copied
         commands_path = os.path.join(extract_path, 'commands')
         command_files = os.listdir(commands_path)
         self.assertTrue(len(command_files), 1)
-
-        # Verify configs have been copied
-        st2_config_path = os.path.join(extract_path, 'configs', 'st2.conf')
-        mistral_config_path = os.path.join(extract_path, 'configs', 'mistral.conf')
-
-        self.assertTrue(os.path.isfile(st2_config_path))
-        self.assertTrue(os.path.isfile(mistral_config_path))
-
-        # Verify packs have been copied
-        content_path = os.path.join(extract_path, 'content/dir-1')
-        pack_directories = os.listdir(content_path)
-        self.assertEqual(len(pack_directories), 1)
-
-        # Verify sensitive data has been masked in the configs
-        with open(st2_config_path, 'r') as fp:
-            st2_config_content = fp.read()
-        with open(mistral_config_path, 'r') as fp:
-            mistral_config_content = fp.read()
-
-        self.assertTrue('ponies' not in st2_config_content)
-        self.assertTrue('url = **removed**' in st2_config_content)
-
-        self.assertTrue('StackStorm' not in mistral_config_content)
-        self.assertTrue('connection = **removed**' in mistral_config_content)
-
-        # Very config.yaml has been removed from the content pack directories
-        pack_dir = os.path.join(content_path, 'twilio')
-        config_path = os.path.join(pack_dir, 'config.yaml')
-
-        self.assertTrue(os.path.isdir(pack_dir))
-        self.assertTrue(not os.path.exists(config_path))
 
     def test_create_archive_exclusion(self):
         # Verify only system info file is included
