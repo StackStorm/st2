@@ -15,6 +15,7 @@
 
 import mock
 import six
+import datetime
 
 from st2common.transport.publishers import PoolPublisher
 from st2common.persistence.trigger import TriggerInstance
@@ -61,7 +62,7 @@ class TestTriggerController(FunctionalTest):
         # Since we sort trigger instances by time (latest first), the previous
         # get should return no trigger instances.
         self.assertEqual(len(resp.json), 0)
-        resp = self.app.get('/v1/triggerinstances?timestamp_lt=%s' % timestamp_middle)
+        resp = self.app.get('/v1/triggerinstances?timestamp_lt=%s' % (timestamp_middle))
         self.assertEqual(len(resp.json), 1)
 
     def test_reemit_trigger_instance(self):
@@ -159,21 +160,29 @@ class TestTriggerController(FunctionalTest):
     def _setupTriggerInstances(cls):
         cls.triggerinstance_count = 0
         cls.triggerinstance_1 = cls._create_trigger_instance(
-            'dummy_pack_1.st2.test.trigger0',
-            {'tp1': 1, 'tp2': 2, 'tp3': 3})
+            trigger_ref='dummy_pack_1.st2.test.trigger0',
+            payload={'tp1': 1, 'tp2': 2, 'tp3': 3},
+            seconds=1)
         cls.triggerinstance_2 = cls._create_trigger_instance(
-            'dummy_pack_1.st2.test.trigger1',
-            {'tp1': 'a', 'tp2': 'b', 'tp3': 'c'})
+            trigger_ref='dummy_pack_1.st2.test.trigger1',
+            payload={'tp1': 'a', 'tp2': 'b', 'tp3': 'c'},
+            seconds=2)
         cls.triggerinstance_3 = cls._create_trigger_instance(
-            'dummy_pack_1.st2.test.trigger2',
-            {'tp1': None, 'tp2': None, 'tp3': None})
+            trigger_ref='dummy_pack_1.st2.test.trigger2',
+            payload={'tp1': None, 'tp2': None, 'tp3': None},
+            seconds=3)
 
     @classmethod
-    def _create_trigger_instance(cls, trigger_ref, payload):
+    def _create_trigger_instance(cls, trigger_ref, payload, seconds):
+        # Note: We use 1 second intervals between occurence time to prevent
+        # occasional test failures
+        occurrence_time = date_utils.get_datetime_utc_now()
+        occurrence_time = occurrence_time + datetime.timedelta(seconds=seconds)
+
         trigger_instance = TriggerInstanceDB()
         trigger_instance.trigger = trigger_ref
         trigger_instance.payload = payload
-        trigger_instance.occurrence_time = date_utils.get_datetime_utc_now()
+        trigger_instance.occurrence_time = occurrence_time
         created = TriggerInstance.add_or_update(trigger_instance)
         cls.triggerinstance_count += 1
         return created
