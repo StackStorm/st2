@@ -16,6 +16,7 @@
 import os
 import tarfile
 import tempfile
+import yaml
 
 import mock
 import unittest2
@@ -25,6 +26,9 @@ from st2tests.base import CleanFilesTestCase
 from st2debug.cmd.submit_debug_info import create_archive
 from st2debug.cmd.submit_debug_info import encrypt_archive
 import st2debug.cmd.submit_debug_info
+from st2debug.constants import GPG_KEY
+from st2debug.constants import GPG_KEY_FINGERPRINT
+from st2debug.constants import S3_BUCKET_URL
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIXTURES_DIR = os.path.join(BASE_DIR, 'fixtures')
@@ -83,7 +87,6 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         # Verify configs have been copied
         st2_config_path = os.path.join(extract_path, 'configs', 'st2.conf')
         mistral_config_path = os.path.join(extract_path, 'configs', 'mistral.conf')
-
         self.assertTrue(os.path.isfile(st2_config_path))
         self.assertTrue(os.path.isfile(mistral_config_path))
 
@@ -123,7 +126,27 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
                              extract_path=extract_path,
                              required_directories=['logs', 'configs', 'content'])
 
+    def _create_config_yaml_file(self):
+        config_data = {'log_file_paths':
+                           {'st2_log_files_path': os.path.join(FIXTURES_DIR, 'logs/st2*.log')},
+                       'conf_file_paths':
+                           {'st2_config_file_path': os.path.join(FIXTURES_DIR, 'configs/st2.conf'),
+                            'mistral_config_file_path':
+                                os.path.join(FIXTURES_DIR, 'configs/mistral.conf')},
+                       's3_bucket': {'url': S3_BUCKET_URL},
+                       'gpg': {'gpg_key_fingerprint': GPG_KEY_FINGERPRINT,
+                               'gpg_key': GPG_KEY},
+                       'shell_commands': {'cmd': 'rpm -qa'},
+                       'company_name': {'name': 'MyCompany'}}
+
+        with open(SUBMIT_DEBUG_YAML_FILE, 'w') as outfile:
+            outfile.write(yaml.dump(config_data, default_flow_style=False))
+
     def test_create_archive_include_all_with_config_option(self):
+        # Create the YAML configuration file
+        self._create_config_yaml_file()
+        self.to_delete_files.append(SUBMIT_DEBUG_YAML_FILE)
+
         # Load the submit debug info yaml file
         st2debug.cmd.submit_debug_info.load_config_yaml_file(SUBMIT_DEBUG_YAML_FILE)
         archive_path = create_archive(include_logs=True, include_configs=True,
@@ -182,6 +205,10 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
                           extract_path='/tmp')
 
     def test_encrypt_archive_with_custom_gpg_key(self):
+        # Create the YAML configuration file
+        self._create_config_yaml_file()
+        self.to_delete_files.append(SUBMIT_DEBUG_YAML_FILE)
+
         # Load the submit debug info yaml file
         st2debug.cmd.submit_debug_info.load_config_yaml_file(SUBMIT_DEBUG_YAML_FILE)
 

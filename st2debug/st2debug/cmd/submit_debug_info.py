@@ -148,7 +148,7 @@ def get_config_details(section_name, option_name=None):
             else:
                 return value.values()
     else:
-        print('section name "%s" is not exist' % section_name)
+        print('section name "%s" does not exist' % section_name)
 
 
 def setup_logging():
