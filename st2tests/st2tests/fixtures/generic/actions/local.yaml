@@ -6,9 +6,8 @@ name: local
 pack: core
 parameters:
   cmd:
-    description: Arbitrary Linux command to be executed on the remote host(s).
     required: true
-    type: string
   sudo:
     immutable: true
+    type: boolean
 runner_type: "local-shell-cmd"

@@ -21,15 +21,19 @@ LOG = logging.getLogger('st2reactor.rules.RulesMatcher')
 
 
 class RulesMatcher(object):
-    def __init__(self, trigger_instance, trigger, rules):
+    def __init__(self, trigger_instance, trigger, rules, extra_info=False):
         self.trigger_instance = trigger_instance
         self.trigger = trigger
         self.rules = rules
+        self.extra_info = extra_info
 
     def get_matching_rules(self):
         first_pass, second_pass = self._split_rules_into_passes()
         # first pass
-        rule_filters = [RuleFilter(self.trigger_instance, self.trigger, rule)
+        rule_filters = [RuleFilter(trigger_instance=self.trigger_instance,
+                                   trigger=self.trigger,
+                                   rule=rule,
+                                   extra_info=self.extra_info)
                         for rule in first_pass]
         matched_rules = [rule_filter.rule for rule_filter in rule_filters if rule_filter.filter()]
         LOG.debug('[1st_pass] %d rule(s) found to enforce for %s.', len(matched_rules),

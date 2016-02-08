@@ -80,7 +80,9 @@ class RuleEnforcer(object):
                                            rule=rule_spec)
         try:
             execution_db = RuleEnforcer._invoke_action(self.rule.action, data, context)
+            # pylint: disable=no-member
             enforcement_db.execution_id = str(execution_db.id)
+            # pylint: enable=no-member
         except:
             LOG.exception('Failed kicking off execution for rule %s.', self.rule, extra=extra)
             return None
@@ -88,7 +90,9 @@ class RuleEnforcer(object):
             self._update_enforcement(enforcement_db)
 
         extra['execution_db'] = execution_db
+        # pylint: disable=no-member
         if execution_db.status not in EXEC_KICKED_OFF_STATES:
+            # pylint: enable=no-member
             LOG.audit('Rule enforcement failed. Execution of Action %s failed. '
                       'TriggerInstance: %s and Rule: %s',
                       self.rule.action.name, self.trigger_instance, self.rule,

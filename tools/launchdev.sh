@@ -6,17 +6,21 @@ function usage() {
 
 subcommand=$1; shift
 runner_count=1
-use_gunicorn=false
+use_gunicorn=true
+use_uwsgi_for_auth=false
 copy_examples=false
 load_content=true
 
-while getopts ":r:gxc" o; do
+while getopts ":r:gxcu" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
             ;;
         g)
-            use_gunicorn=true
+            use_gunicorn=false
+            ;;
+        u)
+            use_uwsgi_for_auth=true
             ;;
         x)
             copy_examples=true
@@ -124,10 +128,10 @@ function st2start(){
     # Run the st2 API server
     echo 'Starting screen session st2-api...'
     if [ "${use_gunicorn}" = true ]; then
-        echo '  using guicorn to run st2-api...'
+        echo '  using gunicorn to run st2-api...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-api ./virtualenv/bin/gunicorn_pecan \
-            ./st2api/st2api/gunicorn_config.py -k eventlet
+            ./st2api/st2api/gunicorn_config.py -k eventlet -b 127.0.0.1:9101 --workers 1
     else
         screen -d -m -S st2-api ./virtualenv/bin/python \
             ./st2api/bin/st2api \
@@ -173,11 +177,17 @@ function st2start(){
 
     # Run the auth API server
     echo 'Starting screen session st2-auth...'
-    if [ "${use_gunicorn}" = true ]; then
-        echo '  using guicorn to run st2-auth...'
+    if [ "${use_uwsgi_for_auth}" = true ]; then
+        echo '  using uwsgi for auth...'
+        export ST2_CONFIG_PATH=${ST2_CONF}
+        screen -d -m -S st2-auth ./virtualenv/bin/uwsgi \
+            --http 127.0.0.1:9100 --wsgi-file ./st2auth/st2auth/wsgi.py --processes 1 --threads 10 \
+            --buffer-size=32768
+    elif [ "${use_gunicorn}" = true ]; then
+        echo '  using gunicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-auth ./virtualenv/bin/gunicorn_pecan \
-            ./st2auth/st2auth/gunicorn_config.py -k eventlet
+            ./st2auth/st2auth/gunicorn_config.py -k eventlet -b 127.0.0.1:9100 --workers 1
     else
         screen -d -m -S st2-auth ./virtualenv/bin/python \
         ./st2auth/bin/st2auth \
@@ -231,6 +241,20 @@ function st2stop(){
     if [ $? == 0 ]; then
         echo 'Killing existing st2 screen sessions...'
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -P
+    fi
+
+    if [ "${use_gunicorn}" = true ]; then
+        pids=`ps -ef | grep "[s]t2auth/gunicorn_config.py\|[s]t2api/gunicorn_config.py" | \
+              awk '{print $2}'`
+        if [ -n "$pids" ]; then
+            echo "Killing gunicorn processes"
+            # true ensures that any failure to kill a process which does not exist will not lead
+            # to failure. for loop to ensure all processes are killed even if some are missing
+            # assuming kill will fail-fast.
+            for pid in ${pids}; do
+                echo ${pid} | xargs -L 1 kill || true
+            done
+        fi
     fi
 }
 

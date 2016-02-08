@@ -43,8 +43,6 @@ __all__ = [
     'Action'
 ]
 
-LOG = logging.getLogger(__name__)
-
 # constants to lookup in runner_parameters.
 RUNNER_ENV = 'env'
 RUNNER_TIMEOUT = 'timeout'
@@ -72,7 +70,9 @@ class Action(object):
         :type config: ``dict``
         """
         self.config = config or {}
-        self.logger = self._set_up_logger()
+        # logger and datastore are assigned in PythonActionWrapper._get_action_instance
+        self.logger = None
+        self.datastore = None
 
     @abc.abstractmethod
     def run(self, **kwargs):

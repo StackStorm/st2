@@ -15,11 +15,14 @@
 
 from datetime import timedelta
 
+from st2common import log as logging
+from st2common.garbage_collection.trigger_instances import purge_trigger_instances
 from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.persistence.trigger import TriggerInstance
 from st2common.util import date as date_utils
 from st2tests.base import CleanDbTestCase
-from tools.purge_trigger_instances import purge_trigger_instances
+
+LOG = logging.getLogger(__name__)
 
 
 class TestPurgeTriggerInstances(CleanDbTestCase):
@@ -41,7 +44,10 @@ class TestPurgeTriggerInstances(CleanDbTestCase):
         TriggerInstance.add_or_update(instance_db)
 
         self.assertEqual(len(TriggerInstance.get_all()), 1)
-        purge_trigger_instances()
+        expected_msg = 'Specify a valid timestamp'
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                purge_trigger_instances,
+                                logger=LOG, timestamp=None)
         self.assertEqual(len(TriggerInstance.get_all()), 1)
 
     def test_purge(self):
@@ -58,5 +64,5 @@ class TestPurgeTriggerInstances(CleanDbTestCase):
         TriggerInstance.add_or_update(instance_db)
 
         self.assertEqual(len(TriggerInstance.get_all()), 2)
-        purge_trigger_instances(timestamp=now - timedelta(days=10))
+        purge_trigger_instances(logger=LOG, timestamp=now - timedelta(days=10))
         self.assertEqual(len(TriggerInstance.get_all()), 1)

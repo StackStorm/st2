@@ -5,6 +5,7 @@ jinja2
 jsonschema
 kombu
 mongoengine
+networkx
 oslo.config
 paramiko
 pyyaml

@@ -22,33 +22,15 @@ from __future__ import absolute_import
 
 import os
 
-from oslo_config import cfg
-
-from st2api import config  # noqa
-from st2common.service_setup import setup as common_setup
-
 __all__ = [
-    'server',
     'app'
 ]
 
-DEFAULT_ST2_CONFIG_PATH = '/etc/st2/st2.conf'
-ST2_CONFIG_PATH = os.environ.get('ST2_CONFIG_PATH', DEFAULT_ST2_CONFIG_PATH)
+bind = '127.0.0.1:9101'
 
-CONFIG_ARGS = ['--config-file', ST2_CONFIG_PATH]
-common_setup(service='api', config=config, setup_db=True, register_mq_exchanges=True,
-             register_signal_handlers=False, register_internal_trigger_types=True,
-             config_args=CONFIG_ARGS)
-
-server = {
-    'host': cfg.CONF.api.host,
-    'port': cfg.CONF.api.port
-}
+config_args = ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')]
+is_gunicorn = True
 
 app = {
-    'root': 'st2api.controllers.root.RootController',
-    'modules': ['st2api'],
-    'debug': cfg.CONF.api_pecan.debug,
-    'errors': {'__force_dict__': True},
-    'guess_content_type_from_ext': False
+    'modules': ['st2api']
 }

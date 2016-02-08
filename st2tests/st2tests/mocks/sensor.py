@@ -17,8 +17,12 @@
 Mock classes for use in pack testing.
 """
 
+from logging import RootLogger
+
+from mock import Mock
+
 from st2reactor.container.sensor_wrapper import SensorService
-from st2client.models.keyvalue import KeyValuePair
+from st2tests.mocks.datastore import MockDatastoreService
 
 __all__ = [
     'MockSensorWrapper',
@@ -40,12 +44,27 @@ class MockSensorService(SensorService):
     def __init__(self, sensor_wrapper):
         self._sensor_wrapper = sensor_wrapper
 
-        # Holds mock KeyValuePair objects
-        # Key is a KeyValuePair name and value is the KeyValuePair object
-        self._datastore_items = {}
+        # Holds a mock logger instance
+        # We use a Mock class so use can assert logger was called with particular arguments
+        self._logger = Mock(spec=RootLogger)
 
         # Holds a list of triggers which were dispatched
         self.dispatched_triggers = []
+
+        self._datastore_service = MockDatastoreService(logger=self._logger,
+                                                       pack_name=self._sensor_wrapper._pack,
+                                                       class_name=self._sensor_wrapper._class_name,
+                                                       api_username='sensor_service')
+
+    def get_logger(self, name):
+        """
+        Return mock logger instance.
+
+        Keep in mind that this method returns Mock class instance which means you can use all the
+        usual Mock class methods to assert that a particular message has been logged / logger has
+        been called with particular arguments.
+        """
+        return self._logger
 
     def dispatch_with_context(self, trigger, payload=None, trace_context=None):
         item = {
@@ -54,48 +73,3 @@ class MockSensorService(SensorService):
             'trace_context': trace_context
         }
         self.dispatched_triggers.append(item)
-
-    def list_values(self, local=True, prefix=None):
-        key_prefix = self._get_full_key_prefix(local=local, prefix=prefix)
-
-        if not key_prefix:
-            return self._datastore_items.values()
-
-        result = []
-        for name, kvp in self._datastore_items.items():
-            if name.startswith(key_prefix):
-                result.append(kvp)
-
-        return result
-
-    def get_value(self, name, local=True):
-        name = self._get_full_key_name(name=name, local=local)
-
-        if name not in self._datastore_items:
-            return None
-
-        kvp = self._datastore_items[name]
-        return kvp.value
-
-    def set_value(self, name, value, ttl=None, local=True):
-        if ttl:
-            raise ValueError('MockSensorService.set_value doesn\'t support "ttl" argument')
-
-        name = self._get_full_key_name(name=name, local=local)
-
-        instance = KeyValuePair()
-        instance.id = name
-        instance.name = name
-        instance.value = value
-
-        self._datastore_items[name] = instance
-        return True
-
-    def delete_value(self, name, local=True):
-        name = self._get_full_key_name(name=name, local=local)
-
-        if name not in self._datastore_items:
-            return False
-
-        del self._datastore_items[name]
-        return True

@@ -5,7 +5,7 @@ action:
     ip2: '{{trigger}}'
   ref: wolfpack.action-1
 criteria:
-  t1_p:
+  trigger.t1_p:
     pattern: t1_p_v
     type: equals
 description: ''

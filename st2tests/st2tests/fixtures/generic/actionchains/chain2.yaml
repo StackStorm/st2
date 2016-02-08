@@ -3,16 +3,16 @@ chain:
 - name: c1
   on-failure: c3
   on-success: c2
-  params:
+  parameters:
     p1: v1
   ref: wolfpack.a1
 - name: c2
   on-failure: c3
   on-success: c3
-  params:
+  parameters:
     p1: v1
   ref: wolfpack.a2
 - name: c3
-  params: {}
+  parameters: {}
   ref: wolfpack.a3
 default: c1
