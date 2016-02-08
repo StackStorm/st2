@@ -13,7 +13,7 @@ logging = conf/logging.conf
 
 [api]
 # List of origins allowed
-allow_origin = http://localhost:3000  # comma separated list allowed here.
+allow_origin = http://127.0.0.1:3000  # comma separated list allowed here.
 # location of the logging.conf file
 logging = conf/logging.conf
 # True to mask secrets in API responses
