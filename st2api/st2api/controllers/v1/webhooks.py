@@ -80,17 +80,19 @@ class WebhooksController(RestController):
     @jsexpose(arg_types=[str], status_code=http_client.ACCEPTED)
     def post(self, *args, **kwargs):
         hook = '/'.join(args)  # TODO: There must be a better way to do this.
+
+        # Note: For backward compatibility reasons we default to application/json if content
+        # type is not explicitly provided
+        content_type = pecan.request.headers.get('Content-Type', 'application/json')
         body = pecan.request.body
-        try: # ADDITION: lines 83-91 to enable form POSTs
-            body = json.loads(body)
+
+        try:
+            body = self._parse_request_body(content_type=content_type, body=body)
         except ValueError:
-            try:
-                body = urlparse.parse_qs(body)
-            except ValueError:
-                self._log_request('Invalid JSON/POST body.', pecan.request)
-                msg = 'Invalid JSON/POST body: %s' % (body)
-                return pecan.abort(http_client.BAD_REQUEST, msg)
-            
+            self._log_request('Invalid JSON/POST body.', pecan.request)
+            msg = 'Invalid JSON/POST body: %s' % (body)
+            return pecan.abort(http_client.BAD_REQUEST, msg)
+
         headers = self._get_headers_as_dict(pecan.request.headers)
         # If webhook contains a trace-tag use that else create create a unique trace-tag.
         trace_context = self._create_trace_context(trace_tag=headers.pop(TRACE_TAG_HEADER, None),
@@ -110,6 +112,21 @@ class WebhooksController(RestController):
         payload['headers'] = headers
         payload['body'] = body
         self._trigger_dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
+
+        return body
+
+    def _parse_request_body(self, content_type, body):
+        if content_type == 'application/json':
+            self._log_request('Parsing body as JSON', request=pecan.request)
+            body = json.loads(body)
+        elif content_type in ['application/x-www-form-urlencoded', 'multipart/form-data']:
+            self._log_request('Parsing body as form encoded data', request=pecan.request)
+            body = urlparse.parse_qs(body)
+        else:
+            # For backward compatibility reasons, try to parse any other content
+            # type as JSON
+            self._log_request('Parsing body as JSON', request=pecan.request)
+            body = json.loads(body)
 
         return body
 
