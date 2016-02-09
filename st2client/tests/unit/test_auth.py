@@ -108,26 +108,24 @@ class TestAuthToken(base.BaseCLITestCase):
         requests, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
     def test_decorate_resource_list(self):
-        url = 'http://localhost:9101/v1/rules'
+        url = 'http://localhost:9101/v1/rules/?limit=50'
 
         # Test without token.
         self.shell.run(['rule', 'list'])
-        kwargs = {'params': {}}
+        kwargs = {}
         requests.get.assert_called_with(url, **kwargs)
 
         # Test with token from  cli.
         token = uuid.uuid4().hex
         self.shell.run(['rule', 'list', '-t', token])
-        kwargs = {'headers': {'X-Auth-Token': token},
-                  'params': {}}
+        kwargs = {'headers': {'X-Auth-Token': token}}
         requests.get.assert_called_with(url, **kwargs)
 
         # Test with token from env.
         token = uuid.uuid4().hex
         os.environ['ST2_AUTH_TOKEN'] = token
         self.shell.run(['rule', 'list'])
-        kwargs = {'headers': {'X-Auth-Token': token},
-                  'params': {}}
+        kwargs = {'headers': {'X-Auth-Token': token}}
         requests.get.assert_called_with(url, **kwargs)
 
     @mock.patch.object(

@@ -1,0 +1,27 @@
+---
+name: "post_message"
+runner_type: "announcement"
+description: "Post a message to stream for chatops"
+enabled: true
+entry_point: ""
+parameters:
+  experimental:
+    immutable: true
+    default: true
+  route:
+    default: "chatops"
+  user:
+    type: "string"
+    description: "Explicitly notify a user"
+  whisper:
+    type: "boolean"
+    description: "Send a private message to user"
+    default: false
+  message:
+    type: "string"
+    description: "Message to send."
+    required: true
+  channel:
+    type: "string"
+    description: "Channel to post to"
+    required: true

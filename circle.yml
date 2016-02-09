@@ -1,0 +1,94 @@
+# Setup in CircleCI account the following ENV variables:
+# BINTRAY_ORGANIZATION
+# BINTRAY_ACCOUNT
+# BINTRAY_API_KEY
+# DOCKER_USER
+# DOCKER_EMAIL
+# DOCKER_PASSWORD
+general:
+  # Don't run CI for PR, only for major branches
+  branches:
+    only:
+      - master
+      - /v[0-9]+\.[0-9]+/
+  build_dir: st2-packages
+  artifacts:
+    - ~/packages
+
+machine:
+  environment:
+    DISTROS: "wheezy jessie trusty el6 el7"
+    NOTESTS: "el7"
+    ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
+    ST2_DOCKERFILES_REPO: https://github.com/StackStorm/st2-dockerfiles
+    BUILD_DOCKER: 1
+    DEPLOY_DOCKER: 1
+    DEPLOY_PACKAGES: 1
+  pre:
+    - mkdir -p ~/packages
+    # Need latest Docker version for some features to work (CircleCI by default works with outdated version)
+    - |
+      sudo curl -L -o /usr/bin/docker 'http://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.0-circleci'
+      sudo chmod 0755 /usr/bin/docker
+  services:
+    - docker
+    - mongodb
+    - postgresql
+    - rabbitmq-server
+
+checkout:
+  post:
+    - git clone --depth 1 ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
+    - .circle/buildenv.sh
+
+dependencies:
+  cache_directories:
+    - ~/.cache/pip
+  pre:
+    - sudo .circle/configure-services.sh
+    - sudo .circle/fix-cache-permissions.sh
+    - sudo pip install docker-compose
+    - docker-compose version
+    - docker version
+  override:
+    - .circle/docker-compose.sh pull ${DISTRO}
+  post:
+    - .circle/docker-compose.sh build ${DISTRO}
+
+test:
+  override:
+    - .circle/docker-compose.sh test ${DISTRO}:
+        parallel: true
+    # Copy all Packages to node0
+    - rsync -rv /tmp/st2-packages/ node0:~/packages/${DISTRO}:
+        parallel: true
+  post:
+    - .circle/docker.sh build st2
+    - .circle/docker.sh build st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
+    - .circle/docker.sh run st2api
+    - .circle/docker.sh test st2api 'st2 --version'
+
+deployment:
+  publish:
+    owner: StackStorm
+    branch:
+      - master
+      - /v[0-9]+\.[0-9]+/
+    commands:
+      # Deploy to Bintray all artifacts for respective distros in parallel
+      - |
+        DISTROS=($DISTROS)
+        for i in $(seq 0 $((CIRCLE_NODE_TOTAL-1))); do
+          echo Deploying Bintray artifacts for "${DISTROS[$i]}" ...
+          .circle/bintray.sh deploy ${DISTROS[$i]}_staging ~/packages/${DISTROS[$i]} &
+        done
+        wait
+      - .circle/docker.sh deploy st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
+      - .circle/save_payload.py ~/packages
+
+experimental:
+  notify:
+    branches:
+      only:
+        - master
+        - /v[0-9]+\.[0-9]+/

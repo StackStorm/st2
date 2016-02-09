@@ -26,3 +26,7 @@
       type: "string"
       default: "actions,aliases,sensors"
       description: "Possible options are all, sensors, actions, rules, aliases."
+    env:
+      type: "object"
+      description: "Optional environment variables"
+      required: false

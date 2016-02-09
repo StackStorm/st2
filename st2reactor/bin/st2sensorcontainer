@@ -18,19 +18,9 @@
 #   st2 sensor_container
 #
 
-import os
 import sys
+
 from st2reactor.cmd import sensormanager
-
-DEVEL = True
-
-if DEVEL:
-    '''
-        Explicitly add the module path to the module search path to support development
-        environment without needing to go through an install procedure.
-    '''
-    python_lib_dir = os.path.abspath(os.path.dirname(sys.argv[0]) + '/..')
-    sys.path.append(python_lib_dir)
 
 if __name__ == '__main__':
     sys.exit(sensormanager.main())

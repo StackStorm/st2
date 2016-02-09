@@ -1,11 +1,7 @@
+ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/bash
 TOX_DIR := .tox
 VIRTUALENV_DIR ?= virtualenv
-
-# Sphinx docs options
-SPHINXBUILD := sphinx-build
-DOC_SOURCE_DIR := docs/source
-DOC_BUILD_DIR := docs/build
 
 BINARIES := bin
 
@@ -35,7 +31,7 @@ ifndef PIP_OPTIONS
 endif
 
 .PHONY: all
-all: requirements check tests docs
+all: requirements check tests
 
 # Target for debugging Makefile variable assembly
 .PHONY: play
@@ -55,35 +51,6 @@ checklogs:
 	@echo "================== LOG WATCHER ===================="
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; ./tools/log_watcher.py 10
-
-.PHONY: docs
-docs: requirements .docs
-
-.PHONY: .docs
-.docs:
-	@echo
-	@echo "====================docs===================="
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-runner-parameters-documentation.py
-	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-internal-triggers-table.py
-	. $(VIRTUALENV_DIR)/bin/activate; ./scripts/generate-available-permission-types-table.py
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; $(SPHINXBUILD) -W -b html $(DOC_SOURCE_DIR) $(DOC_BUILD_DIR)/html
-	@echo
-	@echo "Build finished. The HTML pages are in $(DOC_BUILD_DIR)/html."
-
-.PHONY: livedocs
-livedocs: docs .livedocs
-
-.PHONY: .livedocs
-.livedocs:
-	@echo
-	@echo "==========================================================="
-	@echo "                       RUNNING DOCS"
-	@echo "==========================================================="
-	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; sphinx-autobuild -H 0.0.0.0 -b html $(DOC_SOURCE_DIR) $(DOC_BUILD_DIR)/html
-	@echo
 
 .PHONY: pylint
 pylint: requirements .pylint
@@ -129,7 +96,7 @@ lint: requirements .lint
 .lint: .flake8 .pylint
 
 .PHONY: clean
-clean: .cleanpycs .cleandocs
+clean: .cleanpycs
 
 .PHONY: compile
 compile:
@@ -142,10 +109,18 @@ compile:
 	@echo "Removing all .pyc files"
 	find $(COMPONENTS)  -name \*.pyc -type f -print0 | xargs -0 -I {} rm {}
 
-.PHONY: .cleandocs
-.cleandocs:
-	@echo "Removing generated documentation"
-	rm -rf $(DOC_BUILD_DIR)
+.PHONY: .st2client-dependencies-check
+.st2client-dependencies-check:
+	@echo "Checking for st2common imports inside st2client"
+	find ${ROOT_DIR}/st2client/st2client/ -name \*.py -type f -print0 | xargs -0 cat | grep st2common ; test $$? -eq 1
+
+.PHONY: .st2common-circular-dependencies-check
+.st2common-circular-dependencies-check:
+	@echo "Checking st2common for circular dependencies"
+	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py \) -type f -print0 | xargs -0 cat | grep st2actions ;  test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 
 .PHONY: .cleanmongodb
 .cleanmongodb:
@@ -191,10 +166,11 @@ requirements: virtualenv .sdist-requirements
 	@echo
 
 	# Make sure we use latest version of pip
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade pip
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=7.1.2,<8.0.0"
+	$(VIRTUALENV_DIR)/bin/pip install virtualenv  # Required for packs.install in dev envs.
 
 	# Generate all requirements to support current CI pipeline.
-	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py -s st2*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
+	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv -s st2*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
 	# Install requirements
 	#
@@ -331,6 +307,16 @@ mistral-itests: requirements .mistral-itests
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v --with-coverage \
 		--cover-inclusive --cover-html st2tests/integration/mistral || exit 1;
 
+.PHONY: packs-tests
+packs-tests: requirements .packs-tests
+
+.PHONY: .packs-tests
+.packs-tests:
+	@echo
+	@echo "==================== packs-tests ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -x -p FILENAME
+
 .PHONY: rpms
 rpms:
 	@echo
@@ -364,7 +350,7 @@ debs:
 	@for component in $(COMPONENTS_TEST); do\
 		cp -f ./scripts/dist_utils.py $$component/dist_utils.py;\
 	done
-	
+
 	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
 	#@for component in $(COMPONENTS_TEST); do\
 	#	test -s $$component/README.rst || cp -f README.rst $$component/; \

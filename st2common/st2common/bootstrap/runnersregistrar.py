@@ -300,7 +300,7 @@ RUNNER_TYPES = [
             },
             'headers': {
                 'description': 'HTTP headers for the request.',
-                'type': 'string'
+                'type': 'object'
             },
             'cookies': {
                 'description': 'Optional cookies to send with the request.',
@@ -373,6 +373,11 @@ RUNNER_TYPES = [
                 'description': 'List of tasks to skip notifications for.',
                 'type': 'array',
                 'default': []
+            },
+            'display_published': {
+                'description': 'Intermediate published variables will be stored and displayed.',
+                'type': 'boolean',
+                'default': False
             }
         },
         'runner_module': 'st2actions.runners.actionchainrunner'
@@ -521,6 +526,14 @@ RUNNER_TYPES = [
             }
         },
         'runner_module': 'st2actions.runners.cloudslang.cloudslang_runner'
+    },
+    {
+        'name': 'noop',
+        'aliases': [],
+        'description': 'A runner that returns a static response regardless of input parameters',
+        'enabled': True,
+        'runner_parameters': {},
+        'runner_module': 'st2actions.runners.nooprunner'
     }
 ]
 

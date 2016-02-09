@@ -21,7 +21,6 @@ import argparse
 
 import eventlet
 from oslo_config import cfg
-from st2client.client import Client
 
 from st2common import log as logging
 from st2common.logging.misc import set_log_level_for_all_loggers
@@ -33,9 +32,7 @@ from st2common.util.config_parser import ContentPackConfigParser
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2reactor.sensor.base import Sensor, PollingSensor
 from st2reactor.sensor import config
-from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
-from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
-from st2client.models.keyvalue import KeyValuePair
+from st2common.services.datastore import DatastoreService
 
 __all__ = [
     'SensorWrapper'
@@ -55,12 +52,14 @@ class SensorService(object):
     methods which can be called by the sensor.
     """
 
-    DATASTORE_NAME_SEPARATOR = ':'
-
     def __init__(self, sensor_wrapper):
         self._sensor_wrapper = sensor_wrapper
         self._logger = self._sensor_wrapper._logger
         self._dispatcher = TriggerDispatcher(self._logger)
+        self._datastore_service = DatastoreService(logger=self._logger,
+                                                   pack_name=self._sensor_wrapper._pack,
+                                                   class_name=self._sensor_wrapper._class_name,
+                                                   api_username='sensor_service')
 
         self._client = None
 
@@ -111,173 +110,16 @@ class SensorService(object):
     ##################################
 
     def list_values(self, local=True, prefix=None):
-        """
-        Retrieve all the datastores items.
-
-        :param local: List values from a namespace local to this sensor. Defaults to True.
-        :type: local: ``bool``
-
-        :param prefix: Optional key name prefix / startswith filter.
-        :type prefix: ``str``
-
-        :rtype: ``list`` of :class:`KeyValuePair`
-        """
-        client = self._get_api_client()
-
-        self._logger.audit('Retrieving all the value from the datastore')
-
-        if local:
-            key_prefix = self._get_datastore_key_prefix() + self.DATASTORE_NAME_SEPARATOR
-
-            if prefix:
-                key_prefix += prefix
-        else:
-            key_prefix = prefix
-
-        kvps = client.keys.get_all(prefix=key_prefix)
-        return kvps
+        return self._datastore_service.list_values(local, prefix)
 
     def get_value(self, name, local=True):
-        """
-        Retrieve a value from the datastore for the provided key.
-
-        By default, value is retrieved from the namespace local to the sensor. If you want to
-        retrieve a global value from a datastore, pass local=False to this method.
-
-        :param name: Key name.
-        :type name: ``str``
-
-        :param local: Retrieve value from a namespace local to the sensor. Defaults to True.
-        :type: local: ``bool``
-
-        :rtype: ``str`` or ``None``
-        """
-        if local:
-            name = self._get_key_name_with_sensor_prefix(name=name)
-
-        client = self._get_api_client()
-
-        self._logger.audit('Retrieving value from the datastore (name=%s)', name)
-
-        try:
-            kvp = client.keys.get_by_id(id=name)
-        except Exception:
-            return None
-
-        if kvp:
-            return kvp.value
-
-        return None
+        return self._datastore_service.get_value(name, local)
 
     def set_value(self, name, value, ttl=None, local=True):
-        """
-        Set a value for the provided key.
-
-        By default, value is set in a namespace local to the sensor. If you want to
-        set a global value, pass local=False to this method.
-
-        :param name: Key name.
-        :type name: ``str``
-
-        :param value: Key value.
-        :type value: ``str``
-
-        :param ttl: Optional TTL (in seconds).
-        :type ttl: ``int``
-
-        :param local: Set value in a namespace local to the sensor. Defaults to True.
-        :type: local: ``bool``
-
-        :return: ``True`` on success, ``False`` otherwise.
-        :rtype: ``bool``
-        """
-        if local:
-            name = self._get_key_name_with_sensor_prefix(name=name)
-
-        value = str(value)
-        client = self._get_api_client()
-
-        self._logger.audit('Setting value in the datastore (name=%s)', name)
-
-        instance = KeyValuePair()
-        instance.id = name
-        instance.name = name
-        instance.value = value
-
-        if ttl:
-            instance.ttl = ttl
-
-        client.keys.update(instance=instance)
-        return True
+        return self._datastore_service.set_value(name, value, ttl, local)
 
     def delete_value(self, name, local=True):
-        """
-        Delete the provided key.
-
-        By default, value is deleted from a namespace local to the sensor. If you want to
-        delete a global value, pass local=False to this method.
-
-        :param name: Name of the key to delete.
-        :type name: ``str``
-
-        :param local: Delete a value in a namespace local to the sensor. Defaults to True.
-        :type: local: ``bool``
-
-        :return: ``True`` on success, ``False`` otherwise.
-        :rtype: ``bool``
-        """
-        if local:
-            name = self._get_key_name_with_sensor_prefix(name=name)
-
-        client = self._get_api_client()
-
-        instance = KeyValuePair()
-        instance.id = name
-        instance.name = name
-
-        self._logger.audit('Deleting value from the datastore (name=%s)', name)
-
-        try:
-            client.keys.delete(instance=instance)
-        except Exception:
-            return False
-
-        return True
-
-    def _get_api_client(self):
-        """
-        Retrieve API client instance.
-        """
-        # TODO: API client is really unfriendly and needs to be re-designed and
-        # improved
-        api_url = os.environ.get(API_URL_ENV_VARIABLE_NAME, None)
-        auth_token = os.environ.get(AUTH_TOKEN_ENV_VARIABLE_NAME, None)
-
-        if not api_url or not auth_token:
-            raise ValueError('%s and %s environment variable must be set' %
-                             (API_URL_ENV_VARIABLE_NAME, AUTH_TOKEN_ENV_VARIABLE_NAME))
-
-        if not self._client:
-            self._client = Client(api_url=api_url)
-
-        return self._client
-
-    def _get_key_name_with_sensor_prefix(self, name):
-        """
-        Retrieve a full key name which is local to the current sensor.
-
-        :param name: Base datastore key name.
-        :type name: ``str``
-
-        :rtype: ``str``
-        """
-        prefix = self._get_datastore_key_prefix()
-        full_name = prefix + self.DATASTORE_NAME_SEPARATOR + name
-        return full_name
-
-    def _get_datastore_key_prefix(self):
-        prefix = '%s.%s' % (self._sensor_wrapper._pack, self._sensor_wrapper._class_name)
-        return prefix
+        return self._datastore_service.delete_value(name, local)
 
 
 class SensorWrapper(object):

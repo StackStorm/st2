@@ -1,7 +1,7 @@
 ---
 chain:
 - name: c1
-  params:
+  parameters:
     arrtype:
     - '{{s1}}'
     - '{{s2}}'

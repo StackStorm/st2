@@ -30,9 +30,10 @@
 
 import six
 
+from st2common import log as logging
 from st2common.util import reference
 import st2common.util.action_db as action_utils
-from st2common.constants.action import LIVEACTION_STATUS_CANCELED
+from st2common.constants import action as action_constants
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.runner import RunnerType
 from st2common.persistence.rule import Rule
@@ -41,11 +42,11 @@ from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.db.execution import ActionExecutionDB
-from st2common import log as logging
 
 __all__ = [
     'create_execution_object',
     'update_execution',
+    'abandon_execution_if_incomplete',
     'is_execution_canceled',
     'AscendingSortedDescendantView',
     'DFSDescendantView',
@@ -54,7 +55,7 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-SKIPPED = ['id', 'callback', 'action', 'runner_info']
+SKIPPED = ['id', 'callback', 'action', 'runner_info', 'parameters']
 
 
 def _decompose_liveaction(liveaction_db):
@@ -77,6 +78,7 @@ def create_execution_object(liveaction, publish=True):
 
     attrs = {
         'action': vars(ActionAPI.from_model(action_db)),
+        'parameters': liveaction['parameters'],
         'runner': vars(RunnerTypeAPI.from_model(runner))
     }
     attrs.update(_decompose_liveaction(liveaction))
@@ -136,12 +138,47 @@ def update_execution(liveaction_db, publish=True):
     return execution
 
 
+def abandon_execution_if_incomplete(liveaction_id, publish=True):
+    """
+    Marks execution as abandoned if it is still incomplete. Abandoning an
+    execution implies that its end state is unknown and cannot anylonger
+    be determined. This method should only be called if the owning process
+    is certain it can no longer determine status of an execution.
+    """
+    liveaction_db = action_utils.get_liveaction_by_id(liveaction_id)
+    # No need to abandon and already complete action
+    if liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES:
+        raise ValueError('LiveAction %s already in a completed state %s.' %
+                         (liveaction_id, liveaction_db.status))
+    liveaction_db = action_utils.update_liveaction_status(
+        status=action_constants.LIVEACTION_STATUS_ABANDONED,
+        liveaction_db=liveaction_db,
+        result={})
+    execution_db = update_execution(liveaction_db, publish=publish)
+    LOG.info('Marked execution %s as %s.', execution_db.id,
+             action_constants.LIVEACTION_STATUS_ABANDONED)
+    return execution_db
+
+
 def is_execution_canceled(execution_id):
     try:
         execution = ActionExecution.get_by_id(execution_id)
-        return execution.status == LIVEACTION_STATUS_CANCELED
+        return execution.status == action_constants.LIVEACTION_STATUS_CANCELED
     except:
         return False  # XXX: What to do here?
+
+
+def get_parent_context(liveaction_db):
+    """
+    Returns context of the parent execution.
+
+    :return: If found the parent context else None.
+    :rtype: dict
+    """
+    context = getattr(liveaction_db, 'context', None)
+    if not context:
+        return None
+    return context.get('parent', None)
 
 
 class AscendingSortedDescendantView(object):

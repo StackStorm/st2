@@ -20,6 +20,8 @@ from st2actions.container.service import RunnerContainerService
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_CANCELED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.models.api.notification import NotificationsHelper
 from st2common.models.db.liveaction import LiveActionDB
@@ -57,12 +59,16 @@ RUNNER = MODELS['runners']['testrunner1.yaml']
 
 CHAIN_1_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain1.yaml')
+CHAIN_2_PATH = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain2.yaml')
 CHAIN_ACTION_CALL_NO_PARAMS_PATH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_action_call_no_params.yaml')
 CHAIN_NO_DEFAULT = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'no_default_chain.yaml')
 CHAIN_NO_DEFAULT_2 = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'no_default_chain_2.yaml')
+CHAIN_BAD_DEFAULT = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'bad_default_chain.yaml')
 CHAIN_BROKEN_ON_SUCCESS_PATH_STATIC_TASK_NAME = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_broken_on_success_path_static_task_name.yaml')
 CHAIN_BROKEN_ON_FAILURE_PATH_STATIC_TASK_NAME = FixturesLoader().get_fixture_file_path_abs(
@@ -95,6 +101,14 @@ CHAIN_WITH_PUBLISH_PARAM_RENDERING_FAILURE = FixturesLoader().get_fixture_file_p
     FIXTURES_PACK, 'actionchains', 'chain_publish_params_rendering_failure.yaml')
 CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_invalid_action.yaml')
+CHAIN_ACTION_PARAMS_AND_PARAMETERS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_action_params_and_parameters.yaml')
+CHAIN_ACTION_PARAMS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_action_params_attribute.yaml')
+CHAIN_ACTION_PARAMETERS_ATTRIBUTE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_action_parameters_attribute.yaml')
+CHAIN_ACTION_INVALID_PARAMETER_TYPE = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_invalid_parameter_type_passed_to_action.yaml')
 
 CHAIN_NOTIFY_API = {'notify': {'on-complete': {'message': 'foo happened.'}}}
 CHAIN_NOTIFY_DB = NotificationsHelper.to_model(CHAIN_NOTIFY_API)
@@ -137,6 +151,76 @@ class TestActionChainRunner(DbTestCase):
         self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
         # based on the chain the callcount is known to be 3. Not great but works.
         self.assertEqual(request.call_count, 3)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_chain_second_task_times_out(self, request):
+        # Second task in the chain times out so the action chain status should be timeout
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_2_PATH
+        chain_runner.action = ACTION_1
+
+        original_run_action = chain_runner._run_action
+
+        def mock_run_action(*args, **kwargs):
+            original_live_action = args[0]
+            liveaction = original_run_action(*args, **kwargs)
+            if original_live_action.action == 'wolfpack.a2':
+                # Mock a timeout for second task
+                liveaction.status = LIVEACTION_STATUS_TIMED_OUT
+            return liveaction
+
+        chain_runner._run_action = mock_run_action
+
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
+                                                           pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, _, _ = chain_runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_TIMED_OUT)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # based on the chain the callcount is known to be 3. Not great but works.
+        self.assertEqual(request.call_count, 3)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_task_is_canceled_while_running(self, request):
+        # Second task in the action is CANCELED, make sure runner doesn't get stuck in an infinite
+        # loop
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_2_PATH
+        chain_runner.action = ACTION_1
+
+        original_run_action = chain_runner._run_action
+
+        def mock_run_action(*args, **kwargs):
+            original_live_action = args[0]
+            if original_live_action.action == 'wolfpack.a2':
+                status = LIVEACTION_STATUS_CANCELED
+            else:
+                status = LIVEACTION_STATUS_SUCCEEDED
+            request.return_value = (DummyActionExecution(status=status), None)
+            liveaction = original_run_action(*args, **kwargs)
+            return liveaction
+
+        chain_runner._run_action = mock_run_action
+
+        action_ref = ResourceReference.to_string_reference(name=ACTION_1.name,
+                                                           pack=ACTION_1.pack)
+        chain_runner.liveaction = LiveActionDB(action=action_ref)
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+        status, _, _ = chain_runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_CANCELED)
+        self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
+        # Chain count should be 2 since the last task doesn't get called since the second one was
+        # canceled
+        self.assertEqual(request.call_count, 2)
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
@@ -196,6 +280,18 @@ class TestActionChainRunner(DbTestCase):
         self.assertEqual(default_node, first_node.name)
         # based on the chain the callcount is known to be 2.
         self.assertEqual(request.call_count, 2)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_runner_bad_default(self, request):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_BAD_DEFAULT
+        chain_runner.action = ACTION_1
+        chain_runner.container_service = RunnerContainerService()
+        expected_msg = 'Unable to find node with name "bad_default" referenced in "default".'
+        self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError,
+                                expected_msg, chain_runner.pre_run)
 
     @mock.patch('eventlet.sleep', mock.MagicMock())
     @mock.patch.object(action_db_util, 'get_liveaction_by_id', mock.MagicMock(
@@ -525,10 +621,11 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.entry_point = CHAIN_WITH_PUBLISH
         chain_runner.action = ACTION_2
         chain_runner.container_service = RunnerContainerService()
+        chain_runner.runner_parameters = {'display_published': True}
         chain_runner.pre_run()
 
         action_parameters = {'action_param_1': 'test value 1'}
-        chain_runner.run(action_parameters=action_parameters)
+        _, result, _ = chain_runner.run(action_parameters=action_parameters)
 
         # We also assert that the action parameters are available in the
         # "publish" scope
@@ -539,6 +636,9 @@ class TestActionChainRunner(DbTestCase):
                           'published_action_param': action_parameters['action_param_1']}
         mock_args, _ = request.call_args
         self.assertEqual(mock_args[0].parameters, expected_value)
+        # Assert that the variables are correctly published
+        self.assertEqual(result['published'],
+                         {'published_action_param': u'test value 1', 'o1': u'published'})
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=ACTION_1))
@@ -566,6 +666,22 @@ class TestActionChainRunner(DbTestCase):
             self.fail('Exception was not thrown')
 
     @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_2))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_chain_task_passes_invalid_parameter_type_to_action(self, mock_request):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_ACTION_INVALID_PARAMETER_TYPE
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+
+        action_parameters = {}
+        expected_msg = ('Failed to cast value "stringnotanarray" for parameter '
+                        '"arrtype" of type "array"')
+        self.assertRaisesRegexp(ValueError, expected_msg, chain_runner.run,
+                                action_parameters=action_parameters)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
                        mock.MagicMock(return_value=None))
     @mock.patch.object(action_service, 'request',
                        return_value=(DummyActionExecution(result={'raw_out': 'published'}), None))
@@ -585,6 +701,63 @@ class TestActionChainRunner(DbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertTrue(expected_error in output['error'])
         self.assertTrue('Traceback' in output['traceback'], output['traceback'])
+
+    def test_exception_is_thrown_if_both_params_and_parameters_attributes_are_provided(self):
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_ACTION_PARAMS_AND_PARAMETERS_ATTRIBUTE
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+
+        expected_msg = ('Either "params" or "parameters" attribute needs to be provided, but '
+                       'not both')
+        self.assertRaisesRegexp(runnerexceptions.ActionRunnerPreRunError, expected_msg,
+                                chain_runner.pre_run)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_1))
+    @mock.patch.object(action_service, 'request', return_value=(DummyActionExecution(), None))
+    def test_params_and_parameters_attributes_both_work(self, _):
+        # "params" attribute used
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_ACTION_PARAMS_ATTRIBUTE
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+
+        original_build_liveaction_object = chain_runner._build_liveaction_object
+
+        def mock_build_liveaction_object(action_node, resolved_params, parent_context):
+            # Verify parameters are correctly passed to the action
+            self.assertEqual(resolved_params, {'pparams': 'v1'})
+            original_build_liveaction_object(action_node=action_node,
+                                             resolved_params=resolved_params,
+                                             parent_context=parent_context)
+
+        chain_runner._build_liveaction_object = mock_build_liveaction_object
+
+        action_parameters = {}
+        status, output, _ = chain_runner.run(action_parameters=action_parameters)
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+
+        # "parameters" attribute used
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_ACTION_PARAMETERS_ATTRIBUTE
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.pre_run()
+
+        def mock_build_liveaction_object(action_node, resolved_params, parent_context):
+            # Verify parameters are correctly passed to the action
+            self.assertEqual(resolved_params, {'pparameters': 'v1'})
+            original_build_liveaction_object(action_node=action_node,
+                                             resolved_params=resolved_params,
+                                             parent_context=parent_context)
+
+        chain_runner._build_liveaction_object = mock_build_liveaction_object
+
+        action_parameters = {}
+        status, output, _ = chain_runner.run(action_parameters=action_parameters)
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
 
     @classmethod
     def tearDownClass(cls):

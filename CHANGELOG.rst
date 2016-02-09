@@ -4,6 +4,92 @@ Changelog
 in development
 --------------
 
+* Changes to gunicorn configuration for both st2api and st2auth so common service
+  setup code is only run in workers and not master. (bug-fix)
+* Fix an issue where trigger watcher cannot get messages from queue if multiple API
+  processes are spun up. Now each trigger watcher gets its own queue and therefore
+  there are no locking issues. (bug-fix)
+* Dev environment by default now uses gunicorn to spin API and AUTH processes. (improvement)
+* Allow user to pass a boolean value for the ``cacert`` st2client constructor argument. This way
+  it now mimics the behavior of the ``verify`` argument of the ``requests.request`` method.
+  (improvement)
+* Add datastore access to Python actions. (new-feature) #2396 [Kale Blankenship]
+* Allow /v1/webhooks API endpoint request body to either be JSON or url encoded form data.
+  Request body type is determined and parsed accordingly based on the value of
+  ``Content-Type`` header.
+  Note: For backward compatibility reasons we default to JSON if ``Content-Type`` header is
+  not provided. #2473 [David Pitman]
+
+1.3.0 - January 22, 2016
+------------------------
+
+* Allow user to pass ``env`` parameter to ``packs.setup_virtualenv`` and ``packs.install``
+  action.
+
+  This comes handy if user wants pip to use an HTTP(s) proxy (HTTP_PROXY and HTTPS_PROXY
+  environment variable) when installing pack dependencies. (new feature)
+* Ability to view causation chains in Trace. This helps reduce the noise when using Trace to
+  identify specific issues. (new-feature)
+* Filter Trace components by model types to only view ActionExecutions, Rules or TriggerInstances.
+  (new-feature)
+* Include ref of the most meaningful object in each trace component. (new-feature)
+* Ability to hide trigger-instance that do not yield a rule enforcement. (new-feature)
+* Change the rule list columns in the CLI from ref, pack, description and enabled to ref,
+  trigger.ref, action.ref and enabled. This aligns closer the UI and also brings important
+  information front and center. (improvement)
+* Action and Trigger filters for rule list (new-feature)
+* Add missing logrotate config entry for ``st2auth`` service. #2294 [Vignesh Terafast]
+* Support for object already present in the DB for ``st2-rule-tester`` (improvement)
+* Add ``--register-fail-on-failure`` flag to ``st2-register-content`` script. If this flag is
+  provided, the script will fail and exit with non-zero status code if registering some resource
+  fails. (new feature)
+* Add a missing ``get_logger`` method to the `MockSensorService``. This method now returns an
+  instance of ``Mock`` class which allows user to assert that a particular message has been
+  logged. [Tim Ireland, Tomaz Muraus]
+* Introduce a new ``abandoned`` state that is applied to executions that we cannot guarantee as
+  completed. Typically happen when an actionrunner currently running some executions quits or is
+  killed via TERM.
+* Add new ``st2garbagecollector`` service which periodically deletes old data from the database
+  as configured in the config. By default, no old data is deleted unless explicitly configured in
+  the config.
+* All published variables can be available in the result of ActionChain execution under the
+  ``published`` property if ``display_published`` property is specified.
+* Allow user to specify TTL when creating datastore item using CLI with the ``--ttl`` option.
+  (improvement)
+* Fix validation error when None is passed explicitly to an optional argument on action
+  execution. (bug fix)
+* Deprecated ``params`` action attribute in the action chain definition in favor of the new
+  ``parameters`` attribute. (improvement)
+* Fix action parameters validation so that only a selected set of attributes can be overriden for
+  any runner parameters. (bug fix)
+* Fix type in the headers parameter for the http-request runner. (bug fix)
+* Fix runaway action triggers caused by state miscalculation for mistral workflow. (bug fix)
+* Throw a more friendly error message if casting parameter value fails because the value contains
+  an invalid type or similar. (improvement)
+* Use ``--always-copy`` option when creating virtualenv for packs from packs.setup_virtualenv
+  action. This is required when st2actionrunner is kicked off from python within a virtualenv.
+* Fix a bug in the remote script runner which would throw an exception if a remote script action
+  caused a top level failure (e.g. copying artifacts to a remote host failed). (bug-fix)
+* Display execution parameters when using ``st2 execution get <execution id>`` CLI command for
+  workflow executions. (improvement)
+* Fix execution cancellation for task of mistral workflow. (bug fix)
+* Fix runaway action triggers caused by state miscalculation for mistral workflow. (bug fix)
+* The ``--tasks`` option in the CLI for ``st2 execution get`` and ``st2 run`` will be renamed to
+  ``--show-tasks`` to avoid conflict with the tasks option in st2 execution re-run.
+* Add option to rerun one or more tasks in mistral workflow that has errored. (new-feature)
+* Fix a bug when removing notify section from an action meta and registering it never removed
+  the notify section from the db. (bug fix)
+* Make sure action specific short lived authentication token is deleted immediately when execution
+  is canceled. (improvement)
+* Ignore lock release errors which could occur while reopening log files. This error could simply
+  indicate that the lock was never acquired.
+* Replace ``chatops.format_result`` with ``chatops.format_execution_result`` and remove dependency
+  on st2 pack from st2contrib.
+* Trace also maintains causation chain through workflows.
+
+1.2.0 - December 07, 2015
+-------------------------
+
 * Refactor retries in the Mistral action runner to use exponential backoff. Configuration options
   for Mistral have changed. (improvement)
 * Add SSH bastion host support to the paramiko SSH runner. Utilizes same connection parameters as
@@ -19,6 +105,42 @@ in development
   validate the parameters before creating a TriggerDB object. (bug fix)
 * Update local runner so all the commands which are executed as a different user and result in
   using sudo set $HOME variable to the home directory of the target user. (improvement)
+* Fix a bug with a user inside the context of the live action which was created using alias
+  execution endpoint incorrectly being set to the system user (``stanley``) instead of the
+  authenticated user which triggered the execution. (bug fix)
+* Include state_info for Mistral workflow and tasks in the action execution result. (improvement)
+* Introduce a new ``timeout`` action execution status which represents an action execution
+  timeout. Previously, executions which timed out had status set to ``failure``. Keep in mind
+  that timeout is just a special type of a failure. (new feature)
+* ``--debug`` flag no longer implies profiling mode. If you want to enable profiling mode, you need
+  to explicitly pass ``--profile`` flag to the binary. To reproduce the old behavior, simply pass
+  both flags to the binary - ``--debug --profile``.
+* Fix policy loading and registering - make sure we validate policy parameters against the
+  parameters schema when loading / registering policies. (bug fix, improvement)
+* Fix policy trigger for action execution cancellation. (bug fix)
+* Improve error reporting for static error in ActionChain definition e.g. incorrect reference
+  in default etc. (improvement)
+* Fix action chain so it doesn't end up in an infinite loop if an action which is part of the chain
+  is canceled. (bug fix)
+* Allow jinja templating to be used in ``message`` and ``data`` field for notifications.(new feature)
+* Add tools for purging executions (also, liveactions with it) and trigger instances older than
+  certain UTC timestamp from the db in bulk.
+* Fix json representation of trace in cli. (bug fix)
+* Introducing `noop` runner and `core.noop` action. Returns consistent success in a WF regardless of
+  user input. (new feature)
+* Add missing indexes on trigger_instance_d_b collection. (bug fix)
+* Add mock classes (``st2tests.mocks.*``) for easier unit testing of the packs. (new feature)
+* Add a script (``./st2common/bin/st2-run-pack-tests``) for running pack tests. (new feature)
+* Modify ActionAliasFormatParser to work with regular expressions and support more flexible parameter matching. (improvement)
+* Move ChatOps pack to st2 core.
+* Support for formatting of alias acknowledgement and result messages in AliasExecution. (new feature)
+* Support for "representation+value" format strings in aliases. (new feature)
+* Support for disabled result and acknowledgement messages in aliases. (new feature)
+* Add ability to write rule enforcement (models that represent a rule evaluation that resulted
+  in an action execution) to db to help debugging rules easier. Also, CLI bindings to list
+  and view these models are added. (new-feature)
+* Purge tool now uses delete_by_query and offloads delete to mongo and doesn't perform app side
+  explicit model deletion to improve speed. (improvement)
 
 1.1.1 - November 13, 2015
 -------------------------

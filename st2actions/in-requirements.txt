@@ -7,6 +7,7 @@ jinja2
 kombu
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 oslo.config
+oslo.utils
 requests
 six
 pyyaml
@@ -18,3 +19,5 @@ lockfile
 python-nmap
 pyinotify
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
+# required by pack_mgmt/setup_virtualenv.py#L135
+virtualenv

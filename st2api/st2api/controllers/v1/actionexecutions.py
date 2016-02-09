@@ -16,6 +16,8 @@
 import copy
 import re
 import httplib
+import sys
+import traceback
 
 import jsonschema
 from oslo_config import cfg
@@ -28,8 +30,10 @@ from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUS_CANCELED
-from st2common.constants.action import CANCELABLE_STATES
+from st2common.constants.action import LIVEACTION_STATUS_CANCELED, LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_CANCELABLE_STATES
+from st2common.exceptions.param import ParamException
+from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.trace import TraceNotFoundException
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.base import jsexpose
@@ -39,10 +43,13 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
+from st2common.services import trace as trace_service
 from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
+from st2common.util.api import get_requester
+from st2common.util import param as param_utils
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
@@ -83,14 +90,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         'trigger_instance'
     ]
 
-    def _get_requester(self):
-        # Retrieve username of the authed user (note - if auth is disabled, user will not be
-        # set so we fall back to the system user name)
-        auth_context = pecan.request.context.get('auth', None)
-        user_db = auth_context.get('user', None) if auth_context else None
-
-        return user_db.name if user_db else cfg.CONF.system_user.user
-
     def _get_from_model_kwargs_for_request(self, request):
         """
         Set mask_secrets=False if the user is an admin and provided ?show_secrets=True query param.
@@ -125,6 +124,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             abort(http_client.BAD_REQUEST, re.sub("u'([^']*)'", r"'\1'", e.message))
         except TraceNotFoundException as e:
             abort(http_client.BAD_REQUEST, str(e))
+        except ValueValidationException as e:
+            raise e
         except Exception as e:
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
@@ -134,7 +135,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
-        liveaction.context['user'] = self._get_requester()
+        liveaction.context['user'] = get_requester()
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
@@ -145,10 +146,32 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             liveaction.context.update(context)
 
         # Schedule the action execution.
-        liveactiondb = LiveActionAPI.to_model(liveaction)
-        _, actionexecutiondb = action_service.request(liveactiondb)
+        liveaction_db = LiveActionAPI.to_model(liveaction)
+        liveaction_db, actionexecution_db = action_service.create_request(liveaction_db)
+
+        action_db = action_utils.get_action_by_ref(liveaction_db.action)
+        runnertype_db = action_utils.get_runnertype_by_name(action_db.runner_type['name'])
+
+        try:
+            liveaction_db.parameters = param_utils.render_live_params(
+                runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
+                liveaction_db.context)
+        except ParamException:
+            # By this point the execution is already in the DB therefore need to mark it failed.
+            _, e, tb = sys.exc_info()
+            action_service.update_status(
+                liveaction=liveaction_db,
+                new_status=LIVEACTION_STATUS_FAILED,
+                result={'error': str(e), 'traceback': ''.join(traceback.format_tb(tb, 20))})
+            # Might be a good idea to return the actual ActionExecution rather than bubble up
+            # the execption.
+            raise ValueValidationException(str(e))
+
+        liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
+
+        _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
-        return ActionExecutionAPI.from_model(actionexecutiondb, from_model_kwargs)
+        return ActionExecutionAPI.from_model(actionexecution_db, from_model_kwargs)
 
     def _get_result_object(self, id):
         """
@@ -245,18 +268,33 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         'trigger_instance'
     ]
 
-    class ExecutionParametersAPI(object):
-        def __init__(self, parameters=None):
+    class ExecutionSpecificationAPI(object):
+        def __init__(self, parameters=None, tasks=None, reset=None):
             self.parameters = parameters or {}
+            self.tasks = tasks or []
+            self.reset = reset or []
 
         def validate(self):
+            if (self.tasks or self.reset) and self.parameters:
+                raise ValueError('Parameters override is not supported when '
+                                 're-running task(s) for a workflow.')
+
             if self.parameters:
                 assert isinstance(self.parameters, dict)
 
+            if self.tasks:
+                assert isinstance(self.tasks, list)
+
+            if self.reset:
+                assert isinstance(self.reset, list)
+
+            if list(set(self.reset) - set(self.tasks)):
+                raise ValueError('List of tasks to reset does not match the tasks to rerun.')
+
             return self
 
-    @jsexpose(body_cls=ExecutionParametersAPI, status_code=http_client.CREATED)
-    def post(self, execution_parameters, execution_id):
+    @jsexpose(body_cls=ExecutionSpecificationAPI, status_code=http_client.CREATED)
+    def post(self, spec, execution_id):
         """
         Re-run the provided action execution optionally specifying override parameters.
 
@@ -264,21 +302,43 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             POST /executions/<id>/re_run
         """
-        parameters = execution_parameters.parameters
-
-        # Note: We only really need parameters here
         existing_execution = self._get_one(id=execution_id, exclude_fields=self.exclude_fields)
+
+        if spec.tasks and existing_execution.runner['name'] != 'mistral-v2':
+            raise ValueError('Task option is only supported for Mistral workflows.')
 
         # Merge in any parameters provided by the user
         new_parameters = copy.deepcopy(getattr(existing_execution, 'parameters', {}))
-        new_parameters.update(parameters)
+        new_parameters.update(spec.parameters)
 
         # Create object for the new execution
         action_ref = existing_execution.action['ref']
-        new_liveaction = LiveActionDB(action=action_ref, parameters=new_parameters)
 
-        result = self._handle_schedule_execution(liveaction=new_liveaction)
-        return result
+        # Include additional option(s) for the execution
+        context = {
+            're-run': {
+                'ref': execution_id,
+            }
+        }
+
+        if spec.tasks:
+            context['re-run']['tasks'] = spec.tasks
+
+        if spec.reset:
+            context['re-run']['reset'] = spec.reset
+
+        # Add trace to the new execution
+        trace = trace_service.get_trace_db_by_action_execution(
+            action_execution_id=existing_execution.id)
+
+        if trace:
+            context['trace_context'] = {'id_': str(trace.id)}
+
+        new_liveaction = LiveActionDB(action=action_ref,
+                                      context=context,
+                                      parameters=new_parameters)
+
+        return self._handle_schedule_execution(liveaction=new_liveaction)
 
 
 class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceController):
@@ -388,12 +448,12 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         if liveaction_db.status == LIVEACTION_STATUS_CANCELED:
             abort(http_client.OK, 'Action is already in "canceled" state.')
 
-        if liveaction_db.status not in CANCELABLE_STATES:
+        if liveaction_db.status not in LIVEACTION_CANCELABLE_STATES:
             abort(http_client.OK, 'Action cannot be canceled. State = %s.' % liveaction_db.status)
 
         try:
             (liveaction_db, execution_db) = action_service.request_cancellation(
-                liveaction_db, self._get_requester())
+                liveaction_db, get_requester())
         except:
             LOG.exception('Failed requesting cancellation for liveaction %s.', liveaction_db.id)
             abort(http_client.INTERNAL_SERVER_ERROR, 'Failed canceling execution.')

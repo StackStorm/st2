@@ -1,6 +1,7 @@
 # Packages versions fixed for the whole st2 stack
 eventlet>=0.13.0
 oslo.config>=1.12.1,<1.13
+oslo.utils<3.1.0
 six==1.9.0
 pyyaml>=3.11,<4.0
 requests[security]>=2.7.0,<3.0
@@ -20,3 +21,7 @@ tooz==1.20.0
 stevedore>=1.7.0,<1.8
 bencode>=1.0,<1.1
 paramiko>=1.15.2,<1.16
+networkx==1.10
+# Note: We want to use virtualenv 13.1.2 since it uses pip 7.1.2 and versions
+# >= 14.0 use pip 8.8.0 which is incompatible with our code
+virtualenv>=13.1.2,<14.0

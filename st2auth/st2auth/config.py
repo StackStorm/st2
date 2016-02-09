@@ -71,5 +71,3 @@ def _register_app_opts():
                     help='List of origins allowed'),
     ]
     cfg.CONF.register_cli_opts(api_opts, group='api')
-
-register_opts()

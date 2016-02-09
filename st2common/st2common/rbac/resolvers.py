@@ -24,6 +24,7 @@ import logging as stdlib_logging
 from st2common import log as logging
 from st2common.models.db.pack import PackDB
 from st2common.models.db.webhook import WebhookDB
+from st2common.models.system.common import ResourceReference
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPE
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
@@ -39,6 +40,7 @@ __all__ = [
     'ActionPermissionsResolver',
     'ActionAliasPermissionsResolver',
     'RulePermissionsResolver',
+    'RuleEnforcementPermissionsResolver',
     'KeyValuePermissionsResolver',
     'ExecutionPermissionsResolver',
     'WebhookPermissionsResolver',
@@ -464,6 +466,93 @@ class RulePermissionsResolver(ContentPackResourcePermissionsResolver):
                                                   permission_type=permission_type)
 
 
+class RuleEnforcementPermissionsResolver(PermissionsResolver):
+    """
+    Permission resolver for "rule enforcement" resource type.
+    """
+    resource_type = ResourceType.RULE_ENFORCEMENT
+
+    def user_has_permission(self, user_db, permission_type):
+        assert permission_type in [PermissionType.RULE_ENFORCEMENT_LIST]
+        permission_type = PermissionType.RULE_LIST
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        log_context = {
+            'user_db': user_db,
+            'resource_db': resource_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user resource permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        rule_spec = getattr(resource_db, 'rule', None)
+        rule_uid = rule_spec.uid
+        rule_id = rule_spec.id
+        rule_pack = ResourceReference.get_pack(rule_spec.ref)
+
+        if not rule_uid or not rule_id or not rule_pack:
+            LOG.error('Rule UID or ID or PACK not present in enforcement object. ' +
+                      ('UID = %s, ID = %s, PACK = %s' % (rule_uid, rule_id, rule_pack)) +
+                      'Cannot assess access permissions without it. Defaulting to DENY.')
+            return False
+
+        # TODO: Add utility methods for constructing uids from parts
+        pack_db = PackDB(ref=rule_pack)
+        rule_pack_uid = pack_db.get_uid()
+
+        rule_permission_type = None
+        if permission_type == PermissionType.RULE_ENFORCEMENT_VIEW:
+            rule_permission_type = PermissionType.RULE_VIEW
+        elif permission_type == PermissionType.RULE_ENFORCEMENT_LIST:
+            rule_permission_type = PermissionType.RULE_LIST
+        else:
+            raise ValueError('Invalid permission type: %s' % (permission_type))
+
+        permission_types = [PermissionType.RULE_ALL, rule_permission_type]
+
+        view_permission_type = PermissionType.get_permission_type(resource_type=ResourceType.RULE,
+                                                                  permission_name='view')
+
+        if rule_permission_type == view_permission_type:
+            permission_types = (RulePermissionsResolver.view_grant_permission_types[:] +
+                                [rule_permission_type])
+
+        # Check grants on the pack of the rule to which enforcement belongs to
+        resource_types = [ResourceType.PACK]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=rule_pack_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+
+        if len(permission_grants) >= 1:
+            self._log('Found a grant on the enforcement rule parent pack', extra=log_context)
+            return True
+
+        # Check grants on the rule the enforcement belongs to
+        resource_types = [ResourceType.RULE]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=rule_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+
+        if len(permission_grants) >= 1:
+            self._log('Found a grant on the enforcement\'s rule.', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
+
 class KeyValuePermissionsResolver(PermissionsResolver):
     """
     Permission resolver for "key value pair" resource type.
@@ -691,6 +780,8 @@ def get_resolver_for_resource_type(resource_type):
         resolver_cls = WebhookPermissionsResolver
     elif resource_type == ResourceType.API_KEY:
         resolver_cls = ApiKeyPermissionResolver
+    elif resource_type == ResourceType.RULE_ENFORCEMENT:
+        resolver_cls = RuleEnforcementPermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
 

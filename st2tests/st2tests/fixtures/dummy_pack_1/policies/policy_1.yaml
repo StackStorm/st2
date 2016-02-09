@@ -1,4 +1,5 @@
 ---
+# Valid policy
 name: test_policy_1
 pack: dummy_pack_1
 description: Limits the concurrent executions for the fake action.

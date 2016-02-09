@@ -18,16 +18,16 @@ import sys
 import abc
 import json
 import uuid
-import logging as stdlib_logging
 
 import six
 from eventlet.green import subprocess
 
 from st2actions.runners import ActionRunner
 from st2common.util.green.shell import run_command
-from st2common import log as logging
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
-from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
@@ -41,8 +41,6 @@ __all__ = [
     'PythonRunner',
     'Action'
 ]
-
-LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters.
 RUNNER_ENV = 'env'
@@ -71,29 +69,13 @@ class Action(object):
         :type config: ``dict``
         """
         self.config = config or {}
-        self.logger = self._set_up_logger()
+        # logger and datastore are assigned in PythonActionWrapper._get_action_instance
+        self.logger = None
+        self.datastore = None
 
     @abc.abstractmethod
     def run(self, **kwargs):
         pass
-
-    def _set_up_logger(self):
-        """
-        Set up a logger which logs all the messages with level DEBUG
-        and above to stderr.
-        """
-        logger_name = 'actions.python.%s' % (self.__class__.__name__)
-        logger = logging.getLogger(logger_name)
-
-        console = stdlib_logging.StreamHandler()
-        console.setLevel(stdlib_logging.DEBUG)
-
-        formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-        console.setFormatter(formatter)
-        logger.addHandler(console)
-        logger.setLevel(stdlib_logging.DEBUG)
-
-        return logger
 
 
 class PythonRunner(ActionRunner):
@@ -183,7 +165,13 @@ class PythonRunner(ActionRunner):
         if error:
             output['error'] = error
 
-        status = LIVEACTION_STATUS_SUCCEEDED if exit_code == 0 else LIVEACTION_STATUS_FAILED
+        if exit_code == 0:
+            status = LIVEACTION_STATUS_SUCCEEDED
+        elif timed_out:
+            status = LIVEACTION_STATUS_TIMED_OUT
+        else:
+            status = LIVEACTION_STATUS_FAILED
+
         return (status, output, None)
 
     def _get_env_vars(self):

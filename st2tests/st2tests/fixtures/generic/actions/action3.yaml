@@ -6,7 +6,6 @@ name: action-3
 pack: wolfpack
 parameters:
   k2:
-    type: string
     required: true
     default: bar
 runner_type: test-runner-3

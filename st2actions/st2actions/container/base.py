@@ -20,6 +20,8 @@ import traceback
 from st2common import log as logging
 from st2common.util import date as date_utils
 from st2common.constants import action as action_constants
+from st2common.exceptions import actionrunner
+from st2common.exceptions.param import ParamException
 from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.models.system.action import ResolvedActionParameters
 from st2common.persistence.execution import ActionExecution
@@ -27,10 +29,10 @@ from st2common.persistence.executionstate import ActionExecutionState
 from st2common.services import access, executions
 from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util.action_db import (update_liveaction_status, get_liveaction_by_id)
+from st2common.util import param as param_utils
 
 from st2actions.container.service import RunnerContainerService
 from st2actions.runners import get_runner, AsyncActionRunner
-from st2actions.utils import param_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -41,27 +43,6 @@ __all__ = [
 
 
 class RunnerContainer(object):
-
-    def _get_runner(self, runnertype_db, action_db, liveaction_db):
-        runner = get_runner(runnertype_db.runner_module)
-
-        resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
-                                                              action_db.entry_point)
-
-        runner.container_service = RunnerContainerService()
-        runner.action = action_db
-        runner.action_name = action_db.name
-        runner.liveaction = liveaction_db
-        runner.liveaction_id = str(liveaction_db.id)
-        runner.execution = ActionExecution.get(liveaction__id=runner.liveaction_id)
-        runner.execution_id = str(runner.execution.id)
-        runner.entry_point = resolved_entry_point
-        runner.context = getattr(liveaction_db, 'context', dict())
-        runner.callback = getattr(liveaction_db, 'callback', dict())
-        runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
-                                                              action_db.entry_point)
-
-        return runner
 
     def dispatch(self, liveaction_db):
         action_db = get_action_by_ref(liveaction_db.action)
@@ -78,9 +59,12 @@ class RunnerContainer(object):
         LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Process the request.
-        liveaction_db = (self._do_cancel(runner, runnertype_db, action_db, liveaction_db)
-                         if liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING
-                         else self._do_run(runner, runnertype_db, action_db, liveaction_db))
+        if liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING:
+            liveaction_db = self._do_cancel(runner=runner, runnertype_db=runnertype_db,
+                                            action_db=action_db, liveaction_db=liveaction_db)
+        else:
+            liveaction_db = self._do_run(runner=runner, runnertype_db=runnertype_db,
+                                         action_db=action_db, liveaction_db=liveaction_db)
 
         return liveaction_db.result
 
@@ -93,10 +77,13 @@ class RunnerContainer(object):
         try:
             # Finalized parameters are resolved and then rendered. This process could
             # fail. Handle the exception and report the error correctly.
-            runner_params, action_params = param_utils.get_finalized_params(
-                runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
-                liveaction_db.context)
-            runner.runner_parameters = runner_params
+            try:
+                runner_params, action_params = param_utils.render_final_params(
+                    runnertype_db.runner_parameters, action_db.parameters, liveaction_db.parameters,
+                    liveaction_db.context)
+                runner.runner_parameters = runner_params
+            except ParamException as e:
+                raise actionrunner.ActionRunnerException(str(e))
 
             LOG.debug('Performing pre-run for runner: %s', runner.runner_id)
             runner.pre_run()
@@ -115,7 +102,7 @@ class RunnerContainer(object):
             except:
                 pass
 
-            action_completed = status in action_constants.COMPLETED_STATES
+            action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
             if isinstance(runner, AsyncActionRunner) and not action_completed:
                 self._setup_async_query(liveaction_db.id, runnertype_db, context)
         except:
@@ -146,21 +133,11 @@ class RunnerContainer(object):
             extra = {'liveaction_db': updated_liveaction_db}
             LOG.debug('Updated liveaction after run', extra=extra)
 
-            # Deletion of the runner generated auth token is delayed until the token expires.
-            # Async actions such as Mistral workflows uses the auth token to launch other
-            # actions in the workflow. If the auth token is deleted here, then the actions
-            # in the workflow will fail with unauthorized exception.
-            is_async_runner = isinstance(runner, AsyncActionRunner)
-            action_completed = status in action_constants.COMPLETED_STATES
-
-            if not is_async_runner or (is_async_runner and action_completed):
-                try:
-                    self._delete_auth_token(runner.auth_token)
-                except:
-                    LOG.exception('Unable to clean-up auth_token.')
+            # Always clean-up the auth_token
+            self._clean_up_auth_token(runner=runner, status=status)
 
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
-        runner.post_run(status, result)
+        runner.post_run(status=status, result=result)
         runner.container_service = None
 
         LOG.debug('Runner do_run result', extra={'result': updated_liveaction_db.result})
@@ -181,20 +158,50 @@ class RunnerContainer(object):
                 liveaction_db=liveaction_db)
 
             executions.update_execution(liveaction_db)
+
+            LOG.debug('Performing post_run for runner: %s', runner.runner_id)
+            result = {'error': 'Execution canceled by user.'}
+            runner.post_run(status=liveaction_db.status, result=result)
+            runner.container_service = None
         except:
             _, ex, tb = sys.exc_info()
             # include the error message and traceback to try and provide some hints.
             result = {'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
             LOG.exception('Failed to cancel action %s.' % (liveaction_db.id), extra=result)
+        finally:
+            # Always clean-up the auth_token
+            status = liveaction_db.status
+            self._clean_up_auth_token(runner=runner, status=status)
 
         return liveaction_db
+
+    def _clean_up_auth_token(self, runner, status):
+        """
+        Clean up the temporary auth token for the current action.
+        """
+        # Deletion of the runner generated auth token is delayed until the token expires.
+        # Async actions such as Mistral workflows uses the auth token to launch other
+        # actions in the workflow. If the auth token is deleted here, then the actions
+        # in the workflow will fail with unauthorized exception.
+        is_async_runner = isinstance(runner, AsyncActionRunner)
+        action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
+
+        if not is_async_runner or (is_async_runner and action_completed):
+            try:
+                self._delete_auth_token(runner.auth_token)
+            except:
+                LOG.exception('Unable to clean-up auth_token.')
+
+            return True
+
+        return False
 
     def _update_live_action_db(self, liveaction_id, status, result, context):
         """
         Update LiveActionDB object for the provided liveaction id.
         """
         liveaction_db = get_liveaction_by_id(liveaction_id)
-        if status in action_constants.COMPLETED_STATES:
+        if status in action_constants.LIVEACTION_COMPLETED_STATES:
             end_timestamp = date_utils.get_datetime_utc_now()
         else:
             end_timestamp = None
@@ -213,6 +220,35 @@ class RunnerContainer(object):
     def _get_action_libs_abs_path(self, pack, entry_point):
         return RunnerContainerService.get_action_libs_abs_path(pack=pack,
                                                                entry_point=entry_point)
+
+    def _get_rerun_reference(self, context):
+        execution_id = context.get('re-run', {}).get('ref')
+        return ActionExecution.get_by_id(execution_id) if execution_id else None
+
+    def _get_runner(self, runnertype_db, action_db, liveaction_db):
+        runner = get_runner(runnertype_db.runner_module)
+
+        resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
+                                                              action_db.entry_point)
+
+        runner.container_service = RunnerContainerService()
+        runner.action = action_db
+        runner.action_name = action_db.name
+        runner.liveaction = liveaction_db
+        runner.liveaction_id = str(liveaction_db.id)
+        runner.execution = ActionExecution.get(liveaction__id=runner.liveaction_id)
+        runner.execution_id = str(runner.execution.id)
+        runner.entry_point = resolved_entry_point
+        runner.context = getattr(liveaction_db, 'context', dict())
+        runner.callback = getattr(liveaction_db, 'callback', dict())
+        runner.libs_dir_path = self._get_action_libs_abs_path(action_db.pack,
+                                                              action_db.entry_point)
+
+        # For re-run, get the ActionExecutionDB in which the re-run is based on.
+        rerun_ref_id = runner.context.get('re-run', {}).get('ref')
+        runner.rerun_ex_ref = ActionExecution.get(id=rerun_ref_id) if rerun_ref_id else None
+
+        return runner
 
     def _create_auth_token(self, context):
         if not context:

@@ -66,7 +66,7 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     """
     # Set up logger which logs everything which happens during and before config
     # parsing to sys.stdout
-    logging.setup(DEFAULT_LOGGING_CONF_PATH)
+    logging.setup(DEFAULT_LOGGING_CONF_PATH, excludes=None)
 
     # Parse args to setup config.
     if config_args:
@@ -83,18 +83,19 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     logging_config_path = os.path.abspath(logging_config_path)
 
     LOG.debug('Using logging config: %s', logging_config_path)
-    logging.setup(logging_config_path)
+    logging.setup(logging_config_path, redirect_stderr=cfg.CONF.log.redirect_stderr,
+                  excludes=cfg.CONF.log.excludes)
 
     if cfg.CONF.debug:
         enable_debugging()
+
+    if cfg.CONF.profile:
+        enable_profiling()
 
     # All other setup which requires config to be parsed and logging to
     # be correctly setup.
     if setup_db:
         db_setup()
-
-    if cfg.CONF.debug or cfg.CONF.profile:
-        enable_profiling()
 
     if register_mq_exchanges:
         register_exchanges()

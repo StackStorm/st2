@@ -51,11 +51,12 @@ class WebhooksController(RestController):
         self._trigger_types = WEBHOOK_TRIGGER_TYPES.keys()
 
         self._trigger_dispatcher = TriggerDispatcher(LOG)
+        queue_suffix = self.__class__.__name__
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,
                                                update_handler=self._handle_update_trigger,
                                                delete_handler=self._handle_delete_trigger,
                                                trigger_types=self._trigger_types,
-                                               queue_suffix=self.__class__.__name__,
+                                               queue_suffix=queue_suffix,
                                                exclusive=True)
         self._trigger_watcher.start()
         self._register_webhook_trigger_types()
@@ -79,12 +80,17 @@ class WebhooksController(RestController):
     @jsexpose(arg_types=[str], status_code=http_client.ACCEPTED)
     def post(self, *args, **kwargs):
         hook = '/'.join(args)  # TODO: There must be a better way to do this.
+
+        # Note: For backward compatibility reasons we default to application/json if content
+        # type is not explicitly provided
+        content_type = pecan.request.headers.get('Content-Type', 'application/json')
         body = pecan.request.body
+
         try:
-            body = json.loads(body)
-        except ValueError:
-            self._log_request('Invalid JSON body.', pecan.request)
-            msg = 'Invalid JSON body: %s' % (body)
+            body = self._parse_request_body(content_type=content_type, body=body)
+        except Exception as e:
+            self._log_request('Failed to parse request body: %s.' % (str(e)), pecan.request)
+            msg = 'Failed to parse request body "%s": %s' % (body, str(e))
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
         headers = self._get_headers_as_dict(pecan.request.headers)
@@ -106,6 +112,18 @@ class WebhooksController(RestController):
         payload['headers'] = headers
         payload['body'] = body
         self._trigger_dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
+
+        return body
+
+    def _parse_request_body(self, content_type, body):
+        if content_type == 'application/json':
+            self._log_request('Parsing request body as JSON', request=pecan.request)
+            body = json.loads(body)
+        elif content_type in ['application/x-www-form-urlencoded', 'multipart/form-data']:
+            self._log_request('Parsing request body as form encoded data', request=pecan.request)
+            body = urlparse.parse_qs(body)
+        else:
+            raise ValueError('Unsupported Content-Type: "%s"' % (content_type))
 
         return body
 

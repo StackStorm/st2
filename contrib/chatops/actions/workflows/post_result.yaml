@@ -1,0 +1,18 @@
+---
+chain:
+  -
+    name: "format_execution_result"
+    ref: "chatops.format_execution_result"
+    parameters:
+      execution_id: "{{execution_id}}"
+    publish:
+      message: "{{format_execution_result.result}}"
+    on-success: "post_message"
+  -
+    name: "post_message"
+    ref: "chatops.post_message"
+    parameters:
+      user: "{{user}}"
+      channel: "{{channel}}"
+      whisper: "{{whisper}}"
+      message: "{{message}}"

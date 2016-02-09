@@ -2,7 +2,7 @@
 description: A test runner.
 enabled: true
 name: test-runner-1
-runner_module: tests.unit.test_runner
+runner_module: st2tests.mocks.runner
 runner_parameters:
   runnerdummy:
     default: runnerdummy

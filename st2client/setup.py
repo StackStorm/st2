@@ -18,27 +18,32 @@ import os.path
 
 from setuptools import setup, find_packages
 
-from dist_utils import fetch_requirements
-from dist_utils import apply_vagrant_workaround
+# Note: We should re-enable usage of dist_utils once we ensure
+# that we install new version of virtualenv which ships with
+# pip >= 6.1 in all the environments
+# from dist_utils import fetch_requirements
+# from dist_utils import apply_vagrant_workaround
 from st2client import __version__
 
 ST2_COMPONENT = 'st2client'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
 
-install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
+# install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
+# apply_vagrant_workaround()
 
-apply_vagrant_workaround()
 setup(
     name=ST2_COMPONENT,
     version=__version__,
-    description='CLI and python client library for the StackStorm (st2) automation platform.',
+    description=('Python client library and CLI for the StackStorm (st2) event-driven '
+                 'automation platform.'),
     author='StackStorm',
     author_email='info@stackstorm.com',
     license='Apache License (2.0)',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Information Technology',
+        'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: POSIX :: Linux',
@@ -46,8 +51,15 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7'
     ],
-    install_requires=install_reqs,
-    dependency_links=dep_links,
+    install_requires=[
+        'jsonpath-rw>=1.3.0',
+        'prettytable',
+        'python-dateutil',
+        'pyyaml<4.0,>=3.11',
+        'requests<3.0,>=2.7.0',
+        'six==1.9.0'
+    ],
+    dependency_links=[],
     test_suite=ST2_COMPONENT,
     zip_safe=False,
     include_package_data=True,

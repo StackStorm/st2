@@ -27,6 +27,7 @@ from st2common.util.wsgi import shutdown_server_kill_pending_requests
 from st2api.signal_handlers import register_api_signal_handlers
 from st2api.listener import get_listener_if_set
 from st2api import config
+config.register_opts()
 from st2api import app
 
 __all__ = [

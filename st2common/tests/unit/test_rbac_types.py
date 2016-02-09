@@ -97,6 +97,11 @@ class RBACPermissionTypeTestCase(TestCase):
         self.assertEqual(PermissionType.get_resource_type(PermissionType.RULE_ALL),
                          SystemType.RULE)
 
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.RULE_ENFORCEMENT_LIST),
+                         SystemType.RULE_ENFORCEMENT)
+        self.assertEqual(PermissionType.get_resource_type(PermissionType.RULE_ENFORCEMENT_VIEW),
+                         SystemType.RULE_ENFORCEMENT)
+
         self.assertEqual(PermissionType.get_resource_type(PermissionType.KEY_VALUE_VIEW),
                          SystemType.KEY_VALUE_PAIR)
         self.assertEqual(PermissionType.get_resource_type(PermissionType.KEY_VALUE_SET),
@@ -149,6 +154,10 @@ class RBACPermissionTypeTestCase(TestCase):
         self.assertEqual(PermissionType.get_permission_type(resource_type=ResourceType.SENSOR,
                                                             permission_name='modify'),
                         PermissionType.SENSOR_MODIFY)
+        self.assertEqual(
+            PermissionType.get_permission_type(resource_type=ResourceType.RULE_ENFORCEMENT,
+                                               permission_name='view'),
+            PermissionType.RULE_ENFORCEMENT_VIEW)
 
     def test_get_permission_name(self):
         self.assertEqual(PermissionType.get_permission_name(PermissionType.ACTION_LIST),
@@ -165,3 +174,5 @@ class RBACPermissionTypeTestCase(TestCase):
                          'modify')
         self.assertEqual(PermissionType.get_permission_name(PermissionType.ACTION_EXECUTE),
                          'execute')
+        self.assertEqual(PermissionType.get_permission_name(PermissionType.RULE_ENFORCEMENT_LIST),
+                         'list')

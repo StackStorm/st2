@@ -13,73 +13,62 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
-import logging as std_logging
-import os
-import pprint
 import sys
 
+from oslo_config import cfg
+
+from st2common import config
 from st2common import log as logging
+from st2common.script_setup import setup as common_setup
+from st2common.script_setup import teardown as common_teardown
 from st2reactor.rules.tester import RuleTester
 
 __all__ = [
     'main'
 ]
 
-
-def _parse_args():
-    parser = argparse.ArgumentParser(description='Test the provided rule')
-    parser.add_argument('--rule', help='Path to the file containing rule definition',
-                        required=True)
-    parser.add_argument('--trigger-instance',
-                        help='Path to the file containing trigger instance definition',
-                        required=True)
-    parser.add_argument('-v', '--verbose', help='increase output verbosity',
-                        action='store_true')
-    return parser.parse_args()
+LOG = logging.getLogger(__name__)
 
 
-def _setup_logging():
-    logging_config = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'default': {
-                'format': '%(asctime)s %(levelname)s %(name)s %(message)s'
-            },
-        },
-        'handlers': {
-            'console': {
-                '()': std_logging.StreamHandler,
-                'formatter': 'default'
-            }
-        },
-        'root': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    }
-    std_logging.config.dictConfig(logging_config)
+def _do_register_cli_opts(opts, ignore_errors=False):
+    for opt in opts:
+        try:
+            cfg.CONF.register_cli_opt(opt)
+        except:
+            if not ignore_errors:
+                raise
+
+
+def _register_cli_opts():
+    cli_opts = [
+        cfg.StrOpt('rule', default=None,
+                   help='Path to the file containing rule definition.'),
+        cfg.StrOpt('rule-ref', default=None,
+                   help='Ref of the rule.'),
+        cfg.StrOpt('trigger-instance', default=None,
+                   help='Path to the file containing trigger instance definition'),
+        cfg.StrOpt('trigger-instance-id', default=None,
+                   help='Id of the Trigger Instance to use for validation.')
+    ]
+    _do_register_cli_opts(cli_opts)
 
 
 def main():
-    args = _parse_args()
-    if args.verbose:
-        _setup_logging()
-        output = logging.getLogger(__name__).info
-    else:
-        output = pprint.pprint
+    _register_cli_opts()
+    common_setup(config=config, setup_db=True, register_mq_exchanges=False)
 
-    rule_file_path = os.path.realpath(args.rule)
-    trigger_instance_file_path = os.path.realpath(args.trigger_instance)
-
-    tester = RuleTester(rule_file_path=rule_file_path,
-                        trigger_instance_file_path=trigger_instance_file_path)
-    matches = tester.evaluate()
+    try:
+        tester = RuleTester(rule_file_path=cfg.CONF.rule,
+                            rule_ref=cfg.CONF.rule_ref,
+                            trigger_instance_file_path=cfg.CONF.trigger_instance,
+                            trigger_instance_id=cfg.CONF.trigger_instance_id)
+        matches = tester.evaluate()
+    finally:
+        common_teardown()
 
     if matches:
-        output('=== RULE MATCHES ===')
+        LOG.info('=== RULE MATCHES ===')
         sys.exit(0)
     else:
-        output('=== RULE DOES NOT MATCH ===')
+        LOG.info('=== RULE DOES NOT MATCH ===')
         sys.exit(1)
