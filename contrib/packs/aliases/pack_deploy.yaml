@@ -6,9 +6,9 @@ description: "Download StackStorm packs via ChatOps"
 formats:
   - "pack deploy {{repo_name}} {{packs}} {{branch=master}}"
 ack:
-  enabled: True
+  enabled: true
   append_url: false
-  format: Deploying the requested pack(s) from *{{execution.parameters.repo_name}}* for you....
+  format: "Deploying the requested pack(s) from *{{execution.parameters.repo_name}}* for you...."
 result:
   format: |
     {% if execution.status == "succeeded" %}

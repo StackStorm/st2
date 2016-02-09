@@ -66,17 +66,17 @@ workflows:
       pack: <% $.pack %>
 
     tasks:
-      auto_deploy_repo:
+      check_auto_deploy_repo:
         # [365, 26]
-        action: packs.auto_deploy_repo
+        action: packs.check_auto_deploy_repo
 
         input:
           branch: <% $.branch %>
           repo_name: <% $.repo_name %>
 
         publish:
-          notify_channel: <% $.auto_deploy_repo.result.notify_channel %>
-          deployment_branch: <% $.auto_deploy_repo.result.deployment_branch %>
+          notify_channel: <% $.check_auto_deploy_repo.result.notify_channel %>
+          deployment_branch: <% $.check_auto_deploy_repo.result.deployment_branch %>
 
         on-success:
           - auto_deploy_install

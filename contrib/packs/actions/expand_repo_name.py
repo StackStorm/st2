@@ -26,12 +26,18 @@ import yaml
 from getpass import getpass
 from st2actions.runners.pythonrunner import Action
 
-class expand_repo_name(Action):
-    def __init__(self, config=None):
-        super(expand_repo_name, self).__init__(config=config)
-
+class ExpandRepoName(Action):
     def run(self, repo_name):
+        """Returns the data required to install packs from repo_name.
 
+        Keyword arguments:
+          repo_name -- The Reposistory name to look up in the Packs config.yaml.
+
+        Returns: A Dict containing repo_url and subtree.
+
+        Raises:
+          ValueError: If the supplied repo_name is present (or complete).
+        """
         # Set up the results object
         results = {}
 
@@ -42,29 +48,3 @@ class expand_repo_name(Action):
             raise ValueError("Missing repositories config for '%s'" % repo_name)
         else:
             return results
-        
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--pack-to-expand",
-                        help="Repo to expand",
-                        default="st2contrib",
-                        dest="repo")
-    parser.add_argument("-a", "--action",
-                        help="Run this script as an action",
-                        action="store_true",
-                        dest="action", default=True)
-    args = parser.parse_args()
-
-    pack_config_file = "../config.yaml"
-
-    if os.path.exists(pack_config_file):
-        f = open(pack_config_file)
-        config = yaml.safe_load(f)
-    else:
-        config = None
-
-    action = expand_repo_name(config)
-    action_results = action.run(args.repo)
-
-    print(json.dumps( action_results, sort_keys=True, indent=2))

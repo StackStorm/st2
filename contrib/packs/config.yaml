@@ -18,7 +18,7 @@ repositories:
   #    notify_channel: "my-chatops-channel"
 
   st2incubator:
-    repo: "https://github.com/StackStorm/st2contrib.git"
+    repo: "https://github.com/StackStorm/st2incubator.git"
     subtree: true
     auto_deployment:
       branch: "master"

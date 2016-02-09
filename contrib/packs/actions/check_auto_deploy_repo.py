@@ -26,11 +26,19 @@ import yaml
 from getpass import getpass
 from st2actions.runners.pythonrunner import Action
 
-class Auto_Deploy_Repo(Action):
-    def __init__(self, config=None):
-        super(Auto_Deploy_Repo, self).__init__(config=config)
-
+class CheckAutoDeployRepo(Action):
     def run(self, branch, repo_name):
+        """Returns the required data to complete an auto deployment of a pack in repo_name.
+
+        The branch is expected to be in the format _refs/heads/foo_, if
+        it's not then the comprassion will fail.
+
+        Returns: A Dict with deployment_branch and notify_channel.
+
+        Raises:
+          ValueError: If the repo_name should not be auto deployed or
+                      config is not complete.
+        """
         results = {}
 
         try:
@@ -43,26 +51,3 @@ class Auto_Deploy_Repo(Action):
                 return results
             else:
                 raise ValueError("Branch %s for %s should not be auto deployed" % (branch, repo_name))
-        
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-r", "--repo-name",
-                        help="Repository name to look up",
-                        default="st2contrib",
-                        dest="repo_name")
-    args = parser.parse_args()
-
-    pack_config_file = "../config.yaml"
-
-    if os.path.exists(pack_config_file):
-        f = open(pack_config_file)
-        config = yaml.safe_load(f)
-    else:
-        config = None
-
-    action = Auto_Deploy_Repo(config)
-    action_results = action.run(branch="refs/heads/master",
-                                repo_name=args.repo_name)
-
-    print(json.dumps( action_results, sort_keys=True, indent=2))
