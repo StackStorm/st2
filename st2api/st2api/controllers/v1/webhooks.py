@@ -88,9 +88,9 @@ class WebhooksController(RestController):
 
         try:
             body = self._parse_request_body(content_type=content_type, body=body)
-        except ValueError:
+        except ValueError as e:
             self._log_request('Invalid JSON/POST body.', pecan.request)
-            msg = 'Invalid JSON/POST body: %s' % (body)
+            msg = 'Invalid request body "%s": %s' % (body, str(e))
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
         headers = self._get_headers_as_dict(pecan.request.headers)

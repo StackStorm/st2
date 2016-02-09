@@ -111,7 +111,7 @@ class TestWebhooksController(FunctionalTest):
     def test_json_request_body(self, dispatch_mock):
         # 1. Send JSON using application/json content type
         data = WEBHOOK_1
-        post_resp = self.__do_post('git', WEBHOOK_1,
+        post_resp = self.__do_post('git', data,
                                    headers={'St2-Trace-Tag': 'tag1'})
         self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
         self.assertEqual(dispatch_mock.call_args[1]['payload']['headers']['Content-Type'],
@@ -129,6 +129,13 @@ class TestWebhooksController(FunctionalTest):
         self.assertEqual(dispatch_mock.call_args[1]['payload']['body'], data)
         self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag, 'tag1')
 
+        # 3. JSON content type, invalid JSON body
+        data = 'invalid'
+        headers = {'St2-Trace-Tag': 'tag1', 'Content-Type': 'application/json'}
+        post_resp = self.app.post('/v1/webhooks/git', data, headers=headers,
+                      expect_errors=True)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+        self.assertTrue('Invalid request body' in post_resp)
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
