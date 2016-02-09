@@ -49,7 +49,9 @@ RESPONSE_LOGGING_METHOD_NAME_BLACKLIST = [
 RESPONSE_LOGGING_CONTROLLER_NAME_BLACKLIST = [
     'ActionExecutionChildrenController',  # action executions can be big
     'ActionExecutionAttributeController',  # result can be big
-    'ActionExecutionsController'  # action executions can be big
+    'ActionExecutionsController'  # action executions can be big,
+    'FilesController',  # files controller returns files content
+    'FileController'  # file controller returns binary file data
 ]
 
 
