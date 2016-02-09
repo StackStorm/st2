@@ -89,8 +89,8 @@ class WebhooksController(RestController):
         try:
             body = self._parse_request_body(content_type=content_type, body=body)
         except Exception as e:
-            self._log_request('Invalid request body: %s.' % (str(e)), pecan.request)
-            msg = 'Invalid request body "%s": %s' % (body, str(e))
+            self._log_request('Failed to parse request body: %s.' % (str(e)), pecan.request)
+            msg = 'Failed to parse request body "%s": %s' % (body, str(e))
             return pecan.abort(http_client.BAD_REQUEST, msg)
 
         headers = self._get_headers_as_dict(pecan.request.headers)
@@ -123,10 +123,7 @@ class WebhooksController(RestController):
             self._log_request('Parsing request body as form encoded data', request=pecan.request)
             body = urlparse.parse_qs(body)
         else:
-            # For backward compatibility reasons, try to parse any other content
-            # type as JSON
-            self._log_request('Parsing request body as JSON', request=pecan.request)
-            body = json.loads(body)
+            raise ValueError('Unsupported Content-Type: "%s"' % (content_type))
 
         return body
 

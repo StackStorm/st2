@@ -119,23 +119,13 @@ class TestWebhooksController(FunctionalTest):
         self.assertEqual(dispatch_mock.call_args[1]['payload']['body'], data)
         self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag, 'tag1')
 
-        # 2. Send JSON with invalid content type - make sure we still try to parse it as
-        # JSON for backward compatibility reasons
-        data = WEBHOOK_1
-        headers = {'St2-Trace-Tag': 'tag1', 'Content-Type': 'foo'}
-        self.app.post('/v1/webhooks/git', json.dumps(data), headers=headers)
-        self.assertEqual(dispatch_mock.call_args[1]['payload']['headers']['Content-Type'],
-                        'foo')
-        self.assertEqual(dispatch_mock.call_args[1]['payload']['body'], data)
-        self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag, 'tag1')
-
         # 3. JSON content type, invalid JSON body
         data = 'invalid'
         headers = {'St2-Trace-Tag': 'tag1', 'Content-Type': 'application/json'}
         post_resp = self.app.post('/v1/webhooks/git', data, headers=headers,
                       expect_errors=True)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
-        self.assertTrue('Invalid request body' in post_resp)
+        self.assertTrue('Failed to parse request body' in post_resp)
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
@@ -152,6 +142,16 @@ class TestWebhooksController(FunctionalTest):
                         'application/x-www-form-urlencoded')
         self.assertEqual(dispatch_mock.call_args[1]['payload']['body'], data)
         self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag, 'tag1')
+
+    def test_unsupported_content_type(self):
+        # Invalid / unsupported content type - should throw
+        data = WEBHOOK_1
+        headers = {'St2-Trace-Tag': 'tag1', 'Content-Type': 'foo/invalid'}
+        post_resp = self.app.post('/v1/webhooks/git', json.dumps(data), headers=headers,
+                                  expect_errors=True)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+        self.assertTrue('Failed to parse request body' in post_resp)
+        self.assertTrue('Unsupported Content-Type' in post_resp)
 
     def __do_post(self, hook, webhook, expect_errors=False, headers=None):
         return self.app.post_json('/v1/webhooks/' + hook,
