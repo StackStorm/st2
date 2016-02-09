@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
 import mock
 import six
 from tests import FunctionalTest
@@ -40,7 +42,7 @@ DUMMY_TRIGGER = TriggerDB(name='pr-merged', pack='git')
 DUMMY_TRIGGER.type = WEBHOOK_TRIGGER_TYPES.keys()[0]
 
 
-class TestTriggerTypeController(FunctionalTest):
+class TestWebhooksController(FunctionalTest):
 
     @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
         return_value=True))
@@ -98,6 +100,51 @@ class TestTriggerTypeController(FunctionalTest):
         post_resp = self.__do_post('st2', {'payload': {}}, expect_errors=True)
         self.assertTrue('Trigger not specified.' in post_resp)
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+
+    @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(WebhooksController, '_get_trigger_for_hook', mock.MagicMock(
+        return_value=DUMMY_TRIGGER))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    def test_json_request_body(self, dispatch_mock):
+        # 1. Send JSON using application/json content type
+        data = WEBHOOK_1
+        post_resp = self.__do_post('git', WEBHOOK_1,
+                                   headers={'St2-Trace-Tag': 'tag1'})
+        self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
+        self.assertEqual(dispatch_mock.call_args[1]['payload']['headers']['Content-Type'],
+                        'application/json')
+        self.assertEqual(dispatch_mock.call_args[1]['payload']['body'], data)
+        self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag, 'tag1')
+
+        # 2. Send JSON with invalid content type - make sure we still try to parse it as
+        # JSON for backward compatibility reasons
+        data = WEBHOOK_1
+        headers = {'St2-Trace-Tag': 'tag1', 'Content-Type': 'foo'}
+        self.app.post('/v1/webhooks/git', json.dumps(data), headers=headers)
+        self.assertEqual(dispatch_mock.call_args[1]['payload']['headers']['Content-Type'],
+                        'foo')
+        self.assertEqual(dispatch_mock.call_args[1]['payload']['body'], data)
+        self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag, 'tag1')
+
+
+    @mock.patch.object(TriggerInstancePublisher, 'publish_trigger', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
+        return_value=True))
+    @mock.patch.object(WebhooksController, '_get_trigger_for_hook', mock.MagicMock(
+        return_value=DUMMY_TRIGGER))
+    @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
+    def test_form_encoded_request_body(self, dispatch_mock):
+        # Send request body as form urlencoded data
+        data = {'form': ['test']}
+        self.app.post('/v1/webhooks/git', data, headers={'St2-Trace-Tag': 'tag1'})
+        self.assertEqual(dispatch_mock.call_args[1]['payload']['headers']['Content-Type'],
+                        'application/x-www-form-urlencoded')
+        self.assertEqual(dispatch_mock.call_args[1]['payload']['body'], data)
+        self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag, 'tag1')
 
     def __do_post(self, hook, webhook, expect_errors=False, headers=None):
         return self.app.post_json('/v1/webhooks/' + hook,
