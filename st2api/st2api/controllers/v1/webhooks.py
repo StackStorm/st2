@@ -120,7 +120,7 @@ class WebhooksController(RestController):
             self._log_request('Parsing request body as JSON', request=pecan.request)
             body = json.loads(body)
         elif content_type in ['application/x-www-form-urlencoded', 'multipart/form-data']:
-            self._log_request('Parsing reqiest body as form encoded data', request=pecan.request)
+            self._log_request('Parsing request body as form encoded data', request=pecan.request)
             body = urlparse.parse_qs(body)
         else:
             # For backward compatibility reasons, try to parse any other content
