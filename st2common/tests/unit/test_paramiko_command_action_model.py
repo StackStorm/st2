@@ -82,7 +82,7 @@ class ParamikoRemoteComamndActionTests(unittest2.TestCase):
                                                  user='estee',
                                                  password=None,
                                                  private_key='---PRIVATE-KEY---',
-                                                 hosts='localhost',
+                                                 hosts='127.0.0.1',
                                                  parallel=True,
                                                  sudo=False,
                                                  timeout=None,

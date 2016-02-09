@@ -22,7 +22,7 @@ class TestBase(FunctionalTest):
         response = self.app.get('/')
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.headers['Access-Control-Allow-Origin'],
-                         'http://localhost')
+                         'http://127.0.0.1:3000')
         self.assertEqual(response.headers['Access-Control-Allow-Methods'],
                          'GET,POST,PUT,DELETE,OPTIONS')
         self.assertEqual(response.headers['Access-Control-Allow-Headers'],
@@ -32,11 +32,11 @@ class TestBase(FunctionalTest):
 
     def test_origin(self):
         response = self.app.get('/', headers={
-            'origin': 'http://localhost:3000'
+            'origin': 'http://127.0.0.1:3000'
         })
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.headers['Access-Control-Allow-Origin'],
-                         'http://localhost:3000')
+                         'http://127.0.0.1:3000')
 
     def test_additional_origin(self):
         response = self.app.get('/', headers={

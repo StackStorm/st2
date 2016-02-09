@@ -301,13 +301,13 @@ class TestActionExecutionController(FunctionalTest):
         self.assertEqual(post_resp.json['faultstring'], "'hosts' is a required property")
 
         # Runner type expects parameters "cmd" to be str.
-        execution['parameters'] = {"hosts": "localhost", "cmd": 1000}
+        execution['parameters'] = {"hosts": "127.0.0.1", "cmd": 1000}
         post_resp = self._do_post(execution, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
         self.assertEqual(post_resp.json['faultstring'], "1000 is not of type 'string', 'null'")
 
         # Runner type expects parameters "cmd" to be str.
-        execution['parameters'] = {"hosts": "localhost", "cmd": "1000", "c": 1}
+        execution['parameters'] = {"hosts": "127.0.0.1", "cmd": "1000", "c": 1}
         post_resp = self._do_post(execution, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
 

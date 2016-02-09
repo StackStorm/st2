@@ -183,7 +183,7 @@ class TestActionExecutionService(DbTestCase):
 
     def _submit_request(self):
         context = {'user': USERNAME}
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
         request = LiveActionDB(action=ACTION_REF, context=context, parameters=parameters)
         request, _ = action_service.request(request)
         execution = action_db.get_liveaction_by_id(str(request.id))
@@ -209,31 +209,31 @@ class TestActionExecutionService(DbTestCase):
                          isotime.format(request.start_timestamp, usec=False))
 
     def test_request_invalid_parameters(self):
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'arg_default_value': 123}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'arg_default_value': 123}
         liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
         self.assertRaises(jsonschema.ValidationError, action_service.request, liveaction)
 
     def test_request_optional_parameter_none_value(self):
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'arg_default_value': None}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'arg_default_value': None}
         request = LiveActionDB(action=ACTION_REF, parameters=parameters)
         request, _ = action_service.request(request)
 
     def test_request_optional_parameter_none_value_no_default(self):
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'arg_default_type': None}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'arg_default_type': None}
         request = LiveActionDB(action=ACTION_REF, parameters=parameters)
         request, _ = action_service.request(request)
 
     def test_request_override_runner_parameter(self):
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
         request = LiveActionDB(action=ACTION_OVR_PARAM_REF, parameters=parameters)
         request, _ = action_service.request(request)
 
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'sudo': False}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'sudo': False}
         request = LiveActionDB(action=ACTION_OVR_PARAM_REF, parameters=parameters)
         request, _ = action_service.request(request)
 
     def test_request_override_runner_parameter_type_attribute_value_changed(self):
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
         request = LiveActionDB(action=ACTION_OVR_PARAM_BAD_ATTR_REF, parameters=parameters)
 
         with self.assertRaises(InvalidActionParameterException) as ex_ctx:
@@ -244,30 +244,30 @@ class TestActionExecutionService(DbTestCase):
         self.assertEqual(str(ex_ctx.exception), expected)
 
     def test_request_override_runner_parameter_type_attribute_no_value_changed(self):
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
         request = LiveActionDB(action=ACTION_OVR_PARAM_BAD_ATTR_NOOP_REF, parameters=parameters)
         request, _ = action_service.request(request)
 
     def test_request_override_runner_parameter_mutable(self):
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
         request = LiveActionDB(action=ACTION_OVR_PARAM_MUTABLE_REF, parameters=parameters)
         request, _ = action_service.request(request)
 
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'sudo': True}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'sudo': True}
         request = LiveActionDB(action=ACTION_OVR_PARAM_MUTABLE_REF, parameters=parameters)
         request, _ = action_service.request(request)
 
     def test_request_override_runner_parameter_immutable(self):
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
         request = LiveActionDB(action=ACTION_OVR_PARAM_IMMUTABLE_REF, parameters=parameters)
         request, _ = action_service.request(request)
 
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'sudo': True}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'sudo': True}
         request = LiveActionDB(action=ACTION_OVR_PARAM_IMMUTABLE_REF, parameters=parameters)
         self.assertRaises(ValueError, action_service.request, request)
 
     def test_request_nonexistent_action(self):
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
         action_ref = ResourceReference(name='i.action', pack='default').ref
         execution = LiveActionDB(action=action_ref, parameters=parameters)
         self.assertRaises(ValueError, action_service.request, execution)
@@ -278,7 +278,7 @@ class TestActionExecutionService(DbTestCase):
         Action.add_or_update(actiondb)
 
         try:
-            parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
+            parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
             execution = LiveActionDB(action=ACTION_REF, parameters=parameters)
             self.assertRaises(ValueError, action_service.request, execution)
         except Exception as e:
