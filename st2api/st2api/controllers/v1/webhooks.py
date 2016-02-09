@@ -81,13 +81,16 @@ class WebhooksController(RestController):
     def post(self, *args, **kwargs):
         hook = '/'.join(args)  # TODO: There must be a better way to do this.
         body = pecan.request.body
-        try:
+        try: # ADDITION: lines 83-91 to enable form POSTs
             body = json.loads(body)
         except ValueError:
-            self._log_request('Invalid JSON body.', pecan.request)
-            msg = 'Invalid JSON body: %s' % (body)
-            return pecan.abort(http_client.BAD_REQUEST, msg)
-
+            try:
+                body = urlparse.parse_qs(body)
+            except ValueError:
+                self._log_request('Invalid JSON/POST body.', pecan.request)
+                msg = 'Invalid JSON/POST body: %s' % (body)
+                return pecan.abort(http_client.BAD_REQUEST, msg)
+            
         headers = self._get_headers_as_dict(pecan.request.headers)
         # If webhook contains a trace-tag use that else create create a unique trace-tag.
         trace_context = self._create_trace_context(trace_tag=headers.pop(TRACE_TAG_HEADER, None),
