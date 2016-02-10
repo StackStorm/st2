@@ -150,21 +150,17 @@ def format_execution_status(instance):
     executions which are in running state and execution total run time for all the executions
     which have finished.
     """
-    if instance.status == LIVEACTION_STATUS_RUNNING and instance.start_timestamp:
+    start_timestamp = getattr(instance, 'start_timestamp', None)
+    end_timestamp = getattr(instance, 'end_timestamp', None)
+
+    if instance.status == LIVEACTION_STATUS_RUNNING and start_timestamp:
         start_timestamp = instance.start_timestamp
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         now = int(time.time())
         elapsed_seconds = (now - start_timestamp)
         instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
-    elif instance.status in LIVEACTION_COMPLETED_STATES:
-        start_timestamp = getattr(instance, 'start_timestamp', None)
-        end_timestamp = getattr(instance, 'end_timestamp', None)
-
-        if not start_timestamp or not end_timestamp:
-            # start or end timestamp not available
-            return instance
-
+    elif instance.status in LIVEACTION_COMPLETED_STATES and start_timestamp and end_timestamp:
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         end_timestamp = parse_isotime(end_timestamp)
@@ -353,6 +349,7 @@ class ActionRunCommandMixin(object):
         kwargs['depth'] = args.depth
         child_instances = action_exec_mgr.get_property(execution.id, 'children', **kwargs)
         child_instances = self._format_child_instances(child_instances, execution.id)
+        child_instances = format_execution_statuses(child_instances)
 
         if not child_instances:
             # No child error, there might be a global error, include result in the output
