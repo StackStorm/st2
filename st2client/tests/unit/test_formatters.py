@@ -15,7 +15,6 @@
 
 import six
 import os
-import re
 import sys
 import mock
 import json
