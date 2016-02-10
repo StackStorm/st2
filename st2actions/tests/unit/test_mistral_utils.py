@@ -23,12 +23,12 @@ class MistralUtilityTest(unittest2.TestCase):
     def test_get_action_execution_id_from_url(self):
         self.assertEqual(
             '12345',
-            get_action_execution_id_from_url('http://localhost:8989/v2/action_executions/12345'))
+            get_action_execution_id_from_url('http://127.0.0.1:8989/v2/action_executions/12345'))
 
         self.assertRaises(
             ValueError,
             get_action_execution_id_from_url,
-            'http://localhost:8989/v2/action_executions')
+            'http://127.0.0.1:8989/v2/action_executions')
 
         self.assertRaises(
             ValueError,
@@ -43,4 +43,4 @@ class MistralUtilityTest(unittest2.TestCase):
         self.assertRaises(
             ValueError,
             get_action_execution_id_from_url,
-            'http://localhost:8989/v2/workflows/abcde')
+            'http://127.0.0.1:8989/v2/workflows/abcde')

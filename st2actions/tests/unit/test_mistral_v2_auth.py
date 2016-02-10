@@ -191,7 +191,7 @@ class MistralAuthTest(DbTestCase):
         cfg.CONF.set_default('keystone_username', 'foo', group='mistral')
         cfg.CONF.set_default('keystone_password', 'bar', group='mistral')
         cfg.CONF.set_default('keystone_project_name', 'admin', group='mistral')
-        cfg.CONF.set_default('keystone_auth_url', 'http://localhost:5000/v3', group='mistral')
+        cfg.CONF.set_default('keystone_auth_url', 'http://127.0.0.1:5000/v3', group='mistral')
 
         MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)

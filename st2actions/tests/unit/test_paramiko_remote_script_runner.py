@@ -58,10 +58,10 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
             named_args={}, positional_args=['blank space'], env_vars={},
             on_behalf_user='svetlana', user='stanley',
             private_key='---SOME RSA KEY---',
-            remote_dir='/tmp', hosts=['localhost'], cwd='/test/cwd/'
+            remote_dir='/tmp', hosts=['127.0.0.1'], cwd='/test/cwd/'
         )
         paramiko_runner = ParamikoRemoteScriptRunner('runner_1')
-        paramiko_runner._parallel_ssh_client = ParallelSSHClient(['localhost'], 'stanley')
+        paramiko_runner._parallel_ssh_client = ParallelSSHClient(['127.0.0.1'], 'stanley')
         paramiko_runner._run_script_on_remote_host(remote_action)
         exp_cmd = "cd /test/cwd/ && /tmp/shiz_storm.py 'blank space'"
         ParallelSSHClient.run.assert_called_with(exp_cmd,
@@ -73,7 +73,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
     def test_username_only_ssh(self):
         paramiko_runner = ParamikoRemoteScriptRunner('runner_1')
 
-        paramiko_runner.runner_parameters = {'username': 'test_user', 'hosts': 'localhost'}
+        paramiko_runner.runner_parameters = {'username': 'test_user', 'hosts': '127.0.0.1'}
         self.assertRaises(InvalidCredentialsException, paramiko_runner.pre_run)
 
     def test_username_invalid_private_key(self):
@@ -81,7 +81,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
 
         paramiko_runner.runner_parameters = {
             'username': 'test_user',
-            'hosts': 'localhost',
+            'hosts': '127.0.0.1',
             'private_key': 'invalid private key',
         }
         paramiko_runner.context = {}
@@ -97,7 +97,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
 
         paramiko_runner.runner_parameters = {
             'username': 'test_user',
-            'hosts': 'localhost'
+            'hosts': '127.0.0.1'
         }
         paramiko_runner.action = ACTION_1
         paramiko_runner.liveaction_id = 'foo'

@@ -607,7 +607,7 @@ class MistralRunnerTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_text(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
+        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                         action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                         '<html></html>')
 
@@ -615,23 +615,23 @@ class MistralRunnerTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_dict(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
+        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                         action_constants.LIVEACTION_STATUS_SUCCEEDED, {'a': 1})
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_json_str(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
+        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                         action_constants.LIVEACTION_STATUS_SUCCEEDED, '{"a": 1}')
-        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
+        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                         action_constants.LIVEACTION_STATUS_SUCCEEDED, "{'a': 1}")
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_list(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
+        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                         action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                         ["a", "b", "c"])
 
@@ -639,7 +639,7 @@ class MistralRunnerTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_list_str(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
+        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                         action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                         '["a", "b", "c"]')
 
@@ -651,7 +651,7 @@ class MistralRunnerTest(DbTestCase):
             action='core.local', parameters={'cmd': 'uname -a'},
             callback={
                 'source': 'mistral',
-                'url': 'http://localhost:8989/v2/action_executions/12345'
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
         )
 
@@ -676,7 +676,7 @@ class MistralRunnerTest(DbTestCase):
             action='core.local', parameters={'cmd': 'uname -a'},
             callback={
                 'source': 'mistral',
-                'url': 'http://localhost:8989/v2/action_executions/12345'
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
         )
 
@@ -699,7 +699,7 @@ class MistralRunnerTest(DbTestCase):
             action='core.local', parameters={'cmd': 'uname -a'},
             callback={
                 'source': 'mistral',
-                'url': 'http://localhost:8989/v2/action_executions/12345'
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
         )
 
@@ -727,7 +727,7 @@ class MistralRunnerTest(DbTestCase):
             action='core.local', parameters={'cmd': 'uname -a'},
             callback={
                 'source': 'mistral',
-                'url': 'http://localhost:8989/v2/action_executions/12345'
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
         )
 

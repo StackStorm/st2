@@ -51,7 +51,7 @@ class TestAuthToken(base.BaseCLITestCase):
         super(TestAuthToken, self).setUp()
 
         # Setup environment.
-        os.environ['ST2_BASE_URL'] = 'http://localhost'
+        os.environ['ST2_BASE_URL'] = 'http://127.0.0.1'
 
     def tearDown(self):
         super(TestAuthToken, self).tearDown()
@@ -108,7 +108,7 @@ class TestAuthToken(base.BaseCLITestCase):
         requests, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
     def test_decorate_resource_list(self):
-        url = 'http://localhost:9101/v1/rules/?limit=50'
+        url = 'http://127.0.0.1:9101/v1/rules/?limit=50'
 
         # Test without token.
         self.shell.run(['rule', 'list'])
@@ -133,7 +133,7 @@ class TestAuthToken(base.BaseCLITestCase):
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
     def test_decorate_resource_get(self):
         rule_ref = '%s.%s' % (RULE['pack'], RULE['name'])
-        url = 'http://localhost:9101/v1/rules/%s' % rule_ref
+        url = 'http://127.0.0.1:9101/v1/rules/%s' % rule_ref
 
         # Test without token.
         self.shell.run(['rule', 'get', rule_ref])
@@ -157,7 +157,7 @@ class TestAuthToken(base.BaseCLITestCase):
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(RULE), 200, 'OK')))
     def test_decorate_resource_post(self):
-        url = 'http://localhost:9101/v1/rules'
+        url = 'http://127.0.0.1:9101/v1/rules'
         data = {'name': RULE['name'], 'description': RULE['description']}
 
         fd, path = tempfile.mkstemp(suffix='.json')
@@ -195,8 +195,8 @@ class TestAuthToken(base.BaseCLITestCase):
     def test_decorate_resource_put(self):
         rule_ref = '%s.%s' % (RULE['pack'], RULE['name'])
 
-        get_url = 'http://localhost:9101/v1/rules/%s' % rule_ref
-        put_url = 'http://localhost:9101/v1/rules/%s' % RULE['id']
+        get_url = 'http://127.0.0.1:9101/v1/rules/%s' % rule_ref
+        put_url = 'http://127.0.0.1:9101/v1/rules/%s' % RULE['id']
         data = {'name': RULE['name'], 'description': RULE['description'], 'pack': RULE['pack']}
 
         fd, path = tempfile.mkstemp(suffix='.json')
@@ -239,8 +239,8 @@ class TestAuthToken(base.BaseCLITestCase):
         mock.MagicMock(return_value=base.FakeResponse('', 204, 'OK')))
     def test_decorate_resource_delete(self):
         rule_ref = '%s.%s' % (RULE['pack'], RULE['name'])
-        get_url = 'http://localhost:9101/v1/rules/%s' % rule_ref
-        del_url = 'http://localhost:9101/v1/rules/%s' % RULE['id']
+        get_url = 'http://127.0.0.1:9101/v1/rules/%s' % rule_ref
+        del_url = 'http://127.0.0.1:9101/v1/rules/%s' % RULE['id']
 
         # Test without token.
         self.shell.run(['rule', 'delete', rule_ref])

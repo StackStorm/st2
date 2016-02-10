@@ -205,11 +205,11 @@ class ParallelSSHTests(unittest2.TestCase):
         return_value=(json.dumps({'foo': 'bar'}), '', 0))
     )
     def test_run_command_json_output_transformed_to_object(self):
-        hosts = ['localhost']
+        hosts = ['127.0.0.1']
         client = ParallelSSHClient(hosts=hosts,
                                    user='ubuntu',
                                    pkey_file='~/.ssh/id_rsa',
                                    connect=True)
         results = client.run('stuff', timeout=60)
-        self.assertTrue('localhost' in results)
-        self.assertDictEqual(results['localhost']['stdout'], {'foo': 'bar'})
+        self.assertTrue('127.0.0.1' in results)
+        self.assertDictEqual(results['127.0.0.1']['stdout'], {'foo': 'bar'})

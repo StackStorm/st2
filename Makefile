@@ -140,7 +140,7 @@ compile:
 	@echo "----- Dropping all Mistral MYSQL databases -----"
 	@mysql -uroot -pStackStorm -e "DROP DATABASE IF EXISTS mistral"
 	@mysql -uroot -pStackStorm -e "CREATE DATABASE mistral"
-	@mysql -uroot -pStackStorm -e "GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'localhost' IDENTIFIED BY 'StackStorm'"
+	@mysql -uroot -pStackStorm -e "GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'127.0.0.1' IDENTIFIED BY 'StackStorm'"
 	@mysql -uroot -pStackStorm -e "FLUSH PRIVILEGES"
 	@/opt/openstack/mistral/.venv/bin/python /opt/openstack/mistral/tools/sync_db.py --config-file /etc/mistral/mistral.conf
 
@@ -294,7 +294,7 @@ mistral-itests: requirements .mistral-itests
 .mistral-itests:
 	@echo
 	@echo "==================== MISTRAL integration tests ===================="
-	@echo "The tests assume both st2 and mistral are running on localhost."
+	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration/mistral || exit 1;
 
@@ -302,7 +302,7 @@ mistral-itests: requirements .mistral-itests
 .mistral-itests-coverage-html:
 	@echo
 	@echo "==================== MISTRAL integration tests with coverage (HTML reports) ===================="
-	@echo "The tests assume both st2 and mistral are running on localhost."
+	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v --with-coverage \
 		--cover-inclusive --cover-html st2tests/integration/mistral || exit 1;

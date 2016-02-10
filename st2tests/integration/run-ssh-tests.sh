@@ -83,7 +83,7 @@ function sshtest(){
     # Run script test.
     for i in `seq 1 ${loop_count}`; do
         echo "Running test: $i"
-        output=`st2 run check.loadavg period=all hosts=localhost --json`
+        output=`st2 run check.loadavg period=all hosts=127.0.0.1 --json`
         # altoutput=`st2 run local date --json | python -mjson.tool`
         status=$(echo "$output" | grep -Po '"status":.*?[^\\]",' | awk '{print $2}' | cut -d ',' -f 1 | tr -d '"')
         if [ $status != "succeeded" ]; then
