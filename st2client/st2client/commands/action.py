@@ -738,7 +738,8 @@ class ActionRunCommandMixin(object):
             'status': task.status,
             'task': jsutil.get_value(vars(task), task_name_key),
             'action': task.action.get('ref', None),
-            'start_timestamp': task.start_timestamp
+            'start_timestamp': task.start_timestamp,
+            'end_timestamp': getattr(task, 'end_timestamp', None)
         })
 
     def _sort_parameters(self, parameters, names):
