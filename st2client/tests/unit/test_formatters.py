@@ -15,6 +15,7 @@
 
 import six
 import os
+import re
 import sys
 import mock
 import json
@@ -71,16 +72,6 @@ class TestExecutionResultFormatter(unittest2.TestCase):
     def _undo_console_redirect(self):
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
-
-    @mock.patch.object(
-        httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
-    def _get_execution(self, argv):
-        self.assertEqual(self.shell.run(argv), 0)
-        self._undo_console_redirect()
-        with open(self.path, 'r') as fd:
-            content = fd.read()
-        return content
 
     def test_console_redirect(self):
         message = 'Hello, World!'
@@ -142,5 +133,33 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         self._undo_console_redirect()
         with open(self.path, 'r') as fd:
             content = fd.read()
+        content = self._process_output(output=content)
         self.assertEqual(
             content, FIXTURES['results']['execution_result_has_carriage_return.txt'])
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
+    def _get_execution(self, argv):
+        self.assertEqual(self.shell.run(argv), 0)
+        self._undo_console_redirect()
+        with open(self.path, 'r') as fd:
+            content = fd.read()
+
+        content = self._process_output(output=content)
+        return content
+
+    def _process_output(self, output):
+        # Note: We strip number of seconds elapsed from the result since we can't consistenly
+        # assert on number of seconds which have elapsed
+
+        # We only add space in table output mode
+        whitespace_count = len(' (1s elapsed)')
+
+        if '+----' in output:
+            replacement_str = (' ' * whitespace_count)
+        else:
+            replacement_str = ''
+
+        output = re.sub('\s\(\ds elapsed\)', replacement_str, output)
+        return output
