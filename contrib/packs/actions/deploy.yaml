@@ -1,0 +1,45 @@
+---
+  description: "Deploy StackStorm Pack(s)"
+  enabled: true
+  entry_point: 'workflows/deploy.yaml'
+  
+  name: "deploy"
+  pack: "packs"
+
+  parameters:
+    skip_notify:
+      default:
+        - "expand_git_url"
+        - "packs_install"
+        - "deloyment_success"
+    repo_name:
+      type: "string"
+      description: "The name of the repository to expand into an Git URL."
+      required: true
+    branch:
+      type: "string"
+      description: "The Branch to deploy."
+      required: true
+    packs:
+      type: "array"
+      description: "The Pack(s) to deploy."
+      required: true
+    auto_deploy:
+      type: "boolean"
+      description: "Should this pack and branch be evulated for auto deployment."
+      default: false
+    message:
+      type: "string"
+      description: "The message for the commit"
+      default: ~
+    author:
+      type: "string"
+      description: "The author of the commit"
+      default: ~
+
+    workflow:
+      default: packs.deploy.entry
+      immutable: true
+      type: string
+
+  runner_type: "mistral-v2"

@@ -1,0 +1,14 @@
+---
+  description: "For supplied ST2 pack Repo return the Git URL and if it has a subtree."
+  enabled: true
+  entry_point: 'expand_repo_name.py'
+  name: "expand_repo_name"
+  pack: "packs"
+
+  parameters:
+    repo_name:
+      type: "string"
+      description: "The ST2 Git Repo Name to expanded to a full git URL"
+      required: true
+
+  runner_type: "python-script"

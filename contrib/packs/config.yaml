@@ -1,2 +1,26 @@
 ---
 pack_group: st2packs
+
+repositories:
+
+  # To deploy a pack from a forked st2contrib on GitHub update & uncomment the following
+  # ! packs deploy me/st2contrib/<pack_name>
+  #<my-GitHub-user>/st2contrib:
+  #  repo: "https://github.com/<my-GitHub-user>/st2contrib.git"
+  #  subtree: true
+
+  #If you have your own ST2 Pack
+  #my-st2:
+  #  repo: "https://github.com/<my-GitHub-user>/my-st2.git"
+  #  subtree: false
+  #  auto_deployment:
+  #    branch: "master"
+  #    notify_channel: "my-chatops-channel"
+
+  st2incubator:
+    repo: "https://github.com/StackStorm/st2incubator.git"
+    subtree: true
+
+  st2contrib:
+    repo: "https://github.com/StackStorm/st2contrib.git"
+    subtree: true
