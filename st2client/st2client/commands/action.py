@@ -158,8 +158,8 @@ def format_execution_status(instance):
         elapsed_seconds = (now - start_timestamp)
         instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
     elif instance.status in LIVEACTION_COMPLETED_STATES:
-        start_timestamp = instance.start_timestamp
-        end_timestamp = instance.end_timestamp
+        start_timestamp = getattr(instance, 'start_timestamp', None)
+        end_timestamp = getattr(instance, 'end_timestamp', None)
 
         if not start_timestamp or not end_timestamp:
             # start or end timestamp not available
