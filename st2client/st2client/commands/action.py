@@ -41,9 +41,23 @@ LOG = logging.getLogger(__name__)
 
 LIVEACTION_STATUS_REQUESTED = 'requested'
 LIVEACTION_STATUS_SCHEDULED = 'scheduled'
+LIVEACTION_STATUS_DELAYED = 'delayed'
 LIVEACTION_STATUS_RUNNING = 'running'
+LIVEACTION_STATUS_SUCCEEDED = 'succeeded'
+LIVEACTION_STATUS_FAILED = 'failed'
+LIVEACTION_STATUS_TIMED_OUT = 'timeout'
+LIVEACTION_STATUS_ABANDONED = 'abandoned'
 LIVEACTION_STATUS_CANCELING = 'canceling'
 LIVEACTION_STATUS_CANCELED = 'canceled'
+
+
+LIVEACTION_COMPLETED_STATES = [
+    LIVEACTION_STATUS_SUCCEEDED,
+    LIVEACTION_STATUS_FAILED,
+    LIVEACTION_STATUS_TIMED_OUT,
+    LIVEACTION_STATUS_CANCELED,
+    LIVEACTION_STATUS_ABANDONED
+]
 
 # Who parameters should be masked when displaying action execution output
 PARAMETERS_TO_MASK = [
@@ -133,7 +147,8 @@ def format_execution_statuses(instances):
 def format_execution_status(instance):
     """
     Augment instance "status" attribute with number of seconds which have elapsed for all the
-    executions which are in running state.
+    executions which are in running state and execution total run time for all the executions
+    which have finished.
     """
     if instance.status == LIVEACTION_STATUS_RUNNING and instance.start_timestamp:
         start_timestamp = instance.start_timestamp
@@ -141,6 +156,21 @@ def format_execution_status(instance):
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         now = int(time.time())
         elapsed_seconds = (now - start_timestamp)
+        instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
+    elif instance.status in LIVEACTION_COMPLETED_STATES:
+        start_timestamp = instance.start_timestamp
+        end_timestamp = instance.end_timestamp
+
+        if not start_timestamp or not end_timestamp:
+            # start or end timestamp not available
+            return instance
+
+        start_timestamp = parse_isotime(start_timestamp)
+        start_timestamp = calendar.timegm(start_timestamp.timetuple())
+        end_timestamp = parse_isotime(end_timestamp)
+        end_timestamp = calendar.timegm(end_timestamp.timetuple())
+
+        elapsed_seconds = (end_timestamp - start_timestamp)
         instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
 
     return instance
