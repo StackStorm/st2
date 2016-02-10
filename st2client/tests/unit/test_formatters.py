@@ -133,7 +133,6 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         self._undo_console_redirect()
         with open(self.path, 'r') as fd:
             content = fd.read()
-        content = self._process_output(output=content)
         self.assertEqual(
             content, FIXTURES['results']['execution_result_has_carriage_return.txt'])
 
@@ -146,20 +145,4 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         with open(self.path, 'r') as fd:
             content = fd.read()
 
-        content = self._process_output(output=content)
         return content
-
-    def _process_output(self, output):
-        # Note: We strip number of seconds elapsed from the result since we can't consistenly
-        # assert on number of seconds which have elapsed
-
-        # We only add space in table output mode
-        whitespace_count = len(' (1s elapsed)')
-
-        if '+----' in output:
-            replacement_str = (' ' * whitespace_count)
-        else:
-            replacement_str = ''
-
-        output = re.sub('\s\(\ds elapsed\)', replacement_str, output)
-        return output
