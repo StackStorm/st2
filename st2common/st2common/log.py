@@ -94,8 +94,14 @@ def decorate_logger_methods(logger):
 
 
 def getLogger(name):
-    logger_name = 'st2.{}'.format(name)
-    logger = logging.getLogger(logger_name)
+    # make sure that prefix isn't appended multiple times to preserve logging name hierarchy
+    prefix = 'st2.'
+    if name.startswith(prefix):
+        logger = logging.getLogger(name)
+    else:
+        logger_name = '{}{}'.format(prefix, name)
+        logger = logging.getLogger(logger_name)
+
     logger = decorate_logger_methods(logger=logger)
     return logger
 
