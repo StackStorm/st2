@@ -3,7 +3,7 @@
     {{ prefix }}{{ key }} : {% if value is mapping -%}
       {{ '\n' + serialize(six.iteritems(value), prefix+'  ') }}
     {%- elif value is string and (value | trim).split('\n') | length > 1 %}
-      {{ '\n' + prefix + '  ' + value | trim | replace('\n', '@')}}
+      {{ '\n' + prefix + '  ' + value | trim }}
     {% else -%}
       {{ value | trim }}
     {% endif %}

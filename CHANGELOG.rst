@@ -14,6 +14,11 @@ in development
   it now mimics the behavior of the ``verify`` argument of the ``requests.request`` method.
   (improvement)
 * Add datastore access to Python actions. (new-feature) #2396 [Kale Blankenship]
+* Allow /v1/webhooks API endpoint request body to either be JSON or url encoded form data.
+  Request body type is determined and parsed accordingly based on the value of
+  ``Content-Type`` header.
+  Note: For backward compatibility reasons we default to JSON if ``Content-Type`` header is
+  not provided. #2473 [David Pitman]
 
 1.3.0 - January 22, 2016
 ------------------------
