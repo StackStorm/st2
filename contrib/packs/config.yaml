@@ -20,13 +20,7 @@ repositories:
   st2incubator:
     repo: "https://github.com/StackStorm/st2incubator.git"
     subtree: true
-    auto_deployment:
-      branch: "master"
-      notify_channel: "community"
 
   st2contrib:
     repo: "https://github.com/StackStorm/st2contrib.git"
     subtree: true
-    auto_deployment:
-      branch: "master"
-      notify_channel: "community"
