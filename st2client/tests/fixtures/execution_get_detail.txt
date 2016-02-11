@@ -7,7 +7,7 @@
 | parameters      | {                                                            |
 |                 |     "cmd": "127.0.0.1 3"                                     |
 |                 | }                                                            |
-| status          | succeeded                                                    |
+| status          | succeeded (1s elapsed)                                       |
 | start_timestamp | Tue, 02 Dec 2014 19:56:06 UTC                                |
 | end_timestamp   | Tue, 02 Dec 2014 19:56:07 UTC                                |
 | result          | {                                                            |

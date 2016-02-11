@@ -72,16 +72,6 @@ class TestExecutionResultFormatter(unittest2.TestCase):
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
 
-    @mock.patch.object(
-        httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
-    def _get_execution(self, argv):
-        self.assertEqual(self.shell.run(argv), 0)
-        self._undo_console_redirect()
-        with open(self.path, 'r') as fd:
-            content = fd.read()
-        return content
-
     def test_console_redirect(self):
         message = 'Hello, World!'
         print(message)
@@ -144,3 +134,14 @@ class TestExecutionResultFormatter(unittest2.TestCase):
             content = fd.read()
         self.assertEqual(
             content, FIXTURES['results']['execution_result_has_carriage_return.txt'])
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
+    def _get_execution(self, argv):
+        self.assertEqual(self.shell.run(argv), 0)
+        self._undo_console_redirect()
+        with open(self.path, 'r') as fd:
+            content = fd.read()
+
+        return content

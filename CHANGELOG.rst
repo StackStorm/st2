@@ -20,6 +20,10 @@ in development
   Note: For backward compatibility reasons we default to JSON if ``Content-Type`` header is
   not provided. #2473 [David Pitman]
 * Bug fixes to allow Sensors to have their own log files. #2487 [Andrew Regan]
+* Display number of seconds which have elapsed for all the executions which have completed
+  when using ``st2 execution get`` CLI command. (improvement)
+* Display number of seconds elapsed for all the child tasks of a workflow action when using
+  ``st2 execution get`` CLI command. (improvement)
 
 1.3.0 - January 22, 2016
 ------------------------

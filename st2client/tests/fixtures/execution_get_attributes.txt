@@ -1,2 +1,2 @@
-status: succeeded
+status: succeeded (1s elapsed)
 end_timestamp: 2014-12-02T19:56:07.000000Z
