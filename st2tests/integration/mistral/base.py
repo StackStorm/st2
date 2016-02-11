@@ -24,7 +24,7 @@ class TestWorkflowExecution(unittest2.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.st2client = st2.Client(base_url='http://localhost')
+        cls.st2client = st2.Client(base_url='http://127.0.0.1')
 
     def _execute_workflow(self, action, parameters=None):
         if parameters is None:

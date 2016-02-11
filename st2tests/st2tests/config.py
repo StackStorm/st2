@@ -68,7 +68,7 @@ def _override_common_opts():
     CONF.set_override(name='base_path', override=packs_base_path, group='system')
     CONF.set_override(name='system_packs_base_path', override=packs_base_path, group='content')
     CONF.set_override(name='packs_base_paths', override=packs_base_path, group='content')
-    CONF.set_override(name='api_url', override='http://localhost', group='auth')
+    CONF.set_override(name='api_url', override='http://127.0.0.1', group='auth')
     CONF.set_override(name='admin_users', override=['admin_user'], group='system')
     CONF.set_override(name='mask_secrets', override=True, group='log')
     CONF.set_override(name='url', override='zake://', group='coordination')
@@ -84,7 +84,7 @@ def _register_common_opts():
 
 def _register_api_opts():
     api_opts = [
-        cfg.ListOpt('allow_origin', default=['http://localhost:3000', 'http://dev'],
+        cfg.ListOpt('allow_origin', default=['http://127.0.0.1:3000', 'http://dev'],
                     help='List of origins allowed'),
         cfg.IntOpt('heartbeat', default=25,
                    help='Send empty message every N seconds to keep connection open'),
@@ -148,7 +148,7 @@ def _register_action_sensor_opts():
         cfg.BoolOpt('enable', default=True,
                     help='Whether to enable or disable the ability ' +
                          'to post a trigger on action.'),
-        cfg.StrOpt('triggers_base_url', default='http://localhost:9101/v1/triggertypes/',
+        cfg.StrOpt('triggers_base_url', default='http://127.0.0.1:9101/v1/triggertypes/',
                    help='URL for action sensor to post TriggerType.'),
         cfg.IntOpt('request_timeout', default=1,
                    help='Timeout value of all httprequests made by action sensor.'),

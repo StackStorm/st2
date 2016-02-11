@@ -69,12 +69,12 @@ class APIUtilsTestCase(unittest2.TestCase):
             self.assertEqual(actual, expected_result)
 
     def test_get_mistral_api_url(self):
-        cfg.CONF.set_override(name='api_url', override='http://localhost:9999', group='auth')
+        cfg.CONF.set_override(name='api_url', override='http://127.0.0.1:9999', group='auth')
         cfg.CONF.set_override(name='api_url', override=None, group='mistral')
 
         # No URL set, should fall back to auth.api_url
         result = get_mistral_api_url()
-        self.assertEqual(result, 'http://localhost:9999/' + DEFAULT_API_VERSION)
+        self.assertEqual(result, 'http://127.0.0.1:9999/' + DEFAULT_API_VERSION)
 
         # mistral.api_url provided, should use that
         cfg.CONF.set_override(name='api_url', override='http://10.0.0.0:9999', group='mistral')

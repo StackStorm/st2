@@ -67,7 +67,7 @@ class CorsHook(PecanHook):
         public_api_url = cfg.CONF.auth.api_url
 
         # Default gulp development server WebUI URL
-        origins.add('http://localhost:3000')
+        origins.add('http://127.0.0.1:3000')
 
         # By default WebUI simple http server listens on 8080
         origins.add('http://localhost:8080')

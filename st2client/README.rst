@@ -15,7 +15,7 @@ configuration from the environment. If no configuration is provided, the
 client will assume localhost and default ports.
 
 -  ST2\_BASE\_URL - Base URL for the StackStorm API server endpoints (i.e.
-   http://localhost). If only the base URL is provided, the client will
+   http://127.0.0.1). If only the base URL is provided, the client will
    assume default ports for the API servers are used. If any of the API
    server URL is provided, it will override the base URL and default
    port.
@@ -79,7 +79,7 @@ Python Client
 
     >>> from st2client.client import Client
     >>> from st2client import models
-    >>> client = Client(base_url='http://localhost')
+    >>> client = Client(base_url='http://127.0.0.1')
     >>> rules = client.rules.get_all()
     >>> key_value_pair = client.keys.update(models.KeyValuePair(name='k1', value='v1'))
 

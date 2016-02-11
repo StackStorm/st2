@@ -44,7 +44,6 @@ setup(
     scripts=[
         'bin/st2actionrunner',
         'bin/st2notifier',
-        'bin/st2resultstracker',
-        'bin/runners.sh'
+        'bin/st2resultstracker'
     ]
 )

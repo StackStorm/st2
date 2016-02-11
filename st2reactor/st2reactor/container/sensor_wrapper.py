@@ -175,8 +175,8 @@ class SensorWrapper(object):
                                                exclusive=True)
 
         # 4. Set up logging
-        self._logger = logging.getLogger('SensorWrapper.%s' %
-                                         (self._class_name))
+        self._logger = logging.getLogger('SensorWrapper.%s.%s' %
+                                         (self._pack, self._class_name))
         logging.setup(cfg.CONF.sensorcontainer.logging)
 
         if '--debug' in parent_args:

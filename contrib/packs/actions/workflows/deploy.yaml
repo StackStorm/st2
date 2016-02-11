@@ -1,0 +1,157 @@
+---
+version: '2.0'
+name: packs.deploy
+description: A workflow to handle ST2 pack deloyments.
+
+workflows:
+
+  entry:
+    type: direct
+    input:
+      - packs
+      - repo_name
+      - branch
+      - message
+      - author
+      - auto_deploy
+
+    output:
+      repo_url: <% $.repo_url %>
+      branch: <% $.branch %>
+      packs: <% $.packs %>
+
+    tasks:
+      auto_or_manual:
+        action: core.noop
+
+        on-complete:
+          - do_auto_install: <% $.auto_deploy = true %>
+          - do_manual_install: <% $.auto_deploy = false %>
+
+      do_manual_install:
+        workflow: install
+
+        input:
+          repo_name: <% $.repo_name %>
+          branch: <% $.branch %>
+          packs: <% $.packs %>
+
+        publish:
+          repo_url: <% $.do_manual_install.repo_url %>
+          pack:    <% $.do_manual_install.pack %>
+
+      do_auto_install:
+        workflow: auto_install
+
+        input:
+          branch: <% $.branch %>
+          repo_name: <% $.repo_name %>
+          message: <% $.message %>
+          author: <% $.author %>
+
+        publish:
+          repo_url: <% $.do_auto_install.repo_url %>
+          pack:    <% $.do_auto_install.pack %>
+
+  auto_install:
+    type: direct
+    input:
+      - branch
+      - repo_name
+      - message
+      - author
+
+    output:
+      repo_url: <% $.repo_url %>
+      pack: <% $.pack %>
+
+    tasks:
+      check_auto_deploy_repo:
+        # [365, 26]
+        action: packs.check_auto_deploy_repo
+
+        input:
+          branch: <% $.branch %>
+          repo_name: <% $.repo_name %>
+
+        publish:
+          notify_channel: <% $.check_auto_deploy_repo.result.notify_channel %>
+          deployment_branch: <% $.check_auto_deploy_repo.result.deployment_branch %>
+
+        on-success:
+          - auto_deploy_install
+
+        on-error:
+          - no_auto_deploy
+         
+      auto_deploy_install:
+        # [235, 128]
+        workflow: install
+
+        input:
+          repo_name: <% $.repo_name %>
+          packs: [ <% $.repo_name %> ]
+          branch: <% $.deployment_branch %>
+
+        publish:
+          repo_url: <% $.auto_deploy_install.repo_url %>
+          pack: <% $.auto_deploy_install.pack %>
+
+        on-success:
+          - notify_success
+        on-error:
+          - notify_failure
+              
+      notify_failure:
+        # [365, 230]
+        action: chatops.post_message
+        input:
+          channel:  <% $.notify_channel %>
+          message: "Failure in auto deployment of *<% $.repo_name %>* (branch: _<% $.deployment_branch %>_) triggered via commit by _<% $.author %>_!{~}```<% $.message %>```"
+
+      notify_success:
+        # [105, 230]
+        action: chatops.post_message
+        input:
+          channel: <% $.notify_channel %>
+          message: "Auto deployment of *<% $.repo_name %>* (branch: _<% $.deployment_branch %>_) triggered via commit by _<% $.author %>_!{~}```<% $.message %>```"
+
+      no_auto_deploy:
+        # [495, 128]
+        action: core.noop
+
+        publish:
+          repo_url: ~
+          pack: ~
+
+  install:
+    type: direct
+    input:
+      - repo_name
+      - branch
+      - packs
+
+    output: 
+      repo_url: <% $.repo_url %> 
+      pack: <% $.packs %>
+
+    tasks:
+      expand_repo_name:
+        action:  packs.expand_repo_name
+        input:
+          repo_name: <% $.repo_name %>
+
+        publish:
+          repo_url: <% $.expand_repo_name.result.repo_url %>
+          subtree: <% $.expand_repo_name.result.subtree %>
+
+        on-success:
+          - packs_install
+
+      packs_install:
+        action: packs.install
+        input:
+          packs: <% $.packs %>
+          repo_url: <% $.repo_url %>
+          branch: <% $.branch %>
+          subtree: <% $.subtree %>

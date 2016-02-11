@@ -47,6 +47,7 @@ dependencies:
   pre:
     - sudo .circle/configure-services.sh
     - sudo .circle/fix-cache-permissions.sh
+    - sudo apt-get -y install parallel
     - sudo pip install docker-compose
     - docker-compose version
     - docker version
@@ -78,11 +79,7 @@ deployment:
       # Deploy to Bintray all artifacts for respective distros in parallel
       - |
         DISTROS=($DISTROS)
-        for i in $(seq 0 $((CIRCLE_NODE_TOTAL-1))); do
-          echo Deploying Bintray artifacts for "${DISTROS[$i]}" ...
-          .circle/bintray.sh deploy ${DISTROS[$i]}_staging ~/packages/${DISTROS[$i]} &
-        done
-        wait
+        parallel -v -j0 --line-buffer .circle/bintray.sh deploy {}_staging ~/packages/{} ::: ${DISTROS[@]::$CIRCLE_NODE_TOTAL}
       - .circle/docker.sh deploy st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
       - .circle/save_payload.py ~/packages
 

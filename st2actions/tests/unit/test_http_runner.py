@@ -32,7 +32,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
 
     @mock.patch('st2actions.runners.httprunner.requests')
     def test_parse_response_body(self, mock_requests):
-        client = HTTPClient(url='http://localhost')
+        client = HTTPClient(url='http://127.0.0.1')
         mock_result = MockResult()
 
         # Unknown content type, body should be returned raw
@@ -88,7 +88,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
 
     @mock.patch('st2actions.runners.httprunner.requests')
     def test_https_verify(self, mock_requests):
-        url = 'https://localhost:8888'
+        url = 'https://127.0.0.1:8888'
         client = HTTPClient(url=url, verify=True)
         mock_result = MockResult()
 
@@ -108,7 +108,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
 
     @mock.patch('st2actions.runners.httprunner.requests')
     def test_https_verify_false(self, mock_requests):
-        url = 'https://localhost:8888'
+        url = 'https://127.0.0.1:8888'
         client = HTTPClient(url=url)
         mock_result = MockResult()
 
