@@ -91,6 +91,15 @@ DIRECTORY_STRUCTURE = [
     'commands/'
 ]
 
+OUTPUT_PATHS = {
+    'logs': 'logs/',
+    'configs': 'configs/',
+    'content': 'content/',
+    'commands': 'commands/',
+    'system_info': 'system_info.yaml',
+    'user_info': 'user_info.yaml'
+}
+
 # Options which should be removed from the st2 config
 ST2_CONF_OPTIONS_TO_REMOVE = {
     'database': ['username', 'password'],
@@ -121,7 +130,7 @@ def setup_logging():
 
 
 class DebugInfoCollector(object):
-    def __init__(self, config, include_logs, include_configs, include_content,
+    def __init__(self, yaml_config, include_logs, include_configs, include_content,
                  include_system_info, include_shell_commands=False, user_info=None, debug=False):
         self.include_logs = include_logs
         self.include_configs = include_configs
@@ -131,15 +140,15 @@ class DebugInfoCollector(object):
         self.user_info = user_info
         self.debug = debug
 
-        self.st2_config_file_path = config.get('st2_config_file_path', ST2_CONFIG_FILE_PATH)
-        self.mistral_config_file_path = config.get('mistral_config_file_path',
-                                                   MISTRAL_CONFIG_FILE_PATH)
-        self.log_files_paths = config.get('log_files_paths', LOG_FILE_PATHS[:])
-        self.gpg_key = config.get('gpg_key', GPG_KEY)
-        self.gpg_key_fingerprint = config.get('gpg_key_fingerprint', GPG_KEY_FINGERPRINT)
-        self.s3_bucket_url = config.get('s3_bucket_url', S3_BUCKET_URL)
-        self.company_name = config.get('company_name', COMPANY_NAME)
-        self.shell_commands = config.get('shell_commands', SHELL_COMMANDS)
+        self.st2_config_file_path = yaml_config.get('st2_config_file_path', ST2_CONFIG_FILE_PATH)
+        self.mistral_config_file_path = yaml_config.get('mistral_config_file_path',
+                                                        MISTRAL_CONFIG_FILE_PATH)
+        self.log_files_paths = yaml_config.get('log_files_paths', LOG_FILE_PATHS[:])
+        self.gpg_key = yaml_config.get('gpg_key', GPG_KEY)
+        self.gpg_key_fingerprint = yaml_config.get('gpg_key_fingerprint', GPG_KEY_FINGERPRINT)
+        self.s3_bucket_url = yaml_config.get('s3_bucket_url', S3_BUCKET_URL)
+        self.company_name = yaml_config.get('company_name', COMPANY_NAME)
+        self.shell_commands = yaml_config.get('shell_commands', SHELL_COMMANDS)
 
         self.st2_config_file_name = os.path.basename(self.st2_config_file_path)
         self.mistral_config_file_name = os.path.basename(self.mistral_config_file_path)
@@ -155,23 +164,23 @@ class DebugInfoCollector(object):
             LOG.exception('Failed to generate tarball', exc_info=True)
         else:
             LOG.info('Debug tarball successfully generated and can be reviewed at: %s' %
-                    plain_text_output_path)
-        
+                     plain_text_output_path)
+
     def create_and_upload_archive(self):
+        plain_text_output_path = None
+        encrypted_output_path = None
         try:
             plain_text_output_path = self.create_archive()
             encrypted_output_path = self.encrypt_archive(archive_file_path=plain_text_output_path)
             self.upload_archive(archive_file_path=encrypted_output_path)
         except Exception:
             LOG.exception('Failed to upload tarball to %s' % self.company_name, exc_info=True)
-            plain_text_output_path = None
-            encrypted_output_path = None
         else:
             tarball_name = os.path.basename(encrypted_output_path)
             LOG.info('Debug tarball successfully uploaded to %s (name=%s)' %
-                    (self.company_name, tarball_name))
+                     (self.company_name, tarball_name))
             LOG.info('When communicating with support, please let them know the tarball name - %s' %
-                    tarball_name)
+                     tarball_name)
         finally:
             # Remove tarballs
             if plain_text_output_path:
@@ -180,96 +189,37 @@ class DebugInfoCollector(object):
             if encrypted_output_path:
                 assert encrypted_output_path.startswith('/tmp')
                 remove_file(file_path=encrypted_output_path)
-        
-    def create_archive(self):
-        """
-        Create an archive with debugging information.
 
-        :return: Path to the generated archive.
-        :rtype: ``str``
-        """
-        date = date_utils.get_datetime_utc_now().strftime(DATE_FORMAT)
-        values = {'hostname': socket.gethostname(), 'date': date}
+    def collect_logs(self, output_path):
+        LOG.debug('Including log files')
+        for file_path_glob in self.log_files_paths:
+            log_file_list = get_full_file_list(file_path_glob=file_path_glob)
+            copy_files(file_paths=log_file_list, destination=output_path)
 
-        output_file_name = OUTPUT_FILENAME_TEMPLATE % values
-        output_file_path = os.path.join('/tmp', output_file_name)
+    def collect_config_files(self, output_path):
+        LOG.debug('Including config files')
+        copy_files(file_paths=self.config_file_paths, destination=output_path)
 
-        # 1. Create temporary directory with the final directory structure where we will move files
-        # which will be processed and included in the tarball
-        temp_dir_path = tempfile.mkdtemp()
-
-        output_paths = {
-            'logs': os.path.join(temp_dir_path, 'logs/'),
-            'configs': os.path.join(temp_dir_path, 'configs/'),
-            'content': os.path.join(temp_dir_path, 'content/'),
-            'commands': os.path.join(temp_dir_path, 'commands/'),
-            'system_info': os.path.join(temp_dir_path, 'system_info.yaml'),
-            'user_info': os.path.join(temp_dir_path, 'user_info.yaml')
-        }
-
-        for directory_name in DIRECTORY_STRUCTURE:
-            full_path = os.path.join(temp_dir_path, directory_name)
-            os.mkdir(full_path)
-
-        # 2. Moves all the files to the temporary directory
-        LOG.info('Collecting files...')
-
-        # Logs
-        if self.include_logs:
-            LOG.debug('Including log files')
-            for file_path_glob in self.log_files_paths:
-                log_file_list = get_full_file_list(file_path_glob=file_path_glob)
-                copy_files(file_paths=log_file_list, destination=output_paths['logs'])
-
-        # Config files
-        if self.include_configs:
-            LOG.debug('Including config files')
-            copy_files(file_paths=self.config_file_paths, destination=output_paths['configs'])
-
-        # Content
-        if self.include_content:
-            LOG.debug('Including content')
-
-            packs_base_paths = get_packs_base_paths()
-            for index, packs_base_path in enumerate(packs_base_paths, 1):
-                dst = os.path.join(output_paths['content'], 'dir-%s' % index)
-
-                try:
-                    shutil.copytree(src=packs_base_path, dst=dst)
-                except IOError:
-                    continue
-
-        # System information
-        if self.include_system_info:
-            LOG.debug('Including system info')
-
-            system_information = yaml.dump(self.get_system_information(),
-                                           default_flow_style=False)
-
-            with open(output_paths['system_info'], 'w') as fp:
-                fp.write(system_information)
-
-        if self.user_info:
-            LOG.debug('Including user info')
-            user_info = yaml.dump(user_info, default_flow_style=False)
-
-            with open(output_paths['user_info'], 'w') as fp:
-                fp.write(user_info)
-
-        if self.include_shell_commands:
-            LOG.debug('Including the required shell commands output files')
-            shell_commands_output_paths = self.get_commands_output()
-            copy_files(file_paths=shell_commands_output_paths, destination=output_paths['commands'])
-
-        # Configs
-        st2_config_path = os.path.join(output_paths['configs'], self.st2_config_file_name)
+        st2_config_path = os.path.join(output_path, self.st2_config_file_name)
         process_st2_config(config_path=st2_config_path)
 
-        mistral_config_path = os.path.join(output_paths['configs'], self.mistral_config_file_name)
-        process_mistral_config(config_path=st2_config_path)
+        mistral_config_path = os.path.join(output_path, self.mistral_config_file_name)
+        process_mistral_config(config_path=mistral_config_path)
 
-        # Content
-        base_pack_dirs = get_dirs_in_path(file_path=output_paths['content'])
+    @staticmethod
+    def collect_pack_content(output_path):
+        LOG.debug('Including content')
+
+        packs_base_paths = get_packs_base_paths()
+        for index, packs_base_path in enumerate(packs_base_paths, 1):
+            dst = os.path.join(output_path, 'dir-%s' % index)
+
+            try:
+                shutil.copytree(src=packs_base_path, dst=dst)
+            except IOError:
+                continue
+
+        base_pack_dirs = get_dirs_in_path(file_path=output_path)
 
         for base_pack_dir in base_pack_dirs:
             pack_dirs = get_dirs_in_path(file_path=base_pack_dir)
@@ -277,8 +227,35 @@ class DebugInfoCollector(object):
             for pack_dir in pack_dirs:
                 process_content_pack_dir(pack_dir=pack_dir)
 
-        # 4. Create a tarball
+    def add_system_information(self, output_path):
+        LOG.debug('Including system info')
+
+        system_information = yaml.dump(self.get_system_information(),
+                                       default_flow_style=False)
+
+        with open(output_path, 'w') as fp:
+            fp.write(system_information)
+
+    def add_user_info(self, output_path):
+        LOG.debug('Including user info')
+        user_info = yaml.dump(self.user_info, default_flow_style=False)
+
+        with open(output_path, 'w') as fp:
+            fp.write(user_info)
+
+    def add_shell_command_output(self, output_path):
+        LOG.debug('Including the required shell commands output files')
+        shell_commands_output_paths = self.get_commands_output()
+        copy_files(file_paths=shell_commands_output_paths, destination=output_path)
+
+    @staticmethod
+    def create_tarball(output_paths):
         LOG.info('Creating tarball...')
+        date = date_utils.get_datetime_utc_now().strftime(DATE_FORMAT)
+        values = {'hostname': socket.gethostname(), 'date': date}
+
+        output_file_name = OUTPUT_FILENAME_TEMPLATE % values
+        output_file_path = os.path.join('/tmp', output_file_name)
 
         with tarfile.open(output_file_path, 'w:gz') as tar:
             for file_path in output_paths.values():
@@ -288,15 +265,56 @@ class DebugInfoCollector(object):
                 if not os.path.exists(source_dir):
                     continue
 
-                if '.' in file_path:
-                    arcname = os.path.basename(file_path)
-                else:
-                    arcname = os.path.split(file_path)[-1]
-
-                tar.add(source_dir, arcname=arcname)
+                tar.add(source_dir, arcname=os.path.basename(file_path))
 
         return output_file_path
-        
+
+    @staticmethod
+    def create_temp_directories():
+        temp_dir_path = tempfile.mkdtemp()
+
+        for directory_name in DIRECTORY_STRUCTURE:
+            full_path = os.path.join(temp_dir_path, directory_name)
+            os.mkdir(full_path)
+
+        return temp_dir_path
+
+    def create_archive(self):
+        """
+        Create an archive with debugging information.
+
+        :return: Path to the generated archive.
+        :rtype: ``str``
+        """
+
+        # 1. Create temporary directory with the final directory structure where we will move files
+        # which will be processed and included in the tarball
+        temp_dir_path = self.create_temp_directories()
+
+        output_paths = {}
+        for key, path in OUTPUT_PATHS.iteritems():
+            output_paths[key] = os.path.join(temp_dir_path, path)
+
+        # 2. Moves all the files to the temporary directory
+        LOG.info('Collecting files...')
+        if self.include_logs:
+            self.collect_logs(output_paths['logs'])
+        if self.include_configs:
+            self.collect_config_files(output_paths['configs'])
+        if self.include_content:
+            self.collect_pack_content(output_paths['content'])
+        if self.include_system_info:
+            self.add_system_information(output_paths['system_info'])
+        if self.user_info:
+            self.add_user_info(output_paths['user_info'])
+        if self.include_shell_commands:
+            self.add_shell_command_output(output_paths['commands'])
+
+        # 3. Create a tarball
+        output_file_path = self.create_tarball(output_paths)
+
+        return output_file_path
+
     def encrypt_archive(self, archive_file_path):
         """
         Encrypt archive with debugging information using our public key.
@@ -319,24 +337,24 @@ class DebugInfoCollector(object):
 
         encrypted_archive_output_file_path = archive_file_path + '.asc'
         with open(archive_file_path, 'rb') as fp:
-            gpg.encrypt_file(fp,
-                            recipients=self.gpg_key_fingerprint,
-                            always_trust=True,
-                            output=encrypted_archive_output_file_path)
+            gpg.encrypt_file(file=fp,
+                             recipients=self.gpg_key_fingerprint,
+                             always_trust=True,
+                             output=encrypted_archive_output_file_path)
         return encrypted_archive_output_file_path
-        
+
     def upload_archive(self, archive_file_path):
         assert archive_file_path.endswith('.asc')
 
         LOG.debug('Uploading tarball...')
-        files = {'file': open(archive_file_path, 'rb')}
-        file_name = os.path.split(archive_file_path)[1]
+        file_name = os.path.basename(archive_file_path)
         url = self.s3_bucket_url + file_name
         assert url.startswith('https://')
 
-        response = requests.put(url=url, files=files)
+        with open(archive_file_path, 'rb') as fp:
+            response = requests.put(url=url, files={'file': fp})
         assert response.status_code == httplib.OK
-        
+
     def get_commands_output(self):
         """"
         Get output of the required shell command and redirect the output to a file.
@@ -346,12 +364,17 @@ class DebugInfoCollector(object):
         output_files_list = []
         for cmd in self.shell_commands:
             output_file = os.path.join('/tmp', '%s.txt' % self.format_output_filename(cmd))
-            exit_code, stdout, _ = run_command(cmd=cmd, shell=True)
+            exit_code, stdout, stderr = run_command(cmd=cmd, shell=True)
             with open(output_file, 'w') as fp:
+                fp.write('[BEGIN STDOUT]\n')
                 fp.write(stdout)
+                fp.write('[END STDOUT]\n')
+                fp.write('[BEGIN STDERR]\n')
+                fp.write(stderr)
+                fp.write('[END STDERR]')
             output_files_list.append(output_file)
         return output_files_list
-        
+
     @staticmethod
     def format_output_filename(cmd):
         """"
@@ -364,7 +387,7 @@ class DebugInfoCollector(object):
             if char in ' !@#$%^&*()[]{};:,./<>?\|`~=+"':
                 cmd = cmd.replace(char, "")
         return cmd
-        
+
     @staticmethod
     def get_system_information():
         """
@@ -454,6 +477,7 @@ class DebugInfoCollector(object):
 
         return system_information
 
+
 def main():
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('--exclude-logs', action='store_true', default=False,
@@ -477,7 +501,7 @@ def main():
     args = parser.parse_args()
 
     arg_names = ARG_NAMES[:]
-    
+
     abort = True
     for arg_name in arg_names:
         value = getattr(args, arg_name, False)
@@ -487,17 +511,12 @@ def main():
         print('Generated tarball would be empty. Aborting.')
         sys.exit(2)
 
-    submited_content = [name.replace('exclude_', '') for name in arg_names if
-                        not getattr(args, name, False)]
-    submited_content = ', '.join(submited_content)
-
+    yaml_config = {}
     if args.config:
         with open(args.config, 'r') as yaml_file:
-            config = yaml.load(yaml_file)
-    else:
-        config = {}
-    
-    company_name = config.get('company_name', COMPANY_NAME)
+            yaml_config = yaml.load(yaml_file)
+
+    company_name = yaml_config.get('company_name', COMPANY_NAME)
 
     if not args.yes and not args.review:
         # When not running in review mode, GPG needs to be installed and
@@ -506,8 +525,12 @@ def main():
             msg = ('"gpg" binary not found, can\'t proceed. Make sure "gpg" is installed '
                    'and available in PATH.')
             raise ValueError(msg)
+
+        submitted_content = [name.replace('exclude_', '') for name in arg_names if
+                             not getattr(args, name, False)]
+        submitted_content = ', '.join(submitted_content)
         print('This will submit the following information to %s: %s' % (company_name,
-                                                                        submited_content))
+                                                                        submitted_content))
         value = six.moves.input('Are you sure you want to proceed? [y/n] ')
         if value.strip().lower() not in ['y', 'yes']:
             print('Aborting')
@@ -526,7 +549,7 @@ def main():
 
     setup_logging()
 
-    debug_collector = DebugInfoCollector(config=config,
+    debug_collector = DebugInfoCollector(yaml_config=yaml_config,
                                          include_logs=not args.exclude_logs,
                                          include_configs=not args.exclude_configs,
                                          include_content=not args.exclude_content,
