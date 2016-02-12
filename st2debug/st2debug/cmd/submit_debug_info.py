@@ -158,38 +158,47 @@ class DebugInfoCollector(object):
             self.mistral_config_file_path
         ]
 
-    def create_and_review_archive(self):
-        try:
-            plain_text_output_path = self.create_archive()
-        except Exception:
-            LOG.exception('Failed to generate tarball', exc_info=True)
-        else:
-            LOG.info('Debug tarball successfully generated and can be reviewed at: %s' %
-                     plain_text_output_path)
+    def run(self, create=False, encrypt=False, upload=False, existing_file=None):
+        temp_files = []
 
-    def create_and_upload_archive(self):
-        plain_text_output_path = None
-        encrypted_output_path = None
+        if create and existing_file:
+            LOG.info("Create and existing file options are mutually exclusive")
+            return
+        if not create and not existing_file:
+            LOG.info("Must specify create or existing file")
+            return
+
         try:
-            plain_text_output_path = self.create_archive()
-            encrypted_output_path = self.encrypt_archive(archive_file_path=plain_text_output_path)
-            self.upload_archive(archive_file_path=encrypted_output_path)
-        except Exception:
-            LOG.exception('Failed to upload tarball to %s' % self.company_name, exc_info=True)
-        else:
-            tarball_name = os.path.basename(encrypted_output_path)
-            LOG.info('Debug tarball successfully uploaded to %s (name=%s)' %
-                     (self.company_name, tarball_name))
-            LOG.info('When communicating with support, please let them know the tarball name - %s' %
-                     tarball_name)
+            if create:
+                working_file = self.create_archive()
+                if not encrypt and not upload:
+                    LOG.info('Debug tarball successfully '
+                             'generated and can be reviewed at: %s' % working_file)
+                else:
+                    temp_files.append(working_file)
+            else:
+                working_file = existing_file
+
+            if encrypt:
+                working_file = self.encrypt_archive(archive_file_path=working_file)
+                if not upload:
+                    LOG.info('Encrypted debug tarball successfully generated at: %s' %
+                             working_file)
+                else:
+                    temp_files.append(working_file)
+
+            if upload:
+                self.upload_archive(archive_file_path=working_file)
+                tarball_name = os.path.basename(working_file)
+                LOG.info('Debug tarball successfully uploaded to %s (name=%s)' %
+                            (self.company_name, tarball_name))
+                LOG.info('When communicating with support, please let them know the '
+                         'tarball name - %s' % tarball_name)
         finally:
-            # Remove tarballs
-            if plain_text_output_path:
-                assert plain_text_output_path.startswith('/tmp')
-                remove_file(file_path=plain_text_output_path)
-            if encrypted_output_path:
-                assert encrypted_output_path.startswith('/tmp')
-                remove_file(file_path=encrypted_output_path)
+            # Remove temp files
+            for temp_file in temp_files:
+                assert temp_file.startswith('/tmp')
+                remove_file(file_path=temp_file)
 
     def create_archive(self):
         """
@@ -198,34 +207,38 @@ class DebugInfoCollector(object):
         :return: Path to the generated archive.
         :rtype: ``str``
         """
+        
+        try:
+            # 1. Create temporary directory with the final directory structure where we will move files
+            # which will be processed and included in the tarball
+            temp_dir_path = self.create_temp_directories()
 
-        # 1. Create temporary directory with the final directory structure where we will move files
-        # which will be processed and included in the tarball
-        temp_dir_path = self.create_temp_directories()
+            # Prepend temp_dir_path to OUTPUT_PATHS
+            output_paths = {}
+            for key, path in OUTPUT_PATHS.iteritems():
+                output_paths[key] = os.path.join(temp_dir_path, path)
 
-        output_paths = {}
-        for key, path in OUTPUT_PATHS.iteritems():
-            output_paths[key] = os.path.join(temp_dir_path, path)
+            # 2. Moves all the files to the temporary directory
+            LOG.info('Collecting files...')
+            if self.include_logs:
+                self.collect_logs(output_paths['logs'])
+            if self.include_configs:
+                self.collect_config_files(output_paths['configs'])
+            if self.include_content:
+                self.collect_pack_content(output_paths['content'])
+            if self.include_system_info:
+                self.add_system_information(output_paths['system_info'])
+            if self.user_info:
+                self.add_user_info(output_paths['user_info'])
+            if self.include_shell_commands:
+                self.add_shell_command_output(output_paths['commands'])
 
-        # 2. Moves all the files to the temporary directory
-        LOG.info('Collecting files...')
-        if self.include_logs:
-            self.collect_logs(output_paths['logs'])
-        if self.include_configs:
-            self.collect_config_files(output_paths['configs'])
-        if self.include_content:
-            self.collect_pack_content(output_paths['content'])
-        if self.include_system_info:
-            self.add_system_information(output_paths['system_info'])
-        if self.user_info:
-            self.add_user_info(output_paths['user_info'])
-        if self.include_shell_commands:
-            self.add_shell_command_output(output_paths['commands'])
+            # 3. Create a tarball
+            return self.create_tarball(output_paths)
 
-        # 3. Create a tarball
-        output_file_path = self.create_tarball(output_paths)
-
-        return output_file_path
+        except Exception as e:
+            LOG.exception('Failed to generate tarball', exc_info=True)
+            raise e
 
     def encrypt_archive(self, archive_file_path):
         """
@@ -237,35 +250,43 @@ class DebugInfoCollector(object):
         :return: Path to the encrypted archive.
         :rtype: ``str``
         """
-        assert archive_file_path.endswith('.tar.gz')
+        try:
+            assert archive_file_path.endswith('.tar.gz')
 
-        LOG.info('Encrypting tarball...')
-        gpg = gnupg.GPG(verbose=self.debug)
+            LOG.info('Encrypting tarball...')
+            gpg = gnupg.GPG(verbose=self.debug)
 
-        # Import our public key
-        import_result = gpg.import_keys(self.gpg_key)
-        # pylint: disable=no-member
-        assert import_result.count == 1
+            # Import our public key
+            import_result = gpg.import_keys(self.gpg_key)
+            # pylint: disable=no-member
+            assert import_result.count == 1
 
-        encrypted_archive_output_file_path = archive_file_path + '.asc'
-        with open(archive_file_path, 'rb') as fp:
-            gpg.encrypt_file(file=fp,
-                             recipients=self.gpg_key_fingerprint,
-                             always_trust=True,
-                             output=encrypted_archive_output_file_path)
-        return encrypted_archive_output_file_path
+            encrypted_archive_output_file_path = archive_file_path + '.asc'
+            with open(archive_file_path, 'rb') as fp:
+                gpg.encrypt_file(file=fp,
+                                 recipients=self.gpg_key_fingerprint,
+                                 always_trust=True,
+                                 output=encrypted_archive_output_file_path)
+            return encrypted_archive_output_file_path
+        except Exception as e:
+            LOG.exception('Failed to encrypt archive', exc_info=True)
+            raise e
 
     def upload_archive(self, archive_file_path):
-        assert archive_file_path.endswith('.asc')
+        try:
+            assert archive_file_path.endswith('.asc')
 
-        LOG.debug('Uploading tarball...')
-        file_name = os.path.basename(archive_file_path)
-        url = self.s3_bucket_url + file_name
-        assert url.startswith('https://')
+            LOG.debug('Uploading tarball...')
+            file_name = os.path.basename(archive_file_path)
+            url = self.s3_bucket_url + file_name
+            assert url.startswith('https://')
 
-        with open(archive_file_path, 'rb') as fp:
-            response = requests.put(url=url, files={'file': fp})
-        assert response.status_code == httplib.OK
+            with open(archive_file_path, 'rb') as fp:
+                response = requests.put(url=url, files={'file': fp})
+            assert response.status_code == httplib.OK
+        except Exception as e:
+            LOG.exception('Failed to upload tarball to %s' % self.company_name, exc_info=True)
+            raise e
 
     def collect_logs(self, output_path):
         LOG.debug('Including log files')
@@ -321,9 +342,21 @@ class DebugInfoCollector(object):
             fp.write(user_info)
 
     def add_shell_command_output(self, output_path):
+        """"
+        Get output of the required shell command and redirect the output to a file.
+        :param output_path: Directory where output files will be written
+        """
         LOG.debug('Including the required shell commands output files')
-        shell_commands_output_paths = self.get_commands_output()
-        copy_files(file_paths=shell_commands_output_paths, destination=output_path)
+        for cmd in self.shell_commands:
+            output_file = os.path.join(output_path, '%s.txt' % self.format_output_filename(cmd))
+            exit_code, stdout, stderr = run_command(cmd=cmd, shell=True)
+            with open(output_file, 'w') as fp:
+                fp.write('[BEGIN STDOUT]\n')
+                fp.write(stdout)
+                fp.write('[END STDOUT]\n')
+                fp.write('[BEGIN STDERR]\n')
+                fp.write(stderr)
+                fp.write('[END STDERR]')
 
     @staticmethod
     def create_tarball(output_paths):
@@ -356,25 +389,6 @@ class DebugInfoCollector(object):
 
         return temp_dir_path
 
-    def get_commands_output(self):
-        """"
-        Get output of the required shell command and redirect the output to a file.
-        :return: output file paths
-        :rtype: ``list``
-        """
-        output_files_list = []
-        for cmd in self.shell_commands:
-            output_file = os.path.join('/tmp', '%s.txt' % self.format_output_filename(cmd))
-            exit_code, stdout, stderr = run_command(cmd=cmd, shell=True)
-            with open(output_file, 'w') as fp:
-                fp.write('[BEGIN STDOUT]\n')
-                fp.write(stdout)
-                fp.write('[END STDOUT]\n')
-                fp.write('[BEGIN STDERR]\n')
-                fp.write(stderr)
-                fp.write('[END STDERR]')
-            output_files_list.append(output_file)
-        return output_files_list
 
     @staticmethod
     def format_output_filename(cmd):
@@ -561,6 +575,7 @@ def main():
                                          config_file=config_file)
 
     if args.review:
-        debug_collector.create_and_review_archive()
+        # Create and review archive
+        debug_collector.run(create=True)
     else:
-        debug_collector.create_and_upload_archive()
+        debug_collector.run(create=True, encrypt=True, upload=True)
