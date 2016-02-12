@@ -4,6 +4,7 @@ Changelog
 in development
 --------------
 
+* Remove get_open_ports action from Linux pack.
 * Changes to gunicorn configuration for both st2api and st2auth so common service
   setup code is only run in workers and not master. (bug-fix)
 * Fix an issue where trigger watcher cannot get messages from queue if multiple API
