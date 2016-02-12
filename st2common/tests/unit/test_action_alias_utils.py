@@ -107,7 +107,7 @@ class TestActionAliasParser(TestCase):
         param_stream = 'acl123'
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'a': ''})
+        self.assertEqual(extracted_values, {})
 
     def test_json_parsing(self):
         alias_format = 'skip {{a}} more skip.'
