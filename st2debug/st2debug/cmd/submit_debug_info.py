@@ -130,8 +130,8 @@ def setup_logging():
 
 
 class DebugInfoCollector(object):
-    def __init__(self, yaml_config, include_logs, include_configs, include_content,
-                 include_system_info, include_shell_commands=False, user_info=None, debug=False):
+    def __init__(self, include_logs, include_configs, include_content, include_system_info,
+                 include_shell_commands=False, user_info=None, debug=False, config_file=None):
         self.include_logs = include_logs
         self.include_configs = include_configs
         self.include_content = include_content
@@ -140,15 +140,16 @@ class DebugInfoCollector(object):
         self.user_info = user_info
         self.debug = debug
 
-        self.st2_config_file_path = yaml_config.get('st2_config_file_path', ST2_CONFIG_FILE_PATH)
-        self.mistral_config_file_path = yaml_config.get('mistral_config_file_path',
+        config_file = config_file or {}
+        self.st2_config_file_path = config_file.get('st2_config_file_path', ST2_CONFIG_FILE_PATH)
+        self.mistral_config_file_path = config_file.get('mistral_config_file_path',
                                                         MISTRAL_CONFIG_FILE_PATH)
-        self.log_files_paths = yaml_config.get('log_files_paths', LOG_FILE_PATHS[:])
-        self.gpg_key = yaml_config.get('gpg_key', GPG_KEY)
-        self.gpg_key_fingerprint = yaml_config.get('gpg_key_fingerprint', GPG_KEY_FINGERPRINT)
-        self.s3_bucket_url = yaml_config.get('s3_bucket_url', S3_BUCKET_URL)
-        self.company_name = yaml_config.get('company_name', COMPANY_NAME)
-        self.shell_commands = yaml_config.get('shell_commands', SHELL_COMMANDS)
+        self.log_files_paths = config_file.get('log_files_paths', LOG_FILE_PATHS[:])
+        self.gpg_key = config_file.get('gpg_key', GPG_KEY)
+        self.gpg_key_fingerprint = config_file.get('gpg_key_fingerprint', GPG_KEY_FINGERPRINT)
+        self.s3_bucket_url = config_file.get('s3_bucket_url', S3_BUCKET_URL)
+        self.company_name = config_file.get('company_name', COMPANY_NAME)
+        self.shell_commands = config_file.get('shell_commands', SHELL_COMMANDS)
 
         self.st2_config_file_name = os.path.basename(self.st2_config_file_path)
         self.mistral_config_file_name = os.path.basename(self.mistral_config_file_path)
@@ -189,6 +190,82 @@ class DebugInfoCollector(object):
             if encrypted_output_path:
                 assert encrypted_output_path.startswith('/tmp')
                 remove_file(file_path=encrypted_output_path)
+
+    def create_archive(self):
+        """
+        Create an archive with debugging information.
+
+        :return: Path to the generated archive.
+        :rtype: ``str``
+        """
+
+        # 1. Create temporary directory with the final directory structure where we will move files
+        # which will be processed and included in the tarball
+        temp_dir_path = self.create_temp_directories()
+
+        output_paths = {}
+        for key, path in OUTPUT_PATHS.iteritems():
+            output_paths[key] = os.path.join(temp_dir_path, path)
+
+        # 2. Moves all the files to the temporary directory
+        LOG.info('Collecting files...')
+        if self.include_logs:
+            self.collect_logs(output_paths['logs'])
+        if self.include_configs:
+            self.collect_config_files(output_paths['configs'])
+        if self.include_content:
+            self.collect_pack_content(output_paths['content'])
+        if self.include_system_info:
+            self.add_system_information(output_paths['system_info'])
+        if self.user_info:
+            self.add_user_info(output_paths['user_info'])
+        if self.include_shell_commands:
+            self.add_shell_command_output(output_paths['commands'])
+
+        # 3. Create a tarball
+        output_file_path = self.create_tarball(output_paths)
+
+        return output_file_path
+
+    def encrypt_archive(self, archive_file_path):
+        """
+        Encrypt archive with debugging information using our public key.
+
+        :param archive_file_path: Path to the non-encrypted tarball file.
+        :type archive_file_path: ``str``
+
+        :return: Path to the encrypted archive.
+        :rtype: ``str``
+        """
+        assert archive_file_path.endswith('.tar.gz')
+
+        LOG.info('Encrypting tarball...')
+        gpg = gnupg.GPG(verbose=self.debug)
+
+        # Import our public key
+        import_result = gpg.import_keys(self.gpg_key)
+        # pylint: disable=no-member
+        assert import_result.count == 1
+
+        encrypted_archive_output_file_path = archive_file_path + '.asc'
+        with open(archive_file_path, 'rb') as fp:
+            gpg.encrypt_file(file=fp,
+                             recipients=self.gpg_key_fingerprint,
+                             always_trust=True,
+                             output=encrypted_archive_output_file_path)
+        return encrypted_archive_output_file_path
+
+    def upload_archive(self, archive_file_path):
+        assert archive_file_path.endswith('.asc')
+
+        LOG.debug('Uploading tarball...')
+        file_name = os.path.basename(archive_file_path)
+        url = self.s3_bucket_url + file_name
+        assert url.startswith('https://')
+
+        with open(archive_file_path, 'rb') as fp:
+            response = requests.put(url=url, files={'file': fp})
+        assert response.status_code == httplib.OK
 
     def collect_logs(self, output_path):
         LOG.debug('Including log files')
@@ -278,82 +355,6 @@ class DebugInfoCollector(object):
             os.mkdir(full_path)
 
         return temp_dir_path
-
-    def create_archive(self):
-        """
-        Create an archive with debugging information.
-
-        :return: Path to the generated archive.
-        :rtype: ``str``
-        """
-
-        # 1. Create temporary directory with the final directory structure where we will move files
-        # which will be processed and included in the tarball
-        temp_dir_path = self.create_temp_directories()
-
-        output_paths = {}
-        for key, path in OUTPUT_PATHS.iteritems():
-            output_paths[key] = os.path.join(temp_dir_path, path)
-
-        # 2. Moves all the files to the temporary directory
-        LOG.info('Collecting files...')
-        if self.include_logs:
-            self.collect_logs(output_paths['logs'])
-        if self.include_configs:
-            self.collect_config_files(output_paths['configs'])
-        if self.include_content:
-            self.collect_pack_content(output_paths['content'])
-        if self.include_system_info:
-            self.add_system_information(output_paths['system_info'])
-        if self.user_info:
-            self.add_user_info(output_paths['user_info'])
-        if self.include_shell_commands:
-            self.add_shell_command_output(output_paths['commands'])
-
-        # 3. Create a tarball
-        output_file_path = self.create_tarball(output_paths)
-
-        return output_file_path
-
-    def encrypt_archive(self, archive_file_path):
-        """
-        Encrypt archive with debugging information using our public key.
-
-        :param archive_file_path: Path to the non-encrypted tarball file.
-        :type archive_file_path: ``str``
-
-        :return: Path to the encrypted archive.
-        :rtype: ``str``
-        """
-        assert archive_file_path.endswith('.tar.gz')
-
-        LOG.info('Encrypting tarball...')
-        gpg = gnupg.GPG(verbose=self.debug)
-
-        # Import our public key
-        import_result = gpg.import_keys(self.gpg_key)
-        # pylint: disable=no-member
-        assert import_result.count == 1
-
-        encrypted_archive_output_file_path = archive_file_path + '.asc'
-        with open(archive_file_path, 'rb') as fp:
-            gpg.encrypt_file(file=fp,
-                             recipients=self.gpg_key_fingerprint,
-                             always_trust=True,
-                             output=encrypted_archive_output_file_path)
-        return encrypted_archive_output_file_path
-
-    def upload_archive(self, archive_file_path):
-        assert archive_file_path.endswith('.asc')
-
-        LOG.debug('Uploading tarball...')
-        file_name = os.path.basename(archive_file_path)
-        url = self.s3_bucket_url + file_name
-        assert url.startswith('https://')
-
-        with open(archive_file_path, 'rb') as fp:
-            response = requests.put(url=url, files={'file': fp})
-        assert response.status_code == httplib.OK
 
     def get_commands_output(self):
         """"
@@ -511,12 +512,13 @@ def main():
         print('Generated tarball would be empty. Aborting.')
         sys.exit(2)
 
-    yaml_config = {}
     if args.config:
         with open(args.config, 'r') as yaml_file:
-            yaml_config = yaml.load(yaml_file)
+            config_file = yaml.load(yaml_file)
+    else:
+        config_file = {}
 
-    company_name = yaml_config.get('company_name', COMPANY_NAME)
+    company_name = config_file.get('company_name', COMPANY_NAME)
 
     if not args.yes and not args.review:
         # When not running in review mode, GPG needs to be installed and
@@ -549,14 +551,14 @@ def main():
 
     setup_logging()
 
-    debug_collector = DebugInfoCollector(yaml_config=yaml_config,
-                                         include_logs=not args.exclude_logs,
+    debug_collector = DebugInfoCollector(include_logs=not args.exclude_logs,
                                          include_configs=not args.exclude_configs,
                                          include_content=not args.exclude_content,
                                          include_system_info=not args.exclude_system_info,
                                          include_shell_commands=not args.exclude_shell_commands,
                                          user_info=user_info,
-                                         debug=args.debug)
+                                         debug=args.debug,
+                                         config_file=config_file)
 
     if args.review:
         debug_collector.create_and_review_archive()
