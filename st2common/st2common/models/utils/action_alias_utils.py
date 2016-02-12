@@ -81,8 +81,9 @@ class ActionAliasFormatParser(object):
         if matched_stream:
             values = matched_stream.groupdict()
         for param in params:
-            matched_value = values[param[0]] if matched_stream else None
-            result[param[0]] = matched_value or param[1]
+            matched_value = values[param[0]] if matched_stream else param[1] or None
+            if matched_value:
+                result[param[0]] = matched_value
         if extra:
             for pair in kv_pairs:
                 result[pair[0]] = ''.join(pair[2:])
