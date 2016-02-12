@@ -4,7 +4,6 @@
 LOGFILE="/dev/null"
 COMPONENTS="st2actionrunner st2api st2auth st2garbagecollector st2notifier st2resultstracker st2rulesengine st2sensorcontainer st2web mistral"
 STANCONF="/etc/st2/st2.conf"
-WEBUI_PORT=${WEBUI_PORT:-8080}
 
 # Ensure global environment is sourced if exists
 # Does not happen consistently with all OSes we support.
@@ -142,11 +141,7 @@ function getpids() {
   COMPONENTS=${COMPONENTS/mistral/mistral-server mistral-api}
 
   for COM in ${COMPONENTS}; do
-    if [[ "${COM}" == "st2web" && -z "${ST2_DISABLE_HTTPSERVER}" ]]; then
-      PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
-    else
-      PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
-    fi
+    PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
 
     if [[ ! -z ${PID} ]]; then
       for p in ${PID}; do
@@ -170,7 +165,7 @@ case ${1} in
     st2stop
     ;;
   restart)
-    must_be_root  
+    must_be_root
     st2stop
     sleep 1
     st2start
