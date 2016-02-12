@@ -76,7 +76,7 @@ function st2stop() {
 function service_manager() {
   if [ -d /run/systemd/system ]; then
     systemctl "${2}" "${1}"
-  elif command -v service 2>/dev/null; then
+  elif command -v service > /dev/null 2>&1; then
     service "${1}" "${2}"
   else
     echo -e "\e[31mError: Unsupported service manager in the system! \e[0m\n"
