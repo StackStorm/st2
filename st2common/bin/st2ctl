@@ -2,8 +2,7 @@
 
 
 LOGFILE="/dev/null"
-COMPONENTS="st2actionrunner st2api st2auth st2garbagecollector st2notifier st2resultstracker "
-COMPONENTS+="st2rulesengine st2sensorcontainer st2web mistral mistral-api"
+COMPONENTS="st2actionrunner st2api st2auth st2garbagecollector st2notifier st2resultstracker st2rulesengine st2sensorcontainer st2web mistral"
 STANCONF="/etc/st2/st2.conf"
 WEBUI_PORT=${WEBUI_PORT:-8080}
 
@@ -140,12 +139,11 @@ function clean_logs() {
 
 function getpids() {
   echo "##### st2 components status #####"
+  COMPONENTS=${COMPONENTS/mistral/mistral-server mistral-api}
 
   for COM in ${COMPONENTS}; do
     if [[ "${COM}" == "st2web" && -z "${ST2_DISABLE_HTTPSERVER}" ]]; then
       PID=`ps ax | grep -v grep | egrep "SimpleHTTPServer $WEBUI_PORT\$" | awk '{print $1}'`
-    elif [[ "${COM}" == "mistral" ]]; then
-      PID=`ps ax | grep -v grep | grep -v postgres | grep "${COM}" | awk '{print $1}'`
     else
       PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
     fi
