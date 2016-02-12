@@ -5,7 +5,7 @@ eventlet
 git+https://github.com/StackStorm/fabric.git@stanley-patched#egg=fabric
 jinja2
 kombu
-git+https://github.com/StackStorm/python-mistralclient.git@st2-1.3.1#egg=python-mistralclient
+git+https://github.com/StackStorm/python-mistralclient.git@st2-1.3.2#egg=python-mistralclient
 oslo.config
 oslo.utils
 requests
@@ -16,7 +16,6 @@ python-json-logger
 gitpython
 lockfile
 # needed by core "linux" pack - TODO: create virtualenv for linux pack on postinst
-python-nmap
 pyinotify
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 # required by pack_mgmt/setup_virtualenv.py#L135

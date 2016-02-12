@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.3.2 - February 12, 2016
+-------------------------
+* Remove get_open_ports action from Linux pack.
+
 1.3.1 - January 25, 2016
 ------------------------
 
