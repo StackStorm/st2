@@ -5,7 +5,7 @@ eventlet
 git+https://github.com/StackStorm/fabric.git@stanley-patched#egg=fabric
 jinja2
 kombu
-git+https://github.com/StackStorm/python-mistralclient.git@st2-1.3.1#egg=python-mistralclient
+git+https://github.com/StackStorm/python-mistralclient.git@st2-1.3.2#egg=python-mistralclient
 oslo.config
 oslo.utils
 requests
