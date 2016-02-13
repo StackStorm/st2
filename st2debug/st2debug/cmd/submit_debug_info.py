@@ -131,7 +131,8 @@ def setup_logging():
 
 class DebugInfoCollector(object):
     def __init__(self, include_logs, include_configs, include_content, include_system_info,
-                 include_shell_commands=False, user_info=None, debug=False, config_file=None):
+                 include_shell_commands=False, user_info=None, debug=False, config_file=None,
+                 output_path=None):
         self.include_logs = include_logs
         self.include_configs = include_configs
         self.include_content = include_content
@@ -139,6 +140,7 @@ class DebugInfoCollector(object):
         self.include_shell_commands = include_shell_commands
         self.user_info = user_info
         self.debug = debug
+        self.output_path = output_path
 
         config_file = config_file or {}
         self.st2_config_file_path = config_file.get('st2_config_file_path', ST2_CONFIG_FILE_PATH)
@@ -158,26 +160,20 @@ class DebugInfoCollector(object):
             self.mistral_config_file_path
         ]
 
-    def run(self, create=False, encrypt=False, upload=False, existing_file=None):
+    def run(self, encrypt=False, upload=False, existing_file=None):
         temp_files = []
 
-        if create and existing_file:
-            LOG.info("Create and existing file options are mutually exclusive")
-            return
-        if not create and not existing_file:
-            LOG.info("Must specify create or existing file")
-            return
-
         try:
-            if create:
+            if existing_file:
+                working_file = existing_file
+            else:
+                # Create a new archive if an existing file hasn't been provided
                 working_file = self.create_archive()
                 if not encrypt and not upload:
                     LOG.info('Debug tarball successfully '
                              'generated and can be reviewed at: %s' % working_file)
                 else:
                     temp_files.append(working_file)
-            else:
-                working_file = existing_file
 
             if encrypt:
                 working_file = self.encrypt_archive(archive_file_path=working_file)
@@ -191,7 +187,7 @@ class DebugInfoCollector(object):
                 self.upload_archive(archive_file_path=working_file)
                 tarball_name = os.path.basename(working_file)
                 LOG.info('Debug tarball successfully uploaded to %s (name=%s)' %
-                            (self.company_name, tarball_name))
+                         (self.company_name, tarball_name))
                 LOG.info('When communicating with support, please let them know the '
                          'tarball name - %s' % tarball_name)
         finally:
@@ -207,10 +203,10 @@ class DebugInfoCollector(object):
         :return: Path to the generated archive.
         :rtype: ``str``
         """
-        
+
         try:
-            # 1. Create temporary directory with the final directory structure where we will move files
-            # which will be processed and included in the tarball
+            # 1. Create temporary directory with the final directory structure where we will move
+            # files which will be processed and included in the tarball
             temp_dir_path = self.create_temp_directories()
 
             # Prepend temp_dir_path to OUTPUT_PATHS
@@ -234,7 +230,7 @@ class DebugInfoCollector(object):
                 self.add_shell_command_output(output_paths['commands'])
 
             # 3. Create a tarball
-            return self.create_tarball(output_paths)
+            return self.create_tarball(temp_dir_path)
 
         except Exception as e:
             LOG.exception('Failed to generate tarball', exc_info=True)
@@ -261,7 +257,9 @@ class DebugInfoCollector(object):
             # pylint: disable=no-member
             assert import_result.count == 1
 
-            encrypted_archive_output_file_path = archive_file_path + '.asc'
+            encrypted_archive_output_file_name = os.path.basename(archive_file_path) + '.asc'
+            encrypted_archive_output_file_path = os.path.join('/tmp',
+                                                              encrypted_archive_output_file_name)
             with open(archive_file_path, 'rb') as fp:
                 gpg.encrypt_file(file=fp,
                                  recipients=self.gpg_key_fingerprint,
@@ -358,24 +356,20 @@ class DebugInfoCollector(object):
                 fp.write(stderr)
                 fp.write('[END STDERR]')
 
-    @staticmethod
-    def create_tarball(output_paths):
+    def create_tarball(self, temp_dir_path):
         LOG.info('Creating tarball...')
-        date = date_utils.get_datetime_utc_now().strftime(DATE_FORMAT)
-        values = {'hostname': socket.gethostname(), 'date': date}
+        if self.output_path:
+            output_file_path = self.output_path
+            output_file_name = os.path.basename(output_file_path)
+        else:
+            date = date_utils.get_datetime_utc_now().strftime(DATE_FORMAT)
+            values = {'hostname': socket.gethostname(), 'date': date}
 
-        output_file_name = OUTPUT_FILENAME_TEMPLATE % values
-        output_file_path = os.path.join('/tmp', output_file_name)
+            output_file_name = OUTPUT_FILENAME_TEMPLATE % values
+            output_file_path = os.path.join('/tmp', output_file_name)
 
         with tarfile.open(output_file_path, 'w:gz') as tar:
-            for file_path in output_paths.values():
-                file_path = os.path.normpath(file_path)
-                source_dir = file_path
-
-                if not os.path.exists(source_dir):
-                    continue
-
-                tar.add(source_dir, arcname=os.path.basename(file_path))
+            tar.add(temp_dir_path, arcname=output_file_name.split(".")[0])
 
         return output_file_path
 
@@ -388,7 +382,6 @@ class DebugInfoCollector(object):
             os.mkdir(full_path)
 
         return temp_dir_path
-
 
     @staticmethod
     def format_output_filename(cmd):
@@ -513,19 +506,22 @@ def main():
                         help='Enable debug mode')
     parser.add_argument('--config', action='store', default=None,
                         help='Get required configurations from config file')
+    parser.add_argument('--output', action='store', default=None,
+                        help='Specify output file path')
+    parser.add_argument('--existing-file', action='store', default=None,
+                        help='Specify an existing file to operate on')
     args = parser.parse_args()
 
-    arg_names = ARG_NAMES[:]
-
+    # Ensure that not all options have been excluded
     abort = True
-    for arg_name in arg_names:
-        value = getattr(args, arg_name, False)
-        abort &= value
+    for arg_name in ARG_NAMES:
+        abort &= getattr(args, arg_name, False)
 
     if abort:
         print('Generated tarball would be empty. Aborting.')
         sys.exit(2)
 
+    # Get setting overrides from yaml file if specified
     if args.config:
         with open(args.config, 'r') as yaml_file:
             config_file = yaml.load(yaml_file)
@@ -534,7 +530,15 @@ def main():
 
     company_name = config_file.get('company_name', COMPANY_NAME)
 
-    if not args.yes and not args.review:
+    # Defaults
+    encrypt = True
+    upload = True
+
+    if args.review:
+        encrypt = False
+        upload = False
+
+    if encrypt:
         # When not running in review mode, GPG needs to be installed and
         # available
         if not GPG_INSTALLED:
@@ -542,7 +546,8 @@ def main():
                    'and available in PATH.')
             raise ValueError(msg)
 
-        submitted_content = [name.replace('exclude_', '') for name in arg_names if
+    if not args.yes and not args.existing_file and upload:
+        submitted_content = [name.replace('exclude_', '') for name in ARG_NAMES if
                              not getattr(args, name, False)]
         submitted_content = ', '.join(submitted_content)
         print('This will submit the following information to %s: %s' % (company_name,
@@ -554,7 +559,7 @@ def main():
 
     # Prompt user for optional additional context info
     user_info = {}
-    if not args.yes:
+    if not args.yes and not args.existing_file:
         print('If you want us to get back to you via email, you can provide additional context '
               'such as your name, email and an optional comment')
         value = six.moves.input('Would you like to provide additional context? [y/n] ')
@@ -572,10 +577,7 @@ def main():
                                          include_shell_commands=not args.exclude_shell_commands,
                                          user_info=user_info,
                                          debug=args.debug,
-                                         config_file=config_file)
+                                         config_file=config_file,
+                                         output_path=args.output)
 
-    if args.review:
-        # Create and review archive
-        debug_collector.run(create=True)
-    else:
-        debug_collector.run(create=True, encrypt=True, upload=True)
+    debug_collector.run(encrypt=encrypt, upload=upload, existing_file=args.existing_file)
