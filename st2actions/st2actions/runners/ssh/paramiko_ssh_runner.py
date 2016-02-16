@@ -162,6 +162,16 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
 
     @staticmethod
     def _get_result_status(result, allow_partial_failure):
+
+        if 'error' in result and 'traceback' in result:
+            # Assume this is a global failure where the result dictionary doesn't contain entry
+            # per host
+            timeout = False
+            success = result.get('succeeded', False)
+            status = BaseParallelSSHRunner._get_status_for_success_and_timeout(success=success,
+                                                                               timeout=timeout)
+            return status
+
         success = not allow_partial_failure
         timeout = True
 
@@ -180,6 +190,13 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
                 if not success:
                     break
 
+        status = BaseParallelSSHRunner._get_status_for_success_and_timeout(success=success,
+                                                                           timeout=timeout)
+
+        return status
+
+    @staticmethod
+    def _get_status_for_success_and_timeout(success, timeout):
         if success:
             status = LIVEACTION_STATUS_SUCCEEDED
         elif timeout:

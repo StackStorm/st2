@@ -236,7 +236,11 @@ class ActionAPI(BaseAPI, APIUIDMixin):
         if getattr(action, 'notify', None):
             notify = NotificationsHelper.to_model(action.notify)
         else:
-            notify = None
+            # We use embedded document model for ``notify`` in action model. If notify is
+            # set notify to None, Mongoengine interprets ``None`` as unmodified
+            # field therefore doesn't delete the embedded document. Therefore, we need
+            # to use an empty document.
+            notify = NotificationsHelper.to_model({})
 
         model = cls.model(name=name, description=description, enable=enabled, enabled=enabled,
                           entry_point=entry_point, pack=pack, runner_type=runner_type,
@@ -289,6 +293,7 @@ class LiveActionAPI(BaseAPI):
             },
             "status": {
                 "description": "The current status of the action execution.",
+                "type": "string",
                 "enum": LIVEACTION_STATUSES
             },
             "start_timestamp": {
@@ -317,7 +322,8 @@ class LiveActionAPI(BaseAPI):
                             {"type": "integer"},
                             {"type": "number"},
                             {"type": "object"},
-                            {"type": "string"}
+                            {"type": "string"},
+                            {"type": "null"}
                         ]
                     }
                 }
@@ -516,7 +522,8 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
                 "type": "object",
                 "properties": {
                     "enabled": {"type": "boolean"},
-                    "format": {"type": "string"}
+                    "format": {"type": "string"},
+                    "append_url": {"type": "boolean"}
                 },
                 "description": "Acknowledgement message format."
             },

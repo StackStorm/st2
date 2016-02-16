@@ -18,7 +18,7 @@ import os
 import jsonschema
 
 import st2tests
-import st2actions
+import st2common
 from st2common.bootstrap.policiesregistrar import PolicyRegistrar
 from st2common.bootstrap.policiesregistrar import register_policy_types, register_policies
 from st2common.persistence.policy import PolicyType, Policy
@@ -84,7 +84,7 @@ class PolicyBootstrapTest(DbTestCase):
         super(PolicyBootstrapTest, cls).setUpClass()
 
         # Register common policy types
-        register_policy_types(st2actions)
+        register_policy_types(st2common)
 
     def test_register_policy_types(self):
         self.assertEqual(register_policy_types(st2tests), 2)

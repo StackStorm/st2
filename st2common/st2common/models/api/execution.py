@@ -60,6 +60,7 @@ class ActionExecutionAPI(BaseAPI):
             "liveaction": REQUIRED_ATTR_SCHEMAS['liveaction'],
             "status": {
                 "description": "The current status of the action execution.",
+                "type": "string",
                 "enum": LIVEACTION_STATUSES
             },
             "start_timestamp": {

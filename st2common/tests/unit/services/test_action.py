@@ -13,11 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
 import jsonschema
+import mock
+import six
 
 from st2actions.container.base import RunnerContainer
 from st2common.constants import action as action_constants
+from st2common.exceptions.action import InvalidActionParameterException
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.models.system.common import ResourceReference
@@ -36,7 +38,8 @@ RUNNER = {
     'enabled': True,
     'runner_parameters': {
         'hosts': {'type': 'string'},
-        'cmd': {'type': 'string'}
+        'cmd': {'type': 'string'},
+        'sudo': {'type': 'boolean', 'default': False}
     },
     'runner_module': 'st2actions.runners.fabricrunner'
 }
@@ -49,9 +52,11 @@ ACTION = {
     'pack': 'default',
     'runner_type': 'local-shell-script',
     'parameters': {
-        'a': {
+        'arg_default_value': {
             'type': 'string',
             'default': 'abc'
+        },
+        'arg_default_type': {
         }
     },
     'notify': {
@@ -62,7 +67,85 @@ ACTION = {
     }
 }
 
-ACTION_REF = ResourceReference(name='my.action', pack='default').ref
+ACTION_OVR_PARAM = {
+    'name': 'my.sudo.default.action',
+    'description': 'my test',
+    'enabled': True,
+    'entry_point': '/tmp/test/action.sh',
+    'pack': 'default',
+    'runner_type': 'local-shell-script',
+    'parameters': {
+        'sudo': {
+            'default': True
+        }
+    }
+}
+
+ACTION_OVR_PARAM_MUTABLE = {
+    'name': 'my.sudo.mutable.action',
+    'description': 'my test',
+    'enabled': True,
+    'entry_point': '/tmp/test/action.sh',
+    'pack': 'default',
+    'runner_type': 'local-shell-script',
+    'parameters': {
+        'sudo': {
+            'immutable': False
+        }
+    }
+}
+
+ACTION_OVR_PARAM_IMMUTABLE = {
+    'name': 'my.sudo.immutable.action',
+    'description': 'my test',
+    'enabled': True,
+    'entry_point': '/tmp/test/action.sh',
+    'pack': 'default',
+    'runner_type': 'local-shell-script',
+    'parameters': {
+        'sudo': {
+            'immutable': True
+        }
+    }
+}
+
+ACTION_OVR_PARAM_BAD_ATTR = {
+    'name': 'my.sudo.invalid.action',
+    'description': 'my test',
+    'enabled': True,
+    'entry_point': '/tmp/test/action.sh',
+    'pack': 'default',
+    'runner_type': 'local-shell-script',
+    'parameters': {
+        'sudo': {
+            'type': 'number'
+        }
+    }
+}
+
+ACTION_OVR_PARAM_BAD_ATTR_NOOP = {
+    'name': 'my.sudo.invalid.noop.action',
+    'description': 'my test',
+    'enabled': True,
+    'entry_point': '/tmp/test/action.sh',
+    'pack': 'default',
+    'runner_type': 'local-shell-script',
+    'parameters': {
+        'sudo': {
+            'type': 'boolean'
+        }
+    }
+}
+
+PACK = 'default'
+ACTION_REF = ResourceReference(name='my.action', pack=PACK).ref
+ACTION_OVR_PARAM_REF = ResourceReference(name='my.sudo.default.action', pack=PACK).ref
+ACTION_OVR_PARAM_MUTABLE_REF = ResourceReference(name='my.sudo.mutable.action', pack=PACK).ref
+ACTION_OVR_PARAM_IMMUTABLE_REF = ResourceReference(name='my.sudo.immutable.action', pack=PACK).ref
+ACTION_OVR_PARAM_BAD_ATTR_REF = ResourceReference(name='my.sudo.invalid.action', pack=PACK).ref
+ACTION_OVR_PARAM_BAD_ATTR_NOOP_REF = ResourceReference(
+    name='my.sudo.invalid.noop.action', pack=PACK).ref
+
 USERNAME = 'stanley'
 
 
@@ -74,19 +157,33 @@ class TestActionExecutionService(DbTestCase):
         super(TestActionExecutionService, cls).setUpClass()
         cls.runner = RunnerTypeAPI(**RUNNER)
         cls.runnerdb = RunnerType.add_or_update(RunnerTypeAPI.to_model(cls.runner))
-        cls.action = ActionAPI(**ACTION)
-        cls.actiondb = Action.add_or_update(ActionAPI.to_model(cls.action))
+
+        cls.actions = {
+            ACTION['name']: ActionAPI(**ACTION),
+            ACTION_OVR_PARAM['name']: ActionAPI(**ACTION_OVR_PARAM),
+            ACTION_OVR_PARAM_MUTABLE['name']: ActionAPI(**ACTION_OVR_PARAM_MUTABLE),
+            ACTION_OVR_PARAM_IMMUTABLE['name']: ActionAPI(**ACTION_OVR_PARAM_IMMUTABLE),
+            ACTION_OVR_PARAM_BAD_ATTR['name']: ActionAPI(**ACTION_OVR_PARAM_BAD_ATTR),
+            ACTION_OVR_PARAM_BAD_ATTR_NOOP['name']: ActionAPI(**ACTION_OVR_PARAM_BAD_ATTR_NOOP)
+        }
+
+        cls.actiondbs = {name: Action.add_or_update(ActionAPI.to_model(action))
+                         for name, action in six.iteritems(cls.actions)}
+
         cls.container = RunnerContainer()
 
     @classmethod
     def tearDownClass(cls):
-        Action.delete(cls.actiondb)
+        for actiondb in cls.actiondbs.values():
+            Action.delete(actiondb)
+
         RunnerType.delete(cls.runnerdb)
+
         super(TestActionExecutionService, cls).tearDownClass()
 
     def _submit_request(self):
         context = {'user': USERNAME}
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
         request = LiveActionDB(action=ACTION_REF, context=context, parameters=parameters)
         request, _ = action_service.request(request)
         execution = action_db.get_liveaction_by_id(str(request.id))
@@ -98,10 +195,11 @@ class TestActionExecutionService(DbTestCase):
         return execution
 
     def test_request(self):
+        actiondb = self.actiondbs[ACTION['name']]
         request, execution = self._submit_request()
         self.assertIsNotNone(execution)
         self.assertEqual(execution.id, request.id)
-        self.assertEqual(execution.action, '.'.join([self.actiondb.pack, self.actiondb.name]))
+        self.assertEqual(execution.action, '.'.join([actiondb.pack, actiondb.name]))
         self.assertEqual(execution.context['user'], request.context['user'])
         self.assertDictEqual(execution.parameters, request.parameters)
         self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
@@ -111,24 +209,83 @@ class TestActionExecutionService(DbTestCase):
                          isotime.format(request.start_timestamp, usec=False))
 
     def test_request_invalid_parameters(self):
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a', 'a': 123}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'arg_default_value': 123}
         liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
         self.assertRaises(jsonschema.ValidationError, action_service.request, liveaction)
 
+    def test_request_optional_parameter_none_value(self):
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'arg_default_value': None}
+        request = LiveActionDB(action=ACTION_REF, parameters=parameters)
+        request, _ = action_service.request(request)
+
+    def test_request_optional_parameter_none_value_no_default(self):
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'arg_default_type': None}
+        request = LiveActionDB(action=ACTION_REF, parameters=parameters)
+        request, _ = action_service.request(request)
+
+    def test_request_override_runner_parameter(self):
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
+        request = LiveActionDB(action=ACTION_OVR_PARAM_REF, parameters=parameters)
+        request, _ = action_service.request(request)
+
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'sudo': False}
+        request = LiveActionDB(action=ACTION_OVR_PARAM_REF, parameters=parameters)
+        request, _ = action_service.request(request)
+
+    def test_request_override_runner_parameter_type_attribute_value_changed(self):
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
+        request = LiveActionDB(action=ACTION_OVR_PARAM_BAD_ATTR_REF, parameters=parameters)
+
+        with self.assertRaises(InvalidActionParameterException) as ex_ctx:
+            request, _ = action_service.request(request)
+
+        expected = ('The attribute "type" for the runner parameter "sudo" in '
+                    'action "default.my.sudo.invalid.action" cannot be overridden.')
+        self.assertEqual(str(ex_ctx.exception), expected)
+
+    def test_request_override_runner_parameter_type_attribute_no_value_changed(self):
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
+        request = LiveActionDB(action=ACTION_OVR_PARAM_BAD_ATTR_NOOP_REF, parameters=parameters)
+        request, _ = action_service.request(request)
+
+    def test_request_override_runner_parameter_mutable(self):
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
+        request = LiveActionDB(action=ACTION_OVR_PARAM_MUTABLE_REF, parameters=parameters)
+        request, _ = action_service.request(request)
+
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'sudo': True}
+        request = LiveActionDB(action=ACTION_OVR_PARAM_MUTABLE_REF, parameters=parameters)
+        request, _ = action_service.request(request)
+
+    def test_request_override_runner_parameter_immutable(self):
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
+        request = LiveActionDB(action=ACTION_OVR_PARAM_IMMUTABLE_REF, parameters=parameters)
+        request, _ = action_service.request(request)
+
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'sudo': True}
+        request = LiveActionDB(action=ACTION_OVR_PARAM_IMMUTABLE_REF, parameters=parameters)
+        self.assertRaises(ValueError, action_service.request, request)
+
     def test_request_nonexistent_action(self):
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
+        parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
         action_ref = ResourceReference(name='i.action', pack='default').ref
         execution = LiveActionDB(action=action_ref, parameters=parameters)
         self.assertRaises(ValueError, action_service.request, execution)
 
     def test_request_disabled_action(self):
-        self.actiondb.enabled = False
-        Action.add_or_update(self.actiondb)
-        parameters = {'hosts': 'localhost', 'cmd': 'uname -a'}
-        execution = LiveActionDB(action=ACTION_REF, parameters=parameters)
-        self.assertRaises(ValueError, action_service.request, execution)
-        self.actiondb.enabled = True
-        Action.add_or_update(self.actiondb)
+        actiondb = self.actiondbs[ACTION['name']]
+        actiondb.enabled = False
+        Action.add_or_update(actiondb)
+
+        try:
+            parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
+            execution = LiveActionDB(action=ACTION_REF, parameters=parameters)
+            self.assertRaises(ValueError, action_service.request, execution)
+        except Exception as e:
+            raise e
+        finally:
+            actiondb.enabled = True
+            Action.add_or_update(actiondb)
 
     def test_request_cancellation(self):
         request, execution = self._submit_request()
@@ -158,3 +315,13 @@ class TestActionExecutionService(DbTestCase):
 
         # Request cancellation.
         self.assertRaises(Exception, action_service.request_cancellation, execution)
+
+    def test_request_cancellation_on_idle_execution(self):
+        request, execution = self._submit_request()
+        self.assertIsNotNone(execution)
+        self.assertEqual(execution.id, request.id)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
+
+        # Request cancellation.
+        execution = self._submit_cancellation(execution)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_CANCELED)

@@ -133,7 +133,7 @@ class ParamikoRemoteScriptActionTests(unittest2.TestCase):
                                                    user='vagrant',
                                                    private_key='/home/vagrant/.ssh/stanley_rsa',
                                                    remote_dir='/tmp',
-                                                   hosts=['localhost'],
+                                                   hosts=['127.0.0.1'],
                                                    parallel=True,
                                                    sudo=False,
                                                    timeout=60, cwd='/tmp')

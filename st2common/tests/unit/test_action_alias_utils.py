@@ -94,6 +94,21 @@ class TestActionAliasParser(TestCase):
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {'a': 'a1 a2', 'b': 'b1'})
 
+    def test_default_values(self):
+        alias_format = 'acl {{a}} {{b}} {{c}} {{d=1}}'
+        param_stream = 'acl "a1 a2" "b1" "c1"'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'a': 'a1 a2', 'b': 'b1',
+                                            'c': 'c1', 'd': '1'})
+
+    def test_spacing(self):
+        alias_format = 'acl {{a}}'
+        param_stream = 'acl123'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {})
+
     def test_json_parsing(self):
         alias_format = 'skip {{a}} more skip.'
         param_stream = 'skip {"a": "b", "c": "d"} more skip.'

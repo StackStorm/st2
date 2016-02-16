@@ -3,7 +3,7 @@
     -
       name: "download"
       ref: "packs.download"
-      params:
+      parameters:
         repo_url: "{{repo_url}}"
         branch: "{{branch}}"
         packs: "{{packs}}"
@@ -12,24 +12,25 @@
     -
       name: "virtualenv_prerun"
       ref: "packs.virtualenv_prerun"
-      params:
+      parameters:
         packs_status: "{{download.result}}"
       on-success: "setup_virtualenv"
     -
       name: "setup_virtualenv"
       ref: "packs.setup_virtualenv"
-      params:
+      parameters:
         packs: "{{virtualenv_prerun.result}}"
+        env: "{{env}}"
       on-success: "reload"
     -
       name: "reload"
       ref: "packs.load"
-      params:
+      parameters:
         register: "{{register}}"
       on-success: "restart-sensor-container"
     -
       name: "restart-sensor-container"
       ref: "packs.restart_component"
-      params:
+      parameters:
         servicename: "st2sensorcontainer"
   default: "download"

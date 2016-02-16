@@ -18,7 +18,7 @@ from kombu import Connection
 from st2common import log as logging
 from st2common.constants.trace import TRACE_CONTEXT, TRACE_ID
 from st2common.util import date as date_utils
-from st2common.services.trace import add_or_update_given_trace_context
+from st2common.services import trace as trace_service
 from st2common.transport import consumers, reactor
 from st2common.transport import utils as transport_utils
 import st2reactor.container.utils as container_utils
@@ -65,8 +65,11 @@ class TriggerInstanceDispatcher(consumers.MessageHandler):
                         TRACE_ID: 'trigger_instance-%s' % str(trigger_instance.id)
                     }
                 # add a trace or update an existing trace with trigger_instance
-                add_or_update_given_trace_context(trace_context=trace_context,
-                                                  trigger_instances=[str(trigger_instance.id)])
+                trace_service.add_or_update_given_trace_context(
+                    trace_context=trace_context,
+                    trigger_instances=[
+                        trace_service.get_trace_component_for_trigger_instance(trigger_instance)
+                    ])
                 self.rules_engine.handle_trigger_instance(trigger_instance)
             except:
                 # This could be a large message but at least in case of an exception

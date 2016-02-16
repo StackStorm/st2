@@ -23,7 +23,6 @@ import traceback
 from functools import wraps
 
 import six
-from oslo_config import cfg
 
 from st2common.logging.filters import ExclusionFilter
 
@@ -95,8 +94,14 @@ def decorate_logger_methods(logger):
 
 
 def getLogger(name):
-    logger_name = 'st2.{}'.format(name)
-    logger = logging.getLogger(logger_name)
+    # make sure that prefix isn't appended multiple times to preserve logging name hierarchy
+    prefix = 'st2.'
+    if name.startswith(prefix):
+        logger = logging.getLogger(name)
+    else:
+        logger_name = '{}{}'.format(prefix, name)
+        logger = logging.getLogger(logger_name)
+
     logger = decorate_logger_methods(logger=logger)
     return logger
 
@@ -118,18 +123,18 @@ def _audit(logger, msg, *args, **kwargs):
 logging.Logger.audit = _audit
 
 
-def _add_exclusion_filters(handlers):
-    for h in handlers:
-        h.addFilter(ExclusionFilter(cfg.CONF.log.excludes))
+def _add_exclusion_filters(handlers, excludes=None):
+    if excludes:
+        for h in handlers:
+            h.addFilter(ExclusionFilter(excludes))
 
 
 def _redirect_stderr():
     # It is ok to redirect stderr as none of the st2 handlers write to stderr.
-    if cfg.CONF.log.redirect_stderr:
-        sys.stderr = LoggingStream('STDERR')
+    sys.stderr = LoggingStream('STDERR')
 
 
-def setup(config_file, disable_existing_loggers=False):
+def setup(config_file, redirect_stderr=True, excludes=None, disable_existing_loggers=False):
     """
     Configure logging from file.
     """
@@ -139,7 +144,8 @@ def setup(config_file, disable_existing_loggers=False):
                                   disable_existing_loggers=disable_existing_loggers)
         handlers = logging.getLoggerClass().manager.root.handlers
         _add_exclusion_filters(handlers)
-        _redirect_stderr()
+        if redirect_stderr:
+            _redirect_stderr()
     except Exception as exc:
         # revert stderr redirection since there is no logger in place.
         sys.stderr = sys.__stderr__

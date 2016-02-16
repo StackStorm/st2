@@ -17,7 +17,7 @@ from tests import FunctionalTest
 
 KVP = {
     'name': 'keystone_endpoint',
-    'value': 'http://localhost:5000/v3'
+    'value': 'http://127.0.0.1:5000/v3'
 }
 
 KVP_2 = {
@@ -27,7 +27,7 @@ KVP_2 = {
 
 KVP_WITH_TTL = {
     'name': 'keystone_endpoint',
-    'value': 'http://localhost:5000/v3',
+    'value': 'http://127.0.0.1:5000/v3',
     'ttl': 10
 }
 
@@ -74,7 +74,7 @@ class TestKeyValuePairController(FunctionalTest):
     def test_put(self):
         put_resp = self.__do_put('key1', KVP)
         update_input = put_resp.json
-        update_input['value'] = 'http://localhost:35357/v3'
+        update_input['value'] = 'http://127.0.0.1:35357/v3'
         put_resp = self.__do_put(self.__get_kvp_id(put_resp), update_input)
         self.assertEqual(put_resp.status_int, 200)
         self.__do_delete(self.__get_kvp_id(put_resp))

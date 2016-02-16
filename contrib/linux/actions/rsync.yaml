@@ -9,21 +9,17 @@
             type: 'string'
             description: 'List of files/directories to to be copied'
             required: true
-            position: 1
         dest_server:
             type: 'string'
             description: "Destination server for rsync'd files"
             required: true
-            position: 2
         destination:
             type: 'string'
             description: 'Destination of files/directories on target server'
             required: true
-            position: 3
         cmd:
             immutable: true
             default: 'rsync {{args}} {{source}} {{dest_server}}:{{destination}}'
-            position: 0
         connect_timeout:
             type: 'integer'
             description: 'SSH connect timeout in seconds'

@@ -40,6 +40,7 @@ cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
 
 import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2actions.handlers.mistral import MistralCallbackHandler
+from st2actions.handlers.mistral import STATUS_MAP as mistral_status_map
 from st2actions.runners.localrunner import LocalShellRunner
 from st2actions.runners.mistral.v2 import MistralRunner
 from st2common.constants import action as action_constants
@@ -142,9 +143,6 @@ ACTION_PARAMS = {'friend': 'Rocky'}
 NON_EMPTY_RESULT = 'non-empty'
 
 
-@mock.patch.object(LocalShellRunner, 'run', mock.
-                   MagicMock(return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED,
-                                           NON_EMPTY_RESULT, None)))
 @mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(return_value=None))
 @mock.patch.object(CUDPublisher, 'publish_create',
                    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
@@ -600,11 +598,16 @@ class MistralRunnerTest(DbTestCase):
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_FAILED)
         self.assertIn('Name of the workbook must be the same', liveaction.result['error'])
 
+    def test_callback_handler_status_map(self):
+        # Ensure all StackStorm status are mapped otherwise leads to zombie workflow.
+        self.assertListEqual(sorted(mistral_status_map.keys()),
+                             sorted(action_constants.LIVEACTION_STATUSES))
+
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_text(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
+        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                         action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                         '<html></html>')
 
@@ -612,23 +615,23 @@ class MistralRunnerTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_dict(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
+        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                         action_constants.LIVEACTION_STATUS_SUCCEEDED, {'a': 1})
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_json_str(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
+        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                         action_constants.LIVEACTION_STATUS_SUCCEEDED, '{"a": 1}')
-        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
+        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                         action_constants.LIVEACTION_STATUS_SUCCEEDED, "{'a': 1}")
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_list(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
+        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                         action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                         ["a", "b", "c"])
 
@@ -636,7 +639,7 @@ class MistralRunnerTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_list_str(self):
-        MistralCallbackHandler.callback('http://localhost:8989/v2/action_executions/12345', {},
+        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
                                         action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                         '["a", "b", "c"]')
 
@@ -648,16 +651,44 @@ class MistralRunnerTest(DbTestCase):
             action='core.local', parameters={'cmd': 'uname -a'},
             callback={
                 'source': 'mistral',
-                'url': 'http://localhost:8989/v2/action_executions/12345'
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
+            }
+        )
+
+        for status in action_constants.LIVEACTION_COMPLETED_STATES:
+            expected_mistral_status = mistral_status_map[status]
+            LocalShellRunner.run = mock.Mock(return_value=(status, NON_EMPTY_RESULT, None))
+            liveaction, execution = action_service.request(liveaction)
+            liveaction = LiveAction.get_by_id(str(liveaction.id))
+            self.assertEqual(liveaction.status, status)
+            action_executions.ActionExecutionManager.update.assert_called_with(
+                '12345', state=expected_mistral_status, output=NON_EMPTY_RESULT)
+
+    @mock.patch.object(
+        LocalShellRunner, 'run',
+        mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_RUNNING,
+                                     NON_EMPTY_RESULT, None)))
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
+    def test_callback_incomplete_state(self):
+        liveaction = LiveActionDB(
+            action='core.local', parameters={'cmd': 'uname -a'},
+            callback={
+                'source': 'mistral',
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
         )
 
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
-        action_executions.ActionExecutionManager.update.assert_called_with(
-            '12345', state='SUCCESS', output=NON_EMPTY_RESULT)
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        self.assertFalse(action_executions.ActionExecutionManager.update.called)
 
+    @mock.patch.object(
+        LocalShellRunner, 'run',
+        mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     NON_EMPTY_RESULT, None)))
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(side_effect=[
@@ -668,7 +699,7 @@ class MistralRunnerTest(DbTestCase):
             action='core.local', parameters={'cmd': 'uname -a'},
             callback={
                 'source': 'mistral',
-                'url': 'http://localhost:8989/v2/action_executions/12345'
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
         )
 
@@ -679,6 +710,10 @@ class MistralRunnerTest(DbTestCase):
         calls = [call('12345', state='SUCCESS', output=NON_EMPTY_RESULT) for i in range(0, 2)]
         action_executions.ActionExecutionManager.update.assert_has_calls(calls)
 
+    @mock.patch.object(
+        LocalShellRunner, 'run',
+        mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     NON_EMPTY_RESULT, None)))
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(side_effect=[
@@ -692,7 +727,7 @@ class MistralRunnerTest(DbTestCase):
             action='core.local', parameters={'cmd': 'uname -a'},
             callback={
                 'source': 'mistral',
-                'url': 'http://localhost:8989/v2/action_executions/12345'
+                'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
         )
 

@@ -67,9 +67,7 @@ def _register_app_opts():
     cfg.CONF.register_cli_opts(auth_opts, group='auth')
 
     api_opts = [
-        cfg.ListOpt('allow_origin', default=['http://localhost:3000'],
+        cfg.ListOpt('allow_origin', default=['http://127.0.0.1:3000'],
                     help='List of origins allowed'),
     ]
     cfg.CONF.register_cli_opts(api_opts, group='api')
-
-register_opts()

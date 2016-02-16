@@ -29,8 +29,8 @@ LOG = logging.getLogger(__name__)
 USERNAME = 'stanley'
 PASSWORD = 'ShhhDontTell'
 HEADERS = {'content-type': 'application/json'}
-AUTH_URL = 'https://localhost:9100/tokens'
-GET_RULES_URL = 'http://localhost:9101/v1/rules'
+AUTH_URL = 'https://127.0.0.1:9100/tokens'
+GET_RULES_URL = 'http://127.0.0.1:9101/v1/rules/?limit=50'
 
 
 class TestHttps(base.BaseCLITestCase):
@@ -43,8 +43,8 @@ class TestHttps(base.BaseCLITestCase):
         super(TestHttps, self).setUp()
 
         # Setup environment.
-        os.environ['ST2_BASE_URL'] = 'http://localhost'
-        os.environ['ST2_AUTH_URL'] = 'https://localhost:9100'
+        os.environ['ST2_BASE_URL'] = 'http://127.0.0.1'
+        os.environ['ST2_AUTH_URL'] = 'https://127.0.0.1:9100'
 
         if 'ST2_CACERT' in os.environ:
             del os.environ['ST2_CACERT']
@@ -95,16 +95,14 @@ class TestHttps(base.BaseCLITestCase):
         mock.MagicMock(return_value=base.FakeResponse(json.dumps([]), 200, 'OK')))
     def test_decorate_http_without_cacert(self):
         self.shell.run(['rule', 'list'])
-        kwargs = {'params': {}}
-        requests.get.assert_called_with(GET_RULES_URL, **kwargs)
+        requests.get.assert_called_with(GET_RULES_URL)
 
     @mock.patch.object(
         requests, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
     def test_decorate_http_with_cacert_from_cli(self):
         self.shell.run(['--cacert', self.cacert_path, 'rule', 'list'])
-        kwargs = {'params': {}}
-        requests.get.assert_called_with(GET_RULES_URL, **kwargs)
+        requests.get.assert_called_with(GET_RULES_URL)
 
     @mock.patch.object(
         requests, 'get',
@@ -112,5 +110,4 @@ class TestHttps(base.BaseCLITestCase):
     def test_decorate_http_with_cacert_from_env(self):
         os.environ['ST2_CACERT'] = self.cacert_path
         self.shell.run(['rule', 'list'])
-        kwargs = {'params': {}}
-        requests.get.assert_called_with(GET_RULES_URL, **kwargs)
+        requests.get.assert_called_with(GET_RULES_URL)

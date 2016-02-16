@@ -9,7 +9,7 @@ mongo st2 --eval "db.dropDatabase();"
 echo "Cleaning Mistral Database..."
 SQL_QUERY="DROP DATABASE IF EXISTS mistral; \
   CREATE DATABASE mistral; \
-  GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'localhost' IDENTIFIED BY '$ROOT_PASSWORD'; \
+  GRANT ALL PRIVILEGES ON mistral.* TO 'mistral'@'127.0.0.1' IDENTIFIED BY '$ROOT_PASSWORD'; \
   FLUSH PRIVILEGES;"
 
 mysql -uroot -p$ROOT_PASSWORD -e $SQL_QUERY

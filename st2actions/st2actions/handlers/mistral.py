@@ -31,12 +31,18 @@ from st2common.util.workflow import mistral as utils
 LOG = logging.getLogger(__name__)
 
 
-STATUS_MAP = dict()
-STATUS_MAP[action_constants.LIVEACTION_STATUS_REQUESTED] = 'RUNNING'
-STATUS_MAP[action_constants.LIVEACTION_STATUS_SCHEDULED] = 'RUNNING'
-STATUS_MAP[action_constants.LIVEACTION_STATUS_RUNNING] = 'RUNNING'
-STATUS_MAP[action_constants.LIVEACTION_STATUS_SUCCEEDED] = 'SUCCESS'
-STATUS_MAP[action_constants.LIVEACTION_STATUS_FAILED] = 'ERROR'
+STATUS_MAP = {
+    action_constants.LIVEACTION_STATUS_REQUESTED: 'RUNNING',
+    action_constants.LIVEACTION_STATUS_SCHEDULED: 'RUNNING',
+    action_constants.LIVEACTION_STATUS_DELAYED: 'RUNNING',
+    action_constants.LIVEACTION_STATUS_RUNNING: 'RUNNING',
+    action_constants.LIVEACTION_STATUS_SUCCEEDED: 'SUCCESS',
+    action_constants.LIVEACTION_STATUS_FAILED: 'ERROR',
+    action_constants.LIVEACTION_STATUS_TIMED_OUT: 'ERROR',
+    action_constants.LIVEACTION_STATUS_ABANDONED: 'ERROR',
+    action_constants.LIVEACTION_STATUS_CANCELING: 'RUNNING',
+    action_constants.LIVEACTION_STATUS_CANCELED: 'ERROR'
+}
 
 
 def get_handler():
@@ -77,8 +83,7 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
 
     @classmethod
     def callback(cls, url, context, status, result):
-        if status not in [action_constants.LIVEACTION_STATUS_SUCCEEDED,
-                          action_constants.LIVEACTION_STATUS_FAILED]:
+        if status not in action_constants.LIVEACTION_COMPLETED_STATES:
             return
 
         try:
@@ -92,5 +97,4 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
 
             cls._update_action_execution(url, data)
         except Exception as e:
-            print str(e)
             LOG.exception(e)

@@ -41,9 +41,23 @@ LOG = logging.getLogger(__name__)
 
 LIVEACTION_STATUS_REQUESTED = 'requested'
 LIVEACTION_STATUS_SCHEDULED = 'scheduled'
+LIVEACTION_STATUS_DELAYED = 'delayed'
 LIVEACTION_STATUS_RUNNING = 'running'
+LIVEACTION_STATUS_SUCCEEDED = 'succeeded'
+LIVEACTION_STATUS_FAILED = 'failed'
+LIVEACTION_STATUS_TIMED_OUT = 'timeout'
+LIVEACTION_STATUS_ABANDONED = 'abandoned'
 LIVEACTION_STATUS_CANCELING = 'canceling'
 LIVEACTION_STATUS_CANCELED = 'canceled'
+
+
+LIVEACTION_COMPLETED_STATES = [
+    LIVEACTION_STATUS_SUCCEEDED,
+    LIVEACTION_STATUS_FAILED,
+    LIVEACTION_STATUS_TIMED_OUT,
+    LIVEACTION_STATUS_CANCELED,
+    LIVEACTION_STATUS_ABANDONED
+]
 
 # Who parameters should be masked when displaying action execution output
 PARAMETERS_TO_MASK = [
@@ -133,14 +147,26 @@ def format_execution_statuses(instances):
 def format_execution_status(instance):
     """
     Augment instance "status" attribute with number of seconds which have elapsed for all the
-    executions which are in running state.
+    executions which are in running state and execution total run time for all the executions
+    which have finished.
     """
-    if instance.status == LIVEACTION_STATUS_RUNNING and instance.start_timestamp:
+    start_timestamp = getattr(instance, 'start_timestamp', None)
+    end_timestamp = getattr(instance, 'end_timestamp', None)
+
+    if instance.status == LIVEACTION_STATUS_RUNNING and start_timestamp:
         start_timestamp = instance.start_timestamp
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         now = int(time.time())
         elapsed_seconds = (now - start_timestamp)
+        instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
+    elif instance.status in LIVEACTION_COMPLETED_STATES and start_timestamp and end_timestamp:
+        start_timestamp = parse_isotime(start_timestamp)
+        start_timestamp = calendar.timegm(start_timestamp.timetuple())
+        end_timestamp = parse_isotime(end_timestamp)
+        end_timestamp = calendar.timegm(end_timestamp.timetuple())
+
+        elapsed_seconds = (end_timestamp - start_timestamp)
         instance.status = '%s (%ss elapsed)' % (instance.status, elapsed_seconds)
 
     return instance
@@ -243,7 +269,7 @@ class ActionRunCommandMixin(object):
         task_list_arg_grp = root_arg_grp.add_argument_group()
         task_list_arg_grp.add_argument('--raw', action='store_true',
                                        help='Raw output, don\'t shot sub-tasks for workflows.')
-        task_list_arg_grp.add_argument('--tasks', action='store_true',
+        task_list_arg_grp.add_argument('--show-tasks', action='store_true',
                                        help='Whether to show sub-tasks of an execution.')
         task_list_arg_grp.add_argument('--depth', type=int, default=-1,
                                        help='Depth to which to show sub-tasks. \
@@ -280,16 +306,16 @@ class ActionRunCommandMixin(object):
         runner_type = execution.action.get('runner_type', 'unknown')
         is_workflow_action = runner_type in WORKFLOW_RUNNER_TYPES
 
-        tasks = getattr(args, 'tasks', False)
+        show_tasks = getattr(args, 'show_tasks', False)
         raw = getattr(args, 'raw', False)
         detail = getattr(args, 'detail', False)
         key = getattr(args, 'key', None)
         attr = getattr(args, 'attr', [])
 
-        if tasks and not is_workflow_action:
-            raise ValueError('--tasks option can only be used with workflow actions')
+        if show_tasks and not is_workflow_action:
+            raise ValueError('--show-tasks option can only be used with workflow actions')
 
-        if not raw and not detail and (tasks or is_workflow_action):
+        if not raw and not detail and (show_tasks or is_workflow_action):
             self._run_and_print_child_task_list(execution=execution, args=args, **kwargs)
         else:
             instance = execution
@@ -314,7 +340,7 @@ class ActionRunCommandMixin(object):
         action_exec_mgr = self.app.client.managers['LiveAction']
 
         instance = execution
-        options = {'attributes': ['id', 'action.ref', 'status', 'start_timestamp',
+        options = {'attributes': ['id', 'action.ref', 'parameters', 'status', 'start_timestamp',
                                   'end_timestamp']}
         options['json'] = args.json
         options['attribute_transform_functions'] = self.attribute_transform_functions
@@ -323,6 +349,7 @@ class ActionRunCommandMixin(object):
         kwargs['depth'] = args.depth
         child_instances = action_exec_mgr.get_property(execution.id, 'children', **kwargs)
         child_instances = self._format_child_instances(child_instances, execution.id)
+        child_instances = format_execution_statuses(child_instances)
 
         if not child_instances:
             # No child error, there might be a global error, include result in the output
@@ -496,6 +523,10 @@ class ActionRunCommandMixin(object):
             return value
 
         result = {}
+
+        if not args.parameters:
+            return result
+
         for idx in range(len(args.parameters)):
             arg = args.parameters[idx]
             if '=' in arg:
@@ -704,7 +735,8 @@ class ActionRunCommandMixin(object):
             'status': task.status,
             'task': jsutil.get_value(vars(task), task_name_key),
             'action': task.action.get('ref', None),
-            'start_timestamp': task.start_timestamp
+            'start_timestamp': task.start_timestamp,
+            'end_timestamp': getattr(task, 'end_timestamp', None)
         })
 
     def _sort_parameters(self, parameters, names):
@@ -1049,6 +1081,13 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         self.parser.add_argument('parameters', nargs='*',
                                  help='List of keyword args, positional args, '
                                       'and optional args for the action.')
+        self.parser.add_argument('--tasks', nargs='*',
+                                 help='Name of the workflow tasks to re-run.')
+        self.parser.add_argument('--no-reset', dest='no_reset', nargs='*',
+                                 help='Name of the with-items tasks to not reset. This only '
+                                      'applies to Mistral workflows. By default, all iterations '
+                                      'for with-items tasks is rerun. If no reset, only failed '
+                                      ' iterations are rerun.')
         self.parser.add_argument('-a', '--async',
                                  action='store_true', dest='async',
                                  help='Do not wait for action to finish.')
@@ -1083,9 +1122,14 @@ class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceComman
         action_parameters = self._get_action_parameters_from_args(action=action, runner=runner,
                                                                   args=args)
 
-        execution = action_exec_mgr.re_run(execution_id=args.id, parameters=action_parameters,
+        execution = action_exec_mgr.re_run(execution_id=args.id,
+                                           parameters=action_parameters,
+                                           tasks=args.tasks,
+                                           no_reset=args.no_reset,
                                            **kwargs)
+
         execution = self._get_execution_result(execution=execution,
                                                action_exec_mgr=action_exec_mgr,
                                                args=args, **kwargs)
+
         return execution

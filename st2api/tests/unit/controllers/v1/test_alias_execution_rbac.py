@@ -68,8 +68,13 @@ class AliasExecutionWithRBACTestCase(APIControllerWithRBACTestCase):
         self.assertEquals(live_action_db.context['user'], 'admin')
 
     def _do_post(self, alias_execution, command, expect_errors=False):
+        if (isinstance(alias_execution.formats[0], dict) and
+           alias_execution.formats[0].get('representation')):
+            representation = alias_execution.formats[0].get('representation')[0]
+        else:
+            representation = alias_execution.formats[0]
         execution = {'name': alias_execution.name,
-                     'format': alias_execution.formats[0],
+                     'format': representation,
                      'command': command,
                      'user': 'stanley',
                      'source_channel': 'test',

@@ -2,7 +2,7 @@
 
 LOGFILE="/dev/null"
 WEBUI_LOG_FILE="/var/log/st2/st2web.log"
-COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine st2web mistral st2resultstracker st2notifier"
+COMPONENTS="st2actionrunner st2api st2auth st2sensorcontainer st2rulesengine mistral st2resultstracker st2notifier st2garbagecollector"
 STANCONF="/etc/st2/st2.conf"
 PYTHON=`which python2.7`
 
@@ -88,7 +88,7 @@ fi
 
 if [ ${1} == "restart-component" ]
 then
-    if  [ -z ${2} ] || [ ${2} != "st2actionrunner" -a ${2} != "st2api" -a ${2} != "st2sensorcontainer" -a ${2} != "st2rulesengine" -a ${2} != "mistral" -a ${2} != "st2resultstracker" -a ${2} != "st2notifier" -a ${2} != "st2web" -a ${2} != "st2auth" ]
+    if  [ -z ${2} ] || [ ${2} != "st2actionrunner" -a ${2} != "st2api" -a ${2} != "st2sensorcontainer" -a ${2} != "st2rulesengine" -a ${2} != "mistral" -a ${2} != "st2resultstracker" -a ${2} != "st2notifier" -a ${2} != "st2web" -a ${2} != "st2auth" -a ${2} != "st2garbagecollector" ]
     then
         print_usage
         exit 1
@@ -180,6 +180,7 @@ function st2start_classic(){
   nohup st2resultstracker --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup st2notifier --config-file ${STANCONF} &>> ${LOGFILE} &
   nohup st2rulesengine --config-file ${STANCONF} &>> ${LOGFILE} &
+  nohup st2garbagecollector --config-file ${STANCONF} &>> ${LOGFILE} &
 
   # Only run WebUI HTTP Server if flag is not set
   if [ -z "${ST2_DISABLE_HTTPSERVER}" ]; then

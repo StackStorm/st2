@@ -152,7 +152,11 @@ class TestShell(base.BaseCLITestCase):
             ['execution', 'list'],
             ['execution', 'get', '123'],
             ['execution', 'get', '123', '-d'],
-            ['execution', 'get', '123', '-k', 'localhost.stdout']
+            ['execution', 'get', '123', '-k', 'localhost.stdout'],
+            ['execution', 're-run', '123'],
+            ['execution', 're-run', '123', '--tasks', 'x', 'y', 'z'],
+            ['execution', 're-run', '123', '--tasks', 'x', 'y', 'z', '--no-reset', 'x'],
+            ['execution', 're-run', '123', 'a=1', 'b=x', 'c=True']
         ]
         self._validate_parser(args_list)
 

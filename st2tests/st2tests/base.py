@@ -35,6 +35,7 @@ from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.content.utils import get_packs_base_paths
 import st2common.models.db.rule as rule_model
+import st2common.models.db.rule_enforcement as rule_enforcement_model
 import st2common.models.db.sensor as sensor_model
 import st2common.models.db.trigger as trigger_model
 import st2common.models.db.action as action_model
@@ -46,8 +47,9 @@ import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
 
-
 import st2tests.config
+from st2tests.mocks.sensor import MockSensorWrapper
+from st2tests.mocks.sensor import MockSensorService
 
 
 __all__ = [
@@ -56,7 +58,10 @@ __all__ = [
     'DbModelTestCase',
     'CleanDbTestCase',
     'CleanFilesTestCase',
-    'IntegrationTestCase'
+    'IntegrationTestCase',
+
+    'BaseSensorTestCase',
+    'BaseActionTestCase'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -73,6 +78,7 @@ ALL_MODELS.extend(executionstate_model.MODELS)
 ALL_MODELS.extend(liveaction_model.MODELS)
 ALL_MODELS.extend(actionalias_model.MODELS)
 ALL_MODELS.extend(policy_model.MODELS)
+ALL_MODELS.extend(rule_enforcement_model.MODELS)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_CONFIG_PATH = os.path.join(BASE_DIR, '../conf/st2.conf')
@@ -400,6 +406,89 @@ class IntegrationTestCase(TestCase):
 
         if status not in ['exited', 'zombie']:
             self.fail('Process with pid "%s" is still running' % (proc.pid))
+
+
+class BaseSensorTestCase(TestCase):
+    """
+    Base class for sensor tests.
+
+    This class provides some utility methods for verifying that a trigger has
+    been dispatched, etc.
+    """
+
+    sensor_cls = None
+
+    def setUp(self):
+        super(BaseSensorTestCase, self).setUp()
+
+        class_name = self.sensor_cls.__name__
+        sensor_wrapper = MockSensorWrapper(pack='tests', class_name=class_name)
+        self.sensor_service = MockSensorService(sensor_wrapper=sensor_wrapper)
+
+    def get_sensor_instance(self, config=None, poll_interval=None):
+        """
+        Retrieve instance of the sensor class.
+        """
+        kwargs = {
+            'sensor_service': self.sensor_service
+        }
+
+        if config:
+            kwargs['config'] = config
+
+        if poll_interval is not None:
+            kwargs['poll_interval'] = poll_interval
+
+        instance = self.sensor_cls(**kwargs)  # pylint: disable=not-callable
+        return instance
+
+    def get_dispatched_triggers(self):
+        return self.sensor_service.dispatched_triggers
+
+    def get_last_dispatched_trigger(self):
+        return self.sensor_service.dispatched_triggers[-1]
+
+    def assertTriggerDispatched(self, trigger, payload=None, trace_context=None):
+        """
+        Assert that the trigger with the provided values has been dispatched.
+
+        :param trigger: Name of the trigger.
+        :type trigger: ``str``
+
+        :param paylod: Trigger payload (optional). If not provided, only trigger name is matched.
+        type: payload: ``object``
+
+        :param trace_context: Trigger trace context (optional). If not provided, only trigger name
+                              is matched.
+        type: payload: ``object``
+        """
+        dispatched_triggers = self.get_dispatched_triggers()
+        for item in dispatched_triggers:
+            trigger_matches = (item['trigger'] == trigger)
+
+            if payload:
+                payload_matches = (item['payload'] == payload)
+            else:
+                payload_matches = True
+
+            if trace_context:
+                trace_context_matches = (item['trace_context'] == trace_context)
+            else:
+                trace_context_matches = True
+
+            if trigger_matches and payload_matches and trace_context_matches:
+                return True
+
+        msg = 'Trigger "%s" hasn\'t been dispatched' % (trigger)
+        raise AssertionError(msg)
+
+
+class BaseActionTestCase(TestCase):
+    """
+    Base class for action tests.
+    """
+
+    action_cls = None
 
 
 class FakeResponse(object):

@@ -49,7 +49,7 @@ def _register_app_opts():
     # Note "host" and "port" options are registerd as part of st2common since they are also used
     # outside st2api
     api_opts = [
-        cfg.ListOpt('allow_origin', default=['http://localhost:3000'],
+        cfg.ListOpt('allow_origin', default=['http://127.0.0.1:3000'],
                     help='List of origins allowed'),
         cfg.IntOpt('heartbeat', default=25,
                    help='Send empty message every N seconds to keep connection open'),
@@ -78,6 +78,3 @@ def _register_app_opts():
                    help='location of the logging.conf file')
     ]
     CONF.register_opts(logging_opts, group='api')
-
-
-register_opts()

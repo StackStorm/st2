@@ -47,6 +47,7 @@ from st2client.commands import trigger
 from st2client.commands import triggerinstance
 from st2client.commands import webhook
 from st2client.commands import rule
+from st2client.commands import rule_enforcement
 from st2client.config_parser import CLIConfigParser
 from st2client.config_parser import ST2_CONFIG_DIRECTORY
 from st2client.config_parser import ST2_CONFIG_PATH
@@ -246,6 +247,10 @@ class Shell(object):
 
         self.commands['webhook'] = webhook.WebhookBranch(
             'Webhooks.',
+            self, self.subparsers)
+
+        self.commands['rule-enforcement'] = rule_enforcement.RuleEnforcementBranch(
+            'Models that represent enforcement of rules.',
             self, self.subparsers)
 
     def get_client(self, args, debug=False):

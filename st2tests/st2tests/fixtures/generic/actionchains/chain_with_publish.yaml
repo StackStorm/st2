@@ -2,7 +2,7 @@
 chain:
 - name: c1
   on-success: c2
-  params:
+  parameters:
     booltype: true
     inttype: '{{inttype}}'
     strtype: '{{strtype}}'
@@ -11,7 +11,7 @@ chain:
     published_action_param: '{{ action_param_1 }}'
   ref: wolfpack.a2
 - name: c2
-  params:
+  parameters:
     booltype: true
     inttype: '{{inttype}}'
     published_action_param: '{{ published_action_param }}'

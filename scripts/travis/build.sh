@@ -9,7 +9,7 @@ fi
 if [ ${TASK} == 'checks' ]; then
   # compile .py files, useful as compatibility syntax check
   make compile
-  make pylint flake8 docs
+  make pylint flake8 .st2client-dependencies-check .st2common-circular-dependencies-check
 elif [ ${TASK} == 'unit' ]; then
   # compile .py files, useful as compatibility syntax check
   make compile
@@ -18,6 +18,8 @@ elif [ ${TASK} == 'integration' ]; then
   make .itests-coverage-html
 elif [ ${TASK} == 'mistral' ]; then
   make .mistral-itests-coverage-html
+elif [ ${TASK} == "packs-tests" ]; then
+  make .packs-tests
 else
   echo "Invalid task: ${TASK}"
   exit 2

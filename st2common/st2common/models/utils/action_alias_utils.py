@@ -59,14 +59,14 @@ class ActionAliasFormatParser(object):
         # substituting {{ ... }} with regex named groups, so that param_stream
         # matched against this expression yields a dict of params with values.
         param_match = r'["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
-        reg = re.sub(r'(\s*){{\s*([^=]+?)\s*}}(?=\s+{{[^}]+?=)',
-                     r'\s*' + param_match + r'\s+',
+        reg = re.sub(r'(\s*){{\s*([^=}]+?)\s*}}(?![\'"]?\s+}})',
+                     r'\1' + param_match,
                      self._format)
-        reg = re.sub(r'(\s*){{\s*(\S+)\s*=\s*(?:{.+?}|.+?)\s*}}(\s*)',
-                     r'(?:\s*' + param_match + r'\s+)?\s*',
+        reg = re.sub(r'(\s*){{\s*(\S+)\s*=\s*(?:{.+?}|.+?)\s*}}',
+                     r'(?:\1' + param_match + r')?',
                      reg)
-        reg = re.sub(r'(\s*){{\s*(.+?)\s*}}(\s*)',
-                     r'\s*' + param_match + r'\3',
+        reg = re.sub(r'(\s*){{\s*(.+?)\s*}}',
+                     r'\1' + param_match,
                      reg)
         reg = '^\s*' + reg + r'\s*$'
 
@@ -82,7 +82,9 @@ class ActionAliasFormatParser(object):
             values = matched_stream.groupdict()
         for param in params:
             matched_value = values[param[0]] if matched_stream else None
-            result[param[0]] = matched_value or param[1]
+            matched_result = matched_value or param[1]
+            if matched_result:
+                result[param[0]] = matched_result
         if extra:
             for pair in kv_pairs:
                 result[pair[0]] = ''.join(pair[2:])

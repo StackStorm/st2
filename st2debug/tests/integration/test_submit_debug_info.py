@@ -16,6 +16,7 @@
 import os
 import tarfile
 import tempfile
+import yaml
 
 import mock
 import unittest2
@@ -25,10 +26,14 @@ from st2tests.base import CleanFilesTestCase
 from st2debug.cmd.submit_debug_info import create_archive
 from st2debug.cmd.submit_debug_info import encrypt_archive
 import st2debug.cmd.submit_debug_info
+from st2debug.constants import GPG_KEY
+from st2debug.constants import GPG_KEY_FINGERPRINT
+from st2debug.constants import S3_BUCKET_URL
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIXTURES_DIR = os.path.join(BASE_DIR, 'fixtures')
 GPG_INSTALLED = find_executable('gpg') is not None
+SUBMIT_DEBUG_YAML_FILE = os.path.join(FIXTURES_DIR, 'submit-debug-info.yaml')
 
 
 @unittest2.skipIf(not GPG_INSTALLED, 'gpg binary not available')
@@ -58,21 +63,13 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         st2debug.cmd.submit_debug_info.get_packs_base_paths = mock.Mock()
         st2debug.cmd.submit_debug_info.get_packs_base_paths.return_value = return_value
 
-    def test_create_archive_include_all(self):
-        archive_path = create_archive(include_logs=True, include_configs=True,
-                                      include_content=True,
-                                      include_system_info=True)
-
+    def _verify_archive(self, archive_path, extract_path, required_directories):
         # Verify archive has been created
         self.assertTrue(os.path.isfile(archive_path))
         self.to_delete_files.append(archive_path)
 
-        extract_path = tempfile.mkdtemp()
         self.to_delete_directories.append(extract_path)
         self._extract_archive(archive_path=archive_path, extract_path=extract_path)
-
-        # Verify all the required directories have been created
-        required_directories = ['logs', 'configs', 'content']
 
         for directory_name in required_directories:
             full_path = os.path.join(extract_path, directory_name)
@@ -90,7 +87,6 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         # Verify configs have been copied
         st2_config_path = os.path.join(extract_path, 'configs', 'st2.conf')
         mistral_config_path = os.path.join(extract_path, 'configs', 'mistral.conf')
-
         self.assertTrue(os.path.isfile(st2_config_path))
         self.assertTrue(os.path.isfile(mistral_config_path))
 
@@ -121,6 +117,52 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         self.assertTrue(os.path.isdir(pack_dir))
         self.assertTrue(not os.path.exists(config_path))
 
+    def test_create_archive_include_all(self):
+        archive_path = create_archive(include_logs=True, include_configs=True,
+                                      include_content=True,
+                                      include_system_info=True)
+        extract_path = tempfile.mkdtemp()
+        self._verify_archive(archive_path=archive_path,
+                             extract_path=extract_path,
+                             required_directories=['logs', 'configs', 'content'])
+
+    def _create_config_yaml_file(self):
+        config_data = dict(
+            log_file_paths={'st2_log_files_path': os.path.join(FIXTURES_DIR, 'logs/st2*.log')},
+            conf_file_paths={
+                'st2_config_file_path': os.path.join(FIXTURES_DIR, 'configs/st2.conf'),
+                'mistral_config_file_path': os.path.join(FIXTURES_DIR, 'configs/mistral.conf')},
+            s3_bucket={'url': S3_BUCKET_URL},
+            gpg={'gpg_key_fingerprint': GPG_KEY_FINGERPRINT,
+                 'gpg_key': GPG_KEY},
+            shell_commands={'cmd': 'rpm -qa'},
+            company_name={'name': 'MyCompany'})
+
+        with open(SUBMIT_DEBUG_YAML_FILE, 'w') as outfile:
+            outfile.write(yaml.dump(config_data, default_flow_style=False))
+
+    def test_create_archive_include_all_with_config_option(self):
+        # Create the YAML configuration file
+        self._create_config_yaml_file()
+        self.to_delete_files.append(SUBMIT_DEBUG_YAML_FILE)
+
+        # Load the submit debug info yaml file
+        st2debug.cmd.submit_debug_info.load_config_yaml_file(SUBMIT_DEBUG_YAML_FILE)
+        archive_path = create_archive(include_logs=True, include_configs=True,
+                                      include_content=True,
+                                      include_system_info=True,
+                                      include_shell_commands=True,
+                                      config_yaml=SUBMIT_DEBUG_YAML_FILE)
+        extract_path = tempfile.mkdtemp()
+        self._verify_archive(archive_path=archive_path,
+                             extract_path=extract_path,
+                             required_directories=['logs', 'configs', 'content', 'commands'])
+
+        # Verify commands output have been copied
+        commands_path = os.path.join(extract_path, 'commands')
+        command_files = os.listdir(commands_path)
+        self.assertTrue(len(command_files), 1)
+
     def test_create_archive_exclusion(self):
         # Verify only system info file is included
         archive_path = create_archive(include_logs=False, include_configs=False,
@@ -150,6 +192,31 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         plaintext_archive_path = create_archive(include_logs=True, include_configs=True,
                                                 include_content=True,
                                                 include_system_info=True)
+        plaintext_archive_size = os.stat(plaintext_archive_path).st_size
+
+        encrypted_archive_path = encrypt_archive(archive_file_path=plaintext_archive_path)
+        encrypt_archive_size = os.stat(encrypted_archive_path).st_size
+
+        self.assertTrue(os.path.isfile(encrypted_archive_path))
+        self.assertTrue(encrypt_archive_size > plaintext_archive_size)
+
+        self.assertRaises(Exception, archive_path=encrypted_archive_path,
+                          extract_path='/tmp')
+
+    def test_encrypt_archive_with_custom_gpg_key(self):
+        # Create the YAML configuration file
+        self._create_config_yaml_file()
+        self.to_delete_files.append(SUBMIT_DEBUG_YAML_FILE)
+
+        # Load the submit debug info yaml file
+        st2debug.cmd.submit_debug_info.load_config_yaml_file(SUBMIT_DEBUG_YAML_FILE)
+
+        plaintext_archive_path = create_archive(include_logs=True, include_configs=True,
+                                                include_content=True,
+                                                include_system_info=True,
+                                                include_shell_commands=True,
+                                                config_yaml=SUBMIT_DEBUG_YAML_FILE)
+
         plaintext_archive_size = os.stat(plaintext_archive_path).st_size
 
         encrypted_archive_path = encrypt_archive(archive_file_path=plaintext_archive_path)

@@ -16,6 +16,8 @@
 import os
 import logging
 
+import six
+
 from st2client import models
 from st2client.models.core import ResourceManager
 from st2client.models.core import ActionAliasResourceManager
@@ -59,12 +61,14 @@ class Client(object):
             self.endpoints['auth'] = os.environ.get(
                 'ST2_AUTH_URL', '%s:%s' % (self.endpoints['base'], DEFAULT_AUTH_PORT))
 
-        if cacert:
+        if cacert is not None:
             self.cacert = cacert
         else:
             self.cacert = os.environ.get('ST2_CACERT', None)
 
-        if self.cacert and not os.path.isfile(self.cacert):
+        # Note: boolean is also a valid value for "cacert"
+        is_cacert_string = isinstance(self.cacert, six.string_types)
+        if (self.cacert and is_cacert_string and not os.path.isfile(self.cacert)):
             raise ValueError('CA cert file "%s" does not exist.' % (self.cacert))
 
         self.debug = debug
@@ -109,6 +113,8 @@ class Client(object):
             models.Webhook, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Trace'] = ResourceManager(
             models.Trace, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['RuleEnforcement'] = ResourceManager(
+            models.RuleEnforcement, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
 
     @property
     def actions(self):
@@ -161,3 +167,7 @@ class Client(object):
     @property
     def trace(self):
         return self.managers['Trace']
+
+    @property
+    def ruleenforcements(self):
+        return self.managers['RuleEnforcement']
