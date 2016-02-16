@@ -76,7 +76,7 @@ def parse(value, preserve_original_tz=False):
     :type preserve_original_tz: ``boolean``
 
     :rtype: ``datetime.datetime``
-    """ 
+    """
     dt = dateutil.parser.parse(str(value))
 
     if not dt.tzinfo:
