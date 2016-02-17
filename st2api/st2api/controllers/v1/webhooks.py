@@ -33,6 +33,7 @@ from st2common.models.api.trace import TraceContext
 import st2common.services.triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
+from st2common.util.http import parse_content_type_header
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_webhook_permission
 
@@ -84,6 +85,7 @@ class WebhooksController(RestController):
         # Note: For backward compatibility reasons we default to application/json if content
         # type is not explicitly provided
         content_type = pecan.request.headers.get('Content-Type', 'application/json')
+        content_type = parse_content_type_header(content_type=content_type)[0]
         body = pecan.request.body
 
         try:
