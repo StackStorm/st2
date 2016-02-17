@@ -11,7 +11,7 @@ from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
 class BaseAction(Action):
     def run(self, hostname, port, username, password=None, keyfile=None, ssh_timeout=5,
             sleep_delay=20, retries=10):
-        # Note: If neither password nor key file is provided, we try to use system user 
+        # Note: If neither password nor key file is provided, we try to use system user
         # key file
         if not password and not keyfile:
             keyfile = cfg.CONF.system_user.ssh_key_file
@@ -31,7 +31,7 @@ class BaseAction(Action):
                 return True
             except Exception as e:
                 self.logger.info('Attempt %s failed (%s), sleeping for %s seconds...' %
-                                  (attempt, str(e), sleep_delay))
+                                 (attempt, str(e), sleep_delay))
                 time.sleep(sleep_delay)
 
         raise Exception('Exceeded max retries (%s)' % (retries))
