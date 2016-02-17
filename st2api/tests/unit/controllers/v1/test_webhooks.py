@@ -119,6 +119,17 @@ class TestWebhooksController(FunctionalTest):
         self.assertEqual(dispatch_mock.call_args[1]['payload']['body'], data)
         self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag, 'tag1')
 
+        # 2. Send JSON using application/json + charset content type
+        data = WEBHOOK_1
+        headers = {'St2-Trace-Tag': 'tag1', 'Content-Type': 'application/json; charset=utf-8'}
+        post_resp = self.__do_post('git', data,
+                                   headers=headers)
+        self.assertEqual(post_resp.status_int, http_client.ACCEPTED)
+        self.assertEqual(dispatch_mock.call_args[1]['payload']['headers']['Content-Type'],
+                        'application/json; charset=utf-8')
+        self.assertEqual(dispatch_mock.call_args[1]['payload']['body'], data)
+        self.assertEqual(dispatch_mock.call_args[1]['trace_context'].trace_tag, 'tag1')
+
         # 3. JSON content type, invalid JSON body
         data = 'invalid'
         headers = {'St2-Trace-Tag': 'tag1', 'Content-Type': 'application/json'}
