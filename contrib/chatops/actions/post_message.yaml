@@ -25,3 +25,6 @@ parameters:
     type: "string"
     description: "Channel to post to"
     required: true
+  color:
+    type: "string"
+    description: "Color to use for attachment (Slack only)"
