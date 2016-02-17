@@ -19,6 +19,12 @@ in development
   when using ``st2 execution get`` CLI command. (improvement)
 * Display number of seconds elapsed for all the child tasks of a workflow action when using
   ``st2 execution get`` CLI command. (improvement)
+* Various improvements in the ``linux.wait_for_ssh`` action:
+  * Support for password based authentication.
+  * Support for non-RSA SSH keys.
+  * Support for providing a non-default (22) SSH server port.
+  * Support for using default system user (stanley) ssh key if neither ``password`` nor
+    ``keyfile`` parameter is provided.
 
 1.3.2 - February 12, 2016
 -------------------------
