@@ -23,12 +23,19 @@
     keyfile:
       description: "SSH key file used to authenticate."
       required: false
-    # TODO: We should really rename this to sleep delay or similar
     ssh_timeout:
-      description: "Sleep delay after each connection attempt."
+      description: "SSH connection connect timeout (in seconds)."
       type: "integer"
-      default: 30
+      default: 5
+    sleep_delay:
+      description: "How long to sleep / wait (in seconds) after each failed connection attempt."
+      type: "integer"
+      default: 20
     retries:
       description: "Maximum number of retries."
       type: "integer"
       default: 10
+    timeout:
+      # Note: timeout needs to be >= ((ssh_timeout + sleep_delay) * retries) so we override a
+      # default Python runner action timeout with a larger value
+      default: 400
