@@ -1,23 +1,34 @@
 ---
   name: "wait_for_ssh"
   runner_type: "python-script"
-  description: "Wait for SSH"
+  description: "Action which waits for a SSH server to become accessible. By default if no credentials are explicitly provided, this action will try to authenticate using system user username and password."
   enabled: true
   entry_point: "wait_for_ssh.py"
-  parameters: 
-    keyfile: 
-      default: "/home/stanley/.ssh/stanley_rsa"
-      required: true
-    username: 
-      description: "Command line arguments"
-      required: true
-      default: "stanley"
-    hostname: 
+  parameters:
+    hostname:
+      description: "Remote hostname"
       type: "string"
       required: true
-    ssh_timeout: 
+    port:
+      description: "Remote SSH port."
+      type: "integer"
+      default: 22
+    username:
+      description: "Username used to authenticate."
+      required: true
+      default: "stanley"
+    password:
+      description: "Password used to authenticate."
+      required: false
+    keyfile:
+      description: "SSH key file used to authenticate."
+      required: false
+    # TODO: We should really rename this to sleep delay or similar
+    ssh_timeout:
+      description: "Sleep delay after each connection attempt."
       type: "integer"
       default: 30
-    retries: 
+    retries:
+      description: "Maximum number of retries."
       type: "integer"
       default: 10
