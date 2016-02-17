@@ -21,6 +21,7 @@ except ImportError:
 import six
 import pecan
 import uuid
+import werkzeug
 from pecan import abort
 from pecan.rest import RestController
 from six.moves.urllib import parse as urlparse
@@ -84,6 +85,7 @@ class WebhooksController(RestController):
         # Note: For backward compatibility reasons we default to application/json if content
         # type is not explicitly provided
         content_type = pecan.request.headers.get('Content-Type', 'application/json')
+        content_type = self._parse_request_content_type(content_type=content_type)[0]
         body = pecan.request.body
 
         try:
@@ -114,6 +116,16 @@ class WebhooksController(RestController):
         self._trigger_dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
         return body
+
+    def _parse_request_content_type(self, content_type):
+        """
+        Parse and normalize request content type and return a tuple with the content type and the
+        options.
+
+        :rype: ``tuple``
+        """
+        result = werkzeug.http.parse_options_header(content_type)
+        return result
 
     def _parse_request_body(self, content_type, body):
         if content_type == 'application/json':
