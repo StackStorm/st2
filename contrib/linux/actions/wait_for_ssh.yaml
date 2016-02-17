@@ -1,17 +1,18 @@
 ---
   name: "wait_for_ssh"
   runner_type: "python-script"
-  description: "Action which waits for a SSH server to become accessible. By default if no credentials are explicitly provided, this action will try to authenticate using system user username and password."
+  description: "Action which waits for a SSH server to become accessible. By default, if no credentials are provided, this action will try to authenticate using the system user username and key file."
   enabled: true
   entry_point: "wait_for_ssh.py"
   parameters:
     hostname:
-      description: "Remote hostname"
+      description: "Remote hostname."
       type: "string"
       required: true
     port:
       description: "Remote SSH port."
       type: "integer"
+      required: true
       default: 22
     username:
       description: "Username used to authenticate."
