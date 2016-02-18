@@ -18,15 +18,50 @@ import unittest2
 from st2tests.base import BaseSensorTestCase
 from st2tests.mocks.sensor import MockSensorWrapper
 from st2tests.mocks.sensor import MockSensorService
+from st2tests.mocks.action import MockActionWrapper
+from st2tests.mocks.action import MockActionService
 
 __all__ = [
     'BaseSensorTestCaseTestCase',
-    'MockSensorServiceTestCase'
+    'MockSensorServiceTestCase',
+    'MockActionServiceTestCase'
 ]
 
 
 class MockSensorClass(object):
     pass
+
+
+class BaseMockResourceServiceTestCase(object):
+    class TestCase(unittest2.TestCase):
+        def test_list_set_get_delete_values(self):
+            # list_values, set_value
+            result = self.mock_service.list_values()
+            self.assertSequenceEqual(result, [])
+
+            self.mock_service.set_value(name='t1.local', value='test1', local=True)
+            self.mock_service.set_value(name='t1.global', value='test1', local=False)
+
+            result = self.mock_service.list_values(local=True)
+            self.assertEqual(len(result), 1)
+            self.assertEqual(result[0].name, 'dummy.test:t1.local')
+
+            result = self.mock_service.list_values(local=False)
+            self.assertEqual(result[0].name, 'dummy.test:t1.local')
+            self.assertEqual(result[1].name, 't1.global')
+            self.assertEqual(len(result), 2)
+
+            # get_value
+            self.assertEqual(self.mock_service.get_value('inexistent'), None)
+            self.assertEqual(self.mock_service.get_value(name='t1.local', local=True), 'test1')
+
+            # delete_value
+            self.assertEqual(len(self.mock_service.list_values(local=True)), 1)
+            self.assertEqual(self.mock_service.delete_value('inexistent'), False)
+            self.assertEqual(len(self.mock_service.list_values(local=True)), 1)
+
+            self.assertEqual(self.mock_service.delete_value('t1.local'), True)
+            self.assertEqual(len(self.mock_service.list_values(local=True)), 0)
 
 
 class BaseSensorTestCaseTestCase(BaseSensorTestCase):
@@ -51,12 +86,14 @@ class BaseSensorTestCaseTestCase(BaseSensorTestCase):
                                 payload={'a': 'c'})
 
 
-class MockSensorServiceTestCase(unittest2.TestCase):
+class MockSensorServiceTestCase(BaseMockResourceServiceTestCase.TestCase):
+
     def setUp(self):
-        self._mock_sensor_wrapper = MockSensorWrapper(pack='dummy', class_name='test')
+        mock_sensor_wrapper = MockSensorWrapper(pack='dummy', class_name='test')
+        self.mock_service = MockSensorService(sensor_wrapper=mock_sensor_wrapper)
 
     def test_get_logger(self):
-        sensor_service = MockSensorService(sensor_wrapper=self._mock_sensor_wrapper)
+        sensor_service = self.mock_service
         logger = sensor_service.get_logger('test')
         logger.info('test info')
         logger.debug('test debug')
@@ -73,33 +110,8 @@ class MockSensorServiceTestCase(unittest2.TestCase):
         self.assertEqual(method_args, ('test debug',))
         self.assertEqual(method_kwargs, {})
 
-    def test_list_set_get_delete_values(self):
-        sensor_service = MockSensorService(sensor_wrapper=self._mock_sensor_wrapper)
 
-        # list_values, set_value
-        result = sensor_service.list_values()
-        self.assertSequenceEqual(result, [])
-
-        sensor_service.set_value(name='t1.local', value='test1', local=True)
-        sensor_service.set_value(name='t1.global', value='test1', local=False)
-
-        result = sensor_service.list_values(local=True)
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].name, 'dummy.test:t1.local')
-
-        result = sensor_service.list_values(local=False)
-        self.assertEqual(result[0].name, 'dummy.test:t1.local')
-        self.assertEqual(result[1].name, 't1.global')
-        self.assertEqual(len(result), 2)
-
-        # get_value
-        self.assertEqual(sensor_service.get_value('inexistent'), None)
-        self.assertEqual(sensor_service.get_value(name='t1.local', local=True), 'test1')
-
-        # delete_value
-        self.assertEqual(len(sensor_service.list_values(local=True)), 1)
-        self.assertEqual(sensor_service.delete_value('inexistent'), False)
-        self.assertEqual(len(sensor_service.list_values(local=True)), 1)
-
-        self.assertEqual(sensor_service.delete_value('t1.local'), True)
-        self.assertEqual(len(sensor_service.list_values(local=True)), 0)
+class MockActionServiceTestCase(BaseMockResourceServiceTestCase.TestCase):
+    def setUp(self):
+        mock_action_wrapper = MockActionWrapper(pack='dummy', class_name='test')
+        self.mock_service = MockActionService(action_wrapper=mock_action_wrapper)
