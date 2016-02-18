@@ -21,6 +21,7 @@ import logging as stdlib_logging
 from st2common import log as logging
 from st2actions import config
 from st2actions.runners.pythonrunner import Action
+from st2actions.runners.utils import get_logger_for_python_runner_action
 from st2common.util import loader as action_loader
 from st2common.util.config_parser import ContentPackConfigParser
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
@@ -32,6 +33,38 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
+
+
+class ActionService(object):
+    """
+    Instance of this class is passed to the action instance and exposes "public"
+    methods which can be called by the action.
+    """
+
+    def __init__(self, action_wrapper):
+        logger = get_logger_for_action(action_name=self._action_wrapper._class_name)
+
+        self._action_wrapper = action_wrapper
+        self._datastore_service = DatastoreService(logger=logger,
+                                                   pack_name=self._action_wrapper._pack,
+                                                   class_name=self._action_wrapper._class_name,
+                                                   api_username='action_service')
+
+    ##################################
+    # Methods for datastore management
+    ##################################
+
+    def list_values(self, local=True, prefix=None):
+        return self._datastore_service.list_values(local, prefix)
+
+    def get_value(self, name, local=True):
+        return self._datastore_service.get_value(name, local)
+
+    def set_value(self, name, value, ttl=None, local=True):
+        return self._datastore_service.set_value(name, value, ttl, local)
+
+    def delete_value(self, name, local=True):
+        return self._datastore_service.delete_value(name, local)
 
 
 class PythonActionWrapper(object):
@@ -98,32 +131,14 @@ class PythonActionWrapper(object):
             LOG.info('No config found for action "%s"' % (self._file_path))
             action_instance = action_cls(config={})
 
-        # Setup action_instance proeprties
+        # Perform post instantiation action intiailization
+        # Note: This is needed since for backward compatibility reasons we can't simply update
+        # Action constructor to take in additional argument (action_service).
+        action_service = ActionService(action_wrapper=self)
+        action_instance.setup(action_service=action_service)
         action_instance.logger = self._set_up_logger(action_cls.__name__)
-        action_instance.datastore = DatastoreService(logger=action_instance.logger,
-                                                     pack_name=self._pack,
-                                                     class_name=action_cls.__name__,
-                                                     api_username="action_service")
 
         return action_instance
-
-    def _set_up_logger(self, action_name):
-        """
-        Set up a logger which logs all the messages with level DEBUG
-        and above to stderr.
-        """
-        logger_name = 'actions.python.%s' % (action_name)
-        logger = logging.getLogger(logger_name)
-
-        console = stdlib_logging.StreamHandler()
-        console.setLevel(stdlib_logging.DEBUG)
-
-        formatter = stdlib_logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-        console.setFormatter(formatter)
-        logger.addHandler(console)
-        logger.setLevel(stdlib_logging.DEBUG)
-
-        return logger
 
 
 if __name__ == '__main__':

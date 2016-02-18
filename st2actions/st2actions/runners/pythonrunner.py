@@ -23,6 +23,7 @@ import six
 from eventlet.green import subprocess
 
 from st2actions.runners import ActionRunner
+from st2actions.runners.utils import get_logger_for_python_runner_action
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
@@ -69,15 +70,25 @@ class Action(object):
         :type config: ``dict``
         """
         self.config = config or {}
+        self.logger = get_logger_for_action(action_name=self.__class__.__name__)
 
-        # logger and datastore are late assigned post class instatiation in
-        # PythonActionWrapper._get_action_instance
-        self.logger = None
+        # action_service is late assigned post class instatiation in "setup()"
         self.datastore = None
+
+        # Flag which indicates if the class has been initialized and "setup()" has been called
+        self._initialized = False
+
+    def setup(self, action_service):
+        """
+        Method which performs additional class initialization.
+        """
+        self.action_service = action_service
+        self._initialized = True
 
     @abc.abstractmethod
     def run(self, **kwargs):
-        pass
+        if not self._initialized:
+            raise ValueError('Class hasn\'t been initialized. Make sure setup() is called.')
 
 
 class PythonRunner(ActionRunner):
