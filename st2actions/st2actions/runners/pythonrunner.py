@@ -69,7 +69,9 @@ class Action(object):
         :type config: ``dict``
         """
         self.config = config or {}
-        # logger and datastore are assigned in PythonActionWrapper._get_action_instance
+
+        # logger and datastore are late assigned post class instatiation in
+        # PythonActionWrapper._get_action_instance
         self.logger = None
         self.datastore = None
 
