@@ -50,6 +50,8 @@ import st2common.models.db.policy as policy_model
 import st2tests.config
 from st2tests.mocks.sensor import MockSensorWrapper
 from st2tests.mocks.sensor import MockSensorService
+from st2tests.mocks.action import MockActionWrapper
+from st2tests.mocks.action import MockActionService
 
 
 __all__ = [
@@ -490,6 +492,13 @@ class BaseActionTestCase(TestCase):
 
     action_cls = None
 
+    def setUp(self):
+        super(BaseActionTestCase, self).setUp()
+
+        class_name = self.action_cls.__name__
+        action_wrapper = MockActionWrapper(pack='tests', class_name=class_name)
+        self.action_service = MockActionService(action_wrapper=action_wrapper)
+
     def get_action_instance(self, config=None):
         """
         Retrieve instance of the action class.
@@ -500,6 +509,7 @@ class BaseActionTestCase(TestCase):
             kwargs['config'] = config
 
         instance = self.action_cls(**kwargs)  # pylint: disable=not-callable
+        instance.setup(action_service=action_service)
         return instance
 
 
