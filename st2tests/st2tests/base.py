@@ -490,6 +490,18 @@ class BaseActionTestCase(TestCase):
 
     action_cls = None
 
+    def get_action_instance(self, config=None):
+        """
+        Retrieve instance of the action class.
+        """
+        kwargs = {}
+
+        if config:
+            kwargs['config'] = config
+
+        instance = self.action_cls(**kwargs)  # pylint: disable=not-callable
+        return instance
+
 
 class FakeResponse(object):
 
