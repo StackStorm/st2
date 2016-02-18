@@ -30,23 +30,25 @@ repositories:
 """
 
 class ExpandRepoNameTestCase(BaseActionTestCase):
+    action_cls = ExpandRepoName
+
     def test_run_config_blank(self):
         config = yaml.safe_load(MOCK_CONFIG_BLANK)
-        action = ExpandRepoName(config)
+        action = self.get_action_instance(config=config)
 
         self.assertRaises(Exception, action.run,
                           repo_name="st2contrib")
 
     def test_run_repositories_blank(self):
         config = yaml.safe_load(MOCK_CONFIG_BLANK_REPOSITORIES)
-        action = ExpandRepoName(config)
+        action = self.get_action_instance(config=config)
 
         self.assertRaises(Exception, action.run,
                           repo_name="st2contrib")
 
     def test_run_st2contrib_expands(self):
         config = yaml.safe_load(MOCK_CONFIG_FULL)
-        action = ExpandRepoName(config)
+        action = self.get_action_instance(config=config)
 
         expected = {'repo_url': 'https://github.com/StackStorm/st2contrib.git', 'subtree': True}
 
@@ -55,7 +57,7 @@ class ExpandRepoNameTestCase(BaseActionTestCase):
 
     def test_run_st2incubator_expands(self):
         config = yaml.safe_load(MOCK_CONFIG_FULL)
-        action = ExpandRepoName(config)
+        action = self.get_action_instance(config=config)
 
         expected = {'repo_url': 'https://github.com/StackStorm/st2incubator.git', 'subtree': True}
 
