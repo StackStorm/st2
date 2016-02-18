@@ -159,7 +159,7 @@ class WebhooksController(RestController):
     def add_trigger(self, trigger):
         # Note: Permission checking for creating and deleting a webhook is done during rule
         # creation
-        url = trigger['parameters']['url']
+        url = self._get_normalized_url(trigger)
         LOG.info('Listening to endpoint: %s', urljoin(self._base_url, url))
         self._hooks[url] = trigger
 
@@ -169,11 +169,18 @@ class WebhooksController(RestController):
     def remove_trigger(self, trigger):
         # Note: Permission checking for creating and deleting a webhook is done during rule
         # creation
-        url = trigger['parameters']['url']
+        url = self._get_normalized_url(trigger)
 
         if url in self._hooks:
             LOG.info('Stop listening to endpoint: %s', urljoin(self._base_url, url))
             del self._hooks[url]
+
+    def _get_normalized_url(self, trigger):
+        '''
+        remove the trailing and leading "/" so that the hook url and those coming
+        from trigger parameters end up being the same.
+        '''
+        return trigger['parameters']['url'].strip('/')
 
     def _get_headers_as_dict(self, headers):
         headers_dict = {}
