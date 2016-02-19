@@ -176,10 +176,10 @@ class WebhooksController(RestController):
             del self._hooks[url]
 
     def _get_normalized_url(self, trigger):
-        '''
-        remove the trailing and leading "/" so that the hook url and those coming
+        """
+        remove the trailing and leading / so that the hook url and those coming
         from trigger parameters end up being the same.
-        '''
+        """
         return trigger['parameters']['url'].strip('/')
 
     def _get_headers_as_dict(self, headers):
