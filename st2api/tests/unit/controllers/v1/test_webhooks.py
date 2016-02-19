@@ -22,6 +22,7 @@ from tests import FunctionalTest
 from st2api.controllers.v1.webhooks import WebhooksController
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
 from st2common.models.db.trigger import TriggerDB
+from st2common.persistence.trigger import Trigger
 from st2common.transport.reactor import TriggerInstancePublisher
 
 http_client = six.moves.http_client
@@ -163,6 +164,42 @@ class TestWebhooksController(FunctionalTest):
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
         self.assertTrue('Failed to parse request body' in post_resp)
         self.assertTrue('Unsupported Content-Type' in post_resp)
+
+    def test_leading_trailing_slashes(self):
+        # Ideally the test should setup fixtures in DB. However, the triggerwatcher
+        # that is supposed to load the models from DB does not real start given
+        # eventlets etc.
+        # Therefore this test is somewhat special and does not post directly.
+        # This only check performed here is that even if a trigger was infact created with
+        # the url containing all kinds of slashes the normalized version still work.
+        # The part which does not get tested is integration with pecan since # that will
+        # require hacking into the test app and force dependency on pecan internals.
+        # TLDR; sorry for the ghetto test. Not sure how to do this as a unit.
+        def get_webhook_trigger(name, url):
+            trigger = TriggerDB(name=name, pack='test')
+            trigger.type = WEBHOOK_TRIGGER_TYPES.keys()[0]
+            trigger.parameters = {'url': url}
+            return trigger
+
+        test_triggers = [
+            get_webhook_trigger('no_slash', 'no_slash'),
+            get_webhook_trigger('with_leading_slash', '/with_leading_slash'),
+            get_webhook_trigger('with_trailing_slash', '/with_trailing_slash/'),
+            get_webhook_trigger('with_leading_trailing_slash', '/with_leading_trailing_slash/'),
+            get_webhook_trigger('with_mixed_slash', '/with/mixed/slash/')
+        ]
+
+        controller = WebhooksController()
+        for trigger in test_triggers:
+            controller.add_trigger(trigger)
+
+        get_webhook_trigger('with_mixed_slash', '/with/mixed/slash/')
+
+        self.assertTrue(controller._is_valid_hook('no_slash'))
+        self.assertTrue(controller._is_valid_hook('with_leading_slash'))
+        self.assertTrue(controller._is_valid_hook('with_trailing_slash'))
+        self.assertTrue(controller._is_valid_hook('with_leading_trailing_slash'))
+        self.assertTrue(controller._is_valid_hook('with/mixed/slash'))
 
     def __do_post(self, hook, webhook, expect_errors=False, headers=None):
         return self.app.post_json('/v1/webhooks/' + hook,
