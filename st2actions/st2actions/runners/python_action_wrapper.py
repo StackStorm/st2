@@ -16,7 +16,6 @@
 import sys
 import json
 import argparse
-import logging as stdlib_logging
 
 from st2common import log as logging
 from st2actions import config
@@ -42,7 +41,7 @@ class ActionService(object):
     """
 
     def __init__(self, action_wrapper):
-        logger = get_logger_for_action(action_name=self._action_wrapper._class_name)
+        logger = get_logger_for_python_runner_action(action_name=action_wrapper._class_name)
 
         self._action_wrapper = action_wrapper
         self._datastore_service = DatastoreService(logger=logger,
@@ -136,7 +135,6 @@ class PythonActionWrapper(object):
         # Action constructor to take in additional argument (action_service).
         action_service = ActionService(action_wrapper=self)
         action_instance.setup(action_service=action_service)
-        action_instance.logger = self._set_up_logger(action_cls.__name__)
 
         return action_instance
 
