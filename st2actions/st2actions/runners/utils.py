@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 
-def get_logger_for_python_runner_action(self, action_name):
+def get_logger_for_python_runner_action(action_name):
     """
     Set up a logger which logs all the messages with level DEBUG and above to stderr.
     """

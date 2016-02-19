@@ -70,7 +70,7 @@ class Action(object):
         :type config: ``dict``
         """
         self.config = config or {}
-        self.logger = get_logger_for_action(action_name=self.__class__.__name__)
+        self.logger = get_logger_for_python_runner_action(action_name=self.__class__.__name__)
 
         # action_service is late assigned post class instatiation in "setup()"
         self.datastore = None

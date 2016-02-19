@@ -509,7 +509,7 @@ class BaseActionTestCase(TestCase):
             kwargs['config'] = config
 
         instance = self.action_cls(**kwargs)  # pylint: disable=not-callable
-        instance.setup(action_service=action_service)
+        instance.setup(action_service=self.action_service)
         return instance
 
 
