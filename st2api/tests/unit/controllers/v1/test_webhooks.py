@@ -19,7 +19,7 @@ import mock
 import six
 from tests import FunctionalTest
 
-from st2api.controllers.v1.webhooks import WebhooksController
+from st2api.controllers.v1.webhooks import WebhooksController, HooksHolder
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
 from st2common.models.db.trigger import TriggerDB
 from st2common.transport.reactor import TriggerInstancePublisher
@@ -48,8 +48,8 @@ class TestWebhooksController(FunctionalTest):
         return_value=True))
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
-    @mock.patch.object(WebhooksController, '_get_trigger_for_hook', mock.MagicMock(
-        return_value=DUMMY_TRIGGER))
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[DUMMY_TRIGGER]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_post(self, dispatch_mock):
         post_resp = self.__do_post('git', WEBHOOK_1, expect_errors=False)
@@ -60,8 +60,8 @@ class TestWebhooksController(FunctionalTest):
         return_value=True))
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
-    @mock.patch.object(WebhooksController, '_get_trigger_for_hook', mock.MagicMock(
-        return_value=DUMMY_TRIGGER))
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[DUMMY_TRIGGER]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_post_with_trace(self, dispatch_mock):
         post_resp = self.__do_post('git', WEBHOOK_1, expect_errors=False,
@@ -105,8 +105,8 @@ class TestWebhooksController(FunctionalTest):
         return_value=True))
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
-    @mock.patch.object(WebhooksController, '_get_trigger_for_hook', mock.MagicMock(
-        return_value=DUMMY_TRIGGER))
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[DUMMY_TRIGGER]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_json_request_body(self, dispatch_mock):
         # 1. Send JSON using application/json content type
@@ -142,8 +142,8 @@ class TestWebhooksController(FunctionalTest):
         return_value=True))
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
-    @mock.patch.object(WebhooksController, '_get_trigger_for_hook', mock.MagicMock(
-        return_value=DUMMY_TRIGGER))
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[DUMMY_TRIGGER]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_form_encoded_request_body(self, dispatch_mock):
         # Send request body as form urlencoded data
