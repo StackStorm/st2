@@ -192,9 +192,8 @@ class TestWebhooksController(FunctionalTest):
         for trigger in test_triggers:
             controller.add_trigger(trigger)
 
-        get_webhook_trigger('with_mixed_slash', '/with/mixed/slash/')
-
         self.assertTrue(controller._is_valid_hook('no_slash'))
+        self.assertFalse(controller._is_valid_hook('/no_slash'))
         self.assertTrue(controller._is_valid_hook('with_leading_slash'))
         self.assertTrue(controller._is_valid_hook('with_trailing_slash'))
         self.assertTrue(controller._is_valid_hook('with_leading_trailing_slash'))
