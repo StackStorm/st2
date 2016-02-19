@@ -174,7 +174,7 @@ class TestWebhooksController(FunctionalTest):
         # the url containing all kinds of slashes the normalized version still work.
         # The part which does not get tested is integration with pecan since # that will
         # require hacking into the test app and force dependency on pecan internals.
-        # TLDR; sorry for the ghetto test. Not sure how to do this as a unit.
+        # TLDR; sorry for the ghetto test. Not sure how else to test this as a unit test.
         def get_webhook_trigger(name, url):
             trigger = TriggerDB(name=name, pack='test')
             trigger.type = WEBHOOK_TRIGGER_TYPES.keys()[0]
