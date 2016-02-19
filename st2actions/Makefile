@@ -7,7 +7,7 @@ RPM_SOURCES_DIR := $(RPM_ROOT)/SOURCES/
 RPM_SPECS_DIR := $(RPM_ROOT)/SPECS/
 VER=0.4.0
 COMPONENTS := st2actions
-FLAKE8_CONFIG := $(REPO_ROOT)/.flake8
+FLAKE8_CONFIG := $(REPO_ROOT)/lint-configs/python/.flake8
 
 .PHONY: clean
 clean:
