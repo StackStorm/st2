@@ -25,8 +25,8 @@ machine:
     NOTESTS: "el7"
     ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
     ST2_DOCKERFILES_REPO: https://github.com/StackStorm/st2-dockerfiles
-    BUILD_DOCKER: 1
-    DEPLOY_DOCKER: 1
+    BUILD_DOCKER: 0
+    DEPLOY_DOCKER: 0
     DEPLOY_PACKAGES: 1
   pre:
     - mkdir -p ~/packages
