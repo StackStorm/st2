@@ -26,6 +26,7 @@ in development
   * Support for providing a non-default (22) SSH server port.
   * Support for using default system user (stanley) ssh key if neither ``password`` nor
     ``keyfile`` parameter is provided.
+* Support for leading and trailing slashes in the webhook urls. (improvement)
 
 1.3.2 - February 12, 2016
 -------------------------

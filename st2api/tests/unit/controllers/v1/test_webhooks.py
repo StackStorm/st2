@@ -19,7 +19,7 @@ import mock
 import six
 from tests import FunctionalTest
 
-from st2api.controllers.v1.webhooks import WebhooksController
+from st2api.controllers.v1.webhooks import WebhooksController, HooksHolder
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
 from st2common.models.db.trigger import TriggerDB
 from st2common.transport.reactor import TriggerInstancePublisher
@@ -48,8 +48,8 @@ class TestWebhooksController(FunctionalTest):
         return_value=True))
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
-    @mock.patch.object(WebhooksController, '_get_trigger_for_hook', mock.MagicMock(
-        return_value=DUMMY_TRIGGER))
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[DUMMY_TRIGGER]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_post(self, dispatch_mock):
         post_resp = self.__do_post('git', WEBHOOK_1, expect_errors=False)
@@ -60,8 +60,8 @@ class TestWebhooksController(FunctionalTest):
         return_value=True))
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
-    @mock.patch.object(WebhooksController, '_get_trigger_for_hook', mock.MagicMock(
-        return_value=DUMMY_TRIGGER))
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[DUMMY_TRIGGER]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_post_with_trace(self, dispatch_mock):
         post_resp = self.__do_post('git', WEBHOOK_1, expect_errors=False,
@@ -105,8 +105,8 @@ class TestWebhooksController(FunctionalTest):
         return_value=True))
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
-    @mock.patch.object(WebhooksController, '_get_trigger_for_hook', mock.MagicMock(
-        return_value=DUMMY_TRIGGER))
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[DUMMY_TRIGGER]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_json_request_body(self, dispatch_mock):
         # 1. Send JSON using application/json content type
@@ -142,8 +142,8 @@ class TestWebhooksController(FunctionalTest):
         return_value=True))
     @mock.patch.object(WebhooksController, '_is_valid_hook', mock.MagicMock(
         return_value=True))
-    @mock.patch.object(WebhooksController, '_get_trigger_for_hook', mock.MagicMock(
-        return_value=DUMMY_TRIGGER))
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[DUMMY_TRIGGER]))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_form_encoded_request_body(self, dispatch_mock):
         # Send request body as form urlencoded data
@@ -163,6 +163,41 @@ class TestWebhooksController(FunctionalTest):
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
         self.assertTrue('Failed to parse request body' in post_resp)
         self.assertTrue('Unsupported Content-Type' in post_resp)
+
+    def test_leading_trailing_slashes(self):
+        # Ideally the test should setup fixtures in DB. However, the triggerwatcher
+        # that is supposed to load the models from DB does not real start given
+        # eventlets etc.
+        # Therefore this test is somewhat special and does not post directly.
+        # This only check performed here is that even if a trigger was infact created with
+        # the url containing all kinds of slashes the normalized version still work.
+        # The part which does not get tested is integration with pecan since # that will
+        # require hacking into the test app and force dependency on pecan internals.
+        # TLDR; sorry for the ghetto test. Not sure how else to test this as a unit test.
+        def get_webhook_trigger(name, url):
+            trigger = TriggerDB(name=name, pack='test')
+            trigger.type = WEBHOOK_TRIGGER_TYPES.keys()[0]
+            trigger.parameters = {'url': url}
+            return trigger
+
+        test_triggers = [
+            get_webhook_trigger('no_slash', 'no_slash'),
+            get_webhook_trigger('with_leading_slash', '/with_leading_slash'),
+            get_webhook_trigger('with_trailing_slash', '/with_trailing_slash/'),
+            get_webhook_trigger('with_leading_trailing_slash', '/with_leading_trailing_slash/'),
+            get_webhook_trigger('with_mixed_slash', '/with/mixed/slash/')
+        ]
+
+        controller = WebhooksController()
+        for trigger in test_triggers:
+            controller.add_trigger(trigger)
+
+        self.assertTrue(controller._is_valid_hook('no_slash'))
+        self.assertFalse(controller._is_valid_hook('/no_slash'))
+        self.assertTrue(controller._is_valid_hook('with_leading_slash'))
+        self.assertTrue(controller._is_valid_hook('with_trailing_slash'))
+        self.assertTrue(controller._is_valid_hook('with_leading_trailing_slash'))
+        self.assertTrue(controller._is_valid_hook('with/mixed/slash'))
 
     def __do_post(self, hook, webhook, expect_errors=False, headers=None):
         return self.app.post_json('/v1/webhooks/' + hook,
