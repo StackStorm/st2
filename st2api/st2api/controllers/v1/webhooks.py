@@ -80,7 +80,7 @@ class HooksHolder(object):
     def get_all(self):
         triggers = []
         for values in six.itervalues(self._triggers_by_hook):
-            triggers.extend(triggers)
+            triggers.extend(values)
         return triggers
 
 
