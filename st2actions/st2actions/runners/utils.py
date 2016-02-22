@@ -13,13 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 import logging as stdlib_logging
 
 from st2common import log as logging
 
 __all__ = [
-    'get_logger_for_python_runner_action'
+    'get_logger_for_python_runner_action',
+    'get_action_class_instance'
 ]
+
+LOG = logging.getLogger(__name__)
 
 
 def get_logger_for_python_runner_action(action_name):
@@ -38,3 +43,27 @@ def get_logger_for_python_runner_action(action_name):
     logger.setLevel(stdlib_logging.DEBUG)
 
     return logger
+
+
+def get_action_class_instance(action_cls, kwargs):
+    """
+    Instantiate and return Action class instance.
+    """
+    # Note: This is done for backward compatibility reasons. We first try to pass
+    # "action_service" argument to the action class constructor, but if that doesn't work
+    # (e.g. old action which hasn't been updated yet), we resort to late assignment.
+    try:
+        action_instance = action_cls(**kwargs)
+    except TypeError as e:
+        if 'unexpected keyword argument \'action_service\'' not in str(e):
+            raise e
+
+        LOG.debug('Action class constructor doesn\'t take "action_service" argument, '
+                  'falling back to late assignment...')
+
+        kwargs = copy.deepcopy(kwargs)
+        action_service = kwargs.pop('action_service', None)
+        action_instance = action_cls(**kwargs)
+        action_instance.action_service = action_service
+
+    return action_instance

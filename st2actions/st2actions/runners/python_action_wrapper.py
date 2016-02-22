@@ -21,6 +21,7 @@ from st2common import log as logging
 from st2actions import config
 from st2actions.runners.pythonrunner import Action
 from st2actions.runners.utils import get_logger_for_python_runner_action
+from st2actions.runners.utils import get_action_class_instance
 from st2common.util import loader as action_loader
 from st2common.util.config_parser import ContentPackConfigParser
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
@@ -121,21 +122,20 @@ class PythonActionWrapper(object):
         config_parser = ContentPackConfigParser(pack_name=self._pack)
         config = config_parser.get_action_config(action_file_path=self._file_path)
 
+        kwargs = {}
         if config:
             LOG.info('Using config "%s" for action "%s"' % (config.file_path,
                                                             self._file_path))
-
-            action_instance = action_cls(config=config.config)
+            kwargs['config'] = config.config
         else:
             LOG.info('No config found for action "%s"' % (self._file_path))
-            action_instance = action_cls(config={})
+            kwargs['config'] = {}
 
-        # Perform post instantiation action intiailization
-        # Note: This is needed since for backward compatibility reasons we can't simply update
-        # Action constructor to take in additional argument (action_service).
         action_service = ActionService(action_wrapper=self)
-        action_instance.setup(action_service=action_service)
+        kwargs['action_service'] = action_service
 
+        action_instance = get_action_class_instance(action_cls=action_cls,
+                                                    kwargs=kwargs)
         return action_instance
 
 

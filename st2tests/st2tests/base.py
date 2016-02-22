@@ -46,6 +46,7 @@ import st2common.models.db.executionstate as executionstate_model
 import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
+from st2actions.runners.utils import get_action_class_instance
 
 import st2tests.config
 from st2tests.mocks.sensor import MockSensorWrapper
@@ -507,9 +508,9 @@ class BaseActionTestCase(TestCase):
 
         if config:
             kwargs['config'] = config
+        kwargs['action_service'] = self.action_service
 
         instance = self.action_cls(**kwargs)  # pylint: disable=not-callable
-        instance.setup(action_service=self.action_service)
         return instance
 
 
