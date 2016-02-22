@@ -31,8 +31,8 @@ BLOCKED_PACKS = frozenset(SYSTEM_PACK_NAMES)
 
 
 class UnregisterPackAction(BaseAction):
-    def __init__(self, config=None):
-        super(UnregisterPackAction, self).__init__(config=config)
+    def __init__(self, config=None, action_service=None):
+        super(UnregisterPackAction, self).__init__(config=config, action_service=action_service)
         self.initialize()
 
     def initialize(self):
