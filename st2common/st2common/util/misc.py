@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import sys
 import collections
 
 import six
@@ -108,3 +109,20 @@ def deep_update(d, u):
             d[k] = u[k]
 
     return d
+
+
+def get_normalized_file_path(file_path):
+    """
+    Return a full normalized file path for the provided path string.
+
+    :rtype: ``str``
+    """
+    if hasattr(sys, 'frozen'):  # support for py2exe
+        file_path = 'logging%s__init__%s' % (os.sep, file_path[-4:])
+    elif file_path[-4:].lower() in ['.pyc', '.pyo']:
+        file_path = file_path[:-4] + '.py'
+    else:
+        file_path = file_path
+
+    file_path = os.path.normcase(file_path)
+    return file_path

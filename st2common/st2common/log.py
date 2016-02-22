@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+import os
 import sys
 import logging
 import logging.config
@@ -30,6 +31,7 @@ from st2common.logging.filters import ExclusionFilter
 from st2common.logging.handlers import FormatNamedFileHandler
 from st2common.logging.handlers import ConfigurableSyslogHandler
 from st2common.util.misc import prefix_dict_keys
+from st2common.util.misc import get_normalized_file_path
 
 __all__ = [
     'getLogger',
@@ -55,6 +57,36 @@ LOGGER_KEYS = [
 
     'audit'
 ]
+
+# Note: This attribute is used by "find_caller" so it can correctly exclude this file when looking
+# for the logger method caller frame.
+_srcfile = get_normalized_file_path(__file__)
+
+
+def find_caller():
+    """
+    Find the stack frame of the caller so that we can note the source file name, line number and
+    function name.
+
+    Note: This is based on logging/__init__.py:findCaller and modified so it takes into account
+    this file - https://hg.python.org/cpython/file/2.7/Lib/logging/__init__.py#l1233
+    """
+    rv = '(unknown file)', 0, '(unknown function)'
+
+    try:
+        f = logging.currentframe().f_back
+        while hasattr(f, 'f_code'):
+            co = f.f_code
+            filename = os.path.normcase(co.co_filename)
+            if filename in (_srcfile, logging._srcfile):  # This line is modified.
+                f = f.f_back
+                continue
+            rv = (filename, f.f_lineno, co.co_name)
+            break
+    except Exception:
+        pass
+
+    return rv
 
 
 def decorate_log_method(func):
@@ -85,6 +117,12 @@ def decorate_logger_methods(logger):
     automatically prefixed with an underscore to avoid clashes with standard log
     record attributes.
     """
+
+    # Note: We override findCaller with our custom implementation which takes into account this
+    # module.
+    # This way filename, module, funcName and lineno LogRecord attributes contain correct values
+    # instead of all pointing to decorate_log_method.
+    logger.findCaller = find_caller
     for key in LOGGER_KEYS:
         log_method = getattr(logger, key)
         log_method = decorate_log_method(log_method)
