@@ -25,6 +25,18 @@ class OperatorTest(unittest2.TestCase):
         op = operators.get_operator('matchregex')
         self.assertTrue(op('v1', 'v1$'), 'Failed matchregex.')
 
+        # Multi line string, make sure re.DOTALL is used
+        string = '''ponies
+        moar
+        foo
+        bar
+        yeah!
+        '''
+        self.assertTrue(op(string, '.*bar.*'), 'Failed matchregex.')
+
+        string = 'foo\r\nponies\nbar\nfooooo'
+        self.assertTrue(op(string, '.*ponies.*'), 'Failed matchregex.')
+
     def test_matchregex_case_variants(self):
         op = operators.get_operator('MATCHREGEX')
         self.assertTrue(op('v1', 'v1$'), 'Failed matchregex.')
