@@ -80,6 +80,7 @@ def transform(cls):
             elif property_type == 'null':
                 node = scoped_nodes.builtin_lookup('None')[1][0]
             else:
+                # Unknown type
                 node = scoped_nodes.Class(property_name, None)
 
             cls.locals[property_name] = [node]

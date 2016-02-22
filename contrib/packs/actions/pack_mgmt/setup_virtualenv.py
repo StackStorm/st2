@@ -43,8 +43,9 @@ class SetupVirtualEnvironmentAction(Action):
     current dependencies as well as an installation of new dependencies
     """
 
-    def __init__(self, config=None):
-        super(SetupVirtualEnvironmentAction, self).__init__(config=config)
+    def __init__(self, config=None, action_service=None):
+        super(SetupVirtualEnvironmentAction, self).__init__(config=config,
+                                                            action_service=action_service)
         self._base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path,
                                                    'virtualenvs/')
 

@@ -23,6 +23,7 @@ import six
 from eventlet.green import subprocess
 
 from st2actions.runners import ActionRunner
+from st2actions.runners.utils import get_logger_for_python_runner_action
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
@@ -63,15 +64,17 @@ class Action(object):
 
     description = None
 
-    def __init__(self, config=None):
+    def __init__(self, config=None, action_service=None):
         """
         :param config: Action config.
         :type config: ``dict``
+
+        :param action_service: ActionService object.
+        :type action_service: :class:`ActionService~
         """
         self.config = config or {}
-        # logger and datastore are assigned in PythonActionWrapper._get_action_instance
-        self.logger = None
-        self.datastore = None
+        self.action_service = action_service
+        self.logger = get_logger_for_python_runner_action(action_name=self.__class__.__name__)
 
     @abc.abstractmethod
     def run(self, **kwargs):

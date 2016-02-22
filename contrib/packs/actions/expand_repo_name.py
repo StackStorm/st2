@@ -15,16 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-import requests
-import json
-import getopt
-import argparse
-import os
-import yaml
-
-from getpass import getpass
 from st2actions.runners.pythonrunner import Action
+
 
 class ExpandRepoName(Action):
     def run(self, repo_name):

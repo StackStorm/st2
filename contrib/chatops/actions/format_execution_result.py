@@ -7,8 +7,8 @@ from st2common.util import jinja as jinja_utils
 
 
 class FormatResultAction(Action):
-    def __init__(self, config):
-        super(FormatResultAction, self).__init__(config)
+    def __init__(self, config=None, action_service=None):
+        super(FormatResultAction, self).__init__(config=config, action_service=action_service)
         api_url = os.environ.get('ST2_ACTION_API_URL', None)
         token = os.environ.get('ST2_ACTION_AUTH_TOKEN', None)
         self.client = Client(api_url=api_url, token=token)
@@ -51,4 +51,4 @@ class FormatResultAction(Action):
         if not execution:
             return None
         excludes = ["trigger", "trigger_type", "trigger_instance", "liveaction"]
-        return execution.to_dict(exclude_attributes= excludes)
+        return execution.to_dict(exclude_attributes=excludes)

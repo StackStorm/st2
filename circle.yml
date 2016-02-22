@@ -1,7 +1,11 @@
 # Setup in CircleCI account the following ENV variables:
-# BINTRAY_ORGANIZATION
+# IS_PRODUCTION (default: 0)
+# IS_ENTERPRISE (default: 0)
+# BINTRAY_ORGANIZATION (default: stackstorm)
 # BINTRAY_ACCOUNT
 # BINTRAY_API_KEY
+# PACKAGECLOUD_ORGANIZATION (default: stackstorm)
+# PACKAGECLOUD_TOKEN
 # DOCKER_USER
 # DOCKER_EMAIL
 # DOCKER_PASSWORD
@@ -21,8 +25,8 @@ machine:
     NOTESTS: "el7"
     ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
     ST2_DOCKERFILES_REPO: https://github.com/StackStorm/st2-dockerfiles
-    BUILD_DOCKER: 1
-    DEPLOY_DOCKER: 1
+    BUILD_DOCKER: 0
+    DEPLOY_DOCKER: 0
     DEPLOY_PACKAGES: 1
   pre:
     - mkdir -p ~/packages
@@ -47,7 +51,8 @@ dependencies:
   pre:
     - sudo .circle/configure-services.sh
     - sudo .circle/fix-cache-permissions.sh
-    - sudo apt-get -y install parallel
+    - sudo apt-get -y install parallel jq
+    - gem install package_cloud
     - sudo pip install docker-compose
     - docker-compose version
     - docker version
@@ -80,6 +85,10 @@ deployment:
       - |
         DISTROS=($DISTROS)
         parallel -v -j0 --line-buffer .circle/bintray.sh deploy {}_staging ~/packages/{} ::: ${DISTROS[@]::$CIRCLE_NODE_TOTAL}
+      # Deploy to PackageCloud all artifacts for respective distros in parallel
+      - |
+        DISTROS=($DISTROS)
+        parallel -v -j0 --line-buffer .circle/packagecloud.sh deploy {} ~/packages/{} ::: ${DISTROS[@]::$CIRCLE_NODE_TOTAL}
       - .circle/docker.sh deploy st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
       - .circle/save_payload.py ~/packages
 
