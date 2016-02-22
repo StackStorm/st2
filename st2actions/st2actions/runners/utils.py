@@ -61,8 +61,9 @@ def get_action_class_instance(action_cls, config=None, action_service=None):
     kwargs['action_service'] = action_service
 
     # Note: This is done for backward compatibility reasons. We first try to pass
-    # "action_service" argument to the action class constructor, but if that doesn't work
-    # (e.g. old action which hasn't been updated yet), we resort to late assignment.
+    # "action_service" argument to the action class constructor, but if that doesn't work (e.g. old
+    # action which hasn't been updated yet), we resort to late assignment post class instantiation.
+    # TODO: Remove in next major version once all the affected actions have been updated.
     try:
         action_instance = action_cls(**kwargs)
     except TypeError as e:
