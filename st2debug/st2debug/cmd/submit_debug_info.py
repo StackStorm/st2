@@ -133,6 +133,28 @@ class DebugInfoCollector(object):
     def __init__(self, include_logs, include_configs, include_content, include_system_info,
                  include_shell_commands=False, user_info=None, debug=False, config_file=None,
                  output_path=None):
+        """
+        Initialize a DebugInfoCollector object.
+
+        :param include_logs: Include log files in generated archive.
+        :type include_logs: ``bool``
+        :param include_configs: Include config files in generated archive.
+        :type include_configs: ``bool``
+        :param include_content: Include pack contents in generated archive.
+        :type include_content: ``bool``
+        :param include_system_info: Include system information in generated archive.
+        :type include_system_info: ``bool``
+        :param include_shell_commands: Include shell command output in generated archive.
+        :type include_shell_commands: ``bool``
+        :param user_info: User info to be included in generated archive.
+        :type user_info: ``dict``
+        :param debug: Enable debug logging.
+        :type debug: ``bool``
+        :param config_file: Values from config file to override defaults.
+        :type config_file: ``dict``
+        :param output_path: Path to write output file to. (optional)
+        :type output_path: ``str``
+        """
         self.include_logs = include_logs
         self.include_configs = include_configs
         self.include_content = include_content
@@ -161,6 +183,17 @@ class DebugInfoCollector(object):
         ]
 
     def run(self, encrypt=False, upload=False, existing_file=None):
+        """
+        Run the specified steps.
+
+        :param encrypt: If true, encrypt the archive file.
+        :param encrypt: ``bool``
+        :param upload: If true, upload the resulting file.
+        :param upload: ``bool``
+        :param existing_file: Path to an existing archive file. If not specified a new
+        archive will be created.
+        :param existing_file: ``str``
+        """
         temp_files = []
 
         try:
@@ -271,6 +304,12 @@ class DebugInfoCollector(object):
             raise e
 
     def upload_archive(self, archive_file_path):
+        """
+        Upload the encrypted archive.
+
+        :param archive_file_path: Path to the encrypted tarball file.
+        :type archive_file_path: ``str``
+        """
         try:
             assert archive_file_path.endswith('.asc')
 
@@ -287,12 +326,24 @@ class DebugInfoCollector(object):
             raise e
 
     def collect_logs(self, output_path):
+        """
+        Copy log files to the output path.
+
+        :param output_path: Path where log files will be copied to.
+        :type output_path: ``str``
+        """
         LOG.debug('Including log files')
         for file_path_glob in self.log_files_paths:
             log_file_list = get_full_file_list(file_path_glob=file_path_glob)
             copy_files(file_paths=log_file_list, destination=output_path)
 
     def collect_config_files(self, output_path):
+        """
+        Copy config files to the output path.
+
+        :param output_path: Path where config files will be copied to.
+        :type output_path: ``str``
+        """
         LOG.debug('Including config files')
         copy_files(file_paths=self.config_file_paths, destination=output_path)
 
@@ -304,6 +355,12 @@ class DebugInfoCollector(object):
 
     @staticmethod
     def collect_pack_content(output_path):
+        """
+        Copy pack contents to the output path.
+
+        :param output_path: Path where pack contents will be copied to.
+        :type output_path: ``str``
+        """
         LOG.debug('Including content')
 
         packs_base_paths = get_packs_base_paths()
@@ -324,6 +381,12 @@ class DebugInfoCollector(object):
                 process_content_pack_dir(pack_dir=pack_dir)
 
     def add_system_information(self, output_path):
+        """
+        Collect and write system information to output path.
+
+        :param output_path: Path where system information will be written to.
+        :type output_path: ``str``
+        """
         LOG.debug('Including system info')
 
         system_information = yaml.dump(self.get_system_information(),
@@ -341,8 +404,10 @@ class DebugInfoCollector(object):
 
     def add_shell_command_output(self, output_path):
         """"
-        Get output of the required shell command and redirect the output to a file.
+        Get output of the required shell command and redirect the output to output path.
+
         :param output_path: Directory where output files will be written
+        :param output_path: ``str``
         """
         LOG.debug('Including the required shell commands output files')
         for cmd in self.shell_commands:
@@ -357,6 +422,18 @@ class DebugInfoCollector(object):
                 fp.write('[END STDERR]')
 
     def create_tarball(self, temp_dir_path):
+        """
+        Create tarball with the contents of temp_dir_path.
+
+        Tarball will be written to self.output_path, if set. Otherwise it will
+        be written to /tmp a name generated according to OUTPUT_FILENAME_TEMPLATE.
+
+        :param temp_dir_path: Base directory to include in tarbal.
+        :type temp_dir_path: ``str``
+
+        :return: Path to the created tarball.
+        :rtype: ``str``
+        """
         LOG.info('Creating tarball...')
         if self.output_path:
             output_file_path = self.output_path
@@ -374,6 +451,13 @@ class DebugInfoCollector(object):
 
     @staticmethod
     def create_temp_directories():
+        """
+        Creates a new temp directory and creates the directory structure as defined
+        by DIRECTORY_STRUCTURE.
+
+        :return: Path to temp directory.
+        :rtype: ``str``
+        """
         temp_dir_path = tempfile.mkdtemp()
 
         for directory_name in DIRECTORY_STRUCTURE:
@@ -385,15 +469,16 @@ class DebugInfoCollector(object):
     @staticmethod
     def format_output_filename(cmd):
         """"
-        Format the file name such as removing white spaces and special characters.
-        :param cmd: shell command
-        :return: formatted output file name
+        Remove whitespace and special characters from a shell command.
+
+        Used to create filename-safe representations of a shell command.
+
+        :param cmd: Shell command.
+        :type cmd: ``str``
+        :return: Formatted filename.
         :rtype: ``str``
         """
-        for char in cmd:
-            if char in ' !@#$%^&*()[]{};:,./<>?\|`~=+"':
-                cmd = cmd.replace(char, "")
-        return cmd
+        return cmd.translate(None, """ !@#$%^&*()[]{};:,./<>?\|`~=+"'""")
 
     @staticmethod
     def get_system_information():
