@@ -41,16 +41,12 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
 
         # Mock paths so we include mock data
         logs_dir = os.path.join(FIXTURES_DIR, 'logs/')
-        st2debug.cmd.submit_debug_info.ST2_LOG_FILES_PATH = logs_dir + '*.log'
+        st2debug.cmd.submit_debug_info.LOG_FILE_PATHS = [logs_dir + '*.log']
 
         configs_dir = os.path.join(FIXTURES_DIR, 'configs/')
         st2debug.cmd.submit_debug_info.ST2_CONFIG_FILE_PATH = os.path.join(configs_dir, 'st2.conf')
         st2debug.cmd.submit_debug_info.MISTRAL_CONFIG_FILE_PATH = os.path.join(configs_dir,
                                                                                'mistral.conf')
-        st2debug.cmd.submit_debug_info.CONFIG_FILE_PATHS = [
-            st2debug.cmd.submit_debug_info.ST2_CONFIG_FILE_PATH,
-            st2debug.cmd.submit_debug_info.MISTRAL_CONFIG_FILE_PATH
-        ]
 
         # Mock get_packs_base_paths
         content_dir = os.path.join(FIXTURES_DIR, 'content/')
