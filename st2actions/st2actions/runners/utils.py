@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-
 import logging as stdlib_logging
 
 from st2common import log as logging
@@ -45,10 +43,23 @@ def get_logger_for_python_runner_action(action_name):
     return logger
 
 
-def get_action_class_instance(action_cls, kwargs):
+def get_action_class_instance(action_cls, config=None, action_service=None):
     """
     Instantiate and return Action class instance.
+
+    :param action_cls: Action class to instantiate.
+    :type action_cls: ``class``
+
+    :param config: Config to pass to the action class.
+    :type config: ``dict``
+
+    :param action_service: ActionService instance to pass to the class.
+    :type action_service: :class:`ActionService`
     """
+    kwargs = {}
+    kwargs['config'] = config
+    kwargs['action_service'] = action_service
+
     # Note: This is done for backward compatibility reasons. We first try to pass
     # "action_service" argument to the action class constructor, but if that doesn't work
     # (e.g. old action which hasn't been updated yet), we resort to late assignment.
@@ -61,7 +72,6 @@ def get_action_class_instance(action_cls, kwargs):
         LOG.debug('Action class constructor doesn\'t take "action_service" argument, '
                   'falling back to late assignment...')
 
-        kwargs = copy.deepcopy(kwargs)
         action_service = kwargs.pop('action_service', None)
         action_instance = action_cls(**kwargs)
         action_instance.action_service = action_service

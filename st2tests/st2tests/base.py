@@ -504,15 +504,10 @@ class BaseActionTestCase(TestCase):
         """
         Retrieve instance of the action class.
         """
-        kwargs = {}
-
-        if config:
-            kwargs['config'] = config
-        kwargs['action_service'] = self.action_service
-
         # pylint: disable=not-callable
-        instance = get_action_class_instance(action_cls=self.action_cls, kwargs=kwargs)
-        instance = self.action_cls(**kwargs)
+        instance = get_action_class_instance(action_cls=self.action_cls,
+                                             config=config,
+                                             action_service=self.action_service)
         return instance
 
 

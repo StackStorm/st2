@@ -123,20 +123,18 @@ class PythonActionWrapper(object):
         config_parser = ContentPackConfigParser(pack_name=self._pack)
         config = config_parser.get_action_config(action_file_path=self._file_path)
 
-        kwargs = {}
         if config:
             LOG.info('Using config "%s" for action "%s"' % (config.file_path,
                                                             self._file_path))
-            kwargs['config'] = config.config
+            config = config.config
         else:
             LOG.info('No config found for action "%s"' % (self._file_path))
-            kwargs['config'] = {}
+            config = None
 
         action_service = ActionService(action_wrapper=self)
-        kwargs['action_service'] = action_service
-
         action_instance = get_action_class_instance(action_cls=action_cls,
-                                                    kwargs=kwargs)
+                                                    config=config,
+                                                    action_service=action_service)
         return action_instance
 
 
