@@ -360,7 +360,6 @@ class DebugInfoCollector(object):
         LOG.info('Creating tarball...')
         if self.output_path:
             output_file_path = self.output_path
-            output_file_name = os.path.basename(output_file_path)
         else:
             date = date_utils.get_datetime_utc_now().strftime(DATE_FORMAT)
             values = {'hostname': socket.gethostname(), 'date': date}
@@ -369,7 +368,7 @@ class DebugInfoCollector(object):
             output_file_path = os.path.join('/tmp', output_file_name)
 
         with tarfile.open(output_file_path, 'w:gz') as tar:
-            tar.add(temp_dir_path, arcname=output_file_name.split(".")[0])
+            tar.add(temp_dir_path, arcname='')
 
         return output_file_path
 

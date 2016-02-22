@@ -161,8 +161,7 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
     def test_create_archive_exclusion(self):
         # Verify only system info file is included
         debug_collector = DebugInfoCollector(include_logs=False, include_configs=False,
-                                             include_content=False,
-                                             include_system_info=True)
+                                             include_content=False, include_system_info=True)
         archive_path = debug_collector.create_archive()
 
         # Verify archive has been created
