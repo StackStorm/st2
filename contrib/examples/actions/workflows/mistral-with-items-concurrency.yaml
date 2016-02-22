@@ -16,6 +16,6 @@ examples.mistral-with-items-concurrency:
             concurrency: 2
             action: core.local
             input:
-                cmd: "<% $.cmd %>; sleep 2"
+                cmd: "<% $.cmd %>; sleep 3"
             publish:
                 result: <% $.repeat.stdout %>
