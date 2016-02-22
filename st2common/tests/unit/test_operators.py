@@ -20,6 +20,14 @@ from st2common.util import date as date_utils
 
 
 class OperatorTest(unittest2.TestCase):
+    def test_matchglob(self):
+        op = operators.get_operator('matchglob')
+        self.assertTrue(op('v1', 'v1'), 'Failed matchglob.')
+
+        self.assertFalse(op('test foo test', 'foo'), 'Failed matchglob.')
+        self.assertTrue(op('test foo test', '*foo*'), 'Failed matchglob.')
+        self.assertTrue(op('bar', 'b*r'), 'Failed matchglob.')
+        self.assertTrue(op('bar', 'b?r'), 'Failed matchglob.')
 
     def test_matchregex(self):
         op = operators.get_operator('matchregex')
