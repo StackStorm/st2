@@ -70,8 +70,8 @@ def get_action_class_instance(action_cls, config=None, action_service=None):
         if 'unexpected keyword argument \'action_service\'' not in str(e):
             raise e
 
-        LOG.debug('Action class constructor doesn\'t take "action_service" argument, '
-                  'falling back to late assignment...')
+        LOG.debug('Action class (%s) constructor doesn\'t take "action_service" argument, '
+                  'falling back to late assignment...' % (action_cls.__class__.__name__))
 
         action_service = kwargs.pop('action_service', None)
         action_instance = action_cls(**kwargs)
