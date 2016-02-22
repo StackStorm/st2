@@ -115,9 +115,9 @@ class ExamplesTest(base.TestWorkflowExecution):
         self.assertEqual(len(execution.result['result']), inputs['count'])
 
         timestamps = [int(dt) for dt in execution.result['result']]
-        self.assertTrue(timestamps[1] - timestamps[0] <= 1)
-        self.assertTrue(timestamps[3] - timestamps[2] <= 1)
-        self.assertTrue(timestamps[2] - timestamps[1] >= 2)
+        self.assertTrue(timestamps[1] - timestamps[0] < 3)
+        self.assertTrue(timestamps[3] - timestamps[2] < 3)
+        self.assertTrue(timestamps[2] - timestamps[1] >= 3)
 
     def test_workbook_multiple_subflows(self):
         execution = self._execute_workflow('examples.mistral-workbook-multiple-subflows')
