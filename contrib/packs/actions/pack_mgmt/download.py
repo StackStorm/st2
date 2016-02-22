@@ -61,8 +61,8 @@ PACK_GROUP_CFG_KEY = 'pack_group'
 
 
 class DownloadGitRepoAction(Action):
-    def __init__(self, config=None):
-        super(DownloadGitRepoAction, self).__init__(config=config)
+    def __init__(self, config=None, action_service=None):
+        super(DownloadGitRepoAction, self).__init__(config=config, action_service=action_service)
         self._subtree = None
         self._repo_url = None
 

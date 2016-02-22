@@ -35,7 +35,8 @@ from st2reactor.sensor import config
 from st2common.services.datastore import DatastoreService
 
 __all__ = [
-    'SensorWrapper'
+    'SensorWrapper',
+    'SensorService'
 ]
 
 eventlet.monkey_patch(

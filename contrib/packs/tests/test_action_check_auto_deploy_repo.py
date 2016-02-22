@@ -32,30 +32,32 @@ repositories:
 """
 
 class CheckAutoDeployRepoActionTestCase(BaseActionTestCase):
+    action_cls = CheckAutoDeployRepo
+
     def test_run_config_blank(self):
         config = yaml.safe_load(MOCK_CONFIG_BLANK)
-        action = CheckAutoDeployRepo(config)
+        action = self.get_action_instance(config=config)
 
         self.assertRaises(Exception, action.run,
                           branch="refs/heads/master", repo_name="st2contrib")
 
     def test_run_repositories_blank(self):
         config = yaml.safe_load(MOCK_CONFIG_BLANK_REPOSITORIES)
-        action = CheckAutoDeployRepo(config)
+        action = self.get_action_instance(config=config)
 
         self.assertRaises(Exception, action.run,
                           branch="refs/heads/master", repo_name="st2contrib")
 
     def test_run_st2contrib_no_auto_deloy(self):
         config = yaml.safe_load(MOCK_CONFIG_FULL)
-        action = CheckAutoDeployRepo(config)
+        action = self.get_action_instance(config=config)
 
         self.assertRaises(Exception, action.run,
                           branch="refs/heads/dev", repo_name="st2contrib")
 
     def test_run_st2contrib_auto_deloy(self):
         config = yaml.safe_load(MOCK_CONFIG_FULL)
-        action = CheckAutoDeployRepo(config)
+        action = self.get_action_instance(config=config)
 
         expected = {'deployment_branch': 'master', 'notify_channel': 'community'}
 
@@ -72,7 +74,7 @@ class CheckAutoDeployRepoActionTestCase(BaseActionTestCase):
 
     def test_run_st2incubator_auto_deloy(self):
         config = yaml.safe_load(MOCK_CONFIG_FULL)
-        action = CheckAutoDeployRepo(config)
+        action = self.get_action_instance(config=config)
 
         expected = {'deployment_branch': 'master', 'notify_channel': 'community'}
 

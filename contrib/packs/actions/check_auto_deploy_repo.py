@@ -15,16 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-import requests
-import json
-import getopt
-import argparse
-import os
-import yaml
-
-from getpass import getpass
 from st2actions.runners.pythonrunner import Action
+
 
 class CheckAutoDeployRepo(Action):
     def run(self, branch, repo_name):
@@ -42,12 +34,14 @@ class CheckAutoDeployRepo(Action):
         results = {}
 
         try:
-            results['deployment_branch'] = self.config["repositories"][repo_name]["auto_deployment"]["branch"]
-            results['notify_channel'] = self.config["repositories"][repo_name]["auto_deployment"]["notify_channel"]
+            repo_config = self.config["repositories"][repo_name]
+            results['deployment_branch'] = repo_config["auto_deployment"]["branch"]
+            results['notify_channel'] = repo_config["auto_deployment"]["notify_channel"]
         except KeyError:
             raise ValueError("No repositories or auto_deployment config for '%s'" % repo_name)
         else:
             if branch == "refs/heads/%s" % results['deployment_branch']:
                 return results
             else:
-                raise ValueError("Branch %s for %s should not be auto deployed" % (branch, repo_name))
+                raise ValueError("Branch %s for %s should not be auto deployed" %
+                                 (branch, repo_name))

@@ -8,7 +8,11 @@ in development
 * Allow user to pass a boolean value for the ``cacert`` st2client constructor argument. This way
   it now mimics the behavior of the ``verify`` argument of the ``requests.request`` method.
   (improvement)
-* Add datastore access to Python actions. (new-feature) #2396 [Kale Blankenship]
+* Add datastore access to Python runner actions via the ``action_service`` which is available
+  to all the Python runner actions after instantiation. (new-feature) #2396 #2511
+  [Kale Blankenship]
+* Update ``st2actions.runners.pythonrunner.Action`` class so the constructor also takes
+  ``action_service`` as the second argument.
 * Allow /v1/webhooks API endpoint request body to either be JSON or url encoded form data.
   Request body type is determined and parsed accordingly based on the value of
   ``Content-Type`` header.
