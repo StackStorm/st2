@@ -116,7 +116,7 @@ def greater_than(value, criteria_pattern):
 def match_regex(value, criteria_pattern):
     if criteria_pattern is None:
         return False
-    regex = re.compile(criteria_pattern)
+    regex = re.compile(criteria_pattern, re.DOTALL)
     # check for a match and not for details of the match.
     return regex.match(value) is not None
 
