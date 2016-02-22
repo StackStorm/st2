@@ -27,6 +27,10 @@ in development
   * Support for using default system user (stanley) ssh key if neither ``password`` nor
     ``keyfile`` parameter is provided.
 * Support for leading and trailing slashes in the webhook urls. (improvement)
+* Make sure that the ``filename``, ``module``, ``funcName`` and ``lineno`` attributes which are
+  available in the log formatter string contain the correct values. (bug-fix)
+
+  Reported by Andrew Regan.
 
 1.3.2 - February 12, 2016
 -------------------------
