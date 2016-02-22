@@ -29,7 +29,8 @@ from st2common.service_setup import db_setup
 from st2common.services.datastore import DatastoreService
 
 __all__ = [
-    'PythonActionWrapper'
+    'PythonActionWrapper',
+    'ActionService'
 ]
 
 LOG = logging.getLogger(__name__)
