@@ -211,22 +211,23 @@ class PythonRunnerTestCase(RunnerTestCase):
             def run(self):
                 pass
 
-        kwargs = {
-            'config': 'bar',
-            'action_service': 'action service'
-        }
+        config = {'a': 1, 'b': 2}
+        action_service = 'ActionService!'
 
-        action = get_action_class_instance(action_cls=Action1, kwargs=kwargs)
-        self.assertEqual(action.config, kwargs['config'])
-        self.assertEqual(action.action_service, kwargs['action_service'])
+        action1 = get_action_class_instance(action_cls=Action1, config=config,
+                                            action_service=action_service)
+        self.assertEqual(action1.config, config)
+        self.assertEqual(action1.action_service, action_service)
 
-        action = get_action_class_instance(action_cls=Action2, kwargs=kwargs)
-        self.assertEqual(action.config, kwargs['config'])
-        self.assertEqual(action.action_service, kwargs['action_service'])
+        action2 = get_action_class_instance(action_cls=Action2, config=config,
+                                            action_service=action_service)
+        self.assertEqual(action2.config, config)
+        self.assertEqual(action2.action_service, action_service)
 
-        action = get_action_class_instance(action_cls=Action3, kwargs=kwargs)
-        self.assertEqual(action.config, kwargs['config'])
-        self.assertEqual(action.action_service, kwargs['action_service'])
+        action3 = get_action_class_instance(action_cls=Action3, config=config,
+                                            action_service=action_service)
+        self.assertEqual(action3.config, config)
+        self.assertEqual(action3.action_service, action_service)
 
     def _get_mock_action_obj(self):
         """
