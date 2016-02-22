@@ -18,7 +18,9 @@ import os
 import mock
 
 from st2actions.runners import pythonrunner
+from st2actions.runners.pythonrunner import Action
 from st2actions.container import service
+from st2actions.runners.utils import get_action_class_instance
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.pack import SYSTEM_PACK_NAME
@@ -183,6 +185,48 @@ class PythonRunnerTestCase(RunnerTestCase):
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs['env']
         self.assertCommonSt2EnvVarsAvailableInEnv(env=actual_env)
+
+    def test_action_class_instantiation_action_service_argument(self):
+        class Action1(Action):
+            # Constructor not overriden so no issue here
+            pass
+
+            def run(self):
+                pass
+
+        class Action2(Action):
+            # Constructor overriden, but takes action_service argument
+            def __init__(self, config, action_service=None):
+                super(Action2, self).__init__(config=config,
+                                              action_service=action_service)
+
+            def run(self):
+                pass
+
+        class Action3(Action):
+            # Constructor overriden, but doesn't take to action service
+            def __init__(self, config):
+                super(Action3, self).__init__(config=config)
+
+            def run(self):
+                pass
+
+        kwargs = {
+            'config': 'bar',
+            'action_service': 'action service'
+        }
+
+        action = get_action_class_instance(action_cls=Action1, kwargs=kwargs)
+        self.assertEqual(action.config, kwargs['config'])
+        self.assertEqual(action.action_service, kwargs['action_service'])
+
+        action = get_action_class_instance(action_cls=Action2, kwargs=kwargs)
+        self.assertEqual(action.config, kwargs['config'])
+        self.assertEqual(action.action_service, kwargs['action_service'])
+
+        action = get_action_class_instance(action_cls=Action3, kwargs=kwargs)
+        self.assertEqual(action.config, kwargs['config'])
+        self.assertEqual(action.action_service, kwargs['action_service'])
 
     def _get_mock_action_obj(self):
         """
