@@ -114,7 +114,7 @@ def greater_than(value, criteria_pattern):
     return value > criteria_pattern
 
 
-def match_glob(value, criteria_pattern):
+def match_wildcard(value, criteria_pattern):
     if criteria_pattern is None:
         return False
 
@@ -169,7 +169,7 @@ def nexists(value, criteria_pattern):
     return value is None
 
 # operator match strings
-MATCH_GLOB = 'matchglob'
+MATCH_WILDCARD = 'matchwildcard'
 MATCH_REGEX = 'matchregex'
 EQUALS_SHORT = 'eq'
 EQUALS_LONG = 'equals'
@@ -198,7 +198,7 @@ KEY_NOT_EXISTS = 'nexists'
 
 # operator lookups
 operators = {
-    MATCH_GLOB: match_glob,
+    MATCH_WILDCARD: match_wildcard,
     MATCH_REGEX: match_regex,
     EQUALS_SHORT: equals,
     EQUALS_LONG: equals,
