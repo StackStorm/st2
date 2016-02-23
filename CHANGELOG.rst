@@ -31,6 +31,10 @@ in development
   * Support for using default system user (stanley) ssh key if neither ``password`` nor
     ``keyfile`` parameter is provided.
 * Support for leading and trailing slashes in the webhook urls. (improvement)
+* Make sure that the ``filename``, ``module``, ``funcName`` and ``lineno`` attributes which are
+  available in the log formatter string contain the correct values. (bug-fix)
+
+  Reported by Andrew Regan.
 * Update ``matchregex`` rule criteria operator so it uses "dot all" mode where dot (``.``)
   character will match any character including new lines. Previously ``*`` didn't match
   new lines. (improvement)
