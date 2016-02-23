@@ -17,9 +17,13 @@
           type: "boolean"
           description: "Boolean flag for force"
           default: false
+      verbose:
+        type: "boolean"
+        description: "True to explain what is being done"
+        default: true
       cmd:
           immutable: true
           default: "rm {{args}} {{target}}"
       args:
           description: "Command line arguments passed to rm"
-          default: "-v{% if recursive == true %} -r{% endif %}{% if force == true %} -f{% endif %}"
+          default: "{% if verbose == true %} -v{% endif %}{% if recursive == true %} -r{% endif %}{% if force == true %} -f{% endif %}"
