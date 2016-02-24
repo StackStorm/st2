@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import re
+import fnmatch
 
 from st2common.util import date as date_utils
 
@@ -113,10 +114,17 @@ def greater_than(value, criteria_pattern):
     return value > criteria_pattern
 
 
+def match_wildcard(value, criteria_pattern):
+    if criteria_pattern is None:
+        return False
+
+    return fnmatch.fnmatch(value, criteria_pattern)
+
+
 def match_regex(value, criteria_pattern):
     if criteria_pattern is None:
         return False
-    regex = re.compile(criteria_pattern)
+    regex = re.compile(criteria_pattern, re.DOTALL)
     # check for a match and not for details of the match.
     return regex.match(value) is not None
 
@@ -161,6 +169,7 @@ def nexists(value, criteria_pattern):
     return value is None
 
 # operator match strings
+MATCH_WILDCARD = 'matchwildcard'
 MATCH_REGEX = 'matchregex'
 EQUALS_SHORT = 'eq'
 EQUALS_LONG = 'equals'
@@ -189,6 +198,7 @@ KEY_NOT_EXISTS = 'nexists'
 
 # operator lookups
 operators = {
+    MATCH_WILDCARD: match_wildcard,
     MATCH_REGEX: match_regex,
     EQUALS_SHORT: equals,
     EQUALS_LONG: equals,

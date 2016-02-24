@@ -35,6 +35,11 @@ in development
   available in the log formatter string contain the correct values. (bug-fix)
 
   Reported by Andrew Regan.
+* Update ``matchregex`` rule criteria operator so it uses "dot all" mode where dot (``.``)
+  character will match any character including new lines. Previously ``*`` didn't match
+  new lines. (improvement)
+* Introduce new ``matchwildcard`` rule criteria operator. This operator provides supports for Unix
+  shell-style wildcards (``*``, ``?``). (new feature)
 
 1.3.2 - February 12, 2016
 -------------------------

@@ -20,10 +20,30 @@ from st2common.util import date as date_utils
 
 
 class OperatorTest(unittest2.TestCase):
+    def test_matchwildcard(self):
+        op = operators.get_operator('matchwildcard')
+        self.assertTrue(op('v1', 'v1'), 'Failed matchwildcard.')
+
+        self.assertFalse(op('test foo test', 'foo'), 'Failed matchwildcard.')
+        self.assertTrue(op('test foo test', '*foo*'), 'Failed matchwildcard.')
+        self.assertTrue(op('bar', 'b*r'), 'Failed matchwildcard.')
+        self.assertTrue(op('bar', 'b?r'), 'Failed matchwildcard.')
 
     def test_matchregex(self):
         op = operators.get_operator('matchregex')
         self.assertTrue(op('v1', 'v1$'), 'Failed matchregex.')
+
+        # Multi line string, make sure re.DOTALL is used
+        string = '''ponies
+        moar
+        foo
+        bar
+        yeah!
+        '''
+        self.assertTrue(op(string, '.*bar.*'), 'Failed matchregex.')
+
+        string = 'foo\r\nponies\nbar\nfooooo'
+        self.assertTrue(op(string, '.*ponies.*'), 'Failed matchregex.')
 
     def test_matchregex_case_variants(self):
         op = operators.get_operator('MATCHREGEX')
