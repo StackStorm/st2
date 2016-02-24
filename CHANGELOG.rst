@@ -40,6 +40,7 @@ in development
   new lines. (improvement)
 * Introduce new ``matchwildcard`` rule criteria operator. This operator provides supports for Unix
   shell-style wildcards (``*``, ``?``). (new feature)
+* Add ``--output`` and ``--existing-file`` options to st2-submit-debug-info. [Kale Blankenship]
 
 1.3.2 - February 12, 2016
 -------------------------
