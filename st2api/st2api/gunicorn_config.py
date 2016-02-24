@@ -22,9 +22,18 @@ from __future__ import absolute_import
 
 import os
 
+import eventlet
+
 __all__ = [
     'app'
 ]
+
+eventlet.monkey_patch(
+    os=True,
+    select=True,
+    socket=True,
+    thread=True,
+    time=True)
 
 bind = '127.0.0.1:9101'
 
