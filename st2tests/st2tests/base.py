@@ -488,7 +488,7 @@ class BaseSensorTestCase(TestCase):
 
 class BaseActionTestCase(TestCase):
     """
-    Base class for action tests.
+    Base class for Python runner action tests.
     """
 
     action_cls = None
