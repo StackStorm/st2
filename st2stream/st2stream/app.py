@@ -38,21 +38,17 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def _get_pecan_config():
-    opts = cfg.CONF.api_pecan
-
-    cfg_dict = {
+    config = {
         'app': {
-            'root': opts.root,
-            'template_path': opts.template_path,
-            'modules': opts.modules,
-            'debug': opts.debug,
-            'auth_enable': opts.auth_enable,
-            'errors': opts.errors,
+            'root': 'st2stream.controllers.root.RootController',
+            'modules': ['st2auth'],
+            'debug': cfg.CONF.stream.debug,
+            'errors': {'__force_dict__': True},
             'guess_content_type_from_ext': False
         }
     }
 
-    return pecan.configuration.conf_from_dict(cfg_dict)
+    return pecan.configuration.conf_from_dict(config)
 
 
 def setup_app(config=None):

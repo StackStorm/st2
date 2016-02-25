@@ -50,27 +50,10 @@ def _register_app_opts():
     # st2common config since they are also used outside st2stream
     api_opts = [
         cfg.IntOpt('heartbeat', default=25,
-                   help='Send empty message every N seconds to keep connection open')
-    ]
-    CONF.register_opts(api_opts, group='stream')
-
-    static_root = os.path.join(cfg.CONF.system.base_path, 'static')
-    template_path = os.path.join(BASE_DIR, 'templates/')
-    pecan_opts = [
-        cfg.StrOpt('root',
-                   default='st2stream.controllers.root.RootController',
-                   help='Action root controller'),
-        cfg.StrOpt('static_root', default=static_root),
-        cfg.StrOpt('template_path', default=template_path),
-        cfg.ListOpt('modules', default=['st2stream']),
-        cfg.BoolOpt('debug', default=False),
-        cfg.BoolOpt('auth_enable', default=True),
-        cfg.DictOpt('errors', default={'__force_dict__': True})
-    ]
-    CONF.register_opts(pecan_opts, group='api_pecan')
-
-    logging_opts = [
+                   help='Send empty message every N seconds to keep connection open'),
+        cfg.BoolOpt('debug', default=False,
+                    help='Specify to enable debug mode.'),
         cfg.StrOpt('logging', default='conf/logging.conf',
                    help='location of the logging.conf file')
     ]
-    CONF.register_opts(logging_opts, group='stream')
+    CONF.register_opts(api_opts, group='stream')
