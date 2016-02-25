@@ -22,6 +22,8 @@ __all__ = [
 
 class BaseRootController(object):
     logger = None
+    controllers = None
+    default_controller = None
 
     @expose()
     def _lookup(self, *remainder):

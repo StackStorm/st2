@@ -13,22 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
-import pecan
+from webtest import TestApp
 
-from st2api.controllers.v1 import stream
-from st2api import listener
-from tests import FunctionalTest
+from st2tests import DbTestCase
+from st2auth import app
+import st2tests.config as tests_config
 
 
-@mock.patch.object(pecan, 'request', type('request', (object,), {'environ': {}}))
-@mock.patch.object(pecan, 'response', mock.MagicMock())
-class TestStreamController(FunctionalTest):
+class FunctionalTest(DbTestCase):
 
-    @mock.patch.object(stream, 'format', mock.Mock())
-    @mock.patch.object(listener, 'get_listener', mock.Mock())
-    def test_get_all(self):
-        resp = stream.StreamController().get_all()
-        self.assertIsInstance(resp._app_iter, mock.Mock)
-        self.assertEqual(resp._status, '200 OK')
-        self.assertIn(('Content-Type', 'text/event-stream; charset=UTF-8'), resp._headerlist)
+    @classmethod
+    def setUpClass(cls):
+        super(FunctionalTest, cls).setUpClass()
+        tests_config.parse_args()
+        cls.app = TestApp(app.setup_app())
+
+    @classmethod
+    def tearDownClass(cls):
+        super(FunctionalTest, cls).tearDownClass()

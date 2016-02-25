@@ -32,6 +32,7 @@ from unittest2 import TestCase
 
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
+from st2common.bootstrap import runnersregistrar as runners_registrar
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.content.utils import get_packs_base_paths
 import st2common.models.db.rule as rule_model
@@ -94,6 +95,7 @@ class BaseTestCase(TestCase):
         """
         Register all the packs inside the fixtures directory.
         """
+
         registrar = ResourceRegistrar(use_pack_cache=False)
         registrar.register_packs(base_dirs=get_packs_base_paths())
 
