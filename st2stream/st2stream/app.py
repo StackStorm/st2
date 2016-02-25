@@ -13,11 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Stream WSGI application.
+
+This application listens for events on the RabbitMQ message bus and delivers them to all the
+clients which are connected to the stream HTTP endpoint (fan out approach).
+
+Note: This app doesn't need access to MongoDB, just RabbitMQ.
+"""
+
 import os
 
 import pecan
 from oslo_config import cfg
-from pecan.middleware.static import StaticFileMiddleware
 
 from st2stream import config as st2stream_config
 from st2common import hooks
@@ -86,10 +94,6 @@ def setup_app(config=None):
                          hooks=active_hooks,
                          **app_conf
                          )
-
-    # Static middleware which servers common static assets such as logos
-    static_root = os.path.join(BASE_DIR, 'public')
-    app = StaticFileMiddleware(app=app, directory=static_root)
 
     LOG.info('%s app created.' % __name__)
 
