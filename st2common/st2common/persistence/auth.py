@@ -57,9 +57,12 @@ class Token(Access):
 
     @classmethod
     def get(cls, value):
-        for model_object in TokenDB.objects(token=value):
-            return model_object
-        raise TokenNotFoundError()
+        result = cls.query(token=value).first()
+
+        if not result:
+            raise TokenNotFoundError()
+
+        return result
 
 
 class ApiKey(Access):
@@ -73,9 +76,12 @@ class ApiKey(Access):
     def get(cls, value):
         # DB does not contain key but the key_hash.
         value_hash = hash_utils.hash(value)
-        for model_object in ApiKeyDB.objects(key_hash=value_hash):
-            return model_object
-        raise ApiKeyNotFoundError('ApiKey with key_hash=%s not found.' % value_hash)
+        result = cls.query(key_hash=value_hash).first()
+
+        if not result:
+            raise ApiKeyNotFoundError('ApiKey with key_hash=%s not found.' % value_hash)
+
+        return result
 
     @classmethod
     def get_by_key_or_id(cls, value):
