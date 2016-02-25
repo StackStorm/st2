@@ -140,9 +140,9 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('host', default='0.0.0.0', help='StackStorm API server host'),
         cfg.IntOpt('port', default=9101, help='StackStorm API server port'),
         cfg.ListOpt('allow_origin', default=['http://127.0.0.1:3000'],
-                    help='List of origins allowed'),
+                    help='List of origins allowed for st2api, st2auth and st2stream'),
         cfg.BoolOpt('mask_secrets', default=True,
-                    help='True to mask secrets in API responses')
+                    help='True to mask secrets in the API responses')
     ]
     do_register_opts(api_opts, 'api', ignore_errors)
 
