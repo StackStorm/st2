@@ -1,0 +1,7 @@
+#!/usr/bin/env python2.7
+
+import sys
+from st2stream import cmd
+
+if __name__ == '__main__':
+    sys.exit(cmd.api.main())
