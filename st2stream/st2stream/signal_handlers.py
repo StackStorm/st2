@@ -16,9 +16,9 @@
 import signal
 
 __all__ = [
-    'register_api_signal_handlers'
+    'register_stream_signal_handlers'
 ]
 
 
-def register_api_signal_handlers(handler_func):
+def register_stream_signal_handlers(handler_func):
     signal.signal(signal.SIGINT, handler_func)

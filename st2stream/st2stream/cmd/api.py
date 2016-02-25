@@ -23,6 +23,8 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2common.util.wsgi import shutdown_server_kill_pending_requests
+from st2stream.signal_handlers import register_stream_signal_handlers
 from st2stream.listener import get_listener_if_set
 from st2stream import config
 config.register_opts()
@@ -61,6 +63,15 @@ def _run_server():
     max_pool_size = eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
     worker_pool = eventlet.GreenPool(max_pool_size)
     sock = eventlet.listen((host, port))
+
+    def queue_shutdown(signal_number, stack_frame):
+        eventlet.spawn_n(shutdown_server_kill_pending_requests, sock=sock,
+                         worker_pool=worker_pool, wait_time=WSGI_SERVER_REQUEST_SHUTDOWN_TIME)
+
+    # We register a custom SIGINT handler which allows us to kill long running active requests.
+    # Note: Eventually we will support draining (waiting for short-running requests), but we
+    # will still want to kill long running stream requests.
+    register_stream_signal_handlers(handler_func=queue_shutdown)
 
     wsgi.server(sock, app.setup_app(), custom_pool=worker_pool)
     return 0
