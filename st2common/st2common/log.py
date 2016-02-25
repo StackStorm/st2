@@ -153,6 +153,9 @@ class LoggingStream(object):
     def write(self, message):
         self._logger._log(self._level, message, None)
 
+    def flush(self):
+        pass
+
 
 def _audit(logger, msg, *args, **kwargs):
     if logger.isEnabledFor(logging.AUDIT):
