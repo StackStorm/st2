@@ -142,6 +142,13 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(api_opts, 'api', ignore_errors)
 
+    # Common stream options
+    api_opts = [
+        cfg.StrOpt('host', default='0.0.0.0', help='StackStorm API server host'),
+        cfg.IntOpt('port', default=9102, help='StackStorm API server port')
+    ]
+    do_register_opts(api_opts, 'stream', ignore_errors)
+
     # Common auth options
     auth_opts = [
         cfg.StrOpt('api_url', default=None,
