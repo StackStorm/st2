@@ -14,12 +14,10 @@
 # limitations under the License.
 
 import os
-import sys
 import json
 import atexit
 import argparse
 
-import eventlet
 from oslo_config import cfg
 
 from st2common import log as logging
