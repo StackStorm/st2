@@ -42,7 +42,7 @@ def _register_common_opts():
 
 
 def get_logging_config_path():
-    return cfg.CONF.api.logging
+    return cfg.CONF.stream.logging
 
 
 def _register_app_opts():
