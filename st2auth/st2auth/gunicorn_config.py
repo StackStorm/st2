@@ -21,6 +21,7 @@ st2auth configuration / wsgi entry point file for gunicorn.
 from __future__ import absolute_import
 
 import os
+import sys
 
 import eventlet
 
@@ -32,7 +33,7 @@ eventlet.monkey_patch(
     os=True,
     select=True,
     socket=True,
-    thread=True,
+    thread=False if '--use-debugger' in sys.argv else True,
     time=True)
 
 bind = '127.0.0.1:9100'
