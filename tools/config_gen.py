@@ -34,7 +34,7 @@ CONFIGS = ['st2actions.config',
            'st2reactor.sensor.config',
            'st2reactor.garbage_collector.config']
 
-SKIP_GROUPS = ['api_pecan']
+SKIP_GROUPS = ['api_pecan', 'rbac']
 
 # We group auth options together to nake it a bit more clear what applies where
 AUTH_OPTIONS = {
