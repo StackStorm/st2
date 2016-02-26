@@ -45,6 +45,7 @@ def _setup_config_opts():
 def _override_config_opts():
     _override_db_opts()
     _override_common_opts()
+    _override_api_opts()
 
 
 def _register_config_opts():
@@ -74,6 +75,11 @@ def _override_common_opts():
     CONF.set_override(name='mask_secrets', override=True, group='log')
     CONF.set_override(name='url', override='zake://', group='coordination')
     CONF.set_override(name='lock_timeout', override=1, group='coordination')
+
+
+def _override_api_opts():
+    CONF.set_override(name='allow_origin', override=['http://127.0.0.1:3000', 'http://dev'],
+                      group='api')
 
 
 def _register_common_opts():
