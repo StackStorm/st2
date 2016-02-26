@@ -27,6 +27,7 @@ CONFIGS = ['st2actions.config',
            'st2actions.notifier.config',
            'st2actions.resultstracker.config',
            'st2api.config',
+           'st2stream.config',
            'st2auth.config',
            'st2common.config',
            'st2exporter.config',
@@ -144,7 +145,13 @@ def _print_options(options):
 def main(args):
     opt_groups = {}
     for config in CONFIGS:
-        _import_config(config)
+        mod = _import_config(config)
+
+        try:
+            mod.register_opts()
+        except AttributeError:
+            pass
+
         _read_current_config(opt_groups)
         _clear_config()
     _read_groups(opt_groups)
