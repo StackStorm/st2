@@ -256,15 +256,14 @@ function st2stop(){
     fi
 
     if [ "${use_gunicorn}" = true ]; then
-        pids=`ps -ef | grep "[s]t2auth/gunicorn_config.py\|[s]t2api/gunicorn_config.py" | \
-              awk '{print $2}'`
+        pids=`ps -ef | grep "gunicorn_config.py" | awk '{print $2}'`
         if [ -n "$pids" ]; then
             echo "Killing gunicorn processes"
             # true ensures that any failure to kill a process which does not exist will not lead
             # to failure. for loop to ensure all processes are killed even if some are missing
             # assuming kill will fail-fast.
             for pid in ${pids}; do
-                echo ${pid} | xargs -L 1 kill || true
+                echo ${pid} | xargs -L 1 kill -9 || true
             done
         fi
     fi
