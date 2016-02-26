@@ -50,6 +50,7 @@ def _override_config_opts():
 def _register_config_opts():
     _register_common_opts()
     _register_api_opts()
+    _register_stream_opts()
     _register_auth_opts()
     _register_action_sensor_opts()
     _register_ssh_runner_opts()
@@ -83,16 +84,6 @@ def _register_common_opts():
 
 
 def _register_api_opts():
-    api_opts = [
-        cfg.ListOpt('allow_origin', default=['http://127.0.0.1:3000', 'http://dev'],
-                    help='List of origins allowed'),
-        cfg.IntOpt('heartbeat', default=25,
-                   help='Send empty message every N seconds to keep connection open'),
-        cfg.BoolOpt('mask_secrets', default=True,
-                    help='True to mask secrets in API responses')
-    ]
-    _register_opts(api_opts, group='api')
-
     # XXX: note : template_path value only works if started from the top-level of the codebase.
     # Brittle!
     pecan_opts = [
@@ -128,6 +119,14 @@ def _register_api_opts():
                     help='Use the .ssh/config file. Useful to override ports etc.')
     ]
     _register_opts(ssh_runner_opts, group='ssh_runner')
+
+
+def _register_stream_opts():
+    stream_opts = [
+        cfg.IntOpt('heartbeat', default=25,
+                   help='Send empty message every N seconds to keep connection open'),
+    ]
+    _register_opts(stream_opts, group='api')
 
 
 def _register_auth_opts():
