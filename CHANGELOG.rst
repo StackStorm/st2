@@ -42,6 +42,8 @@ in development
   shell-style wildcards (``*``, ``?``). (new feature)
 * Allow user to pass ``verbose`` parameter to ``linux.rm`` action. For backward compatibility
   reasons it defaults to ``true``. (improvement)
+* Drop deprecated and unused ``system.admin_users`` config option which has been replaced with
+  RBAC.
 
 1.3.2 - February 12, 2016
 -------------------------
