@@ -14,12 +14,10 @@
 # limitations under the License.
 
 import os
-import sys
 import json
 import atexit
 import argparse
 
-import eventlet
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -33,18 +31,14 @@ from st2common.services.triggerwatcher import TriggerWatcher
 from st2reactor.sensor.base import Sensor, PollingSensor
 from st2reactor.sensor import config
 from st2common.services.datastore import DatastoreService
+from st2common.util.monkey_patch import monkey_patch
 
 __all__ = [
     'SensorWrapper',
     'SensorService'
 ]
 
-eventlet.monkey_patch(
-    os=True,
-    select=True,
-    socket=True,
-    thread=False if '--use-debugger' in sys.argv else True,
-    time=True)
+monkey_patch()
 
 
 class SensorService(object):

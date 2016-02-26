@@ -23,6 +23,7 @@ from eventlet import wsgi
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
+from st2common.util.monkey_patch import monkey_patch
 from st2common.util.wsgi import shutdown_server_kill_pending_requests
 from st2api.signal_handlers import register_api_signal_handlers
 from st2api.listener import get_listener_if_set
@@ -34,13 +35,7 @@ __all__ = [
     'main'
 ]
 
-
-eventlet.monkey_patch(
-    os=True,
-    select=True,
-    socket=True,
-    thread=False if '--use-debugger' in sys.argv else True,
-    time=True)
+monkey_patch()
 
 LOG = logging.getLogger(__name__)
 

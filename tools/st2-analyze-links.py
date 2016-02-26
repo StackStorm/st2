@@ -29,14 +29,13 @@ To run :
 The command must run on a StackStorm box.
 """
 
-import eventlet
 import os
 import sets
-import sys
 
 from oslo_config import cfg
 
 from st2common import config
+from st2common.util.monkey_patch import monkey_patch
 from st2common.persistence.rule import Rule
 from st2common.service_setup import db_setup
 
@@ -55,15 +54,6 @@ def do_register_cli_opts(opts, ignore_errors=False):
         except:
             if not ignore_errors:
                 raise
-
-
-def _monkey_patch():
-    eventlet.monkey_patch(
-        os=True,
-        select=True,
-        socket=True,
-        thread=False if '--use-debugger' in sys.argv else True,
-        time=True)
 
 
 class RuleLink(object):
@@ -155,7 +145,7 @@ class Grapher(object):
 
 
 def main():
-    _monkey_patch()
+    monkey_patch()
 
     cli_opts = [
         cfg.StrOpt('action_ref', default=None,

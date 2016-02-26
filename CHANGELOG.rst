@@ -42,6 +42,8 @@ in development
   shell-style wildcards (``*``, ``?``). (new feature)
 * Allow user to pass ``verbose`` parameter to ``linux.rm`` action. For backward compatibility
   reasons it defaults to ``true``. (improvement)
+* Make sure that sensor container child processes take into account ``--use-debugger`` flag passed
+  to the sensor container. This fixes support for remote debugging for sensor processes. (bug-fix)
 
 1.3.2 - February 12, 2016
 -------------------------
