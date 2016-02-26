@@ -18,7 +18,7 @@ import pecan
 
 from st2stream.controllers.v1 import stream
 from st2stream import listener
-from tests.base import FunctionalTest
+from base import FunctionalTest
 
 
 @mock.patch.object(pecan, 'request', type('request', (object,), {'environ': {}}))
