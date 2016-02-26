@@ -125,8 +125,10 @@ def _register_stream_opts():
     stream_opts = [
         cfg.IntOpt('heartbeat', default=25,
                    help='Send empty message every N seconds to keep connection open'),
+        cfg.BoolOpt('debug', default=False,
+                    help='Specify to enable debug mode.'),
     ]
-    _register_opts(stream_opts, group='api')
+    _register_opts(stream_opts, group='stream')
 
 
 def _register_auth_opts():
