@@ -146,12 +146,7 @@ def main(args):
     opt_groups = {}
     for config in CONFIGS:
         mod = _import_config(config)
-
-        try:
-            mod.register_opts()
-        except AttributeError:
-            pass
-
+        mod.register_opts()
         _read_current_config(opt_groups)
         _clear_config()
     _read_groups(opt_groups)
