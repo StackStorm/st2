@@ -16,7 +16,7 @@
 from webtest import TestApp
 
 from st2tests import DbTestCase
-from st2auth import app
+from st2stream import app
 import st2tests.config as tests_config
 
 
