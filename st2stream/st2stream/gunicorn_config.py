@@ -42,5 +42,5 @@ config_args = ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.
 is_gunicorn = True
 
 app = {
-    'modules': ['st2api']
+    'modules': ['st2stream']
 }
