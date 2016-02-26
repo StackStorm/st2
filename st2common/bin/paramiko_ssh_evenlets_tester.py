@@ -18,18 +18,11 @@
 import argparse
 import os
 import pprint
-import sys
 
-import eventlet
-
+from st2common.util.monkey_patch import monkey_patch
 from st2common.ssh.parallel_ssh import ParallelSSHClient
 
-eventlet.monkey_patch(
-    os=True,
-    select=True,
-    socket=True,
-    thread=False if '--use-debugger' in sys.argv else True,
-    time=True)
+monkey_patch()
 
 
 def main(user, pkey, password, hosts_str, cmd, file_path, dir_path, delete_dir):

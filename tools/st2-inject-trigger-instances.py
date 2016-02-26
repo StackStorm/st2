@@ -28,13 +28,13 @@ meaningful work.
 
 import os
 import random
-import sys
 
 import eventlet
 from oslo_config import cfg
 import yaml
 
 from st2common import config
+from st2common.util.monkey_patch import monkey_patch
 from st2common.util import date as date_utils
 from st2common.transport.reactor import TriggerDispatcher
 
@@ -46,15 +46,6 @@ def do_register_cli_opts(opts, ignore_errors=False):
         except:
             if not ignore_errors:
                 raise
-
-
-def _monkey_patch():
-    eventlet.monkey_patch(
-        os=True,
-        select=True,
-        socket=True,
-        thread=False if '--use-debugger' in sys.argv else True,
-        time=True)
 
 
 def _inject_instances(trigger, rate_per_trigger, duration, payload={}):
@@ -75,7 +66,7 @@ def _inject_instances(trigger, rate_per_trigger, duration, payload={}):
 
 
 def main():
-    _monkey_patch()
+    monkey_patch()
 
     cli_opts = [
         cfg.IntOpt('rate', default=100,
