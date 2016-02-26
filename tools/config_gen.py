@@ -96,7 +96,7 @@ def _read_group(opt_group):
         print(COMMON_AUTH_OPTIONS_COMMENT)
         print('')
         common_options = [option for option in all_options if option['opt'].name in
-                   AUTH_OPTIONS['common']]
+                          AUTH_OPTIONS['common']]
         _print_options(options=common_options)
 
         print('')
@@ -125,8 +125,20 @@ def _read_groups(opt_groups):
 def _print_options(options):
     for opt in options:
         opt = opt['opt']
+
+        # Special handling for list options
+        if isinstance(opt, cfg.ListOpt):
+            if opt.default:
+                value = ','.join(opt.default)
+            else:
+                value = ''
+
+            value += ' # comma separated list allowed here.'
+        else:
+            value = opt.default
+
         print('# %s' % opt.help)
-        print('%s = %s' % (opt.name, opt.default))
+        print('%s = %s' % (opt.name, value))
 
 
 def main(args):
