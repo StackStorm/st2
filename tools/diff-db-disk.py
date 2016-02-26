@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 """
 
 Tags: Ops tool.
@@ -26,12 +25,11 @@ A utility script that diffs models registered in st2 db versus what's on disk.
 import difflib
 import json
 import os
-import sys
 
-import eventlet
 from oslo_config import cfg
 
 from st2common import config
+from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.content.loader import ContentPackLoader
 from st2common.content.loader import MetaLoader
@@ -72,15 +70,6 @@ def do_register_cli_opts(opts, ignore_errors=False):
         except:
             if not ignore_errors:
                 raise
-
-
-def _monkey_patch():
-    eventlet.monkey_patch(
-        os=True,
-        select=True,
-        socket=True,
-        thread=False if '--use-debugger' in sys.argv else True,
-        time=True)
 
 
 def _get_api_models_from_db(persistence_model, pack_dir=None):
@@ -236,7 +225,7 @@ def _diff_rules(pack_dir=None, verbose=True, content_diff=True):
 
 
 def main():
-    _monkey_patch()
+    monkey_patch()
 
     cli_opts = [
         cfg.BoolOpt('sensors', default=False,
