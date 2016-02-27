@@ -46,6 +46,9 @@ in development
   to the sensor container. This fixes support for remote debugging for sensor processes. (bug-fix)
 * Drop deprecated and unused ``system.admin_users`` config option which has been replaced with
   RBAC.
+* Allow user to specify a timezone in the CLI client config (``~/.st2/config``). If the timezone is
+  specified, all the timestamps displayed by the CLI will be shown in the configured timezone
+  instead of a default UTC display. (new feature)
 
 1.3.2 - February 12, 2016
 -------------------------
