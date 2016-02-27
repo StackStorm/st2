@@ -18,7 +18,7 @@ from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
 from st2client.commands import resource
-from st2client.utils.date import format_isodate
+from st2client.utils.date import format_isodate_for_user_timezone
 
 
 TRACE_ATTRIBUTE_DISPLAY_ORDER = ['id', 'trace_tag', 'action_executions', 'rules',
@@ -106,7 +106,7 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
     display_attributes = ['id', 'trace_tag', 'start_timestamp']
 
     attribute_transform_functions = {
-        'start_timestamp': format_isodate
+        'start_timestamp': format_isodate_for_user_timezone
     }
 
     attribute_display_order = TRACE_ATTRIBUTE_DISPLAY_ORDER
@@ -173,7 +173,7 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
     display_attributes = ['all']
     attribute_display_order = TRACE_ATTRIBUTE_DISPLAY_ORDER
     attribute_transform_functions = {
-        'start_timestamp': format_isodate
+        'start_timestamp': format_isodate_for_user_timezone
     }
 
     pk_argument_name = 'id'
