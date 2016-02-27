@@ -51,6 +51,8 @@ from st2client.commands import rule_enforcement
 from st2client.config_parser import CLIConfigParser
 from st2client.config_parser import ST2_CONFIG_DIRECTORY
 from st2client.config_parser import ST2_CONFIG_PATH
+from st2client.config import set_config
+from st2client.config import get_config
 from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.date import parse as parse_isotime
 from st2client.utils.misc import merge_dicts
@@ -269,7 +271,7 @@ class Shell(object):
         kwargs = {}
 
         if not skip_config:
-            # Config parsing is skipped
+            # Config parsing is not skipped
             kwargs = merge_dicts(kwargs, config_file_options)
 
         kwargs = merge_dicts(kwargs, cli_options)
@@ -277,13 +279,13 @@ class Shell(object):
 
         client = Client(**kwargs)
 
-        if ST2_CLI_SKIP_CONFIG:
+        if skip_config:
             # Config parsing is skipped
             LOG.info('Skipping parsing CLI config')
             return client
 
-        # Ok to load config at this point.
-        rc_config = self._parse_config_file(args=args)
+        # Ok to use config at this point
+        rc_config = get_config()
 
         # Silence SSL warnings
         silence_ssl_warnings = rc_config.get('general', {}).get('silence_ssl_warnings', False)
@@ -346,6 +348,11 @@ class Shell(object):
             self._print_config(args=args)
             return 3
 
+        # Parse config and store it in the config module
+        config = self._parse_config_file(args=args)
+        set_config(config=config)
+
+        # Setup client and run the command
         try:
             debug = getattr(args, 'debug', False)
             if debug:
