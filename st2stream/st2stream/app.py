@@ -60,7 +60,7 @@ def setup_app(config=None):
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
         # server case, this setup would have already occurred.
-        common_setup(service='stream', config=st2stream_config, setup_db=False,
+        common_setup(service='stream', config=st2stream_config, setup_db=True,
                      register_mq_exchanges=True,
                      register_signal_handlers=True,
                      register_internal_trigger_types=False,
