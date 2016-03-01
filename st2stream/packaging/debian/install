@@ -1,0 +1,3 @@
+st2stream usr/lib/python2.7/dist-packages/
+conf/* etc/st2stream/
+bin/* usr/bin/
