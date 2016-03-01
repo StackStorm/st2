@@ -13,25 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common import log as logging
-from st2common.controllers import BaseRootController
-import st2auth.controllers.v1.root as v1_root
+import mock
+import pecan
 
-__all__ = [
-    'RootController'
-]
-
-LOG = logging.getLogger(__name__)
+from st2stream.controllers.v1 import stream
+from st2stream import listener
+from base import FunctionalTest
 
 
-class RootController(BaseRootController):
+@mock.patch.object(pecan, 'request', type('request', (object,), {'environ': {}}))
+@mock.patch.object(pecan, 'response', mock.MagicMock())
+class TestStreamController(FunctionalTest):
 
-    logger = LOG
-
-    def __init__(self):
-        v1_controller = v1_root.RootController()
-        self.default_controller = v1_controller
-
-        self.controllers = {
-            'v1': v1_controller,
-        }
+    @mock.patch.object(stream, 'format', mock.Mock())
+    @mock.patch.object(listener, 'get_listener', mock.Mock())
+    def test_get_all(self):
+        resp = stream.StreamController().get_all()
+        self.assertIsInstance(resp._app_iter, mock.Mock)
+        self.assertEqual(resp._status, '200 OK')
+        self.assertIn(('Content-Type', 'text/event-stream; charset=UTF-8'), resp._headerlist)

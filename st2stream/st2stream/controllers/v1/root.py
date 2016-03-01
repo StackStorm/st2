@@ -13,25 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common import log as logging
-from st2common.controllers import BaseRootController
-import st2auth.controllers.v1.root as v1_root
+from st2stream.controllers.v1.stream import StreamController
 
 __all__ = [
     'RootController'
 ]
 
-LOG = logging.getLogger(__name__)
 
-
-class RootController(BaseRootController):
-
-    logger = LOG
-
-    def __init__(self):
-        v1_controller = v1_root.RootController()
-        self.default_controller = v1_controller
-
-        self.controllers = {
-            'v1': v1_controller,
-        }
+class RootController(object):
+    stream = StreamController()

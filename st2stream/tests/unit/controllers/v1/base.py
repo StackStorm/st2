@@ -13,25 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common import log as logging
-from st2common.controllers import BaseRootController
-import st2auth.controllers.v1.root as v1_root
+from webtest import TestApp
 
-__all__ = [
-    'RootController'
-]
-
-LOG = logging.getLogger(__name__)
+from st2tests import DbTestCase
+from st2stream import app
+import st2tests.config as tests_config
 
 
-class RootController(BaseRootController):
+class FunctionalTest(DbTestCase):
 
-    logger = LOG
+    @classmethod
+    def setUpClass(cls):
+        super(FunctionalTest, cls).setUpClass()
+        tests_config.parse_args()
+        cls.app = TestApp(app.setup_app())
 
-    def __init__(self):
-        v1_controller = v1_root.RootController()
-        self.default_controller = v1_controller
-
-        self.controllers = {
-            'v1': v1_controller,
-        }
+    @classmethod
+    def tearDownClass(cls):
+        super(FunctionalTest, cls).tearDownClass()

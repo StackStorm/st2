@@ -42,29 +42,20 @@ def _register_common_opts():
 
 
 def get_logging_config_path():
-    return cfg.CONF.api.logging
+    return cfg.CONF.stream.logging
 
 
 def _register_app_opts():
-    # Note "host", "port", "allow_origin", "mask_secrets" options are registered as part of
-    # st2common config since they are also used outside st2api
-    static_root = os.path.join(cfg.CONF.system.base_path, 'static')
-    template_path = os.path.join(BASE_DIR, 'templates/')
-    pecan_opts = [
-        cfg.StrOpt('root',
-                   default='st2api.controllers.root.RootController',
-                   help='Action root controller'),
-        cfg.StrOpt('static_root', default=static_root),
-        cfg.StrOpt('template_path', default=template_path),
-        cfg.ListOpt('modules', default=['st2api']),
-        cfg.BoolOpt('debug', default=False),
-        cfg.BoolOpt('auth_enable', default=True),
-        cfg.DictOpt('errors', default={'__force_dict__': True})
-    ]
-    CONF.register_opts(pecan_opts, group='api_pecan')
-
-    logging_opts = [
+    # Note "allow_origin", "mask_secrets" options are registered as part of st2common config since
+    # they are also used outside st2stream
+    api_opts = [
+        cfg.StrOpt('host', default='0.0.0.0', help='StackStorm stream API server host'),
+        cfg.IntOpt('port', default=9102, help='StackStorm API stream, server port'),
+        cfg.IntOpt('heartbeat', default=25,
+                   help='Send empty message every N seconds to keep connection open'),
+        cfg.BoolOpt('debug', default=False,
+                    help='Specify to enable debug mode.'),
         cfg.StrOpt('logging', default='conf/logging.conf',
                    help='location of the logging.conf file')
     ]
-    CONF.register_opts(logging_opts, group='api')
+    CONF.register_opts(api_opts, group='stream')

@@ -138,6 +138,18 @@ function st2start(){
             --config-file $ST2_CONF
     fi
 
+    # Run st2stream API server
+    if [ "${use_gunicorn}" = true ]; then
+        echo '  using gunicorn to run st2-stream'
+        export ST2_CONFIG_PATH=${ST2_CONF}
+        screen -d -m -S st2-stream ./virtualenv/bin/gunicorn_pecan \
+            ./st2stream/st2stream/gunicorn_config.py -k eventlet -b 127.0.0.1:9102 --workers 1
+    else
+        screen -d -m -S st2-stream ./virtualenv/bin/python \
+            ./st2stream/bin/st2stream \
+            --config-file $ST2_CONF
+    fi
+
     # Start a screen for every runner
     echo 'Starting screen sessions for st2-actionrunner(s)...'
     RUNNER_SCREENS=()

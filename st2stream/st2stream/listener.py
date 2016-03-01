@@ -89,7 +89,7 @@ class Listener(ConsumerMixin):
         try:
             while not self._stopped:
                 try:
-                    yield queue.get(timeout=cfg.CONF.api.heartbeat)
+                    yield queue.get(timeout=cfg.CONF.stream.heartbeat)
                 except eventlet.queue.Empty:
                     yield
         finally:
