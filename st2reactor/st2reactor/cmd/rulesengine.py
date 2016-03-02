@@ -20,6 +20,7 @@ import eventlet
 from oslo_config import cfg
 
 from st2common import log as logging
+from st2common.constants.timer import TIMER_ENABLED_LOG_LINE, TIMER_DISABLED_LOG_LINE
 from st2common.logging.misc import get_logger_name_for_module
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
@@ -33,7 +34,6 @@ monkey_patch()
 
 LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
 LOG = logging.getLogger(LOGGER_NAME)
-
 
 def _setup():
     common_setup(service='rulesengine', config=config, setup_db=True, register_mq_exchanges=True,
@@ -59,7 +59,9 @@ def _run_worker():
         if cfg.CONF.timer.enable:
             timer = St2Timer(local_timezone=cfg.CONF.timer.local_timezone)
             timer_thread = eventlet.spawn(_kickoff_timer, timer)
-            LOG.info('Timer is enabled.')
+            LOG.info(TIMER_ENABLED_LOG_LINE)
+        else:
+            LOG.info(TIMER_DISABLED_LOG_LINE)
         rules_engine_worker.start()
         if timer:
             return timer_thread.wait() and rules_engine_worker.wait()
