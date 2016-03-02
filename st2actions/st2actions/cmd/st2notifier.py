@@ -2,6 +2,8 @@ import eventlet
 import os
 import sys
 
+from oslo_config import cfg
+
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
@@ -31,16 +33,14 @@ def _run_worker():
     try:
         if cfg.CONF.scheduler.enable:
             actions_rescheduler = scheduler.get_rescheduler()
-            rescheduler_thread = eventlet.spawn(actions_rescheduler.start)
-            LOG.info('Rescheduler is enabled. Started on thread %s.', rescheduler_thread)
+            eventlet.spawn(actions_rescheduler.start)
+            LOG.info('Rescheduler is enabled.')
         actions_notifier.start(wait=True)
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Actions notifier stopped.', os.getpid())
         if actions_rescheduler:
             actions_rescheduler.shutdown()
         actions_notifier.shutdown()
-    except:
-        return 1
     return 0
 
 

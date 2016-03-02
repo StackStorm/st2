@@ -59,7 +59,7 @@ def _run_worker():
         if cfg.CONF.timer.enable:
             timer = St2Timer(local_timezone=cfg.CONF.timer.local_timezone)
             timer_thread = eventlet.spawn(_kickoff_timer, timer)
-            LOG.info('Timer is enabled. Started on thread %s', timer_thread)
+            LOG.info('Timer is enabled.')
         rules_engine_worker.start()
         if timer:
             return timer_thread.wait() and rules_engine_worker.wait()
