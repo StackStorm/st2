@@ -5,6 +5,8 @@
 
 set -e
 exec >/dev/null
+ST2_USER=st2
+SYS_USER=stanley
 
 if [ "$1" = "install" -a -n "$2" ] ; then
   [ -f /etc/logrotate.d/st2.disabled ] && mv -f /etc/logrotate.d/st2.disabled /etc/logrotate.d/st2
@@ -12,12 +14,12 @@ fi
 
 # Create st2 users
 if (! id st2 2>/dev/null); then
-  adduser --group --disabled-password --no-create-home --system st2
+  adduser --group --disabled-password --no-create-home --system $ST2_USER
 fi
 
-if (! id stanley 2>/dev/null); then
+if (! id $SYS_USER 2>/dev/null); then
   adduser --group stanley
-  adduser --disabled-password --gecos "" --ingroup stanley stanley
+  adduser --disabled-password --gecos "" --ingroup $SYS_USER $SYS_USER
 fi
 
 # case "$1" in
