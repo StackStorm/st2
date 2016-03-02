@@ -17,25 +17,25 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-SYS_USER=stanley
 ST2_USER=st2
+PACKS_GROUP=st2packs
 ST2_UPGRADESTAMP="/tmp/.stamp-stackstorm-st2-deb-package"
 upgrading=0
 
 ## Permissions of files which should be set on install
 DEST_PERMS=$(cat <<EHD | sed 's/\s\+/ /g'
-ug+rw _sysuser:_st2user /opt/stackstorm/packs
-ug+rw _sysuser:_st2user /opt/stackstorm/virtualenvs
-ug+rw _st2user:_st2user /var/log/st2
-755 _st2user:root       /opt/stackstorm/exports
-600 _st2user:_st2user   /etc/st2/htpasswd
+ug+rw root:_packsgroup /opt/stackstorm/packs
+ug+rw root:_packsgroup /opt/stackstorm/virtualenvs
+755 _st2user:root      /opt/stackstorm/exports
+755 _st2user:_st2user  /var/log/st2
+600 _st2user:_st2user  /etc/st2/htpasswd
 EHD
 )
 
 ## Fix directories permissions on install (different across maint scripts!)
 set_permissions() {
   local fileperms="$1"
-  fileperms=$(echo "$fileperms" | sed -e "s/_sysuser/$SYS_USER/g" -e "s/_st2user/$ST2_USER/g")
+  fileperms=$(echo "$fileperms" | sed -e "s/_st2user/$ST2_USER/g" -e "s/_packsgroup/$PACKS_GROUP/g")
   # Reqursively chown given destinations!
   echo "$fileperms" | cut -f2,3 -d' ' | xargs -n2 chown -R
   # Set directories mode
