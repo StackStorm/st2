@@ -27,13 +27,17 @@ def _setup():
 def _run_worker():
     LOG.info('(PID=%s) Actions notifier started.', os.getpid())
     actions_notifier = notifier.get_notifier()
-    actions_rescheduler = scheduler.get_rescheduler()
+    actions_rescheduler = None
     try:
-        eventlet.spawn(actions_rescheduler.start)
+        if cfg.CONF.scheduler.enable:
+            actions_rescheduler = scheduler.get_rescheduler()
+            rescheduler_thread = eventlet.spawn(actions_rescheduler.start)
+            LOG.info('Rescheduler is enabled. Started on thread %s.', rescheduler_thread)
         actions_notifier.start(wait=True)
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) Actions notifier stopped.', os.getpid())
-        actions_rescheduler.shutdown()
+        if actions_rescheduler:
+            actions_rescheduler.shutdown()
         actions_notifier.shutdown()
     except:
         return 1
