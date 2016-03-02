@@ -64,21 +64,23 @@ enable_logrotate() {
 }
 
 ## Fix directories permissions on upgrade (different across maint scripts!)
-#  (!USED FOR COMPATIBILITY ON UPGRADE FROM PREVIOUS VERSIONS OF PACKAGES!)
+#  NB! USED FOR COMPATIBILITY ON UPGRADE FROM PREVIOUS VERSIONS OF PACKAGES.
+#  NB! In future package releases reseting permissions SHOULD BE REMOVED.
 #
 set_permissions() {
-  local fileperms="$1" mode= ownership= path= current_ownership=
+  local fileperms="$1" mode= ownership= path= current_ownership= user= group=
 
   echo "$fileperms" | sed -e "s/_packsgroup/$PACKS_GROUP/g" -e "s/_st2user/$ST2_USER/g" |
   while read mode ownership path; do
-    current_ownership=$(stat -c '%U:%G' $path)
+    user=$(echo $ownership | cut -f1 -d:)
+    group=$(echo $ownership | cut -f2 -d:)
+    # set top level permissions whether it's a file or directory
+    [ -e $path ] || continue
+    chown $ownership $path && chmod $mode $path
 
-    # Do not upgrade ownership on each upgrade just do it during the first one
-    if [ "$current_ownership" != "$ownership" ]; then
-      # Recursively own path (in case it's a directory) 
-      chown -R $ownership $path
-      chmod -R $mode $path
-    fi
+    # recursively change permissions of children (since those are directories)
+    find $path -mindepth 1 -maxdepth 1 -not \( -user $user -group $group \) |
+      xargs -I {} sh -c "echo chown -R $ownership {} && echo chmod -R $mode {}"
   done
 }
 
