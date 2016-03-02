@@ -35,6 +35,7 @@ monkey_patch()
 LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
 LOG = logging.getLogger(LOGGER_NAME)
 
+
 def _setup():
     common_setup(service='rulesengine', config=config, setup_db=True, register_mq_exchanges=True,
                  register_signal_handlers=True)

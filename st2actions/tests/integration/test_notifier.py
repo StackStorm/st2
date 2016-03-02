@@ -24,7 +24,7 @@ from st2tests.base import IntegrationTestCase
 from st2tests.base import CleanDbTestCase
 
 __all__ = [
-    'TimerEnableDisableTestCase'
+    'SchedulerEnableDisableTestCase'
 ]
 
 
@@ -96,7 +96,6 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
             if SCHEDULER_ENABLED_LOG_LINE in line:
                 self.assertTrue(True)
                 break
-
 
     def test_scheduler_disable_explicit(self):
         self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[scheduler]\nenable = False')

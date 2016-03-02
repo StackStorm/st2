@@ -97,7 +97,6 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
                 self.assertTrue(True)
                 break
 
-
     def test_timer_disable_explicit(self):
         self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[timer]\nenable = False')
         process = None
