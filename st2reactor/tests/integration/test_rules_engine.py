@@ -16,7 +16,6 @@ import os
 import signal
 import tempfile
 
-import eventlet
 from eventlet.green import subprocess
 
 from st2common.constants.timer import TIMER_ENABLED_LOG_LINE, TIMER_DISABLED_LOG_LINE
@@ -60,63 +59,51 @@ class TimerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
         process = None
         try:
             process = self._start_rules_engine(cmd=self.cmd)
-            eventlet.sleep(1)
+            lines = 0
+            while lines < 100:
+                line = process.stdout.readline()
+                lines += 1
+                if TIMER_ENABLED_LOG_LINE in line:
+                    self.assertTrue(True)
+                    break
         finally:
             if process:
                 process.send_signal(signal.SIGKILL)
                 self.remove_process(process=process)
-
-        lines = 0
-        while lines < 100:
-            line = process.stdout.readline()
-            if not line:
-                self.assertTrue(False, 'Timer enabled not found.')
-            lines += 1
-            if TIMER_ENABLED_LOG_LINE in line:
-                self.assertTrue(True)
-                break
 
     def test_timer_enable_explicit(self):
         self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[timer]\nenable = True')
         process = None
         try:
             process = self._start_rules_engine(cmd=self.cmd)
-            eventlet.sleep(1)
+            lines = 0
+            while lines < 100:
+                line = process.stdout.readline()
+                lines += 1
+                if TIMER_ENABLED_LOG_LINE in line:
+                    self.assertTrue(True)
+                    break
         finally:
             if process:
                 process.send_signal(signal.SIGKILL)
                 self.remove_process(process=process)
-
-        lines = 0
-        while lines < 100:
-            line = process.stdout.readline()
-            if not line:
-                self.assertTrue(False, 'Timer enabled not found.')
-            lines += 1
-            if TIMER_ENABLED_LOG_LINE in line:
-                self.assertTrue(True)
-                break
 
     def test_timer_disable_explicit(self):
         self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[timer]\nenable = False')
         process = None
         try:
             process = self._start_rules_engine(cmd=self.cmd)
-            eventlet.sleep(1)
+            lines = 0
+            while lines < 100:
+                line = process.stdout.readline()
+                lines += 1
+                if TIMER_DISABLED_LOG_LINE in line:
+                    self.assertTrue(True)
+                    break
         finally:
             if process:
                 process.send_signal(signal.SIGKILL)
                 self.remove_process(process=process)
-
-        max_lines = 0
-        while max_lines < 100:
-            line = process.stdout.readline()
-            if not line:
-                self.assertTrue(False, 'Timer disabled not found.')
-            max_lines += 1
-            if TIMER_DISABLED_LOG_LINE in line:
-                self.assertTrue(True)
-                break
 
     def _start_rules_engine(self, cmd):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,

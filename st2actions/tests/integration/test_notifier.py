@@ -16,7 +16,6 @@ import os
 import signal
 import tempfile
 
-import eventlet
 from eventlet.green import subprocess
 
 from st2common.constants.scheduler import SCHEDULER_ENABLED_LOG_LINE, SCHEDULER_DISABLED_LOG_LINE
@@ -60,63 +59,51 @@ class SchedulerEnableDisableTestCase(IntegrationTestCase, CleanDbTestCase):
         process = None
         try:
             process = self._start_notifier(cmd=self.cmd)
-            eventlet.sleep(1)
+            lines = 0
+            while lines < 100:
+                line = process.stdout.readline()
+                lines += 1
+                if SCHEDULER_ENABLED_LOG_LINE in line:
+                    self.assertTrue(True)
+                    break
         finally:
             if process:
                 process.send_signal(signal.SIGKILL)
                 self.remove_process(process=process)
-
-        lines = 0
-        while lines < 100:
-            line = process.stdout.readline()
-            if not line:
-                self.assertTrue(False, 'Scheduler enabled not found.')
-            lines += 1
-            if SCHEDULER_ENABLED_LOG_LINE in line:
-                self.assertTrue(True)
-                break
 
     def test_scheduler_enable_explicit(self):
         self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[scheduler]\nenable = True')
         process = None
         try:
             process = self._start_notifier(cmd=self.cmd)
-            eventlet.sleep(1)
+            lines = 0
+            while lines < 100:
+                line = process.stdout.readline()
+                lines += 1
+                if SCHEDULER_ENABLED_LOG_LINE in line:
+                    self.assertTrue(True)
+                    break
         finally:
             if process:
                 process.send_signal(signal.SIGKILL)
                 self.remove_process(process=process)
-
-        lines = 0
-        while lines < 100:
-            line = process.stdout.readline()
-            if not line:
-                self.assertTrue(False, 'Scheduler enabled not found.')
-            lines += 1
-            if SCHEDULER_ENABLED_LOG_LINE in line:
-                self.assertTrue(True)
-                break
 
     def test_scheduler_disable_explicit(self):
         self._append_to_cfg_file(cfg_path=self.cfg_path, content='\n[scheduler]\nenable = False')
         process = None
         try:
             process = self._start_notifier(cmd=self.cmd)
-            eventlet.sleep(1)
+            lines = 0
+            while lines < 100:
+                line = process.stdout.readline()
+                lines += 1
+                if SCHEDULER_DISABLED_LOG_LINE in line:
+                    self.assertTrue(True)
+                    break
         finally:
             if process:
                 process.send_signal(signal.SIGKILL)
                 self.remove_process(process=process)
-
-        max_lines = 0
-        while max_lines < 100:
-            line = process.stdout.readline()
-            if not line:
-                self.assertTrue(False, 'Scheduler disabled not found.')
-            max_lines += 1
-            if SCHEDULER_DISABLED_LOG_LINE in line:
-                self.assertTrue(True)
-                break
 
     def _start_notifier(self, cmd):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
