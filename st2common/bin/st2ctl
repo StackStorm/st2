@@ -76,7 +76,7 @@ function service_manager() {
   if [ -d /run/systemd/system ]; then
     # systemd is running
     systemctl $action $svcname
-  elif [ $(cat /proc/1/comm) = init ] && (/sbin/initctl version 2>&1) &&
+  elif [ $(cat /proc/1/comm) = init ] && (/sbin/initctl version 2>/dev/null | grep -q upstart) &&
           [ -f /etc/init/${svcname}.conf ]; then
     # init is running, and is upstart and service config is available
     # ! upstart running detection is a MUST, since upstart can be just
