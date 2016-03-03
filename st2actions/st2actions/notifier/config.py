@@ -47,6 +47,7 @@ def _register_notifier_opts():
     CONF.register_opts(notifier_opts, group='notifier')
 
     scheduler_opts = [
+        cfg.BoolOpt('enable', default=True, help='Specify to enable actions rescheduler.'),
         cfg.IntOpt('delayed_execution_recovery', default=600,
                    help='The time in seconds to wait before recovering delayed action executions.'),
         cfg.IntOpt('rescheduling_interval', default=300,

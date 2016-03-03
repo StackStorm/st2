@@ -48,7 +48,8 @@ def _register_rules_engine_opts():
 
     timer_opts = [
         cfg.StrOpt('local_timezone', default='America/Los_Angeles',
-                   help='Timezone pertaining to the location where st2 is run.')
+                   help='Timezone pertaining to the location where st2 is run.'),
+        cfg.BoolOpt('enable', default=True, help='Specify to enable Timer.')
     ]
     CONF.register_opts(timer_opts, group='timer')
 
