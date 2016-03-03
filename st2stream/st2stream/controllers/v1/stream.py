@@ -21,8 +21,7 @@ from pecan.rest import RestController
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.util.jsonify import json_encode
-
-from st2api.listener import get_listener
+from st2stream.listener import get_listener
 
 LOG = logging.getLogger(__name__)
 

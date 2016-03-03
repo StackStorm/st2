@@ -13,12 +13,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import signal
+"""
+st2stream configuration / wsgi entry point file for gunicorn.
+"""
+
+# Note: We need this import otherwise pecan will try to import from local, not global cmd package
+from __future__ import absolute_import
+
+import os
+import sys
+
+import eventlet
 
 __all__ = [
-    'register_api_signal_handlers'
+    'app'
 ]
 
+eventlet.monkey_patch(
+    os=True,
+    select=True,
+    socket=True,
+    thread=False if '--use-debugger' in sys.argv else True,
+    time=True)
 
-def register_api_signal_handlers(handler_func):
-    signal.signal(signal.SIGINT, handler_func)
+bind = '127.0.0.1:9101'
+
+config_args = ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')]
+is_gunicorn = True
+
+app = {
+    'modules': ['st2stream']
+}

@@ -46,18 +46,8 @@ def get_logging_config_path():
 
 
 def _register_app_opts():
-    # Note "host" and "port" options are registerd as part of st2common since they are also used
-    # outside st2api
-    api_opts = [
-        cfg.ListOpt('allow_origin', default=['http://127.0.0.1:3000'],
-                    help='List of origins allowed'),
-        cfg.IntOpt('heartbeat', default=25,
-                   help='Send empty message every N seconds to keep connection open'),
-        cfg.BoolOpt('mask_secrets', default=True,
-                    help='True to mask secrets in API responses')
-    ]
-    CONF.register_opts(api_opts, group='api')
-
+    # Note "host", "port", "allow_origin", "mask_secrets" options are registered as part of
+    # st2common config since they are also used outside st2api
     static_root = os.path.join(cfg.CONF.system.base_path, 'static')
     template_path = os.path.join(BASE_DIR, 'templates/')
     pecan_opts = [

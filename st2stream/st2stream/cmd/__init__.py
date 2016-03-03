@@ -13,22 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
-import pecan
+from st2stream.cmd import api
 
-from st2api.controllers.v1 import stream
-from st2api import listener
-from tests import FunctionalTest
-
-
-@mock.patch.object(pecan, 'request', type('request', (object,), {'environ': {}}))
-@mock.patch.object(pecan, 'response', mock.MagicMock())
-class TestStreamController(FunctionalTest):
-
-    @mock.patch.object(stream, 'format', mock.Mock())
-    @mock.patch.object(listener, 'get_listener', mock.Mock())
-    def test_get_all(self):
-        resp = stream.StreamController().get_all()
-        self.assertIsInstance(resp._app_iter, mock.Mock)
-        self.assertEqual(resp._status, '200 OK')
-        self.assertIn(('Content-Type', 'text/event-stream; charset=UTF-8'), resp._headerlist)
+__all__ = ['api']

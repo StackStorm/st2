@@ -17,6 +17,7 @@ from pecan import expose
 
 from st2common import __version__
 from st2common import log as logging
+from st2common.controllers import BaseRootController
 import st2api.controllers.v1.root as v1_root
 import st2api.controllers.exp.root as exp_root
 
@@ -27,7 +28,8 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-class RootController(object):
+class RootController(BaseRootController):
+    logger = LOG
 
     def __init__(self):
         v1_controller = v1_root.RootController()
@@ -52,20 +54,3 @@ class RootController(object):
         data['version'] = __version__
         data['docs_url'] = docs_url
         return data
-
-    @expose()
-    def _lookup(self, *remainder):
-        version = ''
-        if len(remainder) > 0:
-            version = remainder[0]
-
-            if remainder[len(remainder) - 1] == '':
-                # If the url has a trailing '/' remainder will contain an empty string.
-                # In order for further pecan routing to work this method needs to remove
-                # the empty string from end of the tuple.
-                remainder = remainder[:len(remainder) - 1]
-        versioned_controller = self.controllers.get(version, None)
-        if versioned_controller:
-            return versioned_controller, remainder[1:]
-        LOG.debug('No version specified in URL. Will use default controller.')
-        return self.default_controller, remainder
