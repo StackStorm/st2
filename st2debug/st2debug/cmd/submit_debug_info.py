@@ -596,6 +596,8 @@ def main():
                         help='Specify an existing file to operate on')
     args = parser.parse_args()
 
+    setup_logging()
+
     # Ensure that not all options have been excluded
     abort = True
     for arg_name in ARG_NAMES:
@@ -607,8 +609,16 @@ def main():
 
     # Get setting overrides from yaml file if specified
     if args.config:
-        with open(args.config, 'r') as yaml_file:
-            config_file = yaml.load(yaml_file)
+        try:
+            with open(args.config, 'r') as yaml_file:
+                config_file = yaml.safe_load(yaml_file)
+        except Exception as e:
+            LOG.error('Failed to parse config file: %s' % e)
+            sys.exit(1)
+
+        if not isinstance(config_file, dict):
+            LOG.error('Unrecognized config file format')
+            sys.exit(1)
     else:
         config_file = {}
 
@@ -652,7 +662,6 @@ def main():
             user_info['email'] = six.moves.input('Email: ')
             user_info['comment'] = six.moves.input('Comment: ')
 
-    setup_logging()
 
     debug_collector = DebugInfoCollector(include_logs=not args.exclude_logs,
                                          include_configs=not args.exclude_configs,
