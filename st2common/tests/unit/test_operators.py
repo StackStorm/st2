@@ -45,6 +45,51 @@ class OperatorTest(unittest2.TestCase):
         string = 'foo\r\nponies\nbar\nfooooo'
         self.assertTrue(op(string, '.*ponies.*'), 'Failed matchregex.')
 
+    def test_imatchregex(self):
+        op = operators.get_operator('imatchregex')
+        self.assertTrue(op('V1', 'v1$'), 'Failed imatchregex.')
+
+        # Multi line string, make sure re.DOTALL is used
+        string = '''ponies
+        moar
+        foo
+        Bar
+        yeah!
+        '''
+        self.assertTrue(op(string, '.*bar.*'), 'Failed imatchregex.')
+
+        string = 'foo\r\nPONIES\nbar\nfooooo'
+        self.assertTrue(op(string, '.*ponies.*'), 'Failed imatchregex.')
+
+    def test_imatchregex_fail(self):
+        op = operators.get_operator('imatchregex')
+        self.assertFalse(op('V1_foo', 'v1$'), 'Passed imatchregex.')
+
+    def test_isearchregex(self):
+        op = operators.get_operator('isearchregex')
+        self.assertTrue(op('V1', 'v1$'), 'Failed isearchregex.')
+        
+        string = 'fooPONIESbarfooooo'
+        self.assertTrue(op(string, 'ponies'), 'Failed isearchregex.')
+
+    def test_isearchregex_fail(self):
+        op = operators.get_operator('isearchregex')
+        self.assertFalse(op('V1_foo', 'v1$'), 'Passed isearchregex.')
+
+    def test_searchregex(self):
+        op = operators.get_operator('searchregex')
+        self.assertTrue(op('v1', 'v1$'), 'Failed searchregex.')
+        
+        string = 'fooponiesbarfooooo'
+        self.assertTrue(op(string, 'ponies'), 'Failed searchregex.')
+
+    def test_isearchregex_fail(self):
+        op = operators.get_operator('searchregex')
+        self.assertFalse(op('v1_foo', 'v1$'), 'Passed searchregex.')
+
+        string = 'fooPONIESbarfooooo'
+        self.assertTrue(op(string, 'ponies'), 'Passed searchregex.')
+
     def test_matchregex_case_variants(self):
         op = operators.get_operator('MATCHREGEX')
         self.assertTrue(op('v1', 'v1$'), 'Failed matchregex.')
