@@ -27,7 +27,7 @@ DEST_PERMS=$(cat <<EHD | sed 's/\s\+/ /g'
 ug+rw root:_packsgroup /opt/stackstorm/packs
 ug+rw root:_packsgroup /opt/stackstorm/virtualenvs
 755 _st2user:root      /opt/stackstorm/exports
-755 _st2user:_st2user  /var/log/st2
+755 _st2user:root      /var/log/st2
 600 _st2user:_st2user  /etc/st2/htpasswd
 EHD
 )
