@@ -83,7 +83,7 @@ class OperatorTest(unittest2.TestCase):
         string = 'fooponiesbarfooooo'
         self.assertTrue(op(string, 'ponies'), 'Failed searchregex.')
 
-    def test_isearchregex_fail(self):
+    def test_searchregex_fail(self):
         op = operators.get_operator('searchregex')
         self.assertFalse(op('v1_foo', 'v1$'), 'Passed searchregex.')
 
