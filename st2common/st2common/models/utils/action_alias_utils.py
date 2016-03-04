@@ -76,16 +76,9 @@ class ActionAliasFormatParser(object):
         # Transforming our format string into a regular expression,
         # substituting {{ ... }} with regex named groups, so that param_stream
         # matched against this expression yields a dict of params with values.
-        param_match = r'["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
-        reg = re.sub(r'(\s*){{\s*([^=}]+?)\s*}}(?![\'"]?\s+}})',
-                     r'\1' + param_match,
-                     self._format)
-        reg = re.sub(r'(\s*){{\s*(\S+)\s*=\s*(?:{.+?}|.+?)\s*}}',
-                     r'(?:\1' + param_match + r')?',
-                     reg)
-        reg = re.sub(r'(\s*){{\s*(.+?)\s*}}',
-                     r'\1' + param_match,
-                     reg)
+        param_match = r'\1["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
+        reg = re.sub(r'(\s*)' + snippets['optional'], r'(?:' + param_match + r')?', self._format)
+        reg = re.sub(r'(\s*)' + snippets['required'], param_match, reg)
         reg = '^\s*' + reg + r'\s*$'
 
         # 3. Matching the command against our regex to get the param values
