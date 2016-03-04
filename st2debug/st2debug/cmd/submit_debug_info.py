@@ -668,7 +668,6 @@ def main():
             user_info['email'] = six.moves.input('Email: ')
             user_info['comment'] = six.moves.input('Comment: ')
 
-
     debug_collector = DebugInfoCollector(include_logs=not args.exclude_logs,
                                          include_configs=not args.exclude_configs,
                                          include_content=not args.exclude_content,

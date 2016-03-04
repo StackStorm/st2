@@ -120,21 +120,54 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
 
     def _get_yaml_config(self):
         return {
-            'log_file_paths': [
+            'log_files_paths': [
                 os.path.join(FIXTURES_DIR, 'logs/st2*.log')
             ],
-            'conf_file_paths': {
-                'st2_config_file_path': os.path.join(FIXTURES_DIR, 'configs/st2.conf'),
-                'mistral_config_file_path': os.path.join(FIXTURES_DIR, 'configs/mistral.conf')
-            },
+            'st2_config_file_path': os.path.join(FIXTURES_DIR, 'configs/st2.conf'),
+            'mistral_config_file_path': os.path.join(FIXTURES_DIR, 'configs/mistral.conf'),
             's3_bucket_url': S3_BUCKET_URL,
             'gpg_key_fingerprint': GPG_KEY_FINGERPRINT,
             'gpg_key': GPG_KEY,
             'shell_commands': [
-                'rpm -qa'
+                'echo foo',
+                'echo bar 1>&2'
             ],
             'company_name': 'MyCompany'
         }
+
+    def test_config_option_overrides_defaults(self):
+        config = {
+            'log_files_paths': [
+                'log/path/1',
+                'log/path/1'
+            ],
+            'st2_config_file_path': 'st2/config/path',
+            'mistral_config_file_path': 'mistral/config/path',
+            's3_bucket_url': 'my_s3_url',
+            'gpg_key_fingerprint': 'my_gpg_fingerprint',
+            'gpg_key': 'my_gpg_key',
+            'shell_commands': [
+                'command 1',
+                'command 2'
+            ],
+            'company_name': 'MyCompany'
+        }
+
+        debug_collector = DebugInfoCollector(include_logs=True,
+                                             include_configs=True,
+                                             include_content=True,
+                                             include_system_info=True,
+                                             config_file=config)
+        self.assertEqual(debug_collector.log_files_paths, ['log/path/1', 'log/path/1'])
+        self.assertEqual(debug_collector.st2_config_file_path, 'st2/config/path')
+        self.assertEqual(debug_collector.st2_config_file_name, 'path')
+        self.assertEqual(debug_collector.mistral_config_file_path, 'mistral/config/path')
+        self.assertEqual(debug_collector.mistral_config_file_name, 'path')
+        self.assertEqual(debug_collector.s3_bucket_url, 'my_s3_url')
+        self.assertEqual(debug_collector.gpg_key, 'my_gpg_key')
+        self.assertEqual(debug_collector.gpg_key_fingerprint, 'my_gpg_fingerprint')
+        self.assertEqual(debug_collector.shell_commands, ['command 1', 'command 2'])
+        self.assertEqual(debug_collector.company_name, 'MyCompany')
 
     def test_create_archive_include_all_with_config_option(self):
         yaml_config = self._get_yaml_config()
@@ -152,7 +185,20 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         # Verify commands output have been copied
         commands_path = os.path.join(extract_path, 'commands')
         command_files = os.listdir(commands_path)
-        self.assertTrue(len(command_files), 1)
+        self.assertTrue(len(command_files), 2)
+
+        # Verify command output file names
+        self.assertTrue('echofoo.txt' in command_files)
+        self.assertTrue('echobar12.txt' in command_files)
+
+        # Verify file contents
+        with open(os.path.join(commands_path, 'echofoo.txt')) as echofoo:
+            expected_content = '[BEGIN STDOUT]\nfoo\n[END STDOUT]\n[BEGIN STDERR]\n[END STDERR]'
+            self.assertEqual(expected_content, echofoo.read())
+
+        with open(os.path.join(commands_path, 'echobar12.txt')) as echofoo:
+            expected_content = '[BEGIN STDOUT]\n[END STDOUT]\n[BEGIN STDERR]\nbar\n[END STDERR]'
+            self.assertEqual(expected_content, echofoo.read())
 
     def test_create_archive_exclusion(self):
         # Verify only system info file is included
