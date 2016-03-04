@@ -175,6 +175,8 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('keystone_password', default=None, help='Password for authentication.'),
         cfg.StrOpt('keystone_project_name', default=None, help='OpenStack project scope.'),
         cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.'),
+        cfg.StrOpt('cacert', default=None, help='Optional certificate to validate endpoint.'),
+        cfg.BoolOpt('insecure', default=False, help='Allow insecure communication with Mistral.'),
 
         cfg.StrOpt('api_url', default=None, help=('URL Mistral uses to talk back to the API.'
             'If not provided it defaults to public API URL. Note: This needs to be a base '
