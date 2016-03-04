@@ -396,6 +396,12 @@ class DebugInfoCollector(object):
             fp.write(system_information)
 
     def add_user_info(self, output_path):
+        """
+        Write user info to output path as YAML.
+
+        :param output_path: Path where user info will be written.
+        :type output_path: ``str``
+        """
         LOG.debug('Including user info')
         user_info = yaml.dump(self.user_info, default_flow_style=False)
 
