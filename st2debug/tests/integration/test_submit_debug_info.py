@@ -192,13 +192,13 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         self.assertTrue('echobar12.txt' in command_files)
 
         # Verify file contents
-        with open(os.path.join(commands_path, 'echofoo.txt')) as echofoo:
+        with open(os.path.join(commands_path, 'echofoo.txt')) as f:
             expected_content = '[BEGIN STDOUT]\nfoo\n[END STDOUT]\n[BEGIN STDERR]\n[END STDERR]'
-            self.assertEqual(expected_content, echofoo.read())
+            self.assertEqual(expected_content, f.read())
 
-        with open(os.path.join(commands_path, 'echobar12.txt')) as echofoo:
+        with open(os.path.join(commands_path, 'echobar12.txt')) as f:
             expected_content = '[BEGIN STDOUT]\n[END STDOUT]\n[BEGIN STDERR]\nbar\n[END STDERR]'
-            self.assertEqual(expected_content, echofoo.read())
+            self.assertEqual(expected_content, f.read())
 
     def test_create_archive_exclusion(self):
         # Verify only system info file is included
