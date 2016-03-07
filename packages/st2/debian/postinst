@@ -23,12 +23,13 @@ ST2_UPGRADESTAMP="/tmp/.stamp-stackstorm-st2-deb-package"
 upgrading=0
 
 ## Permissions of files which should be set on install
-DEST_PERMS=$(cat <<EHD | sed 's/\s\+/ /g'
-ug+rw root:_packsgroup /opt/stackstorm/packs
-ug+rw root:_packsgroup /opt/stackstorm/virtualenvs
-755 _st2user:root      /opt/stackstorm/exports
-755 _st2user:root      /var/log/st2
-600 _st2user:_st2user  /etc/st2/htpasswd
+SET_PERMS=$(cat <<EHD | sed 's/\s\+/ /g'
+-R ug+rw root:_packsgroup /opt/stackstorm/packs
+   ug+rw root:_packsgroup /opt/stackstorm/virtualenvs
+   755 _st2user:root      /opt/stackstorm/exports
+   755 _st2user:root      /var/log/st2
+   755 _st2user:root      /var/run/st2
+   600 _st2user:_st2user  /etc/st2/htpasswd
 EHD
 )
 
@@ -37,16 +38,19 @@ set_permissions() {
   local fileperms="$1"
   fileperms=$(echo "$fileperms" | sed -e "s/_st2user/$ST2_USER/g" -e "s/_packsgroup/$PACKS_GROUP/g")
   # Reqursively chown given destinations!
-  echo "$fileperms" | cut -f2,3 -d' ' | xargs -n2 chown -R
+  echo "$fileperms" | cut -f1,3,4 -d' ' | xargs -L1 chown
   # Set directories mode
-  echo "$fileperms" | cut -f1,3 -d' ' | xargs -n2 chmod -R
+  echo "$fileperms" | cut -f1,2,4 -d' ' | xargs -L1 chmod
 }
+
+# Choose first install or upgrade
+[ -f $ST2_UPGRADESTAMP ] && upgrading=1 || :
 
 case "$1" in
     configure)
       # Initially set destination files owenership (only on the first install)
-      [ -f $ST2_UPGRADESTAMP ] && upgrading=1 && rm $ST2_UPGRADESTAMP || :
-      [ "$upgrading" = 0 ] && set_permissions "$DEST_PERMS" || :
+      [ "$upgrading" = 1 ] || set_permissions "$SET_PERMS"
+      rm -f $ST2_UPGRADESTAMP
     ;;
     abort-upgrade|abort-remove|abort-deconfigure)
     ;;
