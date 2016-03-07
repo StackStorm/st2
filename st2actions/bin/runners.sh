@@ -23,8 +23,8 @@ choose_sysinit() {
 
 # Perform service action over the given number of workers.
 spawn_workers() {
-  local action=$1
-  local init= seq=$(eval printf '%g\\n' {1..$WORKERS})
+  local action=$1 init= seq=
+  seq=$(bash -c "printf '%g\\n' {1..$WORKERS}")
 
   # Choose init system and exit if it's not supported.
   init=$(choose_sysinit st2actionrunner)
@@ -45,7 +45,7 @@ spawn_workers() {
       ;;
   esac
   # return 1 in case if xargs failed any invoked commands.
-  [ $? -ge 123 ] && return 1 || return $?
+  retval=$?; [ $retval -ge 123 ] && return 1 || return $retval
 }
 
 # Perform service action on all actionrunners
