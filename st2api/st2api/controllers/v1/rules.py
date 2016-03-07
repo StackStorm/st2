@@ -103,7 +103,8 @@ class RuleController(resource.ContentPackResourceController):
             abort(http_client.BAD_REQUEST, str(e))
             return
         except TriggerDoesNotExistException as e:
-            msg = 'Trigger %s in rule does not exist in system' % rule.trigger['type']
+            msg = ('Trigger "%s" defined in the rule does not exist in system or it\'s missing '
+                   'required "parameters" attribute' % (rule.trigger['type']))
             LOG.exception(msg)
             abort(http_client.BAD_REQUEST, msg)
             return

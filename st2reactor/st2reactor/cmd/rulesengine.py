@@ -20,6 +20,7 @@ import eventlet
 from oslo_config import cfg
 
 from st2common import log as logging
+from st2common.constants.timer import TIMER_ENABLED_LOG_LINE, TIMER_DISABLED_LOG_LINE
 from st2common.logging.misc import get_logger_name_for_module
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
@@ -51,13 +52,22 @@ def _kickoff_timer(timer):
 def _run_worker():
     LOG.info('(PID=%s) RulesEngine started.', os.getpid())
 
-    timer = St2Timer(local_timezone=cfg.CONF.timer.local_timezone)
+    timer = None
     rules_engine_worker = worker.get_worker()
 
     try:
-        timer_thread = eventlet.spawn(_kickoff_timer, timer)
+        timer_thread = None
+        if cfg.CONF.timer.enable:
+            timer = St2Timer(local_timezone=cfg.CONF.timer.local_timezone)
+            timer_thread = eventlet.spawn(_kickoff_timer, timer)
+            LOG.info(TIMER_ENABLED_LOG_LINE)
+        else:
+            LOG.info(TIMER_DISABLED_LOG_LINE)
         rules_engine_worker.start()
-        return timer_thread.wait() and rules_engine_worker.wait()
+        if timer:
+            return timer_thread.wait() and rules_engine_worker.wait()
+        else:
+            return rules_engine_worker.wait()
     except (KeyboardInterrupt, SystemExit):
         LOG.info('(PID=%s) RulesEngine stopped.', os.getpid())
         rules_engine_worker.shutdown()
@@ -65,7 +75,8 @@ def _run_worker():
         LOG.exception('(PID:%s) RulesEngine quit due to exception.', os.getpid())
         return 1
     finally:
-        timer.cleanup()
+        if timer:
+            timer.cleanup()
 
     return 0
 

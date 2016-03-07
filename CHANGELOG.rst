@@ -46,6 +46,9 @@ in development
   to the sensor container. This fixes support for remote debugging for sensor processes. (bug-fix)
 * Drop deprecated and unused ``system.admin_users`` config option which has been replaced with
   RBAC.
+* Add ``--output`` and ``--existing-file`` options to ``st2-submit-debug-info``. [Kale Blankenship]
+* Move stream functionality from ``st2api`` into a new standalone ``st2stream`` service. Similar to
+  ``st2api`` and ``st2auth``, stream is now a standalone service and WSGI app. (improvement)
 * Allow user to specify a timezone in the CLI client config (``~/.st2/config``). If the timezone is
   specified, all the timestamps displayed by the CLI will be shown in the configured timezone
   instead of a default UTC display. (new feature)

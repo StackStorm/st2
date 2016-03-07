@@ -94,6 +94,7 @@ class BaseTestCase(TestCase):
         """
         Register all the packs inside the fixtures directory.
         """
+
         registrar = ResourceRegistrar(use_pack_cache=False)
         registrar.register_packs(base_dirs=get_packs_base_paths())
 
