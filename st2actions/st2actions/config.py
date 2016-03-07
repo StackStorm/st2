@@ -44,7 +44,19 @@ def _register_common_opts():
 def _register_action_runner_opts():
     default_python_bin_path = sys.executable
     base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
-    default_virtualenv_bin_path = os.path.join(base_dir, 'virtualenv')
+
+    custom_virtualenv_binary = '/usr/local/bin/virtualenv'
+    standard_virtualenv_binary = os.path.join(base_dir, 'virtualenv')
+
+    # We want to use a virtualenv binary which we install - that binary gets
+    # installed into /usr/local/bin and not /usr/bin
+    # Version inside /usr/bin ships with system and this is usually a very
+    # outdated version
+    if os.path.exists(custom_virtualenv_binary):
+        default_virtualenv_bin_path = custom_virtualenv_binary
+    else:
+        default_virtualenv_bin_path = standard_virtualenv_binary
+
     logging_opts = [
         cfg.StrOpt('logging', default='conf/logging.conf',
                    help='location of the logging.conf file'),
