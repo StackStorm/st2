@@ -168,7 +168,7 @@ class DebugInfoCollector(object):
         self.st2_config_file_path = config_file.get('st2_config_file_path', ST2_CONFIG_FILE_PATH)
         self.mistral_config_file_path = config_file.get('mistral_config_file_path',
                                                         MISTRAL_CONFIG_FILE_PATH)
-        self.log_files_paths = config_file.get('log_files_paths', LOG_FILE_PATHS[:])
+        self.log_file_paths = config_file.get('log_file_paths', LOG_FILE_PATHS[:])
         self.gpg_key = config_file.get('gpg_key', GPG_KEY)
         self.gpg_key_fingerprint = config_file.get('gpg_key_fingerprint', GPG_KEY_FINGERPRINT)
         self.s3_bucket_url = config_file.get('s3_bucket_url', S3_BUCKET_URL)
@@ -333,7 +333,7 @@ class DebugInfoCollector(object):
         :type output_path: ``str``
         """
         LOG.debug('Including log files')
-        for file_path_glob in self.log_files_paths:
+        for file_path_glob in self.log_file_paths:
             log_file_list = get_full_file_list(file_path_glob=file_path_glob)
             copy_files(file_paths=log_file_list, destination=output_path)
 

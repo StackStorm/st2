@@ -120,7 +120,7 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
 
     def _get_yaml_config(self):
         return {
-            'log_files_paths': [
+            'log_file_paths': [
                 os.path.join(FIXTURES_DIR, 'logs/st2*.log')
             ],
             'st2_config_file_path': os.path.join(FIXTURES_DIR, 'configs/st2.conf'),
@@ -137,7 +137,7 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
 
     def test_config_option_overrides_defaults(self):
         config = {
-            'log_files_paths': [
+            'log_file_paths': [
                 'log/path/1',
                 'log/path/1'
             ],
@@ -158,7 +158,7 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
                                              include_content=True,
                                              include_system_info=True,
                                              config_file=config)
-        self.assertEqual(debug_collector.log_files_paths, ['log/path/1', 'log/path/1'])
+        self.assertEqual(debug_collector.log_file_paths, ['log/path/1', 'log/path/1'])
         self.assertEqual(debug_collector.st2_config_file_path, 'st2/config/path')
         self.assertEqual(debug_collector.st2_config_file_name, 'path')
         self.assertEqual(debug_collector.mistral_config_file_path, 'mistral/config/path')
