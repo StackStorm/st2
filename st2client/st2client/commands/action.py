@@ -33,7 +33,7 @@ from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter
 from st2client.utils import jsutil
-from st2client.utils.date import format_isodate
+from st2client.utils.date import format_isodate_for_user_timezone
 from st2client.utils.date import parse as parse_isotime
 from st2client.utils.color import format_status
 
@@ -235,8 +235,8 @@ class ActionRunCommandMixin(object):
     attribute_display_order = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                                'start_timestamp', 'end_timestamp', 'result']
     attribute_transform_functions = {
-        'start_timestamp': format_isodate,
-        'end_timestamp': format_isodate,
+        'start_timestamp': format_isodate_for_user_timezone,
+        'end_timestamp': format_isodate_for_user_timezone,
         'parameters': format_parameters,
         'status': format_status
     }
@@ -906,8 +906,8 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'status', 'start_timestamp',
                           'end_timestamp']
     attribute_transform_functions = {
-        'start_timestamp': format_isodate,
-        'end_timestamp': format_isodate,
+        'start_timestamp': format_isodate_for_user_timezone,
+        'end_timestamp': format_isodate_for_user_timezone,
         'parameters': format_parameters,
         'status': format_status
     }

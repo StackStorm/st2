@@ -23,7 +23,7 @@ from st2client.commands.noop import NoopCommand
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 from st2client.models.keyvalue import KeyValuePair
-from st2client.utils.date import format_isodate
+from st2client.utils.date import format_isodate_for_user_timezone
 
 LOG = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ class KeyValuePairBranch(resource.ResourceBranch):
 class KeyValuePairListCommand(resource.ResourceListCommand):
     display_attributes = ['name', 'value', 'expire_timestamp']
     attribute_transform_functions = {
-        'expire_timestamp': format_isodate,
+        'expire_timestamp': format_isodate_for_user_timezone,
     }
 
     def __init__(self, *args, **kwargs):

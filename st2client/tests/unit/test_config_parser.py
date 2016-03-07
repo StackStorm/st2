@@ -50,7 +50,8 @@ class CLIConfigParserTestCase(unittest2.TestCase):
             },
             'cli': {
                 'debug': True,
-                'cache_token': False
+                'cache_token': False,
+                'timezone': 'UTC'
             },
             'credentials': {
                 'username': 'test1',
