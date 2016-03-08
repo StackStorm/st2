@@ -52,6 +52,7 @@ in development
 * Allow user to specify a timezone in the CLI client config (``~/.st2/config``). If the timezone is
   specified, all the timestamps displayed by the CLI will be shown in the configured timezone
   instead of a default UTC display. (new feature)
+* Add ``attachments`` parameter to the ``core.sendmail`` action. (improvement) [Cody A. Ray]
 
 1.3.2 - February 12, 2016
 -------------------------
