@@ -21,6 +21,7 @@ machine:
     DISTROS: "wheezy jessie trusty el6 el7"
     NOTESTS: "el7"
     ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
+    ST2_PACKAGES_BRANCH: master
     ST2_DOCKERFILES_REPO: https://github.com/StackStorm/st2-dockerfiles
     BUILD_DOCKER: 0
     DEPLOY_DOCKER: 0
@@ -39,7 +40,7 @@ machine:
 
 checkout:
   post:
-    - git clone --depth 1 ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
+    - git clone --depth 1 -b ${ST2_PACKAGES_BRANCH} ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
     - .circle/buildenv.sh
 
 dependencies:
