@@ -122,30 +122,26 @@ def match_wildcard(value, criteria_pattern):
 
 
 def match_regex(value, criteria_pattern):
+    # match_regex is deprecated, please use 'regex' and 'iregex'
     if criteria_pattern is None:
         return False
     regex = re.compile(criteria_pattern, re.DOTALL)
     # check for a match and not for details of the match.
     return regex.match(value) is not None
 
-def imatch_regex(value, criteria_pattern):
-    if criteria_pattern is None:
-        return False
-    regex = re.compile(criteria_pattern, re.DOTALL | re.IGNORECASE)
-    # check for a match and not for details of the match.
-    return regex.match(value) is not None
 
-def search_regex(value, criteria_pattern):
+def regex(value, criteria_pattern):
     if criteria_pattern is None:
         return False
-    regex = re.compile(criteria_pattern, re.DOTALL)
+    regex = re.compile(criteria_pattern)
     # check for a match and not for details of the match.
     return regex.search(value) is not None
 
-def isearch_regex(value, criteria_pattern):
+
+def iregex(value, criteria_pattern):
     if criteria_pattern is None:
         return False
-    regex = re.compile(criteria_pattern, re.DOTALL | re.IGNORECASE)
+    regex = re.compile(criteria_pattern, re.IGNORECASE)
     # check for a match and not for details of the match.
     return regex.search(value) is not None
 
@@ -192,9 +188,8 @@ def nexists(value, criteria_pattern):
 # operator match strings
 MATCH_WILDCARD = 'matchwildcard'
 MATCH_REGEX = 'matchregex'
-IMATCH_REGEX = 'imatchregex'
-SEARCH_REGEX = 'searchregex'
-ISEARCH_REGEX = 'isearchregex'
+REGEX = 'regex'
+IREGEX = 'iregex'
 EQUALS_SHORT = 'eq'
 EQUALS_LONG = 'equals'
 NEQUALS_LONG = 'nequals'
@@ -224,9 +219,8 @@ KEY_NOT_EXISTS = 'nexists'
 operators = {
     MATCH_WILDCARD: match_wildcard,
     MATCH_REGEX: match_regex,
-    IMATCH_REGEX: imatch_regex,
-    SEARCH_REGEX: search_regex,
-    ISEARCH_REGEX: isearch_regex,
+    REGEX: regex,
+    IREGEX: iregex,
     EQUALS_SHORT: equals,
     EQUALS_LONG: equals,
     NEQUALS_SHORT: nequals,
