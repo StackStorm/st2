@@ -65,6 +65,10 @@ CONFIG_FILE_OPTIONS = {
         'cache_token': {
             'type': 'boolean',
             'default': True
+        },
+        'timezone': {
+            'type': 'string',
+            'default': 'UTC'
         }
     },
     'credentials': {

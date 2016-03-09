@@ -15,6 +15,9 @@
 
 import dateutil.tz
 import dateutil.parser
+from pytz import timezone as TZ
+
+from st2client.config import get_config
 
 __all__ = [
     'parse',
@@ -33,7 +36,15 @@ def parse(value):
     return dt if dt.tzinfo else add_utc_tz(dt)
 
 
-def format_isodate(value):
+def format_dt(dt):
+    """
+    Format datetime object for human friendly representation.
+    """
+    value = dt.strftime('%a, %d %b %Y %H:%M:%S %Z')
+    return value
+
+
+def format_isodate(value, timezone=None):
     """
     Make a ISO date time string human friendly.
 
@@ -46,6 +57,21 @@ def format_isodate(value):
 
     # pylint: disable=no-member
     # For some reason pylint thinks it returns a tuple but it returns a datetime object
-    date = dateutil.parser.parse(str(value))
-    value = date.strftime('%a, %d %b %Y %H:%M:%S %Z')
+    dt = dateutil.parser.parse(str(value))
+
+    if timezone:
+        dt = dt.astimezone(TZ(timezone))
+
+    value = format_dt(dt)
     return value
+
+
+def format_isodate_for_user_timezone(value):
+    """
+    Format the provided ISO date time string for human friendly display taking into user timezone
+    specific in the config.
+    """
+    config = get_config()
+    timezone = config.get('cli', {}).get('timezone', 'UTC')
+    result = format_isodate(value=value, timezone=timezone)
+    return result

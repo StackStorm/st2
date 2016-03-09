@@ -34,58 +34,65 @@ class ActionAliasFormatParser(object):
         # As there's a lot of questions about using regular expressions,
         # I'll try to be thorough when documenting this code.
 
-        # We're parsing the arbitrary key-value pairs at the end of the stream
-        # to support passing of parameters not specified in the format string,
-        # and cutting them from the stream as they're no longer needed.
-        # Possible values are quoted strings, a word, or anything inside "{}".
-        pairs_match = r'(?:^|\s+)(\S+)=("(.*?)"|\'(.*?)\'|({.*?})|(\S+))'
-        extra = re.match(r'.*?((' + pairs_match + r'\s*)*)$',
-                         self._param_stream, re.DOTALL)
-        if extra:
-            kv_pairs = re.findall(pairs_match,
-                                  extra.group(1), re.DOTALL)
-            self._param_stream = self._param_stream.replace(extra.group(1), '')
+        # I'll split the whole convoluted regex into snippets to make it
+        # a bit more readable (hopefully).
+        snippets = dict()
+
+        # Formats for keys and values: key is a non-spaced string,
+        # value is anything in quotes or curly braces, or a single word.
+        snippets['key'] = r'\s*(\S+?)\s*'
+        snippets['value'] = r'""|\'\'|"(.+?)"|\'(.+?)\'|({.+?})|(\S+)'
+
+        # Extended value: also matches unquoted text (caution).
+        snippets['ext_value'] = r'""|\'\'|"(.+?)"|\'(.+?)\'|({.+?})|(.+?)'
+
+        # Key-value pair:
+        snippets['pairs'] = r'(?:^|\s+){key}=({value})'.format(**snippets)
+
+        # End of string: multiple space-separated key-value pairs:
+        snippets['ending'] = r'.*?(({pairs}\s*)*)$'.format(**snippets)
+
+        # Default value in optional parameters:
+        snippets['default'] = r'\s*=\s*(?:{ext_value})\s*'.format(**snippets)
+
+        # Optional parameter (has a default value):
+        snippets['optional'] = '{{' + snippets['key'] + snippets['default'] + '}}'
+
+        # Required parameter (no default value):
+        snippets['required'] = '{{' + snippets['key'] + '}}'
+
+        # 1. Matching the arbitrary key-value pairs at the end of the command
+        # to support extra parameters (not specified in the format string),
+        # and cutting them from the command string afterwards.
+        ending_pairs = re.match(snippets['ending'], self._param_stream, re.DOTALL)
+        if ending_pairs:
+            kv_pairs = re.findall(snippets['pairs'], ending_pairs.group(1), re.DOTALL)
+            self._param_stream = self._param_stream.replace(ending_pairs.group(1), '')
         self._param_stream = " %s " % self._param_stream
 
-        # Now we'll match parameters with default values in form of
-        # {{ value = parameter }} (and all possible permutations of spaces),
-        # compiling them into a list.
-        # "test {{ url = http://google.com }} {{ extra = Test }}" will become
-        # [ ["url", "http://google.com"], ["extra", "Test"] ]
-        params = re.findall(r'{{\s*(.+?)\s*(?:=\s*[\'"]?({.+?}|.+?)[\'"]?)?\s*}}',
-                            self._format, re.DOTALL)
+        # 2. Matching optional parameters (with default values).
+        optional = re.findall(snippets['optional'], self._format, re.DOTALL)
 
-        # Now we're transforming our format string into a regular expression,
+        # Transforming our format string into a regular expression,
         # substituting {{ ... }} with regex named groups, so that param_stream
         # matched against this expression yields a dict of params with values.
-        param_match = r'["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
-        reg = re.sub(r'(\s*){{\s*([^=}]+?)\s*}}(?![\'"]?\s+}})',
-                     r'\1' + param_match,
-                     self._format)
-        reg = re.sub(r'(\s*){{\s*(\S+)\s*=\s*(?:{.+?}|.+?)\s*}}',
-                     r'(?:\1' + param_match + r')?',
-                     reg)
-        reg = re.sub(r'(\s*){{\s*(.+?)\s*}}',
-                     r'\1' + param_match,
-                     reg)
+        param_match = r'\1["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
+        reg = re.sub(r'(\s*)' + snippets['optional'], r'(?:' + param_match + r')?', self._format)
+        reg = re.sub(r'(\s*)' + snippets['required'], param_match, reg)
         reg = '^\s*' + reg + r'\s*$'
 
-        # Now we're matching param_stream against our format string regex,
-        # getting a dict of values. We'll also get default values from
-        # "params" list if something is not present.
-        # Priority, from lowest to highest:
-        # 1. Default parameters
-        # 2. Matched parameters
-        # 3. Extra parameters
+        # 3. Matching the command against our regex to get the param values
         matched_stream = re.match(reg, self._param_stream, re.DOTALL)
+
+        # Compiling results from the steps 1-3.
         if matched_stream:
-            values = matched_stream.groupdict()
-        for param in params:
-            matched_value = values[param[0]] if matched_stream else None
-            matched_result = matched_value or param[1]
-            if matched_result:
+            result = matched_stream.groupdict()
+        for param in optional:
+            matched_value = result[param[0]] if matched_stream else None
+            matched_result = matched_value or ''.join(param[1:])
+            if matched_result is not None:
                 result[param[0]] = matched_result
-        if extra:
+        if ending_pairs:
             for pair in kv_pairs:
                 result[pair[0]] = ''.join(pair[2:])
 

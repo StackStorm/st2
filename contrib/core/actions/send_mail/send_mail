@@ -25,7 +25,13 @@ SEND_EMPTY_BODY=$1
 shift
 CONTENT_TYPE=$1
 shift
-BODY="$@"
+BODY="$1"
+shift
+IFS=',' read -ra ATTACHMENTS <<< "$@"
+
+if [[ $ATTACHMENTS == "None" ]]; then
+  ATTACHMENTS=""
+fi
 
 if [[ "${CONTENT_TYPE}" = "text/html" ]]; then
   LINE_BREAK="<br><br>"
@@ -33,19 +39,81 @@ else
   LINE_BREAK=""
 fi
 
+get_mimetype(){
+  # warning: assumes that the passed file exists
+  file --mime-type "$1" | sed 's/.*: //'
+}
+
 trimmed="${BODY// }"
 if [[ -z $trimmed && $SEND_EMPTY_BODY == 'True' ]] || [[ -n $trimmed ]]; then
-  ${MAIL} <<EOF
+
+{
+
+cat <<EOF
 TO: ${TO}
 FROM: ${FROM}
 SUBJECT: ${SUBJECT}
+EOF
+
+if [[ -n $ATTACHMENTS ]]; then
+
+  boundary="ZZ_/afg6432dfgkl.94531q"
+
+  cat <<EOF
+Content-Type: multipart/mixed; boundary="${boundary}"
+
+EOF
+
+  for file in "${ATTACHMENTS[@]}"; do
+    [ ! -f "$file" ] && echo "Warning: attachment ${file} not found, skipping" >&2 && continue
+
+    mimetype=$(get_mimetype "$file")
+
+    cat <<EOF
+--${boundary}
+Content-Type: ${mimetype}
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="$(basename $file)"
+
+EOF
+
+    base64 "$file"
+    echo
+  done
+
+  cat <<EOF
+--${boundary}
+Content-Type: ${CONTENT_TYPE}
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+EOF
+
+else
+
+  cat <<EOF
 Content-Type: ${CONTENT_TYPE}
 
+EOF
+
+fi
+
+  cat <<EOF
 ${BODY}
 ${LINE_BREAK}
 ${FOOTER}
 
 EOF
+
+if [[ -n $ATTACHMENTS ]]; then
+
+  cat <<EOF
+--${boundary}--
+EOF
+
+fi
+
+} | ${MAIL}
 
 fi
 
@@ -56,3 +124,4 @@ else
   echo "Successfully sent mail to ${TO}"
   exit 0
 fi
+

@@ -36,7 +36,9 @@ class MistralResultsQuerier(Querier):
             username=cfg.CONF.mistral.keystone_username,
             api_key=cfg.CONF.mistral.keystone_password,
             project_name=cfg.CONF.mistral.keystone_project_name,
-            auth_url=cfg.CONF.mistral.keystone_auth_url)
+            auth_url=cfg.CONF.mistral.keystone_auth_url,
+            cacert=cfg.CONF.mistral.cacert,
+            insecure=cfg.CONF.mistral.insecure)
 
     @retrying.retry(
         retry_on_exception=utils.retry_on_exceptions,

@@ -76,7 +76,9 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
             username=cfg.CONF.mistral.keystone_username,
             api_key=cfg.CONF.mistral.keystone_password,
             project_name=cfg.CONF.mistral.keystone_project_name,
-            auth_url=cfg.CONF.mistral.keystone_auth_url)
+            auth_url=cfg.CONF.mistral.keystone_auth_url,
+            cacert=cfg.CONF.mistral.cacert,
+            insecure=cfg.CONF.mistral.insecure)
 
         manager = action_executions.ActionExecutionManager(client)
         manager.update(action_execution_id, **data)

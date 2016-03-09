@@ -168,7 +168,7 @@ class DebugInfoCollector(object):
         self.st2_config_file_path = config_file.get('st2_config_file_path', ST2_CONFIG_FILE_PATH)
         self.mistral_config_file_path = config_file.get('mistral_config_file_path',
                                                         MISTRAL_CONFIG_FILE_PATH)
-        self.log_files_paths = config_file.get('log_files_paths', LOG_FILE_PATHS[:])
+        self.log_file_paths = config_file.get('log_file_paths', LOG_FILE_PATHS[:])
         self.gpg_key = config_file.get('gpg_key', GPG_KEY)
         self.gpg_key_fingerprint = config_file.get('gpg_key_fingerprint', GPG_KEY_FINGERPRINT)
         self.s3_bucket_url = config_file.get('s3_bucket_url', S3_BUCKET_URL)
@@ -333,7 +333,7 @@ class DebugInfoCollector(object):
         :type output_path: ``str``
         """
         LOG.debug('Including log files')
-        for file_path_glob in self.log_files_paths:
+        for file_path_glob in self.log_file_paths:
             log_file_list = get_full_file_list(file_path_glob=file_path_glob)
             copy_files(file_paths=log_file_list, destination=output_path)
 
@@ -396,6 +396,12 @@ class DebugInfoCollector(object):
             fp.write(system_information)
 
     def add_user_info(self, output_path):
+        """
+        Write user info to output path as YAML.
+
+        :param output_path: Path where user info will be written.
+        :type output_path: ``str``
+        """
         LOG.debug('Including user info')
         user_info = yaml.dump(self.user_info, default_flow_style=False)
 
@@ -596,6 +602,8 @@ def main():
                         help='Specify an existing file to operate on')
     args = parser.parse_args()
 
+    setup_logging()
+
     # Ensure that not all options have been excluded
     abort = True
     for arg_name in ARG_NAMES:
@@ -607,8 +615,16 @@ def main():
 
     # Get setting overrides from yaml file if specified
     if args.config:
-        with open(args.config, 'r') as yaml_file:
-            config_file = yaml.load(yaml_file)
+        try:
+            with open(args.config, 'r') as yaml_file:
+                config_file = yaml.safe_load(yaml_file)
+        except Exception as e:
+            LOG.error('Failed to parse config file: %s' % e)
+            sys.exit(1)
+
+        if not isinstance(config_file, dict):
+            LOG.error('Unrecognized config file format')
+            sys.exit(1)
     else:
         config_file = {}
 
@@ -651,8 +667,6 @@ def main():
             user_info['name'] = six.moves.input('Name: ')
             user_info['email'] = six.moves.input('Email: ')
             user_info['comment'] = six.moves.input('Comment: ')
-
-    setup_logging()
 
     debug_collector = DebugInfoCollector(include_logs=not args.exclude_logs,
                                          include_configs=not args.exclude_configs,
