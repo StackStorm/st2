@@ -65,6 +65,9 @@ class ActionAliasDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
     result = me.DictField(
         help_text='Parameters pertaining to the execution result message.'
     )
+    extras = me.DictField(
+        help_text='Additional parameters not covered in the schema.'
+    )
 
     meta = {
         'indexes': ['name']

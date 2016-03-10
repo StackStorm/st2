@@ -523,6 +523,7 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
                 "properties": {
                     "enabled": {"type": "boolean"},
                     "format": {"type": "string"},
+                    "extras": {"type": "object"},
                     "append_url": {"type": "boolean"}
                 },
                 "description": "Acknowledgement message format."
@@ -531,9 +532,14 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
                 "type": "object",
                 "properties": {
                     "enabled": {"type": "boolean"},
-                    "format": {"type": "string"}
+                    "format": {"type": "string"},
+                    "extras": {"type": "object"}
                 },
                 "description": "Execution message format."
+            },
+            "extras": {
+                "type": "object",
+                "description": "Extra parameters, usually adapter-specific."
             }
         },
         "additionalProperties": False
@@ -550,9 +556,11 @@ class ActionAliasAPI(BaseAPI, APIUIDMixin):
         formats = alias.formats
         ack = getattr(alias, 'ack', None)
         result = getattr(alias, 'result', None)
+        extras = getattr(alias, 'extras', None)
 
-        model = cls.model(name=name, description=description, pack=pack, ref=ref, enabled=enabled,
-                          action_ref=action_ref, formats=formats, ack=ack, result=result)
+        model = cls.model(name=name, description=description, pack=pack, ref=ref,
+                          enabled=enabled, action_ref=action_ref, formats=formats,
+                          ack=ack, result=result, extras=extras)
         return model
 
 

@@ -26,6 +26,7 @@ class FormatResultAction(Action):
             'execution': execution
         }
         template = self.default_template
+        result = {}
 
         alias_id = execution['context'].get('action_alias_ref', {}).get('id', None)
         if alias_id:
@@ -35,14 +36,18 @@ class FormatResultAction(Action):
                 'alias': alias
             })
 
-            result = getattr(alias, 'result', None)
-            if result:
-                if not result.get('enabled', True):
+            result_params = getattr(alias, 'result', None)
+            if result_params:
+                if not result_params.get('enabled', True):
                     raise Exception("Output of this template is disabled.")
                 if 'format' in alias.result:
                     template = alias.result['format']
+                if 'extras' in alias.result:
+                    result['extras'] = jinja_utils.render_values(alias.result['extras'], context)
 
-        return self.jinja.from_string(template).render(context)
+        result['message'] = self.jinja.from_string(template).render(context),
+
+        return result
 
     def _get_execution(self, execution_id):
         if not execution_id:

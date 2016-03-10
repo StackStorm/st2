@@ -95,10 +95,15 @@ class ActionAliasExecutionController(rest.RestController):
             'actionalias': ActionAliasAPI.from_model(action_alias_db)
         }
 
-        if action_alias_db.ack and 'format' in action_alias_db.ack:
-            result.update({
-                'message': render({'alias': action_alias_db.ack['format']}, result)['alias']
-            })
+        if action_alias_db.ack:
+            if 'format' in action_alias_db.ack:
+                result.update({
+                    'message': render({'alias': action_alias_db.ack['format']}, result)['alias']
+                })
+            if 'extras' in action_alias_db.ack:
+                result.update({
+                    'extras': render(action_alias_db.ack['extras'], result)
+                })
 
         return result
 
