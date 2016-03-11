@@ -263,8 +263,8 @@ def register_content():
 
 def setup(argv):
     if '--register-setup-virtualenvs' in argv:
-        # If setup-virtualenvs option is used we also want to setup config for action runner since it
-        # contains some setup virtualenv related options.
+        # If setup-virtualenvs option is used we also want to setup config for action runner since
+        # it contains some setup virtualenv related options.
         # Keep in mind that using "setup-virtualenv" only makes sense on nodes which run action
         # runners.
         # Note: This is a hack, but we can't check if that flag is provided using oslo config since
@@ -274,7 +274,7 @@ def setup(argv):
     else:
         config = common_config
 
-    common_setup(config=common_config, setup_db=True, register_mq_exchanges=True)
+    common_setup(config=config, setup_db=True, register_mq_exchanges=True)
 
 
 def teardown():
