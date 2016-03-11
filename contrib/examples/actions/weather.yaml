@@ -1,5 +1,7 @@
 ---
-description: Look up weather.
+description: Look up weather via http://openweathermap.org
+# Free weather API is provided under the terms of the Creative Commons Attribution-ShareAlike 4.0 Generic License.
+# Terms of service http://openweathermap.org/terms
 enabled: true
 entry_point: ''
 name: weather
