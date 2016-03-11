@@ -77,6 +77,14 @@ class ResourceRegistrar(object):
         resources = sorted(resources)
         return resources
 
+    def get_registered_packs(self):
+        """
+        Return a list of registered packs.
+
+        :rype: ``list``
+        """
+        return REGISTERED_PACKS_CACHE.keys()
+
     def register_packs(self, base_dirs):
         """
         Register packs in all the provided directories.
