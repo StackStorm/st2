@@ -100,9 +100,9 @@ class ActionAliasExecutionController(rest.RestController):
                 result.update({
                     'message': render({'alias': action_alias_db.ack['format']}, result)['alias']
                 })
-            if 'extras' in action_alias_db.ack:
+            if 'extra' in action_alias_db.ack:
                 result.update({
-                    'extras': render(action_alias_db.ack['extras'], result)
+                    'extra': render(action_alias_db.ack['extra'], result)
                 })
 
         return result

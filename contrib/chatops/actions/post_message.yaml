@@ -25,6 +25,6 @@ parameters:
     type: "string"
     description: "Channel to post to"
     required: true
-  extras:
+  extra:
     type: "object"
     description: "Extra adapter-specific parameters."

@@ -7,7 +7,7 @@ chain:
       execution_id: "{{execution_id}}"
     publish:
       message: "{{format_execution_result.result.message}}"
-      extras: "{{format_execution_result.result.extras}}"
+      extra: "{{format_execution_result.result.extra}}"
     on-success: "post_message"
   -
     name: "post_message"
@@ -17,4 +17,4 @@ chain:
       channel: "{{channel}}"
       whisper: "{{whisper}}"
       message: "{{message}}"
-      extras: "{{extras}}"
+      extra: "{{extra}}"
