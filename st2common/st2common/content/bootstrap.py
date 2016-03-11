@@ -20,7 +20,7 @@ import logging
 from oslo_config import cfg
 
 import st2common
-from st2common import config as common_config
+from st2common import config
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2common.bootstrap.base import ResourceRegistrar
@@ -262,18 +262,6 @@ def register_content():
 
 
 def setup(argv):
-    if '--register-setup-virtualenvs' in argv:
-        # If setup-virtualenvs option is used we also want to setup config for action runner since
-        # it contains some setup virtualenv related options.
-        # Keep in mind that using "setup-virtualenv" only makes sense on nodes which run action
-        # runners.
-        # Note: This is a hack, but we can't check if that flag is provided using oslo config since
-        # we need to parse config first.
-        from st2actions import config as action_runner_config
-        config = action_runner_config
-    else:
-        config = common_config
-
     common_setup(config=config, setup_db=True, register_mq_exchanges=True)
 
 

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import sys
 
 from oslo_config import cfg
 
@@ -150,6 +151,23 @@ def register_opts(ignore_errors=False):
                    help='Base URL to the API endpoint excluding the version')
     ]
     do_register_opts(auth_opts, 'auth', ignore_errors)
+
+    # Common action runner options
+    default_python_bin_path = sys.executable
+    base_dir = os.path.dirname(os.path.realpath(default_python_bin_path))
+    default_virtualenv_bin_path = os.path.join(base_dir, 'virtualenv')
+    action_runner_opts = [
+        cfg.StrOpt('logging', default='conf/logging.conf',
+                   help='location of the logging.conf file'),
+        cfg.StrOpt('python_binary', default=default_python_bin_path,
+                   help='Python binary which will be used by Python actions.'),
+        cfg.StrOpt('virtualenv_binary', default=default_virtualenv_bin_path,
+                   help='Virtualenv binary which should be used to create pack virtualenvs.'),
+        cfg.ListOpt('virtualenv_opts', default=['--system-site-packages'],
+                    help='List of virtualenv options to be passsed to "virtualenv" command that ' +
+                         'creates pack virtualenv.')
+    ]
+    do_register_opts(action_runner_opts, group='actionrunner')
 
     # Common options (used by action runner and sensor container)
     action_sensor_opts = [
