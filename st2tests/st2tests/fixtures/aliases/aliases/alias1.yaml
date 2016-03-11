@@ -5,3 +5,9 @@
     action_ref: "wolfpack.action1"
     formats:
         - "Lorem ipsum {{param1}} dolor sit {{param2}} amet."
+    ack:
+        extra:
+            color: "red"
+    result:
+        extra:
+            color: "red"
