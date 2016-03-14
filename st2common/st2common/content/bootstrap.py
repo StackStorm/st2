@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+import os
 import sys
+import logging
 
 from oslo_config import cfg
 
@@ -22,6 +23,7 @@ import st2common
 from st2common import config
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
+from st2common.bootstrap.base import ResourceRegistrar
 import st2common.bootstrap.sensorsregistrar as sensors_registrar
 import st2common.bootstrap.actionsregistrar as actions_registrar
 import st2common.bootstrap.aliasesregistrar as aliases_registrar
@@ -29,6 +31,7 @@ import st2common.bootstrap.policiesregistrar as policies_registrar
 import st2common.bootstrap.runnersregistrar as runners_registrar
 import st2common.bootstrap.rulesregistrar as rules_registrar
 import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
+from st2common.util.virtualenvs import setup_pack_virtualenv
 
 __all__ = [
     'main'
@@ -48,6 +51,8 @@ def register_opts():
         cfg.BoolOpt('aliases', default=False, help='Register aliases.'),
         cfg.BoolOpt('policies', default=False, help='Register policies.'),
         cfg.StrOpt('pack', default=None, help='Directory to the pack to register content from.'),
+        cfg.BoolOpt('setup-virtualenvs', default=False, help=('Setup Python virtual environments '
+                                                              'all the Python runner actions.')),
         cfg.BoolOpt('fail-on-failure', default=False, help=('Exit with non-zero of resource '
                                                             'registration fails.'))
     ]
@@ -56,6 +61,37 @@ def register_opts():
     except:
         sys.stderr.write('Failed registering opts.\n')
 register_opts()
+
+
+def setup_virtualenvs():
+    """
+    Setup Python virtual environments for all the registered or the provided pack.
+    """
+    pack_dir = cfg.CONF.register.pack
+    fail_on_failure = cfg.CONF.register.fail_on_failure
+
+    if pack_dir:
+        pack_name = os.path.basename(pack_dir)
+        pack_names = [pack_name]
+    else:
+        registrar = ResourceRegistrar()
+        pack_names = registrar.get_registered_packs()
+
+    setup_count = 0
+    for pack_name in pack_names:
+        try:
+            setup_pack_virtualenv(pack_name=pack_name, update=True, logger=LOG)
+        except Exception as e:
+            exc_info = not fail_on_failure
+            LOG.warning('Failed to setup virtualenv for pack "%s": %s', pack_name, e,
+                        exc_info=exc_info)
+
+            if fail_on_failure:
+                raise e
+        else:
+            setup_count += 1
+
+    LOG.info('Setup virtualenv for %s pack.' % (setup_count))
 
 
 def register_sensors():
@@ -88,6 +124,7 @@ def register_actions():
 
     registered_count = 0
 
+    # 1. Register runner types
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering actions ######################')
@@ -98,6 +135,7 @@ def register_actions():
         LOG.warning('Not registering stock runners .')
         return
 
+    # 2. Register actions
     try:
         registered_count = actions_registrar.register_actions(pack_dir=pack_dir,
                                                               fail_on_failure=fail_on_failure)
@@ -218,6 +256,9 @@ def register_content():
 
     if cfg.CONF.register.policies:
         register_policies()
+
+    if cfg.CONF.register.setup_virtualenvs:
+        setup_virtualenvs()
 
 
 def setup(argv):
