@@ -57,7 +57,7 @@ in development
   provided, Python virtual environments are created for all the registered packs.
   This option is to be used with distributed setup where action runner services run on multiple
   hosts to ensure virtual environments exist on all those hosts. (new-feature)
-* Update ``core.st2.CronTimer`` so it supports more of the cron-like notation (``a-b``, ``*/a``,
+* Update ``core.st2.CronTimer`` so it supports more of the cron-like expressions (``a-b``, ``*/a``,
   ``x,y,z``, etc.). (improvement)
 
 1.3.2 - February 12, 2016
