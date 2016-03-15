@@ -252,40 +252,64 @@ CRON_PARAMETERS_SCHEMA = {
             "type": "string"
         },
         "year": {
-            "type": "integer"
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
         },
         "month": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 1,
             "maximum": 12
         },
         "day": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 1,
             "maximum": 31
         },
         "week": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 1,
             "maximum": 53
         },
         "day_of_week": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 0,
             "maximum": 6
         },
         "hour": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 0,
             "maximum": 23
         },
         "minute": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 0,
             "maximum": 59
         },
         "second": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 0,
             "maximum": 59
         }
