@@ -77,6 +77,21 @@ class TestRuleController(FunctionalTest):
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
+        file_name = 'cron_timer_rule_invalid_parameters_1.yaml'
+        TestRuleController.RULE_6 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+        file_name = 'cron_timer_rule_invalid_parameters_2.yaml'
+        TestRuleController.RULE_7 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+        file_name = 'cron_timer_rule_invalid_parameters_3.yaml'
+        TestRuleController.RULE_8 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
     @classmethod
     def tearDownClass(cls):
         TestRuleController.fixtures_loader.delete_fixtures_from_db(
@@ -136,6 +151,25 @@ class TestRuleController(FunctionalTest):
         self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
 
         expected_msg = '\'date\' is a required property'
+        self.assertTrue(expected_msg in post_resp.body)
+
+    def test_post_invalid_crontimer_trigger_parameters(self):
+        post_resp = self.__do_post(TestRuleController.RULE_6)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+
+        expected_msg = '1000 is greater than the maximum of 6'
+        self.assertTrue(expected_msg in post_resp.body)
+
+        post_resp = self.__do_post(TestRuleController.RULE_7)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+
+        expected_msg = 'Invalid weekday name \\"abcdef\\"'
+        self.assertTrue(expected_msg in post_resp.body)
+
+        post_resp = self.__do_post(TestRuleController.RULE_8)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+
+        expected_msg = 'Invalid weekday name \\"a\\"'
         self.assertTrue(expected_msg in post_resp.body)
 
     def test_post_no_enabled_attribute_disabled_by_default(self):

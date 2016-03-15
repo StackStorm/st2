@@ -6,7 +6,7 @@ oslo.utils<3.1.0
 six==1.9.0
 pyyaml>=3.11,<4.0
 requests[security]>=2.7.0,<3.0
-apscheduler>=3.0.0rc1
+apscheduler>=3.0.5,<3.1
 gitpython==0.3.2.1
 jsonschema>=2.3.0
 mongoengine>=0.8.7,<0.9

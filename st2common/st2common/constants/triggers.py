@@ -32,7 +32,11 @@ __all__ = [
     'WEBHOOK_TRIGGER_TYPES',
     'WEBHOOK_TRIGGER_TYPE',
     'INTERNAL_TRIGGER_TYPES',
-    'SYSTEM_TRIGGER_TYPES'
+    'SYSTEM_TRIGGER_TYPES',
+
+    'INTERVAL_TIMER_TRIGGER_REF',
+    'DATE_TIMER_TRIGGER_REF',
+    'CRON_TIMER_TRIGGER_REF'
 ]
 
 # Action resource triggers
@@ -252,40 +256,64 @@ CRON_PARAMETERS_SCHEMA = {
             "type": "string"
         },
         "year": {
-            "type": "integer"
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
         },
         "month": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 1,
             "maximum": 12
         },
         "day": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 1,
             "maximum": 31
         },
         "week": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 1,
             "maximum": 53
         },
         "day_of_week": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 0,
             "maximum": 6
         },
         "hour": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 0,
             "maximum": 23
         },
         "minute": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 0,
             "maximum": 59
         },
         "second": {
-            "type": "integer",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"}
+            ],
             "minimum": 0,
             "maximum": 59
         }
@@ -311,15 +339,20 @@ TIMER_PAYLOAD_SCHEMA = {
     }
 }
 
+INTERVAL_TIMER_TRIGGER_REF = ResourceReference.to_string_reference(SYSTEM_PACK_NAME,
+                                                                   'st2.IntervalTimer')
+DATE_TIMER_TRIGGER_REF = ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.DateTimer')
+CRON_TIMER_TRIGGER_REF = ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.CronTimer')
+
 TIMER_TRIGGER_TYPES = {
-    ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.IntervalTimer'): {
+    INTERVAL_TIMER_TRIGGER_REF: {
         'name': 'st2.IntervalTimer',
         'pack': SYSTEM_PACK_NAME,
         'description': 'Triggers on specified intervals. e.g. every 30s, 1week etc.',
         'payload_schema': TIMER_PAYLOAD_SCHEMA,
         'parameters_schema': INTERVAL_PARAMETERS_SCHEMA
     },
-    ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.DateTimer'): {
+    DATE_TIMER_TRIGGER_REF: {
         'name': 'st2.DateTimer',
         'pack': SYSTEM_PACK_NAME,
         'description': 'Triggers exactly once when the current time matches the specified time. '
@@ -327,7 +360,7 @@ TIMER_TRIGGER_TYPES = {
         'payload_schema': TIMER_PAYLOAD_SCHEMA,
         'parameters_schema': DATE_PARAMETERS_SCHEMA
     },
-    ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.CronTimer'): {
+    CRON_TIMER_TRIGGER_REF: {
         'name': 'st2.CronTimer',
         'pack': SYSTEM_PACK_NAME,
         'description': 'Triggers whenever current time matches the specified time constaints like '
