@@ -339,7 +339,8 @@ TIMER_PAYLOAD_SCHEMA = {
     }
 }
 
-INTERVAL_TIMER_TRIGGER_REF = ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.IntervalTimer')
+INTERVAL_TIMER_TRIGGER_REF = ResourceReference.to_string_reference(SYSTEM_PACK_NAME,
+                                                                   'st2.IntervalTimer')
 DATE_TIMER_TRIGGER_REF = ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.DateTimer')
 CRON_TIMER_TRIGGER_REF = ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.CronTimer')
 

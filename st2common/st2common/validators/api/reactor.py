@@ -80,6 +80,6 @@ def validate_trigger_parameters(trigger_type_ref, parameters):
         # Validate that the user provided parameters are valid. This is required since JSON schema
         # allows arbitrary strings, but not any arbitrary string is a valid CronTrigger argument
         # Note: Constructor throws ValueError on invalid parameters
-        time_type = CronTrigger(**parameters)
+        CronTrigger(**parameters)
 
     return cleaned
