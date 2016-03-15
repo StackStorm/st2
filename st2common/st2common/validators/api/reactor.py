@@ -15,7 +15,11 @@
 
 import six
 
+from apscheduler.triggers.cron import CronTrigger
+
 from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.models.system.common import ResourceReference
+from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.constants.triggers import SYSTEM_TRIGGER_TYPES
 from st2common.util import schema as util_schema
 import st2common.operators as criteria_operators
@@ -70,4 +74,12 @@ def validate_trigger_parameters(trigger_type_ref, parameters):
     cleaned = util_schema.validate(instance=parameters, schema=parameters_schema,
                                    cls=util_schema.CustomValidator, use_default=True,
                                    allow_default_none=True)
+
+    # Additional validation fron CronTimer
+    if trigger_type_ref == ResourceReference.to_string_reference(SYSTEM_PACK_NAME, 'st2.CronTimer'):
+        # Validate that the user provided parameters are valid. This is required since JSON schema
+        # allows arbitrary strings, but not any arbitrary string is a valid CronTrigger argument
+        # Note: Constructor throws ValueError on invalid parameters
+        time_type = CronTrigger(**parameters)
+
     return cleaned
