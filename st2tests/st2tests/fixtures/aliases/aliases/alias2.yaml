@@ -7,3 +7,5 @@
         - display: "Help entry doesn't matter."
           representation:
               - "Lorem ipsum {{param1}} dolor sit {{param3}} amet."
+    extra:
+        color: "red"
