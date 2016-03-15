@@ -4,6 +4,7 @@ Changelog
 in development
 --------------
 
+* Add ``extra`` field to the ActionAlias schema for adapter-specific parameters. (improvement)
 * Dev environment by default now uses gunicorn to spin API and AUTH processes. (improvement)
 * Allow user to pass a boolean value for the ``cacert`` st2client constructor argument. This way
   it now mimics the behavior of the ``verify`` argument of the ``requests.request`` method.
