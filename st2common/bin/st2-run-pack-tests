@@ -73,6 +73,12 @@ while getopts ":p:x" o; do
     esac
 done
 
+if [ ! ${PACK_PATH} ]; then
+    # Missing required argument
+    usage
+    exit 2
+fi
+
 PACK_PATH=$(readlink -f ${PACK_PATH})
 if [ ! ${PACK_PATH} ]; then
     echo "Usage: $0 -p <pack path> [-x]"
