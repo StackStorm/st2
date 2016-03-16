@@ -48,6 +48,10 @@ CREATE_VIRTUALENV=true
 # Script beings here
 ####################
 
+function usage() {
+    echo "Usage: $0 [-x] -p <path to pack>" >&2
+}
+
 while getopts ":p:x" o; do
     case "${o}" in
         p)
