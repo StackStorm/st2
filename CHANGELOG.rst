@@ -60,6 +60,8 @@ in development
   hosts to ensure virtual environments exist on all those hosts. (new-feature)
 * Update ``core.st2.CronTimer`` so it supports more of the cron-like expressions (``a-b``, ``*/a``,
   ``x,y,z``, etc.). (improvement)
+* Add new ``regex`` and ``iregex`` rule criteria operator and deprecate ``matchregex`` in favor of
+  those two new operators. (new-feature) [Jamie Evans]
 
 1.3.2 - February 12, 2016
 -------------------------
