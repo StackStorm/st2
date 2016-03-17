@@ -19,11 +19,11 @@
     branch:
       type: "string"
       description: "The Branch to deploy."
-      required: true
+      default: "master"
     packs:
       type: "array"
       description: "The Pack(s) to deploy."
-      required: true
+      default: []
     auto_deploy:
       type: "boolean"
       description: "Should this pack and branch be evulated for auto deployment."
