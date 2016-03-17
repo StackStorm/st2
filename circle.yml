@@ -22,6 +22,7 @@ machine:
     NOTESTS: "el7"
     ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
     ST2_DOCKERFILES_REPO: https://github.com/StackStorm/st2-dockerfiles
+    ST2_PACKAGES: "st2"
     BUILD_DOCKER: 0
     DEPLOY_DOCKER: 0
     DEPLOY_PACKAGES: 1
@@ -59,7 +60,7 @@ dependencies:
   override:
     - .circle/docker-compose.sh pull ${DISTRO}
   post:
-    - .circle/docker-compose.sh build_st2 ${DISTRO}
+    - .circle/docker-compose.sh build ${DISTRO}
 
 test:
   override:
