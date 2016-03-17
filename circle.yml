@@ -59,7 +59,7 @@ dependencies:
   override:
     - .circle/docker-compose.sh pull ${DISTRO}
   post:
-    - .circle/docker-compose.sh build ${DISTRO}
+    - .circle/docker-compose.sh build_st2 ${DISTRO}
 
 test:
   override:
