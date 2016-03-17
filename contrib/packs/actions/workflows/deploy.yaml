@@ -26,7 +26,23 @@ workflows:
 
         on-complete:
           - do_auto_install: <% $.auto_deploy = true %>
-          - do_manual_install: <% $.auto_deploy = false %>
+          - check_for_no_subtree: <% $.auto_deploy = false %>
+
+      check_for_no_subtree:
+        action: core.noop
+
+        on-complete:
+          - do_manual_install: <% len($.packs) != 0 %>
+          - publish_packs: <% len($.packs) = 0 %>
+
+      publish_packs:
+        action: core.noop
+
+        publish:
+          packs: [ <% $.repo_name %> ]
+
+        on-complete:
+          - do_manual_install
 
       do_manual_install:
         workflow: install

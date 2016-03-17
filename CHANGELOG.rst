@@ -4,6 +4,8 @@ Changelog
 in development
 --------------
 
+* Improvements to ChatOps deployments of packs via ``pack deploy`` [Jon Middleton]
+* Add ``extra`` field to the ActionAlias schema for adapter-specific parameters. (improvement)
 * Dev environment by default now uses gunicorn to spin API and AUTH processes. (improvement)
 * Allow user to pass a boolean value for the ``cacert`` st2client constructor argument. This way
   it now mimics the behavior of the ``verify`` argument of the ``requests.request`` method.
@@ -53,6 +55,14 @@ in development
   specified, all the timestamps displayed by the CLI will be shown in the configured timezone
   instead of a default UTC display. (new feature)
 * Add ``attachments`` parameter to the ``core.sendmail`` action. (improvement) [Cody A. Ray]
+* Add ``--register-setup-virtualenvs`` flag to the ``register-content`` script. When this flag is
+  provided, Python virtual environments are created for all the registered packs.
+  This option is to be used with distributed setup where action runner services run on multiple
+  hosts to ensure virtual environments exist on all those hosts. (new-feature)
+* Update ``core.st2.CronTimer`` so it supports more of the cron-like expressions (``a-b``, ``*/a``,
+  ``x,y,z``, etc.). (improvement)
+* Add new ``regex`` and ``iregex`` rule criteria operator and deprecate ``matchregex`` in favor of
+  those two new operators. (new-feature) [Jamie Evans]
 
 1.3.2 - February 12, 2016
 -------------------------

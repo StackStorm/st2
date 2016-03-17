@@ -48,6 +48,10 @@ CREATE_VIRTUALENV=true
 # Script beings here
 ####################
 
+function usage() {
+    echo "Usage: $0 [-x] -p <path to pack>" >&2
+}
+
 while getopts ":p:x" o; do
     case "${o}" in
         p)
@@ -68,6 +72,12 @@ while getopts ":p:x" o; do
             ;;
     esac
 done
+
+if [ ! ${PACK_PATH} ]; then
+    # Missing required argument
+    usage
+    exit 2
+fi
 
 PACK_PATH=$(readlink -f ${PACK_PATH})
 if [ ! ${PACK_PATH} ]; then

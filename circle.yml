@@ -39,7 +39,10 @@ machine:
 
 checkout:
   post:
-    - git clone --depth 1 ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
+    - |
+      git clone --depth 1 ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
+      cd /home/ubuntu/st2/st2-packages
+      git checkout ${CIRCLE_BRANCH} || true
     - .circle/buildenv.sh
 
 dependencies:
