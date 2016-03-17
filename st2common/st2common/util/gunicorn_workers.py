@@ -27,7 +27,12 @@ class EventletSyncWorker(SyncWorker):
     Custom sync worker for gunicorn which works with eventlet monkey patching.
 
     This worker class fixes "AssertionError: do not call blocking functions from
-    the mainloop" and some other issues on SIGINT / SIGTERM.
+    the mainloop" and some other issues on SIGINT / SIGTERM signal.
+
+    The actual issue happens in "time.sleep" call in "handle_quit" method -
+    https://github.com/benoitc/gunicorn/blob/master/gunicorn/workers/base.py#L166
+    which results in the assertion failure here -
+    https://github.com/simplegeo/eventlet/blob/master/eventlet/greenthread.py#L27
     """
 
     def handle_quit(self, sig, frame):
