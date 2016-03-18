@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import six
 
 from jinja2.exceptions import UndefinedError
 
@@ -81,8 +82,10 @@ class RuleTester(object):
         # Check if rule can be enforced
         try:
             enforcer = RuleEnforcer(trigger_instance=trigger_instance_db, rule=rule_db)
-            data = enforcer.get_resolved_parameters()
-            LOG.info('Action parameters resolved to: %s', data)
+            params = enforcer.get_resolved_parameters()
+            LOG.info('Action parameters resolved to:')
+            for param in six.iteritems(params):
+                LOG.info('\t%s: %s', param[0], param[1])
             return True
         except (UndefinedError, ValueError) as e:
             LOG.error('Failed to resolve parameters\n\tOriginal error : %s', str(e))
