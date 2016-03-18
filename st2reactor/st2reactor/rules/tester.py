@@ -15,6 +15,8 @@
 
 import os
 
+from jinja2.exceptions import UndefinedError
+
 from st2common import log as logging
 from st2common.content.loader import MetaLoader
 from st2common.models.db.rule import RuleDB
@@ -23,6 +25,7 @@ from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.reactor import Rule, TriggerInstance, Trigger
 
+from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.matcher import RulesMatcher
 
 __all__ = [
@@ -66,11 +69,27 @@ class RuleTester(object):
                      rule_db.trigger, trigger_db.ref)
             return False
 
+        # Check if rule matches criteria.
         matcher = RulesMatcher(trigger_instance=trigger_instance_db, trigger=trigger_db,
                                rules=[rule_db], extra_info=True)
         matching_rules = matcher.get_matching_rules()
 
-        return len(matching_rules) >= 1
+        # Rule does not match so early exit.
+        if len(matching_rules) < 1:
+            return False
+
+        # Check if rule can be enforced
+        try:
+            enforcer = RuleEnforcer(trigger_instance=trigger_instance_db, rule=rule_db)
+            data = enforcer.get_resolved_parameters()
+            LOG.info('Action parameters resolved to: %s', data)
+            return True
+        except (UndefinedError, ValueError) as e:
+            LOG.error('Failed to resolve parameters\n\tOriginal error : %s', str(e))
+            return False
+        except:
+            LOG.exception('Failed to resolve parameters.')
+            return False
 
     def _get_rule_db(self):
         if self._rule_file_path:

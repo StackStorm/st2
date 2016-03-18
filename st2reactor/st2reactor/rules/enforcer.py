@@ -50,7 +50,7 @@ class RuleEnforcer(object):
                        'a datastore, those characters need to be escaped' % (str(e)))
             raise ValueError(message)
 
-    def enforce(self):
+    def get_resolved_parameters(self):
         # TODO: Refactor this to avoid additional lookup in cast_params
         # TODO: rename self.rule.action -> self.rule.action_exec_spec
         action_ref = self.rule.action['ref']
@@ -58,10 +58,13 @@ class RuleEnforcer(object):
         if not action_db:
             raise ValueError('Action "%s" doesn\'t exist' % (action_ref))
 
-        data = self.data_transformer(self.rule.action.parameters)
-        LOG.info('Invoking action %s for trigger_instance %s with data %s.',
+        return self.data_transformer(self.rule.action.parameters)
+
+    def enforce(self):
+        params = self.get_resolved_parameters()
+        LOG.info('Invoking action %s for trigger_instance %s with params %s.',
                  self.rule.action.ref, self.trigger_instance.id,
-                 json.dumps(data))
+                 json.dumps(params))
 
         # update trace before invoking the action.
         trace_context = self._update_trace()
@@ -79,7 +82,7 @@ class RuleEnforcer(object):
         enforcement_db = RuleEnforcementDB(trigger_instance_id=str(self.trigger_instance.id),
                                            rule=rule_spec)
         try:
-            execution_db = RuleEnforcer._invoke_action(self.rule.action, data, context)
+            execution_db = RuleEnforcer._invoke_action(self.rule.action, params, context)
             # pylint: disable=no-member
             enforcement_db.execution_id = str(execution_db.id)
             # pylint: enable=no-member
