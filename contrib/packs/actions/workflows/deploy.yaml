@@ -31,6 +31,8 @@ workflows:
       check_for_no_subtree:
         action: core.noop
 
+        # If packs has 0 len, call publish_packs so that packs is
+        # contains the right value.
         on-complete:
           - do_manual_install: <% len($.packs) != 0 %>
           - publish_packs: <% len($.packs) = 0 %>
@@ -38,6 +40,9 @@ workflows:
       publish_packs:
         action: core.noop
 
+        # If a pack is not contained in a subtree, we should replace
+        # the empty packs array with with an array that contains the
+        # repo_name.
         publish:
           packs: [ <% $.repo_name %> ]
 
