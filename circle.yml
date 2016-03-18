@@ -18,7 +18,7 @@ general:
 
 notify:
   webhooks:
-    - url: https://webhooks.stackstorm.net:8531/webhooks/build/events
+    - url: ${ST2_HOOK_URL}
 
 machine:
   environment:
