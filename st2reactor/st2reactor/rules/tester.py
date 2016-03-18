@@ -119,9 +119,11 @@ class RuleTester(object):
         name = data.get('name', 'unknown')
         trigger = data['trigger']['type']
         criteria = data.get('criteria', None)
+        action = data.get('action', {})
 
-        rule_db = RuleDB(pack=pack, name=name, trigger=trigger, criteria=criteria, action={},
+        rule_db = RuleDB(pack=pack, name=name, trigger=trigger, criteria=criteria, action=action,
                          enabled=True)
+
         return rule_db
 
     def _get_trigger_instance_db_from_file(self, file_path):

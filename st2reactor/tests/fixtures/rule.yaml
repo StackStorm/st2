@@ -13,7 +13,7 @@
           pattern: "StackStorm"
 
   action:
-    ref: "slack.post_message"
+    ref: "wolfpack.action-1"
     parameters:
         message: "{{trigger.source.nick}} on {{trigger.channel}}: {{trigger.message}}"
         channel: "#irc-relay"
