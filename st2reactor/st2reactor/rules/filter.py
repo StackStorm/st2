@@ -61,6 +61,8 @@ class RuleFilter(object):
                  extra=self._base_logger_context)
 
         if not self.rule.enabled:
+            if self.extra_info:
+                LOG.info('Validation failed for rule %s as it is disabled.', self.rule.ref)
             return False
 
         criteria = self.rule.criteria
