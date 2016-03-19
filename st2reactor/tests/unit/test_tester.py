@@ -36,10 +36,16 @@ TEST_MODELS_RULES = {
     'rules': ['rule1.yaml']
 }
 
+TEST_MODELS_ACTIONS = {
+    'actions': ['action1.yaml']
+}
+
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class RuleTesterTestCase(CleanDbTestCase):
     def test_matching_trigger_from_file(self):
+        FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
+                                             fixtures_dict=TEST_MODELS_ACTIONS)
         rule_file_path = os.path.join(BASE_PATH, '../fixtures/rule.yaml')
         trigger_instance_file_path = os.path.join(BASE_PATH, '../fixtures/trigger_instance_1.yaml')
         tester = RuleTester(rule_file_path=rule_file_path,
@@ -56,6 +62,8 @@ class RuleTesterTestCase(CleanDbTestCase):
         self.assertFalse(matching)
 
     def test_matching_trigger_from_db(self):
+        FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
+                                             fixtures_dict=TEST_MODELS_ACTIONS)
         models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                       fixtures_dict=TEST_MODELS_TRIGGERS)
         trigger_instance_db = models['triggerinstances']['trigger_instance_2.yaml']
