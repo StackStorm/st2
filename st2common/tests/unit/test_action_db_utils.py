@@ -240,7 +240,6 @@ class ActionDBUtilsTestCase(DbTestCase):
         self.assertTrue('actionstr' not in named_args)
         self.assertEqual(named_args.get('runnerint'), 555)
 
-
         # Test serialization for different positional argument types and values
         # Test all the values provided
         params = {
@@ -261,7 +260,8 @@ class ActionDBUtilsTestCase(DbTestCase):
             ''
         ]
         pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
-        self.assertListEqual(pos_args, expected_pos_args, 'Positional args not parsed / serialized correctly.')
+        self.assertListEqual(pos_args, expected_pos_args,
+                             'Positional args not parsed / serialized correctly.')
 
         params = {
             'actionint': 1,
@@ -281,7 +281,8 @@ class ActionDBUtilsTestCase(DbTestCase):
             ''
         ]
         pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
-        self.assertListEqual(pos_args, expected_pos_args, 'Positional args not parsed / serialized correctly.')
+        self.assertListEqual(pos_args, expected_pos_args,
+                             'Positional args not parsed / serialized correctly.')
 
         # Test none values
         params = {
@@ -302,7 +303,8 @@ class ActionDBUtilsTestCase(DbTestCase):
             ''
         ]
         pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
-        self.assertListEqual(pos_args, expected_pos_args, 'Positional args not parsed / serialized correctly.')
+        self.assertListEqual(pos_args, expected_pos_args,
+                             'Positional args not parsed / serialized correctly.')
 
     @classmethod
     def _setup_test_models(cls):

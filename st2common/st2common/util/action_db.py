@@ -272,7 +272,6 @@ def get_args(action_parameters, action_db):
         arg_value = serialize_positional_argument(argument_type=arg_type,
                                                   argument_value=arg_value)
 
-
         positional_args.append(arg_value)
         positional_args_keys.add(arg)
 
