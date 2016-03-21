@@ -63,6 +63,10 @@ in development
   ``x,y,z``, etc.). (improvement)
 * Add new ``regex`` and ``iregex`` rule criteria operator and deprecate ``matchregex`` in favor of
   those two new operators. (new-feature) [Jamie Evans]
+* Add support for better serialization of the following parameter types for local and remote script
+  runner actions: ``int``, ``float``, ``boolean``, ``list``, ``object``. Previously those values were
+  serialized as Python literals which made parsing them in shell scripts where cumbersome. Now they
+  are serialized based on simple rules described in the documentation. (new feature)
 
 1.3.2 - February 12, 2016
 -------------------------
