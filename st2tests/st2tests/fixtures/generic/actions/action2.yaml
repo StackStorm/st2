@@ -15,6 +15,15 @@ parameters:
   actionstr:
     required: true
     type: string
+  actionbool:
+    required: false
+    type: boolean
+  actionfloat:
+    required: false
+    type: float
+  actionobject:
+    required: false
+    type: object
   async_test:
     default: false
     type: boolean
