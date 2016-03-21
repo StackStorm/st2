@@ -184,7 +184,7 @@ def setup(config_file, redirect_stderr=True, excludes=None, disable_existing_log
                                   defaults=None,
                                   disable_existing_loggers=disable_existing_loggers)
         handlers = logging.getLoggerClass().manager.root.handlers
-        _add_exclusion_filters(handlers)
+        _add_exclusion_filters(handlers, excludes)
         if redirect_stderr:
             _redirect_stderr()
     except Exception as exc:
