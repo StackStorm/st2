@@ -62,6 +62,37 @@ class RuleEnforcer(object):
         return self.data_transformer(self.rule.action.parameters)
 
     def enforce(self):
+        rule_spec = {'ref': self.rule.ref, 'id': str(self.rule.id), 'uid': self.rule.uid}
+        enforcement_db = RuleEnforcementDB(trigger_instance_id=str(self.trigger_instance.id),
+                                           rule=rule_spec)
+        extra = {
+            'trigger_instance_db': self.trigger_instance,
+            'rule_db': self.rule
+        }
+
+        try:
+            execution_db = self._do_enforce()
+            enforcement_db.execution_id = str(execution_db.id)
+            extra['execution_db'] = execution_db
+        except Exception as e:
+            # Record the failure reason in the RuleEnforcement.
+            enforcement_db.failure_reason = e.msg
+            LOG.exception('Failed kicking off execution for rule %s.', self.rule, extra=extra)
+        finally:
+            self._update_enforcement(enforcement_db)
+
+        if not execution_db or execution_db.status not in EXEC_KICKED_OFF_STATES:
+            LOG.audit('Rule enforcement failed. Execution of Action %s failed. '
+                      'TriggerInstance: %s and Rule: %s',
+                      self.rule.action.name, self.trigger_instance, self.rule,
+                      extra=extra)
+        else:
+            LOG.audit('Rule enforced. Execution %s, TriggerInstance %s and Rule %s.',
+                      execution_db, self.trigger_instance, self.rule, extra=extra)
+
+        return execution_db
+
+    def _do_enforce(self):
         params = self.get_resolved_parameters()
         LOG.info('Invoking action %s for trigger_instance %s with params %s.',
                  self.rule.action.ref, self.trigger_instance.id,
@@ -78,35 +109,7 @@ class RuleEnforcer(object):
             TRACE_CONTEXT: trace_context
         }
 
-        extra = {'trigger_instance_db': self.trigger_instance, 'rule_db': self.rule}
-        rule_spec = {'ref': self.rule.ref, 'id': str(self.rule.id), 'uid': self.rule.uid}
-        enforcement_db = RuleEnforcementDB(trigger_instance_id=str(self.trigger_instance.id),
-                                           rule=rule_spec)
-        try:
-            execution_db = RuleEnforcer._invoke_action(self.rule.action, params, context)
-            # pylint: disable=no-member
-            enforcement_db.execution_id = str(execution_db.id)
-            # pylint: enable=no-member
-        except:
-            LOG.exception('Failed kicking off execution for rule %s.', self.rule, extra=extra)
-            return None
-        finally:
-            self._update_enforcement(enforcement_db)
-
-        extra['execution_db'] = execution_db
-        # pylint: disable=no-member
-        if execution_db.status not in EXEC_KICKED_OFF_STATES:
-            # pylint: enable=no-member
-            LOG.audit('Rule enforcement failed. Execution of Action %s failed. '
-                      'TriggerInstance: %s and Rule: %s',
-                      self.rule.action.name, self.trigger_instance, self.rule,
-                      extra=extra)
-            return execution_db
-
-        LOG.audit('Rule enforced. Execution %s, TriggerInstance %s and Rule %s.',
-                  execution_db, self.trigger_instance, self.rule, extra=extra)
-
-        return execution_db
+        return RuleEnforcer._invoke_action(self.rule.action, params, context)
 
     def _update_trace(self):
         """
