@@ -63,6 +63,9 @@ in development
   ``x,y,z``, etc.). (improvement)
 * Add new ``regex`` and ``iregex`` rule criteria operator and deprecate ``matchregex`` in favor of
   those two new operators. (new-feature) [Jamie Evans]
+* Record failures to enforce rules due to missing actions or parameter validation errors. A
+  RuleEnforcement object will be created for failed enforcements that do not lead to an
+  ActionExecution creation. (improvement)
 
 1.3.2 - February 12, 2016
 -------------------------
