@@ -46,6 +46,7 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
 
     trigger_instance_id = me.StringField(required=True)
     execution_id = me.StringField(required=False)
+    failure_reason = me.StringField(required=False)
     rule = me.EmbeddedDocumentField(RuleReferenceSpecDB, required=True)
     enforced_at = ComplexDateTimeField(
         default=date_utils.get_datetime_utc_now,
