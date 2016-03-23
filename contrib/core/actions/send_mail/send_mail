@@ -120,6 +120,9 @@ fi
 if [ $? -ne 0 ]; then
   echo "Failed to send mail to ${TO}"
   exit 2
+elif [[ -z $trimmed && $SEND_EMPTY_BODY == 'False' ]]; then
+  echo "Nothing to send"
+  exit 0
 else
   echo "Successfully sent mail to ${TO}"
   exit 0
