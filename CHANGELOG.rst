@@ -73,6 +73,8 @@ in development
   rules described in the documentation which makes it easy to use just by using simple shell
   primitives such as if statements and ``IFS`` for lists. (improvement, new feature)
 * Fix ``linux.traceroute`` action. (bug fix)
+* Fix a bug with positional argument handling in the local script runner. Now the arguments with a
+  no value or value of ``None`` are correctly passed to the script. (bug fix)
 
 1.3.2 - February 12, 2016
 -------------------------
