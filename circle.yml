@@ -68,7 +68,7 @@ dependencies:
 
 test:
   override:
-    - make pytests:
+    - cd /home/ubuntu/st2 && make pytests:
         parallel: true
     - .circle/docker-compose.sh test ${DISTRO}:
         parallel: true
