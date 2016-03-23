@@ -51,6 +51,13 @@ class RemoteCommandRunner(BaseFabricRunner):
         return (status, result, None)
 
     def _get_remote_action(self, action_paramaters):
+        # remote script actions with entry_point don't make sense, user probably wanted to use
+        # "remote-shell-script" action
+        if self.entry_point:
+            msg = ('Action "%s" specified "entry_point" attribute. Perhaps wanted to use '
+                   '"remote-shell-script" runner?' % (self.action_name))
+            raise Exception(msg)
+
         command = self.runner_parameters.get(RUNNER_COMMAND, None)
         env_vars = self._get_env_vars()
         return FabricRemoteAction(self.action_name,
@@ -84,6 +91,13 @@ class ParamikoRemoteCommandRunner(BaseParallelSSHRunner):
         return self._parallel_ssh_client.run(command, timeout=remote_action.get_timeout())
 
     def _get_remote_action(self, action_paramaters):
+        # remote script actions with entry_point don't make sense, user probably wanted to use
+        # "remote-shell-script" action
+        if self.entry_point:
+            msg = ('Action "%s" specified "entry_point" attribute. Perhaps wanted to use '
+                   '"remote-shell-script" runner?' % (self.action_name))
+            raise Exception(msg)
+
         command = self.runner_parameters.get(RUNNER_COMMAND, None)
         env_vars = self._get_env_vars()
         return ParamikoRemoteCommandAction(self.action_name,
