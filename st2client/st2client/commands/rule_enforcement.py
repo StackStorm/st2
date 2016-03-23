@@ -32,10 +32,10 @@ class RuleEnforcementBranch(resource.ResourceBranch):
 
 
 class RuleEnforcementGetCommand(resource.ResourceGetCommand):
-    display_attributes = ['id', 'rule_ref', 'trigger_instance_id',
-                          'execution_id', 'enforced_at']
-    attribute_display_order = ['id', 'rule_ref', 'trigger_instance_id',
-                               'execution_id', 'enforced_at']
+    display_attributes = ['id', 'rule.ref', 'trigger_instance_id',
+                          'execution_id', 'failure_reason', 'enforced_at']
+    attribute_display_order = ['id', 'rule.ref', 'trigger_instance_id',
+                               'execution_id', 'failure_reason', 'enforced_at']
 
     pk_argument_name = 'id'
 
