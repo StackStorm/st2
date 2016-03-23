@@ -11,4 +11,10 @@ MAX_QUERIES_TO_HOP="${MAX_QUERIES_TO_HOP:-3}"
 # echo "$MAX_HOPS"
 # echo "$MAX_QUERIES_TO_HOP"
 
-echo `traceroute -q $MAX_QUERIES_TO_HOP -m $MAX_HOPS $HOST`
+TRACEROUTE=`which traceroute`
+if [ $? -ne 0 ]; then
+    echo "Unable to find traceroute binary in PATH" >&2
+    exit 2
+fi
+
+echo `${TRACEROUTE} -q $MAX_QUERIES_TO_HOP -m $MAX_HOPS $HOST`
