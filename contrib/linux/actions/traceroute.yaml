@@ -1,5 +1,5 @@
 name: traceroute
-runner_type: "remote-shell-cmd"
+runner_type: "remote-shell-script"
 description: "Traceroute a Host"
 enabled: true
 entry_point: 'traceroute.sh'
