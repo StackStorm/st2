@@ -161,7 +161,6 @@ class LocalShellScriptRunner(TestCase):
         action_db = models['actions']['local_script_with_params.yaml']
         entry_point = os.path.join(get_fixtures_base_path(),
                                    'generic/actions/local_script_with_params.sh')
-        print entry_point
 
         action_parameters = {
             'param_string': 'test string',
@@ -201,6 +200,22 @@ class LocalShellScriptRunner(TestCase):
 
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue('PARAM_BOOLEAN=0' in result['stdout'])
+
+        action_parameters = {
+            'param_string': '',
+            'param_integer': None,
+            'param_float': None,
+        }
+
+        runner = self._get_runner(action_db=action_db, entry_point=entry_point)
+        runner.pre_run()
+        status, result, _ = runner.run(action_parameters=action_parameters)
+        runner.post_run(status, result)
+
+        self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue('PARAM_STRING=\n' in result['stdout'])
+        self.assertTrue('PARAM_INTEGER=\n' in result['stdout'])
+        self.assertTrue('PARAM_FLOAT=\n' in result['stdout'])
 
     def _get_runner(self, action_db, entry_point):
         runner = localrunner.LocalShellRunner(uuid.uuid4().hex)
