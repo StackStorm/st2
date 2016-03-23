@@ -265,13 +265,14 @@ class ShellScriptAction(ShellCommandAction):
 
 class SSHCommandAction(ShellCommandAction):
     def __init__(self, name, action_exec_id, command, env_vars, user, password=None, pkey=None,
-                 hosts=None, parallel=True, sudo=False, timeout=None, cwd=None):
+                 hosts=None, parallel=True, sudo=False, timeout=None, cwd=None, passphrase=None):
         super(SSHCommandAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                                command=command, env_vars=env_vars, user=user,
                                                sudo=sudo, timeout=timeout, cwd=cwd)
         self.hosts = hosts
         self.parallel = parallel
         self.pkey = pkey
+        self.passphrase = passphrase
         self.password = password
 
     def is_parallel(self):
