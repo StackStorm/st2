@@ -72,6 +72,7 @@ in development
   parsing them in the shell scripts very cumbersome. Now they are serialized based on the simple
   rules described in the documentation which makes it easy to use just by using simple shell
   primitives such as if statements and ``IFS`` for lists. (improvement, new feature)
+* Fix ``linux.traceroute`` action. (bug fix)
 
 1.3.2 - February 12, 2016
 -------------------------
