@@ -71,7 +71,7 @@ test:
     - sudo chown -R ubuntu:ubuntu ~/.cache/pip
     - sudo chown -R ubuntu:ubuntu ~/wheelhouse
   override:
-    - cd /home/ubuntu/st2 && sudo make pytests:
+    - cd /home/ubuntu/st2 && make pytests:
         parallel: true
     - .circle/docker-compose.sh test ${DISTRO}:
         parallel: true
