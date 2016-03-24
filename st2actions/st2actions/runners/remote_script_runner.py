@@ -55,11 +55,11 @@ class RemoteScriptRunner(BaseFabricRunner):
 
     def _get_remote_action(self, action_parameters):
         # remote script actions without entry_point don't make sense, user probably wanted to use
-        # "run-remote" action
+        # "remote-shell-cmd" action
         if not self.entry_point:
-            msg = ('Action "%s" is missing entry_point attribute. Perhaps wanted to use '
-                   '"run-remote" runner?')
-            raise Exception(msg % (self.action_name))
+            msg = ('Action "%s" is missing "entry_point" attribute. Perhaps wanted to use '
+                   '"remote-shell-script" runner?' % (self.action_name))
+            raise Exception(msg)
 
         script_local_path_abs = self.entry_point
         pos_args, named_args = self._get_script_args(action_parameters)
@@ -167,11 +167,11 @@ class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):
 
     def _get_remote_action(self, action_parameters):
         # remote script actions without entry_point don't make sense, user probably wanted to use
-        # "run-remote" action
+        # "remote-shell-cmd" action
         if not self.entry_point:
-            msg = ('Action "%s" is missing entry_point attribute. Perhaps wanted to use '
-                   '"run-remote" runner?')
-            raise Exception(msg % (self.action_name))
+            msg = ('Action "%s" is missing "entry_point" attribute. Perhaps wanted to use '
+                   '"remote-shell-script" runner?' % (self.action_name))
+            raise Exception(msg)
 
         script_local_path_abs = self.entry_point
         pos_args, named_args = self._get_script_args(action_parameters)

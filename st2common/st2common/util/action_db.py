@@ -13,19 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import simplejson as json
 from collections import OrderedDict
 
 from mongoengine import ValidationError
 import six
 
 from st2common import log as logging
-from st2common.constants.action import (LIVEACTION_STATUSES)
+from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 
 LOG = logging.getLogger(__name__)
+
+
+__all__ = [
+    'get_action_parameters_specs',
+    'get_runnertype_by_id',
+    'get_runnertype_by_name',
+    'get_action_by_id',
+    'get_action_by_ref',
+    'get_liveaction_by_id',
+    'update_liveaction_status',
+    'serialize_positional_argument',
+    'get_args'
+]
 
 
 def get_action_parameters_specs(action_ref):
@@ -204,17 +218,61 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
     return liveaction_db
 
 
+def serialize_positional_argument(argument_type, argument_value):
+    """
+    Serialize the provided positional argument.
+
+    Note: Serialization is NOT performed recursively since it doesn't make much
+    sense for shell script actions (only the outter / top level value is
+    serialized).
+    """
+    if argument_type in ['string', 'number', 'float']:
+        argument_value = str(argument_value) if argument_value else ''
+    elif argument_type == 'boolean':
+        # Booleans are serialized as string "1" and "0"
+        if argument_value is not None:
+            argument_value = '1' if bool(argument_value) else '0'
+        else:
+            argument_value = ''
+    elif argument_type == 'list':
+        # Lists are serialized a comma delimited string (foo,bar,baz)
+        argument_value = ','.join(argument_value) if argument_value else ''
+    elif argument_type == 'object':
+        # Objects are serialized as JSON
+        argument_value = json.dumps(argument_value) if argument_value else ''
+    elif argument_type is 'null':
+        # None / null is serialized as en empty string
+        argument_value = ''
+    else:
+        # Other values are simply cast to strings
+        argument_value = str(argument_value) if argument_value else ''
+
+    return argument_value
+
+
 def get_args(action_parameters, action_db):
     """
+
+    Get and serialize positional and named arguments.
+
     :return: (positional_args, named_args)
     :rtype: (``str``, ``dict``)
     """
     position_args_dict = _get_position_arg_dict(action_parameters, action_db)
 
+    action_db_parameters = action_db.parameters or {}
+
     positional_args = []
     positional_args_keys = set()
     for _, arg in six.iteritems(position_args_dict):
-        positional_args.append(str(action_parameters.get(arg)))
+        arg_type = action_db_parameters.get(arg, {}).get('type', None)
+
+        # Perform serialization for positional arguments
+        arg_value = action_parameters.get(arg, None)
+        arg_value = serialize_positional_argument(argument_type=arg_type,
+                                                  argument_value=arg_value)
+
+        positional_args.append(arg_value)
         positional_args_keys.add(arg)
 
     named_args = {}

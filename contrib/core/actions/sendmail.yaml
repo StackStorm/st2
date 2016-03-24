@@ -1,8 +1,9 @@
 ---
-description: This sends an email
-enabled: true
-entry_point: send_mail/send_mail
 name: sendmail
+description: This sends an email
+entry_point: send_mail/send_mail
+runner_type: "local-shell-script"
+enabled: true
 parameters:
   from:
     description: Sender email address.
@@ -46,5 +47,3 @@ parameters:
     position: 6
     required: false
     type: "string"
-
-runner_type: "local-shell-script"

@@ -234,10 +234,77 @@ class ActionDBUtilsTestCase(DbTestCase):
             'runnerint': 555
         }
         pos_args, named_args = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
-        self.assertListEqual(pos_args, ['20', 'foo'], 'Positional args not parsed correctly.')
+        self.assertListEqual(pos_args, ['20', '', 'foo', '', '', '', ''],
+                            'Positional args not parsed correctly.')
         self.assertTrue('actionint' not in named_args)
         self.assertTrue('actionstr' not in named_args)
         self.assertEqual(named_args.get('runnerint'), 555)
+
+        # Test serialization for different positional argument types and values
+        # Test all the values provided
+        params = {
+            'actionint': 1,
+            'actionfloat': 1.5,
+            'actionstr': 'string value',
+            'actionbool': True,
+            'actionlist': ['foo', 'bar', 'baz'],
+            'actionobject': {'a': 1, 'b': '2'},
+        }
+        expected_pos_args = [
+            '1',
+            '1.5',
+            'string value',
+            '1',
+            'foo,bar,baz',
+            '{"a": 1, "b": "2"}',
+            ''
+        ]
+        pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
+        self.assertListEqual(pos_args, expected_pos_args,
+                             'Positional args not parsed / serialized correctly.')
+
+        params = {
+            'actionint': 1,
+            'actionfloat': 1.5,
+            'actionstr': 'string value',
+            'actionbool': False,
+            'actionlist': [],
+            'actionobject': {'a': 1, 'b': '2'},
+        }
+        expected_pos_args = [
+            '1',
+            '1.5',
+            'string value',
+            '0',
+            '',
+            '{"a": 1, "b": "2"}',
+            ''
+        ]
+        pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
+        self.assertListEqual(pos_args, expected_pos_args,
+                             'Positional args not parsed / serialized correctly.')
+
+        # Test none values
+        params = {
+            'actionint': None,
+            'actionfloat': None,
+            'actionstr': None,
+            'actionbool': None,
+            'actionlist': None,
+            'actionobject': None,
+        }
+        expected_pos_args = [
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            ''
+        ]
+        pos_args, _ = action_db_utils.get_args(params, ActionDBUtilsTestCase.action_db)
+        self.assertListEqual(pos_args, expected_pos_args,
+                             'Positional args not parsed / serialized correctly.')
 
     @classmethod
     def _setup_test_models(cls):
@@ -278,8 +345,14 @@ class ActionDBUtilsTestCase(DbTestCase):
         pack = 'wolfpack'
         name = 'action-1'
         parameters = {
-            'actionstr': {'type': 'string', 'position': 1, 'required': True},
             'actionint': {'type': 'number', 'default': 10, 'position': 0},
+            'actionfloat': {'type': 'float', 'required': False, 'position': 1},
+            'actionstr': {'type': 'string', 'required': True, 'position': 2},
+            'actionbool': {'type': 'boolean', 'required': False, 'position': 3},
+            'actionlist': {'type': 'list', 'required': False, 'position': 4},
+            'actionobject': {'type': 'object', 'required': False, 'position': 5},
+            'actionnull': {'type': 'null', 'required': False, 'position': 6},
+
             'runnerdummy': {'type': 'string', 'default': 'actiondummy'}
         }
         action_db = ActionDB(pack=pack, name=name, description='awesomeness',

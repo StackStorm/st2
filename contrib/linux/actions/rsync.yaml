@@ -1,6 +1,6 @@
 ---
     name: 'rsync'
-    runner_type: 'run-remote'
+    runner_type: 'remote-shell-cmd'
     description: 'Copy file(s) from one place to another w/ rsync'
     enabled: true
     entry_point: ''
