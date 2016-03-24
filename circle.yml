@@ -27,6 +27,7 @@ machine:
     ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
     ST2_DOCKERFILES_REPO: https://github.com/StackStorm/st2-dockerfiles
     ST2_PACKAGES: "st2"
+    ST2_PACKAGES_BRANCH: "test_updates"
     BUILD_DOCKER: 0
     DEPLOY_DOCKER: 0
     DEPLOY_PACKAGES: 1
@@ -47,7 +48,7 @@ checkout:
     - |
       git clone --depth 1 ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
       cd /home/ubuntu/st2/st2-packages
-      git checkout ${CIRCLE_BRANCH} || true
+      git checkout ${ST2_PACKAGES_BRANCH} || true
     - .circle/buildenv_st2.sh
 
 dependencies:
@@ -70,10 +71,11 @@ test:
   pre:
     - sudo chown -R ubuntu:ubuntu ~/.cache/pip
     - sudo chown -R ubuntu:ubuntu ~/wheelhouse
-    - cd /home/ubuntu/st2 && rm -rf st2-packages
-    - sudo sh -c 'echo "[{rabbit, [{disk_free_limit, 10}, {loopback_users, []}, {tcp_listeners, [{\"0.0.0.0\", 5672}]}]}]." > /etc/rabbitmq/rabbitmq.config' && sudo service rabbitmq-server restart
+    - mv st2-packages .st2-packages
+    - .circle/configure-test-rabbitmq.sh
+    - .circle/add-itest-user.sh
   override:
-    - cd /home/ubuntu/st2 && make pytests:
+    - cd /home/ubuntu/st2 && make pytests && mv .st2-packages st2-packages:
         parallel: true
     - .circle/docker-compose.sh test ${DISTRO}:
         parallel: true
