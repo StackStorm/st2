@@ -71,6 +71,7 @@ test:
     - sudo chown -R ubuntu:ubuntu ~/.cache/pip
     - sudo chown -R ubuntu:ubuntu ~/wheelhouse
     - cd /home/ubuntu/st2 && rm -rf st2-packages
+    - sudo sh -c 'echo "[{rabbit, [{disk_free_limit, 10}, {loopback_users, []}, {tcp_listeners, [{\"0.0.0.0\", 5672}]}]}]." > /etc/rabbitmq/rabbitmq.config' && sudo service rabbitmq-server restart
   override:
     - cd /home/ubuntu/st2 && make pytests:
         parallel: true
