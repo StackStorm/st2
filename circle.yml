@@ -67,6 +67,9 @@ dependencies:
     - .circle/docker-compose.sh build ${DISTRO}
 
 test:
+  pre:
+    - sudo chown -R ubuntu:ubuntu ~/.cache/pip
+    - sudo chown -R ubuntu:ubuntu ~/wheelhouse
   override:
     - cd /home/ubuntu/st2 && sudo make pytests:
         parallel: true
