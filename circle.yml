@@ -7,11 +7,6 @@
 # DOCKER_EMAIL
 # DOCKER_PASSWORD
 general:
-  # Don't run CI for PR, only for major branches
-  # branches:
-  #   only:
-  #     - master
-  #     - /v[0-9]+\.[0-9]+/
   build_dir: st2-packages
   artifacts:
     - ~/packages
@@ -47,7 +42,7 @@ machine:
 checkout:
   post:
     - git clone -b ${ST2_PACKAGES_BRANCH} --single-branch --depth 1 ${ST2_PACKAGES_REPO} ${ST2_REPO_ROOT_DIR}/st2-packages
-    - ${ST2_REPO_ROOT_DIR}/st2-packages/.circle/buildenv_st2.sh
+    - .circle/buildenv_st2.sh
 
 dependencies:
   cache_directories:
@@ -55,6 +50,7 @@ dependencies:
   pre:
     - sudo .circle/configure-services.sh
     - sudo .circle/fix-cache-permissions.sh
+    - sudo .circle/add-itest-user.sh
     - sudo apt-get -y install parallel jq
     - gem install package_cloud
     - sudo pip install docker-compose
@@ -67,13 +63,15 @@ dependencies:
 
 test:
   pre:
+    # ~/.cache/pip and ~/wheelhouse need to be owned by local user to run tests.
+    # tests cannot be run as root since github user keys are not configured for root.
     - sudo chown -R ubuntu:ubuntu ~/.cache/pip
     - sudo chown -R ubuntu:ubuntu ~/wheelhouse
-    - ${ST2_REPO_ROOT_DIR}/st2-packages/.circle/configure-test-rabbitmq.sh
-    - ${ST2_REPO_ROOT_DIR}/st2-packages/.circle/add-itest-user.sh
+    # This ensures that st2-packages is not accidentally picked up while running tests.
     - mv ${ST2_REPO_ROOT_DIR}/st2-packages ${ST2_REPO_ROOT_DIR}/.st2-packages
   override:
-    - cd /home/ubuntu/st2 && make pytests && mv .st2-packages st2-packages
+    # Rename .st2-packages back to original so subsequent steps still work.
+    - cd ${ST2_REPO_ROOT_DIR} && make pytests && mv .st2-packages st2-packages
     - .circle/docker-compose.sh test ${DISTRO}:
         parallel: true
     # Copy all Packages to node0
