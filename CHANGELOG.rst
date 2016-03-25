@@ -75,8 +75,10 @@ in development
 * Fix ``linux.traceroute`` action. (bug fix)
 * Fix a bug with positional argument handling in the local script runner. Now the arguments with a
   no value or value of ``None`` are correctly passed to the script. (bug fix)
-* Fix rule criteria comparison and make sure that falsy criteria pattern values such as integer /
-  number ``0`` are handled correctly. (bug-fix)
+* Fix rule criteria comparison and make sure that falsy criteria pattern values such as integer
+  ``0`` are handled correctly. (bug-fix)
+
+  Reported by Igor Cherkaev.
 
 1.3.2 - February 12, 2016
 -------------------------
