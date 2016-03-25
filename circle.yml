@@ -45,8 +45,8 @@ machine:
 
 checkout:
   post:
-    - git clone -b origin/${ST2_PACKAGES_BRANCH} --single-branch --depth 1 ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
-    - /home/ubuntu/st2/st2-packages && .circle/buildenv_st2.sh
+    - git clone -b ${ST2_PACKAGES_BRANCH} --single-branch --depth 1 https://github.com/StackStorm/st2-packages /home/ubuntu/st2/st2-packages
+    - /home/ubuntu/st2/st2-packages/.circle/buildenv_st2.sh
 
 dependencies:
   cache_directories:
