@@ -139,7 +139,7 @@ class RuleFilter(object):
         return result, payload_value, criteria_pattern
 
     def _render_criteria_pattern(self, criteria_pattern):
-        if not criteria_pattern:
+        if criteria_pattern is None:
             return None
 
         if not isinstance(criteria_pattern, six.string_types):
