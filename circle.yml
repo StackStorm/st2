@@ -71,9 +71,9 @@ test:
   pre:
     - sudo chown -R ubuntu:ubuntu ~/.cache/pip
     - sudo chown -R ubuntu:ubuntu ~/wheelhouse
-    - mv st2-packages .st2-packages
-    - .circle/configure-test-rabbitmq.sh
-    - .circle/add-itest-user.sh
+    - mv /home/ubuntu/st2/st2-packages /home/ubuntu/st2/.st2-packages
+    - /home/ubuntu/st2/.st2-packages/.circle/configure-test-rabbitmq.sh
+    - /home/ubuntu/st2/.st2-packages/.circle/add-itest-user.sh
   override:
     - cd /home/ubuntu/st2 && make pytests && mv .st2-packages st2-packages:
         parallel: true
