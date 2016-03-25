@@ -28,6 +28,7 @@ machine:
     ST2_DOCKERFILES_REPO: https://github.com/StackStorm/st2-dockerfiles
     ST2_PACKAGES: "st2"
     ST2_PACKAGES_BRANCH: "test_updates"
+    ST2_REPO_ROOT_DIR: ${HOME}/${CIRCLE_PROJECT_REPONAME}
     BUILD_DOCKER: 0
     DEPLOY_DOCKER: 0
     DEPLOY_PACKAGES: 1
@@ -45,8 +46,8 @@ machine:
 
 checkout:
   post:
-    - git clone -b ${ST2_PACKAGES_BRANCH} --single-branch --depth 1 https://github.com/StackStorm/st2-packages /home/ubuntu/st2/st2-packages
-    - /home/ubuntu/st2/st2-packages/.circle/buildenv_st2.sh
+    - git clone -b ${ST2_PACKAGES_BRANCH} --single-branch --depth 1 ${ST2_PACKAGES_REPO} ${ST2_REPO_ROOT_DIR}/st2-packages
+    - ${ST2_REPO_ROOT_DIR}/st2-packages/.circle/buildenv_st2.sh
 
 dependencies:
   cache_directories:
@@ -68,9 +69,9 @@ test:
   pre:
     - sudo chown -R ubuntu:ubuntu ~/.cache/pip
     - sudo chown -R ubuntu:ubuntu ~/wheelhouse
-    - /home/ubuntu/st2/st2-packages/.circle/configure-test-rabbitmq.sh
-    - /home/ubuntu/st2/st2-packages/.circle/add-itest-user.sh
-    - mv /home/ubuntu/st2/st2-packages /home/ubuntu/st2/.st2-packages
+    - ${ST2_REPO_ROOT_DIR}/st2-packages/.circle/configure-test-rabbitmq.sh
+    - ${ST2_REPO_ROOT_DIR}/st2-packages/.circle/add-itest-user.sh
+    - mv ${ST2_REPO_ROOT_DIR}/st2-packages ${ST2_REPO_ROOT_DIR}/.st2-packages
   override:
     - cd /home/ubuntu/st2 && make pytests && mv .st2-packages st2-packages:
         parallel: true
