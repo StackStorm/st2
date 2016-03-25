@@ -74,8 +74,7 @@ test:
     - case $CIRCLE_NODE_INDEX in 0) cd ${ST2_REPO_ROOT_DIR} && make .flake8 .pylint ;; 1) cd ${ST2_REPO_ROOT_DIR} && make .unit-tests-coverage-html clean ;; 2) cd ${ST2_REPO_ROOT_DIR} && make .itests-coverage-html clean ;; esac:
         parallel: true
     # Rename .st2-packages back to original so subsequent steps still work.
-    - cd ${ST2_REPO_ROOT_DIR} && make pytests && mv .st2-packages st2-packages
-
+    - cd ${ST2_REPO_ROOT_DIR} && mv .st2-packages st2-packages
     - .circle/docker-compose.sh test ${DISTRO}:
         parallel: true
     # Copy all Packages to node0
