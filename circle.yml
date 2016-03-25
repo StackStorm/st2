@@ -47,7 +47,7 @@ checkout:
   post:
     - git clone --depth 1 ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
     - cd /home/ubuntu/st2/st2-packages
-    - git checkout ${ST2_PACKAGES_BRANCH} || true
+    - git checkout origin/${ST2_PACKAGES_BRANCH} || true
     - .circle/buildenv_st2.sh
 
 dependencies:
