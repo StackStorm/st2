@@ -139,6 +139,8 @@ class RuleFilter(object):
         return result, payload_value, criteria_pattern
 
     def _render_criteria_pattern(self, criteria_pattern):
+        # Note: Here we want to use strict comparison to None to make sure that
+        # other falsy values such as integer 0 are handled correctly.
         if criteria_pattern is None:
             return None
 
