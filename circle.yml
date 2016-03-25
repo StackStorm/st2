@@ -73,8 +73,7 @@ test:
     - ${ST2_REPO_ROOT_DIR}/st2-packages/.circle/add-itest-user.sh
     - mv ${ST2_REPO_ROOT_DIR}/st2-packages ${ST2_REPO_ROOT_DIR}/.st2-packages
   override:
-    - cd /home/ubuntu/st2 && make pytests && mv .st2-packages st2-packages:
-        parallel: true
+    - cd /home/ubuntu/st2 && make pytests && mv .st2-packages st2-packages
     - .circle/docker-compose.sh test ${DISTRO}:
         parallel: true
     # Copy all Packages to node0
