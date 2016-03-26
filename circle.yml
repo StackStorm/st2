@@ -57,11 +57,12 @@ dependencies:
     - docker-compose version
     - docker version
   override:
-    #- .circle/docker-compose.sh pull ${DISTRO}
-    - echo "skipping pull" && hostname
+    - .circle/docker-compose.sh pull ${DISTRO}
   post:
-    # - .circle/docker-compose.sh build ${DISTRO}
-    - echo "skipping build" && hostname
+    - .circle/docker-compose.sh build ${DISTRO}
+    # All the steps that follow in this section should've been in test.pre. However,
+    # circleci behavior for test.pre is to run on only 1 box. Therefore this is moved
+    # into dependencies.
     # This ensures that st2-packages is not accidentally picked up while running tests.
     - mv ${ST2_REPO_ROOT_DIR}/st2-packages ${ST2_REPO_ROOT_DIR}/.st2-packages
     # ~/.cache/pip and ~/wheelhouse need to be owned by local user to run tests.
@@ -71,15 +72,14 @@ dependencies:
     - cd ${ST2_REPO_ROOT_DIR} && hostname && make compile requirements
 test:
   override:
-    - case $CIRCLE_NODE_INDEX in 0) cd ${ST2_REPO_ROOT_DIR} && make .flake8 .pylint ;; 1) cd ${ST2_REPO_ROOT_DIR} && make .unit-tests-coverage-html && make clean ;; 2) cd ${ST2_REPO_ROOT_DIR} && make .itests-coverage-html && make clean ;; esac:
+    - case $CIRCLE_NODE_INDEX in 0) cd ${ST2_REPO_ROOT_DIR} && make .flake8 .pylint ;; 1) cd ${ST2_REPO_ROOT_DIR} && make .unit-tests-coverage-html clean ;; 2) cd ${ST2_REPO_ROOT_DIR} && make .itests-coverage-html clean ;; esac:
         parallel: true
     # Rename .st2-packages back to original so subsequent steps still work.
-    # - mv ${ST2_REPO_ROOT_DIR}/.st2-packages ${ST2_REPO_ROOT_DIR}/st2-packages
-    # - .circle/docker-compose.sh test ${DISTRO}:
-    #     parallel: true
+    - mv ${ST2_REPO_ROOT_DIR}/.st2-packages ${ST2_REPO_ROOT_DIR}/st2-packages && .circle/docker-compose.sh test ${DISTRO}:
+        parallel: true
     # Copy all Packages to node0
-    # - rsync -rv /tmp/st2-packages/ node0:~/packages/${DISTRO}:
-    #     parallel: true
+    - rsync -rv /tmp/st2-packages/ node0:~/packages/${DISTRO}:
+        parallel: true
   post:
     - .circle/docker.sh build st2
     - .circle/docker.sh build st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
