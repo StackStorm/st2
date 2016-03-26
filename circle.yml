@@ -40,7 +40,7 @@ machine:
 checkout:
   post:
     - git clone -b ${CIRCLE_BRANCH} --single-branch --depth 1 ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
-    - /home/ubuntu/st2/st2-packages/.circle/buildenv.sh
+    - .circle/buildenv.sh
 
 dependencies:
   cache_directories:
