@@ -62,15 +62,14 @@ dependencies:
   post:
     # - .circle/docker-compose.sh build ${DISTRO}
     - echo "skipping build" && hostname
-test:
-  pre:
+    # This ensures that st2-packages is not accidentally picked up while running tests.
+    - mv ${ST2_REPO_ROOT_DIR}/st2-packages ${ST2_REPO_ROOT_DIR}/.st2-packages
     # ~/.cache/pip and ~/wheelhouse need to be owned by local user to run tests.
     # tests cannot be run as root since github user keys are not configured for root.
     - sudo chown -R ubuntu:ubuntu ~/.cache/pip
     - sudo chown -R ubuntu:ubuntu ~/wheelhouse
-    # This ensures that st2-packages is not accidentally picked up while running tests.
-    - mv ${ST2_REPO_ROOT_DIR}/st2-packages ${ST2_REPO_ROOT_DIR}/.st2-packages
     - cd ${ST2_REPO_ROOT_DIR} && hostname && make compile requirements
+test:
   override:
     - case $CIRCLE_NODE_INDEX in 0) cd ${ST2_REPO_ROOT_DIR} && make .flake8 .pylint ;; 1) cd ${ST2_REPO_ROOT_DIR} && make .unit-tests-coverage-html && make clean ;; 2) cd ${ST2_REPO_ROOT_DIR} && make .itests-coverage-html && make clean ;; esac:
         parallel: true
