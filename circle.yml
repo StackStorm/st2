@@ -74,12 +74,12 @@ test:
     - case $CIRCLE_NODE_INDEX in 0) cd ${ST2_REPO_ROOT_DIR} && make .flake8 .pylint ;; 1) cd ${ST2_REPO_ROOT_DIR} && make .unit-tests-coverage-html && make clean ;; 2) cd ${ST2_REPO_ROOT_DIR} && make .itests-coverage-html && make clean ;; esac:
         parallel: true
     # Rename .st2-packages back to original so subsequent steps still work.
-    - cd ${ST2_REPO_ROOT_DIR} && mv .st2-packages st2-packages
-    - .circle/docker-compose.sh test ${DISTRO}:
-        parallel: true
+    # - mv ${ST2_REPO_ROOT_DIR}/.st2-packages ${ST2_REPO_ROOT_DIR}/st2-packages
+    # - .circle/docker-compose.sh test ${DISTRO}:
+    #     parallel: true
     # Copy all Packages to node0
-    - rsync -rv /tmp/st2-packages/ node0:~/packages/${DISTRO}:
-        parallel: true
+    # - rsync -rv /tmp/st2-packages/ node0:~/packages/${DISTRO}:
+    #     parallel: true
   post:
     - .circle/docker.sh build st2
     - .circle/docker.sh build st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
