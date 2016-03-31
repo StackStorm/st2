@@ -91,3 +91,15 @@ class SensorWrapperTestCase(unittest2.TestCase):
         self.assertIsNotNone(wrapper._sensor_instance)
         self.assertIsInstance(wrapper._sensor_instance, PollingSensor)
         self.assertEquals(wrapper._sensor_instance._poll_interval, poll_interval)
+
+    def test_sensor_init_fails_file_doesnt_exist(self):
+        file_path = os.path.join(RESOURCES_DIR, 'test_sensor_doesnt_exist.py')
+        trigger_types = ['trigger1', 'trigger2']
+        parent_args = ['--config-file', TESTS_CONFIG_PATH]
+
+        expected_msg = 'Failed to load sensor class from file'
+        self.assertRaisesRegexp(ValueError, expected_msg, SensorWrapper,
+                                pack='core', file_path=file_path,
+                                class_name='TestSensor',
+                                trigger_types=trigger_types,
+                                parent_args=parent_args)

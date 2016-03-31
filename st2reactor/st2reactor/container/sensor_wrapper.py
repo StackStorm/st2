@@ -258,8 +258,8 @@ class SensorWrapper(object):
                                                         file_path=self._file_path,
                                                         class_name=self._class_name)
         except Exception as e:
-            msg = ('Failed to register sensor file "%s" (sensor file most likely doesn\'t exist): '
-                   ' %s' % (self._file_path, str(e)))
+            msg = ('Failed to load sensor class from file "%s"'
+                   ' (sensor file most likely doesn\'t exist): %s' % (self._file_path, str(e)))
             raise ValueError(msg)
 
         if not sensor_class:
