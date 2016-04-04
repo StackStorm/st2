@@ -253,9 +253,14 @@ class SensorWrapper(object):
         _, filename = os.path.split(self._file_path)
         module_name, _ = os.path.splitext(filename)
 
-        sensor_class = loader.register_plugin_class(base_class=Sensor,
-                                                    file_path=self._file_path,
-                                                    class_name=self._class_name)
+        try:
+            sensor_class = loader.register_plugin_class(base_class=Sensor,
+                                                        file_path=self._file_path,
+                                                        class_name=self._class_name)
+        except Exception as e:
+            msg = ('Failed to load sensor class from file "%s"'
+                   ' (sensor file most likely doesn\'t exist): %s' % (self._file_path, str(e)))
+            raise ValueError(msg)
 
         if not sensor_class:
             raise ValueError('Sensor module is missing a class with name "%s"' %
