@@ -43,6 +43,7 @@ VIRTUALENVS_DIR="/tmp/st2-pack-tests-virtualenvs"
 
 ST2_PIP_OPTIONS=${ST2_PIP_OPTIONS:-"-q"}
 CREATE_VIRTUALENV=true
+VERBOSE=false
 
 ####################
 # Script beings here
@@ -52,13 +53,16 @@ function usage() {
     echo "Usage: $0 [-x] -p <path to pack>" >&2
 }
 
-while getopts ":p:x" o; do
+while getopts ":p:xv" o; do
     case "${o}" in
         p)
             PACK_PATH=${OPTARG}
             ;;
         x)
             CREATE_VIRTUALENV=false
+            ;;
+        v)
+            VERBOSE=true
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -173,6 +177,12 @@ fi
 
 # Set PYTHONPATH, make sure it contains st2 components in PATH
 export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
+
+if [ ${VERBOSE} = true ]; then
+    echo "PYTHONPATH=${PYTHONPATH}"
+    echo "Installed Python dependencies:"
+    pip list
+fi
 
 echo "Running tests..."
 nosetests -s -v ${PACK_TESTS_PATH}
