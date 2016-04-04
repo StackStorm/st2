@@ -175,6 +175,7 @@ fi
 export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
 
 echo "Running tests..."
+python -c "import eventlet;print eventlet"
 nosetests -s -v ${PACK_TESTS_PATH}
 TESTS_EXIT_CODE=$?
 
