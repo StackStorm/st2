@@ -152,8 +152,8 @@ if [ ${ST2_REPO_PATH} ]; then
 fi
 
 # Install global test dependencies
+echo "Installing global pack test dependencies..."
 for dependency in ${PACK_TEST_PYTHON_DEPENDENCIES[@]}; do
-    echo "Installing global pack test dependencies..."
     pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${dependency}"
 done
 
