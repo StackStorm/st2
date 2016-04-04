@@ -132,9 +132,9 @@ compile:
 	@sudo rm -rf /var/lib/mongodb/*
 	@sudo chown -R mongodb:mongodb /var/lib/mongodb/
 	@sudo service mongodb start
-	@sleep 1
+	@sleep 15
 	@mongo --eval "rs.initiate()"
-	@sleep 5
+	@sleep 15
 
 .PHONY: .cleanmysql
 .cleanmysql:
