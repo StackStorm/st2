@@ -117,6 +117,8 @@ ST2_REPO_PATH=${ST2_REPO_PATH}
 PACK_REQUIREMENTS_FILE="${PACK_PATH}/requirements.txt"
 PACK_TESTS_REQUIREMENTS_FILE="${PACK_PATH}/requirements-tests.txt"
 
+echo "Running tests for pack: ${PACK_NAME}"
+
 # Create virtualenv
 VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
 
@@ -172,7 +174,7 @@ fi
 # Set PYTHONPATH, make sure it contains st2 components in PATH
 export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
 
-echo "Running tests for pack: ${PACK_NAME}"
+echo "Running tests..."
 nosetests -s -v ${PACK_TESTS_PATH}
 TESTS_EXIT_CODE=$?
 
