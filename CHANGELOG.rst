@@ -79,6 +79,7 @@ in development
   ``0`` are handled correctly. (bug-fix)
 
   Reported by Igor Cherkaev.
+* Add ``-v`` flag (verbose mode) to the ``st2-run-pack-tests`` script. (improvement)
 
 1.3.2 - February 12, 2016
 -------------------------
