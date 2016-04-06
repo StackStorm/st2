@@ -23,6 +23,7 @@ import os.path
 import sys
 import shutil
 import logging
+import inspect
 
 import six
 import eventlet
@@ -47,6 +48,8 @@ import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
 from st2actions.runners.utils import get_action_class_instance
+from st2common.content.loader import ContentPackLoader
+from st2common.bootstrap.aliasesregistrar import AliasesRegistrar
 
 import st2tests.config
 from st2tests.mocks.sensor import MockSensorWrapper
@@ -64,7 +67,8 @@ __all__ = [
     'IntegrationTestCase',
 
     'BaseSensorTestCase',
-    'BaseActionTestCase'
+    'BaseActionTestCase',
+    'BaseActionAliasesTestCase'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -510,6 +514,71 @@ class BaseActionTestCase(TestCase):
                                              config=config,
                                              action_service=self.action_service)
         return instance
+
+
+class BaseActionAliasTestCase(TestCase):
+    """
+    Base class for testing action aliases.
+    """
+
+    alias_name = None
+    action_alias_db = None
+
+    def setUp(self):
+        super(BaseActionAliasTestCase, self).setUp()
+
+        self.action_alias_db = self._get_action_alias_db_by_name(name=self.alias_name)
+
+    def assertFormatMatchesCommand(self, format_string, command):
+        """
+        Assert that the provided alias format string matches the provider user input string aka
+        command.
+        """
+        pass
+
+    def assertFormatDoesntMatchCommand(self, format_string, command):
+        """
+        Assert that the provided alias format string doesnt match the provider user input string
+        aka command.
+        """
+        pass
+
+    def assertFormatMatchesCommandAndParsedParameters(self, format_string, command, values):
+        """
+        Assert that the provided alias format string matches the provider user input string aka
+        command.
+
+        In addition to that, also assert that the parameters which have been extracted from the user input also match the provided values.
+        """
+
+        pass
+
+    def _get_action_alias_db_by_name(self, name):
+        """
+        Retrieve ActionAlias DB object for the provided alias name.
+        """
+        test_file_path = inspect.getfile(self.__class__)
+        base_pack_path = os.path.join(os.path.dirname(test_file_path), '..')
+        base_pack_path = os.path.abspath(base_pack_path)
+
+        pack_loader = ContentPackLoader()
+        registrar = AliasesRegistrar(use_pack_cache=False)
+
+        aliases_path = pack_loader.get_content_from_pack(pack_dir=base_pack_path,
+                                                         content_type='aliases')
+        aliases = registrar._get_aliases_from_pack(aliases_dir=aliases_path)
+        for alias_path in aliases:
+            action_alias_db = registrar._get_action_alias_db(pack='packs',
+                                                             action_alias=alias_path)
+
+            if action_alias_db.name == name:
+                return action_alias_db
+
+        return ValueEror('Alias with name "%s" not found' % (name))
+
+
+        pass
+    pass
 
 
 class FakeResponse(object):

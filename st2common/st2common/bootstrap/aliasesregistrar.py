@@ -103,7 +103,10 @@ class AliasesRegistrar(ResourceRegistrar):
     def _get_aliases_from_pack(self, aliases_dir):
         return self.get_resources_from_pack(resources_dir=aliases_dir)
 
-    def _register_action_alias(self, pack, action_alias):
+    def _get_action_alias_db(self, pack, action_alias):
+        """
+        Retrieve ActionAliasDB object.
+        """
         content = self._meta_loader.load(action_alias)
         pack_field = content.get('pack', None)
         if not pack_field:
@@ -116,6 +119,11 @@ class AliasesRegistrar(ResourceRegistrar):
         action_alias_api = ActionAliasAPI(**content)
         action_alias_api.validate()
         action_alias_db = ActionAliasAPI.to_model(action_alias_api)
+
+        return action_alias_db
+
+    def _register_action_alias(self, pack, action_alias):
+        action_alias_db = self._get_action_alias_db(pack=pack, action_alias=action_alias)
 
         try:
             action_alias_db.id = ActionAlias.get_by_name(action_alias_api.name).id
