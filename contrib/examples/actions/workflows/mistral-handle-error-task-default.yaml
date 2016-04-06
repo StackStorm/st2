@@ -17,7 +17,7 @@ examples.mistral-handle-error-task-default:
         task1:
             action: core.local cmd=<% $.cmd %>
             publish:
-                stdout: <% $.task1.stdout %>
+                stdout: <% task(task1).result.stdout %>
 
         # Default exception handler
         notify_on_error:

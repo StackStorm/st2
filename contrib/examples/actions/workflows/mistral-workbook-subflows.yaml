@@ -19,7 +19,7 @@ workflows:
                 input:
                     cmd: "printf '<% $.subject %>'"
                 publish:
-                    printed_subject: <% $.print_subject.stdout %>
+                    printed_subject: <% task(print_subject).result.stdout %>
                 on-success:
                     - print_adjective
             print_adjective:
@@ -27,4 +27,4 @@ workflows:
                 input:
                     cmd: "printf '<% $.adjective %>'"
                 publish:
-                    printed_adjective: <% $.print_adjective.stdout %>
+                    printed_adjective: <% task(print_adjective).result.stdout %>
