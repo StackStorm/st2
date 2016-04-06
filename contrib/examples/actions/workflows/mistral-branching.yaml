@@ -13,7 +13,7 @@ examples.mistral-branching:
             input:
                 cmd: "printf <% $.which %>"
             publish:
-                path: <% $.t1.stdout %>
+                path: <% task(t1).result.stdout %>
             on-success:
                 - a: <% $.path = 'a' %>
                 - b: <% $.path = 'b' %>

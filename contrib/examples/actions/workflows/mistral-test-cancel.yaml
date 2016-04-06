@@ -14,4 +14,4 @@ examples.mistral-test-cancel:
                 cmd: "date; sleep <% $.sleep %>; date"
                 timeout: <% $.sleep + 5 %>
             publish:
-                stdout: <% $.task1.stdout %>
+                stdout: <% task(task1).result.stdout %>
