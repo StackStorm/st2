@@ -80,6 +80,9 @@ in development
 
   Reported by Igor Cherkaev.
 * Add ``-v`` flag (verbose mode) to the ``st2-run-pack-tests`` script. (improvement)
+* Add initial code framework for writing unit tests for action aliases. For the usage, please refer
+  to the "Pack Testing" documentation section. (new feature)
+* For consistency rename ``deploy_pack`` alias to ``pack_deploy``.
 
 1.3.2 - February 12, 2016
 -------------------------
