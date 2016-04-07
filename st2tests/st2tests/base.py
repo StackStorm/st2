@@ -23,7 +23,6 @@ import os.path
 import sys
 import shutil
 import logging
-import inspect
 
 import six
 import eventlet
@@ -47,16 +46,12 @@ import st2common.models.db.executionstate as executionstate_model
 import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
-from st2actions.runners.utils import get_action_class_instance
-from st2common.content.loader import ContentPackLoader
-from st2common.bootstrap.aliasesregistrar import AliasesRegistrar
-from st2common.models.utils.action_alias_utils import extract_parameters
-
 import st2tests.config
-from st2tests.mocks.sensor import MockSensorWrapper
-from st2tests.mocks.sensor import MockSensorService
-from st2tests.mocks.action import MockActionWrapper
-from st2tests.mocks.action import MockActionService
+
+# Imports for backward compatibility (those classes have been moved to standalone modules)
+from st2tests.actions import BaseActionTestCase
+from st2tests.sensors import BaseSensorTestCase
+from st2tests.action_aliases import BaseActionAliasTestCase
 
 
 __all__ = [
@@ -416,171 +411,6 @@ class IntegrationTestCase(TestCase):
 
         if status not in ['exited', 'zombie']:
             self.fail('Process with pid "%s" is still running' % (proc.pid))
-
-
-class BaseSensorTestCase(TestCase):
-    """
-    Base class for sensor tests.
-
-    This class provides some utility methods for verifying that a trigger has
-    been dispatched, etc.
-    """
-
-    sensor_cls = None
-
-    def setUp(self):
-        super(BaseSensorTestCase, self).setUp()
-
-        class_name = self.sensor_cls.__name__
-        sensor_wrapper = MockSensorWrapper(pack='tests', class_name=class_name)
-        self.sensor_service = MockSensorService(sensor_wrapper=sensor_wrapper)
-
-    def get_sensor_instance(self, config=None, poll_interval=None):
-        """
-        Retrieve instance of the sensor class.
-        """
-        kwargs = {
-            'sensor_service': self.sensor_service
-        }
-
-        if config:
-            kwargs['config'] = config
-
-        if poll_interval is not None:
-            kwargs['poll_interval'] = poll_interval
-
-        instance = self.sensor_cls(**kwargs)  # pylint: disable=not-callable
-        return instance
-
-    def get_dispatched_triggers(self):
-        return self.sensor_service.dispatched_triggers
-
-    def get_last_dispatched_trigger(self):
-        return self.sensor_service.dispatched_triggers[-1]
-
-    def assertTriggerDispatched(self, trigger, payload=None, trace_context=None):
-        """
-        Assert that the trigger with the provided values has been dispatched.
-
-        :param trigger: Name of the trigger.
-        :type trigger: ``str``
-
-        :param paylod: Trigger payload (optional). If not provided, only trigger name is matched.
-        type: payload: ``object``
-
-        :param trace_context: Trigger trace context (optional). If not provided, only trigger name
-                              is matched.
-        type: payload: ``object``
-        """
-        dispatched_triggers = self.get_dispatched_triggers()
-        for item in dispatched_triggers:
-            trigger_matches = (item['trigger'] == trigger)
-
-            if payload:
-                payload_matches = (item['payload'] == payload)
-            else:
-                payload_matches = True
-
-            if trace_context:
-                trace_context_matches = (item['trace_context'] == trace_context)
-            else:
-                trace_context_matches = True
-
-            if trigger_matches and payload_matches and trace_context_matches:
-                return True
-
-        msg = 'Trigger "%s" hasn\'t been dispatched' % (trigger)
-        raise AssertionError(msg)
-
-
-class BaseActionTestCase(TestCase):
-    """
-    Base class for Python runner action tests.
-    """
-
-    action_cls = None
-
-    def setUp(self):
-        super(BaseActionTestCase, self).setUp()
-
-        class_name = self.action_cls.__name__
-        action_wrapper = MockActionWrapper(pack='tests', class_name=class_name)
-        self.action_service = MockActionService(action_wrapper=action_wrapper)
-
-    def get_action_instance(self, config=None):
-        """
-        Retrieve instance of the action class.
-        """
-        # pylint: disable=not-callable
-        instance = get_action_class_instance(action_cls=self.action_cls,
-                                             config=config,
-                                             action_service=self.action_service)
-        return instance
-
-
-class BaseActionAliasTestCase(TestCase):
-    """
-    Base class for testing action aliases.
-    """
-
-    action_alias_name = None
-    action_alias_db = None
-
-    def setUp(self):
-        super(BaseActionAliasTestCase, self).setUp()
-
-        if not self.action_alias_name:
-            raise ValueError('"action_alias_name" class attribute needs to be provided')
-
-        self.action_alias_db = self._get_action_alias_db_by_name(name=self.action_alias_name)
-
-    def assertExtractedParametersMatch(self, format_string, command, values):
-        """
-        Assert that the parameters extracted from the user provided command string match the
-        provided values.
-
-        In addition to that, also assert that the parameters which have been extracted from the
-        user input also match the provided parameters.
-        """
-        extracted_params = extract_parameters(action_alias_db=self.action_alias_db,
-                                              format_str=format_string,
-                                              param_stream=command)
-
-        if extracted_params != values:
-            msg = ('Extracted parameters from command string "%s" against format string "%s"'
-                   ' didn\'t match the provided values: ' % (command, format_string))
-
-            # Note: We intercept the exception so we can can include diff for the dictionaries
-            try:
-                self.assertEqual(extracted_params, values)
-            except AssertionError as e:
-                msg += str(e)
-
-            raise AssertionError(msg)
-
-    def _get_action_alias_db_by_name(self, name):
-        """
-        Retrieve ActionAlias DB object for the provided alias name.
-        """
-        test_file_path = inspect.getfile(self.__class__)
-        base_pack_path = os.path.join(os.path.dirname(test_file_path), '..')
-        base_pack_path = os.path.abspath(base_pack_path)
-        _, pack = os.path.split(base_pack_path)
-
-        pack_loader = ContentPackLoader()
-        registrar = AliasesRegistrar(use_pack_cache=False)
-
-        aliases_path = pack_loader.get_content_from_pack(pack_dir=base_pack_path,
-                                                         content_type='aliases')
-        aliases = registrar._get_aliases_from_pack(aliases_dir=aliases_path)
-        for alias_path in aliases:
-            action_alias_db = registrar._get_action_alias_db(pack=pack,
-                                                             action_alias=alias_path)
-
-            if action_alias_db.name == name:
-                return action_alias_db
-
-        raise ValueError('Alias with name "%s" not found' % (name))
 
 
 class FakeResponse(object):
