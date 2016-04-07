@@ -2,7 +2,7 @@ from st2tests.base import BaseActionAliasTestCase
 
 
 class DeployActionAliasTestCase(BaseActionAliasTestCase):
-    action_alias_name = 'deploy_pack'
+    action_alias_name = 'pack_deploy'
 
     def test_pack_deploy_alias(self):
         # Includes packs
@@ -93,7 +93,7 @@ class PackInfoActionAliasTestCase(BaseActionAliasTestCase):
 
 
 class ShowGitCloneActionAliasTestCase(BaseActionAliasTestCase):
-    action_alias_name = 'pack_info'
+    action_alias_name = 'show_git_clone'
 
     def test_show_git_cline(self):
         format_string = self.action_alias_db.formats[0]
