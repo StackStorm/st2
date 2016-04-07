@@ -4,7 +4,7 @@ from st2tests.base import BaseActionAliasTestCase
 class DeployActionAliasTestCase(BaseActionAliasTestCase):
     action_alias_name = 'deploy_pack'
 
-    def test_deploy_alias(self):
+    def test_pack_deploy_alias(self):
         # Includes packs
         format_string = self.action_alias_db.formats[0]['representation'][0]
 
@@ -62,6 +62,42 @@ class DeployActionAliasTestCase(BaseActionAliasTestCase):
 
         format_string = self.action_alias_db.formats[1]['representation'][1]
         command = 'pack deploy StackStorm/st2contrib'
+        expected_parameters = {
+            'repo_name': 'StackStorm/st2contrib'
+        }
+        self.assertExtractedParametersMatch(format_string=format_string,
+                                            command=command,
+                                            values=expected_parameters)
+
+
+class PackInfoActionAliasTestCase(BaseActionAliasTestCase):
+    action_alias_name = 'pack_info'
+
+    def test_pack_info_alias(self):
+        format_string = self.action_alias_db.formats[0]
+        command = 'pack info libcloud'
+        expected_parameters = {
+            'pack': 'libcloud'
+        }
+        self.assertExtractedParametersMatch(format_string=format_string,
+                                            command=command,
+                                            values=expected_parameters)
+
+        command = 'pack info aws'
+        expected_parameters = {
+            'pack': 'aws'
+        }
+        self.assertExtractedParametersMatch(format_string=format_string,
+                                            command=command,
+                                            values=expected_parameters)
+
+
+class ShowGitCloneActionAliasTestCase(BaseActionAliasTestCase):
+    action_alias_name = 'pack_info'
+
+    def test_show_git_cline(self):
+        format_string = self.action_alias_db.formats[0]
+        command = 'show git clone StackStorm/st2contrib'
         expected_parameters = {
             'repo_name': 'StackStorm/st2contrib'
         }
