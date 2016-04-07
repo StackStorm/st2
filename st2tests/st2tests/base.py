@@ -523,13 +523,16 @@ class BaseActionAliasTestCase(TestCase):
     Base class for testing action aliases.
     """
 
-    alias_name = None
+    action_alias_name = None
     action_alias_db = None
 
     def setUp(self):
         super(BaseActionAliasTestCase, self).setUp()
 
-        self.action_alias_db = self._get_action_alias_db_by_name(name=self.alias_name)
+        if not self.action_alias_name:
+            raise ValueError('"action_alias_name" class attribute needs to be provided')
+
+        self.action_alias_db = self._get_action_alias_db_by_name(name=self.action_alias_name)
 
     def assertExtractedParametersMatch(self, format_string, command, values):
         """
@@ -577,7 +580,7 @@ class BaseActionAliasTestCase(TestCase):
             if action_alias_db.name == name:
                 return action_alias_db
 
-        return ValueError('Alias with name "%s" not found' % (name))
+        raise ValueError('Alias with name "%s" not found' % (name))
 
 
 class FakeResponse(object):

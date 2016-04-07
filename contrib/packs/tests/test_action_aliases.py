@@ -2,7 +2,7 @@ from st2tests.base import BaseActionAliasTestCase
 
 
 class DeployActionAliasTestCase(BaseActionAliasTestCase):
-    alias_name = 'deploy_pack'
+    action_alias_name = 'deploy_pack'
 
     def test_deploy_alias(self):
         # Includes packs
