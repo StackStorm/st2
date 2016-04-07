@@ -50,6 +50,7 @@ import st2common.models.db.policy as policy_model
 from st2actions.runners.utils import get_action_class_instance
 from st2common.content.loader import ContentPackLoader
 from st2common.bootstrap.aliasesregistrar import AliasesRegistrar
+from st2common.models.utils.action_alias_utils import extract_parameters
 
 import st2tests.config
 from st2tests.mocks.sensor import MockSensorWrapper
@@ -529,29 +530,17 @@ class BaseActionAliasTestCase(TestCase):
 
         self.action_alias_db = self._get_action_alias_db_by_name(name=self.alias_name)
 
-    def assertFormatMatchesCommand(self, format_string, command):
+    def assertExtractedParametersMatch(self, format_string, command, values):
         """
-        Assert that the provided alias format string matches the provider user input string aka
-        command.
-        """
-        pass
+        Assert that the parameters extracted from the user provided command
+        match the provided values.
 
-    def assertFormatDoesntMatchCommand(self, format_string, command):
+        In addition to that, also assert that the parameters which have been extracted from the
+        user input also match the provided parameters.
         """
-        Assert that the provided alias format string doesnt match the provider user input string
-        aka command.
-        """
-        pass
-
-    def assertFormatMatchesCommandAndParsedParameters(self, format_string, command, values):
-        """
-        Assert that the provided alias format string matches the provider user input string aka
-        command.
-
-        In addition to that, also assert that the parameters which have been extracted from the user input also match the provided values.
-        """
-
-        pass
+        extracted_params = extract_parameters(action_alias_db=self.action_alias_db,
+                                              format_str=format_string,param_stream=command)
+        self.assertEqual(extracted_params, values)
 
     def _get_action_alias_db_by_name(self, name):
         """
@@ -575,10 +564,6 @@ class BaseActionAliasTestCase(TestCase):
                 return action_alias_db
 
         return ValueEror('Alias with name "%s" not found' % (name))
-
-
-        pass
-    pass
 
 
 class FakeResponse(object):

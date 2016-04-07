@@ -17,7 +17,8 @@ import re
 from st2common.exceptions import content
 
 __all__ = [
-    'ActionAliasFormatParser'
+    'ActionAliasFormatParser',
+    'extract_parameters'
 ]
 
 
@@ -100,3 +101,23 @@ class ActionAliasFormatParser(object):
             raise content.ParseException('No value supplied and no default value found.')
 
         return result
+
+
+
+def extract_parameters(action_alias_db, format_str, param_stream):
+    """
+    Extract parameters from the user input based on the provided format string.
+    """
+    formats = []
+    for formatstring in action_alias_db.formats:
+        if isinstance(formatstring, dict) and formatstring.get('representation'):
+            formats.extend(formatstring['representation'])
+        else:
+            formats.append(formatstring)
+    if formats and format_str in formats:
+        alias_format = format_str
+    else:
+        alias_format = None
+
+    parser = ActionAliasFormatParser(alias_format=alias_format, param_stream=param_stream)
+    return parser.get_extracted_param_value()
