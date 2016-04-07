@@ -67,9 +67,10 @@ __all__ = [
     'CleanFilesTestCase',
     'IntegrationTestCase',
 
+    # Pack test classes
     'BaseSensorTestCase',
     'BaseActionTestCase',
-    'BaseActionAliasesTestCase'
+    'BaseActionAliasTestCase'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -561,6 +562,7 @@ class BaseActionAliasTestCase(TestCase):
         test_file_path = inspect.getfile(self.__class__)
         base_pack_path = os.path.join(os.path.dirname(test_file_path), '..')
         base_pack_path = os.path.abspath(base_pack_path)
+        _, pack = os.path.split(base_pack_path)
 
         pack_loader = ContentPackLoader()
         registrar = AliasesRegistrar(use_pack_cache=False)
@@ -569,7 +571,7 @@ class BaseActionAliasTestCase(TestCase):
                                                          content_type='aliases')
         aliases = registrar._get_aliases_from_pack(aliases_dir=aliases_path)
         for alias_path in aliases:
-            action_alias_db = registrar._get_action_alias_db(pack='packs',
+            action_alias_db = registrar._get_action_alias_db(pack=pack,
                                                              action_alias=alias_path)
 
             if action_alias_db.name == name:
