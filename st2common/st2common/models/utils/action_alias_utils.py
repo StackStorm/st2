@@ -103,7 +103,6 @@ class ActionAliasFormatParser(object):
         return result
 
 
-
 def extract_parameters(action_alias_db, format_str, param_stream):
     """
     Extract parameters from the user input based on the provided format string.

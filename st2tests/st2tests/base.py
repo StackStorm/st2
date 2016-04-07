@@ -577,7 +577,7 @@ class BaseActionAliasTestCase(TestCase):
             if action_alias_db.name == name:
                 return action_alias_db
 
-        return ValueEror('Alias with name "%s" not found' % (name))
+        return ValueError('Alias with name "%s" not found' % (name))
 
 
 class FakeResponse(object):

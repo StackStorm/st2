@@ -126,7 +126,7 @@ class AliasesRegistrar(ResourceRegistrar):
         action_alias_db = self._get_action_alias_db(pack=pack, action_alias=action_alias)
 
         try:
-            action_alias_db.id = ActionAlias.get_by_name(action_alias_api.name).id
+            action_alias_db.id = ActionAlias.get_by_name(action_alias_db.name).id
         except ValueError:
             LOG.debug('ActionAlias %s not found. Creating new one.', action_alias)
 
@@ -136,7 +136,7 @@ class AliasesRegistrar(ResourceRegistrar):
             LOG.audit('Action alias updated. Action alias %s from %s.', action_alias_db,
                       action_alias, extra=extra)
         except Exception:
-            LOG.exception('Failed to create action alias %s.', action_alias_api.name)
+            LOG.exception('Failed to create action alias %s.', action_alias_db.name)
             raise
 
     def _register_aliases_from_pack(self, pack, aliases):
