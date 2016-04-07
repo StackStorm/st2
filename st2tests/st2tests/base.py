@@ -532,15 +532,27 @@ class BaseActionAliasTestCase(TestCase):
 
     def assertExtractedParametersMatch(self, format_string, command, values):
         """
-        Assert that the parameters extracted from the user provided command
-        match the provided values.
+        Assert that the parameters extracted from the user provided command string match the
+        provided values.
 
         In addition to that, also assert that the parameters which have been extracted from the
         user input also match the provided parameters.
         """
         extracted_params = extract_parameters(action_alias_db=self.action_alias_db,
-                                              format_str=format_string,param_stream=command)
-        self.assertEqual(extracted_params, values)
+                                              format_str=format_string,
+                                              param_stream=command)
+
+        if extracted_params != values:
+            msg = ('Extracted parameters from command string "%s" against format string "%s"'
+                   ' didn\'t match the provided values: ' % (command, format_string))
+
+            # Note: We intercept the exception so we can can include diff for the dictionaries
+            try:
+                self.assertEqual(extracted_params, values)
+            except AssertionError as e:
+                msg += str(e)
+
+            raise AssertionError(msg)
 
     def _get_action_alias_db_by_name(self, name):
         """
