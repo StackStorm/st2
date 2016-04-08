@@ -147,6 +147,41 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         mock.client.connect.assert_called_once_with(**expected_conn)
 
     @patch('paramiko.SSHClient', Mock)
+    def test_passphrase_and_no_key(self):
+        path = os.path.join(get_resources_base_path(),
+                            'ssh', 'dummy_rsa_passphrase')
+
+        with open(path, 'r') as fp:
+            private_key = fp.read()
+
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'passphrase': 'testphrase'}
+        mock = ParamikoSSHClient(**conn_params)
+
+        expected_msg = 'THIS TEST WILL FAIL'
+        self.assertRaisesRegexp(paramiko.ssh_exception.SSHException,
+                                expected_msg, mock.connect)
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_incorrect_passphrase(self):
+        path = os.path.join(get_resources_base_path(),
+                            'ssh', 'dummy_rsa_passphrase')
+
+        with open(path, 'r') as fp:
+            private_key = fp.read()
+
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'key_material': private_key,
+                       'passphrase': 'testphrase'}
+        mock = ParamikoSSHClient(**conn_params)
+
+        expected_msg = 'THIS TEST WILL FAIL'
+        self.assertRaisesRegexp(paramiko.ssh_exception.SSHException,
+                                expected_msg, mock.connect)
+
+    @patch('paramiko.SSHClient', Mock)
     def test_key_material_contains_path_not_contents(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu'}

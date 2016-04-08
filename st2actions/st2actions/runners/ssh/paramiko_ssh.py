@@ -97,6 +97,9 @@ class ParamikoSSHClient(object):
             raise ValueError(('key_files and key_material arguments are '
                               'mutually exclusive'))
 
+        if passphrase and not key_material:
+            raise ValueError('passphrase should accompany private key material')
+
         self.hostname = hostname
         self.port = port
         self.username = username if username else cfg.CONF.system_user
