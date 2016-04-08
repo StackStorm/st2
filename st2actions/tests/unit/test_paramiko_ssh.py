@@ -148,20 +148,13 @@ class ParamikoSSHClientTests(unittest2.TestCase):
 
     @patch('paramiko.SSHClient', Mock)
     def test_passphrase_and_no_key(self):
-        path = os.path.join(get_resources_base_path(),
-                            'ssh', 'dummy_rsa_passphrase')
-
-        with open(path, 'r') as fp:
-            private_key = fp.read()
-
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
                        'passphrase': 'testphrase'}
-        mock = ParamikoSSHClient(**conn_params)
 
-        expected_msg = 'THIS TEST WILL FAIL'
-        self.assertRaisesRegexp(paramiko.ssh_exception.SSHException,
-                                expected_msg, mock.connect)
+        expected_msg = 'passphrase should accompany private key material'
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                ParamikoSSHClient, **conn_params)
 
     @patch('paramiko.SSHClient', Mock)
     def test_incorrect_passphrase(self):
@@ -174,10 +167,10 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
                        'key_material': private_key,
-                       'passphrase': 'testphrase'}
+                       'passphrase': 'incorrect'}
         mock = ParamikoSSHClient(**conn_params)
 
-        expected_msg = 'THIS TEST WILL FAIL'
+        expected_msg = 'Invalid or unsupported key type'
         self.assertRaisesRegexp(paramiko.ssh_exception.SSHException,
                                 expected_msg, mock.connect)
 
