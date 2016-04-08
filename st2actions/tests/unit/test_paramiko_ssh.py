@@ -170,7 +170,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                        'passphrase': 'incorrect'}
         mock = ParamikoSSHClient(**conn_params)
 
-        expected_msg = 'Invalid or unsupported key type'
+        expected_msg = 'Invalid passphrase or invalid/unsupported key type'
         self.assertRaisesRegexp(paramiko.ssh_exception.SSHException,
                                 expected_msg, mock.connect)
 
