@@ -265,13 +265,14 @@ class ShellScriptAction(ShellCommandAction):
 
 class SSHCommandAction(ShellCommandAction):
     def __init__(self, name, action_exec_id, command, env_vars, user, password=None, pkey=None,
-                 hosts=None, parallel=True, sudo=False, timeout=None, cwd=None):
+                 hosts=None, parallel=True, sudo=False, timeout=None, cwd=None, passphrase=None):
         super(SSHCommandAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                                command=command, env_vars=env_vars, user=user,
                                                sudo=sudo, timeout=timeout, cwd=cwd)
         self.hosts = hosts
         self.parallel = parallel
         self.pkey = pkey
+        self.passphrase = passphrase
         self.password = password
 
     def is_parallel(self):
@@ -313,13 +314,14 @@ class SSHCommandAction(ShellCommandAction):
 class RemoteAction(SSHCommandAction):
     def __init__(self, name, action_exec_id, command, env_vars=None, on_behalf_user=None,
                  user=None, password=None, private_key=None, hosts=None, parallel=True, sudo=False,
-                 timeout=None, cwd=None):
+                 timeout=None, cwd=None, passphrase=None):
         super(RemoteAction, self).__init__(name=name, action_exec_id=action_exec_id,
                                            command=command, env_vars=env_vars, user=user,
                                            hosts=hosts, parallel=parallel, sudo=sudo,
-                                           timeout=timeout, cwd=cwd)
+                                           timeout=timeout, cwd=cwd, passphrase=passphrase)
         self.password = password
         self.private_key = private_key
+        self.passphrase = passphrase
         self.on_behalf_user = on_behalf_user  # Used for audit purposes.
         self.timeout = timeout
 
