@@ -1,6 +1,6 @@
 ---
     name: 'scp'
-    runner_type: 'run-remote'
+    runner_type: 'remote-shell-cmd'
     description: 'Secure copy file(s)'
     enabled: true
     entry_point: ''

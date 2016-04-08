@@ -26,6 +26,7 @@ machine:
     NOTESTS: "el7"
     ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
     ST2_DOCKERFILES_REPO: https://github.com/StackStorm/st2-dockerfiles
+    ST2_PACKAGES: "st2"
     BUILD_DOCKER: 0
     DEPLOY_DOCKER: 0
     DEPLOY_PACKAGES: 1
@@ -47,7 +48,7 @@ checkout:
       git clone --depth 1 ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
       cd /home/ubuntu/st2/st2-packages
       git checkout ${CIRCLE_BRANCH} || true
-    - .circle/buildenv.sh
+    - .circle/buildenv_st2.sh
 
 dependencies:
   cache_directories:

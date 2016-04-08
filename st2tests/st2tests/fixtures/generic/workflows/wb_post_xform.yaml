@@ -36,7 +36,7 @@ workflows:
                     parameters:
                         cmd: "sleep 2; printf 'running'"
                 publish:
-                    vm_state: <% $.power_on_vm.stdout %>
+                    vm_state: <% task(power_on_vm).result.stdout %>
 
     create_vm:
         type: direct
@@ -55,7 +55,7 @@ workflows:
                     parameters:
                         cmd: "sleep 3; printf 'vm1234'"
                 publish:
-                    vm_id: <% $.create.stdout %>
+                    vm_id: <% task(create).result.stdout %>
 
     reconfig_vm:
         type: direct

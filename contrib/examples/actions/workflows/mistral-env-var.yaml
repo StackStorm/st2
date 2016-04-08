@@ -12,4 +12,4 @@ examples.mistral-env-var:
             input:
                 cmd: echo http://127.0.0.1:9101/executions/<% env().st2_execution_id %>
             publish:
-                url: <% $.task1.stdout %>
+                url: <% task(task1).result.stdout %>

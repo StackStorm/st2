@@ -1,5 +1,5 @@
 name: traceroute
-runner_type: "remote-shell-cmd"
+runner_type: "remote-shell-script"
 description: "Traceroute a Host"
 enabled: true
 entry_point: 'traceroute.sh'
@@ -16,7 +16,7 @@ parameters:
     position: 2
   queries_to_hop:
     type: integer
-    description:  No. of quereies to each hop
+    description:  No. of queries to each hop
     default: 3
     position: 3
   hosts:

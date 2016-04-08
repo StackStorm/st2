@@ -35,7 +35,8 @@ PYTHON_EXTENSIONS = ('.py')
 
 def _register_plugin_path(plugin_dir_abs_path):
     if not os.path.isdir(plugin_dir_abs_path):
-        raise Exception('Directory containing plugins must be provided.')
+        raise Exception('Directory "%s" with plugins doesn\'t exist')
+
     for x in sys.path:
         if plugin_dir_abs_path in (x, x + os.sep):
             return

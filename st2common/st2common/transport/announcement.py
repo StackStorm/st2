@@ -58,7 +58,7 @@ class AnnouncementDispatcher(object):
         :type trace_context: ``TraceContext``
         """
         assert isinstance(payload, (type(None), dict))
-        assert isinstance(trace_context, (type(None), TraceContext))
+        assert isinstance(trace_context, (type(None), dict, TraceContext))
 
         payload = {
             'payload': payload,

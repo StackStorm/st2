@@ -43,6 +43,7 @@ VIRTUALENVS_DIR="/tmp/st2-pack-tests-virtualenvs"
 
 ST2_PIP_OPTIONS=${ST2_PIP_OPTIONS:-"-q"}
 CREATE_VIRTUALENV=true
+VERBOSE=false
 
 ####################
 # Script beings here
@@ -52,13 +53,16 @@ function usage() {
     echo "Usage: $0 [-x] -p <path to pack>" >&2
 }
 
-while getopts ":p:x" o; do
+while getopts ":p:xv" o; do
     case "${o}" in
         p)
             PACK_PATH=${OPTARG}
             ;;
         x)
             CREATE_VIRTUALENV=false
+            ;;
+        v)
+            VERBOSE=true
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -117,6 +121,8 @@ ST2_REPO_PATH=${ST2_REPO_PATH}
 PACK_REQUIREMENTS_FILE="${PACK_PATH}/requirements.txt"
 PACK_TESTS_REQUIREMENTS_FILE="${PACK_PATH}/requirements-tests.txt"
 
+echo "Running tests for pack: ${PACK_NAME}"
+
 # Create virtualenv
 VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
 
@@ -146,29 +152,39 @@ fi
 
 # Install st2 dependencies
 if [ ${ST2_REPO_PATH} ]; then
+    echo "Installing dependencies from st2 repository..."
     pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/requirements.txt
     pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/test-requirements.txt
 fi
 
 # Install global test dependencies
+echo "Installing global pack test dependencies..."
 for dependency in ${PACK_TEST_PYTHON_DEPENDENCIES[@]}; do
     pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${dependency}"
 done
 
 # Install pack dependencies
 if [ -f ${PACK_REQUIREMENTS_FILE} ]; then
+    echo "Installing pack-specific dependencies..."
     pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_REQUIREMENTS_FILE}
 fi
 
 # Install pack test dependencies (if any)
 if [ -f ${PACK_TESTS_REQUIREMENTS_FILE} ]; then
+    echo "Installing pack-specific test dependencies..."
     pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_TESTS_REQUIREMENTS_FILE}
 fi
 
 # Set PYTHONPATH, make sure it contains st2 components in PATH
 export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
 
-echo "Running tests for pack: ${PACK_NAME}"
+if [ ${VERBOSE} = true ]; then
+    echo "PYTHONPATH=${PYTHONPATH}"
+    echo "Installed Python dependencies:"
+    pip list
+fi
+
+echo "Running tests..."
 nosetests -s -v ${PACK_TESTS_PATH}
 TESTS_EXIT_CODE=$?
 

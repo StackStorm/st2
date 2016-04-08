@@ -18,4 +18,4 @@ examples.mistral-with-items-concurrency:
             input:
                 cmd: "<% $.cmd %>; sleep 3"
             publish:
-                result: <% $.repeat.stdout %>
+                result: <% task(repeat).result.select($.stdout) %>

@@ -11,8 +11,7 @@ formats:
   - display: "pack deploy <repo_name> [branch <branch=master>]"
     representation:
       - "pack deploy {{repo_name}} branch {{branch=master}}"
-      - "pack deploy {{repo_name}} {{branch=master}}"
-  - "pack deploy {{repo_name}} {{packs}} {{branch=master}}"
+      - "pack deploy {{repo_name}}"
 ack:
   enabled: true
   append_url: false

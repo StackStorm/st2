@@ -29,7 +29,7 @@ BODY="$1"
 shift
 IFS=',' read -ra ATTACHMENTS <<< "$@"
 
-if [[ $ATTACHMENTS == "None" ]]; then
+if [[ -z $ATTACHMENTS ]]; then
   ATTACHMENTS=""
 fi
 
@@ -45,7 +45,7 @@ get_mimetype(){
 }
 
 trimmed="${BODY// }"
-if [[ -z $trimmed && $SEND_EMPTY_BODY == 'True' ]] || [[ -n $trimmed ]]; then
+if [[ -z $trimmed && $SEND_EMPTY_BODY -eq 1 ]] || [[ -n $trimmed ]]; then
 
 {
 
@@ -120,8 +120,10 @@ fi
 if [ $? -ne 0 ]; then
   echo "Failed to send mail to ${TO}"
   exit 2
+elif [[ -z $trimmed && $SEND_EMPTY_BODY -eq 0 ]]; then
+  echo "Nothing to send"
+  exit 0
 else
   echo "Successfully sent mail to ${TO}"
   exit 0
 fi
-

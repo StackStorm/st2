@@ -12,7 +12,7 @@ workflows:
       greet:
         workflow: subflow1 count=<% $.count %> friend=<% $.friend %>
         publish:
-          towhom: <% $.greet.towhom %>
+          towhom: <% task(greet).result.towhom %>
 
   subflow1:
     type: direct
@@ -27,7 +27,7 @@ workflows:
         input:
           cmd: <% $.count %>
         publish:
-          greet: <% $.say-greeting.stdout %>
+          greet: <% task(say-greeting).result.stdout %>
         on-success:
           - say-friend
       say-friend:
@@ -35,4 +35,4 @@ workflows:
         input:
           cmd: <% $.friend %>
         publish:
-          towhom: <% $.say-friend.stdout %>
+          towhom: <% task(say-friend).result.stdout %>
