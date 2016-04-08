@@ -503,6 +503,8 @@ class ParamikoSSHClient(object):
         if not contains_header and (key_material.count('/') >= 1 or key_material.count('\\') >= 1):
             msg = ('"private_key" parameter needs to contain private key data / content and not '
                    'a path')
+        elif passphrase:
+            msg = 'Invalid passphrase or invalid/unsupported key type'
         else:
             msg = 'Invalid or unsupported key type'
 
