@@ -20,18 +20,18 @@ import argparse
 import pika
 
 def main(queue, payload):
-	connection = pika.BlockingConnection(pika.ConnectionParameters(
-		host='localhost',
-		credentials=pika.credentials.PlainCredentials(username='guest', password='guest')))
-	channel = connection.channel()
+    connection = pika.BlockingConnection(pika.ConnectionParameters(
+        host='localhost',
+        credentials=pika.credentials.PlainCredentials(username='guest', password='guest')))
+    channel = connection.channel()
 
-	channel.queue_declare(queue=queue, durable=True)
+    channel.queue_declare(queue=queue, durable=True)
 
-	channel.basic_publish(exchange='',
-	                      routing_key=queue,
-	                      body=payload)
-	print("Sent %s" % payload)
-	connection.close()
+    channel.basic_publish(exchange='',
+                          routing_key=queue,
+                          body=payload)
+    print("Sent %s" % payload)
+    connection.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Direct queue publisher')
