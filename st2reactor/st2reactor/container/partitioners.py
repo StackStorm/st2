@@ -72,7 +72,7 @@ class DefaultPartitioner(object):
         return partition_members
 
     def get_required_sensor_refs(self):
-        return None
+        return {}
 
 
 class KVStorePartitioner(DefaultPartitioner):

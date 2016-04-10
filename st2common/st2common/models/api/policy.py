@@ -137,6 +137,7 @@ class PolicyAPI(BaseAPI):
         cleaned = super(PolicyAPI, self).validate()
 
         # Validate policy parameters
+        # pylint: disable=no-member
         policy_type_db = PolicyType.get_by_ref(cleaned.policy_type)
         if not policy_type_db:
             raise ValueError('Referenced policy_type "%s" doesnt exist' % (cleaned.policy_type))
