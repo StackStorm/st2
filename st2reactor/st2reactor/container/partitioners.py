@@ -65,6 +65,7 @@ class DefaultPartitioner(object):
         partition_members = []
 
         for sensor in all_enabled_sensors:
+            # pylint: disable=unsupported-membership-test
             sensor_ref = sensor.get_reference()
             if sensor_ref.ref in sensor_refs:
                 partition_members.append(sensor)
@@ -72,7 +73,7 @@ class DefaultPartitioner(object):
         return partition_members
 
     def get_required_sensor_refs(self):
-        return {}
+        return None
 
 
 class KVStorePartitioner(DefaultPartitioner):
