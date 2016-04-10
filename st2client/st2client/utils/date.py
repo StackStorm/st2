@@ -31,8 +31,6 @@ def add_utc_tz(dt):
 
 def parse(value):
     dt = dateutil.parser.parse(str(value))
-    # pylint: disable=no-member
-    # For some reason pylint thinks it returns a tuple but it returns a datetime object
     return dt if dt.tzinfo else add_utc_tz(dt)
 
 
@@ -55,7 +53,6 @@ def format_isodate(value, timezone=None):
     if not value:
         return ''
 
-    # pylint: disable=no-member
     # For some reason pylint thinks it returns a tuple but it returns a datetime object
     dt = dateutil.parser.parse(str(value))
 
