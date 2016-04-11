@@ -27,7 +27,7 @@ from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 from st2common.models.utils import action_param_utils
-from st2common.models.utils.action_alias_utils import extract_parameters
+from st2common.models.utils.action_alias_utils import extract_parameters_for_action_alias_db
 from st2common.persistence.actionalias import ActionAlias
 from st2common.services import action as action_service
 from st2common.util import action_db as action_utils
@@ -74,9 +74,10 @@ class ActionAliasExecutionController(rest.RestController):
             pecan.abort(http_client.BAD_REQUEST, msg)
             return
 
-        execution_parameters = extract_parameters(action_alias_db=action_alias_db,
-                                                  format_str=format_str,
-                                                  param_stream=command)
+        execution_parameters = extract_parameters_for_action_alias_db(
+            action_alias_db=action_alias_db,
+            format_str=format_str,
+            param_stream=command)
         notify = self._get_notify_field(payload)
 
         context = {
