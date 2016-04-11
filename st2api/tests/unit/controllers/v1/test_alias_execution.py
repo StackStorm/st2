@@ -67,6 +67,18 @@ class AliasExecutionTestCase(FunctionalTest):
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
+    def test_invalid_format_string_referenced_in_request(self, request):
+        command = 'Lorem ipsum value1 dolor sit "value2 value3" amet.'
+        format_str = 'some invalid not supported string'
+        post_resp = self._do_post(alias_execution=self.alias1, command=command,
+                                  format_str=format_str, expect_errors=True)
+        self.assertEqual(post_resp.status_int, 400)
+        expected_msg = ('Format string "some invalid not supported string" is '
+                        'not available on the alias "alias1"')
+        self.assertTrue(expected_msg in post_resp.json['faultstring'])
+
+    @mock.patch.object(action_service, 'request',
+                       return_value=(None, EXECUTION))
     def test_execution_with_array_type_single_value(self, request):
         command = 'Lorem ipsum value1 dolor sit value2 amet.'
         post_resp = self._do_post(alias_execution=self.alias2, command=command)
@@ -83,14 +95,18 @@ class AliasExecutionTestCase(FunctionalTest):
         expected_parameters = {'param1': 'value1', 'param3': ['value2', 'value3']}
         self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
 
-    def _do_post(self, alias_execution, command, expect_errors=False):
+    def _do_post(self, alias_execution, command, format_str=None, expect_errors=False):
         if (isinstance(alias_execution.formats[0], dict) and
            alias_execution.formats[0].get('representation')):
             representation = alias_execution.formats[0].get('representation')[0]
         else:
             representation = alias_execution.formats[0]
+
+        if not format_str:
+            format_str = representation
+
         execution = {'name': alias_execution.name,
-                     'format': representation,
+                     'format': format_str,
                      'command': command,
                      'user': 'stanley',
                      'source_channel': 'test',

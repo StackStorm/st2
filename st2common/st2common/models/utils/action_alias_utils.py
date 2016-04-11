@@ -135,12 +135,11 @@ def extract_parameters_for_action_alias_db(action_alias_db, format_str, param_st
         else:
             formats.append(formatstring)
 
-    if formats and format_str in formats:
-        alias_format = format_str
-    else:
-        alias_format = None
+    if format_str not in formats:
+        raise ValueError('Format string "%s" is not available on the alias "%s"' %
+                         (format_str, action_alias_db.name))
 
-    result = extract_parameters(format_str=alias_format, param_stream=param_stream)
+    result = extract_parameters(format_str=format_str, param_stream=param_stream)
     return result
 
 
