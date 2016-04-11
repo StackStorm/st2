@@ -47,6 +47,7 @@ RUNNER_KWARG_OP = 'kwarg_op'
 RUNNER_TIMEOUT = 'timeout'
 RUNNER_SSH_PORT = 'port'
 RUNNER_BASTION_HOST = 'bastion_host'
+RUNNER_PASSPHRASE = 'passphrase'
 
 
 class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
@@ -60,6 +61,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._username = None
         self._password = None
         self._private_key = None
+        self._passphrase = None
         self._kwarg_op = '--'
         self._cwd = None
         self._env = None
@@ -88,6 +90,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._username = self.runner_parameters.get(RUNNER_USERNAME, None)
         self._password = self.runner_parameters.get(RUNNER_PASSWORD, None)
         self._private_key = self.runner_parameters.get(RUNNER_PRIVATE_KEY, None)
+        self._passphrase = self.runner_parameters.get(RUNNER_PASSPHRASE, None)
 
         if self._username:
             if not self._password and not self._private_key:

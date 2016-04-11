@@ -92,6 +92,7 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
 
         :rtype: ``bool``
         """
+        # pylint: disable=unsubscriptable-object
         return self.runner_type['name'] in WORKFLOW_RUNNER_TYPES
 
 # specialized access objects

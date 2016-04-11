@@ -77,8 +77,6 @@ def parse(value, preserve_original_tz=False):
 
     :rtype: ``datetime.datetime``
     """
-    # pylint: disable=no-member
-    # For some reason pylint thinks it returns a tuple but it returns a datetime object
     dt = dateutil.parser.parse(str(value))
 
     if not dt.tzinfo:

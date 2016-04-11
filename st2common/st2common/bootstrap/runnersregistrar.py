@@ -140,6 +140,12 @@ RUNNER_TYPES = [
                 'required': False,
                 'secret': True
             },
+            'passphrase': {
+                'description': ('Passphrase for the private key, if needed.'),
+                'type': 'string',
+                'required': False,
+                'secret': True
+            },
             'cmd': {
                 'description': 'Arbitrary Linux command to be executed on the '
                                'remote host(s).',
