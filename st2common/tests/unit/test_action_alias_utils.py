@@ -223,3 +223,10 @@ class TestActionAliasParser(TestCase):
         expected_msg = 'Command "foo lulz ponies" doesn\'t match format string "foo bar ponies"'
         self.assertRaisesRegexp(ParseException, expected_msg,
                                 parser.get_extracted_param_value)
+
+    def test_ending_parameters_matching(self):
+        alias_format = 'foo bar'
+        param_stream = 'foo bar pony1=foo pony2=bar'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'pony1': 'foo', 'pony2': 'bar'})
