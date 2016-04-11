@@ -199,7 +199,7 @@ class TestActionAliasParser(TestCase):
         parser = ActionAliasFormatParser(alias_format, param_stream)
 
         expected_msg = 'Command "  " doesn\'t match format string "skip {{d}} more skip {{e}}."'
-        self.assertRaisesRegexp(ValueError, expected_msg,
+        self.assertRaisesRegexp(ParseException, expected_msg,
                                 parser.get_extracted_param_value)
 
     def test_all_the_things(self):

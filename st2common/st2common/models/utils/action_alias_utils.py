@@ -14,7 +14,8 @@
 # limitations under the License.
 
 import re
-from st2common.exceptions import content
+
+from st2common.exceptions.content import ParseException
 
 __all__ = [
     'ActionAliasFormatParser',
@@ -92,8 +93,8 @@ class ActionAliasFormatParser(object):
         if not matched_stream:
             # If no match is found we throw since this indicates provided user string (command)
             # didn't match the provided format string
-            raise ValueError('Command "%s" doesn\'t match format string "%s"' %
-                             (self._param_stream, self._format))
+            raise ParseException('Command "%s" doesn\'t match format string "%s"' %
+                                 (self._param_stream, self._format))
 
         # Compiling results from the steps 1-3.
         if matched_stream:
@@ -108,7 +109,7 @@ class ActionAliasFormatParser(object):
                 result[pair[0]] = ''.join(pair[2:])
 
         if self._format and not (self._param_stream.strip() or any(result.values())):
-            raise content.ParseException('No value supplied and no default value found.')
+            raise ParseException('No value supplied and no default value found.')
 
         return result
 
