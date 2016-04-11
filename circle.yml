@@ -28,13 +28,6 @@ dependencies:
     - sudo .circle/add-itest-user.sh
     - sudo apt-get -y install parallel jq
   post:
-    # All the steps that follow in this section should've been in test.pre. However,
-    # circleci behavior for test.pre is to run on only 1 box. Therefore this is moved
-    # into dependencies.
-    # ~/.cache/pip and ~/wheelhouse need to be owned by local user to run tests.
-    # tests cannot be run as root since github user keys are not configured for root.
-    - sudo chown -R ubuntu:ubuntu ~/.cache/pip
-    - sudo chown -R ubuntu:ubuntu ~/wheelhouse
     - cd ${ST2_REPO_ROOT_DIR} && hostname && make compile requirements
 test:
   override:
