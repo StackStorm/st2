@@ -20,10 +20,6 @@ machine:
     - postgresql
     - rabbitmq-server
 
-checkout:
-  post:
-    - .circle/buildenv_st2.sh
-
 dependencies:
   cache_directories:
     - ~/.cache/pip
