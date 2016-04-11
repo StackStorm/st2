@@ -29,7 +29,6 @@ class ActionAliasFormatParser(object):
         self._param_stream = param_stream or ''
 
     def get_extracted_param_value(self):
-
         result = {}
 
         # As there's a lot of questions about using regular expressions,
@@ -84,6 +83,12 @@ class ActionAliasFormatParser(object):
 
         # 3. Matching the command against our regex to get the param values
         matched_stream = re.match(reg, self._param_stream, re.DOTALL)
+
+        if not matched_stream:
+            # If no match is found we throw since this indicates provided user string (command)
+            # didn't match the provided format string
+            raise ValueError('Command "%s" doesn\'t match format string "%s"' %
+                             (self._param_stream, self._format))
 
         # Compiling results from the steps 1-3.
         if matched_stream:
