@@ -198,7 +198,7 @@ class TestActionAliasParser(TestCase):
         param_stream = None
         parser = ActionAliasFormatParser(alias_format, param_stream)
 
-        expected_msg = 'Command "  " doesn\'t match format string "skip {{d}} more skip {{e}}."'
+        expected_msg = 'Command "" doesn\'t match format string "skip {{d}} more skip {{e}}."'
         self.assertRaisesRegexp(ParseException, expected_msg,
                                 parser.get_extracted_param_value)
 
@@ -214,3 +214,12 @@ class TestActionAliasParser(TestCase):
                                             'p2': '{{ execution.id }}',
                                             'p3': '{{ e.i }}',
                                             'p4': 'testing', 'p5': "{'a':'c'}"})
+
+    def test_command_doesnt_match_format_string(self):
+        alias_format = 'foo bar ponies'
+        param_stream = 'foo lulz ponies'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+
+        expected_msg = 'Command "foo lulz ponies" doesn\'t match format string "foo bar ponies"'
+        self.assertRaisesRegexp(ParseException, expected_msg,
+                                parser.get_extracted_param_value)

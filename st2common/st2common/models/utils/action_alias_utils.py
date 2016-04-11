@@ -37,6 +37,8 @@ class ActionAliasFormatParser(object):
         """
         result = {}
 
+        param_stream = self._param_stream
+
         # As there's a lot of questions about using regular expressions,
         # I'll try to be thorough when documenting this code.
 
@@ -70,11 +72,12 @@ class ActionAliasFormatParser(object):
         # 1. Matching the arbitrary key-value pairs at the end of the command
         # to support extra parameters (not specified in the format string),
         # and cutting them from the command string afterwards.
-        ending_pairs = re.match(snippets['ending'], self._param_stream, re.DOTALL)
-        if ending_pairs:
+        ending_pairs = re.match(snippets['ending'], param_stream, re.DOTALL)
+        has_ending_pairs = ending_pairs and ending_pairs.group(1)
+        if has_ending_pairs:
             kv_pairs = re.findall(snippets['pairs'], ending_pairs.group(1), re.DOTALL)
-            self._param_stream = self._param_stream.replace(ending_pairs.group(1), '')
-        self._param_stream = " %s " % self._param_stream
+            param_stream = param_stream.replace(ending_pairs.group(1), '')
+        param_stream = " %s " % (param_stream)
 
         # 2. Matching optional parameters (with default values).
         optional = re.findall(snippets['optional'], self._format, re.DOTALL)
@@ -88,7 +91,7 @@ class ActionAliasFormatParser(object):
         reg = '^\s*' + reg + r'\s*$'
 
         # 3. Matching the command against our regex to get the param values
-        matched_stream = re.match(reg, self._param_stream, re.DOTALL)
+        matched_stream = re.match(reg, param_stream, re.DOTALL)
 
         if not matched_stream:
             # If no match is found we throw since this indicates provided user string (command)
@@ -99,12 +102,14 @@ class ActionAliasFormatParser(object):
         # Compiling results from the steps 1-3.
         if matched_stream:
             result = matched_stream.groupdict()
+
         for param in optional:
             matched_value = result[param[0]] if matched_stream else None
             matched_result = matched_value or ''.join(param[1:])
             if matched_result is not None:
                 result[param[0]] = matched_result
-        if ending_pairs:
+
+        if has_ending_pairs:
             for pair in kv_pairs:
                 result[pair[0]] = ''.join(pair[2:])
 
