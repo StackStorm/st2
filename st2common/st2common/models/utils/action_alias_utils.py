@@ -29,6 +29,11 @@ class ActionAliasFormatParser(object):
         self._param_stream = param_stream or ''
 
     def get_extracted_param_value(self):
+        """
+        Match command against the format string and extract paramters from the command string.
+
+        :rtype: ``dict``
+        """
         result = {}
 
         # As there's a lot of questions about using regular expressions,
