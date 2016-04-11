@@ -13,4 +13,4 @@ examples.mistral-repeat:
             with-items: i in <% list(range(0, $.count)) %>
             action: core.local cmd=<% $.cmd %>
             publish:
-                result: <% $.repeat.stdout %>
+                result: <% task(repeat).result.select($.stdout) %>

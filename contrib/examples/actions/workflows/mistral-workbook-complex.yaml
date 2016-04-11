@@ -32,7 +32,7 @@ workflows:
                     cpu_cores: <% $.cpu_cores %>
                     memory_mb: <% $.memory_mb %>
                 publish:
-                    vm_id: <% $.create_vm.vm_id %>
+                    vm_id: <% task(create_vm).result.vm_id %>
                     status_message: "VM <% $.vm_name %> is created."
                 on-success:
                     - configure_vm
@@ -73,7 +73,7 @@ workflows:
                 input:
                     cmd: "printf 'vm1234'; sleep 5"
                 publish:
-                    vm_id: <% $.create.stdout %>
+                    vm_id: <% task(create).result.stdout %>
 
     configure_vm:
         type: direct

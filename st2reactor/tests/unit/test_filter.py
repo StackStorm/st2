@@ -133,6 +133,18 @@ class FilterTest(DbTestCase):
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), '"floattt" key ain\'t exist in trigger. Should return true.')
 
+    def test_gt_lt_falsy_pattern(self):
+        # Make sure that the falsy value (number 0) is handled correctly
+        rule = MOCK_RULE_1
+
+        rule.criteria = {'trigger.int': {'type': 'gt', 'pattern': 0}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'trigger value is gt than 0 but didn\'t match')
+
+        rule.criteria = {'trigger.int': {'type': 'lt', 'pattern': 0}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertFalse(f.filter(), 'trigger value is gt than 0 but didn\'t fail')
+
     @mock.patch('st2common.util.templating.KeyValueLookup')
     def test_criteria_pattern_references_a_datastore_item(self, mock_KeyValueLookup):
         class MockResultLookup(object):

@@ -122,6 +122,59 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                                 expected_msg, mock.connect)
 
     @patch('paramiko.SSHClient', Mock)
+    def test_key_with_passphrase(self):
+        path = os.path.join(get_resources_base_path(),
+                            'ssh', 'dummy_rsa_passphrase')
+
+        with open(path, 'r') as fp:
+            private_key = fp.read()
+
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'key_material': private_key,
+                       'passphrase': 'testphrase'}
+        mock = ParamikoSSHClient(**conn_params)
+        mock.connect()
+
+        pkey = paramiko.RSAKey.from_private_key(StringIO(private_key), 'testphrase')
+        expected_conn = {'username': 'ubuntu',
+                         'allow_agent': False,
+                         'hostname': 'dummy.host.org',
+                         'look_for_keys': False,
+                         'pkey': pkey,
+                         'timeout': 60,
+                         'port': 22}
+        mock.client.connect.assert_called_once_with(**expected_conn)
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_passphrase_and_no_key(self):
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'passphrase': 'testphrase'}
+
+        expected_msg = 'passphrase should accompany private key material'
+        self.assertRaisesRegexp(ValueError, expected_msg,
+                                ParamikoSSHClient, **conn_params)
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_incorrect_passphrase(self):
+        path = os.path.join(get_resources_base_path(),
+                            'ssh', 'dummy_rsa_passphrase')
+
+        with open(path, 'r') as fp:
+            private_key = fp.read()
+
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'key_material': private_key,
+                       'passphrase': 'incorrect'}
+        mock = ParamikoSSHClient(**conn_params)
+
+        expected_msg = 'Invalid passphrase or invalid/unsupported key type'
+        self.assertRaisesRegexp(paramiko.ssh_exception.SSHException,
+                                expected_msg, mock.connect)
+
+    @patch('paramiko.SSHClient', Mock)
     def test_key_material_contains_path_not_contents(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu'}

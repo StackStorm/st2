@@ -14,7 +14,7 @@ workflows:
                 input:
                     v1: ok
                 publish:
-                    report: <% $.call_internal_workflow.report %>
+                    report: <% task(call_internal_workflow).result.report %>
                 on-success:
                     - call_internal_workflow_multiple_tasks
             call_internal_workflow_multiple_tasks:
@@ -29,7 +29,7 @@ workflows:
                 input:
                     cmd: "echo 'external workflow ok'"
                 publish:
-                    state: <% $.call_external_workflow.stdout %>
+                    state: <% task(call_external_workflow).result.stdout %>
                 on-success:
                     - call_action_chain
             call_action_chain:
@@ -47,7 +47,7 @@ workflows:
                 input:
                     cmd: "echo 'task1 <% $.v1 %>'; sleep 1"
                 publish:
-                    report: <% $.t1.stdout %>
+                    report: <% task(t1).result.stdout %>
 
     wf2:
         type: direct

@@ -17,6 +17,8 @@
 Module for performing eventlet related monkey patching.
 """
 
+from __future__ import absolute_import
+
 import sys
 
 import eventlet

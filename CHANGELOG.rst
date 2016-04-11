@@ -4,6 +4,7 @@ Changelog
 in development
 --------------
 
+* Passphrase support for the SSH runner. (improvement)
 * Improvements to ChatOps deployments of packs via ``pack deploy`` [Jon Middleton]
 * Add ``extra`` field to the ActionAlias schema for adapter-specific parameters. (improvement)
 * Dev environment by default now uses gunicorn to spin API and AUTH processes. (improvement)
@@ -66,6 +67,20 @@ in development
 * Record failures to enforce rules due to missing actions or parameter validation errors. A
   RuleEnforcement object will be created for failed enforcements that do not lead to an
   ActionExecution creation. (improvement)
+* Add support for better serialization of the following parameter types for positional parameters
+  used in the local and remote script runner actions: ``integer``, ``float``, ``boolean``,
+  ``list``, ``object``. Previously those values were serialized as Python literals which made
+  parsing them in the shell scripts very cumbersome. Now they are serialized based on the simple
+  rules described in the documentation which makes it easy to use just by using simple shell
+  primitives such as if statements and ``IFS`` for lists. (improvement, new feature)
+* Fix ``linux.traceroute`` action. (bug fix)
+* Fix a bug with positional argument handling in the local script runner. Now the arguments with a
+  no value or value of ``None`` are correctly passed to the script. (bug fix)
+* Fix rule criteria comparison and make sure that falsy criteria pattern values such as integer
+  ``0`` are handled correctly. (bug-fix)
+
+  Reported by Igor Cherkaev.
+* Add ``-v`` flag (verbose mode) to the ``st2-run-pack-tests`` script. (improvement)
 
 1.3.2 - February 12, 2016
 -------------------------

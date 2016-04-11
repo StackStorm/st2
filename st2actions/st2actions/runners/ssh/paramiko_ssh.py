@@ -81,7 +81,7 @@ class ParamikoSSHClient(object):
     CONNECT_TIMEOUT = 60
 
     def __init__(self, hostname, port=22, username=None, password=None, bastion_host=None,
-                 key=None, key_files=None, key_material=None, timeout=None):
+                 key=None, key_files=None, key_material=None, timeout=None, passphrase=None):
         """
         Authentication is always attempted in the following order:
 
@@ -96,6 +96,9 @@ class ParamikoSSHClient(object):
         if key_files and key_material:
             raise ValueError(('key_files and key_material arguments are '
                               'mutually exclusive'))
+
+        if passphrase and not key_material:
+            raise ValueError('passphrase should accompany private key material')
 
         self.hostname = hostname
         self.port = port
@@ -113,6 +116,7 @@ class ParamikoSSHClient(object):
         self.bastion_host = bastion_host
         self.bastion_client = None
         self.bastion_socket = None
+        self.passphrase = passphrase
 
     def connect(self):
         """
@@ -478,14 +482,14 @@ class ParamikoSSHClient(object):
             self.logger.exception('Non UTF-8 character found in data: %s', data)
             raise
 
-    def _get_pkey_object(self, key_material):
+    def _get_pkey_object(self, key_material, passphrase):
         """
         Try to detect private key type and return paramiko.PKey object.
         """
 
         for cls in [paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey]:
             try:
-                key = cls.from_private_key(StringIO(key_material))
+                key = cls.from_private_key(StringIO(key_material), password=passphrase)
             except paramiko.ssh_exception.SSHException:
                 # Invalid key, try other key type
                 pass
@@ -499,6 +503,8 @@ class ParamikoSSHClient(object):
         if not contains_header and (key_material.count('/') >= 1 or key_material.count('\\') >= 1):
             msg = ('"private_key" parameter needs to contain private key data / content and not '
                    'a path')
+        elif passphrase:
+            msg = 'Invalid passphrase or invalid/unsupported key type'
         else:
             msg = 'Invalid or unsupported key type'
 
@@ -531,7 +537,8 @@ class ParamikoSSHClient(object):
             conninfo['key_filename'] = self.key_files
 
         if self.key_material:
-            conninfo['pkey'] = self._get_pkey_object(key_material=self.key_material)
+            conninfo['pkey'] = self._get_pkey_object(key_material=self.key_material,
+                                                     passphrase=self.passphrase)
 
         if not self.password and not (self.key_files or self.key_material):
             conninfo['allow_agent'] = True

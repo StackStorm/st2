@@ -11,5 +11,5 @@ examples.mistral-basic:
         task1:
             action: core.local cmd=<% $.cmd %>
             publish:
-                stdout: <% $.task1.stdout %>
-                stderr: <% $.task1.stderr %>
+                stdout: <% task(task1).result.stdout %>
+                stderr: <% task(task1).result.stderr %>

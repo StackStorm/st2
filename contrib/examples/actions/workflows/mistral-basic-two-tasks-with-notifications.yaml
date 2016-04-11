@@ -9,10 +9,10 @@ examples.mistral-basic-two-tasks-with-notifications:
         task1:
             action: core.local cmd="echo task1"
             publish:
-                stdout: <% $.task1.stdout %>
-                stderr: <% $.task1.stderr %>
+                stdout: <% task(task1).result.stdout %>
+                stderr: <% task(task1).result.stderr %>
         task2:
             action: core.local cmd="echo task2"
             publish:
-                stdout: <% $.task2.stdout %>
-                stderr: <% $.task2.stderr %>
+                stdout: <% task(task2).result.stdout %>
+                stderr: <% task(task2).result.stderr %>
