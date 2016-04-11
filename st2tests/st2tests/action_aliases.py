@@ -19,7 +19,9 @@ import inspect
 from unittest2 import TestCase
 
 from st2common.content.loader import ContentPackLoader
+from st2common.exceptions.content import ParseException
 from st2common.bootstrap.aliasesregistrar import AliasesRegistrar
+from st2common.models.utils.action_alias_utils import extract_parameters_for_action_alias_db
 from st2common.models.utils.action_alias_utils import extract_parameters
 
 __all__ = [
@@ -43,17 +45,48 @@ class BaseActionAliasTestCase(TestCase):
 
         self.action_alias_db = self._get_action_alias_db_by_name(name=self.action_alias_name)
 
+    def assertCommandMatchesFormatString(self, format_string, command):
+        """
+        Assert that the provided command matches the provided format string.
+        """
+        try:
+            extract_parameters_for_action_alias_db(action_alias_db=self.action_alias_db,
+                                                   format_str=format_string,
+                                                   param_stream=command)
+        except ParseException as e:
+            raise AssertionError(str(e))
+
+    def assertCommandMatchesSingleFormatString(self, format_strings, command):
+        """
+        Assert that the provided command only matches a single format string from the provided list.
+        """
+        matched_format_strings = []
+
+        for format_string in format_strings:
+            try:
+                extract_parameters(format_str=format_string,
+                                   param_stream=command)
+            except ParseException:
+                continue
+
+            matched_format_strings.append(format_string)
+
+        if len(matched_format_strings) > 1:
+            msg = ('Command "%s" matched multiple format strings: %s' %
+                   (command, ', '.join(matched_format_strings)))
+            raise AssertionError(msg)
+
     def assertExtractedParametersMatch(self, format_string, command, values):
         """
-        Assert that the parameters extracted from the user provided command string match the
-        provided values.
+        Assert that the provided command matches the format string.
 
         In addition to that, also assert that the parameters which have been extracted from the
-        user input also match the provided parameters.
+        user input (command) also match the provided parameters.
         """
-        extracted_params = extract_parameters(action_alias_db=self.action_alias_db,
-                                              format_str=format_string,
-                                              param_stream=command)
+        extracted_params = extract_parameters_for_action_alias_db(
+            action_alias_db=self.action_alias_db,
+            format_str=format_string,
+            param_stream=command)
 
         if extracted_params != values:
             msg = ('Extracted parameters from command string "%s" against format string "%s"'

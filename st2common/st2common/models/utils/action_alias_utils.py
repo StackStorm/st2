@@ -19,7 +19,9 @@ from st2common.exceptions.content import ParseException
 
 __all__ = [
     'ActionAliasFormatParser',
-    'extract_parameters'
+
+    'extract_parameters_for_action_alias_db',
+    'extract_parameters',
 ]
 
 
@@ -119,9 +121,12 @@ class ActionAliasFormatParser(object):
         return result
 
 
-def extract_parameters(action_alias_db, format_str, param_stream):
+def extract_parameters_for_action_alias_db(action_alias_db, format_str, param_stream):
     """
     Extract parameters from the user input based on the provided format string.
+
+    Note: This function makes sure that the provided format string is indeed available in the
+    action_alias_db.formats.
     """
     formats = []
     for formatstring in action_alias_db.formats:
@@ -129,10 +134,16 @@ def extract_parameters(action_alias_db, format_str, param_stream):
             formats.extend(formatstring['representation'])
         else:
             formats.append(formatstring)
+
     if formats and format_str in formats:
         alias_format = format_str
     else:
         alias_format = None
 
-    parser = ActionAliasFormatParser(alias_format=alias_format, param_stream=param_stream)
+    result = extract_parameters(format_str=alias_format, param_stream=param_stream)
+    return result
+
+
+def extract_parameters(format_str, param_stream):
+    parser = ActionAliasFormatParser(alias_format=format_str, param_stream=param_stream)
     return parser.get_extracted_param_value()
