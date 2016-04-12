@@ -89,6 +89,8 @@ in development
 * Mistral has deprecated the use of task name (i.e. ``$.task1``) to reference task result. It is
   replaced with a ``task`` function that returns attributes of the task such as id, state, result,
   and additional information (i.e. ``task(task1).result``).
+* Add support for additional SSH key exchange algorithms to the remote runner via upgrade to
+  paramiko 1.16.0. (new feature)
 
 1.3.2 - February 12, 2016
 -------------------------
