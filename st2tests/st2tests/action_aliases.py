@@ -45,20 +45,9 @@ class BaseActionAliasTestCase(TestCase):
 
         self.action_alias_db = self._get_action_alias_db_by_name(name=self.action_alias_name)
 
-    def assertCommandMatchesFormatString(self, format_string, command):
+    def assertCommandMatchesExactlyOneFormatString(self, format_strings, command):
         """
-        Assert that the provided command matches the provided format string.
-        """
-        try:
-            extract_parameters_for_action_alias_db(action_alias_db=self.action_alias_db,
-                                                   format_str=format_string,
-                                                   param_stream=command)
-        except ParseException as e:
-            raise AssertionError(str(e))
-
-    def assertCommandMatchesSingleFormatString(self, format_strings, command):
-        """
-        Assert that the provided command only matches a single format string from the provided list.
+        Assert that the provided command matches exactly one format string from the provided list.
         """
         matched_format_strings = []
 
@@ -71,7 +60,10 @@ class BaseActionAliasTestCase(TestCase):
 
             matched_format_strings.append(format_string)
 
-        if len(matched_format_strings) > 1:
+        if len(matched_format_strings) == 0:
+            msg = ('Command "%s" didn\'t match any of the provided format strings' % (command))
+            raise AssertionError(msg)
+        elif len(matched_format_strings) > 1:
             msg = ('Command "%s" matched multiple format strings: %s' %
                    (command, ', '.join(matched_format_strings)))
             raise AssertionError(msg)

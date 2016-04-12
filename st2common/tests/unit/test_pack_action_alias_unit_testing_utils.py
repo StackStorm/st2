@@ -21,24 +21,6 @@ from st2common.models.db.actionalias import ActionAliasDB
 class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
     action_alias_name = 'mock'
 
-    def test_assertCommandMatchesFormatString(self):
-        # Matches
-        format_string = self.action_alias_db.formats[0]
-        command = 'show last 3 metrics for my.host'
-        self.assertCommandMatchesFormatString(format_string=format_string,
-                                              command=command)
-
-        # Doesn't match
-        format_string = self.action_alias_db.formats[0]
-        command = 'foo bar'
-
-        expected_msg = ('Command "foo bar" doesn\'t match format string "show '
-                        'last {{count}} metrics for {{server}}"')
-        self.assertRaisesRegexp(AssertionError, expected_msg,
-                                self.assertCommandMatchesFormatString,
-                                format_string=format_string,
-                                command=command)
-
     def test_assertExtractedParametersMatch_success(self):
         format_string = self.action_alias_db.formats[0]
         command = 'show last 3 metrics for my.host'
@@ -73,15 +55,15 @@ class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
                                 command=command,
                                 values=expected_parameters)
 
-    def test_assertCommandMatchesSingleFormatString(self):
+    def test_assertCommandMatchesExactlyOneFormatString(self):
         # Matches single format string
         format_strings = [
             'foo bar {{bar}}',
             'foo bar {{baz}} baz'
         ]
         command = 'foo bar a test=1'
-        self.assertCommandMatchesSingleFormatString(format_strings=format_strings,
-                                                    command=command)
+        self.assertCommandMatchesExactlyOneFormatString(format_strings=format_strings,
+                                                        command=command)
 
         # Matches multiple format strings
         format_strings = [
@@ -93,7 +75,21 @@ class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
         expected_msg = ('Command "foo bar a test=1" matched multiple format '
                         'strings: foo bar {{bar}}, foo bar {{baz}}')
         self.assertRaisesRegexp(AssertionError, expected_msg,
-                                self.assertCommandMatchesSingleFormatString,
+                                self.assertCommandMatchesExactlyOneFormatString,
+                                format_strings=format_strings,
+                                command=command)
+
+        # Doesn't matches any format strings
+        format_strings = [
+            'foo bar {{bar}}',
+            'foo bar {{baz}}'
+        ]
+        command = 'does not match foo'
+
+        expected_msg = ('Command "does not match foo" didn\'t match any of the provided format '
+                        'strings')
+        self.assertRaisesRegexp(AssertionError, expected_msg,
+                                self.assertCommandMatchesExactlyOneFormatString,
                                 format_strings=format_strings,
                                 command=command)
 
