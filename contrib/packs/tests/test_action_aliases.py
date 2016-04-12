@@ -17,7 +17,7 @@ class DeployActionAliasTestCase(BaseActionAliasTestCase):
         }
         self.assertExtractedParametersMatch(format_string=format_string,
                                             command=command,
-                                            values=expected_parameters)
+                                            parameters=expected_parameters)
 
         command = 'pack deploy StackStorm/st2contrib packs libcloud branch ma_branch'
         expected_parameters = {
@@ -27,7 +27,7 @@ class DeployActionAliasTestCase(BaseActionAliasTestCase):
         }
         self.assertExtractedParametersMatch(format_string=format_string,
                                             command=command,
-                                            values=expected_parameters)
+                                            parameters=expected_parameters)
 
         # Command without branch
         format_string = self.action_alias_db.formats[0]['representation'][1]
@@ -38,7 +38,7 @@ class DeployActionAliasTestCase(BaseActionAliasTestCase):
         }
         self.assertExtractedParametersMatch(format_string=format_string,
                                             command=command,
-                                            values=expected_parameters)
+                                            parameters=expected_parameters)
 
         command = 'pack deploy StackStorm/st2contrib packs libcloud'
         expected_parameters = {
@@ -47,7 +47,7 @@ class DeployActionAliasTestCase(BaseActionAliasTestCase):
         }
         self.assertExtractedParametersMatch(format_string=format_string,
                                             command=command,
-                                            values=expected_parameters)
+                                            parameters=expected_parameters)
 
         # Doesnt include packs
         format_string = self.action_alias_db.formats[1]['representation'][0]
@@ -58,7 +58,7 @@ class DeployActionAliasTestCase(BaseActionAliasTestCase):
         }
         self.assertExtractedParametersMatch(format_string=format_string,
                                             command=command,
-                                            values=expected_parameters)
+                                            parameters=expected_parameters)
 
         format_string = self.action_alias_db.formats[1]['representation'][1]
         command = 'pack deploy StackStorm/st2contrib'
@@ -67,7 +67,7 @@ class DeployActionAliasTestCase(BaseActionAliasTestCase):
         }
         self.assertExtractedParametersMatch(format_string=format_string,
                                             command=command,
-                                            values=expected_parameters)
+                                            parameters=expected_parameters)
 
 
 class PackInfoActionAliasTestCase(BaseActionAliasTestCase):
@@ -81,7 +81,7 @@ class PackInfoActionAliasTestCase(BaseActionAliasTestCase):
         }
         self.assertExtractedParametersMatch(format_string=format_string,
                                             command=command,
-                                            values=expected_parameters)
+                                            parameters=expected_parameters)
 
         command = 'pack info aws'
         expected_parameters = {
@@ -89,7 +89,7 @@ class PackInfoActionAliasTestCase(BaseActionAliasTestCase):
         }
         self.assertExtractedParametersMatch(format_string=format_string,
                                             command=command,
-                                            values=expected_parameters)
+                                            parameters=expected_parameters)
 
 
 class ShowGitCloneActionAliasTestCase(BaseActionAliasTestCase):
@@ -103,4 +103,4 @@ class ShowGitCloneActionAliasTestCase(BaseActionAliasTestCase):
         }
         self.assertExtractedParametersMatch(format_string=format_string,
                                             command=command,
-                                            values=expected_parameters)
+                                            parameters=expected_parameters)

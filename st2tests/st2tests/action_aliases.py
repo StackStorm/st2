@@ -68,7 +68,7 @@ class BaseActionAliasTestCase(TestCase):
                    (command, ', '.join(matched_format_strings)))
             raise AssertionError(msg)
 
-    def assertExtractedParametersMatch(self, format_string, command, values):
+    def assertExtractedParametersMatch(self, format_string, command, parameters):
         """
         Assert that the provided command matches the format string.
 
@@ -80,13 +80,13 @@ class BaseActionAliasTestCase(TestCase):
             format_str=format_string,
             param_stream=command)
 
-        if extracted_params != values:
+        if extracted_params != parameters:
             msg = ('Extracted parameters from command string "%s" against format string "%s"'
-                   ' didn\'t match the provided values: ' % (command, format_string))
+                   ' didn\'t match the provided parameters: ' % (command, format_string))
 
             # Note: We intercept the exception so we can can include diff for the dictionaries
             try:
-                self.assertEqual(extracted_params, values)
+                self.assertEqual(extracted_params, parameters)
             except AssertionError as e:
                 msg += str(e)
 

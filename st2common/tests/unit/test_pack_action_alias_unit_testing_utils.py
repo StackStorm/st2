@@ -30,7 +30,7 @@ class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
         }
         self.assertExtractedParametersMatch(format_string=format_string,
                                             command=command,
-                                            values=expected_parameters)
+                                            parameters=expected_parameters)
 
         format_string = self.action_alias_db.formats[0]
         command = 'show last 10 metrics for my.host.example'
@@ -40,7 +40,7 @@ class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
         }
         self.assertExtractedParametersMatch(format_string=format_string,
                                             command=command,
-                                            values=expected_parameters)
+                                            parameters=expected_parameters)
 
     def test_assertExtractedParametersMatch_command_doesnt_match_format_string(self):
         format_string = self.action_alias_db.formats[0]
@@ -53,7 +53,7 @@ class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
                                 self.assertExtractedParametersMatch,
                                 format_string=format_string,
                                 command=command,
-                                values=expected_parameters)
+                                parameters=expected_parameters)
 
     def test_assertCommandMatchesExactlyOneFormatString(self):
         # Matches single format string
