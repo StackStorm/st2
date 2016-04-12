@@ -81,6 +81,14 @@ in development
 
   Reported by Igor Cherkaev.
 * Add ``-v`` flag (verbose mode) to the ``st2-run-pack-tests`` script. (improvement)
+* The list of required and optional configuration arguments for the LDAP auth backend has changed.
+  The LDAP auth backend supports other login name such as sAMAccountName. This requires a separate
+  service account for the LDAP backend to query for the DN related to the login name for bind to
+  validate the user password. Also, users must be in one or more groups specified in group_dns to
+  be granted access.
+* Mistral has deprecated the use of task name (i.e. ``$.task1``) to reference task result. It is
+  replaced with a ``task`` function that returns attributes of the task such as id, state, result,
+  and additional information (i.e. ``task(task1).result``).
 * Add initial code framework for writing unit tests for action aliases. For the usage, please refer
   to the "Pack Testing" documentation section. (new feature)
 * For consistency rename ``deploy_pack`` alias to ``pack_deploy``.
