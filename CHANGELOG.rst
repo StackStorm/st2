@@ -89,6 +89,8 @@ in development
 * Mistral has deprecated the use of task name (i.e. ``$.task1``) to reference task result. It is
   replaced with a ``task`` function that returns attributes of the task such as id, state, result,
   and additional information (i.e. ``task(task1).result``).
+* Add support for additional SSH key exchange algorithms to the remote runner via upgrade to
+  paramiko 1.16.0. (new feature)
 * Add initial code framework for writing unit tests for action aliases. For the usage, please refer
   to the "Pack Testing" documentation section. (new feature)
 * For consistency rename ``deploy_pack`` alias to ``pack_deploy``.
