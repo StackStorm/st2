@@ -31,6 +31,7 @@ import st2common.bootstrap.policiesregistrar as policies_registrar
 import st2common.bootstrap.runnersregistrar as runners_registrar
 import st2common.bootstrap.rulesregistrar as rules_registrar
 import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
+import st2common.content.utils as content_utils
 from st2common.util.virtualenvs import setup_pack_virtualenv
 
 __all__ = [
@@ -70,11 +71,20 @@ def setup_virtualenvs():
     pack_dir = cfg.CONF.register.pack
     fail_on_failure = cfg.CONF.register.fail_on_failure
 
+    registrar = ResourceRegistrar()
+
     if pack_dir:
         pack_name = os.path.basename(pack_dir)
         pack_names = [pack_name]
+
+        # 1. Register pack
+        registrar.register_pack(pack_name=pack_name, pack_dir=pack_dir)
     else:
-        registrar = ResourceRegistrar()
+        # 1. Register pack
+        base_dirs = content_utils.get_packs_base_paths()
+        registrar.register_packs(base_dirs=base_dirs)
+
+        # 2. Retrieve available packs (aka packs which have been registered)
         pack_names = registrar.get_registered_packs()
 
     setup_count = 0
@@ -91,7 +101,7 @@ def setup_virtualenvs():
         else:
             setup_count += 1
 
-    LOG.info('Setup virtualenv for %s pack.' % (setup_count))
+    LOG.info('Setup virtualenv for %s pack(s).' % (setup_count))
 
 
 def register_sensors():

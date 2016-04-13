@@ -56,8 +56,8 @@ in development
   specified, all the timestamps displayed by the CLI will be shown in the configured timezone
   instead of a default UTC display. (new feature)
 * Add ``attachments`` parameter to the ``core.sendmail`` action. (improvement) [Cody A. Ray]
-* Add ``--register-setup-virtualenvs`` flag to the ``register-content`` script. When this flag is
-  provided, Python virtual environments are created for all the registered packs.
+* Add ``--register-setup-virtualenvs`` flag to the ``register-content`` script and ``st2ctl``.
+  When this flag is provided, Python virtual environments are created for all the registered packs.
   This option is to be used with distributed setup where action runner services run on multiple
   hosts to ensure virtual environments exist on all those hosts. (new-feature)
 * Update ``core.st2.CronTimer`` so it supports more of the cron-like expressions (``a-b``, ``*/a``,

@@ -97,7 +97,7 @@ fi
 
 # Note: Scripts already call reload with "--register-<content>"
 if [ ${1} == "reload" -o ${1} == "clean" ]; then
-    ALLOWED_REGISTER_FLAGS=(--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --verbose)
+    ALLOWED_REGISTER_FLAGS=(--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --register-setup-virtualenvs --verbose)
     DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors'
 
     if [ ! -z ${2} ]; then
