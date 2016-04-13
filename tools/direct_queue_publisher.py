@@ -19,6 +19,7 @@ import argparse
 
 import pika
 
+
 def main(queue, payload):
     connection = pika.BlockingConnection(pika.ConnectionParameters(
         host='localhost',
@@ -32,6 +33,7 @@ def main(queue, payload):
                           body=payload)
     print("Sent %s" % payload)
     connection.close()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Direct queue publisher')
