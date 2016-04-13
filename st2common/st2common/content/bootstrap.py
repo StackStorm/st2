@@ -70,12 +70,16 @@ def setup_virtualenvs():
     pack_dir = cfg.CONF.register.pack
     fail_on_failure = cfg.CONF.register.fail_on_failure
 
+    # Note: We need to register packs here as well
+    registrar = ResourceRegistrar()
+
     if pack_dir:
         pack_name = os.path.basename(pack_dir)
         pack_names = [pack_name]
+        registrar.register_pack(pack_name=pack_name, pack_dir=pack_dir)
     else:
-        registrar = ResourceRegistrar()
         pack_names = registrar.get_registered_packs()
+        registrar.register_packs()
 
     setup_count = 0
     for pack_name in pack_names:
