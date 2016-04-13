@@ -101,7 +101,7 @@ def setup_virtualenvs():
         else:
             setup_count += 1
 
-    LOG.info('Setup virtualenv for %s pack.' % (setup_count))
+    LOG.info('Setup virtualenv for %s pack(s).' % (setup_count))
 
 
 def register_sensors():
