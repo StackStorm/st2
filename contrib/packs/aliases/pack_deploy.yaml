@@ -1,5 +1,5 @@
 ---
-name: "deploy_pack"
+name: "pack_deploy"
 action_ref: "packs.deploy"
 pack: "packs"
 description: "Download StackStorm packs via ChatOps"

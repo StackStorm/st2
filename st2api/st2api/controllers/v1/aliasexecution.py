@@ -26,7 +26,8 @@ from st2common.models.api.auth import get_system_username
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
-from st2common.models.utils import action_alias_utils, action_param_utils
+from st2common.models.utils import action_param_utils
+from st2common.models.utils.action_alias_utils import extract_parameters_for_action_alias_db
 from st2common.persistence.actionalias import ActionAlias
 from st2common.services import action as action_service
 from st2common.util import action_db as action_utils
@@ -73,9 +74,10 @@ class ActionAliasExecutionController(rest.RestController):
             pecan.abort(http_client.BAD_REQUEST, msg)
             return
 
-        execution_parameters = self._extract_parameters(action_alias_db=action_alias_db,
-                                                        format_str=format_str,
-                                                        param_stream=command)
+        execution_parameters = extract_parameters_for_action_alias_db(
+            action_alias_db=action_alias_db,
+            format_str=format_str,
+            param_stream=command)
         notify = self._get_notify_field(payload)
 
         context = {
@@ -110,22 +112,6 @@ class ActionAliasExecutionController(rest.RestController):
     def _tokenize_alias_execution(self, alias_execution):
         tokens = alias_execution.strip().split(' ', 1)
         return (tokens[0], tokens[1] if len(tokens) > 1 else None)
-
-    def _extract_parameters(self, action_alias_db, format_str, param_stream):
-        formats = []
-        for formatstring in action_alias_db.formats:
-            if isinstance(formatstring, dict) and formatstring.get('representation'):
-                formats.extend(formatstring['representation'])
-            else:
-                formats.append(formatstring)
-        if formats and format_str in formats:
-            alias_format = format_str
-        else:
-            alias_format = None
-
-        parser = action_alias_utils.ActionAliasFormatParser(alias_format=alias_format,
-                                                            param_stream=param_stream)
-        return parser.get_extracted_param_value()
 
     def _get_notify_field(self, payload):
         on_complete = NotificationSubSchema()

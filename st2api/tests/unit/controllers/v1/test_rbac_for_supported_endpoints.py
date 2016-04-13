@@ -268,7 +268,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             {
                 'path': '/v1/aliasexecution',
                 'method': 'POST',
-                'payload': {'name': 'alias1', 'format': 'foo', 'command': 'bar',
+                'payload': {'name': 'alias1', 'format': 'foo bar ponies',
+                            'command': 'foo bar ponies',
                             'user': 'channel', 'source_channel': 'bar'}
             }
         ]

@@ -20,5 +20,5 @@ class UnsupportedMetaException(StackStormBaseException):
     pass
 
 
-class ParseException(StackStormBaseException):
+class ParseException(ValueError):
     pass

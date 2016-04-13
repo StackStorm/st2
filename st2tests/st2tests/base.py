@@ -46,13 +46,12 @@ import st2common.models.db.executionstate as executionstate_model
 import st2common.models.db.liveaction as liveaction_model
 import st2common.models.db.actionalias as actionalias_model
 import st2common.models.db.policy as policy_model
-from st2actions.runners.utils import get_action_class_instance
-
 import st2tests.config
-from st2tests.mocks.sensor import MockSensorWrapper
-from st2tests.mocks.sensor import MockSensorService
-from st2tests.mocks.action import MockActionWrapper
-from st2tests.mocks.action import MockActionService
+
+# Imports for backward compatibility (those classes have been moved to standalone modules)
+from st2tests.actions import BaseActionTestCase
+from st2tests.sensors import BaseSensorTestCase
+from st2tests.action_aliases import BaseActionAliasTestCase
 
 
 __all__ = [
@@ -63,8 +62,10 @@ __all__ = [
     'CleanFilesTestCase',
     'IntegrationTestCase',
 
+    # Pack test classes
     'BaseSensorTestCase',
-    'BaseActionTestCase'
+    'BaseActionTestCase',
+    'BaseActionAliasTestCase'
 ]
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -410,106 +411,6 @@ class IntegrationTestCase(TestCase):
 
         if status not in ['exited', 'zombie']:
             self.fail('Process with pid "%s" is still running' % (proc.pid))
-
-
-class BaseSensorTestCase(TestCase):
-    """
-    Base class for sensor tests.
-
-    This class provides some utility methods for verifying that a trigger has
-    been dispatched, etc.
-    """
-
-    sensor_cls = None
-
-    def setUp(self):
-        super(BaseSensorTestCase, self).setUp()
-
-        class_name = self.sensor_cls.__name__
-        sensor_wrapper = MockSensorWrapper(pack='tests', class_name=class_name)
-        self.sensor_service = MockSensorService(sensor_wrapper=sensor_wrapper)
-
-    def get_sensor_instance(self, config=None, poll_interval=None):
-        """
-        Retrieve instance of the sensor class.
-        """
-        kwargs = {
-            'sensor_service': self.sensor_service
-        }
-
-        if config:
-            kwargs['config'] = config
-
-        if poll_interval is not None:
-            kwargs['poll_interval'] = poll_interval
-
-        instance = self.sensor_cls(**kwargs)  # pylint: disable=not-callable
-        return instance
-
-    def get_dispatched_triggers(self):
-        return self.sensor_service.dispatched_triggers
-
-    def get_last_dispatched_trigger(self):
-        return self.sensor_service.dispatched_triggers[-1]
-
-    def assertTriggerDispatched(self, trigger, payload=None, trace_context=None):
-        """
-        Assert that the trigger with the provided values has been dispatched.
-
-        :param trigger: Name of the trigger.
-        :type trigger: ``str``
-
-        :param paylod: Trigger payload (optional). If not provided, only trigger name is matched.
-        type: payload: ``object``
-
-        :param trace_context: Trigger trace context (optional). If not provided, only trigger name
-                              is matched.
-        type: payload: ``object``
-        """
-        dispatched_triggers = self.get_dispatched_triggers()
-        for item in dispatched_triggers:
-            trigger_matches = (item['trigger'] == trigger)
-
-            if payload:
-                payload_matches = (item['payload'] == payload)
-            else:
-                payload_matches = True
-
-            if trace_context:
-                trace_context_matches = (item['trace_context'] == trace_context)
-            else:
-                trace_context_matches = True
-
-            if trigger_matches and payload_matches and trace_context_matches:
-                return True
-
-        msg = 'Trigger "%s" hasn\'t been dispatched' % (trigger)
-        raise AssertionError(msg)
-
-
-class BaseActionTestCase(TestCase):
-    """
-    Base class for Python runner action tests.
-    """
-
-    action_cls = None
-
-    def setUp(self):
-        super(BaseActionTestCase, self).setUp()
-
-        class_name = self.action_cls.__name__
-        action_wrapper = MockActionWrapper(pack='tests', class_name=class_name)
-        self.action_service = MockActionService(action_wrapper=action_wrapper)
-
-    def get_action_instance(self, config=None):
-        """
-        Retrieve instance of the action class.
-        """
-        # pylint: disable=not-callable
-        instance = get_action_class_instance(action_cls=self.action_cls,
-                                             config=config,
-                                             action_service=self.action_service)
-        return instance
 
 
 class FakeResponse(object):

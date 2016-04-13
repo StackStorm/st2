@@ -91,6 +91,12 @@ in development
   and additional information (i.e. ``task(task1).result``).
 * Add support for additional SSH key exchange algorithms to the remote runner via upgrade to
   paramiko 1.16.0. (new feature)
+* Add initial code framework for writing unit tests for action aliases. For the usage, please refer
+  to the "Pack Testing" documentation section. (new feature)
+* For consistency rename ``deploy_pack`` alias to ``pack_deploy``.
+* Fix alias executions API endpoint and make sure an exception is thrown if the user provided
+  command string doesn't match the provided format string. Previously, a non-match was silently
+  ignored. (bug fix)
 
 1.3.2 - February 12, 2016
 -------------------------

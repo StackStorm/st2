@@ -35,21 +35,21 @@ class TestActionAliasParser(TestCase):
         self.assertEqual(extracted_values, {'a': 'foobar1'})
 
         # multi-word double-quoted param
-        alias_format = ''
+        alias_format = 'foo'
         param_stream = 'foo a="foobar2 poonies bar"'
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {'a': 'foobar2 poonies bar'})
 
         # multi-word single-quoted param
-        alias_format = ''
+        alias_format = 'foo'
         param_stream = 'foo a=\'foobar2 poonies bar\''
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {'a': 'foobar2 poonies bar'})
 
         # JSON param
-        alias_format = ''
+        alias_format = 'foo'
         param_stream = 'foo a={"foobar2": "poonies"}'
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
@@ -103,11 +103,11 @@ class TestActionAliasParser(TestCase):
                                             'c': 'c1', 'd': '1'})
 
     def test_spacing(self):
-        alias_format = 'acl {{a}}'
-        param_stream = 'acl123'
+        alias_format = 'acl {{a=test}}'
+        param_stream = 'acl'
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {})
+        self.assertEqual(extracted_values, {'a': 'test'})
 
     def test_json_parsing(self):
         alias_format = 'skip {{a}} more skip.'
@@ -147,7 +147,7 @@ class TestActionAliasParser(TestCase):
 
     def test_template_defaults(self):
         alias_format = 'two by two hands of {{ color = {{ colors.default_color }} }}'
-        param_stream = 'skip one more'
+        param_stream = 'two by two hands of'
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(extracted_values, {'color': '{{ colors.default_color }}'})
@@ -180,11 +180,11 @@ class TestActionAliasParser(TestCase):
                                             'e': 'long value'})
 
     def test_stream_is_none_with_all_default_values(self):
-        alias_format = 'skip {{d=test}} more skip {{e=test}}.'
-        param_stream = None
+        alias_format = 'skip {{d=test1}} more skip {{e=test1}}.'
+        param_stream = 'skip more skip'
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(extracted_values, {'d': 'test', 'e': 'test'})
+        self.assertEqual(extracted_values, {'d': 'test1', 'e': 'test1'})
 
     def test_stream_is_not_none_some_default_values(self):
         alias_format = 'skip {{d=test}} more skip {{e=test}}'
@@ -198,7 +198,7 @@ class TestActionAliasParser(TestCase):
         param_stream = None
         parser = ActionAliasFormatParser(alias_format, param_stream)
 
-        expected_msg = 'No value supplied and no default value found.'
+        expected_msg = 'Command "" doesn\'t match format string "skip {{d}} more skip {{e}}."'
         self.assertRaisesRegexp(ParseException, expected_msg,
                                 parser.get_extracted_param_value)
 
@@ -214,3 +214,19 @@ class TestActionAliasParser(TestCase):
                                             'p2': '{{ execution.id }}',
                                             'p3': '{{ e.i }}',
                                             'p4': 'testing', 'p5': "{'a':'c'}"})
+
+    def test_command_doesnt_match_format_string(self):
+        alias_format = 'foo bar ponies'
+        param_stream = 'foo lulz ponies'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+
+        expected_msg = 'Command "foo lulz ponies" doesn\'t match format string "foo bar ponies"'
+        self.assertRaisesRegexp(ParseException, expected_msg,
+                                parser.get_extracted_param_value)
+
+    def test_ending_parameters_matching(self):
+        alias_format = 'foo bar'
+        param_stream = 'foo bar pony1=foo pony2=bar'
+        parser = ActionAliasFormatParser(alias_format, param_stream)
+        extracted_values = parser.get_extracted_param_value()
+        self.assertEqual(extracted_values, {'pony1': 'foo', 'pony2': 'bar'})
