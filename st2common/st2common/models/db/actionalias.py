@@ -78,6 +78,22 @@ class ActionAliasDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         self.ref = self.get_reference().ref
         self.uid = self.get_uid()
 
+    def get_format_strings(self):
+        """
+        Return a list of all the supported format strings.
+
+        :rtype: ``list`` of ``str``
+        """
+        result = []
+
+        for formatstring in self.formats:
+            if isinstance(formatstring, dict) and formatstring.get('representation'):
+                result.extend(formatstring['representation'])
+            else:
+                result.append(formatstring)
+
+        return result
+
 
 # specialized access objects
 actionalias_access = MongoDBAccess(ActionAliasDB)

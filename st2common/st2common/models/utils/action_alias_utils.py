@@ -129,11 +129,7 @@ def extract_parameters_for_action_alias_db(action_alias_db, format_str, param_st
     action_alias_db.formats.
     """
     formats = []
-    for formatstring in action_alias_db.formats:
-        if isinstance(formatstring, dict) and formatstring.get('representation'):
-            formats.extend(formatstring['representation'])
-        else:
-            formats.append(formatstring)
+    formats = action_alias_db.get_format_strings()
 
     if format_str not in formats:
         raise ValueError('Format string "%s" is not available on the alias "%s"' %
