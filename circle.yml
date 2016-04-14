@@ -6,15 +6,14 @@
 # DOCKER_USER
 # DOCKER_EMAIL
 # DOCKER_PASSWORD
+
 general:
-  # Don't run CI for PR, only for major branches
+  # Don't run CI for PR, only for major branches.
+  # Remove travis and enable per PR at the same time.
   branches:
     only:
       - master
       - /v[0-9]+\.[0-9]+/
-  build_dir: st2-packages
-  artifacts:
-    - ~/packages
 
 notify:
   webhooks:
@@ -22,76 +21,27 @@ notify:
 
 machine:
   environment:
-    DISTROS: "wheezy jessie trusty el6 el7"
-    NOTESTS: "el7"
-    ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
-    ST2_DOCKERFILES_REPO: https://github.com/StackStorm/st2-dockerfiles
-    ST2_PACKAGES: "st2"
+    ST2_REPO_ROOT_DIR: ${HOME}/${CIRCLE_PROJECT_REPONAME}
     BUILD_DOCKER: 0
-    DEPLOY_DOCKER: 0
-    DEPLOY_PACKAGES: 1
-  pre:
-    - mkdir -p ~/packages
-    # Need latest Docker version for some features to work (CircleCI by default works with outdated version)
-    - |
-      sudo curl -L -o /usr/bin/docker 'http://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.0-circleci'
-      sudo chmod 0755 /usr/bin/docker
   services:
     - docker
     - mongodb
     - postgresql
     - rabbitmq-server
 
-checkout:
-  post:
-    - |
-      git clone --depth 1 ${ST2_PACKAGES_REPO} /home/ubuntu/st2/st2-packages
-      cd /home/ubuntu/st2/st2-packages
-      git checkout ${CIRCLE_BRANCH} || true
-    - .circle/buildenv_st2.sh
-
 dependencies:
   cache_directories:
     - ~/.cache/pip
   pre:
     - sudo .circle/configure-services.sh
-    - sudo .circle/fix-cache-permissions.sh
+    - sudo .circle/add-itest-user.sh
     - sudo apt-get -y install parallel jq
-    - gem install package_cloud
-    - sudo pip install docker-compose
-    - docker-compose version
-    - docker version
-  override:
-    - .circle/docker-compose.sh pull ${DISTRO}
   post:
-    - .circle/docker-compose.sh build ${DISTRO}
-
+    - cd ${ST2_REPO_ROOT_DIR} && hostname && make compile requirements
 test:
   override:
-    - .circle/docker-compose.sh test ${DISTRO}:
+    - case $CIRCLE_NODE_INDEX in 0) cd ${ST2_REPO_ROOT_DIR} && make .flake8 .pylint ;; 1) cd ${ST2_REPO_ROOT_DIR} && make .unit-tests-coverage-html clean ;; 2) cd ${ST2_REPO_ROOT_DIR} && make .itests-coverage-html clean ;; esac:
         parallel: true
-    # Copy all Packages to node0
-    - rsync -rv /tmp/st2-packages/ node0:~/packages/${DISTRO}:
-        parallel: true
-  post:
-    - .circle/docker.sh build st2
-    - .circle/docker.sh build st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
-    - .circle/docker.sh run st2api
-    - .circle/docker.sh test st2api 'st2 --version'
-
-deployment:
-  publish:
-    owner: StackStorm
-    branch:
-      - master
-      - /v[0-9]+\.[0-9]+/
-    commands:
-      # Deploy to PackageCloud all artifacts for respective distros in parallel
-      - |
-        DISTROS=($DISTROS)
-        parallel -v -j0 --line-buffer .circle/packagecloud.sh deploy {} ~/packages/{} ::: ${DISTROS[@]::$CIRCLE_NODE_TOTAL}
-      - .circle/docker.sh deploy st2actionrunner st2api st2auth st2exporter st2notifier st2resultstracker st2rulesengine st2sensorcontainer
-      - .circle/save_payload.py ~/packages
 
 experimental:
   notify:
