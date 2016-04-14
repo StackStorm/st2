@@ -86,11 +86,12 @@ class ActionAliasDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         """
         result = []
 
-        for formatstring in self.formats:
-            if isinstance(formatstring, dict) and formatstring.get('representation'):
-                result.extend(formatstring['representation'])
+        formats = getattr(self, 'formats', [])
+        for format_string in formats:
+            if isinstance(format_string, dict) and format_string.get('representation', None):
+                result.extend(format_string['representation'])
             else:
-                result.append(formatstring)
+                result.append(format_string)
 
         return result
 
