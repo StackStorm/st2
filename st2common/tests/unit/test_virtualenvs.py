@@ -92,6 +92,22 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         # Verify virtrualenv is still there
         self.assertVirtulenvExists(pack_virtualenv_dir)
 
+    def test_setup_virtualenv_invalid_dependency_in_requirements_file(self):
+        pack_name = 'pack_invalid_requirements'
+        pack_virtualenv_dir = os.path.join(self.virtualenvs_path, pack_name)
+
+        # Verify virtualenv directory doesn't exist
+        self.assertFalse(os.path.exists(pack_virtualenv_dir))
+
+        # Try to create virtualenv, assert that it fails
+        try:
+            setup_pack_virtualenv(pack_name=pack_name, update=False)
+        except Exception as e:
+            self.assertTrue('Failed to install requirements from' in str(e))
+            self.assertTrue('No matching distribution found for someinvalidname' in str(e))
+        else:
+            self.fail('Exception not thrown')
+
     def assertVirtulenvExists(self, virtualenv_dir):
         self.assertTrue(os.path.exists(virtualenv_dir))
         self.assertTrue(os.path.isdir(virtualenv_dir))
