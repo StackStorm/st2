@@ -15,6 +15,7 @@
 
 import copy
 import importlib
+import ssl as ssl_lib
 
 import six
 import mongoengine
@@ -59,12 +60,15 @@ def get_model_classes():
 
 
 def db_setup(db_name, db_host, db_port, username=None, password=None,
-             ensure_indexes=True):
+             ensure_indexes=True, ssl=False, ssl_keyfile=None, ssl_certfile=None,
+             ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
     LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".',
              db_name, db_host, db_port, str(username))
+    ssl_kwargs = _get_ssl_kwargs()
     connection = mongoengine.connection.connect(db_name, host=db_host,
                                                 port=db_port, tz_aware=True,
-                                                username=username, password=password)
+                                                username=username, password=password,
+                                                **ssl_kwargs)
 
     # Create all the indexes upfront to prevent race-conditions caused by
     # lazy index creation
@@ -94,6 +98,32 @@ def db_ensure_indexes():
 
 def db_teardown():
     mongoengine.connection.disconnect()
+
+
+def _get_ssl_kwargs(ssl=False, ssl_keyfile=None, ssl_certfile=None, ssl_cert_reqs=None,
+                    ssl_ca_certs=None, ssl_match_hostname=True):
+    ssl_kwargs = {
+        'ssl': ssl,
+        'ssl_match_hostname': ssl_match_hostname
+    }
+    if ssl_keyfile:
+        ssl_kwargs['ssl'] = True
+        ssl_kwargs['ssl_keyfile'] = ssl_keyfile
+    if ssl_certfile:
+        ssl_kwargs['ssl'] = True
+        ssl_kwargs['ssl_certfile'] = ssl_certfile
+    if ssl_cert_reqs:
+        if ssl_cert_reqs is 'none':
+            ssl_cert_reqs = ssl_lib.CERT_NONE
+        elif ssl_cert_reqs is 'optional':
+            ssl_cert_reqs = ssl_lib.CERT_OPTIONAL
+        elif ssl_cert_reqs is 'required':
+            ssl_cert_reqs = ssl_lib.CERT_REQUIRED
+        ssl_kwargs['ssl_cert_reqs'] = ssl_cert_reqs
+    if ssl_ca_certs:
+        ssl_kwargs['ssl'] = True
+        ssl_kwargs['ssl_ca_certs'] = ssl_ca_certs
+    return ssl_kwargs
 
 
 class MongoDBAccess(object):
