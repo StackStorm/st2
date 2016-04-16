@@ -29,6 +29,8 @@ def _cast_object(x):
 
     Note: String can be either serialized as JSON or a raw Python output.
     """
+    x = _cast_none(x)
+
     if isinstance(x, six.string_types):
         try:
             return json.loads(x)
@@ -39,9 +41,23 @@ def _cast_object(x):
 
 
 def _cast_boolean(x):
+    x = _cast_none(x)
+
     if isinstance(x, six.string_types):
         return ast.literal_eval(x.capitalize())
 
+    return x
+
+
+def _cast_integer(x):
+    x = _cast_none(x)
+    x = int(x)
+    return x
+
+
+def _cast_number(x):
+    x = _cast_none(x)
+    x = float(x)
     return x
 
 
@@ -53,8 +69,7 @@ def _cast_string(x):
 
 def _cast_none(x):
     """
-    Cast function which serialized special magic string value for None type to
-    None.
+    Cast function which serializes special magic string value which indicate "None" to None type.
     """
     if isinstance(x, six.string_types) and x == NONE_MAGIC_VALUE:
         return None
@@ -66,8 +81,8 @@ def _cast_none(x):
 CASTS = {
     'array': _cast_object,
     'boolean': _cast_boolean,
-    'integer': int,
-    'number': float,
+    'integer': _cast_integer,
+    'number': _cast_number,
     'object': _cast_object,
     'string': _cast_string
 }
