@@ -46,9 +46,9 @@ def _cast_boolean(x):
 
 
 def _cast_string(x):
-    result = to_unicode(x)
-    result = _cast_none(result)
-    return result
+    x = to_unicode(x)
+    x = _cast_none(x)
+    return x
 
 
 def _cast_none(x):
