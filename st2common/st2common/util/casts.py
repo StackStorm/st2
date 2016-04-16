@@ -20,6 +20,7 @@ import json
 import six
 
 from st2common.util.compat import to_unicode
+from st2common.util.jinja import NONE_MAGIC_VALUE
 
 
 def _cast_object(x):
@@ -44,6 +45,23 @@ def _cast_boolean(x):
     return x
 
 
+def _cast_string(x):
+    result = to_unicode(x)
+    result = _cast_none(result)
+    return result
+
+
+def _cast_none(x):
+    """
+    Cast function which serialized special magic string value for None type to
+    None.
+    """
+    if isinstance(x, six.string_types) and x == NONE_MAGIC_VALUE:
+        return None
+
+    return x
+
+
 # These types as they appear in json schema.
 CASTS = {
     'array': _cast_object,
@@ -51,7 +69,7 @@ CASTS = {
     'integer': int,
     'number': float,
     'object': _cast_object,
-    'string': to_unicode
+    'string': _cast_string
 }
 
 
