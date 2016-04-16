@@ -26,7 +26,7 @@ __all__ = [
 ]
 
 # Magic string to which None type is serialized when using use_none filter
-NONE_MAGIC_VALUE = '%__%NONE%__%'
+NONE_MAGIC_VALUE = '%*****__%NONE%__*****%'
 
 
 class CustomFilters(object):
