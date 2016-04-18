@@ -71,10 +71,10 @@ function st2start() {
 
 function st2stop() {
   for COM in ${COMPONENTS}; do
-      service_manager $COM status >/dev/null 2>&1;
-      if [[ "1" == $? ]]; then
-        continue
-      fi
+    service_manager $COM status >/dev/null 2>&1;
+    if [[ "1" == $? ]]; then
+      continue
+    fi
     service_manager ${COM} stop
   done
 }
