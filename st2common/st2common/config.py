@@ -99,7 +99,7 @@ def register_opts(ignore_errors=False):
                    default=None),
         cfg.StrOpt('ssl_certfile', help='Certificate file used to identify the localconnection',
                    default=None),
-        cfg.StrOpt('ssl_cert_reqs', choice='none, optional, required',
+        cfg.StrOpt('ssl_cert_reqs', choices='none, optional, required',
                    help='Specifies whether a certificate is required from the other side of the \
                          connection, and whether it will be validated if provided',
                    default=None),
