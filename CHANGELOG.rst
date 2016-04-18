@@ -1,8 +1,8 @@
 Changelog
 =========
 
-in development
---------------
+1.4.0 - April 18, 2016
+----------------------
 
 * Passphrase support for the SSH runner. (improvement)
 * Improvements to ChatOps deployments of packs via ``pack deploy`` [Jon Middleton]

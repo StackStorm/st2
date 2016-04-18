@@ -1,11 +1,11 @@
-# Remeber to list implicit packages here, otherwise version won't be fixated!
+# Remember to list implicit packages here, otherwise version won't be fixated!
 apscheduler
 python-dateutil
 eventlet
 git+https://github.com/StackStorm/fabric.git@stanley-patched#egg=fabric
 jinja2
 kombu
-git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
+git+https://github.com/StackStorm/python-mistralclient.git@st2-1.4.0#egg=python-mistralclient
 oslo.config
 oslo.utils
 requests
