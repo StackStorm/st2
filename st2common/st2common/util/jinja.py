@@ -20,6 +20,14 @@ import re
 
 import semver
 
+__all__ = [
+    'get_jinja_environment',
+    'render_values'
+]
+
+# Magic string to which None type is serialized when using use_none filter
+NONE_MAGIC_VALUE = '%*****__%NONE%__*****%'
+
 
 class CustomFilters(object):
     '''
@@ -93,6 +101,13 @@ class CustomFilters(object):
         return "{major}.{minor}".format(**semver.parse(value))
 
     @staticmethod
+    def _use_none(value):
+        if value is None:
+            return NONE_MAGIC_VALUE
+
+        return value
+
+    @staticmethod
     def get_filters():
         return {
             'regex_match': CustomFilters._regex_match,
@@ -106,7 +121,8 @@ class CustomFilters(object):
             'version_bump_major': CustomFilters._version_bump_major,
             'version_bump_minor': CustomFilters._version_bump_minor,
             'version_bump_patch': CustomFilters._version_bump_patch,
-            'version_strip_patch': CustomFilters._version_strip_patch
+            'version_strip_patch': CustomFilters._version_strip_patch,
+            'use_none': CustomFilters._use_none
         }
 
 

@@ -20,8 +20,10 @@ from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.services import action as action_service
+from st2common.util import casts
 from st2common.util import reference
 from st2common.util import date as date_utils
+from st2common.util.jinja import NONE_MAGIC_VALUE
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
@@ -32,16 +34,28 @@ FIXTURES_1 = {
     'actions': ['action1.yaml', 'a2.yaml'],
     'triggertypes': ['triggertype1.yaml'],
     'triggers': ['trigger1.yaml'],
-    'traces': ['trace_for_test_enforce.yaml']
+    'traces': ['trace_for_test_enforce.yaml', 'trace_for_test_enforce_2.yaml',
+               'trace_for_test_enforce_3.yaml']
 }
 FIXTURES_2 = {
-    'rules': ['rule1.yaml', 'rule2.yaml']
+    'rules': ['rule1.yaml', 'rule2.yaml', 'rule_use_none_filter.yaml',
+              'rule_none_no_use_none_filter.yaml']
 }
 
 MOCK_TRIGGER_INSTANCE = TriggerInstanceDB()
 MOCK_TRIGGER_INSTANCE.id = 'triggerinstance-test'
 MOCK_TRIGGER_INSTANCE.payload = {'t1_p': 't1_p_v'}
 MOCK_TRIGGER_INSTANCE.occurrence_time = date_utils.get_datetime_utc_now()
+
+MOCK_TRIGGER_INSTANCE_2 = TriggerInstanceDB()
+MOCK_TRIGGER_INSTANCE_2.id = 'triggerinstance-test2'
+MOCK_TRIGGER_INSTANCE_2.payload = {'t1_p': None}
+MOCK_TRIGGER_INSTANCE_2.occurrence_time = date_utils.get_datetime_utc_now()
+
+MOCK_TRIGGER_INSTANCE_3 = TriggerInstanceDB()
+MOCK_TRIGGER_INSTANCE_3.id = 'triggerinstance-test3'
+MOCK_TRIGGER_INSTANCE_3.payload = {'t1_p': None, 't2_p': 'value2'}
+MOCK_TRIGGER_INSTANCE_3.occurrence_time = date_utils.get_datetime_utc_now()
 
 MOCK_LIVEACTION = LiveActionDB()
 MOCK_LIVEACTION.id = 'liveaction-test-1.id'
@@ -97,6 +111,77 @@ class EnforceTest(DbTestCase):
         self.assertTrue(RuleEnforcement.add_or_update.called)
         self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref,
                          self.models['rules']['rule2.yaml'].ref)
+
+    @mock.patch.object(action_service, 'request', mock.MagicMock(
+        return_value=(MOCK_LIVEACTION, MOCK_EXECUTION)))
+    @mock.patch.object(RuleEnforcement, 'add_or_update', mock.MagicMock())
+    def test_rule_enforcement_create_rule_none_param_casting(self):
+        mock_trigger_instance = MOCK_TRIGGER_INSTANCE_2
+
+        # 1. Non None value, should be serialized as regular string
+        mock_trigger_instance.payload = {'t1_p': 'somevalue'}
+
+        def mock_cast_string(x):
+            assert x == 'somevalue'
+            return casts._cast_string(x)
+        casts.CASTS['string'] = mock_cast_string
+
+        enforcer = RuleEnforcer(mock_trigger_instance,
+                                self.models['rules']['rule_use_none_filter.yaml'])
+        execution_db = enforcer.enforce()
+
+        # Verify value has been serialized correctly
+        call_args = action_service.request.call_args[0]
+        live_action_db = call_args[0]
+        self.assertEqual(live_action_db.parameters['actionstr'], 'somevalue')
+        self.assertTrue(execution_db is not None)
+        self.assertTrue(RuleEnforcement.add_or_update.called)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref,
+                         self.models['rules']['rule_use_none_filter.yaml'].ref)
+
+        # 2. Verify that None type from trigger instance is correctly serialized to
+        # None when using "use_none" Jinja filter when invoking an action
+        mock_trigger_instance.payload = {'t1_p': None}
+
+        def mock_cast_string(x):
+            assert x == NONE_MAGIC_VALUE
+            return casts._cast_string(x)
+        casts.CASTS['string'] = mock_cast_string
+
+        enforcer = RuleEnforcer(mock_trigger_instance,
+                                self.models['rules']['rule_use_none_filter.yaml'])
+        execution_db = enforcer.enforce()
+
+        # Verify None has been correctly serialized to None
+        call_args = action_service.request.call_args[0]
+        live_action_db = call_args[0]
+        self.assertEqual(live_action_db.parameters['actionstr'], None)
+        self.assertTrue(execution_db is not None)
+        self.assertTrue(RuleEnforcement.add_or_update.called)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref,
+                         self.models['rules']['rule_use_none_filter.yaml'].ref)
+
+        casts.CASTS['string'] = casts._cast_string
+
+        # 3. Parameter value is a compound string one of which values is None, but "use_none"
+        # filter is not used
+        mock_trigger_instance = MOCK_TRIGGER_INSTANCE_3
+        mock_trigger_instance.payload = {'t1_p': None, 't2_p': 'value2'}
+
+        enforcer = RuleEnforcer(mock_trigger_instance,
+                                self.models['rules']['rule_none_no_use_none_filter.yaml'])
+        execution_db = enforcer.enforce()
+
+        # Verify None has been correctly serialized to None
+        call_args = action_service.request.call_args[0]
+        live_action_db = call_args[0]
+        self.assertEqual(live_action_db.parameters['actionstr'], 'None-value2')
+        self.assertTrue(execution_db is not None)
+        self.assertTrue(RuleEnforcement.add_or_update.called)
+        self.assertEqual(RuleEnforcement.add_or_update.call_args[0][0].rule.ref,
+                         self.models['rules']['rule_none_no_use_none_filter.yaml'].ref)
+
+        casts.CASTS['string'] = casts._cast_string
 
     @mock.patch.object(action_service, 'request', mock.MagicMock(
         side_effect=ValueError(FAILURE_REASON)))

@@ -20,6 +20,7 @@ import json
 import six
 
 from st2common.util.compat import to_unicode
+from st2common.util.jinja import NONE_MAGIC_VALUE
 
 
 def _cast_object(x):
@@ -28,6 +29,8 @@ def _cast_object(x):
 
     Note: String can be either serialized as JSON or a raw Python output.
     """
+    x = _cast_none(x)
+
     if isinstance(x, six.string_types):
         try:
             return json.loads(x)
@@ -38,8 +41,38 @@ def _cast_object(x):
 
 
 def _cast_boolean(x):
+    x = _cast_none(x)
+
     if isinstance(x, six.string_types):
         return ast.literal_eval(x.capitalize())
+
+    return x
+
+
+def _cast_integer(x):
+    x = _cast_none(x)
+    x = int(x)
+    return x
+
+
+def _cast_number(x):
+    x = _cast_none(x)
+    x = float(x)
+    return x
+
+
+def _cast_string(x):
+    x = to_unicode(x)
+    x = _cast_none(x)
+    return x
+
+
+def _cast_none(x):
+    """
+    Cast function which serializes special magic string value which indicate "None" to None type.
+    """
+    if isinstance(x, six.string_types) and x == NONE_MAGIC_VALUE:
+        return None
 
     return x
 
@@ -48,10 +81,10 @@ def _cast_boolean(x):
 CASTS = {
     'array': _cast_object,
     'boolean': _cast_boolean,
-    'integer': int,
-    'number': float,
+    'integer': _cast_integer,
+    'number': _cast_number,
     'object': _cast_object,
-    'string': to_unicode
+    'string': _cast_string
 }
 
 

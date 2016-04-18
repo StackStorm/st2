@@ -97,6 +97,10 @@ in development
 * Fix alias executions API endpoint and make sure an exception is thrown if the user provided
   command string doesn't match the provided format string. Previously, a non-match was silently
   ignored. (bug fix)
+* Add custom ``use_none`` Jinja template filter which can be used inside rules when invoking an
+  action. This filter ensures that ``None`` values are correctly serialized and is to be used when
+  TriggerInstance payload value can be ``None`` and ``None`` is also a valid value for a particular
+  action parameter. (improvement, workaround)
 
 1.3.2 - February 12, 2016
 -------------------------
