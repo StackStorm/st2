@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_config import cfg
 from pecan import abort
 from pecan.rest import RestController
 import six
 from mongoengine import ValidationError
 
 from st2common import log as logging
+from st2common.exceptions.keyvalue import CryptoKeyNotSetupException
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.keyvalue import KeyValuePair
@@ -113,7 +115,10 @@ class KeyValuePairController(RestController):
                 LOG.exception('Validation failed for key value data=%s', kvp)
                 abort(http_client.BAD_REQUEST, str(e))
                 return
-
+            except CryptoKeyNotSetupException as e:
+                LOG.exception(str(e))
+                abort(http_client.BAD_REQUEST, str(e))
+                return
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair updated. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
 
