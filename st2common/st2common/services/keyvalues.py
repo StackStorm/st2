@@ -16,11 +16,20 @@
 from st2common.persistence.keyvalue import KeyValuePair
 
 __all__ = [
+    'get_kvp_for_name',
     'get_values_for_names',
 
     'KeyValueLookup'
 ]
 
+
+def get_kvp_for_name(name):
+    try:
+        kvp_db = KeyValuePair.get_by_name(name)
+    except ValueError:
+        kvp_db = None
+
+    return kvp_db
 
 def get_values_for_names(names):
     """

@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
 import six
 
 from st2common.services import keyvalues as keyvalue_service
 from st2common.content import utils as content_utils
 from st2common.util.config_parser import ContentPackConfigParser
+from st2common.util.schema import get_jsonschema_type_for_value
 
 __all__ = [
     'ContentPackConfigLoader'
@@ -29,6 +32,9 @@ __all__ = [
 # For example:
 # pack_config.aws.setup.region
 DATASTORE_CONFIG_KEY_PREFIX = 'pack_config'
+
+# If we can't infer config item type, we will fall back to this type
+FALLBACK_CONFIG_VALUE_TYPE = 'string'
 
 
 class ContentPackConfigLoader(object):
@@ -67,6 +73,8 @@ class ContentPackConfigLoader(object):
             result.update(config)
 
         # 2. Retrieve datastore values (if available)
+        config = self._get_datastore_values_for_config(config=config)
+        result.update(config)
 
         return result
 
@@ -80,58 +88,75 @@ class ContentPackConfigLoader(object):
             config = config.config or {}
             result.update(config)
 
-        # 2. Retreieve datastore values (if available)
+        # 2. Retrieve datastore values (if available)
+        config = self._get_datastore_values_for_config(config=config)
+        result.update(config)
 
         return result
 
-    def _get_datastore_names_for_config(self, config):
+    def _get_config_schema_for_config(self, config):
         """
-        Retrieve datastore key names for the provided config specifications loaded from config.yaml
+        Dynamically build config schema for the provided config.
 
-        :rype: ``dict``
+        Note: Dynamically built schema from the config.yaml file supports no nesting so flat config
+        files are preferred.
+
+        :rtype: ``dict``
         """
-        result = []
-        for key, values in six.iteritems(config):
-            key_parts = []
-            key_parts.append(key)
+        result = {}
 
-            if isinstance(values, dict):
-                # Note: To keep things simple, only one level of nesting is supported
-                continue
+        for key, value in six.iteritems(config):
+            datastore_name = self._get_datastore_key_name(pack_name=self.pack_name,
+                                                          key_name=key)
+            value_type = get_jsonschema_type_for_value(value)
 
-            key_name = self.DATASTORE_KEY_SEPARATOR.join(key_parts)
-            key_name = self._get_datastore_key_name(pack_name=self.pack_name,
-                                                    key_name=key_name)
-            result.append(key_name)
+            item = {}
+            item['datastore_name'] = datastore_name
+            item['type'] = value_type
+            result[key] = item
 
         return result
 
     def _get_datastore_values_for_config(self, config):
         """
-        Retrieve config values from the datastore based on the provided config specifications
-        loaded from config.yaml.
+        Retrieve config values from the datastore based on the config schema which is dynamically
+        built from the values in config.yaml file.
         """
-        for key, values in six.iteritems(config):
-            key_parts = []
-            key_parts.append(key)
+        result = {}
 
-            if isinstance(values, dict):
-                # Note: To keep things simple, only one level of nesting is supported
-                pass
+        config_schema = self._get_config_schema_for_config(config=config)
+        for key_name, key_value in six.iteritems(config_schema):
+            # TODO: Use multi get to reduce number of queries from N to 1
+            key_name = key_value['datastore_name']
+            datastore_value = self._get_datastore_value(key_name=key_name)
 
-            key_name = self.DATASTORE_KEY_SEPARATOR.join(key_parts)
-            key_name = self._get_datastore_key_name(pack=self.pack_name,
-                                                    key_name=key_name)
+            # Note: We don't include empty / None values in the result so the merging works as
+            # expected (empty values are not merged in).
+            if not datastore_value:
+                continue
 
-            # TODO: For performance reasons use single query and "multi get"
+            result[key_name] = datastore_value
+
+        return result
 
     def _get_datastore_value(self, key_name):
         """
         Retrieve and de-serialize datastore key value.
         """
-        if not result:
+        kvp_db = keyvalue_service.get_kvp_for_name(name=key_name)
+
+        if not kvp_db:
+            # Item doesn't exist
             return None
-        pass
+
+        if not kvp_db.value:
+            # Item doesn't contain a value
+            return None
+
+        value = kvp_db.value
+        value = self._deserialize_key_value(kvp_db=kvp_db)
+
+        return value
 
     def _get_datastore_key_name(self, pack_name, key_name):
         """
@@ -144,7 +169,7 @@ class ContentPackConfigLoader(object):
 
         return self.DATASTORE_KEY_SEPARATOR.join(values)
 
-    def _deserialize_key_value(self, kvp):
+    def _deserialize_key_value(self, kvp_db):
         """
         Deserialize the datastore item value.
 
@@ -154,6 +179,16 @@ class ContentPackConfigLoader(object):
         This introduces some space-related overhead, but it's transparent and preferred over custom
         serialization format.
         """
-        value = json.loads(kvp.value)
-        value = value['value']
+        try:
+            value = json.loads(kvp_db.value)
+        except Exception as e:
+            # Value is not serialized correctly
+            return None
+
+        try:
+            value = value['value']
+        except KeyError:
+            # Value is not serialized correctly
+            return None
+
         return value
