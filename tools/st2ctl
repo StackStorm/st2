@@ -50,13 +50,15 @@ function print_usage() {
     echo
     echo "usage: st2ctl {reload, clean}"
     echo "optional arguments:"
-    echo "  --register-all      Register all."
-    echo "  --register-sensors  Register all sensors."
-    echo "  --register-rules    Register all rules."
-    echo "  --register-actions  Register all actions."
-    echo "  --register-aliases  Register all aliases."
-    echo "  --register-policies Register all policies."
-    echo "  --verbose           Output additional debug and informational messages."
+    echo "  --register-all                Register all."
+    echo "  --register-sensors            Register all sensors."
+    echo "  --register-rules              Register all rules."
+    echo "  --register-actions            Register all actions."
+    echo "  --register-aliases            Register all aliases."
+    echo "  --register-policies           Register all policies."
+    echo "  --register-setup-virtualenvs  Create Python virtual environments for all the registered packs."
+    echo "  --verbose                     Output additional debug and informational messages."
+    echo ""
 }
 
 function service_map() {
