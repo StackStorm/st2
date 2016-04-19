@@ -11,6 +11,7 @@ oslo.config
 paramiko
 pyyaml
 pymongo
+python-keyczar
 requests
 retrying
 semver
