@@ -104,7 +104,6 @@ def _get_ssl_kwargs(ssl=False, ssl_keyfile=None, ssl_certfile=None, ssl_cert_req
                     ssl_ca_certs=None, ssl_match_hostname=True):
     ssl_kwargs = {
         'ssl': ssl,
-        'ssl_match_hostname': ssl_match_hostname
     }
     if ssl_keyfile:
         ssl_kwargs['ssl'] = True
@@ -123,6 +122,10 @@ def _get_ssl_kwargs(ssl=False, ssl_keyfile=None, ssl_certfile=None, ssl_cert_req
     if ssl_ca_certs:
         ssl_kwargs['ssl'] = True
         ssl_kwargs['ssl_ca_certs'] = ssl_ca_certs
+    if ssl_kwargs.get('ssl', False):
+        # pass in ssl_match_hostname only if ssl is True. The right default value
+        # for ssl_match_hostname in almost all cases is True.
+        ssl_kwargs['ssl_match_hostname'] = ssl_match_hostname
     return ssl_kwargs
 
 
