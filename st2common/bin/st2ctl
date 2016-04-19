@@ -25,13 +25,14 @@ function print_usage() {
     echo
     echo "Usage: st2ctl {reload, clean}"
     echo "optional arguments:"
-    echo "  --register-all      Register all."
-    echo "  --register-sensors  Register all sensors."
-    echo "  --register-rules    Register all rules."
-    echo "  --register-actions  Register all actions."
-    echo "  --register-aliases  Register all aliases."
-    echo "  --register-policies Register all policies."
-    echo "  --verbose           Output additional debug and informational messages."
+    echo "  --register-all                Register all."
+    echo "  --register-sensors            Register all sensors."
+    echo "  --register-rules              Register all rules."
+    echo "  --register-actions            Register all actions."
+    echo "  --register-aliases            Register all aliases."
+    echo "  --register-policies           Register all policies."
+    echo "  --register-setup-virtualenvs  Create Python virtual environments for all the registered packs."
+    echo "  --verbose                     Output additional debug and informational messages."
     echo ""
     echo "Most commands require elevated privileges."
 }
@@ -110,7 +111,7 @@ function reopen_component_log_files() {
 }
 
 function register_content() {
-  ALLOWED_REGISTER_FLAGS='--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --verbose'
+  ALLOWED_REGISTER_FLAGS='--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --register-setup-virtualenvs --verbose'
   DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors'
   flags="${@}"
 
