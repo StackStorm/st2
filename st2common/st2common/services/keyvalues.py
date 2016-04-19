@@ -15,6 +15,31 @@
 
 from st2common.persistence.keyvalue import KeyValuePair
 
+__all__ = [
+    'get_values_for_key_names',
+
+    'KeyValueLookup'
+]
+
+
+def get_values_for_key_names(names):
+    """
+    Retrieve values for the provided key names (multi get).
+
+    :rtype: ``dict``
+    """
+    result = {}
+    kvp_dbs = KeyValuePair.get_by_names(names=names)
+
+    name_to_kvp_db_map = {}
+    for kvp_db in kvp_dbs:
+        name_to_kvp_db_map[kvp_db.name] = kvp_db.name
+
+    for name in names:
+        result[name] = name_to_kvp_db_map.get(name, None)
+
+    return result
+
 
 class KeyValueLookup(object):
 

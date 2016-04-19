@@ -84,6 +84,13 @@ class KeyValuePair(Access):
         return cls._dispatch_trigger(operation=operation, trigger=trigger, payload=payload)
 
     @classmethod
+    def get_by_names(cls, names):
+        """
+        Retrieve KeyValuePair objects for the provided key names.
+        """
+        return cls.query(name__in=names)
+
+    @classmethod
     def _get_impl(cls):
         return cls.impl
 
