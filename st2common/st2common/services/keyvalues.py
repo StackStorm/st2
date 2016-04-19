@@ -16,15 +16,18 @@
 from st2common.persistence.keyvalue import KeyValuePair
 
 __all__ = [
-    'get_values_for_key_names',
+    'get_values_for_names',
 
     'KeyValueLookup'
 ]
 
 
-def get_values_for_key_names(names):
+def get_values_for_names(names):
     """
     Retrieve values for the provided key names (multi get).
+
+    If a KeyValuePair objects for a particular name doesn't exist, the dictionary will contain
+    None for that name.
 
     :rtype: ``dict``
     """
@@ -33,7 +36,7 @@ def get_values_for_key_names(names):
 
     name_to_kvp_db_map = {}
     for kvp_db in kvp_dbs:
-        name_to_kvp_db_map[kvp_db.name] = kvp_db.name
+        name_to_kvp_db_map[kvp_db.name] = kvp_db.value
 
     for name in names:
         result[name] = name_to_kvp_db_map.get(name, None)
