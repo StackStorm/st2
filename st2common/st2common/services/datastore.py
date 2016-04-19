@@ -18,6 +18,10 @@ from st2client.models import KeyValuePair
 from st2common.services.access import create_token
 from st2common.util.api import get_full_public_api_url
 
+__all__ = [
+    'DatastoreService'
+]
+
 
 class DatastoreService(object):
     """
