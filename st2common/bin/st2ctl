@@ -178,7 +178,7 @@ case ${1} in
   restart)
     must_be_root
     st2stop
-    sleep 1
+    sleep 10
     st2start
     getpids
     ;;
