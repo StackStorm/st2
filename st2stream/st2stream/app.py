@@ -23,7 +23,9 @@ Note: This app doesn't need access to MongoDB, just RabbitMQ.
 """
 
 import os
+import sys
 
+import eventlet
 import pecan
 from oslo_config import cfg
 
@@ -56,6 +58,13 @@ def setup_app(config=None):
 
     is_gunicorn = getattr(config, 'is_gunicorn', False)
     if is_gunicorn:
+        eventlet.monkey_patch(
+            os=True,
+            select=True,
+            socket=True,
+            thread=False if '--use-debugger' in sys.argv else True,
+            time=True)
+
         st2stream_config.register_opts()
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP

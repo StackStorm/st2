@@ -21,20 +21,10 @@ st2stream configuration / wsgi entry point file for gunicorn.
 from __future__ import absolute_import
 
 import os
-import sys
-
-import eventlet
 
 __all__ = [
     'app'
 ]
-
-eventlet.monkey_patch(
-    os=True,
-    select=True,
-    socket=True,
-    thread=False if '--use-debugger' in sys.argv else True,
-    time=True)
 
 bind = '127.0.0.1:9101'
 
