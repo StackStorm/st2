@@ -110,7 +110,7 @@ class KeyValuePairAPI(BaseAPI):
             del doc['id']
 
         if not mask_secrets and model.encrypted:
-            doc[value] = symmetric_decrypt(KeyValuePairAPI.crypto_key, value)
+            doc['value'] = symmetric_decrypt(KeyValuePairAPI.crypto_key, model.value)
 
         if model.expire_timestamp:
             doc['expire_timestamp'] = isotime.format(model.expire_timestamp, offset=False)

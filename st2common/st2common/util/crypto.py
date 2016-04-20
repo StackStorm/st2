@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import binascii
 
 def symmetric_encrypt(encrypt_key, message):
-    return encrypt_key.Encrypt(message)
+    return binascii.hexlify(encrypt_key.Encrypt(message)).upper()
 
 
 def symmetric_decrypt(decrypt_key, crypto):
-    return decrypt_key.Decrypt(crypto)
+    return decrypt_key.Decrypt(binascii.unhexlify(crypto))
