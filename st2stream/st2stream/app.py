@@ -23,15 +23,14 @@ Note: This app doesn't need access to MongoDB, just RabbitMQ.
 """
 
 import os
-import sys
 
-import eventlet
 import pecan
 from oslo_config import cfg
 
 from st2stream import config as st2stream_config
 from st2common import hooks
 from st2common import log as logging
+from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
 
@@ -58,12 +57,10 @@ def setup_app(config=None):
 
     is_gunicorn = getattr(config, 'is_gunicorn', False)
     if is_gunicorn:
-        eventlet.monkey_patch(
-            os=True,
-            select=True,
-            socket=True,
-            thread=False if '--use-debugger' in sys.argv else True,
-            time=True)
+        # Note: We need to perform monkey patching in the worker. If we do it in
+        # the master process (gunicorn_config.py), it breaks tons of things
+        # including shutdown
+        monkey_patch()
 
         st2stream_config.register_opts()
         # This should be called in gunicorn case because we only want

@@ -13,15 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
-import eventlet
 import pecan
 from oslo_config import cfg
 
 from st2auth import config as st2auth_config
 from st2common import hooks
 from st2common import log as logging
+from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
 
@@ -50,12 +48,7 @@ def setup_app(config=None):
         # Note: We need to perform monkey patching in the worker. If we do it in
         # the master process (gunicorn_config.py), it breaks tons of things
         # including shutdown
-        eventlet.monkey_patch(
-            os=True,
-            select=True,
-            socket=True,
-            thread=False if '--use-debugger' in sys.argv else True,
-            time=True)
+        monkey_patch()
 
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
