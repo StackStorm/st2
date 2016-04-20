@@ -37,6 +37,18 @@ class ContentPackConfigParser(object):
         self.pack_name = pack_name
         self.pack_path = utils.get_pack_base_path(pack_name=pack_name)
 
+    def get_config(self):
+        """
+        Retrieve config for a particular pack.
+
+        :return: Config object if config is found, ``None`` otherwise.
+        :rtype: :class:`.ContentPackConfig` or ``None``
+        """
+        global_config_path = self.get_global_config_path()
+        config = self.get_and_parse_config(config_path=global_config_path)
+
+        return config
+
     def get_action_config(self, action_file_path):
         """
         Retrieve config for a particular action inside the content pack.

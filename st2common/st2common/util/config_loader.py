@@ -65,7 +65,25 @@ class ContentPackConfigLoader(object):
 
         self._config_parser = ContentPackConfigParser(pack_name=pack_name)
 
+    def get_config(self):
+        # TODO: Deprecate in favor of get_config
+        result = {}
+
+        # 1. Retrieve values from config.yaml or action local config file
+        config = self._config_parser.get_config()
+
+        if config:
+            config = config.config or {}
+            result.update(config)
+
+        # 2. Retrieve datastore values (if available)
+        config = self._get_datastore_values_for_config(config=config)
+        result.update(config)
+
+        return result
+
     def get_action_config(self, action_file_path):
+        # TODO: Deprecate in favor of get_config
         result = {}
 
         # 1. Retrieve values from config.yaml or action local config file
@@ -130,8 +148,8 @@ class ContentPackConfigLoader(object):
         config_schema = self._get_config_schema_for_config(config=config)
         for key_name, key_value in six.iteritems(config_schema):
             # TODO: Use multi get to reduce number of queries from N to 1
-            key_name = key_value['datastore_name']
-            datastore_value = self._get_datastore_value(key_name=key_name)
+            datastore_name = key_value['datastore_name']
+            datastore_value = self._get_datastore_value(key_name=datastore_name)
 
             # Note: We don't include empty / None values in the result so the merging works as
             # expected (empty values are not merged in).
