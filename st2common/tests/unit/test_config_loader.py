@@ -13,12 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 from st2tests.base import CleanDbTestCase
-from st2common.models.db.keyvalue import KeyValuePairDB
-from st2common.persistence.keyvalue import KeyValuePair
 from st2common.util.config_loader import ContentPackConfigLoader
+from st2common.services import config as config_service
 
 __all__ = [
     'ConfigLoaderTestCase'
@@ -45,15 +42,12 @@ class ConfigLoaderTestCase(CleanDbTestCase):
         loader = ContentPackConfigLoader(pack_name='dummy_pack_4')
 
         # TODO: Refactor this in to services utility functions
-        name = loader._get_datastore_key_name(pack_name='dummy_pack_4', key_name='api_key')
-        value = json.dumps({'value': 'testapikey1'})
-        kvp_db = KeyValuePairDB(name=name, value=value)
-        kvp_db = KeyValuePair.add_or_update(kvp_db)
-
-        name = loader._get_datastore_key_name(pack_name='dummy_pack_4', key_name='api_secret')
-        value = json.dumps({'value': 'testapisecret1'})
-        kvp_db = KeyValuePairDB(name=name, value=value)
-        kvp_db = KeyValuePair.add_or_update(kvp_db)
+        config_service.set_datastore_value_for_config_key(pack_name='dummy_pack_4',
+                                                          key_name='api_key',
+                                                          value='testapikey1')
+        config_service.set_datastore_value_for_config_key(pack_name='dummy_pack_4',
+                                                          key_name='api_secret',
+                                                          value='testapisecret1')
 
         config = loader.get_config()
 
@@ -65,11 +59,10 @@ class ConfigLoaderTestCase(CleanDbTestCase):
         }
         self.assertEqual(config, expected_config)
 
-        # Also override regions
-        name = loader._get_datastore_key_name(pack_name='dummy_pack_4', key_name='regions')
-        value = json.dumps({'value': ['lon']})
-        kvp_db = KeyValuePairDB(name=name, value=value)
-        kvp_db = KeyValuePair.add_or_update(kvp_db)
+        # Also override regions config item
+        config_service.set_datastore_value_for_config_key(pack_name='dummy_pack_4',
+                                                          key_name='regions',
+                                                          value=['lon'])
 
         config = loader.get_config()
 
