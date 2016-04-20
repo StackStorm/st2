@@ -46,8 +46,8 @@ class KeyValuePairController(RestController):
         self._coordinator = coordination.get_coordinator()
         self.get_one_db_method = self.__get_by_name
 
-    @jsexpose(arg_types=[str])
-    def get_one(self, name):
+    @jsexpose(arg_types=[str, str])
+    def get_one(self, name, decrypt):
         """
             List key by name.
 
@@ -56,13 +56,18 @@ class KeyValuePairController(RestController):
         """
         kvp_db = self.__get_by_name(name=name)
 
+        if not decrypt:
+            decrypt = False
+        else:
+            decrypt = (decrypt == 'true' or decrypt == 'True' or decrypt == '1')
+
         if not kvp_db:
             LOG.exception('Database lookup for name="%s" resulted in exception.', name)
             abort(http_client.NOT_FOUND)
             return
 
         try:
-            kvp_api = KeyValuePairAPI.from_model(kvp_db)
+            kvp_api = KeyValuePairAPI.from_model(kvp_db, mask_secrets=(not decrypt))
         except (ValidationError, ValueError) as e:
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return

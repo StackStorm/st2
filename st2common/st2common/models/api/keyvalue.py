@@ -100,7 +100,7 @@ class KeyValuePairAPI(BaseAPI):
             return key
 
     @classmethod
-    def from_model(cls, model, mask_secrets=False):
+    def from_model(cls, model, mask_secrets=True):
         if not KeyValuePairAPI.crypto_setup:
             KeyValuePairAPI._setup_crypto()
 
