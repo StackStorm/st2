@@ -14,7 +14,9 @@
 # limitations under the License.
 
 import os
+import sys
 
+import eventlet
 import pecan
 from oslo_config import cfg
 from pecan.middleware.static import StaticFileMiddleware
@@ -52,6 +54,16 @@ def setup_app(config=None):
 
     is_gunicorn = getattr(config, 'is_gunicorn', False)
     if is_gunicorn:
+        # Note: We need to perform monkey patching in the worker. If we do it in
+        # the master process (gunicorn_config.py), it breaks tons of things
+        # including shutdown
+        eventlet.monkey_patch(
+            os=True,
+            select=True,
+            socket=True,
+            thread=False if '--use-debugger' in sys.argv else True,
+            time=True)
+
         st2api_config.register_opts()
         # This should be called in gunicorn case because we only want
         # workers to connect to db, rabbbitmq etc. In standalone HTTP
