@@ -64,3 +64,19 @@ class ConfigLoaderTestCase(CleanDbTestCase):
             'private_key_path': None
         }
         self.assertEqual(config, expected_config)
+
+        # Also override regions
+        name = loader._get_datastore_key_name(pack_name='dummy_pack_4', key_name='regions')
+        value = json.dumps({'value': ['lon']})
+        kvp_db = KeyValuePairDB(name=name, value=value)
+        kvp_db = KeyValuePair.add_or_update(kvp_db)
+
+        config = loader.get_config()
+
+        expected_config = {
+            'api_key': 'testapikey1',
+            'api_secret': 'testapisecret1',
+            'regions': ['lon'],
+            'private_key_path': None
+        }
+        self.assertEqual(config, expected_config)
