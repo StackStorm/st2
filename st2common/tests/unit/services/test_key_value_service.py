@@ -18,7 +18,7 @@ from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services import keyvalues as keyvalue_services
 
-__all__ =[
+__all__ = [
     'KeyValueServicesTestCase'
 ]
 

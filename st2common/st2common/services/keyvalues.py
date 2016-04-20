@@ -31,6 +31,7 @@ def get_kvp_for_name(name):
 
     return kvp_db
 
+
 def get_values_for_names(names):
     """
     Retrieve values for the provided key names (multi get).

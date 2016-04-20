@@ -17,6 +17,7 @@ import json
 
 import six
 
+from st2common import log as logging
 from st2common.services import keyvalues as keyvalue_service
 from st2common.content import utils as content_utils
 from st2common.util.config_parser import ContentPackConfigParser
@@ -25,6 +26,8 @@ from st2common.util.schema import get_jsonschema_type_for_value
 __all__ = [
     'ContentPackConfigLoader'
 ]
+
+LOG = logging.getLogger(__name__)
 
 
 # Prefix for datastore items which store config values
@@ -183,12 +186,16 @@ class ContentPackConfigLoader(object):
             value = json.loads(kvp_db.value)
         except Exception as e:
             # Value is not serialized correctly
+            LOG.debug('Failed to de-serialize datastore item "%s": %s' % (kvp_db.name, str(e)),
+                      exc_info=True)
             return None
 
         try:
             value = value['value']
         except KeyError:
             # Value is not serialized correctly
+            LOG.debug('Datastore item "%s" is missing "value" attribute' % (kvp_db.name),
+                      exc_info=True)
             return None
 
         return value
