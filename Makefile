@@ -319,6 +319,13 @@ packs-tests: requirements .packs-tests
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -x -p FILENAME
 
+.PHONY: cli
+cli:
+	@echo
+	@echo "=================== Building st2 client ==================="
+	@echo
+	pushd $(CURDIR) && cd st2client && ((python setup.py develop || printf "\n\n!!! ERROR: BUILD FAILED !!!\n") || popd)
+
 .PHONY: rpms
 rpms:
 	@echo
