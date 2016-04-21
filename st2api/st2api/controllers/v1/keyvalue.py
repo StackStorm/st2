@@ -85,12 +85,21 @@ class KeyValuePairController(RestController):
         # Prefix filtering
         prefix_filter = kw.get('prefix', None)
 
+        decrypt = kw.get('decrypt', None)
+        if not decrypt:
+            decrypt = False
+        else:
+            decrypt = (decrypt == 'true' or decrypt == 'True' or decrypt == '1')
+            del kw['decrypt']
+
         if prefix_filter:
             kw['name__startswith'] = prefix_filter
             del kw['prefix']
 
         kvp_dbs = KeyValuePair.get_all(**kw)
-        kvps = [KeyValuePairAPI.from_model(kvp_db) for kvp_db in kvp_dbs]
+        kvps = [KeyValuePairAPI.from_model(
+            kvp_db, mask_secrets=(not decrypt)) for kvp_db in kvp_dbs
+        ]
 
         return kvps
 

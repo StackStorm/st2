@@ -169,7 +169,7 @@ class ResourceManager(object):
         prefix = kwargs.pop('prefix', None)
         user = kwargs.pop('user', None)
 
-        params = {}
+        params = kwargs.pop('params', {})
         if limit and limit <= 0:
             limit = None
         if limit:
