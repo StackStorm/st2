@@ -64,7 +64,11 @@ def db_setup(db_name, db_host, db_port, username=None, password=None,
              ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
     LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".',
              db_name, db_host, db_port, str(username))
-    ssl_kwargs = _get_ssl_kwargs()
+
+    ssl_kwargs = _get_ssl_kwargs(ssl=ssl, ssl_keyfile=ssl_keyfile, ssl_certfile=ssl_certfile,
+                                 ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
+                                 ssl_match_hostname=ssl_match_hostname)
+
     connection = mongoengine.connection.connect(db_name, host=db_host,
                                                 port=db_port, tz_aware=True,
                                                 username=username, password=password,
