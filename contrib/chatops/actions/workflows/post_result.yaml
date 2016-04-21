@@ -7,7 +7,7 @@ chain:
       execution_id: "{{execution_id}}"
     publish:
       message: "{{format_execution_result.result.message}}"
-      extra: "{{format_execution_result.result.extra}}"
+      extra: "{% if 'extra' in format_execution_result.result %}{{format_execution_result.result.extra}}{% else %}{}{% endif %}"
     on-success: "post_message"
   -
     name: "post_message"
