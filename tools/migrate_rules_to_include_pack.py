@@ -15,12 +15,11 @@
 # limitations under the License.
 
 import mongoengine as me
-from oslo_config import cfg
 
 from st2common import config
 from st2common.constants.pack import DEFAULT_PACK_NAME
-from st2common.models.db import db_setup
-from st2common.models.db import db_teardown
+from st2common.service_setup import db_setup
+from st2common.service_setup import db_teardown
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.models.db.rule import ActionExecutionSpecDB
@@ -135,10 +134,7 @@ def main():
     config.parse_args()
 
     # Connect to db.
-    username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
-    password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-             username=username, password=password)
+    db_setup()
 
     # Migrate rules.
     migrate_rules()

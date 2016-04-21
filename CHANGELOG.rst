@@ -4,6 +4,8 @@ Changelog
 in development
 --------------
 
+* SSL support for mongodb connections. (improvement)
+
 
 1.4.0 - April 18, 2016
 ----------------------
