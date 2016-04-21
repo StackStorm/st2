@@ -47,18 +47,34 @@ class QueueConsumer(ConsumerMixin):
 
     def process(self, body, message):
         try:
-            self._dispatcher.dispatch(self._process_message, body)
-        finally:
-            message.ack()
-
-    def _process_message(self, body):
-        try:
             if not isinstance(body, self._handler.message_type):
                 raise TypeError('Received an unexpected type "%s" for payload.' % type(body))
 
+            self._dispatcher.dispatch(self._process_message, body)
+        except:
+            LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
+
+        message.ack()
+
+    def _process_message(self, body):
+        try:
             self._handler.process(body)
         except:
             LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
+
+
+class StagedQueueConsumer(QueueConsumer):
+
+    def process(self, body, message):
+        try:
+            if not isinstance(body, self._handler.message_type):
+                raise TypeError('Received an unexpected type "%s" for payload.' % type(body))
+            processed_body = self._handler.pre_ack_process(body)
+            self._dispatcher.dispatch(self._process_message, processed_body)
+        except:
+            LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
+        # At this point we will always ack a specific message.
+        message.ack()
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -66,7 +82,7 @@ class MessageHandler(object):
     message_type = None
 
     def __init__(self, connection, queues):
-        self._queue_consumer = QueueConsumer(connection, queues, self)
+        self._queue_consumer = self._get_queue_consumer(connection, queues)
         self._consumer_thread = None
 
     def start(self, wait=False):
@@ -86,3 +102,17 @@ class MessageHandler(object):
     @abc.abstractmethod
     def process(self, message):
         pass
+
+    def _get_queue_consumer(self, connection, queues):
+        return QueueConsumer(connection, queues, self)
+
+
+@six.add_metaclass(abc.ABCMeta)
+class StagedMessageHandler(MessageHandler):
+
+    @abc.abstractmethod
+    def pre_ack_process(self, message):
+        pass
+
+    def _get_queue_consumer(self, connection, queues):
+        return StagedQueueConsumer(connection, queues, self)
