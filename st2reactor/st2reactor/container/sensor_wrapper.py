@@ -158,7 +158,12 @@ class SensorWrapper(object):
         username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
         password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
         db_setup_with_retry(cfg.CONF.database.db_name, cfg.CONF.database.host,
-                            cfg.CONF.database.port, username=username, password=password)
+                            cfg.CONF.database.port, username=username, password=password,
+                            ssl=cfg.CONF.database.ssl, ssl_keyfile=cfg.CONF.database.ssl_keyfile,
+                            ssl_certfile=cfg.CONF.database.ssl_certfile,
+                            ssl_cert_reqs=cfg.CONF.database.ssl_cert_reqs,
+                            ssl_ca_certs=cfg.CONF.database.ssl_ca_certs,
+                            ssl_match_hostname=cfg.CONF.database.ssl_match_hostname)
 
         # 3. Instantiate the watcher
         self._trigger_watcher = TriggerWatcher(create_handler=self._handle_create_trigger,

@@ -21,8 +21,8 @@ from oslo_config import cfg
 
 from st2common import config as st2cfg
 from st2common import log as logging
-from st2common.models.db import db_setup
-from st2common.models.db import db_teardown
+from st2common.service_setup import db_setup
+from st2common.service_setup import db_teardown
 from st2common.persistence.trigger import TriggerInstance
 from st2common.transport.reactor import TriggerDispatcher
 
@@ -75,10 +75,7 @@ def _setup_logging():
 
 
 def _setup_db():
-    username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
-    password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-             username=username, password=password)
+    db_setup()
 
 
 def _refire_trigger_instance(trigger_instance_id, log_):

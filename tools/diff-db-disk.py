@@ -38,8 +38,8 @@ import st2common.content.utils as content_utils
 from st2common.models.api.action import ActionAPI
 from st2common.models.api.sensor import SensorTypeAPI
 from st2common.models.api.rule import RuleAPI
-from st2common.models.db import db_setup
-from st2common.models.db import db_teardown
+from st2common.service_setup import db_setup
+from st2common.service_setup import db_teardown
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.rule import Rule
 from st2common.persistence.sensor import SensorType
@@ -245,12 +245,8 @@ def main():
     do_register_cli_opts(cli_opts)
     config.parse_args()
 
-    username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
-    password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
-
     # Connect to db.
-    db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-             username=username, password=password)
+    db_setup()
 
     # Diff content
     pack_dir = cfg.CONF.pack_dir or None
