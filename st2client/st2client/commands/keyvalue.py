@@ -82,7 +82,20 @@ class KeyValuePairListCommand(resource.ResourceListCommand):
 
 class KeyValuePairGetCommand(resource.ResourceGetCommand):
     pk_argument_name = 'name'
-    display_attributes = ['name', 'value', 'expire_timestamp']
+    display_attributes = ['name', 'value', 'secret', 'encrypted', 'expire_timestamp']
+
+    def __init__(self, kv_resource, *args, **kwargs):
+        super(KeyValuePairGetCommand, self).__init__(kv_resource, *args, **kwargs)
+        self.parser.add_argument('-d', '--decrypt', action='store_true',
+                                 help='Decrypt secret if encrypted.')
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        resource_name = getattr(args, self.pk_argument_name, None)
+        decrypt = getattr(args, 'decrypt', False)
+        kwargs['params'] = {}
+        kwargs['params']['decrypt'] = str(decrypt).lower()
+        return self.get_resource_by_id(id=resource_name, **kwargs)
 
 
 class KeyValuePairSetCommand(resource.ResourceCommand):
@@ -101,6 +114,9 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         self.parser.add_argument('value', help='Value paired with the key.')
         self.parser.add_argument('-l', '--ttl', dest='ttl', type=int, default=None,
                                  help='TTL (in seconds) for this value.')
+        self.parser.add_argument('-e', '--encrypt', dest='secret',
+                                 action='store_true',
+                                 help='Encrypt value before saving the value.')
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -108,6 +124,9 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         instance.id = args.name  # TODO: refactor and get rid of id
         instance.name = args.name
         instance.value = args.value
+
+        if args.secret:
+            instance.secret = args.secret
 
         if args.ttl:
             instance.ttl = args.ttl

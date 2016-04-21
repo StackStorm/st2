@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import datetime
-import json
 import os
 
 from keyczar.keys import AesKey
@@ -30,6 +29,7 @@ from st2common.models.api.base import BaseAPI
 from st2common.models.db.keyvalue import KeyValuePairDB
 
 LOG = logging.getLogger(__name__)
+
 
 class KeyValuePairAPI(BaseAPI):
     crypto_setup = False
@@ -58,6 +58,11 @@ class KeyValuePairAPI(BaseAPI):
                 'required': False,
                 'default': False
             },
+            'encrypted': {
+                'type': 'boolean',
+                'required': False,
+                'default': False
+            },
             'expire_timestamp': {
                 'type': 'string',
                 'pattern': isotime.ISO8601_UTC_REGEX
@@ -82,7 +87,7 @@ class KeyValuePairAPI(BaseAPI):
                      KeyValuePairAPI.crypto_key_path)
             if not os.path.exists(KeyValuePairAPI.crypto_key_path):
                 msg = ('Encryption key file does not exist in path %s.' %
-                        KeyValuePairAPI.crypto_key_path)
+                       KeyValuePairAPI.crypto_key_path)
                 LOG.exception(msg)
                 LOG.info('All API requests will now send out BAD_REQUEST ' +
                          'if you ask to store secrets in key value store.')
@@ -95,8 +100,8 @@ class KeyValuePairAPI(BaseAPI):
 
     @staticmethod
     def _read_crypto_key(key_path):
-        with open(key_path) as f:
-            key = AesKey.Read(f.read())
+        with open(key_path) as key_file:
+            key = AesKey.Read(key_file.read())
             return key
 
     @classmethod
@@ -109,12 +114,18 @@ class KeyValuePairAPI(BaseAPI):
         if 'id' in doc:
             del doc['id']
 
-        if not mask_secrets and model.encrypted:
-            doc['value'] = symmetric_decrypt(KeyValuePairAPI.crypto_key, model.value)
-
         if model.expire_timestamp:
             doc['expire_timestamp'] = isotime.format(model.expire_timestamp, offset=False)
 
+        encrypted = False
+        if model.secret:
+            encrypted = True
+
+        if not mask_secrets and model.secret:
+            doc['value'] = symmetric_decrypt(KeyValuePairAPI.crypto_key, model.value)
+            encrypted = False
+
+        doc['encrypted'] = encrypted
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
         return cls(**attrs)
 
@@ -126,7 +137,7 @@ class KeyValuePairAPI(BaseAPI):
         name = getattr(kvp, 'name', None)
         description = getattr(kvp, 'description', None)
         value = kvp.value
-        encrypted = False
+        secret = False
 
         if getattr(kvp, 'ttl', None):
             expire_timestamp = (date_utils.get_datetime_utc_now() +
@@ -137,13 +148,13 @@ class KeyValuePairAPI(BaseAPI):
         if getattr(kvp, 'secret', False):
             if not KeyValuePairAPI.crypto_key:
                 msg = ('Crypto key not found in %s. Unable to encrypt value for key %s.' %
-                        (KeyValuePairAPI.crypto_key_path, name))
+                       (KeyValuePairAPI.crypto_key_path, name))
                 raise CryptoKeyNotSetupException(msg)
             value = symmetric_encrypt(KeyValuePairAPI.crypto_key, value)
-            encrypted = True
+            secret = True
 
         model = cls.model(name=name, description=description, value=value,
-                          encrypted=encrypted,
+                          secret=secret,
                           expire_timestamp=expire_timestamp)
 
         return model

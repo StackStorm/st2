@@ -15,6 +15,7 @@
 
 import binascii
 
+
 def symmetric_encrypt(encrypt_key, message):
     return binascii.hexlify(encrypt_key.Encrypt(message)).upper()
 

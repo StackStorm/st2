@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
 from pecan import abort
 from pecan.rest import RestController
 import six
@@ -47,19 +46,20 @@ class KeyValuePairController(RestController):
         self.get_one_db_method = self.__get_by_name
 
     @jsexpose(arg_types=[str, str])
-    def get_one(self, name, decrypt):
+    def get_one(self, name, decrypt='false'):
         """
             List key by name.
 
             Handle:
                 GET /keys/key1
         """
-        kvp_db = self.__get_by_name(name=name)
 
         if not decrypt:
             decrypt = False
         else:
             decrypt = (decrypt == 'true' or decrypt == 'True' or decrypt == '1')
+
+        kvp_db = self.__get_by_name(name=name)
 
         if not kvp_db:
             LOG.exception('Database lookup for name="%s" resulted in exception.', name)
