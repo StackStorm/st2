@@ -51,5 +51,7 @@ class QueueConsumerTest(DbTestCase):
     def test_process_message_wrong_payload_type(self):
         payload = 100
         handler = get_handler()
-        handler._queue_consumer._process_message(payload)
+        mock_message = mock.MagicMock()
+        handler._queue_consumer.process(payload, mock_message)
+        self.assertTrue(mock_message.ack.called)
         self.assertFalse(FakeMessageHandler.process.called)
