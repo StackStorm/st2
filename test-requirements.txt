@@ -16,3 +16,5 @@ pyyaml
 RandomWords
 gunicorn>=19.3.0,<19.4
 psutil>=3.2.2,<3.3
+robotframework
+docutils
