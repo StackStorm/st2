@@ -44,7 +44,3 @@ nosetests.xml
 *~
 \#*\#
 
-# RobotFramework Reports
-robotfm/log.html
-output.xml
-report.html
