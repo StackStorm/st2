@@ -10,14 +10,6 @@ import traceback
 from keyczar.keys import AesKey
 
 
-def _backup_old_key(key_path):
-    base_path = os.path.dirname(key_path)
-    dt_str = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    bkup_file_name = os.path.basename(key_path) + '.bkup-%s' % dt_str
-    shutil.move(key_path, os.path.join(base_path, bkup_file_name))
-    print('WARNING: Backed up old key file to %s.' % bkup_file_name)
-
-
 def main(key_path, force=False):
     base_path = os.path.dirname(key_path)
     if not os.access(base_path, os.W_OK):
@@ -31,14 +23,8 @@ def main(key_path, force=False):
         if not force:
             print('Not generating a new key. Either delete the file or re-run with --force.')
             sys.exit(2)
-        else:
-            try:
-                _backup_old_key(key_path)
-            except:
-                traceback.print_exc()
-                print('WARNING: Failed backing up old key! Ignoring!')
 
-        print('Generating new key...')
+        print('WARNING: Rewriting existing key with new key!')
 
     with open(key_path, 'w') as key_file:
         k = AesKey.Generate()
