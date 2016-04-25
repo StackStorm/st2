@@ -42,7 +42,9 @@ def _retry_if_connection_error(error):
 
 
 def db_setup_with_retry(db_name, db_host, db_port, username=None, password=None,
-                        ensure_indexes=True):
+                        ensure_indexes=True, ssl=False, ssl_keyfile=None,
+                        ssl_certfile=None, ssl_cert_reqs=None, ssl_ca_certs=None,
+                        ssl_match_hostname=True):
     """
     This method is a retry version of db_setup.
     """
@@ -57,4 +59,7 @@ def db_setup_with_retry(db_name, db_host, db_port, username=None, password=None,
         stop_max_delay=cfg.CONF.database.connection_retry_max_delay_m * 60 * 1000
     )
     return retrying_obj.call(db_setup, db_name, db_host, db_port, username=username,
-                             password=password, ensure_indexes=ensure_indexes)
+                             password=password, ensure_indexes=ensure_indexes,
+                             ssl=ssl, ssl_keyfile=ssl_keyfile, ssl_certfile=ssl_certfile,
+                             ssl_cert_reqs=ssl_cert_reqs, ssl_ca_certs=ssl_ca_certs,
+                             ssl_match_hostname=ssl_match_hostname)

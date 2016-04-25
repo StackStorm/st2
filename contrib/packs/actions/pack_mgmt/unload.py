@@ -40,7 +40,13 @@ class UnregisterPackAction(BaseAction):
         username = cfg.CONF.database.username if hasattr(cfg.CONF.database, 'username') else None
         password = cfg.CONF.database.password if hasattr(cfg.CONF.database, 'password') else None
         db_setup(cfg.CONF.database.db_name, cfg.CONF.database.host, cfg.CONF.database.port,
-                 username=username, password=password)
+                 username=username, password=password,
+                 ssl=cfg.CONF.database.ssl,
+                 ssl_keyfile=cfg.CONF.database.ssl_keyfile,
+                 ssl_certfile=cfg.CONF.database.ssl_certfile,
+                 ssl_cert_reqs=cfg.CONF.database.ssl_cert_reqs,
+                 ssl_ca_certs=cfg.CONF.database.ssl_ca_certs,
+                 ssl_match_hostname=cfg.CONF.database.ssl_match_hostname)
 
     def run(self, packs):
         intersection = BLOCKED_PACKS & frozenset(packs)
