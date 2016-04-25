@@ -143,7 +143,7 @@ def register_opts(ignore_errors=False):
     keyvalue_opts = [
         cfg.BoolOpt('enable_encryption', default=True,
                     help='Allow encryption of values in key value stored qualified as "secret".'),
-        cfg.StrOpt('encryption_key_path', default='conf/st2_kvstore_demo.crypto.key.json',
+        cfg.StrOpt('encryption_key_path', default='',
                    help='Location of the symmetric encryption key for encrypting values in ' +
                         'kvstore. This key should be in JSON and should\'ve been ' +
                         'generated using keyczar.')
