@@ -240,7 +240,8 @@ class ResourceManager(object):
         if 'limit' in kwargs and kwargs.get('limit') <= 0:
             kwargs.pop('limit')
         token = kwargs.get('token', None)
-        params = {}
+        params = kwargs.get('params', {})
+        print(params)
         for k, v in six.iteritems(kwargs):
             if k != 'token':
                 params[k] = v
