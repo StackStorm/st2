@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
 import argparse
-import datetime
 import os
-import shutil
 import sys
-import traceback
 
 from keyczar.keys import AesKey
 
