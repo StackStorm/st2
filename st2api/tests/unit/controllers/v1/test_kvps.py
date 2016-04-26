@@ -31,6 +31,12 @@ KVP_WITH_TTL = {
     'ttl': 10
 }
 
+SECRET_KVP = {
+    'name': 'secret_key1',
+    'value': 'secret_value1',
+    'secret': True
+}
+
 
 class TestKeyValuePairController(FunctionalTest):
 
@@ -85,6 +91,52 @@ class TestKeyValuePairController(FunctionalTest):
         get_resp = self.app.get('/v1/keys')
         self.assertTrue(get_resp.json[0]['expire_timestamp'])
         self.__do_delete(self.__get_kvp_id(put_resp))
+
+    def test_put_secret(self):
+        put_resp = self.__do_put('secret_key1', SECRET_KVP)
+        kvp_id = self.__get_kvp_id(put_resp)
+        get_resp = self.__do_get_one(kvp_id)
+        self.assertTrue(get_resp.json['encrypted'])
+        crypto_val = get_resp.json['value']
+        self.assertNotEqual(SECRET_KVP['value'], crypto_val)
+        self.__do_delete(self.__get_kvp_id(put_resp))
+
+    def test_get_one_secret_no_decrypt(self):
+        put_resp = self.__do_put('secret_key1', SECRET_KVP)
+        kvp_id = self.__get_kvp_id(put_resp)
+        get_resp = self.app.get('/v1/keys/secret_key1')
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self.__get_kvp_id(get_resp), kvp_id)
+        self.assertTrue(get_resp.json['secret'])
+        self.assertTrue(get_resp.json['encrypted'])
+        self.__do_delete(kvp_id)
+
+    def test_get_one_secret_decrypt(self):
+        put_resp = self.__do_put('secret_key1', SECRET_KVP)
+        kvp_id = self.__get_kvp_id(put_resp)
+        get_resp = self.app.get('/v1/keys/secret_key1?decrypt=true')
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self.__get_kvp_id(get_resp), kvp_id)
+        self.assertTrue(get_resp.json['secret'])
+        self.assertFalse(get_resp.json['encrypted'])
+        self.assertEqual(get_resp.json['value'], SECRET_KVP['value'])
+        self.__do_delete(kvp_id)
+
+    def test_get_all_decrypt(self):
+        put_resp = self.__do_put('secret_key1', SECRET_KVP)
+        kvp_id_1 = self.__get_kvp_id(put_resp)
+        put_resp = self.__do_put('key1', KVP)
+        kvp_id_2 = self.__get_kvp_id(put_resp)
+        kvps = {'key1': KVP, 'secret_key1': SECRET_KVP}
+        stored_kvps = self.app.get('/v1/keys?decrypt=true').json
+        self.assertTrue(len(stored_kvps), 2)
+        for stored_kvp in stored_kvps:
+            self.assertFalse(stored_kvp['encrypted'])
+            exp_kvp = kvps.get(stored_kvp['name'])
+            self.assertTrue(exp_kvp is not None)
+            self.assertEqual(exp_kvp['value'], stored_kvp['value'])
+        self.__do_delete(kvp_id_1)
+        self.__do_delete(kvp_id_2)
 
     def test_put_delete(self):
         put_resp = self.__do_put('key1', KVP)

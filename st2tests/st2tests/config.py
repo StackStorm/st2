@@ -46,6 +46,7 @@ def _override_config_opts():
     _override_db_opts()
     _override_common_opts()
     _override_api_opts()
+    _override_keyvalue_opts()
 
 
 def _register_config_opts():
@@ -79,6 +80,12 @@ def _override_common_opts():
 def _override_api_opts():
     CONF.set_override(name='allow_origin', override=['http://127.0.0.1:3000', 'http://dev'],
                       group='api')
+
+
+def _override_keyvalue_opts():
+    CONF.set_override(name='encryption_key_path',
+                      override='st2tests/conf/st2_kvstore_tests.crypto.key.json',
+                      group='keyvalue')
 
 
 def _register_common_opts():

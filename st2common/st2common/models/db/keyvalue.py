@@ -36,6 +36,7 @@ class KeyValuePairDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
 
     name = me.StringField(required=True, unique=True)
     value = me.StringField()
+    secret = me.BooleanField(default=False)
     expire_timestamp = me.DateTimeField()
 
     meta = {
