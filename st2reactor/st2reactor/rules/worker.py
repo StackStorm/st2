@@ -17,7 +17,7 @@ from kombu import Connection
 
 from st2common import log as logging
 from st2common.constants.trace import TRACE_CONTEXT, TRACE_ID
-from st2common.constants import trigger as trigger_constants
+from st2common.constants import triggers as trigger_constants
 from st2common.util import date as date_utils
 from st2common.services import trace as trace_service
 from st2common.transport import consumers, reactor
