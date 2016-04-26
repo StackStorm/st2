@@ -35,13 +35,14 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
+DATASTORE_KEY_SEPARATOR = '.'
+
 # Prefix for datastore items which store config values
-# Full keys follow this format: pack_config.<pack name>.<config key name>
+# Full keys follow this format: system.pack_config.<pack name>.<config key name>
 # For example:
 # pack_config.aws.setup.region
-DATASTORE_CONFIG_KEY_PREFIX = 'pack_config'
-
-DATASTORE_KEY_SEPARATOR = '.'
+DATASTORE_CONFIG_KEY_PREFIX = ['system', 'pack_config']
+DATASTORE_CONFIG_KEY_PREFIX = DATASTORE_KEY_SEPARATOR.join(DATASTORE_CONFIG_KEY_PREFIX)
 
 
 def get_datastore_key_name(pack_name, key_name):
