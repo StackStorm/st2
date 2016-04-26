@@ -193,6 +193,8 @@ class TriggerInstanceAPI(BaseAPI):
         trigger = instance.trigger
         payload = instance.payload
         occurrence_time = isotime.parse(instance.occurrence_time)
+        status = instance.status
 
-        model = cls.model(trigger=trigger, payload=payload, occurrence_time=occurrence_time)
+        model = cls.model(trigger=trigger, payload=payload, occurrence_time=occurrence_time,
+                          status=status)
         return model
