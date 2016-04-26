@@ -53,8 +53,9 @@ class QueueConsumer(ConsumerMixin):
             self._dispatcher.dispatch(self._process_message, body)
         except:
             LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
-
-        message.ack()
+        finally:
+            # At this point we will always ack a message.
+            message.ack()
 
     def _process_message(self, body):
         try:
@@ -73,8 +74,9 @@ class StagedQueueConsumer(QueueConsumer):
             self._dispatcher.dispatch(self._process_message, processed_body)
         except:
             LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
-        # At this point we will always ack a specific message.
-        message.ack()
+        finally:
+            # At this point we will always ack a message.
+            message.ack()
 
 
 @six.add_metaclass(abc.ABCMeta)

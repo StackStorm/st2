@@ -74,13 +74,13 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
             raise ValueError('No trigger_instance provided for processing.')
         try:
             container_utils.update_trigger_instance_status(
-                trigger_instance, trigger_constants.TRIGGER_INSTANCE_STATUS_PROCESSING)
+                trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSING)
             self.rules_engine.handle_trigger_instance(trigger_instance)
             container_utils.update_trigger_instance_status(
-                trigger_instance, trigger_constants.TRIGGER_INSTANCE_STATUS_PROCESSED)
+                trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSED)
         except:
             container_utils.update_trigger_instance_status(
-                trigger_instance, trigger_constants.TRIGGER_INSTANCE_STATUS_PROCESSING_FAILED)
+                trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSING_FAILED)
             # This could be a large message but at least in case of an exception
             # we get to see more context.
             # Beyond this point code cannot really handle the exception anyway so

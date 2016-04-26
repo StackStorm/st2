@@ -18,7 +18,7 @@ import mock
 import mongoengine.connection
 from oslo_config import cfg
 
-from st2common.constants.triggers import TRIGGER_INSTANCE_STATUS_PROCESSED
+from st2common.constants.triggers import TRIGGER_INSTANCE_PROCESSED
 from st2common.models.system.common import ResourceReference
 from st2common.transport.publishers import PoolPublisher
 from st2common.util import schema as util_schema
@@ -192,7 +192,7 @@ class ReactorModelTest(DbTestCase):
     def _create_save_triggerinstance(trigger):
         created = TriggerInstanceDB(trigger=trigger.get_reference().ref, payload={},
                                     occurrence_time=date_utils.get_datetime_utc_now(),
-                                    status=TRIGGER_INSTANCE_STATUS_PROCESSED)
+                                    status=TRIGGER_INSTANCE_PROCESSED)
         return TriggerInstance.add_or_update(created)
 
     @staticmethod
