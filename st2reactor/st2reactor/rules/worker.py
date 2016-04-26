@@ -17,6 +17,7 @@ from kombu import Connection
 
 from st2common import log as logging
 from st2common.constants.trace import TRACE_CONTEXT, TRACE_ID
+from st2common.constants import trigger as trigger_constants
 from st2common.util import date as date_utils
 from st2common.services import trace as trace_service
 from st2common.transport import consumers, reactor
@@ -72,9 +73,14 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
         if not trigger_instance:
             raise ValueError('No trigger_instance provided for processing.')
         try:
-
+            container_utils.update_trigger_instance_status(
+                trigger_instance, trigger_constants.TRIGGER_INSTANCE_STATUS_PROCESSING)
             self.rules_engine.handle_trigger_instance(trigger_instance)
+            container_utils.update_trigger_instance_status(
+                trigger_instance, trigger_constants.TRIGGER_INSTANCE_STATUS_PROCESSED)
         except:
+            container_utils.update_trigger_instance_status(
+                trigger_instance, trigger_constants.TRIGGER_INSTANCE_STATUS_PROCESSING_FAILED)
             # This could be a large message but at least in case of an exception
             # we get to see more context.
             # Beyond this point code cannot really handle the exception anyway so
