@@ -402,12 +402,12 @@ def get_jsonschema_type_for_value(value, default_value='unknown'):
 
     if isinstance(value, six.string_types):
         result = 'string'
+    elif value is True or value is False:
+        result = 'boolean'
     elif isinstance(value, float):
         result = 'number'
     elif isinstance(value, int):
         result = 'integer'
-    elif isinstance(value, bool):
-        result = 'boolean'
     elif isinstance(value, (tuple, list)):
         result = 'list'
     elif isinstance(value, dict):
