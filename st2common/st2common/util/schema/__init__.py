@@ -386,9 +386,15 @@ def get_schema_for_resource_parameters(parameters_schema):
     return schema
 
 
-def get_jsonschema_type_for_value(value):
+def get_jsonschema_type_for_value(value, default_value='unknown'):
     """
     Retrieve jsonschema type for the provided Python value.
+
+    :param value: Python value to retrieve the type for.
+    :type value: ``object``
+
+    :param default_value: Fallback type one one can't be inferred.
+    :tyype default_value: ``str``
 
     :rtype: ``string``
     """
@@ -408,5 +414,7 @@ def get_jsonschema_type_for_value(value):
         result = 'object'
     elif value is None:
         result = 'null'
+    else:
+        result = default_value
 
     return result

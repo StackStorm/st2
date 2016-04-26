@@ -85,7 +85,8 @@ class ContentPackConfigLoader(object):
         for key, value in six.iteritems(config):
             datastore_name = config_service.get_datastore_key_name(pack_name=self.pack_name,
                                                                    key_name=key)
-            value_type = get_jsonschema_type_for_value(value)
+            value_type = get_jsonschema_type_for_value(value=value,
+                                                       default_value=FALLBACK_CONFIG_VALUE_TYPE)
 
             item = {}
             item['name'] = key
