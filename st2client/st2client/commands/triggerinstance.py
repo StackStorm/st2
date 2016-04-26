@@ -60,7 +60,7 @@ class TriggerInstanceBranch(resource.ResourceBranch):
 
 
 class TriggerInstanceListCommand(resource.ResourceCommand):
-    display_attributes = ['id', 'trigger', 'occurrence_time']
+    display_attributes = ['id', 'trigger', 'occurrence_time', 'status']
 
     attribute_transform_functions = {
         'occurrence_time': format_isodate_for_user_timezone

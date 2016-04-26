@@ -39,7 +39,7 @@ class TriggerInstance(core.Resource):
     _display_name = 'TriggerInstance'
     _plural = 'Triggerinstances'
     _plural_display_name = 'TriggerInstances'
-    _repr_attributes = ['id', 'trigger', 'occurrence_time', 'payload']
+    _repr_attributes = ['id', 'trigger', 'occurrence_time', 'payload', 'status']
 
 
 class Trigger(core.Resource):
