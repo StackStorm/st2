@@ -27,7 +27,7 @@ As we can see from above output port ``9101`` is not even up. To verify this let
 
 .. code:: bash
 
-  $ ps auxww | grep st2 | grep 32420
+  $ ps auxww | grep st2 | grep 910
   vagrant  32420  0.2  1.5  79228 31364 pts/10   Ss+  18:27   0:00 /home/vagrant/git/st2/virtualenv/bin/python
   ./virtualenv/bin/gunicorn_pecan ./st2auth/st2auth/gunicorn_config.py -k eventlet -b 0.0.0.0:9100 --workers 1
   vagrant@ether git/st2 (master %) » ps auxww | grep st2 | grep 32403  
