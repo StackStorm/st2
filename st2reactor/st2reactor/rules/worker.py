@@ -54,31 +54,37 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
             payload or {},
             date_utils.get_datetime_utc_now(),
             raise_on_no_trigger=True)
-        # Use trace_context from the instance and if not found create a new context
-        # and use the trigger_instance.id as trace_tag.
-        trace_context = message.get(TRACE_CONTEXT, None)
-        if not trace_context:
-            trace_context = {
-                TRACE_ID: 'trigger_instance-%s' % str(trigger_instance.id)
-            }
-        # add a trace or update an existing trace with trigger_instance
-        trace_service.add_or_update_given_trace_context(
-            trace_context=trace_context,
-            trigger_instances=[
-                trace_service.get_trace_component_for_trigger_instance(trigger_instance)
-            ])
-        return trigger_instance
 
-    def process(self, trigger_instance):
+        return _compose_pre_ack_process_response(trigger_instance, message)
+
+    def process(self, pre_ack_response):
+
+        trigger_instance, message = _decompose_pre_ack_process_response(pre_ack_response)
         if not trigger_instance:
             raise ValueError('No trigger_instance provided for processing.')
+
         try:
+            # Use trace_context from the message and if not found create a new context
+            # and use the trigger_instance.id as trace_tag.
+            trace_context = message.get(TRACE_CONTEXT, None)
+            if not trace_context:
+                trace_context = {
+                    TRACE_ID: 'trigger_instance-%s' % str(trigger_instance.id)
+                }
+            # add a trace or update an existing trace with trigger_instance
+            trace_service.add_or_update_given_trace_context(
+                trace_context=trace_context,
+                trigger_instances=[
+                    trace_service.get_trace_component_for_trigger_instance(trigger_instance)
+            ])
+
             container_utils.update_trigger_instance_status(
                 trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSING)
             self.rules_engine.handle_trigger_instance(trigger_instance)
             container_utils.update_trigger_instance_status(
                 trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSED)
         except:
+            # TODO : Capture the reason for failure.
             container_utils.update_trigger_instance_status(
                 trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSING_FAILED)
             # This could be a large message but at least in case of an exception
@@ -87,6 +93,18 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
             # eating up the exception.
             LOG.exception('Failed to handle trigger_instance %s.', trigger_instance)
             return
+
+    def _compose_pre_ack_process_response(self, trigger_instance, message):
+        """
+        Codify response of the pre_ack_process method.
+        """
+        return {'trigger_instance': trigger_instance, 'message': message}
+
+    def _decompose_pre_ack_process_response(self, response):
+        """
+        Break-down response of pre_ack_process into constituents for simpler consumption.
+        """
+        return response.get('trigger_instance', None), response.get('message', None)
 
 
 def get_worker():

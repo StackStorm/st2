@@ -65,13 +65,16 @@ class QueueConsumer(ConsumerMixin):
 
 
 class StagedQueueConsumer(QueueConsumer):
+    """
+    Used by ``StagedMessageHandler`` to effectively manage it 2 step message handling.
+    """
 
     def process(self, body, message):
         try:
             if not isinstance(body, self._handler.message_type):
                 raise TypeError('Received an unexpected type "%s" for payload.' % type(body))
-            processed_body = self._handler.pre_ack_process(body)
-            self._dispatcher.dispatch(self._process_message, processed_body)
+            response = self._handler.pre_ack_process(body)
+            self._dispatcher.dispatch(self._process_message, response)
         except:
             LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
         finally:
@@ -111,9 +114,25 @@ class MessageHandler(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class StagedMessageHandler(MessageHandler):
+    """
+    MessageHandler to deal with messages in 2 steps.
+        1. pre_ack_process : This is called on the handler before ack-ing the message.
+        2. process: Called after ack-in the messages
+    This 2 step approach provides a way for the handler to do some hadling like saving to DB etc
+    before acknowleding and then performing future processing async. This way even if the handler
+    or owning process is taken down system will still maintain track of the message.
+    """
 
     @abc.abstractmethod
     def pre_ack_process(self, message):
+        """
+        Called before acknowleding a message. Good place to track the message via a DB entry or some
+        other applicable mechnism.
+
+        The reponse of this method is passed into the ``process`` method. This was whatever is the
+        processed version of the message can be moved forward. It is always possible to simply
+        return ``message`` and have ``process`` handle the original message.
+        """
         pass
 
     def _get_queue_consumer(self, connection, queues):
