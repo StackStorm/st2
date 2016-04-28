@@ -67,6 +67,7 @@ def register_opts(ignore_errors=False):
     do_register_opts(schema_opts, 'schema', ignore_errors)
 
     system_opts = [
+        cfg.BoolOpt('debug', help='Enable debug mode.', default=False),
         cfg.StrOpt('base_path', default='/opt/stackstorm',
                    help='Base path to all st2 artifacts.')
     ]
