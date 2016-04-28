@@ -5,7 +5,10 @@ in development
 --------------
 
 * SSL support for mongodb connections. (improvement)
-
+* Allow user to enable service debug mode by setting ``system.debug`` config file option to
+  ``True``.
+  Note: This is an alternative to the existing ``--debug`` CLI flag which comes handy when running
+  API services under gunicorn. (improvement)
 
 1.4.0 - April 18, 2016
 ----------------------
