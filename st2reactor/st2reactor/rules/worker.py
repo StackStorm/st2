@@ -55,11 +55,11 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
             date_utils.get_datetime_utc_now(),
             raise_on_no_trigger=True)
 
-        return _compose_pre_ack_process_response(trigger_instance, message)
+        return self._compose_pre_ack_process_response(trigger_instance, message)
 
     def process(self, pre_ack_response):
 
-        trigger_instance, message = _decompose_pre_ack_process_response(pre_ack_response)
+        trigger_instance, message = self._decompose_pre_ack_process_response(pre_ack_response)
         if not trigger_instance:
             raise ValueError('No trigger_instance provided for processing.')
 
@@ -76,7 +76,8 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
                 trace_context=trace_context,
                 trigger_instances=[
                     trace_service.get_trace_component_for_trigger_instance(trigger_instance)
-            ])
+                ]
+            )
 
             container_utils.update_trigger_instance_status(
                 trigger_instance, trigger_constants.TRIGGER_INSTANCE_PROCESSING)
@@ -94,13 +95,15 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
             LOG.exception('Failed to handle trigger_instance %s.', trigger_instance)
             return
 
-    def _compose_pre_ack_process_response(self, trigger_instance, message):
+    @staticmethod
+    def _compose_pre_ack_process_response(trigger_instance, message):
         """
         Codify response of the pre_ack_process method.
         """
         return {'trigger_instance': trigger_instance, 'message': message}
 
-    def _decompose_pre_ack_process_response(self, response):
+    @staticmethod
+    def _decompose_pre_ack_process_response(response):
         """
         Break-down response of pre_ack_process into constituents for simpler consumption.
         """

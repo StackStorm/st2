@@ -14,10 +14,9 @@
 # limitations under the License.
 
 import mock
-from kombu import Connection, Exchange, Queue
+from kombu import Exchange, Queue
 
 from st2common.transport import consumers
-from st2common.transport import utils as transport_utils
 from st2common.util.greenpooldispatch import BufferedDispatcher
 from st2tests.base import DbTestCase
 from tests.unit.base import FakeModelDB
@@ -89,8 +88,8 @@ class StagedQueueConsumerTest(DbTestCase):
         handler = get_staged_handler()
         mock_message = mock.MagicMock()
         handler._queue_consumer.process(payload, mock_message)
-        BufferedDispatcher.dispatch.assert_called_once_with(handler._queue_consumer._process_message,
-                                                            payload)
+        BufferedDispatcher.dispatch.assert_called_once_with(
+            handler._queue_consumer._process_message, payload)
         handler._queue_consumer._process_message(payload)
         FakeStagedMessageHandler.process.assert_called_once_with(payload)
         self.assertTrue(mock_message.ack.called)
@@ -101,4 +100,3 @@ class StagedQueueConsumerTest(DbTestCase):
         mock_message = mock.MagicMock()
         handler._queue_consumer.process(payload, mock_message)
         self.assertTrue(mock_message.ack.called)
-
