@@ -16,7 +16,7 @@
 import six
 from jinja2 import Environment, StrictUndefined
 
-from st2common.constants.system import SYSTEM_KV_PREFIX
+from st2common.constants.datastore import SYSTEM_KEY_PREFIX
 from st2common.services.keyvalues import KeyValueLookup
 
 __all__ = [
@@ -56,7 +56,7 @@ def render_template_with_system_context(value):
     :type context: ``dict``
     """
     context = {
-        SYSTEM_KV_PREFIX: KeyValueLookup(),
+        SYSTEM_KEY_PREFIX: KeyValueLookup(),
     }
 
     rendered = render_template(value=value, context=context)

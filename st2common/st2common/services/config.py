@@ -23,6 +23,7 @@ from st2common import log as logging
 from st2common.services import keyvalues as keyvalue_service
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
+from st2common.constants.datastore import DATASTORE_KEY_SEPARATOR
 
 __all__ = [
     'get_datastore_key_name',
@@ -34,8 +35,6 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
-
-DATASTORE_KEY_SEPARATOR = '.'
 
 # Prefix for datastore items which store config values
 # Full keys follow this format: system.pack_config.<pack name>.<config key name>

@@ -13,16 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common import __version__
-
 __all__ = [
-    'VERSION_STRING',
-
-    'API_URL_ENV_VARIABLE_NAME',
-    'AUTH_TOKEN_ENV_VARIABLE_NAME',
+    'SYSTEM_KEY_PREFIX',
+    'DATASTORE_KEY_SEPARATOR'
 ]
 
-VERSION_STRING = 'StackStorm v%s' % (__version__)
+# Used to prefix all system variables stored in the key-value store.
+SYSTEM_KEY_PREFIX = 'system'
 
-API_URL_ENV_VARIABLE_NAME = 'ST2_API_URL'
-AUTH_TOKEN_ENV_VARIABLE_NAME = 'ST2_AUTH_TOKEN'
+# Separator for keys in the datastore
+DATASTORE_KEY_SEPARATOR = '.'
