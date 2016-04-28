@@ -15,6 +15,7 @@
 
 import uuid
 
+from st2common.constants.triggers import TRIGGER_INSTANCE_STATUSES
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.tag import TagsHelper
@@ -171,6 +172,11 @@ class TriggerInstanceAPI(BaseAPI):
                 'type': 'string',
                 'default': None,
                 'required': True
+            },
+            'status': {
+                'type': 'string',
+                'default': None,
+                'enum': TRIGGER_INSTANCE_STATUSES
             }
         },
         'additionalProperties': False
@@ -187,6 +193,8 @@ class TriggerInstanceAPI(BaseAPI):
         trigger = instance.trigger
         payload = instance.payload
         occurrence_time = isotime.parse(instance.occurrence_time)
+        status = instance.status
 
-        model = cls.model(trigger=trigger, payload=payload, occurrence_time=occurrence_time)
+        model = cls.model(trigger=trigger, payload=payload, occurrence_time=occurrence_time,
+                          status=status)
         return model

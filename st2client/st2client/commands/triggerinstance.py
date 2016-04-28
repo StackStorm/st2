@@ -60,7 +60,7 @@ class TriggerInstanceBranch(resource.ResourceBranch):
 
 
 class TriggerInstanceListCommand(resource.ResourceCommand):
-    display_attributes = ['id', 'trigger', 'occurrence_time']
+    display_attributes = ['id', 'trigger', 'occurrence_time', 'status']
 
     attribute_transform_functions = {
         'occurrence_time': format_isodate_for_user_timezone
@@ -92,6 +92,10 @@ class TriggerInstanceListCommand(resource.ResourceCommand):
                                  help=('Only return trigger instances with timestamp '
                                        'lower than the one provided. '
                                        'Use time in the format 2000-01-01T12:00:00.000Z'))
+
+        self.group.add_argument('--status',
+                                help='Can be pending, processing, processed or processing_failed.')
+
         # Display options
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=self.display_attributes,
@@ -111,6 +115,8 @@ class TriggerInstanceListCommand(resource.ResourceCommand):
             kwargs['timestamp_gt'] = args.timestamp_gt
         if args.timestamp_lt:
             kwargs['timestamp_lt'] = args.timestamp_lt
+        if args.status:
+            kwargs['status'] = args.status
 
         return self.manager.query(limit=args.last, **kwargs)
 
