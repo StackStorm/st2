@@ -17,6 +17,7 @@ from st2client.client import Client
 from st2client.models import KeyValuePair
 from st2common.services.access import create_token
 from st2common.util.api import get_full_public_api_url
+from st2common.constants.datastore import DATASTORE_KEY_SEPARATOR
 
 __all__ = [
     'DatastoreService'
@@ -27,8 +28,6 @@ class DatastoreService(object):
     """
     Class provides public methods for accessing datastore items.
     """
-
-    DATASTORE_NAME_SEPARATOR = ':'
 
     def __init__(self, logger, pack_name, class_name, api_username):
         self._api_username = api_username
@@ -202,7 +201,7 @@ class DatastoreService(object):
         """
         Retrieve key prefix which is local to this pack/class.
         """
-        key_prefix = self._get_datastore_key_prefix() + self.DATASTORE_NAME_SEPARATOR
+        key_prefix = self._get_datastore_key_prefix() + DATASTORE_KEY_SEPARATOR
         return key_prefix
 
     def _get_key_name_with_prefix(self, name):
@@ -215,7 +214,7 @@ class DatastoreService(object):
         :rtype: ``str``
         """
         prefix = self._get_datastore_key_prefix()
-        full_name = prefix + self.DATASTORE_NAME_SEPARATOR + name
+        full_name = prefix + DATASTORE_KEY_SEPARATOR + name
         return full_name
 
     def _get_datastore_key_prefix(self):

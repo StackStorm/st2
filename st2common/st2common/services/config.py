@@ -40,7 +40,7 @@ LOG = logging.getLogger(__name__)
 # Full keys follow this format: system.pack_config.<pack name>.<config key name>
 # For example:
 # pack_config.aws.setup.region
-DATASTORE_CONFIG_KEY_PREFIX = ['system', 'pack_config']
+DATASTORE_CONFIG_KEY_PREFIX = ['pack_config']
 DATASTORE_CONFIG_KEY_PREFIX = DATASTORE_KEY_SEPARATOR.join(DATASTORE_CONFIG_KEY_PREFIX)
 
 

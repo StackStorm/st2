@@ -22,4 +22,4 @@ __all__ = [
 SYSTEM_KEY_PREFIX = 'system'
 
 # Separator for keys in the datastore
-DATASTORE_KEY_SEPARATOR = '.'
+DATASTORE_KEY_SEPARATOR = ':'
