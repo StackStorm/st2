@@ -2,6 +2,12 @@
 
 set -e
 
+getent group st2packs >/dev/null || groupadd -r st2packs
+getent passwd stanley >/dev/null || \
+            useradd -r -g stanley -d /home/stanley -s /bin/bash \
+                -c "StackStorm System Account" stanley
+usermod -a -G st2packs stanley || true
+
 mkdir -p /var/log/st2
 mkdir -p /etc/st2
 mkdir -p /opt/stackstorm/packs
