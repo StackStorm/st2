@@ -213,6 +213,8 @@ port = 514
 facility = local7
 
 [system]
+# Enable debug mode.
+debug = False
 # Base path to all st2 artifacts.
 base_path = /opt/stackstorm
 
