@@ -8,6 +8,7 @@ in development
 * TriggerInstances now have statuses to help track if a TriggerInstance has been processed,
   is being processed or failed to process. This bring out some visibility into parts of the
   TriggerInstance processing pipeline and can help identify missed events. (new-feature)
+* Fix for `data` is dropped is `message` is not present in notification. (bug-fix)
 
 1.4.0 - April 18, 2016
 ----------------------
