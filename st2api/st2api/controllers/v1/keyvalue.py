@@ -19,6 +19,7 @@ import six
 from mongoengine import ValidationError
 
 from st2common import log as logging
+from st2common.exceptions.keyvalue import CryptoKeyNotSetupException
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.keyvalue import KeyValuePair
@@ -44,14 +45,20 @@ class KeyValuePairController(RestController):
         self._coordinator = coordination.get_coordinator()
         self.get_one_db_method = self.__get_by_name
 
-    @jsexpose(arg_types=[str])
-    def get_one(self, name):
+    @jsexpose(arg_types=[str, str])
+    def get_one(self, name, decrypt='false'):
         """
             List key by name.
 
             Handle:
                 GET /keys/key1
         """
+
+        if not decrypt:
+            decrypt = False
+        else:
+            decrypt = (decrypt == 'true' or decrypt == 'True' or decrypt == '1')
+
         kvp_db = self.__get_by_name(name=name)
 
         if not kvp_db:
@@ -60,7 +67,7 @@ class KeyValuePairController(RestController):
             return
 
         try:
-            kvp_api = KeyValuePairAPI.from_model(kvp_db)
+            kvp_api = KeyValuePairAPI.from_model(kvp_db, mask_secrets=(not decrypt))
         except (ValidationError, ValueError) as e:
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
             return
@@ -78,12 +85,21 @@ class KeyValuePairController(RestController):
         # Prefix filtering
         prefix_filter = kw.get('prefix', None)
 
+        decrypt = kw.get('decrypt', None)
+        if not decrypt:
+            decrypt = False
+        else:
+            decrypt = (decrypt == 'true' or decrypt == 'True' or decrypt == '1')
+            del kw['decrypt']
+
         if prefix_filter:
             kw['name__startswith'] = prefix_filter
             del kw['prefix']
 
         kvp_dbs = KeyValuePair.get_all(**kw)
-        kvps = [KeyValuePairAPI.from_model(kvp_db) for kvp_db in kvp_dbs]
+        kvps = [KeyValuePairAPI.from_model(
+            kvp_db, mask_secrets=(not decrypt)) for kvp_db in kvp_dbs
+        ]
 
         return kvps
 
@@ -113,7 +129,10 @@ class KeyValuePairController(RestController):
                 LOG.exception('Validation failed for key value data=%s', kvp)
                 abort(http_client.BAD_REQUEST, str(e))
                 return
-
+            except CryptoKeyNotSetupException as e:
+                LOG.exception(str(e))
+                abort(http_client.BAD_REQUEST, str(e))
+                return
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair updated. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
 

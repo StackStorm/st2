@@ -4,3 +4,4 @@ payload:
   t1_p: t1_p_v
   t2_p: t2_p_v
 trigger: wolfpack.triggertype-1
+status: processed

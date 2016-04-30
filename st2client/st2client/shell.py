@@ -107,7 +107,7 @@ class Shell(object):
             action='store',
             dest='base_url',
             default=None,
-            help='Base URL for the API servers. Assumes all servers uses the '
+            help='Base URL for the API servers. Assumes all servers use the '
                  'same base URL and default ports are used. Get ST2_BASE_URL'
                  'from the environment variables by default.'
         )
@@ -117,7 +117,7 @@ class Shell(object):
             action='store',
             dest='auth_url',
             default=None,
-            help='URL for the autentication service. Get ST2_AUTH_URL'
+            help='URL for the authentication service. Get ST2_AUTH_URL'
                  'from the environment variables by default.'
         )
 
@@ -135,7 +135,7 @@ class Shell(object):
             action='store',
             dest='api_version',
             default=None,
-            help='API version to sue. Get ST2_API_VERSION'
+            help='API version to use. Get ST2_API_VERSION'
                  'from the environment variables by default.'
         )
 

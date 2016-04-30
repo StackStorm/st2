@@ -67,6 +67,7 @@ def register_opts(ignore_errors=False):
     do_register_opts(schema_opts, 'schema', ignore_errors)
 
     system_opts = [
+        cfg.BoolOpt('debug', help='Enable debug mode.', default=False),
         cfg.StrOpt('base_path', default='/opt/stackstorm',
                    help='Base path to all st2 artifacts.')
     ]
@@ -155,6 +156,17 @@ def register_opts(ignore_errors=False):
                     help='True to mask secrets in the API responses')
     ]
     do_register_opts(api_opts, 'api', ignore_errors)
+
+    # Key Value store options
+    keyvalue_opts = [
+        cfg.BoolOpt('enable_encryption', default=True,
+                    help='Allow encryption of values in key value stored qualified as "secret".'),
+        cfg.StrOpt('encryption_key_path', default='',
+                   help='Location of the symmetric encryption key for encrypting values in ' +
+                        'kvstore. This key should be in JSON and should\'ve been ' +
+                        'generated using keyczar.')
+    ]
+    do_register_opts(keyvalue_opts, group='keyvalue')
 
     # Common auth options
     auth_opts = [

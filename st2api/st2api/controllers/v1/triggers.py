@@ -357,7 +357,8 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
     supported_filters = {
         'trigger': 'trigger',
         'timestamp_gt': 'occurrence_time.gt',
-        'timestamp_lt': 'occurrence_time.lt'
+        'timestamp_lt': 'occurrence_time.lt',
+        'status': 'status'
     }
 
     filter_transform_functions = {

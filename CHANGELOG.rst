@@ -5,7 +5,13 @@ in development
 --------------
 
 * SSL support for mongodb connections. (improvement)
-
+* TriggerInstances now have statuses to help track if a TriggerInstance has been processed,
+  is being processed or failed to process. This bring out some visibility into parts of the
+  TriggerInstance processing pipeline and can help identify missed events. (new-feature)
+* Allow user to enable service debug mode by setting ``system.debug`` config file option to
+  ``True``.
+  Note: This is an alternative to the existing ``--debug`` CLI flag which comes handy when running
+  API services under gunicorn. (improvement)
 
 1.4.0 - April 18, 2016
 ----------------------

@@ -57,3 +57,16 @@ class TestKeyValueLookup(CleanDbTestCase):
         lookup = KeyValueLookup()
         self.assertEquals(str(lookup.missing_key), '')
         self.assertTrue(lookup.missing_key, 'Should be not none.')
+
+    def test_secret_lookup(self):
+        secret_value = '0055A2D9A09E1071931925933744965EEA7E23DCF59A8D1D7A3' + \
+                       '64338294916D37E83C4796283C584751750E39844E2FD97A3727DB5D553F638'
+        k1 = KeyValuePair.add_or_update(KeyValuePairDB(
+            name='k1', value=secret_value,
+            secret=True, encrypted=True)
+        )
+        k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='k2', value='v2'))
+
+        lookup = KeyValueLookup()
+        self.assertEquals(str(lookup.k1), k1.value)
+        self.assertEquals(str(lookup.k2), k2.value)

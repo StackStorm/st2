@@ -73,22 +73,8 @@ class TestResourceCommand(unittest2.TestCase):
         self.assertEqual(actual, expected)
 
     @mock.patch.object(
-        models.ResourceManager, 'get_by_name',
-        mock.MagicMock(return_value=base.FakeResource(**base.RESOURCES[0])))
-    @mock.patch.object(
-        models.ResourceManager, 'get_by_id',
-        mock.MagicMock(return_value=None))
-    def test_command_get_by_name(self):
-        args = self.parser.parse_args(['fakeresource', 'get', 'abc'])
-        self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
-        instance = self.branch.commands['get'].run(args)
-        actual = instance.serialize()
-        expected = json.loads(json.dumps(base.RESOURCES[0]))
-        self.assertEqual(actual, expected)
-
-    @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, 'OK')))
     def test_command_get(self):
         args = self.parser.parse_args(['fakeresource', 'get', 'abc'])
         self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
