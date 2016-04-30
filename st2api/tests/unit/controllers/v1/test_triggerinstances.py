@@ -17,6 +17,7 @@ import mock
 import six
 import datetime
 
+from st2common.constants.triggers import TRIGGER_INSTANCE_PROCESSED
 from st2common.transport.publishers import PoolPublisher
 from st2common.persistence.trigger import TriggerInstance
 from st2common.models.db.trigger import TriggerInstanceDB
@@ -183,6 +184,7 @@ class TestTriggerController(FunctionalTest):
         trigger_instance.trigger = trigger_ref
         trigger_instance.payload = payload
         trigger_instance.occurrence_time = occurrence_time
+        trigger_instance.status = TRIGGER_INSTANCE_PROCESSED
         created = TriggerInstance.add_or_update(trigger_instance)
         cls.triggerinstance_count += 1
         return created

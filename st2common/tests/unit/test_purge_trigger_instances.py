@@ -16,6 +16,7 @@
 from datetime import timedelta
 
 from st2common import log as logging
+from st2common.constants.triggers import TRIGGER_INSTANCE_PROCESSED
 from st2common.garbage_collection.trigger_instances import purge_trigger_instances
 from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.persistence.trigger import TriggerInstance
@@ -40,7 +41,8 @@ class TestPurgeTriggerInstances(CleanDbTestCase):
 
         instance_db = TriggerInstanceDB(trigger='purge_tool.dummy.trigger',
                                         payload={'hola': 'hi', 'kuraci': 'chicken'},
-                                        occurrence_time=now - timedelta(days=20))
+                                        occurrence_time=now - timedelta(days=20),
+                                        status=TRIGGER_INSTANCE_PROCESSED)
         TriggerInstance.add_or_update(instance_db)
 
         self.assertEqual(len(TriggerInstance.get_all()), 1)
@@ -55,12 +57,14 @@ class TestPurgeTriggerInstances(CleanDbTestCase):
 
         instance_db = TriggerInstanceDB(trigger='purge_tool.dummy.trigger',
                                         payload={'hola': 'hi', 'kuraci': 'chicken'},
-                                        occurrence_time=now - timedelta(days=20))
+                                        occurrence_time=now - timedelta(days=20),
+                                        status=TRIGGER_INSTANCE_PROCESSED)
         TriggerInstance.add_or_update(instance_db)
 
         instance_db = TriggerInstanceDB(trigger='purge_tool.dummy.trigger',
                                         payload={'hola': 'hi', 'kuraci': 'chicken'},
-                                        occurrence_time=now - timedelta(days=5))
+                                        occurrence_time=now - timedelta(days=5),
+                                        status=TRIGGER_INSTANCE_PROCESSED)
         TriggerInstance.add_or_update(instance_db)
 
         self.assertEqual(len(TriggerInstance.get_all()), 2)

@@ -16,6 +16,7 @@
 import six
 
 from st2common import log as logging
+from st2common.constants.triggers import TRIGGER_INSTANCE_PENDING
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.trigger import TriggerInstanceDB
 from st2common.persistence.trigger import TriggerInstance
@@ -57,4 +58,10 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
     trigger_instance.trigger = trigger_ref
     trigger_instance.payload = payload
     trigger_instance.occurrence_time = occurrence_time
+    trigger_instance.status = TRIGGER_INSTANCE_PENDING
+    return TriggerInstance.add_or_update(trigger_instance)
+
+
+def update_trigger_instance_status(trigger_instance, status):
+    trigger_instance.status = status
     return TriggerInstance.add_or_update(trigger_instance)
