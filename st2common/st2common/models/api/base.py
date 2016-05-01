@@ -171,17 +171,30 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
             types = copy.copy(arg_types)
             more = [args.pop(0)]
 
+            def cast_value(value_type, value):
+                if value_type == bool:
+                    def cast_func(value):
+                        return value.lower() in ['1', 'true']
+                else:
+                    cast_func = value_type
+
+                result = cast_func(value)
+                return result
+
             if types:
                 argspec = inspect.getargspec(f)
                 names = argspec.args[1:]
 
                 for name in names:
                     try:
-                        a = args.pop(0)
-                        more.append(types.pop(0)(a))
+                        value = args.pop(0)
+                        value = cast_value(value_type=types.pop(0), value=value)
+                        more.append(value)
                     except IndexError:
                         try:
-                            kwargs[name] = types.pop(0)(kwargs[name])
+                            value = kwargs[name]
+                            value = cast_value(value_type=types.pop(0), value=value)
+                            kwargs[name] = value
                         except IndexError:
                             LOG.warning("Type definition for '%s' argument of '%s' "
                                         "is missing.", name, f.__name__)
