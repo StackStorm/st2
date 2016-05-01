@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import abc
-import copy
 import functools
 import inspect
 
@@ -160,6 +159,8 @@ def get_controller_args_for_types(func, arg_types, args, kwargs):
     """
     Build a list of arguments and dictionary of keyword arguments which are passed to the
     controller method based on the arg_types specification.
+
+    Note: args argument is mutated in place.
     """
     result_args = []
     result_kwargs = {}
