@@ -26,6 +26,7 @@ TEST_MODELS = {
     'aliases': ['alias1.yaml', 'alias2.yaml']
 }
 
+
 class JsexposeDecoratorTestCase(FunctionalTest):
     """
     Test case which tests various invalid requests and makes sure they are correctly handled by
@@ -44,7 +45,8 @@ class JsexposeDecoratorTestCase(FunctionalTest):
 
     def test_invalid_number_of_arguments_results_in_resource_not_found(self):
         # Invalid path (additional path components after the id)
-        resp = self.app.get('/v1/actionalias/%s/some/more/args' % (self.alias1.id), expect_errors=True)
+        resp = self.app.get('/v1/actionalias/%s/some/more/args' % (self.alias1.id),
+                            expect_errors=True)
         self.assertEqual(resp.status_int, 404)
         self.assertEqual(resp.json['faultstring'], 'The resource could not be found.')
 
