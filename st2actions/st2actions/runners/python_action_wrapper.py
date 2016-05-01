@@ -23,7 +23,7 @@ from st2actions.runners.pythonrunner import Action
 from st2actions.runners.utils import get_logger_for_python_runner_action
 from st2actions.runners.utils import get_action_class_instance
 from st2common.util import loader as action_loader
-from st2common.util.config_parser import ContentPackConfigParser
+from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.service_setup import db_setup
 from st2common.services.datastore import DatastoreService
@@ -120,16 +120,13 @@ class PythonActionWrapper(object):
             raise Exception('File "%s" has no action or the file doesn\'t exist.' %
                             (self._file_path))
 
-        config_parser = ContentPackConfigParser(pack_name=self._pack)
-        config = config_parser.get_action_config(action_file_path=self._file_path)
+        config_loader = ContentPackConfigLoader(pack_name=self._pack)
+        config = config_loader.get_config()
 
         if config:
-            LOG.info('Using config "%s" for action "%s"' % (config.file_path,
-                                                            self._file_path))
-            config = config.config
+            LOG.info('Found config for action "%s"' % (self._file_path))
         else:
             LOG.info('No config found for action "%s"' % (self._file_path))
-            config = None
 
         action_service = ActionService(action_wrapper=self)
         action_instance = get_action_class_instance(action_cls=action_cls,
