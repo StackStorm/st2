@@ -146,7 +146,7 @@ class APIUIDMixin(object):
 
 def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='application/json'):
     """
-    :param arg_types: A list of types for the function arguments.
+    :param arg_types: A list of types for the function arguments (e.g. [str, str, int, bool]).
     :type arg_types: ``list``
 
     :param body_cls: Request body class. If provided, this class will be used to create an instance

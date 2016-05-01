@@ -128,7 +128,9 @@ def get_exception_for_type_error(func, exc):
         # User passed in an unsupported query parameter
         groups = re.match(unexpected_keyword_arg_pattern, message).groups()
         query_param_name = groups[0]
-        result = ValueError('Unsupported query parameter: %s' % (query_param_name))
+
+        msg = 'Unsupported query parameter: %s' % (query_param_name)
+        result = webob_exc.HTTPBadRequest(detail=msg)
     else:
         result = exc
 
