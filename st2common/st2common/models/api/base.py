@@ -185,21 +185,29 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                 argspec = inspect.getargspec(f)
                 names = argspec.args[1:]
 
-                for name in names:
-                    try:
-                        value = args.pop(0)
-                        value = cast_value(value_type=types.pop(0), value=value)
-                        more.append(value)
-                    except IndexError:
+                for index, name in enumerate(names):
+                    # 1. Try kwargs first
+                    if name in kwargs:
                         try:
                             value = kwargs[name]
-                            value = cast_value(value_type=types.pop(0), value=value)
+                            value_type = types[index]
+                            value = cast_value(value_type=value_type, value=value)
                             kwargs[name] = value
                         except IndexError:
                             LOG.warning("Type definition for '%s' argument of '%s' "
                                         "is missing.", name, f.__name__)
-                        except KeyError:
-                            pass
+
+                        continue
+
+                    # 2. Try positional args
+                    try:
+                        value = args.pop(0)
+                        value_type = types[index]
+                        value = cast_value(value_type=value_type, value=value)
+                        more.append(value)
+                    except IndexError:
+                        LOG.warning("Type definition for '%s' argument of '%s' "
+                                    "is missing.", name, f.__name__)
 
             if body_cls:
                 if pecan.request.body:
