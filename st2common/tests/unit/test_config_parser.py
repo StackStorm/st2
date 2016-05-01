@@ -24,29 +24,22 @@ class ContentPackConfigParserTestCase(TestCase):
         super(ContentPackConfigParserTestCase, self).setUp()
         tests_config.parse_args()
 
-    def test_get_action_config_inexistent_pack(self):
+    def test_get_config_inexistent_pack(self):
         parser = ContentPackConfigParser(pack_name='inexistent')
-        config = parser.get_action_config(action_file_path='test.py')
+        config = parser.get_config()
         self.assertEqual(config, None)
 
-    def test_get_action_and_sensor_config_no_config(self):
+    def test_get_config_no_config(self):
         pack_name = 'dummy_pack_1'
         parser = ContentPackConfigParser(pack_name=pack_name)
 
-        config = parser.get_action_config(action_file_path='my_action.py')
+        config = parser.get_config()
         self.assertEqual(config, None)
 
-        config = parser.get_sensor_config(sensor_file_path='my_sensor.py')
-        self.assertEqual(config, None)
-
-    def test_get_action_and_sensor_config_existing_config(self):
+    def test_get_config_existing_config(self):
         pack_name = 'dummy_pack_2'
         parser = ContentPackConfigParser(pack_name=pack_name)
 
-        config = parser.get_action_config(action_file_path='my_action.py')
-        self.assertEqual(config.config['section1']['key1'], 'value1')
-        self.assertEqual(config.config['section2']['key10'], 'value10')
-
-        config = parser.get_sensor_config(sensor_file_path='my_sensor.py')
+        config = parser.get_config()
         self.assertEqual(config.config['section1']['key1'], 'value1')
         self.assertEqual(config.config['section2']['key10'], 'value10')

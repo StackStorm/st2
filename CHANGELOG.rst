@@ -12,8 +12,6 @@ in development
   ``True``.
   Note: This is an alternative to the existing ``--debug`` CLI flag which comes handy when running
   API services under gunicorn. (improvement)
-* Remove support for action and sensor local config files in favor of config values provided in the
-  datastore. (improvement)
 
 1.4.0 - April 18, 2016
 ----------------------
