@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from mock import Mock
+
 from st2tests.base import CleanDbTestCase
 from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.services import config as config_service
@@ -73,3 +75,11 @@ class ConfigLoaderTestCase(CleanDbTestCase):
             'private_key_path': None
         }
         self.assertEqual(config, expected_config)
+
+    def test_get_config_config_not_available(self):
+        loader = ContentPackConfigLoader(pack_name='dummy_pack_4')
+        loader._config_parser.get_config = Mock()
+        loader._config_parser.get_config.return_value = None
+
+        config = loader.get_config()
+        self.assertEqual(config, {})

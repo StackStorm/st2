@@ -82,6 +82,9 @@ class ContentPackConfigLoader(object):
         """
         result = {}
 
+        if not config:
+            return result
+
         for key, value in six.iteritems(config):
             datastore_name = config_service.get_datastore_key_name(pack_name=self.pack_name,
                                                                    key_name=key)
@@ -102,6 +105,10 @@ class ContentPackConfigLoader(object):
         built from the values in config.yaml file.
         """
         result = {}
+
+        if not config:
+            # No config available
+            return result
 
         config_schema = self._get_config_schema_for_config(config=config)
         for key_name, key_value in six.iteritems(config_schema):
