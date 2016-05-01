@@ -19,12 +19,15 @@ import mock
 
 from st2actions.runners import pythonrunner
 from st2actions.runners.pythonrunner import Action
+from st2actions.runners.python_action_wrapper import PythonActionWrapper
 from st2actions.container import service
 from st2actions.runners.utils import get_action_class_instance
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.services import config as config_service
 from base import RunnerTestCase
+from st2tests.base import CleanDbTestCase
 import st2tests.base as tests_base
 import st2tests.config as tests_config
 
@@ -39,12 +42,7 @@ mock_sys.argv = []
 
 
 @mock.patch('st2actions.runners.pythonrunner.sys', mock_sys)
-class PythonRunnerTestCase(RunnerTestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        tests_config.parse_args()
-
+class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_runner_creation(self):
         runner = pythonrunner.get_runner()
         self.assertTrue(runner is not None, 'Creation failed. No instance.')
@@ -61,6 +59,21 @@ class PythonRunnerTestCase(RunnerTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(result is not None)
         self.assertEqual(result['result'], [1, 4, 6, 4, 1])
+
+    def test_simple_action_config_value_provided_overriden_in_datastore(self):
+        wrapper = PythonActionWrapper(pack='dummy_pack_4', file_path=PACAL_ROW_ACTION_PATH)
+
+        # No values provided in the datastore
+        instance = wrapper._get_action_instance()
+        self.assertEqual(instance.config['api_secret'], '')
+
+        # api_secret overriden in the datastore
+        config_service.set_datastore_value_for_config_key(pack_name='dummy_pack_4',
+                                                          key_name='api_secret',
+                                                          value='foosecret')
+
+        instance = wrapper._get_action_instance()
+        self.assertEqual(instance.config['api_secret'], 'foosecret')
 
     def test_simple_action_fail(self):
         runner = pythonrunner.get_runner()
