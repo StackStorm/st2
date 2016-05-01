@@ -144,6 +144,56 @@ class APIUIDMixin(object):
         return pack_uid
 
 
+def cast_argument_value(value_type, value):
+    if value_type == bool:
+        def cast_func(value):
+            value = str(value)
+            return value.lower() in ['1', 'true']
+    else:
+        cast_func = value_type
+
+    result = cast_func(value)
+    return result
+
+
+def get_controller_args_for_types(func, arg_types, args, kwargs):
+    """
+    Build a list of arguments and dictionary of keyword arguments which are passed to the
+    controller method based on the arg_types specification.
+    """
+    result_args = []
+    result_kwargs = {}
+
+    argspec = inspect.getargspec(func)
+    names = argspec.args[1:]  # Note: we skip "self"
+
+    for index, name in enumerate(names):
+        # 1. Try kwargs first
+        if name in kwargs:
+            try:
+                value = kwargs[name]
+                value_type = arg_types[index]
+                value = cast_argument_value(value_type=value_type, value=value)
+                result_kwargs[name] = value
+            except IndexError:
+                LOG.warning("Type definition for '%s' argument of '%s' is missing.",
+                            name, func.__name__)
+
+            continue
+
+        # 2. Try positional args
+        try:
+            value = args.pop(0)
+            value_type = arg_types[index]
+            value = cast_argument_value(value_type=value_type, value=value)
+            result_args.append(value)
+        except IndexError:
+            LOG.warning("Type definition for '%s' argument of '%s' is missing.",
+                        name, func.__name__)
+
+    return result_args, result_kwargs
+
+
 def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='application/json'):
     """
     :param arg_types: A list of types for the function arguments (e.g. [str, str, int, bool]).
@@ -168,7 +218,6 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
         def callfunction(*args, **kwargs):
             function_name = f.__name__
             args = list(args)
-            types = copy.copy(arg_types)
             more = [args.pop(0)]
 
             def cast_value(value_type, value):
@@ -181,33 +230,14 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                 result = cast_func(value)
                 return result
 
-            if types:
-                argspec = inspect.getargspec(f)
-                names = argspec.args[1:]
-
-                for index, name in enumerate(names):
-                    # 1. Try kwargs first
-                    if name in kwargs:
-                        try:
-                            value = kwargs[name]
-                            value_type = types[index]
-                            value = cast_value(value_type=value_type, value=value)
-                            kwargs[name] = value
-                        except IndexError:
-                            LOG.warning("Type definition for '%s' argument of '%s' "
-                                        "is missing.", name, f.__name__)
-
-                        continue
-
-                    # 2. Try positional args
-                    try:
-                        value = args.pop(0)
-                        value_type = types[index]
-                        value = cast_value(value_type=value_type, value=value)
-                        more.append(value)
-                    except IndexError:
-                        LOG.warning("Type definition for '%s' argument of '%s' "
-                                    "is missing.", name, f.__name__)
+            if arg_types:
+                # Cast and transform arguments based on the provided arg_types specification
+                result_args, result_kwargs = get_controller_args_for_types(func=f,
+                                                                           arg_types=arg_types,
+                                                                           args=args,
+                                                                           kwargs=kwargs)
+                more = more + result_args
+                kwargs.update(result_kwargs)
 
             if body_cls:
                 if pecan.request.body:
