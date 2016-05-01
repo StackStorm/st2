@@ -45,20 +45,14 @@ class KeyValuePairController(RestController):
         self._coordinator = coordination.get_coordinator()
         self.get_one_db_method = self.__get_by_name
 
-    @jsexpose(arg_types=[str, str])
-    def get_one(self, name, decrypt='false'):
+    @jsexpose(arg_types=[str, bool])
+    def get_one(self, name, decrypt=False):
         """
             List key by name.
 
             Handle:
                 GET /keys/key1
         """
-
-        if not decrypt:
-            decrypt = False
-        else:
-            decrypt = (decrypt == 'true' or decrypt == 'True' or decrypt == '1')
-
         kvp_db = self.__get_by_name(name=name)
 
         if not kvp_db:
@@ -74,8 +68,8 @@ class KeyValuePairController(RestController):
 
         return kvp_api
 
-    @jsexpose(arg_types=[str])
-    def get_all(self, **kw):
+    @jsexpose(arg_types=[str, bool])
+    def get_all(self, prefix=None, decrypt=False):
         """
             List all keys.
 
@@ -83,20 +77,12 @@ class KeyValuePairController(RestController):
                 GET /keys/
         """
         # Prefix filtering
-        prefix_filter = kw.get('prefix', None)
+        filters = {}
 
-        decrypt = kw.get('decrypt', None)
-        if not decrypt:
-            decrypt = False
-        else:
-            decrypt = (decrypt == 'true' or decrypt == 'True' or decrypt == '1')
-            del kw['decrypt']
+        if prefix:
+            filters['name__startswith'] = prefix
 
-        if prefix_filter:
-            kw['name__startswith'] = prefix_filter
-            del kw['prefix']
-
-        kvp_dbs = KeyValuePair.get_all(**kw)
+        kvp_dbs = KeyValuePair.get_all(**filters)
         kvps = [KeyValuePairAPI.from_model(
             kvp_db, mask_secrets=(not decrypt)) for kvp_db in kvp_dbs
         ]
