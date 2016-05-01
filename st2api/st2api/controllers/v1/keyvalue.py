@@ -69,7 +69,7 @@ class KeyValuePairController(RestController):
         return kvp_api
 
     @jsexpose(arg_types=[str, bool])
-    def get_all(self, prefix=None, decrypt=False):
+    def get_all(self, prefix=None, decrypt=False, **kwargs):
         """
             List all keys.
 
@@ -78,6 +78,7 @@ class KeyValuePairController(RestController):
         """
         # Prefix filtering
         filters = {}
+        filters.update(kwargs)
 
         if prefix:
             filters['name__startswith'] = prefix
