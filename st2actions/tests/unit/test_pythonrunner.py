@@ -29,7 +29,6 @@ from st2common.services import config as config_service
 from base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 import st2tests.base as tests_base
-import st2tests.config as tests_config
 
 
 PACAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
