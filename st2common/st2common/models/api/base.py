@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
 import abc
 import copy
 import functools
@@ -32,6 +31,7 @@ from st2common.util import mongoescape as util_mongodb
 from st2common.util import schema as util_schema
 from st2common.util.debugging import is_enabled as is_debugging_enabled
 from st2common.util.jsonify import json_encode
+from st2common.util.api import get_exception_for_type_error
 from st2common import log as logging
 
 __all__ = [
@@ -250,17 +250,8 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
             try:
                 result = f(*args, **kwargs)
             except TypeError as e:
-                message = str(e)
-                # Invalid number of arguments passed to the function meaning invalid path was
-                # requested
-                # Note: The check is hacky, but it works for now.
-                func_name = f.__name__
-                pattern = '%s\(\) takes exactly \d+ arguments \(\d+ given\)' % (func_name)
-
-                if re.search(pattern, message):
-                    raise exc.HTTPNotFound()
-                else:
-                    raise e
+                e = get_exception_for_type_error(func=f, exc=e)
+                raise e
 
             if status_code:
                 pecan.response.status = status_code
