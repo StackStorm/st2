@@ -22,6 +22,7 @@ stevedore>=1.7.0,<1.8
 bencode>=1.0,<1.1
 paramiko>=1.16.0,<1.17
 networkx==1.10
+python-keyczar==0.715
 # Note: We want to use virtualenv 13.1.2 since it uses pip 7.1.2 and versions
 # >= 14.0 use pip 8.8.0 which is incompatible with our code
 virtualenv>=13.1.2,<14.0
