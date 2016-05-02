@@ -97,7 +97,7 @@ workflows:
 
         publish:
           notify_channel: <% task(check_auto_deploy_repo).result.result.notify_channel %>
-          deployment_branch: <% task(check_auto_deploy_repo).result.deployment_branch %>
+          deployment_branch: <% task(check_auto_deploy_repo).result.result.deployment_branch %>
 
         on-success:
           - auto_deploy_install
@@ -115,8 +115,8 @@ workflows:
           branch: <% $.deployment_branch %>
 
         publish:
-          repo_url: <% task(auto_deploy_install).result.result.repo_url %>
-          pack: <% task(auto_deploy_install).result.result.pack %>
+          repo_url: <% task(auto_deploy_install).result.repo_url %>
+          pack: <% task(auto_deploy_install).result.pack %>
 
         on-success:
           - notify_success
