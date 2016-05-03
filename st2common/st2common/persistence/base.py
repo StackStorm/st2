@@ -120,7 +120,7 @@ class Access(object):
             model_object = cls._get_impl().insert(model_object)
         except NotUniqueError as e:
             if log_not_unique_error_as_debug:
-                LOG.debug('Conflict while trying to save in DB.', exc_info=True)
+                LOG.debug('Conflict while trying to save in DB: %s.' % (str(e)))
             else:
                 LOG.exception('Conflict while trying to save in DB.')
             # On a conflict determine the conflicting object and return its id in
@@ -155,7 +155,7 @@ class Access(object):
             model_object = cls._get_impl().add_or_update(model_object)
         except NotUniqueError as e:
             if log_not_unique_error_as_debug:
-                LOG.debug('Conflict while trying to save in DB.', exc_info=True)
+                LOG.debug('Conflict while trying to save in DB: %s.' % (str(e)))
             else:
                 LOG.exception('Conflict while trying to save in DB.')
             # On a conflict determine the conflicting object and return its id in
