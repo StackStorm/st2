@@ -31,6 +31,7 @@ from st2common.exceptions import rbac as rbac_exceptions
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.util.jsonify import json_encode
 from st2common.util.auth import validate_token, validate_api_key
+from st2common.util.debugging import is_enabled as is_debugging_enabled
 from st2common.constants.api import REQUEST_ID_HEADER
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
 from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
@@ -268,7 +269,7 @@ class JSONErrorResponseHook(PecanHook):
         else:
             LOG.debug('API call failed: %s', error_msg, extra=extra)
 
-            if cfg.CONF.debug:
+            if is_debugging_enabled():
                 LOG.debug(traceback.format_exc())
 
         body['faultstring'] = message
