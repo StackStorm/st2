@@ -75,7 +75,7 @@ class ResourceController(rest.RestController):
         return self._get_one_by_id(id=id)
 
     def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
-                 **kwargs):
+                 from_model_kwargs=None, **kwargs):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -148,7 +148,8 @@ class ResourceController(rest.RestController):
             pecan.response.headers['X-Limit'] = str(limit)
         pecan.response.headers['X-Total-Count'] = str(instances.count())
 
-        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
 
         result = []
         for instance in instances[offset:eop]:
@@ -161,7 +162,7 @@ class ResourceController(rest.RestController):
         # Note: This is here for backward compatibility reasons
         return self._get_one_by_id(id=id, exclude_fields=exclude_fields)
 
-    def _get_one_by_id(self, id, exclude_fields=None):
+    def _get_one_by_id(self, id, exclude_fields=None, from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -175,13 +176,14 @@ class ResourceController(rest.RestController):
             msg = 'Unable to identify resource with id "%s".' % id
             pecan.abort(http_client.NOT_FOUND, msg)
 
-        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
         result = self.model.from_model(instance, **from_model_kwargs)
         LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
 
-    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None):
+    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None, from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -195,7 +197,8 @@ class ResourceController(rest.RestController):
             msg = 'Unable to identify resource with name_or_id "%s".' % (name_or_id)
             pecan.abort(http_client.NOT_FOUND, msg)
 
-        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
         result = self.model.from_model(instance, **from_model_kwargs)
         LOG.debug('GET %s with name_or_id=%s, client_result=%s', pecan.request.path, id, result)
 

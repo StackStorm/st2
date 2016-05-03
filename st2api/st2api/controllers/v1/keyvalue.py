@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from pecan import abort
-from pecan.rest import RestController
 import six
 from mongoengine import ValidationError
 
@@ -24,6 +23,7 @@ from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services import coordination
+from st2api.controllers.resource import ResourceController
 
 http_client = six.moves.http_client
 
@@ -34,74 +34,48 @@ __all__ = [
 ]
 
 
-class KeyValuePairController(RestController):
+class KeyValuePairController(ResourceController):
     """
     Implements the REST endpoint for managing the key value store.
     """
 
-    # TODO: Port to use ResourceController
+    model = KeyValuePairAPI
+    access = KeyValuePair
+    supported_filters = {
+        'prefix': 'name__startswith'
+    }
+
     def __init__(self):
         super(KeyValuePairController, self).__init__()
         self._coordinator = coordination.get_coordinator()
-        self.get_one_db_method = self.__get_by_name
+        self.get_one_db_method = self._get_by_name
 
-    @jsexpose(arg_types=[str, str])
-    def get_one(self, name, decrypt='false'):
+    @jsexpose(arg_types=[str, bool])
+    def get_one(self, name, decrypt=False):
         """
             List key by name.
 
             Handle:
                 GET /keys/key1
         """
+        from_model_kwargs = {'mask_secrets': not decrypt}
+        kvp_db = super(KeyValuePairController, self)._get_one_by_name_or_id(name_or_id=name,
+            from_model_kwargs=from_model_kwargs)
+        return kvp_db
 
-        if not decrypt:
-            decrypt = False
-        else:
-            decrypt = (decrypt == 'true' or decrypt == 'True' or decrypt == '1')
-
-        kvp_db = self.__get_by_name(name=name)
-
-        if not kvp_db:
-            LOG.exception('Database lookup for name="%s" resulted in exception.', name)
-            abort(http_client.NOT_FOUND)
-            return
-
-        try:
-            kvp_api = KeyValuePairAPI.from_model(kvp_db, mask_secrets=(not decrypt))
-        except (ValidationError, ValueError) as e:
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
-            return
-
-        return kvp_api
-
-    @jsexpose(arg_types=[str])
-    def get_all(self, **kw):
+    @jsexpose(arg_types=[str, bool])
+    def get_all(self, prefix=None, decrypt=False, **kwargs):
         """
             List all keys.
 
             Handles requests:
                 GET /keys/
         """
-        # Prefix filtering
-        prefix_filter = kw.get('prefix', None)
-
-        decrypt = kw.get('decrypt', None)
-        if not decrypt:
-            decrypt = False
-        else:
-            decrypt = (decrypt == 'true' or decrypt == 'True' or decrypt == '1')
-            del kw['decrypt']
-
-        if prefix_filter:
-            kw['name__startswith'] = prefix_filter
-            del kw['prefix']
-
-        kvp_dbs = KeyValuePair.get_all(**kw)
-        kvps = [KeyValuePairAPI.from_model(
-            kvp_db, mask_secrets=(not decrypt)) for kvp_db in kvp_dbs
-        ]
-
-        return kvps
+        from_model_kwargs = {'mask_secrets': not decrypt}
+        kwargs['prefix'] = prefix
+        kvp_dbs = super(KeyValuePairController, self)._get_all(from_model_kwargs=from_model_kwargs,
+                                                               **kwargs)
+        return kvp_dbs
 
     @jsexpose(arg_types=[str, str], body_cls=KeyValuePairAPI)
     def put(self, name, kvp):
@@ -114,7 +88,7 @@ class KeyValuePairController(RestController):
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
-            existing_kvp = self.__get_by_name(name=name)
+            existing_kvp = self._get_by_name(resource_name=name)
 
             kvp.name = name
 
@@ -151,7 +125,7 @@ class KeyValuePairController(RestController):
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
-            kvp_db = self.__get_by_name(name=name)
+            kvp_db = self._get_by_name(resource_name=name)
 
             if not kvp_db:
                 abort(http_client.NOT_FOUND)
@@ -169,14 +143,6 @@ class KeyValuePairController(RestController):
 
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair deleted. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
-
-    @staticmethod
-    def __get_by_name(name):
-        try:
-            return KeyValuePair.get_by_name(name)
-        except ValueError as e:
-            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
-            return None
 
     def _get_lock_name_for_key(self, name):
         """
