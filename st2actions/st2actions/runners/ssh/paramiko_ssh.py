@@ -100,11 +100,13 @@ class ParamikoSSHClient(object):
         if passphrase and not key_material:
             raise ValueError('passphrase should accompany private key material')
 
+        if not key_files and cfg.CONF.system_user.ssh_key_file:
+            key_files = cfg.CONF.system_user.ssh_key_file
+
         self.hostname = hostname
         self.port = port
         self.username = username if username else cfg.CONF.system_user
         self.password = password
-        self.key = key if key else cfg.CONF.system_user.ssh_key_file
         self.key_files = key_files
         self.timeout = timeout or ParamikoSSHClient.CONNECT_TIMEOUT
         self.key_material = key_material

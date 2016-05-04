@@ -145,7 +145,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
                 client_kwargs['pkey_file'] = self._private_key
 
             if self._passphrase:
-                client_kwargs['passphrase'] = passphrase
+                client_kwargs['passphrase'] = self._passphrase
         else:
             client_kwargs['pkey_file'] = self._ssh_key_file
 
