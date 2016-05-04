@@ -143,6 +143,9 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
             else:
                 # Assume it's a path to the key file, verify the file exists
                 client_kwargs['pkey_file'] = self._private_key
+
+            if self._passphrase:
+                client_kwargs['passphrase'] = passphrase
         else:
             client_kwargs['pkey_file'] = self._ssh_key_file
 
