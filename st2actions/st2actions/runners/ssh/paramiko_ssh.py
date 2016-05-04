@@ -534,7 +534,7 @@ class ParamikoSSHClient(object):
             conninfo['password'] = self.password
 
         if self.key_files:
-            conninfo['key_filename'] = self.key_files
+            conninfo['key_files'] = self.key_files
 
         if self.key_material:
             conninfo['pkey'] = self._get_pkey_object(key_material=self.key_material,
