@@ -20,20 +20,13 @@ import six
 import sys
 import copy
 import traceback
-import tempfile
 
-from fabric.api import (put, run, sudo)
-from fabric.context_managers import shell_env
-from fabric.context_managers import settings
-from fabric.tasks import WrappedCallableTask
 from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.models.base import DictSerializableClassMixin
 from st2common.util.shell import quote_unix
 from st2common.constants.action import LIBS_DIR as ACTION_LIBS_DIR
-from st2common.exceptions.fabricrunner import FabricExecutionFailureException
-import st2common.util.jsonify as jsonify
 from st2common.util.secrets import get_secret_parameters
 from st2common.util.secrets import mask_secret_parameters
 
@@ -42,8 +35,6 @@ __all__ = [
     'ShellScriptAction',
     'RemoteAction',
     'RemoteScriptAction',
-    'FabricRemoteAction',
-    'FabricRemoteScriptAction',
     'ResolvedActionParameters'
 ]
 
@@ -162,17 +153,8 @@ class ShellCommandAction(object):
         """
         _, exc_value, exc_traceback = sys.exc_info()
 
-        is_fabric_failure = isinstance(exc_value, FabricExecutionFailureException)
         exc_value = str(exc_value)
         exc_traceback = ''.join(traceback.format_tb(exc_traceback))
-
-        if is_fabric_failure:
-            # Invalid authentication information
-            if 'get_transport().open_session()' in exc_traceback:
-                exc_value = 'Cannot connect to the server - invalid authentication info provided'
-            elif 'sudo password' in exc_value:
-                # sudo is not setup or it requires password
-                exc_value = 'Passwordless sudo needs to be setup for user: %s' % (self.user)
 
         result = {}
         result['failed'] = True
@@ -411,248 +393,6 @@ class RemoteScriptAction(ShellScriptAction):
         str_rep.append('hosts: %s)' % self.hosts)
 
         return ', '.join(str_rep)
-
-
-class FabricRemoteAction(RemoteAction):
-    KEYS_TO_TRANSFORM = ['stdout', 'stderr']
-
-    def get_fabric_task(self):
-        action_method = self._get_action_method()
-        LOG.debug('action_method is %s', action_method)
-        task = WrappedCallableTask(action_method, name=self.name, alias=self.action_exec_id,
-                                   parallel=self.parallel, sudo=self.sudo)
-
-        # We need to explicitly set that since WrappedCallableTask abuses kwargs
-        # and doesn't do anything with "parallel" and "serial" kwarg.
-        # We also need to explicitly set serial since we default to
-        # parallel=True in the environment so just "parallel" won't do.
-        task.parallel = self.parallel
-        task.serial = not self.parallel
-        return task
-
-    def _get_action_method(self):
-        if (self.sudo):
-            return self._sudo
-        return self._run
-
-    def _run(self):
-        fabric_env_vars = self.env_vars
-        fabric_settings = self._get_settings()
-
-        try:
-            with shell_env(**fabric_env_vars), settings(**fabric_settings):
-                output = run(self.command, combine_stderr=False, pty=False, quiet=True)
-        except Exception:
-            LOG.exception('Failed executing remote action.')
-            result = self._get_error_result()
-        else:
-            result = {
-                'stdout': output.stdout,
-                'stderr': output.stderr,
-                'return_code': output.return_code,
-                'succeeded': output.succeeded,
-                'failed': output.failed
-            }
-        finally:
-            self._cleanup(settings=fabric_settings)
-
-        return jsonify.json_loads(result, FabricRemoteAction.KEYS_TO_TRANSFORM)
-
-    def _sudo(self):
-        fabric_env_vars = self.env_vars
-        fabric_settings = self._get_settings()
-
-        try:
-            with shell_env(**fabric_env_vars), settings(**fabric_settings):
-                output = sudo(self.command, combine_stderr=False, pty=True, quiet=True)
-        except Exception:
-            LOG.exception('Failed executing remote action.')
-            result = self._get_error_result()
-        else:
-            result = {
-                'stdout': output.stdout,
-                'stderr': output.stderr,
-                'return_code': output.return_code,
-                'succeeded': output.succeeded,
-                'failed': output.failed
-            }
-        finally:
-            self._cleanup(settings=fabric_settings)
-
-        # XXX: For sudo, fabric requires to set pty=True. This basically combines stdout and
-        # stderr into a single stdout stream. So if the command fails, we explictly set stderr
-        # to stdout and stdout to ''.
-        if result['failed'] and result.get('stdout', None):
-            result['stderr'] = result['stdout']
-            result['stdout'] = ''
-
-        return jsonify.json_loads(result, FabricRemoteAction.KEYS_TO_TRANSFORM)
-
-    def _get_settings(self):
-        """
-        Retrieve settings used for the fabric command execution.
-        """
-        settings = {
-            'user': self.user,
-            'command_timeout': self.timeout,
-            'cwd': self.cwd
-        }
-
-        if self.password:
-            settings['password'] = self.password
-
-        if self.private_key:
-            # Fabric doesn't support passing key as string so we need to write
-            # it to a temporary file
-            key_file_path = self._write_private_key(private_key_material=self.private_key)
-            settings['key_filename'] = key_file_path
-
-        return settings
-
-    def _get_env_vars(self):
-        """
-        Retrieve environment variables used for the fabric command execution.
-        """
-        env_vars = self.env_vars or {}
-        return env_vars
-
-    def _cleanup(self, settings):
-        """
-        Clean function which is ran after executing a fabric command.
-
-        :param settings: Fabric settings.
-        """
-        temporary_key_file_path = settings.get('key_filename', None)
-
-        if temporary_key_file_path:
-            self._remove_private_key_file(file_path=temporary_key_file_path)
-
-    def _write_private_key(self, private_key_material):
-        """
-        Write private key to a temporary file and return path to the file.
-        """
-        _, key_file_path = tempfile.mkstemp()
-        with open(key_file_path, 'w') as fp:
-            fp.write(private_key_material)
-
-        return key_file_path
-
-    def _remove_private_key_file(self, file_path):
-        """
-        Remove private key file if temporary private key is used to log in.
-        """
-        if not file_path or '/tmp' not in file_path:
-            return False
-
-        try:
-            os.remove(file_path)
-        except Exception:
-            pass
-
-        return True
-
-
-class FabricRemoteScriptAction(RemoteScriptAction, FabricRemoteAction):
-    def get_fabric_task(self):
-        return self._get_script_action_method()
-
-    def _get_script_action_method(self):
-        task = WrappedCallableTask(self._run_script_with_settings, name=self.name,
-                                   alias=self.action_exec_id, parallel=self.parallel,
-                                   sudo=self.sudo)
-        task.parallel = self.parallel
-        task.serial = not self.parallel
-        return task
-
-    def _run_script_with_settings(self):
-        fabric_env_vars = self.env_vars
-        fabric_settings = self._get_settings()
-
-        with shell_env(**fabric_env_vars), settings(**fabric_settings):
-            return self._run_script()
-
-    def _run_script(self):
-        try:
-            self._execute_remote_command('mkdir %s' % self.remote_dir)
-
-            # Copy script.
-            output_put = self._put(self.script_local_path_abs,
-                                   mirror_local_mode=False, mode=0744)
-            if output_put.get('failed'):
-                return output_put
-
-            # Copy libs.
-            if self.script_local_libs_path_abs and os.path.exists(self.script_local_libs_path_abs):
-                output_put_libs = self._put(self.script_local_libs_path_abs)
-                if output_put_libs.get('failed'):
-                    return output_put_libs
-
-            # Execute action.
-            action_method = self._get_action_method()
-            result = action_method()
-
-            # Cleanup.
-            cmd1 = self._get_command_string(cmd='rm -f', args=[self.remote_script])
-            cmd2 = self._get_command_string(cmd='rm -rf', args=[self.remote_dir])
-            self._execute_remote_command(cmd1)
-            self._execute_remote_command(cmd2)
-        except Exception:
-            LOG.exception('Failed executing remote action.')
-            result = self._get_error_result()
-
-        return result
-
-    def _get_command_string(self, cmd, args):
-        """
-        Escape the command arguments and form a command string.
-
-        :type cmd: ``str``
-        :type args: ``list``
-
-        :rtype: ``str``
-        """
-        assert isinstance(args, (list, tuple))
-
-        args = [quote_unix(arg) for arg in args]
-        args = ' '.join(args)
-        result = '%s %s' % (cmd, args)
-        return result
-
-    def _execute_remote_command(self, command):
-        action_method = sudo if self.sudo else run
-        output = action_method(command, combine_stderr=False, pty=False, quiet=True)
-
-        if output.failed:
-            msg = 'Remote command %s failed.' % command
-            # XXX: Note Fabric doesn't handle unicode correctly if stdout or stderr contains
-            # unicode and action fails. For now, just log stdout and stderr so we can debug
-            # from logs.
-            # Fabric will show an exception traceback like:
-            # 'ascii' codec can't encode character u'\u2018' in position 93:
-            # ordinal not in range(128)
-            #
-            LOG.error('stderr: %s', output.stderr)
-            LOG.error('stdout: %s', output.stdout)
-            LOG.error(msg)
-            raise Exception(msg)
-
-        LOG.debug('Remote command %s succeeded.', command)
-        return True
-
-    def _put(self, file_or_dir, mirror_local_mode=True, mode=None):
-        output = put(file_or_dir, self.remote_dir, use_sudo=self.sudo,
-                     mirror_local_mode=mirror_local_mode, mode=mode)
-
-        result = {
-            'succeeded': output.succeeded,
-            'failed': output.failed
-        }
-
-        if output.failed:
-            msg = 'Failed copying %s to %s on remote box' % (file_or_dir, self.remote_dir)
-            LOG.error(msg)
-            result['error'] = msg
-        return result
 
 
 class ResolvedActionParameters(DictSerializableClassMixin):
