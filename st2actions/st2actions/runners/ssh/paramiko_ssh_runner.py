@@ -147,6 +147,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
             if self._passphrase:
                 client_kwargs['passphrase'] = self._passphrase
         else:
+            # Default to stanley key file specified in the config
             client_kwargs['pkey_file'] = self._ssh_key_file
 
         self._parallel_ssh_client = ParallelSSHClient(**client_kwargs)
