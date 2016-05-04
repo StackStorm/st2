@@ -233,7 +233,7 @@ class ParallelSSHClient(object):
 
         client = ParamikoSSHClient(hostname, username=self._ssh_user,
                                    password=self._ssh_password,
-                                   key=self._ssh_key_file,
+                                   key_files=self._ssh_key_file,
                                    key_material=self._ssh_key_material,
                                    passphrase=self._passphrase,
                                    port=port)
