@@ -122,7 +122,17 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                                 expected_msg, mock.connect)
 
     @patch('paramiko.SSHClient', Mock)
-    def test_key_with_passphrase(self):
+    def test_passphrase_no_key_provided(self):
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'passphrase': 'testphrase'}
+
+        expected_msg = 'passphrase should accompany private key material'
+        self.assertRaisesRegexp(ValueError, expected_msg, ParamikoSSHClient,
+                                **conn_params)
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_key_with_passphrase_success(self):
         path = os.path.join(get_resources_base_path(),
                             'ssh', 'dummy_rsa_passphrase')
 
