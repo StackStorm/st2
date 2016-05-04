@@ -81,7 +81,7 @@ class ParamikoSSHClient(object):
     CONNECT_TIMEOUT = 60
 
     def __init__(self, hostname, port=22, username=None, password=None, bastion_host=None,
-                 key=None, key_files=None, key_material=None, timeout=None, passphrase=None):
+                 key_files=None, key_material=None, timeout=None, passphrase=None):
         """
         Authentication is always attempted in the following order:
 
@@ -106,8 +106,6 @@ class ParamikoSSHClient(object):
         self.password = password
         self.key = key if key else cfg.CONF.system_user.ssh_key_file
         self.key_files = key_files
-        if not self.key_files and self.key:
-            self.key_files = key  # `key` arg is deprecated.
         self.timeout = timeout or ParamikoSSHClient.CONNECT_TIMEOUT
         self.key_material = key_material
         self.client = None
@@ -535,6 +533,10 @@ class ParamikoSSHClient(object):
 
         if self.key_files:
             conninfo['key_filename'] = self.key_files
+
+            if self.passphrase:
+                # Optional passphrase for unlocking the private key
+                conninfo['password'] = self.passphrase
 
         if self.key_material:
             conninfo['pkey'] = self._get_pkey_object(key_material=self.key_material,
