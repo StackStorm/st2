@@ -97,7 +97,7 @@ class ParamikoSSHClient(object):
             raise ValueError(('key_files and key_material arguments are '
                               'mutually exclusive'))
 
-        if passphrase and not (key_files and key_material):
+        if passphrase and not (key_files or key_material):
             raise ValueError('passphrase should accompany private key material')
 
         if not key_files and cfg.CONF.system_user.ssh_key_file:
