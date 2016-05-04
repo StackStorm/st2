@@ -36,7 +36,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         conn_params = {'hostname': 'dummy.host.org',
                        'port': 8822,
                        'username': 'ubuntu',
-                       'key': '~/.ssh/ubuntu_ssh',
+                       'key_files': '~/.ssh/ubuntu_ssh',
                        'timeout': '600'}
         self.ssh_cli = ParamikoSSHClient(**conn_params)
 
@@ -61,7 +61,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
     def test_deprecated_key_argument(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
-                       'key': 'id_rsa'}
+                       'key_files': 'id_rsa'}
         mock = ParamikoSSHClient(**conn_params)
         mock.connect()
 
@@ -245,7 +245,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
                        'password': 'ubuntu',
-                       'key': 'id_rsa'}
+                       'key_files': 'id_rsa'}
         mock = ParamikoSSHClient(**conn_params)
         mock.connect()
 
