@@ -20,6 +20,7 @@ from keyczar.keys import AesKey
 from oslo_config import cfg
 import six
 
+from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException
 from st2common.log import logging
 from st2common.util import isotime
@@ -62,6 +63,11 @@ class KeyValuePairAPI(BaseAPI):
                 'type': 'boolean',
                 'required': False,
                 'default': False
+            },
+            'scope': {
+                'type': 'string',
+                'required': False,
+                'default': SYSTEM_KV_PREFIX
             },
             'expire_timestamp': {
                 'type': 'string',
@@ -114,16 +120,21 @@ class KeyValuePairAPI(BaseAPI):
         if 'id' in doc:
             del doc['id']
 
-        if model.expire_timestamp:
+        if getattr(model, 'expire_timestamp', None) and model.expire_timestamp:
             doc['expire_timestamp'] = isotime.format(model.expire_timestamp, offset=False)
 
         encrypted = False
-        if model.secret:
+        secret = getattr(model, 'secret', False)
+        if secret:
             encrypted = True
 
-        if not mask_secrets and model.secret:
+        if not mask_secrets and secret:
             doc['value'] = symmetric_decrypt(KeyValuePairAPI.crypto_key, model.value)
             encrypted = False
+
+        scope = getattr(model, 'scope', SYSTEM_KV_PREFIX)
+        if scope:
+            doc['scope'] = scope
 
         doc['encrypted'] = encrypted
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
@@ -145,16 +156,19 @@ class KeyValuePairAPI(BaseAPI):
         else:
             expire_timestamp = None
 
-        if getattr(kvp, 'secret', False):
+        secret = getattr(kvp, 'secret', False)
+
+        if secret:
             if not KeyValuePairAPI.crypto_key:
                 msg = ('Crypto key not found in %s. Unable to encrypt value for key %s.' %
                        (KeyValuePairAPI.crypto_key_path, name))
                 raise CryptoKeyNotSetupException(msg)
             value = symmetric_encrypt(KeyValuePairAPI.crypto_key, value)
-            secret = True
+
+        scope = getattr(kvp, 'scope', SYSTEM_KV_PREFIX)
 
         model = cls.model(name=name, description=description, value=value,
-                          secret=secret,
+                          secret=secret, scope=scope,
                           expire_timestamp=expire_timestamp)
 
         return model

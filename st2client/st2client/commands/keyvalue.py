@@ -87,7 +87,7 @@ class KeyValuePairListCommand(resource.ResourceListCommand):
 
 class KeyValuePairGetCommand(resource.ResourceGetCommand):
     pk_argument_name = 'name'
-    display_attributes = ['name', 'value', 'secret', 'encrypted', 'expire_timestamp']
+    display_attributes = ['name', 'value', 'secret', 'encrypted', 'scope', 'expire_timestamp']
 
     def __init__(self, kv_resource, *args, **kwargs):
         super(KeyValuePairGetCommand, self).__init__(kv_resource, *args, **kwargs)
@@ -121,6 +121,9 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         self.parser.add_argument('-e', '--encrypt', dest='secret',
                                  action='store_true',
                                  help='Encrypt value before saving the value.')
+        self.parser.add_argument('-s', '--scope', dest='scope', default='system',
+                                 help='Specify the scope under which you want ' +
+                                      'to place the variable.')
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -128,6 +131,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         instance.id = args.name  # TODO: refactor and get rid of id
         instance.name = args.name
         instance.value = args.value
+        instance.scope = args.scope
 
         if args.secret:
             instance.secret = args.secret

@@ -15,9 +15,10 @@
 
 import mongoengine as me
 
+from st2common.constants.system import SYSTEM_KV_PREFIX
+from st2common.constants.types import ResourceType
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
-from st2common.constants.types import ResourceType
 
 __all__ = [
     'KeyValuePairDB'
@@ -32,12 +33,13 @@ class KeyValuePairDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
     """
 
     RESOURCE_TYPE = ResourceType.KEY_VALUE_PAIR
-    UID_FIELDS = ['name']
+    UID_FIELDS = ['scope', 'name']
 
     name = me.StringField(required=True, unique=True)
     value = me.StringField()
     secret = me.BooleanField(default=False)
     expire_timestamp = me.DateTimeField()
+    scope = me.StringField(default=SYSTEM_KV_PREFIX)
 
     meta = {
         'indexes': [
