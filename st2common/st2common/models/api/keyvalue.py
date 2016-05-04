@@ -20,8 +20,8 @@ from keyczar.keys import AesKey
 from oslo_config import cfg
 import six
 
-from st2common.constants.system import SYSTEM_KV_PREFIX
-from st2common.exceptions.keyvalue import CryptoKeyNotSetupException
+from st2common.constants.system import SYSTEM_KV_PREFIX, ALLOWED_KV_PREFIXES
+from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.log import logging
 from st2common.util import isotime
 from st2common.util import date as date_utils
@@ -166,6 +166,11 @@ class KeyValuePairAPI(BaseAPI):
             value = symmetric_encrypt(KeyValuePairAPI.crypto_key, value)
 
         scope = getattr(kvp, 'scope', SYSTEM_KV_PREFIX)
+
+        if scope not in ALLOWED_KV_PREFIXES:
+            raise InvalidScopeException('Invalid scope "%s"! Allowed scopes are %s.' % (
+                scope, ALLOWED_KV_PREFIXES)
+            )
 
         model = cls.model(name=name, description=description, value=value,
                           secret=secret, scope=scope,

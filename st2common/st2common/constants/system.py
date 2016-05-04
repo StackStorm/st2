@@ -30,3 +30,11 @@ AUTH_TOKEN_ENV_VARIABLE_NAME = 'ST2_AUTH_TOKEN'
 
 # Used to prefix all system variables stored in the key-value store.
 SYSTEM_KV_PREFIX = 'system'
+
+# Used to prefix all user scoped variables in key-value store.
+USER_KV_PREFIX = 'user'
+
+ALLOWED_KV_PREFIXES = [
+    SYSTEM_KV_PREFIX,
+    USER_KV_PREFIX
+]

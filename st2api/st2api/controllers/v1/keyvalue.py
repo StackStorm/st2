@@ -18,7 +18,7 @@ import six
 from mongoengine import ValidationError
 
 from st2common import log as logging
-from st2common.exceptions.keyvalue import CryptoKeyNotSetupException
+from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.keyvalue import KeyValuePair
@@ -104,6 +104,10 @@ class KeyValuePairController(ResourceController):
                 abort(http_client.BAD_REQUEST, str(e))
                 return
             except CryptoKeyNotSetupException as e:
+                LOG.exception(str(e))
+                abort(http_client.BAD_REQUEST, str(e))
+                return
+            except InvalidScopeException as e:
                 LOG.exception(str(e))
                 abort(http_client.BAD_REQUEST, str(e))
                 return
