@@ -21,8 +21,8 @@ from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.runner import RunnerType
 from st2common.util.action_db import get_runnertype_by_name
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
-from st2common.constants.runners import FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
-from st2common.constants.runners import FABRIC_RUNNER_DEFAULT_REMOTE_DIR
+from st2common.constants.runners import REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT
+from st2common.constants.runners import REMOTE_RUNNER_DEFAULT_REMOTE_DIR
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
 
 __all__ = [
@@ -154,7 +154,7 @@ RUNNER_TYPES = [
             'cwd': {
                 'description': 'Working directory where the script will be executed in',
                 'type': 'string',
-                'default': FABRIC_RUNNER_DEFAULT_REMOTE_DIR
+                'default': REMOTE_RUNNER_DEFAULT_REMOTE_DIR
             },
             'env': {
                 'description': ('Environment variables which will be available to the command'
@@ -176,7 +176,7 @@ RUNNER_TYPES = [
                 'description': 'The working directory where the script will be copied to ' +
                                'on the remote host.',
                 'type': 'string',
-                'default': FABRIC_RUNNER_DEFAULT_REMOTE_DIR,
+                'default': REMOTE_RUNNER_DEFAULT_REMOTE_DIR,
                 'immutable': True
             },
             'kwarg_op': {
@@ -188,7 +188,7 @@ RUNNER_TYPES = [
                 'description': ('Action timeout in seconds. Action will get killed if it '
                                 'doesn\'t finish in timeout seconds.'),
                 'type': 'integer',
-                'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+                'default': REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT
             },
             'port': {
                 'description': 'SSH port. Note: This parameter is used only in ParamikoSSHRunner.',
@@ -248,7 +248,7 @@ RUNNER_TYPES = [
             'cwd': {
                 'description': 'Working directory where the script will be executed in.',
                 'type': 'string',
-                'default': FABRIC_RUNNER_DEFAULT_REMOTE_DIR
+                'default': REMOTE_RUNNER_DEFAULT_REMOTE_DIR
             },
             'env': {
                 'description': ('Environment variables which will be available to the script'
@@ -264,7 +264,7 @@ RUNNER_TYPES = [
                 'description': 'The working directory where the script will be copied to ' +
                                'on the remote host.',
                 'type': 'string',
-                'default': FABRIC_RUNNER_DEFAULT_REMOTE_DIR
+                'default': REMOTE_RUNNER_DEFAULT_REMOTE_DIR
             },
             'kwarg_op': {
                 'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
@@ -275,7 +275,7 @@ RUNNER_TYPES = [
                 'description': ('Action timeout in seconds. Action will get killed if it '
                                 'doesn\'t finish in timeout seconds.'),
                 'type': 'integer',
-                'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+                'default': REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT
             },
             'port': {
                 'description': 'SSH port. Note: This parameter is used only in ParamikoSSHRunner.',
@@ -467,7 +467,7 @@ RUNNER_TYPES = [
                 'description': ('Action timeout in seconds. Action will get killed if it '
                                 'doesn\'t finish in timeout seconds.'),
                 'type': 'integer',
-                'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+                'default': REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
         },
         'runner_module': 'st2actions.runners.windows_command_runner'
@@ -507,7 +507,7 @@ RUNNER_TYPES = [
                 'description': ('Action timeout in seconds. Action will get killed if it '
                                 'doesn\'t finish in timeout seconds.'),
                 'type': 'integer',
-                'default': FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+                'default': REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT
             }
         },
         'runner_module': 'st2actions.runners.windows_script_runner'
