@@ -129,6 +129,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         with open(path, 'r') as fp:
             private_key = fp.read()
 
+        # Key material provided
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
                        'key_material': private_key,
@@ -142,6 +143,24 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
                          'pkey': pkey,
+                         'timeout': 60,
+                         'port': 22}
+        mock.client.connect.assert_called_once_with(**expected_conn)
+
+        # Path to private key file provided
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'key_files': path,
+                       'passphrase': 'testphrase'}
+        mock = ParamikoSSHClient(**conn_params)
+        mock.connect()
+
+        expected_conn = {'username': 'ubuntu',
+                         'allow_agent': False,
+                         'hostname': 'dummy.host.org',
+                         'look_for_keys': False,
+                         'key_filename': path,
+                         'password': 'testphrase',
                          'timeout': 60,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
