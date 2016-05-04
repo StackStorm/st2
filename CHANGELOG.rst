@@ -13,7 +13,9 @@ in development
   Note: This is an alternative to the existing ``--debug`` CLI flag which comes handy when running
   API services under gunicorn. (improvement)
 * Fix for `data` is dropped if `message` is not present in notification. (bug-fix)
-
+* Remove now deprecated Fabric remote runner.
+  Note: This means ``ssh_runner.use_paramiko_ssh_runner`` config option obsolete since ``True``
+  is now the only valid option. (cleanup)
 
 1.4.0 - April 18, 2016
 ----------------------
