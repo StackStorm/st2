@@ -20,7 +20,7 @@ import six
 
 from st2actions.runners import ShellRunnerMixin
 from st2actions.runners import ActionRunner
-from st2actions.runners.ssh.paramiko_ssh_runner import PRIVATE_KEY_HEADER
+from st2common.constants.runners import REMOTE_RUNNER_PRIVATE_KEY_HEADER
 from st2actions.runners.ssh.parallel_ssh import ParallelSSHClient
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
@@ -152,7 +152,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._parallel_ssh_client = ParallelSSHClient(**client_kwargs)
 
     def _is_private_key_material(self, private_key):
-        return PRIVATE_KEY_HEADER in private_key.lower()
+        return private_key and REMOTE_RUNNER_PRIVATE_KEY_HEADER in private_key.lower()
 
     def _get_env_vars(self):
         """

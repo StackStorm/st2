@@ -30,14 +30,13 @@ import paramiko
 from st2common.log import logging
 from st2common.util.misc import strip_shell_chars
 from st2common.util.shell import quote_unix
+from st2common.constants.runners import REMOTE_RUNNER_PRIVATE_KEY_HEADER
 
 __all__ = [
     'ParamikoSSHClient',
 
     'SSHCommandTimeoutError'
 ]
-
-PRIVATE_KEY_HEADER = 'PRIVATE KEY-----'.lower()
 
 
 class SSHCommandTimeoutError(Exception):
@@ -500,7 +499,7 @@ class ParamikoSSHClient(object):
         # If a user passes in something which looks like file path we throw a more friendly
         # exception letting the user know we expect the contents a not a path.
         # Note: We do it here and not up the stack to avoid false positives.
-        contains_header = PRIVATE_KEY_HEADER in key_material.lower()
+        contains_header = REMOTE_RUNNER_PRIVATE_KEY_HEADER in key_material.lower()
         if not contains_header and (key_material.count('/') >= 1 or key_material.count('\\') >= 1):
             msg = ('"private_key" parameter needs to contain private key data / content and not '
                    'a path')
