@@ -15,6 +15,7 @@ in development
 * Fix for `data` is dropped if `message` is not present in notification. (bug-fix)
 * Remove now deprecated Fabric based remote runner and corresponding
   ``ssh_runner.use_paramiko_ssh_runner`` config option. (cleanup)
+* Fix support for password protected private key files in the remote runner. (bug-fix)
 
 1.4.0 - April 18, 2016
 ----------------------
