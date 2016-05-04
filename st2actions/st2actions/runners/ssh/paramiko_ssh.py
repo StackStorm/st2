@@ -100,7 +100,8 @@ class ParamikoSSHClient(object):
         if passphrase and not (key_files or key_material):
             raise ValueError('passphrase should accompany private key material')
 
-        if not key_files and cfg.CONF.system_user.ssh_key_file:
+        credentials_provided = password or key_files or key_material
+        if not credentials_provided and cfg.CONF.system_user.ssh_key_file:
             key_files = cfg.CONF.system_user.ssh_key_file
 
         self.hostname = hostname
