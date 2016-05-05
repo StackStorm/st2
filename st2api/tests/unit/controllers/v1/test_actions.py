@@ -232,7 +232,7 @@ ACTION_14 = {
     'parameters': {
         'a': {'type': 'string', 'default': 'A1'},
         'b': {'type': 'string', 'default': 'B1'},
-        'sudo': {'type': 'string'}
+        'kwarg_op': {'type': 'number'}
     }
 }
 
@@ -483,7 +483,7 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
     def test_post_override_runner_param_not_allowed(self):
         post_resp = self.__do_post(ACTION_14, expect_errors=True)
         self.assertEqual(post_resp.status_int, 400)
-        expected = ('The attribute "type" for the runner parameter "sudo" '
+        expected = ('The attribute "type" for the runner parameter "kwarg_op" '
                     'in action "dummy_pack_1.st2.dummy.action14" cannot be overridden.')
         self.assertEqual(post_resp.json.get('faultstring'), expected)
 
