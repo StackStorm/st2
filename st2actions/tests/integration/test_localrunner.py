@@ -17,6 +17,7 @@ import os
 import uuid
 
 import mock
+from oslo_config import cfg
 
 import st2tests.config as tests_config
 tests_config.parse_args()
@@ -29,6 +30,30 @@ from st2tests.fixturesloader import FixturesLoader
 from st2tests.fixturesloader import get_fixtures_base_path
 from st2common.util.api import get_full_public_api_url
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
+
+__all__ = [
+    'LocalRunnerTestCase',
+    'LocalShellCommandRunnerTestCase',
+    'LocalShellCommandRunnerTestCase'
+]
+
+
+class LocalRunnerTestCase(TestCase):
+    def test_runner_is_disabled(self):
+        runner = localrunner.LocalShellRunner('id')
+        runner.runner_parameters = {}
+        runner.context = {}
+
+        # Runner is disabled
+        cfg.CONF.set_override(name='enable', override=False, group='local_runner')
+
+        expected_msg = 'Local runner has been disabled by the administrator'
+        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+
+        # Runner is enabled
+        cfg.CONF.set_override(name='enable', override=True, group='local_runner')
+
+        runner.pre_run()
 
 
 class LocalShellCommandRunnerTestCase(TestCase):

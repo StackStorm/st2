@@ -40,8 +40,6 @@ parameters:
     position: 5
     required: true
     type: string
-  sudo:
-    immutable: true
   attachments:
     description: Array of attachment file paths, comma-delimited.
     position: 6

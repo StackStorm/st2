@@ -54,11 +54,6 @@ RUNNER_TYPES = [
                                 '(e.g. key1=val1,key2=val2)'),
                 'type': 'object'
             },
-            'sudo': {
-                'description': 'The command will be executed with sudo.',
-                'type': 'boolean',
-                'default': False
-            },
             'kwarg_op': {
                 'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
                 'type': 'string',
@@ -87,11 +82,6 @@ RUNNER_TYPES = [
                 'description': ('Environment variables which will be available to the script'
                                 '(e.g. key1=val1,key2=val2)'),
                 'type': 'object'
-            },
-            'sudo': {
-                'description': 'The command will be executed with sudo.',
-                'type': 'boolean',
-                'default': False
             },
             'kwarg_op': {
                 'description': 'Operator to use in front of keyword args i.e. "--" or "-".',
