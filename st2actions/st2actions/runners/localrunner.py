@@ -71,6 +71,10 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         super(LocalShellRunner, self).__init__(runner_id=runner_id)
 
     def pre_run(self):
+        if not cfg.CONF.local_runner.enable:
+            msg = 'Local runner has been disabled by the administrator'
+            raise ValueError(msg)
+
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, LOGGED_USER_USERNAME)
         self._user = cfg.CONF.system_user.user
