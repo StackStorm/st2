@@ -25,7 +25,7 @@ from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
-from st2common.constants.runners import FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+from st2common.constants.runners import REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
 from st2common.exceptions.ssh import InvalidCredentialsException
 
@@ -109,7 +109,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT,
-                                                   FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT)
+                                                   REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT)
         self._bastion_host = self.runner_parameters.get(RUNNER_BASTION_HOST, None)
 
         LOG.info('[BaseParallelSSHRunner="%s", liveaction_id="%s"] Finished pre_run.',

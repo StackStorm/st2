@@ -2,7 +2,6 @@
 apscheduler
 python-dateutil
 eventlet
-git+https://github.com/StackStorm/fabric.git@stanley-patched#egg=fabric
 jinja2
 kombu
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
