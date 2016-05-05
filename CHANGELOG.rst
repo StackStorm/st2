@@ -15,6 +15,8 @@ in development
 * Fix for `data` is dropped if `message` is not present in notification. (bug-fix)
 * Remove now deprecated Fabric based remote runner and corresponding
   ``ssh_runner.use_paramiko_ssh_runner`` config option. (cleanup)
+* Remove ``sudo`` support for local runner actions. This also means removing ``sudo`` parameter
+  from ``core.local`` action and removing ``core.local_sudo`` action completely.
 
 1.4.0 - April 18, 2016
 ----------------------
