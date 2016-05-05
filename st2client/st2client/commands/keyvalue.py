@@ -93,12 +93,16 @@ class KeyValuePairGetCommand(resource.ResourceGetCommand):
         super(KeyValuePairGetCommand, self).__init__(kv_resource, *args, **kwargs)
         self.parser.add_argument('-d', '--decrypt', action='store_true',
                                  help='Decrypt secret if encrypted and show plain text.')
+        self.parser.add_argument('-s', '--scope', default='system', dest='scope',
+                                 help='Scope variable is under. Example: "user".')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_name = getattr(args, self.pk_argument_name, None)
         decrypt = getattr(args, 'decrypt', False)
+        scope = getattr(args, 'scope', 'system')
         kwargs['params'] = {'decrypt': str(decrypt).lower()}
+        kwargs['params']['scope'] = scope
         return self.get_resource_by_id(id=resource_name, **kwargs)
 
 

@@ -17,13 +17,14 @@ from pecan import abort
 import six
 from mongoengine import ValidationError
 
+from st2api.controllers.resource import ResourceController
 from st2common import log as logging
+from st2common.constants.system import SYSTEM_KV_PREFIX
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services import coordination
-from st2api.controllers.resource import ResourceController
 
 http_client = six.moves.http_client
 
@@ -42,7 +43,8 @@ class KeyValuePairController(ResourceController):
     model = KeyValuePairAPI
     access = KeyValuePair
     supported_filters = {
-        'prefix': 'name__startswith'
+        'prefix': 'name__startswith',
+        'scope': 'scope'
     }
 
     def __init__(self):
@@ -50,8 +52,8 @@ class KeyValuePairController(ResourceController):
         self._coordinator = coordination.get_coordinator()
         self.get_one_db_method = self._get_by_name
 
-    @jsexpose(arg_types=[str, bool])
-    def get_one(self, name, decrypt=False):
+    @jsexpose(arg_types=[str, str, bool])
+    def get_one(self, name, scope=SYSTEM_KV_PREFIX, decrypt=False):
         """
             List key by name.
 
@@ -59,8 +61,18 @@ class KeyValuePairController(ResourceController):
                 GET /keys/key1
         """
         from_model_kwargs = {'mask_secrets': not decrypt}
-        kvp_db = super(KeyValuePairController, self)._get_one_by_name_or_id(name_or_id=name,
-            from_model_kwargs=from_model_kwargs)
+        if scope:
+            kwargs = {'name': name, 'scope': scope}
+            kvp_db = super(KeyValuePairController, self)._get_all(
+                from_model_kwargs=from_model_kwargs,
+                **kwargs
+            )
+            kvp_db = kvp_db[0] if kvp_db else None
+        else:
+            kvp_db = super(KeyValuePairController, self)._get_one_by_name_or_id(
+                name_or_id=name,
+                from_model_kwargs=from_model_kwargs
+            )
         return kvp_db
 
     @jsexpose(arg_types=[str, bool])
