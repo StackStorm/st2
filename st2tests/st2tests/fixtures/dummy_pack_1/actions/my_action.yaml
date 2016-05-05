@@ -3,4 +3,4 @@ name: dummy_action
 runner_type: local-shell-script
 description: "Dummy action."
 enabled: true
-entry_point": my_action.py
+entry_point: my_action.py
