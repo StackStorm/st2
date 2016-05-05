@@ -68,6 +68,10 @@ class KeyValuePairController(ResourceController):
                 **kwargs
             )
             kvp_db = kvp_db[0] if kvp_db else None
+            if not kvp_db:
+                msg = 'Key with name: %s and scope: %s not found!' % (name, scope)
+                abort(http_client.NOT_FOUND, msg)
+                return
         else:
             kvp_db = super(KeyValuePairController, self)._get_one_by_name_or_id(
                 name_or_id=name,
@@ -75,8 +79,8 @@ class KeyValuePairController(ResourceController):
             )
         return kvp_db
 
-    @jsexpose(arg_types=[str, bool])
-    def get_all(self, prefix=None, decrypt=False, **kwargs):
+    @jsexpose(arg_types=[str, str, bool])
+    def get_all(self, prefix=None, scope=SYSTEM_KV_PREFIX, decrypt=False, **kwargs):
         """
             List all keys.
 
@@ -85,6 +89,7 @@ class KeyValuePairController(ResourceController):
         """
         from_model_kwargs = {'mask_secrets': not decrypt}
         kwargs['prefix'] = prefix
+        kwargs['scope'] = scope
         kvp_dbs = super(KeyValuePairController, self)._get_all(from_model_kwargs=from_model_kwargs,
                                                                **kwargs)
         return kvp_dbs

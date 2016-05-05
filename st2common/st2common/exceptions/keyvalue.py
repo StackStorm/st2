@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.constants.system import ALLOWED_KV_PREFIXES
 from st2common.exceptions import StackStormBaseException
 
 __all__ = [
@@ -21,10 +20,10 @@ __all__ = [
     'InvalidScopeException'
 ]
 
+
 class CryptoKeyNotSetupException(StackStormBaseException):
     pass
 
 
 class InvalidScopeException(StackStormBaseException):
     pass
-
