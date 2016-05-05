@@ -39,11 +39,14 @@ def _register_common_opts():
 
 
 def _register_action_runner_opts():
-    logging_opts = [
+    action_runner_opts = [
         cfg.StrOpt('logging', default='conf/logging.conf',
                    help='location of the logging.conf file'),
+        cfg.BoolOpt('enable_local_runner',
+                    default=True,
+                    help='Enable local runner.')
     ]
-    CONF.register_opts(logging_opts, group='actionrunner')
+    CONF.register_opts(action_runner_opts, group='actionrunner')
 
     db_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
