@@ -228,7 +228,7 @@ class Shell(object):
         self.commands['runner'] = resource.ResourceBranch(
             models.RunnerType,
             'Runner is a type of handler for a specific class of actions.',
-            self, self.subparsers, read_only=True)
+            self, self.subparsers, read_only=True, has_disable=True)
 
         self.commands['sensor'] = sensor.SensorBranch(
             'An adapter which allows you to integrate StackStorm with external system ',
