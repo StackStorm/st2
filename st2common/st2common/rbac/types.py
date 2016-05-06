@@ -31,6 +31,12 @@ class PermissionType(Enum):
     Available permission types.
     """
 
+    # Note: There is no create endpoint for runner types right now
+    RUNNER_LIST = 'runner_type_list'
+    RUNNER_VIEW = 'runner_type_view'
+    RUNNER_MODIFY = 'runner_type_modify'
+    RUNNER_ALL = 'runner_type_all'
+
     PACK_LIST = 'pack_list'
     PACK_VIEW = 'pack_view'
     PACK_CREATE = 'pack_create'
@@ -160,6 +166,8 @@ class ResourceType(Enum):
     """
     Resource types on which permissions can be granted.
     """
+    RUNNER = SystemResourceType.RUNNER_TYPE
+
     PACK = SystemResourceType.PACK
     SENSOR = SystemResourceType.SENSOR_TYPE
     ACTION = SystemResourceType.ACTION
