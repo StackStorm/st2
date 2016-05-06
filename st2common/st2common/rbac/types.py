@@ -192,6 +192,12 @@ class SystemRole(Enum):
 
 # Maps a list of available permission types for each resource
 RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
+    ResourceType.RUNNER: [
+        PermissionType.RUNNER_LIST,
+        PermissionType.RUNNER_VIEW,
+        PermissionType.RUNNER_MODIFY,
+        PermissionType.RUNNER_ALL,
+    ],
     ResourceType.PACK: [
         PermissionType.PACK_VIEW,
         PermissionType.PACK_CREATE,
