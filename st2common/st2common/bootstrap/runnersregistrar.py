@@ -577,6 +577,11 @@ def register_runner_types(experimental=False):
                 runner_type_db = None
                 update = False
 
+            # Note: We don't want to overwrite "enabled" attribute which is already in the database
+            # (aka we don't want to re-enable runner which has been disabled by the user)
+            if runner_type_db and runner_type_db['enabled'] != runner_type['enabled']:
+                runner_type['enabled'] = runner_type_db['enabled']
+
             runner_type_api = RunnerTypeAPI(**runner_type)
             runner_type_api.validate()
             runner_type_model = RunnerTypeAPI.to_model(runner_type_api)

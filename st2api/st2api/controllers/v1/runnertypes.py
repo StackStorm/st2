@@ -13,65 +13,73 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mongoengine import ValidationError
-from pecan import abort
-from pecan.rest import RestController
 import six
+import pecan
+from mongoengine import ValidationError
 
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.runner import RunnerType
+from st2api.controllers.resource import ResourceController
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
+from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
 
-class RunnerTypesController(RestController):
+class RunnerTypesController(ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of an RunnerType in the system.
     """
 
-    @staticmethod
-    def __get_by_id(id):
-        try:
-            return RunnerType.get_by_id(id)
-        except (ValueError, ValidationError) as e:
-            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e)
-            LOG.exception(msg)
-            abort(http_client.NOT_FOUND, msg)
+    model = RunnerTypeAPI
+    access = RunnerType
+    supported_filters = {
+        'name': 'name'
+    }
 
-    @staticmethod
-    def __get_by_name(name):
-        try:
-            return [RunnerType.get_by_name(name)]
-        except ValueError as e:
-            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
-            return []
+    query_options = {
+        'sort': ['name']
+    }
 
+    @request_user_has_permission(permission_type=PermissionType.RUNNER_LIST)
+    @jsexpose()
+    def get_all(self, **kwargs):
+        return super(RunnerTypesController, self)._get_all(**kwargs)
+
+    @request_user_has_resource_db_permission(permission_type=PermissionType.RUNNER_VIEW)
     @jsexpose(arg_types=[str])
-    def get_one(self, id):
-        """
-            List RunnerType objects by id.
+    def get_one(self, name_or_id):
+        return super(RunnerTypesController, self)._get_one_by_name_or_id(name_or_id)
 
-            Handle:
-                GET /runnertypes/1
-        """
-        runnertype_db = RunnerTypesController.__get_by_id(id)
-        runnertype_api = RunnerTypeAPI.from_model(runnertype_db)
-        return runnertype_api
+    @request_user_has_resource_db_permission(permission_type=PermissionType.RUNNER_MODIFY)
+    @jsexpose(arg_types=[str], body_cls=RunnerTypeAPI)
+    def put(self, name_or_id, runner_type_api):
+        # TODO: Only allow enabled attribute to be changed
+        runner_type_db = self._get_by_name_or_id(name_or_id=name_or_id)
+        LOG.debug('PUT /runnertypes/ lookup with id=%s found object: %s', name_or_id,
+                  runner_type_db)
 
-    @jsexpose(arg_types=[str])
-    def get_all(self, **kw):
-        """
-            List all RunnerType objects.
+        try:
+            if runner_type_api.id and runner_type_api.id != name_or_id:
+                LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
+                            runner_type_api.id, name_or_id)
 
-            Handles requests:
-                GET /runnertypes/
-        """
-        runnertype_dbs = RunnerType.get_all(**kw)
-        runnertype_apis = [RunnerTypeAPI.from_model(runnertype_db)
-                           for runnertype_db in runnertype_dbs]
-        return runnertype_apis
+            old_runner_type_db = runner_type_db
+            runner_type_db = RunnerTypeAPI.to_model(runner_type_api)
+            runner_type_db.id = name_or_id
+            runner_type_db = RunnerType.add_or_update(runner_type_db)
+        except (ValidationError, ValueError) as e:
+            LOG.exception('Validation failed for runner type data=%s', runner_type_api)
+            pecan.abort(http_client.BAD_REQUEST, str(e))
+            return
+
+        extra = {'old_runner_type_db': old_runner_type_db, 'new_runner_type_db': runner_type_db}
+        LOG.audit('Runner Type updated. RunnerType.id=%s.' % (runner_type_db.id), extra=extra)
+        runner_type_api = RunnerTypeAPI.from_model(runner_type_db)
+        return runner_type_api
