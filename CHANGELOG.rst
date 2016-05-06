@@ -16,6 +16,8 @@ in development
 * Remove now deprecated Fabric based remote runner and corresponding
   ``ssh_runner.use_paramiko_ssh_runner`` config option. (cleanup)
 * Fix support for password protected private key files in the remote runner. (bug-fix)
+* Allow user to provide a path to the private SSH key file for the remote runner ``private_key``
+  parameter. Previously only raw key material was supported. (improvement)
 
 1.4.0 - April 18, 2016
 ----------------------
