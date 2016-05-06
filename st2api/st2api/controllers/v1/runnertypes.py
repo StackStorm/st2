@@ -22,6 +22,8 @@ from st2common.models.api.base import jsexpose
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.runner import RunnerType
 from st2api.controllers.resource import ResourceController
+from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
 
 http_client = six.moves.http_client
 
@@ -44,14 +46,17 @@ class RunnerTypesController(ResourceController):
         'sort': ['name']
     }
 
+    @request_user_has_permission(permission_type=PermissionType.RUNNER_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
         return super(RunnerTypesController, self)._get_all(**kwargs)
 
+    @request_user_has_permission(permission_type=PermissionType.RUNNER_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, name_or_id):
         return super(RunnerTypesController, self)._get_one_by_name_or_id(name_or_id)
 
+    @request_user_has_permission(permission_type=PermissionType.RUNNER_MODIFY)
     @jsexpose(arg_types=[str], body_cls=RunnerTypeAPI)
     def put(self, name_or_id, runner_type_api):
         # TODO: Only allow enabled attribute to be changed
