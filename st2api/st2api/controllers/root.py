@@ -18,8 +18,9 @@ from pecan import expose
 from st2common import __version__
 from st2common import log as logging
 from st2common.controllers import BaseRootController
-import st2api.controllers.v1.root as v1_root
 import st2api.controllers.exp.root as exp_root
+import st2api.controllers.v1.root as v1_root
+import st2api.controllers.v2.root as v2_root
 
 __all__ = [
     'RootController'
@@ -33,9 +34,12 @@ class RootController(BaseRootController):
 
     def __init__(self):
         v1_controller = v1_root.RootController()
+        v2_controller = v2_root.RootController()
         exp_controller = exp_root.RootController()
+
         self.controllers = {
             'v1': v1_controller,
+            'v2': v2_controller,
             'exp': exp_controller
         }
 
