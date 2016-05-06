@@ -14,6 +14,8 @@
 # limitations under the License.
 
 import six
+import pecan
+from mongoengine import ValidationError
 
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
@@ -49,3 +51,29 @@ class RunnerTypesController(ResourceController):
     @jsexpose(arg_types=[str])
     def get_one(self, name_or_id):
         return super(RunnerTypesController, self)._get_one_by_name_or_id(name_or_id)
+
+    @jsexpose(arg_types=[str], body_cls=RunnerTypeAPI)
+    def put(self, name_or_id, runner_type_api):
+        # TODO: Only allow enabled attribute to be changed
+        runner_type_db = self._get_by_name_or_id(name_or_id=name_or_id)
+        LOG.debug('PUT /runnertypes/ lookup with id=%s found object: %s', name_or_id,
+                  runner_type_db)
+
+        try:
+            if runner_type_api.id and runner_type_api.id != name_or_id:
+                LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
+                            runner_type_api.id, name_or_id)
+
+            old_runner_type_db = runner_type_db
+            runner_type_db = RunnerTypeAPI.to_model(runner_type_api)
+            runner_type_db.id = name_or_id
+            runner_type_db = RunnerType.add_or_update(runner_type_db)
+        except (ValidationError, ValueError) as e:
+            LOG.exception('Validation failed for runner type data=%s', runner_type_api)
+            pecan.abort(http_client.BAD_REQUEST, str(e))
+            return
+
+        extra = {'old_runner_type_db': old_runner_type_db, 'new_runner_type_db': runner_type_db}
+        LOG.audit('Runner Type updated. RunnerType.id=%s.' % (runner_type_db.id), extra=extra)
+        runner_type_api = RunnerTypeAPI.from_model(runner_type_db)
+        return runner_type_api
