@@ -74,8 +74,10 @@ class ParamikoSSHClient(object):
 
     # Maximum number of bytes to read at once from a socket
     CHUNK_SIZE = 1024
+
     # How long to sleep while waiting for command to finish
     SLEEP_DELAY = 1.5
+
     # Connect socket timeout
     CONNECT_TIMEOUT = 60
 
@@ -110,13 +112,16 @@ class ParamikoSSHClient(object):
         self.key_files = key_files
         self.timeout = timeout or ParamikoSSHClient.CONNECT_TIMEOUT
         self.key_material = key_material
-        self.client = None
-        self.logger = logging.getLogger(__name__)
-        self.sftp = None
         self.bastion_host = bastion_host
+        self.passphrase = passphrase
+
+        self.logger = logging.getLogger(__name__)
+
+        self.client = None
+        self.sftp = None
+
         self.bastion_client = None
         self.bastion_socket = None
-        self.passphrase = passphrase
 
     def connect(self):
         """
