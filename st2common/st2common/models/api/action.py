@@ -58,6 +58,9 @@ class RunnerTypeAPI(BaseAPI):
                 "type": "string",
                 "default": None
             },
+            "uid": {
+                "type": "string"
+            },
             "name": {
                 "description": "The name of the action runner.",
                 "type": "string",
