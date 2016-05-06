@@ -61,26 +61,13 @@ class KeyValuePairController(ResourceController):
                 GET /keys/key1
         """
         from_model_kwargs = {'mask_secrets': not decrypt}
-        if scope:
-            if scope not in ALLOWED_SCOPES:
-                msg = 'Scope "%s" is not valid. Allowed scopes are: %s.' % (scope, ALLOWED_SCOPES)
-                abort(http_client.BAD_REQUEST, msg)
+        kvp_db = self._get_one_with_scope(name, scope=scope, from_model_kwargs=from_model_kwargs)
 
-            kwargs = {'name': name, 'scope': scope}
-            kvp_db = super(KeyValuePairController, self)._get_all(
-                from_model_kwargs=from_model_kwargs,
-                **kwargs
-            )
-            kvp_db = kvp_db[0] if kvp_db else None
-            if not kvp_db:
-                msg = 'Key with name: %s and scope: %s not found!' % (name, scope)
-                abort(http_client.NOT_FOUND, msg)
-                return
-        else:
-            kvp_db = super(KeyValuePairController, self)._get_one_by_name_or_id(
-                name_or_id=name,
-                from_model_kwargs=from_model_kwargs
-            )
+        if not kvp_db:
+            msg = 'Key with name: %s and scope: %s not found!' % (name, scope)
+            abort(http_client.NOT_FOUND, msg)
+            return
+
         return kvp_db
 
     @jsexpose(arg_types=[str, str, bool])
@@ -143,8 +130,8 @@ class KeyValuePairController(ResourceController):
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
         return kvp_api
 
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
-    def delete(self, name):
+    @jsexpose(arg_types=[str, str], status_code=http_client.NO_CONTENT)
+    def delete(self, name, scope=SYSTEM_SCOPE):
         """
             Delete the key value pair.
 
@@ -155,7 +142,8 @@ class KeyValuePairController(ResourceController):
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
-            kvp_db = self._get_by_name(resource_name=name)
+            from_model_kwargs = {'mask_secrets': True}
+            kvp_db = self._get_one_with_scope(name, scope=scope, )
 
             if not kvp_db:
                 abort(http_client.NOT_FOUND)
@@ -183,3 +171,17 @@ class KeyValuePairController(ResourceController):
         """
         lock_name = 'kvp-crud-%s' % (name)
         return lock_name
+
+    def _get_one_with_scope(self, name, scope=SYSTEM_SCOPE, from_model_kwargs=None):
+        if scope not in ALLOWED_SCOPES:
+            msg = 'Scope "%s" is not valid. Allowed scopes are: %s.' % (scope, ALLOWED_SCOPES)
+            abort(http_client.BAD_REQUEST, msg)
+
+        kwargs = {'name': name, 'scope': scope}
+        kvp_db = super(KeyValuePairController, self)._get_all(
+            from_model_kwargs=from_model_kwargs or {},
+            **kwargs
+        )
+        kvp_db = kvp_db[0] if kvp_db else None
+
+        return kvp_db
