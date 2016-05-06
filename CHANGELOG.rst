@@ -18,6 +18,9 @@ in development
 * Fix support for password protected private key files in the remote runner. (bug-fix)
 * Allow user to provide a path to the private SSH key file for the remote runner ``private_key``
   parameter. Previously only raw key material was supported. (improvement)
+* Add new API endpoint and corresponding CLI commands (``st2 runner disable <name>``,
+  ``st2 runner enable <name>``) which allows administrator to disable (and re-enable) a runner.
+  (new feature)
 
 1.4.0 - April 18, 2016
 ----------------------
