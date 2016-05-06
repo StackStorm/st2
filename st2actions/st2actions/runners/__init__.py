@@ -70,6 +70,7 @@ class ActionRunner(object):
         """
         self.runner_id = runner_id
 
+        self.runner_type_db = None
         self.container_service = None
         self.runner_parameters = None
         self.action = None
@@ -85,9 +86,13 @@ class ActionRunner(object):
         self.auth_token = None
         self.rerun_ex_ref = None
 
-    @abc.abstractmethod
     def pre_run(self):
-        raise NotImplementedError()
+        runner_enabled = self.runner_type_db.enabled
+        runner_name = self.runner_type_db.name
+        if not runner_enabled:
+            msg = ('Runner "%s" has been disabled by the administrator' %
+                   (runner_name))
+            raise ValueError(msg)
 
     # Run will need to take an action argument
     # Run may need result data argument
