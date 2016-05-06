@@ -19,7 +19,7 @@ from mongoengine import ValidationError
 
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
-from st2common.constants.system import SYSTEM_KV_PREFIX
+from st2common.constants.keyvalue import SYSTEM_SCOPE, ALLOWED_SCOPES
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
@@ -53,7 +53,7 @@ class KeyValuePairController(ResourceController):
         self.get_one_db_method = self._get_by_name
 
     @jsexpose(arg_types=[str, str, bool])
-    def get_one(self, name, scope=SYSTEM_KV_PREFIX, decrypt=False):
+    def get_one(self, name, scope=SYSTEM_SCOPE, decrypt=False):
         """
             List key by name.
 
@@ -62,6 +62,10 @@ class KeyValuePairController(ResourceController):
         """
         from_model_kwargs = {'mask_secrets': not decrypt}
         if scope:
+            if scope not in ALLOWED_SCOPES:
+                msg = 'Scope "%s" is not valid. Allowed scopes are: %s.' % (scope, ALLOWED_SCOPES)
+                abort(http_client.BAD_REQUEST, msg)
+
             kwargs = {'name': name, 'scope': scope}
             kvp_db = super(KeyValuePairController, self)._get_all(
                 from_model_kwargs=from_model_kwargs,
@@ -80,7 +84,7 @@ class KeyValuePairController(ResourceController):
         return kvp_db
 
     @jsexpose(arg_types=[str, str, bool])
-    def get_all(self, prefix=None, scope=SYSTEM_KV_PREFIX, decrypt=False, **kwargs):
+    def get_all(self, prefix=None, scope=SYSTEM_SCOPE, decrypt=False, **kwargs):
         """
             List all keys.
 
@@ -89,7 +93,12 @@ class KeyValuePairController(ResourceController):
         """
         from_model_kwargs = {'mask_secrets': not decrypt}
         kwargs['prefix'] = prefix
-        kwargs['scope'] = scope
+        if scope:
+            if scope not in ALLOWED_SCOPES:
+                msg = 'Scope "%s" is not valid. Allowed scopes are: %s.' % (scope, ALLOWED_SCOPES)
+                abort(http_client.BAD_REQUEST, msg)
+                return
+            kwargs['scope'] = scope
         kvp_dbs = super(KeyValuePairController, self)._get_all(from_model_kwargs=from_model_kwargs,
                                                                **kwargs)
         return kvp_dbs

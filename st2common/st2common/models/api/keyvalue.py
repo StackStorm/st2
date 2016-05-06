@@ -20,7 +20,7 @@ from keyczar.keys import AesKey
 from oslo_config import cfg
 import six
 
-from st2common.constants.system import SYSTEM_KV_PREFIX, ALLOWED_KV_PREFIXES
+from st2common.constants.keyvalue import SYSTEM_SCOPE, ALLOWED_SCOPES
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.log import logging
 from st2common.util import isotime
@@ -67,7 +67,7 @@ class KeyValuePairAPI(BaseAPI):
             'scope': {
                 'type': 'string',
                 'required': False,
-                'default': SYSTEM_KV_PREFIX
+                'default': SYSTEM_SCOPE
             },
             'expire_timestamp': {
                 'type': 'string',
@@ -132,7 +132,7 @@ class KeyValuePairAPI(BaseAPI):
             doc['value'] = symmetric_decrypt(KeyValuePairAPI.crypto_key, model.value)
             encrypted = False
 
-        scope = getattr(model, 'scope', SYSTEM_KV_PREFIX)
+        scope = getattr(model, 'scope', SYSTEM_SCOPE)
         if scope:
             doc['scope'] = scope
 
@@ -165,11 +165,11 @@ class KeyValuePairAPI(BaseAPI):
                 raise CryptoKeyNotSetupException(msg)
             value = symmetric_encrypt(KeyValuePairAPI.crypto_key, value)
 
-        scope = getattr(kvp, 'scope', SYSTEM_KV_PREFIX)
+        scope = getattr(kvp, 'scope', SYSTEM_SCOPE)
 
-        if scope not in ALLOWED_KV_PREFIXES:
+        if scope not in ALLOWED_SCOPES:
             raise InvalidScopeException('Invalid scope "%s"! Allowed scopes are %s.' % (
-                scope, ALLOWED_KV_PREFIXES)
+                scope, ALLOWED_SCOPES)
             )
 
         model = cls.model(name=name, description=description, value=value,

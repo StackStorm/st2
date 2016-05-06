@@ -13,29 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common import __version__
+from st2common.constants.system import SYSTEM_KV_PREFIX
 
-__all__ = [
-    'VERSION_STRING',
-
-    'API_URL_ENV_VARIABLE_NAME',
-    'AUTH_TOKEN_ENV_VARIABLE_NAME',
-    'SYSTEM_KV_PREFIX'
-]
-
-VERSION_STRING = 'StackStorm v%s' % (__version__)
-
-API_URL_ENV_VARIABLE_NAME = 'ST2_API_URL'
-AUTH_TOKEN_ENV_VARIABLE_NAME = 'ST2_AUTH_TOKEN'
-
-# Used to prefix all system variables stored in the key-value store.
-SYSTEM_KV_PREFIX = 'system'
-SYSTEM_KV_SCOPE = SYSTEM_KV_PREFIX
+SYSTEM_SCOPE = SYSTEM_KV_PREFIX
 
 # Used to prefix all user scoped variables in key-value store.
-USER_KV_SCOPE = 'user'
+USER_SCOPE = 'user'
 
-ALLOWED_KV_SCOPES = [
-    SYSTEM_KV_SCOPE,
-    USER_KV_SCOPE
+ALLOWED_SCOPES = [
+    SYSTEM_SCOPE,
+    USER_SCOPE
 ]
