@@ -30,6 +30,10 @@ from st2common.constants.runners import REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
 from st2common.exceptions.ssh import InvalidCredentialsException
 
+__all__ = [
+    'BaseParallelSSHRunner'
+]
+
 LOG = logging.getLogger(__name__)
 
 # constants to lookup in runner_parameters.
