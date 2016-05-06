@@ -20,6 +20,7 @@ __all__ = [
 
     'REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT',
     'REMOTE_RUNNER_DEFAULT_REMOTE_DIR',
+    'REMOTE_RUNNER_PRIVATE_KEY_HEADER',
 
     'PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT',
 
@@ -39,6 +40,8 @@ try:
     REMOTE_RUNNER_DEFAULT_REMOTE_DIR = cfg.CONF.ssh_runner.remote_dir
 except:
     REMOTE_RUNNER_DEFAULT_REMOTE_DIR = '/tmp'
+
+REMOTE_RUNNER_PRIVATE_KEY_HEADER = 'PRIVATE KEY-----'.lower()
 
 # Python runner
 # Default timeout (in seconds) for actions executed by Python runner

@@ -30,14 +30,13 @@ import paramiko
 from st2common.log import logging
 from st2common.util.misc import strip_shell_chars
 from st2common.util.shell import quote_unix
+from st2common.constants.runners import REMOTE_RUNNER_PRIVATE_KEY_HEADER
 
 __all__ = [
     'ParamikoSSHClient',
 
     'SSHCommandTimeoutError'
 ]
-
-PRIVATE_KEY_HEADER = 'PRIVATE KEY-----'.lower()
 
 
 class SSHCommandTimeoutError(Exception):
@@ -81,7 +80,7 @@ class ParamikoSSHClient(object):
     CONNECT_TIMEOUT = 60
 
     def __init__(self, hostname, port=22, username=None, password=None, bastion_host=None,
-                 key=None, key_files=None, key_material=None, timeout=None, passphrase=None):
+                 key_files=None, key_material=None, timeout=None, passphrase=None):
         """
         Authentication is always attempted in the following order:
 
@@ -97,17 +96,18 @@ class ParamikoSSHClient(object):
             raise ValueError(('key_files and key_material arguments are '
                               'mutually exclusive'))
 
-        if passphrase and not key_material:
+        if passphrase and not (key_files or key_material):
             raise ValueError('passphrase should accompany private key material')
+
+        credentials_provided = password or key_files or key_material
+        if not credentials_provided and cfg.CONF.system_user.ssh_key_file:
+            key_files = cfg.CONF.system_user.ssh_key_file
 
         self.hostname = hostname
         self.port = port
         self.username = username if username else cfg.CONF.system_user
         self.password = password
-        self.key = key if key else cfg.CONF.system_user.ssh_key_file
         self.key_files = key_files
-        if not self.key_files and self.key:
-            self.key_files = key  # `key` arg is deprecated.
         self.timeout = timeout or ParamikoSSHClient.CONNECT_TIMEOUT
         self.key_material = key_material
         self.client = None
@@ -499,7 +499,7 @@ class ParamikoSSHClient(object):
         # If a user passes in something which looks like file path we throw a more friendly
         # exception letting the user know we expect the contents a not a path.
         # Note: We do it here and not up the stack to avoid false positives.
-        contains_header = PRIVATE_KEY_HEADER in key_material.lower()
+        contains_header = REMOTE_RUNNER_PRIVATE_KEY_HEADER in key_material.lower()
         if not contains_header and (key_material.count('/') >= 1 or key_material.count('\\') >= 1):
             msg = ('"private_key" parameter needs to contain private key data / content and not '
                    'a path')
@@ -535,6 +535,10 @@ class ParamikoSSHClient(object):
 
         if self.key_files:
             conninfo['key_filename'] = self.key_files
+
+            if self.passphrase:
+                # Optional passphrase for unlocking the private key
+                conninfo['password'] = self.passphrase
 
         if self.key_material:
             conninfo['pkey'] = self._get_pkey_object(key_material=self.key_material,

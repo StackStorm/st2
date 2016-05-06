@@ -134,8 +134,8 @@ RUNNER_TYPES = [
                 'secret': True
             },
             'private_key': {
-                'description': ('Private key material to log in. Note: This needs to be actual '
-                                'private key data and NOT path.'),
+                'description': ('Private key material or path to the private key file on disk '
+                                'used to log in.'),
                 'type': 'string',
                 'required': False,
                 'secret': True

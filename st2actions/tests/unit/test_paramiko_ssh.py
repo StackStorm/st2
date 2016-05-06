@@ -17,6 +17,7 @@ import os
 from StringIO import StringIO
 import unittest2
 
+from oslo_config import cfg
 from mock import (call, patch, Mock, MagicMock)
 import paramiko
 
@@ -33,10 +34,12 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         """
         Creates the object patching the actual connection.
         """
+        cfg.CONF.set_override(name='ssh_key_file', override=None, group='system_user')
+
         conn_params = {'hostname': 'dummy.host.org',
                        'port': 8822,
                        'username': 'ubuntu',
-                       'key': '~/.ssh/ubuntu_ssh',
+                       'key_files': '~/.ssh/ubuntu_ssh',
                        'timeout': '600'}
         self.ssh_cli = ParamikoSSHClient(**conn_params)
 
@@ -61,7 +64,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
     def test_deprecated_key_argument(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
-                       'key': 'id_rsa'}
+                       'key_files': 'id_rsa'}
         mock = ParamikoSSHClient(**conn_params)
         mock.connect()
 
@@ -122,13 +125,24 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                                 expected_msg, mock.connect)
 
     @patch('paramiko.SSHClient', Mock)
-    def test_key_with_passphrase(self):
+    def test_passphrase_no_key_provided(self):
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'passphrase': 'testphrase'}
+
+        expected_msg = 'passphrase should accompany private key material'
+        self.assertRaisesRegexp(ValueError, expected_msg, ParamikoSSHClient,
+                                **conn_params)
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_key_with_passphrase_success(self):
         path = os.path.join(get_resources_base_path(),
                             'ssh', 'dummy_rsa_passphrase')
 
         with open(path, 'r') as fp:
             private_key = fp.read()
 
+        # Key material provided
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
                        'key_material': private_key,
@@ -142,6 +156,24 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'look_for_keys': False,
                          'pkey': pkey,
+                         'timeout': 60,
+                         'port': 22}
+        mock.client.connect.assert_called_once_with(**expected_conn)
+
+        # Path to private key file provided
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'key_files': path,
+                       'passphrase': 'testphrase'}
+        mock = ParamikoSSHClient(**conn_params)
+        mock.connect()
+
+        expected_conn = {'username': 'ubuntu',
+                         'allow_agent': False,
+                         'hostname': 'dummy.host.org',
+                         'look_for_keys': False,
+                         'key_filename': path,
+                         'password': 'testphrase',
                          'timeout': 60,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
@@ -245,7 +277,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
                        'password': 'ubuntu',
-                       'key': 'id_rsa'}
+                       'key_files': 'id_rsa'}
         mock = ParamikoSSHClient(**conn_params)
         mock.connect()
 
@@ -276,6 +308,25 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                          'hostname': 'dummy.host.org',
                          'allow_agent': True,
                          'look_for_keys': True,
+                         'timeout': 60,
+                         'port': 22}
+        mock.client.connect.assert_called_once_with(**expected_conn)
+
+    @patch('paramiko.SSHClient', Mock)
+    def test_create_without_credentials_use_default_key(self):
+        # No credentials are provided by default stanley ssh key exists so it should use that
+        cfg.CONF.set_override(name='ssh_key_file', override='stanley_rsa', group='system_user')
+
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu'}
+        mock = ParamikoSSHClient(**conn_params)
+        mock.connect()
+
+        expected_conn = {'username': 'ubuntu',
+                         'hostname': 'dummy.host.org',
+                         'key_filename': 'stanley_rsa',
+                         'allow_agent': False,
+                         'look_for_keys': False,
                          'timeout': 60,
                          'port': 22}
         mock.client.connect.assert_called_once_with(**expected_conn)
