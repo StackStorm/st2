@@ -13,65 +13,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mongoengine import ValidationError
-from pecan import abort
-from pecan.rest import RestController
 import six
 
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.runner import RunnerType
+from st2api.controllers.resource import ResourceController
 
 http_client = six.moves.http_client
 
 LOG = logging.getLogger(__name__)
 
 
-class RunnerTypesController(RestController):
+class RunnerTypesController(ResourceController):
     """
         Implements the RESTful web endpoint that handles
         the lifecycle of an RunnerType in the system.
     """
 
-    @staticmethod
-    def __get_by_id(id):
-        try:
-            return RunnerType.get_by_id(id)
-        except (ValueError, ValidationError) as e:
-            msg = 'Database lookup for id="%s" resulted in exception. %s' % (id, e)
-            LOG.exception(msg)
-            abort(http_client.NOT_FOUND, msg)
+    model = RunnerTypeAPI
+    access = RunnerType
+    supported_filters = {
+        'name': 'name'
+    }
 
-    @staticmethod
-    def __get_by_name(name):
-        try:
-            return [RunnerType.get_by_name(name)]
-        except ValueError as e:
-            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
-            return []
+    query_options = {
+        'sort': ['name']
+    }
+
+    @jsexpose()
+    def get_all(self, **kwargs):
+        return super(RunnerTypesController, self)._get_all(**kwargs)
 
     @jsexpose(arg_types=[str])
-    def get_one(self, id):
-        """
-            List RunnerType objects by id.
-
-            Handle:
-                GET /runnertypes/1
-        """
-        runnertype_db = RunnerTypesController.__get_by_id(id)
-        runnertype_api = RunnerTypeAPI.from_model(runnertype_db)
-        return runnertype_api
-
-    @jsexpose(arg_types=[str])
-    def get_all(self, **kw):
-        """
-            List all RunnerType objects.
-
-            Handles requests:
-                GET /runnertypes/
-        """
-        runnertype_dbs = RunnerType.get_all(**kw)
-        runnertype_apis = [RunnerTypeAPI.from_model(runnertype_db)
-                           for runnertype_db in runnertype_dbs]
-        return runnertype_apis
+    def get_one(self, name_or_id):
+        return super(RunnerTypesController, self)._get_one_by_name_or_id(name_or_id)
