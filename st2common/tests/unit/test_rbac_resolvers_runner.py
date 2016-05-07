@@ -96,11 +96,11 @@ class RunnerPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Admin user, should always return true
         resource_db = self.resources['runner_1']
         user_db = self.users['admin']
-        self.assertTrue(self._user_has_resource_db_permissions(
+        self.assertUserHasResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=all_permission_types))
+            permission_types=all_permission_types)
 
         # Custom role with "runner_view" grant on runner_1
         resource_db = self.resources['runner_1']
@@ -132,8 +132,8 @@ class RunnerPermissionsResolverTestCase(BasePermissionsResolverTestCase):
             PermissionType.RUNNER_VIEW,
             PermissionType.RUNNER_ALL
         ]
-        self.assertTrue(self._user_doesnt_have_resource_db_permissions(
+        self.assertUserDoesntHaveResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=permission_types))
+            permission_types=permission_types)
