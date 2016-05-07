@@ -60,8 +60,9 @@ class RunnerTypesController(ResourceController):
     @request_user_has_resource_db_permission(permission_type=PermissionType.RUNNER_MODIFY)
     @jsexpose(arg_types=[str], body_cls=RunnerTypeAPI)
     def put(self, name_or_id, runner_type_api):
-        # TODO: Only allow enabled attribute to be changed
+        # Note: We only allow "enabled" attribute of the runner to be changed
         runner_type_db = self._get_by_name_or_id(name_or_id=name_or_id)
+        old_runner_type_db = runner_type_db
         LOG.debug('PUT /runnertypes/ lookup with id=%s found object: %s', name_or_id,
                   runner_type_db)
 
@@ -70,9 +71,7 @@ class RunnerTypesController(ResourceController):
                 LOG.warning('Discarding mismatched id=%s found in payload and using uri_id=%s.',
                             runner_type_api.id, name_or_id)
 
-            old_runner_type_db = runner_type_db
-            runner_type_db = RunnerTypeAPI.to_model(runner_type_api)
-            runner_type_db.id = name_or_id
+            runner_type_db.enabled = runner_type_api.enabled
             runner_type_db = RunnerType.add_or_update(runner_type_db)
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for runner type data=%s', runner_type_api)
