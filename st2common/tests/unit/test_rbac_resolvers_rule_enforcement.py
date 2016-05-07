@@ -300,28 +300,33 @@ class RuleEnforcementPermissionsResolverTestCase(BasePermissionsResolverTestCase
         # Admin user, should always return true
         user_db = self.users['admin']
         permission_type = PermissionType.RULE_ENFORCEMENT_LIST
-        self.assertTrue(resolver.user_has_permission(user_db=user_db,
-                                                     permission_type=permission_type))
+        self.assertUserHasPermission(resolver=resolver,
+                                     user_db=user_db,
+                                     permission_type=permission_type)
 
         # Observer, should always return true for VIEW permissions
         user_db = self.users['observer']
-        self.assertTrue(resolver.user_has_permission(user_db=user_db,
-                                                     permission_type=permission_type))
+        self.assertUserHasPermission(resolver=resolver,
+                                     user_db=user_db,
+                                     permission_type=permission_type)
 
         # No roles, should return false for everything
         user_db = self.users['no_roles']
-        self.assertFalse(resolver.user_has_permission(user_db=user_db,
-                                                      permission_type=permission_type))
+        self.assertUserDoesntHavePermission(resolver=resolver,
+                                            user_db=user_db,
+                                            permission_type=permission_type)
 
         # Custom role with no permission grants, should return false for everything
         user_db = self.users['1_custom_role_no_permissions']
-        self.assertFalse(resolver.user_has_permission(user_db=user_db,
-                                                      permission_type=permission_type))
+        self.assertUserDoesntHavePermission(resolver=resolver,
+                                            user_db=user_db,
+                                            permission_type=permission_type)
 
         # Custom role with "rule_list" grant
         user_db = self.users['custom_role_rule_list_grant']
-        self.assertTrue(resolver.user_has_permission(user_db=user_db,
-                                                     permission_type=permission_type))
+        self.assertUserHasPermission(resolver=resolver,
+                                     user_db=user_db,
+                                     permission_type=permission_type)
 
     def test_user_has_resource_db_permission(self):
         resolver = RuleEnforcementPermissionsResolver()
@@ -331,92 +336,100 @@ class RuleEnforcementPermissionsResolverTestCase(BasePermissionsResolverTestCase
         # Admin user, should always return true
         resource_db = self.resources['rule_enforcement_1']
         user_db = self.users['admin']
-        self.assertTrue(self._user_has_resource_db_permissions(
+        self.assertUserHasResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=all_permission_types))
+            permission_types=all_permission_types)
 
         # Observer, should always return true for VIEW permission
         user_db = self.users['observer']
-        self.assertTrue(resolver.user_has_resource_db_permission(
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['rule_enforcement_1'],
-            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW))
-        self.assertTrue(resolver.user_has_resource_db_permission(
+            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['rule_enforcement_2'],
-            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW))
+            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
 
         # No roles, should return false for everything
         user_db = self.users['no_roles']
-        self.assertFalse(self._user_has_resource_db_permissions(
+        self.assertUserDoesntHaveResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=all_permission_types))
+            permission_types=all_permission_types)
 
         # Custom role with no permission grants, should return false for everything
         user_db = self.users['1_custom_role_no_permissions']
-        self.assertFalse(self._user_has_resource_db_permissions(
+        self.assertUserDoesntHaveResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=all_permission_types))
+            permission_types=all_permission_types)
 
         # Custom role with unrelated permission grant to parent pack
         user_db = self.users['custom_role_pack_grant']
-        self.assertFalse(resolver.user_has_resource_db_permission(
+        self.assertUserDoesntHaveResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['rule_enforcement_1'],
-            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW))
-        self.assertFalse(resolver.user_has_resource_db_permission(
+            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
+        self.assertUserDoesntHaveResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['rule_enforcement_2'],
-            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW))
+            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
 
         # Custom role with with grant on the parent pack
         user_db = self.users['custom_role_rule_pack_grant']
-        self.assertTrue(resolver.user_has_resource_db_permission(
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['rule_enforcement_1'],
-            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW))
-        self.assertTrue(resolver.user_has_resource_db_permission(
+            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['rule_enforcement_2'],
-            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW))
+            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
 
         # Custom role with a direct grant on rule
         user_db = self.users['custom_role_rule_grant']
-        self.assertTrue(resolver.user_has_resource_db_permission(
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['rule_enforcement_3'],
-            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW))
+            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
 
         # Custom role - "rule_all" grant on the rule parent pack
         user_db = self.users['custom_role_pack_rule_all_grant']
         resource_db = self.resources['rule_enforcement_1']
-        self.assertTrue(self._user_has_resource_db_permissions(
+        self.assertUserHasResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=all_permission_types))
+            permission_types=all_permission_types)
 
         # Custom role - "rule_all" grant on the rule
         user_db = self.users['custom_role_rule_all_grant']
         resource_db = self.resources['rule_enforcement_1']
-        self.assertTrue(self._user_has_resource_db_permissions(
+        self.assertUserHasResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=all_permission_types))
+            permission_types=all_permission_types)
 
         # Custom role - "rule_modify" grant on rule_1
         user_db = self.users['custom_role_rule_modify_grant']
         resource_db = self.resources['rule_enforcement_1']
 
         # "modify" also grants "view"
-        self.assertTrue(resolver.user_has_resource_db_permission(
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW))
+            permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)

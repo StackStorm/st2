@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
 import unittest2
 from oslo_config import cfg
 
@@ -57,17 +58,51 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
         # Insert common mock objects
         self._insert_common_mocks()
 
+    def assertUserHasPermission(self, resolver, user_db, permission_type):
+        """
+        Assert that the user has the provided permission.
+        """
+        self.assertTrue(isinstance(permission_type, six.string_types))
+
+        result = resolver.user_has_permission(user_db=user_db,
+                                              permission_type=permission_type)
+
+        if not result:
+            msg = ('Expected permission grant "%s" for user "%s" but no grant was found' %
+                   (permission_type, user_db.name))
+            raise AssertionError(msg)
+
+        return True
+
+    def assertUserDoesntHavePermission(self, resolver, user_db, permission_type):
+        """
+        Assert that the user has the provided permission.
+        """
+        self.assertTrue(isinstance(permission_type, six.string_types))
+
+        result = resolver.user_has_permission(user_db=user_db,
+                                              permission_type=permission_type)
+
+        if result:
+            msg = ('Found permission grant "%s" for user "%s" which shouldn\'t exist' %
+                   (permission_type, user_db.name))
+            raise AssertionError(msg)
+
+        return True
+
     def assertUserHasResourceDbPermission(self, resolver, user_db, resource_db, permission_type):
         """
         Assert that the user has the provided permission on the provided resource.
         """
+        self.assertTrue(isinstance(permission_type, six.string_types))
+
         result = resolver.user_has_resource_db_permission(user_db=user_db, resource_db=resource_db,
                                                           permission_type=permission_type)
 
         if not result:
-                msg = ('Expected permission grant "%s" for user "%s" on resource "%s", but no '
-                       'grant was found' % (permission_type, user_db.name, resource_db.get_uid()))
-                raise AssertionError(msg)
+            msg = ('Expected permission grant "%s" for user "%s" on resource DB "%s", but no '
+                   'grant was found' % (permission_type, user_db.name, resource_db.get_uid()))
+            raise AssertionError(msg)
 
         return True
 
@@ -76,11 +111,13 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
         """
         Assert that the user has the provided permission on the provided resource.
         """
+        self.assertTrue(isinstance(permission_type, six.string_types))
+
         result = resolver.user_has_resource_db_permission(user_db=user_db, resource_db=resource_db,
                                                           permission_type=permission_type)
 
         if result:
-            msg = ('Found permission grant "%s" for user "%s" on resource "%s", which '
+            msg = ('Found permission grant "%s" for user "%s" on resource DB "%s", which '
                    'shouldn\'t exist' % (permission_type, user_db.name, resource_db.get_uid()))
             raise AssertionError(msg)
 
@@ -116,6 +153,35 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
             self.assertUserDoesntHaveResourceDbPermission(resolver=resolver, user_db=user_db,
                                                           resource_db=resource_db,
                                                           permission_type=permission_type)
+
+        return True
+
+    def assertUserHasResourceApiPermission(self, resolver, user_db, resource_api, permission_type):
+        self.assertTrue(isinstance(permission_type, six.string_types))
+
+        result = resolver.user_has_resource_api_permission(user_db=user_db,
+                                                           resource_api=resource_api,
+                                                           permission_type=permission_type)
+
+        if not result:
+            msg = ('Expected permission grant "%s" for user "%s" on resource API "%s", but no '
+                   'grant was found' % (permission_type, user_db.name, resource_api.get_uid()))
+            raise AssertionError(msg)
+
+        return True
+
+    def assertUserDoesntHaveResourceApiPermission(self, resolver, user_db, resource_api,
+                                                  permission_type):
+        self.assertTrue(isinstance(permission_type, six.string_types))
+
+        result = resolver.user_has_resource_api_permission(user_db=user_db,
+                                                           resource_api=resource_api,
+                                                           permission_type=permission_type)
+
+        if result:
+            msg = ('Found permission grant "%s" for user "%s" on resource API "%s", which '
+                   'shouldn\'t exist' % (permission_type, user_db.name, resource_api.get_uid()))
+            raise AssertionError(msg)
 
         return True
 

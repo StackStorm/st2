@@ -44,8 +44,9 @@ class KeyValuePermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         permission_types = PermissionType.get_valid_permissions_for_resource_type(
             ResourceType.KEY_VALUE_PAIR)
-        for permission_type in permission_types:
-            self.assertTrue(resolver.user_has_resource_db_permission(
-                user_db=user_db,
-                resource_db=resource_db,
-                permission_type=permission_type))
+
+        self.assertUserHasResourceDbPermissions(
+            resolver=resolver,
+            user_db=user_db,
+            resource_db=resource_db,
+            permission_types=permission_types)

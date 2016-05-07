@@ -163,28 +163,33 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
 
         # Admin user, should always return true
         user_db = self.users['admin']
-        self.assertTrue(resolver.user_has_permission(user_db=user_db,
-                                                     permission_type=PermissionType.SENSOR_LIST))
+        self.assertUserHasPermission(resolver=resolver,
+                                     user_db=user_db,
+                                     permission_type=PermissionType.SENSOR_LIST)
 
         # Observer, should always return true for VIEW permissions
         user_db = self.users['observer']
-        self.assertTrue(resolver.user_has_permission(user_db=user_db,
-                                                     permission_type=PermissionType.SENSOR_LIST))
+        self.assertUserHasPermission(resolver=resolver,
+                                     user_db=user_db,
+                                     permission_type=PermissionType.SENSOR_LIST)
 
         # No roles, should return false for everything
         user_db = self.users['no_roles']
-        self.assertFalse(resolver.user_has_permission(user_db=user_db,
-                                                      permission_type=PermissionType.SENSOR_LIST))
+        self.assertUserDoesntHavePermission(resolver=resolver,
+                                            user_db=user_db,
+                                            permission_type=PermissionType.SENSOR_LIST)
 
         # Custom role with no permission grants, should return false for everything
         user_db = self.users['1_custom_role_no_permissions']
-        self.assertFalse(resolver.user_has_permission(user_db=user_db,
-                                                      permission_type=PermissionType.SENSOR_LIST))
+        self.assertUserDoesntHavePermission(resolver=resolver,
+                                            user_db=user_db,
+                                            permission_type=PermissionType.SENSOR_LIST)
 
         # Custom role with "sensor_list" grant
         user_db = self.users['custom_role_sensor_list_grant']
-        self.assertTrue(resolver.user_has_permission(user_db=user_db,
-                                                     permission_type=PermissionType.SENSOR_LIST))
+        self.assertUserHasPermission(resolver=resolver,
+                                     user_db=user_db,
+                                     permission_type=PermissionType.SENSOR_LIST)
 
     def test_user_has_resource_db_permission(self):
         resolver = SensorPermissionsResolver()
@@ -194,96 +199,106 @@ class SensorPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Admin user, should always return true
         resource_db = self.resources['sensor_1']
         user_db = self.users['admin']
-        self.assertTrue(self._user_has_resource_db_permissions(
+        self.assertUserHasResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=all_permission_types))
+            permission_types=all_permission_types)
 
         # Observer, should always return true for VIEW permission
         user_db = self.users['observer']
-        self.assertTrue(resolver.user_has_resource_db_permission(
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['sensor_1'],
-            permission_type=PermissionType.SENSOR_VIEW))
-        self.assertTrue(resolver.user_has_resource_db_permission(
+            permission_type=PermissionType.SENSOR_VIEW)
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['sensor_2'],
-            permission_type=PermissionType.SENSOR_VIEW))
+            permission_type=PermissionType.SENSOR_VIEW)
 
         # No roles, should return false for everything
         user_db = self.users['no_roles']
-        self.assertFalse(self._user_has_resource_db_permissions(
+        self.assertUserDoesntHaveResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=all_permission_types))
+            permission_types=all_permission_types)
 
         # Custom role with no permission grants, should return false for everything
         user_db = self.users['1_custom_role_no_permissions']
-        self.assertFalse(self._user_has_resource_db_permissions(
+        self.assertUserDoesntHaveResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=all_permission_types))
+            permission_types=all_permission_types)
 
         # Custom role with unrelated permission grant to parent pack
         user_db = self.users['custom_role_pack_grant']
-        self.assertFalse(resolver.user_has_resource_db_permission(
+        self.assertUserDoesntHaveResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['sensor_1'],
-            permission_type=PermissionType.SENSOR_VIEW))
-        self.assertFalse(resolver.user_has_resource_db_permission(
+            permission_type=PermissionType.SENSOR_VIEW)
+        self.assertUserDoesntHaveResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['sensor_2'],
-            permission_type=PermissionType.SENSOR_ALL))
-        self.assertFalse(resolver.user_has_resource_db_permission(
+            permission_type=PermissionType.SENSOR_ALL)
+        self.assertUserDoesntHaveResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['sensor_3'],
-            permission_type=PermissionType.SENSOR_VIEW))
+            permission_type=PermissionType.SENSOR_VIEW)
 
         # Custom role with with grant on the parent pack
         user_db = self.users['custom_role_sensor_pack_grant']
-        self.assertTrue(resolver.user_has_resource_db_permission(
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['sensor_1'],
-            permission_type=PermissionType.SENSOR_VIEW))
-        self.assertTrue(resolver.user_has_resource_db_permission(
+            permission_type=PermissionType.SENSOR_VIEW)
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['sensor_2'],
-            permission_type=PermissionType.SENSOR_VIEW))
+            permission_type=PermissionType.SENSOR_VIEW)
 
-        self.assertFalse(resolver.user_has_resource_db_permission(
+        self.assertUserDoesntHaveResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['sensor_3'],
-            permission_type=PermissionType.SENSOR_VIEW))
+            permission_type=PermissionType.SENSOR_VIEW)
 
         # Custom role with a direct grant on sensor
         user_db = self.users['custom_role_sensor_grant']
-        self.assertTrue(resolver.user_has_resource_db_permission(
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['sensor_3'],
-            permission_type=PermissionType.SENSOR_VIEW))
+            permission_type=PermissionType.SENSOR_VIEW)
 
-        self.assertFalse(resolver.user_has_resource_db_permission(
+        self.assertUserDoesntHaveResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=self.resources['sensor_3'],
-            permission_type=PermissionType.SENSOR_ALL))
+            permission_type=PermissionType.SENSOR_ALL)
 
         # Custom role - "sensor_all" grant on the sensor parent pack
         user_db = self.users['custom_role_pack_sensor_all_grant']
         resource_db = self.resources['sensor_1']
-        self.assertTrue(self._user_has_resource_db_permissions(
+        self.assertUserHasResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=all_permission_types))
+            permission_types=all_permission_types)
 
         # Custom role - "sensor_all" grant on the sensor
         user_db = self.users['custom_role_sensor_all_grant']
         resource_db = self.resources['sensor_1']
-        self.assertTrue(self._user_has_resource_db_permissions(
+        self.assertUserHasResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=all_permission_types))
+            permission_types=all_permission_types)
