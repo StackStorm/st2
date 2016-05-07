@@ -87,8 +87,8 @@ class ActionRunner(object):
         self.rerun_ex_ref = None
 
     def pre_run(self):
-        runner_enabled = self.runner_type_db.enabled
-        runner_name = self.runner_type_db.name
+        runner_enabled = getattr(self.runner_type_db, 'enabled', True)
+        runner_name = getattr(self.runner_type_db, 'name', 'unknown')
         if not runner_enabled:
             msg = ('Runner "%s" has been disabled by the administrator' %
                    (runner_name))
