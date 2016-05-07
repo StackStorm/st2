@@ -105,28 +105,30 @@ class RunnerPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Custom role with "runner_view" grant on runner_1
         resource_db = self.resources['runner_1']
         user_db = self.users['custom_role_runner_view_grant']
-        self.assertTrue(resolver.user_has_resource_db_permission(
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_type=PermissionType.RUNNER_VIEW))
+            permission_type=PermissionType.RUNNER_VIEW)
 
         permission_types = [
             PermissionType.RUNNER_MODIFY,
             PermissionType.RUNNER_ALL
         ]
-        self.assertFalse(self._user_has_resource_db_permissions(
+        self.assertUserDoesntHaveResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=permission_types))
+            permission_types=permission_types)
 
         # Custom role with "runner_modify" grant on runner_2
         resource_db = self.resources['runner_2']
         user_db = self.users['custom_role_runner_modify_grant']
-        self.assertTrue(resolver.user_has_resource_db_permission(
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_type=PermissionType.RUNNER_MODIFY))
+            permission_type=PermissionType.RUNNER_MODIFY)
 
         permission_types = [
             PermissionType.RUNNER_VIEW,
