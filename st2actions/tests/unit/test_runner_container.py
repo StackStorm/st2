@@ -78,7 +78,7 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(runner is not None, 'TestRunner must be valid.')
 
     def test_get_runner_module_fail(self):
-        runnertype_db = RunnerTypeDB(runner_module='absent.module')
+        runnertype_db = RunnerTypeDB(name='dummy', runner_module='absent.module')
         runner = None
         try:
             runner = get_runner(runnertype_db.runner_module)
