@@ -63,7 +63,8 @@ class TestRunnerTypesController(FunctionalTest):
         self.assertTrue(put_resp.json['enabled'])
 
     def __do_put(self, runner_type_id, runner_type):
-        return self.app.put_json('/v1/runnertypes/%s' % runner_type_id, runner_type, expect_errors=True)
+        return self.app.put_json('/v1/runnertypes/%s' % runner_type_id, runner_type,
+                                expect_errors=True)
 
     @staticmethod
     def __get_runnertype_id(resp_json):

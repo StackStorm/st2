@@ -294,7 +294,6 @@ class RunnerPermissionsResolver(PermissionsResolver):
         return False
 
 
-
 class PackPermissionsResolver(PermissionsResolver):
     """
     Permission resolver for "pack" resource type.

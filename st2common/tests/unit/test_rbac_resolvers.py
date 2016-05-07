@@ -79,7 +79,8 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
 
         return True
 
-    def assertUserDoesntHaveResourceDbPermissions(self, resolver, user_db, resource_db, permission_types):
+    def assertUserDoesntHaveResourceDbPermissions(self, resolver, user_db, resource_db,
+                                                  permission_types):
         """
         Assert that the user doesn't have all the specified permissions on the provided resource.
 
@@ -119,7 +120,8 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
 
         return True
 
-    def _user_doesnt_have_resource_db_permissions(self, resolver, user_db, resource_db, permission_types):
+    def _user_doesnt_have_resource_db_permissions(self, resolver, user_db, resource_db,
+                                                  permission_types):
         """
         Method which verifies that the user doesn't have any of the specific permission.
         """
