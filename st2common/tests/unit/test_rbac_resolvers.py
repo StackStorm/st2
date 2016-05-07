@@ -185,43 +185,6 @@ class BasePermissionsResolverTestCase(CleanDbTestCase):
 
         return True
 
-    def _user_has_resource_db_permissions(self, resolver, user_db, resource_db, permission_types):
-        """
-        Method which verifies that user has all the provided permissions.
-        """
-        self.assertTrue(isinstance(permission_types, (list, tuple)))
-        self.assertTrue(len(permission_types) > 1)
-
-        for permission_type in permission_types:
-            result = resolver.user_has_resource_db_permission(
-                user_db=user_db,
-                resource_db=resource_db,
-                permission_type=permission_type)
-
-            if not result:
-                return False
-
-        return True
-
-    def _user_doesnt_have_resource_db_permissions(self, resolver, user_db, resource_db,
-                                                  permission_types):
-        """
-        Method which verifies that the user doesn't have any of the specific permission.
-        """
-        self.assertTrue(isinstance(permission_types, (list, tuple)))
-        self.assertTrue(len(permission_types) > 1)
-
-        for permission_type in permission_types:
-            result = resolver.user_has_resource_db_permission(
-                user_db=user_db,
-                resource_db=resource_db,
-                permission_type=permission_type)
-
-            if result:
-                return False
-
-        return True
-
     def _insert_common_mocks(self):
         self._insert_common_mock_users()
         self._insert_common_mock_resources()
