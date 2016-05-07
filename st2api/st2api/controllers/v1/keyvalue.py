@@ -157,13 +157,15 @@ class KeyValuePairController(ResourceController):
                 scope=scope,
                 from_model_kwargs=from_model_kwargs
             )
-            kvp_db = KeyValuePairAPI.to_model(kvp_api)
 
-            if not kvp_db:
+            if not kvp_api:
                 abort(http_client.NOT_FOUND)
                 return
 
-            LOG.debug('DELETE /keys/ lookup with name=%s found object: %s', name, kvp_db)
+            kvp_db = KeyValuePairAPI.to_model(kvp_api)
+
+            LOG.debug('DELETE /keys/ lookup with scope=%s name=%s found object: %s',
+                      scope, name, kvp_db)
 
             try:
                 KeyValuePair.delete(kvp_db)

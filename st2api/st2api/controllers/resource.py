@@ -257,7 +257,7 @@ class ResourceController(rest.RestController):
             return instance
         from_model_kwargs = from_model_kwargs or {}
         result = self.model.from_model(instance, **from_model_kwargs)
-        LOG.debug('GET %s with scope=%s and name=%s, client_result=%s', scope, name, result)
+        LOG.debug('GET with scope=%s and name=%s, client_result=%s', scope, name, result)
 
         return result
 
