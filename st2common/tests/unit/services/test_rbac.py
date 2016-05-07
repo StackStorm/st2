@@ -24,7 +24,7 @@ from st2common.persistence.rule import Rule
 from st2common.models.db.auth import UserDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rule import RuleDB
-from st2common.models.db.runner import RunnerTypeDB
+from st2common.models.db.trace import TraceDB
 
 
 class RBACServicesTestCase(CleanDbTestCase):
@@ -191,7 +191,7 @@ class RBACServicesTestCase(CleanDbTestCase):
     def test_manipulate_permission_grants_unsupported_resource_type(self):
         # Try to manipulate permissions on an unsupported resource
         role_db = self.roles['custom_role_2']
-        resource_db = RunnerTypeDB()
+        resource_db = TraceDB()
         permission_types = [PermissionType.RULE_ALL]
 
         expected_msg = 'Permissions cannot be manipulated for a resource of type'
