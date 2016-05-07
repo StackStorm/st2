@@ -100,7 +100,7 @@ class KeyValuePairController(ResourceController):
         Create a new entry or update an existing one.
         """
         scope = getattr(kvp, 'scope', scope)
-        lock_name = self._get_lock_name_for_key(name=name)
+        lock_name = self._get_lock_name_for_key(name=name, scope=scope)
         LOG.debug('PUT scope: %s, name: %s', scope, name)
         # TODO: Custom permission check since the key doesn't need to exist here
 
@@ -147,7 +147,7 @@ class KeyValuePairController(ResourceController):
             Handles requests:
                 DELETE /keys/1
         """
-        lock_name = self._get_lock_name_for_key(name=name)
+        lock_name = self._get_lock_name_for_key(name=name, scope=scope)
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
@@ -178,12 +178,12 @@ class KeyValuePairController(ResourceController):
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair deleted. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
 
-    def _get_lock_name_for_key(self, name):
+    def _get_lock_name_for_key(self, name, scope=SYSTEM_SCOPE):
         """
         Retrieve a coordination lock name for the provided datastore item name.
 
         :param name: Datastore item name (PK).
         :type name: ``str``
         """
-        lock_name = 'kvp-crud-%s' % (name)
+        lock_name = 'kvp-crud-%s.%s' % (scope, name)
         return lock_name

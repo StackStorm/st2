@@ -125,7 +125,7 @@ class KeyValuePairController(ResourceController):
             abort(http_client.BAD_REQUEST, msg)
             return
 
-        lock_name = self._get_lock_name_for_key(name=name)
+        lock_name = self._get_lock_name_for_key(scope=scope, name=name)
 
         # TODO: Custom permission check since the key doesn't need to exist here
 
@@ -172,7 +172,7 @@ class KeyValuePairController(ResourceController):
             Handles requests:
                 DELETE /keys/1
         """
-        lock_name = self._get_lock_name_for_key(name=name)
+        lock_name = self._get_lock_name_for_key(scope=scope, name=name)
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
@@ -202,12 +202,12 @@ class KeyValuePairController(ResourceController):
         LOG.audit('KeyValuePair deleted. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
 
     @staticmethod
-    def _get_lock_name_for_key(name):
+    def _get_lock_name_for_key(scope, name):
         """
         Retrieve a coordination lock name for the provided datastore item name.
 
         :param name: Datastore item name (PK).
         :type name: ``str``
         """
-        lock_name = 'kvp-crud-%s' % (name)
+        lock_name = 'kvp-crud-%s.%s' % (name)
         return lock_name
