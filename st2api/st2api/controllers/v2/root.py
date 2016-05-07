@@ -21,6 +21,4 @@ __all__ = [
 
 
 class RootController(object):
-    print('Registering V2 BRO')
     keys = ScopedKeyValuePairController()
-    print('Registerd keys controller')
