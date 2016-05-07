@@ -132,7 +132,7 @@ class RunnerPermissionsResolverTestCase(BasePermissionsResolverTestCase):
             PermissionType.RUNNER_VIEW,
             PermissionType.RUNNER_ALL
         ]
-        self.assertFalse(self._user_has_resource_db_permissions(
+        self.assertTrue(self._user_doesnt_have_resource_db_permissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
