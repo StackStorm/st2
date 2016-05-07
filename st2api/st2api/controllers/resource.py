@@ -242,6 +242,25 @@ class ResourceController(rest.RestController):
         """
         return self.from_model_kwargs
 
+    def _get_one_by_scope_and_name(self, scope, name, from_model_kwargs=None):
+        """
+        Retrieve an item given scope and name. Only KeyValuePair now has concept of 'scope'.
+
+        :param scope: Scope the key belongs to.
+        :type scope: ``str``
+
+        :param name: Name of the key.
+        :type name: ``str``
+        """
+        instance = self.access.query(scope=scope, name=name).first()
+        if not instance:
+            return instance
+        from_model_kwargs = from_model_kwargs or {}
+        result = self.model.from_model(instance, **from_model_kwargs)
+        LOG.debug('GET %s with scope=%s and name=%s, client_result=%s', scope, name, result)
+
+        return result
+
 
 class ContentPackResourceController(ResourceController):
     include_reference = False

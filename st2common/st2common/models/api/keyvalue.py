@@ -117,9 +117,6 @@ class KeyValuePairAPI(BaseAPI):
 
         doc = cls._from_model(model, mask_secrets=mask_secrets)
 
-        if 'id' in doc:
-            del doc['id']
-
         if getattr(model, 'expire_timestamp', None) and model.expire_timestamp:
             doc['expire_timestamp'] = isotime.format(model.expire_timestamp, offset=False)
 
@@ -145,6 +142,7 @@ class KeyValuePairAPI(BaseAPI):
         if not KeyValuePairAPI.crypto_setup:
             KeyValuePairAPI._setup_crypto()
 
+        kvp_id = getattr(kvp, 'id', None)
         name = getattr(kvp, 'name', None)
         description = getattr(kvp, 'description', None)
         value = kvp.value
@@ -172,7 +170,7 @@ class KeyValuePairAPI(BaseAPI):
                 scope, ALLOWED_SCOPES)
             )
 
-        model = cls.model(name=name, description=description, value=value,
+        model = cls.model(id=kvp_id, name=name, description=description, value=value,
                           secret=secret, scope=scope,
                           expire_timestamp=expire_timestamp)
 

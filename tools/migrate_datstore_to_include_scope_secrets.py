@@ -33,10 +33,11 @@ def migrate_datastore():
 
     try:
         for kvp in key_value_items:
+            kvp_id = getattr(kvp, 'id', None)
             secret = getattr(kvp, 'secret', False)
             encrypted = getattr(kvp, 'encrypted', False)
             scope = getattr(kvp, 'scope', SYSTEM_KV_PREFIX)
-            new_kvp_db = KeyValuePairDB(id=kvp.id, name=kvp.name,
+            new_kvp_db = KeyValuePairDB(id=kvp_id, name=kvp.name,
                                         expire_timestamp=kvp.expire_timestamp,
                                         value=kvp.value, secret=secret, encrypted=encrypted,
                                         scope=scope)

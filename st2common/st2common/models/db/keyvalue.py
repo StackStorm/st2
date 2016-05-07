@@ -35,11 +35,11 @@ class KeyValuePairDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
     RESOURCE_TYPE = ResourceType.KEY_VALUE_PAIR
     UID_FIELDS = ['scope', 'name']
 
-    name = me.StringField(required=True, unique=True)
+    scope = me.StringField(default=SYSTEM_SCOPE, unique_with='name')
+    name = me.StringField(required=True)
     value = me.StringField()
     secret = me.BooleanField(default=False)
     expire_timestamp = me.DateTimeField()
-    scope = me.StringField(default=SYSTEM_SCOPE)
 
     meta = {
         'indexes': [

@@ -13,18 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.persistence.base import Access
-from st2common.models.db import keyvalue
-from st2common.models.api.keyvalue import KeyValuePairAPI
-from st2common.models.system.common import ResourceReference
+from st2common import log as logging
 from st2common.constants.triggers import KEY_VALUE_PAIR_CREATE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_UPDATE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_DELETE_TRIGGER
+from st2common.models.api.keyvalue import KeyValuePairAPI
+from st2common.models.db.keyvalue import keyvaluepair_access
+from st2common.models.system.common import ResourceReference
+from st2common.persistence.base import Access
+
+LOG = logging.getLogger(__name__)
 
 
 class KeyValuePair(Access):
-    impl = keyvalue.keyvaluepair_access
+    impl = keyvaluepair_access
     publisher = None
 
     api_model_cls = KeyValuePairAPI
