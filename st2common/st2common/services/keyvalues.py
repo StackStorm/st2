@@ -19,9 +19,9 @@ from st2common.persistence.keyvalue import KeyValuePair
 
 class KeyValueLookup(object):
 
-    def __init__(self, key_prefix='', cache=None, scope=SYSTEM_SCOPE):
+    def __init__(self, key_prefix='', cache=None, scope=None):
         self._key_prefix = key_prefix
-        self._scope = scope
+        self._scope = scope if scope else SYSTEM_SCOPE
         if cache is None:
             cache = {}
         self._value_cache = cache
@@ -44,7 +44,7 @@ class KeyValueLookup(object):
         # the lookup is for 'key_base.key_value' it is likely that the calling code, e.g. Jinja,
         # will expect to do a dictionary style lookup for key_base and key_value as subsequent
         # calls. Saving the value in cache avoids extra DB calls.
-        return KeyValueLookup(key_prefix=key, cache=self._value_cache)
+        return KeyValueLookup(key_prefix=key, cache=self._value_cache, scope=self._scope)
 
     def _get_kv(self, key):
         scope = self._scope
