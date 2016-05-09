@@ -25,6 +25,8 @@ from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services import coordination
+from st2common.services.keyvalues import get_key_reference
+from st2common.util.api import get_requester
 
 http_client = six.moves.http_client
 
@@ -60,9 +62,10 @@ class KeyValuePairController(ResourceController):
             Handle:
                 GET /keys/key1
         """
+        key_ref = get_key_reference(name=name, scope=scope, prefix=get_requester())
         from_model_kwargs = {'mask_secrets': not decrypt}
         kvp_api = self._get_one_by_scope_and_name(
-            name=name,
+            name=key_ref,
             scope=scope,
             from_model_kwargs=from_model_kwargs
         )
@@ -100,7 +103,8 @@ class KeyValuePairController(ResourceController):
         Create a new entry or update an existing one.
         """
         scope = getattr(kvp, 'scope', scope)
-        lock_name = self._get_lock_name_for_key(name=name, scope=scope)
+        key_ref = get_key_reference(name=name, scope=scope, prefix=get_requester())
+        lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
         LOG.debug('PUT scope: %s, name: %s', scope, name)
         # TODO: Custom permission check since the key doesn't need to exist here
 
@@ -108,10 +112,10 @@ class KeyValuePairController(ResourceController):
         with self._coordinator.get_lock(lock_name):
             existing_kvp_api = self._get_one_by_scope_and_name(
                 scope=scope,
-                name=name
+                name=key_ref
             )
 
-            kvp.name = name
+            kvp.name = key_ref
             kvp.scope = scope
 
             try:
@@ -147,13 +151,14 @@ class KeyValuePairController(ResourceController):
             Handles requests:
                 DELETE /keys/1
         """
-        lock_name = self._get_lock_name_for_key(name=name, scope=scope)
+        key_ref = get_key_reference(name=name, scope=scope, prefix=get_requester())
+        lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
             from_model_kwargs = {'mask_secrets': True}
             kvp_api = self._get_one_by_scope_and_name(
-                name=name,
+                name=key_ref,
                 scope=scope,
                 from_model_kwargs=from_model_kwargs
             )

@@ -13,15 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Namespace to contain all system/global scoped variables in key-value store.
-SYSTEM_SCOPE = 'system'
+from st2common.constants.keyvalue import PREFIX_SEPARATOR
 
-# Namespace to contain all user scoped variables in key-value store.
-USER_SCOPE = 'user'
 
-PREFIX_SEPARATOR = '.'
+class KeyReference(object):
+    """
+    Holds a reference to key given name and prefix. For example, if key name is foo and prefix
+    is bob, this returns a string of form "bob.foo". This assumes '.' is the PREFIX_SEPARATOR.
+    """
 
-ALLOWED_SCOPES = [
-    SYSTEM_SCOPE,
-    USER_SCOPE
-]
+    def __init__(self, name, prefix=''):
+        self._prefix = prefix
+        self._name = name
+        self.ref = ('%s%s%s' % (self._prefix, PREFIX_SEPARATOR, self._name)
+                    if self._prefix else self._name)
+
+    def __str__(self):
+        return self.ref

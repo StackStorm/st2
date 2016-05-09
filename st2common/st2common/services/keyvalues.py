@@ -14,7 +14,13 @@
 # limitations under the License.
 
 from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.models.system.keyvalue import KeyReference
 from st2common.persistence.keyvalue import KeyValuePair
+
+__all__ = [
+    'KeyValueLookup',
+    'get_key_reference',
+]
 
 
 class KeyValueLookup(object):
@@ -37,7 +43,7 @@ class KeyValueLookup(object):
 
     def _get(self, name):
         # get the value for this key and save in value_cache
-        key = '%s.%s' % (self._key_prefix, name) if self._key_prefix else name
+        key = KeyReference(name=name, prefix=self._key_prefix).ref
         value = self._get_kv(key)
         self._value_cache[key] = value
         # return a KeyValueLookup as response since the lookup may not be complete e.g. if
@@ -52,3 +58,24 @@ class KeyValueLookup(object):
         # A good default value for un-matched value is empty string since that will be used
         # for rendering templates.
         return kvp.value if kvp else ''
+
+
+def get_key_reference(name, scope, prefix):
+    """
+    Given a key name, scope and prefix, this method returns a new name (string ref)
+    to address the key value pair in the context of that scope.
+
+    :param name: Original name of the key.
+    :type name: ``str``
+
+    :param scope: Scope the key is under.
+    :type scope: ``str``
+
+    :param prefix: Prefix to use for the key.
+    :type prefix: ``str``
+
+    :rtype: ``str``
+    """
+    if scope == SYSTEM_SCOPE:
+        return KeyReference(name=name).ref
+    return KeyReference(name=name, prefix=prefix).ref
