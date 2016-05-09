@@ -252,7 +252,7 @@ class ResourceController(rest.RestController):
         :param name: Name of the key.
         :type name: ``str``
         """
-        instance = self.access.query(scope=scope, name=name).first()
+        instance = self.access.get_by_scope_and_name(scope=scope, name=name)
         if not instance:
             return instance
         from_model_kwargs = from_model_kwargs or {}

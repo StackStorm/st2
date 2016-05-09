@@ -13,13 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.persistence.keyvalue import KeyValuePair
 
 
 class KeyValueLookup(object):
 
-    def __init__(self, key_prefix='', cache=None):
+    def __init__(self, key_prefix='', cache=None, scope=SYSTEM_SCOPE):
         self._key_prefix = key_prefix
+        self._scope = scope
         if cache is None:
             cache = {}
         self._value_cache = cache
@@ -42,15 +44,11 @@ class KeyValueLookup(object):
         # the lookup is for 'key_base.key_value' it is likely that the calling code, e.g. Jinja,
         # will expect to do a dictionary style lookup for key_base and key_value as subsequent
         # calls. Saving the value in cache avoids extra DB calls.
-        return KeyValueLookup(key, self._value_cache)
+        return KeyValueLookup(key_prefix=key, cache=self._value_cache)
 
     def _get_kv(self, key):
-        kvp = None
-        try:
-            kvp = KeyValuePair.get_by_name(key)
-        except ValueError:
-            # ValueErrors are expected in case of partial lookups
-            pass
+        scope = self._scope
+        kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
         # A good default value for un-matched value is empty string since that will be used
         # for rendering templates.
         return kvp.value if kvp else ''

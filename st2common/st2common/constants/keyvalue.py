@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.constants.system import SYSTEM_KV_PREFIX
+# Namespace to contain all system/global scoped variables in key-value store.
+SYSTEM_SCOPE = 'system'
 
-SYSTEM_SCOPE = SYSTEM_KV_PREFIX
-
-# Used to prefix all user scoped variables in key-value store.
+# Namespace to contain all user scoped variables in key-value store.
 USER_SCOPE = 'user'
 
 ALLOWED_SCOPES = [

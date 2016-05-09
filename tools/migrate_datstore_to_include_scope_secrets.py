@@ -17,7 +17,7 @@
 import traceback as tb
 
 from st2common import config
-from st2common.constants.system import SYSTEM_KV_PREFIX
+from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.service_setup import db_setup
@@ -36,7 +36,7 @@ def migrate_datastore():
             kvp_id = getattr(kvp, 'id', None)
             secret = getattr(kvp, 'secret', False)
             encrypted = getattr(kvp, 'encrypted', False)
-            scope = getattr(kvp, 'scope', SYSTEM_KV_PREFIX)
+            scope = getattr(kvp, 'scope', SYSTEM_SCOPE)
             new_kvp_db = KeyValuePairDB(id=kvp_id, name=kvp.name,
                                         expire_timestamp=kvp.expire_timestamp,
                                         value=kvp.value, secret=secret, encrypted=encrypted,
