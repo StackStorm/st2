@@ -41,8 +41,8 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['name'], self.pack_db_1.name)
 
-        # Get by ref
-        resp = self.app.get('/v1/packs/%s' % (self.pack_db_1.ref))
+        # Get by name
+        resp = self.app.get('/v1/packs/%s' % (self.pack_db_1.name))
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['ref'], self.pack_db_1.ref)
         self.assertEqual(resp.json['name'], self.pack_db_1.name)
