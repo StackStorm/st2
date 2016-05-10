@@ -109,6 +109,11 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
                 role=role_name)
             UserRoleAssignment.add_or_update(role_assignment_db)
 
+        # Insert a user with no permissions and role assignments
+        user_1_db = UserDB(name='no_permissions')
+        user_1_db = User.add_or_update(user_1_db)
+        self.users['no_permissions'] = user_1_db
+
     def tearDown(self):
         super(APIControllerWithRBACTestCase, self).tearDown()
 
