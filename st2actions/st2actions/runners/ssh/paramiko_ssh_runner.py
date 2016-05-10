@@ -85,6 +85,8 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._max_concurrency = cfg.CONF.ssh_runner.max_parallel_actions
 
     def pre_run(self):
+        super(BaseParallelSSHRunner, self).pre_run()
+
         LOG.debug('Entering BaseParallelSSHRunner.pre_run() for liveaction_id="%s"',
                   self.liveaction_id)
         hosts = self.runner_parameters.get(RUNNER_HOSTS, '').split(',')

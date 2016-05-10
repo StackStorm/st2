@@ -231,6 +231,7 @@ class RunnerContainer(object):
         resolved_entry_point = self._get_entry_point_abs_path(action_db.pack,
                                                               action_db.entry_point)
 
+        runner.runner_type_db = runnertype_db
         runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name

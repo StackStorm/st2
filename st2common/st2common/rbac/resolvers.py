@@ -35,6 +35,7 @@ from st2common.services.rbac import get_all_permission_grants_for_user
 LOG = logging.getLogger(__name__)
 
 __all__ = [
+    'RunnerPermissionsResolver',
     'PackPermissionsResolver',
     'SensorPermissionsResolver',
     'ActionPermissionsResolver',
@@ -243,6 +244,50 @@ class ContentPackResourcePermissionsResolver(PermissionsResolver):
 
         if len(permission_grants) >= 1:
             self._log('Found a grant on the action parent pack', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
+
+class RunnerPermissionsResolver(PermissionsResolver):
+    """
+    Permission resolver for "runner_type" resource type.
+    """
+    resource_type = ResourceType.RUNNER
+
+    def user_has_permission(self, user_db, permission_type):
+        assert permission_type in [PermissionType.RUNNER_LIST]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        log_context = {
+            'user_db': user_db,
+            'resource_db': resource_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user resource permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        resource_uid = resource_db.get_uid()
+        resource_types = [ResourceType.RUNNER]
+        permission_types = [permission_type]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=resource_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+
+        if len(permission_grants) >= 1:
+            self._log('Found a direct grant on the runner type', extra=log_context)
             return True
 
         self._log('No matching grants found', extra=log_context)
@@ -762,7 +807,9 @@ def get_resolver_for_resource_type(resource_type):
 
     :rtype: Instance of :class:`PermissionsResolver`
     """
-    if resource_type == ResourceType.PACK:
+    if resource_type == ResourceType.RUNNER:
+        resolver_cls = RunnerPermissionsResolver
+    elif resource_type == ResourceType.PACK:
         resolver_cls = PackPermissionsResolver
     elif resource_type == ResourceType.SENSOR:
         resolver_cls = SensorPermissionsResolver

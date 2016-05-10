@@ -25,6 +25,10 @@ class ResourceType(Enum):
     Enum representing a valid resource type in a system.
     """
 
+    # System resources
+    RUNNER_TYPE = 'runner_type'
+
+    # Pack resources
     PACK = 'pack'
     ACTION = 'action'
     ACTION_ALIAS = 'action_alias'
@@ -35,6 +39,7 @@ class ResourceType(Enum):
     RULE = 'rule'
     RULE_ENFORCEMENT = 'rule_enforcement'
 
+    # Other resources
     EXECUTION = 'execution'
     KEY_VALUE_PAIR = 'key_value_pair'
 

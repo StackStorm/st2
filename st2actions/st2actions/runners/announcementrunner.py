@@ -35,6 +35,8 @@ class AnnouncementRunner(ActionRunner):
         self._dispatcher = AnnouncementDispatcher(LOG)
 
     def pre_run(self):
+        super(AnnouncementRunner, self).pre_run()
+
         LOG.debug('Entering AnnouncementRunner.pre_run() for liveaction_id="%s"',
                   self.liveaction_id)
 

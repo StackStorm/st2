@@ -372,8 +372,7 @@ class ActionModelTest(DbTestCase):
 
     @staticmethod
     def _create_save_runnertype(metadata=False):
-        created = RunnerTypeDB()
-        created.name = 'python'
+        created = RunnerTypeDB(name='python')
         created.description = ''
         created.enabled = True
         if not metadata:
