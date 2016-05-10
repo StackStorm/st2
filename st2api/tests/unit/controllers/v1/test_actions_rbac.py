@@ -72,15 +72,8 @@ class ActionControllerRBACTestCase(APIControllerWithRBACTestCase):
             fixtures_dict={'actions': [file_name]})['actions'][file_name]
 
         # Insert mock users, roles and assignments
-        self = self
-        self.users = {}
-        self.roles = {}
 
         # Users
-        user_1_db = UserDB(name='no_permissions')
-        user_1_db = User.add_or_update(user_1_db)
-        self.users['no_permissions'] = user_1_db
-
         user_2_db = UserDB(name='action_create')
         user_2_db = User.add_or_update(user_2_db)
         self.users['action_create'] = user_2_db

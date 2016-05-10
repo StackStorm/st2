@@ -93,6 +93,7 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
         super(APIControllerWithRBACTestCase, self).setUp()
 
         self.users = {}
+        self.roles = {}
 
         # Run RBAC migrations
         run_all_rbac_migrations()
