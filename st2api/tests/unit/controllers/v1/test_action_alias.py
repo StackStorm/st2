@@ -28,6 +28,12 @@ TEST_LOAD_MODELS = {
     'aliases': ['alias3.yaml']
 }
 
+GENERIC_FIXTURES_PACK = 'generic'
+
+TEST_LOAD_MODELS_GENERIC = {
+    'aliases': ['alias3.yaml']
+}
+
 
 class TestActionAlias(FunctionalTest):
 
@@ -35,6 +41,7 @@ class TestActionAlias(FunctionalTest):
     alias1 = None
     alias2 = None
     alias3 = None
+    alias3_generic = None
 
     @classmethod
     def setUpClass(cls):
@@ -47,6 +54,10 @@ class TestActionAlias(FunctionalTest):
         loaded_models = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
                                                      fixtures_dict=TEST_LOAD_MODELS)
         cls.alias3 = loaded_models['aliases']['alias3.yaml']
+
+        loaded_models = FixturesLoader().load_models(fixtures_pack=GENERIC_FIXTURES_PACK,
+                                                     fixtures_dict=TEST_LOAD_MODELS_GENERIC)
+        cls.alias3_generic = loaded_models['aliases']['alias3.yaml']
 
     def test_get_all(self):
         resp = self.app.get('/v1/actionalias')
@@ -78,6 +89,15 @@ class TestActionAlias(FunctionalTest):
 
         get_resp = self.app.get('/v1/actionalias/%s' % post_resp.json['id'], expect_errors=True)
         self.assertEqual(get_resp.status_int, 404)
+
+    def test_post_dup_name(self):
+        post_resp = self._do_post(vars(ActionAliasAPI.from_model(self.alias3)))
+        self.assertEqual(post_resp.status_int, 201)
+        post_resp_dup_name = self._do_post(vars(ActionAliasAPI.from_model(self.alias3_generic)))
+        self.assertEqual(post_resp_dup_name.status_int, 201)
+
+        self.__do_delete(post_resp.json['id'])
+        self.__do_delete(post_resp_dup_name.json['id'])
 
     def _do_post(self, actionalias, expect_errors=False):
         return self.app.post_json('/v1/actionalias', actionalias, expect_errors=expect_errors)
