@@ -19,7 +19,7 @@ from mongoengine import ValidationError
 
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
-from st2common.constants.keyvalue import SYSTEM_SCOPE, ALLOWED_SCOPES
+from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, ALLOWED_SCOPES
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
@@ -93,6 +93,11 @@ class KeyValuePairController(ResourceController):
                 abort(http_client.BAD_REQUEST, msg)
                 return
             kwargs['scope'] = scope
+
+        if scope == USER_SCOPE and kwargs['prefix']:
+            kwargs['prefix'] = get_key_reference(name=kwargs['prefix'], scope=scope,
+                                                 user=get_requester())
+
         kvp_apis = super(KeyValuePairController, self)._get_all(from_model_kwargs=from_model_kwargs,
                                                                 **kwargs)
         return kvp_apis

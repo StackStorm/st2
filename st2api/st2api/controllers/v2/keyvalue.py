@@ -123,7 +123,7 @@ class KeyValuePairController(ResourceController):
         """
 
         body_scope = getattr(kvp, 'scope', None)
-        if scope != body_scope:
+        if body_scope and scope != body_scope:
             msg = 'URL scope: "%s" doesn\'t match scope field in body: "%s"' % (scope, body_scope)
             abort(http_client.BAD_REQUEST, msg)
             return
@@ -214,5 +214,5 @@ class KeyValuePairController(ResourceController):
         :param name: Datastore item name (PK).
         :type name: ``str``
         """
-        lock_name = 'kvp-crud-%s.%s' % (name)
+        lock_name = 'kvp-crud-%s.%s' % (scope, name)
         return lock_name
