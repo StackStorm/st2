@@ -13,17 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest2 import TestCase
-
 from st2tests.mocks.sensor import MockSensorWrapper
 from st2tests.mocks.sensor import MockSensorService
+from st2tests.pack_resource import BasePackResourceTestCase
 
 __all__ = [
     'BaseSensorTestCase'
 ]
 
 
-class BaseSensorTestCase(TestCase):
+class BaseSensorTestCase(BasePackResourceTestCase):
     """
     Base class for sensor tests.
 
