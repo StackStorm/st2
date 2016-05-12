@@ -19,7 +19,7 @@ from mongoengine import ValidationError
 
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
-from st2common.constants.keyvalue import ALLOWED_SCOPES
+from st2common.constants.keyvalue import USER_SCOPE, ALLOWED_SCOPES
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
@@ -45,6 +45,9 @@ class ScopedKeyValuePairController(object):
     @expose()
     def _lookup(self, *remainder):
         LOG.debug('ScopedKeyValuePairController - Validate scope')
+        if not remainder:
+            abort(http_client.BAD_REQUEST, 'No scope specified.')
+            return
         scope = remainder[0]
         if not self._is_allowed_scope(scope):
             msg = 'Scope %s is not in allowed scopes list: %s.' % (scope, ALLOWED_SCOPES)
@@ -75,8 +78,16 @@ class KeyValuePairController(ResourceController):
         self._coordinator = coordination.get_coordinator()
         self.get_one_db_method = self._get_by_name
 
-    @jsexpose(arg_types=[str, str, bool])
-    def get_one(self, scope, name, decrypt=False):
+    @jsexpose(arg_types=[str, str, str, bool])
+    def get(self, scope, name=None, prefix=None, decrypt=False, **kwargs):
+        if scope and name:
+            return self.get_one(scope=scope, name=name, decrypt=decrypt)
+
+        if scope and not name:
+            return self.get_all(scope=scope, name=name, decrypt=decrypt, prefix=prefix, **kwargs)
+
+    # @jsexpose(arg_types=[str, str, bool])
+    def get_one(self, scope, name=None, decrypt=False):
         """
             List key by name.
 
@@ -98,7 +109,7 @@ class KeyValuePairController(ResourceController):
 
         return kvp_api
 
-    @jsexpose(arg_types=[str, str, bool])
+    # @jsexpose(arg_types=[str, str, bool])
     def get_all(self, scope, prefix=None, decrypt=False, **kwargs):
         """
             List all keys.
@@ -109,6 +120,11 @@ class KeyValuePairController(ResourceController):
         from_model_kwargs = {'mask_secrets': not decrypt}
         kwargs['prefix'] = prefix
         kwargs['scope'] = scope
+
+        if kwargs['prefix'] and scope == USER_SCOPE:
+            kwargs['prefix'] = get_key_reference(name=kwargs['prefix'], scope=scope,
+                                                 user=get_requester())
+
         kvp_dbs = super(KeyValuePairController, self)._get_all(from_model_kwargs=from_model_kwargs,
                                                                **kwargs)
         return kvp_dbs
@@ -124,7 +140,8 @@ class KeyValuePairController(ResourceController):
 
         body_scope = getattr(kvp, 'scope', None)
         if body_scope and scope != body_scope:
-            msg = 'URL scope: "%s" doesn\'t match scope field in body: "%s"' % (scope, body_scope)
+            msg = ('Scope "%s" in URL doesn not match scope "%s" field in body.' % (
+                   scope, body_scope))
             abort(http_client.BAD_REQUEST, msg)
             return
 
@@ -187,11 +204,12 @@ class KeyValuePairController(ResourceController):
                 scope=scope,
                 from_model_kwargs=from_model_kwargs
             )
-            kvp_db = KeyValuePairAPI.to_model(kvp_api)
 
-            if not kvp_db:
+            if not kvp_api:
                 abort(http_client.NOT_FOUND)
                 return
+
+            kvp_db = KeyValuePairAPI.to_model(kvp_api)
 
             LOG.debug('DELETE /keys/ lookup with name=%s found object: %s', name, kvp_db)
 
