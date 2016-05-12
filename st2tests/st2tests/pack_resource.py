@@ -49,4 +49,5 @@ class BasePackResourceTestCase(TestCase):
     def _get_base_pack_path(self):
         test_file_path = inspect.getfile(self.__class__)
         base_pack_path = os.path.join(os.path.dirname(test_file_path), '..')
+        base_pack_path = os.path.abspath(base_pack_path)
         return base_pack_path
