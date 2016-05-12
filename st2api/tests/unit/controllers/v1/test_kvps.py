@@ -162,7 +162,10 @@ class TestKeyValuePairController(FunctionalTest):
         self.app.put_json('/v1/keys/%s?scope=user' % 'customer_ssn', KVP_4_USER,
                           expect_errors=False)
         get_prefix = self.app.get('/v1/keys?scope=user&prefix=keystone')
-        self.assertEqual(len(get_prefix), 2)
+        self.assertEqual(len(get_prefix.json), 2)
+        self.app.delete('/v1/keys/keystone_version?scope=user')
+        self.app.delete('/v1/keys/keystone_endpoint?scope=user')
+        self.app.delete('/v1/keys/customer_ssn?scope=user')
 
     def test_put_with_ttl(self):
         put_resp = self.__do_put('key_with_ttl', KVP_WITH_TTL)
