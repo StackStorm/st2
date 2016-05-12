@@ -20,13 +20,14 @@ from keyczar.keys import AesKey
 from oslo_config import cfg
 import six
 
-from st2common.constants.keyvalue import SYSTEM_SCOPE, ALLOWED_SCOPES
+from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, ALLOWED_SCOPES
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.log import logging
 from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.util.crypto import symmetric_encrypt, symmetric_decrypt
 from st2common.models.api.base import BaseAPI
+from st2common.models.system.keyvalue import UserKeyReference
 from st2common.models.db.keyvalue import KeyValuePairDB
 
 LOG = logging.getLogger(__name__)
@@ -132,6 +133,11 @@ class KeyValuePairAPI(BaseAPI):
         scope = getattr(model, 'scope', SYSTEM_SCOPE)
         if scope:
             doc['scope'] = scope
+
+        key = doc.get('name', None)
+        if scope == USER_SCOPE and key:
+            doc['user'] = UserKeyReference.get_user(key)
+            doc['name'] = UserKeyReference.get_name(key)
 
         doc['encrypted'] = encrypted
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
