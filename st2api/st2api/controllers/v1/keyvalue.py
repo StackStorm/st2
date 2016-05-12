@@ -62,7 +62,7 @@ class KeyValuePairController(ResourceController):
             Handle:
                 GET /keys/key1
         """
-        key_ref = get_key_reference(name=name, scope=scope, prefix=get_requester())
+        key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         from_model_kwargs = {'mask_secrets': not decrypt}
         kvp_api = self._get_one_by_scope_and_name(
             name=key_ref,
@@ -103,7 +103,7 @@ class KeyValuePairController(ResourceController):
         Create a new entry or update an existing one.
         """
         scope = getattr(kvp, 'scope', scope)
-        key_ref = get_key_reference(name=name, scope=scope, prefix=get_requester())
+        key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
         LOG.debug('PUT scope: %s, name: %s', scope, name)
         # TODO: Custom permission check since the key doesn't need to exist here
@@ -151,7 +151,7 @@ class KeyValuePairController(ResourceController):
             Handles requests:
                 DELETE /keys/1
         """
-        key_ref = get_key_reference(name=name, scope=scope, prefix=get_requester())
+        key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
 
         # Note: We use lock to avoid a race

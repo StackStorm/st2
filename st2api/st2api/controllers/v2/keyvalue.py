@@ -83,7 +83,7 @@ class KeyValuePairController(ResourceController):
             Handle:
                 GET /keys/${scope}/key1
         """
-        key_ref = get_key_reference(scope=scope, name=name, prefix=get_requester())
+        key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         from_model_kwargs = {'mask_secrets': not decrypt}
         kvp_api = self._get_one_by_scope_and_name(
             name=key_ref,
@@ -128,7 +128,7 @@ class KeyValuePairController(ResourceController):
             abort(http_client.BAD_REQUEST, msg)
             return
 
-        key_ref = get_key_reference(name=name, scope=scope, prefix=get_requester())
+        key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         lock_name = self._get_lock_name_for_key(scope=scope, name=key_ref)
 
         # TODO: Custom permission check since the key doesn't need to exist here
@@ -176,7 +176,7 @@ class KeyValuePairController(ResourceController):
             Handles requests:
                 DELETE /keys/1
         """
-        key_ref = get_key_reference(name=name, scope=scope, prefix=get_requester())
+        key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
 
         # Note: We use lock to avoid a race

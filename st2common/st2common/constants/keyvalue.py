@@ -14,12 +14,20 @@
 # limitations under the License.
 
 # Namespace to contain all system/global scoped variables in key-value store.
+
+__all__ = [
+    'ALLOWED_SCOPES',
+    'SYSTEM_SCOPE',
+    'USER_SCOPE',
+    'USER_SEPARATOR',
+]
+
 SYSTEM_SCOPE = 'system'
 
 # Namespace to contain all user scoped variables in key-value store.
 USER_SCOPE = 'user'
 
-PREFIX_SEPARATOR = '.'
+USER_SEPARATOR = ':'
 
 ALLOWED_SCOPES = [
     SYSTEM_SCOPE,

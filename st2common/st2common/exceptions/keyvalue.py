@@ -27,3 +27,7 @@ class CryptoKeyNotSetupException(StackStormBaseException):
 
 class InvalidScopeException(StackStormBaseException):
     pass
+
+
+class InvalidUserException(StackStormBaseException):
+    pass
