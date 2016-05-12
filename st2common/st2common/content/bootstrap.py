@@ -68,6 +68,11 @@ def setup_virtualenvs():
     """
     Setup Python virtual environments for all the registered or the provided pack.
     """
+
+    LOG.info('=========================================================')
+    LOG.info('########### Setting up virtual environments #############')
+    LOG.info('=========================================================')
+
     pack_dir = cfg.CONF.register.pack
     fail_on_failure = cfg.CONF.register.fail_on_failure
 
@@ -244,27 +249,28 @@ def register_policies():
 
 
 def register_content():
-    if cfg.CONF.register.all:
+    register_all = cfg.CONF.register.all
+
+    if register_all:
         register_sensors()
         register_actions()
         register_rules()
         register_aliases()
         register_policies()
-        return
 
-    if cfg.CONF.register.sensors:
+    if cfg.CONF.register.sensors and not register_all:
         register_sensors()
 
-    if cfg.CONF.register.actions:
+    if cfg.CONF.register.actions and not register_all:
         register_actions()
 
-    if cfg.CONF.register.rules:
+    if cfg.CONF.register.rules and not register_all:
         register_rules()
 
-    if cfg.CONF.register.aliases:
+    if cfg.CONF.register.aliases and not register_all:
         register_aliases()
 
-    if cfg.CONF.register.policies:
+    if cfg.CONF.register.policies and not register_all:
         register_policies()
 
     if cfg.CONF.register.setup_virtualenvs:
