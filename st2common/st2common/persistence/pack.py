@@ -17,11 +17,20 @@ from st2common.models.db.pack import pack_access
 from st2common.persistence import base
 
 __all__ = [
-    'Pack'
+    'Pack',
+    'ConfigSchema'
 ]
 
 
 class Pack(base.Access):
+    impl = pack_access
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+
+class ConfigSchema(base.Access):
     impl = pack_access
 
     @classmethod
