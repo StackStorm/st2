@@ -19,7 +19,7 @@ import networkx as nx
 from jinja2 import meta
 from st2common import log as logging
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
-from st2common.constants.system import SYSTEM_KV_PREFIX
+from st2common.constants.datastore import SYSTEM_KEY_PREFIX
 from st2common.exceptions.param import ParamException
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util.casts import get_cast
@@ -74,7 +74,7 @@ def _create_graph(action_context):
     Creates a generic directed graph for depencency tree and fills it with basic context variables
     '''
     G = nx.DiGraph()
-    G.add_node(SYSTEM_KV_PREFIX, value=KeyValueLookup())
+    G.add_node(SYSTEM_KEY_PREFIX, value=KeyValueLookup())
     G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
     return G
 

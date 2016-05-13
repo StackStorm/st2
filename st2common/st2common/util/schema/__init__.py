@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Module which contains jsonschema related utility functions.
+"""
+
 import os
 import copy
 
@@ -38,7 +42,9 @@ __all__ = [
     'is_property_nullable',
     'is_attribute_type_array',
     'is_attribute_type_object',
-    'validate'
+    'validate',
+
+    'get_jsonschema_type_for_value'
 ]
 
 # https://github.com/json-schema/json-schema/blob/master/draft-04/schema
@@ -378,3 +384,37 @@ def get_schema_for_resource_parameters(parameters_schema):
         schema['additionalProperties'] = False
 
     return schema
+
+
+def get_jsonschema_type_for_value(value, default_value='unknown'):
+    """
+    Retrieve jsonschema type for the provided Python value.
+
+    :param value: Python value to retrieve the type for.
+    :type value: ``object``
+
+    :param default_value: Fallback type one one can't be inferred.
+    :tyype default_value: ``str``
+
+    :rtype: ``string``
+    """
+    result = 'unknown'
+
+    if isinstance(value, six.string_types):
+        result = 'string'
+    elif value is True or value is False:
+        result = 'boolean'
+    elif isinstance(value, float):
+        result = 'number'
+    elif isinstance(value, int):
+        result = 'integer'
+    elif isinstance(value, (tuple, list)):
+        result = 'list'
+    elif isinstance(value, dict):
+        result = 'object'
+    elif value is None:
+        result = 'null'
+    else:
+        result = default_value
+
+    return result
