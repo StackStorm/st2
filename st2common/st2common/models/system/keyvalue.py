@@ -56,7 +56,9 @@ class UserKeyReference(object):
 
         :rtype: ``str``
         """
-        return UserKeyReference(user=user, name=name)
+        if not user or not name:
+            raise ValueError('Both "user" and "name" must be valid to generate ref.')
+        return UserKeyReference(user=user, name=name).ref
 
     @staticmethod
     def from_string_reference(ref):
