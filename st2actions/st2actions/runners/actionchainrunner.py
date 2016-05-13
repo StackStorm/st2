@@ -230,6 +230,8 @@ class ActionChainRunner(ActionRunner):
         self._chain_notify = None
 
     def pre_run(self):
+        super(ActionChainRunner, self).pre_run()
+
         chainspec_file = self.entry_point
         LOG.debug('Reading action chain from %s for action %s.', chainspec_file,
                   self.action)

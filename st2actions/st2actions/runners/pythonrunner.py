@@ -92,6 +92,8 @@ class PythonRunner(ActionRunner):
         self._timeout = timeout
 
     def pre_run(self):
+        super(PythonRunner, self).pre_run()
+
         # TODO :This is awful, but the way "runner_parameters" and other variables get
         # assigned on the runner instance is even worse. Those arguments should
         # be passed to the constructor.

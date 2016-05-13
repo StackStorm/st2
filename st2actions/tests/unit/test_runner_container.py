@@ -72,13 +72,29 @@ class RunnerContainerTest(DbTestCase):
         RunnerContainerTest.async_action_db = models['actions']['async_action1.yaml']
         RunnerContainerTest.failingaction_db = models['actions']['action-invalid-runner.yaml']
 
+    @classmethod
+    def tearDownClass(cls):
+        RunnerContainerTest.fixtures_loader.delete_fixtures_from_db(
+            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
+        super(RunnerContainerTest, cls).tearDownClass()
+
     def test_get_runner_module(self):
         runnertype_db = RunnerContainerTest.runnertype_db
         runner = get_runner(runnertype_db.runner_module)
         self.assertTrue(runner is not None, 'TestRunner must be valid.')
 
+    def test_pre_run_runner_is_disabled(self):
+        runnertype_db = RunnerContainerTest.runnertype_db
+        runner = get_runner(runnertype_db.runner_module)
+
+        runner.runner_type_db = runnertype_db
+        runner.runner_type_db.enabled = False
+
+        expected_msg = 'Runner "test-runner-1" has been disabled by the administrator'
+        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+
     def test_get_runner_module_fail(self):
-        runnertype_db = RunnerTypeDB(runner_module='absent.module')
+        runnertype_db = RunnerTypeDB(name='dummy', runner_module='absent.module')
         runner = None
         try:
             runner = get_runner(runnertype_db.runner_module)
@@ -203,9 +219,3 @@ class RunnerContainerTest(DbTestCase):
                                      action=action_ref, parameters=parameters,
                                      context=context)
         return liveaction_db
-
-    @classmethod
-    def tearDownClass(cls):
-        RunnerContainerTest.fixtures_loader.delete_fixtures_from_db(
-            fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
-        super(RunnerContainerTest, cls).tearDownClass()

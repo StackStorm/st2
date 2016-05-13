@@ -67,6 +67,8 @@ class HttpRunner(ActionRunner):
         self._timeout = 60
 
     def pre_run(self):
+        super(HttpRunner, self).pre_run()
+
         LOG.debug('Entering HttpRunner.pre_run() for liveaction_id="%s"', self.liveaction_id)
         self._on_behalf_user = self.runner_parameters.get(RUNNER_ON_BEHALF_USER,
                                                           self._on_behalf_user)

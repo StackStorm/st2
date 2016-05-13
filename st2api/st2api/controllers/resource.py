@@ -230,6 +230,10 @@ class ResourceController(rest.RestController):
             # Try name
             resource_db = self._get_by_name(resource_name=name_or_id, exclude_fields=exclude_fields)
 
+        if not resource_db:
+            msg = 'Resource with a name or id "%s" not found' % (name_or_id)
+            raise StackStormDBObjectNotFoundError(msg)
+
         return resource_db
 
     def _get_from_model_kwargs_for_request(self, request):

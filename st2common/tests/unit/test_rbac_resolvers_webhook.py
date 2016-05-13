@@ -72,26 +72,27 @@ class WebhookPermissionsResolverTestCase(BasePermissionsResolverTestCase):
         # Admin user, should always return true
         resource_db = self.resources['webhook_1']
         user_db = self.users['admin']
-        self.assertTrue(self._user_has_resource_db_permissions(
+        self.assertUserHasResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=all_permission_types))
+            permission_types=all_permission_types)
 
         # Custom role with "webhook_send" grant on webhook_1
         user_db = self.users['custom_role_webhook_grant']
-        self.assertTrue(resolver.user_has_resource_db_permission(
+        self.assertUserHasResourceDbPermission(
+            resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_type=PermissionType.WEBHOOK_SEND))
+            permission_type=PermissionType.WEBHOOK_SEND)
 
         permission_types = [
             PermissionType.WEBHOOK_CREATE,
             PermissionType.WEBHOOK_DELETE,
             PermissionType.WEBHOOK_ALL
         ]
-        self.assertFalse(self._user_has_resource_db_permissions(
+        self.assertUserDoesntHaveResourceDbPermissions(
             resolver=resolver,
             user_db=user_db,
             resource_db=resource_db,
-            permission_types=permission_types))
+            permission_types=permission_types)

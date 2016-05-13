@@ -40,7 +40,7 @@ class NoopRunner(ActionRunner):
         super(NoopRunner, self).__init__(runner_id=runner_id)
 
     def pre_run(self):
-        pass
+        super(NoopRunner, self).pre_run()
 
     def run(self, action_parameters):
 

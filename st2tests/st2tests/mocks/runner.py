@@ -37,6 +37,7 @@ class MockActionRunner(ActionRunner):
         self.post_run_called = False
 
     def pre_run(self):
+        super(MockActionRunner, self).pre_run()
         self.pre_run_called = True
 
     def run(self, action_params):

@@ -42,6 +42,12 @@ TEST_FIXTURES = {
     'enforcements': ['enforcement1.yaml']
 }
 
+MOCK_RUNNER_1 = {
+    'name': 'test-runner-1',
+    'description': 'test',
+    'enabled': False
+}
+
 MOCK_ACTION_1 = {
     'name': 'ma.dummy.action',
     'pack': 'examples',
@@ -122,6 +128,20 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         execution_model = self.models['executions']['execution1.yaml']
 
         supported_endpoints = [
+            # Runners
+            {
+                'path': '/v1/runnertypes',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/runnertypes/test-runner-1',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/runnertypes/test-runner-1',
+                'method': 'PUT',
+                'payload': MOCK_RUNNER_1
+            },
             # Packs
             {
                 'path': '/v1/packs',

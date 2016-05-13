@@ -54,7 +54,8 @@ class ResourceNotFoundError(Exception):
 class ResourceBranch(commands.Branch):
 
     def __init__(self, resource, description, app, subparsers,
-                 parent_parser=None, read_only=False, commands=None):
+                 parent_parser=None, read_only=False, commands=None,
+                 has_disable=False):
 
         self.resource = resource
         super(ResourceBranch, self).__init__(
@@ -79,14 +80,25 @@ class ResourceBranch(commands.Branch):
         if 'delete' not in commands:
             commands['delete'] = ResourceDeleteCommand
 
+        if 'enable' not in commands:
+            commands['enable'] = ResourceEnableCommand
+
+        if 'disable' not in commands:
+            commands['disable'] = ResourceDisableCommand
+
         # Instantiate commands.
         args = [self.resource, self.app, self.subparsers]
         self.commands['list'] = commands['list'](*args)
         self.commands['get'] = commands['get'](*args)
+
         if not read_only:
             self.commands['create'] = commands['create'](*args)
             self.commands['update'] = commands['update'](*args)
             self.commands['delete'] = commands['delete'](*args)
+
+        if has_disable:
+            self.commands['enable'] = commands['enable'](*args)
+            self.commands['disable'] = commands['disable'](*args)
 
 
 @six.add_metaclass(abc.ABCMeta)
