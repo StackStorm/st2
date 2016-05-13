@@ -58,8 +58,8 @@ class ConfigSchemaDB(stormbase.StormFoundationDB):
 
     pack = me.StringField(
         required=True,
-        help_text='Name of the content pack this schema belongs to.',
-        unique=True)
+        unique=True,
+        help_text='Name of the content pack this schema belongs to.')
     attributes = stormbase.EscapedDynamicField(
         help_text='The specification for config schema attributes.')
 
