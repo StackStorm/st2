@@ -71,35 +71,9 @@ class BasePacksController(ResourceController):
         return resource_db
 
 
-from st2common.models.api.pack import ConfigSchemaAPI
-from st2common.persistence.pack import ConfigSchema
-
-class PackConfigSchemaController(ResourceController):
-    model = ConfigSchemaAPI
-    access = ConfigSchema
-    supported_filters = {}
-
-    def __init__(self):
-        super(PackConfigSchemaController, self).__init__()
-        self.get_one_db_method = self._get_by_pack_ref
-
-    @jsexpose()
-    def get_all(self, **kwargs):
-        return pecan.abort(404)
-
-    @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
-    @jsexpose(arg_types=[str])
-    def get_one(self, pack_ref):
-        """
-            Retrieve config schema for a particular pack.
-
-            Handles requests:
-                GET /packs/config_schema/<pack_ref>
-        """
-        return self._get_one_by_pack_ref(pack_ref=pack_ref)
-
 class PacksController(BasePacksController):
     from st2api.controllers.v1.packviews import PackViewsController
+    from st2api.controllers.v1.pack_config_schema import PackConfigSchemaController
 
     model = PackAPI
     access = Pack
