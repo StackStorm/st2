@@ -219,10 +219,13 @@ class TestKeyValuePairController(FunctionalTest):
         return resp.json['name']
 
     def _do_get_one(self, scope, kvp_id, expect_errors=False):
-        return self.app.get('/v2/keys/%s/%s' % (scope, kvp_id), expect_errors=expect_errors)
+        return self.app.get('/v2/keys/%s/%s' % (scope, kvp_id),
+                            expect_errors=expect_errors)
 
     def _do_put(self, scope, kvp_id, kvp, expect_errors=False):
-        return self.app.put_json('/v2/keys/%s/%s' % (scope, kvp_id), kvp, expect_errors=expect_errors)
+        return self.app.put_json('/v2/keys/%s/%s' % (scope, kvp_id), kvp,
+                                 expect_errors=expect_errors)
 
     def _do_delete(self, scope, kvp_id, expect_errors=False):
-        return self.app.delete('/v2/keys/%s/%s' % (scope, kvp_id), expect_errors=expect_errors)
+        return self.app.delete('/v2/keys/%s/%s' % (scope, kvp_id),
+                               expect_errors=expect_errors)
