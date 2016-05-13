@@ -191,7 +191,7 @@ class KeyValuePairController(ResourceController):
             Delete the key value pair.
 
             Handles requests:
-                DELETE /keys/1
+                DELETE /keys/${scope}/1
         """
         key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
