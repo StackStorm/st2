@@ -14,22 +14,20 @@
 # limitations under the License.
 
 import os
-import inspect
-
-from unittest2 import TestCase
 
 from st2common.content.loader import ContentPackLoader
 from st2common.exceptions.content import ParseException
 from st2common.bootstrap.aliasesregistrar import AliasesRegistrar
 from st2common.models.utils.action_alias_utils import extract_parameters_for_action_alias_db
 from st2common.models.utils.action_alias_utils import extract_parameters
+from st2tests.pack_resource import BasePackResourceTestCase
 
 __all__ = [
     'BaseActionAliasTestCase'
 ]
 
 
-class BaseActionAliasTestCase(TestCase):
+class BaseActionAliasTestCase(BasePackResourceTestCase):
     """
     Base class for testing action aliases.
     """
@@ -96,9 +94,7 @@ class BaseActionAliasTestCase(TestCase):
         """
         Retrieve ActionAlias DB object for the provided alias name.
         """
-        test_file_path = inspect.getfile(self.__class__)
-        base_pack_path = os.path.join(os.path.dirname(test_file_path), '..')
-        base_pack_path = os.path.abspath(base_pack_path)
+        base_pack_path = self._get_base_pack_path()
         _, pack = os.path.split(base_pack_path)
 
         pack_loader = ContentPackLoader()
