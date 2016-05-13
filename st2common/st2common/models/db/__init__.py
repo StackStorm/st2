@@ -36,6 +36,7 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.execution',
     'st2common.models.db.executionstate',
     'st2common.models.db.liveaction',
+    'st2common.models.db.pack',
     'st2common.models.db.policy',
     'st2common.models.db.rule',
     'st2common.models.db.runner',
