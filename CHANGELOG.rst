@@ -24,6 +24,9 @@ in development
 * Add RBAC support for runner types API endpoints. (improvement)
 * Allow ``register-setup-virtualenvs`` flag to be used in combination with ``register-all`` in the
   ``st2-register-content`` script.
+* Add ``get_fixture_content`` method to all the base pack resource test classes. This method
+  enforces fixture files location and allows user to load raw fixture content from a file on disk.
+  (new feature)
 
 1.4.0 - April 18, 2016
 ----------------------

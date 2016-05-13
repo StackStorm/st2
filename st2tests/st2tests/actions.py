@@ -13,19 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest2 import TestCase
-
 from st2actions.runners.utils import get_action_class_instance
 from st2tests.mocks.action import MockActionWrapper
 from st2tests.mocks.action import MockActionService
-
+from st2tests.pack_resource import BasePackResourceTestCase
 
 __all__ = [
     'BaseActionTestCase'
 ]
 
 
-class BaseActionTestCase(TestCase):
+class BaseActionTestCase(BasePackResourceTestCase):
     """
     Base class for Python runner action tests.
     """
