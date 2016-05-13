@@ -22,6 +22,7 @@ in development
   ``st2 runner enable <name>``) which allows administrator to disable (and re-enable) a runner.
   (new feature)
 * Add RBAC support for runner types API endpoints. (improvement)
+* Add data model and API changes for supporting user scoped variables. (new-feature, experimental)
 
 1.4.0 - April 18, 2016
 ----------------------
