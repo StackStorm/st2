@@ -22,6 +22,8 @@ in development
   ``st2 runner enable <name>``) which allows administrator to disable (and re-enable) a runner.
   (new feature)
 * Add RBAC support for runner types API endpoints. (improvement)
+* Allow ``register-setup-virtualenvs`` flag to be used in combination with ``register-all`` in the
+  ``st2-register-content`` script.
 
 1.4.0 - April 18, 2016
 ----------------------
