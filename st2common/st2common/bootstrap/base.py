@@ -178,7 +178,7 @@ class ResourceRegistrar(object):
         config_schema_db = ConfigSchemaAPI.to_model(config_schema_api)
 
         try:
-            config_schema_db.id = ConfigSchema.get_by_ref(pack_name).id
+            config_schema_db.id = ConfigSchema.get_by_pack(pack_name).id
         except ValueError:
             LOG.debug('Config schema for pack %s not found. Creating new one.', pack_name)
 
