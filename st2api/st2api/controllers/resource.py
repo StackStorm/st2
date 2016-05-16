@@ -240,8 +240,11 @@ class ResourceController(rest.RestController):
         try:
             resource_db = self.access.get(pack=pack_ref, exclude_fields=exclude_fields)
         except Exception as e:
-            print e
             resource_db = None
+
+        if not resource_db:
+            msg = 'Resource with a pack_ref "%s" not found' % (pack_ref)
+            raise StackStormDBObjectNotFoundError(msg)
 
         return resource_db
 
