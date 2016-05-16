@@ -15,6 +15,7 @@
 
 import pecan
 
+from st2common.services import packs as packs_service
 from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.pack import ConfigSchemaAPI
@@ -35,7 +36,10 @@ class PackConfigSchemaController(ResourceController):
 
     def __init__(self):
         super(PackConfigSchemaController, self).__init__()
-        self.get_one_db_method = self._get_by_pack_ref
+
+        # Note: This method is used to retrieve object for RBAC purposes and in
+        # this case, RBAC is checked on the parent PackDB object
+        self.get_one_db_method = packs_service.get_pack_by_ref
 
     @jsexpose()
     def get_all(self, **kwargs):
