@@ -32,4 +32,4 @@ class PackConfigSchemaControllerTestCase(FunctionalTest):
         resp = self.app.get('/v1/config_schema/dummy_pack_1')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['pack'], 'dummy_pack_1')
-        self.assertEqual('api_key' in resp.json['attributes'])
+        self.assertTrue('api_key' in resp.json['attributes'])
