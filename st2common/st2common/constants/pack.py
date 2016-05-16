@@ -22,7 +22,8 @@ __all__ = [
     'CHATOPS_PACK_NAME',
     'USER_PACK_NAME_BLACKLIST',
     'BASE_PACK_REQUIREMENTS',
-    'MANIFEST_FILE_NAME'
+    'MANIFEST_FILE_NAME',
+    'CONFIG_SCHEMA_FILE_NAME'
 ]
 
 # A list of allowed characters for the pack name
@@ -65,3 +66,6 @@ BASE_PACK_REQUIREMENTS = [
 
 # Name of the pack manifest file
 MANIFEST_FILE_NAME = 'pack.yaml'
+
+# File name for the config schema file
+CONFIG_SCHEMA_FILE_NAME = 'config.schema.yaml'

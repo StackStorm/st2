@@ -13,27 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.persistence import base
-from st2common.models.db.pack import pack_access
-from st2common.models.db.pack import config_schema_access
+from tests import FunctionalTest
 
 __all__ = [
-    'Pack',
-    'ConfigSchema'
+    'PackConfigSchemaControllerTestCase'
 ]
 
 
-class Pack(base.Access):
-    impl = pack_access
+class PackConfigSchemaControllerTestCase(FunctionalTest):
+    register_packs = True
 
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
+    def test_get_all(self):
+        resp = self.app.get('/v1/config_schema')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1, '/v1/config_schema did not return all schemas.')
 
-
-class ConfigSchema(base.Access):
-    impl = config_schema_access
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
+    def test_get_one(self):
+        resp = self.app.get('/v1/config_schema/dummy_pack_1')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json['pack'], 'dummy_pack_1')
+        self.assertTrue('api_key' in resp.json['attributes'])
