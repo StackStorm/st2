@@ -42,7 +42,7 @@ class ResourceRegistrarTestCase(DbTestCase):
         self.assertEqual(len(pack_dbs), 0)
         self.assertEqual(len(config_schema_dbs), 0)
 
-        registrar = ResourceRegistrar()
+        registrar = ResourceRegistrar(use_pack_cache=False)
         registrar._pack_loader.get_packs = mock.Mock()
         registrar._pack_loader.get_packs.return_value = {'dummy_pack_1': PACK_PATH}
         packs_base_paths = content_utils.get_packs_base_paths()
