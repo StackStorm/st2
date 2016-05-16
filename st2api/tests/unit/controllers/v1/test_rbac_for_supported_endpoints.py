@@ -149,6 +149,11 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'path': '/v1/packs/views/files/dummy_pack_1',
                 'method': 'GET'
             },
+            # Pack config schema
+            {
+                'path': '/v1/config_schema/dummy_pack_1',
+                'method': 'GET'
+            },
             {
                 'path': '/v1/packs/views/file/dummy_pack_1/pack.yaml',
                 'method': 'GET'
