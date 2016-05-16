@@ -21,6 +21,7 @@ from st2api.controllers.resource import ResourceController
 from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import ConfigSchema
 from st2common.rbac.types import PermissionType
+from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 
@@ -41,9 +42,10 @@ class PackConfigSchemaController(ResourceController):
         # this case, RBAC is checked on the parent PackDB object
         self.get_one_db_method = packs_service.get_pack_by_ref
 
+    @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
-        return pecan.abort(404)
+        return super(PackConfigSchemaController, self)._get_all(**kwargs)
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
     @jsexpose(arg_types=[str])
