@@ -59,6 +59,8 @@ class ResourceController(rest.RestController):
     filter_transform_functions = {}
 
     # Method responsible for retrieving an instance of the corresponding model DB object
+    # Note: This method should throw StackStormDBObjectNotFoundError if the corresponding DB
+    # object doesn't exist
     get_one_db_method = None
 
     def __init__(self):
