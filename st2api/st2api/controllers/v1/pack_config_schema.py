@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
-
 from st2common.services import packs as packs_service
 from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
