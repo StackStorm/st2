@@ -241,7 +241,7 @@ class ResourceController(rest.RestController):
     def _get_by_pack_ref(self, pack_ref, exclude_fields=None):
         try:
             resource_db = self.access.get(pack=pack_ref, exclude_fields=exclude_fields)
-        except Exception as e:
+        except Exception:
             resource_db = None
 
         if not resource_db:

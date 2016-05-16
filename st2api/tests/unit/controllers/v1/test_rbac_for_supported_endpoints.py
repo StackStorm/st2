@@ -17,8 +17,6 @@ import httplib
 
 import six
 
-from st2common.persistence.auth import User
-from st2common.models.db.auth import UserDB
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
 
