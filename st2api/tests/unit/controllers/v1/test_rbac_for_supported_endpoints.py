@@ -109,13 +109,6 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         if self.register_packs:
             self._register_packs()
 
-        self.users = {}
-
-        # Users
-        user_1_db = UserDB(name='no_permissions')
-        user_1_db = User.add_or_update(user_1_db)
-        self.users['no_permissions'] = user_1_db
-
         # Insert mock objects - those objects are used to test get one, edit and delete operations
         self.models = self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                                fixtures_dict=TEST_FIXTURES)
