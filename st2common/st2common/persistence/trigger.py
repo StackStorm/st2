@@ -15,6 +15,7 @@
 
 from st2common import log as logging
 from st2common import transport
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.trigger import triggertype_access, trigger_access, triggerinstance_access
 from st2common.persistence.base import (Access, ContentPackResource)
 from st2common.transport import utils as transport_utils
@@ -58,7 +59,7 @@ class Trigger(ContentPackResource):
         confirmed_delete = False
         try:
             cls.get_by_id(model_object.id)
-        except ValueError:
+        except (StackStormDBObjectNotFoundError, ValueError):
             confirmed_delete = True
 
         # Publish internal event on the message bus

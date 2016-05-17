@@ -24,6 +24,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import schema as util_schema
 from st2common.util import reference
 from st2common.util import date as date_utils
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2tests import DbTestCase
 
 SKIP_DELETE = False
@@ -68,7 +69,7 @@ class ReactorModelTest(DbTestCase):
         ReactorModelTest._delete([retrieved])
         try:
             retrieved = TriggerType.get_by_id(saved.id)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
@@ -88,7 +89,7 @@ class ReactorModelTest(DbTestCase):
         ReactorModelTest._delete([retrieved, triggertype])
         try:
             retrieved = Trigger.get_by_id(saved.id)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
@@ -101,7 +102,7 @@ class ReactorModelTest(DbTestCase):
         ReactorModelTest._delete([retrieved, trigger, triggertype])
         try:
             retrieved = TriggerInstance.get_by_id(saved.id)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
@@ -123,7 +124,7 @@ class ReactorModelTest(DbTestCase):
         ReactorModelTest._delete([retrieved, trigger, action, runnertype, triggertype])
         try:
             retrieved = Rule.get_by_id(saved.id)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
@@ -288,7 +289,7 @@ class ActionModelTest(DbTestCase):
         self._delete([retrieved])
         try:
             retrieved = Action.get_by_id(saved.id)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
@@ -315,7 +316,7 @@ class ActionModelTest(DbTestCase):
         self._delete([retrieved])
         try:
             retrieved = Action.get_by_id(saved.id)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
@@ -344,7 +345,7 @@ class ActionModelTest(DbTestCase):
         self._delete([retrieved])
         try:
             retrieved = Action.get_by_id(saved.id)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 
@@ -438,7 +439,7 @@ class KeyValuePairModelTest(DbTestCase):
         KeyValuePairModelTest._delete([retrieved])
         try:
             retrieved = KeyValuePair.get_by_name(saved.name)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 

@@ -15,6 +15,7 @@
 
 from st2common.models.db.marker import DumperMarkerDB
 from st2common.persistence.marker import DumperMarker
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.util import date as date_utils
 
 from st2tests import DbTestCase
@@ -36,7 +37,7 @@ class DumperMarkerModelTest(DbTestCase):
         DumperMarkerModelTest._delete([retrieved])
         try:
             retrieved = DumperMarker.get_by_id(saved.id)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 

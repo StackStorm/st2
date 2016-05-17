@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from st2common.persistence.keyvalue import KeyValuePair
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 
 class KeyValueLookup(object):
@@ -48,7 +49,7 @@ class KeyValueLookup(object):
         kvp = None
         try:
             kvp = KeyValuePair.get_by_name(key)
-        except ValueError:
+        except (StackStormDBObjectNotFoundError, ValueError):
             # ValueErrors are expected in case of partial lookups
             pass
         # A good default value for un-matched value is empty string since that will be used

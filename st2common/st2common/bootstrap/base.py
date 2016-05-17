@@ -28,6 +28,7 @@ from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 from st2common.util.file_system import get_file_list
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
     'ResourceRegistrar'
@@ -157,7 +158,7 @@ class ResourceRegistrar(object):
 
         try:
             pack_db.id = Pack.get_by_ref(pack_name).id
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             LOG.debug('Pack %s not found. Creating new one.', pack_name)
 
         pack_db = Pack.add_or_update(pack_db)
@@ -179,7 +180,7 @@ class ResourceRegistrar(object):
 
         try:
             config_schema_db.id = ConfigSchema.get_by_pack(pack_name).id
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             LOG.debug('Config schema for pack %s not found. Creating new one.', pack_name)
 
         config_schema_db = ConfigSchema.add_or_update(config_schema_db)
