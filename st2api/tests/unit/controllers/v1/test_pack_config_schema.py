@@ -28,8 +28,19 @@ class PackConfigSchemaControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1, '/v1/config_schema did not return all schemas.')
 
-    def test_get_one(self):
+    def test_get_one_success(self):
         resp = self.app.get('/v1/config_schema/dummy_pack_1')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['pack'], 'dummy_pack_1')
         self.assertTrue('api_key' in resp.json['attributes'])
+
+    def test_get_one_doesnt_exist(self):
+        # Pack exists, schema doesnt
+        resp = self.app.get('/v1/config_schema/dummy_pack_2',
+                            expect_errors=True)
+        self.assertEqual(resp.status_int, 404)
+
+        # Pack doesn't exist
+        resp = self.app.get('/v1/config_schema/pack_doesnt_exist',
+                            expect_errors=True)
+        self.assertEqual(resp.status_int, 404)

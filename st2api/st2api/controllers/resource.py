@@ -244,10 +244,6 @@ class ResourceController(rest.RestController):
         except Exception:
             resource_db = None
 
-        if not resource_db:
-            msg = 'Resource with a pack_ref "%s" not found' % (pack_ref)
-            raise StackStormDBObjectNotFoundError(msg)
-
         return resource_db
 
     def _get_by_name_or_id(self, name_or_id, exclude_fields=None):

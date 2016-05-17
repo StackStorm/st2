@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from st2common.persistence.pack import Pack
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
     'get_pack_by_ref'
@@ -24,5 +25,10 @@ def get_pack_by_ref(pack_ref):
     """
     Retrieve PackDB by the provided reference.
     """
-    pack_db = Pack.get_by_ref(pack_ref)
+
+    try:
+        pack_db = Pack.get_by_ref(pack_ref)
+    except ValueError as e:
+        raise StackStormDBObjectNotFoundError(e.message)
+
     return pack_db
