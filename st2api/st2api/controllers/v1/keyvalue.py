@@ -62,6 +62,7 @@ class KeyValuePairController(ResourceController):
             Handle:
                 GET /keys/key1
         """
+        self._validate_scope(scope=scope)
         key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         from_model_kwargs = {'mask_secrets': not decrypt}
         kvp_api = self._get_one_by_scope_and_name(
@@ -88,10 +89,7 @@ class KeyValuePairController(ResourceController):
         from_model_kwargs = {'mask_secrets': not decrypt}
         kwargs['prefix'] = prefix
         if scope:
-            if scope not in ALLOWED_SCOPES:
-                msg = 'Scope "%s" is not valid. Allowed scopes are: %s.' % (scope, ALLOWED_SCOPES)
-                abort(http_client.BAD_REQUEST, msg)
-                return
+            self._validate_scope(scope=scope)
             kwargs['scope'] = scope
 
         if scope == USER_SCOPE and kwargs['prefix']:
@@ -108,6 +106,7 @@ class KeyValuePairController(ResourceController):
         Create a new entry or update an existing one.
         """
         scope = getattr(kvp, 'scope', scope)
+        self._validate_scope(scope=scope)
         key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
         LOG.debug('PUT scope: %s, name: %s', scope, name)
@@ -156,6 +155,7 @@ class KeyValuePairController(ResourceController):
             Handles requests:
                 DELETE /keys/1
         """
+        self._validate_scope(scope=scope)
         key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
 
@@ -197,3 +197,9 @@ class KeyValuePairController(ResourceController):
         """
         lock_name = 'kvp-crud-%s.%s' % (scope, name)
         return lock_name
+
+    def _validate_scope(self, scope):
+        if scope not in ALLOWED_SCOPES:
+            msg = 'Scope %s is not in allowed scopes list: %s.' % (scope, ALLOWED_SCOPES)
+            abort(http_client.BAD_REQUEST, msg)
+            return
