@@ -27,6 +27,8 @@ from st2client.utils.date import format_isodate_for_user_timezone
 
 LOG = logging.getLogger(__name__)
 
+DEFAULT_SCOPE = 'system'
+
 
 class KeyValuePairBranch(resource.ResourceBranch):
 
@@ -79,7 +81,7 @@ class KeyValuePairListCommand(resource.ResourceListCommand):
 
         decrypt = getattr(args, 'decrypt', False)
         kwargs['params'] = {'decrypt': str(decrypt).lower()}
-        scope = getattr(args, 'scope', 'system')
+        scope = getattr(args, 'scope', DEFAULT_SCOPE)
         kwargs['params']['scope'] = scope
 
         instances = self.run(args, **kwargs)
@@ -97,14 +99,14 @@ class KeyValuePairGetCommand(resource.ResourceGetCommand):
         super(KeyValuePairGetCommand, self).__init__(kv_resource, *args, **kwargs)
         self.parser.add_argument('-d', '--decrypt', action='store_true',
                                  help='Decrypt secret if encrypted and show plain text.')
-        self.parser.add_argument('-s', '--scope', default='system', dest='scope',
+        self.parser.add_argument('-s', '--scope', default=DEFAULT_SCOPE, dest='scope',
                                  help='Scope variable is under. Example: "user".')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_name = getattr(args, self.pk_argument_name, None)
         decrypt = getattr(args, 'decrypt', False)
-        scope = getattr(args, 'scope', 'system')
+        scope = getattr(args, 'scope', DEFAULT_SCOPE)
         kwargs['params'] = {'decrypt': str(decrypt).lower()}
         kwargs['params']['scope'] = scope
         return self.get_resource_by_id(id=resource_name, **kwargs)
@@ -129,7 +131,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         self.parser.add_argument('-e', '--encrypt', dest='secret',
                                  action='store_true',
                                  help='Encrypt value before saving the value.')
-        self.parser.add_argument('-s', '--scope', dest='scope', default='system',
+        self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
                                  help='Specify the scope under which you want ' +
                                       'to place the variable.')
 
