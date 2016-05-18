@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, USER_SEPARATOR, ALLOWED_SCOPES
+from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, ALLOWED_SCOPES
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
 from st2common.models.system.keyvalue import UserKeyReference
 from st2common.persistence.keyvalue import KeyValuePair
@@ -76,7 +76,7 @@ class UserKeyValueLookup(object):
     def _get(self, name):
         # get the value for this key and save in value_cache
         if not self._key_prefix:
-            key = '%s%s%s' % (self._user, USER_SEPARATOR, name)
+            key = UserKeyReference(name=name, user=self._user).ref
         else:
             key = '%s.%s' % (self._key_prefix, name)
         value = self._get_kv(key)
