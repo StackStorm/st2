@@ -272,6 +272,26 @@ class ResourceController(rest.RestController):
         """
         return self.from_model_kwargs
 
+    def _get_one_by_scope_and_name(self, scope, name, from_model_kwargs=None):
+        """
+        Retrieve an item given scope and name. Only KeyValuePair now has concept of 'scope'.
+
+        :param scope: Scope the key belongs to.
+        :type scope: ``str``
+
+        :param name: Name of the key.
+        :type name: ``str``
+        """
+        instance = self.access.get_by_scope_and_name(scope=scope, name=name)
+        if not instance:
+            msg = 'KeyValuePair with name: %s and scope: %s not found in db.' % (name, scope)
+            raise StackStormDBObjectNotFoundError(msg)
+        from_model_kwargs = from_model_kwargs or {}
+        result = self.model.from_model(instance, **from_model_kwargs)
+        LOG.debug('GET with scope=%s and name=%s, client_result=%s', scope, name, result)
+
+        return result
+
 
 class ContentPackResourceController(ResourceController):
     include_reference = False
