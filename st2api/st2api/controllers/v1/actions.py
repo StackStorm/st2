@@ -78,8 +78,13 @@ class ActionsController(resource.ContentPackResourceController):
 
     @request_user_has_permission(permission_type=PermissionType.ACTION_LIST)
     @jsexpose()
-    def get_all(self, **kwargs):
-        return super(ActionsController, self)._get_all(**kwargs)
+    def get_all(self, exclude_attributes=None, **kwargs):
+        if exclude_attributes:
+            exclude_fields = exclude_attributes.split(',')
+        else:
+            exclude_fields = None
+
+        return super(ActionsController, self)._get_all(exclude_fields=exclude_fields, **kwargs)
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_VIEW)
     @jsexpose(arg_types=[str])
