@@ -20,6 +20,7 @@ import bson
 
 from st2tests import DbTestCase
 from st2common.util import date as date_utils
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from tests.unit.base import FakeModel, FakeModelDB
 
 
@@ -80,7 +81,8 @@ class TestPersistence(DbTestCase):
         self.assertEqual(obj1.id, obj2.id)
         self.assertEqual(obj1.name, obj2.name)
         self.assertDictEqual(obj1.context, obj2.context)
-        self.assertRaises(ValueError, self.access.get_by_id, str(bson.ObjectId()))
+        self.assertRaises(StackStormDBObjectNotFoundError,
+                          self.access.get_by_id, str(bson.ObjectId()))
 
     def test_query_by_name(self):
         obj1 = FakeModelDB(name=uuid.uuid4().hex, context={'user': 'system'})
@@ -90,7 +92,8 @@ class TestPersistence(DbTestCase):
         self.assertEqual(obj1.id, obj2.id)
         self.assertEqual(obj1.name, obj2.name)
         self.assertDictEqual(obj1.context, obj2.context)
-        self.assertRaises(ValueError, self.access.get_by_name, uuid.uuid4().hex)
+        self.assertRaises(StackStormDBObjectNotFoundError, self.access.get_by_name,
+                          uuid.uuid4().hex)
 
     def test_query_filter(self):
         obj1 = FakeModelDB(name=uuid.uuid4().hex, context={'user': 'system'})

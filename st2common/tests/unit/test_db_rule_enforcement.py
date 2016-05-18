@@ -19,6 +19,7 @@ import mock
 from st2common.models.db.rule_enforcement import RuleEnforcementDB
 from st2common.persistence.rule_enforcement import RuleEnforcement
 from st2common.transport.publishers import PoolPublisher
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2tests import DbTestCase
 
 SKIP_DELETE = False
@@ -45,7 +46,7 @@ class RuleEnforcementModelTest(DbTestCase):
         RuleEnforcementModelTest._delete([retrieved])
         try:
             retrieved = RuleEnforcement.get_by_id(saved.id)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after delete.')
 

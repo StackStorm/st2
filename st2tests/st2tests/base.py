@@ -34,6 +34,7 @@ from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.content.utils import get_packs_base_paths
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 import st2common.models.db.rule as rule_model
 import st2common.models.db.rule_enforcement as rule_enforcement_model
 import st2common.models.db.sensor as sensor_model
@@ -270,7 +271,8 @@ class DbModelTestCase(DbTestCase):
         # Assert instance is deleted from the database.
         retrieved = self.access_type.get_by_id(instance.id)
         retrieved.delete()
-        self.assertRaises(ValueError, self.access_type.get_by_id, instance.id)
+        self.assertRaises(StackStormDBObjectNotFoundError,
+                          self.access_type.get_by_id, instance.id)
 
     def _assert_unique_key_constraint(self, instance):
         # Assert instance is not already in the database.

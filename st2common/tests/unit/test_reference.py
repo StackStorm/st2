@@ -94,5 +94,5 @@ class ReferenceTest(DbTestCase):
         try:
             reference.get_model_from_ref(Trigger, {'name': 'unknown'})
             self.assertTrue(False, 'Exception expected.')
-        except ValueError:
+        except db.StackStormDBObjectNotFoundError:
             self.assertTrue(True)

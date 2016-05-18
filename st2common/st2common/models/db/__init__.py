@@ -24,6 +24,7 @@ from st2common import log as logging
 from st2common.util import isotime
 from st2common.models.db import stormbase
 from st2common.models.utils.profiling import log_query_and_profile_data_for_queryset
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 
 LOG = logging.getLogger(__name__)
@@ -164,7 +165,9 @@ class MongoDBAccess(object):
         log_query_and_profile_data_for_queryset(queryset=instances)
 
         if not instance and raise_exception:
-            raise ValueError('Unable to find the %s instance. %s' % (self.model.__name__, kwargs))
+            msg = 'Unable to find the %s instance. %s' % (self.model.__name__, kwargs)
+            raise StackStormDBObjectNotFoundError(msg)
+
         return instance
 
     def get_all(self, *args, **kwargs):
