@@ -32,7 +32,7 @@ function print_usage() {
     echo "  --register-aliases            Register all aliases."
     echo "  --register-policies           Register all policies."
     echo "  --register-setup-virtualenvs  Create Python virtual environments for all the registered packs."
-    echo "  --verbose           Output additional debug and informational messages."
+    echo "  --verbose                     Output additional debug and informational messages."
     echo ""
     echo "Most commands require elevated privileges."
 }
