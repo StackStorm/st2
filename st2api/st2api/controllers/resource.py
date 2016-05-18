@@ -58,6 +58,9 @@ class ResourceController(rest.RestController):
     # A list of optional transformation functions for user provided filter values
     filter_transform_functions = {}
 
+    # A list of attributes which can be specified using ?exclude_attributes filter
+    valid_exclude_attributes = []
+
     # Method responsible for retrieving an instance of the corresponding model DB object
     # Note: This method should throw StackStormDBObjectNotFoundError if the corresponding DB
     # object doesn't exist
@@ -291,6 +294,20 @@ class ResourceController(rest.RestController):
         LOG.debug('GET with scope=%s and name=%s, client_result=%s', scope, name, result)
 
         return result
+
+    def _validate_exclude_fields(self, exclude_fields):
+        """
+        Validate that provided exclude fields are valid.
+        """
+        if not exclude_fields:
+            return exclude_fields
+
+        for field in exclude_fields:
+            if field not in self.valid_exclude_attributes:
+                msg = 'Invalid or unsupported attribute specified: %s' % (field)
+                raise ValueError(msg)
+
+        return exclude_fields
 
 
 class ContentPackResourceController(ResourceController):

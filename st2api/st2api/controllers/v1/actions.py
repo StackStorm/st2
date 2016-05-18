@@ -70,6 +70,11 @@ class ActionsController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
+    valid_exclude_attributes = [
+        'parameters',
+        'notify'
+    ]
+
     include_reference = True
 
     def __init__(self, *args, **kwargs):
@@ -84,6 +89,7 @@ class ActionsController(resource.ContentPackResourceController):
         else:
             exclude_fields = None
 
+        exclude_fields = self._validate_exclude_fields(exclude_fields)
         return super(ActionsController, self)._get_all(exclude_fields=exclude_fields, **kwargs)
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_VIEW)
