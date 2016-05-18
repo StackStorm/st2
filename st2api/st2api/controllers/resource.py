@@ -258,7 +258,8 @@ class ResourceController(rest.RestController):
         """
         instance = self.access.get_by_scope_and_name(scope=scope, name=name)
         if not instance:
-            return instance
+            msg = 'KeyValuePair with name: %s and scope: %s not found in db.' % (name, scope)
+            raise StackStormDBObjectNotFoundError(msg)
         from_model_kwargs = from_model_kwargs or {}
         result = self.model.from_model(instance, **from_model_kwargs)
         LOG.debug('GET with scope=%s and name=%s, client_result=%s', scope, name, result)
