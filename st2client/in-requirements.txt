@@ -1,5 +1,6 @@
 # Remeber to list implicit packages here, otherwise version won't be fixated!
 prettytable
+pytz
 python-dateutil
 pyyaml
 jsonpath-rw

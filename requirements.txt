@@ -28,6 +28,7 @@ python-dateutil
 python-gnupg<0.4,>=0.3.7
 python-json-logger
 python-keyczar==0.715
+pytz
 pyyaml<4.0,>=3.11
 requests[security]<3.0,>=2.7.0
 retrying
