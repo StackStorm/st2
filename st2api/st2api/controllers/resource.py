@@ -59,6 +59,8 @@ class ResourceController(rest.RestController):
     filter_transform_functions = {}
 
     # Method responsible for retrieving an instance of the corresponding model DB object
+    # Note: This method should throw StackStormDBObjectNotFoundError if the corresponding DB
+    # object doesn't exist
     get_one_db_method = None
 
     def __init__(self):
@@ -204,6 +206,22 @@ class ResourceController(rest.RestController):
 
         return result
 
+    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None):
+        LOG.info('GET %s with pack_ref=%s', pecan.request.path, pack_ref)
+
+        instance = self._get_by_pack_ref(pack_ref=pack_ref, exclude_fields=exclude_fields)
+
+        if not instance:
+            msg = 'Unable to identify resource with pack_ref "%s".' % (pack_ref)
+            pecan.abort(http_client.NOT_FOUND, msg)
+
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
+        result = self.model.from_model(instance, **from_model_kwargs)
+        LOG.debug('GET %s with pack_ref=%s, client_result=%s', pecan.request.path, id, result)
+
+        return result
+
     def _get_by_id(self, resource_id, exclude_fields=None):
         try:
             resource_db = self.access.get(id=resource_id, exclude_fields=exclude_fields)
@@ -215,6 +233,14 @@ class ResourceController(rest.RestController):
     def _get_by_name(self, resource_name, exclude_fields=None):
         try:
             resource_db = self.access.get(name=resource_name, exclude_fields=exclude_fields)
+        except Exception:
+            resource_db = None
+
+        return resource_db
+
+    def _get_by_pack_ref(self, pack_ref, exclude_fields=None):
+        try:
+            resource_db = self.access.get(pack=pack_ref, exclude_fields=exclude_fields)
         except Exception:
             resource_db = None
 

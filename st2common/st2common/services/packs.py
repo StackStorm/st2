@@ -13,27 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.persistence import base
-from st2common.models.db.pack import pack_access
-from st2common.models.db.pack import config_schema_access
+from st2common.persistence.pack import Pack
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
-    'Pack',
-    'ConfigSchema'
+    'get_pack_by_ref'
 ]
 
 
-class Pack(base.Access):
-    impl = pack_access
+def get_pack_by_ref(pack_ref):
+    """
+    Retrieve PackDB by the provided reference.
+    """
 
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
+    try:
+        pack_db = Pack.get_by_ref(pack_ref)
+    except ValueError as e:
+        raise StackStormDBObjectNotFoundError(e.message)
 
-
-class ConfigSchema(base.Access):
-    impl = config_schema_access
-
-    @classmethod
-    def _get_impl(cls):
-        return cls.impl
+    return pack_db

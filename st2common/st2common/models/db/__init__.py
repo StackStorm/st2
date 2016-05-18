@@ -36,6 +36,7 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.execution',
     'st2common.models.db.executionstate',
     'st2common.models.db.liveaction',
+    'st2common.models.db.pack',
     'st2common.models.db.policy',
     'st2common.models.db.rule',
     'st2common.models.db.runner',
@@ -147,6 +148,9 @@ class MongoDBAccess(object):
 
     def get_by_ref(self, value):
         return self.get(ref=value, raise_exception=True)
+
+    def get_by_pack(self, value):
+        return self.get(pack=value, raise_exception=True)
 
     def get(self, exclude_fields=None, *args, **kwargs):
         raise_exception = kwargs.pop('raise_exception', False)
