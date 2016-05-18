@@ -17,10 +17,12 @@ from st2common.util import schema as util_schema
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
 from st2common.models.db.pack import ConfigSchemaDB
+from st2common.models.db.pack import ConfigDB
 
 __all__ = [
     'PackAPI',
-    'ConfigSchemaAPI'
+    'ConfigSchemaAPI',
+    'ConfigAPI'
 ]
 
 
@@ -83,7 +85,6 @@ class PackAPI(BaseAPI):
 
         model = cls.model(name=name, description=description, ref=ref, keywords=keywords,
                           version=version, author=author, email=email, files=files)
-
         return model
 
 
@@ -120,5 +121,37 @@ class ConfigSchemaAPI(BaseAPI):
         attributes = config_schema.attributes
 
         model = cls.model(pack=pack, attributes=attributes)
+        return model
 
+
+class ConfigAPI(BaseAPI):
+    model = ConfigDB
+    schema = {
+        "title": "Config",
+        "description": "Pack config.",
+        "type": "object",
+        "properties": {
+            "id": {
+                "description": "The unique identifier for the config.",
+                "type": "string"
+            },
+            "pack": {
+                "description": "The content pack this config belongs to.",
+                "type": "string"
+            },
+            "values": {
+                "description": "Config values.",
+                "type": "object",
+                "default": {}
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, config):
+        pack = config.pack
+        values = config.values
+
+        model = cls.model(pack=pack, values=values)
         return model
