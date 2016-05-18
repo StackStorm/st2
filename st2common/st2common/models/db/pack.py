@@ -21,7 +21,8 @@ from st2common.constants.types import ResourceType
 
 __all__ = [
     'PackDB',
-    'ConfigSchemaDB'
+    'ConfigSchemaDB',
+    'ConfigDB'
 ]
 
 
@@ -64,8 +65,21 @@ class ConfigSchemaDB(stormbase.StormFoundationDB):
         help_text='The specification for config schema attributes.')
 
 
+class ConfigDB(stormbase.StormFoundationDB):
+    """
+    System entity representing pack config.
+    """
+    pack = me.StringField(
+        required=True,
+        unique=True,
+        help_text='Name of the content pack this config belongs to.')
+    values = stormbase.EscapedDynamicField(
+        help_text='Config values.')
+
+
 # specialized access objects
 pack_access = MongoDBAccess(PackDB)
 config_schema_access = MongoDBAccess(ConfigSchemaDB)
+config_access = MongoDBAccess(ConfigDB)
 
-MODELS = [PackDB, ConfigSchemaDB]
+MODELS = [PackDB, ConfigSchemaDB, ConfigDB]
