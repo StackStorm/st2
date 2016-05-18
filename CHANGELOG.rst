@@ -30,6 +30,7 @@ in development
 * Introduce a new concept of pack config schemas. Each pack can now contain a
   ``config.schema.yaml`` file. This file can contain an optional schema for the pack config. In the
   future, pack configs will be validated against the schema (if available). (new feature)
+* Add data model and API changes for supporting user scoped variables. (new-feature, experimental)
 
 1.4.0 - April 18, 2016
 ----------------------

@@ -39,6 +39,9 @@ nosetests.xml
 .idea
 .DS_Store
 ._*
+.vscode
+*.sublime-project
+*.sublime-workspace
 
 # Editor Saves
 *~

@@ -13,21 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.exceptions import StackStormBaseException
+# Namespace to contain all system/global scoped variables in key-value store.
 
 __all__ = [
-    'CryptoKeyNotSetupException',
-    'InvalidScopeException'
+    'ALLOWED_SCOPES',
+    'SYSTEM_SCOPE',
+    'USER_SCOPE',
+    'USER_SEPARATOR',
 ]
 
+SYSTEM_SCOPE = 'system'
 
-class CryptoKeyNotSetupException(StackStormBaseException):
-    pass
+# Namespace to contain all user scoped variables in key-value store.
+USER_SCOPE = 'user'
 
+USER_SEPARATOR = ':'
 
-class InvalidScopeException(StackStormBaseException):
-    pass
-
-
-class InvalidUserException(StackStormBaseException):
-    pass
+ALLOWED_SCOPES = [
+    SYSTEM_SCOPE,
+    USER_SCOPE
+]
