@@ -22,7 +22,7 @@ from st2client import formatters
 from st2client.utils import jsutil
 
 __all__ = [
-    'Json',
+    'JsonFormatter',
     'YAMLFormatter'
 ]
 
@@ -47,6 +47,7 @@ class BaseFormatter(formatters.Formatter):
                 docs.append(jsutil.get_kvps(doc, keys))
 
         return docs
+
 
 class JsonFormatter(BaseFormatter):
 
