@@ -62,20 +62,12 @@ function validate_in_components() {
 
 function st2start() {
   for COM in ${COMPONENTS}; do
-    service_manager $COM status >/dev/null 2>&1;
-    if [[ "1" == $? ]]; then
-      continue
-    fi
     service_manager ${COM} start
   done
 }
 
 function st2stop() {
   for COM in ${COMPONENTS}; do
-    service_manager $COM status >/dev/null 2>&1;
-    if [[ "1" == $? ]]; then
-      continue
-    fi
     service_manager ${COM} stop
   done
 }
@@ -160,10 +152,6 @@ function getpids() {
   COMPONENTS=${COMPONENTS/mistral/mistral-server mistral-api}
 
   for COM in ${COMPONENTS}; do
-    service_manager $COM status >/dev/null 2>&1;
-    if [[ "1" == $? ]]; then
-      continue
-    fi
     PID=`ps ax | grep -v grep | grep -v st2ctl | grep "${COM}" | awk '{print $1}'`
 
     if [[ ! -z ${PID} ]]; then
