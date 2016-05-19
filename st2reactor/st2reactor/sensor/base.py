@@ -23,8 +23,20 @@ class BaseSensor(object):
         :keyword config: Sensor config.
         :type config: ``dict`` or None
         """
-        self._sensor_service = sensor_service
-        self._config = config or {}
+        self.sensor_service = sensor_service
+        self.config = config or {}
+
+    @property
+    def _sensor_service(self):
+        # Note: This is here for backward compatibility reasons. For consistency with actions,
+        # both instance variables has "_" prefix removed.
+        return self.sensor_service
+
+    @property
+    def _config(self):
+        # Note: This is here for backward compatibility reasons. For consistency with actions,
+        # both instance variables has "_" prefix removed.
+        return self.config
 
     @abc.abstractmethod
     def setup(self):

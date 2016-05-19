@@ -32,6 +32,9 @@ in development
   future, pack configs will be validated against the schema (if available). (new feature)
 * Add data model and API changes for supporting user scoped variables. (new-feature, experimental)
 * Add missing `pytz` dependency to ``st2client`` requirements file. (bug-fix)
+* For consistency with actions, ``_`` prefix has been removed from ``sensor_service`` and
+  ``config`` attribute available on the Sensor classes. Both variables are now available via
+  ``self.sensor_service`` and ``self.config``. (improvement)
 
 1.4.0 - April 18, 2016
 ----------------------
