@@ -21,9 +21,12 @@ from st2actions.runners import pythonrunner
 from st2actions.runners.pythonrunner import Action
 from st2actions.container import service
 from st2actions.runners.utils import get_action_class_instance
+from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
+from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.util.api import get_full_public_api_url
 from base import RunnerTestCase
 import st2tests.base as tests_base
 import st2tests.config as tests_config
@@ -185,6 +188,28 @@ class PythonRunnerTestCase(RunnerTestCase):
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs['env']
         self.assertCommonSt2EnvVarsAvailableInEnv(env=actual_env)
+
+    @mock.patch('st2common.util.green.shell.subprocess.Popen')
+    def test_auth_token_and_api_url_env_variable_is_available_to_the_action(self, mock_popen):
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = ('', '')
+        mock_popen.return_value = mock_process
+
+        runner = pythonrunner.get_runner()
+        runner.auth_token = mock.Mock()
+        runner.auth_token.token = 'ponies'
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PACAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (_, _, _) = runner.run({'row_index': 4})
+
+        _, call_kwargs = mock_popen.call_args
+        actual_env = call_kwargs['env']
+
+        self.assertEqual(actual_env[API_URL_ENV_VARIABLE_NAME], get_full_public_api_url())
+        self.assertEqual(actual_env[AUTH_TOKEN_ENV_VARIABLE_NAME], 'ponies')
 
     def test_action_class_instantiation_action_service_argument(self):
         class Action1(Action):
