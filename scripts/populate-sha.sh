@@ -2,6 +2,7 @@
 echo GIT:$GITDIR
 echo PWD:`pwd`
 echo LS: `ls -al ../`
+
 config=../package.meta
 echo "Writing Version and SHA info. to $config"
 if [ -e "$config" ]; then
