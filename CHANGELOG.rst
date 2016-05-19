@@ -34,6 +34,8 @@ in development
 * Add missing `pytz` dependency to ``st2client`` requirements file. (bug-fix)
 * Remove support for JSON format for resource metadata files. YAML was introduced and support for
   JSON has been deprecated in StackStorm v0.6. Now the only supported metadata file format is YAML.
+* Add ``-y`` / ``--yaml`` flag to the CLI ``list`` and ``get`` commands. If this flag is provided,
+  command response will be formatted as YAML. (new feature)
 
 1.4.0 - April 18, 2016
 ----------------------
