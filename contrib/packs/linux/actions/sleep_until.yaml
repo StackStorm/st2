@@ -1,0 +1,17 @@
+---
+name: "sleep_until"
+pack: "linux"
+description: "Sleeps until a specified time"
+enabled: true
+
+runner_type: "local-shell-cmd"
+entry_point: ""
+
+parameters:
+  time:
+    type: string
+    description: 'the time to wake up; must be parsable by "date -d"'
+    required: true
+  cmd:
+    default: 'sleep $(expr `date -d "{{ time }}" +%s` - `date -d "now" +%s`)'
+    immutable: true
