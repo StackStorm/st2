@@ -24,6 +24,7 @@ from st2common import config
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2common.bootstrap.base import ResourceRegistrar
+import st2common.bootstrap.triggersregistrar as triggers_registrar
 import st2common.bootstrap.sensorsregistrar as sensors_registrar
 import st2common.bootstrap.actionsregistrar as actions_registrar
 import st2common.bootstrap.aliasesregistrar as aliases_registrar
@@ -46,6 +47,7 @@ cfg.CONF.register_cli_opt(cfg.BoolOpt('experimental', default=False))
 def register_opts():
     content_opts = [
         cfg.BoolOpt('all', default=False, help='Register sensors, actions and rules.'),
+        cfg.BoolOpt('triggers', default=False, help='Register triggers.'),
         cfg.BoolOpt('sensors', default=False, help='Register sensors.'),
         cfg.BoolOpt('actions', default=False, help='Register actions.'),
         cfg.BoolOpt('rules', default=False, help='Register rules.'),
@@ -107,6 +109,28 @@ def setup_virtualenvs():
             setup_count += 1
 
     LOG.info('Setup virtualenv for %s pack(s).' % (setup_count))
+
+
+def register_triggers():
+    pack_dir = cfg.CONF.register.pack
+    fail_on_failure = cfg.CONF.register.fail_on_failure
+
+    registered_count = 0
+
+    try:
+        LOG.info('=========================================================')
+        LOG.info('############## Registering triggers #####################')
+        LOG.info('=========================================================')
+        registered_count = triggers_registrar.register_sensors(pack_dir=pack_dir,
+                                                               fail_on_failure=fail_on_failure)
+    except Exception as e:
+        exc_info = not fail_on_failure
+        LOG.warning('Failed to register sensors: %s', e, exc_info=exc_info)
+
+        if fail_on_failure:
+            raise e
+
+    LOG.info('Registered %s triggers.' % (registered_count))
 
 
 def register_sensors():
@@ -252,11 +276,15 @@ def register_content():
     register_all = cfg.CONF.register.all
 
     if register_all:
+        register_triggers()
         register_sensors()
         register_actions()
         register_rules()
         register_aliases()
         register_policies()
+
+    if cfg.CONF.register.triggers and not register_all:
+        register_triggers()
 
     if cfg.CONF.register.sensors and not register_all:
         register_sensors()

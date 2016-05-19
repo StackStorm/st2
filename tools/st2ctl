@@ -51,6 +51,7 @@ function print_usage() {
     echo "usage: st2ctl {reload, clean}"
     echo "optional arguments:"
     echo "  --register-all                Register all."
+    echo "  --register-triggers           Register all triggers."
     echo "  --register-sensors            Register all sensors."
     echo "  --register-rules              Register all rules."
     echo "  --register-actions            Register all actions."
@@ -99,7 +100,7 @@ fi
 
 # Note: Scripts already call reload with "--register-<content>"
 if [ ${1} == "reload" -o ${1} == "clean" ]; then
-    ALLOWED_REGISTER_FLAGS=(--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --register-setup-virtualenvs --verbose)
+    ALLOWED_REGISTER_FLAGS=(--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --register-triggers --register-setup-virtualenvs --verbose)
     DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors'
 
     if [ ! -z ${2} ]; then

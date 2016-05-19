@@ -32,6 +32,10 @@ in development
   future, pack configs will be validated against the schema (if available). (new feature)
 * Add data model and API changes for supporting user scoped variables. (new-feature, experimental)
 * Add missing `pytz` dependency to ``st2client`` requirements file. (bug-fix)
+* Add ``--register-triggers`` flag to the ``register-content`` script and ``st2ctl``.
+  When this flag is provided, all triggers contained within a pack triggers directory are
+  registered, consistent with the behavior of sensors, actions, etc. (new-feature) [Cody A. Ray]
+
 
 1.4.0 - April 18, 2016
 ----------------------
