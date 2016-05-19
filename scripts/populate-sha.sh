@@ -20,3 +20,9 @@ git_sha = $(git rev-parse --short HEAD)
 package_meta
 
 popd
+echo Contents of package.meta:
+cat ../package.meta
+
+echo Export variables to find Circle CI URL
+
+export
