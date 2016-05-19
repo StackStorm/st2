@@ -19,10 +19,9 @@ version = $(python -c 'execfile("../st2common/st2common/__init__.py"); print __v
 git_sha = $(git rev-parse --short HEAD)
 package_meta
 
-popd
 echo Contents of package.meta:
 cat ../package.meta
+popd
 
 echo Export variables to find Circle CI URL
-
 export
