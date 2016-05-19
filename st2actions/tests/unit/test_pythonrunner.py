@@ -24,8 +24,6 @@ from st2actions.runners.utils import get_action_class_instance
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.pack import SYSTEM_PACK_NAME
-from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
-from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from base import RunnerTestCase
 import st2tests.base as tests_base
 import st2tests.config as tests_config
