@@ -119,9 +119,13 @@ class ResourceCommand(commands.Command):
                                           'Get ST2_AUTH_TOKEN from the environment '
                                           'variables by default.')
 
+        # Formatter flags
         self.parser.add_argument('-j', '--json',
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
+        self.parser.add_argument('-y', '--yaml',
+                                 action='store_true', dest='yaml',
+                                 help='Prints output in YAML format.')
 
     @property
     def manager(self):
@@ -251,7 +255,7 @@ class ResourceListCommand(ResourceCommand):
         instances = self.run(args, **kwargs)
         self.print_output(instances, table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
-                          json=args.json)
+                          json=args.json, yaml=args.yaml)
 
 
 class ContentPackResourceListCommand(ResourceListCommand):
@@ -307,7 +311,7 @@ class ResourceGetCommand(ResourceCommand):
         try:
             instance = self.run(args, **kwargs)
             self.print_output(instance, table.PropertyValueTable,
-                              attributes=args.attr, json=args.json,
+                              attributes=args.attr, json=args.json, yaml=args.yaml,
                               attribute_display_order=self.attribute_display_order)
         except ResourceNotFoundError:
             resource_id = getattr(args, self.pk_argument_name, None)
@@ -354,7 +358,7 @@ class ResourceCreateCommand(ResourceCommand):
             if not instance:
                 raise Exception('Server did not create instance.')
             self.print_output(instance, table.PropertyValueTable,
-                              attributes=['all'], json=args.json)
+                              attributes=['all'], json=args.json, yaml=args.yaml)
         except Exception as e:
             message = e.message or str(e)
             print('ERROR: %s' % (message))
@@ -402,7 +406,7 @@ class ResourceUpdateCommand(ResourceCommand):
         instance = self.run(args, **kwargs)
         try:
             self.print_output(instance, table.PropertyValueTable,
-                              attributes=['all'], json=args.json)
+                              attributes=['all'], json=args.json, yaml=args.yaml)
         except Exception as e:
             print('ERROR: %s' % e.message)
             raise OperationFailureException(e.message)
@@ -447,7 +451,7 @@ class ResourceEnableCommand(ResourceCommand):
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
-                          attributes=['all'], json=args.json)
+                          attributes=['all'], json=args.json, yaml=args.yaml)
 
 
 class ContentPackResourceEnableCommand(ResourceEnableCommand):
@@ -489,7 +493,7 @@ class ResourceDisableCommand(ResourceCommand):
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
-                          attributes=['all'], json=args.json)
+                          attributes=['all'], json=args.json, yaml=args.yaml)
 
 
 class ContentPackResourceDisableCommand(ResourceDisableCommand):
