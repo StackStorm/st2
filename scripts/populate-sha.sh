@@ -1,6 +1,6 @@
 #!/bin/sh
 
-pushd /tmp/$GITDIR/scripts
+pushd $GITDIR/scripts
 
 echo GIT:$GITDIR
 echo PWD:`pwd`
