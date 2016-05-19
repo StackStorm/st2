@@ -1,4 +1,7 @@
 #!/bin/sh
+
+pushd /tmp/$GITDIR/scripts
+
 echo GIT:$GITDIR
 echo PWD:`pwd`
 echo LS: `ls -al ../`
@@ -15,3 +18,5 @@ cat <<package_meta >$config
 version = $(python -c 'execfile("../st2common/st2common/__init__.py"); print __version__')
 git_sha = $(git rev-parse --short HEAD)
 package_meta
+
+popd
