@@ -21,6 +21,8 @@ import six
 from st2actions import handlers
 from st2common import log as logging
 from st2common.constants.pack import DEFAULT_PACK_NAME
+from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
+from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.util import action_db as action_utils
 from st2common.util.api import get_full_public_api_url
@@ -136,9 +138,13 @@ class ActionRunner(object):
         result['ST2_ACTION_PACK_NAME'] = self.get_pack_name()
         result['ST2_ACTION_EXECUTION_ID'] = str(self.execution_id)
         result['ST2_ACTION_API_URL'] = get_full_public_api_url()
+        # Compatibility with sensors
+        result[API_URL_ENV_VARIABLE_NAME] = get_full_public_api_url()
 
         if self.auth_token:
             result['ST2_ACTION_AUTH_TOKEN'] = self.auth_token.token
+            # Compatibility with sensors
+            result[AUTH_TOKEN_ENV_VARIABLE_NAME] = self.auth_token.token
 
         return result
 
