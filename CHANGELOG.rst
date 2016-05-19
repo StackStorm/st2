@@ -32,6 +32,7 @@ in development
   future, pack configs will be validated against the schema (if available). (new feature)
 * Add data model and API changes for supporting user scoped variables. (new-feature, experimental)
 * Add missing `pytz` dependency to ``st2client`` requirements file. (bug-fix)
+* Set ``ST2_AUTH_TOKEN`` and ``ST2_API_URL`` env variables in actions to match sensors. (bug-fix)
 
 1.4.0 - April 18, 2016
 ----------------------
