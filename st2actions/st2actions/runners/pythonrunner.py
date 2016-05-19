@@ -25,11 +25,14 @@ from eventlet.green import subprocess
 from st2actions.runners import ActionRunner
 from st2actions.runners.utils import get_logger_for_python_runner_action
 from st2common.util.green.shell import run_command
+from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
+from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
+from st2common.util.api import get_full_public_api_url
 from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
@@ -129,6 +132,13 @@ class PythonRunner(ActionRunner):
         env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
         env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
                                                     inherit_parent_virtualenv=True)
+
+        # Include full api URL and API token specific to this action. This is required to
+        # action_service can access the datastore via the API.
+        # TODO: Better approach would be to pass token to the client constructor inside the wrapper
+        # process
+        env[API_URL_ENV_VARIABLE_NAME] = get_full_public_api_url()
+        env[AUTH_TOKEN_ENV_VARIABLE_NAME] = getattr(self, 'auth_token', None)
 
         # Include user provided environment variables (if any)
         user_env_vars = self._get_env_vars()
