@@ -3,7 +3,7 @@ from st2reactor.sensor.base import PollingSensor
 
 class SamplePollingSensor(PollingSensor):
     """
-    * self._sensor_service
+    * self.sensor_service
         - provides utilities like
             get_logger() for writing to logs.
             dispatch() for dispatching triggers into the system.
@@ -29,7 +29,7 @@ class SamplePollingSensor(PollingSensor):
         #   # _to_triggers is something you'd write to convert the data format you have
         #   # into a standard python dictionary. This should follow the payload schema
         #   # registered for the trigger.
-        #   self._sensor_service.dispatch(trigger, payload)
+        #   self.sensor_service.dispatch(trigger, payload)
         #   # You can refer to the trigger as dict
         #   # { "name": ${trigger_name}, "pack": ${trigger_pack} }
         #   # or just simply by reference as string.
