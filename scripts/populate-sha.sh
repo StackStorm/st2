@@ -18,6 +18,7 @@ cat <<package_meta >$config
 version = $(python -c 'execfile("../st2common/st2common/__init__.py"); print __version__')
 git_sha = $(git rev-parse --short HEAD)
 circle_build_url=$(echo $ST2_CIRCLE_URL)
+circle_build_url=$(echo $CIRCLE_BUILD_URL)
 
 package_meta
 
