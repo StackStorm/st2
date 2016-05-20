@@ -51,4 +51,4 @@ class FileWatchSensor(Sensor):
             'file_name': os.path.basename(file_path),
             'line': line
         }
-        self._sensor_service.dispatch(trigger=trigger, payload=payload)
+        self.sensor_service.dispatch(trigger=trigger, payload=payload)

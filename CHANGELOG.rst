@@ -32,6 +32,8 @@ in development
   future, pack configs will be validated against the schema (if available). (new feature)
 * Add data model and API changes for supporting user scoped variables. (new-feature, experimental)
 * Add missing `pytz` dependency to ``st2client`` requirements file. (bug-fix)
+* Fix datastore access on Python runner actions (set ``ST2_AUTH_TOKEN`` and ``ST2_API_URL`` env
+  variables in Python runner actions to match sensors). (bug-fix)
 * Remove support for JSON format for resource metadata files. YAML was introduced and support for
   JSON has been deprecated in StackStorm v0.6. Now the only supported metadata file format is YAML.
 * Add ``-y`` / ``--yaml`` flag to the CLI ``list`` and ``get`` commands. If this flag is provided,
