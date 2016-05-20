@@ -88,6 +88,7 @@ class KeyValuePairListCommand(resource.ResourceListCommand):
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json,
+                          yaml=args.yaml,
                           attribute_transform_functions=self.attribute_transform_functions)
 
 
@@ -154,7 +155,8 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
-                          attributes=self.display_attributes, json=args.json)
+                          attributes=self.display_attributes, json=args.json,
+                          yaml=args.yaml)
 
 
 class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
@@ -255,4 +257,4 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
         self.print_output(instances, table.MultiColumnTable,
-                          attributes=['id', 'name', 'value'], json=args.json)
+                          attributes=['id', 'name', 'value'], json=args.json, yaml=args.yaml)
