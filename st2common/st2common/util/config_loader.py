@@ -17,12 +17,14 @@ import six
 
 from oslo_config import cfg
 
+from st2common import log as logging
 from st2common.services.config import get_datastore_key_prefix_for_pack
 from st2common.constants.keyvalue import USER_SCOPE
 from st2common.persistence.pack import ConfigSchema
 from st2common.persistence.pack import Config
 from st2common.content import utils as content_utils
 from st2common.util import jinja as jinja_utils
+from st2common.util.templating import render_template_with_system_and_user_context
 from st2common.util.config_parser import ContentPackConfigParser
 from st2common.services.keyvalues import UserKeyValueLookup
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -30,6 +32,8 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 __all__ = [
     'ContentPackConfigLoader'
 ]
+
+LOG = logging.getLogger(__name__)
 
 
 class ContentPackConfigLoader(object):
@@ -88,7 +92,7 @@ class ContentPackConfigLoader(object):
 
     def _get_values_for_config(self, config_schema_db, config_db):
         result = {}
-        for config_item_key, config_item_value in six.iteritems(config_db.value):
+        for config_item_key, config_item_value in six.iteritems(config_db.values):
             is_jinja_expression = jinja_utils.is_jinja_expression(value=config_item_value)
 
             if is_jinja_expression:
@@ -106,7 +110,7 @@ class ContentPackConfigLoader(object):
         the value from the datastore.
         """
         prefix = get_datastore_key_prefix_for_pack(pack_name=self.pack_name)
-        lookup = UserKeyValueLookup(prefix=prefix, user=self.user, scope=USER_SCOPE)
-        value = lookup.__getitem__(key=value)
+        value = render_template_with_system_and_user_context(value=value, user=self.user,
+                                                             prefix=prefix)
         # TODO: Deserialize
         return value

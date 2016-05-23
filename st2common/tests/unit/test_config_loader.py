@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mock import Mock
-
-from st2tests.base import CleanDbTestCase
+from st2tests.base import DbTestCase
+from st2common.constants.keyvalue import USER_SCOPE
+from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.persistence.keyvalue import KeyValuePair
 from st2common.util.config_loader import ContentPackConfigLoader
 #from st2common.services import config as config_service
 
@@ -24,7 +25,10 @@ __all__ = [
 ]
 
 
-class ContentPackConfigLoaderTestCase(CleanDbTestCase):
+class ContentPackConfigLoaderTestCase(DbTestCase):
+    register_packs = True
+    register_pack_configs = True
+
     def test_get_config_all_values_are_loaded_from_local_config(self):
         # Test a scenario where all the values are loaded from pack local config and pack global
         # config (pack name.yaml) doesn't exist
@@ -38,4 +42,27 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
             'regions': ['us-west-1', 'us-east-1'],
             'private_key_path': None
         }
+        self.assertEqual(config, expected_config)
+
+    def test_get_config_some_values_overriden_in_datastore(self):
+        # Test a scenario where some values are overriden in datastore via pack
+        # flobal config
+
+        # TODO: Utilize util methods which serialize the key, value, etc
+        kvp_db = KeyValuePairDB(name='pack_config:dummy_pack_5:joe:api_secret',
+                                value='some_api_secret', scope=USER_SCOPE)
+        kvp_db = KeyValuePair.add_or_update(kvp_db)
+
+        loader = ContentPackConfigLoader(pack_name='dummy_pack_5', user='joe')
+        config = loader.get_config()
+
+        # regions is provided in the pack global config
+        # api_secret is dynamically loaded from the datastore for a particular user
+        expected_config = {
+            'api_key': 'some_api_key',
+            'api_secret': 'some_api_secret',
+            'regions': ['us-west-1'],
+            'private_key_path': None
+        }
+
         self.assertEqual(config, expected_config)
