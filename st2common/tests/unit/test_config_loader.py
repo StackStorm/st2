@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from st2tests.base import DbTestCase
+from st2common.services.config import set_datastore_value_for_config_key
 from st2common.constants.keyvalue import USER_SCOPE
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
@@ -49,13 +50,14 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
         # flobal config
 
         # TODO: Utilize util methods which serialize the key, value, etc
-        kvp_db = KeyValuePairDB(name='pack_config:dummy_pack_5:joe:api_secret',
-                                value='some_api_secret', scope=USER_SCOPE)
-        kvp_db = KeyValuePair.add_or_update(kvp_db)
+        set_datastore_value_for_config_key(pack_name='dummy_pack_5',
+                                           key_name='api_secret',
+                                           user='joe',
+                                           value='some_api_secret')
 
-        kvp_db = KeyValuePairDB(name='pack_config:dummy_pack_5:private_key_path',
-                                value='some_private_key', scope=SYSTEM_SCOPE)
-        kvp_db = KeyValuePair.add_or_update(kvp_db)
+        set_datastore_value_for_config_key(pack_name='dummy_pack_5',
+                                           key_name='private_key_path',
+                                           value='some_private_key')
 
         loader = ContentPackConfigLoader(pack_name='dummy_pack_5', user='joe')
         config = loader.get_config()

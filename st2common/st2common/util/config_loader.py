@@ -109,6 +109,8 @@ class ContentPackConfigLoader(object):
         the value from the datastore.
         """
         prefix = get_datastore_key_prefix_for_pack(pack_name=self.pack_name)
+
+        # TODO: Get key name so we can get more friendly exception
         value = render_template_with_system_and_user_context(value=value, user=self.user,
                                                              prefix=prefix)
 
