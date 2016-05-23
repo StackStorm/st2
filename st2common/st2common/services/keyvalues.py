@@ -65,7 +65,6 @@ class KeyValueLookup(object):
         self._prefix = prefix
         self._key_prefix = key_prefix or ''
         self._value_cache = cache or {}
-        self._value_cache = cache
         self._scope = scope
 
     def __str__(self):
@@ -95,7 +94,8 @@ class KeyValueLookup(object):
         # the lookup is for 'key_base.key_value' it is likely that the calling code, e.g. Jinja,
         # will expect to do a dictionary style lookup for key_base and key_value as subsequent
         # calls. Saving the value in cache avoids extra DB calls.
-        return KeyValueLookup(key_prefix=key, cache=self._value_cache, scope=self._scope)
+        return KeyValueLookup(prefix=self._prefix, key_prefix=key, cache=self._value_cache,
+                              scope=self._scope)
 
     def _get_kv(self, key):
         scope = self._scope
