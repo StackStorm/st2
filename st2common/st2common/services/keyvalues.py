@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, ALLOWED_SCOPES
+from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
 from st2common.models.system.keyvalue import UserKeyReference
 from st2common.persistence.keyvalue import KeyValuePair
@@ -95,11 +96,10 @@ class KeyValueLookup(object):
 
 class UserKeyValueLookup(object):
 
-    def __init__(self, user, key_prefix=None, cache=None, scope=USER_SCOPE):
+    def __init__(self, user, prefix=None, key_prefix=None, cache=None, scope=USER_SCOPE):
+        self._prefix = prefix
         self._key_prefix = key_prefix or ''
-        if cache is None:
-            cache = {}
-        self._value_cache = cache
+        self._value_cache = cache or {}
         self._user = user
         self._scope = scope
 
@@ -114,17 +114,23 @@ class UserKeyValueLookup(object):
 
     def _get(self, name):
         # get the value for this key and save in value_cache
-        if not self._key_prefix:
-            key = UserKeyReference(name=name, user=self._user).ref
-        else:
+        if self._key_prefix:
             key = '%s.%s' % (self._key_prefix, name)
-        value = self._get_kv(key)
+        else:
+            key = UserKeyReference(name=name, user=self._user).ref
+
+        if self._prefix:
+            kvp_key = DATASTORE_KEY_SEPARATOR.join([self._prefix, key])
+        else:
+            kvp_key = key
+
+        value = self._get_kv(kvp_key)
         self._value_cache[key] = value
         # return a KeyValueLookup as response since the lookup may not be complete e.g. if
         # the lookup is for 'key_base.key_value' it is likely that the calling code, e.g. Jinja,
         # will expect to do a dictionary style lookup for key_base and key_value as subsequent
         # calls. Saving the value in cache avoids extra DB calls.
-        return UserKeyValueLookup(user=self._user, key_prefix=key, cache=self._value_cache)
+        return UserKeyValueLookup(prefix=self._prefix, user=self._user, key_prefix=key, cache=self._value_cache)
 
     def _get_kv(self, key):
         scope = self._scope
