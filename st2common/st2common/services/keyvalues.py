@@ -60,8 +60,8 @@ def get_values_for_names(names, default_value=None):
 
 class KeyValueLookup(object):
 
-    def __init__(self, key_prefix='', cache=None, scope=SYSTEM_SCOPE):
-        self._key_prefix = key_prefix
+    def __init__(self, key_prefix=None, cache=None, scope=SYSTEM_SCOPE):
+        self._key_prefix = key_prefix or ''
         if cache is None:
             cache = {}
         self._value_cache = cache
@@ -95,8 +95,8 @@ class KeyValueLookup(object):
 
 class UserKeyValueLookup(object):
 
-    def __init__(self, user, key_prefix='', cache=None, scope=USER_SCOPE):
-        self._key_prefix = key_prefix
+    def __init__(self, user, key_prefix=None, cache=None, scope=USER_SCOPE):
+        self._key_prefix = key_prefix or ''
         if cache is None:
             cache = {}
         self._value_cache = cache
