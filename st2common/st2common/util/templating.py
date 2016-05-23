@@ -17,11 +17,14 @@ import six
 from jinja2 import Environment, StrictUndefined
 
 from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.keyvalue import USER_SCOPE
 from st2common.services.keyvalues import KeyValueLookup
+from st2common.services.keyvalues import UserKeyValueLookup
 
 __all__ = [
     'render_template',
-    'render_template_with_system_context'
+    'render_template_with_system_context',
+    'render_template_with_system_and_user_context'
 ]
 
 
@@ -45,19 +48,40 @@ def render_template(value, context=None):
     return rendered
 
 
-def render_template_with_system_context(value):
+def render_template_with_system_context(value, context=None):
     """
     Render provided template with a default system context.
 
     :param value: Template string.
     :type value: ``str``
 
-    :param context: Template context.
+    :param context: Template context (optional).
     :type context: ``dict``
     """
-    context = {
-        SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
-    }
+    context = context or {}
+    context[SYSTEM_SCOPE] = KeyValueLookup(scope=SYSTEM_SCOPE)
+
+    rendered = render_template(value=value, context=context)
+    return rendered
+
+
+def render_template_with_system_and_user_context(value, user, context=None):
+    """
+    Render provided template with a default system context and user context for the provided user.
+
+    :param value: Template string.
+    :type value: ``str``
+
+    :param user: Name (PK) of the user for the user scope.
+    :type user: ``str``
+
+    :param context: Template context (optional).
+    :type context: ``dict``
+
+    """
+    context = context or {}
+    context[SYSTEM_SCOPE] = KeyValueLookup(scope=SYSTEM_SCOPE)
+    context[USER_SCOPE] = KeyValueLookup(user=user, scope=USER_SCOPE)
 
     rendered = render_template(value=value, context=context)
     return rendered
