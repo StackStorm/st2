@@ -18,7 +18,6 @@ from st2common.constants.keyvalue import USER_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.util.config_loader import ContentPackConfigLoader
-#from st2common.services import config as config_service
 
 __all__ = [
     'ContentPackConfigLoaderTestCase'

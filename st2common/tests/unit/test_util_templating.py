@@ -17,7 +17,6 @@ from st2tests.base import CleanDbTestCase
 from st2common.constants.keyvalue import USER_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
-from st2common.util.templating import render_template_with_system_context
 from st2common.util.templating import render_template_with_system_and_user_context
 
 

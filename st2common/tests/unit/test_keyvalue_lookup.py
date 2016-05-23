@@ -22,8 +22,8 @@ from st2common.services.keyvalues import KeyValueLookup, UserKeyValueLookup
 
 class TestKeyValueLookup(CleanDbTestCase):
     def test_lookup_with_key_prefix(self):
-        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='some:prefix:stanley:k5', value='v5',
-                                                       scope=USER_SCOPE))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='some:prefix:stanley:k5', value='v5',
+                                                  scope=USER_SCOPE))
 
         # No prefix provided, should return None
         lookup = UserKeyValueLookup(user='stanley', scope=USER_SCOPE)
@@ -38,8 +38,6 @@ class TestKeyValueLookup(CleanDbTestCase):
         k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='k2', value='v2'))
         k3 = KeyValuePair.add_or_update(KeyValuePairDB(name='k3', value='v3'))
         k4 = KeyValuePair.add_or_update(KeyValuePairDB(name='stanley:k4', value='v4',
-                                                       scope=USER_SCOPE))
-        k5 = KeyValuePair.add_or_update(KeyValuePairDB(name='some:prefix:stanley:k5', value='v5',
                                                        scope=USER_SCOPE))
 
         lookup = KeyValueLookup()

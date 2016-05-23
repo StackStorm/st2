@@ -139,7 +139,8 @@ class UserKeyValueLookup(object):
         # the lookup is for 'key_base.key_value' it is likely that the calling code, e.g. Jinja,
         # will expect to do a dictionary style lookup for key_base and key_value as subsequent
         # calls. Saving the value in cache avoids extra DB calls.
-        return UserKeyValueLookup(prefix=self._prefix, user=self._user, key_prefix=key, cache=self._value_cache)
+        return UserKeyValueLookup(prefix=self._prefix, user=self._user, key_prefix=key,
+                                  cache=self._value_cache)
 
     def _get_kv(self, key):
         scope = self._scope

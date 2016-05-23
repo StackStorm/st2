@@ -19,14 +19,12 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.services.config import get_datastore_key_prefix_for_pack
-from st2common.constants.keyvalue import USER_SCOPE
 from st2common.persistence.pack import ConfigSchema
 from st2common.persistence.pack import Config
 from st2common.content import utils as content_utils
 from st2common.util import jinja as jinja_utils
 from st2common.util.templating import render_template_with_system_and_user_context
 from st2common.util.config_parser import ContentPackConfigParser
-from st2common.services.keyvalues import UserKeyValueLookup
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
