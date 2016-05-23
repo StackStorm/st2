@@ -13,15 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Namespace to contain all system/global scoped variables in key-value store.
-
 __all__ = [
     'ALLOWED_SCOPES',
     'SYSTEM_SCOPE',
     'USER_SCOPE',
     'USER_SEPARATOR',
+
+    'DATASTORE_KEY_SEPARATOR'
 ]
 
+# Namespace to contain all system/global scoped variables in key-value store.
 SYSTEM_SCOPE = 'system'
 
 # Namespace to contain all user scoped variables in key-value store.
@@ -33,3 +34,6 @@ ALLOWED_SCOPES = [
     SYSTEM_SCOPE,
     USER_SCOPE
 ]
+
+# Separator for keys in the datastore
+DATASTORE_KEY_SEPARATOR = ':'
