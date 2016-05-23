@@ -89,6 +89,7 @@ class ApiKeyBranch(resource.ResourceBranch):
 
 
 class ApiKeyListCommand(resource.ResourceListCommand):
+    detail_display_attributes = ['all']
     display_attributes = ['id', 'user', 'metadata']
 
     def __init__(self, resource, *args, **kwargs):
@@ -96,6 +97,8 @@ class ApiKeyListCommand(resource.ResourceListCommand):
 
         self.parser.add_argument('-u', '--user', type=str,
                                  help='Only return ApiKeys belonging to the provided user')
+        self.parser.add_argument('-d', '--detail', action='store_true',
+                                 help='Full list of attributes.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -103,6 +106,13 @@ class ApiKeyListCommand(resource.ResourceListCommand):
         filters['user'] = args.user
         filters.update(**kwargs)
         return self.manager.get_all(**filters)
+
+    def run_and_print(self, args, **kwargs):
+        instances = self.run(args, **kwargs)
+        attr = self.detail_display_attributes if args.detail else args.attr
+        self.print_output(instances, table.MultiColumnTable,
+                          attributes=attr, widths=args.width,
+                          json=args.json, yaml=args.yaml)
 
 
 class ApiKeyGetCommand(resource.ResourceGetCommand):
