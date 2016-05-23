@@ -17,7 +17,7 @@ import six
 
 from oslo_config import cfg
 
-#from st2common.services import config as config_service
+from st2common.services.config import get_datastore_key_prefix_for_pack
 from st2common.constants.keyvalue import USER_SCOPE
 from st2common.persistence.pack import ConfigSchema
 from st2common.persistence.pack import Config
@@ -105,9 +105,8 @@ class ContentPackConfigLoader(object):
         Retrieve datastore value by first resolving the datastore expression and then retrieving
         the value from the datastore.
         """
-        prefix = None  # TODO include configs pack prefix
-        lookup = UserKeyValueLookup(user=self.user, scope=USER_SCOPE)
-
+        prefix = get_datastore_key_prefix_for_pack(pack_name=self.pack_name)
+        lookup = UserKeyValueLookup(prefix=prefix, user=self.user, scope=USER_SCOPE)
         value = lookup.__getitem__(key=value)
         # TODO: Deserialize
         return value

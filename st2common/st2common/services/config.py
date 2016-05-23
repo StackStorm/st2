@@ -26,6 +26,7 @@ from st2common.persistence.keyvalue import KeyValuePair
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
 
 __all__ = [
+    'get_datastore_key_prefix_for_pack',
     'get_datastore_key_name',
 
     'get_datastore_value_for_config_key',
@@ -37,11 +38,15 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 # Prefix for datastore items which store config values
-# Full keys follow this format: system.pack_config.<pack name>.<config key name>
-# For example:
-# pack_config.aws.setup.region
-DATASTORE_CONFIG_KEY_PREFIX = ['pack_config']
-DATASTORE_CONFIG_KEY_PREFIX = DATASTORE_KEY_SEPARATOR.join(DATASTORE_CONFIG_KEY_PREFIX)
+# Full keys follow this format: pack_config.<pack name>.<config key name>
+# For example: pack_config.aws.setup.region
+DATASTORE_CONFIG_KEY_PREFIX = 'pack_config'
+
+
+def get_datastore_key_prefix_for_pack(pack_name):
+    prefix = [DATASTORE_CONFIG_KEY_PREFIX, pack_name]
+    prefix = DATASTORE_KEY_SEPARATOR.join(prefix)
+    return prefix
 
 
 def get_datastore_key_name(pack_name, key_name):
