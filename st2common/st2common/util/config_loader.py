@@ -19,6 +19,7 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.services.config import get_datastore_key_prefix_for_pack
+from st2common.services.config import deserialize_key_value
 from st2common.persistence.pack import ConfigSchema
 from st2common.persistence.pack import Config
 from st2common.content import utils as content_utils
@@ -110,5 +111,11 @@ class ContentPackConfigLoader(object):
         prefix = get_datastore_key_prefix_for_pack(pack_name=self.pack_name)
         value = render_template_with_system_and_user_context(value=value, user=self.user,
                                                              prefix=prefix)
-        # TODO: Deserialize
+
+        if value:
+            # Deserialize the value
+            value = deserialize_key_value(value=value)
+        else:
+            value = None
+
         return value

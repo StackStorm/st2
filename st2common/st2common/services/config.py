@@ -21,6 +21,8 @@ import json
 
 from st2common import log as logging
 from st2common.services import keyvalues as keyvalue_service
+from st2common.constants.keyvalue import USER_SCOPE
+from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
@@ -49,13 +51,23 @@ def get_datastore_key_prefix_for_pack(pack_name):
     return prefix
 
 
-def get_datastore_key_name(pack_name, key_name):
+def get_datastore_key_name(pack_name, key_name, user=None):
     """
     Retrieve datastore key name based on the config key name.
+
+    :param user: Optional username if working on a user-scoped config item.
+    :type user: ``str``
+
+    :rtype: ``str``
     """
     values = []
-    values.append(DATASTORE_CONFIG_KEY_PREFIX)
-    values.append(pack_name)
+
+    prefix = get_datastore_key_prefix_for_pack(pack_name=pack_name)
+    values.append(prefix)
+
+    if user:
+        values.append(user)
+
     values.append(key_name)
 
     return DATASTORE_KEY_SEPARATOR.join(values)
@@ -98,7 +110,7 @@ def get_datastore_value(key_name):
     return value
 
 
-def set_datastore_value_for_config_key(pack_name, key_name, value):
+def set_datastore_value_for_config_key(pack_name, key_name, value, user=None):
     """
     Set config value in the datastore.
 
@@ -111,19 +123,40 @@ def set_datastore_value_for_config_key(pack_name, key_name, value):
     :param key_name: Config key name.
     :type key_name: ``str``
 
+    :param user: Optional username if working on a user-scoped config item.
+    :type user: ``str``
+
     :rtype: :class:`KeyValuePairDB`
     """
     # TODO: Once and if config schema is available, validate the provided type against the one
     # specified in the schema.
-    name = get_datastore_key_name(pack_name=pack_name, key_name=key_name)
+    name = get_datastore_key_name(pack_name=pack_name, key_name=key_name, user=user)
+
+    if user:
+        scope = USER_SCOPE
+    else:
+        scope = SYSTEM_SCOPE
+
     value = json.dumps({'value': value})
-    kvp_db = KeyValuePairDB(name=name, value=value)
+    kvp_db = KeyValuePairDB(name=name, value=value, scope=scope)
     kvp_db = KeyValuePair.add_or_update(kvp_db)
 
     return kvp_db
 
 
-def deserialize_key_value(kvp_db):
+def deserialize_kvp_db(kvp_db):
+    """
+    Deserialize the datastore item value.
+
+    :param kvp_db: KeyValuePairDB object.
+    :type kvp_db: :class:`KeyValuePairDB`
+    """
+    value = kvp_db.value
+    value = deserialize_key_value(value=value)
+    return value
+
+
+def deserialize_key_value(value):
     """
     Deserialize the datastore item value.
 
@@ -132,12 +165,15 @@ def deserialize_key_value(kvp_db):
 
     This introduces some space-related overhead, but it's transparent and preferred over custom
     serialization format.
+
+    :param value: Value to deserialize.
+    :type value: ``str``
     """
     try:
-        value = json.loads(kvp_db.value)
+        value = json.loads(value)
     except Exception as e:
         # Value is not serialized correctly
-        LOG.debug('Failed to de-serialize datastore item "%s": %s' % (kvp_db.name, str(e)),
+        LOG.debug('Failed to de-serialize datastore: %s' % (str(e)),
                   exc_info=True)
         return None
 
@@ -145,7 +181,7 @@ def deserialize_key_value(kvp_db):
         value = value['value']
     except KeyError:
         # Value is not serialized correctly
-        LOG.debug('Datastore item "%s" is missing "value" attribute' % (kvp_db.name),
+        LOG.debug('Datastore item is missing "value" attribute :%s' % (str(e)),
                   exc_info=True)
         return None
 
