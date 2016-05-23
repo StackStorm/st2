@@ -1,0 +1,5 @@
+---
+  api_key: "some_api_key"
+  api_secret: "{{user.api_secret}}"
+  regions:
+    - "us-west-1"
