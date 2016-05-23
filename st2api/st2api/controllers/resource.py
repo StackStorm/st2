@@ -58,7 +58,12 @@ class ResourceController(rest.RestController):
     # A list of optional transformation functions for user provided filter values
     filter_transform_functions = {}
 
+    # A list of attributes which can be specified using ?exclude_attributes filter
+    valid_exclude_attributes = []
+
     # Method responsible for retrieving an instance of the corresponding model DB object
+    # Note: This method should throw StackStormDBObjectNotFoundError if the corresponding DB
+    # object doesn't exist
     get_one_db_method = None
 
     def __init__(self):
@@ -204,6 +209,22 @@ class ResourceController(rest.RestController):
 
         return result
 
+    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None):
+        LOG.info('GET %s with pack_ref=%s', pecan.request.path, pack_ref)
+
+        instance = self._get_by_pack_ref(pack_ref=pack_ref, exclude_fields=exclude_fields)
+
+        if not instance:
+            msg = 'Unable to identify resource with pack_ref "%s".' % (pack_ref)
+            pecan.abort(http_client.NOT_FOUND, msg)
+
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
+        result = self.model.from_model(instance, **from_model_kwargs)
+        LOG.debug('GET %s with pack_ref=%s, client_result=%s', pecan.request.path, id, result)
+
+        return result
+
     def _get_by_id(self, resource_id, exclude_fields=None):
         try:
             resource_db = self.access.get(id=resource_id, exclude_fields=exclude_fields)
@@ -215,6 +236,14 @@ class ResourceController(rest.RestController):
     def _get_by_name(self, resource_name, exclude_fields=None):
         try:
             resource_db = self.access.get(name=resource_name, exclude_fields=exclude_fields)
+        except Exception:
+            resource_db = None
+
+        return resource_db
+
+    def _get_by_pack_ref(self, pack_ref, exclude_fields=None):
+        try:
+            resource_db = self.access.get(pack=pack_ref, exclude_fields=exclude_fields)
         except Exception:
             resource_db = None
 
@@ -245,6 +274,40 @@ class ResourceController(rest.RestController):
         :rtype: ``dict``
         """
         return self.from_model_kwargs
+
+    def _get_one_by_scope_and_name(self, scope, name, from_model_kwargs=None):
+        """
+        Retrieve an item given scope and name. Only KeyValuePair now has concept of 'scope'.
+
+        :param scope: Scope the key belongs to.
+        :type scope: ``str``
+
+        :param name: Name of the key.
+        :type name: ``str``
+        """
+        instance = self.access.get_by_scope_and_name(scope=scope, name=name)
+        if not instance:
+            msg = 'KeyValuePair with name: %s and scope: %s not found in db.' % (name, scope)
+            raise StackStormDBObjectNotFoundError(msg)
+        from_model_kwargs = from_model_kwargs or {}
+        result = self.model.from_model(instance, **from_model_kwargs)
+        LOG.debug('GET with scope=%s and name=%s, client_result=%s', scope, name, result)
+
+        return result
+
+    def _validate_exclude_fields(self, exclude_fields):
+        """
+        Validate that provided exclude fields are valid.
+        """
+        if not exclude_fields:
+            return exclude_fields
+
+        for field in exclude_fields:
+            if field not in self.valid_exclude_attributes:
+                msg = 'Invalid or unsupported attribute specified: %s' % (field)
+                raise ValueError(msg)
+
+        return exclude_fields
 
 
 class ContentPackResourceController(ResourceController):

@@ -30,11 +30,15 @@ from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
+from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
+from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
+from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
+from st2common.util.api import get_full_public_api_url
 from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
-from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
+
 
 __all__ = [
     'get_runner',
@@ -137,6 +141,8 @@ class PythonRunner(ActionRunner):
         # Include common st2 environment variables
         st2_env_vars = self._get_common_action_env_variables()
         env.update(st2_env_vars)
+        datastore_env_vars = self._get_datastore_access_env_vars()
+        env.update(datastore_env_vars)
 
         exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
                                                            stderr=subprocess.PIPE, shell=False,
@@ -201,5 +207,19 @@ class PythonRunner(ActionRunner):
 
         for key in to_delete:
             del env_vars[key]
+
+        return env_vars
+
+    def _get_datastore_access_env_vars(self):
+        """
+        Return environment variables so datastore access using client (from st2client)
+        is possible with actions. This is done to be compatible with sensors.
+
+        :rtype: ``dict``
+        """
+        env_vars = {}
+        if self.auth_token:
+            env_vars[AUTH_TOKEN_ENV_VARIABLE_NAME] = self.auth_token.token
+        env_vars[API_URL_ENV_VARIABLE_NAME] = get_full_public_api_url()
 
         return env_vars

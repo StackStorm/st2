@@ -16,15 +16,20 @@
 import json
 import logging
 
+import yaml
+
 from st2client import formatters
 from st2client.utils import jsutil
 
+__all__ = [
+    'JsonFormatter',
+    'YAMLFormatter'
+]
 
 LOG = logging.getLogger(__name__)
 
 
-class Json(formatters.Formatter):
-
+class BaseFormatter(formatters.Formatter):
     @classmethod
     def format(self, subject, *args, **kwargs):
         attributes = kwargs.get('attributes', None)
@@ -40,4 +45,21 @@ class Json(formatters.Formatter):
                 doc = item if isinstance(item, dict) else item.__dict__
                 keys = doc.keys() if not attributes or 'all' in attributes else attributes
                 docs.append(jsutil.get_kvps(doc, keys))
+
+        return docs
+
+
+class JsonFormatter(BaseFormatter):
+
+    @classmethod
+    def format(self, subject, *args, **kwargs):
+        docs = BaseFormatter.format(subject, *args, **kwargs)
         return json.dumps(docs, indent=4, sort_keys=True)
+
+
+class YAMLFormatter(BaseFormatter):
+
+    @classmethod
+    def format(self, subject, *args, **kwargs):
+        docs = BaseFormatter.format(subject, *args, **kwargs)
+        return yaml.safe_dump(docs, indent=4, default_flow_style=False)

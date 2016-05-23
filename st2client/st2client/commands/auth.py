@@ -67,7 +67,7 @@ class TokenCreateCommand(resource.ResourceCommand):
             print(instance.token)
         else:
             self.print_output(instance, table.PropertyValueTable,
-                              attributes=self.display_attributes, json=args.json)
+                              attributes=self.display_attributes, json=args.json, yaml=args.yaml)
 
 
 class ApiKeyBranch(resource.ResourceBranch):
@@ -152,7 +152,7 @@ class ApiKeyCreateCommand(resource.ResourceCommand):
             print(instance.key)
         else:
             self.print_output(instance, table.PropertyValueTable,
-                              attributes=['all'], json=args.json)
+                              attributes=['all'], json=args.json, yaml=args.yaml)
 
 
 class ApiKeyDeleteCommand(resource.ResourceDeleteCommand):

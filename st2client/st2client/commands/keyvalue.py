@@ -27,6 +27,8 @@ from st2client.utils.date import format_isodate_for_user_timezone
 
 LOG = logging.getLogger(__name__)
 
+DEFAULT_SCOPE = 'system'
+
 
 class KeyValuePairBranch(resource.ResourceBranch):
 
@@ -70,6 +72,8 @@ class KeyValuePairListCommand(resource.ResourceListCommand):
                                                    ' provided prefix.'))
         self.parser.add_argument('--decrypt', action='store_true',
                                  help='Decrypt secrets and display plain text.')
+        self.parser.add_argument('-s', '--scope', default='system', dest='scope',
+                                 help='Scope variable is under. Example: "user".')
 
     def run_and_print(self, args, **kwargs):
         if args.prefix:
@@ -77,28 +81,35 @@ class KeyValuePairListCommand(resource.ResourceListCommand):
 
         decrypt = getattr(args, 'decrypt', False)
         kwargs['params'] = {'decrypt': str(decrypt).lower()}
+        scope = getattr(args, 'scope', DEFAULT_SCOPE)
+        kwargs['params']['scope'] = scope
 
         instances = self.run(args, **kwargs)
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json,
+                          yaml=args.yaml,
                           attribute_transform_functions=self.attribute_transform_functions)
 
 
 class KeyValuePairGetCommand(resource.ResourceGetCommand):
     pk_argument_name = 'name'
-    display_attributes = ['name', 'value', 'secret', 'encrypted', 'expire_timestamp']
+    display_attributes = ['name', 'value', 'secret', 'encrypted', 'scope', 'expire_timestamp']
 
     def __init__(self, kv_resource, *args, **kwargs):
         super(KeyValuePairGetCommand, self).__init__(kv_resource, *args, **kwargs)
         self.parser.add_argument('-d', '--decrypt', action='store_true',
                                  help='Decrypt secret if encrypted and show plain text.')
+        self.parser.add_argument('-s', '--scope', default=DEFAULT_SCOPE, dest='scope',
+                                 help='Scope variable is under. Example: "user".')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_name = getattr(args, self.pk_argument_name, None)
         decrypt = getattr(args, 'decrypt', False)
+        scope = getattr(args, 'scope', DEFAULT_SCOPE)
         kwargs['params'] = {'decrypt': str(decrypt).lower()}
+        kwargs['params']['scope'] = scope
         return self.get_resource_by_id(id=resource_name, **kwargs)
 
 
@@ -121,6 +132,9 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         self.parser.add_argument('-e', '--encrypt', dest='secret',
                                  action='store_true',
                                  help='Encrypt value before saving the value.')
+        self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
+                                 help='Specify the scope under which you want ' +
+                                      'to place the variable.')
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -128,6 +142,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         instance.id = args.name  # TODO: refactor and get rid of id
         instance.name = args.name
         instance.value = args.value
+        instance.scope = args.scope
 
         if args.secret:
             instance.secret = args.secret
@@ -140,7 +155,8 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
-                          attributes=self.display_attributes, json=args.json)
+                          attributes=self.display_attributes, json=args.json,
+                          yaml=args.yaml)
 
 
 class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
@@ -241,4 +257,4 @@ class KeyValuePairLoadCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
         self.print_output(instances, table.MultiColumnTable,
-                          attributes=['id', 'name', 'value'], json=args.json)
+                          attributes=['id', 'name', 'value'], json=args.json, yaml=args.yaml)

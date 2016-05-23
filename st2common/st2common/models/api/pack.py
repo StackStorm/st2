@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common.util import schema as util_schema
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
+from st2common.models.db.pack import ConfigSchemaDB
 
 __all__ = [
-    'PackAPI'
+    'PackAPI',
+    'ConfigSchemaAPI'
 ]
 
 
@@ -80,5 +83,42 @@ class PackAPI(BaseAPI):
 
         model = cls.model(name=name, description=description, ref=ref, keywords=keywords,
                           version=version, author=author, email=email, files=files)
+
+        return model
+
+
+class ConfigSchemaAPI(BaseAPI):
+    model = ConfigSchemaDB
+    schema = {
+        "title": "ConfigSchema",
+        "description": "Pack config schema.",
+        "type": "object",
+        "properties": {
+            "id": {
+                "description": "The unique identifier for the config schema.",
+                "type": "string"
+            },
+            "pack": {
+                "description": "The content pack this config schema belongs to.",
+                "type": "string"
+            },
+            "attributes": {
+                "description": "Config schema attributes.",
+                "type": "object",
+                "patternProperties": {
+                    "^\w+$": util_schema.get_action_parameters_schema()
+                },
+                "default": {}
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, config_schema):
+        pack = config_schema.pack
+        attributes = config_schema.attributes
+
+        model = cls.model(pack=pack, attributes=attributes)
 
         return model

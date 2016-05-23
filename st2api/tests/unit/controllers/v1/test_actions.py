@@ -327,6 +327,29 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
+    def test_get_all_exclude_attributes(self):
+        action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
+        action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
+
+        # Invalid exclude attribute
+        resp = self.app.get('/v1/actions?exclude_attributes=invalid',
+                            expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue('Invalid or unsupported attribute specified' in
+                        resp.json['faultstring'])
+
+        # Valid exclude attribute
+        resp = self.app.get('/v1/actions?exclude_attributes=parameters')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
+        self.assertEqual(resp.json[0]['parameters'], {})
+        self.assertEqual(resp.json[1]['parameters'], {})
+
+        self.__do_delete(action_1_id)
+        self.__do_delete(action_2_id)
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
     def test_query(self):
         action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
         action_2_id = self.__get_action_id(self.__do_post(ACTION_2))

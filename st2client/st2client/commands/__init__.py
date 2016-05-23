@@ -73,7 +73,14 @@ class Command(object):
 
     def format_output(self, subject, formatter, *args, **kwargs):
         json = kwargs.get('json', False)
-        func = doc.Json.format if json else formatter.format
+        yaml = kwargs.get('yaml', False)
+
+        if json:
+            func = doc.JsonFormatter.format
+        elif yaml:
+            func = doc.YAMLFormatter.format
+        else:
+            func = formatter.format
         return func(subject, *args, **kwargs)
 
     def print_output(self, subject, formatter, *args, **kwargs):

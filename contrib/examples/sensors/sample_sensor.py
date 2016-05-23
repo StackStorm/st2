@@ -3,7 +3,7 @@ from st2reactor.sensor.base import Sensor
 
 class SampleSensor(Sensor):
     """
-    * self._sensor_service
+    * self.sensor_service
         - provides utilities like
             - get_logger() - returns logger instance specific to this sensor.
             - dispatch() for dispatching triggers into the system.
@@ -24,7 +24,7 @@ class SampleSensor(Sensor):
         # interacting with your external system, you'd inherit from PollingSensor.)
         # For example, let's consider a simple flask app. You'd run the flask app here.
         # You can dispatch triggers using sensor_service like so:
-        # self._sensor_service(trigger, payload, trace_tag)
+        # self.sensor_service(trigger, payload, trace_tag)
         #   # You can refer to the trigger as dict
         #   # { "name": ${trigger_name}, "pack": ${trigger_pack} }
         #   # or just simply by reference as string.

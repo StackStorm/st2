@@ -88,6 +88,10 @@ class Access(object):
         return cls._get_impl().get_by_ref(value)
 
     @classmethod
+    def get_by_pack(cls, value):
+        return cls._get_impl().get_by_pack(value)
+
+    @classmethod
     def get(cls, *args, **kwargs):
         return cls._get_impl().get(*args, **kwargs)
 

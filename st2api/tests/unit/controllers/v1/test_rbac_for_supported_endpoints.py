@@ -17,8 +17,6 @@ import httplib
 
 import six
 
-from st2common.persistence.auth import User
-from st2common.models.db.auth import UserDB
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
 
@@ -109,13 +107,6 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         if self.register_packs:
             self._register_packs()
 
-        self.users = {}
-
-        # Users
-        user_1_db = UserDB(name='no_permissions')
-        user_1_db = User.add_or_update(user_1_db)
-        self.users['no_permissions'] = user_1_db
-
         # Insert mock objects - those objects are used to test get one, edit and delete operations
         self.models = self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                                fixtures_dict=TEST_FIXTURES)
@@ -154,6 +145,11 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Pack views
             {
                 'path': '/v1/packs/views/files/dummy_pack_1',
+                'method': 'GET'
+            },
+            # Pack config schema
+            {
+                'path': '/v1/config_schema/dummy_pack_1',
                 'method': 'GET'
             },
             {

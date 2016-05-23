@@ -24,6 +24,7 @@ from st2actions import worker
 from st2actions import scheduler
 from st2actions.notifier import notifier
 from st2common.constants import action as action_constants
+from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.util.api import get_full_public_api_url
 from st2common.constants.runners import COMMON_ACTION_ENV_VARIABLES
@@ -44,6 +45,7 @@ class RunnerTestCase(unittest2.TestCase):
             self.assertTrue(var_name in env)
 
         self.assertEqual(env['ST2_ACTION_API_URL'], get_full_public_api_url())
+        self.assertTrue(env[AUTH_TOKEN_ENV_VARIABLE_NAME] is not None)
 
 
 class MockLiveActionPublisher(object):
