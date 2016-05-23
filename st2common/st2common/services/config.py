@@ -106,7 +106,7 @@ def get_datastore_value(key_name):
         # Item doesn't contain a value
         return None
 
-    value = deserialize_key_value(kvp_db=kvp_db)
+    value = deserialize_key_value(value=kvp_db.value)
     return value
 
 
