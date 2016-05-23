@@ -61,10 +61,10 @@ def get_values_for_names(names, default_value=None):
 
 class KeyValueLookup(object):
 
-    def __init__(self, key_prefix=None, cache=None, scope=SYSTEM_SCOPE):
+    def __init__(self, prefix=None, key_prefix=None, cache=None, scope=SYSTEM_SCOPE):
+        self._prefix = prefix
         self._key_prefix = key_prefix or ''
-        if cache is None:
-            cache = {}
+        self._value_cache = cache or {}
         self._value_cache = cache
         self._scope = scope
 
@@ -79,8 +79,17 @@ class KeyValueLookup(object):
 
     def _get(self, name):
         # get the value for this key and save in value_cache
-        key = '%s.%s' % (self._key_prefix, name) if self._key_prefix else name
-        value = self._get_kv(key)
+        if self._key_prefix:
+            key = '%s.%s' % (self._key_prefix, name)
+        else:
+            key = name
+
+        if self._prefix:
+            kvp_key = DATASTORE_KEY_SEPARATOR.join([self._prefix, key])
+        else:
+            kvp_key = key
+
+        value = self._get_kv(kvp_key)
         self._value_cache[key] = value
         # return a KeyValueLookup as response since the lookup may not be complete e.g. if
         # the lookup is for 'key_base.key_value' it is likely that the calling code, e.g. Jinja,
