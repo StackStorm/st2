@@ -87,6 +87,13 @@ class KeyValuePair(Access):
         return cls._dispatch_trigger(operation=operation, trigger=trigger, payload=payload)
 
     @classmethod
+    def get_by_names(cls, names):
+        """
+        Retrieve KeyValuePair objects for the provided key names.
+        """
+        return cls.query(name__in=names)
+
+    @classmethod
     def get_by_scope_and_name(cls, scope, name):
         """
         Get a key value store given a scope and name.
