@@ -19,6 +19,7 @@ import ssl as ssl_lib
 
 import six
 import mongoengine
+from pymongo.errors import OperationFailure
 
 from st2common import log as logging
 from st2common.util import isotime
@@ -86,7 +87,8 @@ def db_setup(db_name, db_host, db_port, username=None, password=None,
 
 def db_ensure_indexes():
     """
-    This function ensures that indexes for all the models have been created.
+    This function ensures that indexes for all the models have been created and the
+    extra indexes cleaned up.
 
     Note #1: When calling this method database connection already needs to be
     established.
@@ -97,9 +99,28 @@ def db_ensure_indexes():
     LOG.debug('Ensuring database indexes...')
     model_classes = get_model_classes()
 
-    for cls in model_classes:
-        LOG.debug('Ensuring indexes for model "%s"...' % (cls.__name__))
-        cls.ensure_indexes()
+    for model_class in model_classes:
+        # First clean-up extra indexes
+        cleanup_extra_indexes(model_class=model_class)
+        LOG.debug('Ensuring indexes for model "%s"...' % (model_class.__name__))
+        model_class.ensure_indexes()
+
+
+def cleanup_extra_indexes(model_class):
+    """
+    Finds any extra indexes and removes those from mongodb.
+    """
+    extra_indexes = model_class.compare_indexes().get('extra', None)
+    if not extra_indexes:
+        return
+    # mongoengine does not have the necessary method so we need to drop to
+    # pymongo interfaces via some private methods.
+    c = model_class._get_collection()
+    for extra_index in extra_indexes:
+        try:
+            c.drop_index(extra_index)
+        except OperationFailure:
+            LOG.warning('Attempt to cleanup index % failed.', extra_index, exc_info=True)
 
 
 def db_teardown():
