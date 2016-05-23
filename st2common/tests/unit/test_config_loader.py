@@ -15,6 +15,7 @@
 
 from st2tests.base import DbTestCase
 from st2common.constants.keyvalue import USER_SCOPE
+from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.util.config_loader import ContentPackConfigLoader
@@ -52,6 +53,10 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
                                 value='some_api_secret', scope=USER_SCOPE)
         kvp_db = KeyValuePair.add_or_update(kvp_db)
 
+        kvp_db = KeyValuePairDB(name='pack_config:dummy_pack_5:private_key_path',
+                                value='some_private_key', scope=SYSTEM_SCOPE)
+        kvp_db = KeyValuePair.add_or_update(kvp_db)
+
         loader = ContentPackConfigLoader(pack_name='dummy_pack_5', user='joe')
         config = loader.get_config()
 
@@ -61,7 +66,7 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
             'api_key': 'some_api_key',
             'api_secret': 'some_api_secret',
             'regions': ['us-west-1'],
-            'private_key_path': None
+            'private_key_path': 'some_private_key'
         }
 
         self.assertEqual(config, expected_config)
