@@ -21,6 +21,7 @@ import unittest
 
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.models.db.auth import UserDB
+from st2common.persistence.auth import ApiKey
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
 
@@ -122,6 +123,24 @@ class TestApiKeyController(FunctionalTest):
         self.assertEqual(resp.status_int, 204)
 
         resp = self.app.delete('/v1/apikeys/%s' % resp2.json['key'])
+        self.assertEqual(resp.status_int, 204)
+
+    def test_post_delete_same_key_hash(self):
+        api_key = {
+            'user': 'herge',
+            'key_hash': 'ABCDE'
+        }
+        resp1 = self.app.post_json('/v1/apikeys/', api_key)
+        self.assertEqual(resp1.status_int, 201)
+        self.assertEqual(resp1.json['key'], None, 'Key should be None.')
+
+        # drop into the DB since API will be masking this value.
+        api_key_db = ApiKey.get_by_id(resp1.json['id'])
+
+        self.assertEqual(api_key_db.key_hash, api_key['key_hash'], 'Key_hash should match.')
+        self.assertEqual(api_key_db.user, api_key['user'], 'Key_hash should match.')
+
+        resp = self.app.delete('/v1/apikeys/%s' % resp1.json['id'])
         self.assertEqual(resp.status_int, 204)
 
     def test_put_api_key(self):
