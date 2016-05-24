@@ -38,6 +38,8 @@ in development
   JSON has been deprecated in StackStorm v0.6. Now the only supported metadata file format is YAML.
 * Add ``-y`` / ``--yaml`` flag to the CLI ``list`` and ``get`` commands. If this flag is provided,
   command response will be formatted as YAML. (new feature)
+* Alias names are scoped to a pack. (bug-fix)
+* Ability to migrate api keys to new installs. (new feature)
 
 1.4.0 - April 18, 2016
 ----------------------
