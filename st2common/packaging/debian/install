@@ -18,4 +18,3 @@ tools/migrate_triggers_to_include_ref_count.py usr/lib/python2.7/dist-packages/s
 tools/migrate_messaging_setup.py usr/lib/python2.7/dist-packages/st2common/bin/
 rbac/roles/sample.yaml opt/stackstorm/rbac/roles/
 rbac/assignments/sample.yaml opt/stackstorm/rbac/assignments/
-package.meta opt/stackstorm/st2/

@@ -52,7 +52,6 @@ cp -R contrib/examples %{buildroot}/usr/share/doc/st2/
 chmod -R 775 %{buildroot}/usr/share/doc/st2/examples
 cp -R st2common %{buildroot}/%{python2_sitelib}/
 cp -R bin %{buildroot}/%{python2_sitelib}/st2common/
-cp package.meta %{buildroot}/opt/stackstorm/st2/
 install st2/st2.conf %{buildroot}/etc/st2/st2.conf
 install logrotate.d/st2.conf %{buildroot}/etc/logrotate.d/st2.conf
 install rbac/roles/sample.yaml %{buildroot}/opt/stackstorm/rbac/roles/sample.yaml

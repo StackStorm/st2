@@ -3,7 +3,7 @@
 pushd $GITDIR/scripts
 
 config=../package.meta
-echo "Writing version, SHA and circle_build_url  to $config  ..."
+echo "Writing version, gitSHA and circle_build_url to: package.meta (Final location: /opt/stackstorm/st2)"
 if [ -e "$config" ]; then
 	rm $config
 fi
@@ -16,9 +16,6 @@ circle_build_url = $(echo $ST2_CIRCLE_URL)
 
 package_meta
 
-echo Contents of package.meta:
+echo Contents of package.meta for reference:
 cat ../package.meta
 popd
-
-echo env variables to find Circle CI URL
-export
