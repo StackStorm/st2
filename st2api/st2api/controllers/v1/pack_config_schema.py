@@ -43,15 +43,22 @@ class PackConfigSchemaController(ResourceController):
     @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
+        """
+        Retrieve config schema for all the packs.
+
+        Handles requests:
+            GET /config_schema/
+        """
+
         return super(PackConfigSchemaController, self)._get_all(**kwargs)
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, pack_ref):
         """
-            Retrieve config schema for a particular pack.
+        Retrieve config schema for a particular pack.
 
-            Handles requests:
-                GET /packs/config_schema/<pack_ref>
+        Handles requests:
+            GET /config_schema/<pack_ref>
         """
         return self._get_one_by_pack_ref(pack_ref=pack_ref)
