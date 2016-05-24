@@ -85,6 +85,10 @@ class KeyValuePairAPI(BaseAPI):
 
     @staticmethod
     def _setup_crypto():
+        if KeyValuePairAPI.crypto_setup:
+            # Crypto already set up
+            return
+
         LOG.info('Checking if encryption is enabled for key-value store.')
         KeyValuePairAPI.is_encryption_enabled = cfg.CONF.keyvalue.enable_encryption
         LOG.debug('Encryption enabled? : %s', KeyValuePairAPI.is_encryption_enabled)
