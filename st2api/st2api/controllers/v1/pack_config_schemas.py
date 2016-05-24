@@ -24,17 +24,17 @@ from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 
 __all__ = [
-    'PackConfigSchemaController'
+    'PackConfigSchemasController'
 ]
 
 
-class PackConfigSchemaController(ResourceController):
+class PackConfigSchemasController(ResourceController):
     model = ConfigSchemaAPI
     access = ConfigSchema
     supported_filters = {}
 
     def __init__(self):
-        super(PackConfigSchemaController, self).__init__()
+        super(PackConfigSchemasController, self).__init__()
 
         # Note: This method is used to retrieve object for RBAC purposes and in
         # this case, RBAC is checked on the parent PackDB object
@@ -50,7 +50,7 @@ class PackConfigSchemaController(ResourceController):
             GET /config_schema/
         """
 
-        return super(PackConfigSchemaController, self)._get_all(**kwargs)
+        return super(PackConfigSchemasController, self)._get_all(**kwargs)
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
     @jsexpose(arg_types=[str])
