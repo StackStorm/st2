@@ -119,6 +119,7 @@ def cleanup_extra_indexes(model_class):
     for extra_index in extra_indexes:
         try:
             c.drop_index(extra_index)
+            LOG.debug('Dropped index %s for model %s.', extra_index, model_class.__name__)
         except OperationFailure:
             LOG.warning('Attempt to cleanup index % failed.', extra_index, exc_info=True)
 
