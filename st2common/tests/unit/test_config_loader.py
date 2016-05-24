@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
 from st2tests.base import DbTestCase
 from st2common.services.config import set_datastore_value_for_config_key
 from st2common.util.config_loader import ContentPackConfigLoader
@@ -45,15 +47,21 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
         # Test a scenario where some values are overriden in datastore via pack
         # flobal config
 
-        # TODO: Utilize util methods which serialize the key, value, etc
-        set_datastore_value_for_config_key(pack_name='dummy_pack_5',
-                                           key_name='api_secret',
-                                           user='joe',
-                                           value='some_api_secret')
+        kvp_db = set_datastore_value_for_config_key(pack_name='dummy_pack_5',
+                                                    key_name='api_secret',
+                                                    value='some_api_secret',
+                                                    secret=True,
+                                                    user='joe')
 
-        set_datastore_value_for_config_key(pack_name='dummy_pack_5',
-                                           key_name='private_key_path',
-                                           value='some_private_key')
+        # This is a secret so a value should be encrypted
+        self.assertTrue(kvp_db.value != 'some_api_secret')
+        self.assertTrue(kvp_db.secret)
+
+        kvp_db = set_datastore_value_for_config_key(pack_name='dummy_pack_5',
+                                                    key_name='private_key_path',
+                                                    value='some_private_key')
+        self.assertEqual(kvp_db.value, json.dumps({'value': 'some_private_key'}))
+        self.assertFalse(kvp_db.secret)
 
         loader = ContentPackConfigLoader(pack_name='dummy_pack_5', user='joe')
         config = loader.get_config()
