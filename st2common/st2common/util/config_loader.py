@@ -120,7 +120,6 @@ class ContentPackConfigLoader(object):
         value = render_template_with_system_and_user_context(value=value, user=self.user,
                                                              prefix=prefix)
 
-
         if value:
             # Deserialize the value
             value = deserialize_key_value(value=value, secret=secret)
