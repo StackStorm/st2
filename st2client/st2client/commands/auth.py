@@ -194,8 +194,8 @@ class ApiKeyLoadCommand(resource.ResourceCommand):
         for res in resources:
             # pick only the meaningful properties.
             instance = {
-                'user': res['user'], # required
-                'key_hash': res['key_hash'], # required
+                'user': res['user'],  # required
+                'key_hash': res['key_hash'],  # required
                 'metadata': res.get('metadata', {}),
                 'enabled': res.get('enabled', False)
             }
@@ -210,7 +210,6 @@ class ApiKeyLoadCommand(resource.ResourceCommand):
                               attributes=ApiKeyListCommand.display_attributes,
                               widths=args.width,
                               json=args.json, yaml=args.yaml)
-
 
 
 class ApiKeyDeleteCommand(resource.ResourceDeleteCommand):
