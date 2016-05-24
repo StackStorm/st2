@@ -23,7 +23,7 @@ from st2common import log as logging
 from st2common.services import keyvalues as keyvalue_service
 from st2common.constants.keyvalue import USER_SCOPE
 from st2common.constants.keyvalue import SYSTEM_SCOPE
-from st2common.models.db.keyvalue import KeyValuePairDB
+from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
 
@@ -110,7 +110,7 @@ def get_datastore_value(key_name):
     return value
 
 
-def set_datastore_value_for_config_key(pack_name, key_name, value, user=None):
+def set_datastore_value_for_config_key(pack_name, key_name, value, secret=False, user=None):
     """
     Set config value in the datastore.
 
@@ -122,6 +122,9 @@ def set_datastore_value_for_config_key(pack_name, key_name, value, user=None):
 
     :param key_name: Config key name.
     :type key_name: ``str``
+
+    :param secret: True if this value is a secret.
+    :type secret: ``bool``
 
     :param user: Optional username if working on a user-scoped config item.
     :type user: ``str``
@@ -138,7 +141,8 @@ def set_datastore_value_for_config_key(pack_name, key_name, value, user=None):
         scope = SYSTEM_SCOPE
 
     value = json.dumps({'value': value})
-    kvp_db = KeyValuePairDB(name=name, value=value, scope=scope)
+    kvp_api = KeyValuePairAPI(name=name, value=value, scope=scope, secret=secret)
+    kvp_db = KeyValuePairAPI.to_model(kvp_api)
     kvp_db = KeyValuePair.add_or_update(kvp_db)
 
     return kvp_db
