@@ -90,12 +90,16 @@ class ContentPackConfigLoader(object):
         return result
 
     def _get_values_for_config(self, config_schema_db, config_db):
+        schema_values = getattr(config_schema_db, 'attributes', {})
+
         result = {}
         for config_item_key, config_item_value in six.iteritems(config_db.values):
             is_jinja_expression = jinja_utils.is_jinja_expression(value=config_item_value)
 
             if is_jinja_expression:
-                value = self._get_datastore_value_for_expression(value=config_item_value)
+                config_schema_item = schema_values.get(config_item_key, {})
+                value = self._get_datastore_value_for_expression(value=config_item_value,
+                    config_schema_item=config_schema_item)
                 result[config_item_key] = value
             else:
                 # Static value, no resolution needed
@@ -103,20 +107,23 @@ class ContentPackConfigLoader(object):
 
         return result
 
-    def _get_datastore_value_for_expression(self, value):
+    def _get_datastore_value_for_expression(self, value, config_schema_item=None):
         """
         Retrieve datastore value by first resolving the datastore expression and then retrieving
         the value from the datastore.
         """
-        prefix = get_datastore_key_prefix_for_pack(pack_name=self.pack_name)
+        config_schema_item = config_schema_item or {}
+        secret = config_schema_item.get('secret', False)
 
         # TODO: Get key name so we can get more friendly exception
+        prefix = get_datastore_key_prefix_for_pack(pack_name=self.pack_name)
         value = render_template_with_system_and_user_context(value=value, user=self.user,
                                                              prefix=prefix)
 
+
         if value:
             # Deserialize the value
-            value = deserialize_key_value(value=value)
+            value = deserialize_key_value(value=value, secret=secret)
         else:
             value = None
 

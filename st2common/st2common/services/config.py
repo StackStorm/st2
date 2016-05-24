@@ -23,6 +23,7 @@ from st2common import log as logging
 from st2common.services import keyvalues as keyvalue_service
 from st2common.constants.keyvalue import USER_SCOPE
 from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.util.crypto import symmetric_decrypt
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
@@ -160,7 +161,7 @@ def deserialize_kvp_db(kvp_db):
     return value
 
 
-def deserialize_key_value(value):
+def deserialize_key_value(value, secret=False):
     """
     Deserialize the datastore item value.
 
@@ -172,7 +173,14 @@ def deserialize_key_value(value):
 
     :param value: Value to deserialize.
     :type value: ``str``
+
+    :param secret: True if a value is a secret and is encrypted.
+    :type secret: ``bool``
     """
+    if secret:
+        KeyValuePairAPI._setup_crypto()
+        value = symmetric_decrypt(KeyValuePairAPI.crypto_key, value)
+
     try:
         value = json.loads(value)
     except Exception as e:
