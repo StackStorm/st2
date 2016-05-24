@@ -1,17 +1,16 @@
 ---
-  attributes:
-    api_key:
-      type: "string"
-      secret: true
+  api_key:
+    type: "string"
+    secret: true
+    required: true
+  api_secret:
+    type: "string"
+    secret: true
+    required: true
+  regions:
+      type: "list"
       required: true
-    api_secret:
+      default: "us-east-1"
+  private_key_path:
       type: "string"
-      secret: true
-      required: true
-    regions:
-        type: "list"
-        required: true
-        default: "us-east-1"
-    private_key_path:
-        type: "string"
-        required: false
+      required: false
