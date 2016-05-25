@@ -56,6 +56,7 @@ function print_usage() {
     echo "  --register-actions            Register all actions."
     echo "  --register-aliases            Register all aliases."
     echo "  --register-policies           Register all policies."
+    echo "  --register-configs            Register all configuration files."
     echo "  --register-setup-virtualenvs  Create Python virtual environments for all the registered packs."
     echo "  --verbose                     Output additional debug and informational messages."
     echo ""
@@ -100,7 +101,7 @@ fi
 # Note: Scripts already call reload with "--register-<content>"
 if [ ${1} == "reload" -o ${1} == "clean" ]; then
     ALLOWED_REGISTER_FLAGS=(--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --register-setup-virtualenvs --verbose)
-    DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors'
+    DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors --register-configs'
 
     if [ ! -z ${2} ]; then
         for arg in ${@:2}; do
