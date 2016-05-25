@@ -45,6 +45,7 @@ class TestAuthToken(base.BaseCLITestCase):
         super(TestAuthToken, self).__init__(*args, **kwargs)
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('-t', '--token', dest='token')
+        self.parser.add_argument('--api-key', dest='api_key')
         self.shell = shell.Shell()
 
     def setUp(self):
@@ -59,6 +60,8 @@ class TestAuthToken(base.BaseCLITestCase):
         # Clean up environment.
         if 'ST2_AUTH_TOKEN' in os.environ:
             del os.environ['ST2_AUTH_TOKEN']
+        if 'ST2_API_KEY' in os.environ:
+            del os.environ['ST2_API_KEY']
         if 'ST2_BASE_URL' in os.environ:
             del os.environ['ST2_BASE_URL']
 
@@ -74,11 +77,22 @@ class TestAuthToken(base.BaseCLITestCase):
         args = self.parser.parse_args(args=['--token', token])
         self.assertDictEqual(self._mock_run(args), {'token': token})
 
+    def test_decorate_api_key_by_cli(self):
+        token = uuid.uuid4().hex
+        args = self.parser.parse_args(args=['--api-key', token])
+        self.assertDictEqual(self._mock_run(args), {'api_key': token})
+
     def test_decorate_auth_token_by_env(self):
         token = uuid.uuid4().hex
         os.environ['ST2_AUTH_TOKEN'] = token
         args = self.parser.parse_args(args=[])
         self.assertDictEqual(self._mock_run(args), {'token': token})
+
+    def test_decorate_api_key_by_env(self):
+        token = uuid.uuid4().hex
+        os.environ['ST2_API_KEY'] = token
+        args = self.parser.parse_args(args=[])
+        self.assertDictEqual(self._mock_run(args), {'api_key': token})
 
     def test_decorate_without_auth_token(self):
         args = self.parser.parse_args(args=[])
@@ -93,6 +107,13 @@ class TestAuthToken(base.BaseCLITestCase):
         token = uuid.uuid4().hex
         kwargs = self._mock_http('/', token=token)
         expected = {'content-type': 'application/json', 'X-Auth-Token': token}
+        self.assertIn('headers', kwargs)
+        self.assertDictEqual(kwargs['headers'], expected)
+
+    def test_decorate_api_key_to_http_headers(self):
+        token = uuid.uuid4().hex
+        kwargs = self._mock_http('/', api_key=token)
+        expected = {'content-type': 'application/json', 'St2-Api-Key': token}
         self.assertIn('headers', kwargs)
         self.assertDictEqual(kwargs['headers'], expected)
 

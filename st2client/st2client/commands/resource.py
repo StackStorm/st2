@@ -39,6 +39,8 @@ def add_auth_token_to_kwargs_from_cli(func):
         ns = args[1]
         if getattr(ns, 'token', None):
             kwargs['token'] = ns.token
+        if getattr(ns, 'api_key', None):
+            kwargs['api_key'] = ns.api_key
         return func(*args, **kwargs)
     return decorate
 
@@ -117,6 +119,10 @@ class ResourceCommand(commands.Command):
             self.parser.add_argument('-t', '--token', dest='token',
                                      help='Access token for user authentication. '
                                           'Get ST2_AUTH_TOKEN from the environment '
+                                          'variables by default.')
+            self.parser.add_argument('--api-key', dest='api_key',
+                                     help='Api Key for user authentication. '
+                                          'Get ST2_API_KEY from the environment '
                                           'variables by default.')
 
         # Formatter flags
