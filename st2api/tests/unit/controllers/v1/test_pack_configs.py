@@ -41,8 +41,10 @@ class PackConfigsControllerTestCase(FunctionalTest):
         resp = self.app.get('/v1/configs/dummy_pack_2',
                             expect_errors=True)
         self.assertEqual(resp.status_int, 404)
+        self.assertTrue('Unable to identify resource with pack_ref ' in resp.json['faultstring'])
 
         # Pack doesn't exist
         resp = self.app.get('/v1/configs/pack_doesnt_exist',
                             expect_errors=True)
         self.assertEqual(resp.status_int, 404)
+        self.assertTrue('Unable to find the PackDB instance' in resp.json['faultstring'])
