@@ -187,11 +187,6 @@ class ConfigItemSetAPI(BaseAPI):
                     SYSTEM_SCOPE,
                     USER_SCOPE
                 ]
-            },
-            "secret": {
-                "description": "True if a value is a secret and should be encrypted",
-                "type": "boolean",
-                "default": False
             }
         },
         "additionalProperties": False

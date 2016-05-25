@@ -22,6 +22,7 @@ from st2api.controllers.resource import ResourceController
 from st2common.models.api.pack import ConfigAPI
 from st2common.models.api.pack import ConfigItemSetAPI
 from st2common.persistence.pack import Config
+from st2common.persistence.pack import ConfigSchema
 from st2common.services.config import set_datastore_value_for_config_key
 from st2common.rbac.utils import get_user_db_from_request
 from st2common.rbac.types import PermissionType
@@ -78,11 +79,18 @@ class PackConfigsController(ResourceController):
         Handles requests:
             PUT /configs/<pack_ref>
         """
-        # TODO: Once we make config schemas mandatory we should validate that
-        # the attribute exists in the schema and also validate the type
-        key_name = config_item_api.name
+        name = config_item_api.name
         value = config_item_api.value
         scope = config_item_api.scope
+
+        # TODO: Also validate value type against config schema
+        config_schema_db = ConfigSchema.get_by_pack(value=pack_ref)
+
+        config_item_schema = config_schema_db.attributes.get(name, {})
+        if not config_item_schema:
+            msg = ('Config schema for pack "%s" is missing schema definition for attribute "%s"' %
+                   (pack_ref, name))
+            raise ValueError(msg)
 
         # Note: Right now when "scope" is "user" we set user to the currently authenticated user.
         # TODO: We should probably support for admin to set "user" to arbitrary user in the system
@@ -98,9 +106,10 @@ class PackConfigsController(ResourceController):
             user = None
 
         set_datastore_value_for_config_key(pack_name=pack_ref,
-                                           key_name=key_name,
+                                           key_name=name,
                                            user=user,
-                                           value=value)
+                                           value=value,
+                                           secret=secret)
 
         config_api = self._get_one_by_pack_ref(pack_ref=pack_ref)
         return config_api
