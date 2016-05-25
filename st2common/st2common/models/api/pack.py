@@ -173,11 +173,13 @@ class ConfigItemSetAPI(BaseAPI):
         "properties": {
             "name": {
                 "description": "Config item name (key)",
-                "type": "string"
+                "type": "string",
+                "required": True
             },
             "value": {
                 "description": "Config item value.",
-                "type": ["string", "number", "boolean", "array", "object"]
+                "type": ["string", "number", "boolean", "array", "object"],
+                "required": True
             },
             "scope": {
                 "description": "Config item scope (system / user)",
@@ -187,6 +189,12 @@ class ConfigItemSetAPI(BaseAPI):
                     SYSTEM_SCOPE,
                     USER_SCOPE
                 ]
+            },
+            "user": {
+                "description": "User for user-scoped items (only available to admins).",
+                "type": "string",
+                "required": False,
+                "default": None
             }
         },
         "additionalProperties": False

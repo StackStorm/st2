@@ -25,6 +25,7 @@ from st2common.persistence.pack import Config
 from st2common.persistence.pack import ConfigSchema
 from st2common.services.config import set_datastore_value_for_config_key
 from st2common.rbac.utils import get_user_db_from_request
+from st2common.rbac.utils import request_user_is_admin
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
@@ -82,6 +83,7 @@ class PackConfigsController(ResourceController):
         name = config_item_api.name
         value = config_item_api.value
         scope = config_item_api.scope
+        user = config_item_api.user
 
         # TODO: Also validate value type against config schema
         config_schema_db = ConfigSchema.get_by_pack(value=pack_ref)
@@ -92,16 +94,26 @@ class PackConfigsController(ResourceController):
                    (pack_ref, name))
             raise ValueError(msg)
 
-        # Note: Right now when "scope" is "user" we set user to the currently authenticated user.
-        # TODO: We should probably support for admin to set "user" to arbitrary user in the system
-        # TODO add log statements
+        secret = config_item_schema.get('secret', False)
+
         if scope == USER_SCOPE:
-            user_db = get_user_db_from_request(request=pecan.request)
-            if not user_db:
-                msg = 'Unable to retrieve user from request. Is authentication enabled?'
+            is_admin = request_user_is_admin(request=pecan.request)
+
+            # Arbitrary user for user-scoped items can only be specified by admins
+            if not is_admin and user:
+                msg = '"user" attribute for user-scoped items can only be supplied by admins'
                 raise ValueError(msg)
 
-            user = user_db.name
+            if not is_admin:
+                # For non-admins we set user to currently authenticated users (user is setting
+                # a value for themselves)
+                user_db = get_user_db_from_request(request=pecan.request)
+
+                if not user_db:
+                    msg = 'Unable to retrieve user from request. Is authentication enabled?'
+                    raise ValueError(msg)
+
+                user = user_db.name
         else:
             user = None
 
