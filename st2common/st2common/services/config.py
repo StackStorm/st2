@@ -132,8 +132,6 @@ def set_datastore_value_for_config_key(pack_name, key_name, value, secret=False,
 
     :rtype: :class:`KeyValuePairDB`
     """
-    # TODO: Once and if config schema is available, validate the provided type against the one
-    # specified in the schema.
     name = get_datastore_key_name(pack_name=pack_name, key_name=key_name, user=user)
 
     if user:
@@ -144,6 +142,11 @@ def set_datastore_value_for_config_key(pack_name, key_name, value, secret=False,
     value = json.dumps({'value': value})
     kvp_api = KeyValuePairAPI(name=name, value=value, scope=scope, secret=secret)
     kvp_db = KeyValuePairAPI.to_model(kvp_api)
+
+    # TODO: Obtain a lock
+    existing_kvp_db = KeyValuePair.get_by_scope_and_name(scope=scope, name=name)
+    if existing_kvp_db:
+        kvp_db.id = existing_kvp_db.id
     kvp_db = KeyValuePair.add_or_update(kvp_db)
 
     return kvp_db
