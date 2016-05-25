@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -24,6 +26,7 @@ import os
 import sys
 import json
 import time
+import argcomplete
 import argparse
 import calendar
 import logging
@@ -335,6 +338,9 @@ class Shell(object):
 
     def run(self, argv):
         debug = False
+
+        # Provide autocomplete for shell
+        argcomplete.autocomplete(self.parser)
 
         if '--print-config' in argv:
             # Hack because --print-config requires no command to be specified

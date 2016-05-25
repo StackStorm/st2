@@ -36,6 +36,9 @@ in development
   JSON has been deprecated in StackStorm v0.6. Now the only supported metadata file format is YAML.
 * Add ``-y`` / ``--yaml`` flag to the CLI ``list`` and ``get`` commands. If this flag is provided,
   command response will be formatted as YAML. (new feature)
+* Alias names are now correctly scoped to a pack. This means the same name for alias can be used
+  across different packs. (bug-fix)
+* Ability to migrate api keys to new installs. (new feature)
 * Introduce a new concept of pack config schemas. Each pack can now contain a
   ``config.schema.yaml`` file. This file can contain an optional schema for the pack config. In the
 * Introduce support for pack configs which are located outside of the pack directory in

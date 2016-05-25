@@ -348,7 +348,7 @@ class ResourceCreateCommand(ResourceCommand):
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        data = _load_meta_file(args.file)
+        data = load_meta_file(args.file)
         instance = self.resource.deserialize(data)
         return self.manager.create(instance, **kwargs)
 
@@ -389,7 +389,7 @@ class ResourceUpdateCommand(ResourceCommand):
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         instance = self.get_resource(resource_id, **kwargs)
-        data = _load_meta_file(args.file)
+        data = load_meta_file(args.file)
         modified_instance = self.resource.deserialize(data)
 
         if not getattr(modified_instance, 'id', None):
@@ -542,7 +542,7 @@ class ContentPackResourceDeleteCommand(ResourceDeleteCommand):
     pk_argument_name = 'ref_or_id'
 
 
-def _load_meta_file(file_path):
+def load_meta_file(file_path):
     if not os.path.isfile(file_path):
         raise Exception('File "%s" does not exist.' % file_path)
 
