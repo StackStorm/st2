@@ -79,6 +79,7 @@ CONFIG_OPTION_TO_CLIENT_KWARGS_MAP = {
     'auth_url': ['auth', 'url'],
     'api_url': ['api', 'url'],
     'api_version': ['general', 'api_version'],
+    'api_key': ['credentials', 'api_key'],
     'cacert': ['general', 'cacert'],
     'debug': ['cli', 'debug']
 }
