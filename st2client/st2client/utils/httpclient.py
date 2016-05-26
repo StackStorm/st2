@@ -36,11 +36,18 @@ def add_ssl_verify_to_kwargs(func):
 
 def add_auth_token_to_headers(func):
     def decorate(*args, **kwargs):
+        headers = kwargs.get('headers', dict())
+
         token = kwargs.pop('token', None)
         if token:
-            headers = kwargs.get('headers', dict())
             headers['X-Auth-Token'] = str(token)
             kwargs['headers'] = headers
+
+        api_key = kwargs.pop('api_key', None)
+        if api_key:
+            headers['St2-Api-Key'] = str(api_key)
+            kwargs['headers'] = headers
+
         return func(*args, **kwargs)
     return decorate
 
