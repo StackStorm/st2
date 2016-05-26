@@ -21,6 +21,17 @@ from st2common.services.keyvalues import KeyValueLookup, UserKeyValueLookup
 
 
 class TestKeyValueLookup(CleanDbTestCase):
+    def test_lookup_with_key_prefix(self):
+        KeyValuePair.add_or_update(KeyValuePairDB(name='some:prefix:stanley:k5', value='v5',
+                                                  scope=USER_SCOPE))
+
+        # No prefix provided, should return None
+        lookup = UserKeyValueLookup(user='stanley', scope=USER_SCOPE)
+        self.assertEqual(str(lookup.k5), '')
+
+        # Prefix provided
+        lookup = UserKeyValueLookup(prefix='some:prefix', user='stanley', scope=USER_SCOPE)
+        self.assertEqual(str(lookup.k5), 'v5')
 
     def test_non_hierarchical_lookup(self):
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))

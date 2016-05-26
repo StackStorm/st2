@@ -17,6 +17,7 @@ import abc
 import importlib
 
 import six
+from oslo_config import cfg
 
 from st2actions import handlers
 from st2common import log as logging
@@ -122,6 +123,17 @@ class ActionRunner(object):
             return self.action.pack
 
         return DEFAULT_PACK_NAME
+
+    def get_user(self):
+        """
+        Retrieve a name of the user which triggered this action execution.
+
+        :rtype: ``str``
+        """
+        context = getattr(self, 'context', {}) or {}
+        user = context.get('user', cfg.CONF.system_user.user)
+
+        return user
 
     def _get_common_action_env_variables(self):
         """

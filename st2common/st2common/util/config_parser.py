@@ -37,6 +37,18 @@ class ContentPackConfigParser(object):
         self.pack_name = pack_name
         self.pack_path = utils.get_pack_base_path(pack_name=pack_name)
 
+    def get_config(self):
+        """
+        Retrieve config for a particular pack.
+
+        :return: Config object if config is found, ``None`` otherwise.
+        :rtype: :class:`.ContentPackConfig` or ``None``
+        """
+        global_config_path = self.get_global_config_path()
+        config = self.get_and_parse_config(config_path=global_config_path)
+
+        return config
+
     def get_action_config(self, action_file_path):
         """
         Retrieve config for a particular action inside the content pack.
@@ -96,33 +108,6 @@ class ContentPackConfigParser(object):
                 return config
 
         return None
-
-    def _get_sensor_local_config_path(self, sensor_file_path):
-        """
-        Retrieve path to the local config for the provided sensor.
-
-        :rtype: ``str``
-        """
-        dir_name, file_name = os.path.split(sensor_file_path)
-        config_name = file_name.replace('.py', self.LOCAL_CONFIG_SUFFIX)
-        local_config_path = os.path.join(dir_name, config_name)
-        return local_config_path
-
-    def _get_action_local_config_path(self, action_file_path):
-        """
-        Retrieve path to the local config for the provided Python action.
-
-        Note: Configs are only supported for Python actions.
-
-        :rtype: ``str``
-        """
-        if not action_file_path.endswith('.py'):
-            raise ValueError('Only Python actions are supported')
-
-        dir_name, file_name = os.path.split(action_file_path)
-        config_name = file_name.replace('.py', self.LOCAL_CONFIG_SUFFIX)
-        local_config_path = os.path.join(dir_name, config_name)
-        return local_config_path
 
 
 class ContentPackConfig(object):

@@ -13,28 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.services import packs as packs_service
 from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
-from st2common.models.api.pack import ConfigSchemaAPI
-from st2common.persistence.pack import ConfigSchema
+from st2common.services import packs as packs_service
+from st2common.models.api.pack import ConfigAPI
+from st2common.persistence.pack import Config
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 
-
 __all__ = [
-    'PackConfigSchemaController'
+    'PackConfigsController'
 ]
 
 
-class PackConfigSchemaController(ResourceController):
-    model = ConfigSchemaAPI
-    access = ConfigSchema
+class PackConfigsController(ResourceController):
+    model = ConfigAPI
+    access = Config
     supported_filters = {}
 
     def __init__(self):
-        super(PackConfigSchemaController, self).__init__()
+        super(PackConfigsController, self).__init__()
 
         # Note: This method is used to retrieve object for RBAC purposes and in
         # this case, RBAC is checked on the parent PackDB object
@@ -43,15 +42,24 @@ class PackConfigSchemaController(ResourceController):
     @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
-        return super(PackConfigSchemaController, self)._get_all(**kwargs)
+        """
+        Retrieve configs for all the packs.
+
+        Handles requests:
+            GET /configs/
+        """
+        # TODO: Make sure secret values are masked
+
+        return super(PackConfigsController, self)._get_all(**kwargs)
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, pack_ref):
         """
-            Retrieve config schema for a particular pack.
+        Retrieve config for a particular pack.
 
-            Handles requests:
-                GET /packs/config_schema/<pack_ref>
+        Handles requests:
+            GET /configs/<pack_ref>
         """
+        # TODO: Make sure secret values are masked
         return self._get_one_by_pack_ref(pack_ref=pack_ref)

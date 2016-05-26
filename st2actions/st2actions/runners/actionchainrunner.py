@@ -180,11 +180,11 @@ class ChainHolder(object):
             # This task name needs to be resolved during run time so we cant validate the name now
             return True
 
-        for jinja_start_marker in JINJA_START_MARKERS:
-            if jinja_start_marker in node_name:
-                # This task name needs to be resolved during run time so we cant validate the name
-                # now
-                return True
+        is_jinja_expression = jinja_utils.is_jinja_expression(value=node_name)
+        if is_jinja_expression:
+            # This task name needs to be resolved during run time so we cant validate the name
+            # now
+            return True
 
         return node_name in all_node_names
 

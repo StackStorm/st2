@@ -14,19 +14,25 @@
 # limitations under the License.
 
 import json
-import jinja2
 import six
 import re
 
 import semver
+import jinja2
 
 __all__ = [
     'get_jinja_environment',
-    'render_values'
+    'render_values',
+    'is_jinja_expression'
 ]
 
 # Magic string to which None type is serialized when using use_none filter
 NONE_MAGIC_VALUE = '%*****__%NONE%__*****%'
+
+JINJA_EXPRESSIONS_START_MARKERS = [
+    '{{',
+    '{%'
+]
 
 
 class CustomFilters(object):
@@ -195,3 +201,18 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             rendered_v = json.loads(rendered_v)
         rendered_mapping[k] = rendered_v
     return rendered_mapping
+
+
+def is_jinja_expression(value):
+    """
+    Function which very simplisticly detect if the provided value contains or is a Jinja
+    expression.
+    """
+    if not value or not isinstance(value, six.string_types):
+        return False
+
+    for marker in JINJA_EXPRESSIONS_START_MARKERS:
+        if marker in value:
+            return True
+
+    return False

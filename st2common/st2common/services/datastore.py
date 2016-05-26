@@ -17,6 +17,7 @@ from st2client.client import Client
 from st2client.models import KeyValuePair
 from st2common.services.access import create_token
 from st2common.util.api import get_full_public_api_url
+from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
 
 
 class DatastoreService(object):
@@ -24,7 +25,7 @@ class DatastoreService(object):
     Class provides public methods for accessing datastore items.
     """
 
-    DATASTORE_NAME_SEPARATOR = ':'
+    DATASTORE_NAME_SEPARATOR = DATASTORE_KEY_SEPARATOR
 
     def __init__(self, logger, pack_name, class_name, api_username):
         self._api_username = api_username

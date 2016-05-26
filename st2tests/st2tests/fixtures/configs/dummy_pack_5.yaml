@@ -1,0 +1,6 @@
+---
+  api_key: "some_api_key"
+  api_secret: "{{user.api_secret}}"  # user scoped datastore value
+  regions:
+    - "us-west-1"
+  private_key_path: "{{system.private_key_path}}"  # global pack datastore value

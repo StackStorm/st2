@@ -15,8 +15,13 @@
 
 import binascii
 
+__all__ = [
+    'symmetric_encrypt',
+    'symmetric_decrypt'
+]
 
-def symmetric_encrypt(encrypt_key, message):
+
+def symmetric_encrypt(encrypt_key, plaintext):
     """
     Encrypt the given message using the encrypt_key. Returns a UTF-8 str
     ready to be stored in database. Note that we convert the hex notation
@@ -29,15 +34,15 @@ def symmetric_encrypt(encrypt_key, message):
     :param encrypt_key: Symmetric AES key to use for encryption.
     :type encrypt_key: :class:`keyczar.keys.AesKey`
 
-    :param message: Message to be encrypted.
-    :type message: ``str``
+    :param plaintext: Plaintext / message to be encrypted.
+    :type plaintext: ``str``
 
     :rtype: ``str``
     """
-    return binascii.hexlify(encrypt_key.Encrypt(message)).upper()
+    return binascii.hexlify(encrypt_key.Encrypt(plaintext)).upper()
 
 
-def symmetric_decrypt(decrypt_key, crypto):
+def symmetric_decrypt(decrypt_key, ciphertext):
     """
     Decrypt the given crypto text into plain text. Returns the original
     string input. Note that we first convert the string to hex notation
@@ -51,4 +56,4 @@ def symmetric_decrypt(decrypt_key, crypto):
 
     :rtype: ``str``
     """
-    return decrypt_key.Decrypt(binascii.unhexlify(crypto))
+    return decrypt_key.Decrypt(binascii.unhexlify(ciphertext))

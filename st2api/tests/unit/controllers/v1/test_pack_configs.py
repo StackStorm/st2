@@ -16,33 +16,35 @@
 from tests import FunctionalTest
 
 __all__ = [
-    'PackConfigSchemasControllerTestCase'
+    'PackConfigsControllerTestCase'
 ]
 
 
-class PackConfigSchemasControllerTestCase(FunctionalTest):
+class PackConfigsControllerTestCase(FunctionalTest):
     register_packs = True
+    register_pack_configs = True
 
     def test_get_all(self):
-        resp = self.app.get('/v1/config_schemas')
+        resp = self.app.get('/v1/configs')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 3, '/v1/config_schemas did not return all schemas.')
+        self.assertEqual(len(resp.json), 2, '/v1/configs did not return all configs.')
 
     def test_get_one_success(self):
-        resp = self.app.get('/v1/config_schemas/dummy_pack_1')
+        resp = self.app.get('/v1/configs/dummy_pack_1')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['pack'], 'dummy_pack_1')
-        self.assertTrue('api_key' in resp.json['attributes'])
+        self.assertEqual(resp.json['values']['api_key'], '{{user.api_key}}')
+        self.assertEqual(resp.json['values']['region'], 'us-west-1')
 
-    def test_get_one_doesnt_exist(self):
-        # Pack exists, schema doesnt
-        resp = self.app.get('/v1/config_schemas/dummy_pack_2',
+    def test_get_one_pack_config_doesnt_exist(self):
+        # Pack exists, config doesnt
+        resp = self.app.get('/v1/configs/dummy_pack_2',
                             expect_errors=True)
         self.assertEqual(resp.status_int, 404)
         self.assertTrue('Unable to identify resource with pack_ref ' in resp.json['faultstring'])
 
         # Pack doesn't exist
-        resp = self.app.get('/v1/config_schemas/pack_doesnt_exist',
+        resp = self.app.get('/v1/configs/pack_doesnt_exist',
                             expect_errors=True)
         self.assertEqual(resp.status_int, 404)
         self.assertTrue('Unable to find the PackDB instance' in resp.json['faultstring'])
