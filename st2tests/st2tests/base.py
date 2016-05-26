@@ -310,8 +310,17 @@ class CleanDbTestCase(BaseDbTestCase):
     database.
     """
 
+    register_packs = False
+    register_pack_configs = False
+
     def setUp(self):
         self._establish_connection_and_re_create_db()
+
+        if self.register_packs:
+            self._register_packs()
+
+        if self.register_pack_configs:
+            self._register_pack_configs()
 
 
 class CleanFilesTestCase(TestCase):
