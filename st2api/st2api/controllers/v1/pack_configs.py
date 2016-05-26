@@ -13,19 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
-
-from st2common.constants.keyvalue import USER_SCOPE
-from st2common.services import packs as packs_service
 from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
+from st2common.services import packs as packs_service
 from st2common.models.api.pack import ConfigAPI
-from st2common.models.api.pack import ConfigItemSetAPI
 from st2common.persistence.pack import Config
-from st2common.persistence.pack import ConfigSchema
-from st2common.services.config import set_datastore_value_for_config_key
-from st2common.rbac.utils import get_user_db_from_request
-from st2common.rbac.utils import request_user_is_admin
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
@@ -71,57 +63,3 @@ class PackConfigsController(ResourceController):
         """
         # TODO: Make sure secret values are masked
         return self._get_one_by_pack_ref(pack_ref=pack_ref)
-
-    @jsexpose(arg_types=[str], body_cls=ConfigItemSetAPI)
-    def put(self, pack_ref, config_item_api):
-        """
-        Set a value for a dynamic pack config item.
-
-        Handles requests:
-            PUT /configs/<pack_ref>
-        """
-        name = config_item_api.name
-        value = config_item_api.value
-        scope = config_item_api.scope
-        user = config_item_api.user
-
-        # TODO: Also validate value type against config schema
-        config_schema_db = ConfigSchema.get_by_pack(value=pack_ref)
-
-        config_item_schema = config_schema_db.attributes.get(name, {})
-        if not config_item_schema:
-            msg = ('Config schema for pack "%s" is missing schema definition for attribute "%s"' %
-                   (pack_ref, name))
-            raise ValueError(msg)
-
-        secret = config_item_schema.get('secret', False)
-
-        if scope == USER_SCOPE:
-            is_admin = request_user_is_admin(request=pecan.request)
-
-            # Arbitrary user for user-scoped items can only be specified by admins
-            if not is_admin and user:
-                msg = '"user" attribute for user-scoped items can only be supplied by admins'
-                raise ValueError(msg)
-
-            if not is_admin:
-                # For non-admins we set user to currently authenticated users (user is setting
-                # a value for themselves)
-                user_db = get_user_db_from_request(request=pecan.request)
-
-                if not user_db:
-                    msg = 'Unable to retrieve user from request. Is authentication enabled?'
-                    raise ValueError(msg)
-
-                user = user_db.name
-        else:
-            user = None
-
-        set_datastore_value_for_config_key(pack_name=pack_ref,
-                                           key_name=name,
-                                           user=user,
-                                           value=value,
-                                           secret=secret)
-
-        config_api = self._get_one_by_pack_ref(pack_ref=pack_ref)
-        return config_api

@@ -48,21 +48,3 @@ class PackConfigsControllerTestCase(FunctionalTest):
                             expect_errors=True)
         self.assertEqual(resp.status_int, 404)
         self.assertTrue('Unable to find the PackDB instance' in resp.json['faultstring'])
-
-    def test_set_config_item_value_config_schema_doesnt_exist(self):
-        pass
-
-    def test_set_config_item_value_item_not_dynamic_value(self):
-        pass
-
-    def test_set_config_item_value_for_item_which_is_secret(self):
-        pass
-
-    def test_set_config_item_value_user_scope(self):
-        pass
-
-    def test_set_config_item_value_user_scope_arbitrary_user_non_admin_not_allowed(self):
-        pass
-
-    def test_set_config_item_value_user_scope_administrator_arbritrary_user(self):
-        pass

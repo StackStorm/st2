@@ -18,7 +18,6 @@ import six
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common.services.config import get_datastore_key_prefix_for_pack
 from st2common.services.config import deserialize_key_value
 from st2common.persistence.pack import ConfigSchema
 from st2common.persistence.pack import Config
@@ -82,7 +81,6 @@ class ContentPackConfigLoader(object):
 
         # 2. Retrieve values from "global" pack config file (if available) and resolve them if
         # necessary
-        # TODO
         config = self._get_values_for_config(config_schema_db=config_schema_db,
                                              config_db=config_db)
         result.update(config)
@@ -115,10 +113,9 @@ class ContentPackConfigLoader(object):
         config_schema_item = config_schema_item or {}
         secret = config_schema_item.get('secret', False)
 
-        # TODO: Get key name so we can get more friendly exception
-        prefix = get_datastore_key_prefix_for_pack(pack_name=self.pack_name)
-        value = render_template_with_system_and_user_context(value=value, user=self.user,
-                                                             prefix=prefix)
+        # TODO: Get key name so we can throw a more friendly exception
+        value = render_template_with_system_and_user_context(value=value,
+                                                             user=self.user)
 
         if value:
             # Deserialize the value

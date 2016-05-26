@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 from st2tests.base import DbTestCase
 from st2common.services.config import set_datastore_value_for_config_key
 from st2common.util.config_loader import ContentPackConfigLoader
@@ -55,12 +53,13 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
 
         # This is a secret so a value should be encrypted
         self.assertTrue(kvp_db.value != 'some_api_secret')
+        self.assertTrue(len(kvp_db.value) > len('some_api_secret') * 2)
         self.assertTrue(kvp_db.secret)
 
         kvp_db = set_datastore_value_for_config_key(pack_name='dummy_pack_5',
                                                     key_name='private_key_path',
                                                     value='some_private_key')
-        self.assertEqual(kvp_db.value, json.dumps({'value': 'some_private_key'}))
+        self.assertEqual(kvp_db.value, 'some_private_key')
         self.assertFalse(kvp_db.secret)
 
         loader = ContentPackConfigLoader(pack_name='dummy_pack_5', user='joe')

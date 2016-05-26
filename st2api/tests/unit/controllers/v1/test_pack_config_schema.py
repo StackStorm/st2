@@ -46,4 +46,3 @@ class PackConfigSchemasControllerTestCase(FunctionalTest):
                             expect_errors=True)
         self.assertEqual(resp.status_int, 404)
         self.assertTrue('Unable to find the PackDB instance' in resp.json['faultstring'])
-
