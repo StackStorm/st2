@@ -130,7 +130,7 @@ class ActionRunner(object):
 
         :rtype: ``str``
         """
-        context = getattr(self, 'context', {})
+        context = getattr(self, 'context', {}) or {}
         user = context.get('user', cfg.CONF.system_user.user)
 
         return user

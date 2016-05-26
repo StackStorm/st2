@@ -106,6 +106,7 @@ class PythonRunner(ActionRunner):
 
     def run(self, action_parameters):
         pack = self.get_pack_name()
+        user = self.get_user()
         serialized_parameters = json.dumps(action_parameters) if action_parameters else ''
         virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
         python_path = get_sandbox_python_binary_path(pack=pack)
@@ -124,6 +125,7 @@ class PythonRunner(ActionRunner):
             '--pack=%s' % (pack),
             '--file-path=%s' % (self.entry_point),
             '--parameters=%s' % (serialized_parameters),
+            '--user=%s' % (user),
             '--parent-args=%s' % (json.dumps(sys.argv[1:]))
         ]
 
