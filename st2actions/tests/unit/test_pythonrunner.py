@@ -29,7 +29,6 @@ from st2common.constants.pack import SYSTEM_PACK_NAME
 from base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 import st2tests.base as tests_base
-import st2tests.config as tests_config
 
 
 PACAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
@@ -69,6 +68,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         # No values provided in the datastore
         instance = wrapper._get_action_instance()
+        self.assertEqual(instance.config['api_key'], 'some_api_key')  # static value
+        self.assertEqual(instance.config['regions'], ['us-west-1'])  # static value
         self.assertEqual(instance.config['api_secret'], None)
         self.assertEqual(instance.config['private_key_path'], None)
 
@@ -85,6 +86,8 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                                                           value='foopath')
 
         instance = wrapper._get_action_instance()
+        self.assertEqual(instance.config['api_key'], 'some_api_key')  # static value
+        self.assertEqual(instance.config['regions'], ['us-west-1'])  # static value
         self.assertEqual(instance.config['api_secret'], 'foosecret')
         self.assertEqual(instance.config['private_key_path'], 'foopath')
 
