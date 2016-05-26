@@ -101,8 +101,8 @@ class PythonActionWrapper(object):
             config.parse_args(args=self._parent_args)
         except Exception:
             pass
-        else:
-            db_setup()
+
+        db_setup()
 
         # Note: We can only set a default user value if one is not provided after parsing the
         # config
