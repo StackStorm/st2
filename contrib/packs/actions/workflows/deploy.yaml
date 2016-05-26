@@ -58,8 +58,8 @@ workflows:
           packs: <% $.packs %>
 
         publish:
-          repo_url: <% $.do_manual_install.repo_url %>
-          pack:    <% $.do_manual_install.pack %>
+          repo_url: <% task(do_manual_install).result.repo_url %>
+          pack:    <% task(do_manual_install).result.pack %>
 
       do_auto_install:
         workflow: auto_install
@@ -71,8 +71,8 @@ workflows:
           author: <% $.author %>
 
         publish:
-          repo_url: <% $.do_auto_install.repo_url %>
-          pack:    <% $.do_auto_install.pack %>
+          repo_url: <% task(do_auto_install).result.repo_url %>
+          pack:    <% task(do_auto_install).result.pack %>
 
   auto_install:
     type: direct
@@ -96,8 +96,8 @@ workflows:
           repo_name: <% $.repo_name %>
 
         publish:
-          notify_channel: <% $.check_auto_deploy_repo.result.notify_channel %>
-          deployment_branch: <% $.check_auto_deploy_repo.result.deployment_branch %>
+          notify_channel: <% task(check_auto_deploy_repo).result.result.notify_channel %>
+          deployment_branch: <% task(check_auto_deploy_repo).result.result.deployment_branch %>
 
         on-success:
           - auto_deploy_install
@@ -115,8 +115,8 @@ workflows:
           branch: <% $.deployment_branch %>
 
         publish:
-          repo_url: <% $.auto_deploy_install.repo_url %>
-          pack: <% $.auto_deploy_install.pack %>
+          repo_url: <% task(auto_deploy_install).result.repo_url %>
+          pack: <% task(auto_deploy_install).result.pack %>
 
         on-success:
           - notify_success
@@ -163,8 +163,8 @@ workflows:
           repo_name: <% $.repo_name %>
 
         publish:
-          repo_url: <% $.expand_repo_name.result.repo_url %>
-          subtree: <% $.expand_repo_name.result.subtree %>
+          repo_url: <% task(expand_repo_name).result.result.repo_url %>
+          subtree: <% task(expand_repo_name).result.result.subtree %>
 
         on-success:
           - packs_install
