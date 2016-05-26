@@ -60,6 +60,7 @@ from st2debug.utils.fs import copy_files
 from st2debug.utils.fs import get_full_file_list
 from st2debug.utils.fs import get_dirs_in_path
 from st2debug.utils.fs import remove_file
+from st2debug.utils.fs import remove_dir
 from st2debug.utils.system_info import get_cpu_info
 from st2debug.utils.system_info import get_memory_info
 from st2debug.utils.system_info import get_package_list
@@ -268,6 +269,10 @@ class DebugInfoCollector(object):
         except Exception as e:
             LOG.exception('Failed to generate tarball', exc_info=True)
             raise e
+
+        finally:
+            # Ensure temp files are removed regardless of success or failure
+            remove_dir(temp_dir_path)
 
     def encrypt_archive(self, archive_file_path):
         """
