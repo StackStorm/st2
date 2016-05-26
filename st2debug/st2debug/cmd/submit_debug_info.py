@@ -241,12 +241,12 @@ class DebugInfoCollector(object):
         try:
             # 1. Create temporary directory with the final directory structure where we will move
             # files which will be processed and included in the tarball
-            temp_dir_path = self.create_temp_directories()
+            self._temp_dir_path = self.create_temp_directories()
 
             # Prepend temp_dir_path to OUTPUT_PATHS
             output_paths = {}
             for key, path in OUTPUT_PATHS.iteritems():
-                output_paths[key] = os.path.join(temp_dir_path, path)
+                output_paths[key] = os.path.join(self._temp_dir_path, path)
 
             # 2. Moves all the files to the temporary directory
             LOG.info('Collecting files...')
@@ -264,7 +264,7 @@ class DebugInfoCollector(object):
                 self.add_shell_command_output(output_paths['commands'])
 
             # 3. Create a tarball
-            return self.create_tarball(temp_dir_path)
+            return self.create_tarball(self._temp_dir_path)
 
         except Exception as e:
             LOG.exception('Failed to generate tarball', exc_info=True)
@@ -272,7 +272,7 @@ class DebugInfoCollector(object):
 
         finally:
             # Ensure temp files are removed regardless of success or failure
-            remove_dir(temp_dir_path)
+            remove_dir(self._temp_dir_path)
 
     def encrypt_archive(self, archive_file_path):
         """
