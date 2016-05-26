@@ -57,6 +57,8 @@ class RuleListCommand(resource.ContentPackResourceListCommand):
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         # Filtering options
+        if args.pack:
+            kwargs['pack'] = args.pack
         if args.action:
             kwargs['action'] = args.action
         if args.trigger:

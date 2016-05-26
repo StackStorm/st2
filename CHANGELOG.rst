@@ -46,6 +46,7 @@ in development
   configs, but in addition to the static values they can also contain dynamic values. Dynamic value
   is a value which contains a Jinja expression which is resolved to the datastore item during
   run-time. (new feature)
+* Fix a regression in filtering rules by pack with CLI. (bug-fix)
 
 1.4.0 - April 18, 2016
 ----------------------
