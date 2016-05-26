@@ -26,7 +26,7 @@ from st2common.models.api.trace import TraceContext
 from st2common.persistence.db_init import db_setup_with_retry
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
-from st2common.util.config_parser import ContentPackConfigParser
+from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2reactor.sensor.base import Sensor, PollingSensor
 from st2reactor.sensor import config
@@ -289,16 +289,15 @@ class SensorWrapper(object):
         return sensor_instance
 
     def _get_sensor_config(self):
-        config_parser = ContentPackConfigParser(pack_name=self._pack)
-        config = config_parser.get_sensor_config(sensor_file_path=self._file_path)
+        config_loader = ContentPackConfigLoader(pack_name=self._pack)
+        config = config_loader.get_config()
 
         if config:
-            self._logger.info('Using config "%s" for sensor "%s"' % (config.file_path,
-                                                                     self._class_name))
-            return config.config
+            self._logger.info('Found config for sensor "%s"' % (self._class_name))
         else:
             self._logger.info('No config found for sensor "%s"' % (self._class_name))
-            return {}
+
+        return config
 
     def _sanitize_trigger(self, trigger):
         sanitized = trigger._data
