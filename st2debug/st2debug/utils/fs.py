@@ -90,3 +90,20 @@ def remove_file(file_path, ignore_errors=True):
     except Exception as e:
         if not ignore_errors:
             raise e
+
+
+def remove_dir(dir_path, ignore_errors=True):
+    """
+    Recursively remove a directory.
+
+    :param dir_path: Directory to be removed.
+    :type dir_path: ``str``
+
+    :param ignore_errors: True to ignore errors during removal.
+    :type ignore_errors: ``bool``
+    """
+    try:
+        shutil.rmtree(dir_path, ignore_errors)
+    except Exception as e:
+        if not ignore_errors:
+            raise e

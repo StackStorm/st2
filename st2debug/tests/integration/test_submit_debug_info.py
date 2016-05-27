@@ -118,6 +118,16 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
                              extract_path=extract_path,
                              required_directories=['logs', 'configs', 'content'])
 
+    def test_create_archive_deletes_temp_dir(self):
+        debug_collector = DebugInfoCollector(include_logs=True, include_configs=True,
+                                             include_content=True,
+                                             include_system_info=True)
+        archive_path = debug_collector.create_archive()
+        self.to_delete_files.append(archive_path)
+
+        self.assertTrue(debug_collector._temp_dir_path)
+        self.assertTrue(not os.path.exists(debug_collector._temp_dir_path))
+
     def _get_yaml_config(self):
         return {
             'log_file_paths': [
