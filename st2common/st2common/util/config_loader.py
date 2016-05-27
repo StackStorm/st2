@@ -48,9 +48,9 @@ class ContentPackConfigLoader(object):
     precedence and override values from pack local config file.
     """
 
-    def __init__(self, pack_name, user=cfg.CONF.system_user.user):
+    def __init__(self, pack_name, user=None):
         self.pack_name = pack_name
-        self.user = user
+        self.user = user or cfg.CONF.system_user.user
 
         self.pack_path = content_utils.get_pack_base_path(pack_name=pack_name)
         self._config_parser = ContentPackConfigParser(pack_name=pack_name)
