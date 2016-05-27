@@ -272,6 +272,7 @@ class DebugInfoCollector(object):
 
         finally:
             # Ensure temp files are removed regardless of success or failure
+            assert self._temp_dir_path.startswith('/tmp')
             remove_dir(self._temp_dir_path)
 
     def encrypt_archive(self, archive_file_path):
