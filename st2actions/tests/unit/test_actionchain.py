@@ -676,7 +676,7 @@ class TestActionChainRunner(DbTestCase):
         chain_runner.pre_run()
 
         action_parameters = {}
-        expected_msg = ('Failed to cast value "stringnotanarray" for parameter '
+        expected_msg = ('Failed to cast value "stringnotanarray" \(type: str\) for parameter '
                         '"arrtype" of type "array"')
         self.assertRaisesRegexp(ValueError, expected_msg, chain_runner.run,
                                 action_parameters=action_parameters)
