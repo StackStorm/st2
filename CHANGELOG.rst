@@ -47,6 +47,9 @@ in development
   is a value which contains a Jinja expression which is resolved to the datastore item during
   run-time. (new feature)
 * Fix a regression in filtering rules by pack with CLI. (bug-fix)
+* Make sure `st2-submit-debug-info` cleans up after itself and deletes a temporary directory it
+  creates. (improvement) #2714
+  [Kale Blankenship]
 
 1.4.0 - April 18, 2016
 ----------------------
