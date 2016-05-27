@@ -36,9 +36,15 @@ class CastsTestCase(unittest2.TestCase):
         result = cast_func(value)
         self.assertEqual(result, '')
 
+        # None should be preserved
         value = None
         result = cast_func(value)
         self.assertEqual(result, None)
+
+        # Non string or non, should throw a friendly exception
+        value = []
+        expected_msg = 'Value "\[\]" must either be a string or None. Got "list"'
+        self.assertRaisesRegexp(ValueError, expected_msg, cast_func, value)
 
     def test_cast_array(self):
         cast_func = get_cast('array')
