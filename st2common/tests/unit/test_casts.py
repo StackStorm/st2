@@ -21,6 +21,25 @@ from st2common.util.casts import get_cast
 
 
 class CastsTestCase(unittest2.TestCase):
+    def test_cast_string(self):
+        cast_func = get_cast('string')
+
+        value = 'test1'
+        result = cast_func(value)
+        self.assertEqual(result, 'test1')
+
+        value = u'test2'
+        result = cast_func(value)
+        self.assertEqual(result, u'test2')
+
+        value = ''
+        result = cast_func(value)
+        self.assertEqual(result, '')
+
+        value = None
+        result = cast_func(value)
+        self.assertEqual(result, None)
+
     def test_cast_array(self):
         cast_func = get_cast('array')
 

@@ -62,6 +62,12 @@ def _cast_number(x):
 
 
 def _cast_string(x):
+    if x is None:
+        # Preserve None as-is
+        return x
+
+    # TODO: Throw on non None and string value? (otherwise to_unicode will
+    # throw)
     x = to_unicode(x)
     x = _cast_none(x)
     return x
