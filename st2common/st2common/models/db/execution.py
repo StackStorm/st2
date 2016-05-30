@@ -65,6 +65,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         help_text='Contextual information on the action execution.')
     parent = me.StringField()
     children = me.ListField(field=me.StringField())
+    log = me.ListField(field=me.DictField())
 
     meta = {
         'indexes': [

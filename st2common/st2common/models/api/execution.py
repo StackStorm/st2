@@ -105,6 +105,22 @@ class ActionExecutionAPI(BaseAPI):
                 "type": "array",
                 "items": {"type": "string"},
                 "uniqueItems": True
+            },
+            "log": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "timestamp": {
+                            "type": "string",
+                            "pattern": isotime.ISO8601_UTC_REGEX
+                        },
+                        "status": {
+                            "type": "string",
+                            "enum": LIVEACTION_STATUSES
+                        }
+                    }
+                }
             }
         },
         "additionalProperties": False
@@ -120,6 +136,9 @@ class ActionExecutionAPI(BaseAPI):
         if end_timestamp:
             end_timestamp = isotime.format(end_timestamp, offset=False)
             doc['end_timestamp'] = end_timestamp
+
+        for entry in doc['log']:
+            entry['timestamp'] = isotime.format(entry['timestamp'], offset=False)
 
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}
         return cls(**attrs)

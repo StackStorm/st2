@@ -31,6 +31,7 @@
 import six
 
 from st2common import log as logging
+from st2common.util import date as date_utils
 from st2common.util import reference
 import st2common.util.action_db as action_utils
 from st2common.constants import action as action_constants
@@ -72,6 +73,13 @@ def _decompose_liveaction(liveaction_db):
     return decomposed
 
 
+def _create_timestamp(status):
+    return {
+        'timestamp': date_utils.get_datetime_utc_now(),
+        'status': status
+    }
+
+
 def create_execution_object(liveaction, publish=True):
     action_db = action_utils.get_action_by_ref(liveaction.action)
     runner = RunnerType.get_by_name(action_db.runner_type['name'])
@@ -105,6 +113,8 @@ def create_execution_object(liveaction, publish=True):
     if parent:
         attrs['parent'] = str(parent.id)
 
+    attrs['log'] = [_create_timestamp(liveaction['status'])]
+
     execution = ActionExecutionDB(**attrs)
     execution = ActionExecution.add_or_update(execution, publish=publish)
 
@@ -132,6 +142,8 @@ def _get_parent_execution(child_liveaction_db):
 def update_execution(liveaction_db, publish=True):
     execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
     decomposed = _decompose_liveaction(liveaction_db)
+    if liveaction_db.status != execution.status:
+        execution.log.append(_create_timestamp(liveaction_db.status))
     for k, v in six.iteritems(decomposed):
         setattr(execution, k, v)
     execution = ActionExecution.add_or_update(execution, publish=publish)
