@@ -77,15 +77,11 @@ class KeyValuePairController(ResourceController):
 
         key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         from_model_kwargs = {'mask_secrets': not decrypt}
-        try:
-            kvp_api = self._get_one_by_scope_and_name(
-                name=key_ref,
-                scope=scope,
-                from_model_kwargs=from_model_kwargs
-            )
-        except StackStormDBObjectNotFoundError as e:
-            abort(http_client.NOT_FOUND, e.message)
-            return
+        kvp_api = self._get_one_by_scope_and_name(
+            name=key_ref,
+            scope=scope,
+            from_model_kwargs=from_model_kwargs
+        )
 
         return kvp_api
 
@@ -191,15 +187,11 @@ class KeyValuePairController(ResourceController):
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
             from_model_kwargs = {'mask_secrets': True}
-            try:
-                kvp_api = self._get_one_by_scope_and_name(
-                    name=key_ref,
-                    scope=scope,
-                    from_model_kwargs=from_model_kwargs
-                )
-            except StackStormDBObjectNotFoundError as e:
-                abort(http_client.NOT_FOUND, e.message)
-                return
+            kvp_api = self._get_one_by_scope_and_name(
+                name=key_ref,
+                scope=scope,
+                from_model_kwargs=from_model_kwargs
+            )
 
             kvp_db = KeyValuePairAPI.to_model(kvp_api)
 
