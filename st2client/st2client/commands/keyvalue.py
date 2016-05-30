@@ -166,9 +166,21 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
 class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
     pk_argument_name = 'name'
 
+    def __init__(self, resource, *args, **kwargs):
+        super(KeyValuePairDeleteCommand, self).__init__(resource, *args, **kwargs)
+
+        self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
+                                 help='Specify the scope under which you want ' +
+                                      'to place the variable.')
+        self.parser.add_argument('-u', '--user', dest='user', default=None,
+                                 help='User for user scoped variables ')
+
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
+        scope = getattr(args, 'scope', DEFAULT_SCOPE)
+        kwargs['params'] = {}
+        kwargs['params']['scope'] = scope
         instance = self.get_resource(resource_id, **kwargs)
 
         if not instance:

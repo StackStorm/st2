@@ -183,8 +183,8 @@ class KeyValuePairController(ResourceController):
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
         return kvp_api
 
-    @jsexpose(arg_types=[str, str], status_code=http_client.NO_CONTENT)
-    def delete(self, name, scope=SYSTEM_SCOPE):
+    @jsexpose(arg_types=[str, str, str], status_code=http_client.NO_CONTENT)
+    def delete(self, name, scope=SYSTEM_SCOPE, user=None):
         """
             Delete the key value pair.
 
@@ -192,6 +192,14 @@ class KeyValuePairController(ResourceController):
                 DELETE /keys/1
         """
         self._validate_scope(scope=scope)
+
+        requester_user = get_requester()
+        is_admin = request_user_is_admin(request=pecan.request)
+
+        if user != requester_user and not is_admin:
+            msg = '"user" attribute can only be provided by admins'
+            raise AccessDeniedError(message=msg, user_db=requester_user)
+
         key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
 
