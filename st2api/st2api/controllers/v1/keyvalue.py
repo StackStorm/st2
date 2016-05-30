@@ -115,9 +115,14 @@ class KeyValuePairController(ResourceController):
             self._validate_scope(scope=scope)
             kwargs['scope'] = scope
 
-        if scope == USER_SCOPE and kwargs['prefix']:
-            kwargs['prefix'] = get_key_reference(name=kwargs['prefix'], scope=scope,
-                                                 user=requester_user)
+        if scope == USER_SCOPE:
+            # Make sure we only returned values scoped to current user
+            if kwargs['prefix']:
+                kwargs['prefix'] = get_key_reference(name=kwargs['prefix'], scope=scope,
+                                                     user=requester_user)
+            else:
+                kwargs['prefix'] = get_key_reference(name='', scope=scope,
+                                                     user=requester_user)
 
         kvp_apis = super(KeyValuePairController, self)._get_all(from_model_kwargs=from_model_kwargs,
                                                                 **kwargs)
