@@ -91,17 +91,19 @@ class KeyValuePairController(ResourceController):
                 GET /keys/
         """
         requester_user = get_requester()
+        is_admin = request_user_is_admin(request=pecan.request)
+        is_all_scope = (scope == 'all')
 
         # Note: Decrypt option requires admin access or listing datstore values
-        # for current user( (scope == user and user == authenticated user)
-        is_admin = request_user_is_admin(request=pecan.request)
+        # for current user (scope == user and user == authenticated user)
         if decrypt and (scope != USER_SCOPE and not is_admin):
-            msg = 'decrypt option requires administrator access'
+            msg = 'Decrypt option requires administrator access'
             raise AccessDeniedError(message=msg, user_db=requester_user)
 
         from_model_kwargs = {'mask_secrets': not decrypt}
         kwargs['prefix'] = prefix
-        if scope:
+
+        if scope and scope not in ['all']:
             self._validate_scope(scope=scope)
             kwargs['scope'] = scope
 
@@ -215,7 +217,7 @@ class KeyValuePairController(ResourceController):
         return lock_name
 
     def _validate_scope(self, scope):
-        if scope not in ALLOWED_SCOPES:
+        if scope not in ['all'] + ALLOWED_SCOPES:
             msg = 'Scope %s is not in allowed scopes list: %s.' % (scope, ALLOWED_SCOPES)
             abort(http_client.BAD_REQUEST, msg)
             return
