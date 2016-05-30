@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import os
+import copy
+import datetime
 
 from keyczar.keys import AesKey
 from oslo_config import cfg
@@ -185,3 +186,21 @@ class KeyValuePairAPI(BaseAPI):
                           expire_timestamp=expire_timestamp)
 
         return model
+
+
+class KeyValuePairSetAPI(KeyValuePairAPI):
+    """
+    API model for key value set operations.
+    """
+
+    schema = copy.deepcopy(KeyValuePairAPI.schema)
+    schema['properties']['ttl'] = {
+        'description': 'Items TTL',
+        'type': 'integer'
+    }
+    schema['properties']['user'] = {
+        'description': ('User to which the value should be scoped to. Only applicable to '
+                        'scope == user'),
+        'type': 'string'
+    }
+

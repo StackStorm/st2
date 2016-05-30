@@ -59,7 +59,7 @@ class KeyValuePairBranch(resource.ResourceBranch):
 
 
 class KeyValuePairListCommand(resource.ResourceListCommand):
-    display_attributes = ['name', 'value', 'secret', 'encrypted', 'expire_timestamp']
+    display_attributes = ['name', 'value', 'secret', 'encrypted', 'scope', 'expire_timestamp']
     attribute_transform_functions = {
         'expire_timestamp': format_isodate_for_user_timezone,
     }
@@ -135,6 +135,8 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
                                  help='Specify the scope under which you want ' +
                                       'to place the variable.')
+        self.parser.add_argument('-u', '--user', dest='user', default=None,
+                                 help='User for user scoped variables ')
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -143,6 +145,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         instance.name = args.name
         instance.value = args.value
         instance.scope = args.scope
+        instance.user = args.user
 
         if args.secret:
             instance.secret = args.secret

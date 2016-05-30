@@ -24,6 +24,7 @@ from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, ALLOWED_SCOPE
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.models.api.keyvalue import KeyValuePairAPI
+from st2common.models.api.keyvalue import KeyValuePairSetAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services import coordination
@@ -122,14 +123,24 @@ class KeyValuePairController(ResourceController):
                                                                 **kwargs)
         return kvp_apis
 
-    @jsexpose(arg_types=[str, str, str], body_cls=KeyValuePairAPI)
+    @jsexpose(arg_types=[str, str, str], body_cls=KeyValuePairSetAPI)
     def put(self, name, kvp, scope=SYSTEM_SCOPE):
         """
         Create a new entry or update an existing one.
         """
-        scope = getattr(kvp, 'scope', scope)
         self._validate_scope(scope=scope)
-        key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
+
+        requester_user = get_requester()
+        is_admin = request_user_is_admin(request=pecan.request)
+
+        scope = getattr(kvp, 'scope', scope)
+        user = getattr(kvp, 'user', requester_user)
+
+        if user != requester_user and not is_admin:
+            msg = '"user" attribute can only be provided by admins'
+            raise AccessDeniedError(message=msg, user_db=requester_user)
+
+        key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
         LOG.debug('PUT scope: %s, name: %s', scope, name)
         # TODO: Custom permission check since the key doesn't need to exist here
