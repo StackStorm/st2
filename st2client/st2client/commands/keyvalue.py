@@ -59,7 +59,8 @@ class KeyValuePairBranch(resource.ResourceBranch):
 
 
 class KeyValuePairListCommand(resource.ResourceListCommand):
-    display_attributes = ['name', 'value', 'secret', 'encrypted', 'scope', 'expire_timestamp']
+    display_attributes = ['name', 'value', 'secret', 'encrypted', 'scope', 'user',
+                          'expire_timestamp']
     attribute_transform_functions = {
         'expire_timestamp': format_isodate_for_user_timezone,
     }
