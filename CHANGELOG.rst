@@ -50,6 +50,8 @@ in development
 * Make sure `st2-submit-debug-info` cleans up after itself and deletes a temporary directory it
   creates. (improvement) #2714
   [Kale Blankenship]
+* Fix string parameter casting - leave actual ``None`` value as-is and don't try to cast it to a
+  string which would fail. (bug-fix, improvement)
 
 1.4.0 - April 18, 2016
 ----------------------
