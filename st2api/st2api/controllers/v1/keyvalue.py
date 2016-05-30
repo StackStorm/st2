@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pecan
 from pecan import abort
 import six
 from mongoengine import ValidationError
@@ -28,6 +29,8 @@ from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services import coordination
 from st2common.services.keyvalues import get_key_reference
 from st2common.util.api import get_requester
+from st2common.exceptions.rbac import AccessDeniedError
+from st2common.rbac.utils import request_user_is_admin
 
 http_client = six.moves.http_client
 
@@ -63,6 +66,7 @@ class KeyValuePairController(ResourceController):
             Handle:
                 GET /keys/key1
         """
+        # either admin or user requesting it for self
         self._validate_scope(scope=scope)
         key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         from_model_kwargs = {'mask_secrets': not decrypt}
@@ -86,6 +90,15 @@ class KeyValuePairController(ResourceController):
             Handles requests:
                 GET /keys/
         """
+        requester_user = get_requester()
+
+        # Note: Decrypt option requires admin access or listing datstore values
+        # for current user( (scope == user and user == authenticated user)
+        is_admin = request_user_is_admin(request=pecan.request)
+        if decrypt and (scope != USER_SCOPE and not is_admin):
+            msg = 'decrypt option requires administrator access'
+            raise AccessDeniedError(message=msg, user_db=requester_user)
+
         from_model_kwargs = {'mask_secrets': not decrypt}
         kwargs['prefix'] = prefix
         if scope:
@@ -94,7 +107,7 @@ class KeyValuePairController(ResourceController):
 
         if scope == USER_SCOPE and kwargs['prefix']:
             kwargs['prefix'] = get_key_reference(name=kwargs['prefix'], scope=scope,
-                                                 user=get_requester())
+                                                 user=requester_user)
 
         kvp_apis = super(KeyValuePairController, self)._get_all(from_model_kwargs=from_model_kwargs,
                                                                 **kwargs)
