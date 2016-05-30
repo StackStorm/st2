@@ -66,8 +66,15 @@ class KeyValuePairController(ResourceController):
             Handle:
                 GET /keys/key1
         """
-        # either admin or user requesting it for self
         self._validate_scope(scope=scope)
+        requester_user = get_requester()
+        is_admin = request_user_is_admin(request=pecan.request)
+
+        # User needs to be either admin or requesting item for itself
+        if decrypt and (scope != USER_SCOPE and not is_admin):
+            msg = 'Decrypt option requires administrator access'
+            raise AccessDeniedError(message=msg, user_db=requester_user)
+
         key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
         from_model_kwargs = {'mask_secrets': not decrypt}
         try:
@@ -93,6 +100,10 @@ class KeyValuePairController(ResourceController):
         requester_user = get_requester()
         is_admin = request_user_is_admin(request=pecan.request)
         is_all_scope = (scope == 'all')
+
+        if is_all_scope and not is_admin:
+            msg = '"all" scope requires administrator access'
+            raise AccessDeniedError(message=msg, user_db=requester_user)
 
         # Note: Decrypt option requires admin access or listing datstore values
         # for current user (scope == user and user == authenticated user)
@@ -217,7 +228,7 @@ class KeyValuePairController(ResourceController):
         return lock_name
 
     def _validate_scope(self, scope):
-        if scope not in ['all'] + ALLOWED_SCOPES:
+        if scope not in ALLOWED_SCOPES:
             msg = 'Scope %s is not in allowed scopes list: %s.' % (scope, ALLOWED_SCOPES)
             abort(http_client.BAD_REQUEST, msg)
             return
