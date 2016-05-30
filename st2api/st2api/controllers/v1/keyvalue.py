@@ -59,8 +59,8 @@ class KeyValuePairController(ResourceController):
         self._coordinator = coordination.get_coordinator()
         self.get_one_db_method = self._get_by_name
 
-    @jsexpose(arg_types=[str, str, bool])
-    def get_one(self, name, scope=SYSTEM_SCOPE, decrypt=False):
+    @jsexpose(arg_types=[str, str, str, bool])
+    def get_one(self, name, scope=SYSTEM_SCOPE, user=None, decrypt=False):
         """
             List key by name.
 
@@ -68,7 +68,13 @@ class KeyValuePairController(ResourceController):
                 GET /keys/key1
         """
         self._validate_scope(scope=scope)
+
+        if user:
+            # Providing a user implies a user scope
+            scope = USER_SCOPE
+
         requester_user = get_requester()
+        user = user or requester_user
         is_admin = request_user_is_admin(request=pecan.request)
 
         # User needs to be either admin or requesting item for itself
@@ -76,7 +82,11 @@ class KeyValuePairController(ResourceController):
             msg = 'Decrypt option requires administrator access'
             raise AccessDeniedError(message=msg, user_db=requester_user)
 
-        key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
+        if user != requester_user and not is_admin:
+            msg = '"user" attribute can only be provided by admins'
+            raise AccessDeniedError(message=msg, user_db=requester_user)
+
+        key_ref = get_key_reference(scope=scope, name=name, user=user)
         from_model_kwargs = {'mask_secrets': not decrypt}
         kvp_api = self._get_one_by_scope_and_name(
             name=key_ref,
