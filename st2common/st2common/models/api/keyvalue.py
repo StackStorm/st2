@@ -31,6 +31,11 @@ from st2common.models.api.base import BaseAPI
 from st2common.models.system.keyvalue import UserKeyReference
 from st2common.models.db.keyvalue import KeyValuePairDB
 
+__all__ = [
+    'KeyValuePairAPI',
+    'KeyValuePairSetAPI'
+]
+
 LOG = logging.getLogger(__name__)
 
 
@@ -203,4 +208,3 @@ class KeyValuePairSetAPI(KeyValuePairAPI):
                         'scope == user'),
         'type': 'string'
     }
-
