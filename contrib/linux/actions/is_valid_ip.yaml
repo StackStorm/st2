@@ -1,0 +1,19 @@
+---
+description: "Check for a valid IP address (and return some infomation)."
+enabled: true
+entry_point: 'is_valid_ip.py'
+name: "is_valid_ip"
+pack: "linux"
+
+parameters:
+  ip_address:
+    type: "string"
+    description: "IP Address to valiadate"
+    required: true
+
+  no_loopback:
+    type: "boolean"
+    description: "Consider loopback addresses as invaild."
+    default: false
+
+runner_type: "python-script"

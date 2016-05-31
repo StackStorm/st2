@@ -12,6 +12,8 @@ in development
   ``True``.
   Note: This is an alternative to the existing ``--debug`` CLI flag which comes handy when running
   API services under gunicorn. (improvement)
+* Add ``is_valid_ip``, ``is_valid_ipv4`` & ``is_valid_ipv6`` actions to the
+  linux pack [Jon Middleton] (improvement).
 
 1.4.0 - April 18, 2016
 ----------------------
