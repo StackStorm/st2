@@ -78,13 +78,10 @@ class KeyValuePairController(ResourceController):
         is_admin = request_user_is_admin(request=pecan.request)
 
         # User needs to be either admin or requesting item for itself
-        if decrypt and (scope != USER_SCOPE and not is_admin):
-            msg = 'Decrypt option requires administrator access'
-            raise AccessDeniedError(message=msg, user_db=requester_user)
+        self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin)
 
-        if user != requester_user and not is_admin:
-            msg = '"user" attribute can only be provided by admins'
-            raise AccessDeniedError(message=msg, user_db=requester_user)
+        # Validate that the authenticated user is admin if user query param is provided
+        self._validate_user_query_parameter(user=user, is_admin=is_admin)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         from_model_kwargs = {'mask_secrets': not decrypt}
@@ -112,11 +109,8 @@ class KeyValuePairController(ResourceController):
             msg = '"all" scope requires administrator access'
             raise AccessDeniedError(message=msg, user_db=requester_user)
 
-        # Note: Decrypt option requires admin access or listing datstore values
-        # for current user (scope == user and user == authenticated user)
-        if decrypt and (scope != USER_SCOPE and not is_admin):
-            msg = 'Decrypt option requires administrator access'
-            raise AccessDeniedError(message=msg, user_db=requester_user)
+        # User needs to be either admin or requesting items for themselves
+        self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin)
 
         from_model_kwargs = {'mask_secrets': not decrypt}
         kwargs['prefix'] = prefix
@@ -151,9 +145,8 @@ class KeyValuePairController(ResourceController):
         scope = getattr(kvp, 'scope', scope)
         user = getattr(kvp, 'user', requester_user)
 
-        if user != requester_user and not is_admin:
-            msg = '"user" attribute can only be provided by admins'
-            raise AccessDeniedError(message=msg, user_db=requester_user)
+        # Validate that the authenticated user is admin if user query param is provided
+        self._validate_user_query_parameter(user=user, is_admin=is_admin)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
@@ -212,9 +205,8 @@ class KeyValuePairController(ResourceController):
         user = user or requester_user
         is_admin = request_user_is_admin(request=pecan.request)
 
-        if user != requester_user and not is_admin:
-            msg = '"user" attribute can only be provided by admins'
-            raise AccessDeniedError(message=msg, user_db=requester_user)
+        # Validate that the authenticated user is admin if user query param is provided
+        self._validate_user_query_parameter(user=user, is_admin=is_admin)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
@@ -254,8 +246,28 @@ class KeyValuePairController(ResourceController):
         lock_name = 'kvp-crud-%s.%s' % (scope, name)
         return lock_name
 
+    def _validate_decrypt_query_parameter(self, decrypt, scope, is_admin):
+        """
+        Validate that the provider user is either admin or requesting to decrypt value for
+        themselves.
+        """
+        requester_user = get_requester()
+
+        if decrypt and (scope != USER_SCOPE and not is_admin):
+            msg = 'Decrypt option requires administrator access'
+            raise AccessDeniedError(message=msg, user_db=requester_user)
+
+    def _validate_user_query_parameter(self, user, is_admin):
+        """
+        Validate that the authentication user is admin if the "user" query parameter is provided.
+        """
+        requester_user = get_requester()
+
+        if user != requester_user and not is_admin:
+            msg = '"user" attribute can only be provided by admins'
+            raise AccessDeniedError(message=msg, user_db=requester_user)
+
     def _validate_scope(self, scope):
         if scope not in ALLOWED_SCOPES:
             msg = 'Scope %s is not in allowed scopes list: %s.' % (scope, ALLOWED_SCOPES)
-            abort(http_client.BAD_REQUEST, msg)
-            return
+            raise ValueError(msg)
