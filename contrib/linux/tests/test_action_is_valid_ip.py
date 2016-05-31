@@ -47,7 +47,7 @@ class IsValidIpActionTestCase(BaseActionTestCase):
                     'is_private': False,
                     'is_reserved': True,
                     'is_unspecified': False,
-                    'reverse_pointer': '8.1.f.a.1.0.0.0.3.0.b.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.2.6.7.1.ip6.arpa',
+                    'reverse_pointer': '8.1.f.a.1.0.0.0.3.0.b.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.2.6.7.1.ip6.arpa',  # noqa
                     'version': 6}
 
         action = self.get_action_instance()
@@ -107,7 +107,7 @@ class IsValidIpActionTestCase(BaseActionTestCase):
                     'is_private': False,
                     'is_reserved': True,
                     'is_unspecified': False,
-                    'reverse_pointer': '8.1.f.a.1.0.0.0.3.0.b.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.2.6.7.1.ip6.arpa',
+                    'reverse_pointer': '8.1.f.a.1.0.0.0.3.0.b.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.2.6.7.1.ip6.arpa',  # noqa
                     'version': 6}
 
         action = self.get_action_instance()
