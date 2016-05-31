@@ -273,10 +273,61 @@ class KeyValuesControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(resp.json['scope'], USER_SCOPE)
         self.assertEqual(resp.json['user'], 'user1')
 
+    def test_delete_system_scoped_item_non_admin_success(self):
+        # Non-admin user can delete any system-scoped item
+        self.use_user(self.users['user_1'])
+
+        resp = self.app.get('/v1/keys/%s' % (self.kvps['kvp_1'].name))
+        self.assertEqual(resp.status_code, httplib.OK)
+
+        resp = self.app.delete('/v1/keys/%s' % (self.kvps['kvp_1'].name))
+        self.assertEqual(resp.status_code, httplib.NO_CONTENT)
+
+        # Verify it has been deleted
+        resp = self.app.get('/v1/keys/%s' % (self.kvps['kvp_1'].name), expect_errors=True)
+        self.assertEqual(resp.status_code, httplib.NOT_FOUND)
+
+    def test_delete_user_scoped_item_non_admin_scoped_to_itself_success(self):
+        # Non-admin user can delete user scoped item scoped to themselves
+        self.use_user(self.users['user_1'])
+
+        resp = self.app.get('/v1/keys/%s?scope=user' % (self.kvps['kvp_3'].name))
+        self.assertEqual(resp.status_code, httplib.OK)
+
+        resp = self.app.delete('/v1/keys/%s?scope=user' % (self.kvps['kvp_3'].name))
+        self.assertEqual(resp.status_code, httplib.NO_CONTENT)
+
+        # But unable to delete item scoped to other user (user2)
+        resp = self.app.delete('/v1/keys/%s?scope=user' % (self.kvps['kvp_5'].name),
+                               expect_errors=True)
+        self.assertEqual(resp.status_code, httplib.NOT_FOUND)
+
     def test_delete_user_scope_item_aribrary_user_admin_success(self):
         # Admin user can delete user-scoped datastore item scoped to arbitrary user
-        pass
+        self.use_user(self.users['admin'])
+
+        resp = self.app.get('/v1/keys/%s?scope=user&user=user1' % (self.kvps['kvp_3'].name))
+        self.assertEqual(resp.status_code, httplib.OK)
+        resp = self.app.get('/v1/keys/%s?scope=user&user=user2' % (self.kvps['kvp_5'].name))
+        self.assertEqual(resp.status_code, httplib.OK)
+
+        resp = self.app.delete('/v1/keys/%s?scope=user&user=user1' % (self.kvps['kvp_3'].name))
+        self.assertEqual(resp.status_code, httplib.NO_CONTENT)
+        resp = self.app.delete('/v1/keys/%s?scope=user&user=user2' % (self.kvps['kvp_5'].name))
+        self.assertEqual(resp.status_code, httplib.NO_CONTENT)
+
+        resp = self.app.delete('/v1/keys/%s?scope=user&user=user1' % (self.kvps['kvp_3'].name),
+                               expect_errors=True)
+        self.assertEqual(resp.status_code, httplib.NOT_FOUND)
+        resp = self.app.delete('/v1/keys/%s?scope=user&user=user2' % (self.kvps['kvp_5'].name),
+                               expect_errors=True)
 
     def test_delete_user_scope_item_non_admin_failure(self):
         # Non admin user can't delete user-scoped items which are not scoped to them
-        pass
+        self.use_user(self.users['user_1'])
+
+        resp = self.app.get('/v1/keys/%s?scope=user&user=user2' % (self.kvps['kvp_5'].name),
+                            expect_errors=True)
+        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertTrue('"user" attribute can only be provided by admins' in
+                        resp.json['faultstring'])
