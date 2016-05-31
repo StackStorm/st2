@@ -14,27 +14,49 @@
 # limitations under the License.
 
 from st2tests.base import CleanDbTestCase
+from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
-from st2common.services.keyvalues import KeyValueLookup
+from st2common.services.keyvalues import KeyValueLookup, UserKeyValueLookup
 
 
 class TestKeyValueLookup(CleanDbTestCase):
+    def test_lookup_with_key_prefix(self):
+        KeyValuePair.add_or_update(KeyValuePairDB(name='some:prefix:stanley:k5', value='v5',
+                                                  scope=USER_SCOPE))
+
+        # No prefix provided, should return None
+        lookup = UserKeyValueLookup(user='stanley', scope=USER_SCOPE)
+        self.assertEqual(str(lookup.k5), '')
+
+        # Prefix provided
+        lookup = UserKeyValueLookup(prefix='some:prefix', user='stanley', scope=USER_SCOPE)
+        self.assertEqual(str(lookup.k5), 'v5')
 
     def test_non_hierarchical_lookup(self):
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='k1', value='v1'))
         k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='k2', value='v2'))
         k3 = KeyValuePair.add_or_update(KeyValuePairDB(name='k3', value='v3'))
+        k4 = KeyValuePair.add_or_update(KeyValuePairDB(name='stanley:k4', value='v4',
+                                                       scope=USER_SCOPE))
 
         lookup = KeyValueLookup()
         self.assertEquals(str(lookup.k1), k1.value)
         self.assertEquals(str(lookup.k2), k2.value)
         self.assertEquals(str(lookup.k3), k3.value)
 
+        # Scoped lookup
+        lookup = KeyValueLookup(scope=SYSTEM_SCOPE)
+        self.assertEquals(str(lookup.k4), '')
+        user_lookup = UserKeyValueLookup(scope=USER_SCOPE, user='stanley')
+        self.assertEquals(str(user_lookup.k4), k4.value)
+
     def test_hierarchical_lookup_dotted(self):
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='a.b', value='v1'))
         k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='a.b.c', value='v2'))
         k3 = KeyValuePair.add_or_update(KeyValuePairDB(name='b.c', value='v3'))
+        k4 = KeyValuePair.add_or_update(KeyValuePairDB(name='stanley:r.i.p', value='v4',
+                                                       scope=USER_SCOPE))
 
         lookup = KeyValueLookup()
         self.assertEquals(str(lookup.a.b), k1.value)
@@ -42,10 +64,18 @@ class TestKeyValueLookup(CleanDbTestCase):
         self.assertEquals(str(lookup.b.c), k3.value)
         self.assertEquals(str(lookup.a), '')
 
+        # Scoped lookup
+        lookup = KeyValueLookup(scope=SYSTEM_SCOPE)
+        self.assertEquals(str(lookup.r.i.p), '')
+        user_lookup = UserKeyValueLookup(scope=USER_SCOPE, user='stanley')
+        self.assertEquals(str(user_lookup.r.i.p), k4.value)
+
     def test_hierarchical_lookup_dict(self):
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='a.b', value='v1'))
         k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='a.b.c', value='v2'))
         k3 = KeyValuePair.add_or_update(KeyValuePairDB(name='b.c', value='v3'))
+        k4 = KeyValuePair.add_or_update(KeyValuePairDB(name='stanley:r.i.p', value='v4',
+                                                       scope=USER_SCOPE))
 
         lookup = KeyValueLookup()
         self.assertEquals(str(lookup['a']['b']), k1.value)
@@ -53,10 +83,35 @@ class TestKeyValueLookup(CleanDbTestCase):
         self.assertEquals(str(lookup['b']['c']), k3.value)
         self.assertEquals(str(lookup['a']), '')
 
+        # Scoped lookup
+        lookup = KeyValueLookup(scope=SYSTEM_SCOPE)
+        self.assertEquals(str(lookup['r']['i']['p']), '')
+        user_lookup = UserKeyValueLookup(scope=USER_SCOPE, user='stanley')
+        self.assertEquals(str(user_lookup['r']['i']['p']), k4.value)
+
+    def test_user_scope_lookups_dot_in_user(self):
+        KeyValuePair.add_or_update(KeyValuePairDB(name='first.last:r.i.p', value='v4',
+                                                  scope=USER_SCOPE))
+        lookup = UserKeyValueLookup(scope=USER_SCOPE, user='first.last')
+        self.assertEquals(str(lookup.r.i.p), 'v4')
+        self.assertEquals(str(lookup['r']['i']['p']), 'v4')
+
+    def test_user_scope_lookups_user_sep_in_name(self):
+        KeyValuePair.add_or_update(KeyValuePairDB(name='stanley:r:i:p', value='v4',
+                                                  scope=USER_SCOPE))
+        lookup = UserKeyValueLookup(scope=USER_SCOPE, user='stanley')
+        # This is the only way to lookup because USER_SEPARATOR (':') cannot be a part of
+        # variable name in Python.
+        self.assertEquals(str(lookup['r:i:p']), 'v4')
+
     def test_missing_key_lookup(self):
-        lookup = KeyValueLookup()
+        lookup = KeyValueLookup(scope=SYSTEM_SCOPE)
         self.assertEquals(str(lookup.missing_key), '')
         self.assertTrue(lookup.missing_key, 'Should be not none.')
+
+        user_lookup = UserKeyValueLookup(scope=USER_SCOPE, user='stanley')
+        self.assertEquals(str(user_lookup.missing_key), '')
+        self.assertTrue(user_lookup.missing_key, 'Should be not none.')
 
     def test_secret_lookup(self):
         secret_value = '0055A2D9A09E1071931925933744965EEA7E23DCF59A8D1D7A3' + \
@@ -66,7 +121,15 @@ class TestKeyValueLookup(CleanDbTestCase):
             secret=True, encrypted=True)
         )
         k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='k2', value='v2'))
+        k3 = KeyValuePair.add_or_update(KeyValuePairDB(
+            name='stanley:k3', value=secret_value, scope=USER_SCOPE,
+            secret=True, encrypted=True)
+        )
 
         lookup = KeyValueLookup()
         self.assertEquals(str(lookup.k1), k1.value)
         self.assertEquals(str(lookup.k2), k2.value)
+        self.assertEquals(str(lookup.k3), '')
+
+        user_lookup = UserKeyValueLookup(scope=USER_SCOPE, user='stanley')
+        self.assertEquals(str(user_lookup.k3), k3.value)

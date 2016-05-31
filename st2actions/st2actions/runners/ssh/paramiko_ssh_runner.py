@@ -20,14 +20,19 @@ import six
 
 from st2actions.runners import ShellRunnerMixin
 from st2actions.runners import ActionRunner
+from st2common.constants.runners import REMOTE_RUNNER_PRIVATE_KEY_HEADER
 from st2actions.runners.ssh.parallel_ssh import ParallelSSHClient
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
-from st2common.constants.runners import FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT
+from st2common.constants.runners import REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.exceptions.actionrunner import ActionRunnerPreRunError
 from st2common.exceptions.ssh import InvalidCredentialsException
+
+__all__ = [
+    'BaseParallelSSHRunner'
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -80,6 +85,8 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._max_concurrency = cfg.CONF.ssh_runner.max_parallel_actions
 
     def pre_run(self):
+        super(BaseParallelSSHRunner, self).pre_run()
+
         LOG.debug('Entering BaseParallelSSHRunner.pre_run() for liveaction_id="%s"',
                   self.liveaction_id)
         hosts = self.runner_parameters.get(RUNNER_HOSTS, '').split(',')
@@ -109,7 +116,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT,
-                                                   FABRIC_RUNNER_DEFAULT_ACTION_TIMEOUT)
+                                                   REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT)
         self._bastion_host = self.runner_parameters.get(RUNNER_BASTION_HOST, None)
 
         LOG.info('[BaseParallelSSHRunner="%s", liveaction_id="%s"] Finished pre_run.',
@@ -120,33 +127,39 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
             LOG.debug('Limiting parallel SSH concurrency to %d.', concurrency)
             concurrency = self._max_concurrency
 
+        client_kwargs = {
+            'hosts': self._hosts,
+            'user': self._username,
+            'port': self._ssh_port,
+            'concurrency': concurrency,
+            'bastion_host': self._bastion_host,
+            'raise_on_any_error': False,
+            'connect': True
+        }
+
         if self._password:
-            self._parallel_ssh_client = ParallelSSHClient(
-                hosts=self._hosts,
-                user=self._username, password=self._password,
-                port=self._ssh_port, concurrency=concurrency,
-                bastion_host=self._bastion_host,
-                raise_on_any_error=False,
-                connect=True
-            )
+            client_kwargs['password'] = self._password
         elif self._private_key:
-            self._parallel_ssh_client = ParallelSSHClient(
-                hosts=self._hosts,
-                user=self._username, pkey_material=self._private_key,
-                port=self._ssh_port, concurrency=concurrency,
-                bastion_host=self._bastion_host,
-                raise_on_any_error=False,
-                connect=True
-            )
+            # Determine if the private_key is a path to the key file or the raw key material
+            is_key_material = self._is_private_key_material(private_key=self._private_key)
+
+            if is_key_material:
+                # Raw key material
+                client_kwargs['pkey_material'] = self._private_key
+            else:
+                # Assume it's a path to the key file, verify the file exists
+                client_kwargs['pkey_file'] = self._private_key
+
+            if self._passphrase:
+                client_kwargs['passphrase'] = self._passphrase
         else:
-            self._parallel_ssh_client = ParallelSSHClient(
-                hosts=self._hosts,
-                user=self._username, pkey_file=self._ssh_key_file,
-                port=self._ssh_port, concurrency=concurrency,
-                bastion_host=self._bastion_host,
-                raise_on_any_error=False,
-                connect=True
-            )
+            # Default to stanley key file specified in the config
+            client_kwargs['pkey_file'] = self._ssh_key_file
+
+        self._parallel_ssh_client = ParallelSSHClient(**client_kwargs)
+
+    def _is_private_key_material(self, private_key):
+        return private_key and REMOTE_RUNNER_PRIVATE_KEY_HEADER in private_key.lower()
 
     def _get_env_vars(self):
         """

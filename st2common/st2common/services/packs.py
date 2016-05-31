@@ -13,8 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.exceptions import StackStormBaseException
+from st2common.persistence.pack import Pack
+
+__all__ = [
+    'get_pack_by_ref'
+]
 
 
-class FabricExecutionFailureException(StackStormBaseException):
-    pass
+def get_pack_by_ref(pack_ref):
+    """
+    Retrieve PackDB by the provided reference.
+    """
+    pack_db = Pack.get_by_ref(pack_ref)
+    return pack_db

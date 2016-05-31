@@ -11,6 +11,9 @@ tabulate
 unittest2
 sphinx
 git+https://github.com/StackStorm/sphinx-autobuild.git@develop
+# nosetests enhancements
+rednose
+nose-timer
 # Required by st2client tests
 pyyaml
 RandomWords

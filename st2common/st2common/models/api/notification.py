@@ -65,9 +65,9 @@ class NotificationsHelper(object):
 
     @staticmethod
     def _to_model_sub_schema(notification_settings_json):
-        message = notification_settings_json.get('message' or None)
-        data = notification_settings_json.get('data' or {})
-        routes = (notification_settings_json.get('routes') or
+        message = notification_settings_json.get('message', None)
+        data = notification_settings_json.get('data', {})
+        routes = (notification_settings_json.get('routes', None) or
                   notification_settings_json.get('channels', []))
 
         model = NotificationSubSchema(message=message, data=data, routes=routes)
@@ -94,7 +94,7 @@ class NotificationsHelper(object):
 
         if getattr(notify_sub_schema_model, 'message', None):
             notify_sub_schema['message'] = notify_sub_schema_model.message
-        if getattr(notify_sub_schema_model, 'message', None):
+        if getattr(notify_sub_schema_model, 'data', None):
             notify_sub_schema['data'] = notify_sub_schema_model.data
         routes = (getattr(notify_sub_schema_model, 'routes') or
                   getattr(notify_sub_schema_model, 'channels'))

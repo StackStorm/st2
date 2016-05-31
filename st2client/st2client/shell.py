@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -24,6 +26,7 @@ import os
 import sys
 import json
 import time
+import argcomplete
 import argparse
 import calendar
 import logging
@@ -76,6 +79,7 @@ CONFIG_OPTION_TO_CLIENT_KWARGS_MAP = {
     'auth_url': ['auth', 'url'],
     'api_url': ['api', 'url'],
     'api_version': ['general', 'api_version'],
+    'api_key': ['credentials', 'api_key'],
     'cacert': ['general', 'cacert'],
     'debug': ['cli', 'debug']
 }
@@ -228,7 +232,7 @@ class Shell(object):
         self.commands['runner'] = resource.ResourceBranch(
             models.RunnerType,
             'Runner is a type of handler for a specific class of actions.',
-            self, self.subparsers, read_only=True)
+            self, self.subparsers, read_only=True, has_disable=True)
 
         self.commands['sensor'] = sensor.SensorBranch(
             'An adapter which allows you to integrate StackStorm with external system ',
@@ -305,7 +309,9 @@ class Shell(object):
         # or as a command line argument
         env_var_token = os.environ.get('ST2_AUTH_TOKEN', None)
         cli_argument_token = getattr(args, 'token', None)
-        if env_var_token or cli_argument_token:
+        env_var_api_key = os.environ.get('ST2_API_KEY', None)
+        cli_argument_api_key = getattr(args, 'api_key', None)
+        if env_var_token or cli_argument_token or env_var_api_key or cli_argument_api_key:
             return client
 
         # If credentials are provided in the CLI config use them and try to authenticate
@@ -335,6 +341,9 @@ class Shell(object):
 
     def run(self, argv):
         debug = False
+
+        # Provide autocomplete for shell
+        argcomplete.autocomplete(self.parser)
 
         if '--print-config' in argv:
             # Hack because --print-config requires no command to be specified

@@ -16,10 +16,11 @@
 from kombu import Connection
 from st2common import log as logging
 from st2common.transport import utils as transport_utils
+from st2common.transport.actionexecutionstate import ACTIONEXECUTIONSTATE_XCHG
 from st2common.transport.announcement import ANNOUNCEMENT_XCHG
 from st2common.transport.connection_retry_wrapper import ConnectionRetryWrapper
 from st2common.transport.execution import EXECUTION_XCHG
-from st2common.transport.liveaction import LIVEACTION_XCHG
+from st2common.transport.liveaction import LIVEACTION_XCHG, LIVEACTION_STATUS_MGMT_XCHG
 from st2common.transport.reactor import SENSOR_CUD_XCHG
 from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG
 
@@ -29,8 +30,9 @@ __all__ = [
     'register_exchanges'
 ]
 
-EXCHANGES = [ANNOUNCEMENT_XCHG, EXECUTION_XCHG, LIVEACTION_XCHG, TRIGGER_CUD_XCHG,
-             TRIGGER_INSTANCE_XCHG, SENSOR_CUD_XCHG]
+EXCHANGES = [ACTIONEXECUTIONSTATE_XCHG, ANNOUNCEMENT_XCHG, EXECUTION_XCHG, LIVEACTION_XCHG,
+             LIVEACTION_STATUS_MGMT_XCHG, TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG,
+             SENSOR_CUD_XCHG]
 
 
 def _do_register_exchange(exchange, connection, channel, retry_wrapper):

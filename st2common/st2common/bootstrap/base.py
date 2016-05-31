@@ -20,11 +20,15 @@ import six
 
 from st2common import log as logging
 from st2common.constants.pack import MANIFEST_FILE_NAME
+from st2common.constants.pack import CONFIG_SCHEMA_FILE_NAME
 from st2common.content.loader import MetaLoader
 from st2common.content.loader import ContentPackLoader
 from st2common.models.api.pack import PackAPI
+from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import Pack
+from st2common.persistence.pack import ConfigSchema
 from st2common.util.file_system import get_file_list
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
     'ResourceRegistrar'
@@ -110,7 +114,7 @@ class ResourceRegistrar(object):
         REGISTERED_PACKS_CACHE[pack_name] = True
 
         try:
-            pack_db = self._register_pack(pack_name=pack_name, pack_dir=pack_dir)
+            pack_db, _ = self._register_pack(pack_name=pack_name, pack_dir=pack_dir)
         except Exception:
             LOG.exception('Failed to register pack "%s"' % (pack_name))
             return None
@@ -119,11 +123,21 @@ class ResourceRegistrar(object):
 
     def _register_pack(self, pack_name, pack_dir):
         """
-        Register a pack (create a DB object in the system).
+        Register a pack and corresponding pack config schema (create a DB object in the system).
 
         Note: Pack registration now happens when registering the content and not when installing
         a pack using packs.install. Eventually this will be moved to the pack management API.
         """
+        # 1. Register pack
+        pack_db = self._register_pack_db(pack_name=pack_name, pack_dir=pack_dir)
+
+        # 2. Register corresponding pack config schema
+        config_schema_db = self._register_pack_config_schema_db(pack_name=pack_name,
+                                                                pack_dir=pack_dir)
+
+        return pack_db, config_schema_db
+
+    def _register_pack_db(self, pack_name, pack_dir):
         manifest_path = os.path.join(pack_dir, MANIFEST_FILE_NAME)
 
         if not os.path.isfile(manifest_path):
@@ -144,9 +158,33 @@ class ResourceRegistrar(object):
 
         try:
             pack_db.id = Pack.get_by_ref(pack_name).id
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             LOG.debug('Pack %s not found. Creating new one.', pack_name)
 
         pack_db = Pack.add_or_update(pack_db)
         LOG.debug('Pack %s registered.' % (pack_name))
         return pack_db
+
+    def _register_pack_config_schema_db(self, pack_name, pack_dir):
+        config_schema_path = os.path.join(pack_dir, CONFIG_SCHEMA_FILE_NAME)
+
+        if not os.path.isfile(config_schema_path):
+            # Note: Config schema is optional
+            return None
+
+        content = {}
+        values = self._meta_loader.load(config_schema_path)
+        content['pack'] = pack_name
+        content['attributes'] = values
+
+        config_schema_api = ConfigSchemaAPI(**content)
+        config_schema_db = ConfigSchemaAPI.to_model(config_schema_api)
+
+        try:
+            config_schema_db.id = ConfigSchema.get_by_pack(pack_name).id
+        except StackStormDBObjectNotFoundError:
+            LOG.debug('Config schema for pack %s not found. Creating new one.', pack_name)
+
+        config_schema_db = ConfigSchema.add_or_update(config_schema_db)
+        LOG.debug('Config schema for pack %s registered.' % (pack_name))
+        return config_schema_db

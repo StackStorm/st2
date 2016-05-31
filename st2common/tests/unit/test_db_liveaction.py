@@ -19,6 +19,7 @@ from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 from st2common.persistence.liveaction import LiveAction
 from st2common.transport.publishers import PoolPublisher
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.util import date as date_utils
 
 from st2tests import DbTestCase
@@ -48,7 +49,7 @@ class LiveActionModelTest(DbTestCase):
         LiveActionModelTest._delete([retrieved])
         try:
             retrieved = LiveAction.get_by_id(saved.id)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             retrieved = None
         self.assertIsNone(retrieved, 'managed to retrieve after failure.')
 

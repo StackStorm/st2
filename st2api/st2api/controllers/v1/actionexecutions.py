@@ -199,20 +199,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         return [self.model.from_model(descendant, from_model_kwargs) for
                 descendant in descendants]
 
-    def _validate_exclude_fields(self, exclude_fields):
-        """
-        Validate that provided exclude fields are valid.
-        """
-        if not exclude_fields:
-            return exclude_fields
-
-        for field in exclude_fields:
-            if field not in self.valid_exclude_attributes:
-                msg = 'Invalid or unsupported attribute specified: %s' % (field)
-                raise ValueError(msg)
-
-        return exclude_fields
-
 
 class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, ResourceController):
     # Note: We need to override "get_one" and "get_all" to return 404 since nested controller

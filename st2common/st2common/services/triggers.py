@@ -16,6 +16,7 @@
 from st2common import log as logging
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI)
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import (Trigger, TriggerType)
@@ -52,7 +53,7 @@ def get_trigger_db_given_type_and_params(type=None, parameters=None):
             trigger_db = Trigger.query(type=type, parameters=None).first()
 
         return trigger_db
-    except ValueError as e:
+    except StackStormDBObjectNotFoundError as e:
         LOG.debug('Database lookup for type="%s" parameters="%s" resulted ' +
                   'in exception : %s.', type, parameters, e, exc_info=True)
         return None
@@ -67,7 +68,13 @@ def get_trigger_db_by_ref(ref):
 
     :rtype trigger_type: ``object``
     """
-    return Trigger.get_by_ref(ref)
+    try:
+        return Trigger.get_by_ref(ref)
+    except StackStormDBObjectNotFoundError as e:
+        LOG.debug('Database lookup for ref="%s" resulted ' +
+                  'in exception : %s.', ref, e, exc_info=True)
+
+    return None
 
 
 def _get_trigger_db(trigger):
@@ -98,10 +105,11 @@ def get_trigger_type_db(ref):
     """
     try:
         return TriggerType.get_by_ref(ref)
-    except ValueError as e:
+    except StackStormDBObjectNotFoundError as e:
         LOG.debug('Database lookup for ref="%s" resulted ' +
                   'in exception : %s.', ref, e, exc_info=True)
-        return None
+
+    return None
 
 
 def _get_trigger_dict_given_rule(rule):

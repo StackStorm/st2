@@ -66,9 +66,6 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
         # Insert mock users, roles and assignments
-        self = self
-        self.users = {}
-        self.roles = {}
 
         # Users
         user_1_db = UserDB(name='rule_create')

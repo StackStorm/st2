@@ -17,13 +17,15 @@ import sys
 import json
 import argparse
 
+from oslo_config import cfg
+
 from st2common import log as logging
 from st2actions import config
 from st2actions.runners.pythonrunner import Action
 from st2actions.runners.utils import get_logger_for_python_runner_action
 from st2actions.runners.utils import get_action_class_instance
 from st2common.util import loader as action_loader
-from st2common.util.config_parser import ContentPackConfigParser
+from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.service_setup import db_setup
 from st2common.services.datastore import DatastoreService
@@ -69,7 +71,7 @@ class ActionService(object):
 
 
 class PythonActionWrapper(object):
-    def __init__(self, pack, file_path, parameters=None, parent_args=None):
+    def __init__(self, pack, file_path, parameters=None, user=None, parent_args=None):
         """
         :param pack: Name of the pack this action belongs to.
         :type pack: ``str``
@@ -80,6 +82,9 @@ class PythonActionWrapper(object):
         :param parameters: action parameters.
         :type parameters: ``dict`` or ``None``
 
+        :param user: Name of the user who triggered this action execution.
+        :type user: ``str``
+
         :param parent_args: Command line arguments passed to the parent process.
         :type parse_args: ``list``
         """
@@ -87,6 +92,7 @@ class PythonActionWrapper(object):
         self._pack = pack
         self._file_path = file_path
         self._parameters = parameters or {}
+        self._user = user
         self._parent_args = parent_args or []
         self._class_name = None
         self._logger = logging.getLogger('PythonActionWrapper')
@@ -95,8 +101,13 @@ class PythonActionWrapper(object):
             config.parse_args(args=self._parent_args)
         except Exception:
             pass
-        else:
-            db_setup()
+
+        db_setup()
+
+        # Note: We can only set a default user value if one is not provided after parsing the
+        # config
+        if not self._user:
+            self._user = cfg.CONF.system_user.user
 
     def run(self):
         action = self._get_action_instance()
@@ -120,13 +131,11 @@ class PythonActionWrapper(object):
             raise Exception('File "%s" has no action or the file doesn\'t exist.' %
                             (self._file_path))
 
-        config_parser = ContentPackConfigParser(pack_name=self._pack)
-        config = config_parser.get_action_config(action_file_path=self._file_path)
+        config_loader = ContentPackConfigLoader(pack_name=self._pack, user=self._user)
+        config = config_loader.get_config()
 
         if config:
-            LOG.info('Using config "%s" for action "%s"' % (config.file_path,
-                                                            self._file_path))
-            config = config.config
+            LOG.info('Found config for action "%s"' % (self._file_path))
         else:
             LOG.info('No config found for action "%s"' % (self._file_path))
             config = None
@@ -146,12 +155,15 @@ if __name__ == '__main__':
                         help='Path to the action module')
     parser.add_argument('--parameters', required=False,
                         help='Serialized action parameters')
+    parser.add_argument('--user', required=False,
+                        help='User who triggered the action execution')
     parser.add_argument('--parent-args', required=False,
                         help='Command line arguments passed to the parent process')
     args = parser.parse_args()
 
     parameters = args.parameters
     parameters = json.loads(parameters) if parameters else {}
+    user = args.user
     parent_args = json.loads(args.parent_args) if args.parent_args else []
 
     assert isinstance(parent_args, list)
@@ -159,6 +171,7 @@ if __name__ == '__main__':
     obj = PythonActionWrapper(pack=args.pack,
                               file_path=args.file_path,
                               parameters=parameters,
+                              user=user,
                               parent_args=parent_args)
 
     obj.run()

@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
+import re
 
+import pecan
 from oslo_config import cfg
+from webob import exc as webob_exc
 
 from st2common import log as logging
 from st2common.constants.api import DEFAULT_API_VERSION
@@ -26,7 +28,9 @@ __all__ = [
     'get_full_public_api_url',
     'get_mistral_api_url',
 
-    'get_requester'
+    'get_requester',
+    'get_exception_for_type_error'
+
 ]
 
 LOG = logging.getLogger(__name__)
@@ -93,3 +97,41 @@ def get_requester():
         username = user_db.name
 
     return username
+
+
+def get_exception_for_type_error(func, exc):
+    """
+    Method which translates TypeError thrown by the controller method and intercepted inside
+    jsexpose decorator and returns a better exception for it.
+
+    :param func: Controller function / method.
+    :type func: ``callable``
+
+    :param exc: Exception intercepted by jsexpose.
+    :type exc: :class:`Exception`
+    """
+    message = str(exc)
+    func_name = func.__name__
+
+    # Note: Those checks are hacky, but it's better than having no checks and silently
+    # accepting invalid requests
+    invalid_num_args_pattern = ('%s\(\) takes (exactly|at most) \d+ arguments \(\d+ given\)' %
+                                (func_name))
+    unexpected_keyword_arg_pattern = ('%s\(\) got an unexpected keyword argument \'(.*?)\'' %
+                                      (func_name))
+
+    if (re.search(invalid_num_args_pattern, message)):
+        # Invalid number of arguments passed to the function meaning invalid path was
+        # requested
+        result = webob_exc.HTTPNotFound()
+    elif re.search(unexpected_keyword_arg_pattern, message):
+        # User passed in an unsupported query parameter
+        groups = re.match(unexpected_keyword_arg_pattern, message).groups()
+        query_param_name = groups[0]
+
+        msg = 'Unsupported query parameter: %s' % (query_param_name)
+        result = webob_exc.HTTPBadRequest(detail=msg)
+    else:
+        result = exc
+
+    return result

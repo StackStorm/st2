@@ -13,18 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.persistence.base import Access
-from st2common.models.db import keyvalue
-from st2common.models.api.keyvalue import KeyValuePairAPI
-from st2common.models.system.common import ResourceReference
+from st2common import log as logging
 from st2common.constants.triggers import KEY_VALUE_PAIR_CREATE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_UPDATE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_VALUE_CHANGE_TRIGGER
 from st2common.constants.triggers import KEY_VALUE_PAIR_DELETE_TRIGGER
+from st2common.models.api.keyvalue import KeyValuePairAPI
+from st2common.models.db.keyvalue import keyvaluepair_access
+from st2common.models.system.common import ResourceReference
+from st2common.persistence.base import Access
+
+LOG = logging.getLogger(__name__)
 
 
 class KeyValuePair(Access):
-    impl = keyvalue.keyvaluepair_access
+    impl = keyvaluepair_access
     publisher = None
 
     api_model_cls = KeyValuePairAPI
@@ -82,6 +85,29 @@ class KeyValuePair(Access):
         }
 
         return cls._dispatch_trigger(operation=operation, trigger=trigger, payload=payload)
+
+    @classmethod
+    def get_by_names(cls, names):
+        """
+        Retrieve KeyValuePair objects for the provided key names.
+        """
+        return cls.query(name__in=names)
+
+    @classmethod
+    def get_by_scope_and_name(cls, scope, name):
+        """
+        Get a key value store given a scope and name.
+
+        :param scope: Scope which the key belongs to.
+        :type scope: ``str``
+
+        :param name: Name of the key.
+        :type key: ``str``
+
+        :rtype: :class:`KeyValuePairDB` or ``None``
+        """
+        query_result = cls.impl.query(scope=scope, name=name)
+        return query_result.first() if query_result else None
 
     @classmethod
     def _get_impl(cls):

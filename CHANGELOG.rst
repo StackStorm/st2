@@ -12,8 +12,48 @@ in development
   ``True``.
   Note: This is an alternative to the existing ``--debug`` CLI flag which comes handy when running
   API services under gunicorn. (improvement)
-* Add ``is_valid_ip``, ``is_valid_ipv4`` & ``is_valid_ipv6`` actions to the
-  linux pack [Jon Middleton] (improvement).
+* Fix for `data` is dropped if `message` is not present in notification. (bug-fix)
+* Remove now deprecated Fabric based remote runner and corresponding
+  ``ssh_runner.use_paramiko_ssh_runner`` config option. (cleanup)
+* Fix support for password protected private key files in the remote runner. (bug-fix)
+* Allow user to provide a path to the private SSH key file for the remote runner ``private_key``
+  parameter. Previously only raw key material was supported. (improvement)
+* Add new API endpoint and corresponding CLI commands (``st2 runner disable <name>``,
+  ``st2 runner enable <name>``) which allows administrator to disable (and re-enable) a runner.
+  (new feature)
+* Add RBAC support for runner types API endpoints. (improvement)
+* Allow ``register-setup-virtualenvs`` flag to be used in combination with ``register-all`` in the
+  ``st2-register-content`` script.
+* Add ``get_fixture_content`` method to all the base pack resource test classes. This method
+  enforces fixture files location and allows user to load raw fixture content from a file on disk.
+  (new feature)
+  future, pack configs will be validated against the schema (if available). (new feature)
+* Add data model and API changes for supporting user scoped variables. (new-feature, experimental)
+* Add missing `pytz` dependency to ``st2client`` requirements file. (bug-fix)
+* Fix datastore access on Python runner actions (set ``ST2_AUTH_TOKEN`` and ``ST2_API_URL`` env
+  variables in Python runner actions to match sensors). (bug-fix)
+* Remove support for JSON format for resource metadata files. YAML was introduced and support for
+  JSON has been deprecated in StackStorm v0.6. Now the only supported metadata file format is YAML.
+* Add ``-y`` / ``--yaml`` flag to the CLI ``list`` and ``get`` commands. If this flag is provided,
+  command response will be formatted as YAML. (new feature)
+* Alias names are now correctly scoped to a pack. This means the same name for alias can be used
+  across different packs. (bug-fix)
+* Ability to migrate api keys to new installs. (new feature)
+* Introduce a new concept of pack config schemas. Each pack can now contain a
+  ``config.schema.yaml`` file. This file can contain an optional schema for the pack config. In the
+* Introduce support for pack configs which are located outside of the pack directory in
+  ``/opt/stackstorm/configs/<pack name>.yaml`` files. Those files are similar to the existing pack
+  configs, but in addition to the static values they can also contain dynamic values. Dynamic value
+  is a value which contains a Jinja expression which is resolved to the datastore item during
+  run-time. (new feature)
+* Fix a regression in filtering rules by pack with CLI. (bug-fix)
+* Make sure `st2-submit-debug-info` cleans up after itself and deletes a temporary directory it
+  creates. (improvement) #2714
+  [Kale Blankenship]
+* Fix string parameter casting - leave actual ``None`` value as-is and don't try to cast it to a
+  string which would fail. (bug-fix, improvement)
+* Add ``is_valid_ip``, ``is_valid_ipv4`` & ``is_valid_ipv6`` actions to the linux 
+  pack [Jon Middleton] (improvement).
 
 1.4.0 - April 18, 2016
 ----------------------

@@ -58,6 +58,9 @@ class RunnerTypeAPI(BaseAPI):
                 "type": "string",
                 "default": None
             },
+            "uid": {
+                "type": "string"
+            },
             "name": {
                 "description": "The name of the action runner.",
                 "type": "string",
@@ -112,7 +115,7 @@ class RunnerTypeAPI(BaseAPI):
     def to_model(cls, runner_type):
         name = runner_type.name
         description = runner_type.description
-        enabled = bool(runner_type.enabled)
+        enabled = getattr(runner_type, 'enabled', True)
         runner_module = str(runner_type.runner_module)
         runner_parameters = getattr(runner_type, 'runner_parameters', dict())
         query_module = getattr(runner_type, 'query_module', None)

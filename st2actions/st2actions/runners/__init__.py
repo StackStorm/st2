@@ -17,6 +17,7 @@ import abc
 import importlib
 
 import six
+from oslo_config import cfg
 
 from st2actions import handlers
 from st2common import log as logging
@@ -70,6 +71,7 @@ class ActionRunner(object):
         """
         self.runner_id = runner_id
 
+        self.runner_type_db = None
         self.container_service = None
         self.runner_parameters = None
         self.action = None
@@ -85,9 +87,13 @@ class ActionRunner(object):
         self.auth_token = None
         self.rerun_ex_ref = None
 
-    @abc.abstractmethod
     def pre_run(self):
-        raise NotImplementedError()
+        runner_enabled = getattr(self.runner_type_db, 'enabled', True)
+        runner_name = getattr(self.runner_type_db, 'name', 'unknown')
+        if not runner_enabled:
+            msg = ('Runner "%s" has been disabled by the administrator' %
+                   (runner_name))
+            raise ValueError(msg)
 
     # Run will need to take an action argument
     # Run may need result data argument
@@ -117,6 +123,17 @@ class ActionRunner(object):
             return self.action.pack
 
         return DEFAULT_PACK_NAME
+
+    def get_user(self):
+        """
+        Retrieve a name of the user which triggered this action execution.
+
+        :rtype: ``str``
+        """
+        context = getattr(self, 'context', {}) or {}
+        user = context.get('user', cfg.CONF.system_user.user)
+
+        return user
 
     def _get_common_action_env_variables(self):
         """

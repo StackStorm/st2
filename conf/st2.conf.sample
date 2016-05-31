@@ -185,8 +185,6 @@ max_parallel_actions = 50
 use_ssh_config = False
 # Location of the script on the remote filesystem.
 remote_dir = /tmp
-# Use Paramiko based SSH runner as the default remote runner. EXPERIMENTAL!!! USE AT YOUR OWN RISK.
-use_paramiko_ssh_runner = False
 # How partial success of actions run on multiple nodes should be treated.
 allow_partial_failure = False
 

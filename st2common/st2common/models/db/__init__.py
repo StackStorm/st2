@@ -19,11 +19,13 @@ import ssl as ssl_lib
 
 import six
 import mongoengine
+from pymongo.errors import OperationFailure
 
 from st2common import log as logging
 from st2common.util import isotime
 from st2common.models.db import stormbase
 from st2common.models.utils.profiling import log_query_and_profile_data_for_queryset
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 
 LOG = logging.getLogger(__name__)
@@ -36,6 +38,7 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.execution',
     'st2common.models.db.executionstate',
     'st2common.models.db.liveaction',
+    'st2common.models.db.pack',
     'st2common.models.db.policy',
     'st2common.models.db.rule',
     'st2common.models.db.runner',
@@ -84,7 +87,8 @@ def db_setup(db_name, db_host, db_port, username=None, password=None,
 
 def db_ensure_indexes():
     """
-    This function ensures that indexes for all the models have been created.
+    This function ensures that indexes for all the models have been created and the
+    extra indexes cleaned up.
 
     Note #1: When calling this method database connection already needs to be
     established.
@@ -95,9 +99,29 @@ def db_ensure_indexes():
     LOG.debug('Ensuring database indexes...')
     model_classes = get_model_classes()
 
-    for cls in model_classes:
-        LOG.debug('Ensuring indexes for model "%s"...' % (cls.__name__))
-        cls.ensure_indexes()
+    for model_class in model_classes:
+        # First clean-up extra indexes
+        cleanup_extra_indexes(model_class=model_class)
+        LOG.debug('Ensuring indexes for model "%s"...' % (model_class.__name__))
+        model_class.ensure_indexes()
+
+
+def cleanup_extra_indexes(model_class):
+    """
+    Finds any extra indexes and removes those from mongodb.
+    """
+    extra_indexes = model_class.compare_indexes().get('extra', None)
+    if not extra_indexes:
+        return
+    # mongoengine does not have the necessary method so we need to drop to
+    # pymongo interfaces via some private methods.
+    c = model_class._get_collection()
+    for extra_index in extra_indexes:
+        try:
+            c.drop_index(extra_index)
+            LOG.debug('Dropped index %s for model %s.', extra_index, model_class.__name__)
+        except OperationFailure:
+            LOG.warning('Attempt to cleanup index % failed.', extra_index, exc_info=True)
 
 
 def db_teardown():
@@ -148,6 +172,9 @@ class MongoDBAccess(object):
     def get_by_ref(self, value):
         return self.get(ref=value, raise_exception=True)
 
+    def get_by_pack(self, value):
+        return self.get(pack=value, raise_exception=True)
+
     def get(self, exclude_fields=None, *args, **kwargs):
         raise_exception = kwargs.pop('raise_exception', False)
 
@@ -160,7 +187,9 @@ class MongoDBAccess(object):
         log_query_and_profile_data_for_queryset(queryset=instances)
 
         if not instance and raise_exception:
-            raise ValueError('Unable to find the %s instance. %s' % (self.model.__name__, kwargs))
+            msg = 'Unable to find the %s instance. %s' % (self.model.__name__, kwargs)
+            raise StackStormDBObjectNotFoundError(msg)
+
         return instance
 
     def get_all(self, *args, **kwargs):

@@ -21,70 +21,21 @@ import uuid
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2actions.runners.ssh.fabric_runner import BaseFabricRunner
-from st2actions.runners.ssh.fabric_runner import RUNNER_REMOTE_DIR
+from st2actions.runners.ssh.paramiko_ssh_runner import RUNNER_REMOTE_DIR
 from st2actions.runners.ssh.paramiko_ssh_runner import BaseParallelSSHRunner
-from st2common.models.system.action import FabricRemoteScriptAction
 from st2common.models.system.paramiko_script_action import ParamikoRemoteScriptAction
 
 __all__ = [
     'get_runner',
+
     'ParamikoRemoteScriptRunner',
-    'RemoteScriptRunner'
 ]
 
 LOG = logging.getLogger(__name__)
 
 
 def get_runner():
-    if cfg.CONF.ssh_runner.use_paramiko_ssh_runner:
-        return ParamikoRemoteScriptRunner(str(uuid.uuid4()))
-    return RemoteScriptRunner(str(uuid.uuid4()))
-
-
-class RemoteScriptRunner(BaseFabricRunner):
-    def run(self, action_parameters):
-        remote_action = self._get_remote_action(action_parameters)
-
-        LOG.debug('Will execute remote_action : %s.', str(remote_action))
-        result = self._run(remote_action)
-        LOG.debug('Executed remote_action: %s. Result is : %s.', remote_action, result)
-        status = self._get_result_status(result, cfg.CONF.ssh_runner.allow_partial_failure)
-
-        return (status, result, None)
-
-    def _get_remote_action(self, action_parameters):
-        # remote script actions without entry_point don't make sense, user probably wanted to use
-        # "remote-shell-cmd" action
-        if not self.entry_point:
-            msg = ('Action "%s" is missing "entry_point" attribute. Perhaps wanted to use '
-                   '"remote-shell-script" runner?' % (self.action_name))
-            raise Exception(msg)
-
-        script_local_path_abs = self.entry_point
-        pos_args, named_args = self._get_script_args(action_parameters)
-        named_args = self._transform_named_args(named_args)
-        env_vars = self._get_env_vars()
-        remote_dir = self.runner_parameters.get(RUNNER_REMOTE_DIR,
-                                                cfg.CONF.ssh_runner.remote_dir)
-        remote_dir = os.path.join(remote_dir, self.liveaction_id)
-        return FabricRemoteScriptAction(self.action_name,
-                                        str(self.liveaction_id),
-                                        script_local_path_abs,
-                                        self.libs_dir_path,
-                                        named_args=named_args,
-                                        positional_args=pos_args,
-                                        env_vars=env_vars,
-                                        on_behalf_user=self._on_behalf_user,
-                                        user=self._username,
-                                        password=self._password,
-                                        private_key=self._private_key,
-                                        remote_dir=remote_dir,
-                                        hosts=self._hosts,
-                                        parallel=self._parallel,
-                                        sudo=self._sudo,
-                                        timeout=self._timeout,
-                                        cwd=self._cwd)
+    return ParamikoRemoteScriptRunner(str(uuid.uuid4()))
 
 
 class ParamikoRemoteScriptRunner(BaseParallelSSHRunner):

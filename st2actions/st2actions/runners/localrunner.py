@@ -71,6 +71,8 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         super(LocalShellRunner, self).__init__(runner_id=runner_id)
 
     def pre_run(self):
+        super(LocalShellRunner, self).pre_run()
+
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, LOGGED_USER_USERNAME)
         self._user = cfg.CONF.system_user.user

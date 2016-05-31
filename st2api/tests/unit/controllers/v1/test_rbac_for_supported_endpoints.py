@@ -17,8 +17,6 @@ import httplib
 
 import six
 
-from st2common.persistence.auth import User
-from st2common.models.db.auth import UserDB
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
 
@@ -40,6 +38,12 @@ TEST_FIXTURES = {
     'executions': ['execution1.yaml'],
     'liveactions': ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml'],
     'enforcements': ['enforcement1.yaml']
+}
+
+MOCK_RUNNER_1 = {
+    'name': 'test-runner-1',
+    'description': 'test',
+    'enabled': False
 }
 
 MOCK_ACTION_1 = {
@@ -103,13 +107,6 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         if self.register_packs:
             self._register_packs()
 
-        self.users = {}
-
-        # Users
-        user_1_db = UserDB(name='no_permissions')
-        user_1_db = User.add_or_update(user_1_db)
-        self.users['no_permissions'] = user_1_db
-
         # Insert mock objects - those objects are used to test get one, edit and delete operations
         self.models = self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                                fixtures_dict=TEST_FIXTURES)
@@ -122,6 +119,20 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         execution_model = self.models['executions']['execution1.yaml']
 
         supported_endpoints = [
+            # Runners
+            {
+                'path': '/v1/runnertypes',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/runnertypes/test-runner-1',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/runnertypes/test-runner-1',
+                'method': 'PUT',
+                'payload': MOCK_RUNNER_1
+            },
             # Packs
             {
                 'path': '/v1/packs',
@@ -134,6 +145,15 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             # Pack views
             {
                 'path': '/v1/packs/views/files/dummy_pack_1',
+                'method': 'GET'
+            },
+            # Pack config schemas
+            {
+                'path': '/v1/config_schemas',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/config_schemas/dummy_pack_1',
                 'method': 'GET'
             },
             {

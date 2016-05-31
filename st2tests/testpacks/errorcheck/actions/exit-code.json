@@ -1,9 +1,0 @@
-{
-    "name": "error-exit-code",
-    "runner_type": "local-shell-script",
-    "description": "Returns an non-zero exit code.",
-    "enabled": true,
-    "entry_point":"exit-code.sh",
-    "parameters": {
-    }
-}

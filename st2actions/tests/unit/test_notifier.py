@@ -88,7 +88,7 @@ class NotifierTestCase(unittest2.TestCase):
         return_value=ActionDB(pack='core', name='local', runner_type={'name': 'run-local-cmd'},
                               parameters={})))
     @mock.patch('st2common.util.action_db.get_runnertype_by_name', mock.MagicMock(
-        return_value=RunnerTypeDB(runner_parameters={})))
+        return_value=RunnerTypeDB(name='foo', runner_parameters={})))
     @mock.patch.object(Action, 'get_by_ref', mock.MagicMock(
         return_value={'runner_type': {'name': 'run-local-cmd'}}))
     @mock.patch.object(Policy, 'query', mock.MagicMock(
@@ -115,7 +115,7 @@ class NotifierTestCase(unittest2.TestCase):
     @mock.patch('st2common.util.action_db.get_action_by_ref', mock.MagicMock(
         return_value=ActionDB(pack='core', name='local', runner_type={'name': 'run-local-cmd'})))
     @mock.patch('st2common.util.action_db.get_runnertype_by_name', mock.MagicMock(
-        return_value=RunnerTypeDB(runner_parameters={'runner_foo': 'foo'})))
+        return_value=RunnerTypeDB(name='foo', runner_parameters={'runner_foo': 'foo'})))
     @mock.patch.object(Action, 'get_by_ref', mock.MagicMock(
         return_value={'runner_type': {'name': 'run-local-cmd'}}))
     @mock.patch.object(Policy, 'query', mock.MagicMock(

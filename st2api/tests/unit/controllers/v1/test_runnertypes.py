@@ -34,9 +34,37 @@ class TestRunnerTypesController(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 0, '/v1/runnertypes did not return correct runnertypes.')
 
-    def test_get_one_fail(self):
+    def test_get_one_fail_doesnt_exist(self):
         resp = self.app.get('/v1/runnertypes/1', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
+
+    def test_put_disable_runner(self):
+        runnertype_id = 'action-chain'
+        resp = self.app.get('/v1/runnertypes/%s' % runnertype_id)
+        self.assertTrue(resp.json['enabled'])
+
+        # Disable the runner
+        update_input = resp.json
+        update_input['enabled'] = False
+        update_input['name'] = 'foobar'
+
+        put_resp = self.__do_put(runnertype_id, update_input)
+        self.assertFalse(put_resp.json['enabled'])
+
+        # Verify that the name hasn't been updated - we only allow updating
+        # enabled attribute on the runner
+        self.assertEqual(put_resp.json['name'], 'action-chain')
+
+        # Enable the runner
+        update_input = resp.json
+        update_input['enabled'] = True
+
+        put_resp = self.__do_put(runnertype_id, update_input)
+        self.assertTrue(put_resp.json['enabled'])
+
+    def __do_put(self, runner_type_id, runner_type):
+        return self.app.put_json('/v1/runnertypes/%s' % runner_type_id, runner_type,
+                                expect_errors=True)
 
     @staticmethod
     def __get_runnertype_id(resp_json):

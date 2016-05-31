@@ -17,8 +17,17 @@ from st2common.exceptions import StackStormBaseException
 
 __all__ = [
     'CryptoKeyNotSetupException',
+    'InvalidScopeException'
 ]
 
 
 class CryptoKeyNotSetupException(StackStormBaseException):
+    pass
+
+
+class InvalidScopeException(StackStormBaseException):
+    pass
+
+
+class InvalidUserException(StackStormBaseException):
     pass

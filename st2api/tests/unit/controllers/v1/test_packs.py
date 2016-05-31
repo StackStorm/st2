@@ -23,9 +23,9 @@ class PacksControllerTestCase(FunctionalTest):
     def setUpClass(cls):
         super(PacksControllerTestCase, cls).setUpClass()
 
-        cls.pack_db_1 = PackDB(name='Pack1', description='foo', version='0.1.0', author='foo',
+        cls.pack_db_1 = PackDB(name='pack1', description='foo', version='0.1.0', author='foo',
                                email='test@example.com', ref='pack1')
-        cls.pack_db_2 = PackDB(name='Pack2', description='foo', version='0.1.0', author='foo',
+        cls.pack_db_2 = PackDB(name='pack2', description='foo', version='0.1.0', author='foo',
                                email='test@example.com', ref='pack2')
         Pack.add_or_update(cls.pack_db_1)
         Pack.add_or_update(cls.pack_db_2)
@@ -41,7 +41,7 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['name'], self.pack_db_1.name)
 
-        # Get by ref
+        # Get by name
         resp = self.app.get('/v1/packs/%s' % (self.pack_db_1.ref))
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['ref'], self.pack_db_1.ref)

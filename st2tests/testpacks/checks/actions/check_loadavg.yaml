@@ -1,0 +1,12 @@
+---
+  name: "check.loadavg"
+  runner_type: "run-remote-script"
+  description: "Check CPU Load Average on a Host"
+  enabled: true
+  entry_point: "checks/check_loadavg.py"
+  parameters: 
+    period: 
+      type: "string"
+      description: "Time period for load avg: 5,10,15 minutes, or 'all'"
+      default: "all"
+      position: 0

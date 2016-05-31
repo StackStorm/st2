@@ -30,6 +30,9 @@ def to_unicode(value):
 
     :rtype: ``unicode``
     """
+    if not isinstance(value, six.string_types):
+        raise ValueError('Value "%s" must be a string.' % (value))
+
     if not isinstance(value, six.text_type):
         value = six.u(value)
 

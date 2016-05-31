@@ -28,9 +28,11 @@ from st2common.persistence.auth import User
 from st2common.exceptions import db as db_exceptions
 from st2common.exceptions import auth as auth_exceptions
 from st2common.exceptions import rbac as rbac_exceptions
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.util.jsonify import json_encode
 from st2common.util.auth import validate_token, validate_api_key
+from st2common.util.debugging import is_enabled as is_debugging_enabled
 from st2common.constants.api import REQUEST_ID_HEADER
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
 from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
@@ -215,7 +217,7 @@ class AuthHook(PecanHook):
 
         try:
             return User.get(user)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             # User doesn't exist - we should probably also invalidate token/apikey if
             # this happens.
             LOG.warn('User %s not found.', user)
@@ -268,7 +270,7 @@ class JSONErrorResponseHook(PecanHook):
         else:
             LOG.debug('API call failed: %s', error_msg, extra=extra)
 
-            if cfg.CONF.debug:
+            if is_debugging_enabled():
                 LOG.debug(traceback.format_exc())
 
         body['faultstring'] = message

@@ -58,7 +58,12 @@ class ResourceController(rest.RestController):
     # A list of optional transformation functions for user provided filter values
     filter_transform_functions = {}
 
+    # A list of attributes which can be specified using ?exclude_attributes filter
+    valid_exclude_attributes = []
+
     # Method responsible for retrieving an instance of the corresponding model DB object
+    # Note: This method should throw StackStormDBObjectNotFoundError if the corresponding DB
+    # object doesn't exist
     get_one_db_method = None
 
     def __init__(self):
@@ -75,7 +80,7 @@ class ResourceController(rest.RestController):
         return self._get_one_by_id(id=id)
 
     def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
-                 **kwargs):
+                 from_model_kwargs=None, **kwargs):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -148,7 +153,8 @@ class ResourceController(rest.RestController):
             pecan.response.headers['X-Limit'] = str(limit)
         pecan.response.headers['X-Total-Count'] = str(instances.count())
 
-        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
 
         result = []
         for instance in instances[offset:eop]:
@@ -161,7 +167,7 @@ class ResourceController(rest.RestController):
         # Note: This is here for backward compatibility reasons
         return self._get_one_by_id(id=id, exclude_fields=exclude_fields)
 
-    def _get_one_by_id(self, id, exclude_fields=None):
+    def _get_one_by_id(self, id, exclude_fields=None, from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -175,13 +181,14 @@ class ResourceController(rest.RestController):
             msg = 'Unable to identify resource with id "%s".' % id
             pecan.abort(http_client.NOT_FOUND, msg)
 
-        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
         result = self.model.from_model(instance, **from_model_kwargs)
         LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
 
-    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None):
+    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None, from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -195,9 +202,26 @@ class ResourceController(rest.RestController):
             msg = 'Unable to identify resource with name_or_id "%s".' % (name_or_id)
             pecan.abort(http_client.NOT_FOUND, msg)
 
-        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
         result = self.model.from_model(instance, **from_model_kwargs)
         LOG.debug('GET %s with name_or_id=%s, client_result=%s', pecan.request.path, id, result)
+
+        return result
+
+    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None):
+        LOG.info('GET %s with pack_ref=%s', pecan.request.path, pack_ref)
+
+        instance = self._get_by_pack_ref(pack_ref=pack_ref, exclude_fields=exclude_fields)
+
+        if not instance:
+            msg = 'Unable to identify resource with pack_ref "%s".' % (pack_ref)
+            pecan.abort(http_client.NOT_FOUND, msg)
+
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
+        result = self.model.from_model(instance, **from_model_kwargs)
+        LOG.debug('GET %s with pack_ref=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
 
@@ -217,6 +241,14 @@ class ResourceController(rest.RestController):
 
         return resource_db
 
+    def _get_by_pack_ref(self, pack_ref, exclude_fields=None):
+        try:
+            resource_db = self.access.get(pack=pack_ref, exclude_fields=exclude_fields)
+        except Exception:
+            resource_db = None
+
+        return resource_db
+
     def _get_by_name_or_id(self, name_or_id, exclude_fields=None):
         """
         Retrieve resource object by an id of a name.
@@ -226,6 +258,10 @@ class ResourceController(rest.RestController):
         if not resource_db:
             # Try name
             resource_db = self._get_by_name(resource_name=name_or_id, exclude_fields=exclude_fields)
+
+        if not resource_db:
+            msg = 'Resource with a name or id "%s" not found' % (name_or_id)
+            raise StackStormDBObjectNotFoundError(msg)
 
         return resource_db
 
@@ -238,6 +274,40 @@ class ResourceController(rest.RestController):
         :rtype: ``dict``
         """
         return self.from_model_kwargs
+
+    def _get_one_by_scope_and_name(self, scope, name, from_model_kwargs=None):
+        """
+        Retrieve an item given scope and name. Only KeyValuePair now has concept of 'scope'.
+
+        :param scope: Scope the key belongs to.
+        :type scope: ``str``
+
+        :param name: Name of the key.
+        :type name: ``str``
+        """
+        instance = self.access.get_by_scope_and_name(scope=scope, name=name)
+        if not instance:
+            msg = 'KeyValuePair with name: %s and scope: %s not found in db.' % (name, scope)
+            raise StackStormDBObjectNotFoundError(msg)
+        from_model_kwargs = from_model_kwargs or {}
+        result = self.model.from_model(instance, **from_model_kwargs)
+        LOG.debug('GET with scope=%s and name=%s, client_result=%s', scope, name, result)
+
+        return result
+
+    def _validate_exclude_fields(self, exclude_fields):
+        """
+        Validate that provided exclude fields are valid.
+        """
+        if not exclude_fields:
+            return exclude_fields
+
+        for field in exclude_fields:
+            if field not in self.valid_exclude_attributes:
+                msg = 'Invalid or unsupported attribute specified: %s' % (field)
+                raise ValueError(msg)
+
+        return exclude_fields
 
 
 class ContentPackResourceController(ResourceController):

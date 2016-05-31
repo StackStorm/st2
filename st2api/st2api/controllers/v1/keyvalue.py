@@ -14,16 +14,20 @@
 # limitations under the License.
 
 from pecan import abort
-from pecan.rest import RestController
 import six
 from mongoengine import ValidationError
 
+from st2api.controllers.resource import ResourceController
 from st2common import log as logging
-from st2common.exceptions.keyvalue import CryptoKeyNotSetupException
+from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, ALLOWED_SCOPES
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.api.base import jsexpose
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services import coordination
+from st2common.services.keyvalues import get_key_reference
+from st2common.util.api import get_requester
 
 http_client = six.moves.http_client
 
@@ -34,95 +38,98 @@ __all__ = [
 ]
 
 
-class KeyValuePairController(RestController):
+class KeyValuePairController(ResourceController):
     """
     Implements the REST endpoint for managing the key value store.
     """
 
-    # TODO: Port to use ResourceController
+    model = KeyValuePairAPI
+    access = KeyValuePair
+    supported_filters = {
+        'prefix': 'name__startswith',
+        'scope': 'scope'
+    }
+
     def __init__(self):
         super(KeyValuePairController, self).__init__()
         self._coordinator = coordination.get_coordinator()
-        self.get_one_db_method = self.__get_by_name
+        self.get_one_db_method = self._get_by_name
 
-    @jsexpose(arg_types=[str, str])
-    def get_one(self, name, decrypt='false'):
+    @jsexpose(arg_types=[str, str, bool])
+    def get_one(self, name, scope=SYSTEM_SCOPE, decrypt=False):
         """
             List key by name.
 
             Handle:
                 GET /keys/key1
         """
-
-        if not decrypt:
-            decrypt = False
-        else:
-            decrypt = (decrypt == 'true' or decrypt == 'True' or decrypt == '1')
-
-        kvp_db = self.__get_by_name(name=name)
-
-        if not kvp_db:
-            LOG.exception('Database lookup for name="%s" resulted in exception.', name)
-            abort(http_client.NOT_FOUND)
-            return
-
+        self._validate_scope(scope=scope)
+        key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
+        from_model_kwargs = {'mask_secrets': not decrypt}
         try:
-            kvp_api = KeyValuePairAPI.from_model(kvp_db, mask_secrets=(not decrypt))
-        except (ValidationError, ValueError) as e:
-            abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            kvp_api = self._get_one_by_scope_and_name(
+                name=key_ref,
+                scope=scope,
+                from_model_kwargs=from_model_kwargs
+            )
+        except StackStormDBObjectNotFoundError as e:
+            abort(http_client.NOT_FOUND, e.message)
             return
 
         return kvp_api
 
-    @jsexpose(arg_types=[str])
-    def get_all(self, **kw):
+    @jsexpose(arg_types=[str, str, bool])
+    def get_all(self, prefix=None, scope=SYSTEM_SCOPE, decrypt=False, **kwargs):
         """
             List all keys.
 
             Handles requests:
                 GET /keys/
         """
-        # Prefix filtering
-        prefix_filter = kw.get('prefix', None)
+        from_model_kwargs = {'mask_secrets': not decrypt}
+        kwargs['prefix'] = prefix
+        if scope:
+            self._validate_scope(scope=scope)
+            kwargs['scope'] = scope
 
-        decrypt = kw.get('decrypt', None)
-        if not decrypt:
-            decrypt = False
-        else:
-            decrypt = (decrypt == 'true' or decrypt == 'True' or decrypt == '1')
-            del kw['decrypt']
+        if scope == USER_SCOPE and kwargs['prefix']:
+            kwargs['prefix'] = get_key_reference(name=kwargs['prefix'], scope=scope,
+                                                 user=get_requester())
 
-        if prefix_filter:
-            kw['name__startswith'] = prefix_filter
-            del kw['prefix']
+        kvp_apis = super(KeyValuePairController, self)._get_all(from_model_kwargs=from_model_kwargs,
+                                                                **kwargs)
+        return kvp_apis
 
-        kvp_dbs = KeyValuePair.get_all(**kw)
-        kvps = [KeyValuePairAPI.from_model(
-            kvp_db, mask_secrets=(not decrypt)) for kvp_db in kvp_dbs
-        ]
-
-        return kvps
-
-    @jsexpose(arg_types=[str, str], body_cls=KeyValuePairAPI)
-    def put(self, name, kvp):
+    @jsexpose(arg_types=[str, str, str], body_cls=KeyValuePairAPI)
+    def put(self, name, kvp, scope=SYSTEM_SCOPE):
         """
         Create a new entry or update an existing one.
         """
-        lock_name = self._get_lock_name_for_key(name=name)
-
+        scope = getattr(kvp, 'scope', scope)
+        self._validate_scope(scope=scope)
+        key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
+        lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
+        LOG.debug('PUT scope: %s, name: %s', scope, name)
         # TODO: Custom permission check since the key doesn't need to exist here
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
-            existing_kvp = self.__get_by_name(name=name)
+            try:
+                existing_kvp_api = self._get_one_by_scope_and_name(
+                    scope=scope,
+                    name=key_ref
+                )
+            except StackStormDBObjectNotFoundError:
+                existing_kvp_api = None
 
-            kvp.name = name
+            kvp.name = key_ref
+            kvp.scope = scope
 
             try:
                 kvp_db = KeyValuePairAPI.to_model(kvp)
 
-                if existing_kvp:
-                    kvp_db.id = existing_kvp.id
+                if existing_kvp_api:
+                    kvp_db.id = existing_kvp_api.id
 
                 kvp_db = KeyValuePair.add_or_update(kvp_db)
             except (ValidationError, ValueError) as e:
@@ -133,31 +140,45 @@ class KeyValuePairController(RestController):
                 LOG.exception(str(e))
                 abort(http_client.BAD_REQUEST, str(e))
                 return
+            except InvalidScopeException as e:
+                LOG.exception(str(e))
+                abort(http_client.BAD_REQUEST, str(e))
+                return
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair updated. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
 
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
         return kvp_api
 
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
-    def delete(self, name):
+    @jsexpose(arg_types=[str, str], status_code=http_client.NO_CONTENT)
+    def delete(self, name, scope=SYSTEM_SCOPE):
         """
             Delete the key value pair.
 
             Handles requests:
                 DELETE /keys/1
         """
-        lock_name = self._get_lock_name_for_key(name=name)
+        self._validate_scope(scope=scope)
+        key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
+        lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
 
         # Note: We use lock to avoid a race
         with self._coordinator.get_lock(lock_name):
-            kvp_db = self.__get_by_name(name=name)
-
-            if not kvp_db:
-                abort(http_client.NOT_FOUND)
+            from_model_kwargs = {'mask_secrets': True}
+            try:
+                kvp_api = self._get_one_by_scope_and_name(
+                    name=key_ref,
+                    scope=scope,
+                    from_model_kwargs=from_model_kwargs
+                )
+            except StackStormDBObjectNotFoundError as e:
+                abort(http_client.NOT_FOUND, e.message)
                 return
 
-            LOG.debug('DELETE /keys/ lookup with name=%s found object: %s', name, kvp_db)
+            kvp_db = KeyValuePairAPI.to_model(kvp_api)
+
+            LOG.debug('DELETE /keys/ lookup with scope=%s name=%s found object: %s',
+                      scope, name, kvp_db)
 
             try:
                 KeyValuePair.delete(kvp_db)
@@ -170,20 +191,18 @@ class KeyValuePairController(RestController):
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair deleted. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
 
-    @staticmethod
-    def __get_by_name(name):
-        try:
-            return KeyValuePair.get_by_name(name)
-        except ValueError as e:
-            LOG.debug('Database lookup for name="%s" resulted in exception : %s.', name, e)
-            return None
-
-    def _get_lock_name_for_key(self, name):
+    def _get_lock_name_for_key(self, name, scope=SYSTEM_SCOPE):
         """
         Retrieve a coordination lock name for the provided datastore item name.
 
         :param name: Datastore item name (PK).
         :type name: ``str``
         """
-        lock_name = 'kvp-crud-%s' % (name)
+        lock_name = 'kvp-crud-%s.%s' % (scope, name)
         return lock_name
+
+    def _validate_scope(self, scope):
+        if scope not in ALLOWED_SCOPES:
+            msg = 'Scope %s is not in allowed scopes list: %s.' % (scope, ALLOWED_SCOPES)
+            abort(http_client.BAD_REQUEST, msg)
+            return

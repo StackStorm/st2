@@ -18,6 +18,7 @@ from oslo_config import cfg
 from st2common.models.db import db_setup
 from st2actions.runners.pythonrunner import Action as BaseAction
 from st2common.persistence.pack import Pack
+from st2common.persistence.pack import ConfigSchema
 from st2common.persistence.reactor import SensorType
 from st2common.persistence.reactor import TriggerType
 from st2common.persistence.reactor import Trigger
@@ -26,6 +27,7 @@ from st2common.persistence.action import Action
 from st2common.persistence.action import ActionAlias
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.services.triggers import cleanup_trigger_db_for_rule
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 BLOCKED_PACKS = frozenset(SYSTEM_PACK_NAMES)
 
@@ -87,12 +89,18 @@ class UnregisterPackAction(BaseAction):
         return self._delete_pack_db_objects(pack=pack, access_cls=ActionAlias)
 
     def _unregister_pack(self, pack):
-        return self._delete_pack_db_object(pack=pack)
+        # 1. Delete pack
+        self._delete_pack_db_object(pack=pack)
+
+        # 2. Delete corresponding config schema
+        self._delete_config_schema_db_object(pack=pack)
+
+        return True
 
     def _delete_pack_db_object(self, pack):
         try:
             pack_db = Pack.get_by_name(value=pack)
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             self.logger.exception('Pack DB object not found')
             return
 
@@ -100,6 +108,18 @@ class UnregisterPackAction(BaseAction):
             Pack.delete(pack_db)
         except:
             self.logger.exception('Failed to remove DB object %s.', pack_db)
+
+    def _delete_config_schema_db_object(self, pack):
+        try:
+            config_schema_db = ConfigSchema.get_by_pack(value=pack)
+        except StackStormDBObjectNotFoundError:
+            self.logger.exception('ConfigSchemaDB object not found')
+            return
+
+        try:
+            ConfigSchema.delete(config_schema_db)
+        except:
+            self.logger.exception('Failed to remove DB object %s.', config_schema_db)
 
     def _delete_pack_db_objects(self, pack, access_cls):
         db_objs = access_cls.get_all(pack=pack)

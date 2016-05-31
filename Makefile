@@ -26,6 +26,13 @@ PYTHON_TARGET := 2.7
 REQUIREMENTS := test-requirements.txt requirements.txt
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
+NOSE_OPTS := --rednose --immediate
+NOSE_TIME := $(NOSE_TIME)
+
+ifdef NOSE_TIME
+	NOSE_OPTS := --rednose --immediate --with-timer
+endif
+
 ifndef PIP_OPTIONS
 	PIP_OPTIONS := -U -q
 endif
@@ -237,7 +244,7 @@ unit-tests: requirements .unit-tests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v $$component/tests/unit || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/unit || exit 1; \
 	done
 
 .PHONY: .unit-tests-coverage-html
@@ -270,7 +277,7 @@ itests: requirements .itests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv $$component/tests/integration || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -sv $$component/tests/integration || exit 1; \
 	done
 
 .PHONY: .itests-coverage-html
