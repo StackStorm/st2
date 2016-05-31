@@ -18,7 +18,7 @@ import ipaddress
 from st2actions.runners.pythonrunner import Action
 
 
-class IsValidIp(Action):
+class IsValidIpAction(Action):
     def run(self, ip_address, no_loopback=False, only_v4=False, only_v6=False):
         """
         Is this a valid IP address?

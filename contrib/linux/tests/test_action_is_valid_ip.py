@@ -14,16 +14,16 @@
 
 from st2tests.base import BaseActionTestCase
 
-from is_valid_ip import IsValidIp
+from is_valid_ip import IsValidIpAction
 
 __all__ = [
-    'IsValidIpTestCase'
+    'IsValidIpActionTestCase'
 ]
 
 
-class IsValidIpTestCase(BaseActionTestCase):
+class IsValidIpActionTestCase(BaseActionTestCase):
     __test__ = True
-    action_cls = IsValidIp
+    action_cls = IsValidIpAction
 
     def test_run_valid_ip_v4(self):
         expected = {'is_link_local': False,
