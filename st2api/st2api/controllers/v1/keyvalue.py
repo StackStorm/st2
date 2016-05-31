@@ -209,13 +209,14 @@ class KeyValuePairController(ResourceController):
         self._validate_scope(scope=scope)
 
         requester_user = get_requester()
+        user = user or requester_user
         is_admin = request_user_is_admin(request=pecan.request)
 
         if user != requester_user and not is_admin:
             msg = '"user" attribute can only be provided by admins'
             raise AccessDeniedError(message=msg, user_db=requester_user)
 
-        key_ref = get_key_reference(scope=scope, name=name, user=get_requester())
+        key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
 
         # Note: We use lock to avoid a race
