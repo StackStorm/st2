@@ -74,7 +74,7 @@ class KeyValuePairListCommand(resource.ResourceListCommand):
         self.parser.add_argument('--decrypt', action='store_true',
                                  help='Decrypt secrets and display plain text.')
         self.parser.add_argument('-s', '--scope', default='system', dest='scope',
-                                 help='Scope variable is under. Example: "user".')
+                                 help='Scope item is under. Example: "user".')
 
     def run_and_print(self, args, **kwargs):
         if args.prefix:
@@ -102,7 +102,7 @@ class KeyValuePairGetCommand(resource.ResourceGetCommand):
         self.parser.add_argument('-d', '--decrypt', action='store_true',
                                  help='Decrypt secret if encrypted and show plain text.')
         self.parser.add_argument('-s', '--scope', default=DEFAULT_SCOPE, dest='scope',
-                                 help='Scope variable is under. Example: "user".')
+                                 help='Scope item is under. Example: "user".')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -135,9 +135,9 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
                                  help='Encrypt value before saving the value.')
         self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
                                  help='Specify the scope under which you want ' +
-                                      'to place the variable.')
+                                      'to place the item.')
         self.parser.add_argument('-u', '--user', dest='user', default=None,
-                                 help='User for user scoped variables ')
+                                 help='User for user scoped items (admin only).')
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
@@ -171,9 +171,9 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
 
         self.parser.add_argument('-s', '--scope', dest='scope', default=DEFAULT_SCOPE,
                                  help='Specify the scope under which you want ' +
-                                      'to place the variable.')
+                                      'to place the item.')
         self.parser.add_argument('-u', '--user', dest='user', default=None,
-                                 help='User for user scoped variables ')
+                                 help='User for user scoped items (admin only).')
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
