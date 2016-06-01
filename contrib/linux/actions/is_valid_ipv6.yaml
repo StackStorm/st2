@@ -1,0 +1,24 @@
+---
+description: "Check for a valid IPv6 address (and return some infomation)."
+enabled: true
+entry_point: 'is_valid_ip.py'
+name: "is_valid_ipv6"
+pack: "linux"
+
+parameters:
+  ip_address:
+    type: "string"
+    description: "IP Address to valiadate"
+    required: true
+
+  no_loopback:
+    type: "boolean"
+    description: "Consider loopback addresses as invaild."
+    default: false
+
+  only_v6:
+    type: "boolean"
+    default: true
+    immutable: True
+
+runner_type: "python-script"

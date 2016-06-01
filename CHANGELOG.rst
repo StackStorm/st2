@@ -52,6 +52,8 @@ in development
   [Kale Blankenship]
 * Fix string parameter casting - leave actual ``None`` value as-is and don't try to cast it to a
   string which would fail. (bug-fix, improvement)
+* Add ``is_valid_ip``, ``is_valid_ipv4`` & ``is_valid_ipv6`` actions to the linux 
+  pack [Jon Middleton] (improvement).
 
 1.4.0 - April 18, 2016
 ----------------------
