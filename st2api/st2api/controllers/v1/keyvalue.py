@@ -142,10 +142,9 @@ class KeyValuePairController(ResourceController):
         self._validate_scope(scope=scope)
 
         requester_user = get_requester()
-        is_admin = request_user_is_admin(request=pecan.request)
 
         scope = getattr(kvp, 'scope', scope)
-        user = getattr(kvp, 'user', requester_user)
+        user = getattr(kvp, 'user', requester_user) or requester_user
 
         # Validate that the authenticated user is admin if user query param is provided
         assert_request_user_is_admin_if_user_query_param_is_provider(request=pecan.request,
@@ -206,7 +205,6 @@ class KeyValuePairController(ResourceController):
 
         requester_user = get_requester()
         user = user or requester_user
-        is_admin = request_user_is_admin(request=pecan.request)
 
         # Validate that the authenticated user is admin if user query param is provided
         assert_request_user_is_admin_if_user_query_param_is_provider(request=pecan.request,
