@@ -35,6 +35,7 @@ __all__ = [
     'ActionAPI',
     'ActionCreateAPI',
     'LiveActionAPI',
+    'LiveActionCreateAPI',
     'RunnerTypeAPI'
 ]
 
@@ -410,7 +411,18 @@ class LiveActionAPI(BaseAPI):
         return model
 
 
-class ActionExecutionStateAPI(BaseAPI):
+class LiveActionCreateAPI(LiveActionAPI):
+    """
+    API model for action execution create (run action) operations.
+    """
+    schema = copy.deepcopy(LiveActionAPI.schema)
+    schema['properties']['user'] = {
+        'description': 'User context under which action should run (admins only)',
+        'type': 'string'
+    }
+
+
+class ActionExecutionStateAPI(BasePI):
     """
     System entity that represents state of an action in the system.
     This is used only in tests for now.

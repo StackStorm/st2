@@ -110,12 +110,15 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         # Assert the permissions
         action_ref = liveaction.action
         action_db = action_utils.get_action_by_ref(action_ref)
+        user = liveaction.user or get_requester()
 
         assert_request_user_has_resource_db_permission(request=pecan.request, resource_db=action_db,
             permission_type=PermissionType.ACTION_EXECUTE)
 
+        # TODO: Validate user is admin if user is provided
+
         try:
-            return self._schedule_execution(liveaction=liveaction)
+            return self._schedule_execution(liveaction=liveaction, user=user)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
@@ -130,12 +133,12 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def _schedule_execution(self, liveaction):
+    def _schedule_execution(self, liveaction, user=None):
         # Initialize execution context if it does not exist.
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
-        liveaction.context['user'] = get_requester()
+        liveaction.context['user'] = user
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
@@ -401,7 +404,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         return self._get_one(id=id, exclude_fields=exclude_fields)
 
-    @jsexpose(body_cls=LiveActionAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=LiveActionCreateAPI, status_code=http_client.CREATED)
     def post(self, liveaction):
         return self._handle_schedule_execution(liveaction=liveaction)
 
