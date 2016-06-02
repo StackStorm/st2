@@ -820,6 +820,8 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
                                           'which are accessible to the CLI as "env" '
                                           'parameter to the action. Note: Only works '
                                           'with python, local and remote runners.')
+            self.parser.add_argument('-u', '--user', type=str, default=None,
+                                           help='User under which to run the action (admins only).')
 
         if self.name == 'run':
             self.parser.set_defaults(async=False)
@@ -849,6 +851,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         execution = models.LiveAction()
         execution.action = action_ref
         execution.parameters = action_parameters
+        execution.user = args.user
 
         if not args.trace_id and args.trace_tag:
             execution.context = {'trace_context': {'trace_tag': args.trace_tag}}
