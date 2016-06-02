@@ -258,10 +258,11 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
     ]
 
     class ExecutionSpecificationAPI(object):
-        def __init__(self, parameters=None, tasks=None, reset=None):
+        def __init__(self, parameters=None, tasks=None, reset=None, user=None):
             self.parameters = parameters or {}
             self.tasks = tasks or []
             self.reset = reset or []
+            self.user = user
 
         def validate(self):
             if (self.tasks or self.reset) and self.parameters:
@@ -325,7 +326,8 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
         new_liveaction = LiveActionDB(action=action_ref,
                                       context=context,
-                                      parameters=new_parameters)
+                                      parameters=new_parameters,
+                                      user=spec.user)
 
         return self._handle_schedule_execution(liveaction=new_liveaction)
 
