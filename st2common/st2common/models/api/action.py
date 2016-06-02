@@ -418,7 +418,8 @@ class LiveActionCreateAPI(LiveActionAPI):
     schema = copy.deepcopy(LiveActionAPI.schema)
     schema['properties']['user'] = {
         'description': 'User context under which action should run (admins only)',
-        'type': 'string'
+        'type': 'string',
+        'default': None
     }
 
 

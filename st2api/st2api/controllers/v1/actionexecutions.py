@@ -39,7 +39,6 @@ from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
@@ -108,11 +107,16 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         return from_model_kwargs
 
-    def _handle_schedule_execution(self, liveaction):
+    def _handle_schedule_execution(self, liveaction_api):
+        """
+        :param liveaction: LiveActionAPI object.
+        :type liveaction: :class:`LiveActionAPI`
+        """
+
         # Assert the permissions
-        action_ref = liveaction.action
+        action_ref = liveaction_api.action
         action_db = action_utils.get_action_by_ref(action_ref)
-        user = liveaction.user or get_requester()
+        user = liveaction_api.user or get_requester()
 
         assert_request_user_has_resource_db_permission(request=pecan.request, resource_db=action_db,
             permission_type=PermissionType.ACTION_EXECUTE)
@@ -122,7 +126,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                                                                      user=user)
 
         try:
-            return self._schedule_execution(liveaction=liveaction, user=user)
+            return self._schedule_execution(liveaction=liveaction_api, user=user)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
@@ -328,12 +332,12 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         if trace:
             context['trace_context'] = {'id_': str(trace.id)}
 
-        new_liveaction = LiveActionDB(action=action_ref,
-                                      context=context,
-                                      parameters=new_parameters,
-                                      user=spec.user)
+        new_liveaction_api = LiveActionCreateAPI(action=action_ref,
+                                                 context=context,
+                                                 parameters=new_parameters,
+                                                 user=spec.user)
 
-        return self._handle_schedule_execution(liveaction=new_liveaction)
+        return self._handle_schedule_execution(liveaction_api=new_liveaction_api)
 
 
 class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceController):
@@ -411,8 +415,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         return self._get_one(id=id, exclude_fields=exclude_fields)
 
     @jsexpose(body_cls=LiveActionCreateAPI, status_code=http_client.CREATED)
-    def post(self, liveaction):
-        return self._handle_schedule_execution(liveaction=liveaction)
+    def post(self, liveaction_api):
+        return self._handle_schedule_execution(liveaction_api=liveaction_api)
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_STOP)
     @jsexpose(arg_types=[str])
