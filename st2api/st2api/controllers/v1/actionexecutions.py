@@ -36,6 +36,7 @@ from st2common.exceptions.param import ParamException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.trace import TraceNotFoundException
 from st2common.models.api.action import LiveActionAPI
+from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.liveaction import LiveActionDB

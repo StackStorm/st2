@@ -422,7 +422,7 @@ class LiveActionCreateAPI(LiveActionAPI):
     }
 
 
-class ActionExecutionStateAPI(BasePI):
+class ActionExecutionStateAPI(BaseAPI):
     """
     System entity that represents state of an action in the system.
     This is used only in tests for now.
