@@ -56,7 +56,7 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-SKIPPED = ['id', 'callback', 'action', 'runner_info', 'parameters']
+SKIPPED = ['id', 'callback', 'action', 'runner_info', 'parameters', 'notify']
 
 
 def _decompose_liveaction(liveaction_db):
@@ -142,11 +142,12 @@ def _get_parent_execution(child_liveaction_db):
 def update_execution(liveaction_db, publish=True):
     execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
     decomposed = _decompose_liveaction(liveaction_db)
-    if liveaction_db.status != execution.status:
-        execution.log.append(_create_timestamp(liveaction_db.status))
+    kw = {}
     for k, v in six.iteritems(decomposed):
-        setattr(execution, k, v)
-    execution = ActionExecution.add_or_update(execution, publish=publish)
+        kw['set__' + k] = v
+    if liveaction_db.status != execution.status:
+        kw['push__log'] = _create_timestamp(liveaction_db.status)
+    execution = ActionExecution.update(execution, publish=publish, **kw)
     return execution
 
 
