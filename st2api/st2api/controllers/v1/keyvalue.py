@@ -95,17 +95,22 @@ class KeyValuePairController(ResourceController):
 
         return kvp_api
 
-    @jsexpose(arg_types=[str, str, bool])
-    def get_all(self, prefix=None, scope=SYSTEM_SCOPE, decrypt=False, **kwargs):
+    @jsexpose(arg_types=[str, str, str, bool])
+    def get_all(self, prefix=None, scope=SYSTEM_SCOPE, user=None, decrypt=False, **kwargs):
         """
             List all keys.
 
             Handles requests:
                 GET /keys/
         """
+        if user:
+            # Providing a user implies a user scope
+            scope = USER_SCOPE
+
         requester_user = get_requester()
-        is_admin = request_user_is_admin(request=pecan.request)
+        user = user or requester_user
         is_all_scope = (scope == 'all')
+        is_admin = request_user_is_admin(request=pecan.request)
 
         if is_all_scope and not is_admin:
             msg = '"all" scope requires administrator access'
@@ -113,6 +118,10 @@ class KeyValuePairController(ResourceController):
 
         # User needs to be either admin or requesting items for themselves
         self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin)
+
+        # Validate that the authenticated user is admin if user query param is provided
+        assert_request_user_is_admin_if_user_query_param_is_provider(request=pecan.request,
+                                                                     user=user)
 
         from_model_kwargs = {'mask_secrets': not decrypt}
         kwargs['prefix'] = prefix
@@ -128,7 +137,7 @@ class KeyValuePairController(ResourceController):
                                                      user=requester_user)
             else:
                 kwargs['prefix'] = get_key_reference(name='', scope=scope,
-                                                     user=requester_user)
+                                                     user=user)
 
         kvp_apis = super(KeyValuePairController, self)._get_all(from_model_kwargs=from_model_kwargs,
                                                                 **kwargs)

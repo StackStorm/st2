@@ -75,6 +75,8 @@ class KeyValuePairListCommand(resource.ResourceListCommand):
                                  help='Decrypt secrets and display plain text.')
         self.parser.add_argument('-s', '--scope', default='system', dest='scope',
                                  help='Scope item is under. Example: "user".')
+        self.parser.add_argument('-u', '--user', dest='user', default=None,
+                                 help='User for user scoped items (admin only).')
 
     def run_and_print(self, args, **kwargs):
         if args.prefix:
@@ -84,6 +86,7 @@ class KeyValuePairListCommand(resource.ResourceListCommand):
         kwargs['params'] = {'decrypt': str(decrypt).lower()}
         scope = getattr(args, 'scope', DEFAULT_SCOPE)
         kwargs['params']['scope'] = scope
+        kwargs['params']['user'] = args.user
 
         instances = self.run(args, **kwargs)
         self.print_output(reversed(instances), table.MultiColumnTable,
