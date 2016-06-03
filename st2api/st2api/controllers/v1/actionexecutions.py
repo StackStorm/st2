@@ -36,9 +36,9 @@ from st2common.exceptions.param import ParamException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.trace import TraceNotFoundException
 from st2common.models.api.action import LiveActionAPI
+from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import jsexpose
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
@@ -54,6 +54,7 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 from st2common.rbac.utils import assert_request_user_has_resource_db_permission
+from st2common.rbac.utils import assert_request_user_is_admin_if_user_query_param_is_provider
 
 __all__ = [
     'ActionExecutionsController'
@@ -106,16 +107,26 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         return from_model_kwargs
 
-    def _handle_schedule_execution(self, liveaction):
+    def _handle_schedule_execution(self, liveaction_api):
+        """
+        :param liveaction: LiveActionAPI object.
+        :type liveaction: :class:`LiveActionAPI`
+        """
+
         # Assert the permissions
-        action_ref = liveaction.action
+        action_ref = liveaction_api.action
         action_db = action_utils.get_action_by_ref(action_ref)
+        user = liveaction_api.user or get_requester()
 
         assert_request_user_has_resource_db_permission(request=pecan.request, resource_db=action_db,
             permission_type=PermissionType.ACTION_EXECUTE)
 
+        # TODO: Validate user is admin if user is provided
+        assert_request_user_is_admin_if_user_query_param_is_provider(request=pecan.request,
+                                                                     user=user)
+
         try:
-            return self._schedule_execution(liveaction=liveaction)
+            return self._schedule_execution(liveaction=liveaction_api, user=user)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
@@ -130,12 +141,12 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def _schedule_execution(self, liveaction):
+    def _schedule_execution(self, liveaction, user=None):
         # Initialize execution context if it does not exist.
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
-        liveaction.context['user'] = get_requester()
+        liveaction.context['user'] = user
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
@@ -255,10 +266,11 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
     ]
 
     class ExecutionSpecificationAPI(object):
-        def __init__(self, parameters=None, tasks=None, reset=None):
+        def __init__(self, parameters=None, tasks=None, reset=None, user=None):
             self.parameters = parameters or {}
             self.tasks = tasks or []
             self.reset = reset or []
+            self.user = user
 
         def validate(self):
             if (self.tasks or self.reset) and self.parameters:
@@ -320,11 +332,12 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         if trace:
             context['trace_context'] = {'id_': str(trace.id)}
 
-        new_liveaction = LiveActionDB(action=action_ref,
-                                      context=context,
-                                      parameters=new_parameters)
+        new_liveaction_api = LiveActionCreateAPI(action=action_ref,
+                                                 context=context,
+                                                 parameters=new_parameters,
+                                                 user=spec.user)
 
-        return self._handle_schedule_execution(liveaction=new_liveaction)
+        return self._handle_schedule_execution(liveaction_api=new_liveaction_api)
 
 
 class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceController):
@@ -401,9 +414,9 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         return self._get_one(id=id, exclude_fields=exclude_fields)
 
-    @jsexpose(body_cls=LiveActionAPI, status_code=http_client.CREATED)
-    def post(self, liveaction):
-        return self._handle_schedule_execution(liveaction=liveaction)
+    @jsexpose(body_cls=LiveActionCreateAPI, status_code=http_client.CREATED)
+    def post(self, liveaction_api):
+        return self._handle_schedule_execution(liveaction_api=liveaction_api)
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_STOP)
     @jsexpose(arg_types=[str])

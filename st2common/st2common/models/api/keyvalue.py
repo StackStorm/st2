@@ -206,5 +206,6 @@ class KeyValuePairSetAPI(KeyValuePairAPI):
     schema['properties']['user'] = {
         'description': ('User to which the value should be scoped to. Only applicable to '
                         'scope == user'),
-        'type': 'string'
+        'type': 'string',
+        'default': None
     }

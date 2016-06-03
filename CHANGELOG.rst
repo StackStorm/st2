@@ -52,6 +52,8 @@ in development
   [Kale Blankenship]
 * Fix string parameter casting - leave actual ``None`` value as-is and don't try to cast it to a
   string which would fail. (bug-fix, improvement)
+* Allow administrator user who's context will be used when running an action or re-running an
+  action execution. (new feature)
 
 1.4.0 - April 18, 2016
 ----------------------
