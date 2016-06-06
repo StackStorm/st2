@@ -79,6 +79,9 @@ class DatastoreService(object):
 
         :rtype: ``str`` or ``None``
         """
+        if scope != SYSTEM_SCOPE:
+            raise ValueError('Scope %s is unsupported.' % scope)
+
         name = self._get_full_key_name(name=name, local=local)
 
         client = self._get_api_client()
@@ -123,6 +126,9 @@ class DatastoreService(object):
         :return: ``True`` on success, ``False`` otherwise.
         :rtype: ``bool``
         """
+        if scope != SYSTEM_SCOPE:
+            raise ValueError('Scope %s is unsupported.', scope)
+
         name = self._get_full_key_name(name=name, local=local)
 
         value = str(value)
@@ -163,6 +169,9 @@ class DatastoreService(object):
         :return: ``True`` on success, ``False`` otherwise.
         :rtype: ``bool``
         """
+        if scope != SYSTEM_SCOPE:
+            raise ValueError('Scope %s is unsupported.', scope)
+
         name = self._get_full_key_name(name=name, local=local)
 
         client = self._get_api_client()

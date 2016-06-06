@@ -120,6 +120,14 @@ class DatastoreServiceTestCase(unittest2.TestCase):
         self.assertTrue(kvp.secret)
         self.assertEquals(kvp.scope, SYSTEM_SCOPE)
 
+    def test_datastore_unsupported_scope(self):
+        self.assertRaises(ValueError, self._datastore_service.get_value, name='test1',
+            scope='NOT_SYSTEM')
+        self.assertRaises(ValueError, self._datastore_service.set_value, name='test1',
+            value='foo', scope='NOT_SYSTEM')
+        self.assertRaises(ValueError, self._datastore_service.delete_value, name='test1',
+            scope='NOT_SYSTEM')
+
     def _set_mock_api_client(self, mock_api_client):
         mock_method = mock.Mock()
         mock_method.return_value = mock_api_client
