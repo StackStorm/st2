@@ -27,6 +27,7 @@
       ref: "packs.load"
       parameters:
         register: "{{register}}"
+        timeout: 120
       on-success: "restart-sensor-container"
     -
       name: "restart-sensor-container"
