@@ -19,6 +19,7 @@ import unittest2
 
 import mock
 
+from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.services.datastore import DatastoreService
 from st2client.models.keyvalue import KeyValuePair
 
@@ -95,6 +96,9 @@ class DatastoreServiceTestCase(unittest2.TestCase):
 
         value = self._datastore_service.set_value(name='test1', value='foo', local=False)
         self.assertTrue(value)
+        kvp = mock_api_client.keys.update.call_args[1]['instance']
+        self.assertEquals(kvp.value, 'foo')
+        self.assertEquals(kvp.scope, SYSTEM_SCOPE)
 
     def test_datastore_operations_delete_value(self):
         mock_api_client = mock.Mock()
@@ -103,6 +107,26 @@ class DatastoreServiceTestCase(unittest2.TestCase):
 
         value = self._datastore_service.delete_value(name='test', local=False)
         self.assertTrue(value)
+
+    def test_datastore_operations_set_encrypted_value(self):
+        mock_api_client = mock.Mock()
+        mock_api_client.keys.update.return_value = True
+        self._set_mock_api_client(mock_api_client)
+        value = self._datastore_service.set_value(name='test1', value='foo', local=False,
+            encrypt=True)
+        self.assertTrue(value)
+        kvp = mock_api_client.keys.update.call_args[1]['instance']
+        self.assertEquals(kvp.value, 'foo')
+        self.assertTrue(kvp.secret)
+        self.assertEquals(kvp.scope, SYSTEM_SCOPE)
+
+    def test_datastore_unsupported_scope(self):
+        self.assertRaises(ValueError, self._datastore_service.get_value, name='test1',
+            scope='NOT_SYSTEM')
+        self.assertRaises(ValueError, self._datastore_service.set_value, name='test1',
+            value='foo', scope='NOT_SYSTEM')
+        self.assertRaises(ValueError, self._datastore_service.delete_value, name='test1',
+            scope='NOT_SYSTEM')
 
     def _set_mock_api_client(self, mock_api_client):
         mock_method = mock.Mock()
