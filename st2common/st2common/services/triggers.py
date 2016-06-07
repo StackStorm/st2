@@ -49,13 +49,22 @@ def get_trigger_db_given_type_and_params(type=None, parameters=None):
 
         trigger_db = trigger_dbs[0] if len(trigger_dbs) > 0 else None
 
+        # NOTE: This is a work-around which we might be able to remove once we upgrade 
+        # pymongo and mongoengine
         # Work around for cron-timer when in some scenarios finding an object fails when Python
         # value types are unicode :/
-        if not trigger_db and six.PY2 and type == CRON_TIMER_TRIGGER_REF and parameters:
+        is_cron_trigger = (type == CRON_TIMER_TRIGGER_REF)
+        has_parameters = bool(parameters)
+
+        if not trigger_db and six.PY2 and is_cron_trigger and has_parameters:
             non_unicode_literal_parameters = {}
             for key, value in six.iteritems(parameters):
                 key = key.encode('utf-8')
-                value = value.encode('utf-8')
+
+                if isinstance(value, six.text_type):
+                    # We only encode unicode to str
+                    value = value.encode('utf-8')
+
                 non_unicode_literal_parameters[key] = value
             parameters = non_unicode_literal_parameters
 
