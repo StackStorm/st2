@@ -49,7 +49,7 @@ def get_trigger_db_given_type_and_params(type=None, parameters=None):
 
         trigger_db = trigger_dbs[0] if len(trigger_dbs) > 0 else None
 
-        # NOTE: This is a work-around which we might be able to remove once we upgrade 
+        # NOTE: This is a work-around which we might be able to remove once we upgrade
         # pymongo and mongoengine
         # Work around for cron-timer when in some scenarios finding an object fails when Python
         # value types are unicode :/
