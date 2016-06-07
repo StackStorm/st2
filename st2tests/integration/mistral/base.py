@@ -45,11 +45,13 @@ class TestWorkflowExecution(unittest2.TestCase):
         return execution
 
     @retrying.retry(wait_fixed=3000, stop_max_delay=900000)
-    def _wait_for_completion(self, execution, expect_tasks_completed=True):
+    def _wait_for_completion(self, execution, expect_tasks=True, expect_tasks_completed=True):
         execution = self._wait_for_state(execution, ['succeeded', 'failed', 'canceled'])
         self.assertTrue(hasattr(execution, 'result'))
-        self.assertIn('tasks', execution.result)
-        self.assertGreater(len(execution.result['tasks']), 0)
+
+        if expect_tasks:
+            self.assertIn('tasks', execution.result)
+            self.assertGreater(len(execution.result['tasks']), 0)
 
         if expect_tasks_completed:
             tasks = execution.result['tasks']
@@ -63,10 +65,12 @@ class TestWorkflowExecution(unittest2.TestCase):
         self.assertEqual(num_tasks, len(tasks))
         self.assertTrue(all([task['state'] == 'SUCCESS' for task in tasks]))
 
-    def _assert_failure(self, execution):
+    def _assert_failure(self, execution, expect_tasks_failure=True):
         self.assertEqual(execution.status, 'failed')
         tasks = execution.result.get('tasks', [])
-        self.assertTrue(any([task['state'] == 'ERROR' for task in tasks]))
+
+        if expect_tasks_failure:
+            self.assertTrue(any([task['state'] == 'ERROR' for task in tasks]))
 
     def _assert_canceled(self, execution, are_tasks_completed=False):
         self.assertEqual(execution.status, 'canceled')

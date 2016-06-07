@@ -1,0 +1,12 @@
+---
+description: A sample workflow for testing bad input passed to subworkflow.
+enabled: true
+entry_point: workflows/mistral-error-bad-wf-input-yaql.yaml
+name: mistral-error-bad-wf-input-yaql
+pack: examples
+runner_type: mistral-v2
+parameters:
+  workflow:
+    default: examples.mistral-error-bad-wf-input-yaql.wf1
+    immutable: true
+    type: string
