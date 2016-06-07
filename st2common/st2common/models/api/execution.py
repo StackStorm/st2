@@ -137,7 +137,7 @@ class ActionExecutionAPI(BaseAPI):
             end_timestamp = isotime.format(end_timestamp, offset=False)
             doc['end_timestamp'] = end_timestamp
 
-        for entry in doc['log']:
+        for entry in doc.get('log', []):
             entry['timestamp'] = isotime.format(entry['timestamp'], offset=False)
 
         attrs = {attr: value for attr, value in six.iteritems(doc) if value}

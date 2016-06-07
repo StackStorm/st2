@@ -73,7 +73,7 @@ def _decompose_liveaction(liveaction_db):
     return decomposed
 
 
-def _create_timestamp(status):
+def _create_execution_log_entry(status):
     return {
         'timestamp': date_utils.get_datetime_utc_now(),
         'status': status
@@ -113,7 +113,7 @@ def create_execution_object(liveaction, publish=True):
     if parent:
         attrs['parent'] = str(parent.id)
 
-    attrs['log'] = [_create_timestamp(liveaction['status'])]
+    attrs['log'] = [_create_execution_log_entry(liveaction['status'])]
 
     execution = ActionExecutionDB(**attrs)
     execution = ActionExecution.add_or_update(execution, publish=publish)
@@ -146,7 +146,7 @@ def update_execution(liveaction_db, publish=True):
     for k, v in six.iteritems(decomposed):
         kw['set__' + k] = v
     if liveaction_db.status != execution.status:
-        kw['push__log'] = _create_timestamp(liveaction_db.status)
+        kw['push__log'] = _create_execution_log_entry(liveaction_db.status)
     execution = ActionExecution.update(execution, publish=publish, **kw)
     return execution
 
