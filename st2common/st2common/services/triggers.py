@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 from st2common import log as logging
+from st2common.constants.triggers import CRON_TIMER_TRIGGER_REF
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -45,6 +48,36 @@ def get_trigger_db_given_type_and_params(type=None, parameters=None):
                                     parameters=parameters)
 
         trigger_db = trigger_dbs[0] if len(trigger_dbs) > 0 else None
+
+        # NOTE: This is a work-around which we might be able to remove once we upgrade
+        # pymongo and mongoengine
+        # Work around for cron-timer when in some scenarios finding an object fails when Python
+        # value types are unicode :/
+        is_cron_trigger = (type == CRON_TIMER_TRIGGER_REF)
+        has_parameters = bool(parameters)
+
+        if not trigger_db and six.PY2 and is_cron_trigger and has_parameters:
+            non_unicode_literal_parameters = {}
+            for key, value in six.iteritems(parameters):
+                key = key.encode('utf-8')
+
+                if isinstance(value, six.text_type):
+                    # We only encode unicode to str
+                    value = value.encode('utf-8')
+
+                non_unicode_literal_parameters[key] = value
+            parameters = non_unicode_literal_parameters
+
+            trigger_dbs = Trigger.query(type=type,
+                                        parameters=non_unicode_literal_parameters).no_cache()
+
+            # Note: We need to directly access the object, using len or accessing the query set
+            # twice won't work - there seems to bug a bug with cursor where accessing it twice
+            # will throw an exception
+            try:
+                trigger_db = trigger_dbs[0]
+            except IndexError:
+                trigger_db = None
 
         if not parameters and not trigger_db:
             # We need to do double query because some TriggeDB objects without
