@@ -107,6 +107,7 @@ class ActionExecutionAPI(BaseAPI):
                 "uniqueItems": True
             },
             "log": {
+                "description": "Contains information about execution state transitions.",
                 "type": "array",
                 "items": {
                     "type": "object",
