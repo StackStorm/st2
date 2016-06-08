@@ -148,10 +148,14 @@ def _get_parent_execution(child_liveaction_db):
 def update_execution(liveaction_db, publish=True):
     execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
     decomposed = _decompose_liveaction(liveaction_db)
+
     kw = {}
     for k, v in six.iteritems(decomposed):
         kw['set__' + k] = v
+
     if liveaction_db.status != execution.status:
+        # Note: If the status changes we store this transition in the "log" attribute of action
+        # execution
         kw['push__log'] = _create_execution_log_entry(liveaction_db.status)
     execution = ActionExecution.update(execution, publish=publish, **kw)
     return execution
