@@ -56,7 +56,8 @@ in development
   action execution. (new feature)
 * Add a work-around for trigger creation which would case rule creation for CronTrigger to fail
   under some circumstances. (workaround, bug-fix)
-* Add event log for execution record. (new feature)
+* Store action execution state transitions (event log) in the ``log`` attribute on the
+  ActionExecution object. (new feature)
 
 1.4.0 - April 18, 2016
 ----------------------
