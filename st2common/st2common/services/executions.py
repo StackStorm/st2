@@ -56,7 +56,10 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-SKIPPED = ['id', 'callback', 'action', 'runner_info', 'parameters', 'notify']
+# Attributes which are stored in the "liveaction" dictionary when composing LiveActionDB object
+# into a ActionExecution compatible dictionary.
+# Those attributes are LiveAction specified and are therefore stored in a "liveaction" key
+LIVEACTION_ATTRIBUTES = ['id', 'callback', 'action', 'runner_info', 'parameters', 'notify']
 
 
 def _decompose_liveaction(liveaction_db):
@@ -66,7 +69,7 @@ def _decompose_liveaction(liveaction_db):
     decomposed = {'liveaction': {}}
     liveaction_api = vars(LiveActionAPI.from_model(liveaction_db))
     for k in liveaction_api.keys():
-        if k in SKIPPED:
+        if k in LIVEACTION_ATTRIBUTES:
             decomposed['liveaction'][k] = liveaction_api[k]
         else:
             decomposed[k] = getattr(liveaction_db, k)
@@ -74,6 +77,9 @@ def _decompose_liveaction(liveaction_db):
 
 
 def _create_execution_log_entry(status):
+    """
+    Create execution log entry object for the provided execution status.
+    """
     return {
         'timestamp': date_utils.get_datetime_utc_now(),
         'status': status
