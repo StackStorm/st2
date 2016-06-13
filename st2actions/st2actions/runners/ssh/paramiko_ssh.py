@@ -118,10 +118,21 @@ class ParamikoSSHClient(object):
         self.logger = logging.getLogger(__name__)
 
         self.client = None
-        self.sftp = None
+        self.sftp_client = None
 
         self.bastion_client = None
         self.bastion_socket = None
+
+    @property
+    def sftp(self):
+        """
+        Method which lazily established SFTP connection if one is not established yet when this
+        parameter is accessed.
+        """
+        if not self.sftp_client:
+            self.sftp_client = self.client.open_sftp()
+
+        return self.sftp_client
 
     def connect(self):
         """
@@ -142,7 +153,6 @@ class ParamikoSSHClient(object):
             self.bastion_socket = transport.open_channel('direct-tcpip', real_addr, local_addr)
 
         self.client = self._connect(host=self.hostname, socket=self.bastion_socket)
-        self.sftp = self.client.open_sftp()
         return True
 
     def put(self, local_path, remote_path, mode=None, mirror_local_mode=False):
@@ -428,10 +438,13 @@ class ParamikoSSHClient(object):
         self.logger.debug('Closing server connection')
 
         self.client.close()
-        if self.sftp:
-            self.sftp.close()
+
+        if self.sftp_client:
+            self.sftp_client.close()
+
         if self.bastion_client:
             self.bastion_client.close()
+
         return True
 
     def _consume_stdout(self, chan):
