@@ -150,6 +150,8 @@ class TestShell(base.BaseCLITestCase):
     def test_action_execution(self):
         args_list = [
             ['execution', 'list'],
+            ['execution', 'list', '-a', 'all'],
+            ['execution', 'list', '--attr=all'],
             ['execution', 'get', '123'],
             ['execution', 'get', '123', '-d'],
             ['execution', 'get', '123', '-k', 'localhost.stdout'],
