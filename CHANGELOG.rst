@@ -58,6 +58,11 @@ in development
   under some circumstances. (workaround, bug-fix)
 * Store action execution state transitions (event log) in the ``log`` attribute on the
   ActionExecution object. (new feature)
+* Lazily establish SFTP connection inside the remote runner when and if SFTP connection is needed.
+  This way, remote runner should now also work under cygwin on Windows if SFTP related
+  functionality (file upload, directory upload, etc.) is not used. (improvement)
+
+  Reported by  Cody A. Ray
 
 1.4.0 - April 18, 2016
 ----------------------
