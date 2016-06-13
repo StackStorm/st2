@@ -58,6 +58,7 @@ in development
   under some circumstances. (workaround, bug-fix)
 * Store action execution state transitions (event log) in the ``log`` attribute on the
   ActionExecution object. (new feature)
+* Make sure ``-a all`` / ``--attr=all`` flag works for ``execution list`` command (bug-fix)
 
 1.4.0 - April 18, 2016
 ----------------------
