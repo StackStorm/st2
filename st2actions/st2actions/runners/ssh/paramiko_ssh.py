@@ -123,17 +123,6 @@ class ParamikoSSHClient(object):
         self.bastion_client = None
         self.bastion_socket = None
 
-    @property
-    def sftp(self):
-        """
-        Method which lazily established SFTP connection if one is not established yet when this
-        parameter is accessed.
-        """
-        if not self.sftp_client:
-            self.sftp_client = self.client.open_sftp()
-
-        return self.sftp_client
-
     def connect(self):
         """
         Connect to the remote node over SSH.
@@ -446,6 +435,17 @@ class ParamikoSSHClient(object):
             self.bastion_client.close()
 
         return True
+
+    @property
+    def sftp(self):
+        """
+        Method which lazily establishes SFTP connection if one is not established yet when this
+        variable is accessed.
+        """
+        if not self.sftp_client:
+            self.sftp_client = self.client.open_sftp()
+
+        return self.sftp_client
 
     def _consume_stdout(self, chan):
         """
