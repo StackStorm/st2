@@ -89,3 +89,7 @@ def delete_token(token):
         pass
     except Exception:
         raise
+
+
+def get_token(token):
+    return Token.get(token)

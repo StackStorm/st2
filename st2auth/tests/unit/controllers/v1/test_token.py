@@ -25,9 +25,9 @@ from oslo_config import cfg
 from tests.base import FunctionalTest
 from st2common.util import isotime
 from st2common.util import date as date_utils
-from st2common.models.db.auth import UserDB, TokenDB
+from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
 from st2common.models.api.auth import TokenAPI
-from st2common.persistence.auth import User, Token
+from st2common.persistence.auth import User, Token, ApiKey
 
 
 USERNAME = ''.join(random.choice(string.lowercase) for i in range(10))
@@ -135,4 +135,89 @@ class TestTokenController(FunctionalTest):
         response = self.app.post_json('/v1/tokens', {'ttl': -1}, expect_errors=True)
         self.assertEqual(response.status_int, 400)
         response = self.app.post_json('/v1/tokens', {'ttl': 0}, expect_errors=True)
+        self.assertEqual(response.status_int, 400)
+
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name=USERNAME)))
+    def test_token_get_unauthorized(self):
+        # Create a new token.
+        response = self.app.post_json('/v1/tokens', expect_errors=False)
+        token = str(response.json['token'])
+
+        # Verify the token. 401 is expected because an API key or token is not provided in header.
+        response = self.app.get('/v1/tokens/' + token, expect_errors=True)
+        self.assertEqual(response.status_int, 401)
+
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name=USERNAME)))
+    def test_token_get_unauthorized_bad_api_key(self):
+        # Create a new token.
+        response = self.app.post_json('/v1/tokens', expect_errors=False)
+        token = str(response.json['token'])
+
+        # Verify the token. 401 is expected because the API key is bad.
+        headers = {'St2-Api-Key': 'foobar'}
+        response = self.app.get('/v1/tokens/' + token, headers=headers, expect_errors=True)
+        self.assertEqual(response.status_int, 401)
+
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name=USERNAME)))
+    def test_token_get_unauthorized_bad_token(self):
+        # Create a new token.
+        response = self.app.post_json('/v1/tokens', expect_errors=False)
+        token = str(response.json['token'])
+
+        # Verify the token. 401 is expected because the token is bad.
+        headers = {'X-Auth-Token': 'foobar'}
+        response = self.app.get('/v1/tokens/' + token, headers=headers, expect_errors=True)
+        self.assertEqual(response.status_int, 401)
+
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name=USERNAME)))
+    @mock.patch.object(
+        ApiKey, 'get',
+        mock.MagicMock(return_value=ApiKeyDB(user=USERNAME, key_hash='foobar')))
+    def test_token_get_auth_with_api_key(self):
+        # Create a new token.
+        response = self.app.post_json('/v1/tokens', expect_errors=False)
+        token = str(response.json['token'])
+
+        # Verify the token. Use an API key to authenticate with the st2 auth get token endpoint.
+        headers = {'St2-Api-Key': 'foobar'}
+        response = self.app.get('/v1/tokens/' + token, headers=headers, expect_errors=False)
+        self.assertEqual(response.status_int, 200)
+
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name=USERNAME)))
+    def test_token_get_auth_with_token(self):
+        # Create a new token.
+        response = self.app.post_json('/v1/tokens', expect_errors=False)
+        token = str(response.json['token'])
+
+        # Verify the token. Use a token to authenticate with the st2 auth get token endpoint.
+        headers = {'X-Auth-Token': token}
+        response = self.app.get('/v1/tokens/' + token, headers=headers, expect_errors=False)
+        self.assertEqual(response.status_int, 200)
+
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name=USERNAME)))
+    @mock.patch.object(
+        ApiKey, 'get',
+        mock.MagicMock(return_value=ApiKeyDB(user=USERNAME, key_hash='foobar')))
+    @mock.patch.object(
+        Token, 'get',
+        mock.MagicMock(
+            return_value=TokenDB(
+                user=USERNAME, token='12345',
+                expiry=date_utils.get_datetime_utc_now())))
+    def test_token_get_unauthorized_bad_ttl(self):
+        # Verify the token. 400 is expected because the token has expired.
+        headers = {'St2-Api-Key': 'foobar'}
+        response = self.app.get('/v1/tokens/12345', headers=headers, expect_errors=True)
         self.assertEqual(response.status_int, 400)

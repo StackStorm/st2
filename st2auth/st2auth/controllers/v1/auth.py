@@ -20,10 +20,12 @@ from pecan import rest
 from six.moves import http_client
 from oslo_config import cfg
 
+from st2common.exceptions.auth import TokenNotFoundError, TokenExpiredError
 from st2common.exceptions.auth import TTLTooLargeException
 from st2common.models.api.base import jsexpose
 from st2common.models.api.auth import TokenAPI
-from st2common.services.access import create_token
+from st2common.services.access import create_token, get_token
+from st2common.util import date as date_utils
 from st2common import log as logging
 from st2auth.backends import get_backend_instance
 
@@ -46,6 +48,25 @@ class TokenController(rest.RestController):
             return self._handle_proxy_auth(request=request, **kwargs)
         elif cfg.CONF.auth.mode == 'standalone':
             return self._handle_standalone_auth(request=request, **kwargs)
+
+    @jsexpose(arg_types=[str])
+    def get_one(self, token):
+        try:
+            token_db = get_token(token)
+
+            # Check if token has expired.
+            if token_db.expiry < date_utils.get_datetime_utc_now():
+                raise TokenExpiredError()
+
+            return self._process_successful_response(
+                token=TokenAPI.from_model(token_db)
+            )
+        except TokenNotFoundError:
+            self._abort_request(status_code=http_client.NOT_FOUND, message='Invalid token.')
+        except TokenExpiredError:
+            self._abort_request(status_code=http_client.BAD_REQUEST, message='Token has expired.')
+        except Exception as e:
+            self._abort_request(status_code=http_client.INTERNAL_SERVER_ERROR, message='')
 
     def _handle_proxy_auth(self, request, **kwargs):
         remote_addr = pecan.request.headers.get('x-forwarded-for', pecan.request.remote_addr)

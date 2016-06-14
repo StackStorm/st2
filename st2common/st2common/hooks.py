@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import httplib
+import re
 import traceback
 import uuid
 
@@ -112,6 +113,12 @@ class AuthHook(PecanHook):
     def before(self, state):
         # OPTIONS requests doesn't need to be authenticated
         if state.request.method == 'OPTIONS':
+            return
+
+        # Token request is authenticated separately.
+        if (state.request.method == 'POST' and (
+                state.request.path == '/tokens' or
+                re.search('/v\d+/tokens$', state.request.path))):
             return
 
         user_db = self._validate_creds_and_get_user(request=state.request)
