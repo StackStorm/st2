@@ -31,8 +31,8 @@ from st2common.exceptions import auth as auth_exceptions
 from st2common.exceptions import rbac as rbac_exceptions
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.util import auth as auth_utils
 from st2common.util.jsonify import json_encode
-from st2common.util.auth import validate_token, validate_api_key
 from st2common.util.debugging import is_enabled as is_debugging_enabled
 from st2common.constants.api import REQUEST_ID_HEADER
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
@@ -203,19 +203,22 @@ class AuthHook(PecanHook):
         api_key_in_headers = headers.get(HEADER_API_KEY_ATTRIBUTE_NAME, None)
         api_key_in_query_params = query_params.get(QUERY_PARAM_API_KEY_ATTRIBUTE_NAME, None)
 
-        if (token_in_headers or token_in_query_params) and \
-           (api_key_in_headers or api_key_in_query_params):
+        if ((token_in_headers or token_in_query_params) and
+                (api_key_in_headers or api_key_in_query_params)):
             raise auth_exceptions.MultipleAuthSourcesError(
                 'Only one of Token or API key expected.')
 
         user = None
+
         if token_in_headers or token_in_query_params:
-            token_db = validate_token(token_in_headers=token_in_headers,
-                                      token_in_query_params=token_in_query_params)
+            token_db = auth_utils.validate_token_and_source(
+                token_in_headers=token_in_headers,
+                token_in_query_params=token_in_query_params)
             user = token_db.user
         elif api_key_in_headers or api_key_in_query_params:
-            api_key_db = validate_api_key(api_key_in_headers=api_key_in_headers,
-                                          api_key_query_params=api_key_in_query_params)
+            api_key_db = auth_utils.validate_api_key_and_source(
+                api_key_in_headers=api_key_in_headers,
+                api_key_query_params=api_key_in_query_params)
             user = api_key_db.user
         else:
             raise auth_exceptions.NoAuthSourceProvidedError('One of Token or API key required.')

@@ -31,6 +31,9 @@ from st2common.persistence.auth import User, Token, ApiKey
 
 
 USERNAME = ''.join(random.choice(string.lowercase) for i in range(10))
+TOKEN_DEFAULT_PATH = '/tokens'
+TOKEN_V1_PATH = '/v1/tokens'
+TOKEN_VERIFY_PATH = '/v1/tokens/validate'
 
 
 class TestTokenController(FunctionalTest):
@@ -71,7 +74,7 @@ class TestTokenController(FunctionalTest):
         tk = TokenAPI(user='stanley', token=uuid.uuid4().hex, expiry=None)
         self.assertRaises(ValueError, Token.add_or_update, TokenAPI.to_model(tk))
 
-    def _test_token_post(self, path='/v1/tokens'):
+    def _test_token_post(self, path=TOKEN_V1_PATH):
         ttl = cfg.CONF.auth.token_ttl
         timestamp = date_utils.get_datetime_utc_now()
         response = self.app.post_json(path, {}, expect_errors=False)
@@ -86,7 +89,7 @@ class TestTokenController(FunctionalTest):
 
     def test_token_post_unauthorized(self):
         type(pecan.request).remote_user = None
-        response = self.app.post_json('/v1/tokens', {}, expect_errors=True)
+        response = self.app.post_json(TOKEN_V1_PATH, {}, expect_errors=True)
         self.assertEqual(response.status_int, 401)
 
     @mock.patch.object(
@@ -108,14 +111,14 @@ class TestTokenController(FunctionalTest):
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_default_url_path(self):
-        self._test_token_post(path='/tokens')
+        self._test_token_post(path=TOKEN_DEFAULT_PATH)
 
     @mock.patch.object(
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_set_ttl(self):
         timestamp = date_utils.add_utc_tz(date_utils.get_datetime_utc_now())
-        response = self.app.post_json('/v1/tokens', {'ttl': 60}, expect_errors=False)
+        response = self.app.post_json(TOKEN_V1_PATH, {'ttl': 60}, expect_errors=False)
         expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=60)
         self.assertEqual(response.status_int, 201)
         actual_expiry = isotime.parse(response.json['expiry'])
@@ -127,7 +130,7 @@ class TestTokenController(FunctionalTest):
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_set_ttl_over_policy(self):
         ttl = cfg.CONF.auth.token_ttl
-        response = self.app.post_json('/v1/tokens', {'ttl': ttl + 60}, expect_errors=True)
+        response = self.app.post_json(TOKEN_V1_PATH, {'ttl': ttl + 60}, expect_errors=True)
         self.assertEqual(response.status_int, 400)
         message = 'TTL specified %s is greater than max allowed %s.' % (
                   ttl + 60, ttl
@@ -138,9 +141,9 @@ class TestTokenController(FunctionalTest):
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_set_bad_ttl(self):
-        response = self.app.post_json('/v1/tokens', {'ttl': -1}, expect_errors=True)
+        response = self.app.post_json(TOKEN_V1_PATH, {'ttl': -1}, expect_errors=True)
         self.assertEqual(response.status_int, 400)
-        response = self.app.post_json('/v1/tokens', {'ttl': 0}, expect_errors=True)
+        response = self.app.post_json(TOKEN_V1_PATH, {'ttl': 0}, expect_errors=True)
         self.assertEqual(response.status_int, 400)
 
     @mock.patch.object(
@@ -148,11 +151,11 @@ class TestTokenController(FunctionalTest):
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_get_unauthorized(self):
         # Create a new token.
-        response = self.app.post_json('/v1/tokens', expect_errors=False)
-        token = str(response.json['token'])
+        response = self.app.post_json(TOKEN_V1_PATH, expect_errors=False)
 
         # Verify the token. 401 is expected because an API key or token is not provided in header.
-        response = self.app.get('/v1/tokens/' + token, expect_errors=True)
+        data = {'token': str(response.json['token'])}
+        response = self.app.post_json(TOKEN_VERIFY_PATH, data, expect_errors=True)
         self.assertEqual(response.status_int, 401)
 
     @mock.patch.object(
@@ -160,12 +163,12 @@ class TestTokenController(FunctionalTest):
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_get_unauthorized_bad_api_key(self):
         # Create a new token.
-        response = self.app.post_json('/v1/tokens', expect_errors=False)
-        token = str(response.json['token'])
+        response = self.app.post_json(TOKEN_V1_PATH, expect_errors=False)
 
         # Verify the token. 401 is expected because the API key is bad.
         headers = {'St2-Api-Key': 'foobar'}
-        response = self.app.get('/v1/tokens/' + token, headers=headers, expect_errors=True)
+        data = {'token': str(response.json['token'])}
+        response = self.app.post_json(TOKEN_VERIFY_PATH, data, headers=headers, expect_errors=True)
         self.assertEqual(response.status_int, 401)
 
     @mock.patch.object(
@@ -173,12 +176,12 @@ class TestTokenController(FunctionalTest):
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_get_unauthorized_bad_token(self):
         # Create a new token.
-        response = self.app.post_json('/v1/tokens', expect_errors=False)
-        token = str(response.json['token'])
+        response = self.app.post_json(TOKEN_V1_PATH, expect_errors=False)
 
         # Verify the token. 401 is expected because the token is bad.
         headers = {'X-Auth-Token': 'foobar'}
-        response = self.app.get('/v1/tokens/' + token, headers=headers, expect_errors=True)
+        data = {'token': str(response.json['token'])}
+        response = self.app.post_json(TOKEN_VERIFY_PATH, data, headers=headers, expect_errors=True)
         self.assertEqual(response.status_int, 401)
 
     @mock.patch.object(
@@ -189,26 +192,28 @@ class TestTokenController(FunctionalTest):
         mock.MagicMock(return_value=ApiKeyDB(user=USERNAME, key_hash='foobar')))
     def test_token_get_auth_with_api_key(self):
         # Create a new token.
-        response = self.app.post_json('/v1/tokens', expect_errors=False)
-        token = str(response.json['token'])
+        response = self.app.post_json(TOKEN_V1_PATH, expect_errors=False)
 
         # Verify the token. Use an API key to authenticate with the st2 auth get token endpoint.
         headers = {'St2-Api-Key': 'foobar'}
-        response = self.app.get('/v1/tokens/' + token, headers=headers, expect_errors=False)
+        data = {'token': str(response.json['token'])}
+        response = self.app.post_json(TOKEN_VERIFY_PATH, data, headers=headers, expect_errors=True)
         self.assertEqual(response.status_int, 200)
+        self.assertTrue(response.json['valid'])
 
     @mock.patch.object(
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_get_auth_with_token(self):
         # Create a new token.
-        response = self.app.post_json('/v1/tokens', expect_errors=False)
-        token = str(response.json['token'])
+        response = self.app.post_json(TOKEN_V1_PATH, expect_errors=False)
 
         # Verify the token. Use a token to authenticate with the st2 auth get token endpoint.
-        headers = {'X-Auth-Token': token}
-        response = self.app.get('/v1/tokens/' + token, headers=headers, expect_errors=False)
+        headers = {'X-Auth-Token': str(response.json['token'])}
+        data = {'token': str(response.json['token'])}
+        response = self.app.post_json(TOKEN_VERIFY_PATH, data, headers=headers, expect_errors=True)
         self.assertEqual(response.status_int, 200)
+        self.assertTrue(response.json['valid'])
 
     @mock.patch.object(
         User, 'get_by_name',
@@ -221,9 +226,11 @@ class TestTokenController(FunctionalTest):
         mock.MagicMock(
             return_value=TokenDB(
                 user=USERNAME, token='12345',
-                expiry=date_utils.get_datetime_utc_now())))
+                expiry=date_utils.get_datetime_utc_now() - datetime.timedelta(minutes=1))))
     def test_token_get_unauthorized_bad_ttl(self):
         # Verify the token. 400 is expected because the token has expired.
         headers = {'St2-Api-Key': 'foobar'}
-        response = self.app.get('/v1/tokens/12345', headers=headers, expect_errors=True)
-        self.assertEqual(response.status_int, 400)
+        data = {'token': '12345'}
+        response = self.app.post_json(TOKEN_VERIFY_PATH, data, headers=headers, expect_errors=False)
+        self.assertEqual(response.status_int, 200)
+        self.assertFalse(response.json['valid'])
