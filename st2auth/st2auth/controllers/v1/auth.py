@@ -65,7 +65,7 @@ class TokenController(rest.RestController):
             self._abort_request(status_code=http_client.NOT_FOUND, message='Invalid token.')
         except TokenExpiredError:
             self._abort_request(status_code=http_client.BAD_REQUEST, message='Token has expired.')
-        except Exception as e:
+        except Exception:
             self._abort_request(status_code=http_client.INTERNAL_SERVER_ERROR, message='')
 
     def _handle_proxy_auth(self, request, **kwargs):
