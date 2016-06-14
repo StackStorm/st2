@@ -71,10 +71,10 @@ class TestTokenController(FunctionalTest):
         tk = TokenAPI(user='stanley', token=uuid.uuid4().hex, expiry=None)
         self.assertRaises(ValueError, Token.add_or_update, TokenAPI.to_model(tk))
 
-    def _test_token_post(self):
+    def _test_token_post(self, path='/v1/tokens'):
         ttl = cfg.CONF.auth.token_ttl
         timestamp = date_utils.get_datetime_utc_now()
-        response = self.app.post_json('/v1/tokens', {}, expect_errors=False)
+        response = self.app.post_json(path, {}, expect_errors=False)
         expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
         expected_expiry = date_utils.add_utc_tz(expected_expiry)
         self.assertEqual(response.status_int, 201)
@@ -103,6 +103,12 @@ class TestTokenController(FunctionalTest):
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     def test_token_post_existing_user(self):
         self._test_token_post()
+
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name=USERNAME)))
+    def test_token_post_default_url_path(self):
+        self._test_token_post(path='/tokens')
 
     @mock.patch.object(
         User, 'get_by_name',

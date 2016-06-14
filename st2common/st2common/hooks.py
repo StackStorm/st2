@@ -57,6 +57,9 @@ RESPONSE_LOGGING_CONTROLLER_NAME_BLACKLIST = [
     'FileController'  # file controller returns binary file data
 ]
 
+# Regex for the st2auth tokens endpoint (i.e. /tokens or /v1/tokens).
+AUTH_TOKENS_URL_REGEX = '^(?:/tokens|/v\d+/tokens)$'
+
 
 class CorsHook(PecanHook):
 
@@ -116,9 +119,8 @@ class AuthHook(PecanHook):
             return
 
         # Token request is authenticated separately.
-        if (state.request.method == 'POST' and (
-                state.request.path == '/tokens' or
-                re.search('/v\d+/tokens$', state.request.path))):
+        if (state.request.method == 'POST' and
+                re.search(AUTH_TOKENS_URL_REGEX, state.request.path)):
             return
 
         user_db = self._validate_creds_and_get_user(request=state.request)
