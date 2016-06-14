@@ -52,7 +52,12 @@ class RuleController(resource.ContentPackResourceController):
         'name': 'name',
         'pack': 'pack',
         'action': 'action.ref',
-        'trigger': 'trigger'
+        'trigger': 'trigger',
+        'enabled': 'enabled'
+    }
+
+    filter_transform_functions = {
+        'enabled': lambda value: True if value.lower() == 'true' else False
     }
 
     query_options = {
