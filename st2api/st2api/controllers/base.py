@@ -17,6 +17,8 @@ import six
 from pecan.rest import RestController
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 
+from st2api.controllers.controller_transforms import transform_to_bool
+
 __all__ = [
     'BaseRestControllerMixin'
 ]
@@ -59,6 +61,6 @@ class BaseRestControllerMixin(RestController):
         value = query_params.get(param_name, default_value)
 
         if param_type == 'bool' and isinstance(value, six.string_types):
-            value = value.lower() in ['1', 'true']
+            value = transform_to_bool(value)
 
         return value
