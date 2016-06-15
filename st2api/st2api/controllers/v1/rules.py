@@ -23,6 +23,7 @@ from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
 from st2api.controllers import resource
+from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.v1.ruleviews import RuleViewController
 from st2common.models.api.rule import RuleAPI
 from st2common.models.api.base import jsexpose
@@ -52,7 +53,12 @@ class RuleController(resource.ContentPackResourceController):
         'name': 'name',
         'pack': 'pack',
         'action': 'action.ref',
-        'trigger': 'trigger'
+        'trigger': 'trigger',
+        'enabled': 'enabled'
+    }
+
+    filter_transform_functions = {
+        'enabled': transform_to_bool
     }
 
     query_options = {
