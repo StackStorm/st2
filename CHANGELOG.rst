@@ -63,6 +63,7 @@ in development
   This way, remote runner should now also work under cygwin on Windows if SFTP related
   functionality (file upload, directory upload, etc.) is not used. (improvement)
   Reported by  Cody A. Ray
+* API and CLI allow rules to be filtered by their enable state. (improvement)
 
 1.4.0 - April 18, 2016
 ----------------------
