@@ -31,6 +31,7 @@
 import six
 
 from st2common import log as logging
+from st2common.util import date as date_utils
 from st2common.util import reference
 import st2common.util.action_db as action_utils
 from st2common.constants import action as action_constants
@@ -55,7 +56,10 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-SKIPPED = ['id', 'callback', 'action', 'runner_info', 'parameters']
+# Attributes which are stored in the "liveaction" dictionary when composing LiveActionDB object
+# into a ActionExecution compatible dictionary.
+# Those attributes are LiveAction specified and are therefore stored in a "liveaction" key
+LIVEACTION_ATTRIBUTES = ['id', 'callback', 'action', 'runner_info', 'parameters', 'notify']
 
 
 def _decompose_liveaction(liveaction_db):
@@ -65,11 +69,21 @@ def _decompose_liveaction(liveaction_db):
     decomposed = {'liveaction': {}}
     liveaction_api = vars(LiveActionAPI.from_model(liveaction_db))
     for k in liveaction_api.keys():
-        if k in SKIPPED:
+        if k in LIVEACTION_ATTRIBUTES:
             decomposed['liveaction'][k] = liveaction_api[k]
         else:
             decomposed[k] = getattr(liveaction_db, k)
     return decomposed
+
+
+def _create_execution_log_entry(status):
+    """
+    Create execution log entry object for the provided execution status.
+    """
+    return {
+        'timestamp': date_utils.get_datetime_utc_now(),
+        'status': status
+    }
 
 
 def create_execution_object(liveaction, publish=True):
@@ -105,6 +119,8 @@ def create_execution_object(liveaction, publish=True):
     if parent:
         attrs['parent'] = str(parent.id)
 
+    attrs['log'] = [_create_execution_log_entry(liveaction['status'])]
+
     execution = ActionExecutionDB(**attrs)
     execution = ActionExecution.add_or_update(execution, publish=publish)
 
@@ -132,9 +148,16 @@ def _get_parent_execution(child_liveaction_db):
 def update_execution(liveaction_db, publish=True):
     execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
     decomposed = _decompose_liveaction(liveaction_db)
+
+    kw = {}
     for k, v in six.iteritems(decomposed):
-        setattr(execution, k, v)
-    execution = ActionExecution.add_or_update(execution, publish=publish)
+        kw['set__' + k] = v
+
+    if liveaction_db.status != execution.status:
+        # Note: If the status changes we store this transition in the "log" attribute of action
+        # execution
+        kw['push__log'] = _create_execution_log_entry(liveaction_db.status)
+    execution = ActionExecution.update(execution, publish=publish, **kw)
     return execution
 
 

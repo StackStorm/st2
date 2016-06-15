@@ -17,14 +17,17 @@ import sys
 import json
 import argparse
 
+from oslo_config import cfg
+
 from st2common import log as logging
 from st2actions import config
 from st2actions.runners.pythonrunner import Action
 from st2actions.runners.utils import get_logger_for_python_runner_action
 from st2actions.runners.utils import get_action_class_instance
 from st2common.util import loader as action_loader
-from st2common.util.config_parser import ContentPackConfigParser
+from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
+from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.service_setup import db_setup
 from st2common.services.datastore import DatastoreService
 
@@ -58,18 +61,19 @@ class ActionService(object):
     def list_values(self, local=True, prefix=None):
         return self._datastore_service.list_values(local, prefix)
 
-    def get_value(self, name, local=True):
-        return self._datastore_service.get_value(name, local)
+    def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
+        return self._datastore_service.get_value(name, local, scope=scope, decrypt=decrypt)
 
-    def set_value(self, name, value, ttl=None, local=True):
-        return self._datastore_service.set_value(name, value, ttl, local)
+    def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
+        return self._datastore_service.set_value(name, value, ttl, local, scope=scope,
+            encrypt=encrypt)
 
-    def delete_value(self, name, local=True):
+    def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
         return self._datastore_service.delete_value(name, local)
 
 
 class PythonActionWrapper(object):
-    def __init__(self, pack, file_path, parameters=None, parent_args=None):
+    def __init__(self, pack, file_path, parameters=None, user=None, parent_args=None):
         """
         :param pack: Name of the pack this action belongs to.
         :type pack: ``str``
@@ -80,6 +84,9 @@ class PythonActionWrapper(object):
         :param parameters: action parameters.
         :type parameters: ``dict`` or ``None``
 
+        :param user: Name of the user who triggered this action execution.
+        :type user: ``str``
+
         :param parent_args: Command line arguments passed to the parent process.
         :type parse_args: ``list``
         """
@@ -87,6 +94,7 @@ class PythonActionWrapper(object):
         self._pack = pack
         self._file_path = file_path
         self._parameters = parameters or {}
+        self._user = user
         self._parent_args = parent_args or []
         self._class_name = None
         self._logger = logging.getLogger('PythonActionWrapper')
@@ -95,8 +103,13 @@ class PythonActionWrapper(object):
             config.parse_args(args=self._parent_args)
         except Exception:
             pass
-        else:
-            db_setup()
+
+        db_setup()
+
+        # Note: We can only set a default user value if one is not provided after parsing the
+        # config
+        if not self._user:
+            self._user = cfg.CONF.system_user.user
 
     def run(self):
         action = self._get_action_instance()
@@ -120,13 +133,11 @@ class PythonActionWrapper(object):
             raise Exception('File "%s" has no action or the file doesn\'t exist.' %
                             (self._file_path))
 
-        config_parser = ContentPackConfigParser(pack_name=self._pack)
-        config = config_parser.get_action_config(action_file_path=self._file_path)
+        config_loader = ContentPackConfigLoader(pack_name=self._pack, user=self._user)
+        config = config_loader.get_config()
 
         if config:
-            LOG.info('Using config "%s" for action "%s"' % (config.file_path,
-                                                            self._file_path))
-            config = config.config
+            LOG.info('Found config for action "%s"' % (self._file_path))
         else:
             LOG.info('No config found for action "%s"' % (self._file_path))
             config = None
@@ -146,12 +157,15 @@ if __name__ == '__main__':
                         help='Path to the action module')
     parser.add_argument('--parameters', required=False,
                         help='Serialized action parameters')
+    parser.add_argument('--user', required=False,
+                        help='User who triggered the action execution')
     parser.add_argument('--parent-args', required=False,
                         help='Command line arguments passed to the parent process')
     args = parser.parse_args()
 
     parameters = args.parameters
     parameters = json.loads(parameters) if parameters else {}
+    user = args.user
     parent_args = json.loads(args.parent_args) if args.parent_args else []
 
     assert isinstance(parent_args, list)
@@ -159,6 +173,7 @@ if __name__ == '__main__':
     obj = PythonActionWrapper(pack=args.pack,
                               file_path=args.file_path,
                               parameters=parameters,
+                              user=user,
                               parent_args=parent_args)
 
     obj.run()

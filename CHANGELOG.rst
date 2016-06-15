@@ -27,15 +27,45 @@ in development
 * Add ``get_fixture_content`` method to all the base pack resource test classes. This method
   enforces fixture files location and allows user to load raw fixture content from a file on disk.
   (new feature)
-* Introduce a new concept of pack config schemas. Each pack can now contain a
-  ``config.schema.yaml`` file. This file can contain an optional schema for the pack config. In the
   future, pack configs will be validated against the schema (if available). (new feature)
 * Add data model and API changes for supporting user scoped variables. (new-feature, experimental)
 * Add missing `pytz` dependency to ``st2client`` requirements file. (bug-fix)
-* Add ``--register-triggers`` flag to the ``register-content`` script and ``st2ctl``.
+* Fix datastore access on Python runner actions (set ``ST2_AUTH_TOKEN`` and ``ST2_API_URL`` env
+  variables in Python runner actions to match sensors). (bug-fix)
+* Remove support for JSON format for resource metadata files. YAML was introduced and support for
+  JSON has been deprecated in StackStorm v0.6. Now the only supported metadata file format is YAML.
+* Add ``-y`` / ``--yaml`` flag to the CLI ``list`` and ``get`` commands. If this flag is provided,
+  command response will be formatted as YAML. (new feature)
+* Alias names are now correctly scoped to a pack. This means the same name for alias can be used
+  across different packs. (bug-fix)
+* Ability to migrate api keys to new installs. (new feature)
+* Introduce a new concept of pack config schemas. Each pack can now contain a
+  ``config.schema.yaml`` file. This file can contain an optional schema for the pack config. In the
+* Introduce support for pack configs which are located outside of the pack directory in
+  ``/opt/stackstorm/configs/<pack name>.yaml`` files. Those files are similar to the existing pack
+  configs, but in addition to the static values they can also contain dynamic values. Dynamic value
+  is a value which contains a Jinja expression which is resolved to the datastore item during
+  run-time. (new feature)
+* Fix a regression in filtering rules by pack with CLI. (bug-fix)
+* Make sure `st2-submit-debug-info` cleans up after itself and deletes a temporary directory it
+  creates. (improvement) #2714
+  [Kale Blankenship]
+* Fix string parameter casting - leave actual ``None`` value as-is and don't try to cast it to a
+  string which would fail. (bug-fix, improvement)
+* Allow administrator user who's context will be used when running an action or re-running an
+  action execution. (new feature)
+* Add a work-around for trigger creation which would case rule creation for CronTrigger to fail
+  under some circumstances. (workaround, bug-fix)
+* Store action execution state transitions (event log) in the ``log`` attribute on the
+  ActionExecution object. (new feature)
+* Make sure ``-a all`` / ``--attr=all`` flag works for ``st2 execution list`` command (bug-fix)
+* Lazily establish SFTP connection inside the remote runner when and if SFTP connection is needed.
+  This way, remote runner should now also work under cygwin on Windows if SFTP related
+  functionality (file upload, directory upload, etc.) is not used. (improvement)
+  Reported by  Cody A. Ray
+* Add ``--register-triggers`` flag to the ``st2-register-content`` script and ``st2ctl``.
   When this flag is provided, all triggers contained within a pack triggers directory are
   registered, consistent with the behavior of sensors, actions, etc. (new-feature) [Cody A. Ray]
-
 
 1.4.0 - April 18, 2016
 ----------------------

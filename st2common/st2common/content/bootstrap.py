@@ -32,6 +32,7 @@ import st2common.bootstrap.policiesregistrar as policies_registrar
 import st2common.bootstrap.runnersregistrar as runners_registrar
 import st2common.bootstrap.rulesregistrar as rules_registrar
 import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
+import st2common.bootstrap.configsregistrar as configs_registrar
 import st2common.content.utils as content_utils
 from st2common.util.virtualenvs import setup_pack_virtualenv
 
@@ -53,9 +54,12 @@ def register_opts():
         cfg.BoolOpt('rules', default=False, help='Register rules.'),
         cfg.BoolOpt('aliases', default=False, help='Register aliases.'),
         cfg.BoolOpt('policies', default=False, help='Register policies.'),
+        cfg.BoolOpt('configs', default=False, help='Register and load pack configs.'),
+
         cfg.StrOpt('pack', default=None, help='Directory to the pack to register content from.'),
         cfg.BoolOpt('setup-virtualenvs', default=False, help=('Setup Python virtual environments '
                                                               'all the Python runner actions.')),
+
         cfg.BoolOpt('fail-on-failure', default=False, help=('Exit with non-zero of resource '
                                                             'registration fails.'))
     ]
@@ -272,6 +276,28 @@ def register_policies():
     LOG.info('Registered %s policies.', registered_count)
 
 
+def register_configs():
+    pack_dir = cfg.CONF.register.pack
+    fail_on_failure = cfg.CONF.register.fail_on_failure
+
+    registered_count = 0
+
+    try:
+        LOG.info('=========================================================')
+        LOG.info('############## Registering configs ######################')
+        LOG.info('=========================================================')
+        registered_count = configs_registrar.register_configs(pack_dir=pack_dir,
+                                                              fail_on_failure=fail_on_failure)
+    except Exception as e:
+        exc_info = not fail_on_failure
+        LOG.warning('Failed to register configs: %s', e, exc_info=exc_info)
+
+        if fail_on_failure:
+            raise e
+
+    LOG.info('Registered %s configs.' % (registered_count))
+
+
 def register_content():
     register_all = cfg.CONF.register.all
 
@@ -282,6 +308,7 @@ def register_content():
         register_rules()
         register_aliases()
         register_policies()
+        register_configs()
 
     if cfg.CONF.register.triggers and not register_all:
         register_triggers()
@@ -300,6 +327,9 @@ def register_content():
 
     if cfg.CONF.register.policies and not register_all:
         register_policies()
+
+    if cfg.CONF.register.configs and not register_all:
+        register_configs()
 
     if cfg.CONF.register.setup_virtualenvs:
         setup_virtualenvs()

@@ -450,3 +450,68 @@ class ParamikoSSHClientTests(unittest2.TestCase):
             pass
         stderr = mock._consume_stderr(chan)
         self.assertEqual(u'\U00010348', stderr.getvalue())
+
+    @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_consume_stdout',
+                  MagicMock(return_value=StringIO('')))
+    @patch.object(ParamikoSSHClient, '_consume_stderr',
+                  MagicMock(return_value=StringIO('')))
+    @patch.object(os.path, 'exists', MagicMock(return_value=True))
+    @patch.object(os, 'stat', MagicMock(return_value=None))
+    def test_sftp_connection_is_only_established_if_required(self):
+        # Verify that SFTP connection is lazily established only if and when needed.
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu'}
+
+        # Verify sftp connection and client hasn't been established yet
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+
+        self.assertTrue(client.sftp_client is None)
+
+        # run method doesn't require sftp access so it shouldn't establish connection
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+        client.run(cmd='whoami')
+
+        self.assertTrue(client.sftp_client is None)
+
+        # Methods bellow require SFTP access so they should cause SFTP connection to be established
+        # put
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+        path = '/root/random_script.sh'
+        client.put(path, path, mirror_local_mode=False)
+
+        self.assertTrue(client.sftp_client is not None)
+
+        # exists
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+        client.exists('/root/somepath.txt')
+
+        self.assertTrue(client.sftp_client is not None)
+
+        # mkdir
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+        client.mkdir('/root/somedirfoo')
+
+        self.assertTrue(client.sftp_client is not None)
+
+        # Verify close doesn't throw if SFTP connection is not established
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+
+        self.assertTrue(client.sftp_client is None)
+        client.close()
+
+        # Verify SFTP connection is closed if it's opened
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+        client.mkdir('/root/somedirfoo')
+
+        self.assertTrue(client.sftp_client is not None)
+        client.close()
+
+        self.assertEqual(client.sftp_client.close.call_count, 1)

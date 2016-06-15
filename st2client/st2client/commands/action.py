@@ -395,6 +395,7 @@ class ActionRunCommandMixin(object):
             self.print_output(child_instances, table.MultiColumnTable,
                               attributes=['id', 'status', 'task', 'action', 'start_timestamp'],
                               widths=args.width, json=args.json,
+                              yaml=args.yaml,
                               attribute_transform_functions=self.attribute_transform_functions)
 
     def _get_execution_result(self, execution, action_exec_mgr, args, **kwargs):
@@ -408,7 +409,7 @@ class ActionRunCommandMixin(object):
         if not args.async:
             while execution.status in pending_statuses:
                 time.sleep(self.poll_interval)
-                if not args.json:
+                if not args.json and not args.yaml:
                     sys.stdout.write('.')
                     sys.stdout.flush()
                 execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
@@ -819,6 +820,8 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
                                           'which are accessible to the CLI as "env" '
                                           'parameter to the action. Note: Only works '
                                           'with python, local and remote runners.')
+            self.parser.add_argument('-u', '--user', type=str, default=None,
+                                           help='User under which to run the action (admins only).')
 
         if self.name == 'run':
             self.parser.set_defaults(async=False)
@@ -848,6 +851,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         execution = models.LiveAction()
         execution.action = action_ref
         execution.parameters = action_parameters
+        execution.user = args.user
 
         if not args.trace_id and args.trace_tag:
             execution.context = {'trace_context': {'trace_tag': args.trace_tag}}
@@ -984,13 +988,14 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
     def run_and_print(self, args, **kwargs):
         instances = format_wf_instances(self.run(args, **kwargs))
 
-        if not args.json:
+        if not args.json and not args.yaml:
             # Include elapsed time for running executions
             instances = format_execution_statuses(instances)
 
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json,
+                          yaml=args.yaml,
                           attribute_transform_functions=self.attribute_transform_functions)
 
 
@@ -1027,7 +1032,7 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadComman
         try:
             execution = self.run(args, **kwargs)
 
-            if not args.json:
+            if not args.json and not args.yaml:
                 # Include elapsed time for running executions
                 execution = format_execution_status(execution)
         except resource.ResourceNotFoundError:

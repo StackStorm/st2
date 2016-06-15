@@ -82,7 +82,7 @@ class BaseCLITestCase(unittest2.TestCase):
 
         # Setup environment
         for var in ['ST2_BASE_URL', 'ST2_AUTH_URL', 'ST2_API_URL',
-                    'ST2_AUTH_TOKEN', 'ST2_CONFIG_FILE']:
+                    'ST2_AUTH_TOKEN', 'ST2_CONFIG_FILE', 'ST2_API_KEY']:
             if var in os.environ:
                 del os.environ[var]
 

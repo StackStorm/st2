@@ -172,8 +172,10 @@ class ResourceRegistrar(object):
             # Note: Config schema is optional
             return None
 
-        content = self._meta_loader.load(config_schema_path)
+        content = {}
+        values = self._meta_loader.load(config_schema_path)
         content['pack'] = pack_name
+        content['attributes'] = values
 
         config_schema_api = ConfigSchemaAPI(**content)
         config_schema_db = ConfigSchemaAPI.to_model(config_schema_api)

@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import os
+import copy
+import datetime
 
 from keyczar.keys import AesKey
 from oslo_config import cfg
@@ -29,6 +30,11 @@ from st2common.util.crypto import symmetric_encrypt, symmetric_decrypt
 from st2common.models.api.base import BaseAPI
 from st2common.models.system.keyvalue import UserKeyReference
 from st2common.models.db.keyvalue import KeyValuePairDB
+
+__all__ = [
+    'KeyValuePairAPI',
+    'KeyValuePairSetAPI'
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -85,6 +91,10 @@ class KeyValuePairAPI(BaseAPI):
 
     @staticmethod
     def _setup_crypto():
+        if KeyValuePairAPI.crypto_setup:
+            # Crypto already set up
+            return
+
         LOG.info('Checking if encryption is enabled for key-value store.')
         KeyValuePairAPI.is_encryption_enabled = cfg.CONF.keyvalue.enable_encryption
         LOG.debug('Encryption enabled? : %s', KeyValuePairAPI.is_encryption_enabled)
@@ -181,3 +191,21 @@ class KeyValuePairAPI(BaseAPI):
                           expire_timestamp=expire_timestamp)
 
         return model
+
+
+class KeyValuePairSetAPI(KeyValuePairAPI):
+    """
+    API model for key value set operations.
+    """
+
+    schema = copy.deepcopy(KeyValuePairAPI.schema)
+    schema['properties']['ttl'] = {
+        'description': 'Items TTL',
+        'type': 'integer'
+    }
+    schema['properties']['user'] = {
+        'description': ('User to which the value should be scoped to. Only applicable to '
+                        'scope == user'),
+        'type': 'string',
+        'default': None
+    }

@@ -102,14 +102,19 @@ class ApiKeyController(RestController):
     @request_user_has_resource_api_permission(permission_type=PermissionType.API_KEY_CREATE)
     def post(self, api_key_api):
         """
-        Create a new entry or update an existing one.
+        Create a new entry.
         """
         api_key_db = None
+        api_key = None
         try:
-            api_key_api.user = self._get_user()
-            api_key, api_key_hash = auth_util.generate_api_key_and_hash()
-            # store key_hash in DB
-            api_key_api.key_hash = api_key_hash
+            if not getattr(api_key_api, 'user', None):
+                api_key_api.user = self._get_user()
+            # If key_hash is provided use that and do not create a new key. The assumption
+            # is user already has the original api-key
+            if not getattr(api_key_api, 'key_hash', None):
+                api_key, api_key_hash = auth_util.generate_api_key_and_hash()
+                # store key_hash in DB
+                api_key_api.key_hash = api_key_hash
             api_key_db = ApiKey.add_or_update(ApiKeyAPI.to_model(api_key_api))
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for api_key data=%s.', api_key_api)

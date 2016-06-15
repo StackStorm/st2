@@ -39,6 +39,8 @@ def add_auth_token_to_kwargs_from_cli(func):
         ns = args[1]
         if getattr(ns, 'token', None):
             kwargs['token'] = ns.token
+        if getattr(ns, 'api_key', None):
+            kwargs['api_key'] = ns.api_key
         return func(*args, **kwargs)
     return decorate
 
@@ -118,10 +120,18 @@ class ResourceCommand(commands.Command):
                                      help='Access token for user authentication. '
                                           'Get ST2_AUTH_TOKEN from the environment '
                                           'variables by default.')
+            self.parser.add_argument('--api-key', dest='api_key',
+                                     help='Api Key for user authentication. '
+                                          'Get ST2_API_KEY from the environment '
+                                          'variables by default.')
 
+        # Formatter flags
         self.parser.add_argument('-j', '--json',
                                  action='store_true', dest='json',
                                  help='Prints output in JSON format.')
+        self.parser.add_argument('-y', '--yaml',
+                                 action='store_true', dest='yaml',
+                                 help='Prints output in YAML format.')
 
     @property
     def manager(self):
@@ -251,7 +261,7 @@ class ResourceListCommand(ResourceCommand):
         instances = self.run(args, **kwargs)
         self.print_output(instances, table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
-                          json=args.json)
+                          json=args.json, yaml=args.yaml)
 
 
 class ContentPackResourceListCommand(ResourceListCommand):
@@ -307,7 +317,7 @@ class ResourceGetCommand(ResourceCommand):
         try:
             instance = self.run(args, **kwargs)
             self.print_output(instance, table.PropertyValueTable,
-                              attributes=args.attr, json=args.json,
+                              attributes=args.attr, json=args.json, yaml=args.yaml,
                               attribute_display_order=self.attribute_display_order)
         except ResourceNotFoundError:
             resource_id = getattr(args, self.pk_argument_name, None)
@@ -344,7 +354,7 @@ class ResourceCreateCommand(ResourceCommand):
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        data = _load_meta_file(args.file)
+        data = load_meta_file(args.file)
         instance = self.resource.deserialize(data)
         return self.manager.create(instance, **kwargs)
 
@@ -354,7 +364,7 @@ class ResourceCreateCommand(ResourceCommand):
             if not instance:
                 raise Exception('Server did not create instance.')
             self.print_output(instance, table.PropertyValueTable,
-                              attributes=['all'], json=args.json)
+                              attributes=['all'], json=args.json, yaml=args.yaml)
         except Exception as e:
             message = e.message or str(e)
             print('ERROR: %s' % (message))
@@ -385,7 +395,7 @@ class ResourceUpdateCommand(ResourceCommand):
     def run(self, args, **kwargs):
         resource_id = getattr(args, self.pk_argument_name, None)
         instance = self.get_resource(resource_id, **kwargs)
-        data = _load_meta_file(args.file)
+        data = load_meta_file(args.file)
         modified_instance = self.resource.deserialize(data)
 
         if not getattr(modified_instance, 'id', None):
@@ -402,7 +412,7 @@ class ResourceUpdateCommand(ResourceCommand):
         instance = self.run(args, **kwargs)
         try:
             self.print_output(instance, table.PropertyValueTable,
-                              attributes=['all'], json=args.json)
+                              attributes=['all'], json=args.json, yaml=args.yaml)
         except Exception as e:
             print('ERROR: %s' % e.message)
             raise OperationFailureException(e.message)
@@ -447,7 +457,7 @@ class ResourceEnableCommand(ResourceCommand):
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
-                          attributes=['all'], json=args.json)
+                          attributes=['all'], json=args.json, yaml=args.yaml)
 
 
 class ContentPackResourceEnableCommand(ResourceEnableCommand):
@@ -489,7 +499,7 @@ class ResourceDisableCommand(ResourceCommand):
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
         self.print_output(instance, table.PropertyValueTable,
-                          attributes=['all'], json=args.json)
+                          attributes=['all'], json=args.json, yaml=args.yaml)
 
 
 class ContentPackResourceDisableCommand(ResourceDisableCommand):
@@ -538,7 +548,7 @@ class ContentPackResourceDeleteCommand(ResourceDeleteCommand):
     pk_argument_name = 'ref_or_id'
 
 
-def _load_meta_file(file_path):
+def load_meta_file(file_path):
     if not os.path.isfile(file_path):
         raise Exception('File "%s" does not exist.' % file_path)
 

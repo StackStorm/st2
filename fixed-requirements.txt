@@ -1,6 +1,9 @@
 # Packages versions fixed for the whole st2 stack
 eventlet>=0.18.4,<0.19
 gunicorn>=19.4.5,<20.0
+kombu>=3.0.35,<3.1
+# Note: amqp is used by kombu
+amqp>=1.4.9,<2.0
 oslo.config>=1.12.1,<1.13
 oslo.utils<3.1.0
 six==1.9.0
@@ -23,6 +26,7 @@ bencode>=1.0,<1.1
 paramiko>=1.16.0,<1.17
 networkx==1.10
 python-keyczar==0.715
+retrying>=1.3,<1.4
 # Note: We want to use virtualenv 13.1.2 since it uses pip 7.1.2 and versions
 # >= 14.0 use pip 8.8.0 which is incompatible with our code
 virtualenv>=13.1.2,<14.0

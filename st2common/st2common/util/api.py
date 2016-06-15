@@ -115,8 +115,8 @@ def get_exception_for_type_error(func, exc):
 
     # Note: Those checks are hacky, but it's better than having no checks and silently
     # accepting invalid requests
-    invalid_num_args_pattern = ('%s\(\) takes (exactly|at most) \d+ arguments \(\d+ given\)' %
-                                (func_name))
+    invalid_num_args_pattern = ('%s\(\) takes %s \d+ arguments \(\d+ given\)' %
+                                (func_name, '(exactly|at most|at least)'))
     unexpected_keyword_arg_pattern = ('%s\(\) got an unexpected keyword argument \'(.*?)\'' %
                                       (func_name))
 

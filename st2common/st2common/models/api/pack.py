@@ -14,13 +14,19 @@
 # limitations under the License.
 
 from st2common.util import schema as util_schema
+from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.keyvalue import USER_SCOPE
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
 from st2common.models.db.pack import ConfigSchemaDB
+from st2common.models.db.pack import ConfigDB
 
 __all__ = [
     'PackAPI',
-    'ConfigSchemaAPI'
+    'ConfigSchemaAPI',
+    'ConfigAPI',
+
+    'ConfigItemSetAPI'
 ]
 
 
@@ -83,7 +89,6 @@ class PackAPI(BaseAPI):
 
         model = cls.model(name=name, description=description, ref=ref, keywords=keywords,
                           version=version, author=author, email=email, files=files)
-
         return model
 
 
@@ -120,5 +125,77 @@ class ConfigSchemaAPI(BaseAPI):
         attributes = config_schema.attributes
 
         model = cls.model(pack=pack, attributes=attributes)
-
         return model
+
+
+class ConfigAPI(BaseAPI):
+    model = ConfigDB
+    schema = {
+        "title": "Config",
+        "description": "Pack config.",
+        "type": "object",
+        "properties": {
+            "id": {
+                "description": "The unique identifier for the config.",
+                "type": "string"
+            },
+            "pack": {
+                "description": "The content pack this config belongs to.",
+                "type": "string"
+            },
+            "values": {
+                "description": "Config values.",
+                "type": "object",
+                "default": {}
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, config):
+        pack = config.pack
+        values = config.values
+
+        model = cls.model(pack=pack, values=values)
+        return model
+
+
+class ConfigItemSetAPI(BaseAPI):
+    """
+    API class used with the config set API endpoint.
+    """
+    model = None
+    schema = {
+        "title": "",
+        "description": "",
+        "type": "object",
+        "properties": {
+            "name": {
+                "description": "Config item name (key)",
+                "type": "string",
+                "required": True
+            },
+            "value": {
+                "description": "Config item value.",
+                "type": ["string", "number", "boolean", "array", "object"],
+                "required": True
+            },
+            "scope": {
+                "description": "Config item scope (system / user)",
+                "type": "string",
+                "default": SYSTEM_SCOPE,
+                "enum": [
+                    SYSTEM_SCOPE,
+                    USER_SCOPE
+                ]
+            },
+            "user": {
+                "description": "User for user-scoped items (only available to admins).",
+                "type": "string",
+                "required": False,
+                "default": None
+            }
+        },
+        "additionalProperties": False
+    }

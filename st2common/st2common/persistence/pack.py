@@ -16,10 +16,12 @@
 from st2common.persistence import base
 from st2common.models.db.pack import pack_access
 from st2common.models.db.pack import config_schema_access
+from st2common.models.db.pack import config_access
 
 __all__ = [
     'Pack',
-    'ConfigSchema'
+    'ConfigSchema',
+    'Config'
 ]
 
 
@@ -33,6 +35,14 @@ class Pack(base.Access):
 
 class ConfigSchema(base.Access):
     impl = config_schema_access
+
+    @classmethod
+    def _get_impl(cls):
+        return cls.impl
+
+
+class Config(base.Access):
+    impl = config_access
 
     @classmethod
     def _get_impl(cls):

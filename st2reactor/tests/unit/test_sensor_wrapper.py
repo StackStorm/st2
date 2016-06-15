@@ -26,6 +26,18 @@ class SensorWrapperTestCase(unittest2.TestCase):
         super(SensorWrapperTestCase, cls).setUpClass()
         tests_config.parse_args()
 
+    def test_sensor_instance_has_sensor_service(self):
+        file_path = os.path.join(RESOURCES_DIR, 'test_sensor.py')
+        trigger_types = ['trigger1', 'trigger2']
+        parent_args = ['--config-file', TESTS_CONFIG_PATH]
+
+        wrapper = SensorWrapper(pack='core', file_path=file_path,
+                                class_name='TestSensor',
+                                trigger_types=trigger_types,
+                                parent_args=parent_args)
+        self.assertTrue(getattr(wrapper._sensor_instance, 'sensor_service', None) is not None)
+        self.assertTrue(getattr(wrapper._sensor_instance, 'config', None) is not None)
+
     def test_trigger_cud_event_handlers(self):
         file_path = os.path.join(RESOURCES_DIR, 'test_sensor.py')
         trigger_types = ['trigger1', 'trigger2']

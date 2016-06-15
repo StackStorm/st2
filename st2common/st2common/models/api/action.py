@@ -35,6 +35,7 @@ __all__ = [
     'ActionAPI',
     'ActionCreateAPI',
     'LiveActionAPI',
+    'LiveActionCreateAPI',
     'RunnerTypeAPI'
 ]
 
@@ -408,6 +409,18 @@ class LiveActionAPI(BaseAPI):
                           callback=callback, result=result, notify=notify)
 
         return model
+
+
+class LiveActionCreateAPI(LiveActionAPI):
+    """
+    API model for action execution create (run action) operations.
+    """
+    schema = copy.deepcopy(LiveActionAPI.schema)
+    schema['properties']['user'] = {
+        'description': 'User context under which action should run (admins only)',
+        'type': 'string',
+        'default': None
+    }
 
 
 class ActionExecutionStateAPI(BaseAPI):

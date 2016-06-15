@@ -124,7 +124,7 @@ class TriggerInstanceListCommand(resource.ResourceCommand):
         instances = self.run(args, **kwargs)
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
-                          json=args.json,
+                          json=args.json, yaml=args.yaml,
                           attribute_transform_functions=self.attribute_transform_functions)
 
 
