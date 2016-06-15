@@ -139,12 +139,6 @@ class TriggersRegistrar(ResourceRegistrar):
         if not entry_point:
             raise ValueError('Trigger definition missing entry_point')
 
-        triggers_dir = os.path.dirname(trigger_metadata_file_path)
-        trigger_file_path = os.path.join(triggers_dir, entry_point)
-        artifact_uri = 'file://%s' % (trigger_file_path)
-        content['artifact_uri'] = artifact_uri
-        content['entry_point'] = entry_point
-
         trigger_api = TriggerTypeAPI(**content)
         trigger_model = TriggerTypeAPI.to_model(trigger_api)
 
