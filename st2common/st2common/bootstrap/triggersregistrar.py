@@ -135,10 +135,6 @@ class TriggersRegistrar(ResourceRegistrar):
             raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
                             (pack, pack_field))
 
-        entry_point = content.get('entry_point', None)
-        if not entry_point:
-            raise ValueError('Trigger definition missing entry_point')
-
         trigger_api = TriggerTypeAPI(**content)
         trigger_model = TriggerTypeAPI.to_model(trigger_api)
 
