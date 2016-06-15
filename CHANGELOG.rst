@@ -65,7 +65,8 @@ in development
   Reported by  Cody A. Ray
 * Add ``--register-triggers`` flag to the ``st2-register-content`` script and ``st2ctl``.
   When this flag is provided, all triggers contained within a pack triggers directory are
-  registered, consistent with the behavior of sensors, actions, etc. (new-feature) [Cody A. Ray]
+  registered, consistent with the behavior of sensors, actions, etc. This feature allows users
+  to register trigger types outside the scope of the sensors. (new-feature) [Cody A. Ray]
 
 1.4.0 - April 18, 2016
 ----------------------
