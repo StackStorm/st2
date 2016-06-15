@@ -116,12 +116,16 @@ class TestRuleController(FunctionalTest):
         # enabled=True
         resp = self.app.get('/v1/rules?enabled=True')
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertEqual(self.__get_rule_id(post_resp_rule_1), resp.json[0]['id'])
+        rule = resp.json[0]
+        self.assertEqual(self.__get_rule_id(post_resp_rule_1), rule['id'])
+        self.assertEqual(rule['enabled'], True)
 
         # enabled=False
         resp = self.app.get('/v1/rules?enabled=False')
         self.assertEqual(resp.status_int, http_client.OK)
-        self.assertEqual(self.__get_rule_id(post_resp_rule_3), resp.json[0]['id'])
+        rule = resp.json[0]
+        self.assertEqual(self.__get_rule_id(post_resp_rule_3), rule['id'])
+        self.assertEqual(rule['enabled'], False)
 
         self.__do_delete(self.__get_rule_id(post_resp_rule_1))
         self.__do_delete(self.__get_rule_id(post_resp_rule_3))
