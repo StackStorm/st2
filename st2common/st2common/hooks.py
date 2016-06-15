@@ -57,7 +57,7 @@ RESPONSE_LOGGING_CONTROLLER_NAME_BLACKLIST = [
     'FileController'  # file controller returns binary file data
 ]
 
-# Regex for the st2auth tokens endpoint (i.e. /tokens or /v1/tokens).
+# Regex for the st2 auth tokens endpoint (i.e. /tokens or /v1/tokens).
 AUTH_TOKENS_URL_REGEX = '^(?:/tokens|/v\d+/tokens)$'
 
 
