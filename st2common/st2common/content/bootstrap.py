@@ -125,8 +125,8 @@ def register_triggers():
         LOG.info('=========================================================')
         LOG.info('############## Registering triggers #####################')
         LOG.info('=========================================================')
-        registered_count = triggers_registrar.register_sensors(pack_dir=pack_dir,
-                                                               fail_on_failure=fail_on_failure)
+        registered_count = triggers_registrar.register_triggers(pack_dir=pack_dir,
+                                                                fail_on_failure=fail_on_failure)
     except Exception as e:
         exc_info = not fail_on_failure
         LOG.warning('Failed to register sensors: %s', e, exc_info=exc_info)
