@@ -32,10 +32,10 @@ class TriggersRegistrarTestCase(CleanDbTestCase):
 
         packs_base_path = get_fixtures_base_path()
         count = triggers_registrar.register_triggers(packs_base_paths=[packs_base_path])
-        self.assertEqual(count, 2)
+        self.assertEqual(count, 3)
 
         trigger_type_dbs = TriggerType.get_all()
-        self.assertEqual(len(trigger_type_dbs), 2)
+        self.assertEqual(len(trigger_type_dbs), 3)
 
     def test_register_triggers_from_pack(self):
         base_path = get_fixtures_base_path()
@@ -45,9 +45,13 @@ class TriggersRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(len(trigger_type_dbs), 0)
 
         count = triggers_registrar.register_triggers(pack_dir=pack_dir)
-        self.assertEqual(count, 1)
+        self.assertEqual(count, 2)
 
         trigger_type_dbs = TriggerType.get_all()
-        self.assertEqual(len(trigger_type_dbs), 1)
+        self.assertEqual(len(trigger_type_dbs), 2)
         self.assertEqual(trigger_type_dbs[0].name, 'event_handler')
         self.assertEqual(trigger_type_dbs[0].pack, 'dummy_pack_1')
+
+        self.assertEqual(trigger_type_dbs[1].name, 'head_sha_monitor')
+        self.assertEqual(trigger_type_dbs[1].pack, 'dummy_pack_1')
+        self.assertEqual(trigger_type_dbs[1].payload_schema['type'], 'object')
