@@ -93,6 +93,20 @@ class ParallelSSHTests(unittest2.TestCase):
             client._hosts_client[hostname].client.connect.assert_called_once_with(**expected_conn)
 
     @patch('paramiko.SSHClient', Mock)
+    def test_connect_with_bastion(self):
+        hosts = ['localhost', '127.0.0.1']
+        client = ParallelSSHClient(hosts=hosts,
+                                   user='ubuntu',
+                                   pkey_file='~/.ssh/id_rsa',
+                                   bastion_host='testing_bastion_host',
+                                   connect=False)
+        client.connect()
+
+        for host in hosts:
+            hostname, _ = client._get_host_port_info(host)
+            self.assertEqual(client._hosts_client[hostname].bastion_host, 'testing_bastion_host')
+
+    @patch('paramiko.SSHClient', Mock)
     @patch.object(ParamikoSSHClient, 'run', MagicMock(return_value=('/home/ubuntu', '', 0)))
     def test_run_command(self):
         hosts = ['localhost', '127.0.0.1', 'st2build001']
