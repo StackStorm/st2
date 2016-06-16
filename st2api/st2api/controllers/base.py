@@ -19,6 +19,7 @@ from oslo_config import cfg
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 
 from st2api.controllers.controller_transforms import transform_to_bool
+from st2common.rbac.utils import request_user_is_admin
 
 __all__ = [
     'BaseRestControllerMixin'

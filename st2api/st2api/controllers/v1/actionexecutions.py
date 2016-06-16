@@ -20,7 +20,6 @@ import sys
 import traceback
 
 import jsonschema
-from oslo_config import cfg
 import pecan
 from pecan import abort
 from six.moves import http_client
@@ -44,7 +43,6 @@ from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.services import trace as trace_service
-from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
