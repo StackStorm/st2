@@ -66,6 +66,8 @@ in development
 * API and CLI allow rules to be filtered by their enable state. (improvement)
 * Fix SSH bastion host support by ensuring the bastion parameter is passed to the paramiko ssh
   client. (bug-fix) #2543 [Adam Mielke]
+* Send out a clear error message when SSH private key is passphrase protected but user fails to
+  supply passphrase with private_key when running a remote SSH action. (improvement)
 
 1.4.0 - April 18, 2016
 ----------------------
