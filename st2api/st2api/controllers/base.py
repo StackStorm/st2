@@ -74,14 +74,14 @@ class BaseRestControllerMixin(RestController):
         Return a value for mask_secrets which can be used in masking secret properties
         to be retruned by any API. The default value is as per the config however admin
         users have the ability to override by passing in a special query parameter
-        show_secrets.
+        ?show_secrets=True.
 
         :param request: Request object.
 
         :rtype: ``bool``
         """
         mask_secrets = cfg.CONF.api.mask_secrets
-        show_secrets_param = self._get_query_param_value(request=request,
+        show_secrets = self._get_query_param_value(request=request,
                                                    param_name=SHOW_SECRETS_QUERY_PARAM,
                                                    param_type='bool',
                                                    default_value=False)

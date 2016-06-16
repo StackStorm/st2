@@ -69,10 +69,6 @@ SUPPORTED_EXECUTIONS_FILTERS.update({
     'timestamp_lt': 'start_timestamp.lt'
 })
 
-# Name of the query parameter for toggling on the display of secrets to the admin users in the API
-# responses
-SHOW_SECRETS_QUERY_PARAM = 'show_secrets'
-
 MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
 

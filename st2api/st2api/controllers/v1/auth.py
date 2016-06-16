@@ -18,9 +18,9 @@ import six
 
 from oslo_config import cfg
 from pecan import abort
-from pecan.rest import RestController
 from mongoengine import ValidationError
 
+from st2api.controllers.base import BaseRestControllerMixin
 from st2common import log as logging
 from st2common.models.api.auth import ApiKeyAPI, ApiKeyCreateResponseAPI
 from st2common.models.api.base import jsexpose
@@ -42,7 +42,7 @@ __all__ = [
 ]
 
 
-class ApiKeyController(RestController):
+class ApiKeyController(BaseRestControllerMixin):
     """
     Implements the REST endpoint for managing the key value store.
     """
