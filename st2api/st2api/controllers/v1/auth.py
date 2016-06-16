@@ -77,7 +77,7 @@ class ApiKeyController(RestController):
             abort(http_client.NOT_FOUND, msg)
 
         try:
-            return ApiKeyAPI.from_model(api_key_db, mask_secrets=True)
+            return ApiKeyAPI.from_model(api_key_db, mask_secrets=cfg.CONF.api.mask_secrets)
         except (ValidationError, ValueError) as e:
             LOG.exception('Failed to serialize API key.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
@@ -93,7 +93,7 @@ class ApiKeyController(RestController):
         """
 
         api_key_dbs = ApiKey.get_all(**kw)
-        api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=True)
+        api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=cfg.CONF.api.mask_secrets)
                     for api_key_db in api_key_dbs]
 
         return api_keys
