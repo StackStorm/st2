@@ -15,6 +15,7 @@
 
 import six
 from pecan.rest import RestController
+from oslo_config import cfg
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 
 from st2api.controllers.controller_transforms import transform_to_bool
