@@ -66,6 +66,8 @@ in development
 * API and CLI allow rules to be filtered by their enable state. (improvement)
 * Fix SSH bastion host support by ensuring the bastion parameter is passed to the paramiko ssh
   client. (bug-fix) #2543 [Adam Mielke]
+* Admins will now be able pass ``--show_secrets`` when listing apikeys to get the ``key_hash``
+  un-masked on the CLI. (new-feature)
 
 1.4.0 - April 18, 2016
 ----------------------
