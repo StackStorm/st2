@@ -20,7 +20,7 @@ from oslo_config import cfg
 from pecan import abort
 from mongoengine import ValidationError
 
-from st2api.controllers.base import BaseRestControllerMixin
+from st2api.controllers.base import BaseRestControllerMixin, SHOW_SECRETS_QUERY_PARAM
 from st2common import log as logging
 from st2common.models.api.auth import ApiKeyAPI, ApiKeyCreateResponseAPI
 from st2common.models.api.base import jsexpose
@@ -92,7 +92,7 @@ class ApiKeyController(BaseRestControllerMixin):
             Handles requests:
                 GET /keys/
         """
-        mask_secrets = self._get_mask_secrets(pecan.request)
+        mask_secrets, kw = self._get_mask_secrets_ex(**kw)
         api_key_dbs = ApiKey.get_all(**kw)
         api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
                     for api_key_db in api_key_dbs]
@@ -193,3 +193,12 @@ class ApiKeyController(BaseRestControllerMixin):
 
         user_db = auth_context.get('user', None)
         return user_db.name if user_db else cfg.CONF.system_user.user
+
+    def _get_mask_secrets_ex(self, **kw):
+        """
+        Allowing SHOW_SECRETS_QUERY_PARAM to remain in the parameters causes downstream
+        lookup failures there removing. This is a pretty hackinsh way to manage query params.
+        """
+        mask_secrets = self._get_mask_secrets(pecan.request)
+        kw.pop(SHOW_SECRETS_QUERY_PARAM, None)
+        return mask_secrets, kw

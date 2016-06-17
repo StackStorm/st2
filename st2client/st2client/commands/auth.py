@@ -100,12 +100,20 @@ class ApiKeyListCommand(resource.ResourceListCommand):
                                  help='Only return ApiKeys belonging to the provided user')
         self.parser.add_argument('-d', '--detail', action='store_true',
                                  help='Full list of attributes.')
+        self.parser.add_argument('--show-secrets', action='store_true',
+                                 help='Full list of attributes.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         filters = {}
         filters['user'] = args.user
         filters.update(**kwargs)
+        # show_secrets is not a filter but a query param. There is some special
+        # handling for filters in the get method which reuqires this odd hack.
+        if args.show_secrets:
+            params = filters.get('params', {})
+            params['show_secrets'] = True
+            filters['params'] = params
         return self.manager.get_all(**filters)
 
     def run_and_print(self, args, **kwargs):

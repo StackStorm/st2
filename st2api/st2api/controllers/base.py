@@ -22,7 +22,8 @@ from st2api.controllers.controller_transforms import transform_to_bool
 from st2common.rbac.utils import request_user_is_admin
 
 __all__ = [
-    'BaseRestControllerMixin'
+    'BaseRestControllerMixin',
+    'SHOW_SECRETS_QUERY_PARAM'
 ]
 
 
