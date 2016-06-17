@@ -68,6 +68,8 @@ in development
   client. (bug-fix) #2543 [Adam Mielke]
 * Send out a clear error message when SSH private key is passphrase protected but user fails to
   supply passphrase with private_key when running a remote SSH action. (improvement)
+* Admins will now be able pass ``--show_secrets`` when listing apikeys to get the ``key_hash``
+  un-masked on the CLI. (new-feature)
 
 1.4.0 - April 18, 2016
 ----------------------
