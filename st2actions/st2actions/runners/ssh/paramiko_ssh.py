@@ -557,8 +557,9 @@ class ParamikoSSHClient(object):
             try:
                 paramiko.RSAKey.from_private_key_file(self.key_files)
             except paramiko.ssh_exception.PasswordRequiredException:
-                msg = ('Private key file %s is passphrase protected. Supply a passphrase!' %
+                msg = ('Private key file %s is passphrase protected. Supply a passphrase.' %
                        self.key_files)
+                self.logger.exception(msg)
                 raise Exception(msg)
 
             if self.passphrase:
