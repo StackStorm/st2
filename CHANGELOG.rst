@@ -64,6 +64,8 @@ in development
   functionality (file upload, directory upload, etc.) is not used. (improvement)
   Reported by  Cody A. Ray
 * API and CLI allow rules to be filtered by their enable state. (improvement)
+* Admins will now be able pass ``--show_secrets`` when listing apikeys to get the ``key_hash``
+  un-masked on the CLI. (new-feature)
 
 1.4.0 - April 18, 2016
 ----------------------
