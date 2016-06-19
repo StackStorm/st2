@@ -63,6 +63,13 @@ in development
   This way, remote runner should now also work under cygwin on Windows if SFTP related
   functionality (file upload, directory upload, etc.) is not used. (improvement)
   Reported by  Cody A. Ray
+* API and CLI allow rules to be filtered by their enable state. (improvement)
+* Fix SSH bastion host support by ensuring the bastion parameter is passed to the paramiko ssh
+  client. (bug-fix) #2543 [Adam Mielke]
+* Send out a clear error message when SSH private key is passphrase protected but user fails to
+  supply passphrase with private_key when running a remote SSH action. (improvement)
+* Admins will now be able pass ``--show_secrets`` when listing apikeys to get the ``key_hash``
+  un-masked on the CLI. (new-feature)
 * Add ``--register-triggers`` flag to the ``st2-register-content`` script and ``st2ctl``.
   When this flag is provided, all triggers contained within a pack triggers directory are
   registered, consistent with the behavior of sensors, actions, etc. This feature allows users

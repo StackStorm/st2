@@ -233,6 +233,7 @@ class ParallelSSHClient(object):
 
         client = ParamikoSSHClient(hostname, username=self._ssh_user,
                                    password=self._ssh_password,
+                                   bastion_host=self._bastion_host,
                                    key_files=self._ssh_key_file,
                                    key_material=self._ssh_key_material,
                                    passphrase=self._passphrase,
@@ -244,7 +245,6 @@ class ParallelSSHClient(object):
             LOG.exception(error)
             if raise_on_any_error:
                 raise
-            error = ' '.join([self.CONNECT_ERROR, str(ex)])
             error_dict = self._generate_error_result(exc=ex, message=error)
             self._bad_hosts[hostname] = error_dict
             results[hostname] = error_dict

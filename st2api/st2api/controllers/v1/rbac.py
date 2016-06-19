@@ -17,6 +17,7 @@ import copy
 
 from pecan import rest
 
+from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.base import jsexpose
 from st2common.models.api.rbac import RoleAPI
@@ -39,7 +40,7 @@ class RolesController(ResourceController):
     }
 
     filter_transform_functions = {
-        'system': lambda value: value in ['1', 'true', 'True']
+        'system': transform_to_bool
     }
 
     query_options = {

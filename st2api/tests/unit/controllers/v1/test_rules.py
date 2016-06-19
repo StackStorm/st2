@@ -99,8 +99,36 @@ class TestRuleController(FunctionalTest):
         super(TestRuleController, cls).setUpClass()
 
     def test_get_all(self):
+        post_resp_rule_1 = self.__do_post(TestRuleController.RULE_1)
+        post_resp_rule_3 = self.__do_post(TestRuleController.RULE_3)
+
         resp = self.app.get('/v1/rules')
         self.assertEqual(resp.status_int, http_client.OK)
+        self.assertEqual(len(resp.json), 2)
+
+        self.__do_delete(self.__get_rule_id(post_resp_rule_1))
+        self.__do_delete(self.__get_rule_id(post_resp_rule_3))
+
+    def test_get_all_enabled(self):
+        post_resp_rule_1 = self.__do_post(TestRuleController.RULE_1)
+        post_resp_rule_3 = self.__do_post(TestRuleController.RULE_3)
+
+        # enabled=True
+        resp = self.app.get('/v1/rules?enabled=True')
+        self.assertEqual(resp.status_int, http_client.OK)
+        rule = resp.json[0]
+        self.assertEqual(self.__get_rule_id(post_resp_rule_1), rule['id'])
+        self.assertEqual(rule['enabled'], True)
+
+        # enabled=False
+        resp = self.app.get('/v1/rules?enabled=False')
+        self.assertEqual(resp.status_int, http_client.OK)
+        rule = resp.json[0]
+        self.assertEqual(self.__get_rule_id(post_resp_rule_3), rule['id'])
+        self.assertEqual(rule['enabled'], False)
+
+        self.__do_delete(self.__get_rule_id(post_resp_rule_1))
+        self.__do_delete(self.__get_rule_id(post_resp_rule_3))
 
     def test_get_one_by_id(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)

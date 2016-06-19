@@ -20,7 +20,6 @@ import sys
 import traceback
 
 import jsonschema
-from oslo_config import cfg
 import pecan
 from pecan import abort
 from six.moves import http_client
@@ -44,7 +43,6 @@ from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.services import trace as trace_service
-from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
@@ -69,10 +67,6 @@ SUPPORTED_EXECUTIONS_FILTERS.update({
     'timestamp_lt': 'start_timestamp.lt'
 })
 
-# Name of the query parameter for toggling on the display of secrets to the admin users in the API
-# responses
-SHOW_SECRETS_QUERY_PARAM = 'show_secrets'
-
 MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
 
@@ -95,17 +89,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         """
         Set mask_secrets=False if the user is an admin and provided ?show_secrets=True query param.
         """
-        from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
-
-        show_secrets = self._get_query_param_value(request=request,
-                                                   param_name=SHOW_SECRETS_QUERY_PARAM,
-                                                   param_type='bool',
-                                                   default_value=False)
-
-        if show_secrets and request_user_is_admin(request=request):
-            from_model_kwargs['mask_secrets'] = False
-
-        return from_model_kwargs
+        return {'mask_secrets': self._get_mask_secrets(request)}
 
     def _handle_schedule_execution(self, liveaction_api):
         """
