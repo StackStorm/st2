@@ -68,7 +68,7 @@ in development
   client. (bug-fix) #2543 [Adam Mielke]
 * Send out a clear error message when SSH private key is passphrase protected but user fails to
   supply passphrase with private_key when running a remote SSH action. (improvement)
-* Admins will now be able pass ``--show_secrets`` when listing apikeys to get the ``key_hash``
+* Admins will now be able pass ``--show-secrets`` when listing api keys to get the ``key_hash``
   un-masked on the CLI. (new-feature)
 * Add ``--register-triggers`` flag to the ``st2-register-content`` script and ``st2ctl``.
   When this flag is provided, all triggers contained within a pack triggers directory are
