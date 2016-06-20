@@ -114,12 +114,17 @@ function reopen_component_log_files() {
 }
 
 function register_content() {
-  ALLOWED_REGISTER_FLAGS='--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --register-triggers --register-setup-virtualenvs --register-fail-on-failure --verbose'
-  DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors --register-triggers --register-configs'
+  ALLOWED_REGISTER_FLAGS='--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --register-configs --register-setup-virtualenvs --register-fail-on-failure --verbose'
+  DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors --register-configs'
+  SUDO_FLAGS='--register-setup-virtualenvs'
   flags="${@}"
 
   if [ ! -z ${1} ]; then
     for flag in ${flags}; do
+      if [[ " ${SUDO_FLAGS} " == *" $flag "* && "$(id -u)" != "0" ]]; then
+        echo -e "\e[31mError: Sudo Required for: ${flag} \e[0m\n"
+        exit 1
+      fi
       if [[ " ${ALLOWED_REGISTER_FLAGS} " != *" $flag "* ]]; then # argument not allowed
         echo -e "\e[31mError: Invalid flag provided: ${flag} \e[0m\n"
         print_usage
