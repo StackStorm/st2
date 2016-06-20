@@ -18,6 +18,7 @@ import os
 import six
 
 from st2common import log as logging
+from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
 import st2common.content.utils as content_utils
 from st2common.models.api.sensor import SensorTypeAPI
@@ -34,10 +35,7 @@ PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)))
 
 
 class SensorsRegistrar(ResourceRegistrar):
-    ALLOWED_EXTENSIONS = [
-        '.yaml',
-        '.yml'
-    ]
+    ALLOWED_EXTENSIONS = ALLOWED_EXTS
 
     def register_sensors_from_packs(self, base_dirs):
         """

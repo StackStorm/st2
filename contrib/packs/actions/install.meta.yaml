@@ -24,8 +24,8 @@
       default: false
     register:
       type: "string"
-      default: "actions,aliases,sensors"
-      description: "Possible options are all, sensors, actions, rules, aliases."
+      default: "actions,aliases,sensors,triggers"
+      description: "Possible options are all, triggers, sensors, actions, rules, aliases."
     env:
       type: "object"
       description: "Optional environment variables"

@@ -26,6 +26,7 @@ function print_usage() {
     echo "Usage: st2ctl {reload, clean}"
     echo "optional arguments:"
     echo "  --register-all                Register all."
+    echo "  --register-triggers           Register all triggers."
     echo "  --register-sensors            Register all sensors."
     echo "  --register-rules              Register all rules."
     echo "  --register-actions            Register all actions."
@@ -113,8 +114,8 @@ function reopen_component_log_files() {
 }
 
 function register_content() {
-  ALLOWED_REGISTER_FLAGS='--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --register-configs --register-setup-virtualenvs --register-fail-on-failure --verbose'
-  DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors --register-configs'
+  ALLOWED_REGISTER_FLAGS=(--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --register-triggers --register-setup-virtualenvs --register-fail-on-failure --verbose)
+  DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors --register-triggers --register-configs'
   flags="${@}"
 
   if [ ! -z ${1} ]; then

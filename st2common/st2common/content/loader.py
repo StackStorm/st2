@@ -39,7 +39,14 @@ class ContentPackLoader(object):
     # TODO: Rename "get_content" methods since they don't actually return
     # content - they just return a path
 
-    ALLOWED_CONTENT_TYPES = ['sensors', 'actions', 'rules', 'aliases', 'policies']
+    ALLOWED_CONTENT_TYPES = [
+        'triggers',
+        'sensors',
+        'actions',
+        'rules',
+        'aliases',
+        'policies'
+    ]
 
     def get_packs(self, base_dirs):
         """
@@ -152,7 +159,9 @@ class ContentPackLoader(object):
         return content
 
     def _get_content_from_pack_dir(self, pack_dir, content_type):
-        if content_type == 'sensors':
+        if content_type == 'triggers':
+            get_func = self._get_triggers
+        elif content_type == 'sensors':
             get_func = self._get_sensors
         elif content_type == 'actions':
             get_func = self._get_actions
@@ -170,6 +179,9 @@ class ContentPackLoader(object):
 
         pack_content = get_func(pack_dir=pack_dir)
         return pack_content
+
+    def _get_triggers(self, pack_dir):
+        return self._get_folder(pack_dir=pack_dir, content_type='triggers')
 
     def _get_sensors(self, pack_dir):
         return self._get_folder(pack_dir=pack_dir, content_type='sensors')
