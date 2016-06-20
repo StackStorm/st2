@@ -1,3 +1,0 @@
-st2reactor usr/lib/python2.7/dist-packages/
-conf/* etc/st2reactor/
-bin/* usr/bin/

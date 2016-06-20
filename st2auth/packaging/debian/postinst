@@ -1,5 +1,0 @@
-#!/bin/bash
-
-if [ -d /etc/st2auth ]; then
-  sed -i -r "s~logs~/var/log/st2~g" /etc/st2auth/logging.conf
-fi

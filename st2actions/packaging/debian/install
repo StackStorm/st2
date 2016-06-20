@@ -1,5 +1,0 @@
-st2actions usr/lib/python2.7/dist-packages/
-st2actions usr/lib/python2.7/dist-packages/
-conf/* etc/st2actions/
-bin usr/lib/python2.7/dist-packages/st2actions/
-bin/* usr/bin/
