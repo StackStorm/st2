@@ -127,7 +127,7 @@ class ResourceController(rest.RestController):
         for k, v in six.iteritems(self.supported_filters):
             filter_value = kwargs.get(k, None)
 
-            if filter_value is None:
+            if not filter_value:
                 continue
 
             value_transform_function = self.filter_transform_functions.get(k, None)
