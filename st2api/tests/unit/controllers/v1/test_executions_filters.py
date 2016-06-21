@@ -215,6 +215,19 @@ class TestActionExecutionFilters(FunctionalTest):
             retrieved += ids
         self.assertListEqual(sorted(retrieved), sorted(self.refs.keys()))
 
+    def test_ui_history_query(self):
+        # In this test we only care about making sure this exact query works. This query is used
+        # by the webui for the history page so it is special and breaking this is bad.
+        limit = 50
+        history_query = '/v1/executions?limit={}&parent=null&exclude_attributes=' \
+                        'result%2Ctrigger_instance&status=&action=&trigger_type=&rule=&' \
+                        'offset=0'.format(limit)
+        response = self.app.get(history_query)
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        self.assertEqual(len(response.json), limit)
+        self.assertTrue(response.headers['X-Total-Count'] > limit)
+
     def test_datetime_range(self):
         dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'
         response = self.app.get('/v1/executions?timestamp=%s' % dt_range)
