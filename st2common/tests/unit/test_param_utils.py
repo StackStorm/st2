@@ -32,11 +32,7 @@ from st2tests.fixturesloader import FixturesLoader
 FIXTURES_PACK = 'generic'
 
 TEST_MODELS = {
-    'actions': [
-        'action_4_action_context_param.yaml',
-        'action_system_default.yaml',
-        'action_user_default.yaml'
-    ],
+    'actions': ['action_4_action_context_param.yaml', 'action_system_default.yaml'],
     'runners': ['testrunner1.yaml']
 }
 
@@ -48,7 +44,6 @@ FIXTURES = FixturesLoader().load_models(fixtures_pack=FIXTURES_PACK,
 class ParamsUtilsTest(DbTestCase):
     action_db = FIXTURES['actions']['action_4_action_context_param.yaml']
     action_system_default_db = FIXTURES['actions']['action_system_default.yaml']
-    action_user_default_db = FIXTURES['actions']['action_user_default.yaml']
     runnertype_db = FIXTURES['runners']['testrunner1.yaml']
 
     def test_get_finalized_params(self):
@@ -118,23 +113,6 @@ class ParamsUtilsTest(DbTestCase):
         # Asserts for action params.
         self.assertEqual(action_params.get('actionstr'), 'foo')
         self.assertEqual(action_params.get('actionnumber'), 1.0)
-
-    def test_get_finalized_params_user_values(self):
-        KeyValuePair.add_or_update(KeyValuePairDB(name='stanley:foo', value='kabaali',
-                                                  scope='user'))
-        params = {
-            'runnerint': 555
-        }
-        liveaction_db = self._get_liveaction_model(params)
-        liveaction_db.context['user'] = 'stanley'
-
-        runner_params, action_params = param_utils.get_finalized_params(
-            ParamsUtilsTest.runnertype_db.runner_parameters,
-            ParamsUtilsTest.action_user_default_db.parameters,
-            liveaction_db.parameters,
-            liveaction_db.context)
-
-        self.assertEqual(action_params.get('actionstr'), 'kabaali')
 
     def test_get_finalized_params_action_immutable(self):
         params = {
