@@ -1,5 +1,0 @@
-#!/bin/bash
-
-if [ -d /etc/st2api ]; then
-  sed -i -r "s~logs~/var/log/st2~g" /etc/st2api/logging.conf
-fi
