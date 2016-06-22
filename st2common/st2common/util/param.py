@@ -19,9 +19,9 @@ import networkx as nx
 from jinja2 import meta
 from st2common import log as logging
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
-from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE, SYSTEM_SCOPE
+from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE, SYSTEM_SCOPE, USER_SCOPE
 from st2common.exceptions.param import ParamException
-from st2common.services.keyvalues import KeyValueLookup
+from st2common.services.keyvalues import KeyValueLookup, UserKeyValueLookup
 from st2common.util.casts import get_cast
 from st2common.util.compat import to_unicode
 from st2common.util import jinja as jinja_utils
@@ -74,8 +74,17 @@ def _create_graph(action_context):
     Creates a generic directed graph for depencency tree and fills it with basic context variables
     '''
     G = nx.DiGraph()
+    user = action_context.get('user', None)
     G.add_node(SYSTEM_SCOPE, value=KeyValueLookup(scope=SYSTEM_SCOPE))
-    system_keyvalue_context = {SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)}
+    system_keyvalue_context = {
+        SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+    }
+
+    if user:
+        G.add_node(USER_SCOPE, value=UserKeyValueLookup(scope=USER_SCOPE, user=user))
+        system_keyvalue_context.update({
+            USER_SCOPE: UserKeyValueLookup(scope=USER_SCOPE, user=user)
+        })
     G.add_node(DATASTORE_PARENT_SCOPE, value=system_keyvalue_context)
     G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
     return G
