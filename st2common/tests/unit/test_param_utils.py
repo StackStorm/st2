@@ -358,14 +358,32 @@ class ParamsUtilsTest(DbTestCase):
             'r1': '{{r2}}',
             'r2': ['1', '2'],
             'a1': True,
-            'a2': '{{a1}}'
+            'a2': 'Test',
+            'a3': 'Test2',
+            'a4': '{{a1}}',
+            'a5': ['{{a2}}', '{{a3}}']
         }
         runner_param_info = {'r1': {'type': 'array'}, 'r2': {'type': 'array'}}
-        action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'boolean'}}
+        action_param_info = {
+            'a1': {'type': 'boolean'},
+            'a2': {'type': 'string'},
+            'a3': {'type': 'string'},
+            'a4': {'type': 'boolean'},
+            'a5': {'type': 'array'}
+        }
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, {})
         self.assertEqual(r_runner_params, {'r1': ['1', '2'], 'r2': ['1', '2']})
-        self.assertEqual(r_action_params, {'a1': True, 'a2': True})
+        self.assertEqual(
+            r_action_params,
+            {
+                'a1': True,
+                'a2': 'Test',
+                'a3': 'Test2',
+                'a4': True,
+                'a5': ['Test', 'Test2']
+            }
+        )
 
     def test_get_finalized_params_with_cyclic_dependency(self):
         params = {'r1': '{{r2}}', 'r2': '{{r1}}'}

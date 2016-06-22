@@ -145,7 +145,15 @@ def _resolve_dependencies(G):
     for name in nx.topological_sort(G):
         node = G.node[name]
         try:
-            context[name] = _render(node, context)
+            if 'template' in node and isinstance(node.get('template', None), list):
+                rendered_list = list()
+                for template in G.node[name]['template']:
+                    rendered_list.append(
+                        _render(dict(template=template), context)
+                    )
+                context[name] = rendered_list
+            else:
+                context[name] = _render(node, context)
         except Exception as e:
             LOG.debug('Failed to render %s: %s', name, e, exc_info=True)
             msg = 'Failed to render parameter "%s": %s' % (name, str(e))
