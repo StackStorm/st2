@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 import traceback as tb
 
 from st2common import config
@@ -43,8 +44,9 @@ def migrate_datastore():
                                         scope=scope)
             KeyValuePair.add_or_update(new_kvp_db)
     except:
-        print('Error trying to migrate KeyValuePair item with name: %s' % kvp.name)
+        print('ERROR: Failed migrating datastore item with name: %s' % kvp.name)
         tb.print_exc()
+        raise
 
 
 def main():
@@ -54,11 +56,17 @@ def main():
     db_setup()
 
     # Migrate rules.
-    migrate_datastore()
+    try:
+        migrate_datastore()
+        print('SUCCESS: Datastore items migrated successfully.')
+        exit_code = 0
+    except:
+        print('ABORTED: Datastore migration aborted on first failure.')
+        exit_code = 1
 
     # Disconnect from db.
     db_teardown()
-
+    sys.exit(exit_code)
 
 if __name__ == '__main__':
     main()
