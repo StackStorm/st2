@@ -119,7 +119,7 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(action_params.get('actionstr'), 'foo')
         self.assertEqual(action_params.get('actionnumber'), 1.0)
 
-    def test_get_finalized_parsms_user_values(self):
+    def test_get_finalized_params_user_values(self):
         KeyValuePair.add_or_update(KeyValuePairDB(name='stanley:foo', value='kabaali',
                                                   scope='user'))
         params = {
