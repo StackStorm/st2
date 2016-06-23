@@ -78,9 +78,6 @@ in development
   When this flag is provided, all triggers contained within a pack triggers directory are
   registered, consistent with the behavior of sensors, actions, etc. This feature allows users
   to register trigger types outside the scope of the sensors. (new-feature) [Cody A. Ray]
-* Allow user scoped variables to be used as values for parameters in action execution API call.
-  This also means you can use user scoped variables as values for parameters when you run actions
-  from CLI or UI. For example, you can now use ``st2 run core.local date='{{user.date_cmd}}'``. (bug-fix)
 
 1.4.0 - April 18, 2016
 ----------------------
