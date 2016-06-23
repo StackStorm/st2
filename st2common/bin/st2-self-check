@@ -32,22 +32,13 @@ done
 shift $(($OPTIND-1))
 
 ## Script to install samples, tests, and run all workflows in tests pack.
+if [[ `id -u` != 0 ]]; then
+  echo "st2-self-check must be run as root"
+  exit 1
+fi
+
 ERRORS=0
 PACKS="tests examples"
-
-#Determine Distro
-DEBTEST=`lsb_release -a 2> /dev/null | grep Distributor | awk '{print $3}'`
-
-if [[ "$DEBTEST" == "Ubuntu" ]]; then
-  TYPE="debs"
-  PYTHONPACK="/usr/lib/python2.7/dist-packages"
-elif [[ -f "/etc/redhat-release" ]]; then
-  TYPE="rpms"
-  PYTHONPACK="/usr/lib/python2.7/site-packages"
-else
-  echo "Unknown Operating System"
-  exit 2
-fi
 
 #Determine API HTTP Protocol
 PROTOCOL="http"
@@ -61,36 +52,19 @@ elif [ ! -z ${ST2_BASE_URL+x} ]; then
     PROTOCOL="https"
   fi
 elif [ -e "${ST2_CLI_CONFIG_FILE}" ]; then
-  if [ ! -z "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'https://(.+):9101'" ]; then
+  if [ ! "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'https://(.+):9101'" ]; then
     PROTOCOL="https"
-  elif [ ! -z "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'base_url\s?=\s?https'" ]; then
+  elif [ ! "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'base_url\s?=\s?https'" ]; then
     PROTOCOL="https"
   fi
 fi
 
-# Install test prerequisites
-${PYTHONPACK}/st2common/bin/st2-setup-tests asserts
-${PYTHONPACK}/st2common/bin/st2-setup-tests fixtures
+echo -n "Installing asserts,fixtures,tests"
+st2 run packs.install subtree=true repo_url=StackStorm/st2tests packs=asserts,fixtures,tests
 
-# Install required packs if necessary
-for PACK in $PACKS; do
-  CHECK=`st2 action list --pack=${PACK} | grep ${PACK}`
-  if [ $? -ne 0 ]; then
-    if [ "$PACK" == "tests" ]; then
-      ARG="tests"
-    else
-      ARG=""
-    fi
-    INSTALL=`${PYTHONPACK}/st2common/bin/st2-setup-${PACK} ${ARG}`
-
-    EXITCODE=$?
-    echo $INSTALL
-    if [ ${EXITCODE} -ne 0 ]; then
-      echo "st2-self-check failed.  See above."
-      exit 2
-    fi
-  fi
-done
+echo -n "Installing examples"
+cp -Rf /usr/share/doc/st2/examples /opt/stackstorm/packs/
+st2ctl reload
 
 # Retrieve test action list
 TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`
