@@ -68,7 +68,7 @@ class KeyValueLookup(object):
         self._scope = scope
 
     def __str__(self):
-        return self._value_cache[self._key_prefix]
+        return self._value_cache[self._key_prefix] if self._key_prefix else ''
 
     def __getitem__(self, key):
         return self._get(key)
@@ -77,6 +77,9 @@ class KeyValueLookup(object):
         return self._get(name)
 
     def _get(self, name):
+        if not name:
+            return ''
+
         # get the value for this key and save in value_cache
         if self._key_prefix:
             key = '%s.%s' % (self._key_prefix, name)
@@ -113,7 +116,7 @@ class UserKeyValueLookup(object):
         self._scope = scope
 
     def __str__(self):
-        return self._value_cache[self._key_prefix]
+        return self._value_cache[self._key_prefix] if self._key_prefix else ''
 
     def __getitem__(self, key):
         return self._get(key)
