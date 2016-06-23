@@ -93,6 +93,7 @@ def _process(G, name, value):
     # Instead we're just assuming every string to be a unicode string
     if isinstance(value, str):
         value = to_unicode(value)
+    print('_process:: Name: %s, Value: %s' % (name, value))
     template_ast = ENV.parse(value)
     # Dependencies of the node represent jinja variables used in the template
     # We're connecting nodes with an edge for every depencency to traverse them in the right order
@@ -177,6 +178,9 @@ def _cast_params_from(params, context, schemas):
         for schema in schemas:
             if name in schema:
                 param_schema = schema[name]
+        print('_cast_params_from:: Name: %s, param_schema: %s' % (name, param_schema))
+        print('Context[name]: %s' % context[name])
+        print('type(context[name]) %s' % type(context[name]))
         result[name] = _cast(context[name], param_schema)
     return result
 
@@ -187,6 +191,7 @@ def render_live_params(runner_parameters, action_parameters, params, action_cont
     dict of plain rendered parameters.
     '''
     G = _create_graph(action_context)
+    print('Graph is: %s' % G)
 
     [_process(G, name, value) for name, value in six.iteritems(params)]
     _process_defaults(G, [action_parameters, runner_parameters])
@@ -212,6 +217,7 @@ def render_final_params(runner_parameters, action_parameters, params, action_con
     _validate(G)
 
     context = _resolve_dependencies(G)
+    print('Context is %s' % context)
     context = _cast_params_from(context, context, [action_parameters, runner_parameters])
 
     return _split_params(runner_parameters, action_parameters, context)

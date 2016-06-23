@@ -66,6 +66,8 @@ def _cast_string(x):
         # Preserve None as-is
         return x
 
+    print('Type of x is: %s' % type(x))
+
     if not isinstance(x, six.string_types):
         value_type = type(x).__name__
         msg = 'Value "%s" must either be a string or None. Got "%s".' % (x, value_type)
