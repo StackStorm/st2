@@ -52,9 +52,9 @@ elif [ ! -z ${ST2_BASE_URL+x} ]; then
     PROTOCOL="https"
   fi
 elif [ -e "${ST2_CLI_CONFIG_FILE}" ]; then
-  if [ ! -z "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'https://(.+):9101'" ]; then
+  if [ ! "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'https://(.+):9101'" ]; then
     PROTOCOL="https"
-  elif [ ! -z "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'base_url\s?=\s?https'" ]; then
+  elif [ ! "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'base_url\s?=\s?https'" ]; then
     PROTOCOL="https"
   fi
 fi
