@@ -8,4 +8,7 @@ parameters:
   actionstr:
     default: '{{user.foo}}'
     type: string
+  user:
+    default: 'unholy mess'
+    type: string
 runner_type: test-runner-1
