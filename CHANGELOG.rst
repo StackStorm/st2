@@ -1,8 +1,11 @@
 Changelog
 =========
 
-in development
+In development
 --------------
+
+1.5.0 - June 24, 2016
+---------------------
 
 * SSL support for mongodb connections. (improvement)
 * TriggerInstances now have statuses to help track if a TriggerInstance has been processed,
