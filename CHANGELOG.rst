@@ -1,11 +1,7 @@
 Changelog
 =========
 
-in development
---------------
-
-
-1.5.0 - June 21, 2016
+1.5.0 - June 24, 2016
 ---------------------
 
 * SSL support for mongodb connections. (improvement)
