@@ -1,5 +1,3 @@
 ---
-payload:
-  result: 10
-  work: done
-type: st2.trigger
+name: sample_trigger
+description: Sample trigger
