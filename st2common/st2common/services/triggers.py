@@ -355,7 +355,8 @@ def _validate_trigger_type(trigger_type):
     required_fields = ['name']
     for field in required_fields:
         if field not in trigger_type:
-            raise TriggerTypeRegistrationException('Invalid trigger type. Missing field %s' % field)
+            raise TriggerTypeRegistrationException('Invalid trigger type. Missing field "%s"' %
+                                                   (field))
 
 
 def _create_trigger(trigger_type):
