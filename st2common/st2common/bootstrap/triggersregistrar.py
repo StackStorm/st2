@@ -21,8 +21,6 @@ from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
 import st2common.content.utils as content_utils
-from st2common.models.api.trigger import TriggerTypeAPI
-from st2common.persistence.trigger import TriggerType
 from st2common.models.utils import sensor_type_utils
 
 __all__ = [
