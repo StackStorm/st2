@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.5.1 - TBD
+-----------
+
+* Fix trigger registration when using st2-register-content script with ``--register-triggers``
+  flag. (bug-fix)
+
 1.5.0 - June 24, 2016
 ---------------------
 
