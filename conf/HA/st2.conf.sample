@@ -1,0 +1,81 @@
+# System-wide configuration
+
+[api]
+# Host and port to bind the API server.
+host = 127.0.0.1
+port = 9101
+logging = /etc/st2/logging.api.conf
+mask_secrets = True
+# allow_origin is required for handling CORS in st2 web UI.
+# allow_origin = http://myhost1.example.com:3000,http://myhost2.example.com:3000
+
+[sensorcontainer]
+logging = /etc/st2/logging.sensorcontainer.conf
+
+[rulesengine]
+logging = /etc/st2/logging.rulesengine.conf
+
+[actionrunner]
+logging = /etc/st2/logging.actionrunner.conf
+virtualenv_opts = --always-copy
+
+[resultstracker]
+logging = /etc/st2/logging.resultstracker.conf
+
+[notifier]
+logging = /etc/st2/logging.notifier.conf
+
+[exporter]
+logging = /etc/st2/logging.exporter.conf
+
+[garbagecollector]
+logging = /etc/st2/logging.garbagecollector.conf
+
+[auth]
+host = 127.0.0.1
+port = 9100
+use_ssl = False
+debug = False
+enable = True
+logging = /etc/st2/logging.auth.conf
+
+mode = standalone
+
+# Note: Settings bellow are only used in "standalone" mode
+backend = flat_file
+backend_kwargs = {"file_path": "/etc/st2/htpasswd"}
+
+# Base URL to the API endpoint excluding the version (e.g. http://myhost.net:9101/)
+api_url =
+
+[system]
+base_path = /opt/stackstorm
+
+[syslog]
+host = st2-multi-node-controller
+port = 514
+facility = local7
+protocol = udp
+
+[log]
+excludes = requests,paramiko
+redirect_stderr = False
+mask_secrets = True
+
+[system_user]
+user = stanley
+ssh_key_file = /home/stanley/.ssh/stanley_rsa
+
+[messaging]
+url = amqp://guest:guest@st2-multi-node-controller:5672/
+
+[ssh_runner]
+remote_dir = /tmp
+use_paramiko_ssh_runner = True
+
+[database]
+host = st2-multi-node-controller
+
+[mistral]
+v2_base_url = https://st2-multi-node-controller/mistral/v2
+api_url = https://st2-multi-node-controller/api
