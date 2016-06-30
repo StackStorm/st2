@@ -40,7 +40,7 @@ def _merge_param_meta_values(action_meta=None, runner_meta=None):
         elif key in runner_meta_keys and key not in action_meta_keys:
             merged_meta[key] = runner_meta[key]
         else:
-            if key in ['immutable', 'required']:
+            if key in ['immutable']:
                 merged_meta[key] = runner_meta.get(key, False) or action_meta.get(key, False)
             else:
                 merged_meta[key] = action_meta.get(key)
