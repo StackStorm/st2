@@ -28,6 +28,8 @@ __all__ = [
     'add_trigger_models',
 
     'get_trigger_db_by_ref',
+    'get_trigger_db_by_id',
+    'get_trigger_db_by_uid',
     'get_trigger_db_given_type_and_params',
     'get_trigger_type_db',
 
@@ -90,6 +92,42 @@ def get_trigger_db_given_type_and_params(type=None, parameters=None):
         LOG.debug('Database lookup for type="%s" parameters="%s" resulted ' +
                   'in exception : %s.', type, parameters, e, exc_info=True)
         return None
+
+
+def get_trigger_db_by_id(id):
+    """
+    Returns the trigger object from db given a trigger id.
+
+    :param ref: Reference to the trigger db object.
+    :type ref: ``str``
+
+    :rtype: ``object``
+    """
+    try:
+        return Trigger.get_by_id(id)
+    except StackStormDBObjectNotFoundError as e:
+        LOG.debug('Database lookup for id="%s" resulted in exception : %s.',
+                  id, e, exc_info=True)
+
+    return None
+
+
+def get_trigger_db_by_uid(uid):
+    """
+    Returns the trigger object from db given a trigger uid.
+
+    :param ref: Reference to the trigger db object.
+    :type ref: ``str``
+
+    :rtype: ``object``
+    """
+    try:
+        return Trigger.get_by_uid(uid)
+    except StackStormDBObjectNotFoundError as e:
+        LOG.debug('Database lookup for uid="%s" resulted in exception : %s.',
+                  uid, e, exc_info=True)
+
+    return None
 
 
 def get_trigger_db_by_ref(ref):
