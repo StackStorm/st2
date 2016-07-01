@@ -28,7 +28,7 @@ LOG = logging.getLogger('st2reactor.sensor.container_utils')
 def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigger=False):
     """
     This creates a trigger instance object given trigger and payload.
-    Trigger can be just a string reference (pack.name) or a ``dict`` containing 'id' or 
+    Trigger can be just a string reference (pack.name) or a ``dict`` containing 'id' or
     'uid' or type' and 'parameters' keys.
 
     :param trigger: Trigger reference or dictionary with trigger query filters.
@@ -43,25 +43,25 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
     else:
         # If id / uid is available we try to look up Trigger by id. This way we can avoid bug in
         # pymongo / mongoengine related to "parameters" dictionary lookups
-        id_ = trigger.get('id', None)
-        uid = trigger.get('uid', None)
+        trigger_id = trigger.get('id', None)
+        trigger_uid = trigger.get('uid', None)
 
         # TODO: Remove parameters dictionary look up when we can confirm each trigger dictionary
         # passed to this method always contains id or uid
-        if id_:
-            LOG.debug('Looking up TriggerDB by id: %s', id)
-            trigger_db = TriggerService.get_trigger_db_by_id(id=id)
-        elif uid:
-            LOG.debug('Looking up TriggerDB by uid: %s', uid)
-            trigger_db = TriggerService.get_trigger_db_by_uid(uid=uid)
+        if trigger_id:
+            LOG.debug('Looking up TriggerDB by id: %s', trigger_id)
+            trigger_db = TriggerService.get_trigger_db_by_id(id=trigger_id)
+        elif trigger_uid:
+            LOG.debug('Looking up TriggerDB by uid: %s', trigger_uid)
+            trigger_db = TriggerService.get_trigger_db_by_uid(uid=trigger_uid)
         else:
             # Last resort - look it up by parameters
-            type_ = trigger.get('type', None)
+            trigger_type = trigger.get('type', None)
             parameters = trigger.get('parameters', {})
 
             LOG.debug('Looking up TriggerDB by type and parameters: type=%s, parameters=%s',
-                      type_, parameters)
-            trigger_db = TriggerService.get_trigger_db_given_type_and_params(type=type_,
+                      trigger_type, parameters)
+            trigger_db = TriggerService.get_trigger_db_given_type_and_params(type=trigger_type,
                                                                              parameters=parameters)
 
     if trigger_db is None:
