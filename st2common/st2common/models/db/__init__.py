@@ -169,6 +169,9 @@ class MongoDBAccess(object):
     def get_by_id(self, value):
         return self.get(id=value, raise_exception=True)
 
+    def get_by_uid(self, value):
+        return self.get(uid=value, raise_exception=True)
+
     def get_by_ref(self, value):
         return self.get(ref=value, raise_exception=True)
 

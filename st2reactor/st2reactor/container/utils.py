@@ -41,10 +41,23 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
     if isinstance(trigger, six.string_types):
         trigger_db = TriggerService.get_trigger_db_by_ref(trigger)
     else:
-        type_ = trigger.get('type', None)
-        parameters = trigger.get('parameters', {})
-        trigger_db = TriggerService.get_trigger_db_given_type_and_params(type=type_,
-                                                                         parameters=parameters)
+        # If id / uid is available we try to look up Trigger by id. This way we can avoid bug in
+        # pymongo / mongoengine related to "parameters" dictionary lookups
+        id_ = trigger.get('id', None)
+        uid = trigger.get('uid', None)
+
+        # TODO: Remove parameters dictionary look up when we can confirm each trigger dictionary
+        # passed to this method always contains id or uid
+        if id_:
+            trigger_db = TriggerService.get_trigger_db_by_id(id=id)
+        elif uid:
+            trigger_db = TriggerService.get_trigger_db_by_uid(uid=uid)
+        else:
+            # Last resort - look it up by parameters
+            type_ = trigger.get('type', None)
+            parameters = trigger.get('parameters', {})
+            trigger_db = TriggerService.get_trigger_db_given_type_and_params(type=type_,
+                                                                             parameters=parameters)
 
     if trigger_db is None:
         LOG.debug('No trigger in db for %s', trigger)
