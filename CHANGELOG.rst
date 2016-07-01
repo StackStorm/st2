@@ -6,6 +6,9 @@ Changelog
 
 * Fix trigger registration when using st2-register-content script with ``--register-triggers``
   flag. (bug-fix)
+* Fix an issue with CronTimer sometimes not firing due to TriggerInstance creation failure.
+  (bug-fix)
+  Reported by  Cody A. Ray
 
 1.5.0 - June 24, 2016
 ---------------------
