@@ -28,11 +28,11 @@ LOG = logging.getLogger('st2reactor.sensor.container_utils')
 def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigger=False):
     """
     This creates a trigger instance object given trigger and payload.
-    Trigger can be just a string reference (pack.name) or a ``dict``
-    containing  'type' and 'parameters'.
+    Trigger can be just a string reference (pack.name) or a ``dict`` containing 'id' or 
+    'uid' or type' and 'parameters' keys.
 
-    :param trigger: Dictionary with trigger query filters.
-    :type trigger: ``dict``
+    :param trigger: Trigger reference or dictionary with trigger query filters.
+    :type trigger: ``str`` or ``dict``
 
     :param payload: Trigger payload.
     :type payload: ``dict``
