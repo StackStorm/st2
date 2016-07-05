@@ -9,6 +9,9 @@ Changelog
 * Fix an issue with CronTimer sometimes not firing due to TriggerInstance creation failure.
   (bug-fix)
   Reported by  Cody A. Ray
+* Add support for default values when a new pack configuration is used. Now if a default value
+  is specified for a required config item in the config schema and a value for that item is not
+  provided in the config, default value from config schema is used. (improvement)
 
 1.5.0 - June 24, 2016
 ---------------------
