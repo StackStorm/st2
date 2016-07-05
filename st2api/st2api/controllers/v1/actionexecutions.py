@@ -276,7 +276,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
             return self
 
     @jsexpose(body_cls=ExecutionSpecificationAPI, status_code=http_client.CREATED)
-    def post(self, spec, execution_id):
+    def post(self, spec, execution_id, no_merge=None):
         """
         Re-run the provided action execution optionally specifying override parameters.
 
@@ -290,7 +290,9 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
             raise ValueError('Task option is only supported for Mistral workflows.')
 
         # Merge in any parameters provided by the user
-        new_parameters = copy.deepcopy(getattr(existing_execution, 'parameters', {}))
+        new_parameters = {}
+        if not no_merge:
+            new_parameters.update(getattr(existing_execution, 'parameters', {}))
         new_parameters.update(spec.parameters)
 
         # Create object for the new execution
