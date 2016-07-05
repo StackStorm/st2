@@ -103,6 +103,15 @@ class ContentPackConfigLoader(object):
                 # Static value, no resolution needed
                 result[config_item_key] = config_item_value
 
+        # If config_schema is available we do a second pass and set default values for required
+        # items which values are not provided / available in the config itself
+        for schema_item_key, schema_item in six.iteritems(schema_values):
+            default_value = schema_item.get('default', None)
+            is_required = schema_item.get('required', False)
+
+            if is_required and default_value and not result.get(schema_item_key, None):
+                result[schema_item_key] = default_value
+
         return result
 
     def _get_datastore_value_for_expression(self, value, config_schema_item=None):
