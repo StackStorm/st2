@@ -8,9 +8,8 @@
     secret: true
     required: true
   regions:
-      type: "list"
-      required: true
-      default: "us-east-1"
+    type: "list"
+    required: true
   private_key_path:
-      type: "string"
-      required: false
+    type: "string"
+    required: false
