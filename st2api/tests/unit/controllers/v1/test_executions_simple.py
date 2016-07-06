@@ -147,6 +147,15 @@ LIVE_ACTION_4 = {
     'action': 'starterpack.st2.dummy.action4',
 }
 
+LIVE_ACTION_5 = {
+    'action': 'sixpack.st2.dummy.action1',
+    'parameters': {
+        'hosts': 'localhost',
+        'cmd': 'uname -a',
+        'b': 10
+    }
+}
+
 
 class FakeResponse(object):
 
@@ -394,6 +403,21 @@ class TestActionExecutionController(FunctionalTest):
         re_run_resp = self.app.post_json('/v1/executions/doesntexist/re_run',
                                          data, expect_errors=True)
         self.assertEqual(re_run_resp.status_int, 404)
+
+    def test_re_run_parameter_override_exclusion(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_5)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (with parameter excluded)
+        data = {'parameters': {'b': None}}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+
+        exclusion = copy.deepcopy(LIVE_ACTION_5['parameters'])
+        del exclusion['b']
+        self.assertEqual(re_run_resp.json['parameters'], exclusion)
 
     def test_re_run_failure_parameter_override_invalid_type(self):
         # Create a new execution

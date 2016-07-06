@@ -22,6 +22,7 @@ import traceback
 import jsonschema
 import pecan
 from pecan import abort
+import six
 from six.moves import http_client
 
 from st2api.controllers.base import BaseRestControllerMixin
@@ -291,7 +292,12 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
         # Merge in any parameters provided by the user
         new_parameters = copy.deepcopy(getattr(existing_execution, 'parameters', {}))
-        new_parameters.update(spec.parameters)
+
+        for (name, value) in six.iteritems(spec.parameters):
+            if value is not None:
+                new_parameters[name] = value
+            else:
+                new_parameters.pop(name, None)
 
         # Create object for the new execution
         action_ref = existing_execution.action['ref']
