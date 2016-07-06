@@ -18,7 +18,7 @@ import os
 from st2tests.base import IntegrationTestCase
 from st2common.util.shell import run_command
 from st2tests import config as test_config
-from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.fixturesloader import get_fixtures_packs_base_path
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -35,7 +35,7 @@ class ContentRegisterScripTestCase(IntegrationTestCase):
         test_config.parse_args()
 
     def test_register_from_pack_success(self):
-        pack_dir = os.path.join(get_fixtures_base_path(), 'dummy_pack_1')
+        pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1')
 
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir)]
         exit_code, _, stderr = run_command(cmd=cmd)
@@ -58,14 +58,14 @@ class ContentRegisterScripTestCase(IntegrationTestCase):
 
     def test_register_from_pack_action_metadata_fails_validation(self):
         # No fail on failure flag, should succeed
-        pack_dir = os.path.join(get_fixtures_base_path(), 'dummy_pack_4')
+        pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_4')
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir)]
         exit_code, _, stderr = run_command(cmd=cmd)
         self.assertTrue('Registered 0 actions.' in stderr)
         self.assertEqual(exit_code, 0)
 
         # Fail on failure, should fail
-        pack_dir = os.path.join(get_fixtures_base_path(), 'dummy_pack_4')
+        pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_4')
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir),
                                                 '--register-fail-on-failure']
         exit_code, _, stderr = run_command(cmd=cmd)
@@ -101,7 +101,7 @@ class ContentRegisterScripTestCase(IntegrationTestCase):
 
     def test_register_setup_virtualenvs(self):
         # Single pack
-        pack_dir = os.path.join(get_fixtures_base_path(), 'dummy_pack_1')
+        pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1')
 
         cmd = BASE_CMD_ARGS + ['--register-pack=%s' % (pack_dir), '--register-setup-virtualenvs']
         exit_code, stdout, stderr = run_command(cmd=cmd)

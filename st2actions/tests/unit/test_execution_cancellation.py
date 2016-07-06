@@ -34,7 +34,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
-from st2tests.fixtures import executions as fixture
+from st2tests.fixtures.packs import executions as fixture
 from st2tests import DbTestCase
 from tests.unit.base import MockLiveActionPublisher
 

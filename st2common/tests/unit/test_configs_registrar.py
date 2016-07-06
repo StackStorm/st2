@@ -30,7 +30,7 @@ __all__ = [
     'ConfigsRegistrarTestCase'
 ]
 
-PACK_PATH = os.path.join(fixturesloader.get_fixtures_base_path(), 'dummy_pack_1')
+PACK_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_1')
 
 
 class ConfigsRegistrarTestCase(DbTestCase):

@@ -41,7 +41,7 @@ from st2common.transport.publishers import CUDPublisher
 import st2common.util.action_db as action_utils
 from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
-from st2tests.fixtures import executions as fixture
+from st2tests.fixtures.packs import executions as fixture
 from st2tests import DbTestCase
 from tests.unit.base import MockLiveActionPublisher
 

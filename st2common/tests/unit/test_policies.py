@@ -25,7 +25,7 @@ from st2common.persistence.policy import PolicyType, Policy
 from st2common.policies import ResourcePolicyApplicator, get_driver
 from st2tests import DbTestCase, fixturesloader
 from st2tests.fixturesloader import FixturesLoader
-from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.fixturesloader import get_fixtures_packs_base_path
 
 PACK = 'generic'
 TEST_FIXTURES = {
@@ -99,7 +99,7 @@ class PolicyBootstrapTest(DbTestCase):
 
     def test_register_policies(self):
         # Note: Only one policy should be registered since second one fails validation
-        pack_dir = os.path.join(fixturesloader.get_fixtures_base_path(), 'dummy_pack_1')
+        pack_dir = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_1')
         self.assertEqual(register_policies(pack_dir=pack_dir), 1)
 
         p1 = Policy.get_by_ref('dummy_pack_1.test_policy_1')
@@ -114,7 +114,7 @@ class PolicyBootstrapTest(DbTestCase):
     def test_register_policy_invalid_policy_type_references(self):
         # Policy references an invalid (inexistent) policy type
         registrar = PolicyRegistrar()
-        policy_path = os.path.join(get_fixtures_base_path(),
+        policy_path = os.path.join(get_fixtures_packs_base_path(),
                                    'dummy_pack_1/policies/policy_2.yaml')
 
         expected_msg = 'Referenced policy_type "action.mock_policy_error" doesnt exist'
@@ -124,7 +124,7 @@ class PolicyBootstrapTest(DbTestCase):
     def test_make_sure_policy_parameters_are_validated_during_register(self):
         # Policy where specified parameters fail schema validation
         registrar = PolicyRegistrar()
-        policy_path = os.path.join(get_fixtures_base_path(),
+        policy_path = os.path.join(get_fixtures_packs_base_path(),
                                    'dummy_pack_1/policies/policy_3.yaml')
 
         expected_msg = '100 is greater than the maximum of 5'
