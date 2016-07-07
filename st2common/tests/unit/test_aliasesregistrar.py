@@ -19,7 +19,8 @@ from st2common.bootstrap import aliasesregistrar
 from st2tests import DbTestCase, fixturesloader
 
 
-ALIASES_FIXTURE_PACK_PATH = os.path.join(fixturesloader.get_fixtures_base_path(), 'dummy_pack_1')
+ALIASES_FIXTURE_PACK_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(),
+                                         'dummy_pack_1')
 ALIASES_FIXTURE_PATH = os.path.join(ALIASES_FIXTURE_PACK_PATH, 'aliases')
 
 

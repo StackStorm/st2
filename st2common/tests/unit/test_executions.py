@@ -17,7 +17,7 @@ import copy
 import bson
 import datetime
 
-from st2tests.fixtures import executions as fixture
+from st2tests.fixtures.packs import executions as fixture
 from st2tests import DbTestCase
 from st2common.util import isotime
 from st2common.util import date as date_utils

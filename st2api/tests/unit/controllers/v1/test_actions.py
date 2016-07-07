@@ -29,7 +29,7 @@ from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.persistence.pack import Pack
-from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.fixturesloader import get_fixtures_packs_base_path
 from st2tests.base import CleanFilesTestCase
 
 from tests import FunctionalTest
@@ -273,7 +273,7 @@ ACTION_WITH_NOTIFY = {
 class TestActionController(FunctionalTest, CleanFilesTestCase):
     register_packs = True
     to_delete_files = [
-        os.path.join(get_fixtures_base_path(), 'dummy_pack_1/actions/filea.txt')
+        os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1/actions/filea.txt')
     ]
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
