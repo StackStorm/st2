@@ -106,6 +106,18 @@ class ActionParamsUtilsTest(DbTestCase):
         # Immutability is set in action.
         self.assertEqual(merged_meta['immutable'], action_meta['immutable'])
 
+    def test_merge_param_meta_require_override(self):
+        action_meta = {
+            'required': False
+        }
+        runner_meta = {
+            'required': True
+        }
+        merged_meta = action_param_utils._merge_param_meta_values(action_meta=action_meta,
+                                                                  runner_meta=runner_meta)
+
+        self.assertEqual(merged_meta['required'], action_meta['required'])
+
     def test_validate_action_inputs(self):
         requires, unexpected = action_param_utils.validate_action_parameters(
             self.action_dbs['action-1'].ref, {'foo': 'bar'})
