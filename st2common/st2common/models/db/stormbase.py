@@ -55,10 +55,9 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
     # We explicitly assign the manager so pylint know what type objects is
     objects = me.queryset.QuerySetManager()
 
-    # ObjectIdField should be not have any constraints like required,
-    # unique etc for it to be auto-generated.
-    # TODO: Work out how we can mark this as a unique primary key.
-    id = me.ObjectIdField()
+    # Note: In mongoengine >= 0.10 "id" field is automatically declared on all
+    # the documents and declaring it ourselves causes a lot of issues so we
+    # don't do that
 
     # see http://docs.mongoengine.org/guide/defining-documents.html#abstract-classes
     meta = {
