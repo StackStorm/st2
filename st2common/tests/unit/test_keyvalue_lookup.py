@@ -118,12 +118,12 @@ class TestKeyValueLookup(CleanDbTestCase):
                        '64338294916D37E83C4796283C584751750E39844E2FD97A3727DB5D553F638'
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(
             name='k1', value=secret_value,
-            secret=True, encrypted=True)
+            secret=True)
         )
         k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='k2', value='v2'))
         k3 = KeyValuePair.add_or_update(KeyValuePairDB(
             name='stanley:k3', value=secret_value, scope=USER_SCOPE,
-            secret=True, encrypted=True)
+            secret=True)
         )
 
         lookup = KeyValueLookup()
