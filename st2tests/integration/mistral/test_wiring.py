@@ -101,7 +101,7 @@ class WiringTest(base.TestWorkflowExecution):
 
     def test_basic_rerun(self):
         fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        os.chmod(path, 0666)   # nosec
 
         with open(path, 'w') as f:
             f.write('1')
@@ -123,7 +123,7 @@ class WiringTest(base.TestWorkflowExecution):
 
     def test_basic_rerun_task(self):
         fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        os.chmod(path, 0666)   # nosec
 
         with open(path, 'w') as f:
             f.write('1')
@@ -145,7 +145,7 @@ class WiringTest(base.TestWorkflowExecution):
 
     def test_rerun_subflow_task(self):
         fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        os.chmod(path, 0666)  # nosec
 
         with open(path, 'w') as f:
             f.write('1')
@@ -168,7 +168,7 @@ class WiringTest(base.TestWorkflowExecution):
 
     def test_basic_rerun_and_reset_with_items_task(self):
         fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        os.chmod(path, 0666)  # nosec
 
         with open(path, 'w') as f:
             f.write('1')
@@ -198,7 +198,7 @@ class WiringTest(base.TestWorkflowExecution):
 
     def test_basic_rerun_and_resume_with_items_task(self):
         fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        os.chmod(path, 0666)  # nosec
 
         with open(path, 'w') as f:
             f.write('1')
@@ -233,7 +233,7 @@ class WiringTest(base.TestWorkflowExecution):
 
     def test_rerun_subflow_and_reset_with_items_task(self):
         fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        os.chmod(path, 0666)  # nosec
 
         with open(path, 'w') as f:
             f.write('1')
@@ -263,7 +263,7 @@ class WiringTest(base.TestWorkflowExecution):
 
     def test_rerun_subflow_and_resume_with_items_task(self):
         fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        os.chmod(path, 0666)  # nosec
 
         with open(path, 'w') as f:
             f.write('1')
