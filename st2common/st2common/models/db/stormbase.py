@@ -65,6 +65,13 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
         'abstract': True
     }
 
+    def __init__(self, *args, **kwargs):
+        # Work around for mongoengine 10.x which doesn't recognize _id anymore
+        # Note: We simply set "id" field value to the value of "_id" field, if provided
+        if '_id' in kwargs:
+            kwargs['id'] = kwargs.pop('_id')
+        super(StormFoundationDB, self).__init__(*args, **kwargs)
+
     def __str__(self):
         attrs = list()
         for k in sorted(self._fields.keys()):
