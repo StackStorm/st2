@@ -246,7 +246,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
             # to use an empty document.
             notify = NotificationsHelper.to_model({})
 
-        model = cls.model(name=name, description=description, enable=enabled, enabled=enabled,
+        model = cls.model(name=name, description=description, enabled=enabled,
                           entry_point=entry_point, pack=pack, runner_type=runner_type,
                           tags=tags, parameters=parameters, notify=notify,
                           ref=ref)
@@ -378,8 +378,6 @@ class LiveActionAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, live_action):
-        name = getattr(live_action, 'name', None)
-        description = getattr(live_action, 'description', None)
         action = live_action.action
 
         if getattr(live_action, 'start_timestamp', None):
@@ -403,7 +401,7 @@ class LiveActionAPI(BaseAPI):
         else:
             notify = None
 
-        model = cls.model(name=name, description=description, action=action,
+        model = cls.model(action=action,
                           start_timestamp=start_timestamp, end_timestamp=end_timestamp,
                           status=status, parameters=parameters, context=context,
                           callback=callback, result=result, notify=notify)
