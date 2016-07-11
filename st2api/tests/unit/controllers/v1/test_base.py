@@ -72,5 +72,6 @@ class TestBase(FunctionalTest):
         self.assertEqual(resp.status_int, 404)
 
         # get_one() takes exactly 2 arguments (4 given)
-        resp = self.app.get('/v1/executions/577f775b0640fd1451f2030b/re_run/a/b', expect_errors=True)
+        resp = self.app.get('/v1/executions/577f775b0640fd1451f2030b/re_run/a/b',
+                            expect_errors=True)
         self.assertEqual(resp.status_int, 404)
