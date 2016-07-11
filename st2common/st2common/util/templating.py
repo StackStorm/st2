@@ -41,7 +41,7 @@ def render_template(value, context=None):
     assert isinstance(value, six.string_types)
     context = context or {}
 
-    env = Environment(undefined=StrictUndefined)
+    env = Environment(undefined=StrictUndefined)  # nosec
     template = env.from_string(value)
     rendered = template.render(context)
 

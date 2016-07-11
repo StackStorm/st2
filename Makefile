@@ -98,11 +98,21 @@ flake8: requirements .flake8
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 scripts/
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 tools/
 
+.PHONY: bandit
+bandit: requirements .bandit
+
+.PHONY: .bandit
+.bandit:
+	@echo
+	@echo "==================== bandit ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; bandit -r $(COMPONENTS) -lll
+
 .PHONY: lint
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .flake8 .pylint
+.lint: .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -130,6 +140,9 @@ compile:
 	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2debug; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2stream; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2exporter; test $$? -eq 1
 
 .PHONY: .cleanmongodb
 .cleanmongodb:
