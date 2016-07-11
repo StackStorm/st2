@@ -112,7 +112,7 @@ bandit: requirements .bandit
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .flake8 .pylint
+.lint: .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check
 
 .PHONY: clean
 clean: .cleanpycs
