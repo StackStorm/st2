@@ -12,6 +12,8 @@ In development
 * Add support for default values when a new pack configuration is used. Now if a default value
   is specified for a required config item in the config schema and a value for that item is not
   provided in the config, default value from config schema is used. (improvement)
+* Allow user to prevent execution parameter merging when re-running an execution by passing
+  ``?no_merge=true`` query parameter to the execution re-run API endpoint. (improvement)
 
 1.5.0 - June 24, 2016
 ---------------------

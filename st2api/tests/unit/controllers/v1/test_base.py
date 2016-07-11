@@ -65,3 +65,13 @@ class TestBase(FunctionalTest):
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.headers['Access-Control-Allow-Origin'],
                          '*')
+
+    def test_valid_status_code_is_returned_on_invalid_path(self):
+        # TypeError: get_all() takes exactly 1 argument (2 given)
+        resp = self.app.get('/v1/executions/577f775b0640fd1451f2030b/re_run', expect_errors=True)
+        self.assertEqual(resp.status_int, 404)
+
+        # get_one() takes exactly 2 arguments (4 given)
+        resp = self.app.get('/v1/executions/577f775b0640fd1451f2030b/re_run/a/b',
+                            expect_errors=True)
+        self.assertEqual(resp.status_int, 404)
