@@ -25,6 +25,10 @@ from st2common.util import schema as util_schema
 from st2common.util import reference
 from st2common.util import date as date_utils
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
+from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
+from st2common.persistence.rule import Rule
+from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2tests import DbTestCase
 
 SKIP_DELETE = False
@@ -42,12 +46,6 @@ class DbConnectionTest(DbTestCase):
 
         expected_str = "host=['%s:%s']" % (cfg.CONF.database.host, cfg.CONF.database.port)
         self.assertTrue(expected_str in str(client), 'Not connected to desired host.')
-
-
-from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
-from st2common.models.db.rule import RuleDB, ActionExecutionSpecDB
-from st2common.persistence.rule import Rule
-from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
