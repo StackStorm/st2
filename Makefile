@@ -98,6 +98,16 @@ flake8: requirements .flake8
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 scripts/
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 tools/
 
+.PHONY: bandit
+bandit: requirements .bandit
+
+.PHONY: .bandit
+.bandit:
+	@echo
+	@echo "==================== bandit ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; bandit -r $(COMPONENTS) -lll
+
 .PHONY: lint
 lint: requirements .lint
 
