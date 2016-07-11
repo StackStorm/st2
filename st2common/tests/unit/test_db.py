@@ -39,10 +39,9 @@ class DbConnectionTest(DbTestCase):
         running.
         """
         client = mongoengine.connection.get_connection()
-        self.assertEqual(client.host, cfg.CONF.database.host,
-                         'Not connected to desired host.')
-        self.assertEqual(client.port, cfg.CONF.database.port,
-                         'Not connected to desired port.')
+
+        expected_str = "host=['%s:%s']" % (cfg.CONF.database.host, cfg.CONF.database.port)
+        self.assertTrue(expected_str in str(client), 'Not connected to desired host.')
 
 
 from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
