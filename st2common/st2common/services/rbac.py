@@ -236,7 +236,7 @@ def create_permission_grant(role_db, resource_uid, resource_type, permission_typ
     permission_grant_db = PermissionGrant.add_or_update(permission_grant_db)
 
     # Add assignment to the role
-    role_db.update(push__permission_grants=permission_grant_db.id)
+    role_db.update(push__permission_grants=str(permission_grant_db.id))
 
     return permission_grant_db
 
@@ -260,7 +260,7 @@ def remove_permission_grant_for_resource_db(role_db, resource_db, permission_typ
                                               permission_types=permission_types)
 
     # Remove assignment from a role
-    role_db.update(pull__permission_grants=permission_grant_db.id)
+    role_db.update(pull__permission_grants=str(permission_grant_db.id))
 
     return permission_grant_db
 
