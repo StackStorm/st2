@@ -14,6 +14,7 @@ Changelog
   provided in the config, default value from config schema is used. (improvement)
 * Allow user to prevent execution parameter merging when re-running an execution by passing
   ``?no_merge=true`` query parameter to the execution re-run API endpoint. (improvement)
+* Add support for posixGroup to the enterprise LDAP auth backend. (improvement, bug-fix)
 
 1.5.0 - June 24, 2016
 ---------------------
