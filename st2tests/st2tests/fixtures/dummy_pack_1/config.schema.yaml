@@ -9,4 +9,5 @@
     required: true
   region:
     type: "string"
+    required: true
     default: "lon"

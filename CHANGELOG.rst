@@ -1,6 +1,20 @@
 Changelog
 =========
 
+1.5.1 - July 13, 2016
+---------------------
+
+* Fix trigger registration when using st2-register-content script with ``--register-triggers``
+  flag. (bug-fix)
+* Fix an issue with CronTimer sometimes not firing due to TriggerInstance creation failure.
+  (bug-fix)
+  Reported by  Cody A. Ray
+* Add support for default values when a new pack configuration is used. Now if a default value
+  is specified for a required config item in the config schema and a value for that item is not
+  provided in the config, default value from config schema is used. (improvement)
+* Allow user to prevent execution parameter merging when re-running an execution by passing
+  ``?no_merge=true`` query parameter to the execution re-run API endpoint. (improvement)
+
 1.5.0 - June 24, 2016
 ---------------------
 

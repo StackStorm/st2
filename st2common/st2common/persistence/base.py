@@ -84,6 +84,10 @@ class Access(object):
         return cls._get_impl().get_by_id(value)
 
     @classmethod
+    def get_by_uid(cls, value):
+        return cls._get_impl().get_by_uid(value)
+
+    @classmethod
     def get_by_ref(cls, value):
         return cls._get_impl().get_by_ref(value)
 

@@ -37,6 +37,7 @@ from st2common.exceptions.trace import TraceNotFoundException
 from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import jsexpose
+from st2common.models.api.base import cast_argument_value
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
@@ -276,7 +277,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
             return self
 
     @jsexpose(body_cls=ExecutionSpecificationAPI, status_code=http_client.CREATED)
-    def post(self, spec, execution_id):
+    def post(self, spec_api, execution_id, no_merge=False):
         """
         Re-run the provided action execution optionally specifying override parameters.
 
@@ -284,14 +285,17 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             POST /executions/<id>/re_run
         """
+        no_merge = cast_argument_value(value_type=bool, value=no_merge)
         existing_execution = self._get_one(id=execution_id, exclude_fields=self.exclude_fields)
 
-        if spec.tasks and existing_execution.runner['name'] != 'mistral-v2':
+        if spec_api.tasks and existing_execution.runner['name'] != 'mistral-v2':
             raise ValueError('Task option is only supported for Mistral workflows.')
 
         # Merge in any parameters provided by the user
-        new_parameters = copy.deepcopy(getattr(existing_execution, 'parameters', {}))
-        new_parameters.update(spec.parameters)
+        new_parameters = {}
+        if not no_merge:
+            new_parameters.update(getattr(existing_execution, 'parameters', {}))
+        new_parameters.update(spec_api.parameters)
 
         # Create object for the new execution
         action_ref = existing_execution.action['ref']
@@ -303,11 +307,11 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
             }
         }
 
-        if spec.tasks:
-            context['re-run']['tasks'] = spec.tasks
+        if spec_api.tasks:
+            context['re-run']['tasks'] = spec_api.tasks
 
-        if spec.reset:
-            context['re-run']['reset'] = spec.reset
+        if spec_api.reset:
+            context['re-run']['reset'] = spec_api.reset
 
         # Add trace to the new execution
         trace = trace_service.get_trace_db_by_action_execution(
@@ -319,7 +323,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         new_liveaction_api = LiveActionCreateAPI(action=action_ref,
                                                  context=context,
                                                  parameters=new_parameters,
-                                                 user=spec.user)
+                                                 user=spec_api.user)
 
         return self._handle_schedule_execution(liveaction_api=new_liveaction_api)
 

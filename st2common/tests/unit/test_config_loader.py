@@ -44,7 +44,6 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
     def test_get_config_some_values_overriden_in_datastore(self):
         # Test a scenario where some values are overriden in datastore via pack
         # flobal config
-
         kvp_db = set_datastore_value_for_config_key(pack_name='dummy_pack_5',
                                                     key_name='api_secret',
                                                     value='some_api_secret',
@@ -71,7 +70,21 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
             'api_key': 'some_api_key',
             'api_secret': 'some_api_secret',
             'regions': ['us-west-1'],
+            'region': 'default-region-value',
             'private_key_path': 'some_private_key'
         }
 
         self.assertEqual(config, expected_config)
+
+    def test_get_config_default_value_from_config_schema_is_used(self):
+        # No value is provided for "region" in the config, default value from config schema
+        # should be used
+        loader = ContentPackConfigLoader(pack_name='dummy_pack_5')
+        config = loader.get_config()
+        self.assertEqual(config['region'], 'default-region-value')
+
+        # Here a default value is specified in schema but an explicit value is provided in the
+        # config
+        loader = ContentPackConfigLoader(pack_name='dummy_pack_1')
+        config = loader.get_config()
+        self.assertEqual(config['region'], 'us-west-1')

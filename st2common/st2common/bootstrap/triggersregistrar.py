@@ -21,8 +21,7 @@ from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
 import st2common.content.utils as content_utils
-from st2common.models.api.trigger import TriggerTypeAPI
-from st2common.persistence.trigger import TriggerType
+from st2common.models.utils import sensor_type_utils
 
 __all__ = [
     'TriggersRegistrar',
@@ -135,22 +134,9 @@ class TriggersRegistrar(ResourceRegistrar):
             raise Exception('Model is in pack "%s" but field "pack" is different: %s' %
                             (pack, pack_field))
 
-        trigger_api = TriggerTypeAPI(**content)
-        trigger_model = TriggerTypeAPI.to_model(trigger_api)
-
-        trigger_types = TriggerType.query(pack=trigger_model.pack, name=trigger_model.name)
-        if len(trigger_types) >= 1:
-            trigger_type = trigger_types[0]
-            LOG.debug('Found existing trigger id:%s with name:%s. Will update it.',
-                      trigger_type.id, trigger_type.name)
-            trigger_model.id = trigger_type.id
-
-        try:
-            trigger_model = TriggerType.add_or_update(trigger_model)
-        except:
-            LOG.exception('Failed creating trigger model for %s', trigger)
-
-        return trigger_model
+        trigger_types = [content]
+        result = sensor_type_utils.create_trigger_types(trigger_types=trigger_types)
+        return result[0] if result else None
 
 
 def register_triggers(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
