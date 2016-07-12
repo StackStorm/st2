@@ -1,0 +1,93 @@
+#!/bin/bash
+
+set -eu
+
+FROM_VERSION=''
+TO_VERSION=''
+
+MIGRATION_MIN_VERSION_SUPPORTED="1.5.0"
+
+fail() {
+  echo "############### ERROR ###############"
+  echo "# Failed on step - $STEP #"
+  echo "#####################################"
+}
+
+ok_message() {
+  echo "############################## SUCCESS  ###########################################"
+  echo "Successfully migrated models for upgrade from version $FROM_VERSION to $TO_VERSION."
+  echo "###################################################################################"
+  exit 0
+}
+
+setup_args() {
+  for i in "$@"
+    do
+      case $i in
+          --from=*)
+          FROM_VERSION="${i#*=}"
+          shift
+          ;;
+          --to=*)
+          TO_VERSION="${i#*=}"
+          shift
+          ;;
+          *)
+          # unknown option
+          ;;
+      esac
+    done
+}
+
+# Version check util methods
+
+verlte() {
+    [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+}
+
+verlt() {
+    [ "$1" = "$2" ] && return 1 || verlte $1 $2
+}
+
+vergte() {
+    [  "$1" = "`echo -e "$1\n$2" | sort -V | tail -n1`" ]
+}
+
+vergt() {
+    [ "$1" = "$2" ] && return 1 || vergte $1 $2
+}
+
+
+validate_versions() {
+  if [[ -z "$FROM_VERSION" ]]; then
+    echo "Upgrading *from* unknown version."
+    exit 1
+  fi
+
+  if [[ -z "$TO_VERSION" ]]; then
+    echo "Upgrading *to* unknown version."
+    exit 1
+  fi
+
+  if "$FROM_VERSION" = "$TO_VERSION"; then
+    echo "Upgrading from version $FROM_VERSION to same version $TO_VERSION. Skipping migration."
+    exit 0
+  fi
+
+  if verlt $TO_VERSION $FROM_VERSION; then
+    echo "You are downgrading from version $FROM_VERSION to version $TO_VERSION. Unsupported!!!"
+    exit 2
+  fi
+
+  if verlt $TO_VERSION $MIGRATION_MIN_VERSION_SUPPORTED; then
+    echo "Model migrations are supported only from upgrading to $MIGRATION_MIN_VERSION_SUPPORTED_ONWARDS."
+    exit 2
+  fi
+}
+
+trap 'fail' EXIT
+STEP="Setup args" && setup_args $@
+STEP="Validate versions" && validate_versions
+trap - EXIT
+
+ok_message
