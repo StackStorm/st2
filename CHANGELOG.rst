@@ -4,6 +4,9 @@ Changelog
 In development
 --------------
 
+1.5.1 - July 13, 2016
+---------------------
+
 * Fix trigger registration when using st2-register-content script with ``--register-triggers``
   flag. (bug-fix)
 * Fix an issue with CronTimer sometimes not firing due to TriggerInstance creation failure.
