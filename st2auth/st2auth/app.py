@@ -74,7 +74,7 @@ def setup_app(config=None):
     app = pecan.make_app(
         app_conf.pop('root'),
         logging=getattr(config, 'logging', {}),
-        hooks=[hooks.JSONErrorResponseHook(), hooks.CorsHook()],
+        hooks=[hooks.JSONErrorResponseHook(), hooks.CorsHook(), hooks.AuthHook()],
         **app_conf
     )
     LOG.info('%s app created.' % __name__)

@@ -26,14 +26,38 @@ from st2common.util import hash as hash_utils
 
 __all__ = [
     'validate_token',
+    'validate_token_and_source',
     'generate_api_key',
-    'validate_api_key'
+    'validate_api_key',
+    'validate_api_key_and_source'
 ]
 
 LOG = logging.getLogger(__name__)
 
 
-def validate_token(token_in_headers, token_in_query_params):
+def validate_token(token_string):
+    """
+    Validate the provided authentication token.
+
+    :param token_string: Authentication token provided.
+    :type token_string: ``str``
+
+    :return: TokenDB object on success.
+    :rtype: :class:`.TokenDB`
+    """
+    token = Token.get(token_string)
+
+    if token.expiry <= date_utils.get_datetime_utc_now():
+        # TODO: purge expired tokens
+        LOG.audit('Token with id "%s" has expired.' % (token.id))
+        raise exceptions.TokenExpiredError('Token has expired.')
+
+    LOG.audit('Token with id "%s" is validated.' % (token.id))
+
+    return token
+
+
+def validate_token_and_source(token_in_headers, token_in_query_params):
     """
     Validate the provided authentication token.
 
@@ -56,16 +80,7 @@ def validate_token(token_in_headers, token_in_query_params):
     if token_in_query_params:
         LOG.audit('Token provided in query parameters')
 
-    token_string = token_in_headers or token_in_query_params
-    token = Token.get(token_string)
-
-    if token.expiry <= date_utils.get_datetime_utc_now():
-        # TODO: purge expired tokens
-        LOG.audit('Token with id "%s" has expired.' % (token.id))
-        raise exceptions.TokenExpiredError('Token has expired.')
-
-    LOG.audit('Token with id "%s" is validated.' % (token.id))
-    return token
+    return validate_token(token_in_headers or token_in_query_params)
 
 
 def generate_api_key():
@@ -90,7 +105,27 @@ def generate_api_key_and_hash():
     return api_key, api_key_hash
 
 
-def validate_api_key(api_key_in_headers, api_key_query_params):
+def validate_api_key(api_key):
+    """
+    Validate the provided API key.
+
+    :param api_key: API key provided.
+    :type api_key: ``str``
+
+    :return: TokenDB object on success.
+    :rtype: :class:`.ApiKeyDB`
+    """
+    api_key_db = ApiKey.get(api_key)
+
+    if not api_key_db.enabled:
+        raise exceptions.ApiKeyDisabledError('API key is disabled.')
+
+    LOG.audit('API key with id "%s" is validated.' % (api_key_db.id))
+
+    return api_key_db
+
+
+def validate_api_key_and_source(api_key_in_headers, api_key_query_params):
     """
     Validate the provided API key.
 
@@ -113,11 +148,4 @@ def validate_api_key(api_key_in_headers, api_key_query_params):
     if api_key_query_params:
         LOG.audit('API key provided in query parameters')
 
-    api_key = api_key_in_headers or api_key_query_params
-    api_key_db = ApiKey.get(api_key)
-
-    if not api_key_db.enabled:
-        raise exceptions.ApiKeyDisabledError('API key is disabled.')
-
-    LOG.audit('API key with id "%s" is validated.' % (api_key_db.id))
-    return api_key_db
+    return validate_api_key(api_key_in_headers or api_key_query_params)
