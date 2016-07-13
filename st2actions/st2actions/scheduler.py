@@ -95,7 +95,7 @@ class ActionExecutionScheduler(consumers.MessageHandler):
 
             try:
                 LOG.debug('Applying pre_run policy "%s" (%s) for liveaction %s' %
-                          (policy_db.ref, policy_db.policy_type, str(liveaction.id)))
+                          (policy_db.ref, policy_db.policy_type, str(liveaction_db.id)))
                 liveaction_db = driver.apply_before(liveaction_db)
             except:
                 LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
