@@ -302,7 +302,7 @@ class SensorWrapper(object):
 
     def _sanitize_trigger(self, trigger):
         sanitized = TriggerAPI.from_model(trigger).to_dict()
-    def _sanitize_trigger(self, trigger):
+        return sanitized
 
 
 if __name__ == '__main__':
