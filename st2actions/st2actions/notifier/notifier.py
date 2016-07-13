@@ -238,7 +238,7 @@ class Notifier(consumers.MessageHandler):
         self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload,
                                           trace_context=trace_context)
 
-    def _apply_post_run_policies(self, liveaction=None):
+    def _apply_post_run_policies(self, liveaction):
         # Apply policies defined for the action.
         policy_dbs = Policy.query(resource_ref=liveaction.action, enabled=True)
         LOG.debug('Applying %s post_run policies' % (len(policy_dbs)))
