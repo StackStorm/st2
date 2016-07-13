@@ -30,6 +30,7 @@ from st2common import log as logging
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
 from st2common.models.api.base import jsexpose
 from st2common.models.api.trace import TraceContext
+from st2common.models.api.trigger import TriggerAPI
 import st2common.services.triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
@@ -234,7 +235,6 @@ class WebhooksController(RestController):
         body = str(request.body)
         log_method('%s\n\trequest.header: %s.\n\trequest.body: %s.', msg, headers, body)
 
-    ##############################################
     # Event handler methods for the trigger events
     ##############################################
 
@@ -254,8 +254,5 @@ class WebhooksController(RestController):
         self.remove_trigger(trigger=trigger)
 
     def _sanitize_trigger(self, trigger):
-        sanitized = trigger._data
-        if 'id' in sanitized:
-            # Friendly objectid rather than the MongoEngine representation.
-            sanitized['id'] = str(sanitized['id'])
+        sanitized = TriggerAPI.from_model(trigger).to_dict()
         return sanitized
