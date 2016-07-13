@@ -238,9 +238,9 @@ class Notifier(consumers.MessageHandler):
         self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload,
                                           trace_context=trace_context)
 
-    def _apply_post_run_policies(self, liveaction):
+    def _apply_post_run_policies(self, liveaction_db):
         # Apply policies defined for the action.
-        policy_dbs = Policy.query(resource_ref=liveaction.action, enabled=True)
+        policy_dbs = Policy.query(resource_ref=liveaction_db.action, enabled=True)
         LOG.debug('Applying %s post_run policies' % (len(policy_dbs)))
 
         for policy_db in policy_dbs:
@@ -251,9 +251,11 @@ class Notifier(consumers.MessageHandler):
             try:
                 LOG.debug('Applying post_run policy "%s" (%s) for liveaction %s' %
                           (policy_db.ref, policy_db.policy_type, str(liveaction.id)))
-                liveaction = driver.apply_after(liveaction)
+                liveaction_db = driver.apply_after(liveaction_db)
             except:
                 LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
+
+        return liveaction_db
 
     def _get_runner_ref(self, action_ref):
         """
