@@ -23,6 +23,7 @@ from oslo_config import cfg
 from st2common import log as logging
 from st2common.logging.misc import set_log_level_for_all_loggers
 from st2common.models.api.trace import TraceContext
+from st2common.models.api.trigger import TriggerAPI
 from st2common.persistence.db_init import db_setup_with_retry
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import loader
@@ -300,10 +301,7 @@ class SensorWrapper(object):
         return config
 
     def _sanitize_trigger(self, trigger):
-        sanitized = trigger._data
-        if 'id' in sanitized:
-            # Friendly objectid rather than the MongoEngine representation.
-            sanitized['id'] = str(sanitized['id'])
+        sanitized = TriggerAPI.from_model(trigger).to_dict()
         return sanitized
 
 

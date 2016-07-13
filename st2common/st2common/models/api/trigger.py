@@ -152,6 +152,10 @@ class TriggerAPI(BaseAPI):
                           parameters=parameters)
         return model
 
+    def to_dict(self):
+        # Return dictionary version of the trigger
+        return vars(self)
+
 
 class TriggerInstanceAPI(BaseAPI):
     model = TriggerInstanceDB
