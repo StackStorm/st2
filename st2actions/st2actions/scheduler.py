@@ -63,19 +63,7 @@ class ActionExecutionScheduler(consumers.MessageHandler):
             raise
 
         # Apply policies defined for the action.
-        policy_dbs = Policy.query(resource_ref=liveaction_db.action, enabled=True)
-        for policy_db in policy_dbs:
-            driver = policies.get_driver(policy_db.ref,
-                                         policy_db.policy_type,
-                                         **policy_db.parameters)
-
-            try:
-                liveaction_db = driver.apply_before(liveaction_db)
-            except:
-                LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
-
-            if liveaction_db.status == action_constants.LIVEACTION_STATUS_DELAYED:
-                break
+        liveaction_db = self._apply_pre_run_policies(liveaction_db=liveaction_db)
 
         # Exit if the status of the request is no longer runnable.
         # The status could have be changed by one of the policies.
@@ -94,6 +82,24 @@ class ActionExecutionScheduler(consumers.MessageHandler):
         # race condition with the update of the action_execution_db if the execution
         # of the liveaction completes first.
         LiveAction.publish_status(liveaction_db)
+
+    def _apply_pre_run_policies(self, liveaction_db):
+        # Apply policies defined for the action.
+        policy_dbs = Policy.query(resource_ref=liveaction_db.action, enabled=True)
+        for policy_db in policy_dbs:
+            driver = policies.get_driver(policy_db.ref,
+                                         policy_db.policy_type,
+                                         **policy_db.parameters)
+
+            try:
+                liveaction_db = driver.apply_before(liveaction_db)
+            except:
+                LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
+
+            if liveaction_db.status == action_constants.LIVEACTION_STATUS_DELAYED:
+                break
+
+        return liveaction_db
 
 
 def get_scheduler():
