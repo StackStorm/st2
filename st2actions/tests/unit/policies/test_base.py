@@ -31,7 +31,7 @@ from st2tests.fixturesloader import FixturesLoader
 
 
 __all__ = [
-    'SchedulerPoliciesTest'
+    'SchedulerPoliciesTest',
     'NotifierPoliciesTest'
 ]
 
@@ -117,6 +117,7 @@ class SchedulerPoliciesTest(CleanDbTestCase):
         # applied
         self.assertEqual(mock_policies.get_driver.call_count, 0)
 
+
 class NotifierPoliciesTest(CleanDbTestCase):
     @classmethod
     def setUpClass(cls):
@@ -164,7 +165,6 @@ class NotifierPoliciesTest(CleanDbTestCase):
         self.assertFalse(self.policy_db.enabled)
 
         self.assertEqual(mock_policies.get_driver.call_count, 0)
-
 
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         live_action_db, execution_db = action_service.request(liveaction)
