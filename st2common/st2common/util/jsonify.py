@@ -18,13 +18,14 @@ try:
 except ImportError:
     import json
 
-
-from pecan.jsonify import GenericJSON
 import six
+from pecan.jsonify import GenericJSON
 
 
 __all__ = [
-    'json_encode'
+    'json_encode',
+    'json_loads',
+    'try_loads'
 ]
 
 
