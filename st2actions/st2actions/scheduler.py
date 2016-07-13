@@ -86,12 +86,16 @@ class ActionExecutionScheduler(consumers.MessageHandler):
     def _apply_pre_run_policies(self, liveaction_db):
         # Apply policies defined for the action.
         policy_dbs = Policy.query(resource_ref=liveaction_db.action, enabled=True)
+        LOG.debug('Applying %s pre_run policies' % (len(policy_dbs)))
+
         for policy_db in policy_dbs:
             driver = policies.get_driver(policy_db.ref,
                                          policy_db.policy_type,
                                          **policy_db.parameters)
 
             try:
+                LOG.debug('Applying pre_run policy "%s" (%s) for liveaction %s' %
+                          (policy_db.ref, policy_db.policy_type, str(liveaction.id)))
                 liveaction_db = driver.apply_before(liveaction_db)
             except:
                 LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
