@@ -90,7 +90,7 @@ class Notifier(consumers.MessageHandler):
                           live_action_id, extra=extra)
             return None
 
-        self._apply_post_run_policies(liveaction=liveaction)
+        self._apply_post_run_policies(liveaction_db=liveaction)
 
         if liveaction.notify is not None:
             self._post_notify_triggers(liveaction=liveaction, execution=execution)
