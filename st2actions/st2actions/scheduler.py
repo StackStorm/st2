@@ -63,7 +63,7 @@ class ActionExecutionScheduler(consumers.MessageHandler):
             raise
 
         # Apply policies defined for the action.
-        for policy_db in Policy.query(resource_ref=liveaction_db.action):
+        for policy_db in Policy.query(enabled=True, resource_ref=liveaction_db.action):
             driver = policies.get_driver(policy_db.ref,
                                          policy_db.policy_type,
                                          **policy_db.parameters)
