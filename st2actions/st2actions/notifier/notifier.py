@@ -240,7 +240,7 @@ class Notifier(consumers.MessageHandler):
 
     def _apply_post_run_policies(self, liveaction=None):
         # Apply policies defined for the action.
-        policy_dbs = Policy.query(resource_ref=liveaction.action)
+        policy_dbs = Policy.query(resource_ref=liveaction.action, enabled=True)
         LOG.debug('Applying %s post_run policies' % (len(policy_dbs)))
 
         for policy_db in policy_dbs:
