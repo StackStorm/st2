@@ -235,6 +235,7 @@ class WebhooksController(RestController):
         body = str(request.body)
         log_method('%s\n\trequest.header: %s.\n\trequest.body: %s.', msg, headers, body)
 
+    ##############################################
     # Event handler methods for the trigger events
     ##############################################
 
