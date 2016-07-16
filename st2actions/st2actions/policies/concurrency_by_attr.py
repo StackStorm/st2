@@ -23,6 +23,9 @@ from st2common.policies import base
 from st2common.services import action as action_service
 from st2common.services import coordination
 
+__all__ = [
+    'ConcurrencyByAttributeApplicator'
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -34,6 +37,7 @@ class ConcurrencyByAttributeApplicator(base.ResourcePolicyApplicator):
                                                                *args, **kwargs)
         self.coordinator = coordination.get_coordinator()
         self.threshold = kwargs.get('threshold', 0)
+        self.policy_action = kwargs.get('action', 'delay')
         self.attributes = kwargs.get('attributes', [])
 
     def _get_lock_uid(self, target):
@@ -76,10 +80,11 @@ class ConcurrencyByAttributeApplicator(base.ResourcePolicyApplicator):
                       count, target.action, self._policy_ref)
             status = action_constants.LIVEACTION_STATUS_SCHEDULED
         else:
+            action = 'delayed' if self.policy_action == 'delay' else 'canceled'
             LOG.debug('There are %s instances of %s in scheduled or running status. '
-                      'Threshold of %s is reached. Action execution will be delayed.',
-                      count, target.action, self._policy_ref)
-            status = action_constants.LIVEACTION_STATUS_DELAYED
+                      'Threshold of %s is reached. Action execution will be %s.',
+                      count, target.action, self._policy_ref, action)
+            status = self._get_status_for_policy_action(action=self.policy_action)
 
         # Update the status in the database but do not publish.
         target = action_service.update_status(target, status, publish=False)
@@ -133,3 +138,11 @@ class ConcurrencyByAttributeApplicator(base.ResourcePolicyApplicator):
             self._apply_after(target)
 
         return target
+
+    def _get_status_for_policy_action(self, policy_action):
+        if policy_action == 'delay':
+            status = action_constants.LIVEACTION_STATUS_DELAYED
+        elif policy_action == 'cancel':
+            status = action_constants.LIVEACTION_STATUS_CANCELED
+
+        return status
