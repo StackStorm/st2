@@ -34,7 +34,7 @@ __all__ = [
 class ResourcePolicyApplicator(object):
     """Abstract policy application class."""
 
-    def __init__(self, policy_ref, policy_type, *args, **kwargs):
+    def __init__(self, policy_ref, policy_type):
         self._policy_ref = policy_ref
         self._policy_type = policy_type
 

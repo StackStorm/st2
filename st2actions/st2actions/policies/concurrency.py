@@ -28,10 +28,10 @@ LOG = logging.getLogger(__name__)
 
 class ConcurrencyApplicator(BaseConcurrencyApplicator):
 
-    def __init__(self, policy_ref, policy_type, *args, **kwargs):
+    def __init__(self, policy_ref, policy_type, threshold=0, action='delay'):
         super(ConcurrencyApplicator, self).__init__(policy_ref=policy_ref, policy_type=policy_type,
-                                                    threshold=kwargs.get('threshold', 0),
-                                                    action=kwargs.get('action', 'delay'))
+                                                    threshold=threshold,
+                                                    action=action)
 
     def _get_lock_uid(self, target):
         values = {'policy_type': self._policy_type, 'action': target.action}

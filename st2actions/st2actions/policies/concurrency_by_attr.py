@@ -32,12 +32,12 @@ LOG = logging.getLogger(__name__)
 
 class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
 
-    def __init__(self, policy_ref, policy_type, *args, **kwargs):
+    def __init__(self, policy_ref, policy_type, threshold=0, action='delay', attributes=None):
         super(ConcurrencyByAttributeApplicator, self).__init__(policy_ref=policy_ref,
-            policy_type=policy_type,
-            threshold=kwargs.get('threshold', 0),
-            action=kwargs.get('action', 'delay'))
-        self.attributes = kwargs.get('attributes', [])
+                                                               policy_type=policy_type,
+                                                               threshold=threshold,
+                                                               action=action)
+        self.attributes = attributes or []
 
     def _get_lock_uid(self, target):
         meta = {
