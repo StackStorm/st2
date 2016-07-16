@@ -31,10 +31,10 @@ class BaseConcurrencyApplicator(base.ResourcePolicyApplicator):
 
         self.coordinator = coordination.get_coordinator()
 
-    def _get_status_for_policy_action(self, policy_action):
-        if policy_action == 'delay':
+    def _get_status_for_policy_action(self, action):
+        if action == 'delay':
             status = action_constants.LIVEACTION_STATUS_DELAYED
-        elif policy_action == 'cancel':
+        elif action == 'cancel':
             status = action_constants.LIVEACTION_STATUS_CANCELED
 
         return status
