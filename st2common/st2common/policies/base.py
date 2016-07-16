@@ -90,7 +90,11 @@ def get_driver(policy_ref, policy_type, **parameters):
     policy_type_db = policy_access.PolicyType.get_by_ref(policy_type)
     module = importlib.import_module(policy_type_db.module, package=None)
 
-    for name, obj in inspect.getmembers(module):
-        if (inspect.isclass(obj) and issubclass(obj, ResourcePolicyApplicator) and
-                not obj.__name__.startswith('Base')):
+    for name, obj in inspect.getmembers(module, predicate=inspect.isclass):
+        if obj.__module__ != module.__name__:
+            # Ignore classes which are just imported, but not defined in the module we are
+            # interested in
+            continue
+
+        if (issubclass(obj, ResourcePolicyApplicator) and not obj.__name__.startswith('Base')):
             return obj(policy_ref, policy_type, **parameters)
