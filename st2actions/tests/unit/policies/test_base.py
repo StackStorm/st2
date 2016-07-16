@@ -128,7 +128,7 @@ class NotifierPoliciesTest(CleanDbTestCase):
         super(NotifierPoliciesTest, self).setUp()
 
         # Register common policy types
-        register_policy_types(st2actions)
+        register_policy_types(st2common)
 
         loader = FixturesLoader()
         models = loader.save_fixtures_to_db(fixtures_pack=PACK,
