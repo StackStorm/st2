@@ -141,6 +141,7 @@ class PolicyRegistrar(ResourceRegistrar):
 
         policy_api = PolicyAPI(**content)
         policy_api = policy_api.validate()
+        # pylint: disable=no-member
         policy_db = PolicyAPI.to_model(policy_api)
 
         try:
