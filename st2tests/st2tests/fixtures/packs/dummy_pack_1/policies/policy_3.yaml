@@ -8,4 +8,4 @@ resource_ref: dummy_pack_1.local
 policy_type: action.retry
 parameters:
     retry_on: timeout
-    max_retry_count: 100
+    max_retry_count: 5
