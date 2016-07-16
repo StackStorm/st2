@@ -15,6 +15,8 @@
 
 import mock
 
+import st2common
+from st2common.bootstrap.policiesregistrar import register_policy_types
 from st2common.constants import action as action_constants
 from st2common.models.db.action import LiveActionDB
 from st2common.persistence.action import LiveAction
@@ -34,9 +36,6 @@ TEST_FIXTURES = {
     ],
     'actions': [
         'action1.yaml'
-    ],
-    'policytypes': [
-        'policy_type_2.yaml'
     ],
     'policies': [
         'policy_3.yaml'
@@ -71,6 +70,9 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
     def setUpClass(cls):
         EventletTestCase.setUpClass()
         DbTestCase.setUpClass()
+
+        # Register common policy types
+        register_policy_types(st2common)
 
         loader = FixturesLoader()
         loader.save_fixtures_to_db(fixtures_pack=PACK,

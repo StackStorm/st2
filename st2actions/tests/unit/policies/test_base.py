@@ -18,7 +18,7 @@ import mock
 from st2tests import config as test_config
 test_config.parse_args()
 
-import st2actions
+import st2common
 from st2actions.notifier import notifier
 from st2actions import scheduler
 from st2common.bootstrap.policiesregistrar import register_policy_types
@@ -71,7 +71,7 @@ class SchedulerPoliciesTest(CleanDbTestCase):
         super(SchedulerPoliciesTest, self).setUp()
 
         # Register common policy types
-        register_policy_types(st2actions)
+        register_policy_types(st2common)
 
         loader = FixturesLoader()
         models = loader.save_fixtures_to_db(fixtures_pack=PACK,

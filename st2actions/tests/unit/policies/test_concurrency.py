@@ -15,6 +15,8 @@
 
 import mock
 
+import st2common
+from st2common.bootstrap.policiesregistrar import register_policy_types
 from st2common.constants import action as action_constants
 from st2common.models.db.action import LiveActionDB
 from st2common.persistence.action import LiveAction
@@ -34,9 +36,6 @@ TEST_FIXTURES = {
     ],
     'actions': [
         'action1.yaml'
-    ],
-    'policytypes': [
-        'policy_type_1.yaml'
     ],
     'policies': [
         'policy_1.yaml'
@@ -66,11 +65,13 @@ SCHEDULED_STATES = [
     LiveActionPublisher, 'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
-
     @classmethod
     def setUpClass(cls):
         EventletTestCase.setUpClass()
         DbTestCase.setUpClass()
+
+        # Register common policy types
+        register_policy_types(st2common)
 
         loader = FixturesLoader()
         loader.save_fixtures_to_db(fixtures_pack=PACK,
