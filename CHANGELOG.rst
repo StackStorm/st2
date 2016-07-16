@@ -8,6 +8,10 @@ In development
   MongoDB 3.x. (improvement)
 * Make sure policies which are disabled are not applied. (bug fix)
   Reported by Brian Martin.
+* Allow user to specify an action which is performed on an execution (``delay``, ``cancel``) when a
+  concurrency policy is used and a defined threshold is reached. For backward compatibility,
+  ``delay`` is a default behavior, but now user can also specify ``cancel`` and an execution will
+  be canceled instead of delayed when a threshold is reached.
 
 1.5.1 - July 13, 2016
 ---------------------
