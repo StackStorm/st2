@@ -20,8 +20,8 @@ from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2common.persistence import action as action_access
 from st2common.services import action as action_service
+from st2common.policies.concurrency import BaseConcurrencyApplicator
 from st2common.services import coordination
-from st2actions.policies.concurrency import BaseConcurrencyApplicator
 
 __all__ = [
     'ConcurrencyByAttributeApplicator'
