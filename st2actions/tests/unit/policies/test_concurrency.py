@@ -35,10 +35,12 @@ TEST_FIXTURES = {
         'testrunner1.yaml'
     ],
     'actions': [
-        'action1.yaml'
+        'action1.yaml',
+        'action2.yaml'
     ],
     'policies': [
-        'policy_1.yaml'
+        'policy_1.yaml',
+        'policy_5.yaml'
     ]
 }
 
@@ -82,7 +84,7 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
             action_service.update_status(
                 liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
 
-    def test_over_threshold(self):
+    def test_over_threshold_delay_executions(self):
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
         self.assertGreater(policy_db.parameters['threshold'], 0)
 
@@ -106,6 +108,24 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertIn(liveaction.status, SCHEDULED_STATES)
+
+    def test_over_threshold_cancel_executions(self):
+        policy_db = Policy.get_by_ref('wolfpack.action-2.concurrency.cancel')
+        self.assertEqual(policy_db.parameters['action'], 'cancel')
+        self.assertGreater(policy_db.parameters['threshold'], 0)
+
+        for i in range(0, policy_db.parameters['threshold']):
+            liveaction = LiveActionDB(action='wolfpack.action-2', parameters={'actionstr': 'foo'})
+            action_service.request(liveaction)
+
+        scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
+        self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
+
+        # Execution is expected to be canceled since concurrency threshold is reached.
+        liveaction = LiveActionDB(action='wolfpack.action-2', parameters={'actionstr': 'foo'})
+        liveaction, _ = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
     def test_on_cancellation(self):
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
