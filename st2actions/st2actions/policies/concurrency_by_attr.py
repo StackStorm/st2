@@ -19,9 +19,9 @@ import six
 from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2common.persistence import action as action_access
-from st2common.policies import base
 from st2common.services import action as action_service
 from st2common.services import coordination
+from st2actions.policies.concurrency import BaseConcurrencyApplicator
 
 __all__ = [
     'ConcurrencyByAttributeApplicator'
@@ -30,14 +30,13 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-class ConcurrencyByAttributeApplicator(base.ResourcePolicyApplicator):
+class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
 
     def __init__(self, policy_ref, policy_type, *args, **kwargs):
-        super(ConcurrencyByAttributeApplicator, self).__init__(policy_ref, policy_type,
-                                                               *args, **kwargs)
-        self.coordinator = coordination.get_coordinator()
-        self.threshold = kwargs.get('threshold', 0)
-        self.policy_action = kwargs.get('action', 'delay')
+        super(ConcurrencyByAttributeApplicator, self).__init__(policy_ref=policy_ref,
+            policy_type=policy_type,
+            threshold=kwargs.get('threshold', 0),
+            action=kwargs.get('action', 'delay'))
         self.attributes = kwargs.get('attributes', [])
 
     def _get_lock_uid(self, target):
@@ -138,11 +137,3 @@ class ConcurrencyByAttributeApplicator(base.ResourcePolicyApplicator):
             self._apply_after(target)
 
         return target
-
-    def _get_status_for_policy_action(self, policy_action):
-        if policy_action == 'delay':
-            status = action_constants.LIVEACTION_STATUS_DELAYED
-        elif policy_action == 'cancel':
-            status = action_constants.LIVEACTION_STATUS_CANCELED
-
-        return status

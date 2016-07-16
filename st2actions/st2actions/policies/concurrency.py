@@ -21,19 +21,37 @@ from st2common.services import action as action_service
 from st2common.services import coordination
 
 __all__ = [
+    'BaseConcurrencyApplicator',
     'ConcurrencyApplicator'
 ]
 
 LOG = logging.getLogger(__name__)
 
 
-class ConcurrencyApplicator(base.ResourcePolicyApplicator):
+class BaseConcurrencyApplicator(base.ResourcePolicyApplicator):
+    def __init__(self, policy_ref, policy_type, threshold=0, action='delay'):
+        super(BaseConcurrencyApplicator, self).__init__(policy_ref=policy_ref,
+                                                        policy_type=policy_type)
+        self.threshold = threshold
+        self.policy_action = action
+
+        self.coordinator = coordination.get_coordinator()
+
+    def _get_status_for_policy_action(self, policy_action):
+        if policy_action == 'delay':
+            status = action_constants.LIVEACTION_STATUS_DELAYED
+        elif policy_action == 'cancel':
+            status = action_constants.LIVEACTION_STATUS_CANCELED
+
+        return status
+
+
+class ConcurrencyApplicator(BaseConcurrencyApplicator):
 
     def __init__(self, policy_ref, policy_type, *args, **kwargs):
-        super(ConcurrencyApplicator, self).__init__(policy_ref, policy_type, *args, **kwargs)
-        self.coordinator = coordination.get_coordinator()
-        self.threshold = kwargs.get('threshold', 0)
-        self.policy_action = kwargs.get('action', 'delay')
+        super(ConcurrencyApplicator, self).__init__(policy_ref=policy_ref, policy_type=policy_type,
+                                                    threshold=kwargs.get('threshold', 0),
+                                                    action=kwargs.get('action', 'delay'))
 
     def _get_lock_uid(self, target):
         values = {'policy_type': self._policy_type, 'action': target.action}
@@ -112,10 +130,3 @@ class ConcurrencyApplicator(base.ResourcePolicyApplicator):
 
         return target
 
-    def _get_status_for_policy_action(self, policy_action):
-        if policy_action == 'delay':
-            status = action_constants.LIVEACTION_STATUS_DELAYED
-        elif policy_action == 'cancel':
-            status = action_constants.LIVEACTION_STATUS_CANCELED
-
-        return status
