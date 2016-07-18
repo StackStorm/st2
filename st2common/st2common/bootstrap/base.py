@@ -188,3 +188,9 @@ class ResourceRegistrar(object):
         config_schema_db = ConfigSchema.add_or_update(config_schema_db)
         LOG.debug('Config schema for pack %s registered.' % (pack_name))
         return config_schema_db
+
+    def _register_runner(self):
+        pass
+
+    def register_runner(self):
+        pass

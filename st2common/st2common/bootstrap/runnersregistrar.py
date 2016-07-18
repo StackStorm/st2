@@ -544,6 +544,10 @@ RUNNER_TYPES = [
 ]
 
 
+def register_runners(experimental=False):
+    pass
+
+
 def register_runner_types(experimental=False):
     """
     :param experimental: True to also register experimental runners.

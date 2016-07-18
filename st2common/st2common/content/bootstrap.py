@@ -159,6 +159,27 @@ def register_sensors():
     LOG.info('Registered %s sensors.' % (registered_count))
 
 
+def register_runners():
+    # Register runners
+    pack_dir = cfg.CONF.register.pack
+    fail_on_failure = cfg.CONF.register.fail_on_failure
+
+    registered_count = 0
+
+    # 1. Register runner types
+    try:
+        LOG.info('=========================================================')
+        LOG.info('############## Registering runners ######################')
+        LOG.info('=========================================================')
+        runners_registrar.register_runners(experimental=cfg.CONF.experimental)
+    except Exception as error:
+        # TODO: Narrow exception window
+        LOG.warning('Failed to register runners: %s', error, exc_info=True)
+        return
+
+    LOG.info('Registered %s runners.', registered_count)
+
+
 def register_actions():
     # Register runnertypes and actions. The order is important because actions require action
     # types to be present in the system.
@@ -167,6 +188,7 @@ def register_actions():
 
     registered_count = 0
 
+    # TODO: Decouple runner/action registration
     # 1. Register runner types
     try:
         LOG.info('=========================================================')
@@ -330,6 +352,9 @@ def register_content():
 
     if cfg.CONF.register.configs and not register_all:
         register_configs()
+
+    if cfg.CONF.register.runners and not register_all:
+        register_runners()
 
     if cfg.CONF.register.setup_virtualenvs:
         setup_virtualenvs()

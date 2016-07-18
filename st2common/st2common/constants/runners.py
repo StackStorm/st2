@@ -16,6 +16,8 @@
 from oslo_config import cfg
 
 __all__ = [
+    'MANIFEST_FILE_NAME',
+
     'LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT',
 
     'REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT',
@@ -30,6 +32,9 @@ __all__ = [
     'COMMON_ACTION_ENV_VARIABLES'
 ]
 
+# Manifest file name for runners
+MANIFEST_FILE_NAME = 'runner.yaml'
+
 # Local runner
 LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT = 60
 
@@ -43,7 +48,7 @@ except:
 
 REMOTE_RUNNER_PRIVATE_KEY_HEADER = 'PRIVATE KEY-----'.lower()
 
-# Python runner
+# Python runner'
 # Default timeout (in seconds) for actions executed by Python runner
 PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60
 
