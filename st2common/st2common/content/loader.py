@@ -159,19 +159,18 @@ class ContentPackLoader(object):
         return content
 
     def _get_content_from_pack_dir(self, pack_dir, content_type):
-        if content_type == 'triggers':
-            get_func = self._get_triggers
-        elif content_type == 'sensors':
-            get_func = self._get_sensors
-        elif content_type == 'actions':
-            get_func = self._get_actions
-        elif content_type == 'rules':
-            get_func = self._get_rules
-        elif content_type == 'aliases':
-            get_func = self._get_aliases
-        elif content_type == 'policies':
-            get_func = self._get_policies
-        else:
+        content_types = dict(
+            triggers=self._get_triggers,
+            sensors=self._get_sensors,
+            actions=self._get_actions,
+            rules=self._get_rules,
+            aliases=self._get_aliases,
+            policies=self._get_policies
+            )
+
+        get_func = content_types.get(content_type)
+
+        if get_func is None:
             raise ValueError('Invalid content_type: %s' % (content_type))
 
         if not os.path.isdir(pack_dir):
