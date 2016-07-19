@@ -20,7 +20,7 @@ parameters:
     type: boolean
   actionfloat:
     required: false
-    type: float
+    type: number
   actionobject:
     required: false
     type: object

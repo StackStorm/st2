@@ -140,7 +140,7 @@ class PolicyRegistrar(ResourceRegistrar):
                             (pack, pack_field))
 
         policy_api = PolicyAPI(**content)
-        policy_api.validate()
+        policy_api = policy_api.validate()
         policy_db = PolicyAPI.to_model(policy_api)
 
         try:

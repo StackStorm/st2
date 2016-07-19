@@ -19,22 +19,25 @@ import six
 from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2common.persistence import action as action_access
-from st2common.policies import base
 from st2common.services import action as action_service
+from st2common.policies.concurrency import BaseConcurrencyApplicator
 from st2common.services import coordination
 
+__all__ = [
+    'ConcurrencyByAttributeApplicator'
+]
 
 LOG = logging.getLogger(__name__)
 
 
-class ConcurrencyByAttributeApplicator(base.ResourcePolicyApplicator):
+class ConcurrencyByAttributeApplicator(BaseConcurrencyApplicator):
 
-    def __init__(self, policy_ref, policy_type, *args, **kwargs):
-        super(ConcurrencyByAttributeApplicator, self).__init__(policy_ref, policy_type,
-                                                               *args, **kwargs)
-        self.coordinator = coordination.get_coordinator()
-        self.threshold = kwargs.get('threshold', 0)
-        self.attributes = kwargs.get('attributes', [])
+    def __init__(self, policy_ref, policy_type, threshold=0, action='delay', attributes=None):
+        super(ConcurrencyByAttributeApplicator, self).__init__(policy_ref=policy_ref,
+                                                               policy_type=policy_type,
+                                                               threshold=threshold,
+                                                               action=action)
+        self.attributes = attributes or []
 
     def _get_lock_uid(self, target):
         meta = {
@@ -76,10 +79,11 @@ class ConcurrencyByAttributeApplicator(base.ResourcePolicyApplicator):
                       count, target.action, self._policy_ref)
             status = action_constants.LIVEACTION_STATUS_SCHEDULED
         else:
+            action = 'delayed' if self.policy_action == 'delay' else 'canceled'
             LOG.debug('There are %s instances of %s in scheduled or running status. '
-                      'Threshold of %s is reached. Action execution will be delayed.',
-                      count, target.action, self._policy_ref)
-            status = action_constants.LIVEACTION_STATUS_DELAYED
+                      'Threshold of %s is reached. Action execution will be %s.',
+                      count, target.action, self._policy_ref, action)
+            status = self._get_status_for_policy_action(action=self.policy_action)
 
         # Update the status in the database but do not publish.
         target = action_service.update_status(target, status, publish=False)
