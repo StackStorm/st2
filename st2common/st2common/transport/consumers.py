@@ -22,6 +22,14 @@ from kombu.mixins import ConsumerMixin
 from st2common import log as logging
 from st2common.util.greenpooldispatch import BufferedDispatcher
 
+__all__ = [
+    'QueueConsumer',
+    'StagedQueueConsumer',
+    'ActionsQueueConsumer',
+
+    'MessageHandler',
+    'StagedMessageHandler'
+]
 
 LOG = logging.getLogger(__name__)
 
@@ -75,6 +83,47 @@ class StagedQueueConsumer(QueueConsumer):
                 raise TypeError('Received an unexpected type "%s" for payload.' % type(body))
             response = self._handler.pre_ack_process(body)
             self._dispatcher.dispatch(self._process_message, response)
+        except:
+            LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
+        finally:
+            # At this point we will always ack a message.
+            message.ack()
+
+
+class ActionsQueueConsumer(QueueConsumer):
+    """
+    Special Queue Consumer for action runner which uses multiple BufferedDispatcher pools:
+
+    1. For regular (non-workflow) actions
+    2. One for workflow actions
+
+    This way we can ensure workflow actions never block non-workflow actions.
+    """
+
+    def __init__(self, connection, queues, handler, dispatch_pool_size=50):
+        self.connection = connection
+
+        self._queues = queues
+        self._handler = handler
+
+        self._dispatchers = {}
+        self._dispatchers['actions'] = BufferedDispatcher(dispatch_pool_size=50)
+        self._dispatchers['workflows'] = BufferedDispatcher(dispatch_pool_size=50)
+
+    def process(self, body, message):
+        try:
+            if not isinstance(body, self._handler.message_type):
+                raise TypeError('Received an unexpected type "%s" for payload.' % type(body))
+
+            is_action_workflow = getattr(body, 'is_action_workflow', False)
+            if is_action_workflow:
+                # Use workflow dispatcher queue
+                dispatcher = self._dispatchers['workflows']
+            else:
+                # Use queue for regular or workflow actions
+                dispatcher = self._dispatchers['actions']
+
+            dispatcher.dispatch(self._process_message, body)
         except:
             LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
         finally:
