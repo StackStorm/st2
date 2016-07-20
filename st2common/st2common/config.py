@@ -82,6 +82,14 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(content_opts, 'content', ignore_errors)
 
+    webui_opts = [
+        cfg.StrOpt('webui_base_url', default='https://localhost',
+                   help='Base https URL to access st2 Web UI. This is used to construct' +
+                        'history URLs that are sent out when chatops is used to kick off ' +
+                        'executions.')
+    ]
+    do_register_opts(webui_opts, 'webui', ignore_errors)
+
     db_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
         cfg.IntOpt('port', default=27017, help='port of db server'),

@@ -66,6 +66,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
     parent = me.StringField()
     children = me.ListField(field=me.StringField())
     log = me.ListField(field=me.DictField())
+    web_url = me.URLField(required=False, verify_exists=False)
 
     meta = {
         'indexes': [
