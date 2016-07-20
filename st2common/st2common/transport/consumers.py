@@ -18,6 +18,7 @@ import eventlet
 import six
 
 from kombu.mixins import ConsumerMixin
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.util.greenpooldispatch import BufferedDispatcher
@@ -100,15 +101,18 @@ class ActionsQueueConsumer(QueueConsumer):
     This way we can ensure workflow actions never block non-workflow actions.
     """
 
-    def __init__(self, connection, queues, handler, dispatch_pool_size=50):
+    def __init__(self, connection, queues, handler):
         self.connection = connection
 
         self._queues = queues
         self._handler = handler
 
         self._dispatchers = {}
-        self._dispatchers['actions'] = BufferedDispatcher(dispatch_pool_size=50)
-        self._dispatchers['workflows'] = BufferedDispatcher(dispatch_pool_size=50)
+
+        workflows_pool_size = cfg.CONF.actionrunner.workflows_pool_size
+        actions_pool_size = cfg.CONF.actionrunner.actions_pool_size
+        self._dispatchers['workflows'] = BufferedDispatcher(dispatch_pool_size=workflows_pool_size)
+        self._dispatchers['actions'] = BufferedDispatcher(dispatch_pool_size=actions_pool_size)
 
     def process(self, body, message):
         try:
