@@ -107,12 +107,12 @@ class ActionsQueueConsumer(QueueConsumer):
         self._queues = queues
         self._handler = handler
 
-        self._dispatchers = {}
-
         workflows_pool_size = cfg.CONF.actionrunner.workflows_pool_size
         actions_pool_size = cfg.CONF.actionrunner.actions_pool_size
-        self._dispatchers['workflows'] = BufferedDispatcher(dispatch_pool_size=workflows_pool_size)
-        self._dispatchers['actions'] = BufferedDispatcher(dispatch_pool_size=actions_pool_size)
+        self._workflows_dispatcher = BufferedDispatcher(dispatch_pool_size=workflows_pool_size,
+                                                        name='workflows-dispatcher')
+        self._actions_dispatcher = BufferedDispatcher(dispatch_pool_size=actions_pool_size,
+                                                      name='actions-dispatcher')
 
     def process(self, body, message):
         try:
@@ -122,10 +122,10 @@ class ActionsQueueConsumer(QueueConsumer):
             is_action_workflow = getattr(body, 'is_action_workflow', False)
             if is_action_workflow:
                 # Use workflow dispatcher queue
-                dispatcher = self._dispatchers['workflows']
+                dispatcher = self._workflows_dispatcher
             else:
                 # Use queue for regular or workflow actions
-                dispatcher = self._dispatchers['actions']
+                dispatcher = self._actions_dispatcher
 
             dispatcher.dispatch(self._process_message, body)
         except:
