@@ -59,6 +59,9 @@ class LiveActionDB(stormbase.StormFoundationDB):
     action = me.StringField(
         required=True,
         help_text='Reference to the action that has to be executed.')
+    is_action_workflow = me.BooleanField(
+        default=False,
+        help_text='A flag indicating whether the references action is a workflow.')
     parameters = stormbase.EscapedDynamicField(
         default={},
         help_text='The key-value pairs passed as to the action runner & execution.')
