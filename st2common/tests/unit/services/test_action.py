@@ -44,6 +44,15 @@ RUNNER = {
     'runner_module': 'st2actions.runners.remoterunner'
 }
 
+RUNNER_ACTION_CHAIN = {
+    'name': 'action-chain',
+    'description': 'AC runner.',
+    'enabled': True,
+    'runner_parameters': {
+    },
+    'runner_module': 'st2actions.runners.remoterunner'
+}
+
 ACTION = {
     'name': 'my.action',
     'description': 'my test',
@@ -65,6 +74,15 @@ ACTION = {
             'routes': ['notify.slack']
         }
     }
+}
+
+ACTION_WORKFLOW = {
+    'name': 'my.wf_action',
+    'description': 'my test',
+    'enabled': True,
+    'entry_point': '/tmp/test/action.sh',
+    'pack': 'default',
+    'runner_type': 'action-chain'
 }
 
 ACTION_OVR_PARAM = {
@@ -139,6 +157,7 @@ ACTION_OVR_PARAM_BAD_ATTR_NOOP = {
 
 PACK = 'default'
 ACTION_REF = ResourceReference(name='my.action', pack=PACK).ref
+ACTION_WORKFLOW_REF = ResourceReference(name='my.wf_action', pack=PACK).ref
 ACTION_OVR_PARAM_REF = ResourceReference(name='my.sudo.default.action', pack=PACK).ref
 ACTION_OVR_PARAM_MUTABLE_REF = ResourceReference(name='my.sudo.mutable.action', pack=PACK).ref
 ACTION_OVR_PARAM_IMMUTABLE_REF = ResourceReference(name='my.sudo.immutable.action', pack=PACK).ref
@@ -158,8 +177,12 @@ class TestActionExecutionService(DbTestCase):
         cls.runner = RunnerTypeAPI(**RUNNER)
         cls.runnerdb = RunnerType.add_or_update(RunnerTypeAPI.to_model(cls.runner))
 
+        runner_api = RunnerTypeAPI(**RUNNER_ACTION_CHAIN)
+        RunnerType.add_or_update(RunnerTypeAPI.to_model(runner_api))
+
         cls.actions = {
             ACTION['name']: ActionAPI(**ACTION),
+            ACTION_WORKFLOW['name']: ActionAPI(**ACTION_WORKFLOW),
             ACTION_OVR_PARAM['name']: ActionAPI(**ACTION_OVR_PARAM),
             ACTION_OVR_PARAM_MUTABLE['name']: ActionAPI(**ACTION_OVR_PARAM_MUTABLE),
             ACTION_OVR_PARAM_IMMUTABLE['name']: ActionAPI(**ACTION_OVR_PARAM_IMMUTABLE),
@@ -181,10 +204,10 @@ class TestActionExecutionService(DbTestCase):
 
         super(TestActionExecutionService, cls).tearDownClass()
 
-    def _submit_request(self):
+    def _submit_request(self, action_ref=ACTION_REF):
         context = {'user': USERNAME}
         parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a'}
-        request = LiveActionDB(action=ACTION_REF, context=context, parameters=parameters)
+        request = LiveActionDB(action=action_ref, context=context, parameters=parameters)
         request, _ = action_service.request(request)
         execution = action_db.get_liveaction_by_id(str(request.id))
         return request, execution
@@ -194,10 +217,12 @@ class TestActionExecutionService(DbTestCase):
         execution = action_db.get_liveaction_by_id(execution.id)
         return execution
 
-    def test_request(self):
+    def test_request_non_workflow_action(self):
         actiondb = self.actiondbs[ACTION['name']]
-        request, execution = self._submit_request()
+        request, execution = self._submit_request(action_ref=ACTION_REF)
+
         self.assertIsNotNone(execution)
+        self.assertEqual(execution.is_action_workflow, False)
         self.assertEqual(execution.id, request.id)
         self.assertEqual(execution.action, '.'.join([actiondb.pack, actiondb.name]))
         self.assertEqual(execution.context['user'], request.context['user'])
@@ -207,6 +232,18 @@ class TestActionExecutionService(DbTestCase):
         # mongoengine DateTimeField stores datetime only up to milliseconds
         self.assertEqual(isotime.format(execution.start_timestamp, usec=False),
                          isotime.format(request.start_timestamp, usec=False))
+
+    def test_request_workflow_action(self):
+        actiondb = self.actiondbs[ACTION_WORKFLOW['name']]
+        request, execution = self._submit_request(action_ref=ACTION_WORKFLOW_REF)
+
+        self.assertIsNotNone(execution)
+        self.assertEqual(execution.is_action_workflow, True)
+        self.assertEqual(execution.id, request.id)
+        self.assertEqual(execution.action, '.'.join([actiondb.pack, actiondb.name]))
+        self.assertEqual(execution.context['user'], request.context['user'])
+        self.assertDictEqual(execution.parameters, request.parameters)
+        self.assertEqual(execution.status, action_constants.LIVEACTION_STATUS_REQUESTED)
 
     def test_request_invalid_parameters(self):
         parameters = {'hosts': '127.0.0.1', 'cmd': 'uname -a', 'arg_default_value': 123}
