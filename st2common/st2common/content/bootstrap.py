@@ -161,6 +161,7 @@ def register_sensors():
 
 def register_runners():
     # Register runners
+    runner_dir = cfg.CONF.register.runner
     registered_count = 0
 
     # 1. Register runner types
@@ -168,7 +169,9 @@ def register_runners():
         LOG.info('=========================================================')
         LOG.info('############## Registering runners ######################')
         LOG.info('=========================================================')
-        runners_registrar.register_runners(experimental=cfg.CONF.experimental)
+        registered_count = runners_registrar.register_runners(runner_dir=runner_dir,
+                                                              fail_on_failure=fail_on_failure,
+                                                              experimental=False)
     except Exception as error:
         # TODO: Narrow exception window
         LOG.warning('Failed to register runners: %s', error, exc_info=True)

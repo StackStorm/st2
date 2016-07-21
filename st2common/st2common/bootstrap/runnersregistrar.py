@@ -12,13 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import os
 import copy
 
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.runner import RunnerType
+from st2common.content.loader import ContentRunnerLoader, MetaLoader
+from st2common.constants.runners import MANIFEST_FILE_NAME
 from st2common.util.action_db import get_runnertype_by_name
 
 __all__ = [
@@ -29,18 +31,20 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-
-def register_runners(experimental=False):
+def register_runners(runner_dir=None, experimental=False, fail_on_failure=True):
+    """ Register runners
     """
-    :param experimental: True to also register experimental runners.
-    :type experimental: ``bool``
-    """
-    LOG.debug('Start : register default RunnerTypes.')
+    LOG.debug('Start : register runners')
 
-    runner_types = []
+    runner_loader = ContentRunnerLoader()
 
-    for runner_type in runner_types:
-        runner_type = copy.deepcopy(runner_type)
+    runners = runner_loader.get_runners(runner_dir)
+
+
+    for runner in runners:
+        runner_manifest = os.path.join(runner_dir, MANIFEST_FILE_NAME)
+        meta_loader = MetaLoader()
+        runner_type = meta_loader.load(runner_manifest)
 
         # For backward compatibility reasons, we also register runners under the old names
         runner_names = [runner_type['name']] + runner_type.get('aliases', [])
@@ -88,7 +92,7 @@ def register_runners(experimental=False):
             except Exception:
                 LOG.exception('Unable to register runner type %s.', runner_type['name'])
 
-    LOG.debug('End : register default RunnerTypes.')
+    LOG.debug('End : register runners')
 
 
 def register_runner_types(experimental=False):
