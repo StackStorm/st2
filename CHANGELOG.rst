@@ -12,6 +12,12 @@ In development
   concurrency policy is used and a defined threshold is reached. For backward compatibility,
   ``delay`` is a default behavior, but now user can also specify ``cancel`` and an execution will
   be canceled instead of delayed when a threshold is reached.
+* Update action runner to use two internal green thread pools - one for regular (non-workflow) and
+  one for workflow actions. Sizes of both of those pools are also user configurable inside the
+  config. This should help increase the concurrent throughput of a single action runner when
+  server resources are under or normally utilized and also help prevent deadlocks which can
+  occur under some specific scenario when using delay policies with action-chain workflows.
+  (improvement)
 
 1.5.1 - July 13, 2016
 ---------------------
