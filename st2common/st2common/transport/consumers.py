@@ -140,7 +140,8 @@ class MessageHandler(object):
     message_type = None
 
     def __init__(self, connection, queues):
-        self._queue_consumer = self._get_queue_consumer(connection, queues)
+        self._queue_consumer = self.get_queue_consumer(connection=connection,
+                                                       queues=queues)
         self._consumer_thread = None
 
     def start(self, wait=False):
@@ -161,8 +162,8 @@ class MessageHandler(object):
     def process(self, message):
         pass
 
-    def _get_queue_consumer(self, connection, queues):
-        return QueueConsumer(connection, queues, self)
+    def get_queue_consumer(self, connection, queues):
+        return QueueConsumer(connection=connection, queues=queues, handler=self)
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -188,5 +189,5 @@ class StagedMessageHandler(MessageHandler):
         """
         pass
 
-    def _get_queue_consumer(self, connection, queues):
-        return StagedQueueConsumer(connection, queues, self)
+    def get_queue_consumer(self, connection, queues):
+        return StagedQueueConsumer(connection=connection, queues=queues, handler=self)
