@@ -49,6 +49,10 @@ class ActionExecutionDispatcher(consumers.MessageHandler):
         self.container = RunnerContainer()
         self._running_liveactions = set()
 
+    def _get_queue_consumer(self, connection, queues):
+        # We want to use a special ActionsQueueConsumer which uses 2 dispatcher pools
+        return consumers.ActionsQueueConsumer(connection, queues, self)
+
     def process(self, liveaction):
         """Dispatches the LiveAction to appropriate action runner.
 
