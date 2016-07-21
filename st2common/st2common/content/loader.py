@@ -167,7 +167,7 @@ class ContentPackLoader(object):
             rules=self._get_rules,
             aliases=self._get_aliases,
             policies=self._get_policies
-            )
+        )
 
         get_func = content_types.get(content_type)
 
