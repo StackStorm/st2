@@ -2,6 +2,7 @@
   - run-local
   enabled: true
   name: local-shell-cmd
+  description: A runner to execute local actions as a fixed user.
   runner_module: st2actions.runners.localrunner
   runner_parameters:
     cmd:

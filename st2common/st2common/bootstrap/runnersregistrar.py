@@ -15,6 +15,7 @@
 import os
 import copy
 
+import st2common.content.utils as content_utils
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RunnerTypeAPI
@@ -38,61 +39,73 @@ def register_runners(runner_dir=None, experimental=False, fail_on_failure=True):
 
     runner_loader = ContentRunnerLoader()
 
-    runners = runner_loader.get_runners(runner_dir)
+    if runner_dir:
+        assert isinstance(runner_dir, list)
+
+    if not runner_dir:
+        runner_dirs = content_utils.get_runners_base_paths()
+
+    runners = runner_loader.get_runners(runner_dirs)
 
 
-    for runner in runners:
-        runner_manifest = os.path.join(runner_dir, MANIFEST_FILE_NAME)
+    for runner, path in runners.iteritems():
+        LOG.info('Runner "%s"' % (runner))
+        runner_manifest = os.path.join(path, MANIFEST_FILE_NAME)
         meta_loader = MetaLoader()
-        runner_type = meta_loader.load(runner_manifest)
-
-        # For backward compatibility reasons, we also register runners under the old names
-        runner_names = [runner_type['name']] + runner_type.get('aliases', [])
-        for runner_name in runner_names:
-            runner_type['name'] = runner_name
-            runner_experimental = runner_type.get('experimental', False)
-
-            if runner_experimental and not experimental:
-                LOG.debug('Skipping experimental runner "%s"' % (runner_name))
-                continue
-
-            # Remove additional, non db-model attributes
-            non_db_attributes = ['experimental', 'aliases']
-            for attribute in non_db_attributes:
-                if attribute in runner_type:
-                    del runner_type[attribute]
-
-            try:
-                runner_type_db = get_runnertype_by_name(runner_name)
-                update = True
-            except StackStormDBObjectNotFoundError:
-                runner_type_db = None
-                update = False
-
-            # Note: We don't want to overwrite "enabled" attribute which is already in the database
-            # (aka we don't want to re-enable runner which has been disabled by the user)
-            if runner_type_db and runner_type_db['enabled'] != runner_type['enabled']:
-                runner_type['enabled'] = runner_type_db['enabled']
-
-            runner_type_api = RunnerTypeAPI(**runner_type)
-            runner_type_api.validate()
-            runner_type_model = RunnerTypeAPI.to_model(runner_type_api)
-
-            if runner_type_db:
-                runner_type_model.id = runner_type_db.id
-
-            try:
-                runner_type_db = RunnerType.add_or_update(runner_type_model)
-
-                extra = {'runner_type_db': runner_type_db}
-                if update:
-                    LOG.audit('RunnerType updated. RunnerType %s', runner_type_db, extra=extra)
-                else:
-                    LOG.audit('RunnerType created. RunnerType %s', runner_type_db, extra=extra)
-            except Exception:
-                LOG.exception('Unable to register runner type %s.', runner_type['name'])
+        runner_types = meta_loader.load(runner_manifest)
+        for runner_type in runner_types:
+            register_runner(runner_type, experimental)
 
     LOG.debug('End : register runners')
+
+
+def register_runner(runner_type, experimental):
+    # For backward compatibility reasons, we also register runners under the old names
+    runner_names = [runner_type['name']] + runner_type.get('aliases', [])
+    for runner_name in runner_names:
+        runner_type['name'] = runner_name
+        runner_experimental = runner_type.get('experimental', False)
+
+        if runner_experimental and not experimental:
+            LOG.debug('Skipping experimental runner "%s"' % (runner_name))
+            continue
+
+        # Remove additional, non db-model attributes
+        non_db_attributes = ['experimental', 'aliases']
+        for attribute in non_db_attributes:
+            if attribute in runner_type:
+                del runner_type[attribute]
+
+        try:
+            runner_type_db = get_runnertype_by_name(runner_name)
+            update = True
+        except StackStormDBObjectNotFoundError:
+            runner_type_db = None
+            update = False
+
+        # Note: We don't want to overwrite "enabled" attribute which is already in the database
+        # (aka we don't want to re-enable runner which has been disabled by the user)
+        if runner_type_db and runner_type_db['enabled'] != runner_type['enabled']:
+            runner_type['enabled'] = runner_type_db['enabled']
+
+        runner_type_api = RunnerTypeAPI(**runner_type)
+        runner_type_api.validate()
+        runner_type_model = RunnerTypeAPI.to_model(runner_type_api)
+
+        if runner_type_db:
+            runner_type_model.id = runner_type_db.id
+
+        try:
+            runner_type_db = RunnerType.add_or_update(runner_type_model)
+
+            extra = {'runner_type_db': runner_type_db}
+            if update:
+                LOG.audit('RunnerType updated. RunnerType %s', runner_type_db, extra=extra)
+            else:
+                LOG.audit('RunnerType created. RunnerType %s', runner_type_db, extra=extra)
+        except Exception:
+            LOG.exception('Unable to register runner type %s.', runner_type['name'])
+
 
 
 def register_runner_types(experimental=False):

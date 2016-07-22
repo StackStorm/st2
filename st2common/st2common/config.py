@@ -74,11 +74,16 @@ def register_opts(ignore_errors=False):
     do_register_opts(system_opts, 'system', ignore_errors)
 
     system_packs_base_path = os.path.join(cfg.CONF.system.base_path, 'packs')
+    system_runners_base_path = os.path.join(cfg.CONF.system.base_path, 'runners')
     content_opts = [
         cfg.StrOpt('system_packs_base_path', default=system_packs_base_path,
                    help='Path to the directory which contains system packs.'),
+        cfg.StrOpt('system_runners_base_path', default=system_runners_base_path,
+                   help='Path to the directory which contains system runners.'),
         cfg.StrOpt('packs_base_paths', default=None,
-                   help='Paths which will be searched for integration packs.')
+                   help='Paths which will be searched for integration packs.'),
+        cfg.StrOpt('runners_base_paths', default=None,
+                   help='Paths which will be searched for runners.')
     ]
     do_register_opts(content_opts, 'content', ignore_errors)
 

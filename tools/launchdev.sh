@@ -238,7 +238,7 @@ function st2start(){
 
     if [ "$load_content" = true ]; then
         # Register contents
-        echo 'Registering sensors, actions, rules, aliases, and policies...'
+        echo 'Registering sensors, runners, actions, rules, aliases, and policies...'
         ./virtualenv/bin/python \
             ./st2common/bin/st2-register-content \
             --config-file $ST2_CONF --register-all

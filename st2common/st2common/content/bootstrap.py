@@ -57,9 +57,9 @@ def register_opts():
         cfg.BoolOpt('configs', default=False, help='Register and load pack configs.'),
 
         cfg.StrOpt('pack', default=None, help='Directory to the pack to register content from.'),
+        cfg.StrOpt('runner', default=None, help='Directory to load runners from.'),
         cfg.BoolOpt('setup-virtualenvs', default=False, help=('Setup Python virtual environments '
                                                               'all the Python runner actions.')),
-
         cfg.BoolOpt('fail-on-failure', default=False, help=('Exit with non-zero of resource '
                                                             'registration fails.'))
     ]
@@ -78,7 +78,6 @@ def setup_virtualenvs():
     LOG.info('=========================================================')
     LOG.info('########### Setting up virtual environments #############')
     LOG.info('=========================================================')
-
     pack_dir = cfg.CONF.register.pack
     fail_on_failure = cfg.CONF.register.fail_on_failure
 
@@ -163,6 +162,7 @@ def register_runners():
     # Register runners
     runner_dir = cfg.CONF.register.runner
     registered_count = 0
+    fail_on_failure = cfg.CONF.register.fail_on_failure
 
     # 1. Register runner types
     try:
@@ -329,7 +329,7 @@ def register_content():
     if cfg.CONF.register.sensors and not register_all:
         register_sensors()
 
-    if cfg.CONF.register.runners and not register_all:
+    if cfg.CONF.register.runner and not register_all:
         register_runners()
 
     if cfg.CONF.register.actions and not register_all:
