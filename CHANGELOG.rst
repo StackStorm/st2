@@ -6,6 +6,16 @@ In development
 
 * Upgrade to pymongo 3.2.2 and mongoengine 0.10.6 so StackStorm now also supports and works with
   MongoDB 3.x. (improvement)
+* Make sure policies which are disabled are not applied. (bug fix)
+  Reported by Brian Martin.
+* Allow user to specify an action which is performed on an execution (``delay``, ``cancel``) when a
+  concurrency policy is used and a defined threshold is reached. For backward compatibility,
+  ``delay`` is a default behavior, but now user can also specify ``cancel`` and an execution will
+  be canceled instead of delayed when a threshold is reached.
+* Save link to history web url in execution db model. A configuration variable in ``webui`` section
+  is now exposed to let st2 know about the location of web ui. This is used to construct the
+  web url. Chatops messages can now display the history url from the execution model they
+  get as response to API calls.
 
 1.5.1 - July 13, 2016
 ---------------------

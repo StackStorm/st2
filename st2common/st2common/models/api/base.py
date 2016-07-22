@@ -83,7 +83,8 @@ class BaseAPI(object):
                                        cls=util_schema.CustomValidator, use_default=True,
                                        allow_default_none=True)
 
-        return self.__class__(**cleaned)
+        # Note: We use type() instead of self.__class__ since self.__class__ confuses pylint
+        return type(self)(**cleaned)
 
     @classmethod
     def _from_model(cls, model, mask_secrets=False):

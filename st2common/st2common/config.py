@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import socket
 import sys
 
 from oslo_config import cfg
@@ -87,6 +88,14 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(content_opts, 'content', ignore_errors)
 
+    webui_opts = [
+        cfg.StrOpt('webui_base_url', default='https://%s' % socket.getfqdn(),
+                   help='Base https URL to access st2 Web UI. This is used to construct' +
+                        'history URLs that are sent out when chatops is used to kick off ' +
+                        'executions.')
+    ]
+    do_register_opts(webui_opts, 'webui', ignore_errors)
+
     db_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
         cfg.IntOpt('port', default=27017, help='port of db server'),
@@ -106,12 +115,12 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('ssl_certfile', help='Certificate file used to identify the localconnection',
                    default=None),
         cfg.StrOpt('ssl_cert_reqs', choices='none, optional, required',
-                   help='Specifies whether a certificate is required from the other side of the \
-                         connection, and whether it will be validated if provided',
+                   help='Specifies whether a certificate is required from the other side of the ' +
+                        'connection, and whether it will be validated if provided',
                    default=None),
         cfg.StrOpt('ssl_ca_certs',
-                   help='ca_certs file contains a set of concatenated CA certificates, which are \
-                         used to validate certificates passed from MongoDB.',
+                   help='ca_certs file contains a set of concatenated CA certificates, which are' +
+                        ' used to validate certificates passed from MongoDB.',
                    default=None),
         cfg.BoolOpt('ssl_match_hostname',
                     help='If True and `ssl_cert_reqs` is not None, enables hostname verification',

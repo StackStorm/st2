@@ -76,7 +76,7 @@ class PolicyBranch(resource.ResourceBranch):
 
 
 class PolicyListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['ref', 'resource_ref', 'policy_type']
+    display_attributes = ['ref', 'resource_ref', 'policy_type', 'enabled']
 
     def __init__(self, resource, *args, **kwargs):
         super(PolicyListCommand, self).__init__(resource, *args, **kwargs)
