@@ -36,7 +36,7 @@ def register_runners(runner_dir=None, experimental=False, fail_on_failure=True):
     """ Register runners
     """
     LOG.debug('Start : register runners')
-
+    runner_count = 0
     runner_loader = ContentRunnerLoader()
 
     if runner_dir:
@@ -54,9 +54,11 @@ def register_runners(runner_dir=None, experimental=False, fail_on_failure=True):
         meta_loader = MetaLoader()
         runner_types = meta_loader.load(runner_manifest)
         for runner_type in runner_types:
-            register_runner(runner_type, experimental)
+            runner_count += register_runner(runner_type, experimental)
 
     LOG.debug('End : register runners')
+
+    return runner_count
 
 
 def register_runner(runner_type, experimental):
@@ -96,6 +98,7 @@ def register_runner(runner_type, experimental):
             runner_type_model.id = runner_type_db.id
 
         try:
+
             runner_type_db = RunnerType.add_or_update(runner_type_model)
 
             extra = {'runner_type_db': runner_type_db}
@@ -103,8 +106,10 @@ def register_runner(runner_type, experimental):
                 LOG.audit('RunnerType updated. RunnerType %s', runner_type_db, extra=extra)
             else:
                 LOG.audit('RunnerType created. RunnerType %s', runner_type_db, extra=extra)
+            return 1
         except Exception:
             LOG.exception('Unable to register runner type %s.', runner_type['name'])
+            return 0
 
 
 
