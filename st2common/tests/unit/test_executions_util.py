@@ -118,6 +118,15 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEquals(execution.liveaction['id'], str(liveaction.id))
 
+    def test_execution_creation_with_web_url(self):
+        liveaction = self.MODELS['liveactions']['liveaction1.yaml']
+        executions_util.create_execution_object(liveaction)
+        execution = self._get_action_execution(liveaction__id=str(liveaction.id),
+                                               raise_exception=True)
+        self.assertTrue(execution.web_url is not None)
+        execution_id = str(execution.id)
+        self.assertTrue(('history/%s/general' % execution_id) in execution.web_url)
+
     def test_execution_creation_chains(self):
         childliveaction = self.MODELS['liveactions']['childliveaction.yaml']
         child_exec = executions_util.create_execution_object(childliveaction)

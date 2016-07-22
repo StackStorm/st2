@@ -12,6 +12,10 @@ In development
   concurrency policy is used and a defined threshold is reached. For backward compatibility,
   ``delay`` is a default behavior, but now user can also specify ``cancel`` and an execution will
   be canceled instead of delayed when a threshold is reached.
+* Save link to history web url in execution db model. A configuration variable in ``webui`` section
+  is now exposed to let st2 know about the location of web ui. This is used to construct the
+  web url. Chatops messages can now display the history url from the execution model they
+  get as response to API calls.
 * Update action runner to use two internal green thread pools - one for regular (non-workflow) and
   one for workflow actions. Sizes of both of those pools are also user configurable inside the
   config. This should help increase the concurrent throughput of a single action runner when

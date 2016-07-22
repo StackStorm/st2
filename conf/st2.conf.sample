@@ -250,6 +250,9 @@ ssh_key_file = /home/vagrant/.ssh/stanley_rsa
 # Default system user.
 user = stanley
 
+# [webui]
+# webui_base_url = https://mywebhost.domain
+
 [timer]
 # Specify to enable Timer.
 enable = True

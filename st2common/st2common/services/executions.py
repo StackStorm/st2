@@ -28,6 +28,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_config import cfg
 import six
 
 from st2common import log as logging
@@ -130,6 +131,12 @@ def create_execution_object(liveaction, publish=True):
     attrs['log'] = [_create_execution_log_entry(liveaction['status'])]
 
     execution = ActionExecutionDB(**attrs)
+    execution = ActionExecution.add_or_update(execution, publish=False)
+
+    # Update the web_url field in execution. Unfortunately, we need
+    # the execution id for constructing the URL which we only get
+    # after the model is written to disk.
+    execution.web_url = _get_web_url_for_execution(str(execution.id))
     execution = ActionExecution.add_or_update(execution, publish=publish)
 
     if parent:
@@ -151,6 +158,11 @@ def _get_parent_execution(child_liveaction_db):
             LOG.exception('No valid execution object found in db for id: %s' % parent_id)
             return None
     return None
+
+
+def _get_web_url_for_execution(execution_id):
+    base_url = cfg.CONF.webui.webui_base_url
+    return "%s/#/history/%s/general" % (base_url, execution_id)
 
 
 def update_execution(liveaction_db, publish=True):
