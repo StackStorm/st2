@@ -134,6 +134,10 @@ class ActionsQueueConsumer(QueueConsumer):
             # At this point we will always ack a message.
             message.ack()
 
+    def shutdown(self):
+        self._workflows_dispatcher.shutdown()
+        self._actions_dispatcher.shutdown()
+
 
 @six.add_metaclass(abc.ABCMeta)
 class MessageHandler(object):
