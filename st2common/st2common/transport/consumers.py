@@ -119,8 +119,8 @@ class ActionsQueueConsumer(QueueConsumer):
             if not isinstance(body, self._handler.message_type):
                 raise TypeError('Received an unexpected type "%s" for payload.' % type(body))
 
-            is_action_workflow = getattr(body, 'is_action_workflow', False)
-            if is_action_workflow:
+            action_is_workflow = getattr(body, 'action_is_workflow', False)
+            if action_is_workflow:
                 # Use workflow dispatcher queue
                 dispatcher = self._workflows_dispatcher
             else:

@@ -222,7 +222,7 @@ class TestActionExecutionService(DbTestCase):
         request, execution = self._submit_request(action_ref=ACTION_REF)
 
         self.assertIsNotNone(execution)
-        self.assertEqual(execution.is_action_workflow, False)
+        self.assertEqual(execution.action_is_workflow, False)
         self.assertEqual(execution.id, request.id)
         self.assertEqual(execution.action, '.'.join([actiondb.pack, actiondb.name]))
         self.assertEqual(execution.context['user'], request.context['user'])
@@ -238,7 +238,7 @@ class TestActionExecutionService(DbTestCase):
         request, execution = self._submit_request(action_ref=ACTION_WORKFLOW_REF)
 
         self.assertIsNotNone(execution)
-        self.assertEqual(execution.is_action_workflow, True)
+        self.assertEqual(execution.action_is_workflow, True)
         self.assertEqual(execution.id, request.id)
         self.assertEqual(execution.action, '.'.join([actiondb.pack, actiondb.name]))
         self.assertEqual(execution.context['user'], request.context['user'])

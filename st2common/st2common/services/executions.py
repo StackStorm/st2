@@ -64,7 +64,7 @@ LIVEACTION_ATTRIBUTES = [
     'id',
     'callback',
     'action',
-    'is_action_workflow',
+    'action_is_workflow',
     'runner_info',
     'parameters',
     'notify'
