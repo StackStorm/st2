@@ -87,13 +87,13 @@ lock_timeout = 60
 username = None
 # Connection retry total time (minutes).
 connection_retry_max_delay_m = 3
-# ca_certs file contains a set of concatenated CA certificates, which are                          used to validate certificates passed from MongoDB.
+# ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from MongoDB.
 ssl_ca_certs = None
 # Certificate file used to identify the localconnection
 ssl_certfile = None
 # Connection retry backoff max (seconds).
 connection_retry_backoff_max_s = 10
-# Specifies whether a certificate is required from the other side of the                          connection, and whether it will be validated if provided
+# Specifies whether a certificate is required from the other side of the connection, and whether it will be validated if provided
 ssl_cert_reqs = None
 # Create the connection to mongodb using SSL
 ssl = False
@@ -250,11 +250,13 @@ ssh_key_file = /home/vagrant/.ssh/stanley_rsa
 # Default system user.
 user = stanley
 
-# [webui]
-# webui_base_url = https://mywebhost.domain
-
 [timer]
 # Specify to enable Timer.
 enable = True
 # Timezone pertaining to the location where st2 is run.
 local_timezone = America/Los_Angeles
+
+[webui]
+# Base https URL to access st2 Web UI. This is used to constructhistory URLs that are sent out when chatops is used to kick off executions.
+webui_base_url = https://localhost
+
