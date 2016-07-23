@@ -98,6 +98,9 @@ def create_request(liveaction):
     liveaction.status = action_constants.LIVEACTION_STATUS_REQUESTED
     liveaction.start_timestamp = date_utils.get_datetime_utc_now()
 
+    # Set the "action_is_workflow" attribute
+    liveaction.action_is_workflow = action_db.is_workflow()
+
     # Publish creation after both liveaction and actionexecution are created.
     liveaction = LiveAction.add_or_update(liveaction, publish=False)
 
