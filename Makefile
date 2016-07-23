@@ -38,7 +38,7 @@ ifndef PIP_OPTIONS
 endif
 
 .PHONY: all
-all: requirements check tests
+all: requirements configgen check tests
 
 # Target for debugging Makefile variable assembly
 .PHONY: play
@@ -62,8 +62,8 @@ checklogs:
 .PHONY: pylint
 pylint: requirements .pylint
 
-.PHONY: .configgen
-.configgen:
+.PHONY: configgen
+configgen:
 	@echo
 	@echo "================== config gen ===================="
 	@echo
