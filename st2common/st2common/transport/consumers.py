@@ -127,6 +127,7 @@ class ActionsQueueConsumer(QueueConsumer):
                 # Use queue for regular or workflow actions
                 dispatcher = self._actions_dispatcher
 
+            LOG.debug('Using BufferedDispatcher pool: "%s"', str(dispatcher))
             dispatcher.dispatch(self._process_message, body)
         except:
             LOG.exception('%s failed to process message: %s', self.__class__.__name__, body)
