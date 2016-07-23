@@ -88,8 +88,9 @@ class BufferedDispatcher(object):
             self._dispatcher_pool.spawn(handler, *args)
 
     def __repr__(self):
-        values = (self.name, self._pool_limit, self._monitor_thread_empty_q_sleep_time,
+        free_count = self._dispatcher_pool.free()
+        values = (self.name, self._pool_limit, free_count, self._monitor_thread_empty_q_sleep_time,
                   self._monitor_thread_no_workers_sleep_time)
-        return ('<BufferedDispatcher name=%s,dispatch_pool_size=%s,'
+        return ('<BufferedDispatcher name=%s,dispatch_pool_size=%s,free_threads=%s,'
                 'monitor_thread_empty_q_sleep_time=%s,monitor_thread_no_workers_sleep_time=%s>' %
                 values)
