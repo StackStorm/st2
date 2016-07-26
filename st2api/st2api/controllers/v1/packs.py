@@ -14,11 +14,15 @@
 # limitations under the License.
 
 import pecan
+from pecan.rest import RestController
 from six.moves import http_client
 
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
+from st2common.models.api.base import BaseAPI
 from st2api.controllers.resource import ResourceController
+from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
+from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
@@ -31,6 +35,48 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
+
+
+class PackInstallRequestAPI(object):
+    def __init__(self, name=None):
+        self.name = name
+
+    def validate(self):
+        if not self.name:
+            raise ValueError('Pack name is required.')
+
+        return self
+
+
+class PackInstallAPI(BaseAPI):
+    schema = {
+        'type': 'object'
+    }
+
+    @classmethod
+    def to_model(cls, doc):
+        pass
+
+
+class PackInstallController(ActionExecutionsControllerMixin, RestController):
+
+    @jsexpose(body_cls=PackInstallRequestAPI, status_code=http_client.CREATED)
+    def post(self, pack_install_request):
+        parameters = {
+            'packs': [pack_install_request.name]
+        }
+
+        new_liveaction_api = LiveActionCreateAPI(action='packs.install',
+                                                 parameters=parameters,
+                                                 user=None)
+
+        execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
+
+        result = {
+            'execution_id': execution.id
+        }
+
+        return PackInstallAPI(**result)
 
 
 class BasePacksController(ResourceController):
@@ -86,6 +132,7 @@ class PacksController(BasePacksController):
     }
 
     # Nested controllers
+    install = PackInstallController()
     views = PackViewsController()
 
     @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
