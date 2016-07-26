@@ -458,7 +458,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
-        kw['limit'] = int(kw.get('limit', 100))
+
+        kw['limit'] = int(kw.get('limit', self.max_limit))
 
         LOG.debug('Retrieving all action executions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
