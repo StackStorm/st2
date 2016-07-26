@@ -220,7 +220,17 @@ class ActionExecutionChildrenController(BaseActionExecutionNestedController):
 
         :rtype: ``list``
         """
-        return self._get_children(id_=id, **kwargs)
+        get_children_kwargs = {}
+
+        depth = kwargs.get('depth', None)
+        if depth:
+            get_children_kwargs['depth'] = depth
+
+        request_fmt = get_children_kwargs.get('result_fmt', None)
+        if request_fmt:
+            get_children_kwargs['request_fmt'] = request_fmt
+
+        return self._get_children(id_=id, **get_children_kwargs)
 
 
 class ActionExecutionAttributeController(BaseActionExecutionNestedController):
