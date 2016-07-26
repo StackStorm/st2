@@ -18,6 +18,7 @@
 import abc
 import copy
 
+from oslo_config import cfg
 from mongoengine import ValidationError
 import pecan
 from pecan import rest
@@ -49,7 +50,7 @@ class ResourceController(rest.RestController):
     from_model_kwargs = {}
 
     # Maximum value of limit which can be specified by user
-    max_limit = 100
+    max_limit = cfg.CONF.api.max_page_size
 
     # Default number of items returned per page if no limit is explicitly provided
     default_limit = 100
