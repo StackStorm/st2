@@ -34,6 +34,7 @@ def add_auth_token_to_kwargs_from_env(func):
             kwargs['token'] = os.environ.get('ST2_AUTH_TOKEN')
         if not kwargs.get('api_key') and os.environ.get('ST2_API_KEY', None):
             kwargs['api_key'] = os.environ.get('ST2_API_KEY')
+
         return func(*args, **kwargs)
     return decorate
 
@@ -241,14 +242,26 @@ class ResourceManager(object):
             raise Exception('Query parameter is not provided.')
         if 'limit' in kwargs and kwargs.get('limit') <= 0:
             kwargs.pop('limit')
+
         token = kwargs.get('token', None)
+        api_key = kwargs.get('api_key', None)
         params = kwargs.get('params', {})
+
         for k, v in six.iteritems(kwargs):
-            if k != 'token':
+            # Note: That's a special case to support api_key and token kwargs
+            if k not in ['token', 'api_key']:
                 params[k] = v
+
         url = '/%s/?%s' % (self.resource.get_url_path_name(),
                            urllib.parse.urlencode(params))
-        response = self.client.get(url, token=token) if token else self.client.get(url)
+
+        if api_key:
+            response = self.client.get(url, api_key=api_key)
+        elif api_key:
+            response = self.client.get(url, token=token)
+        else:
+            response = self.client.get(url)
+
         if response.status_code == 404:
             return []
         if response.status_code != 200:
