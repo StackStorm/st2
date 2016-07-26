@@ -211,16 +211,21 @@ class ResourceManager(object):
         property_name: Name of the property
         self_deserialize: #Implies use the deserialize method implemented by this resource.
         """
-        token = None
-        if kwargs:
-            token = kwargs.pop('token', None)
+        token = kwargs.get('token', None)
+        api_key = kwargs.get('api_key', None)
 
+        if kwargs:
             url = '/%s/%s/%s/?%s' % (self.resource.get_url_path_name(), id_, property_name,
                                      urllib.parse.urlencode(kwargs))
         else:
             url = '/%s/%s/%s/' % (self.resource.get_url_path_name(), id_, property_name)
 
-        response = self.client.get(url, token=token) if token else self.client.get(url)
+        if api_key:
+            response = self.client.get(url, api_key=api_key)
+        elif api_key:
+            response = self.client.get(url, token=token)
+        else:
+            response = self.client.get(url)
 
         if response.status_code == 404:
             return None
