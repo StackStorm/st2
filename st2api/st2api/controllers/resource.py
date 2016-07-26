@@ -51,6 +51,9 @@ class ResourceController(rest.RestController):
     # Maximum value of limit which can be specified by user
     max_limit = 100
 
+    # Default number of items returned per page if no limit is explicitly provided
+    default_limit = 100
+
     query_options = {
         'sort': []
     }
