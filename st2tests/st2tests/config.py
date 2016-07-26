@@ -111,6 +111,14 @@ def _register_api_opts():
     ]
     _register_opts(pecan_opts, group='api_pecan')
 
+    api_opts = [
+        cfg.IntOpt('max_page_size', default=100,
+                   help=('Maximum limit (page size) argument which can be specified by the user '
+                         'in a query string. If a larger value is provided, it will default to  '
+                         'this value.'))
+    ]
+    _register_opts(api_opts, group='api')
+
     messaging_opts = [
         cfg.StrOpt('url', default='amqp://guest:guest@127.0.0.1:5672//',
                    help='URL of the messaging server.'),
