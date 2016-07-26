@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=oneshot
-EnvironmentFile=-/etc/default/st2actionrunner
+EnvironmentFile=-/etc/sysconfig/st2actionrunner
 ExecStart=/bin/bash /opt/stackstorm/st2/bin/runners.sh start
 ExecStop=/bin/bash /opt/stackstorm/st2/bin/runners.sh stop
 RemainAfterExit=true
