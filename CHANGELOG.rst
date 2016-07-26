@@ -17,6 +17,7 @@ In development
   throughput of a single action runner when the system is not over-utilized. It can also help
   prevent deadlocks which may occur when using delay policies with action-chain workflows.
   (improvement)
+* Update CLI commands to make sure that all of them support ``--api-key`` option. (bug-fix)
 
 1.5.1 - July 13, 2016
 ---------------------
