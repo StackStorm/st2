@@ -220,10 +220,10 @@ class ResourceManager(object):
         else:
             url = '/%s/%s/%s/' % (self.resource.get_url_path_name(), id_, property_name)
 
-        if api_key:
-            response = self.client.get(url, api_key=api_key)
-        elif api_key:
+        if token:
             response = self.client.get(url, token=token)
+        elif api_key:
+            response = self.client.get(url, api_key=api_key)
         else:
             response = self.client.get(url)
 
@@ -260,10 +260,10 @@ class ResourceManager(object):
         url = '/%s/?%s' % (self.resource.get_url_path_name(),
                            urllib.parse.urlencode(params))
 
-        if api_key:
-            response = self.client.get(url, api_key=api_key)
-        elif api_key:
+        if token:
             response = self.client.get(url, token=token)
+        elif api_key:
+            response = self.client.get(url, api_key=api_key)
         else:
             response = self.client.get(url)
 
