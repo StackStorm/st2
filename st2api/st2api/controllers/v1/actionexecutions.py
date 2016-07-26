@@ -213,24 +213,15 @@ class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, Resou
 
 class ActionExecutionChildrenController(BaseActionExecutionNestedController):
     @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_VIEW)
-    @jsexpose(arg_types=[str])
-    def get(self, id, **kwargs):
+    @jsexpose(arg_types=[str, int, str])
+    def get(self, id, depth=-1, result_fmt=None, **kwargs):
         """
         Retrieve children for the provided action execution.
 
         :rtype: ``list``
         """
-        get_children_kwargs = {}
 
-        depth = kwargs.get('depth', None)
-        if depth:
-            get_children_kwargs['depth'] = depth
-
-        request_fmt = get_children_kwargs.get('result_fmt', None)
-        if request_fmt:
-            get_children_kwargs['request_fmt'] = request_fmt
-
-        return self._get_children(id_=id, **get_children_kwargs)
+        return self._get_children(id_=id, depth=depth, result_fmt=result_fmt)
 
 
 class ActionExecutionAttributeController(BaseActionExecutionNestedController):
