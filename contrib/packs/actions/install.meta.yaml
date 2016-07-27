@@ -1,27 +1,20 @@
 ---
   name: "install"
   runner_type: "action-chain"
-  description: "Installs packs from st2-contrib into local content repository.
+  description: "Installs a pack from StackStorm Exchange into local content repository.
                 Will download pack, load the actions, sensors and rules from the pack.
                 Note that install require reboot of some st2 services."
   enabled: true
   entry_point: "workflows/install.yaml"
   parameters:
-    packs:
-      type: "array"
-      items:
-        type: "string"
-      required: true
-    repo_url:
+    pack:
       type: "string"
-      default: "StackStorm/st2contrib"
-    branch:
+      required: true
+      description: "Name of the pack in Exchange or a git repo URL"
+    version:
       type: "string"
       default: "master"
-    subtree:
-      type: "boolean"
-      description: "Set to true if packs are located in a packs/ directory and not in the repository root"
-      default: false
+      description: "Pack version or any git-ref: tag, branch, or a commit hash."
     register:
       type: "string"
       default: "actions,aliases,sensors,triggers"

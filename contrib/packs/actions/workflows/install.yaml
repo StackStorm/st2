@@ -4,10 +4,8 @@
       name: "download"
       ref: "packs.download"
       parameters:
-        repo_url: "{{repo_url}}"
-        branch: "{{branch}}"
-        packs: "{{packs}}"
-        subtree: "{{subtree}}"
+        pack: "{{pack}}"
+        version: "{{version}}"
       on-success: "virtualenv_prerun"
     -
       name: "virtualenv_prerun"

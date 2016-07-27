@@ -5,23 +5,15 @@
   enabled: true
   entry_point: "pack_mgmt/download.py"
   parameters:
-    packs:
-      type: "array"
-      items:
-        type: "string"
-    repo_url:
+    pack:
       type: "string"
-      default: "StackStorm/st2contrib"
-    branch:
+    version:
       type: "string"
       default: "master"
     abs_repo_base:
       type: "string"
       default: "/opt/stackstorm/packs/"
       immutable: true
-    subtree:
-      type: "boolean"
-      default: false
     verifyssl:
       type: "boolean"
       default: true
