@@ -18,7 +18,6 @@ import shutil
 import hashlib
 import stat
 
-import six
 from git.repo import Repo
 from lockfile import LockFile
 
@@ -126,6 +125,7 @@ class DownloadGitRepoAction(Action):
             message_list.append('Errors:')
 
             for pack, value in result.items():
+                success, error = value
                 message_list.append(error)
 
             message = '\n'.join(message_list)
