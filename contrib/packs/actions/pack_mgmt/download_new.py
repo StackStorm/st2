@@ -154,7 +154,7 @@ class DownloadGitRepoAction(Action):
         if len(name_or_url.split('/')) == 1:
             return (name_or_url, "{}/{}.git".format(exchange_url, name_or_url))
         else:
-            return (DownloadGitRepoAction._eval_repo_name(name_or_url), 
+            return (DownloadGitRepoAction._eval_repo_name(name_or_url),
                     DownloadGitRepoAction._eval_repo_url(name_or_url))
 
     @staticmethod
