@@ -376,7 +376,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         if 'timestamp_lt' in kw:
             query_options = {'sort': ['-start_timestamp', 'action.ref']}
             kw['query_options'] = query_options
-        elif 'timestamp_gt' in kw:
+        elif 'timestamp_gt' in kw or 'sort_desc' in kw:
             query_options = {'sort': ['+start_timestamp', 'action.ref']}
             kw['query_options'] = query_options
 
