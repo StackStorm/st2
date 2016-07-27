@@ -9,6 +9,7 @@
   parameters:
     name_or_url:
       type: "string"
+      required: true
       description: "Name of the pack in Exchange or a git repo URL"
     ref:
       type: "string"
