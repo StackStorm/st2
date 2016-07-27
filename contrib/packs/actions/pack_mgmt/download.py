@@ -18,6 +18,7 @@ import shutil
 import hashlib
 import stat
 
+import six
 from git.repo import Repo
 from lockfile import LockFile
 
@@ -126,10 +127,10 @@ class DownloadGitRepoAction(Action):
 
     @staticmethod
     def _is_desired_pack(abs_pack_path, pack_name):
-        # path has to exist.      
-        if not os.path.exists(abs_pack_path):     
-            return (False, 'Pack "%s" not found or it\'s missing a "pack.yaml" file.' %       
-                    (pack_name))      
+        # path has to exist.
+        if not os.path.exists(abs_pack_path):
+            return (False, 'Pack "%s" not found or it\'s missing a "pack.yaml" file.' %
+                    (pack_name))
         # should not include reserve characters
         if PACK_RESERVE_CHARACTER in pack_name:
             return (False, 'Pack name "%s" contains reserve character "%s"' %
