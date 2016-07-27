@@ -149,7 +149,6 @@ class PythonRunner(ActionRunner):
         exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
                                                            stderr=subprocess.PIPE, shell=False,
                                                            env=env, timeout=self._timeout)
-
         if timed_out:
             error = 'Action failed to complete in %s seconds' % (self._timeout)
         else:
@@ -158,15 +157,24 @@ class PythonRunner(ActionRunner):
         if ACTION_OUTPUT_RESULT_DELIMITER in stdout:
             split = stdout.split(ACTION_OUTPUT_RESULT_DELIMITER)
             assert len(split) == 3
-            result = split[1].strip()
+            action_result = split[1].strip()
             stdout = split[0] + split[2]
         else:
-            result = None
-
+            action_result = None
         try:
-            result = json.loads(result)
+            action_result = json.loads(action_result)
         except:
             pass
+        action_status = None
+
+        if action_result and action_result != "None":
+            result = action_result['result']
+            try:
+                action_status = action_result['status']
+            except:
+                pass
+        else:
+            result = "None"
 
         output = {
             'stdout': stdout,
@@ -174,16 +182,25 @@ class PythonRunner(ActionRunner):
             'exit_code': exit_code,
             'result': result
         }
-
         if error:
             output['error'] = error
-
-        if exit_code == 0:
-            status = LIVEACTION_STATUS_SUCCEEDED
-        elif timed_out:
-            status = LIVEACTION_STATUS_TIMED_OUT
+        status = None
+        if action_status:
+            if exit_code == 0 and action_status.lower() == LIVEACTION_STATUS_SUCCEEDED:
+                status = LIVEACTION_STATUS_SUCCEEDED
+            elif timed_out:
+                status = LIVEACTION_STATUS_TIMED_OUT
+            elif action_status.lower() == LIVEACTION_STATUS_FAILED:
+                status = LIVEACTION_STATUS_FAILED
+            else:
+                status = LIVEACTION_STATUS_FAILED
         else:
-            status = LIVEACTION_STATUS_FAILED
+            if exit_code == 0:
+                status = LIVEACTION_STATUS_SUCCEEDED
+            elif timed_out:
+                status = LIVEACTION_STATUS_TIMED_OUT
+            else:
+                status = LIVEACTION_STATUS_FAILED
 
         return (status, output, None)
 

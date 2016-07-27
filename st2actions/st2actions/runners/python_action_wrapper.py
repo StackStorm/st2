@@ -114,14 +114,27 @@ class PythonActionWrapper(object):
     def run(self):
         action = self._get_action_instance()
         output = action.run(**self._parameters)
+        action_status = None
+
+        if type(output) is tuple and len(output) is 2:
+            action_status = output[0]
+            action_result = output[1]
+        else:
+            action_result = output
+
+        action_output = {"result": action_result}
 
         # Print output to stdout so the parent can capture it
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
         print_output = None
         try:
-            print_output = json.dumps(output)
+            if action_status:
+                action_output['status'] = action_status
+                print_output = json.dumps(action_output)
+            else:
+                print_output = json.dumps(action_output)
         except:
-            print_output = str(output)
+            print_output = str(action_output)
         sys.stdout.write(print_output + '\n')
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
 
@@ -169,7 +182,6 @@ if __name__ == '__main__':
     parent_args = json.loads(args.parent_args) if args.parent_args else []
 
     assert isinstance(parent_args, list)
-
     obj = PythonActionWrapper(pack=args.pack,
                               file_path=args.file_path,
                               parameters=parameters,
