@@ -24,12 +24,10 @@ from lockfile import LockFile
 from st2actions.runners.pythonrunner import Action
 from st2common.util.green import shell
 
-
 MANIFEST_FILE = 'pack.yaml'
 CONFIG_FILE = 'config.yaml'
 GITINFO_FILE = '.gitinfo'
 PACK_RESERVE_CHARACTER = '.'
-
 
 PACK_GROUP_CFG_KEY = 'pack_group'
 EXCHANGE_URL_KEY = 'exchange_url'
@@ -73,6 +71,38 @@ class DownloadGitRepoAction(Action):
         Repo.clone_from(repo_url, abs_local_path, branch=branch, depth=1)
         return abs_local_path
 
+    def _move_pack(self, abs_repo_base, pack_name, abs_local_path):
+        result = {}
+
+        desired, message = DownloadGitRepoAction._is_desired_pack(abs_local_path, pack_name)
+        if desired:
+            to = abs_repo_base
+            dest_pack_path = os.path.join(abs_repo_base, pack_name)
+            if os.path.exists(dest_pack_path):
+                self.logger.debug('Removing existing pack %s in %s to replace.', pack_name,
+                                  dest_pack_path)
+
+                # Ensure to preserve any existing configuration
+                old_config_file = os.path.join(dest_pack_path, CONFIG_FILE)
+                new_config_file = os.path.join(abs_local_path, CONFIG_FILE)
+
+                if os.path.isfile(old_config_file):
+                    shutil.move(old_config_file, new_config_file)
+
+                shutil.rmtree(dest_pack_path)
+
+            self.logger.debug('Moving pack from %s to %s.', abs_local_path, to)
+            shutil.move(abs_local_path, to)
+            # post move fix all permissions.
+            self._apply_pack_permissions(pack_path=dest_pack_path)
+            message = 'Success.'
+        elif message:
+            message = 'Failure : %s' % message
+
+        result[pack_name] = (desired, message)
+
+        return result
+
     def _apply_pack_permissions(self, pack_path):
         """
         Will recursively apply permission 770 to pack and its contents.
@@ -96,6 +126,10 @@ class DownloadGitRepoAction(Action):
 
     @staticmethod
     def _is_desired_pack(abs_pack_path, pack_name):
+        # path has to exist.      
+        if not os.path.exists(abs_pack_path):     
+            return (False, 'Pack "%s" not found or it\'s missing a "pack.yaml" file.' %       
+                    (pack_name))      
         # should not include reserve characters
         if PACK_RESERVE_CHARACTER in pack_name:
             return (False, 'Pack name "%s" contains reserve character "%s"' %
@@ -132,38 +166,6 @@ class DownloadGitRepoAction(Action):
             raise Exception(message)
 
         return sanitized_result
-
-    def _move_pack(self, abs_repo_base, pack_name, abs_local_path):
-        result = {}
-
-        desired, message = DownloadGitRepoAction._is_desired_pack(abs_local_path, pack_name)
-        if desired:
-            to = abs_repo_base
-            dest_pack_path = os.path.join(abs_repo_base, pack_name)
-            if os.path.exists(dest_pack_path):
-                self.logger.debug('Removing existing pack %s in %s to replace.', pack_name,
-                                  dest_pack_path)
-
-                # Ensure to preserve any existing configuration
-                old_config_file = os.path.join(dest_pack_path, CONFIG_FILE)
-                new_config_file = os.path.join(abs_local_path, CONFIG_FILE)
-
-                if os.path.isfile(old_config_file):
-                    shutil.move(old_config_file, new_config_file)
-
-                shutil.rmtree(dest_pack_path)
-
-            self.logger.debug('Moving pack from %s to %s.', abs_local_path, to)
-            shutil.move(abs_local_path, to)
-            # post move fix all permissions.
-            self._apply_pack_permissions(pack_path=dest_pack_path)
-            message = 'Success.'
-        elif message:
-            message = 'Failure : %s' % message
-
-        result[pack_name] = (desired, message)
-
-        return result
 
     @staticmethod
     def _get_pack_name_and_url(name_or_url, exchange_url):
