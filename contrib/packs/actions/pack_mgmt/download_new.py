@@ -16,10 +16,8 @@
 import os
 import shutil
 import hashlib
-import json
 import stat
 
-import six
 from git.repo import Repo
 from lockfile import LockFile
 
@@ -46,17 +44,17 @@ class DownloadGitRepoAction(Action):
     def run(self, name_or_url, ref, abs_repo_base, verifyssl=True, branch='master'):
 
         self._pack_name, self._pack_url = self._eval_pack_name_and_url(
-            name_or_url, 
+            name_or_url,
             self.config.get(EXCHANGE_URL_KEY, None)
         )
 
         lock_name = hashlib.md5(self._pack_name).hexdigest() + '.lock'
 
         with LockFile('/tmp/%s' % (lock_name)):
-            abs_local_path = self._clone_repo(repo_name=self._pack_name,
+            abs_local_path = self._clone_repo(repo_name=self._pack_name, repo_url=self._pack_url,
                                               verifyssl=verifyssl, branch=ref)
             try:
-                result = self._move_pack(abs_repo_base, self._pack_name, abs_local_path, self._subtree)
+                result = self._move_pack(abs_repo_base, self._pack_name, abs_local_path)
             finally:
                 self._cleanup_repo(abs_local_path)
             self._apply_pack_permissions(pack_path=abs_local_path)
@@ -64,7 +62,7 @@ class DownloadGitRepoAction(Action):
         return self._validate_result(result=result, repo_url=self._pack_url)
 
     @staticmethod
-    def _clone_repo(repo_name, verifyssl=True, branch='master'):
+    def _clone_repo(repo_name, repo_url, verifyssl=True, branch='master'):
         user_home = os.path.expanduser('~')
         abs_local_path = os.path.join(user_home, repo_name)
 
@@ -114,7 +112,7 @@ class DownloadGitRepoAction(Action):
 
         if not desired:
             message_list = []
-            message_list.append('The pack has not been downloaded from repository "%s".\n' % (repo_url))
+            message_list.append('The pack has not been downloaded from "%s".\n' % (repo_url))
             message_list.append('Error:')
             message.list.append(message)
             message = '\n'.join(message_list)
@@ -122,7 +120,7 @@ class DownloadGitRepoAction(Action):
 
         return message
 
-    def _move_pack(self, abs_repo_base, pack_name, abs_local_path, subtree):
+    def _move_pack(self, abs_repo_base, pack_name, abs_local_path):
 
         desired, message = DownloadGitRepoAction._is_desired_pack(abs_local_path, pack_name)
         if desired:
@@ -156,7 +154,8 @@ class DownloadGitRepoAction(Action):
         if len(name_or_url.split('/')) == 1:
             return (name_or_url, "{}/{}.git".format(exchange_url, name_or_url))
         else:
-            return (self._eval_repo_name(name_or_url), self._eval_repo_url(name_or_url))
+            return (DownloadGitRepoAction._eval_repo_name(name_or_url), 
+                    DownloadGitRepoAction._eval_repo_url(name_or_url))
 
     @staticmethod
     def _eval_repo_url(repo_url):
