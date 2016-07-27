@@ -211,8 +211,8 @@ class ResourceManager(object):
         property_name: Name of the property
         self_deserialize: #Implies use the deserialize method implemented by this resource.
         """
-        token = kwargs.get('token', None)
-        api_key = kwargs.get('api_key', None)
+        token = kwargs.pop('token', None)
+        api_key = kwargs.pop('api_key', None)
 
         if kwargs:
             url = '/%s/%s/%s/?%s' % (self.resource.get_url_path_name(), id_, property_name,

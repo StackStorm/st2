@@ -325,6 +325,11 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)
 
+    def test_get_all_invalid_limit_too_large(self):
+        resp = self.app.get('/v1/actions?limit=1000', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'], 'Limit "1000" specified, maximum value is "100"')
+
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def test_get_all_exclude_attributes(self):
