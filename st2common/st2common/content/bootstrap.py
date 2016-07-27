@@ -60,8 +60,12 @@ def register_opts():
         cfg.BoolOpt('setup-virtualenvs', default=False, help=('Setup Python virtual environments '
                                                               'all the Python runner actions.')),
 
-        cfg.BoolOpt('fail-on-failure', default=False, help=('Exit with non-zero of resource '
-                                                            'registration fails.'))
+        cfg.BoolOpt('no-fail-on-failure', default=False,
+                    help=('Don\'t exit with non-zero if some resource registration fails.')),
+        # Note: Fail on failure is now a default behavior. This flag is only left here for backward
+        # compatibility reasons, but it's not actually used.
+        cfg.BoolOpt('fail-on-failure', default=False,
+                    help=('Exit with non-zero if some resource registration fails.'))
     ]
     try:
         cfg.CONF.register_cli_opts(content_opts, group='register')
@@ -80,7 +84,7 @@ def setup_virtualenvs():
     LOG.info('=========================================================')
 
     pack_dir = cfg.CONF.register.pack
-    fail_on_failure = cfg.CONF.register.fail_on_failure
+    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
 
     registrar = ResourceRegistrar()
 
@@ -117,7 +121,7 @@ def setup_virtualenvs():
 
 def register_triggers():
     pack_dir = cfg.CONF.register.pack
-    fail_on_failure = cfg.CONF.register.fail_on_failure
+    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
 
     registered_count = 0
 
@@ -139,7 +143,7 @@ def register_triggers():
 
 def register_sensors():
     pack_dir = cfg.CONF.register.pack
-    fail_on_failure = cfg.CONF.register.fail_on_failure
+    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
 
     registered_count = 0
 
@@ -163,7 +167,7 @@ def register_actions():
     # Register runnertypes and actions. The order is important because actions require action
     # types to be present in the system.
     pack_dir = cfg.CONF.register.pack
-    fail_on_failure = cfg.CONF.register.fail_on_failure
+    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
 
     registered_count = 0
 
@@ -195,7 +199,7 @@ def register_actions():
 def register_rules():
     # Register ruletypes and rules.
     pack_dir = cfg.CONF.register.pack
-    fail_on_failure = cfg.CONF.register.fail_on_failure
+    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
 
     registered_count = 0
 
@@ -223,7 +227,7 @@ def register_rules():
 
 def register_aliases():
     pack_dir = cfg.CONF.register.pack
-    fail_on_failure = cfg.CONF.register.fail_on_failure
+    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
 
     registered_count = 0
 
@@ -245,7 +249,7 @@ def register_aliases():
 def register_policies():
     # Register policy types and policies.
     pack_dir = cfg.CONF.register.pack
-    fail_on_failure = cfg.CONF.register.fail_on_failure
+    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
 
     registered_type_count = 0
 
@@ -278,7 +282,7 @@ def register_policies():
 
 def register_configs():
     pack_dir = cfg.CONF.register.pack
-    fail_on_failure = cfg.CONF.register.fail_on_failure
+    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
 
     registered_count = 0
 
