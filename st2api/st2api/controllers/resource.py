@@ -124,13 +124,12 @@ class ResourceController(rest.RestController):
 
         if limit and int(limit) > self.max_limit:
             # TODO: We should throw here, I don't like this.
-            LOG.info('Limit "%s" specified, defaulting to max value of "%s"',
-                     limit, self.max_limit)
-            limit = self.max_limit
+            msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
+            raise ValueError(msg)
+
         eop = offset + int(limit) if limit else None
 
         filters = {}
-
         for k, v in six.iteritems(self.supported_filters):
             filter_value = kwargs.get(k, None)
 
