@@ -9,6 +9,7 @@ __all__ = [
     'FormatResultActionTestCase'
 ]
 
+
 class FormatResultActionTestCase(BaseActionTestCase):
     action_cls = FormatResultAction
 

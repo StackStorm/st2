@@ -98,7 +98,6 @@ class AliasExecutionTestCase(FunctionalTest):
         expected_parameters = {'param1': 'value1', 'param3': ['value2', 'value3']}
         self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
 
-
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
     def test_invalid_jinja_var_in_ack_format(self, request):
@@ -112,7 +111,8 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'cmd': 'date', 'hosts': 'localhost'}
         self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
-        self.assertEqual(post_resp.json['message'],
+        self.assertEqual(
+            post_resp.json['message'],
             'Cannot render "format" in field "ack" for alias. \'cmd\' is undefined'
         )
 
