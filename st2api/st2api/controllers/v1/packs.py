@@ -17,7 +17,19 @@ import pecan
 from pecan.rest import RestController
 from six.moves import http_client
 
+from oslo_config import cfg
+
+import st2common
 from st2common import log as logging
+import st2common.bootstrap.triggersregistrar as triggers_registrar
+import st2common.bootstrap.sensorsregistrar as sensors_registrar
+import st2common.bootstrap.actionsregistrar as actions_registrar
+import st2common.bootstrap.aliasesregistrar as aliases_registrar
+import st2common.bootstrap.policiesregistrar as policies_registrar
+import st2common.bootstrap.runnersregistrar as runners_registrar
+import st2common.bootstrap.rulesregistrar as rules_registrar
+import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
+import st2common.bootstrap.configsregistrar as configs_registrar
 from st2common.models.api.base import jsexpose
 from st2common.models.api.base import BaseAPI
 from st2api.controllers.resource import ResourceController
@@ -38,14 +50,16 @@ LOG = logging.getLogger(__name__)
 
 
 class PackInstallRequestAPI(object):
-    def __init__(self, name=None):
-        self.name = name
+    def __init__(self, packs=None):
+        self.packs = packs
 
     def validate(self):
-        if not self.name:
-            raise ValueError('Pack name is required.')
+        assert isinstance(self.packs, list)
 
         return self
+
+    def __json__(self):
+        return vars(self)
 
 
 class PackInstallAPI(BaseAPI):
@@ -60,10 +74,10 @@ class PackInstallAPI(BaseAPI):
 
 class PackInstallController(ActionExecutionsControllerMixin, RestController):
 
-    @jsexpose(body_cls=PackInstallRequestAPI, status_code=http_client.CREATED)
+    @jsexpose(body_cls=PackInstallRequestAPI, status_code=http_client.ACCEPTED)
     def post(self, pack_install_request):
         parameters = {
-            'packs': [pack_install_request.name]
+            'packs': pack_install_request.packs
         }
 
         new_liveaction_api = LiveActionCreateAPI(action='packs.install',
@@ -77,6 +91,64 @@ class PackInstallController(ActionExecutionsControllerMixin, RestController):
         }
 
         return PackInstallAPI(**result)
+
+
+class PackUninstallController(ActionExecutionsControllerMixin, RestController):
+
+    @jsexpose(body_cls=PackInstallRequestAPI, arg_types=[str], status_code=http_client.ACCEPTED)
+    def post(self, pack_uninstall_request, ref_or_id=None):
+        if ref_or_id:
+            parameters = {
+                'packs': [ref_or_id]
+            }
+        else:
+            parameters = {
+                'packs': pack_uninstall_request.packs
+            }
+
+        new_liveaction_api = LiveActionCreateAPI(action='packs.uninstall',
+                                                 parameters=parameters,
+                                                 user=None)
+
+        execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
+
+        result = {
+            'execution_id': execution.id
+        }
+
+        return PackInstallAPI(**result)
+
+
+class PackRegisterController(RestController):
+
+    @jsexpose()
+    def post(self):
+        types = ['runner', 'action', 'trigger', 'sensor', 'rule', 'rule_type', 'alias', 'policy_type', 'policy', 'config']
+
+        result = {}
+
+        if 'runner' in types:
+            result['runners'] = runners_registrar.register_runner_types(experimental=True)
+        if 'action' in types:
+            result['actions'] = actions_registrar.register_actions(fail_on_failure=False)
+        if 'trigger' in types:
+            result['triggers'] = triggers_registrar.register_triggers(fail_on_failure=False)
+        if 'sensor' in types:
+            result['sensors'] = sensors_registrar.register_sensors(fail_on_failure=False)
+        if 'rule_type' in types:
+            result['rule_types'] = rule_types_registrar.register_rule_types()
+        if 'rule' in types:
+            result['rules'] = rules_registrar.register_rules(fail_on_failure=False)
+        if 'alias' in types:
+            result['aliases'] = aliases_registrar.register_aliases(fail_on_failure=False)
+        if 'policy_type' in types:
+            result['policy_types'] = policies_registrar.register_policy_types(st2common)
+        if 'policy' in types:
+            result['policy'] = policies_registrar.register_policies(fail_on_failure=False)
+        if 'config' in types:
+            result['config'] = configs_registrar.register_configs(fail_on_failure=False)
+
+        return result
 
 
 class BasePacksController(ResourceController):
@@ -133,6 +205,8 @@ class PacksController(BasePacksController):
 
     # Nested controllers
     install = PackInstallController()
+    uninstall = PackUninstallController()
+    register = PackRegisterController()
     views = PackViewsController()
 
     @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
