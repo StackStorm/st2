@@ -18,6 +18,7 @@ import shutil
 import hashlib
 import stat
 
+import six
 from git.repo import Repo
 from lockfile import LockFile
 
@@ -43,7 +44,7 @@ class DownloadGitRepoAction(Action):
 
     def run(self, name_or_url, ref, abs_repo_base, verifyssl=True, branch='master'):
 
-        self._pack_name, self._pack_url = self._eval_pack_name_and_url(
+        self._pack_name, self._pack_url = self._get_pack_name_and_url(
             name_or_url,
             self.config.get(EXCHANGE_URL_KEY, None)
         )
@@ -57,7 +58,6 @@ class DownloadGitRepoAction(Action):
                 result = self._move_pack(abs_repo_base, self._pack_name, abs_local_path)
             finally:
                 self._cleanup_repo(abs_local_path)
-            self._apply_pack_permissions(pack_path=abs_local_path)
 
         return self._validate_result(result=result, repo_url=self._pack_url)
 
@@ -107,20 +107,34 @@ class DownloadGitRepoAction(Action):
         return (True, '')
 
     @staticmethod
-    def _validate_result(result, repo_url):
-        desired, message = result
+    def _cleanup_repo(abs_local_path):
+        # basic lock checking etc?
+        if os.path.isdir(abs_local_path):
+            shutil.rmtree(abs_local_path)
 
-        if not desired:
+    @staticmethod
+    def _validate_result(result, repo_url):
+        atleast_one_success = False
+        sanitized_result = {}
+        for k, v in six.iteritems(result):
+            atleast_one_success |= v[0]
+            sanitized_result[k] = v[1]
+
+        if not atleast_one_success:
             message_list = []
             message_list.append('The pack has not been downloaded from "%s".\n' % (repo_url))
-            message_list.append('Error:')
-            message.list.append(message)
+            message_list.append('Errors:')
+
+            for pack, value in result.items():
+                message_list.append(error)
+
             message = '\n'.join(message_list)
             raise Exception(message)
 
-        return message
+        return sanitized_result
 
     def _move_pack(self, abs_repo_base, pack_name, abs_local_path):
+        result = {}
 
         desired, message = DownloadGitRepoAction._is_desired_pack(abs_local_path, pack_name)
         if desired:
@@ -147,7 +161,9 @@ class DownloadGitRepoAction(Action):
         elif message:
             message = 'Failure : %s' % message
 
-        return (desired, message)
+        result[pack_name] = (desired, message)
+
+        return result
 
     @staticmethod
     def _get_pack_name_and_url(name_or_url, exchange_url):
