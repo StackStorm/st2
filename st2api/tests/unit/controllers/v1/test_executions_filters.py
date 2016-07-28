@@ -21,6 +21,9 @@ import bson
 import six
 from six.moves import http_client
 
+import st2tests.config as tests_config
+tests_config.parse_args()
+
 from tests import FunctionalTest
 from st2tests.fixtures.packs import executions as fixture
 from st2tests.fixtures import history_views

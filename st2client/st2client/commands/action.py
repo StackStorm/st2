@@ -925,8 +925,7 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=50,
-                                 help=('List N most recent %s; '
-                                       'list all if 0.' %
+                                 help=('List N most recent %s.' %
                                        resource.get_plural_display_name().lower()))
         self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
                                  default='descending',
