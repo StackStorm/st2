@@ -37,13 +37,11 @@ EXCHANGE_URL_KEY = 'exchange_url'
 class DownloadGitRepoAction(Action):
     def __init__(self, config=None, action_service=None):
         super(DownloadGitRepoAction, self).__init__(config=config, action_service=action_service)
-        self._subtree = None
-        self._repo_url = None
 
-    def run(self, name_or_url, ref, abs_repo_base, verifyssl=True, branch='master'):
+    def run(self, pack, ref, abs_repo_base, verifyssl=True):
 
         self._pack_name, self._pack_url = self._get_pack_name_and_url(
-            name_or_url,
+            pack,
             self.config.get(EXCHANGE_URL_KEY, None)
         )
 
