@@ -69,7 +69,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        (status, output, _) = runner.run({'row_index':'b'})
+        (status, output, _) = runner.run({'row_index': 'b'})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(output is not None)
         self.assertEqual(output['exit_code'], 0)
