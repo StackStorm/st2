@@ -18,6 +18,7 @@ In development
   prevent deadlocks which may occur when using delay policies with action-chain workflows.
   (improvement)
 * Update CLI commands to make sure that all of them support ``--api-key`` option. (bug-fix)
+* Add support for sorting execution list results, allowing access to oldest items. (improvement)
 
 1.5.1 - July 13, 2016
 ---------------------
