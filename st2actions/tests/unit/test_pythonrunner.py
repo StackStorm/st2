@@ -22,6 +22,7 @@ from st2actions.runners.python_action_wrapper import PythonActionWrapper
 from st2actions.runners.pythonrunner import Action
 from st2actions.container import service
 from st2actions.runners.utils import get_action_class_instance
+from st2common.exceptions import invalidstatus
 from st2common.services import config as config_service
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
@@ -125,6 +126,16 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], None)
+
+    def test_exception_in_simple_action_with_invalid_status(self):
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        self.assertRaises(invalidstatus.InvalidStatusException,
+                          runner.run, action_parameters={'row_index': 'd'})
 
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
         wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=PASCAL_ROW_ACTION_PATH,

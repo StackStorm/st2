@@ -19,6 +19,9 @@ class PascalRowAction(Action):
         elif row_index == 'c':
             return False, None
 
+        elif row_index == 'd':
+            return "succeeded", [1, 2, 3, 4]
+
         elif row_index == 5:
             return [math.factorial(row_index) /
                     (math.factorial(i) * math.factorial(row_index - i))

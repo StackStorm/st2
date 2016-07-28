@@ -30,6 +30,7 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.service_setup import db_setup
 from st2common.services.datastore import DatastoreService
+from st2common.exceptions.invalidstatus import InvalidStatusException
 
 __all__ = [
     'PythonActionWrapper',
@@ -132,7 +133,8 @@ class PythonActionWrapper(object):
             action_output['status'] = action_status
             print_output = json.dumps(action_output)
         else:
-            raise Exception('Status should either be True or False.')
+            raise InvalidStatusException('Status returned from the action must'
+                                         ' either be True or False.')
 
         sys.stdout.write(print_output + '\n')
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)

@@ -38,6 +38,7 @@ from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
+from st2common.exceptions.invalidstatus import InvalidStatusException
 
 
 __all__ = [
@@ -164,6 +165,9 @@ class PythonRunner(ActionRunner):
             error = 'Action failed to complete in %s seconds' % (self._timeout)
         else:
             error = None
+
+        if "InvalidStatusException" in stderr:
+            raise InvalidStatusException(stderr)
 
         if ACTION_OUTPUT_RESULT_DELIMITER in stdout:
             split = stdout.split(ACTION_OUTPUT_RESULT_DELIMITER)
