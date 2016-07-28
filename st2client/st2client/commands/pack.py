@@ -27,9 +27,18 @@ class PackBranch(resource.ResourceBranch):
                 'list': PackListCommand
             })
 
+        self.commands['search'] = PackSearchCommand(self.resource, self.app, self.subparsers)
         self.commands['install'] = PackInstallCommand(self.resource, self.app, self.subparsers)
         self.commands['uninstall'] = PackUninstallCommand(self.resource, self.app, self.subparsers)
         self.commands['register'] = PackRegisterCommand(self.resource, self.app, self.subparsers)
+
+
+class PackSearchCommand(resource.ContentPackResourceListCommand):
+    display_attributes = ['all']
+
+
+class PackListCommand(resource.ContentPackResourceListCommand):
+    display_attributes = ['all']
 
 
 class PackInstallCommand(resource.ContentPackResourceListCommand):
