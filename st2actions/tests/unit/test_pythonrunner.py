@@ -25,6 +25,7 @@ from st2actions.runners.utils import get_action_class_instance
 from st2common.services import config as config_service
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
@@ -49,7 +50,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(runner is not None, 'Creation failed. No instance.')
         self.assertEqual(type(runner), pythonrunner.PythonRunner, 'Creation failed. No instance.')
 
-    def test_simple_action_without_status(self):
+    def test_simple_action_with_result_no_status(self):
         runner = pythonrunner.get_runner()
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {}
@@ -60,6 +61,34 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], [1, 5, 10, 10, 5, 1])
+
+    def test_simple_action_with_result_as_None_no_status(self):
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index':'b'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['exit_code'], 0)
+        self.assertEqual(output['result'], None)
+
+    def test_simple_action_timeout(self):
+        timeout = 0
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {pythonrunner.RUNNER_TIMEOUT: timeout}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 4})
+        self.assertEqual(status, LIVEACTION_STATUS_TIMED_OUT)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], 'None')
+        self.assertEqual(output['error'], 'Action failed to complete in 0 seconds')
+        self.assertEqual(output['exit_code'], -9)
 
     def test_simple_action_with_status_succeeded(self):
         runner = pythonrunner.get_runner()
@@ -92,10 +121,10 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        (status, output, _) = runner.run({'row_index': 'b'})
+        (status, output, _) = runner.run({'row_index': 'c'})
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertTrue(output is not None)
-        self.assertEqual(output['result'], 'None')
+        self.assertEqual(output['result'], None)
 
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
         wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=PASCAL_ROW_ACTION_PATH,

@@ -66,7 +66,7 @@ class ActionService(object):
 
     def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
         return self._datastore_service.set_value(name, value, ttl, local, scope=scope,
-            encrypt=encrypt)
+                                                 encrypt=encrypt)
 
     def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
         return self._datastore_service.delete_value(name, local)
@@ -115,8 +115,7 @@ class PythonActionWrapper(object):
         action = self._get_action_instance()
         output = action.run(**self._parameters)
         action_status = None
-
-        if type(output) is tuple and len(output) is 2:
+        if type(output) is tuple and len(output) == 2:
             action_status = output[0]
             action_result = output[1]
         else:
@@ -127,14 +126,14 @@ class PythonActionWrapper(object):
         # Print output to stdout so the parent can capture it
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
         print_output = None
-        try:
-            if action_status:
-                action_output['status'] = action_status
-                print_output = json.dumps(action_output)
-            else:
-                print_output = json.dumps(action_output)
-        except:
-            print_output = str(action_output)
+        if action_status is None:
+            print_output = json.dumps(action_output)
+        elif type(action_status) is bool:
+            action_output['status'] = action_status
+            print_output = json.dumps(action_output)
+        else:
+            raise Exception('Status should either be True or False.')
+
         sys.stdout.write(print_output + '\n')
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
 

@@ -149,6 +149,17 @@ class PythonRunner(ActionRunner):
         exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
                                                            stderr=subprocess.PIPE, shell=False,
                                                            env=env, timeout=self._timeout)
+
+        return self._get_output_values(exit_code, stdout, stderr, timed_out)
+
+    def _get_output_values(self, exit_code, stdout, stderr, timed_out):
+        """
+        Return sanitized output values.
+
+        :return: Tuple with status, output and None
+
+        :rtype: ``tuple``
+        """
         if timed_out:
             error = 'Action failed to complete in %s seconds' % (self._timeout)
         else:
@@ -161,12 +172,12 @@ class PythonRunner(ActionRunner):
             stdout = split[0] + split[2]
         else:
             action_result = None
+
         try:
             action_result = json.loads(action_result)
         except:
             pass
         action_status = None
-
         if action_result and action_result != "None":
             result = action_result['result']
             try:
@@ -184,25 +195,34 @@ class PythonRunner(ActionRunner):
         }
         if error:
             output['error'] = error
-        status = None
-        if action_status:
-            if exit_code == 0 and action_status.lower() == LIVEACTION_STATUS_SUCCEEDED:
+
+        status = self._get_final_status(action_status, timed_out, exit_code)
+        return (status, output, None)
+
+    def _get_final_status(self, action_status, timed_out, exit_code):
+        """
+        Return final status based on action's status, time out value and
+        exit code. Example: succeeded, failed, timeout.
+
+        :return: status
+
+        :rtype: ``str``
+        """
+        if action_status is not None:
+            if exit_code == 0 and action_status is True:
                 status = LIVEACTION_STATUS_SUCCEEDED
-            elif timed_out:
-                status = LIVEACTION_STATUS_TIMED_OUT
-            elif action_status.lower() == LIVEACTION_STATUS_FAILED:
-                status = LIVEACTION_STATUS_FAILED
-            else:
+            elif action_status is False:
                 status = LIVEACTION_STATUS_FAILED
         else:
             if exit_code == 0:
                 status = LIVEACTION_STATUS_SUCCEEDED
-            elif timed_out:
-                status = LIVEACTION_STATUS_TIMED_OUT
             else:
                 status = LIVEACTION_STATUS_FAILED
 
-        return (status, output, None)
+        if timed_out:
+            status = LIVEACTION_STATUS_TIMED_OUT
+
+        return status
 
     def _get_env_vars(self):
         """
