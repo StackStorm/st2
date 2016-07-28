@@ -42,6 +42,7 @@ from st2client.commands import auth
 from st2client.commands import action
 from st2client.commands import action_alias
 from st2client.commands import keyvalue
+from st2client.commands import pack
 from st2client.commands import policy
 from st2client.commands import resource
 from st2client.commands import sensor
@@ -211,6 +212,11 @@ class Shell(object):
         self.commands['key'] = keyvalue.KeyValuePairBranch(
             'Key value pair is used to store commonly used configuration '
             'for reuse in sensors, actions, and rules.',
+            self, self.subparsers)
+
+        self.commands['pack'] = pack.PackBranch(
+            'A group of related integration resources: '
+            'actions, rules, and sensors.',
             self, self.subparsers)
 
         self.commands['policy'] = policy.PolicyBranch(
