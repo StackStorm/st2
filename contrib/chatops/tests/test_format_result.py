@@ -34,3 +34,25 @@ class FormatResultActionTestCase(BaseActionTestCase):
             return_value=local_shell_cmd_execution_model
         )
         self.assertTrue(action.run(execution_id='5799522f55fc8c2d33ac03e0'))
+
+    def test_rendering_http_request(self):
+        http_execution_model = json.loads(
+            self.get_fixture_content('http_execution.json')
+        )
+
+        action = self.get_action_instance()
+        action._get_execution = mock.MagicMock(
+            return_value=http_execution_model
+        )
+        self.assertTrue(action.run(execution_id='579955f055fc8c2d33ac03e3'))
+
+    def test_rendering_python_action(self):
+        python_action_execution_model = json.loads(
+            self.get_fixture_content('python_action_execution.json')
+        )
+
+        action = self.get_action_instance()
+        action._get_execution = mock.MagicMock(
+            return_value=python_action_execution_model
+        )
+        self.assertTrue(action.run(execution_id='5799572a55fc8c2d33ac03ec'))

@@ -1,0 +1,54 @@
+{
+    "action": {
+        "ref": "core.http"
+    },
+    "context": {
+        "user": "st2admin"
+    },
+    "end_timestamp": "2016-07-28T00:46:42.062470Z",
+    "id": "579955f055fc8c2d33ac03e3",
+    "liveaction": {
+        "action": "core.http",
+        "action_is_workflow": false,
+        "callback": {},
+        "id": "579955f055fc8c2d33ac03e2",
+        "parameters": {
+            "url": "https://httpbin.org/"
+        },
+        "runner_info": {
+            "hostname": "st2test",
+            "pid": 11330
+        }
+    },
+    "parameters": {
+        "url": "https://httpbin.org/"
+    },
+    "result": {
+        "body": "BLAH BLAH BLAH",
+        "headers": {
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Origin": "*",
+            "Connection": "keep-alive",
+            "Content-Length": "12150",
+            "Content-Type": "text/html; charset=utf-8",
+            "Date": "Thu, 28 Jul 2016 00:51:25 GMT",
+            "Server": "nginx"
+        },
+        "parsed": false,
+        "status_code": 200
+    },
+    "web_url": "https://localhost.localdomain/#/history/579955f055fc8c2d33ac03e3/general",
+    "start_timestamp": "2016-07-28T00:46:40.822066Z",
+    "status": "succeeded",
+    "runner": {
+        "enabled": true,
+        "id": "54c6bb640640fd5211edef0b",
+        "name": "http-request",
+        "runner_module": "st2actions.runners.httprunner",
+        "runner_parameters": {
+            "url": {
+                "type": "string"
+            }
+        }
+    }
+}
