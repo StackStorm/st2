@@ -41,6 +41,12 @@ class ConfigsRegistrar(ResourceRegistrar):
 
     ALLOWED_EXTENSIONS = ALLOWED_EXTS
 
+    def __init__(self, use_pack_cache=True, fail_on_failure=False, validate_configs=False):
+        super(ConfigsRegistrar, self).__init__(use_pack_cache=use_pack_cache,
+                                               fail_on_failure=fail_on_failure)
+
+        self._validate_configs = validate_configs
+
     def register_configs_for_all_packs(self, base_dirs):
         """
         Register configs for all the available packs.
@@ -104,8 +110,7 @@ class ConfigsRegistrar(ResourceRegistrar):
         content['values'] = values
 
         config_api = ConfigAPI(**content)
-        # TODO: Validate config against schema here
-        config_api.validate()
+        config_api.validate(validate_against_schema=self._validate_configs)
         config_db = ConfigAPI.to_model(config_api)
 
         try:
@@ -125,7 +130,7 @@ class ConfigsRegistrar(ResourceRegistrar):
 
 
 def register_configs(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
-                     fail_on_failure=False):
+                     fail_on_failure=False, validate_configs=False):
 
     if packs_base_paths:
         assert isinstance(packs_base_paths, list)
@@ -134,7 +139,8 @@ def register_configs(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
         packs_base_paths = content_utils.get_packs_base_paths()
 
     registrar = ConfigsRegistrar(use_pack_cache=use_pack_cache,
-                                 fail_on_failure=fail_on_failure)
+                                 fail_on_failure=fail_on_failure,
+                                 validate_configs=validate_configs)
 
     if pack_dir:
         result = registrar.register_config_for_pack(pack_dir=pack_dir)
