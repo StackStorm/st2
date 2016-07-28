@@ -395,7 +395,7 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
         return trigger_instances
 
     def _get_trigger_instances(self, **kw):
-        kw['limit'] = int(kw.get('limit', 100))
+        kw['limit'] = int(kw.get('limit', self.default_limit))
 
         LOG.debug('Retrieving all trigger instances with filters=%s', kw)
         return super(TriggerInstanceController, self)._get_all(**kw)

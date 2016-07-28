@@ -17,6 +17,15 @@ In development
   throughput of a single action runner when the system is not over-utilized. It can also help
   prevent deadlocks which may occur when using delay policies with action-chain workflows.
   (improvement)
+* Update CLI commands to make sure that all of them support ``--api-key`` option. (bug-fix)
+* Allow administrator to configure maximum limit which can be specified using ``?limit``
+  query parameters when making API calls to get all / list endpoints. For backward compatibility
+  and safety reasons, the default value still is ``100``. (improvement)
+* Update ``st2-register-content`` script to exit with non-zero on failure (e.g. invalid resource
+  metadata, etc.) by default. For backward compatibility reasons, ``--register-fail-on-failure``
+  flag was left there, but it now doesn't do anything since this is the default behavior. For ease
+  of migrations, users can revert to the old behavior by using new
+  ``--register-no-fail-on-failure`` flag. (improvement)
 * Include a chatops alias sample in ``examples`` pack that shows how to use ``format`` option to
   display chatops messages in custom formatted way. (improvement)
 * Fix ``Internal Server Error`` when an undefined jinja variable is used in action alias ack field.
