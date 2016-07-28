@@ -259,6 +259,22 @@ class TestActionExecutionFilters(FunctionalTest):
         dt2 = response.json[len(response.json) - 1]['start_timestamp']
         self.assertLess(isotime.parse(dt2), isotime.parse(dt1))
 
+    def test_ascending_sort(self):
+        response = self.app.get('/v1/executions?sort_asc=True')
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        dt1 = response.json[0]['start_timestamp']
+        dt2 = response.json[len(response.json) - 1]['start_timestamp']
+        self.assertLess(isotime.parse(dt1), isotime.parse(dt2))
+
+    def test_descending_sort(self):
+        response = self.app.get('/v1/executions?sort_desc=True')
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        dt1 = response.json[0]['start_timestamp']
+        dt2 = response.json[len(response.json) - 1]['start_timestamp']
+        self.assertLess(isotime.parse(dt2), isotime.parse(dt1))
+
     def test_timestamp_lt_and_gt_filter(self):
         def isoformat(timestamp):
             return isotime.format(timestamp, offset=False)
@@ -288,15 +304,15 @@ class TestActionExecutionFilters(FunctionalTest):
         self.assertEqual(len(response.json), 1)
         self.assertTrue(isotime.parse(response.json[0]['start_timestamp']) < timestamp)
 
-        # Half timestamps should be smaller
-        index = (len(self.start_timestamps) - 1)
+        # Half of the timestamps should be smaller
+        index = (len(self.start_timestamps) - 1) // 2
         timestamp = self.start_timestamps[index]
         response = self.app.get('/v1/executions?timestamp_lt=%s' % (isoformat(timestamp)))
         self.assertEqual(len(response.json), index)
         self.assertTrue(isotime.parse(response.json[0]['start_timestamp']) < timestamp)
 
-        # Half timestamps should be greater
-        index = (len(self.start_timestamps) - 1)
+        # Half of the timestamps should be greater
+        index = (len(self.start_timestamps) - 1) // 2
         timestamp = self.start_timestamps[-index]
         response = self.app.get('/v1/executions?timestamp_gt=%s' % (isoformat(timestamp)))
         self.assertEqual(len(response.json), (index - 1))

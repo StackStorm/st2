@@ -929,7 +929,7 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
                                        'list all if 0.' %
                                        resource.get_plural_display_name().lower()))
         self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
-                                 default='asc',
+                                 default='descending',
                                  help=('Sort %s by start timestamp, '
                                        'asc (ascending) or desc (descending)' %
                                        resource.get_plural_display_name().lower()))
@@ -982,7 +982,9 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         if args.timestamp_lt:
             kwargs['timestamp_lt'] = args.timestamp_lt
         if args.sort_order:
-            if args.sort_order == 'desc':
+            if args.sort_order in ['asc', 'ascending']:
+                kwargs['sort_asc'] = True
+            elif args.sort_order in ['desc', 'descending']:
                 kwargs['sort_desc'] = True
 
         # We exclude "result" and "trigger_instance" attributes which can contain a lot of data
