@@ -17,6 +17,17 @@ In development
   throughput of a single action runner when the system is not over-utilized. It can also help
   prevent deadlocks which may occur when using delay policies with action-chain workflows.
   (improvement)
+* Include a chatops alias sample in ``examples`` pack that shows how to use ``format`` option to
+  display chatops messages in custom formatted way. (improvement)
+* Fix ``Internal Server Error`` when an undefined jinja variable is used in action alias ack field.
+  We now send a http status code ``201`` but also explicitly say we couldn't render the ``ack``
+  field. The ``ack`` is anyways a nice-to-have message which is not critical. Previously, we still
+  kicked off the execution but sent out ``Internal Server Error`` which might confuse the user
+  whether execution was kicked off or not. (bug-fix)
+* Include testing for chatops ``format_execution_result`` python action. The tests cover various
+  action types. (improvement)
+* Include a field ``elapsed_seconds`` in execution API response for GET calls. The clients using
+  the API can now use ``elapsed_seconds`` without having to repeat computation. (improvement)
 
 1.5.1 - July 13, 2016
 ---------------------
