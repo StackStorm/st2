@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import jsonschema
+
 from st2common.util import schema as util_schema
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE
@@ -177,9 +179,14 @@ class ConfigAPI(BaseAPI):
         schema = config_schema_db.attributes
         schema = util_schema.get_schema_for_resource_parameters(parameters_schema=schema,
                                                                 allow_additional_properties=True)
-        cleaned = util_schema.validate(instance=instance, schema=schema,
-                                       cls=util_schema.CustomValidator, use_default=True,
-                                       allow_default_none=True)
+
+        try:
+            cleaned = util_schema.validate(instance=instance, schema=schema,
+                                           cls=util_schema.CustomValidator, use_default=True,
+                                           allow_default_none=True)
+        except jsonschema.ValidationError as e:
+            msg = 'Failed validating config for pack "%s": %s' % (self.pack, str(e))
+            raise jsonschema.ValidationError(msg)
 
         return cleaned
 
