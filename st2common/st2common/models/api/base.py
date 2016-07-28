@@ -233,15 +233,6 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                 result = cast_func(value)
                 return result
 
-            if arg_types:
-                # Cast and transform arguments based on the provided arg_types specification
-                result_args, result_kwargs = get_controller_args_for_types(func=f,
-                                                                           arg_types=arg_types,
-                                                                           args=args,
-                                                                           kwargs=kwargs)
-                more = more + result_args
-                kwargs.update(result_kwargs)
-
             if body_cls:
                 if pecan.request.body:
                     data = pecan.request.json
@@ -269,6 +260,15 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                     obj = None
 
                 more.append(obj)
+
+            if arg_types:
+                # Cast and transform arguments based on the provided arg_types specification
+                result_args, result_kwargs = get_controller_args_for_types(func=f,
+                                                                           arg_types=arg_types,
+                                                                           args=args,
+                                                                           kwargs=kwargs)
+                more = more + result_args
+                kwargs.update(result_kwargs)
 
             args = tuple(more) + tuple(args)
 

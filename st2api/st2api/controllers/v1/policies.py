@@ -164,7 +164,7 @@ class PolicyController(resource.ContentPackResourceController):
         return self.model.from_model(db_model)
 
     @jsexpose(arg_types=[str], body_cls=PolicyAPI)
-    def put(self, ref_or_id, instance):
+    def put(self, instance, ref_or_id):
         op = 'PUT /policies/%s/' % ref_or_id
 
         db_model = self._get_by_ref_or_id(ref_or_id=ref_or_id)

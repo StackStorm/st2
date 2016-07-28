@@ -144,7 +144,7 @@ class ActionsController(resource.ContentPackResourceController):
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_MODIFY)
     @jsexpose(arg_types=[str], body_cls=ActionCreateAPI)
-    def put(self, action_ref_or_id, action):
+    def put(self, action, action_ref_or_id):
         action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
 
         # Assert permissions
