@@ -26,6 +26,9 @@ In development
   flag was left there, but it now doesn't do anything since this is the default behavior. For ease
   of migrations, users can revert to the old behavior by using new
   ``--register-no-fail-on-failure`` flag. (improvement)
+* Add ``--register-validate-configs`` flag to the ``st2-register-content`` script. If this flag is
+  provided, new style configs located in ``/opt/stackstorm/configs/`` directory are validated
+  against the config schema if config schema is available. (improvement)
 
 1.5.1 - July 13, 2016
 ---------------------
