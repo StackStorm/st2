@@ -374,41 +374,41 @@ class TriggerInstanceResourceManager(ResourceManager):
 
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def install(self, instance, **kwargs):
+    def install(self, name, **kwargs):
         url = '/%s/install' % (self.resource.get_url_path_name())
-        response = self.client.post(url, {'name': instance.name})
+        response = self.client.post(url, {'name': name})
         if response.status_code != 200:
             self.handle_error(response)
         return response.json()
 
     @add_auth_token_to_kwargs_from_env
-    def remove(self, instance, **kwargs):
-        url = '/%s/%s/uninstall' % (self.resource.get_url_path_name(), instance.name)
+    def remove(self, name, **kwargs):
+        url = '/%s/%s/uninstall' % (self.resource.get_url_path_name(), name)
         response = self.client.post(url, None)
         if response.status_code != 200:
             self.handle_error(response)
         return response.json()
 
     @add_auth_token_to_kwargs_from_env
-    def create(self, instance, **kwargs):
+    def create(self, name, **kwargs):
         url = '/%s/init' % (self.resource.get_url_path_name())
-        response = self.client.post(url, {'name': instance.name})
+        response = self.client.post(url, {'name': name})
         if response.status_code != 200:
             self.handle_error(response)
         return response.json()
 
     @add_auth_token_to_kwargs_from_env
-    def search(self, instance, **kwargs):
+    def search(self, query, **kwargs):
         url = '/%s/search' % (self.resource.get_url_path_name())
-        response = self.client.post(url, {'query': instance.query})
+        response = self.client.post(url, {'query': query})
         if response.status_code != 200:
             self.handle_error(response)
         return response.json()
 
     @add_auth_token_to_kwargs_from_env
-    def register(self, instance, **kwargs):
+    def register(self, name, **kwargs):
         url = '/%s/register' % (self.resource.get_url_path_name())
-        response = self.client.post(url, {'name': instance.name})
+        response = self.client.post(url, {'name': name})
         if response.status_code != 200:
             self.handle_error(response)
         return response.json()

@@ -16,6 +16,8 @@
 from st2client.models import Pack
 from st2client.commands import resource
 from st2client.commands.noop import NoopCommand
+from st2client.formatters import table
+from st2client.exceptions.operations import OperationFailureException
 
 
 class PackBranch(resource.ResourceBranch):
@@ -67,7 +69,7 @@ class PackInstallCommand(PackResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.install(instance, **kwargs)
+        return self.manager.install(args.name, **kwargs)
 
 
 class PackRemoveCommand(PackResourceCommand):
@@ -82,7 +84,7 @@ class PackRemoveCommand(PackResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.remove(instance, **kwargs)
+        return self.manager.remove(args.name, **kwargs)
 
 
 class PackCreateCommand(PackResourceCommand):
@@ -97,7 +99,7 @@ class PackCreateCommand(PackResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.create(instance, **kwargs)
+        return self.manager.create(args.name, **kwargs)
 
 
 class PackRegisterCommand(PackResourceCommand):
@@ -112,7 +114,7 @@ class PackRegisterCommand(PackResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.register(instance, **kwargs)
+        return self.manager.register(args.name, **kwargs)
 
 
 class PackSearchCommand(PackResourceCommand):
@@ -126,4 +128,4 @@ class PackSearchCommand(PackResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.search(instance, **kwargs)
+        return self.manager.search(args.query, **kwargs)
