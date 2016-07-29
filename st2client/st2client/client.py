@@ -98,7 +98,7 @@ class Client(object):
             models.ApiKey, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['LiveAction'] = LiveActionResourceManager(
             models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
-        self.managers['Pack'] = ResourceManager(
+        self.managers['Pack'] = PackResourceManager(
             models.Pack, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Policy'] = ResourceManager(
             models.Policy, self.endpoints['api'], cacert=self.cacert, debug=self.debug)

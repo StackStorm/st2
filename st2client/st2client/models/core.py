@@ -371,3 +371,44 @@ class TriggerInstanceResourceManager(ResourceManager):
         if response.status_code != 200:
             self.handle_error(response)
         return response.json()
+
+class PackResourceManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def install(self, instance, **kwargs):
+        url = '/%s/install' % (self.resource.get_url_path_name())
+        response = self.client.post(url, {'name': instance.name})
+        if response.status_code != 200:
+            self.handle_error(response)
+        return response.json()
+
+    @add_auth_token_to_kwargs_from_env
+    def remove(self, instance, **kwargs):
+        url = '/%s/%s/uninstall' % (self.resource.get_url_path_name(), instance.name)
+        response = self.client.post(url, None)
+        if response.status_code != 200:
+            self.handle_error(response)
+        return response.json()
+
+    @add_auth_token_to_kwargs_from_env
+    def create(self, instance, **kwargs):
+        url = '/%s/init' % (self.resource.get_url_path_name())
+        response = self.client.post(url, {'name': instance.name})
+        if response.status_code != 200:
+            self.handle_error(response)
+        return response.json()
+
+    @add_auth_token_to_kwargs_from_env
+    def search(self, instance, **kwargs):
+        url = '/%s/search' % (self.resource.get_url_path_name())
+        response = self.client.post(url, {'query': instance.query})
+        if response.status_code != 200:
+            self.handle_error(response)
+        return response.json()
+
+    @add_auth_token_to_kwargs_from_env
+    def register(self, instance, **kwargs):
+        url = '/%s/register' % (self.resource.get_url_path_name())
+        response = self.client.post(url, {'name': instance.name})
+        if response.status_code != 200:
+            self.handle_error(response)
+        return response.json()

@@ -23,31 +23,104 @@ class PackBranch(resource.ResourceBranch):
             Pack, description, app, subparsers,
             parent_parser=parent_parser,
             read_only=True,
-            commands={
-                'list': PackListCommand
-            })
+            commands={})
 
-        self.commands['search'] = PackSearchCommand(self.resource, self.app, self.subparsers)
-        self.commands['install'] = PackInstallCommand(self.resource, self.app, self.subparsers)
-        self.commands['uninstall'] = PackUninstallCommand(self.resource, self.app, self.subparsers)
+        self.commands['list'] = PackListCommand(self.resource, self.app, self.subparsers)
         self.commands['register'] = PackRegisterCommand(self.resource, self.app, self.subparsers)
+        self.commands['create'] = PackCreateCommand(self.resource, self.app, self.subparsers)
+        self.commands['install'] = PackInstallCommand(self.resource, self.app, self.subparsers)
+        self.commands['remove'] = PackRemoveCommand(self.resource, self.app, self.subparsers)
+        self.commands['search'] = PackSearchCommand(self.resource, self.app, self.subparsers)
 
 
-class PackSearchCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['all']
+class PackResourceCommand(resource.PackInstallCommand):
+    def run_and_print(self, args, **kwargs):
+        try:
+            instance = self.run(args, **kwargs)
+            if not instance:
+                raise Exception('Server did not create instance.')
+            self.print_output(instance, table.PropertyValueTable,
+                              attributes=['all'], json=args.json, yaml=args.yaml)
+        except Exception as e:
+            message = e.message or str(e)
+            print('ERROR: %s' % (message))
+            raise OperationFailureException(message)
 
 
-class PackListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['all']
+class PackListCommand(resource.ResourceListCommand):
+    display_attributes = ['name', 'description', 'version', 'author']
+    attribute_display_order = ['name', 'description', 'version', 'author']
 
 
-class PackInstallCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['all']
+class PackInstallCommand(PackResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(PackInstallCommand, self).__init__(resource, 'install',
+            'Install a new %s.' % resource.get_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('name',
+                                 help='Name of the %s to install.' %
+                                 resource.get_display_name().lower())
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        return self.manager.install(instance, **kwargs)
 
 
-class PackUninstallCommand(resource.ContentPackResourceGetCommand):
-    display_attributes = ['all']
+class PackRemoveCommand(PackResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(PackUninstallCommand, self).__init__(resource, 'remove',
+            'Remove a %s.' % resource.get_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('name',
+                                 help='Name of the %s to remove.' %
+                                 resource.get_display_name().lower())
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        return self.manager.remove(instance, **kwargs)
 
 
-class PackRegisterCommand(resource.ContentPackResourceEnableCommand):
-    display_attributes = ['all']
+class PackCreateCommand(PackResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(PackCreateCommand, self).__init__(resource, 'create',
+            'Create a template for a new %s.' % resource.get_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('name',
+                                 help='Name of the %s to create.' %
+                                 resource.get_display_name().lower())
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        return self.manager.create(instance, **kwargs)
+
+
+class PackRegisterCommand(PackResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(PackRegisterCommand, self).__init__(resource, 'register',
+            'Register a %s: sync all file changes with DB.' % resource.get_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('name',
+                                 help='Name of the %s to register.' %
+                                 resource.get_display_name().lower())
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        return self.manager.register(instance, **kwargs)
+
+
+class PackSearchCommand(PackResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(PackRegisterCommand, self).__init__(resource, 'register',
+            'Search for a %s in the directory.' % resource.get_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('query',
+                                 help='Search query.')
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        return self.manager.search(instance, **kwargs)
