@@ -15,10 +15,6 @@
 
 from st2client.models import core
 
-__all__ = [
-    'Pack'
-]
-
 
 class Pack(core.Resource):
     _display_name = 'Pack'
