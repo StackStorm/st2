@@ -23,6 +23,7 @@ from st2client.models.core import ResourceManager
 from st2client.models.core import ActionAliasResourceManager
 from st2client.models.core import LiveActionResourceManager
 from st2client.models.core import TriggerInstanceResourceManager
+from st2client.models.core import PackResourceManager
 
 
 LOG = logging.getLogger(__name__)

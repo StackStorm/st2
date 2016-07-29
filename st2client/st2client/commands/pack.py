@@ -15,6 +15,7 @@
 
 from st2client.models import Pack
 from st2client.commands import resource
+from st2client.commands.noop import NoopCommand
 
 
 class PackBranch(resource.ResourceBranch):
@@ -23,9 +24,11 @@ class PackBranch(resource.ResourceBranch):
             Pack, description, app, subparsers,
             parent_parser=parent_parser,
             read_only=True,
-            commands={})
+            commands={
+                'list': PackListCommand,
+                'get': NoopCommand
+            })
 
-        self.commands['list'] = PackListCommand(self.resource, self.app, self.subparsers)
         self.commands['register'] = PackRegisterCommand(self.resource, self.app, self.subparsers)
         self.commands['create'] = PackCreateCommand(self.resource, self.app, self.subparsers)
         self.commands['install'] = PackInstallCommand(self.resource, self.app, self.subparsers)
@@ -33,7 +36,7 @@ class PackBranch(resource.ResourceBranch):
         self.commands['search'] = PackSearchCommand(self.resource, self.app, self.subparsers)
 
 
-class PackResourceCommand(resource.PackInstallCommand):
+class PackResourceCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         try:
             instance = self.run(args, **kwargs)
@@ -69,7 +72,7 @@ class PackInstallCommand(PackResourceCommand):
 
 class PackRemoveCommand(PackResourceCommand):
     def __init__(self, resource, *args, **kwargs):
-        super(PackUninstallCommand, self).__init__(resource, 'remove',
+        super(PackRemoveCommand, self).__init__(resource, 'remove',
             'Remove a %s.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
@@ -114,7 +117,7 @@ class PackRegisterCommand(PackResourceCommand):
 
 class PackSearchCommand(PackResourceCommand):
     def __init__(self, resource, *args, **kwargs):
-        super(PackRegisterCommand, self).__init__(resource, 'register',
+        super(PackSearchCommand, self).__init__(resource, 'search',
             'Search for a %s in the directory.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
