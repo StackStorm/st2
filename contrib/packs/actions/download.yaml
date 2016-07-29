@@ -7,7 +7,7 @@
   parameters:
     pack:
       type: "string"
-    ref:
+    version:
       type: "string"
       default: "master"
     abs_repo_base:
