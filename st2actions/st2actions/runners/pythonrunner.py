@@ -166,7 +166,7 @@ class PythonRunner(ActionRunner):
         else:
             error = None
 
-        if "InvalidStatusException" in stderr:
+        if exit_code == 220:
             raise InvalidStatusException(stderr)
 
         if ACTION_OUTPUT_RESULT_DELIMITER in stdout:
@@ -186,7 +186,7 @@ class PythonRunner(ActionRunner):
             result = action_result['result']
             try:
                 action_status = action_result['status']
-            except:
+            except KeyError:
                 pass
         else:
             result = "None"

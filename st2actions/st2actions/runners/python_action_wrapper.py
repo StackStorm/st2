@@ -16,7 +16,7 @@
 import sys
 import json
 import argparse
-
+import traceback
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -133,8 +133,12 @@ class PythonActionWrapper(object):
             action_output['status'] = action_status
             print_output = json.dumps(action_output)
         else:
-            raise InvalidStatusException('Status returned from the action must'
-                                         ' either be True or False.')
+            try:
+                raise InvalidStatusException('Status returned from the action'
+                                             ' must either be True or False.')
+            except:
+                traceback.print_exc()
+                sys.exit(220)
 
         sys.stdout.write(print_output + '\n')
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
