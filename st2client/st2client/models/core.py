@@ -372,6 +372,7 @@ class TriggerInstanceResourceManager(ResourceManager):
             self.handle_error(response)
         return response.json()
 
+
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def install(self, name, **kwargs):
