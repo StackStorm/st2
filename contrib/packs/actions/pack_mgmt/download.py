@@ -38,7 +38,7 @@ class DownloadGitRepoAction(Action):
     def __init__(self, config=None, action_service=None):
         super(DownloadGitRepoAction, self).__init__(config=config, action_service=action_service)
 
-    def run(self, pack, ref, abs_repo_base, verifyssl=True):
+    def run(self, pack, version, abs_repo_base, verifyssl=True):
 
         self._pack_name, self._pack_url = self._get_pack_name_and_url(
             pack,
@@ -49,7 +49,7 @@ class DownloadGitRepoAction(Action):
 
         with LockFile('/tmp/%s' % (lock_name)):
             abs_local_path = self._clone_repo(repo_name=self._pack_name, repo_url=self._pack_url,
-                                              verifyssl=verifyssl, branch=ref)
+                                              verifyssl=verifyssl, branch=version)
             try:
                 result = self._move_pack(abs_repo_base, self._pack_name, abs_local_path)
             finally:

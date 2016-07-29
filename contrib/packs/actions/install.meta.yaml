@@ -11,10 +11,10 @@
       type: "string"
       required: true
       description: "Name of the pack in Exchange or a git repo URL"
-    ref:
+    version:
       type: "string"
       default: "master"
-      description: "Branch, version tag, or a commit hash"
+      description: "Pack version or any git-ref: tag, branch, or a commit hash."
     register:
       type: "string"
       default: "actions,aliases,sensors,triggers"

@@ -5,7 +5,7 @@
       ref: "packs.download"
       parameters:
         pack: "{{pack}}"
-        ref: "{{ref}}"
+        version: "{{version}}"
       on-success: "virtualenv_prerun"
     -
       name: "virtualenv_prerun"
