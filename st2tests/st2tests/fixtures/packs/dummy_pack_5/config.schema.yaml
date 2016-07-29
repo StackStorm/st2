@@ -7,7 +7,7 @@
     secret: true
     required: true
   regions:
-    type: "list"
+    type: "array"
     required: true
     default: "us-east-1"
   private_key_path:
