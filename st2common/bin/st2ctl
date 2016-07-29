@@ -33,6 +33,7 @@ function print_usage() {
     echo "  --register-aliases            Register all aliases."
     echo "  --register-policies           Register all policies."
     echo "  --register-configs            Register all configuration files."
+    echo "  --register-validate-configs   Validate config values against config schema if schema is available."
     echo "  --register-setup-virtualenvs  Create Python virtual environments for all the registered packs."
     echo "  --register-fail-on-failure    Exit with non-zero if some resource registration fails. Deprecated. This is now a default behavior."
     echo "  --register-no-fail-on-failure Don't exit with non-zero if some resource registration fails."
