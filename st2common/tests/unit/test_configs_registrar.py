@@ -32,7 +32,7 @@ __all__ = [
 ]
 
 PACK_1_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_1')
-PACK_5_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_5')
+PACK_6_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_6')
 
 
 class ConfigsRegistrarTestCase(CleanDbTestCase):
@@ -75,7 +75,7 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
 
         registrar = ConfigsRegistrar(use_pack_cache=False, validate_configs=False)
         registrar._pack_loader.get_packs = mock.Mock()
-        registrar._pack_loader.get_packs.return_value = {'dummy_pack_5': PACK_5_PATH}
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_6': PACK_6_PATH}
         packs_base_paths = content_utils.get_packs_base_paths()
         registrar.register_configs_for_all_packs(base_dirs=packs_base_paths)
 
@@ -97,14 +97,14 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
         registrar = ConfigsRegistrar(use_pack_cache=False, fail_on_failure=True,
                                      validate_configs=True)
         registrar._pack_loader.get_packs = mock.Mock()
-        registrar._pack_loader.get_packs.return_value = {'dummy_pack_5': PACK_5_PATH}
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_6': PACK_6_PATH}
 
         # Register ConfigSchema for pack
         registrar._register_pack_db = mock.Mock()
-        registrar._register_pack(pack_name='dummy_pack_5', pack_dir=PACK_5_PATH)
+        registrar._register_pack(pack_name='dummy_pack_5', pack_dir=PACK_6_PATH)
         packs_base_paths = content_utils.get_packs_base_paths()
 
-        expected_msg = ('Failed validating config for pack "dummy_pack_5": 1000 '
+        expected_msg = ('Failed validating config for pack "dummy_pack_6": 1000 '
                         'is not of type u\'array\'')
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
                                 registrar.register_configs_for_all_packs,
