@@ -28,7 +28,7 @@ from st2common.util import loader as action_loader
 from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.keyvalue import SYSTEM_SCOPE
-from st2common.constants.error_codes import PYTHON_ACTION_INVALID_STATUS_EXIT_CODE
+from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
 from st2common.service_setup import db_setup
 from st2common.services.datastore import DatastoreService
 from st2common.exceptions.invalidstatus import InvalidStatusException
@@ -139,7 +139,7 @@ class PythonActionWrapper(object):
                                              ' must either be True or False.')
             except:
                 traceback.print_exc()
-                sys.exit(PYTHON_ACTION_INVALID_STATUS_EXIT_CODE)
+                sys.exit(PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE)
 
         sys.stdout.write(print_output + '\n')
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
