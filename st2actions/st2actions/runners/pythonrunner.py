@@ -39,7 +39,6 @@ from st2common.util.sandboxing import get_sandbox_path
 from st2common.util.sandboxing import get_sandbox_python_path
 from st2common.util.sandboxing import get_sandbox_python_binary_path
 from st2common.util.sandboxing import get_sandbox_virtualenv_path
-from st2common.exceptions.invalidstatus import InvalidStatusException
 
 
 __all__ = [
@@ -168,7 +167,8 @@ class PythonRunner(ActionRunner):
             error = None
 
         if exit_code == PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE:
-            raise InvalidStatusException(stderr)
+            # TODO: Mark as failed instead
+            raise ValueError(stderr)
 
         if ACTION_OUTPUT_RESULT_DELIMITER in stdout:
             split = stdout.split(ACTION_OUTPUT_RESULT_DELIMITER)
@@ -178,19 +178,18 @@ class PythonRunner(ActionRunner):
         else:
             action_result = None
 
+        # Parse the serialized action result object
         try:
             action_result = json.loads(action_result)
         except:
             pass
-        action_status = None
-        if action_result and action_result != "None":
-            result = action_result['result']
-            try:
-                action_status = action_result['status']
-            except KeyError:
-                pass
+
+        if action_result and isinstance(action_result, dict):
+            result = action_result.get('result', None)
+            status = action_result.get('status', None)
         else:
-            result = "None"
+            result = 'None'
+            status = None
 
         output = {
             'stdout': stdout,
@@ -198,10 +197,12 @@ class PythonRunner(ActionRunner):
             'exit_code': exit_code,
             'result': result
         }
+
         if error:
             output['error'] = error
 
-        status = self._get_final_status(action_status, timed_out, exit_code)
+        status = self._get_final_status(action_status=status, timed_out=timed_out,
+                                        exit_code=exit_code)
         return (status, output, None)
 
     def _get_final_status(self, action_status, timed_out, exit_code):
@@ -216,7 +217,9 @@ class PythonRunner(ActionRunner):
         if action_status is not None:
             if exit_code == 0 and action_status is True:
                 status = LIVEACTION_STATUS_SUCCEEDED
-            elif action_status is False:
+            elif exit_code == 0 and action_status is False:
+                status = LIVEACTION_STATUS_FAILED
+            else:
                 status = LIVEACTION_STATUS_FAILED
         else:
             if exit_code == 0:

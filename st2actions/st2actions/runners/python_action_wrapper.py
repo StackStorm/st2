@@ -16,7 +16,6 @@
 import sys
 import json
 import argparse
-import traceback
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -31,7 +30,6 @@ from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
 from st2common.service_setup import db_setup
 from st2common.services.datastore import DatastoreService
-from st2common.exceptions.invalidstatus import InvalidStatusException
 
 __all__ = [
     'PythonActionWrapper',
@@ -116,31 +114,36 @@ class PythonActionWrapper(object):
     def run(self):
         action = self._get_action_instance()
         output = action.run(**self._parameters)
-        action_status = None
-        if type(output) is tuple and len(output) == 2:
+
+        if isinstance(output, (tuple, list)) and len(output) == 2:
+            # run() method returned status and data - (status, data)
             action_status = output[0]
             action_result = output[1]
         else:
+            # run() method returned only data, no status (pre StackStorm v1.6)
+            action_status = None
             action_result = output
 
-        action_output = {"result": action_result}
+        action_output = {
+            'result': action_result,
+            'status': None
+        }
+
+        if action_status is not None and not isinstance(action_status, bool):
+            sys.stderr.write('Status returned from the action run() method must either be '
+                             'True or False, got: %s' % (action_status))
+            sys.exit(PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE)
+
+        if action_status is not None and isinstance(action_status, bool):
+            action_output['status'] = action_status
+
+        try:
+            print_output = json.dumps(action_output)
+        except Exception:
+            print_output = str(action_output)
 
         # Print output to stdout so the parent can capture it
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
-        print_output = None
-        if action_status is None:
-            print_output = json.dumps(action_output)
-        elif type(action_status) is bool:
-            action_output['status'] = action_status
-            print_output = json.dumps(action_output)
-        else:
-            try:
-                raise InvalidStatusException('Status returned from the action'
-                                             ' must either be True or False.')
-            except:
-                traceback.print_exc()
-                sys.exit(PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE)
-
         sys.stdout.write(print_output + '\n')
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
 
