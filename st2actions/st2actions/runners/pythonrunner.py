@@ -29,6 +29,7 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.error_codes import PYTHON_ACTION_INVALID_STATUS_EXIT_CODE
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
@@ -166,7 +167,7 @@ class PythonRunner(ActionRunner):
         else:
             error = None
 
-        if exit_code == 220:
+        if exit_code == PYTHON_ACTION_INVALID_STATUS_EXIT_CODE:
             raise InvalidStatusException(stderr)
 
         if ACTION_OUTPUT_RESULT_DELIMITER in stdout:
