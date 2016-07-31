@@ -23,6 +23,7 @@ __all__ = [
     'REMOTE_RUNNER_PRIVATE_KEY_HEADER',
 
     'PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT',
+    'PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE',
 
     'WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT',
 
@@ -46,6 +47,10 @@ REMOTE_RUNNER_PRIVATE_KEY_HEADER = 'PRIVATE KEY-----'.lower()
 # Python runner
 # Default timeout (in seconds) for actions executed by Python runner
 PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60
+
+# Exit code with which the Python runner wrapper script exists if the Python
+# action returns invalid status from the run() method
+PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE = 220
 
 # Windows runner
 WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT = 10 * 60

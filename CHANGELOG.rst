@@ -26,6 +26,11 @@ In development
   flag was left there, but it now doesn't do anything since this is the default behavior. For ease
   of migrations, users can revert to the old behavior by using new
   ``--register-no-fail-on-failure`` flag. (improvement)
+* Allow Python runner actions to return execution status (success, failure) by returning a tuple
+  from the ``run()`` method. First item in the tuple is a flag indicating success (``True`` /
+  ``False``) and the second one is the result. Previously, user could only cause action to fail by
+  throwing an exception or exiting which didn't allow for a result to be returned. With this new
+  approach, user can now also return an optional result with a failure. (new feature)
 * Include a chatops alias sample in ``examples`` pack that shows how to use ``format`` option to
   display chatops messages in custom formatted way. (improvement)
 * Fix ``Internal Server Error`` when an undefined jinja variable is used in action alias ack field.
