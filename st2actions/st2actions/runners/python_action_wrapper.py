@@ -38,6 +38,16 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
+INVALID_STATUS_ERROR_MESSAGE = """
+If this is an existing action which returns a tuple with two items, it needs to be updated to
+either:
+
+1. Return a list instead of a tuple
+2. Return a tuple where a first items is a status flag - (True, ('item1', 'item2'))
+
+For more information, please see: https://docs.stackstorm.com/upgrade_notes.html#st2-v1-6
+""".strip()
+
 
 class ActionService(object):
     """
@@ -115,7 +125,7 @@ class PythonActionWrapper(object):
         action = self._get_action_instance()
         output = action.run(**self._parameters)
 
-        if isinstance(output, tuple) and len(output) == 2:
+        if isinstance(output, (tuple, list)) and len(output) == 2:
             # run() method returned status and data - (status, data)
             action_status = output[0]
             action_result = output[1]
@@ -131,7 +141,8 @@ class PythonActionWrapper(object):
 
         if action_status is not None and not isinstance(action_status, bool):
             sys.stderr.write('Status returned from the action run() method must either be '
-                             'True or False, got: %s' % (action_status))
+                             'True or False, got: %s\n' % (action_status))
+            sys.stderr.write(INVALID_STATUS_ERROR_MESSAGE)
             sys.exit(PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE)
 
         if action_status is not None and isinstance(action_status, bool):
