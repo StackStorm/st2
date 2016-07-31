@@ -1,0 +1,47 @@
+{
+    "action": {
+        "ref": "core.local"
+    },
+    "context": {
+        "user": "st2admin"
+    },
+    "end_timestamp": "2016-07-28T00:30:39.555229Z",
+    "id": "5799522f55fc8c2d33ac03e0",
+    "liveaction": {
+        "action": "core.local",
+        "action_is_workflow": false,
+        "callback": {},
+        "id": "5799522f55fc8c2d33ac03df",
+        "parameters": {
+            "cmd": "date"
+        },
+        "runner_info": {
+            "hostname": "st2test",
+            "pid": 11327
+        }
+    },
+    "parameters": {
+        "cmd": "date"
+    },
+    "result": {
+        "failed": false,
+        "return_code": 0,
+        "stderr": "",
+        "stdout": "Thu Jul 28 00:30:39 UTC 2016",
+        "succeeded": true
+    },
+    "start_timestamp": "2016-07-28T00:30:39.268566Z",
+    "status": "succeeded",
+    "web_url": "https://localhost.localdomain/#/history/57967f9355fc8c19a96d9e4f/general",
+    "runner": {
+        "enabled": true,
+        "id": "54c6bb640640fd5211edef0b",
+        "name": "local-shell-cmd",
+        "runner_module": "st2actions.runners.localrunner",
+        "runner_parameters": {
+            "cmd": {
+                "type": "string"
+            }
+        }
+    }
+}

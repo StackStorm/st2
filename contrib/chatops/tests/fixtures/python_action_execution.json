@@ -1,0 +1,44 @@
+{
+    "action": {
+        "ref": "examples.isprime"
+    },
+    "context": {
+        "user": "st2admin"
+    },
+    "end_timestamp": "2016-07-28T00:51:55.400941Z",
+    "id": "5799572a55fc8c2d33ac03ec",
+    "liveaction": {
+        "action": "examples.isprime",
+        "action_is_workflow": false,
+        "callback": {},
+        "id": "5799572a55fc8c2d33ac03eb",
+        "parameters": {
+            "value": 7
+        },
+        "runner_info": {
+            "hostname": "st2test",
+            "pid": 11327
+        }
+    },
+    "parameters": {
+        "value": 7
+    },
+    "result": {
+        "exit_code": 0,
+        "result": true,
+        "stderr": "st2.actions.python.PrimeCheckerAction: DEBUG    value=7\n",
+        "stdout": ""
+    },
+    "start_timestamp": "2016-07-28T00:51:54.005500Z",
+    "status": "succeeded",
+    "web_url": "https://localhost.localdomain/#/history/5799572a55fc8c2d33ac03ec/general",
+    "runner": {
+        "enabled": true,
+        "id": "54c6bb640640fd5211edef0b",
+        "name": "python-script",
+        "runner_module": "st2actions.runners.pythonrunner",
+        "runner_parameters": {
+
+        }
+    }
+}
