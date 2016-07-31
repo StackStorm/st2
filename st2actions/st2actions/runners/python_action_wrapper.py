@@ -115,7 +115,7 @@ class PythonActionWrapper(object):
         action = self._get_action_instance()
         output = action.run(**self._parameters)
 
-        if isinstance(output, (tuple, list)) and len(output) == 2:
+        if isinstance(output, tuple) and len(output) == 2:
             # run() method returned status and data - (status, data)
             action_status = output[0]
             action_result = output[1]
