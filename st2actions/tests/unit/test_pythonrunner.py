@@ -136,6 +136,18 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertRaises(ValueError,
                           runner.run, action_parameters={'row_index': 'd'})
 
+    def test_simple_action_no_status_backward_compatibility(self):
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'e'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 2])
+
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
         wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=PASCAL_ROW_ACTION_PATH,
                                       user='joe')
