@@ -7,14 +7,12 @@
   enabled: true
   entry_point: "workflows/install.yaml"
   parameters:
-    pack:
-      type: "string"
+    packs:
+      type: "array"
+      items:
+        type: "string"
       required: true
       description: "Name of the pack in Exchange or a git repo URL"
-    version:
-      type: "string"
-      default: "master"
-      description: "Pack version or any git-ref: tag, branch, or a commit hash."
     register:
       type: "string"
       default: "actions,aliases,sensors,triggers"

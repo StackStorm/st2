@@ -17,8 +17,6 @@ import pecan
 from pecan.rest import RestController
 from six.moves import http_client
 
-from oslo_config import cfg
-
 import st2common
 from st2common import log as logging
 import st2common.bootstrap.triggersregistrar as triggers_registrar
@@ -123,7 +121,8 @@ class PackRegisterController(RestController):
 
     @jsexpose()
     def post(self):
-        types = ['runner', 'action', 'trigger', 'sensor', 'rule', 'rule_type', 'alias', 'policy_type', 'policy', 'config']
+        types = ['runner', 'action', 'trigger', 'sensor', 'rule', 'rule_type', 'alias',
+                 'policy_type', 'policy', 'config']
 
         result = {}
 

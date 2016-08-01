@@ -29,6 +29,7 @@ MANIFEST_FILE = 'pack.yaml'
 CONFIG_FILE = 'config.yaml'
 GITINFO_FILE = '.gitinfo'
 PACK_RESERVE_CHARACTER = '.'
+PACK_VERSION_SEPARATOR = '#'
 
 PACK_GROUP_CFG_KEY = 'pack_group'
 EXCHANGE_URL_KEY = 'exchange_url'
@@ -38,41 +39,48 @@ class DownloadGitRepoAction(Action):
     def __init__(self, config=None, action_service=None):
         super(DownloadGitRepoAction, self).__init__(config=config, action_service=action_service)
 
-    def run(self, pack, version, abs_repo_base, verifyssl=True):
+    def run(self, packs, abs_repo_base, verifyssl=True):
+        result = {}
 
-        self._pack_name, self._pack_url = self._get_pack_name_and_url(
-            pack,
-            self.config.get(EXCHANGE_URL_KEY, None)
-        )
+        for pack in packs:
+            pack_name, pack_url, pack_version = self._get_pack_name_and_url(
+                pack,
+                self.config.get(EXCHANGE_URL_KEY, None)
+            )
 
-        lock_name = hashlib.md5(self._pack_name).hexdigest() + '.lock'
+            lock_name = hashlib.md5(pack_name).hexdigest() + '.lock'
 
-        with LockFile('/tmp/%s' % (lock_name)):
-            abs_local_path = self._clone_repo(repo_name=self._pack_name, repo_url=self._pack_url,
-                                              verifyssl=verifyssl, branch=version)
-            try:
-                result = self._move_pack(abs_repo_base, self._pack_name, abs_local_path)
-            finally:
-                self._cleanup_repo(abs_local_path)
+            with LockFile('/tmp/%s' % (lock_name)):
+                abs_local_path = self._clone_repo(repo_name=pack_name, repo_url=pack_url,
+                                                  verifyssl=verifyssl, branch=pack_version)
+                try:
+                    result[pack_name] = self._move_pack(abs_repo_base, pack_name, abs_local_path)
+                finally:
+                    self._cleanup_repo(abs_local_path)
 
-        return self._validate_result(result=result, repo_url=self._pack_url)
+        return self._validate_result(result=result, repo_url=pack_url)
 
     @staticmethod
-    def _clone_repo(repo_name, repo_url, verifyssl=True, branch='master'):
+    def _clone_repo(repo_name, repo_url, verifyssl=True, branch=None):
         user_home = os.path.expanduser('~')
         abs_local_path = os.path.join(user_home, repo_name)
+
+        # Switch to non-interactive mode
+        os.environ['GIT_TERMINAL_PROMPT'] = '0'
 
         # Disable SSL cert checking if explictly asked
         if not verifyssl:
             os.environ['GIT_SSL_NO_VERIFY'] = 'true'
+
+        if not branch:
+            branch = 'master'
+
         # Shallow clone the repo to avoid getting all the metadata. We only need HEAD of a
         # specific branch so save some download time.
         Repo.clone_from(repo_url, abs_local_path, branch=branch, depth=1)
         return abs_local_path
 
     def _move_pack(self, abs_repo_base, pack_name, abs_local_path):
-        result = {}
-
         desired, message = DownloadGitRepoAction._is_desired_pack(abs_local_path, pack_name)
         if desired:
             to = abs_repo_base
@@ -98,9 +106,7 @@ class DownloadGitRepoAction(Action):
         elif message:
             message = 'Failure : %s' % message
 
-        result[pack_name] = (desired, message)
-
-        return result
+        return (desired, message)
 
     def _apply_pack_permissions(self, pack_path):
         """
@@ -167,12 +173,19 @@ class DownloadGitRepoAction(Action):
         return sanitized_result
 
     @staticmethod
-    def _get_pack_name_and_url(name_or_url, exchange_url):
+    def _get_pack_name_and_url(pack, exchange_url):
+        try:
+            name_or_url, version = pack.split(PACK_VERSION_SEPARATOR)
+        except ValueError:
+            name_or_url = pack
+            version = None
+
         if len(name_or_url.split('/')) == 1:
-            return (name_or_url, "{}/{}.git".format(exchange_url, name_or_url))
+            return (name_or_url, "{}/{}.git".format(exchange_url, name_or_url), version)
         else:
             return (DownloadGitRepoAction._eval_repo_name(name_or_url),
-                    DownloadGitRepoAction._eval_repo_url(name_or_url))
+                    DownloadGitRepoAction._eval_repo_url(name_or_url),
+                    version)
 
     @staticmethod
     def _eval_repo_url(repo_url):

@@ -20,6 +20,7 @@ from st2client.formatters import table
 from st2client.exceptions.operations import OperationFailureException
 
 
+
 class PackBranch(resource.ResourceBranch):
     def __init__(self, description, app, subparsers, parent_parser=None):
         super(PackBranch, self).__init__(
@@ -60,31 +61,35 @@ class PackListCommand(resource.ResourceListCommand):
 class PackInstallCommand(PackResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackInstallCommand, self).__init__(resource, 'install',
-            'Install a new %s.' % resource.get_display_name().lower(),
+            'Install new %s.' % resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('name',
+        self.parser.add_argument('packs',
+                                 nargs='+',
+                                 metavar='pack',
                                  help='Name of the %s to install.' %
-                                 resource.get_display_name().lower())
+                                 resource.get_plural_display_name().lower())
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.install(args.name, **kwargs)
+        return self.manager.install(args.packs, **kwargs)
 
 
 class PackRemoveCommand(PackResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackRemoveCommand, self).__init__(resource, 'remove',
-            'Remove a %s.' % resource.get_display_name().lower(),
+            'Remove %s.' % resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('name',
+        self.parser.add_argument('packs',
+                                 nargs='+',
+                                 metavar='pack',
                                  help='Name of the %s to remove.' %
-                                 resource.get_display_name().lower())
+                                 resource.get_plural_display_name().lower())
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.remove(args.name, **kwargs)
+        return self.manager.remove(args.packs, **kwargs)
 
 
 class PackCreateCommand(PackResourceCommand):
@@ -105,10 +110,11 @@ class PackCreateCommand(PackResourceCommand):
 class PackRegisterCommand(PackResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackRegisterCommand, self).__init__(resource, 'register',
-            'Register a %s: sync all file changes with DB.' % resource.get_display_name().lower(),
-            *args, **kwargs)
+              'Register a %s: sync all file changes with DB.' % resource.get_display_name().lower(),
+              *args, **kwargs)
 
         self.parser.add_argument('name',
+                                 nargs='?',
                                  help='Name of the %s to register.' %
                                  resource.get_display_name().lower())
 
