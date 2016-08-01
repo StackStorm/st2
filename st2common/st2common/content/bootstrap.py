@@ -56,10 +56,6 @@ def register_opts():
         cfg.BoolOpt('policies', default=False, help='Register policies.'),
         cfg.BoolOpt('configs', default=False, help='Register and load pack configs.'),
 
-        # Config related options
-        cfg.BoolOpt('validate-configs', default=False,
-                    help=('Validate config values against config schema if schema is available.')),
-
         cfg.StrOpt('pack', default=None, help='Directory to the pack to register content from.'),
         cfg.BoolOpt('setup-virtualenvs', default=False, help=('Setup Python virtual environments '
                                                               'all the Python runner actions.')),
@@ -288,7 +284,6 @@ def register_policies():
 def register_configs():
     pack_dir = cfg.CONF.register.pack
     fail_on_failure = not cfg.CONF.register.no_fail_on_failure
-    validate_configs = cfg.CONF.register.validate_configs
 
     registered_count = 0
 
@@ -298,7 +293,7 @@ def register_configs():
         LOG.info('=========================================================')
         registered_count = configs_registrar.register_configs(pack_dir=pack_dir,
                                                               fail_on_failure=fail_on_failure,
-                                                              validate_configs=validate_configs)
+                                                              validate_configs=True)
     except Exception as e:
         exc_info = not fail_on_failure
         LOG.warning('Failed to register configs: %s', e, exc_info=exc_info)
