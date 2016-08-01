@@ -130,7 +130,7 @@ class ConfigsRegistrar(ResourceRegistrar):
 
 
 def register_configs(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
-                     fail_on_failure=False, validate_configs=False):
+                     fail_on_failure=False, validate_configs=True):
 
     if packs_base_paths:
         assert isinstance(packs_base_paths, list)
