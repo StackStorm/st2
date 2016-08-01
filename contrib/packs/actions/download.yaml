@@ -5,11 +5,11 @@
   enabled: true
   entry_point: "pack_mgmt/download.py"
   parameters:
-    pack:
-      type: "string"
-    version:
-      type: "string"
-      default: "master"
+    packs:
+      type: "array"
+      items:
+        type: "string"
+      required: true
     abs_repo_base:
       type: "string"
       default: "/opt/stackstorm/packs/"
