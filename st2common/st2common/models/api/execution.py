@@ -73,6 +73,16 @@ class ActionExecutionAPI(BaseAPI):
                 "type": "string",
                 "pattern": isotime.ISO8601_UTC_REGEX
             },
+            "elapsed_seconds": {
+                "description": "Time duration in seconds taken for completion of this execution.",
+                "type": "number",
+                "required": False
+            },
+            "web_url": {
+                "description": "History URL for this execution if you want to view in UI.",
+                "type": "string",
+                "required": False
+            },
             "parameters": {
                 "description": "Input parameters for the action.",
                 "type": "object",
@@ -130,13 +140,15 @@ class ActionExecutionAPI(BaseAPI):
     @classmethod
     def from_model(cls, model, mask_secrets=False):
         doc = cls._from_model(model, mask_secrets=mask_secrets)
-        start_timestamp = isotime.format(model.start_timestamp, offset=False)
-        doc['start_timestamp'] = start_timestamp
+        start_timestamp = model.start_timestamp
+        start_timestamp_iso = isotime.format(start_timestamp, offset=False)
+        doc['start_timestamp'] = start_timestamp_iso
 
         end_timestamp = model.end_timestamp
         if end_timestamp:
-            end_timestamp = isotime.format(end_timestamp, offset=False)
-            doc['end_timestamp'] = end_timestamp
+            end_timestamp_iso = isotime.format(end_timestamp, offset=False)
+            doc['end_timestamp'] = end_timestamp_iso
+            doc['elapsed_seconds'] = (end_timestamp - start_timestamp).total_seconds()
 
         for entry in doc.get('log', []):
             entry['timestamp'] = isotime.format(entry['timestamp'], offset=False)
@@ -148,13 +160,17 @@ class ActionExecutionAPI(BaseAPI):
     def to_model(cls, instance):
         values = {}
         for attr, meta in six.iteritems(cls.schema.get('properties', dict())):
+            if not getattr(instance, attr, None):
+                continue
+
             default = copy.deepcopy(meta.get('default', None))
             value = getattr(instance, attr, default)
 
             # pylint: disable=no-member
             # TODO: Add plugin which lets pylint know each MongoEngine document has _fields
             # attribute
-            if not value and not cls.model._fields[attr].required:
+            attr_schema = cls.model._fields.get(attr, None)
+            if not value and (attr_schema and not attr_schema.required):
                 continue
             if attr not in ActionExecutionAPI.SKIP:
                 values[attr] = value

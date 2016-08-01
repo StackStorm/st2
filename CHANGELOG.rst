@@ -26,9 +26,25 @@ In development
   flag was left there, but it now doesn't do anything since this is the default behavior. For ease
   of migrations, users can revert to the old behavior by using new
   ``--register-no-fail-on-failure`` flag. (improvement)
-* Add ``--register-validate-configs`` flag to the ``st2-register-content`` script. If this flag is
-  provided, new style configs located in ``/opt/stackstorm/configs/`` directory are validated
-  against the config schema if config schema is available. (improvement)
+* Allow Python runner actions to return execution status (success, failure) by returning a tuple
+  from the ``run()`` method. First item in the tuple is a flag indicating success (``True`` /
+  ``False``) and the second one is the result. Previously, user could only cause action to fail by
+  throwing an exception or exiting which didn't allow for a result to be returned. With this new
+  approach, user can now also return an optional result with a failure. (new feature)
+* Include a chatops alias sample in ``examples`` pack that shows how to use ``format`` option to
+  display chatops messages in custom formatted way. (improvement)
+* Fix ``Internal Server Error`` when an undefined jinja variable is used in action alias ack field.
+  We now send a http status code ``201`` but also explicitly say we couldn't render the ``ack``
+  field. The ``ack`` is anyways a nice-to-have message which is not critical. Previously, we still
+  kicked off the execution but sent out ``Internal Server Error`` which might confuse the user
+  whether execution was kicked off or not. (bug-fix)
+* Include testing for chatops ``format_execution_result`` python action. The tests cover various
+  action types. (improvement)
+* Include a field ``elapsed_seconds`` in execution API response for GET calls. The clients using
+  the API can now use ``elapsed_seconds`` without having to repeat computation. (improvement)
+* Update ``st2-register-content`` script so it validates new style configs in
+  ``/opt/stackstorm/configs/`` directory when using ``--register-configs`` flag if a pack contains
+  a config schema (``config.schema.yaml``). (improvement)
 
 1.5.1 - July 13, 2016
 ---------------------

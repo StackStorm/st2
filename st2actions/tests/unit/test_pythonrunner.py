@@ -25,15 +25,15 @@ from st2actions.runners.utils import get_action_class_instance
 from st2common.services import config as config_service
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 import st2tests.base as tests_base
 
 
-PACAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
-                                     'pythonactions/actions/pascal_row.py')
-
+PASCAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
+                                      'pythonactions/actions/pascal_row.py')
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
 # unrecognized args
 mock_sys = mock.Mock()
@@ -50,20 +50,106 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(runner is not None, 'Creation failed. No instance.')
         self.assertEqual(type(runner), pythonrunner.PythonRunner, 'Creation failed. No instance.')
 
-    def test_simple_action(self):
+    def test_simple_action_with_result_no_status(self):
         runner = pythonrunner.get_runner()
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {}
-        runner.entry_point = PACAL_ROW_ACTION_PATH
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        (status, result, _) = runner.run({'row_index': 4})
+        (status, output, _) = runner.run({'row_index': 5})
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
-        self.assertTrue(result is not None)
-        self.assertEqual(result['result'], [1, 4, 6, 4, 1])
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 5, 10, 10, 5, 1])
+
+    def test_simple_action_with_result_as_None_no_status(self):
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'b'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['exit_code'], 0)
+        self.assertEqual(output['result'], None)
+
+    def test_simple_action_timeout(self):
+        timeout = 0
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {pythonrunner.RUNNER_TIMEOUT: timeout}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 4})
+        self.assertEqual(status, LIVEACTION_STATUS_TIMED_OUT)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], 'None')
+        self.assertEqual(output['error'], 'Action failed to complete in 0 seconds')
+        self.assertEqual(output['exit_code'], -9)
+
+    def test_simple_action_with_status_succeeded(self):
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 4})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 4, 6, 4, 1])
+
+    def test_simple_action_with_status_failed(self):
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'a'})
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], "This is suppose to fail don't worry!!")
+
+    def test_simple_action_with_status_failed_result_none(self):
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'c'})
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], None)
+
+    def test_exception_in_simple_action_with_invalid_status(self):
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        self.assertRaises(ValueError,
+                          runner.run, action_parameters={'row_index': 'd'})
+
+    def test_simple_action_no_status_backward_compatibility(self):
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'e'})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], [1, 2])
 
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
-        wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=PACAL_ROW_ACTION_PATH,
+        wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=PASCAL_ROW_ACTION_PATH,
                                       user='joe')
 
         # No values provided in the datastore
@@ -95,7 +181,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner = pythonrunner.get_runner()
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {}
-        runner.entry_point = PACAL_ROW_ACTION_PATH
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (status, result, _) = runner.run({'row_index': '4'})
@@ -134,7 +220,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner = pythonrunner.get_runner()
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {'env': env_vars}
-        runner.entry_point = PACAL_ROW_ACTION_PATH
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (_, _, _) = runner.run({'row_index': 4})
@@ -164,7 +250,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner = pythonrunner.get_runner()
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {}
-        runner.entry_point = PACAL_ROW_ACTION_PATH
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (_, output, _) = runner.run({'row_index': 4})
@@ -174,26 +260,48 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output['result'], 'None')
         self.assertEqual(output['exit_code'], 0)
 
-        # Output to stdout and no result (implicit None)
+        # Output to stdout, no result (implicit None),return_code 1 and status
+        # failed
+        mock_stdout = 'pre result%(delimiter)sNone%(delimiter)spost result' % values
+        mock_stderr = 'foo stderr'
+        mock_process = mock.Mock()
+        mock_process.communicate.return_value = (mock_stdout, mock_stderr)
+        mock_process.returncode = 1
+        mock_popen.return_value = mock_process
+
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 4})
+        self.assertEqual(output['stdout'], 'pre resultpost result')
+        self.assertEqual(output['stderr'], mock_stderr)
+        self.assertEqual(output['result'], 'None')
+        self.assertEqual(output['exit_code'], 1)
+        self.assertEqual(status, 'failed')
+
+        # Output to stdout, no result (implicit None), return_code 1 and status
+        # succedded
         mock_stdout = 'pre result%(delimiter)sNone%(delimiter)spost result' % values
         mock_stderr = 'foo stderr'
         mock_process = mock.Mock()
         mock_process.communicate.return_value = (mock_stdout, mock_stderr)
         mock_process.returncode = 0
         mock_popen.return_value = mock_process
-
         runner = pythonrunner.get_runner()
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {}
-        runner.entry_point = PACAL_ROW_ACTION_PATH
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
-        (_, output, _) = runner.run({'row_index': 4})
-
+        (status, output, _) = runner.run({'row_index': 4})
         self.assertEqual(output['stdout'], 'pre resultpost result')
         self.assertEqual(output['stderr'], mock_stderr)
         self.assertEqual(output['result'], 'None')
         self.assertEqual(output['exit_code'], 0)
+        self.assertEqual(status, 'succeeded')
 
     @mock.patch('st2common.util.green.shell.subprocess.Popen')
     def test_common_st2_env_vars_are_available_to_the_action(self, mock_popen):
@@ -206,7 +314,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.auth_token.token = 'ponies'
         runner.action = self._get_mock_action_obj()
         runner.runner_parameters = {}
-        runner.entry_point = PACAL_ROW_ACTION_PATH
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
         runner.container_service = service.RunnerContainerService()
         runner.pre_run()
         (_, _, _) = runner.run({'row_index': 4})

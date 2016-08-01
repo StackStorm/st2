@@ -1,0 +1,19 @@
+---
+name: "remote_shell_cmd"
+action_ref: "core.remote"
+description: "Execute a command on a remote host via SSH."
+formats:
+    - "run {{cmd}} on {{hosts}}"
+ack:
+    format: "Hold tight while I run command: *{{execution.parameters.cmd}}* on hosts *{{execution.parameters.hosts}}*"
+result:
+    format: |
+        Ran command *{{execution.parameters.cmd}}* on *{{ execution.result | length }}* hosts.
+
+        Details are as follows:
+        {% for host in execution.result -%}
+            Host: *{{host}}*
+            ---> stdout: {{execution.result[host].stdout}}
+            ---> stderr: {{execution.result[host].stderr}}
+        {%+ endfor %}
+

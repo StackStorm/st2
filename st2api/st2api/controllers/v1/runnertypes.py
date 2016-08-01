@@ -59,7 +59,7 @@ class RunnerTypesController(ResourceController):
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.RUNNER_MODIFY)
     @jsexpose(arg_types=[str], body_cls=RunnerTypeAPI)
-    def put(self, name_or_id, runner_type_api):
+    def put(self, runner_type_api, name_or_id):
         # Note: We only allow "enabled" attribute of the runner to be changed
         runner_type_db = self._get_by_name_or_id(name_or_id=name_or_id)
         old_runner_type_db = runner_type_db

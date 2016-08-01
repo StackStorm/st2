@@ -29,6 +29,7 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
+from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
@@ -150,23 +151,45 @@ class PythonRunner(ActionRunner):
                                                            stderr=subprocess.PIPE, shell=False,
                                                            env=env, timeout=self._timeout)
 
+        return self._get_output_values(exit_code, stdout, stderr, timed_out)
+
+    def _get_output_values(self, exit_code, stdout, stderr, timed_out):
+        """
+        Return sanitized output values.
+
+        :return: Tuple with status, output and None
+
+        :rtype: ``tuple``
+        """
         if timed_out:
             error = 'Action failed to complete in %s seconds' % (self._timeout)
         else:
             error = None
 
+        if exit_code == PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE:
+            # TODO: Mark as failed instead
+            raise ValueError(stderr)
+
         if ACTION_OUTPUT_RESULT_DELIMITER in stdout:
             split = stdout.split(ACTION_OUTPUT_RESULT_DELIMITER)
             assert len(split) == 3
-            result = split[1].strip()
+            action_result = split[1].strip()
             stdout = split[0] + split[2]
         else:
-            result = None
+            action_result = None
 
+        # Parse the serialized action result object
         try:
-            result = json.loads(result)
+            action_result = json.loads(action_result)
         except:
             pass
+
+        if action_result and isinstance(action_result, dict):
+            result = action_result.get('result', None)
+            status = action_result.get('status', None)
+        else:
+            result = 'None'
+            status = None
 
         output = {
             'stdout': stdout,
@@ -178,14 +201,36 @@ class PythonRunner(ActionRunner):
         if error:
             output['error'] = error
 
-        if exit_code == 0:
-            status = LIVEACTION_STATUS_SUCCEEDED
-        elif timed_out:
-            status = LIVEACTION_STATUS_TIMED_OUT
-        else:
-            status = LIVEACTION_STATUS_FAILED
-
+        status = self._get_final_status(action_status=status, timed_out=timed_out,
+                                        exit_code=exit_code)
         return (status, output, None)
+
+    def _get_final_status(self, action_status, timed_out, exit_code):
+        """
+        Return final status based on action's status, time out value and
+        exit code. Example: succeeded, failed, timeout.
+
+        :return: status
+
+        :rtype: ``str``
+        """
+        if action_status is not None:
+            if exit_code == 0 and action_status is True:
+                status = LIVEACTION_STATUS_SUCCEEDED
+            elif exit_code == 0 and action_status is False:
+                status = LIVEACTION_STATUS_FAILED
+            else:
+                status = LIVEACTION_STATUS_FAILED
+        else:
+            if exit_code == 0:
+                status = LIVEACTION_STATUS_SUCCEEDED
+            else:
+                status = LIVEACTION_STATUS_FAILED
+
+        if timed_out:
+            status = LIVEACTION_STATUS_TIMED_OUT
+
+        return status
 
     def _get_env_vars(self):
         """
