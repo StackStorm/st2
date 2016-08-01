@@ -15,10 +15,32 @@
 
 from st2client.models import Pack
 from st2client.commands import resource
+from st2client.commands.action import ActionRunCommandMixin
 from st2client.commands.noop import NoopCommand
 from st2client.formatters import table
 from st2client.exceptions.operations import OperationFailureException
+from st2client.utils.color import format_status
+import st2client.utils.terminal as term
 
+
+LIVEACTION_STATUS_REQUESTED = 'requested'
+LIVEACTION_STATUS_SCHEDULED = 'scheduled'
+LIVEACTION_STATUS_DELAYED = 'delayed'
+LIVEACTION_STATUS_RUNNING = 'running'
+LIVEACTION_STATUS_SUCCEEDED = 'succeeded'
+LIVEACTION_STATUS_FAILED = 'failed'
+LIVEACTION_STATUS_TIMED_OUT = 'timeout'
+LIVEACTION_STATUS_ABANDONED = 'abandoned'
+LIVEACTION_STATUS_CANCELING = 'canceling'
+LIVEACTION_STATUS_CANCELED = 'canceled'
+
+LIVEACTION_COMPLETED_STATES = [
+    LIVEACTION_STATUS_SUCCEEDED,
+    LIVEACTION_STATUS_FAILED,
+    LIVEACTION_STATUS_TIMED_OUT,
+    LIVEACTION_STATUS_CANCELED,
+    LIVEACTION_STATUS_ABANDONED
+]
 
 
 class PackBranch(resource.ResourceBranch):
@@ -53,12 +75,40 @@ class PackResourceCommand(resource.ResourceCommand):
             raise OperationFailureException(message)
 
 
+class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
+    def run_and_print(self, args, **kwargs):
+        instance = self.run(args, **kwargs)
+        if not instance:
+            raise Exception('Server did not create instance.')
+
+        parent_id = instance.execution_id
+
+        stream_mgr = self.app.client.managers['Stream']
+
+        for execution in stream_mgr.listen(['st2.execution__create', 'st2.execution__update']):
+            if execution['id'] == parent_id and execution['status'] in LIVEACTION_COMPLETED_STATES:
+                break
+
+            if execution.get('parent', None) == parent_id:
+                status = execution['status']
+                ref = execution['action']['ref']
+
+                if status == LIVEACTION_STATUS_SCHEDULED:
+                    term.write('\t[{:^20}] {}'.format(format_status(status), ref))
+                if status == LIVEACTION_STATUS_RUNNING:
+                    term.write('\t[{:^20}] {}'.format(format_status(status), ref), override=True)
+                if status in LIVEACTION_COMPLETED_STATES:
+                    term.write('\t[{:^20}] {}'.format(format_status(status), ref), override=True)
+
+        term.write('\n')
+
+
 class PackListCommand(resource.ResourceListCommand):
     display_attributes = ['name', 'description', 'version', 'author']
     attribute_display_order = ['name', 'description', 'version', 'author']
 
 
-class PackInstallCommand(PackResourceCommand):
+class PackInstallCommand(PackAsyncCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackInstallCommand, self).__init__(resource, 'install',
             'Install new %s.' % resource.get_plural_display_name().lower(),
@@ -75,7 +125,7 @@ class PackInstallCommand(PackResourceCommand):
         return self.manager.install(args.packs, **kwargs)
 
 
-class PackRemoveCommand(PackResourceCommand):
+class PackRemoveCommand(PackAsyncCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackRemoveCommand, self).__init__(resource, 'remove',
             'Remove %s.' % resource.get_plural_display_name().lower(),

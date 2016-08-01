@@ -19,6 +19,7 @@ import logging
 from functools import wraps
 
 import six
+from sseclient import SSEClient
 
 from six.moves import urllib
 
@@ -432,3 +433,18 @@ class PackResourceManager(ResourceManager):
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
         return instance
+
+
+class StreamManager(object):
+    def __init__(self, endpoint, cacert, debug):
+        self._url = httpclient.get_url_without_trailing_slash(endpoint) + '/stream'
+        self.debug = debug
+        self.cacert = cacert
+
+    def listen(self, events):
+        if isinstance(events, six.string_types):
+            events = [events]
+
+        for message in SSEClient(self._url):
+            if message.event in events:
+                yield json.loads(message.data)

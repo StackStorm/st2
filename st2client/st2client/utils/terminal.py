@@ -16,6 +16,7 @@
 import os
 import struct
 import subprocess
+import sys
 
 __all__ = [
     'get_terminal_size'
@@ -63,3 +64,13 @@ def get_terminal_size(default=(80, 20)):
         pass
     #  return default.
     return default
+
+
+def write(string, override=False):
+    if override:
+        sys.stdout.write('\r')
+    else:
+        sys.stdout.write('\n')
+
+    sys.stdout.write(string)
+    sys.stdout.flush()

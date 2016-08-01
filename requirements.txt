@@ -35,5 +35,6 @@ requests[security]<2.12,>=2.11.1
 retrying<1.4,>=1.3
 semver>=2.1.2
 six==1.9.0
+sseclient==0.0.12
 stevedore<1.8,>=1.7.0
 tooz==1.20.0
