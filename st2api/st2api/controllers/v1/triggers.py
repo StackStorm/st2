@@ -83,7 +83,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
         return triggertype_api
 
     @jsexpose(arg_types=[str], body_cls=TriggerTypeAPI)
-    def put(self, triggertype_ref_or_id, triggertype):
+    def put(self, triggertype, triggertype_ref_or_id):
         triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
         triggertype_id = triggertype_db.id
 
@@ -238,7 +238,7 @@ class TriggerController(RestController):
         return trigger_api
 
     @jsexpose(arg_types=[str], body_cls=TriggerAPI)
-    def put(self, trigger_id, trigger):
+    def put(self, trigger, trigger_id):
         trigger_db = TriggerController.__get_by_id(trigger_id)
         try:
             if trigger.id is not None and trigger.id is not '' and trigger.id != trigger_id:

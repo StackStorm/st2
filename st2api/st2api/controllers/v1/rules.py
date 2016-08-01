@@ -123,7 +123,7 @@ class RuleController(resource.ContentPackResourceController):
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_MODIFY)
     @jsexpose(arg_types=[str], body_cls=RuleAPI)
-    def put(self, rule_ref_or_id, rule):
+    def put(self, rule, rule_ref_or_id):
         rule_db = self._get_by_ref_or_id(rule_ref_or_id)
         LOG.debug('PUT /rules/ lookup with id=%s found object: %s', rule_ref_or_id, rule_db)
 
