@@ -102,11 +102,11 @@ class BaseTestCase(TestCase):
         registrar.register_packs(base_dirs=get_packs_base_paths())
 
     @classmethod
-    def _register_pack_configs(self):
+    def _register_pack_configs(self, validate_configs=False):
         """
         Register all the packs inside the fixtures directory.
         """
-        registrar = ConfigsRegistrar(use_pack_cache=False)
+        registrar = ConfigsRegistrar(use_pack_cache=False, validate_configs=validate_configs)
         registrar.register_configs_for_all_packs(base_dirs=get_packs_base_paths())
 
 

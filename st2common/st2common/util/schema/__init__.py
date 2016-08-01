@@ -362,7 +362,7 @@ def get_schema_for_action_parameters(action_db):
     return schema
 
 
-def get_schema_for_resource_parameters(parameters_schema):
+def get_schema_for_resource_parameters(parameters_schema, allow_additional_properties=False):
     """
     Dynamically construct JSON schema for the provided resource from the parameters metadata.
     """
@@ -375,6 +375,6 @@ def get_schema_for_resource_parameters(parameters_schema):
     if properties:
         schema['type'] = 'object'
         schema['properties'] = properties
-        schema['additionalProperties'] = False
+        schema['additionalProperties'] = allow_additional_properties
 
     return schema

@@ -42,6 +42,9 @@ In development
   action types. (improvement)
 * Include a field ``elapsed_seconds`` in execution API response for GET calls. The clients using
   the API can now use ``elapsed_seconds`` without having to repeat computation. (improvement)
+* Update ``st2-register-content`` script so it validates new style configs in
+  ``/opt/stackstorm/configs/`` directory when using ``--register-configs`` flag if a pack contains
+  a config schema (``config.schema.yaml``). (improvement)
 
 1.5.1 - July 13, 2016
 ---------------------

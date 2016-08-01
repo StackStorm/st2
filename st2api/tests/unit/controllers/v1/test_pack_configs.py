@@ -27,7 +27,7 @@ class PackConfigsControllerTestCase(FunctionalTest):
     def test_get_all(self):
         resp = self.app.get('/v1/configs')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2, '/v1/configs did not return all configs.')
+        self.assertEqual(len(resp.json), 3, '/v1/configs did not return all configs.')
 
     def test_get_one_success(self):
         resp = self.app.get('/v1/configs/dummy_pack_1')

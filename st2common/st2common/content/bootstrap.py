@@ -60,6 +60,7 @@ def register_opts():
         cfg.BoolOpt('setup-virtualenvs', default=False, help=('Setup Python virtual environments '
                                                               'all the Python runner actions.')),
 
+        # General options
         cfg.BoolOpt('no-fail-on-failure', default=False,
                     help=('Don\'t exit with non-zero if some resource registration fails.')),
         # Note: Fail on failure is now a default behavior. This flag is only left here for backward
@@ -291,7 +292,8 @@ def register_configs():
         LOG.info('############## Registering configs ######################')
         LOG.info('=========================================================')
         registered_count = configs_registrar.register_configs(pack_dir=pack_dir,
-                                                              fail_on_failure=fail_on_failure)
+                                                              fail_on_failure=fail_on_failure,
+                                                              validate_configs=True)
     except Exception as e:
         exc_info = not fail_on_failure
         LOG.warning('Failed to register configs: %s', e, exc_info=exc_info)

@@ -13,13 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import jsonschema
+
 from st2common.util import schema as util_schema
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE
+from st2common.persistence.pack import ConfigSchema
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
 from st2common.models.db.pack import ConfigSchemaDB
 from st2common.models.db.pack import ConfigDB
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
     'PackAPI',
@@ -151,6 +155,40 @@ class ConfigAPI(BaseAPI):
         },
         "additionalProperties": False
     }
+
+    def validate(self, validate_against_schema=False):
+        # Perform base API model validation against json schema
+        result = super(ConfigAPI, self).validate()
+
+        # Perform config values validation against the config values schema
+        if validate_against_schema:
+            cleaned_values = self._validate_config_values_against_schema()
+            result.values = cleaned_values
+
+        return result
+
+    def _validate_config_values_against_schema(self):
+        try:
+            config_schema_db = ConfigSchema.get_by_pack(value=self.pack)
+        except StackStormDBObjectNotFoundError:
+            # Config schema is optional
+            return
+
+        # Note: We are doing optional validation so for now, we do allow additional properties
+        instance = self.values or {}
+        schema = config_schema_db.attributes
+        schema = util_schema.get_schema_for_resource_parameters(parameters_schema=schema,
+                                                                allow_additional_properties=True)
+
+        try:
+            cleaned = util_schema.validate(instance=instance, schema=schema,
+                                           cls=util_schema.CustomValidator, use_default=True,
+                                           allow_default_none=True)
+        except jsonschema.ValidationError as e:
+            msg = 'Failed validating config for pack "%s": %s' % (self.pack, str(e))
+            raise jsonschema.ValidationError(msg)
+
+        return cleaned
 
     @classmethod
     def to_model(cls, config):
