@@ -104,8 +104,8 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
         registrar._register_pack(pack_name='dummy_pack_5', pack_dir=PACK_6_PATH)
         packs_base_paths = content_utils.get_packs_base_paths()
 
-        expected_msg = ('Failed validating config for pack "dummy_pack_6": 1000 '
-                        'is not of type u\'array\'')
+        expected_msg = ('Failed validating attribute "regions" in config for pack "dummy_pack_6" '
+                        '(.*?): 1000 is not of type u\'array\'')
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
                                 registrar.register_configs_for_all_packs,
                                 base_dirs=packs_base_paths)
