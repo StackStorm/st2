@@ -48,7 +48,7 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
         registrar._pack_loader.get_packs = mock.Mock()
         registrar._pack_loader.get_packs.return_value = {'dummy_pack_1': PACK_1_PATH}
         packs_base_paths = content_utils.get_packs_base_paths()
-        registrar.register_configs_for_all_packs(base_dirs=packs_base_paths)
+        registrar.register_from_packs(base_dirs=packs_base_paths)
 
         # Verify pack and schema have been registered
         pack_dbs = Pack.get_all()
@@ -77,7 +77,7 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
         registrar._pack_loader.get_packs = mock.Mock()
         registrar._pack_loader.get_packs.return_value = {'dummy_pack_6': PACK_6_PATH}
         packs_base_paths = content_utils.get_packs_base_paths()
-        registrar.register_configs_for_all_packs(base_dirs=packs_base_paths)
+        registrar.register_from_packs(base_dirs=packs_base_paths)
 
         # Verify pack and schema have been registered
         pack_dbs = Pack.get_all()
@@ -107,5 +107,5 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
         expected_msg = ('Failed validating attribute "regions" in config for pack "dummy_pack_6" '
                         '(.*?): 1000 is not of type u\'array\'')
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
-                                registrar.register_configs_for_all_packs,
+                                registrar.register_from_packs,
                                 base_dirs=packs_base_paths)

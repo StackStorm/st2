@@ -15,19 +15,21 @@
 
 import pecan
 from pecan.rest import RestController
-from six.moves import http_client
+import six
 
 import st2common
 from st2common import log as logging
-import st2common.bootstrap.triggersregistrar as triggers_registrar
-import st2common.bootstrap.sensorsregistrar as sensors_registrar
-import st2common.bootstrap.actionsregistrar as actions_registrar
-import st2common.bootstrap.aliasesregistrar as aliases_registrar
+from st2common.bootstrap.triggersregistrar import TriggersRegistrar
+from st2common.bootstrap.sensorsregistrar import SensorsRegistrar
+from st2common.bootstrap.actionsregistrar import ActionsRegistrar
+from st2common.bootstrap.aliasesregistrar import AliasesRegistrar
+from st2common.bootstrap.policiesregistrar import PolicyRegistrar
 import st2common.bootstrap.policiesregistrar as policies_registrar
 import st2common.bootstrap.runnersregistrar as runners_registrar
-import st2common.bootstrap.rulesregistrar as rules_registrar
+from st2common.bootstrap.rulesregistrar import RulesRegistrar
 import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
-import st2common.bootstrap.configsregistrar as configs_registrar
+from st2common.bootstrap.configsregistrar import ConfigsRegistrar
+import st2common.content.utils as content_utils
 from st2common.models.api.base import jsexpose
 from st2common.models.api.base import BaseAPI
 from st2api.controllers.resource import ResourceController
@@ -39,12 +41,24 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 
+http_client = six.moves.http_client
+
 __all__ = [
     'PacksController',
     'BasePacksController'
 ]
 
 LOG = logging.getLogger(__name__)
+
+ENTITIES = {
+    'action': (ActionsRegistrar, 'actions'),
+    'trigger': (TriggersRegistrar, 'triggers'),
+    'sensor': (SensorsRegistrar, 'sensors'),
+    'rule': (RulesRegistrar, 'rules'),
+    'alias': (AliasesRegistrar, 'aliases'),
+    'policy': (PolicyRegistrar, 'policy'),
+    'config': (ConfigsRegistrar, 'config')
+}
 
 
 class PackInstallRequestAPI(object):
@@ -140,28 +154,23 @@ class PackRegisterController(RestController):
             types = ['runner', 'action', 'trigger', 'sensor', 'rule', 'rule_type', 'alias',
                      'policy_type', 'policy', 'config']
 
+        use_pack_cache = True
+        packs_base_paths = content_utils.get_packs_base_paths()
+
         result = {}
 
         if 'runner' in types or 'action' in types:
             result['runners'] = runners_registrar.register_runner_types(experimental=True)
-        if 'action' in types:
-            result['actions'] = actions_registrar.register_actions(fail_on_failure=False)
-        if 'trigger' in types:
-            result['triggers'] = triggers_registrar.register_triggers(fail_on_failure=False)
-        if 'sensor' in types:
-            result['sensors'] = sensors_registrar.register_sensors(fail_on_failure=False)
         if 'rule_type' in types or 'rule' in types:
             result['rule_types'] = rule_types_registrar.register_rule_types()
-        if 'rule' in types:
-            result['rules'] = rules_registrar.register_rules(fail_on_failure=False)
-        if 'alias' in types:
-            result['aliases'] = aliases_registrar.register_aliases(fail_on_failure=False)
         if 'policy_type' in types or 'policy' in types:
             result['policy_types'] = policies_registrar.register_policy_types(st2common)
-        if 'policy' in types:
-            result['policy'] = policies_registrar.register_policies(fail_on_failure=False)
-        if 'config' in types:
-            result['config'] = configs_registrar.register_configs(fail_on_failure=False)
+
+        for type, (Registrar, name) in six.iteritems(ENTITIES):
+            if type in types:
+                registrar = Registrar(use_pack_cache=use_pack_cache,
+                                      fail_on_failure=False)
+                result[name] = registrar.register_from_packs(base_dirs=packs_base_paths)
 
         return result
 

@@ -40,7 +40,7 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(len(Trigger.get_all()), 0)
 
         registrar = SensorsRegistrar()
-        registrar.register_sensors_from_packs(base_dirs=[PACKS_DIR])
+        registrar.register_from_packs(base_dirs=[PACKS_DIR])
 
         # Verify objects have been created
         sensor_dbs = SensorType.get_all()
@@ -69,7 +69,7 @@ class SensorRegistrationTestCase(DbTestCase):
         self.assertEqual(trigger_type_dbs[1].tags[0].value, 'tag1 value')
 
         # Verify second call to registration doesn't create a duplicate objects
-        registrar.register_sensors_from_packs(base_dirs=[PACKS_DIR])
+        registrar.register_from_packs(base_dirs=[PACKS_DIR])
 
         sensor_dbs = SensorType.get_all()
         trigger_type_dbs = TriggerType.get_all()
@@ -98,7 +98,7 @@ class SensorRegistrationTestCase(DbTestCase):
             return data
         registrar._meta_loader.load = mock_load
 
-        registrar.register_sensors_from_packs(base_dirs=[PACKS_DIR])
+        registrar.register_from_packs(base_dirs=[PACKS_DIR])
 
         sensor_dbs = SensorType.get_all()
         trigger_type_dbs = TriggerType.get_all()
@@ -125,7 +125,7 @@ class RuleRegistrationTestCase(DbTestCase):
         self.assertEqual(len(Trigger.get_all()), 0)
 
         registrar = RulesRegistrar()
-        registrar.register_rules_from_packs(base_dirs=[PACKS_DIR])
+        registrar.register_from_packs(base_dirs=[PACKS_DIR])
 
         # Verify modeles are created
         rule_dbs = Rule.get_all()
@@ -138,7 +138,7 @@ class RuleRegistrationTestCase(DbTestCase):
         self.assertTrue(trigger_dbs[0].name is not None)
 
         # Verify second register call updates existing models
-        registrar.register_rules_from_packs(base_dirs=[PACKS_DIR])
+        registrar.register_from_packs(base_dirs=[PACKS_DIR])
 
         rule_dbs = Rule.get_all()
         trigger_dbs = Trigger.get_all()

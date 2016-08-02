@@ -42,7 +42,7 @@ LOG = logging.getLogger(__name__)
 class PolicyRegistrar(ResourceRegistrar):
     ALLOWED_EXTENSIONS = ALLOWED_EXTS
 
-    def register_policies_from_packs(self, base_dirs):
+    def register_from_packs(self, base_dirs):
         """
         Discover all the packs in the provided directory and register policies from all of the
         discovered packs.
@@ -74,7 +74,7 @@ class PolicyRegistrar(ResourceRegistrar):
 
         return registered_count
 
-    def register_policies_from_pack(self, pack_dir):
+    def register_from_pack(self, pack_dir):
         """
         Register all the policies from the provided pack.
         :return: Number of policies registered.
@@ -205,8 +205,8 @@ def register_policies(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
                                 fail_on_failure=fail_on_failure)
 
     if pack_dir:
-        result = registrar.register_policies_from_pack(pack_dir=pack_dir)
+        result = registrar.register_from_pack(pack_dir=pack_dir)
     else:
-        result = registrar.register_policies_from_packs(base_dirs=packs_base_paths)
+        result = registrar.register_from_packs(base_dirs=packs_base_paths)
 
     return result

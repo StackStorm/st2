@@ -39,7 +39,7 @@ LOG = logging.getLogger(__name__)
 class RulesRegistrar(ResourceRegistrar):
     ALLOWED_EXTENSIONS = ALLOWED_EXTS
 
-    def register_rules_from_packs(self, base_dirs):
+    def register_from_packs(self, base_dirs):
         """
         :return: Number of rules registered.
         :rtype: ``int``
@@ -67,7 +67,7 @@ class RulesRegistrar(ResourceRegistrar):
 
         return registered_count
 
-    def register_rules_from_pack(self, pack_dir):
+    def register_from_pack(self, pack_dir):
         """
         Register all the rules from the provided pack.
 
@@ -185,8 +185,8 @@ def register_rules(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
                                fail_on_failure=fail_on_failure)
 
     if pack_dir:
-        result = registrar.register_rules_from_pack(pack_dir=pack_dir)
+        result = registrar.register_from_pack(pack_dir=pack_dir)
     else:
-        result = registrar.register_rules_from_packs(base_dirs=packs_base_paths)
+        result = registrar.register_from_packs(base_dirs=packs_base_paths)
 
     return result

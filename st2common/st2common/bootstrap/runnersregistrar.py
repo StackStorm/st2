@@ -601,3 +601,5 @@ def register_runner_types(experimental=False):
                 LOG.exception('Unable to register runner type %s.', runner_type['name'])
 
     LOG.debug('End : register default RunnerTypes.')
+
+    return True
