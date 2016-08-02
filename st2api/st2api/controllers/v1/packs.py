@@ -60,6 +60,19 @@ class PackInstallRequestAPI(object):
         return vars(self)
 
 
+class PackRegisterRequestAPI(object):
+    def __init__(self, types=None):
+        self.types = types
+
+    def validate(self):
+        assert isinstance(self.types, list)
+
+        return self
+
+    def __json__(self):
+        return vars(self)
+
+
 class PackInstallAPI(BaseAPI):
     schema = {
         'type': 'object'
@@ -119,14 +132,17 @@ class PackUninstallController(ActionExecutionsControllerMixin, RestController):
 
 class PackRegisterController(RestController):
 
-    @jsexpose()
-    def post(self):
-        types = ['runner', 'action', 'trigger', 'sensor', 'rule', 'rule_type', 'alias',
-                 'policy_type', 'policy', 'config']
+    @jsexpose(body_cls=PackRegisterRequestAPI)
+    def post(self, pack_register_request):
+        if pack_register_request and pack_register_request.types:
+            types = pack_register_request.types
+        else:
+            types = ['runner', 'action', 'trigger', 'sensor', 'rule', 'rule_type', 'alias',
+                     'policy_type', 'policy', 'config']
 
         result = {}
 
-        if 'runner' in types:
+        if 'runner' in types or 'action' in types:
             result['runners'] = runners_registrar.register_runner_types(experimental=True)
         if 'action' in types:
             result['actions'] = actions_registrar.register_actions(fail_on_failure=False)
@@ -134,13 +150,13 @@ class PackRegisterController(RestController):
             result['triggers'] = triggers_registrar.register_triggers(fail_on_failure=False)
         if 'sensor' in types:
             result['sensors'] = sensors_registrar.register_sensors(fail_on_failure=False)
-        if 'rule_type' in types:
+        if 'rule_type' in types or 'rule' in types:
             result['rule_types'] = rule_types_registrar.register_rule_types()
         if 'rule' in types:
             result['rules'] = rules_registrar.register_rules(fail_on_failure=False)
         if 'alias' in types:
             result['aliases'] = aliases_registrar.register_aliases(fail_on_failure=False)
-        if 'policy_type' in types:
+        if 'policy_type' in types or 'policy' in types:
             result['policy_types'] = policies_registrar.register_policy_types(st2common)
         if 'policy' in types:
             result['policy'] = policies_registrar.register_policies(fail_on_failure=False)
