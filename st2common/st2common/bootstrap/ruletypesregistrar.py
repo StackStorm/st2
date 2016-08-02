@@ -79,3 +79,5 @@ def register_rule_types():
             LOG.exception('Unable to register RuleType %s.', rule_type['name'])
 
     LOG.debug('End : register default RuleTypes.')
+
+    return True
