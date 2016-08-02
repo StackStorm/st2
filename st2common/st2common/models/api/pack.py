@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import jsonschema
+from oslo_config import cfg
 
 from st2common.util import schema as util_schema
 from st2common.constants.keyvalue import SYSTEM_SCOPE
@@ -185,7 +188,13 @@ class ConfigAPI(BaseAPI):
                                            cls=util_schema.CustomValidator, use_default=True,
                                            allow_default_none=True)
         except jsonschema.ValidationError as e:
-            msg = 'Failed validating config for pack "%s": %s' % (self.pack, str(e))
+            attribute = getattr(e, 'path', [])
+            attribute = '.'.join(attribute)
+            configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
+            config_path = os.path.join(configs_path, '%s.yaml' % (self.pack))
+
+            msg = ('Failed validating attribute "%s" in config for pack "%s" (%s): %s' %
+                   (attribute, self.pack, config_path, str(e)))
             raise jsonschema.ValidationError(msg)
 
         return cleaned
