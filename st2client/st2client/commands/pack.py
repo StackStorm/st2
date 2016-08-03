@@ -19,7 +19,6 @@ from st2client.commands.action import ActionRunCommandMixin
 from st2client.commands.noop import NoopCommand
 from st2client.formatters import table
 from st2client.exceptions.operations import OperationFailureException
-from st2client.utils.color import format_status
 import st2client.utils.terminal as term
 
 
@@ -85,22 +84,22 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
         stream_mgr = self.app.client.managers['Stream']
 
-        for execution in stream_mgr.listen(['st2.execution__create', 'st2.execution__update']):
-            if execution['id'] == parent_id and execution['status'] in LIVEACTION_COMPLETED_STATES:
-                break
+        with term.TaskIndicator() as indicator:
+            for execution in stream_mgr.listen(['st2.execution__create', 'st2.execution__update']):
+                if execution['id'] == parent_id \
+                        and execution['status'] in LIVEACTION_COMPLETED_STATES:
+                    break
 
-            if execution.get('parent', None) == parent_id:
-                status = execution['status']
-                ref = execution['action']['ref']
+                if execution.get('parent', None) == parent_id:
+                    status = execution['status']
+                    name = execution['context']['chain']['name']
 
-                if status == LIVEACTION_STATUS_SCHEDULED:
-                    term.write('\t[{:^20}] {}'.format(format_status(status), ref))
-                if status == LIVEACTION_STATUS_RUNNING:
-                    term.write('\t[{:^20}] {}'.format(format_status(status), ref), override=True)
-                if status in LIVEACTION_COMPLETED_STATES:
-                    term.write('\t[{:^20}] {}'.format(format_status(status), ref), override=True)
-
-        term.write('\n')
+                    if status == LIVEACTION_STATUS_SCHEDULED:
+                        indicator.add_stage(status, name)
+                    if status == LIVEACTION_STATUS_RUNNING:
+                        indicator.update_stage(status, name)
+                    if status in LIVEACTION_COMPLETED_STATES:
+                        indicator.finish_stage(status, name)
 
 
 class PackListCommand(resource.ResourceListCommand):

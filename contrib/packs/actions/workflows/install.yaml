@@ -1,33 +1,34 @@
 ---
   chain:
     -
-      name: "download"
+      name: "download pack"
       ref: "packs.download"
       parameters:
         packs: "{{packs}}"
-      on-success: "virtualenv_prerun"
+      on-success: "make a prerun"
     -
-      name: "virtualenv_prerun"
+      name: "make a prerun"
       ref: "packs.virtualenv_prerun"
       parameters:
-        packs_status: "{{download.result}}"
-      on-success: "setup_virtualenv"
+        packs_status: "{{ __results['download pack'].result }}"
+      on-success: "install pack dependencies"
     -
-      name: "setup_virtualenv"
+      name: "install pack dependencies"
       ref: "packs.setup_virtualenv"
       parameters:
-        packs: "{{virtualenv_prerun.result}}"
+        packs: "{{ __results['make a prerun'].result }}"
         env: "{{env}}"
-      on-success: "reload"
+      on-success: "register pack"
     -
-      name: "reload"
+      name: "register pack"
       ref: "packs.load"
       parameters:
         register: "{{register}}"
-      on-success: "restart-sensor-container"
+      on-success: "restart sensor container"
     -
-      name: "restart-sensor-container"
+      name: "restart sensor container"
       ref: "packs.restart_component"
       parameters:
         servicename: "st2sensorcontainer"
-  default: "download"
+
+  default: "download pack"

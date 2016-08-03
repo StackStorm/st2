@@ -1,20 +1,21 @@
 ---
   chain:
     -
-      name: "unregister"
+      name: "unregister packs"
       ref: "packs.unload"
       parameters:
         packs: "{{packs}}"
-      on-success: "delete"
+      on-success: "delete packs"
     -
-      name: "delete"
+      name: "delete packs"
       ref: "packs.delete"
       parameters:
         packs: "{{packs}}"
-      on-success: "restart-sensor-container"
+      on-success: "restart sensor container"
     -
-      name: "restart-sensor-container"
+      name: "restart sensor container"
       ref: "packs.restart_component"
       parameters:
         servicename: "st2sensorcontainer"
-  default: "unregister"
+
+  default: "unregister packs"
