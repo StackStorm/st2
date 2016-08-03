@@ -36,7 +36,10 @@ class WiringTest(base.TestWorkflowExecution):
 
     def tearDown(self):
         if self.temp_dir_path and os.path.exists(self.temp_dir_path):
-            shutil.rmtree(self.temp_dir_path)
+            if os.path.isdir(self.temp_dir_path):
+                shutil.rmtree(self.temp_dir_path)
+            else:
+                os.remove(self.temp_dir_path)
 
     def test_basic_workflow(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'date'})
