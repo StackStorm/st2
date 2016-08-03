@@ -155,6 +155,7 @@ class MistralRunner(AsyncActionRunner):
             parent_context.update(self.liveaction.context)
 
         st2_execution_context = {
+            'api_url': api_url,
             'endpoint': endpoint,
             'parent': parent_context,
             'notify': {},

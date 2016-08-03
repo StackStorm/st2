@@ -1,0 +1,12 @@
+version: '2.0'
+
+examples.mistral-yaql-st2kv-system-scope:
+    vars:
+        foobar: unspecified
+    tasks:
+        task1:
+            action: std.noop
+            publish:
+                foobar: <% st2kv('system.foobar') %>
+            on-complete:
+                - fail: <% $.foobar != foobar %>

@@ -197,6 +197,7 @@ class MistralRunnerTest(DbTestCase):
             '__actions': {
                 'st2.action': {
                     'st2_context': {
+                        'api_url': 'http://0.0.0.0:9101/v1',
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
                         'parent': {
                             'execution_id': str(execution.id)
@@ -247,6 +248,7 @@ class MistralRunnerTest(DbTestCase):
             '__actions': {
                 'st2.action': {
                     'st2_context': {
+                        'api_url': 'https://0.0.0.0:9101/v1',
                         'endpoint': 'https://0.0.0.0:9101/v1/actionexecutions',
                         'parent': {
                             'execution_id': str(execution.id)
@@ -298,6 +300,7 @@ class MistralRunnerTest(DbTestCase):
             '__actions': {
                 'st2.action': {
                     'st2_context': {
+                        'api_url': 'http://0.0.0.0:9101/v1',
                         'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
                         'parent': {
                             'execution_id': str(execution.id)
