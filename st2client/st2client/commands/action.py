@@ -930,7 +930,8 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
                                  default='descending',
                                  help=('Sort %s by start timestamp, '
-                                       'asc (ascending) or desc (descending)' %
+                                       'asc|ascending (earliest first) '
+                                       'or desc|descending (latest first)' %
                                        resource.get_plural_display_name().lower()))
 
         # Filter options
