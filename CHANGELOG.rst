@@ -45,6 +45,8 @@ In development
 * Update ``st2-register-content`` script so it validates new style configs in
   ``/opt/stackstorm/configs/`` directory when using ``--register-configs`` flag if a pack contains
   a config schema (``config.schema.yaml``). (improvement)
+* Implement custom YAQL function ``st2kv`` in Mistral to get key-value pair from StackStorm's
+  datastore. (new-feature)
 
 1.5.1 - July 13, 2016
 ---------------------
