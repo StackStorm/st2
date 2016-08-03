@@ -31,11 +31,13 @@ import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 import st2common.content.utils as content_utils
 from st2common.models.api.base import jsexpose
-from st2common.models.api.base import BaseAPI
 from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.pack import PackAPI
+from st2common.models.api.pack import PackInstallRequestAPI
+from st2common.models.api.pack import PackRegisterRequestAPI
+from st2common.models.api.pack import PackAsyncAPI
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
@@ -61,42 +63,6 @@ ENTITIES = {
 }
 
 
-class PackInstallRequestAPI(object):
-    def __init__(self, packs=None):
-        self.packs = packs
-
-    def validate(self):
-        assert isinstance(self.packs, list)
-
-        return self
-
-    def __json__(self):
-        return vars(self)
-
-
-class PackRegisterRequestAPI(object):
-    def __init__(self, types=None):
-        self.types = types
-
-    def validate(self):
-        assert isinstance(self.types, list)
-
-        return self
-
-    def __json__(self):
-        return vars(self)
-
-
-class PackInstallAPI(BaseAPI):
-    schema = {
-        'type': 'object'
-    }
-
-    @classmethod
-    def to_model(cls, doc):
-        pass
-
-
 class PackInstallController(ActionExecutionsControllerMixin, RestController):
 
     @jsexpose(body_cls=PackInstallRequestAPI, status_code=http_client.ACCEPTED)
@@ -111,11 +77,7 @@ class PackInstallController(ActionExecutionsControllerMixin, RestController):
 
         execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
 
-        result = {
-            'execution_id': execution.id
-        }
-
-        return PackInstallAPI(**result)
+        return PackAsyncAPI(execution_id=execution.id)
 
 
 class PackUninstallController(ActionExecutionsControllerMixin, RestController):
@@ -137,11 +99,7 @@ class PackUninstallController(ActionExecutionsControllerMixin, RestController):
 
         execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
 
-        result = {
-            'execution_id': execution.id
-        }
-
-        return PackInstallAPI(**result)
+        return PackAsyncAPI(execution_id=execution.id)
 
 
 class PackRegisterController(RestController):
