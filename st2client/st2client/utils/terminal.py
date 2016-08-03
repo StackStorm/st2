@@ -18,6 +18,8 @@ import struct
 import subprocess
 import sys
 
+from st2client.utils.color import format_status
+
 __all__ = [
     'get_terminal_size'
 ]
@@ -66,11 +68,30 @@ def get_terminal_size(default=(80, 20)):
     return default
 
 
-def write(string, override=False):
-    if override:
-        sys.stdout.write('\r')
-    else:
-        sys.stdout.write('\n')
+class TaskIndicator(object):
+    def __enter__(self):
+        return self
 
-    sys.stdout.write(string)
-    sys.stdout.flush()
+    def __exit__(self, type, value, traceback):
+        return self.close()
+
+    def add_stage(self, status, name):
+        self._write('\t[{:^20}] {}'.format(format_status(status), name))
+
+    def update_stage(self, status, name):
+        self._write('\t[{:^20}] {}'.format(format_status(status), name), override=True)
+
+    def finish_stage(self, status, name):
+        self._write('\t[{:^20}] {}'.format(format_status(status), name), override=True)
+
+    def close(self):
+        self._write('\n')
+
+    def _write(self, string, override=False):
+        if override:
+            sys.stdout.write('\r')
+        else:
+            sys.stdout.write('\n')
+
+        sys.stdout.write(string)
+        sys.stdout.flush()
