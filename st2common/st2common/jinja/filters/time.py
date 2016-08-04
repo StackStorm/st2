@@ -16,11 +16,11 @@
 import datetime
 
 __all__ = [
-    'to_human_time'
+    'to_human_time_from_seconds'
 ]
 
 
-def to_human_time(time_seconds):
+def to_human_time_from_seconds(time_seconds):
     """
     Given a time value in seconds, this function returns
     a fuzzy version like 3m5s.

@@ -57,7 +57,7 @@ def get_filters():
         'regex_replace': regex.regex_replace,
         'regex_search': regex.regex_search,
 
-        'to_human_time': time.to_human_time,
+        'to_human_time_from_seconds': time.to_human_time_from_seconds,
 
         'version_compare': version.version_compare,
         'version_more_than': version.version_more_than,
