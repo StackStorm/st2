@@ -927,6 +927,12 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
                                  default=50,
                                  help=('List N most recent %s.' %
                                        resource.get_plural_display_name().lower()))
+        self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
+                                 default='descending',
+                                 help=('Sort %s by start timestamp, '
+                                       'asc|ascending (earliest first) '
+                                       'or desc|descending (latest first)' %
+                                       resource.get_plural_display_name().lower()))
 
         # Filter options
         self.group.add_argument('--action', help='Action reference to filter the list.')
@@ -975,6 +981,11 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
             kwargs['timestamp_gt'] = args.timestamp_gt
         if args.timestamp_lt:
             kwargs['timestamp_lt'] = args.timestamp_lt
+        if args.sort_order:
+            if args.sort_order in ['asc', 'ascending']:
+                kwargs['sort_asc'] = True
+            elif args.sort_order in ['desc', 'descending']:
+                kwargs['sort_desc'] = True
 
         # We exclude "result" and "trigger_instance" attributes which can contain a lot of data
         # since they are not displayed nor used which speeds the common operation substantially.

@@ -373,10 +373,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
-        if 'timestamp_lt' in kw:
+        if 'timestamp_lt' in kw or 'sort_desc' in kw:
             query_options = {'sort': ['-start_timestamp', 'action.ref']}
             kw['query_options'] = query_options
-        elif 'timestamp_gt' in kw:
+        elif 'timestamp_gt' in kw or 'sort_asc' in kw:
             query_options = {'sort': ['+start_timestamp', 'action.ref']}
             kw['query_options'] = query_options
 
