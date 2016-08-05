@@ -63,7 +63,8 @@ def get_model_classes():
 
 
 def db_setup(db_name, db_host, db_port, username=None, password=None,
-             ensure_indexes=True, ssl=False, ssl_keyfile=None, ssl_certfile=None,
+             ensure_indexes=True, remove_extra_indexes=True,
+             ssl=False, ssl_keyfile=None, ssl_certfile=None,
              ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
     LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".',
              db_name, db_host, db_port, str(username))
@@ -80,12 +81,12 @@ def db_setup(db_name, db_host, db_port, username=None, password=None,
     # Create all the indexes upfront to prevent race-conditions caused by
     # lazy index creation
     if ensure_indexes:
-        db_ensure_indexes()
+        db_ensure_indexes(remove_extra_indexes=remove_extra_indexes)
 
     return connection
 
 
-def db_ensure_indexes():
+def db_ensure_indexes(remove_extra_indexes=True):
     """
     This function ensures that indexes for all the models have been created and the
     extra indexes cleaned up.
@@ -101,7 +102,10 @@ def db_ensure_indexes():
 
     for model_class in model_classes:
         # First clean-up extra indexes
-        cleanup_extra_indexes(model_class=model_class)
+        if remove_extra_indexes:
+            LOG.debug('Removing extra indexes for model "%s"...' % (model_class.__name__))
+            cleanup_extra_indexes(model_class=model_class)
+
         LOG.debug('Ensuring indexes for model "%s"...' % (model_class.__name__))
         model_class.ensure_indexes()
 
