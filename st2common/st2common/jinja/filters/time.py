@@ -20,7 +20,7 @@ __all__ = [
 ]
 
 
-def to_human_time_from_seconds(time_seconds):
+def to_human_time_from_seconds(seconds):
     """
     Given a time value in seconds, this function returns
     a fuzzy version like 3m5s.
@@ -30,21 +30,59 @@ def to_human_time_from_seconds(time_seconds):
 
     :rtype: ``str``
     """
-    assert time_seconds is int or time_seconds is long
-    timedelta_str = datetime.timedelta(seconds=time_seconds)  # Returns 'hh:mm:ss'
-    return _get_human_time(timedelta_str)
+    assert (isinstance(seconds, int) or isinstance(seconds, long)
+            or isinstance(seconds, float))
+
+    return _get_human_time(seconds)
 
 
-def _get_human_time(timedelta_str):
+def _get_human_time(seconds):
     """
-    Takes a timedelta string of form '01:03:05' and returns a string
-    of form '1h3m5s'.
+    Takes number of seconds as input and returns a string of form '1h3m5s'.
 
-    :param timedelta_str: Timedelta in string format.
-    :type timedelta_str: ``str``
+    :param seconds: Number of seconds.
+    :type seconds: ``int`` or ``float``
 
     :rtype: ``str``
     """
-    time_parts = timedelta_str.split(':')
-    time_parts = [part.lstrip("0") for part in time_parts]
-    return '%sh%sm%ss' % (tuple(time_parts))
+
+    if seconds is None:
+        return None
+
+    if seconds == 0:
+        return '0s'
+
+    if seconds < 1:
+        return '%s\u03BCs' % seconds  # Microseconds
+
+    if isinstance(seconds, float):
+        seconds = long(seconds)  # Let's lose microseconds.
+
+    timedelta = datetime.timedelta(seconds=seconds)
+    offset_date = datetime.datetime(1, 1, 1) + timedelta
+
+    years = offset_date.year - 1
+    days = offset_date.day - 1
+    hours = offset_date.hour
+    mins = offset_date.minute
+    secs = offset_date.second
+
+    time_parts = [years, days, hours, mins, secs]
+
+    first_non_zero_pos = next((i for i, x in enumerate(time_parts) if x), None)
+
+    if first_non_zero_pos is None:
+        return '0s'
+    else:
+        time_parts = time_parts[first_non_zero_pos:]
+
+    if len(time_parts) == 1:
+        return '%ss' % tuple(time_parts)
+    elif len(time_parts) == 2:
+        return '%sm%ss' % tuple(time_parts)
+    elif len(time_parts) == 3:
+        return '%sh%sm%ss' % tuple(time_parts)
+    elif len(time_parts) == 4:
+        return '%sd%sh%sm%ss' % tuple(time_parts)
+    elif len(time_parts) == 5:
+        return '%sy%sd%sh%sm%ss' % tuple(time_parts)
