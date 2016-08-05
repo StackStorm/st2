@@ -1,8 +1,8 @@
 Changelog
 =========
 
-In development
---------------
+1.6.0 - August 8, 2016
+----------------------
 
 * Upgrade to pymongo 3.2.2 and mongoengine 0.10.6 so StackStorm now also supports and works with
   MongoDB 3.x. (improvement)
