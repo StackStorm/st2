@@ -19,8 +19,6 @@ import yaml
 __all__ = [
     'to_json_string',
     'to_yaml_string',
-    'from_json_string',
-    'from_yaml_string'
 ]
 
 
