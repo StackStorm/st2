@@ -1,0 +1,7 @@
+---
+description: Just an example action that returns an object.
+enabled: true
+entry_point: pythonactions/object_return.py
+name: object_return
+parameters: {}
+runner_type: "python-script"
