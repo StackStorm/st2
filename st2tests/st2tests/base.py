@@ -163,7 +163,7 @@ class BaseDbTestCase(BaseTestCase):
 
         # Explicity ensure indexes after we re-create the DB otherwise ensure_indexes could failure
         # inside db_setup if test inserted invalid data
-        db_ensure_indexes(remove_extra_indexes=False)
+        db_ensure_indexes()
 
     @classmethod
     def _drop_db(cls):
