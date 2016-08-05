@@ -30,8 +30,8 @@ def to_human_time_from_seconds(seconds):
 
     :rtype: ``str``
     """
-    assert (isinstance(seconds, int) or isinstance(seconds, long)
-            or isinstance(seconds, float))
+    assert (isinstance(seconds, int) or isinstance(seconds, long) or
+            isinstance(seconds, float))
 
     return _get_human_time(seconds)
 
