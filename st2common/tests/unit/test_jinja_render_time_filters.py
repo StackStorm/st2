@@ -13,21 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-import yaml
+import unittest2
 
-__all__ = [
-    'to_json_string',
-    'to_yaml_string',
-    'from_json_string',
-    'from_yaml_string'
-]
+from st2common.util import jinja as jinja_utils
 
 
-def to_json_string(value, indent=4, sort_keys=False, separators=(',', ':')):
-    return json.dumps(value, indent=indent, separators=separators,
-                      sort_keys=sort_keys)
+class JinjaUtilsTimeFilterTestCase(unittest2.TestCase):
 
+    def test_to_human_time_filter(self):
+        env = jinja_utils.get_jinja_environment()
 
-def to_yaml_string(value, indent=4, allow_unicode=True):
-    return yaml.safe_dump(value, indent=indent, allow_unicode=allow_unicode)
+        template = '{{k1 | to_human_time_from_seconds}}'
+        actual = env.from_string(template).render({'k1': 12345})
+        self.assertEqual(actual, '3h25m45s')
+
+        actual = env.from_string(template).render({'k1': 0})
+        self.assertEqual(actual, '0s')
+
+        self.assertRaises(AssertionError, env.from_string(template).render,
+                          {'k1': 'stuff'})
