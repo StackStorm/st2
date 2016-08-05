@@ -128,7 +128,7 @@ def cleanup_extra_indexes(model_class):
             LOG.debug('Dropped index %s for model %s.', extra_index, model_class.__name__)
             removed_count += 1
         except OperationFailure:
-            LOG.warning('Attempt to cleanup index % failed.', extra_index, exc_info=True)
+            LOG.warning('Attempt to cleanup index %s failed.', extra_index, exc_info=True)
 
     return removed_count
 
