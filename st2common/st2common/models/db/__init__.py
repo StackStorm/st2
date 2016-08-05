@@ -62,8 +62,7 @@ def get_model_classes():
     return result
 
 
-def db_setup(db_name, db_host, db_port, username=None, password=None,
-             ensure_indexes=True, remove_extra_indexes=True,
+def db_setup(db_name, db_host, db_port, username=None, password=None, ensure_indexes=True,
              ssl=False, ssl_keyfile=None, ssl_certfile=None,
              ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
     LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".',
@@ -81,12 +80,12 @@ def db_setup(db_name, db_host, db_port, username=None, password=None,
     # Create all the indexes upfront to prevent race-conditions caused by
     # lazy index creation
     if ensure_indexes:
-        db_ensure_indexes(remove_extra_indexes=remove_extra_indexes)
+        db_ensure_indexes()
 
     return connection
 
 
-def db_ensure_indexes(remove_extra_indexes=True):
+def db_ensure_indexes():
     """
     This function ensures that indexes for all the models have been created and the
     extra indexes cleaned up.
@@ -101,13 +100,14 @@ def db_ensure_indexes(remove_extra_indexes=True):
     model_classes = get_model_classes()
 
     for model_class in model_classes:
-        # First clean-up extra indexes
-        if remove_extra_indexes:
-            LOG.debug('Removing extra indexes for model "%s"...' % (model_class.__name__))
-            cleanup_extra_indexes(model_class=model_class)
-
+        # Note: We need to ensure / create new indexes before removing extra ones
         LOG.debug('Ensuring indexes for model "%s"...' % (model_class.__name__))
         model_class.ensure_indexes()
+
+        LOG.debug('Removing extra indexes for model "%s"...' % (model_class.__name__))
+        removed_count = cleanup_extra_indexes(model_class=model_class)
+        LOG.debug('Removed "%s" extra indexes for model "%s"' %
+                  (removed_count, model_class.__name__))
 
 
 def cleanup_extra_indexes(model_class):
@@ -116,9 +116,11 @@ def cleanup_extra_indexes(model_class):
     """
     extra_indexes = model_class.compare_indexes().get('extra', None)
     if not extra_indexes:
-        return
+        return 0
+
     # mongoengine does not have the necessary method so we need to drop to
     # pymongo interfaces via some private methods.
+    removed_count = 0
     c = model_class._get_collection()
     for extra_index in extra_indexes:
         try:
@@ -126,6 +128,8 @@ def cleanup_extra_indexes(model_class):
             LOG.debug('Dropped index %s for model %s.', extra_index, model_class.__name__)
         except OperationFailure:
             LOG.warning('Attempt to cleanup index % failed.', extra_index, exc_info=True)
+
+    return removed_count
 
 
 def db_teardown():
