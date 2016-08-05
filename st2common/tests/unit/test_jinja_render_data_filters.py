@@ -13,24 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import unittest2
+import yaml
 
 from st2common.util import jinja as jinja_utils
 
 
-class JinjaUtilsRenderTestCase(unittest2.TestCase):
+class JinjaUtilsDataFilterTestCase(unittest2.TestCase):
 
-    def test_render_values(self):
-        actual = jinja_utils.render_values(
-            mapping={'k1': '{{a}}', 'k2': '{{b}}'},
-            context={'a': 'v1', 'b': 'v2'})
-        expected = {'k2': 'v2', 'k1': 'v1'}
-        self.assertEqual(actual, expected)
+    def test_filter_to_json_string(self):
+        env = jinja_utils.get_jinja_environment()
+        obj = {'a': 'b', 'c': {'d': 'e', 'f': 1, 'g': True}}
 
-    def test_render_values_skip_missing(self):
-        actual = jinja_utils.render_values(
-            mapping={'k1': '{{a}}', 'k2': '{{b}}', 'k3': '{{c}}'},
-            context={'a': 'v1', 'b': 'v2'},
-            allow_undefined=True)
-        expected = {'k2': 'v2', 'k1': 'v1', 'k3': ''}
-        self.assertEqual(actual, expected)
+        template = '{{k1 | to_json_string}}'
+
+        obj_json_str = env.from_string(template).render({'k1': obj})
+        actual_obj = json.loads(obj_json_str)
+        self.assertDictEqual(obj, actual_obj)
+
+    def test_filter_to_yaml_string(self):
+        env = jinja_utils.get_jinja_environment()
+        obj = {'a': 'b', 'c': {'d': 'e', 'f': 1, 'g': True}}
+
+        template = '{{k1 | to_yaml_string}}'
+        obj_yaml_str = env.from_string(template).render({'k1': obj})
+        actual_obj = yaml.load(obj_yaml_str)
+        self.assertDictEqual(obj, actual_obj)

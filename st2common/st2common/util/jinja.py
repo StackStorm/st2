@@ -49,9 +49,7 @@ def use_none(value):
 def get_filters():
     return {
         'to_json_string': data.to_json_string,
-        'from_json_string': data.from_json_string,
         'to_yaml_string': data.to_yaml_string,
-        'from_yaml_string': data.from_yaml_string,
 
         'regex_match': regex.regex_match,
         'regex_replace': regex.regex_replace,
