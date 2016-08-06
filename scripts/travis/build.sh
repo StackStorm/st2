@@ -9,7 +9,7 @@ fi
 # Note: We add bin directory of the MongoDB installation we use to PATH so
 # correct version of Mongo shell is used by makefile, etc.
 if [ ! -z ${MONGODB} ]; then
-  export PATH=${PATH}:${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/
+  export PATH=${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/:${PATH}
 fi
 
 if [ ${TASK} == 'checks' ]; then
