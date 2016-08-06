@@ -13,4 +13,5 @@ fi
 wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGODB}.tgz -O /tmp/mongodb.tgz
 tar -xvf /tmp/mongodb.tgz
 mkdir -p ${DATA_DIR}
-${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --dbpath ${DATA_DIR} --bind_ip 127.0.0.1 &> /dev/null &
+${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --dbpath ${DATA_DIR} --bind_ip 127.0.0.1 &> /tmp/mongodb.log &
+tail -30 /tmp/mongodb.log
