@@ -20,10 +20,10 @@ env:
 #    - secure: "AxPXLPSPGqa8lrwysXxTFHTdEVecK4ZhH91PFu6pZ+IfrSKLek23+CM08J50tmat991swSM8qodhIUfCcvJObcqDFbl295VPYM++H4U9w1dzi571WA0VKZLs3pBhwHf6ACnBX8bzxz3s/7+vE/g2bdrqI6Z6aK3UR98POjbsdOg="
   matrix:
     - TASK=checks
-    - TASK=unit MONGODB=2.4.9
-    - TASK=integration MONGODB=2.4.9
-    - TASK=unit MONGODB=2.6.12
-    - TASK=integration MONGODB=2.6.12
+#    - TASK=unit MONGODB=2.4.9
+#    - TASK=integration MONGODB=2.4.9
+#    - TASK=unit MONGODB=2.6.12
+#    - TASK=integration MONGODB=2.6.12
     - TASK=unit MONGODB=3.2.8
     - TASK=integration MONGODB=3.2.8
     - TASK=mistral
