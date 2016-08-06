@@ -40,10 +40,13 @@ cache:
     - $HOME/.cache/pip/
 
 before_script:
+  # Note: We use ramdisk for better performance
+  - sudo mkdir /mnt/ramdisk
+  - sudo mount -t tmpfs -o size=1024m tmpfs /mnt/ramdisk
   - wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGODB}.tgz -O /tmp/mongodb.tgz
   - tar -xvf /tmp/mongodb.tgz
   - mkdir /tmp/data
-  - ${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --dbpath /tmp/data --bind_ip 127.0.0.1 &> /dev/null &
+  - ${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --dbpath /mnt/ramdisk/mongodb --bind_ip 127.0.0.1 &> /dev/null &
 
 install:
   - pip install --upgrade pip
