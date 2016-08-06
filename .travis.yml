@@ -18,6 +18,7 @@ env:
     - ARTIFACTS_BUCKET=st2travistestslogs
     - secure: "2k3NMsOqDOXZLGMo+fuTSl35VqR41cm7Z4ZPSduh2ceIMyhgtnKGmElklxV7DxaZtFgl0GD0EZWLSErqlOsjDdAA0IsBMzisQRMBWl+Rqpvjsn2P0jtZBPwe/5OPDpBUqE7t/BOaPBbyTSA9vtLPMhTWdDlR4l28NifAC+k977Q="
     - secure: "AxPXLPSPGqa8lrwysXxTFHTdEVecK4ZhH91PFu6pZ+IfrSKLek23+CM08J50tmat991swSM8qodhIUfCcvJObcqDFbl295VPYM++H4U9w1dzi571WA0VKZLs3pBhwHf6ACnBX8bzxz3s/7+vE/g2bdrqI6Z6aK3UR98POjbsdOg="
+    - MONGODB=3.2.8
   matrix:
     - TASK=checks
     - TASK=unit
@@ -31,13 +32,18 @@ matrix:
     - env: TASK=mistral
 
 services:
-  - mongodb
   - postgresql
   - rabbitmq
 
 cache:
   directories:
     - $HOME/.cache/pip/
+
+before_script:
+  - wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGODB}.tgz -O /tmp/mongodb.tgz
+  - tar -xvf /tmp/mongodb.tgz
+  - mkdir /tmp/data
+  - ${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --dbpath /tmp/data --bind_ip 127.0.0.1 --auth &> /dev/null &
 
 install:
   - pip install --upgrade pip
