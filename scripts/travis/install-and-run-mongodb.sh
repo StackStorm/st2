@@ -13,5 +13,14 @@ fi
 wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGODB}.tgz -O /tmp/mongodb.tgz
 tar -xvf /tmp/mongodb.tgz
 mkdir -p ${DATA_DIR}
+echo "Starting MongoDB v${MONGODB}"
 ${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --dbpath ${DATA_DIR} --bind_ip 127.0.0.1 &> /tmp/mongodb.log &
+EXIT_CODE=$?
+
+if [ ${EXIT_CODE} -ne 0 ]; then
+    echo "Failed to start MongoDB"
+    tail -30 /tmp/mongodb.log
+    exit 1
+fi
+
 tail -30 /tmp/mongodb.log
