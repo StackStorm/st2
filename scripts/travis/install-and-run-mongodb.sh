@@ -17,6 +17,7 @@ echo "Starting MongoDB v${MONGODB}"
 ${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --nojournal --journalCommitInterval 500 \
     --syncdelay 0 --dbpath ${DATA_DIR} --bind_ip 127.0.0.1 &> /tmp/mongodb.log &
 EXIT_CODE=$?
+sleep 5
 
 if [ ${EXIT_CODE} -ne 0 ]; then
     echo "Failed to start MongoDB"
