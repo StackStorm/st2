@@ -41,12 +41,8 @@ cache:
 
 before_script:
   # Note: We use ramdisk for better performance
-  - sudo mkdir /mnt/ramdisk
-  - sudo mount -t tmpfs -o size=1024m tmpfs /mnt/ramdisk
-  - wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGODB}.tgz -O /tmp/mongodb.tgz
-  - tar -xvf /tmp/mongodb.tgz
-  - mkdir /tmp/data
-  - ${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --dbpath /mnt/ramdisk/mongodb --bind_ip 127.0.0.1 &> /dev/null &
+  - sudo -E ./scripts/travis/create-and-mount-ramdisk.sh
+  - if [ ${TASK} = 'unit' ] || [ ${TASK} = 'integration' ]; then ./scripts/travis/install-and-run-mongodb.sh; fi
 
 install:
   - pip install --upgrade pip
