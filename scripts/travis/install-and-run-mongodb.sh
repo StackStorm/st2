@@ -14,7 +14,8 @@ wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGODB}.tgz -O /tmp
 tar -xvf /tmp/mongodb.tgz
 mkdir -p ${DATA_DIR}
 echo "Starting MongoDB v${MONGODB}"
-${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --nojournal --dbpath ${DATA_DIR} --bind_ip 127.0.0.1 &> /tmp/mongodb.log &
+${PWD}/mongodb-linux-x86_64-${MONGODB}/bin/mongod --nojournal --journalCommitInterval 500 \
+    --syncdelay 0 --dbpath ${DATA_DIR} --bind_ip 127.0.0.1 &> /tmp/mongodb.log &
 EXIT_CODE=$?
 
 if [ ${EXIT_CODE} -ne 0 ]; then
