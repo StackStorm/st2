@@ -14,7 +14,7 @@ In development
   ``st2 run core.local cmd='echo {{"1.6.0" | version_bump_minor}}'``) in parameters wasn't rendered correctly when executing actions.(bug-fix)
 
 1.6.0 - August 10, 2016
----------------------
+-----------------------
 
 * Upgrade to pymongo 3.2.2 and mongoengine 0.10.6 so StackStorm now also supports and works with
   MongoDB 3.x. (improvement)
