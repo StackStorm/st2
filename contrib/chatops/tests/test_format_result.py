@@ -22,7 +22,10 @@ class FormatResultActionTestCase(BaseActionTestCase):
         action._get_execution = mock.MagicMock(
             return_value=remote_shell_cmd_execution_model
         )
-        self.assertTrue(action.run(execution_id='57967f9355fc8c19a96d9e4f'))
+        result = action.run(execution_id='57967f9355fc8c19a96d9e4f')
+        self.assertTrue(result)
+        self.assertTrue('web_url' in result['message'], result['message'])
+        self.assertTrue('Took 2s to complete' in result['message'], result['message'])
 
     def test_rendering_local_shell_cmd(self):
         local_shell_cmd_execution_model = json.loads(
