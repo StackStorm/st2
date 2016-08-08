@@ -56,7 +56,7 @@ def _get_human_time(seconds):
         return '%s\u03BCs' % seconds  # Microseconds
 
     if isinstance(seconds, float):
-        seconds = long(seconds)  # Let's lose microseconds.
+        seconds = long(round(seconds))  # Let's lose microseconds.
 
     timedelta = datetime.timedelta(seconds=seconds)
     offset_date = datetime.datetime(1, 1, 1) + timedelta

@@ -12,7 +12,7 @@ class FormatResultAction(Action):
         api_url = os.environ.get('ST2_ACTION_API_URL', None)
         token = os.environ.get('ST2_ACTION_AUTH_TOKEN', None)
         self.client = Client(api_url=api_url, token=token)
-        self.jinja = jinja_utils.get_jinja_environment()
+        self.jinja = jinja_utils.get_jinja_environment(allow_undefined=True)
         self.jinja.tests['in'] = lambda item, list: item in list
 
         path = os.path.dirname(os.path.realpath(__file__))
@@ -45,7 +45,7 @@ class FormatResultAction(Action):
                 if 'extra' in alias.result:
                     result['extra'] = jinja_utils.render_values(alias.result['extra'], context)
 
-        result['message'] = self.jinja.from_string(template).render(context),
+        result['message'] = self.jinja.from_string(template).render(context)
 
         return result
 
