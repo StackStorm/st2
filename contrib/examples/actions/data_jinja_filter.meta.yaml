@@ -1,0 +1,12 @@
+---
+name: "data_jinja_filter"
+description: "Simple Action Chain workflow showing how to use jinja data filters in st2."
+
+# `runner_type` has value `action-chain` to identify that action is an ActionChain.
+runner_type: "action-chain"
+
+# `entry_point` path to the ActionChain definition file, relative to the pack's action directory.
+entry_point: "chains/data_jinja_filter.yaml"
+
+enabled: true
+parameters: {}

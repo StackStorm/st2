@@ -1,0 +1,35 @@
+---
+  chain:
+    -
+      name: "c1"
+      ref: "core.local"
+      parameters:
+        cmd: "echo {{'1.6.0' | version_bump_minor}}"
+      on-success: "c2"
+    -
+      name: "c2"
+      ref: "core.local"
+      parameters:
+        cmd: "echo {{c1.stdout | version_bump_major}}"
+      on-success: "c3"
+    -
+      name: "c3"
+      ref: "core.local"
+      parameters:
+        cmd: "echo {{c1.stdout | version_compare('1.6.0')}}"
+      on-success: "c4"
+    -
+      name: "c4"
+      ref: "core.local"
+      parameters:
+        cmd: "echo {{c1.stdout | version_strip_patch}}"
+      on-success: "c5"
+    -
+      name: "c5"
+      ref: "core.local"
+      parameters:
+        cmd: "echo {{c1.stdout | version_match('>=1.7.0')}}"
+
+
+
+

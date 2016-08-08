@@ -1,0 +1,7 @@
+---
+  chain:
+    -
+      name: "c1"
+      ref: "core.local"
+      parameters:
+        cmd: "echo '{{12345 | to_human_time_from_seconds}}'"
