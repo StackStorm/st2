@@ -87,23 +87,33 @@ def _process(G, name, value):
     # Instead we're just assuming every string to be a unicode string
     if isinstance(value, str):
         value = to_unicode(value)
-    template_ast = ENV.parse(value)
-    LOG.debug('Template ast: %s', template_ast)
-    # Dependencies of the node represent jinja variables used in the template
-    # We're connecting nodes with an edge for every depencency to traverse them in the right order
-    # and also make sure that we don't have missing or cyclic dependencies upfront.
-    dependencies = meta.find_undeclared_variables(template_ast)
-    LOG.debug('Dependencies: %s', dependencies)
-    if dependencies:
+
+    complex_value_str = None
+    if isinstance(value, list) or isinstance(value, dict):
+        complex_value_str = str(value)
+
+    is_jinja_expr = (
+        jinja_utils.is_jinja_expression(value) or jinja_utils.is_jinja_expression(
+            complex_value_str
+        )
+    )
+
+    if is_jinja_expr:
         G.add_node(name, template=value)
-        for dependency in dependencies:
-            G.add_edge(dependency, name)
+
+        template_ast = ENV.parse(value)
+        LOG.debug('Template ast: %s', template_ast)
+        # Dependencies of the node represent jinja variables used in the template
+        # We're connecting nodes with an edge for every depencency to traverse them
+        # in the right order and also make sure that we don't have missing or cyclic
+        # dependencies upfront.
+        dependencies = meta.find_undeclared_variables(template_ast)
+        LOG.debug('Dependencies: %s', dependencies)
+        if dependencies:
+            for dependency in dependencies:
+                G.add_edge(dependency, name)
     else:
-        if jinja_utils.is_jinja_expression(value):
-            # Could be filters applied to contstants.
-            G.add_node(name, template=value)
-        else:
-            G.add_node(name, value=value)
+        G.add_node(name, value=value)
 
 
 def _process_defaults(G, schemas):
