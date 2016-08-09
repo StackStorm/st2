@@ -18,6 +18,10 @@ execution: {{ execution.id }}
 web_url: {{ execution.web_url }}
 {% endif %}
 
+{% if execution.elapsed_seconds -%}
+Took {{execution.elapsed_seconds | to_human_time_from_seconds}} to complete.
+{% endif %}
+
 {% if execution.result -%}
 result :
 --------

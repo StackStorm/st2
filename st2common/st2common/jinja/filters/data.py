@@ -13,24 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest2
+import json
+import yaml
 
-from st2common.util import jinja as jinja_utils
+__all__ = [
+    'to_json_string',
+    'to_yaml_string',
+]
 
 
-class JinjaUtilsRenderTestCase(unittest2.TestCase):
+def to_json_string(value, indent=4, sort_keys=False, separators=(',', ':')):
+    return json.dumps(value, indent=indent, separators=separators,
+                      sort_keys=sort_keys)
 
-    def test_render_values(self):
-        actual = jinja_utils.render_values(
-            mapping={'k1': '{{a}}', 'k2': '{{b}}'},
-            context={'a': 'v1', 'b': 'v2'})
-        expected = {'k2': 'v2', 'k1': 'v1'}
-        self.assertEqual(actual, expected)
 
-    def test_render_values_skip_missing(self):
-        actual = jinja_utils.render_values(
-            mapping={'k1': '{{a}}', 'k2': '{{b}}', 'k3': '{{c}}'},
-            context={'a': 'v1', 'b': 'v2'},
-            allow_undefined=True)
-        expected = {'k2': 'v2', 'k1': 'v1', 'k3': ''}
-        self.assertEqual(actual, expected)
+def to_yaml_string(value, indent=4, allow_unicode=True):
+    return yaml.safe_dump(value, indent=indent, allow_unicode=allow_unicode)

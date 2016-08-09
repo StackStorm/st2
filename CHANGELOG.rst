@@ -4,6 +4,18 @@ Changelog
 In development
 --------------
 
+* Implement custom jina filter functions ``to_json_string``, ``to_yaml_string``,
+  ``to_human_time_from_seconds`` that can be used in actions and workflows.
+  (improvement)
+* Refactor jinja filter functions into appropriate modules. (improvement)
+* Default chatops message to include time taken to complete an execution.
+  This uses ``to_human_time_from_seconds`` function. (improvement)
+* Fix a bug when jinja templates with filters (for example,
+  ``st2 run core.local cmd='echo {{"1.6.0" | version_bump_minor}}'``) in parameters wasn't rendered correctly when executing actions.(bug-fix)
+
+1.6.0 - August 10, 2016
+-----------------------
+
 * Upgrade to pymongo 3.2.2 and mongoengine 0.10.6 so StackStorm now also supports and works with
   MongoDB 3.x. (improvement)
 * Make sure policies which are disabled are not applied. (bug fix)

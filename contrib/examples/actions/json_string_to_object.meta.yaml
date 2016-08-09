@@ -1,0 +1,9 @@
+---
+description: Convert JSON str to object.
+enabled: true
+entry_point: pythonactions/json_string_to_object.py
+name: json_string_to_object
+parameters:
+  json_str:
+    type: string
+runner_type: "python-script"
