@@ -93,9 +93,9 @@ def merge_source_requirements(sources):
             # Requirements starting with project name "project ..."
             if req.req:
                 # Skip already added project name
-                if req.req.project_name in projects:
+                if req.name in projects:
                     continue
-                projects.add(req.req.project_name)
+                projects.add(req.name)
                 merged_requirements.append(req)
 
             # Requirements lines like "vcs+proto://url"
@@ -120,7 +120,7 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
     # Make sure there are no duplicate / conflicting definitions
     fixedreq_hash = {}
     for req in fixed:
-        project_name = req.req.project_name
+        project_name = req.name
 
         if not req.req:
             continue
@@ -133,7 +133,7 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
     lines_to_write = []
     links = set()
     for req in requirements:
-        if req.req.project_name in skip:
+        if req.name in skip:
             continue
 
         # we don't have any idea how to process links, so just add them
@@ -141,7 +141,7 @@ def write_requirements(sources=None, fixed_requirements=None, output_file=None,
             links.add(req.link)
             rline = str(req.link)
         elif req.req:
-            project = req.req.project_name
+            project = req.name
             if project in fixedreq_hash:
                 rline = str(fixedreq_hash[project].req)
             else:
