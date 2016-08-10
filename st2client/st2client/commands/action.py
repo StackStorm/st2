@@ -1089,7 +1089,7 @@ class ActionExecutionCancelCommand(resource.ResourceCommand):
                                                    execution_id)
         else:
             message = 'Cannot cancel %s with id %s.' % (self.resource.get_display_name().lower(),
-                                                          execution_id)
+                                                        execution_id)
         print(message)
 
 
