@@ -12,6 +12,9 @@ In development
 * Fix a bug when jinja templates with filters (for example,
   ``st2 run core.local cmd='echo {{"1.6.0" | version_bump_minor}}'``) in parameters wasn't rendered
   correctly when executing actions. (bug-fix)
+* Allow user to cancel multiple executions using a single invocation of ``st2 execution cancel``
+  command by passing multiple ids to the command -
+  ``st2 execution cancel <id 1> <id 2> <id n>`` (improvement)
 
 1.6.0 - August 8, 2016
 ----------------------
