@@ -1055,30 +1055,41 @@ class ActionExecutionCancelCommand(resource.ResourceCommand):
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionCancelCommand, self).__init__(
-            resource, 'cancel', 'Cancel an %s.' %
+            resource, 'cancel', 'Cancel %s.' %
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('id',
-                                 help=('ID of the %s.' %
+        self.parser.add_argument('ids',
+                                 nargs='+',
+                                 help=('IDs of the %ss to cancel.' %
                                        resource.get_display_name().lower()))
 
     def run(self, args, **kwargs):
-        return self.manager.delete_by_id(args.id)
+        responses = []
+        for execution_id in args.ids:
+            response = self.manager.delete_by_id(execution_id)
+            responses.append([execution_id, response])
+
+        return responses
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
-        response = self.run(args, **kwargs)
+        responses = self.run(args, **kwargs)
+
+        for execution_id, response in responses:
+            self._print_result(execution_id=execution_id, response=response)
+
+    def _print_result(self, execution_id, response):
         if response and 'faultstring' in response:
             message = response.get('faultstring', 'Cancellation requested for %s with id %s.' %
-                                   (self.resource.get_display_name().lower(), args.id))
+                                   (self.resource.get_display_name().lower(), execution_id))
 
         elif response:
             message = '%s with id %s canceled.' % (self.resource.get_display_name().lower(),
-                                                   args.id)
+                                                   execution_id)
         else:
             message = 'Cannot cancel %s with id %s.' % (self.resource.get_display_name().lower(),
-                                                        args.id)
+                                                          execution_id)
         print(message)
 
 
