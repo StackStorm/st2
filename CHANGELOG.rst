@@ -15,6 +15,9 @@ In development
 * Allow user to cancel multiple executions using a single invocation of ``st2 execution cancel``
   command by passing multiple ids to the command -
   ``st2 execution cancel <id 1> <id 2> <id n>`` (improvement)
+* We now execute --register-rules as part of st2ctl reload. PR raised by Vaishali:
+  https://github.com/StackStorm/st2/issues/2861#issuecomment-239275641
+
 
 1.6.0 - August 8, 2016
 ----------------------
@@ -75,6 +78,7 @@ In development
 * Add support for default values when a new pack configuration is used. Now if a default value
   is specified for a required config item in the config schema and a value for that item is not
   provided in the config, default value from config schema is used. (improvement)
+<<<<<<< HEAD
 * Allow user to prevent execution parameter merging when re-running an execution by passing
   ``?no_merge=true`` query parameter to the execution re-run API endpoint. (improvement)
 * Add support for posixGroup to the enterprise LDAP auth backend. (improvement, bug-fix)
