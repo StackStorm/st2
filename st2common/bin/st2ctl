@@ -115,7 +115,7 @@ function reopen_component_log_files() {
 
 function register_content() {
   ALLOWED_REGISTER_FLAGS='--register-all --register-actions --register-aliases --register-policies --register-rules --register-sensors --register-triggers --register-configs --register-setup-virtualenvs --register-fail-on-failure --verbose'
-  DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors --register-triggers --register-configs'
+  DEFAULT_REGISTER_FLAGS='--register-actions --register-aliases --register-sensors --register-triggers --register-configs --register-rules'
   SUDO_FLAGS='--register-setup-virtualenvs'
   flags="${@}"
 

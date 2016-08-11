@@ -12,7 +12,8 @@ In development
 * Add support for default values when a new pack configuration is used. Now if a default value
   is specified for a required config item in the config schema and a value for that item is not
   provided in the config, default value from config schema is used. (improvement)
-
+* We now execute --register-rules as part of st2ctl reload. PR raised by Vaishali:
+  https://github.com/StackStorm/st2/issues/2861#issuecomment-239275641
 1.5.0 - June 24, 2016
 ---------------------
 
