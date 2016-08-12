@@ -17,7 +17,7 @@ In development
   ``st2 execution cancel <id 1> <id 2> <id n>`` (improvement)
 * We now execute --register-rules as part of st2ctl reload. PR raised by Vaishali:
   https://github.com/StackStorm/st2/issues/2861#issuecomment-239275641
-
+* Bump default timeout for ``packs.load`` command from ``60`` to ``100`` seconds. (improvement)
 
 1.6.0 - August 8, 2016
 ----------------------
