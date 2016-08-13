@@ -367,7 +367,7 @@ class TriggerInstanceResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def re_emit(self, trigger_instance_id, **kwargs):
         url = '/%s/%s/re_emit' % (self.resource.get_url_path_name(), trigger_instance_id)
-        response = self.client.post(url, None)
+        response = self.client.post(url, None, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
         return response.json()
