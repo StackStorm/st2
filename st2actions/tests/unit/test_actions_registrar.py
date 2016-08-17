@@ -83,6 +83,19 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
     @mock.patch.object(action_validator, '_get_runner_model',
                        mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
+    def test_register_action_invalid_parameter_type_attribute(self):
+        registrar = actions_registrar.ActionsRegistrar()
+        loader = fixtures_loader.FixturesLoader()
+        action_file = loader.get_fixture_file_path_abs(
+            'generic', 'actions', 'action_invalid_param_type.yaml')
+
+        expected_msg = '\'list\' is not valid under any of the given schema'
+        self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
+                                registrar._register_action, 'dummy', action_file)
+
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
+    @mock.patch.object(action_validator, '_get_runner_model',
+                       mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
     def test_invalid_params_schema(self):
         registrar = actions_registrar.ActionsRegistrar()
         loader = fixtures_loader.FixturesLoader()
