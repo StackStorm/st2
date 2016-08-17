@@ -18,6 +18,9 @@ In development
 * We now execute --register-rules as part of st2ctl reload. PR raised by Vaishali:
   https://github.com/StackStorm/st2/issues/2861#issuecomment-239275641
 * Bump default timeout for ``packs.load`` command from ``60`` to ``100`` seconds. (improvement)
+* Change Python runner action and sensor Python module loading so the module is still loaded even if
+  the module name clashes with another module which is already in ``PYTHONPATH``
+  (improvement)
 
 1.6.0 - August 8, 2016
 ----------------------

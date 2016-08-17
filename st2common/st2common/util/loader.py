@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import importlib
+import imp
 import inspect
 import json
 import os
@@ -127,7 +127,7 @@ def register_plugin_class(base_class, file_path, class_name):
     if module_name is None:
         return None
 
-    module = importlib.import_module(module_name)
+    module = imp.load_source(module_name, file_path)
     klass = getattr(module, class_name, None)
 
     if not klass:
@@ -142,10 +142,12 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
     registered_plugins = []
     plugin_dir = os.path.dirname(os.path.realpath(plugin_abs_file_path))
     _register_plugin_path(plugin_dir)
+
     module_name = _get_plugin_module(plugin_abs_file_path)
     if module_name is None:
         return None
-    module = importlib.import_module(module_name)
+
+    module = imp.load_source(module_name, plugin_abs_file_path)
     klasses = _get_plugin_classes(module)
 
     # Try registering classes in plugin file. Some may fail.

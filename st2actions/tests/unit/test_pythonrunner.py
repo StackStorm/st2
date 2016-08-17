@@ -34,6 +34,9 @@ import st2tests.base as tests_base
 
 PASCAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                       'pythonactions/actions/pascal_row.py')
+TEST_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
+                                'pythonactions/actions/test.py')
+
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
 # unrecognized args
 mock_sys = mock.Mock()
@@ -365,6 +368,18 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
                                             action_service=action_service)
         self.assertEqual(action3.config, config)
         self.assertEqual(action3.action_service, action_service)
+
+    def test_action_with_same_module_name_as_module_in_stdlib(self):
+        runner = pythonrunner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = TEST_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({})
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+        self.assertEqual(output['result'], 'test action')
 
     def _get_mock_action_obj(self):
         """
