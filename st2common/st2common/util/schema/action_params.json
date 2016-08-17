@@ -135,11 +135,7 @@
         },
         "type": {
             "anyOf": [
-                { "$ref": "#/definitions/simpleTypes" },
-                {
-                    "type": "string",
-                    "items": { "$ref": "#/definitions/simpleTypes" }
-                }
+                { "$ref": "#/definitions/simpleTypes" }
             ]
         },
         "position": {

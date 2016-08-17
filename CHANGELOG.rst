@@ -21,6 +21,9 @@ In development
 * Change Python runner action and sensor Python module loading so the module is still loaded even if
   the module name clashes with another module which is already in ``PYTHONPATH``
   (improvement)
+* Fix validation of the action parameter ``type`` attribute provided in the YAML metadata.
+  Previously we allowed any string value, now only valid types (object, string, number,
+  integer, array, null) are allowed. (bug fix)
 
 1.6.0 - August 8, 2016
 ----------------------
