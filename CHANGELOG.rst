@@ -29,6 +29,8 @@ In development
 * Allow user to list and view rules using the API even if a rule in the database references a
   non-existent trigger. This shouldn't happen during normal usage of StackStorm, but it makes it
   easier for the user to clean up in case database ends up in a inconsistent state. (improvement)
+* Update ``packs.uninstall`` command to print a warning message if any rules in the system
+  reference a trigger from a pack which is being uninstalled. (improvement)
 
 1.6.0 - August 8, 2016
 ----------------------
