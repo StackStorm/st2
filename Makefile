@@ -201,7 +201,7 @@ requirements: virtualenv .sdist-requirements
 	@echo
 
 	# Make sure we use latest version of pip
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=7.1.2,<8.0.0"
+	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=8.1.2,<8.2"
 	$(VIRTUALENV_DIR)/bin/pip install virtualenv  # Required for packs.install in dev envs.
 
 	# Generate all requirements to support current CI pipeline.
@@ -213,6 +213,9 @@ requirements: virtualenv .sdist-requirements
 			echo "Installing $$req..." ; \
 			$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
 	done
+
+	# Workaround for Travis caching issues (corrupted cache)
+	$(VIRTUALENV_DIR)/bin/pip install --no-cache-dir --no-binary :all: --upgrade --force-reinstall "greenlet>=0.4.10,<0.5"
 
 .PHONY: virtualenv
 virtualenv: $(VIRTUALENV_DIR)/bin/activate

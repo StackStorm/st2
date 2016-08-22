@@ -48,7 +48,7 @@ before_script:
   - if [ ${TASK} = 'unit' ] || [ ${TASK} = 'integration' ]; then ./scripts/travis/install-and-run-mongodb.sh; fi
 
 install:
-  - pip install --upgrade pip
+  - pip install --upgrade "pip>=8.1.2,<8.2"
   - pip install python-coveralls
   - if [ ${TASK} != 'checks' ]; then pip install python-coveralls; fi
   - make requirements
