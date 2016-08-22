@@ -71,7 +71,17 @@ class UnregisterPackAction(BaseAction):
         return self._delete_pack_db_objects(pack=pack, access_cls=SensorType)
 
     def _unregister_trigger_types(self, pack):
-        return self._delete_pack_db_objects(pack=pack, access_cls=TriggerType)
+        deleted_trigger_types_dbs = self._delete_pack_db_objects(pack=pack, access_cls=TriggerType)
+
+        # 2. Check if deleted trigger is used by any other rules outside this pack
+        for trigger_type_db in deleted_trigger_types_dbs:
+            rule_dbs = Rule.query(trigger=trigger_type_db.ref, pack__ne=trigger_type_db.pack)
+
+            for rule_db in rule_dbs:
+                self.logger.warning('Rule "%s" references deleted trigger "%s"' %
+                                    (rule_db.name, trigger_type_db.ref))
+
+        return deleted_trigger_types_dbs
 
     def _unregister_triggers(self, pack):
         return self._delete_pack_db_objects(pack=pack, access_cls=Trigger)
@@ -83,6 +93,7 @@ class UnregisterPackAction(BaseAction):
         deleted_rules = self._delete_pack_db_objects(pack=pack, access_cls=Rule)
         for rule_db in deleted_rules:
             cleanup_trigger_db_for_rule(rule_db=rule_db)
+
         return deleted_rules
 
     def _unregister_aliases(self, pack):
