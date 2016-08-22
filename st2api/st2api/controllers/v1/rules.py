@@ -70,7 +70,8 @@ class RuleController(resource.ContentPackResourceController):
     @request_user_has_permission(permission_type=PermissionType.RULE_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
-        return super(RuleController, self)._get_all(**kwargs)
+        from_model_kwargs = {'ignore_missing_trigger': True}
+        return super(RuleController, self)._get_all(from_model_kwargs=from_model_kwargs, **kwargs)
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_VIEW)
     @jsexpose(arg_types=[str])
