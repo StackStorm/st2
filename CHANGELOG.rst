@@ -24,6 +24,8 @@ In development
 * Fix validation of the action parameter ``type`` attribute provided in the YAML metadata.
   Previously we allowed any string value, now only valid types (object, string, number,
   integer, array, null) are allowed. (bug fix)
+* Upgrade pip and virtualenv libraries used by StackStorm pack virtual environments to the latest
+  versions (8.1.2 and 15.0.3).
 
 1.6.0 - August 8, 2016
 ----------------------
