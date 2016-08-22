@@ -26,6 +26,9 @@ In development
   integer, array, null) are allowed. (bug fix)
 * Upgrade pip and virtualenv libraries used by StackStorm pack virtual environments to the latest
   versions (8.1.2 and 15.0.3).
+* Allow user to list and view rules using the API even if a rule in the database references a
+  non-existent trigger. This shouldn't happen during normal usage of StackStorm, but it makes it
+  easier for the user to clean up in case database ends up in a inconsistent state. (improvement)
 
 1.6.0 - August 8, 2016
 ----------------------
