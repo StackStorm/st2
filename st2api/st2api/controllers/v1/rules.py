@@ -76,7 +76,8 @@ class RuleController(resource.ContentPackResourceController):
     @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_VIEW)
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
-        return super(RuleController, self)._get_one(ref_or_id)
+        from_model_kwargs = {'ignore_missing_trigger': True}
+        return super(RuleController, self)._get_one(ref_or_id, from_model_kwargs=from_model_kwargs)
 
     @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
     @request_user_has_resource_api_permission(permission_type=PermissionType.RULE_CREATE)
