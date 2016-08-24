@@ -59,7 +59,7 @@ class SensorTypeController(resource.ContentPackResourceController):
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.SENSOR_MODIFY)
     @jsexpose(arg_types=[str], body_cls=SensorTypeAPI)
-    def put(self, ref_or_id, sensor_type):
+    def put(self, sensor_type, ref_or_id):
         # Note: Right now this function only supports updating of "enabled"
         # attribute on the SensorType model.
         # The reason for that is that SensorTypeAPI.to_model right now only
