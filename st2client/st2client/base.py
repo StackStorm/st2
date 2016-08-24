@@ -274,7 +274,7 @@ class BaseCLIApp(object):
 
         if not os.access(ST2_CONFIG_DIRECTORY, os.W_OK):
             # We don't have write access to the file with a cached token
-            message = ('Unable to write token to "%s" (user %s doesn\'t have write'
+            message = ('Unable to write token to "%s" (user %s doesn\'t have write '
                        'access to the parent directory). Subsequent requests won\'t use a '
                        'cached token meaning they may be slower.' % (cached_token_path,
                                                                      os.getlogin()))
@@ -283,7 +283,7 @@ class BaseCLIApp(object):
 
         if os.path.isfile(cached_token_path) and not os.access(cached_token_path, os.W_OK):
             # We don't have write access to the file with a cached token
-            message = ('Unable to write token to "%s" (user %s doesn\'t have write'
+            message = ('Unable to write token to "%s" (user %s doesn\'t have write '
                        'access to this file). Subsequent requests won\'t use a '
                        'cached token meaning they may be slower.' % (cached_token_path,
                                                                      os.getlogin()))
