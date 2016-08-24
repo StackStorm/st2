@@ -18,6 +18,7 @@ import json
 import time
 import calendar
 import logging
+import traceback
 
 import six
 import requests
@@ -57,6 +58,8 @@ class BaseCLIApp(object):
     """
     Base class for StackStorm CLI apps.
     """
+
+    client = None  # st2client instance
 
     # A list of command classes for which automatic authentication should be skipped.
     SKIP_AUTH_CLASSES = []
