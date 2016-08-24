@@ -237,6 +237,17 @@ class BaseCLIApp(object):
             self.LOG.warn(message)
             return None
 
+        # Safety check for too permissive permissions
+        file_st_mode = oct(os.stat(cached_token_path).st_mode & 0777)
+        others_st_mode = int(file_st_mode[-1])
+
+        if others_st_mode >= 4:
+            # Every user has access to this file which is dangerous
+            message = ('Permissions (%s) for cached token file "%s" are to permissive. Please '
+                       'restrict the permissions and make sure only your own user can read '
+                       'from the file' % (file_st_mode, cached_token_path))
+            self.LOG.warn(message)
+
         with open(cached_token_path) as fp:
             data = fp.read()
 
