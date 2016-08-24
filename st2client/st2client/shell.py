@@ -290,37 +290,6 @@ class Shell(BaseCLIApp):
             for name, value in six.iteritems(options):
                 print('%s = %s' % (name, value))
 
-    def _print_debug_info(self, args):
-        # Print client settings
-        self._print_client_settings(args=args)
-
-        # Print exception traceback
-        traceback.print_exc()
-
-    def _print_client_settings(self, args):
-        client = self.client
-
-        if not client:
-            return
-
-        config_file_path = self._get_config_file_path(args=args)
-
-        print('CLI settings:')
-        print('----------------')
-        print('Config file path: %s' % (config_file_path))
-        print('Client settings:')
-        print('----------------')
-        print('ST2_BASE_URL: %s' % (client.endpoints['base']))
-        print('ST2_AUTH_URL: %s' % (client.endpoints['auth']))
-        print('ST2_API_URL: %s' % (client.endpoints['api']))
-        print('ST2_AUTH_TOKEN: %s' % (os.environ.get('ST2_AUTH_TOKEN')))
-        print('')
-        print('Proxy settings:')
-        print('---------------')
-        print('HTTP_PROXY: %s' % (os.environ.get('HTTP_PROXY', '')))
-        print('HTTPS_PROXY: %s' % (os.environ.get('HTTPS_PROXY', '')))
-        print('')
-
 
 def setup_logging(argv):
     debug = '--debug' in argv

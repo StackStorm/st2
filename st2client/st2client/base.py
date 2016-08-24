@@ -169,9 +169,13 @@ class BaseCLIApp(object):
         """
         path = os.environ.get('ST2_CONFIG_FILE', ST2_CONFIG_PATH)
 
+        if args.config_file:
+            path = args.config_file
+
         path = os.path.abspath(path)
         if path != ST2_CONFIG_PATH and not os.path.isfile(path):
             raise ValueError('Config "%s" not found' % (path))
+
         return path
 
     def _get_auth_token(self, client, username, password, cache_token):
@@ -318,3 +322,43 @@ class BaseCLIApp(object):
         file_name = 'token-%s' % (username)
         result = os.path.abspath(os.path.join(ST2_CONFIG_DIRECTORY, file_name))
         return result
+
+    def _print_config(self, args):
+        config = self._parse_config_file(args=args)
+
+        for section, options in six.iteritems(config):
+            print('[%s]' % (section))
+
+            for name, value in six.iteritems(options):
+                print('%s = %s' % (name, value))
+
+    def _print_debug_info(self, args):
+        # Print client settings
+        self._print_client_settings(args=args)
+
+        # Print exception traceback
+        traceback.print_exc()
+
+    def _print_client_settings(self, args):
+        client = self.client
+
+        if not client:
+            return
+
+        config_file_path = self._get_config_file_path(args=args)
+
+        print('CLI settings:')
+        print('----------------')
+        print('Config file path: %s' % (config_file_path))
+        print('Client settings:')
+        print('----------------')
+        print('ST2_BASE_URL: %s' % (client.endpoints['base']))
+        print('ST2_AUTH_URL: %s' % (client.endpoints['auth']))
+        print('ST2_API_URL: %s' % (client.endpoints['api']))
+        print('ST2_AUTH_TOKEN: %s' % (os.environ.get('ST2_AUTH_TOKEN')))
+        print('')
+        print('Proxy settings:')
+        print('---------------')
+        print('HTTP_PROXY: %s' % (os.environ.get('HTTP_PROXY', '')))
+        print('HTTPS_PROXY: %s' % (os.environ.get('HTTPS_PROXY', '')))
+        print('')
