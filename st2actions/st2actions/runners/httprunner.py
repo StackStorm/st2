@@ -157,7 +157,7 @@ class HTTPClient(object):
         headers = headers or {}
         normalized_headers = self._normalize_headers(headers=headers)
         if body and 'content-length' not in normalized_headers:
-            headers['Content-Length'] = len(body)
+            headers['Content-Length'] = str(len(body))
 
         self.url = url
         self.method = method
