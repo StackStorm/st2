@@ -32,6 +32,10 @@ In development
 * Update ``packs.uninstall`` command to print a warning message if any rules in the system
   reference a trigger from a pack which is being uninstalled. (improvement)
 * Fix disabling and enabling of a sensor through an API and CLI. (bug-fix)
+* Fix HTTP runner so it works correctly when body is provided with newer versions of requests
+  library (>= 2.11.0). (bug-fix) #2880
+
+  Contribution by Shu Sugimoto.
 
 1.6.0 - August 8, 2016
 ----------------------
