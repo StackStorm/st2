@@ -83,7 +83,12 @@ class BaseCLIApp(object):
         kwargs = merge_dicts(kwargs, cli_options)
         kwargs['debug'] = debug
 
-        client = Client(**config_file_options)
+        client = Client(**kwargs)
+
+        if skip_config:
+            # Config parsing is skipped
+            LOG.info('Skipping parsing CLI config')
+            return client
 
         # Ok to use config at this point
         rc_config = get_config()
@@ -93,11 +98,22 @@ class BaseCLIApp(object):
         if silence_ssl_warnings:
             requests.packages.urllib3.disable_warnings()
 
+        # We skip automatic authentication for some commands such as auth
+        try:
+            command_class_name = args.func.im_class.__name__
+        except Exception:
+            command_class_name = None
+
+        if command_class_name in self.SKIP_AUTH_CLASSES:
+            return client
+
         # We also skip automatic authentication if token is provided via the environment variable
         # or as a command line argument
         env_var_token = os.environ.get('ST2_AUTH_TOKEN', None)
+        cli_argument_token = getattr(args, 'token', None)
         env_var_api_key = os.environ.get('ST2_API_KEY', None)
-        if env_var_token or env_var_api_key:
+        cli_argument_api_key = getattr(args, 'api_key', None)
+        if env_var_token or cli_argument_token or env_var_api_key or cli_argument_api_key:
             return client
 
         # If credentials are provided in the CLI config use them and try to authenticate
@@ -105,6 +121,7 @@ class BaseCLIApp(object):
         username = credentials.get('username', None)
         password = credentials.get('password', None)
         cache_token = rc_config.get('cli', {}).get('cache_token', False)
+
         if username and password:
             # Credentials are provided, try to authenticate agaist the API
             try:
