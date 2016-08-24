@@ -36,8 +36,6 @@ __all__ = [
     'BaseCLIApp'
 ]
 
-LOG = logging.getLogger(__name__)
-
 # How many seconds before the token actual expiration date we should consider the token as
 # expired. This is used to prevent the operation from failing durig the API request because the
 # token was just about to expire.
@@ -59,6 +57,7 @@ class BaseCLIApp(object):
     Base class for StackStorm CLI apps.
     """
 
+    LOG = None  # logger instance to use
     client = None  # st2client instance
 
     # A list of command classes for which automatic authentication should be skipped.
@@ -90,7 +89,7 @@ class BaseCLIApp(object):
 
         if skip_config:
             # Config parsing is skipped
-            LOG.info('Skipping parsing CLI config')
+            self.LOG.info('Skipping parsing CLI config')
             return client
 
         # Ok to use config at this point
@@ -131,8 +130,8 @@ class BaseCLIApp(object):
                 token = self._get_auth_token(client=client, username=username, password=password,
                                              cache_token=cache_token)
             except requests.exceptions.ConnectionError as e:
-                LOG.warn('Auth API server is not available, skipping authentication.')
-                LOG.exception(e)
+                self.LOG.warn('Auth API server is not available, skipping authentication.')
+                self.LOG.exception(e)
                 return client
             except Exception as e:
                 print('Failed to authenticate with credentials provided in the config.')
@@ -227,7 +226,7 @@ class BaseCLIApp(object):
                        'access to the parent directory). Subsequent requests won\'t use a '
                        'cached token meaning they may be slower.' % (cached_token_path,
                                                                      os.getlogin()))
-            LOG.warn(message)
+            self.LOG.warn(message)
             return None
 
         if not os.access(cached_token_path, os.R_OK):
@@ -235,7 +234,7 @@ class BaseCLIApp(object):
             message = ('Unable to retrieve cached token from "%s" (user %s doesn\'t have read '
                        'access to this file). Subsequent requests won\'t use a cached token '
                        'meaning they may be slower.' % (cached_token_path, os.getlogin()))
-            LOG.warn(message)
+            self.LOG.warn(message)
             return None
 
         with open(cached_token_path) as fp:
@@ -253,11 +252,11 @@ class BaseCLIApp(object):
 
         now = int(time.time())
         if (expire_timestamp - TOKEN_EXPIRATION_GRACE_PERIOD_SECONDS) < now:
-            LOG.debug('Cached token from file "%s" has expired' % (cached_token_path))
+            self.LOG.debug('Cached token from file "%s" has expired' % (cached_token_path))
             # Token has expired
             return None
 
-        LOG.debug('Using cached token from file "%s"' % (cached_token_path))
+        self.LOG.debug('Using cached token from file "%s"' % (cached_token_path))
         return token
 
     def _cache_auth_token(self, token_obj):
@@ -279,7 +278,7 @@ class BaseCLIApp(object):
                        'access to the parent directory). Subsequent requests won\'t use a '
                        'cached token meaning they may be slower.' % (cached_token_path,
                                                                      os.getlogin()))
-            LOG.warn(message)
+            self.LOG.warn(message)
             return None
 
         if os.path.isfile(cached_token_path) and not os.access(cached_token_path, os.W_OK):
@@ -288,7 +287,7 @@ class BaseCLIApp(object):
                        'access to this file). Subsequent requests won\'t use a '
                        'cached token meaning they may be slower.' % (cached_token_path,
                                                                      os.getlogin()))
-            LOG.warn(message)
+            self.LOG.warn(message)
             return None
 
         token = token_obj.token
@@ -308,7 +307,7 @@ class BaseCLIApp(object):
         with os.fdopen(fd, 'w') as fp:
             fp.write(data)
 
-        LOG.debug('Token has been cached in "%s"' % (cached_token_path))
+        self.LOG.debug('Token has been cached in "%s"' % (cached_token_path))
         return True
 
     def _authenticate_and_retrieve_auth_token(self, client, username, password):

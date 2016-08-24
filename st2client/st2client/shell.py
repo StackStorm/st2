@@ -54,12 +54,14 @@ __all__ = [
     'Shell'
 ]
 
-LOG = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 CLI_DESCRIPTION = 'CLI for StackStorm event-driven automation platform. https://stackstorm.com'
 
 
 class Shell(BaseCLIApp):
+    LOG = LOGGER
+
     SKIP_AUTH_CLASSES = [
         TokenCreateCommand.__name__
     ]
@@ -292,7 +294,7 @@ class Shell(BaseCLIApp):
 def setup_logging(argv):
     debug = '--debug' in argv
 
-    root = LOG
+    root = LOGGER
     root.setLevel(logging.WARNING)
 
     handler = logging.StreamHandler(sys.stderr)
