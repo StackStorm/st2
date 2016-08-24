@@ -31,7 +31,7 @@ python-json-logger
 python-keyczar==0.715
 pytz
 pyyaml<4.0,>=3.11
-requests[security]<3.0,>=2.7.0
+requests[security]<2.12,>=2.11.1
 retrying<1.4,>=1.3
 semver>=2.1.2
 six==1.9.0
