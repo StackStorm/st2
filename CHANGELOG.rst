@@ -31,6 +31,7 @@ In development
   easier for the user to clean up in case database ends up in a inconsistent state. (improvement)
 * Update ``packs.uninstall`` command to print a warning message if any rules in the system
   reference a trigger from a pack which is being uninstalled. (improvement)
+* Fix disabling and enabling of a sensor through an API and CLI. (bug-fix)
 
 1.6.0 - August 8, 2016
 ----------------------
