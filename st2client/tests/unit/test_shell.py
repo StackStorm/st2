@@ -203,7 +203,7 @@ class TestShell(base.BaseCLITestCase):
         ]
         self._validate_parser(args_list)
 
-    @mock.patch('st2client.shell.ST2_CONFIG_PATH', '/home/does/not/exist')
+    @mock.patch('st2client.base.ST2_CONFIG_PATH', '/home/does/not/exist')
     def test_print_config_default_config_no_config(self):
         os.environ['ST2_CONFIG_FILE'] = '/home/does/not/exist'
         argv = ['--print-config']
@@ -278,9 +278,9 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         super(CLITokenCachingTestCase, self).setUp()
         self._mock_config_directory_path = tempfile.mkdtemp()
         self._mock_config_path = os.path.join(self._mock_config_directory_path, 'config')
-        self._p1 = mock.patch('st2client.shell.ST2_CONFIG_DIRECTORY',
+        self._p1 = mock.patch('st2client.base.ST2_CONFIG_DIRECTORY',
                              self._mock_config_directory_path)
-        self._p2 = mock.patch('st2client.shell.ST2_CONFIG_PATH',
+        self._p2 = mock.patch('st2client.base.ST2_CONFIG_PATH',
                              self._mock_config_path)
         self._p1.start()
         self._p2.start()
