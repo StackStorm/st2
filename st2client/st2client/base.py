@@ -17,7 +17,6 @@ import os
 import json
 import time
 import calendar
-import logging
 import traceback
 
 import six
