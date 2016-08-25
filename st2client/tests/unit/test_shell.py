@@ -279,9 +279,9 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         self._mock_config_directory_path = tempfile.mkdtemp()
         self._mock_config_path = os.path.join(self._mock_config_directory_path, 'config')
         self._p1 = mock.patch('st2client.base.ST2_CONFIG_DIRECTORY',
-                             self._mock_config_directory_path)
+                              self._mock_config_directory_path)
         self._p2 = mock.patch('st2client.base.ST2_CONFIG_PATH',
-                             self._mock_config_path)
+                              self._mock_config_path)
         self._p1.start()
         self._p2.start()
 
@@ -354,7 +354,47 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         self.assertRegexpMatches(log_message, expected_msg)
 
     def test_cache_auth_token_invalid_permissions(self):
-        pass
+        shell = Shell()
+        username = 'testu'
+
+        cached_token_path = shell._get_cached_token_path_for_user(username=username)
+        expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=30)
+
+        token_db = TokenDB(user=username, token='fyeah', expiry=expiry)
+
+        cached_token_path = shell._get_cached_token_path_for_user(username=username)
+        data = {
+            'token': 'yayvalid',
+            'expire_timestamp': (int(time.time()) + 20)
+        }
+        with open(cached_token_path, 'w') as fp:
+            fp.write(json.dumps(data))
+
+        # 1. Current user has no write access to the parent directory
+        os.chmod(self._mock_config_directory_path, 0000)
+
+        shell.LOG = mock.Mock()
+        shell._cache_auth_token(token_obj=token_db)
+
+        self.assertEqual(shell.LOG.warn.call_count, 1)
+        log_message = shell.LOG.warn.call_args[0][0]
+
+        expected_msg = ('Unable to write token to .*? doesn\'t have write access to the parent '
+                        'directory')
+        self.assertRegexpMatches(log_message, expected_msg)
+
+        # 2. Current user has no write access to the cached token file
+        os.chmod(self._mock_config_directory_path, 0777)
+        os.chmod(cached_token_path, 0000)
+
+        shell.LOG = mock.Mock()
+        shell._cache_auth_token(token_obj=token_db)
+
+        self.assertEqual(shell.LOG.warn.call_count, 1)
+        log_message = shell.LOG.warn.call_args[0][0]
+
+        expected_msg = ('Unable to write token to .*? doesn\'t have write access to this file')
+        self.assertRegexpMatches(log_message, expected_msg)
 
     def test_get_cached_auth_token_no_token_cache_file(self):
         client = Client()
