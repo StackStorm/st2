@@ -216,8 +216,6 @@ class BaseCLIApp(object):
             os.makedirs(ST2_CONFIG_DIRECTORY)
 
         cached_token_path = self._get_cached_token_path_for_user(username=username)
-        if not os.path.isfile(cached_token_path):
-            return None
 
         if not os.access(ST2_CONFIG_DIRECTORY, os.R_OK):
             # We don't have read access to the file with a cached token
@@ -226,6 +224,9 @@ class BaseCLIApp(object):
                        'cached token meaning they may be slower.' % (cached_token_path,
                                                                      os.getlogin()))
             self.LOG.warn(message)
+            return None
+
+        if not os.path.isfile(cached_token_path):
             return None
 
         if not os.access(cached_token_path, os.R_OK):
