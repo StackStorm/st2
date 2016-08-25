@@ -72,7 +72,7 @@ class BaseCLIApp(object):
         # Note: Options provided as the CLI argument have the highest precedence
         # Precedence order: cli arguments > environment variables > rc file variables
         cli_options = ['base_url', 'auth_url', 'api_url', 'api_version', 'cacert']
-        cli_options = {opt: getattr(args, opt) for opt in cli_options}
+        cli_options = {opt: getattr(args, opt, None) for opt in cli_options}
         config_file_options = self._get_config_file_options(args=args)
 
         kwargs = {}
