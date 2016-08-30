@@ -4,7 +4,7 @@ python-dateutil
 eventlet
 jinja2
 kombu
-git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
+git+https://github.com/StackStorm/python-mistralclient.git@st2-2.0.0#egg=python-mistralclient
 oslo.config
 oslo.utils
 requests
