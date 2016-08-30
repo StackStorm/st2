@@ -1,8 +1,8 @@
 Changelog
 =========
 
-In development
---------------
+2.0.0 - August 31, 2016
+-----------------------
 
 * Implement custom jina filter functions ``to_json_string``, ``to_yaml_string``,
   ``to_human_time_from_seconds`` that can be used in actions and workflows. (improvement)
