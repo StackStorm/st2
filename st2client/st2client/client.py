@@ -23,6 +23,7 @@ from st2client.models.core import ResourceManager
 from st2client.models.core import ActionAliasResourceManager
 from st2client.models.core import LiveActionResourceManager
 from st2client.models.core import TriggerInstanceResourceManager
+from st2client.models.core import PackResourceManager
 
 
 LOG = logging.getLogger(__name__)
@@ -98,6 +99,8 @@ class Client(object):
             models.ApiKey, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['LiveAction'] = LiveActionResourceManager(
             models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Pack'] = PackResourceManager(
+            models.Pack, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Policy'] = ResourceManager(
             models.Policy, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['PolicyType'] = ResourceManager(
@@ -136,6 +139,10 @@ class Client(object):
     @property
     def liveactions(self):
         return self.managers['LiveAction']
+
+    @property
+    def packs(self):
+        return self.managers['Pack']
 
     @property
     def policies(self):
