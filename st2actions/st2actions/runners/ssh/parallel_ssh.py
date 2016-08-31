@@ -76,7 +76,8 @@ class ParallelSSHClient(object):
         for host in self._hosts:
             while not self._pool.free():
                 eventlet.sleep(self._scan_interval)
-            self._pool.spawn(self._connect, host=host, results=results,
+            self._pool.spawn(self._connect, host=host,
+                             bastion_host=self._bastion_host, results=results,
                              raise_on_any_error=raise_on_any_error)
 
         self._pool.waitall()
