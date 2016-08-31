@@ -24,7 +24,7 @@ python_binary = /data/stanley/virtualenv/bin/python
 allow_origin = http://127.0.0.1:3000 # comma separated list allowed here.
 # location of the logging.conf file
 logging = conf/logging.conf
-# Maximum limit (page size) argument which can be specified by the user in a query string. If a larger value is provided, it will default to  this value.
+# Maximum limit (page size) argument which can be specified by the user in a query string.
 max_page_size = 100
 # True to mask secrets in the API responses
 mask_secrets = True
