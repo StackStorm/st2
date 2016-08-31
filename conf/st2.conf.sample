@@ -22,14 +22,16 @@ python_binary = /data/stanley/virtualenv/bin/python
 [api]
 # List of origins allowed for api, auth and stream
 allow_origin = http://127.0.0.1:3000 # comma separated list allowed here.
-# StackStorm API server host
-host = 0.0.0.0
 # location of the logging.conf file
 logging = conf/logging.conf
-# StackStorm API server port
-port = 9101
+# Maximum limit (page size) argument which can be specified by the user in a query string.
+max_page_size = 100
 # True to mask secrets in the API responses
 mask_secrets = True
+# StackStorm API server host
+host = 0.0.0.0
+# StackStorm API server port
+port = 9101
 
 [auth]
 # Common option - options below apply in both scenarios - when auth service is running as a WSGI
