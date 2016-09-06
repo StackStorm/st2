@@ -898,9 +898,21 @@ class ActionExecutionReadCommand(resource.ResourceCommand):
         """
         exclude_attributes = []
 
-        if 'result' not in args.attr:
+        result_included = False
+        trigger_instance_included = False
+
+        for attr in args.attr:
+            # Note: We do starts with check so we correct detected child attribute properties
+            # (e.g. result, result.stdout, result.stderr, etc.)
+            if attr.startswith('result'):
+                result_included = True
+
+            if attr.startswith('trigger_instance'):
+                trigger_instance_included = True
+
+        if not result_included:
             exclude_attributes.append('result')
-        if 'trigger_instance' not in args.attr:
+        if not trigger_instance_included:
             exclude_attributes.append('trigger_instance')
 
         return exclude_attributes
