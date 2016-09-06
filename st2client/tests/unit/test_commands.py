@@ -269,4 +269,3 @@ class ActionExecutionReadCommandTestCase(unittest2.TestCase):
         args = cls(attr=['result.stdout', 'trigger_instance.id'])
         result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
         self.assertEqual(result, [])
-
