@@ -4,6 +4,10 @@ Changelog
 In development
 --------------
 
+* Fix ``st2 execution get`` command so now ``--attr`` argument correctly works with child
+  properties of the ``result`` and ``trigger_instance`` dictionary (e.g. ``--attr
+  result.stdout result.stderr``). (bug fix)
+
 2.0.0 - August 31, 2016
 -----------------------
 
