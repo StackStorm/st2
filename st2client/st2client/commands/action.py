@@ -903,7 +903,7 @@ class ActionExecutionReadCommand(resource.ResourceCommand):
         trigger_instance_included = False
 
         for attr in args.attr:
-            # Note: We do starts with check so we correct detected child attribute properties
+            # Note: We perform startswith check so we correctly detected child attribute properties
             # (e.g. result, result.stdout, result.stderr, etc.)
             if attr.startswith('result'):
                 result_included = True
