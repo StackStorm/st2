@@ -48,10 +48,11 @@ class TestTraces(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 3, '/v1/traces did not return all traces.')
 
+        # Note: traces are returned sorted by start_timestamp in descending order by default
         retrieved_trace_tags = [trace['trace_tag'] for trace in resp.json]
 
         self.assertEqual(retrieved_trace_tags,
-                         [self.trace1.trace_tag, self.trace2.trace_tag, self.trace3.trace_tag],
+                         [self.trace3.trace_tag, self.trace2.trace_tag, self.trace1.trace_tag],
                          'Incorrect traces retrieved.')
 
     def test_get_by_id(self):
