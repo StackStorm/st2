@@ -7,6 +7,9 @@ In development
 * Update traces list API endpoint and ``st2 trace list`` so the traces are sorted by
   ``start_timestamp`` in descending order by default. This way it's consistent with executions
   list and ``-n`` CLI parameter works as expected. (improvement)
+* Allow users to specify sort order when listing traces using the API endpoint by specifying
+  ``?sort_desc=True|False`` query parameters and by passing ``--sort=asc|desc`` parameter to
+  the ``st2 trace list`` CLI command. (improvement)
 
 2.0.0 - August 31, 2016
 -----------------------
