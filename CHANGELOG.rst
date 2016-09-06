@@ -7,6 +7,9 @@ In development
 * Fix ``st2 execution get`` command so now ``--attr`` argument correctly works with child
   properties of the ``result`` and ``trigger_instance`` dictionary (e.g. ``--attr
   result.stdout result.stderr``). (bug fix)
+* Update traces list API endpoint and ``st2 trace list`` so the traces are sorted by
+  ``start_timestamp`` in descending order by default. This way it's consistent with executions
+  list and ``-n`` CLI parameter works as expected. (improvement)
 
 2.0.0 - August 31, 2016
 -----------------------
