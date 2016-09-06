@@ -33,5 +33,5 @@ class TracesController(ResourceController):
     }
 
     query_options = {
-        'sort': ['trace_tag']
+        'sort': ['-start_timestamp', 'trace_tag']
     }
