@@ -892,7 +892,8 @@ class ActionExecutionReadCommand(resource.ResourceCommand):
     Base class for read / view commands (list and get).
     """
 
-    def _get_exclude_attributes(self, args):
+    @classmethod
+    def _get_exclude_attributes(cls, args):
         """
         Retrieve a list of exclude attributes for particular command line arguments.
         """
