@@ -14,8 +14,8 @@
 # limitations under the License.
 
 import six
-from jinja2 import Environment, StrictUndefined
 
+from st2common.util.jinja import get_jinja_environment
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE
 from st2common.services.keyvalues import KeyValueLookup
@@ -41,7 +41,7 @@ def render_template(value, context=None):
     assert isinstance(value, six.string_types)
     context = context or {}
 
-    env = Environment(undefined=StrictUndefined)  # nosec
+    env = get_jinja_environment(allow_undefined=False)  # nosec
     template = env.from_string(value)
     rendered = template.render(context)
 

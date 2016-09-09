@@ -4,6 +4,49 @@ Changelog
 In development
 --------------
 
+* Fix ``st2 execution get`` command so now ``--attr`` argument correctly works with child
+  properties of the ``result`` and ``trigger_instance`` dictionary (e.g. ``--attr
+  result.stdout result.stderr``). (bug fix)
+
+2.0.0 - August 31, 2016
+-----------------------
+
+* Implement custom Jinja filter functions ``to_json_string``, ``to_yaml_string``,
+  ``to_human_time_from_seconds`` that can be used in actions and workflows. (improvement)
+* Refactor Jinja filter functions into appropriate modules. (improvement)
+* Default chatops message to include time taken to complete an execution. This uses
+  ``to_human_time_from_seconds`` function. (improvement)
+* Fix a bug when jinja templates with filters (for example,
+  ``st2 run core.local cmd='echo {{"1.6.0" | version_bump_minor}}'``) in parameters wasn't rendered
+  correctly when executing actions. (bug-fix)
+* Allow user to cancel multiple executions using a single invocation of ``st2 execution cancel``
+  command by passing multiple ids to the command -
+  ``st2 execution cancel <id 1> <id 2> <id n>`` (improvement)
+* We now execute --register-rules as part of st2ctl reload. PR raised by Vaishali:
+  https://github.com/StackStorm/st2/issues/2861#issuecomment-239275641
+* Bump default timeout for ``packs.load`` command from ``60`` to ``100`` seconds. (improvement)
+* Change Python runner action and sensor Python module loading so the module is still loaded even if
+  the module name clashes with another module which is already in ``PYTHONPATH``
+  (improvement)
+* Fix validation of the action parameter ``type`` attribute provided in the YAML metadata.
+  Previously we allowed any string value, now only valid types (object, string, number,
+  integer, array, null) are allowed. (bug fix)
+* Upgrade pip and virtualenv libraries used by StackStorm pack virtual environments to the latest
+  versions (8.1.2 and 15.0.3).
+* Allow user to list and view rules using the API even if a rule in the database references a
+  non-existent trigger. This shouldn't happen during normal usage of StackStorm, but it makes it
+  easier for the user to clean up in case database ends up in a inconsistent state. (improvement)
+* Update ``packs.uninstall`` command to print a warning message if any rules in the system
+  reference a trigger from a pack which is being uninstalled. (improvement)
+* Fix disabling and enabling of a sensor through an API and CLI. (bug-fix)
+* Fix HTTP runner so it works correctly when body is provided with newer versions of requests
+  library (>= 2.11.0). (bug-fix) #2880
+
+  Contribution by Shu Sugimoto.
+
+1.6.0 - August 8, 2016
+----------------------
+
 * Upgrade to pymongo 3.2.2 and mongoengine 0.10.6 so StackStorm now also supports and works with
   MongoDB 3.x. (improvement)
 * Make sure policies which are disabled are not applied. (bug fix)
@@ -12,10 +55,42 @@ In development
   concurrency policy is used and a defined threshold is reached. For backward compatibility,
   ``delay`` is a default behavior, but now user can also specify ``cancel`` and an execution will
   be canceled instead of delayed when a threshold is reached.
-* Save link to history web url in execution db model. A configuration variable in ``webui`` section
-  is now exposed to let st2 know about the location of web ui. This is used to construct the
-  web url. Chatops messages can now display the history url from the execution model they
-  get as response to API calls.
+* Update action runner to use two internal green thread pools - one for regular (non-workflow) and
+  one for workflow actions. Both pool sizes are user-configurable. This should help increase the
+  throughput of a single action runner when the system is not over-utilized. It can also help
+  prevent deadlocks which may occur when using delay policies with action-chain workflows.
+  (improvement)
+* Update CLI commands to make sure that all of them support ``--api-key`` option. (bug-fix)
+* Add support for sorting execution list results, allowing access to oldest items. (improvement)
+* Allow administrator to configure maximum limit which can be specified using ``?limit``
+  query parameters when making API calls to get all / list endpoints. For backward compatibility
+  and safety reasons, the default value still is ``100``. (improvement)
+* Update ``st2-register-content`` script to exit with non-zero on failure (e.g. invalid resource
+  metadata, etc.) by default. For backward compatibility reasons, ``--register-fail-on-failure``
+  flag was left there, but it now doesn't do anything since this is the default behavior. For ease
+  of migrations, users can revert to the old behavior by using new
+  ``--register-no-fail-on-failure`` flag. (improvement)
+* Allow Python runner actions to return execution status (success, failure) by returning a tuple
+  from the ``run()`` method. First item in the tuple is a flag indicating success (``True`` /
+  ``False``) and the second one is the result. Previously, user could only cause action to fail by
+  throwing an exception or exiting which didn't allow for a result to be returned. With this new
+  approach, user can now also return an optional result with a failure. (new feature)
+* Include a chatops alias sample in ``examples`` pack that shows how to use ``format`` option to
+  display chatops messages in custom formatted way. (improvement)
+* Fix ``Internal Server Error`` when an undefined jinja variable is used in action alias ack field.
+  We now send a http status code ``201`` but also explicitly say we couldn't render the ``ack``
+  field. The ``ack`` is anyways a nice-to-have message which is not critical. Previously, we still
+  kicked off the execution but sent out ``Internal Server Error`` which might confuse the user
+  whether execution was kicked off or not. (bug-fix)
+* Include testing for chatops ``format_execution_result`` python action. The tests cover various
+  action types. (improvement)
+* Include a field ``elapsed_seconds`` in execution API response for GET calls. The clients using
+  the API can now use ``elapsed_seconds`` without having to repeat computation. (improvement)
+* Update ``st2-register-content`` script so it validates new style configs in
+  ``/opt/stackstorm/configs/`` directory when using ``--register-configs`` flag if a pack contains
+  a config schema (``config.schema.yaml``). (improvement)
+* Implement custom YAQL function ``st2kv`` in Mistral to get key-value pair from StackStorm's
+  datastore. (new-feature)
 
 1.5.1 - July 13, 2016
 ---------------------

@@ -435,6 +435,17 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(r_runner_params, {'r1': '{{ missing }}'})
         self.assertEqual(r_action_params, {})
 
+    def test_get_finalized_params_jinja_filters(self):
+        params = {'cmd': 'echo {{"1.6.0" | version_bump_minor}}'}
+        runner_param_info = {'r1': {}}
+        action_param_info = {'cmd': {}}
+        action_context = {}
+
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+
+        self.assertEqual(r_action_params['cmd'], "echo 1.7.0")
+
     def test_get_finalized_params_param_rendering_failure(self):
         params = {'cmd': '{{a2.foo}}', 'a2': 'test'}
         action_param_info = {'cmd': {}, 'a2': {}}

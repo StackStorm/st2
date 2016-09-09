@@ -144,26 +144,26 @@ class TestAPIModelBase(unittest.TestCase):
         APIModelMock = mock.MagicMock()
 
         @base.jsexpose(arg_types=[int], body_cls=APIModelMock)
-        def f(self, id, body, *args, **kwargs):
-            self.f(self, id, body, args, kwargs)
+        def f(self, body, id, *args, **kwargs):
+            self.f(self, body, id, args, kwargs)
 
         f(self, '11')
 
         APIModelMock.assert_called_once_with(a='b')
-        self.f.assert_called_once_with(self, 11, APIModelMock().validate(), (), {})
+        self.f.assert_called_once_with(self, APIModelMock().validate(), 11, (), {})
 
     @unittest.skip
     def test_expose_body_and_typed_arguments_unused(self):
         APIModelMock = mock.MagicMock()
 
         @base.jsexpose(arg_types=[int], body_cls=APIModelMock)
-        def f(self, id, body, *args, **kwargs):
-            self.f(self, id, body, args, kwargs)
+        def f(self, body, id, *args, **kwargs):
+            self.f(self, body, id, args, kwargs)
 
         f(self, '11', 'some')
 
         APIModelMock.assert_called_once_with(a='b')
-        self.f.assert_called_once_with(self, 11, APIModelMock().validate(), ('some', ), {})
+        self.f.assert_called_once_with(self, APIModelMock().validate(), 11, ('some', ), {})
 
     @unittest.skip
     def test_expose_body_and_typed_kw_unused(self):

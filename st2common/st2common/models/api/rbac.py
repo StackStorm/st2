@@ -43,9 +43,6 @@ class RoleAPI(BaseAPI):
             'description': {
                 'type': 'string'
             },
-            'description': {
-                'type': 'boolean'
-            },
             'permission_grants': {
                 'type': 'array',
                 'items': {

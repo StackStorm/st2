@@ -132,7 +132,7 @@ class RuleFilter(object):
         try:
             result = op_func(value=payload_value, criteria_pattern=criteria_pattern)
         except:
-            LOG.exception('There might be a problem with critera in rule %s.', self.rule,
+            LOG.exception('There might be a problem with the criteria in rule %s.', self.rule,
                           extra=self._base_logger_context)
             return False
 

@@ -213,14 +213,15 @@ class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, Resou
 
 class ActionExecutionChildrenController(BaseActionExecutionNestedController):
     @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_VIEW)
-    @jsexpose(arg_types=[str])
-    def get(self, id, **kwargs):
+    @jsexpose(arg_types=[str, int, str])
+    def get(self, id, depth=-1, result_fmt=None, **kwargs):
         """
         Retrieve children for the provided action execution.
 
         :rtype: ``list``
         """
-        return self._get_children(id_=id, **kwargs)
+
+        return self._get_children(id_=id, depth=depth, result_fmt=result_fmt)
 
 
 class ActionExecutionAttributeController(BaseActionExecutionNestedController):
@@ -372,10 +373,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
-        if 'timestamp_lt' in kw:
+        if 'timestamp_lt' in kw or 'sort_desc' in kw:
             query_options = {'sort': ['-start_timestamp', 'action.ref']}
             kw['query_options'] = query_options
-        elif 'timestamp_gt' in kw:
+        elif 'timestamp_gt' in kw or 'sort_asc' in kw:
             query_options = {'sort': ['+start_timestamp', 'action.ref']}
             kw['query_options'] = query_options
 
@@ -458,7 +459,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
-        kw['limit'] = int(kw.get('limit', 100))
+
+        kw['limit'] = int(kw.get('limit', self.default_limit))
 
         LOG.debug('Retrieving all action executions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,

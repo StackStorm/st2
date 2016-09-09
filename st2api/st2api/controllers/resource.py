@@ -18,6 +18,7 @@
 import abc
 import copy
 
+from oslo_config import cfg
 from mongoengine import ValidationError
 import pecan
 from pecan import rest
@@ -49,7 +50,10 @@ class ResourceController(rest.RestController):
     from_model_kwargs = {}
 
     # Maximum value of limit which can be specified by user
-    max_limit = 100
+    max_limit = cfg.CONF.api.max_page_size
+
+    # Default number of items returned per page if no limit is explicitly provided
+    default_limit = 100
 
     query_options = {
         'sort': []
@@ -119,11 +123,13 @@ class ResourceController(rest.RestController):
         offset = int(offset)
 
         if limit and int(limit) > self.max_limit:
-            limit = self.max_limit
+            # TODO: We should throw here, I don't like this.
+            msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
+            raise ValueError(msg)
+
         eop = offset + int(limit) if limit else None
 
         filters = {}
-
         for k, v in six.iteritems(self.supported_filters):
             filter_value = kwargs.get(k, None)
 
@@ -318,14 +324,14 @@ class ContentPackResourceController(ResourceController):
         self.get_one_db_method = self._get_by_ref_or_id
 
     @jsexpose(arg_types=[str])
-    def get_one(self, ref_or_id):
-        return self._get_one(ref_or_id)
+    def get_one(self, ref_or_id, from_model_kwargs=None):
+        return self._get_one(ref_or_id, from_model_kwargs=from_model_kwargs)
 
     @jsexpose()
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
-    def _get_one(self, ref_or_id, exclude_fields=None):
+    def _get_one(self, ref_or_id, exclude_fields=None, from_model_kwargs=None):
         LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
 
         try:
@@ -335,7 +341,8 @@ class ContentPackResourceController(ResourceController):
             pecan.abort(http_client.NOT_FOUND, e.message)
             return
 
-        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        from_model_kwargs = from_model_kwargs or {}
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
         result = self.model.from_model(instance, **from_model_kwargs)
         if result and self.include_reference:
             pack = getattr(result, 'pack', None)

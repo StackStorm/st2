@@ -144,7 +144,7 @@ class KeyValuePairController(ResourceController):
         return kvp_apis
 
     @jsexpose(arg_types=[str, str, str], body_cls=KeyValuePairSetAPI)
-    def put(self, name, kvp, scope=SYSTEM_SCOPE):
+    def put(self, kvp, name, scope=SYSTEM_SCOPE):
         """
         Create a new entry or update an existing one.
         """

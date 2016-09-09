@@ -14,9 +14,10 @@
 # limitations under the License.
 
 import jsonschema
-import pecan
+from jinja2.exceptions import UndefinedError
+from pecan import (abort, rest, request)
 import six
-from pecan import rest
+
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -54,7 +55,7 @@ class ActionAliasExecutionController(rest.RestController):
         action_alias_name = payload.name if payload else None
 
         if not action_alias_name:
-            pecan.abort(http_client.BAD_REQUEST, 'Alias execution "name" is required')
+            abort(http_client.BAD_REQUEST, 'Alias execution "name" is required')
 
         format_str = payload.format or ''
         command = payload.command or ''
@@ -66,12 +67,12 @@ class ActionAliasExecutionController(rest.RestController):
 
         if not action_alias_db:
             msg = 'Unable to identify action alias with name "%s".' % (action_alias_name)
-            pecan.abort(http_client.NOT_FOUND, msg)
+            abort(http_client.NOT_FOUND, msg)
             return
 
         if not action_alias_db.enabled:
             msg = 'Action alias with name "%s" is disabled.' % (action_alias_name)
-            pecan.abort(http_client.BAD_REQUEST, msg)
+            abort(http_client.BAD_REQUEST, msg)
             return
 
         execution_parameters = extract_parameters_for_action_alias_db(
@@ -98,13 +99,24 @@ class ActionAliasExecutionController(rest.RestController):
         }
 
         if action_alias_db.ack:
-            if 'format' in action_alias_db.ack:
+            try:
+                if 'format' in action_alias_db.ack:
+                    result.update({
+                        'message': render({'alias': action_alias_db.ack['format']}, result)['alias']
+                    })
+            except UndefinedError as e:
                 result.update({
-                    'message': render({'alias': action_alias_db.ack['format']}, result)['alias']
+                    'message': 'Cannot render "format" in field "ack" for alias. ' + e.message
                 })
-            if 'extra' in action_alias_db.ack:
+
+            try:
+                if 'extra' in action_alias_db.ack:
+                    result.update({
+                        'extra': render(action_alias_db.ack['extra'], result)
+                    })
+            except UndefinedError as e:
                 result.update({
-                    'extra': render(action_alias_db.ack['extra'], result)
+                    'extra': 'Cannot render "extra" in field "ack" for alias. ' + e.message
                 })
 
         return result
@@ -133,7 +145,7 @@ class ActionAliasExecutionController(rest.RestController):
         if not action_db:
             raise StackStormDBObjectNotFoundError('Action with ref "%s" not found ' % (action_ref))
 
-        assert_request_user_has_resource_db_permission(request=pecan.request, resource_db=action_db,
+        assert_request_user_has_resource_db_permission(request=request, resource_db=action_db,
             permission_type=PermissionType.ACTION_EXECUTE)
 
         try:
@@ -152,10 +164,10 @@ class ActionAliasExecutionController(rest.RestController):
             return ActionExecutionAPI.from_model(action_execution_db)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
-            pecan.abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
         except jsonschema.ValidationError as e:
             LOG.exception('Unable to execute action. Parameter validation failed.')
-            pecan.abort(http_client.BAD_REQUEST, str(e))
+            abort(http_client.BAD_REQUEST, str(e))
         except Exception as e:
             LOG.exception('Unable to execute action. Unexpected error encountered.')
-            pecan.abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, str(e))

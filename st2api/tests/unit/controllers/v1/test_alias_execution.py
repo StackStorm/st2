@@ -24,7 +24,7 @@ from tests import FunctionalTest
 FIXTURES_PACK = 'aliases'
 
 TEST_MODELS = {
-    'aliases': ['alias1.yaml', 'alias2.yaml'],
+    'aliases': ['alias1.yaml', 'alias2.yaml', 'alias_with_undefined_jinja_in_ack_format.yaml'],
     'actions': ['action1.yaml'],
     'runners': ['runner1.yaml']
 }
@@ -47,6 +47,7 @@ class AliasExecutionTestCase(FunctionalTest):
     models = None
     alias1 = None
     alias2 = None
+    alias_with_undefined_jinja_in_ack_format = None
 
     @classmethod
     def setUpClass(cls):
@@ -55,6 +56,8 @@ class AliasExecutionTestCase(FunctionalTest):
                                                           fixtures_dict=TEST_MODELS)
         cls.alias1 = cls.models['aliases']['alias1.yaml']
         cls.alias2 = cls.models['aliases']['alias2.yaml']
+        cls.alias_with_undefined_jinja_in_ack_format = \
+            cls.models['aliases']['alias_with_undefined_jinja_in_ack_format.yaml']
 
     @mock.patch.object(action_service, 'request',
                        return_value=(None, EXECUTION))
@@ -94,6 +97,24 @@ class AliasExecutionTestCase(FunctionalTest):
         self.assertEqual(post_resp.status_int, 201)
         expected_parameters = {'param1': 'value1', 'param3': ['value2', 'value3']}
         self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+
+    @mock.patch.object(action_service, 'request',
+                       return_value=(None, EXECUTION))
+    def test_invalid_jinja_var_in_ack_format(self, request):
+        command = 'run date on localhost'
+        # print(self.alias_with_undefined_jinja_in_ack_format)
+        post_resp = self._do_post(
+            alias_execution=self.alias_with_undefined_jinja_in_ack_format,
+            command=command,
+            expect_errors=False
+        )
+        self.assertEqual(post_resp.status_int, 201)
+        expected_parameters = {'cmd': 'date', 'hosts': 'localhost'}
+        self.assertEquals(request.call_args[0][0].parameters, expected_parameters)
+        self.assertEqual(
+            post_resp.json['message'],
+            'Cannot render "format" in field "ack" for alias. \'cmd\' is undefined'
+        )
 
     def _do_post(self, alias_execution, command, format_str=None, expect_errors=False):
         if (isinstance(alias_execution.formats[0], dict) and

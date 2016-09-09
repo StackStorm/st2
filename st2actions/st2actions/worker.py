@@ -26,7 +26,9 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution import ActionExecution
 from st2common.services import executions
-from st2common.transport import consumers, liveaction
+from st2common.transport import liveaction
+from st2common.transport.consumers import MessageHandler
+from st2common.transport.consumers import ActionsQueueConsumer
 from st2common.transport import utils as transport_utils
 from st2common.util import action_db as action_utils
 from st2common.util import system_info
@@ -41,13 +43,17 @@ ACTIONRUNNER_CANCEL_Q = liveaction.get_status_management_queue(
     'st2.actionrunner.canel', routing_key=action_constants.LIVEACTION_STATUS_CANCELING)
 
 
-class ActionExecutionDispatcher(consumers.MessageHandler):
+class ActionExecutionDispatcher(MessageHandler):
     message_type = LiveActionDB
 
     def __init__(self, connection, queues):
         super(ActionExecutionDispatcher, self).__init__(connection, queues)
         self.container = RunnerContainer()
         self._running_liveactions = set()
+
+    def get_queue_consumer(self, connection, queues):
+        # We want to use a special ActionsQueueConsumer which uses 2 dispatcher pools
+        return ActionsQueueConsumer(connection=connection, queues=queues, handler=self)
 
     def process(self, liveaction):
         """Dispatches the LiveAction to appropriate action runner.

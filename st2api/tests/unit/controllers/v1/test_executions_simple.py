@@ -201,6 +201,9 @@ class TestActionExecutionController(FunctionalTest):
         get_resp = self._do_get_one(actionexecution_id)
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+        self.assertTrue('web_url' in get_resp)
+        if 'end_timestamp' in get_resp:
+            self.assertTrue('elapsed_seconds' in get_resp)
 
     def test_get_all(self):
         self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
@@ -215,6 +218,9 @@ class TestActionExecutionController(FunctionalTest):
         for i in range(len(body) - 1):
             self.assertTrue(isotime.parse(body[i]['start_timestamp']) >=
                             isotime.parse(body[i + 1]['start_timestamp']))
+            self.assertTrue('web_url' in body[i])
+            if 'end_timestamp' in body[i]:
+                self.assertTrue('elapsed_seconds' in body[i])
 
     def test_get_query(self):
         actionexecution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))

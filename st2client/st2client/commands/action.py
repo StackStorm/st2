@@ -892,15 +892,28 @@ class ActionExecutionReadCommand(resource.ResourceCommand):
     Base class for read / view commands (list and get).
     """
 
-    def _get_exclude_attributes(self, args):
+    @classmethod
+    def _get_exclude_attributes(cls, args):
         """
         Retrieve a list of exclude attributes for particular command line arguments.
         """
         exclude_attributes = []
 
-        if 'result' not in args.attr:
+        result_included = False
+        trigger_instance_included = False
+
+        for attr in args.attr:
+            # Note: We perform startswith check so we correctly detected child attribute properties
+            # (e.g. result, result.stdout, result.stderr, etc.)
+            if attr.startswith('result'):
+                result_included = True
+
+            if attr.startswith('trigger_instance'):
+                trigger_instance_included = True
+
+        if not result_included:
             exclude_attributes.append('result')
-        if 'trigger_instance' not in args.attr:
+        if not trigger_instance_included:
             exclude_attributes.append('trigger_instance')
 
         return exclude_attributes
@@ -925,8 +938,13 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=50,
-                                 help=('List N most recent %s; '
-                                       'list all if 0.' %
+                                 help=('List N most recent %s.' %
+                                       resource.get_plural_display_name().lower()))
+        self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
+                                 default='descending',
+                                 help=('Sort %s by start timestamp, '
+                                       'asc|ascending (earliest first) '
+                                       'or desc|descending (latest first)' %
                                        resource.get_plural_display_name().lower()))
 
         # Filter options
@@ -976,6 +994,11 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
             kwargs['timestamp_gt'] = args.timestamp_gt
         if args.timestamp_lt:
             kwargs['timestamp_lt'] = args.timestamp_lt
+        if args.sort_order:
+            if args.sort_order in ['asc', 'ascending']:
+                kwargs['sort_asc'] = True
+            elif args.sort_order in ['desc', 'descending']:
+                kwargs['sort_desc'] = True
 
         # We exclude "result" and "trigger_instance" attributes which can contain a lot of data
         # since they are not displayed nor used which speeds the common operation substantially.
@@ -1045,30 +1068,41 @@ class ActionExecutionCancelCommand(resource.ResourceCommand):
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionCancelCommand, self).__init__(
-            resource, 'cancel', 'Cancel an %s.' %
+            resource, 'cancel', 'Cancel %s.' %
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('id',
-                                 help=('ID of the %s.' %
+        self.parser.add_argument('ids',
+                                 nargs='+',
+                                 help=('IDs of the %ss to cancel.' %
                                        resource.get_display_name().lower()))
 
     def run(self, args, **kwargs):
-        return self.manager.delete_by_id(args.id)
+        responses = []
+        for execution_id in args.ids:
+            response = self.manager.delete_by_id(execution_id)
+            responses.append([execution_id, response])
+
+        return responses
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
-        response = self.run(args, **kwargs)
+        responses = self.run(args, **kwargs)
+
+        for execution_id, response in responses:
+            self._print_result(execution_id=execution_id, response=response)
+
+    def _print_result(self, execution_id, response):
         if response and 'faultstring' in response:
             message = response.get('faultstring', 'Cancellation requested for %s with id %s.' %
-                                   (self.resource.get_display_name().lower(), args.id))
+                                   (self.resource.get_display_name().lower(), execution_id))
 
         elif response:
             message = '%s with id %s canceled.' % (self.resource.get_display_name().lower(),
-                                                   args.id)
+                                                   execution_id)
         else:
             message = 'Cannot cancel %s with id %s.' % (self.resource.get_display_name().lower(),
-                                                        args.id)
+                                                        execution_id)
         print(message)
 
 

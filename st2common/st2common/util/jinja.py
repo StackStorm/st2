@@ -15,10 +15,14 @@
 
 import json
 import six
-import re
 
-import semver
 import jinja2
+
+from st2common.jinja.filters import data
+from st2common.jinja.filters import regex
+from st2common.jinja.filters import time
+from st2common.jinja.filters import version
+
 
 __all__ = [
     'get_jinja_environment',
@@ -35,104 +39,38 @@ JINJA_EXPRESSIONS_START_MARKERS = [
 ]
 
 
-class CustomFilters(object):
-    '''
-    Collection of CustomFilters for jinja2
-    '''
+def use_none(value):
+    if value is None:
+        return NONE_MAGIC_VALUE
 
-    ###############
-    # regex filters
-    @staticmethod
-    def _get_regex_flags(ignorecase=False):
-        return re.I if ignorecase else 0
-
-    @staticmethod
-    def _regex_match(value, pattern='', ignorecase=False):
-        if not isinstance(value, six.string_types):
-            value = str(value)
-        flags = CustomFilters._get_regex_flags(ignorecase)
-        return bool(re.match(pattern, value, flags))
-
-    @staticmethod
-    def _regex_replace(value='', pattern='', replacement='', ignorecase=False):
-        if not isinstance(value, six.string_types):
-            value = str(value)
-        flags = CustomFilters._get_regex_flags(ignorecase)
-        regex = re.compile(pattern, flags)
-        return regex.sub(replacement, value)
-
-    @staticmethod
-    def _regex_search(value, pattern='', ignorecase=False):
-        if not isinstance(value, six.string_types):
-            value = str(value)
-        flags = CustomFilters._get_regex_flags(ignorecase)
-        return bool(re.search(pattern, value, flags))
-
-    #################
-    # version filters
-    @staticmethod
-    def _version_compare(value, pattern):
-        return semver.compare(value, pattern)
-
-    @staticmethod
-    def _version_more_than(value, pattern):
-        return semver.compare(value, pattern) == 1
-
-    @staticmethod
-    def _version_less_than(value, pattern):
-        return semver.compare(value, pattern) == -1
-
-    @staticmethod
-    def _version_equal(value, pattern):
-        return semver.compare(value, pattern) == 0
-
-    @staticmethod
-    def _version_match(value, pattern):
-        return semver.match(value, pattern)
-
-    @staticmethod
-    def _version_bump_major(value):
-        return semver.bump_major(value)
-
-    @staticmethod
-    def _version_bump_minor(value):
-        return semver.bump_minor(value)
-
-    @staticmethod
-    def _version_bump_patch(value):
-        return semver.bump_patch(value)
-
-    @staticmethod
-    def _version_strip_patch(value):
-        return "{major}.{minor}".format(**semver.parse(value))
-
-    @staticmethod
-    def _use_none(value):
-        if value is None:
-            return NONE_MAGIC_VALUE
-
-        return value
-
-    @staticmethod
-    def get_filters():
-        return {
-            'regex_match': CustomFilters._regex_match,
-            'regex_replace': CustomFilters._regex_replace,
-            'regex_search': CustomFilters._regex_search,
-            'version_compare': CustomFilters._version_compare,
-            'version_more_than': CustomFilters._version_more_than,
-            'version_less_than': CustomFilters._version_less_than,
-            'version_equal': CustomFilters._version_equal,
-            'version_match': CustomFilters._version_match,
-            'version_bump_major': CustomFilters._version_bump_major,
-            'version_bump_minor': CustomFilters._version_bump_minor,
-            'version_bump_patch': CustomFilters._version_bump_patch,
-            'version_strip_patch': CustomFilters._version_strip_patch,
-            'use_none': CustomFilters._use_none
-        }
+    return value
 
 
-def get_jinja_environment(allow_undefined=False):
+def get_filters():
+    return {
+        'to_json_string': data.to_json_string,
+        'to_yaml_string': data.to_yaml_string,
+
+        'regex_match': regex.regex_match,
+        'regex_replace': regex.regex_replace,
+        'regex_search': regex.regex_search,
+
+        'to_human_time_from_seconds': time.to_human_time_from_seconds,
+
+        'version_compare': version.version_compare,
+        'version_more_than': version.version_more_than,
+        'version_less_than': version.version_less_than,
+        'version_equal': version.version_equal,
+        'version_match': version.version_match,
+        'version_bump_major': version.version_bump_major,
+        'version_bump_minor': version.version_bump_minor,
+        'version_bump_patch': version.version_bump_patch,
+        'version_strip_patch': version.version_strip_patch,
+        'use_none': use_none
+    }
+
+
+def get_jinja_environment(allow_undefined=False, trim_blocks=True, lstrip_blocks=True):
     '''
     jinja2.Environment object that is setup with right behaviors and custom filters.
 
@@ -141,8 +79,12 @@ def get_jinja_environment(allow_undefined=False):
 
     '''
     undefined = jinja2.Undefined if allow_undefined else jinja2.StrictUndefined
-    env = jinja2.Environment(undefined=undefined, trim_blocks=True, lstrip_blocks=True)  # nosec
-    env.filters.update(CustomFilters.get_filters())
+    env = jinja2.Environment(  # nosec
+        undefined=undefined,
+        trim_blocks=trim_blocks,
+        lstrip_blocks=lstrip_blocks
+    )
+    env.filters.update(get_filters())
     env.tests['in'] = lambda item, list: item in list
     return env
 

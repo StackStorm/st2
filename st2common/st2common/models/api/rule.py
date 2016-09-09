@@ -203,18 +203,20 @@ class RuleAPI(BaseAPI, APIUIDMixin):
     }
 
     @classmethod
-    def from_model(cls, model, mask_secrets=False):
+    def from_model(cls, model, mask_secrets=False, ignore_missing_trigger=False):
         rule = cls._from_model(model, mask_secrets=mask_secrets)
         trigger_db = reference.get_model_by_resource_ref(Trigger, model.trigger)
 
-        if not trigger_db:
+        if not ignore_missing_trigger and not trigger_db:
             raise ValueError('Missing TriggerDB object for rule %s' % (rule['id']))
 
-        rule['trigger'] = {
-            'type': trigger_db.type,
-            'parameters': trigger_db.parameters,
-            'ref': model.trigger
-        }
+        if trigger_db:
+            rule['trigger'] = {
+                'type': trigger_db.type,
+                'parameters': trigger_db.parameters,
+                'ref': model.trigger
+            }
+
         rule['tags'] = TagsHelper.from_model(model.tags)
         return cls(**rule)
 

@@ -26,7 +26,7 @@ class PackConfigSchemasControllerTestCase(FunctionalTest):
     def test_get_all(self):
         resp = self.app.get('/v1/config_schemas')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 3, '/v1/config_schemas did not return all schemas.')
+        self.assertEqual(len(resp.json), 4, '/v1/config_schemas did not return all schemas.')
 
     def test_get_one_success(self):
         resp = self.app.get('/v1/config_schemas/dummy_pack_1')

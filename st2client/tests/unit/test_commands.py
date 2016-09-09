@@ -20,12 +20,19 @@ import logging
 import argparse
 import tempfile
 import unittest2
+from collections import namedtuple
 
 from tests import base
 
 from st2client import models
 from st2client.utils import httpclient
 from st2client.commands import resource
+from st2client.commands.action import ActionExecutionReadCommand
+
+__all__ = [
+    'TestResourceCommand',
+    'ActionExecutionReadCommandTestCase'
+]
 
 
 LOG = logging.getLogger(__name__)
@@ -232,3 +239,33 @@ class TestResourceCommand(unittest2.TestCase):
     def test_command_delete_failed(self):
         args = self.parser.parse_args(['fakeresource', 'delete', 'cba'])
         self.assertRaises(Exception, self.branch.commands['delete'].run, args)
+
+
+class ActionExecutionReadCommandTestCase(unittest2.TestCase):
+
+    def test_get_exclude_attributes(self):
+        cls = namedtuple('Args', 'attr')
+
+        args = cls(attr=[])
+        result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
+        self.assertEqual(result, ['result', 'trigger_instance'])
+
+        args = cls(attr=['result'])
+        result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
+        self.assertEqual(result, ['trigger_instance'])
+
+        args = cls(attr=['result', 'trigger_instance'])
+        result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
+        self.assertEqual(result, [])
+
+        args = cls(attr=['result.stdout'])
+        result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
+        self.assertEqual(result, ['trigger_instance'])
+
+        args = cls(attr=['result.stdout', 'result.stderr'])
+        result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
+        self.assertEqual(result, ['trigger_instance'])
+
+        args = cls(attr=['result.stdout', 'trigger_instance.id'])
+        result = ActionExecutionReadCommand._get_exclude_attributes(args=args)
+        self.assertEqual(result, [])

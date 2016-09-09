@@ -16,7 +16,6 @@
 import sys
 import json
 import argparse
-
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -28,6 +27,7 @@ from st2common.util import loader as action_loader
 from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
 from st2common.service_setup import db_setup
 from st2common.services.datastore import DatastoreService
 
@@ -37,6 +37,16 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
+
+INVALID_STATUS_ERROR_MESSAGE = """
+If this is an existing action which returns a tuple with two items, it needs to be updated to
+either:
+
+1. Return a list instead of a tuple
+2. Return a tuple where a first items is a status flag - (True, ('item1', 'item2'))
+
+For more information, please see: https://docs.stackstorm.com/upgrade_notes.html#st2-v1-6
+""".strip()
 
 
 class ActionService(object):
@@ -66,7 +76,7 @@ class ActionService(object):
 
     def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
         return self._datastore_service.set_value(name, value, ttl, local, scope=scope,
-            encrypt=encrypt)
+                                                 encrypt=encrypt)
 
     def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
         return self._datastore_service.delete_value(name, local)
@@ -115,13 +125,36 @@ class PythonActionWrapper(object):
         action = self._get_action_instance()
         output = action.run(**self._parameters)
 
+        if isinstance(output, tuple) and len(output) == 2:
+            # run() method returned status and data - (status, data)
+            action_status = output[0]
+            action_result = output[1]
+        else:
+            # run() method returned only data, no status (pre StackStorm v1.6)
+            action_status = None
+            action_result = output
+
+        action_output = {
+            'result': action_result,
+            'status': None
+        }
+
+        if action_status is not None and not isinstance(action_status, bool):
+            sys.stderr.write('Status returned from the action run() method must either be '
+                             'True or False, got: %s\n' % (action_status))
+            sys.stderr.write(INVALID_STATUS_ERROR_MESSAGE)
+            sys.exit(PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE)
+
+        if action_status is not None and isinstance(action_status, bool):
+            action_output['status'] = action_status
+
+        try:
+            print_output = json.dumps(action_output)
+        except Exception:
+            print_output = str(action_output)
+
         # Print output to stdout so the parent can capture it
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
-        print_output = None
-        try:
-            print_output = json.dumps(output)
-        except:
-            print_output = str(output)
         sys.stdout.write(print_output + '\n')
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
 
@@ -169,7 +202,6 @@ if __name__ == '__main__':
     parent_args = json.loads(args.parent_args) if args.parent_args else []
 
     assert isinstance(parent_args, list)
-
     obj = PythonActionWrapper(pack=args.pack,
                               file_path=args.file_path,
                               parameters=parameters,
