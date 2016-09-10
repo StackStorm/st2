@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-import copy
 
 import st2common.content.utils as content_utils
 from st2common import log as logging
@@ -46,7 +45,6 @@ def register_runners(runner_dir=None, experimental=False, fail_on_failure=True):
         runner_dirs = content_utils.get_runners_base_paths()
 
     runners = runner_loader.get_runners(runner_dirs)
-
 
     for runner, path in runners.iteritems():
         LOG.info('Runner "%s"' % (runner))
@@ -106,11 +104,10 @@ def register_runner(runner_type, experimental):
                 LOG.audit('RunnerType updated. RunnerType %s', runner_type_db, extra=extra)
             else:
                 LOG.audit('RunnerType created. RunnerType %s', runner_type_db, extra=extra)
-            return 1
         except Exception:
             LOG.exception('Unable to register runner type %s.', runner_type['name'])
             return 0
-
+    return 1
 
 
 def register_runner_types(experimental=False):
