@@ -18,6 +18,12 @@ import six
 from st2common.exceptions.content import ParseException
 from st2common.models.utils.action_alias_utils import extract_parameters
 
+__all__ = [
+    'list_format_strings_from_aliases',
+    'normalise_alias_format_string',
+    'match_command_to_alias'
+]
+
 
 def list_format_strings_from_aliases(aliases):
     '''
@@ -32,12 +38,12 @@ def list_format_strings_from_aliases(aliases):
     patterns = []
     for alias in aliases:
         for _format in alias.formats:
-            display, representations = normalise_alias_format(_format)
+            display, representations = normalise_alias_format_string(_format)
             patterns.append([(display, representation) for representation in representations])
     return patterns
 
 
-def normalise_alias_format(self, alias_format):
+def normalise_alias_format_string(self, alias_format):
     '''
     StackStorm action aliases can have two types;
         1. A simple string holding the format
