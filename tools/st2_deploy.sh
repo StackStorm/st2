@@ -462,10 +462,6 @@ install_apt() {
   curl -Ss -k ${DOWNLOAD_SERVER}/deb/pubkey.gpg -o /tmp/stackstorm.repo.pubkey.gpg
   sudo apt-key add /tmp/stackstorm.repo.pubkey.gpg
 
-  if [[ "$CONTAINER" == "DOCKER"]]; then
-    echo "deb http://downloads-distro.mongodb.org/repo/debian-sysvinit dist 10gen" > /etc/apt/sources.list.d/mongodb.list
-  fi  
-    
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
   # Install packages
@@ -476,7 +472,6 @@ install_apt() {
   PIP=`which pip`
   VIRTUALENV=`which virtualenv`
   setup_rabbitmq
-  setup_mongodb_systemd
   install_pip
 }
 
@@ -540,16 +535,13 @@ setup_rabbitmq() {
 }
 
 setup_mongodb_systemd() {
-  echo "Configuring MongoDB..."
   # Enable and start MongoDB
   if ([[ "${DISTRO_NAME}" == "Red Hat Enterprise Server" ]] || [[ "${DISTRO_NAME}" == "CentOS" ]] || [[ "${DISTRO_NAME}" == "Scientific Linux" ]]) && [[ $DISTRO_VERSION =~ 7\.[0-9] ]]
   then
     systemctl enable mongod
     systemctl start mongod
   else
-    if [[ "$TYPE" == "rpms" ]]; then  
-        chkconfig mongod on
-    fi
+    chkconfig mongod on
     service mongod start
   fi
 }
