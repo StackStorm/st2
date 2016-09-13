@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-p]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6]" >&2
 }
 
 subcommand=$1; shift
