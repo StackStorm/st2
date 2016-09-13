@@ -67,8 +67,8 @@ class ActionAliasController(resource.ContentPackResourceController):
     def get_one(self, ref_or_id):
         return super(ActionAliasController, self)._get_one(ref_or_id)
 
+    @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_VIEW)
     @jsexpose(arg_types=[str], status_code=http_client.ACCEPTED)
-    @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_CREATE)
     def match(self, command):
         """
             Run a chatops command
@@ -88,7 +88,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             return match
         except (ActionAliasAmbiguityException) as e:
             # TODO : error on unmatched alias
-            LOG.exception('Validation failed for action alias data=%s.', action_alias)
+            LOG.exception('Validation failed for action alias data=%s.', command)
             pecan.abort(http_client.BAD_REQUEST, str(e))
             return
 
