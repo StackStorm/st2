@@ -79,7 +79,7 @@ def match_command_to_alias(command, aliases):
     
     for alias in aliases:
         # this is lazy, fix up. -ANT
-        format_strings = list_format_strings_from_aliases([aliases])
+        format_strings = list_format_strings_from_aliases([alias])
         for format_string in format_strings:
             try:
                 extract_parameters(format_str=format_string,
