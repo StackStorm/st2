@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6]" >&2
 }
 
 subcommand=$1; shift
@@ -10,8 +10,9 @@ use_gunicorn=true
 use_uwsgi_for_auth=false
 copy_examples=false
 load_content=true
+use_ipv6=false
 
-while getopts ":r:gxcu" o; do
+while getopts ":r:gxcu6" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
@@ -27,6 +28,9 @@ while getopts ":r:gxcu" o; do
             ;;
         c)
             load_content=false
+            ;;
+        6)
+            use_ipv6=true
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -98,6 +102,13 @@ function st2start(){
         sudo mkdir -p $PACKS_BASE_DIR
     fi
 
+    if [ "${use_ipv6}" = true ]; then
+        echo '  using IPv6 bindings...'
+        BINDING_ADDRESS="[::]"
+    else
+        BINDING_ADDRESS="0.0.0.0"
+    fi
+    
     VIRTUALENVS_DIR=$ST2_BASE_DIR/virtualenvs
 
     sudo mkdir -p $PACKS_BASE_DIR/default/sensors/
@@ -131,7 +142,7 @@ function st2start(){
         echo '  using gunicorn to run st2-api...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-api ./virtualenv/bin/gunicorn_pecan \
-            ./st2api/st2api/gunicorn_config.py -k eventlet -b 0.0.0.0:9101 --workers 1
+            ./st2api/st2api/gunicorn_config.py -k eventlet -b "$BINDING_ADDRESS:9101" --workers 1
     else
         screen -d -m -S st2-api ./virtualenv/bin/python \
             ./st2api/bin/st2api \
@@ -143,7 +154,7 @@ function st2start(){
         echo '  using gunicorn to run st2-stream'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-stream ./virtualenv/bin/gunicorn_pecan \
-            ./st2stream/st2stream/gunicorn_config.py -k eventlet -b 0.0.0.0:9102 --workers 1
+            ./st2stream/st2stream/gunicorn_config.py -k eventlet -b "$BINDING_ADDRESS:9102" --workers 1
     else
         screen -d -m -S st2-stream ./virtualenv/bin/python \
             ./st2stream/bin/st2stream \
@@ -193,13 +204,13 @@ function st2start(){
         echo '  using uwsgi for auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-auth ./virtualenv/bin/uwsgi \
-            --http 0.0.0.0:9100 --wsgi-file ./st2auth/st2auth/wsgi.py --processes 1 --threads 10 \
+            --http "$BINDING_ADDRESS:9100" --wsgi-file ./st2auth/st2auth/wsgi.py --processes 1 --threads 10 \
             --buffer-size=32768
     elif [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-auth ./virtualenv/bin/gunicorn_pecan \
-            ./st2auth/st2auth/gunicorn_config.py -k eventlet -b 0.0.0.0:9100 --workers 1
+            ./st2auth/st2auth/gunicorn_config.py -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
     else
         screen -d -m -S st2-auth ./virtualenv/bin/python \
         ./st2auth/bin/st2auth \
