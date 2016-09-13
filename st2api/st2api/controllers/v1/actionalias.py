@@ -29,8 +29,8 @@ from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_api_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 
-from st2common.util.alias_matching import (list_format_strings_from_aliases,
-                                           match_command_to_alias)
+from st2common.util.actionalias_matching import (list_format_strings_from_aliases,
+                                                 match_command_to_alias)
 
 
 http_client = six.moves.http_client
