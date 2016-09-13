@@ -19,6 +19,7 @@ import six
 from mongoengine import ValidationError
 from st2api.controllers import resource
 from st2common import log as logging
+from st2common.exceptions.actionalias import ActionAliasAmbiguityException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.action import ActionAliasAPI
 from st2common.persistence.actionalias import ActionAlias
@@ -27,6 +28,10 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_api_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
+
+from st2common.util.alias_matching import (list_format_strings_from_aliases,
+                                           match_command_to_alias)
+
 
 http_client = six.moves.http_client
 
@@ -48,6 +53,10 @@ class ActionAliasController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
+    _custom_actions = {
+        'match': ['POST']
+    }
+
     @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
@@ -57,6 +66,31 @@ class ActionAliasController(resource.ContentPackResourceController):
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return super(ActionAliasController, self)._get_one(ref_or_id)
+
+    @jsexpose(arg_types=[str], status_code=http_client.ACCEPTED)
+    @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_CREATE)
+    def match(self, command):
+        """
+            Run a chatops command
+
+            Handles requests:
+                POST /chatops/match
+
+                command=hello%20world
+        """
+        try:
+            # 1. Get aliases
+            aliases = self.get_all()
+            # 2. Match alias(es) to command
+            match = match_command_to_alias(command, aliases)
+            if len(match) > 1:
+                raise ActionAliasAmbiguityException("Too much choice, not enough action (alias).")
+            return match
+        except (ActionAliasAmbiguityException) as e:
+            # TODO : error on unmatched alias
+            LOG.exception('Validation failed for action alias data=%s.', action_alias)
+            pecan.abort(http_client.BAD_REQUEST, str(e))
+            return
 
     @jsexpose(body_cls=ActionAliasAPI, status_code=http_client.CREATED)
     @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_CREATE)
