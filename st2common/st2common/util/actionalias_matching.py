@@ -30,20 +30,20 @@ def list_format_strings_from_aliases(aliases):
     List patterns from a collection of alias objects
 
     :param aliases: The list of aliases
-    :type  aliases: ``list`` of :class:`st2common.persistence.actionalias.ActionAlias`
+    :type  aliases: ``list`` of :class:`st2common.models.api.action.ActionAliasAPI`
 
     :return: A description of potential execution patterns in a list of aliases.
-    :rtype: ``list`` of ``dict``
+    :rtype: ``list`` of ``list``
     '''
     patterns = []
     for alias in aliases:
         for _format in alias.formats:
             display, representations = normalise_alias_format_string(_format)
-            patterns.append([(display, representation) for representation in representations])
+            patterns.extend([(display, representation) for representation in representations])
     return patterns
 
 
-def normalise_alias_format_string(self, alias_format):
+def normalise_alias_format_string(alias_format):
     '''
     StackStorm action aliases can have two types;
         1. A simple string holding the format
