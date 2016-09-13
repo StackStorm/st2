@@ -63,22 +63,16 @@ def request_user_has_permission(permission_type):
     return decorate
 
 
-def request_user_has_resource_api_permission(permission_type, method_action=None):
+def request_user_has_resource_api_permission(permission_type):
     """
     A decorator meant to wrap post Pecan REST controller methods
 
     This decorator assumes the first argument passed to the decorated function is a resource API
     object.
-
-    :param permission_type: The permission request type
-
-    :param method_action: The method the wrapped function, e.g. POST, used when the function name
-        is not 'post' but the method is a POST method using Pecan _custom_actions.
-    :type  method_action: ``str``
     """
     def decorate(func):
         function_name = func.__name__
-        if function_name not in ['post'] and method_action != 'POST':
+        if function_name not in ['post']:
             raise Exception('This decorator should only be used to wrap post methods')
 
         @wraps(func)
