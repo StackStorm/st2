@@ -68,10 +68,15 @@ class MemoryActionAliasDB(stormbase.StormFoundationDB, stormbase.ContentPackReso
 
 
 class ActionAliasTestCase(unittest2.TestCase):
+    '''
+    Test scenarios must consist of 80s movie quotes.
+    '''
     def test_list_format_strings_from_aliases(self):
         ALIASES = [
-            MemoryActionAliasDB(name="kyle_reese", ref="terminator.1", formats=["Come with me if you want to live"]),
-            MemoryActionAliasDB(name="terminator", ref="terminator.2", formats=["I need your {{item}}, your {{item2}} and your {{vehicle}}"])
+            MemoryActionAliasDB(name="kyle_reese", ref="terminator.1",
+                                formats=["Come with me if you want to live"]),
+            MemoryActionAliasDB(name="terminator", ref="terminator.2",
+                                formats=["I need your {{item}}, your {{item2}} and your {{vehicle}}"])
         ]
         result = matching.list_format_strings_from_aliases(ALIASES)
 
@@ -79,6 +84,25 @@ class ActionAliasTestCase(unittest2.TestCase):
 
         self.assertEqual(result[0][0], "Come with me if you want to live")
         self.assertEqual(result[1][0], "I need your {{item}}, your {{item2}} and your {{vehicle}}")
+
+    def test_list_format_strings_from_aliases_with_display(self):
+        ALIASES = [
+            MemoryActionAliasDB(name="johnny_five_alive", ref="short_circuit.1", formats=[
+                {'display': 'Number 5 is {{status}}', 'representation': ['Number 5 is {{status=alive}}']},
+                'Hey, laser lips, your mama was a snow blower.']),
+            MemoryActionAliasDB(name="i_feel_alive", ref="short_circuit.2",
+                                formats=["How do I feel? I feel... {{status}}!"])
+        ]
+        result = matching.list_format_strings_from_aliases(ALIASES)
+
+        self.assertEqual(len(result), 3)
+
+        self.assertEqual(result[0][0], "Number 5 is {{status}}")
+        self.assertEqual(result[0][1], "Number 5 is {{status=alive}}")
+        self.assertEqual(result[1][0], "Hey, laser lips, your mama was a snow blower.")
+        self.assertEqual(result[1][1], "Hey, laser lips, your mama was a snow blower.")
+        self.assertEqual(result[2][0], "How do I feel? I feel... {{status}}!")
+        self.assertEqual(result[2][1], "How do I feel? I feel... {{status}}!")
 
 if __name__ == '__main__':
     unittest2.main()
