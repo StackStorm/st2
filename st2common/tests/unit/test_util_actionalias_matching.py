@@ -104,5 +104,22 @@ class ActionAliasTestCase(unittest2.TestCase):
         self.assertEqual(result[2][0], "How do I feel? I feel... {{status}}!")
         self.assertEqual(result[2][1], "How do I feel? I feel... {{status}}!")
 
+    def test_normalise_alias_format_string(self):
+        result = matching.normalise_alias_format_string('Quite an experience to live in fear, isn\'t it?')
+
+        self.assertEqual([result[0]], result[1])
+        self.assertEqual(result[0], "Quite an experience to live in fear, isn't it?")
+
+    def test_matching(self):
+        ALIASES = [
+            MemoryActionAliasDB(name="spengler", ref="ghostbusters.1",
+                                formats=["{{choice}} cross the {{target}}"]),
+        ]
+        COMMAND = "Don't cross the streams"
+        match = matching.match_command_to_alias(COMMAND, ALIASES)
+        self.assertEqual(len(match), 1)
+        self.assertEqual(match[0][0].ref, "ghostbusters.1")
+        self.assertEqual(match[0][2], "{{choice}} cross the {{target}}")
+
 if __name__ == '__main__':
     unittest2.main()
