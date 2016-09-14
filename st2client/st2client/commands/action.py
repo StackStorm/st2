@@ -547,6 +547,36 @@ class ActionRunCommandMixin(object):
 
         return result
 
+    def _sort_parameters(self, parameters, names):
+        """
+        Sort a provided list of action parameters.
+
+        :type parameters: ``list``
+        :type names: ``list`` or ``set``
+        """
+        sorted_parameters = sorted(names, key=lambda name:
+                                   self._get_parameter_sort_value(
+                                       parameters=parameters,
+                                       name=name))
+
+        return sorted_parameters
+
+    def _get_parameter_sort_value(self, parameters, name):
+        """
+        Return a value which determines sort order for a particular parameter.
+
+        By default, parameters are sorted using "position" parameter attribute.
+        If this attribute is not available, parameter is sorted based on the
+        name.
+        """
+        parameter = parameters.get(name, None)
+
+        if not parameter:
+            return None
+
+        sort_value = parameter.get('position', name)
+        return sort_value
+
     @add_auth_token_to_kwargs_from_cli
     def _print_help(self, args, **kwargs):
         # Print appropriate help message if the help option is given.
@@ -701,36 +731,6 @@ class ActionRunCommandMixin(object):
             'end_timestamp': getattr(task, 'end_timestamp', None)
         })
 
-    def _sort_parameters(self, parameters, names):
-        """
-        Sort a provided list of action parameters.
-
-        :type parameters: ``list``
-        :type names: ``list`` or ``set``
-        """
-        sorted_parameters = sorted(names, key=lambda name:
-                                   self._get_parameter_sort_value(
-                                       parameters=parameters,
-                                       name=name))
-
-        return sorted_parameters
-
-    def _get_parameter_sort_value(self, parameters, name):
-        """
-        Return a value which determines sort order for a particular parameter.
-
-        By default, parameters are sorted using "position" parameter attribute.
-        If this attribute is not available, parameter is sorted based on the
-        name.
-        """
-        parameter = parameters.get(name, None)
-
-        if not parameter:
-            return None
-
-        sort_value = parameter.get('position', name)
-        return sort_value
-
     def _get_inherited_env_vars(self):
         env_vars = os.environ.copy()
 
@@ -742,8 +742,6 @@ class ActionRunCommandMixin(object):
 
         return env_vars
 
-
-class ActionExecutionRunnerCommandMixin(object):
     @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         if self._print_help(args, **kwargs):
@@ -784,7 +782,7 @@ class ActionExecutionRunnerCommandMixin(object):
         return execution
 
 
-class ActionRunCommand(ActionRunCommandMixin, ActionExecutionRunnerCommandMixin,
+class ActionRunCommand(ActionRunCommandMixin,
                        resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
 
@@ -1025,7 +1023,7 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
                           attribute_transform_functions=self.attribute_transform_functions)
 
 
-class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionRunnerCommandMixin,
+class ActionExecutionGetCommand(ActionRunCommandMixin,
                                 ActionExecutionReadCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
@@ -1110,7 +1108,7 @@ class ActionExecutionCancelCommand(resource.ResourceCommand):
         print(message)
 
 
-class ActionExecutionReRunCommand(ActionRunCommandMixin, ActionExecutionRunnerCommandMixin,
+class ActionExecutionReRunCommand(ActionRunCommandMixin,
                                   resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
 

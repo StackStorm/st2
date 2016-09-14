@@ -19,7 +19,7 @@ from st2common.util.actionalias_matching import match_command_to_alias
 
 from st2client import models
 from st2client.models.action_alias import ActionAlias
-from st2client.commands.action import ActionExecutionRunnerCommandMixin
+from st2client.commands.action import ActionRunCommandMixin
 from st2client.commands import resource
 from st2client.formatters import table
 
@@ -92,7 +92,7 @@ class ActionAliasMatchCommand(resource.ResourceCommand):
                           json=args.json, yaml=args.yaml)
 
 
-class ActionAliasExecuteCommand(ActionExecutionRunnerCommandMixin,
+class ActionAliasExecuteCommand(ActionRunCommandMixin,
                                 resource.ResourceCommand):
     display_attributes = ['id', 'name', 'description']
 
@@ -105,6 +105,9 @@ class ActionAliasExecuteCommand(ActionExecutionRunnerCommandMixin,
         self.parser.add_argument('command_text',
                                  metavar='command',
                                  help=help)
+        self.parser.add_argument('-h', '--help',
+                                 action='store_true', dest='help',
+                                 help='Print usage for the given action.')
         self.parser.add_argument('--trace-tag', '--trace_tag',
                                  help='A trace tag string to track execution later.',
                                  dest='trace_tag', required=False)
