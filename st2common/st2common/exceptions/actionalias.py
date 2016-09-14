@@ -21,4 +21,6 @@ __all__ = [
 
 
 class ActionAliasAmbiguityException(StackStormBaseException):
-    pass
+    def __init__(self, msg, matches):
+        self.matches = matches
+        super(ActionAliasAmbiguityException, self).__init__(msg)

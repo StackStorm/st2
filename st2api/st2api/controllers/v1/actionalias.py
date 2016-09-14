@@ -29,8 +29,7 @@ from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_api_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 
-from st2common.util.actionalias_matching import (list_format_strings_from_aliases,
-                                                 match_command_to_alias)
+from st2common.util.actionalias_matching import match_command_to_alias
 
 
 http_client = six.moves.http_client
@@ -80,20 +79,17 @@ class ActionAliasController(resource.ContentPackResourceController):
         try:
             # 1. Get aliases
             aliases = super(ActionAliasController, self)._get_all(**kwargs)
-            
-            LOG.debug(type(aliases))
-
             # 2. Match alias(es) to command
-            match = match_command_to_alias(command, aliases)
-            if len(match) > 1:
-                raise ActionAliasAmbiguityException("Too much choice, not enough action (alias).")
-            LOG.debug('Matched alias')
-            return match
+            matches = match_command_to_alias(command, aliases)
+            if len(matches) > 1:
+                raise ActionAliasAmbiguityException("Command matched more than 1 pattern",
+                                                    matches=matches)
+            return matches
         except (ActionAliasAmbiguityException) as e:
             # TODO : error on unmatched alias
-            LOG.exception('Validation failed for action alias data=%s.', command)
+            LOG.exception('Command matched (%s) patterns.', len(e.matches))
             pecan.abort(http_client.BAD_REQUEST, str(e))
-            return
+            return e.matches
 
     @jsexpose(body_cls=ActionAliasAPI, status_code=http_client.CREATED)
     @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_CREATE)
