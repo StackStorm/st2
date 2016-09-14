@@ -59,7 +59,7 @@ def normalise_alias_format_string(alias_format):
     '''
     display = None
     representation = []
-    
+
     if isinstance(alias_format, six.string_types):
         display = alias_format
         representation.append(alias_format)
@@ -76,7 +76,7 @@ def match_command_to_alias(command, aliases):
     Match the text against an action and return the action reference.
     """
     results = []
-    
+
     for alias in aliases:
         format_strings = list_format_strings_from_aliases([alias])
         for format_string in format_strings:
@@ -85,6 +85,6 @@ def match_command_to_alias(command, aliases):
                                    param_stream=command)
             except ParseException:
                 continue
-    
+
             results.append((alias, format_string[0], format_string[1]))
     return results
