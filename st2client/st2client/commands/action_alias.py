@@ -31,9 +31,12 @@ class ActionAliasBranch(resource.ResourceBranch):
             parent_parser=parent_parser, read_only=False,
             commands={
                 'list': ActionAliasListCommand,
-                'get': ActionAliasGetCommand,
-                'match': ActionAliasMatchCommand
+                'get': ActionAliasGetCommand
             })
+
+        self.commands['match'] = ActionAliasMatchCommand(
+            self.resource, self.app, self.subparsers,
+            add_help=False)
 
 
 class ActionAliasListCommand(resource.ContentPackResourceListCommand):
@@ -51,7 +54,7 @@ class ActionAliasMatchCommand(resource.ResourceCommand):
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionAliasMatchCommand, self).__init__(
-            resource, 'list',
+            resource, 'match',
             'Get the list of %s that match the command text.' %
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
