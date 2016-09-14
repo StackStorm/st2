@@ -100,8 +100,14 @@ class TestActionAlias(FunctionalTest):
         self.__do_delete(post_resp_dup_name.json['id'])
 
     def test_match(self):
-        resp = self.app.match("hello donny")
-        self.assertEqual(resp.status_int, 201)
+        resp = self.app.post("/v1/actionalias/match", params="command=hello%20donny")
+        self.assertEqual(resp.status_int, 202)
+        self.assertEqual(resp.text, '[]')
+
+        resp = self.app.post("/v1/actionalias/match", params="command=Lorem%20ipsum%20banana%20dolor%20sit%20pineapple%20amet.",
+                             expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(str(resp.json['faultstring']), 'Command matched more than 1 pattern')
 
     def _do_post(self, actionalias, expect_errors=False):
         return self.app.post_json('/v1/actionalias', actionalias, expect_errors=expect_errors)
