@@ -77,7 +77,7 @@ class ActionAliasTestCase(unittest2.TestCase):
                                 formats=["Come with me if you want to live"]),
             MemoryActionAliasDB(name="terminator", ref="terminator.2",
                                 formats=["I need your {{item}}, your {{item2}}"
-                                         "and your {{vehicle}}"])
+                                         " and your {{vehicle}}"])
         ]
         result = matching.list_format_strings_from_aliases(ALIASES)
 
@@ -86,7 +86,7 @@ class ActionAliasTestCase(unittest2.TestCase):
         self.assertEqual(result[0][0], "Come with me if you want to live")
         self.assertEqual(result[1][0],
                          "I need your {{item}}, your {{item2}} and"
-                         "your {{vehicle}}")
+                         " your {{vehicle}}")
 
     def test_list_format_strings_from_aliases_with_display(self):
         ALIASES = [
