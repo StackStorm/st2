@@ -121,5 +121,7 @@ class ActionAliasTestCase(unittest2.TestCase):
         self.assertEqual(match[0][0].ref, "ghostbusters.1")
         self.assertEqual(match[0][2], "{{choice}} cross the {{target}}")
 
+    # we need some more complex scenarios in here.
+
 if __name__ == '__main__':
     unittest2.main()
