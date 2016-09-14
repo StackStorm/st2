@@ -78,14 +78,13 @@ def match_command_to_alias(command, aliases):
     results = []
     
     for alias in aliases:
-        # this is lazy, fix up. -ANT
         format_strings = list_format_strings_from_aliases([alias])
         for format_string in format_strings:
             try:
-                extract_parameters(format_str=format_string,
+                extract_parameters(format_str=format_string[1],
                                    param_stream=command)
             except ParseException:
                 continue
     
-            results.append((alias, format_string))
+            results.append((alias, format_string[0], format_string[1]))
     return results

@@ -23,6 +23,7 @@ from six.moves import http_client
 from webob import exc
 import pecan
 import traceback
+
 from oslo_config import cfg
 
 from st2common.constants.pack import DEFAULT_PACK_NAME
@@ -35,9 +36,7 @@ from st2common import log as logging
 
 __all__ = [
     'BaseAPI',
-
     'APIUIDMixin',
-
     'jsexpose'
 ]
 
@@ -283,6 +282,7 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
             try:
                 result = f(*args, **kwargs)
             except TypeError as e:
+                LOG.debug(traceback.format_exc())
                 e = get_exception_for_type_error(func=f, exc=e)
                 raise e
 
