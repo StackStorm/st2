@@ -16,11 +16,11 @@
 from st2common.exceptions.actionalias import ActionAliasAmbiguityException
 from st2common.models.utils.action_alias_utils import extract_parameters_for_action_alias_db
 from st2common.util.actionalias_matching import match_command_to_alias
-from st2common.util import action_db as action_utils
-from st2common.util import reference
 
 from st2client import models
 from st2client.models.action_alias import ActionAlias
+from st2client.models.action import LiveAction
+
 from st2client.commands import resource
 from st2client.formatters import table
 
@@ -42,8 +42,8 @@ class ActionAliasBranch(resource.ResourceBranch):
         self.commands['match'] = ActionAliasMatchCommand(
             self.resource, self.app, self.subparsers,
             add_help=False)
-        self.commands['execute'] = ActionAliasMatchCommand(
-            self.resource, self.app, self.subparsers,
+        self.commands['execute'] = ActionAliasExecuteCommand(
+            LiveAction, self.app, self.subparsers,
             add_help=False)
 
 
