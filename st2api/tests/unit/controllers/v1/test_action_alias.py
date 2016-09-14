@@ -104,9 +104,10 @@ class TestActionAlias(FunctionalTest):
         self.assertEqual(resp.status_int, 202)
         self.assertEqual(resp.text, '[]')
 
-        resp = self.app.post("/v1/actionalias/match",
-                             params="command=Lorem%20ipsum%20banana%20dolor%20sit%20pineapple%20amet.",
-                             expect_errors=True)
+        resp = self.app.post(
+            "/v1/actionalias/match",
+            params="command=Lorem%20ipsum%20banana%20dolor%20sit%20pineapple%20amet.",
+            expect_errors=True)
         self.assertEqual(resp.status_int, 400)
         self.assertEqual(str(resp.json['faultstring']), 'Command matched more than 1 pattern')
 
