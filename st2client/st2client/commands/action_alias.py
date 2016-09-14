@@ -156,9 +156,3 @@ class ActionAliasExecuteCommand(ActionExecutionRunnerCommandMixin,
                                                action_exec_mgr=action_exec_mgr,
                                                args=args, **kwargs)
         return execution
-
-    def run_and_print(self, args, **kwargs):
-        instances = self.run(args, **kwargs)
-        self.print_output(instances, table.MultiColumnTable,
-                          attributes=args.attr, widths=args.width,
-                          json=args.json, yaml=args.yaml)
