@@ -79,7 +79,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             Run a chatops command
 
             Handles requests:
-                POST /chatops/match
+                POST /actionalias/match
 
                 command=hello%20world
         """
@@ -89,12 +89,18 @@ class ActionAliasController(resource.ContentPackResourceController):
             # 2. Match alias(es) to command
             matches = match_command_to_alias(command, aliases)
             if len(matches) > 1:
-                raise ActionAliasAmbiguityException("Command matched more than 1 pattern",
-                                                    matches=matches)
+                raise ActionAliasAmbiguityException("Command '%s' matched more than 1 pattern" %
+                                                    command,
+                                                    matches=matches,
+                                                    command=command)
+            elif len(matches) == 0:
+                raise ActionAliasAmbiguityException("Command '%s' matched no patterns" %
+                                                    command,
+                                                    matches=[],
+                                                    command=command)
             return [self._match_tuple_to_dict(match) for match in matches]
         except (ActionAliasAmbiguityException) as e:
-            # TODO : error on unmatched alias
-            LOG.exception('Command matched (%s) patterns.', len(e.matches))
+            LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
             pecan.abort(http_client.BAD_REQUEST, str(e))
             return [self._match_tuple_to_dict(match) for match in e.matches]
 

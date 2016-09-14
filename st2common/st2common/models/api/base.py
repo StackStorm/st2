@@ -282,7 +282,6 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
             try:
                 result = f(*args, **kwargs)
             except TypeError as e:
-                LOG.debug(traceback.format_exc())
                 e = get_exception_for_type_error(func=f, exc=e)
                 raise e
 

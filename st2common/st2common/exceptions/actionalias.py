@@ -20,7 +20,7 @@ __all__ = [
 ]
 
 
-class ActionAliasAmbiguityException(StackStormBaseException):
+class ActionAliasAmbiguityException(ValueError, StackStormBaseException):
     def __init__(self, msg, matches):
         self.matches = matches
         super(ActionAliasAmbiguityException, self).__init__(msg)

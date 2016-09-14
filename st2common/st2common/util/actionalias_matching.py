@@ -37,8 +37,8 @@ def list_format_strings_from_aliases(aliases):
     '''
     patterns = []
     for alias in aliases:
-        for _format in alias.formats:
-            display, representations = normalise_alias_format_string(_format)
+        for format_ in alias.formats:
+            display, representations = normalise_alias_format_string(format_)
             patterns.extend([(display, representation) for representation in representations])
     return patterns
 
@@ -67,7 +67,8 @@ def normalise_alias_format_string(alias_format):
         display = alias_format['display']
         representation = alias_format['representation']
     else:
-        raise TypeError("alias_format is neither a dictionary or string type.")
+        raise TypeError("alias_format '%s' is neither a dictionary or string type."
+                        % repr(alias_format))
     return (display, representation)
 
 
