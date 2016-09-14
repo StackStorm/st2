@@ -246,22 +246,6 @@ class ActionRunCommandMixin(object):
     def get_resource(self, ref_or_id, **kwargs):
         return self.get_resource_by_ref_or_id(ref_or_id=ref_or_id, **kwargs)
 
-    @add_auth_token_to_kwargs_from_cli
-    def run_and_print(self, args, **kwargs):
-        if self._print_help(args, **kwargs):
-            return
-
-        execution = self.run(args, **kwargs)
-        if args.async:
-            self.print_output('To get the results, execute:\n st2 execution get %s' %
-                              (execution.id), six.text_type)
-        else:
-            self._print_execution_details(execution=execution, args=args, **kwargs)
-
-        if execution.status == 'failed':
-            # Exit with non zero if the action has failed
-            sys.exit(1)
-
     def _add_common_options(self):
         root_arg_grp = self.parser.add_mutually_exclusive_group()
 
@@ -760,6 +744,22 @@ class ActionRunCommandMixin(object):
 
 
 class ActionExecutionRunnerCommandMixin(object):
+    @add_auth_token_to_kwargs_from_cli
+    def run_and_print(self, args, **kwargs):
+        if self._print_help(args, **kwargs):
+            return
+
+        execution = self.run(args, **kwargs)
+        if args.async:
+            self.print_output('To get the results, execute:\n st2 execution get %s' %
+                              (execution.id), six.text_type)
+        else:
+            self._print_execution_details(execution=execution, args=args, **kwargs)
+
+        if execution.status == 'failed':
+            # Exit with non zero if the action has failed
+            sys.exit(1)
+
     def _get_execution_result(self, execution, action_exec_mgr, args, **kwargs):
         pending_statuses = [
             LIVEACTION_STATUS_REQUESTED,
