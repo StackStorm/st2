@@ -102,15 +102,9 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
             'Execute the command text by finding a matching ActionAlias.',
             *args, **kwargs)
 
-        self.parser.add_argument('match_text',
+        self.parser.add_argument('command_text',
                                  metavar='command',
                                  help=help)
-
-        self.parser.add_argument('-a', '--attr', nargs='+',
-                                 default=self.display_attributes,
-                                 help=('List of attributes to include in the '
-                                       'output. "all" will return all '
-                                       'attributes.'))
         self.parser.add_argument('--trace-tag', '--trace_tag',
                                  help='A trace tag string to track execution later.',
                                  dest='trace_tag', required=False)
@@ -122,14 +116,11 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
                                  help='Do not wait for action to finish.')
         self.parser.add_argument('-u', '--user', type=str, default=None,
                                  help='User under which to run the action (admins only).')
-        self.parser.add_argument('-w', '--width', nargs='+', type=int,
-                                 default=None,
-                                 help=('Set the width of columns in output.'))
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         aliases = self.manager.get_all(**kwargs)
-        matches = match_command_to_alias(args.match_text, aliases)
+        matches = match_command_to_alias(args.command_text, aliases)
         if len(matches) > 1:
             raise ActionAliasAmbiguityException("Too many matches for provided command",
                                                 matches=matches)
@@ -146,7 +137,7 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
         execution_parameters = extract_parameters_for_action_alias_db(
             action_alias_db=action_alias_db,
             format_str=matches[2],
-            param_stream=args.match_text)
+            param_stream=args.command_text)
 
         execution = models.LiveAction()
         execution.action = action_alias_db.action_ref
