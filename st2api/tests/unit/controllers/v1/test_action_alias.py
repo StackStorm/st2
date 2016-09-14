@@ -99,6 +99,10 @@ class TestActionAlias(FunctionalTest):
         self.__do_delete(post_resp.json['id'])
         self.__do_delete(post_resp_dup_name.json['id'])
 
+    def test_match(self):
+        resp = self.app.match("hello donny")
+        self.assertEqual(resp.status_int, 201)
+
     def _do_post(self, actionalias, expect_errors=False):
         return self.app.post_json('/v1/actionalias', actionalias, expect_errors=expect_errors)
 
