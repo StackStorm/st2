@@ -14,13 +14,12 @@
 # limitations under the License.
 
 from st2common.exceptions.actionalias import ActionAliasAmbiguityException
-from st2common.models.utils.action_alias_utils import extract_parameters_for_action_alias_db
+from st2common.models.utils.action_alias_utils import extract_parameters
 from st2common.util.actionalias_matching import match_command_to_alias
 
 from st2client import models
 from st2client.models.action_alias import ActionAlias
-from st2client.models.action import LiveAction
-
+from st2client.commands.action import ActionExecutionRunnerCommandMixin
 from st2client.commands import resource
 from st2client.formatters import table
 
@@ -43,7 +42,7 @@ class ActionAliasBranch(resource.ResourceBranch):
             self.resource, self.app, self.subparsers,
             add_help=False)
         self.commands['execute'] = ActionAliasExecuteCommand(
-            LiveAction, self.app, self.subparsers,
+            self.resource, self.app, self.subparsers,
             add_help=False)
 
 
@@ -93,7 +92,8 @@ class ActionAliasMatchCommand(resource.ResourceCommand):
                           json=args.json, yaml=args.yaml)
 
 
-class ActionAliasExecuteCommand(resource.ResourceCommand):
+class ActionAliasExecuteCommand(ActionExecutionRunnerCommandMixin,
+                                resource.ResourceCommand):
     display_attributes = ['id', 'name', 'description']
 
     def __init__(self, resource, *args, **kwargs):
@@ -134,9 +134,8 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
             raise ValueError('Action alias with name "%s" is disabled.' %
                              (action_alias_db.ref))
 
-        execution_parameters = extract_parameters_for_action_alias_db(
-            action_alias_db=action_alias_db,
-            format_str=matches[2],
+        execution_parameters = extract_parameters(
+            format_str=match[2],
             param_stream=args.command_text)
 
         execution = models.LiveAction()

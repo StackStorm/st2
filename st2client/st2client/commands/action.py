@@ -398,29 +398,6 @@ class ActionRunCommandMixin(object):
                               yaml=args.yaml,
                               attribute_transform_functions=self.attribute_transform_functions)
 
-    def _get_execution_result(self, execution, action_exec_mgr, args, **kwargs):
-        pending_statuses = [
-            LIVEACTION_STATUS_REQUESTED,
-            LIVEACTION_STATUS_SCHEDULED,
-            LIVEACTION_STATUS_RUNNING,
-            LIVEACTION_STATUS_CANCELING
-        ]
-
-        if not args.async:
-            while execution.status in pending_statuses:
-                time.sleep(self.poll_interval)
-                if not args.json and not args.yaml:
-                    sys.stdout.write('.')
-                    sys.stdout.flush()
-                execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
-
-            sys.stdout.write('\n')
-
-            if execution.status == LIVEACTION_STATUS_CANCELED:
-                return execution
-
-        return execution
-
     def _get_top_level_error(self, live_action):
         """
         Retrieve a top level workflow error.
@@ -782,7 +759,33 @@ class ActionRunCommandMixin(object):
         return env_vars
 
 
-class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
+class ActionExecutionRunnerCommandMixin(object):
+    def _get_execution_result(self, execution, action_exec_mgr, args, **kwargs):
+        pending_statuses = [
+            LIVEACTION_STATUS_REQUESTED,
+            LIVEACTION_STATUS_SCHEDULED,
+            LIVEACTION_STATUS_RUNNING,
+            LIVEACTION_STATUS_CANCELING
+        ]
+
+        if not args.async:
+            while execution.status in pending_statuses:
+                time.sleep(self.poll_interval)
+                if not args.json and not args.yaml:
+                    sys.stdout.write('.')
+                    sys.stdout.flush()
+                execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
+
+            sys.stdout.write('\n')
+
+            if execution.status == LIVEACTION_STATUS_CANCELED:
+                return execution
+
+        return execution
+
+
+class ActionRunCommand(ActionRunCommandMixin, ActionExecutionRunnerCommandMixin,
+                       resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
 
         super(ActionRunCommand, self).__init__(
@@ -1022,7 +1025,8 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
                           attribute_transform_functions=self.attribute_transform_functions)
 
 
-class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
+class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionRunnerCommandMixin,
+                                ActionExecutionReadCommand):
     display_attributes = ['id', 'action.ref', 'context.user', 'parameters', 'status',
                           'start_timestamp', 'end_timestamp', 'result', 'liveaction']
 
@@ -1106,7 +1110,8 @@ class ActionExecutionCancelCommand(resource.ResourceCommand):
         print(message)
 
 
-class ActionExecutionReRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
+class ActionExecutionReRunCommand(ActionRunCommandMixin, ActionExecutionRunnerCommandMixin,
+                                  resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
 
         super(ActionExecutionReRunCommand, self).__init__(
