@@ -94,8 +94,6 @@ class ActionAliasMatchCommand(resource.ResourceCommand):
 
 class ActionAliasExecuteCommand(ActionRunCommandMixin,
                                 resource.ResourceCommand):
-    display_attributes = ['id', 'name', 'description']
-    poll_interval = 2
     def __init__(self, resource, *args, **kwargs):
         super(ActionAliasExecuteCommand, self).__init__(
             resource, 'execute',
