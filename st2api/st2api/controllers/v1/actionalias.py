@@ -68,7 +68,7 @@ class ActionAliasController(resource.ContentPackResourceController):
         return super(ActionAliasController, self)._get_one(ref_or_id)
 
     @jsexpose(arg_types=[str], status_code=http_client.ACCEPTED)
-    def match(self, command):
+    def match(self, command, **kwargs):
         """
             Run a chatops command
 
@@ -79,11 +79,15 @@ class ActionAliasController(resource.ContentPackResourceController):
         """
         try:
             # 1. Get aliases
-            aliases = self.get_all()
+            aliases = super(ActionAliasController, self)._get_all(**kwargs)
+            
+            LOG.debug(type(aliases))
+
             # 2. Match alias(es) to command
             match = match_command_to_alias(command, aliases)
             if len(match) > 1:
                 raise ActionAliasAmbiguityException("Too much choice, not enough action (alias).")
+            LOG.debug('Matched alias')
             return match
         except (ActionAliasAmbiguityException) as e:
             # TODO : error on unmatched alias
