@@ -56,6 +56,13 @@ class ActionAliasController(resource.ContentPackResourceController):
         'match': ['POST']
     }
 
+    def _match_tuple_to_dict(self, match):
+        return {
+            'actionalias': match[0],
+            'display': match[1],
+            'representation': match[2]
+        }
+
     @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
@@ -84,12 +91,12 @@ class ActionAliasController(resource.ContentPackResourceController):
             if len(matches) > 1:
                 raise ActionAliasAmbiguityException("Command matched more than 1 pattern",
                                                     matches=matches)
-            return matches
+            return [self._match_tuple_to_dict(match) for match in matches]
         except (ActionAliasAmbiguityException) as e:
             # TODO : error on unmatched alias
             LOG.exception('Command matched (%s) patterns.', len(e.matches))
             pecan.abort(http_client.BAD_REQUEST, str(e))
-            return e.matches
+            return [self._match_tuple_to_dict(match) for match in e.matches]
 
     @jsexpose(body_cls=ActionAliasAPI, status_code=http_client.CREATED)
     @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_CREATE)
