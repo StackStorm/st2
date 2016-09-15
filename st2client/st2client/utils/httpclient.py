@@ -86,7 +86,6 @@ class HTTPClient(object):
 
     @add_ssl_verify_to_kwargs
     @add_auth_token_to_headers
-    @add_json_content_type_to_headers
     def post_raw(self, url, data, **kwargs):
         response = requests.post(self.root + url, data, **kwargs)
         response = self._response_hook(response=response)

@@ -346,8 +346,11 @@ class ActionAliasResourceManager(ResourceManager):
         response = self.client.post_raw(url, query_str, **kwargs)
         if response.status_code != 201:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
-        return instance
+        matches = response.json()
+        if len(matches) > 0:
+            return self.resource.deserialize(matches[0]['actionalias'])
+        else:
+            return None
 
 
 class LiveActionResourceManager(ResourceManager):

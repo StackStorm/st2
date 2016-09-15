@@ -52,7 +52,7 @@ class ActionAliasGetCommand(resource.ContentPackResourceGetCommand):
 
 
 class ActionAliasMatchCommand(resource.ResourceCommand):
-    display_attributes = ['id', 'name', 'description']
+    display_attributes = ['name', 'description']
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionAliasMatchCommand, self).__init__(
@@ -76,8 +76,7 @@ class ActionAliasMatchCommand(resource.ResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        matches = self.manager.match(args.match_text, **kwargs)
-        return [match['actionalias'] for match in matches]  # show only alias objects
+        return [self.manager.match(args.match_text, **kwargs)]
 
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
