@@ -13,29 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from six.moves.urllib.parse import urlencode
-
 from st2client.models import core
 
 __all__ = [
-    'ActionAlias'
+    'ActionAliasExecution'
 ]
 
 
-class ActionAlias(core.Resource):
-    _alias = 'Action-Alias'
-    _display_name = 'Action Alias'
-    _plural = 'ActionAliases'
+class ActionAliasExecution(core.Resource):
+    _alias = 'Action-Alias-Execution'
+    _display_name = 'ActionAlias Execution'
+    _plural = 'ActionAliasExecutions'
     _plural_display_name = 'Runners'
-    _url_path = 'actionalias'
-    _repr_attributes = ['name', 'pack', 'action_ref']
-
-    @core.add_auth_token_to_kwargs_from_env
-    def match(self, command, **kwargs):
-        url = '/%s/match' % self.resource.get_url_path_name()
-        query_str = urlencode({'command': command})
-        response = self.client.post(url, query_str, **kwargs)
-        if response.status_code != 201:
-            self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
-        return instance
+    _url_path = 'actionaliasexecution'
+    _repr_attributes = ['name', 'format', 'command', 'user', 'source_channel', 'notification_channel'
+                        'notification_route']
