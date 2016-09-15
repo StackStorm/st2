@@ -25,6 +25,6 @@ class ActionAliasExecution(core.Resource):
     _display_name = 'ActionAlias Execution'
     _plural = 'ActionAliasExecutions'
     _plural_display_name = 'Runners'
-    _url_path = 'actionaliasexecution'
+    _url_path = 'aliasexecution'
     _repr_attributes = ['name', 'format', 'command', 'user', 'source_channel',
                         'notification_channel', 'notification_route']
