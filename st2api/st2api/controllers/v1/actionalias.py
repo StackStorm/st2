@@ -22,6 +22,7 @@ from st2common import log as logging
 from st2common.exceptions.actionalias import ActionAliasAmbiguityException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.action import ActionAliasAPI
+from st2common.models.api.action import ActionAliasMatchAPI
 from st2common.persistence.actionalias import ActionAlias
 from st2common.models.api.base import jsexpose
 from st2common.rbac.types import PermissionType
@@ -73,8 +74,8 @@ class ActionAliasController(resource.ContentPackResourceController):
     def get_one(self, ref_or_id):
         return super(ActionAliasController, self)._get_one(ref_or_id)
 
-    @jsexpose(arg_types=[str], status_code=http_client.ACCEPTED)
-    def match(self, command, **kwargs):
+    @jsexpose(arg_types=[str], body_cls=ActionAliasMatchAPI, status_code=http_client.ACCEPTED)
+    def match(self, action_alias_match_api, **kwargs):
         """
             Run a chatops command
 
@@ -83,6 +84,8 @@ class ActionAliasController(resource.ContentPackResourceController):
 
                 command=hello%20world
         """
+        command = action_alias_match_api.command
+
         try:
             # 1. Get aliases
             aliases = super(ActionAliasController, self)._get_all(**kwargs)

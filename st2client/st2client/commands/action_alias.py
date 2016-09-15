@@ -14,12 +14,15 @@
 # limitations under the License.
 
 from st2client.models.action_alias import ActionAlias
+from st2client.models.action_alias import ActionAliasMatch
 from st2client.models.aliasexecution import ActionAliasExecution
 from st2client.commands import resource
 from st2client.formatters import table
 
 __all__ = [
-    'ActionAliasBranch'
+    'ActionAliasBranch',
+    'ActionAliasMatchCommand',
+    'ActionAliasExecuteCommand'
 ]
 
 
@@ -76,7 +79,10 @@ class ActionAliasMatchCommand(resource.ResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        match, _ = self.manager.match(args.match_text, **kwargs)
+        alias_match = ActionAliasMatch()
+        alias_match.command = args.match_text
+
+        match, _ = self.manager.match(alias_match, **kwargs)
         return [match]
 
     def run_and_print(self, args, **kwargs):
@@ -124,7 +130,10 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        action_alias, representation = self.manager.match(args.command_text, **kwargs)
+        alias_match = ActionAliasMatch()
+        alias_match.command = args.command_text
+
+        action_alias, representation = self.manager.match(alias_match, **kwargs)
 
         execution = ActionAliasExecution()
         execution.name = action_alias.name
