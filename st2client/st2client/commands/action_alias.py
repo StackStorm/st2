@@ -13,9 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client import models
 from st2client.models.action_alias import ActionAlias
-from st2client.commands.action import ActionRunCommandMixin
+from st2client.models.aliasexecution import ActionAliasExecution
 from st2client.commands import resource
 from st2client.formatters import table
 
@@ -119,7 +118,7 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
         match = matches[0]
         action_alias = match['actionalias']
 
-        execution = models.ActionAliasExecution()
+        execution = ActionAliasExecution()
         execution.name = action_alias['name']
         execution.format = match['representation']
         execution.command = args.match_text
