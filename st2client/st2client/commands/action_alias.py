@@ -88,7 +88,7 @@ class ActionAliasMatchCommand(resource.ResourceCommand):
 
 class ActionAliasExecuteCommand(resource.ResourceCommand):
     display_attributes = ['name']
-    
+
     def __init__(self, resource, *args, **kwargs):
         super(ActionAliasExecuteCommand, self).__init__(
             resource, 'execute',
@@ -138,8 +138,9 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
         action_exec_mgr = self.app.client.managers['ActionAliasExecution']
 
         execution = action_exec_mgr.create(execution, **kwargs)
-        return execution.message
+        return execution
 
     def run_and_print(self, args, **kwargs):
-        message = self.run(args, **kwargs)
-        self.print_output(message)
+        execution = self.run(args, **kwargs)
+        print("Started execution, id '%s'" % execution.execution['id'])
+        print(execution.message)
