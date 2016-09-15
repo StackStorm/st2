@@ -111,7 +111,7 @@ class TestActionAlias(FunctionalTest):
             expect_errors=True)
         self.assertEqual(resp.status_int, 400)
         self.assertEqual(str(resp.json['faultstring']),
-                         "Command 'Lorem ipsum banana dolor sit pineapple amet.'"
+                         "Command 'Lorem ipsum banana dolor sit pineapple amet.' "
                          "matched more than 1 pattern")
 
     def _do_post(self, actionalias, expect_errors=False):
