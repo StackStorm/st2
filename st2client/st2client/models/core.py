@@ -21,7 +21,6 @@ from functools import wraps
 import six
 
 from six.moves import urllib
-from six.moves.urllib.parse import urlencode
 
 from st2client.utils import httpclient
 
