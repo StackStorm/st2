@@ -76,7 +76,8 @@ class ActionAliasMatchCommand(resource.ResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return [self.manager.match(args.match_text, **kwargs)]
+        match, _ = self.manager.match(args.match_text, **kwargs)
+        return [match]
 
     def run_and_print(self, args, **kwargs):
         instances = self.run(args, **kwargs)
@@ -112,15 +113,12 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        matches = self.manager.match(args.match_text, **kwargs)
-
-        match = matches[0]
-        action_alias = match['actionalias']
+        action_alias, representation = self.manager.match(args.command_text, **kwargs)
 
         execution = ActionAliasExecution()
-        execution.name = action_alias['name']
-        execution.format = match['representation']
-        execution.command = args.match_text
+        execution.name = action_alias.name
+        execution.format = representation
+        execution.command = args.command_text
         execution.source_channel = 'cli'  # ?
         execution.notification_channel = None
         execution.notification_route = None

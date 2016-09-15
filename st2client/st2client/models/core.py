@@ -348,7 +348,8 @@ class ActionAliasResourceManager(ResourceManager):
             self.handle_error(response)
         matches = response.json()
         if len(matches) > 0:
-            return self.resource.deserialize(matches[0]['actionalias'])
+            return (self.resource.deserialize(matches[0]['actionalias']),
+                    matches[0]['representation'])
         else:
             return None
 
