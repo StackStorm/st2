@@ -14,64 +14,21 @@
 # limitations under the License.
 
 import unittest2
-import mongoengine as me
+import mock
 
-from st2common.constants.types import ResourceType
-from st2common.models.db import stormbase
+from st2common.models.db.actionalias import ActionAliasDB
 import st2common.util.actionalias_matching as matching
 
 
-class MemoryActionAliasDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMixin,
-                          stormbase.UIDFieldMixin):
-    """
-    Database entity that represent an Alias for an action.
-
-    Attribute:
-        pack: Pack to which this alias belongs to.
-        name: Alias name.
-        ref: Alias reference (pack + name).
-        enabled: A flag indicating whether this alias is enabled in the system.
-        action_ref: Reference of an action this alias belongs to.
-        formats: Alias format strings.
-    """
-
-    RESOURCE_TYPE = ResourceType.ACTION
-    UID_FIELDS = ['pack', 'name']
-
-    name = me.StringField(required=True)
-    ref = me.StringField(required=True)
-    description = me.StringField()
-    pack = me.StringField(
-        required=True,
-        help_text='Name of the content pack.',
-        unique_with='name')
-    enabled = me.BooleanField(
-        required=True, default=True,
-        help_text='A flag indicating whether the action alias is enabled.')
-    action_ref = me.StringField(
-        required=True,
-        help_text='Reference of the Action map this alias.')
-    formats = me.ListField(
-        help_text='Possible parameter formats that an alias supports.')
-    ack = me.DictField(
-        help_text='Parameters pertaining to the acknowledgement message.'
-    )
-    result = me.DictField(
-        help_text='Parameters pertaining to the execution result message.'
-    )
-    extra = me.DictField(
-        help_text='Additional parameters (usually adapter-specific) not covered in the schema.'
-    )
-
-    def __init__(self, *args, **values):
-        super(MemoryActionAliasDB, self).__init__(*args, **values)
+MemoryActionAliasDB = ActionAliasDB
 
 
+@mock.patch.object(MemoryActionAliasDB, 'get_uid')
 class ActionAliasTestCase(unittest2.TestCase):
     '''
     Test scenarios must consist of 80s movie quotes.
     '''
-    def test_list_format_strings_from_aliases(self):
+    def test_list_format_strings_from_aliases(self, mock):
         ALIASES = [
             MemoryActionAliasDB(name="kyle_reese", ref="terminator.1",
                                 formats=["Come with me if you want to live"]),
@@ -88,7 +45,7 @@ class ActionAliasTestCase(unittest2.TestCase):
                          "I need your {{item}}, your {{item2}} and"
                          " your {{vehicle}}")
 
-    def test_list_format_strings_from_aliases_with_display(self):
+    def test_list_format_strings_from_aliases_with_display(self, mock):
         ALIASES = [
             MemoryActionAliasDB(name="johnny_five_alive", ref="short_circuit.1", formats=[
                 {'display': 'Number 5 is {{status}}',
@@ -108,14 +65,14 @@ class ActionAliasTestCase(unittest2.TestCase):
         self.assertEqual(result[2][0], "How do I feel? I feel... {{status}}!")
         self.assertEqual(result[2][1], "How do I feel? I feel... {{status}}!")
 
-    def test_normalise_alias_format_string(self):
+    def test_normalise_alias_format_string(self, mock):
         result = matching.normalise_alias_format_string(
             'Quite an experience to live in fear, isn\'t it?')
 
         self.assertEqual([result[0]], result[1])
         self.assertEqual(result[0], "Quite an experience to live in fear, isn't it?")
 
-    def test_matching(self):
+    def test_matching(self, mock):
         ALIASES = [
             MemoryActionAliasDB(name="spengler", ref="ghostbusters.1",
                                 formats=["{{choice}} cross the {{target}}"]),
