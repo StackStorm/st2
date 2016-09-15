@@ -451,7 +451,8 @@ class ActionAliasPermissionsResolver(ContentPackResourcePermissionsResolver):
         if permission_type == PermissionType.ACTION_ALIAS_LIST:
             return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
         elif permission_type == PermissionType.ACTION_ALIAS_MATCH:
-            return self._user_has_global_permission(user_db=user_db, permission_type=permission_type)
+            return self._user_has_global_permission(user_db=user_db,
+                                                    permission_type=permission_type)
         else:
             raise ValueError('Unsupported permission type: %s' % (permission_type))
 
