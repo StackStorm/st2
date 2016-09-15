@@ -74,6 +74,7 @@ class ActionAliasController(resource.ContentPackResourceController):
     def get_one(self, ref_or_id):
         return super(ActionAliasController, self)._get_one(ref_or_id)
 
+    @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_MATCH)
     @jsexpose(arg_types=[str], body_cls=ActionAliasMatchAPI, status_code=http_client.ACCEPTED)
     def match(self, action_alias_match_api, **kwargs):
         """
@@ -81,8 +82,6 @@ class ActionAliasController(resource.ContentPackResourceController):
 
             Handles requests:
                 POST /actionalias/match
-
-                command=hello%20world
         """
         command = action_alias_match_api.command
 
