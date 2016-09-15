@@ -87,7 +87,7 @@ class ActionAliasMatchCommand(resource.ResourceCommand):
                           json=args.json, yaml=args.yaml)
 
 
-class ActionAliasExecuteCommand(ActionRunCommandMixin):
+class ActionAliasExecuteCommand(resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(ActionAliasExecuteCommand, self).__init__(
             resource, 'execute',
