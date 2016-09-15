@@ -343,7 +343,7 @@ class ActionAliasResourceManager(ResourceManager):
     def match(self, command, **kwargs):
         url = '/%s/match' % self.resource.get_url_path_name()
         query_str = urlencode({'command': command})
-        response = self.client.post(url, query_str, **kwargs)
+        response = self.client.post_raw(url, query_str, **kwargs)
         if response.status_code != 201:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
