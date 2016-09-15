@@ -21,6 +21,7 @@ __all__ = [
 
 
 class ActionAliasAmbiguityException(ValueError, StackStormBaseException):
-    def __init__(self, msg, matches):
+    def __init__(self, msg, command, matches):
         self.matches = matches
+        self.command = command
         super(ActionAliasAmbiguityException, self).__init__(msg)
