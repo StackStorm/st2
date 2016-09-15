@@ -94,6 +94,9 @@ class Client(object):
             models.Action, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['ActionAlias'] = ActionAliasResourceManager(
             models.ActionAlias, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['ActionAliasExecution'] = ResourceManager(
+            models.ActionAliasExecution, self.endpoints['api'],
+            cacert=self.cacert, debug=self.debug)
         self.managers['ApiKey'] = ResourceManager(
             models.ApiKey, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['LiveAction'] = LiveActionResourceManager(

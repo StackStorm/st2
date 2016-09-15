@@ -36,7 +36,11 @@ __all__ = [
     'ActionCreateAPI',
     'LiveActionAPI',
     'LiveActionCreateAPI',
-    'RunnerTypeAPI'
+    'RunnerTypeAPI',
+
+    'AliasExecutionAPI',
+    'ActionAliasAPI',
+    'ActionAliasMatchAPI'
 ]
 
 
@@ -631,6 +635,35 @@ class AliasExecutionAPI(BaseAPI):
     @classmethod
     def to_model(cls, aliasexecution):
         # probably should be unsupported
+        raise NotImplementedError()
+
+    @classmethod
+    def from_model(cls, aliasexecution):
+        raise NotImplementedError()
+
+
+class ActionAliasMatchAPI(BaseAPI):
+    """
+    API model used for alias match API endpoint.
+    """
+    model = None
+
+    schema = {
+        "title": "ActionAliasMatchAPI",
+        "description": "ActionAliasMatchAPI.",
+        "type": "object",
+        "properties": {
+            "command": {
+                "type": "string",
+                "description": "Command string to try to match the aliases against.",
+                "required": True
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, aliasexecution):
         raise NotImplementedError()
 
     @classmethod
