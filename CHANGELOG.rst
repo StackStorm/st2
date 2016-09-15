@@ -13,6 +13,15 @@ In development
 * Allow users to specify sort order when listing traces using the API endpoint by specifying
   ``?sort_desc=True|False`` query parameters and by passing ``--sort=asc|desc`` parameter to
   the ``st2 trace list`` CLI command. (improvement)
+* Add new ``POST /v1/actionalias/match`` API endpoint which allows users to perform ChatOps action
+  alias matching server-side. This makes it easier to build and maintain StackStorm ChatOps
+  clients / adapters for various protocols and mediums. Clients can now be very thin wrappers
+  around this new API endpoint.
+
+  Also add two new corresponding CLI commands - ``st2 alias-execution match`` and
+  ``st2 alias-execution execute``. (new feature) #2895
+
+  Contributed by Anthony Shaw
 
 2.0.0 - August 31, 2016
 -----------------------
