@@ -124,10 +124,13 @@ class ActionAliasExecuteCommand(ActionRunCommandMixin,
         matches = match_command_to_alias(args.command_text, aliases)
         if len(matches) > 1:
             raise ActionAliasAmbiguityException("Too many matches for provided command",
+                                                command=args.command_text,
                                                 matches=matches)
         elif len(matches) == 0:
             raise ActionAliasAmbiguityException("Could not locate an ActionAlias with a "
-                                                "matching format command", matches=matches)
+                                                "matching format command",
+                                                command=args.command_text,
+                                                matches=matches)
         match = matches[0]
         action_alias_db = match[0]
 
