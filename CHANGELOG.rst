@@ -22,6 +22,8 @@ In development
   ``st2 alias-execution execute``. (new feature) #2895
 
   Contributed by Anthony Shaw
+* Fix a bug with action default parameter values not supporting Jinja template
+  notation for parameters of type ``object``. (bug fix, improvement)
 
 2.0.0 - August 31, 2016
 -----------------------
