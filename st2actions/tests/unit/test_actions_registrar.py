@@ -96,6 +96,19 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
     @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
     @mock.patch.object(action_validator, '_get_runner_model',
                        mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
+    def test_register_action_invalid_parameter_name(self):
+        registrar = actions_registrar.ActionsRegistrar()
+        loader = fixtures_loader.FixturesLoader()
+        action_file = loader.get_fixture_file_path_abs(
+            'generic', 'actions', 'action_invalid_parameter_name.yaml')
+
+        expected_msg = 'Additional properties are not allowed \(\'action-name\' was unexpected\)'
+        self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
+                                registrar._register_action, 'dummy', action_file)
+
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(return_value=True))
+    @mock.patch.object(action_validator, '_get_runner_model',
+                       mock.MagicMock(return_value=MOCK_RUNNER_TYPE_DB))
     def test_invalid_params_schema(self):
         registrar = actions_registrar.ActionsRegistrar()
         loader = fixtures_loader.FixturesLoader()
