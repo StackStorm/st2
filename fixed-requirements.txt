@@ -13,7 +13,7 @@ pyyaml>=3.11,<4.0
 requests[security]>=2.11.1,<2.12
 apscheduler>=3.0.5,<3.1
 gitpython==0.3.2.1
-jsonschema>=2.3.0
+jsonschema>=2.5.0,<2.6
 mongoengine==0.10.6
 pymongo==3.2.2
 passlib>=1.6.2,<1.7

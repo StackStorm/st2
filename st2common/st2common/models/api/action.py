@@ -97,7 +97,8 @@ class RunnerTypeAPI(BaseAPI):
                 "type": "object",
                 "patternProperties": {
                     "^\w+$": util_schema.get_action_parameters_schema()
-                }
+                },
+                'additionalProperties': False
             }
         },
         "additionalProperties": False
@@ -189,6 +190,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "patternProperties": {
                     "^\w+$": util_schema.get_action_parameters_schema()
                 },
+                'additionalProperties': False,
                 "default": {}
             },
             "tags": {
@@ -334,7 +336,8 @@ class LiveActionAPI(BaseAPI):
                             {"type": "null"}
                         ]
                     }
-                }
+                },
+                'additionalProperties': False
             },
             "result": {
                 "anyOf": [{"type": "array"},
