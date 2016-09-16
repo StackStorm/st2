@@ -24,6 +24,12 @@ In development
   Contributed by Anthony Shaw
 * Fix a bug with action default parameter values not supporting Jinja template
   notation for parameters of type ``object``. (bug fix, improvement)
+* Only allow valid word characters (``a-z``, ``0-9`` and ``_``) to be used for action parameter
+  names. Previously, due to bug in the code, any character was allowed.
+
+  If you have an existing action definition which uses parameter with an invalid character, the
+  parameter name needs to be adjusted otherwise action registration will fail. (bug fix,
+  improvement)
 
 2.0.0 - August 31, 2016
 -----------------------
