@@ -181,7 +181,7 @@ def _resolve_dependencies(G):
                         value = _render(dict(template=value), context)
                         rendered_dict[key] = value
 
-                context[name] = rendered_dict
+                    context[name] = rendered_dict
             else:
                 context[name] = _render(node, context)
         except Exception as e:
