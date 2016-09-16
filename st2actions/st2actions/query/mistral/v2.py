@@ -102,7 +102,10 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: ``list``
         """
-        wf_tasks = tasks.TaskManager(self._client).list(workflow_execution_id=exec_id)
+        wf_tasks = [
+            tasks.TaskManager(self._client).get(task.id)
+            for task in tasks.TaskManager(self._client).list(workflow_execution_id=exec_id)
+        ]
 
         return [self._format_task_result(task=wf_task.to_dict()) for wf_task in wf_tasks]
 
