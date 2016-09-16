@@ -97,7 +97,8 @@ class ActionExecutionAPI(BaseAPI):
                             {"type": "string"}
                         ]
                     }
-                }
+                },
+                'additionalProperties': False
             },
             "context": {
                 "type": "object"
