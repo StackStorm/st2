@@ -330,6 +330,7 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
                                          ' "action_alias_view" permission.'),
     PermissionType.ACTION_ALIAS_MODIFY: ('Ability to modify (update) an existing action alias. '
                                          'Also implies "action_alias_view" permission.'),
+    PermissionType.ACTION_ALIAS_MATCH: ('Ability use action alias match API endpoint.'),
     PermissionType.ACTION_ALIAS_DELETE: ('Ability to delete an existing action alias. Also '
                                          'imples "action_alias_view" permission.'),
     PermissionType.ACTION_ALIAS_ALL: ('Ability to perform all the supported operations on a '
