@@ -13,6 +13,8 @@ In development
 * Allow users to specify sort order when listing traces using the API endpoint by specifying
   ``?sort_desc=True|False`` query parameters and by passing ``--sort=asc|desc`` parameter to
   the ``st2 trace list`` CLI command. (improvement)
+* Fix a bug with action default parameter values not supporting Jinja template
+  notation for parameters of type ``object``. (bug fix, improvement)
 
 2.0.0 - August 31, 2016
 -----------------------
