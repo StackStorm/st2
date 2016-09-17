@@ -504,10 +504,8 @@ class ActionRunCommandMixin(object):
 
         def transform_array(value):
             try:
-                print "Transforming %s" % value
                 result = json.loads(value)
             except ValueError:
-                print "Failed"
                 result = (lambda value: [v.strip() for v in value.split(',')])
             return result
 
