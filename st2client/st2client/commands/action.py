@@ -506,7 +506,7 @@ class ActionRunCommandMixin(object):
             try:
                 result = json.loads(value)
             except ValueError:
-                result = (lambda value: [v.strip() for v in value.split(',')])
+                result = [v.strip() for v in value.split(',')]
             return result
 
         transformer = {
