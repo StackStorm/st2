@@ -111,6 +111,7 @@ function st2start(){
     sudo mkdir -p $PACKS_BASE_DIR/default/actions/
     sudo mkdir -p $PACKS_BASE_DIR/default/rules/
     sudo mkdir -p $VIRTUALENVS_DIR
+    sudo mkdir -p $RUNNERS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $RUNNERS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $VIRTUALENVS_DIR
