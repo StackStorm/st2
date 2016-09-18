@@ -214,7 +214,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
                         'pluto': False,
                         'earth': True
                     }
-                    ]
+                ]
             }
         }
         httpclient.HTTPClient.post.assert_called_with('/executions', expected)
@@ -329,7 +329,7 @@ class ActionCommandTestCase(base.BaseCLITestCase):
                         'pluto': False,
                         'earth': True
                     }
-                    ]
+                ]
             }
         }
         httpclient.HTTPClient.post.assert_called_with('/executions', expected)
