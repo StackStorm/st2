@@ -30,6 +30,8 @@ In development
   If you have an existing action definition which uses parameter with an invalid character, the
   parameter name needs to be adjusted otherwise action registration will fail. (bug fix,
   improvement)
+* Adding ability to pass complex array types via CLI by first trying to
+  seralize the array as JSON and then falling back to comma seperated array.
 
 2.0.0 - August 31, 2016
 -----------------------
