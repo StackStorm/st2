@@ -139,8 +139,8 @@ class ActionsRegistrar(ResourceRegistrar):
             if is_invalid_parameter_name:
                 parameter_name = re.search('\'(.+?)\' was unexpected', msg).groups()[0]
                 new_msg = ('Parameter name "%s" is invalid. Valid characters for parameter name '
-                           'are [a-zA-Z0-0_]' % (parameter_name))
-                new_msg += '\n' + msg
+                           'are [a-zA-Z0-0_].' % (parameter_name))
+                new_msg += '\n\n' + msg
                 raise jsonschema.ValidationError(new_msg)
             raise e
 
