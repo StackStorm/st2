@@ -33,6 +33,7 @@ RUNNER1 = {
         "int": {"type": "integer"},
         "float": {"type": "number"},
         "json": {"type": "object"},
+        "list": {"type": "array"},
         "str": {"type": "string"}
     },
     "name": "mock-runner1"
@@ -63,6 +64,7 @@ ACTION2 = {
         "int": {"type": "integer"},
         "float": {"type": "number"},
         "json": {"type": "object"},
+        "list": {"type": "array"},
         "str": {"type": "string"}
     },
     "enabled": True,
@@ -167,6 +169,65 @@ class ActionCommandTestCase(base.BaseCLITestCase):
     @mock.patch.object(
         httpclient.HTTPClient, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_runner_param_array_conversion(self):
+        self.shell.run(['run', 'mockety.mock1', 'list=one,two,three'])
+        expected = {
+            'action': 'mockety.mock1',
+            'user': None,
+            'parameters': {
+                'list': [
+                    'one',
+                    'two',
+                    'three'
+                ]
+            }
+        }
+        httpclient.HTTPClient.post.assert_called_with('/executions', expected)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_runner_param_array_object_conversion(self):
+        self.shell.run(
+            [
+                'run',
+                'mockety.mock1',
+                'list=[{"foo":1, "ponies":"rainbows"},{"pluto":false, "earth":true}]'
+            ]
+        )
+        expected = {
+            'action': 'mockety.mock1',
+            'user': None,
+            'parameters': {
+                'list': [
+                    {
+                        'foo': 1,
+                        'ponies': 'rainbows'
+                    },
+                    {
+                        'pluto': False,
+                        'earth': True
+                    }
+                ]
+            }
+        }
+        httpclient.HTTPClient.post.assert_called_with('/executions', expected)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
     def test_param_bool_conversion(self):
         self.shell.run(['run', 'mockety.mock2', 'bool=false'])
         expected = {'action': 'mockety.mock2', 'user': None, 'parameters': {'bool': False}}
@@ -212,6 +273,65 @@ class ActionCommandTestCase(base.BaseCLITestCase):
     def test_param_json_conversion(self):
         self.shell.run(['run', 'mockety.mock2', 'json={"a":1}'])
         expected = {'action': 'mockety.mock2', 'user': None, 'parameters': {'json': {'a': 1}}}
+        httpclient.HTTPClient.post.assert_called_with('/executions', expected)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_param_array_conversion(self):
+        self.shell.run(['run', 'mockety.mock2', 'list=one,two,three'])
+        expected = {
+            'action': 'mockety.mock2',
+            'user': None,
+            'parameters': {
+                'list': [
+                    'one',
+                    'two',
+                    'three'
+                ]
+            }
+        }
+        httpclient.HTTPClient.post.assert_called_with('/executions', expected)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_param_array_object_conversion(self):
+        self.shell.run(
+            [
+                'run',
+                'mockety.mock2',
+                'list=[{"foo":1, "ponies":"rainbows"},{"pluto":false, "earth":true}]'
+            ]
+        )
+        expected = {
+            'action': 'mockety.mock2',
+            'user': None,
+            'parameters': {
+                'list': [
+                    {
+                        'foo': 1,
+                        'ponies': 'rainbows'
+                    },
+                    {
+                        'pluto': False,
+                        'earth': True
+                    }
+                ]
+            }
+        }
         httpclient.HTTPClient.post.assert_called_with('/executions', expected)
 
     @mock.patch.object(

@@ -502,8 +502,15 @@ class ActionRunCommandMixin(object):
                     result[key] = value
             return result
 
+        def transform_array(value):
+            try:
+                result = json.loads(value)
+            except ValueError:
+                result = [v.strip() for v in value.split(',')]
+            return result
+
         transformer = {
-            'array': (lambda cs_x: [v.strip() for v in cs_x.split(',')]),
+            'array': transform_array,
             'boolean': (lambda x: ast.literal_eval(x.capitalize())),
             'integer': int,
             'number': float,
