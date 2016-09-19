@@ -93,7 +93,41 @@ class PermissionsResolver(object):
         rules_list, action_list, etc.).
         """
         assert PermissionType.get_permission_name(permission_type) == 'list'
+        return self._user_has_global_permission(user_db=user_db, permission_type=permission_type)
 
+        log_context = {
+            'user_db': user_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        permission_types = [permission_type]
+
+        # Check direct grants
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               permission_types=permission_types)
+        if len(permission_grants) >= 1:
+            self._log('Found a direct grant', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
+    def _user_has_global_permission(self, user_db, permission_type):
+        """
+        Custom method for checking if user has a particular global permission which doesn't apply
+        to a specific resource but it's system-wide aka global permission.
+        """
         log_context = {
             'user_db': user_db,
             'permission_type': permission_type,
@@ -411,8 +445,16 @@ class ActionAliasPermissionsResolver(ContentPackResourcePermissionsResolver):
     ]
 
     def user_has_permission(self, user_db, permission_type):
-        assert permission_type in [PermissionType.ACTION_ALIAS_LIST]
-        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+        assert permission_type in [PermissionType.ACTION_ALIAS_LIST,
+                                   PermissionType.ACTION_ALIAS_MATCH]
+
+        if permission_type == PermissionType.ACTION_ALIAS_LIST:
+            return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+        elif permission_type == PermissionType.ACTION_ALIAS_MATCH:
+            return self._user_has_global_permission(user_db=user_db,
+                                                    permission_type=permission_type)
+        else:
+            raise ValueError('Unsupported permission type: %s' % (permission_type))
 
     def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
         assert permission_type in [PermissionType.ACTION_ALIAS_CREATE]

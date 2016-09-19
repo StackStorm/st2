@@ -79,7 +79,8 @@ class TraceDB(stormbase.StormFoundationDB):
             {'fields': ['start_timestamp']},
             {'fields': ['action_executions.object_id']},
             {'fields': ['trigger_instances.object_id']},
-            {'fields': ['rules.object_id']}
+            {'fields': ['rules.object_id']},
+            {'fields': ['-start_timestamp', 'trace_tag']},
         ]
     }
 

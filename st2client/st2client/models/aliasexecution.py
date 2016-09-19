@@ -13,13 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models.core import *         # noqa
-from st2client.models.auth import *       # noqa
-from st2client.models.action import *       # noqa
-from st2client.models.action_alias import *  # noqa
-from st2client.models.aliasexecution import *  # noqa
-from st2client.models.keyvalue import *    # noqa
-from st2client.models.policy import *       # noqa
-from st2client.models.reactor import *      # noqa
-from st2client.models.trace import *      # noqa
-from st2client.models.webhook import *      # noqa
+from st2client.models import core
+
+__all__ = [
+    'ActionAliasExecution'
+]
+
+
+class ActionAliasExecution(core.Resource):
+    _alias = 'Action-Alias-Execution'
+    _display_name = 'ActionAlias Execution'
+    _plural = 'ActionAliasExecutions'
+    _plural_display_name = 'Runners'
+    _url_path = 'aliasexecution'
+    _repr_attributes = ['name', 'format', 'command', 'user', 'source_channel',
+                        'notification_channel', 'notification_route']

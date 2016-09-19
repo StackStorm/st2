@@ -220,6 +220,11 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'path': '/v1/actionalias/aliases.alias1',
                 'method': 'DELETE'
             },
+            {
+                'path': '/v1/actionalias/match',
+                'method': 'POST',
+                'payload': {'command': 'test command string'}
+            },
             # Rules
             {
                 'path': '/v1/rules',

@@ -7,6 +7,31 @@ In development
 * Fix ``st2 execution get`` command so now ``--attr`` argument correctly works with child
   properties of the ``result`` and ``trigger_instance`` dictionary (e.g. ``--attr
   result.stdout result.stderr``). (bug fix)
+* Update traces list API endpoint and ``st2 trace list`` so the traces are sorted by
+  ``start_timestamp`` in descending order by default. This way it's consistent with executions
+  list and ``-n`` CLI parameter works as expected. (improvement)
+* Allow users to specify sort order when listing traces using the API endpoint by specifying
+  ``?sort_desc=True|False`` query parameters and by passing ``--sort=asc|desc`` parameter to
+  the ``st2 trace list`` CLI command. (improvement)
+* Add new ``POST /v1/actionalias/match`` API endpoint which allows users to perform ChatOps action
+  alias matching server-side. This makes it easier to build and maintain StackStorm ChatOps
+  clients / adapters for various protocols and mediums. Clients can now be very thin wrappers
+  around this new API endpoint.
+
+  Also add two new corresponding CLI commands - ``st2 alias-execution match`` and
+  ``st2 alias-execution execute``. (new feature) #2895
+
+  Contributed by Anthony Shaw
+* Fix a bug with action default parameter values not supporting Jinja template
+  notation for parameters of type ``object``. (bug fix, improvement)
+* Only allow valid word characters (``a-z``, ``0-9`` and ``_``) to be used for action parameter
+  names. Previously, due to bug in the code, any character was allowed.
+
+  If you have an existing action definition which uses parameter with an invalid character, the
+  parameter name needs to be adjusted otherwise action registration will fail. (bug fix,
+  improvement)
+* Adding ability to pass complex array types via CLI by first trying to
+  seralize the array as JSON and then falling back to comma seperated array.
 
 2.0.0 - August 31, 2016
 -----------------------

@@ -19,14 +19,19 @@ import six
 from mongoengine import ValidationError
 from st2api.controllers import resource
 from st2common import log as logging
+from st2common.exceptions.actionalias import ActionAliasAmbiguityException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.action import ActionAliasAPI
+from st2common.models.api.action import ActionAliasMatchAPI
 from st2common.persistence.actionalias import ActionAlias
 from st2common.models.api.base import jsexpose
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_api_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
+
+from st2common.util.actionalias_matching import match_command_to_alias
+
 
 http_client = six.moves.http_client
 
@@ -48,6 +53,17 @@ class ActionAliasController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
+    _custom_actions = {
+        'match': ['POST']
+    }
+
+    def _match_tuple_to_dict(self, match):
+        return {
+            'actionalias': match[0],
+            'display': match[1],
+            'representation': match[2]
+        }
+
     @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
@@ -57,6 +73,38 @@ class ActionAliasController(resource.ContentPackResourceController):
     @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return super(ActionAliasController, self)._get_one(ref_or_id)
+
+    @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_MATCH)
+    @jsexpose(arg_types=[str], body_cls=ActionAliasMatchAPI, status_code=http_client.ACCEPTED)
+    def match(self, action_alias_match_api, **kwargs):
+        """
+            Run a chatops command
+
+            Handles requests:
+                POST /actionalias/match
+        """
+        command = action_alias_match_api.command
+
+        try:
+            # 1. Get aliases
+            aliases = super(ActionAliasController, self)._get_all(**kwargs)
+            # 2. Match alias(es) to command
+            matches = match_command_to_alias(command, aliases)
+            if len(matches) > 1:
+                raise ActionAliasAmbiguityException("Command '%s' matched more than 1 pattern" %
+                                                    command,
+                                                    matches=matches,
+                                                    command=command)
+            elif len(matches) == 0:
+                raise ActionAliasAmbiguityException("Command '%s' matched no patterns" %
+                                                    command,
+                                                    matches=[],
+                                                    command=command)
+            return [self._match_tuple_to_dict(match) for match in matches]
+        except (ActionAliasAmbiguityException) as e:
+            LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
+            pecan.abort(http_client.BAD_REQUEST, str(e))
+            return [self._match_tuple_to_dict(match) for match in e.matches]
 
     @jsexpose(body_cls=ActionAliasAPI, status_code=http_client.CREATED)
     @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_CREATE)

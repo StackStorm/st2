@@ -120,6 +120,7 @@ class ConfigSchemaAPI(BaseAPI):
                 "patternProperties": {
                     "^\w+$": util_schema.get_action_parameters_schema()
                 },
+                'additionalProperties': False,
                 "default": {}
             }
         },

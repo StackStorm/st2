@@ -123,6 +123,12 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
                                  default=50,
                                  help=('List N most recent %s.' %
                                        resource.get_plural_display_name().lower()))
+        self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
+                                 default='descending',
+                                 help=('Sort %s by start timestamp, '
+                                       'asc|ascending (earliest first) '
+                                       'or desc|descending (latest first)' %
+                                       resource.get_plural_display_name().lower()))
 
         # Filter options
         self.group.add_argument('-c', '--trace-tag', help='Trace-tag to filter the list.')
@@ -151,6 +157,12 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
             kwargs['execution'] = args.execution
         if args.rule:
             kwargs['rule'] = args.rule
+
+        if args.sort_order:
+            if args.sort_order in ['asc', 'ascending']:
+                kwargs['sort_asc'] = True
+            elif args.sort_order in ['desc', 'descending']:
+                kwargs['sort_desc'] = True
 
         return self.manager.query(limit=args.last, **kwargs)
 
