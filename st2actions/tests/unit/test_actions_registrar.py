@@ -102,7 +102,8 @@ class ActionsRegistrarTest(tests_base.DbTestCase):
         action_file = loader.get_fixture_file_path_abs(
             'generic', 'actions', 'action_invalid_parameter_name.yaml')
 
-        expected_msg = 'Additional properties are not allowed \(\'action-name\' was unexpected\)'
+        expected_msg = ('Parameter name "action-name" is invalid. Valid characters for '
+                        'parameter name are')
         self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
                                 registrar._register_action, 'dummy', action_file)
 
