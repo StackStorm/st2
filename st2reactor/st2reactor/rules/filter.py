@@ -192,8 +192,8 @@ class PayloadLookup(object):
             TRIGGER_PAYLOAD_PREFIX: payload
         }
 
-        for SYSTEM_SCOPE in SYSTEM_SCOPES:
-            self._context[SYSTEM_SCOPE] = KeyValueLookup(scope=SYSTEM_SCOPE)
+        for system_scope in SYSTEM_SCOPES:
+            self._context[system_scope] = KeyValueLookup(scope=system_scope)
 
     def get_value(self, lookup_key):
         expr = parse(lookup_key)

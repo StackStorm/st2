@@ -190,9 +190,9 @@ class Notifier(consumers.MessageHandler):
                 raise Exception('Failed notifications to routes: %s' % ', '.join(failed_routes))
 
     def _build_jinja_context(self, liveaction, execution):
-        context = dict()
-        for SYSTEM_SCOPE in SYSTEM_SCOPES:
-            context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        context = {}
+        for system_scope in SYSTEM_SCOPES:
+            context.update({system_scope: KeyValueLookup(scope=system_scope)})
         context.update({ACTION_PARAMETERS_KV_PREFIX: liveaction.parameters})
         context.update({ACTION_CONTEXT_KV_PREFIX: liveaction.context})
         context.update({ACTION_RESULTS_KV_PREFIX: execution.result})

@@ -74,8 +74,8 @@ def _create_graph(action_context):
     Creates a generic directed graph for depencency tree and fills it with basic context variables
     '''
     G = nx.DiGraph()
-    for SYSTEM_SCOPE in SYSTEM_SCOPES:
-        G.add_node(SYSTEM_SCOPE, value=KeyValueLookup(scope=SYSTEM_SCOPE))
+    for system_scope in SYSTEM_SCOPES:
+        G.add_node(system_scope, value=KeyValueLookup(scope=system_scope))
     G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
     return G
 

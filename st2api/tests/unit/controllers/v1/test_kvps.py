@@ -15,6 +15,8 @@
 
 from tests import FunctionalTest
 
+from st2common.persistence.keyvalue import KeyValuePair
+
 KVP = {
     'name': 'keystone_endpoint',
     'value': 'http://127.0.0.1:5000/v3'
@@ -29,6 +31,12 @@ KVP_2_USER = {
     'name': 'keystone_version',
     'value': 'user_v3',
     'scope': 'st2user'
+}
+
+KVP_2_USER_LEGACY = {
+    'name': 'keystone_version',
+    'value': 'user_v3',
+    'scope': 'user'
 }
 
 KVP_3_USER = {
@@ -145,12 +153,33 @@ class TestKeyValuePairController(FunctionalTest):
                           expect_errors=False)
         self.app.put_json('/v1/keys/%s?scope=st2user' % 'keystone_version', KVP_2_USER,
                           expect_errors=False)
+
+        # Note that the following two calls overwrite st2sytem and st2user scoped variables with
+        # same name.
+        self.app.put_json('/v1/keys/%s?scope=system' % 'keystone_version', KVP_2,
+                          expect_errors=False)
+        self.app.put_json('/v1/keys/%s?scope=user' % 'keystone_version', KVP_2_USER_LEGACY,
+                          expect_errors=False)
+
+        get_resp_all = self.app.get('/v1/keys?scope=all')
+        self.assertTrue(len(get_resp_all.json), 2)
+
         get_resp_sys = self.app.get('/v1/keys?scope=st2system')
         self.assertTrue(len(get_resp_sys.json), 1)
         self.assertEqual(get_resp_sys.json[0]['value'], KVP_2['value'])
+
+        get_resp_sys = self.app.get('/v1/keys?scope=system')
+        self.assertTrue(len(get_resp_sys.json), 1)
+        self.assertEqual(get_resp_sys.json[0]['value'], KVP_2['value'])
+
         get_resp_sys = self.app.get('/v1/keys?scope=st2user')
         self.assertTrue(len(get_resp_sys.json), 1)
         self.assertEqual(get_resp_sys.json[0]['value'], KVP_2_USER['value'])
+
+        get_resp_sys = self.app.get('/v1/keys?scope=user')
+        self.assertTrue(len(get_resp_sys.json), 1)
+        self.assertEqual(get_resp_sys.json[0]['value'], KVP_2_USER['value'])
+
         self.app.delete('/v1/keys/keystone_version?scope=st2system')
         self.app.delete('/v1/keys/keystone_version?scope=st2user')
 

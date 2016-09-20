@@ -66,7 +66,7 @@ class DataTransformTest(DbTestCase):
         k5 = KeyValuePair.add_or_update(KeyValuePairDB(name='k5', value='v5'))
         k6 = KeyValuePair.add_or_update(KeyValuePairDB(name='k6', value='v6'))
         k7 = KeyValuePair.add_or_update(KeyValuePairDB(name='k7', value='v7'))
-        k8 = KeyValuePair.add_or_update(KeyValuePairDB(name='k7', value='v8',
+        k8 = KeyValuePair.add_or_update(KeyValuePairDB(name='k8', value='v8',
                                                        scope=DEPRECATED_SYSTEM_SCOPE))
 
         try:

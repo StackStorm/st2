@@ -20,6 +20,7 @@ from mongoengine import ValidationError
 
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
+from st2common.constants.keyvalue import DEPRECATED_SYSTEM_SCOPE, DEPRECATED_USER_SCOPE
 from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, ALLOWED_SCOPES
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
@@ -61,13 +62,17 @@ class KeyValuePairController(ResourceController):
         self.get_one_db_method = self._get_by_name
 
     @jsexpose(arg_types=[str, str, str, bool])
-    def get_one(self, name, scope=SYSTEM_SCOPE, user=None, decrypt=False):
+    def get_one(self, name, scope=None, user=None, decrypt=False):
         """
             List key by name.
 
             Handle:
                 GET /keys/key1
         """
+        if not scope:
+            scope = SYSTEM_SCOPE
+
+        scope = self._get_new_scope(scope)
         self._validate_scope(scope=scope)
 
         if user:
@@ -96,17 +101,21 @@ class KeyValuePairController(ResourceController):
         return kvp_api
 
     @jsexpose(arg_types=[str, str, str, bool])
-    def get_all(self, prefix=None, scope=SYSTEM_SCOPE, user=None, decrypt=False, **kwargs):
+    def get_all(self, prefix=None, scope=None, user=None, decrypt=False, **kwargs):
         """
             List all keys.
 
             Handles requests:
                 GET /keys/
         """
+        if not scope:
+            scope = SYSTEM_SCOPE
+
         if user:
             # Providing a user implies a user scope
             scope = USER_SCOPE
 
+        scope = self._get_new_scope(scope)
         requester_user = get_requester()
         user = user or requester_user
         is_all_scope = (scope == 'all')
@@ -144,15 +153,18 @@ class KeyValuePairController(ResourceController):
         return kvp_apis
 
     @jsexpose(arg_types=[str, str, str], body_cls=KeyValuePairSetAPI)
-    def put(self, kvp, name, scope=SYSTEM_SCOPE):
+    def put(self, kvp, name, scope=None):
         """
         Create a new entry or update an existing one.
         """
-        self._validate_scope(scope=scope)
-
+        if not scope:
+            scope = SYSTEM_SCOPE
         requester_user = get_requester()
 
         scope = getattr(kvp, 'scope', scope)
+        scope = self._get_new_scope(scope)
+        self._validate_scope(scope=scope)
+
         user = getattr(kvp, 'user', requester_user) or requester_user
 
         # Validate that the authenticated user is admin if user query param is provided
@@ -203,13 +215,17 @@ class KeyValuePairController(ResourceController):
         return kvp_api
 
     @jsexpose(arg_types=[str, str, str], status_code=http_client.NO_CONTENT)
-    def delete(self, name, scope=SYSTEM_SCOPE, user=None):
+    def delete(self, name, scope=None, user=None):
         """
             Delete the key value pair.
 
             Handles requests:
                 DELETE /keys/1
         """
+        if not scope:
+            scope = SYSTEM_SCOPE
+
+        scope = self._get_new_scope(scope)
         self._validate_scope(scope=scope)
 
         requester_user = get_requester()
@@ -272,3 +288,12 @@ class KeyValuePairController(ResourceController):
         if scope not in ALLOWED_SCOPES:
             msg = 'Scope %s is not in allowed scopes list: %s.' % (scope, ALLOWED_SCOPES)
             raise ValueError(msg)
+
+    def _get_new_scope(self, scope):
+        if scope == DEPRECATED_SYSTEM_SCOPE:
+            return SYSTEM_SCOPE
+
+        if scope == DEPRECATED_USER_SCOPE:
+            return USER_SCOPE
+
+        return scope

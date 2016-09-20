@@ -193,8 +193,8 @@ class ChainHolder(object):
         if not vars:
             return {}
         context = {}
-        for SYSTEM_SCOPE in SYSTEM_SCOPES:
-            context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        for system_scope in SYSTEM_SCOPES:
+            context.update({system_scope: KeyValueLookup(scope=system_scope)})
         context.update(action_parameters)
         return jinja_utils.render_values(mapping=vars, context=context)
 
@@ -465,8 +465,8 @@ class ActionChainRunner(ActionRunner):
         context.update(previous_execution_results)
         context.update(chain_vars)
         context.update({RESULTS_KEY: previous_execution_results})
-        for SYSTEM_SCOPE in SYSTEM_SCOPES:
-            context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        for system_scope in SYSTEM_SCOPES:
+            context.update({system_scope: KeyValueLookup(scope=system_scope)})
 
         try:
             rendered_result = jinja_utils.render_values(mapping=action_node.publish,
@@ -488,8 +488,8 @@ class ActionChainRunner(ActionRunner):
         context.update(results)
         context.update(chain_vars)
         context.update({RESULTS_KEY: results})
-        for SYSTEM_SCOPE in SYSTEM_SCOPES:
-            context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        for system_scope in SYSTEM_SCOPES:
+            context.update({system_scope: KeyValueLookup(scope=system_scope)})
         context.update({ACTION_CONTEXT_KV_PREFIX: chain_context})
         try:
             rendered_params = jinja_utils.render_values(mapping=action_node.get_parameters(),
