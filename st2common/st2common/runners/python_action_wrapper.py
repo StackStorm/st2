@@ -20,7 +20,7 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2actions import config
-from st2actions.runners.pythonrunner import Action
+from st2common.runners.base_action import Action
 from st2common.runners.utils import get_logger_for_python_runner_action
 from st2common.runners.utils import get_action_class_instance
 from st2common.util import loader as action_loader

@@ -33,7 +33,7 @@
   description: A runner to execute local actions as a fixed user.
   enabled: true
   name: local-shell-script
-  runner_module: st2actions.runners.localrunner
+  runner_module: localrunner
   runner_parameters:
     cwd:
       description: Working directory where the script will be executed in

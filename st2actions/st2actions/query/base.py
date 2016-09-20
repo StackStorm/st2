@@ -20,7 +20,7 @@ import six
 import time
 
 from st2actions.container.service import RunnerContainerService
-from st2actions.runners import get_runner
+from st2common.runners import get_runner
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.persistence.executionstate import ActionExecutionState

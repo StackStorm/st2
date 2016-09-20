@@ -20,7 +20,7 @@ import datetime
 
 from jsonschema import exceptions as json_schema_exceptions
 
-from st2actions.runners import ActionRunner
+from st2common.runners import ActionRunner
 from st2common import log as logging
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED

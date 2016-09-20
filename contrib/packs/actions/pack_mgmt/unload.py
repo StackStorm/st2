@@ -16,7 +16,7 @@
 from oslo_config import cfg
 
 from st2common.models.db import db_setup
-from st2actions.runners.pythonrunner import Action as BaseAction
+from st2common.runners.base_action import Action as BaseAction
 from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 from st2common.persistence.reactor import SensorType

@@ -13,19 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
+
 import six
 
-from st2common.runners.base_action import Action
+from st2common.runners.utils import get_logger_for_python_runner_action
 
 
-class PacksTransformationAction(Action):
-    def run(self, packs_status):
+@six.add_metaclass(abc.ABCMeta)
+class Action(object):
+    """
+    Base action class other Python actions should inherit from.
+    """
+
+    description = None
+
+    def __init__(self, config=None, action_service=None):
         """
-        :param packs_status: Result from packs.download action.
-        :type: packs_status: ``dict``
+        :param config: Action config.
+        :type config: ``dict``
+
+        :param action_service: ActionService object.
+        :type action_service: :class:`ActionService~
         """
-        packs = []
-        for pack_name, status in six.iteritems(packs_status):
-            if 'success' in status.lower():
-                packs.append(pack_name)
-        return packs
+        self.config = config or {}
+        self.action_service = action_service
+        self.logger = get_logger_for_python_runner_action(action_name=self.__class__.__name__)
+
+    @abc.abstractmethod
+    def run(self, **kwargs):
+        pass

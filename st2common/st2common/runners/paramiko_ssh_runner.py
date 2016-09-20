@@ -18,10 +18,10 @@ import os
 from oslo_config import cfg
 import six
 
-from st2actions.runners import ShellRunnerMixin
-from st2actions.runners import ActionRunner
+from st2common.runners import ShellRunnerMixin
+from st2common.runners import ActionRunner
 from st2common.constants.runners import REMOTE_RUNNER_PRIVATE_KEY_HEADER
-from st2actions.runners.ssh.parallel_ssh import ParallelSSHClient
+from st2common.runners.ssh.parallel_ssh import ParallelSSHClient
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT

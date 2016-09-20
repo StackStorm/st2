@@ -22,7 +22,7 @@ import yaml
 from mistralclient.api import client as mistral
 from oslo_config import cfg
 
-from st2actions.runners import AsyncActionRunner
+from st2common.runners import AsyncActionRunner
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common import log as logging
 from st2common.models.api.notification import NotificationsHelper

@@ -4,8 +4,8 @@ import time
 
 from oslo_config import cfg
 
-from st2actions.runners.pythonrunner import Action
-from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
+from st2common.runners.base_action import Action
+from st2common.runners.paramiko_ssh import ParamikoSSHClient
 
 
 class BaseAction(Action):
