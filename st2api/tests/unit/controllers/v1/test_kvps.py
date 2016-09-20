@@ -15,8 +15,6 @@
 
 from tests import FunctionalTest
 
-from st2common.persistence.keyvalue import KeyValuePair
-
 KVP = {
     'name': 'keystone_endpoint',
     'value': 'http://127.0.0.1:5000/v3'

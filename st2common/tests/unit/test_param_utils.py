@@ -449,8 +449,8 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(r_action_params['cmd'], "echo 1.7.0")
 
     def test_get_finalized_params_older_kv_scopes_backwards_compatibility(self):
-        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='cmd_to_run', value='echo MELANIA',
-                                                       scope=DEPRECATED_SYSTEM_SCOPE))
+        KeyValuePair.add_or_update(KeyValuePairDB(name='cmd_to_run', value='echo MELANIA',
+                                                  scope=DEPRECATED_SYSTEM_SCOPE))
         # k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='ivanka:cmd_to_run',
         #                                                value='echo MA DAD IS GREAT',
         #                                                scope=DEPRECATED_USER_SCOPE))

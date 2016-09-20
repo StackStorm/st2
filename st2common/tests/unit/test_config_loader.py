@@ -14,7 +14,6 @@
 # limitations under the License.s
 
 from st2tests.base import DbTestCase
-from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services.config import set_datastore_value_for_config_key
 from st2common.util.config_loader import ContentPackConfigLoader
 

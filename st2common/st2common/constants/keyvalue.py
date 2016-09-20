@@ -31,7 +31,7 @@ SYSTEM_SCOPES = [DEPRECATED_SYSTEM_SCOPE, SYSTEM_SCOPE]
 
 # Namespace to contain all user scoped variables in key-value store.
 USER_SCOPE = 'st2user'
-DEPRECATED_USER_SCOPE = 'user' # XXX: Deprecate {{user.}} in next release
+DEPRECATED_USER_SCOPE = 'user'  # XXX: Deprecate {{user.}} in next release
 USER_SCOPES = [DEPRECATED_USER_SCOPE, USER_SCOPE]
 
 USER_SEPARATOR = ':'
