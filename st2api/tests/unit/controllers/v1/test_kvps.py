@@ -28,20 +28,20 @@ KVP_2 = {
 KVP_2_USER = {
     'name': 'keystone_version',
     'value': 'user_v3',
-    'scope': 'user'
+    'scope': 'st2user'
 }
 
 KVP_3_USER = {
     'name': 'keystone_endpoint',
     'value': 'http://127.0.1.1:5000/v3',
-    'scope': 'user'
+    'scope': 'st2user'
 }
 
 KVP_4_USER = {
     'name': 'customer_ssn',
     'value': '123-456-7890',
     'secret': True,
-    'scope': 'user'
+    'scope': 'st2user'
 }
 
 KVP_WITH_TTL = {

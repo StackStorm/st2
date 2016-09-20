@@ -29,7 +29,7 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.action import LIVEACTION_FAILED_STATES
-from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.keyvalue import SYSTEM_SCOPES
 from st2common.content.loader import MetaLoader
 from st2common.exceptions.action import (ParameterRenderingFailedException,
                                          InvalidActionReferencedException)
@@ -192,7 +192,9 @@ class ChainHolder(object):
     def _get_rendered_vars(vars, action_parameters):
         if not vars:
             return {}
-        context = {SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)}
+        context = {}
+        for SYSTEM_SCOPE in SYSTEM_SCOPES:
+            context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
         context.update(action_parameters)
         return jinja_utils.render_values(mapping=vars, context=context)
 
@@ -463,7 +465,8 @@ class ActionChainRunner(ActionRunner):
         context.update(previous_execution_results)
         context.update(chain_vars)
         context.update({RESULTS_KEY: previous_execution_results})
-        context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        for SYSTEM_SCOPE in SYSTEM_SCOPES:
+            context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
 
         try:
             rendered_result = jinja_utils.render_values(mapping=action_node.publish,
@@ -485,7 +488,8 @@ class ActionChainRunner(ActionRunner):
         context.update(results)
         context.update(chain_vars)
         context.update({RESULTS_KEY: results})
-        context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        for SYSTEM_SCOPE in SYSTEM_SCOPES:
+            context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
         context.update({ACTION_CONTEXT_KV_PREFIX: chain_context})
         try:
             rendered_params = jinja_utils.render_values(mapping=action_node.get_parameters(),
@@ -556,7 +560,7 @@ class ActionChainRunner(ActionRunner):
             'parent': parent_context,
             'chain': vars(action_node)
         }
-
+        print('Resolved params: %s' % resolved_params)
         liveaction.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
                                                                params=resolved_params)
         return liveaction

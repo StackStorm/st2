@@ -68,8 +68,8 @@ class DataTransformTest(DbTestCase):
         try:
             transformer = datatransform.get_transformer(PAYLOAD)
             mapping = {'ip5': '{{trigger.k2}}-static',
-                       'ip6': '{{system.k6}}-static',
-                       'ip7': '{{system.k7}}-static'}
+                       'ip6': '{{st2system.k6}}-static',
+                       'ip7': '{{st2system.k7}}-static'}
             result = transformer(mapping)
             expected = {'ip5': 'v2-static',
                         'ip6': 'v6-static',

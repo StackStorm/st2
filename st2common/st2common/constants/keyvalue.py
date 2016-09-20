@@ -16,24 +16,27 @@
 __all__ = [
     'ALLOWED_SCOPES',
     'SYSTEM_SCOPE',
+    'SYSTEM_SCOPES',
     'USER_SCOPE',
+    'USER_SCOPES',
     'USER_SEPARATOR',
 
     'DATASTORE_KEY_SEPARATOR'
 ]
 
 # Namespace to contain all system/global scoped variables in key-value store.
-SYSTEM_SCOPE = 'system'
+SYSTEM_SCOPE = 'st2system'
+DEPRECATED_SYSTEM_SCOPE = 'system'  # XXX: Deprecate {{system.}} in next release
+SYSTEM_SCOPES = [DEPRECATED_SYSTEM_SCOPE, SYSTEM_SCOPE]
 
 # Namespace to contain all user scoped variables in key-value store.
-USER_SCOPE = 'user'
+USER_SCOPE = 'st2user'
+DEPRECATED_USER_SCOPE = 'user' # XXX: Deprecate {{user.}} in next release
+USER_SCOPES = [DEPRECATED_USER_SCOPE, USER_SCOPE]
 
 USER_SEPARATOR = ':'
 
-ALLOWED_SCOPES = [
-    SYSTEM_SCOPE,
-    USER_SCOPE
-]
+ALLOWED_SCOPES = SYSTEM_SCOPES + USER_SCOPES
 
 # Separator for keys in the datastore
 DATASTORE_KEY_SEPARATOR = ':'

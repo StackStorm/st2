@@ -11,9 +11,10 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License.
+# limitations under the License.s
 
 from st2tests.base import DbTestCase
+from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services.config import set_datastore_value_for_config_key
 from st2common.util.config_loader import ContentPackConfigLoader
 

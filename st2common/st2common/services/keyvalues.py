@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, ALLOWED_SCOPES
+from st2common.constants.keyvalue import SYSTEM_SCOPE, SYSTEM_SCOPES
+from st2common.constants.keyvalue import USER_SCOPE, USER_SCOPES
+from st2common.constants.keyvalue import ALLOWED_SCOPES
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
 from st2common.models.system.keyvalue import UserKeyReference
@@ -161,9 +163,9 @@ def get_key_reference(scope, name, user=None):
 
     :rtype: ``str``
     """
-    if scope == SYSTEM_SCOPE:
+    if scope in SYSTEM_SCOPES:
         return name
-    elif scope == USER_SCOPE:
+    elif scope in USER_SCOPES:
         if not user:
             raise InvalidUserException('A valid user must be specified for user key ref.')
         return UserKeyReference(name=name, user=user).ref
