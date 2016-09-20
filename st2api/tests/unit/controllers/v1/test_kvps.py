@@ -107,33 +107,33 @@ class TestKeyValuePairController(FunctionalTest):
     def test_put_with_scope(self):
         self.app.put_json('/v1/keys/%s' % 'keystone_endpoint', KVP,
                           expect_errors=False)
-        self.app.put_json('/v1/keys/%s?scope=system' % 'keystone_version', KVP_2,
+        self.app.put_json('/v1/keys/%s?scope=st2system' % 'keystone_version', KVP_2,
                           expect_errors=False)
 
         get_resp_1 = self.app.get('/v1/keys/keystone_endpoint')
         self.assertTrue(get_resp_1.status_int, 200)
         self.assertEqual(self.__get_kvp_id(get_resp_1), 'keystone_endpoint')
-        get_resp_2 = self.app.get('/v1/keys/keystone_version?scope=system')
+        get_resp_2 = self.app.get('/v1/keys/keystone_version?scope=st2system')
         self.assertTrue(get_resp_2.status_int, 200)
         self.assertEqual(self.__get_kvp_id(get_resp_2), 'keystone_version')
         get_resp_3 = self.app.get('/v1/keys/keystone_version')
         self.assertTrue(get_resp_3.status_int, 200)
         self.assertEqual(self.__get_kvp_id(get_resp_3), 'keystone_version')
-        self.app.delete('/v1/keys/keystone_endpoint?scope=system')
-        self.app.delete('/v1/keys/keystone_version?scope=system')
+        self.app.delete('/v1/keys/keystone_endpoint?scope=st2system')
+        self.app.delete('/v1/keys/keystone_version?scope=st2system')
 
     def test_put_user_scope_and_system_scope_dont_overlap(self):
-        self.app.put_json('/v1/keys/%s?scope=system' % 'keystone_version', KVP_2,
+        self.app.put_json('/v1/keys/%s?scope=st2system' % 'keystone_version', KVP_2,
                           expect_errors=False)
-        self.app.put_json('/v1/keys/%s?scope=user' % 'keystone_version', KVP_2_USER,
+        self.app.put_json('/v1/keys/%s?scope=st2user' % 'keystone_version', KVP_2_USER,
                           expect_errors=False)
-        get_resp = self.app.get('/v1/keys/keystone_version?scope=system')
+        get_resp = self.app.get('/v1/keys/keystone_version?scope=st2system')
         self.assertEqual(get_resp.json['value'], KVP_2['value'])
 
-        get_resp = self.app.get('/v1/keys/keystone_version?scope=user')
+        get_resp = self.app.get('/v1/keys/keystone_version?scope=st2user')
         self.assertEqual(get_resp.json['value'], KVP_2_USER['value'])
-        self.app.delete('/v1/keys/keystone_version?scope=system')
-        self.app.delete('/v1/keys/keystone_version?scope=user')
+        self.app.delete('/v1/keys/keystone_version?scope=st2system')
+        self.app.delete('/v1/keys/keystone_version?scope=st2user')
 
     def test_put_invalid_scope(self):
         put_resp = self.app.put_json('/v1/keys/keystone_version?scope=st2', KVP_2,
@@ -141,31 +141,31 @@ class TestKeyValuePairController(FunctionalTest):
         self.assertTrue(put_resp.status_int, 400)
 
     def test_get_all_with_scope(self):
-        self.app.put_json('/v1/keys/%s?scope=system' % 'keystone_version', KVP_2,
+        self.app.put_json('/v1/keys/%s?scope=st2system' % 'keystone_version', KVP_2,
                           expect_errors=False)
-        self.app.put_json('/v1/keys/%s?scope=user' % 'keystone_version', KVP_2_USER,
+        self.app.put_json('/v1/keys/%s?scope=st2user' % 'keystone_version', KVP_2_USER,
                           expect_errors=False)
-        get_resp_sys = self.app.get('/v1/keys?scope=system')
+        get_resp_sys = self.app.get('/v1/keys?scope=st2system')
         self.assertTrue(len(get_resp_sys.json), 1)
         self.assertEqual(get_resp_sys.json[0]['value'], KVP_2['value'])
-        get_resp_sys = self.app.get('/v1/keys?scope=user')
+        get_resp_sys = self.app.get('/v1/keys?scope=st2user')
         self.assertTrue(len(get_resp_sys.json), 1)
         self.assertEqual(get_resp_sys.json[0]['value'], KVP_2_USER['value'])
-        self.app.delete('/v1/keys/keystone_version?scope=system')
-        self.app.delete('/v1/keys/keystone_version?scope=user')
+        self.app.delete('/v1/keys/keystone_version?scope=st2system')
+        self.app.delete('/v1/keys/keystone_version?scope=st2user')
 
     def test_get_all_with_scope_and_prefix_filtering(self):
-        self.app.put_json('/v1/keys/%s?scope=user' % 'keystone_version', KVP_2_USER,
+        self.app.put_json('/v1/keys/%s?scope=st2user' % 'keystone_version', KVP_2_USER,
                           expect_errors=False)
-        self.app.put_json('/v1/keys/%s?scope=user' % 'keystone_endpoint', KVP_3_USER,
+        self.app.put_json('/v1/keys/%s?scope=st2user' % 'keystone_endpoint', KVP_3_USER,
                           expect_errors=False)
-        self.app.put_json('/v1/keys/%s?scope=user' % 'customer_ssn', KVP_4_USER,
+        self.app.put_json('/v1/keys/%s?scope=st2user' % 'customer_ssn', KVP_4_USER,
                           expect_errors=False)
-        get_prefix = self.app.get('/v1/keys?scope=user&prefix=keystone')
+        get_prefix = self.app.get('/v1/keys?scope=st2user&prefix=keystone')
         self.assertEqual(len(get_prefix.json), 2)
-        self.app.delete('/v1/keys/keystone_version?scope=user')
-        self.app.delete('/v1/keys/keystone_endpoint?scope=user')
-        self.app.delete('/v1/keys/customer_ssn?scope=user')
+        self.app.delete('/v1/keys/keystone_version?scope=st2user')
+        self.app.delete('/v1/keys/keystone_endpoint?scope=st2user')
+        self.app.delete('/v1/keys/customer_ssn?scope=st2user')
 
     def test_put_with_ttl(self):
         put_resp = self.__do_put('key_with_ttl', KVP_WITH_TTL)
