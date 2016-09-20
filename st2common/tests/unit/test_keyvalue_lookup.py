@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from st2tests.base import CleanDbTestCase
+from st2common.constants.keyvalue import DEPRECATED_SYSTEM_SCOPE, DEPRECATED_USER_SCOPE
 from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
@@ -88,6 +89,17 @@ class TestKeyValueLookup(CleanDbTestCase):
         self.assertEquals(str(lookup['r']['i']['p']), '')
         user_lookup = UserKeyValueLookup(scope=USER_SCOPE, user='stanley')
         self.assertEquals(str(user_lookup['r']['i']['p']), k4.value)
+
+    def test_lookups_older_scope_names_backward_compatibility(self):
+        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='a.b', value='v1',
+                                                       scope=DEPRECATED_SYSTEM_SCOPE))
+        lookup = KeyValueLookup(scope=DEPRECATED_SYSTEM_SCOPE)
+        self.assertEquals(str(lookup['a']['b']), k1.value)
+
+        k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='stanley:r.i.p', value='v4',
+                                                       scope=USER_SCOPE))
+        user_lookup = UserKeyValueLookup(scope=DEPRECATED_USER_SCOPE, user='stanley')
+        self.assertEquals(str(user_lookup['r']['i']['p']), k2.value)
 
     def test_user_scope_lookups_dot_in_user(self):
         KeyValuePair.add_or_update(KeyValuePairDB(name='first.last:r.i.p', value='v4',
