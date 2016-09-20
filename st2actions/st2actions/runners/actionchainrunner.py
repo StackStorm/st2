@@ -560,7 +560,6 @@ class ActionChainRunner(ActionRunner):
             'parent': parent_context,
             'chain': vars(action_node)
         }
-        print('Resolved params: %s' % resolved_params)
         liveaction.parameters = action_param_utils.cast_params(action_ref=action_node.ref,
                                                                params=resolved_params)
         return liveaction
