@@ -557,7 +557,6 @@ class TestActionChainRunner(DbTestCase):
         try:
             kvps.append(KeyValuePair.add_or_update(KeyValuePairDB(name='a', value='1')))
             kvps.append(KeyValuePair.add_or_update(KeyValuePairDB(name='a.b.c', value='two')))
-            print(kvps)
             chain_runner = acr.get_runner()
             chain_runner.entry_point = CHAIN_SYSTEM_PARAMS
             chain_runner.action = ACTION_2
