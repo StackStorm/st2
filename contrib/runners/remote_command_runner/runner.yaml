@@ -3,7 +3,7 @@
   description: A remote execution runner that executes actions as a fixed system user.
   enabled: true
   name: remote-shell-cmd
-  runner_module: st2actions.runners.remote_command_runner
+  runner_module: remote_command_runner
   runner_parameters:
     bastion_host:
       description: 'The host SSH connections will be proxied through. Note: This connection

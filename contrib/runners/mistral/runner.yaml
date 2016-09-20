@@ -2,8 +2,8 @@
   description: A runner for executing mistral v2 workflow.
   enabled: true
   name: mistral-v2
-  query_module: st2actions.query.mistral.v2
-  runner_module: st2actions.runners.mistral.v2
+  query_module: mistralv2
+  runner_module: mistralv2
   runner_parameters:
     context:
       default: {}

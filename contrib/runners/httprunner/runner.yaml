@@ -3,7 +3,7 @@
   description: A HTTP client for running HTTP actions.
   enabled: true
   name: http-request
-  runner_module: st2actions.runners.httprunner
+  runner_module: httprunner
   runner_parameters:
     allow_redirects:
       default: false

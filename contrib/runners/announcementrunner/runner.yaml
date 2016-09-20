@@ -2,7 +2,7 @@
   description: A runner for emitting an announcement event on the stream.
   enabled: true
   name: announcement
-  runner_module: st2actions.runners.announcementrunner
+  runner_module: announcementrunner
   runner_parameters:
     experimental:
       default: false

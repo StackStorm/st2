@@ -21,8 +21,8 @@ import uuid
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2actions.runners.ssh.paramiko_ssh_runner import RUNNER_REMOTE_DIR
-from st2actions.runners.ssh.paramiko_ssh_runner import BaseParallelSSHRunner
+from st2common.runners.ssh.paramiko_ssh_runner import RUNNER_REMOTE_DIR
+from st2common.runners.ssh.paramiko_ssh_runner import BaseParallelSSHRunner
 from st2common.models.system.paramiko_script_action import ParamikoRemoteScriptAction
 
 __all__ = [

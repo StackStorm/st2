@@ -3,7 +3,7 @@
   enabled: true
   experimental: false
   name: windows-cmd
-  runner_module: st2actions.runners.windows_command_runner
+  runner_module: windows_command_runner
   runner_parameters:
     cmd:
       description: Arbitrary command to be executed on the remote host.

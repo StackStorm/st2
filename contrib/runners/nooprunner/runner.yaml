@@ -2,6 +2,6 @@
   description: A runner that returns a static response regardless of input parameters
   enabled: true
   name: noop
-  runner_module: st2actions.runners.nooprunner
+  runner_module: nooprunner
   runner_parameters: {}
 

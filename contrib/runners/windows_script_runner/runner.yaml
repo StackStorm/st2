@@ -4,7 +4,7 @@
   enabled: true
   experimental: false
   name: windows-script
-  runner_module: st2actions.runners.windows_script_runner
+  runner_module: windows_script_runner
   runner_parameters:
     host:
       description: Host to execute the command on

@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import abc
-import importlib
 
 import six
 from oslo_config import cfg
@@ -45,7 +44,7 @@ def get_runner(module_name):
 
     LOG.debug('Runner loading python module: %s', module_name)
     try:
-        module = importlib.import_module(module_name, package=None)
+        # todo: add proper loading/unloading of runner modules
     except Exception as e:
         LOG.exception('Failed to import module %s.', module_name)
         raise ActionRunnerCreateError(e)
