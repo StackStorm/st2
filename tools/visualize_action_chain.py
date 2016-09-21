@@ -30,6 +30,7 @@ except ImportError:
     raise ImportError(msg)
 
 from st2common.content.loader import MetaLoader
+# TODO: replace this with dynamic loader
 from st2actions.runners.actionchainrunner import ChainHolder
 
 

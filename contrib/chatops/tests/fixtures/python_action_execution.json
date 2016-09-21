@@ -36,7 +36,7 @@
         "enabled": true,
         "id": "54c6bb640640fd5211edef0b",
         "name": "python-script",
-        "runner_module": "st2actions.runners.pythonrunner",
+        "runner_module": "pythonrunner",
         "runner_parameters": {
 
         }

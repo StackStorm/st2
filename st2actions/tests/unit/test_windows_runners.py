@@ -18,6 +18,7 @@ from unittest2 import TestCase
 
 import mock
 
+# TODO: Fix with pluggable runners
 from st2actions.runners.windows_runner import BaseWindowsRunner
 from st2actions.runners.windows_script_runner import WindowsScriptRunner
 
@@ -175,6 +176,7 @@ class WindowsRunnerTestCase(TestCase):
         self.assertEqual(result['path'], 'C:\\')
         self.assertEqual(result['users'], None)
 
+# TODO: Fix with pluggable runners
     @mock.patch('st2actions.runners.windows_script_runner.run_command')
     def test_get_share_absolute_path(self, mock_run_command):
         runner = self._get_script_runner()

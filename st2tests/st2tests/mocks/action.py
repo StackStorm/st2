@@ -21,7 +21,7 @@ from logging import RootLogger
 
 from mock import Mock
 
-from st2actions.runners.python_action_wrapper import ActionService
+from st2common.runners.python_action_wrapper import ActionService
 from st2tests.mocks.datastore import MockDatastoreService
 
 __all__ = [

@@ -17,11 +17,12 @@ import os
 
 import mock
 
-from st2actions.runners import pythonrunner
-from st2actions.runners.python_action_wrapper import PythonActionWrapper
-from st2actions.runners.pythonrunner import Action
+# TODO: Fix with pluggable runners
+from st2common.runners import base_action as pythonrunner
+from st2common.runners.python_action_wrapper import PythonActionWrapper
+from st2common.runners.pythonrunner import Action
 from st2actions.container import service
-from st2actions.runners.utils import get_action_class_instance
+from st2common.runners.utils import get_action_class_instance
 from st2common.services import config as config_service
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
@@ -43,6 +44,7 @@ mock_sys = mock.Mock()
 mock_sys.argv = []
 
 
+# TODO: Fix with pluggable runners
 @mock.patch('st2actions.runners.pythonrunner.sys', mock_sys)
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     register_packs = True

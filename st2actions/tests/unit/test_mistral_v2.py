@@ -41,6 +41,7 @@ cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
 import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2actions.handlers.mistral import MistralCallbackHandler
 from st2actions.handlers.mistral import STATUS_MAP as mistral_status_map
+# TODO: Fix with pluggable runners
 from st2actions.runners.localrunner import LocalShellRunner
 from st2actions.runners.mistral.v2 import MistralRunner
 from st2common.constants import action as action_constants

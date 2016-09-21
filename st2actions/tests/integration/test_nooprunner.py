@@ -22,6 +22,7 @@ tests_config.parse_args()
 
 from unittest2 import TestCase
 from st2actions.container.service import RunnerContainerService
+# TODO: Fix with pluggable runners
 from st2actions.runners import nooprunner
 from st2common.constants import action as action_constants
 from st2tests.fixturesloader import FixturesLoader

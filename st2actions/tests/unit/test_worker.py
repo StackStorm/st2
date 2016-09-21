@@ -17,6 +17,7 @@ from bson.errors import InvalidStringData
 import mock
 from oslo_config import cfg
 
+# TODO: Fix with pluggable runners
 from st2actions.runners.localrunner import LocalShellRunner
 import st2actions.worker as actions_worker
 from st2common.constants import action as action_constants
