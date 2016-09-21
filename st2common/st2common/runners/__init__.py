@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import abc
-
+import imp
 import six
 from oslo_config import cfg
 
@@ -44,7 +44,16 @@ def get_runner(module_name):
 
     LOG.debug('Runner loading python module: %s', module_name)
     try:
-        # todo: add proper loading/unloading of runner modules
+        # todo: Replace this with modified st2common/util/loader.py
+        base_path = cfg.CONF.system.base_path
+        module_path = "%s/runners/%s/%s.py" % (base_path, module_name, module_name)
+
+        LOG.debug('Loading runner from: %s', module_path)
+
+        module = imp.load_source(
+            module_name,
+            module_path
+        )
     except Exception as e:
         LOG.exception('Failed to import module %s.', module_name)
         raise ActionRunnerCreateError(e)
