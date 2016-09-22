@@ -15,8 +15,6 @@
 
 import mock
 
-# TODO: Fix with pluggable runners
-from st2actions.runners import actionchainrunner as acr
 from st2actions.container.service import RunnerContainerService
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
@@ -35,6 +33,9 @@ from st2common.util import action_db as action_db_util
 from st2common.exceptions.action import ParameterRenderingFailedException
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
+from st2common.util.loader import register_runner
+
+acr = register_runner('actionchainrunner')
 
 
 class DummyActionExecution(object):

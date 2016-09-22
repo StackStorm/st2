@@ -15,12 +15,13 @@
 
 import mock
 
-# TODO: Fix with pluggable runners
-from st2actions.runners import announcementrunner
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.models.api.trace import TraceContext
 from base import RunnerTestCase
 import st2tests.config as tests_config
+from st2common.util.loader import register_runner
+
+announcementrunner = register_runner('announcementrunner')
 
 
 mock_dispatcher = mock.Mock()

@@ -23,13 +23,14 @@ tests_config.parse_args()
 
 from unittest2 import TestCase
 from st2actions.container.service import RunnerContainerService
-# TODO: Fix with pluggable runners
-from st2actions.runners import localrunner
 from st2common.constants import action as action_constants
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.fixturesloader import get_fixtures_base_path
 from st2common.util.api import get_full_public_api_url
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
+from st2common.util.loader import register_runner
+
+localrunner = register_runner('localrunner')
 
 
 class LocalShellCommandRunnerTestCase(TestCase):

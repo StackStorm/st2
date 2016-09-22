@@ -19,6 +19,7 @@ import json
 import os
 import sys
 import yaml
+from oslo_config import cfg
 
 from st2common.exceptions.plugins import IncompatiblePluginException
 from st2common import log as logging
@@ -165,6 +166,20 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
                         (plugin_abs_file_path))
 
     return registered_plugins
+
+
+def register_runner(module_name):
+    base_path = cfg.CONF.system.base_path
+    module_path = os.path.join(
+        "%s/runners/%s/%s.py" % (base_path, module_name, module_name)
+    )
+
+    LOG.debug('Loading runner from: %s', module_path)
+
+    module = imp.load_source(module_name, module_path)
+
+    return module
+
 
 
 ALLOWED_EXTS = ['.json', '.yaml', '.yml']

@@ -7,6 +7,7 @@ BINARIES := bin
 
 # All components are prefixed by st2
 COMPONENTS := $(wildcard st2*)
+COMPONENTS += $(wildcard contrib/runners/*)
 
 # Components that implement a component-controlled test-runner. These components provide an
 # in-component Makefile. (Temporary fix until I can generalize the pecan unittest setup. -mar)

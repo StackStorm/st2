@@ -36,9 +36,6 @@ cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
 cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
 
 import st2common.bootstrap.runnersregistrar as runners_registrar
-# TODO: Fix with pluggable runners
-from st2actions.runners.localrunner import LocalShellRunner
-from st2actions.runners.mistral.v2 import MistralRunner
 from st2common.constants import action as action_constants
 from st2common.models.api.action import ActionAPI
 from st2common.models.db.liveaction import LiveActionDB
@@ -50,6 +47,10 @@ from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from tests.unit.base import MockLiveActionPublisher
+from st2common.util.loader import register_runner
+
+LocalShellRunner = register_runner('LocalShellRunner')
+MistralRunner = register_runner('mistralv2')
 
 
 TEST_FIXTURES = {

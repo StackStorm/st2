@@ -18,10 +18,11 @@ import mock
 
 from unittest2 import TestCase
 
-# TODO: Fix with pluggable runners
-import st2actions.runners.cloudslang.cloudslang_runner as csr
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.util.loader import register_runner
+
+csr = register_runner('cloudslang').cloudslang_runner
 
 import st2tests.config as tests_config
 tests_config.parse_args()
@@ -72,8 +73,8 @@ class CloudSlangRunnerTestCase(TestCase):
         self.assertEqual(LIVEACTION_STATUS_SUCCEEDED, result[0])
 
 # TODO: Fix with pluggable runners
-    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.quote_unix')
-    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
+    @mock.patch('csr.quote_unix')
+    @mock.patch('csr.run_command')
     def test_run_calls_a_new_process_failure(self, mock_run_command, mock_quote_unix):
         timeout = 1
         runner = csr.get_runner()
@@ -90,7 +91,7 @@ class CloudSlangRunnerTestCase(TestCase):
         self.assertEqual(LIVEACTION_STATUS_FAILED, result[0])
 
 # TODO: Fix with pluggable runners
-    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
+    @mock.patch('csr.run_command')
     def test_run_calls_a_new_process_timeout(self, mock_run_command):
         entry_point = 'path'
         timeout = 1
@@ -107,8 +108,8 @@ class CloudSlangRunnerTestCase(TestCase):
         self.assertEqual(LIVEACTION_STATUS_FAILED, result[0])
 
 # TODO: Fix with pluggable runners
-    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
-    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.yaml.safe_dump')
+    @mock.patch('csr.run_command')
+    @mock.patch('csr.yaml.safe_dump')
     def test_inputs_are_save_to_file_properly(self, mock_yaml_dump, mock_run_command):
         entry_point = 'path'
         inputs = {'a': 1}
@@ -128,8 +129,8 @@ class CloudSlangRunnerTestCase(TestCase):
         self.assertEqual(LIVEACTION_STATUS_FAILED, result[0])
 
 # TODO: Fix with pluggable runners
-    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
-    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.os.remove')
+    @mock.patch('csr.run_command')
+    @mock.patch('csr.os.remove')
     def test_temp_file_deletes_when_exception_occurs(self, mock_os_remove, mock_run_command):
         entry_point = 'path'
         inputs = {'a': 1}
@@ -151,7 +152,7 @@ class CloudSlangRunnerTestCase(TestCase):
         os.remove(mock_os_remove.call_args[0][0])
 
 # TODO: Fix with pluggable runners
-    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
+    @mock.patch('csr.run_command')
     def test_inputs_provided_via_inputs_runner_parameter(self, mock_run_command):
         entry_point = 'path'
         inputs = {'a': 1}
@@ -172,7 +173,7 @@ class CloudSlangRunnerTestCase(TestCase):
         runner._write_inputs_to_a_temp_file.assert_called_with(inputs=inputs)
 
 # TODO: Fix with pluggable runners
-    @mock.patch('st2actions.runners.cloudslang.cloudslang_runner.run_command')
+    @mock.patch('csr.run_command')
     def test_inputs_provided_via_action_parameters(self, mock_run_command):
         entry_point = 'path'
         inputs = None

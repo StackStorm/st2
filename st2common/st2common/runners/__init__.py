@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import abc
-import imp
 import six
 from oslo_config import cfg
 
@@ -23,6 +22,7 @@ from st2common import log as logging
 from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.util import action_db as action_utils
+from st2common.util.loader import register_runner
 from st2common.util.api import get_full_public_api_url
 
 
@@ -44,16 +44,9 @@ def get_runner(module_name):
 
     LOG.debug('Runner loading python module: %s', module_name)
     try:
-        # todo: Replace this with modified st2common/util/loader.py
-        base_path = cfg.CONF.system.base_path
-        module_path = "%s/runners/%s/%s.py" % (base_path, module_name, module_name)
+        # TODO: Explore modifying this to support register_plugin
+        module = register_runner(module_name)
 
-        LOG.debug('Loading runner from: %s', module_path)
-
-        module = imp.load_source(
-            module_name,
-            module_path
-        )
     except Exception as e:
         LOG.exception('Failed to import module %s.', module_name)
         raise ActionRunnerCreateError(e)

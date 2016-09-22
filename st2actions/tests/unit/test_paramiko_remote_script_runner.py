@@ -23,9 +23,8 @@ import st2tests.config as tests_config
 tests_config.parse_args()
 
 from st2common.util import jsonify
-# TODO: Fix with pluggable runners
-from st2common.runners.remote_script_runner import ParamikoRemoteScriptRunner
-from st2common.runners.ssh.parallel_ssh import ParallelSSHClient
+from remote_script_runner import ParamikoRemoteScriptRunner
+from st2common.runners.parallel_ssh import ParallelSSHClient
 from st2common.exceptions.ssh import InvalidCredentialsException
 from st2common.exceptions.ssh import NoHostsConnectedToException
 from st2common.models.system.paramiko_script_action import ParamikoRemoteScriptAction
