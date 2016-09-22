@@ -17,10 +17,9 @@ import os
 
 import mock
 
-# TODO: Fix with pluggable runners
 from st2common.runners import base_action as pythonrunner
 from st2common.runners.python_action_wrapper import PythonActionWrapper
-from st2common.runners.pythonrunner import Action
+from pythonrunner import Action
 from st2actions.container import service
 from st2common.runners.utils import get_action_class_instance
 from st2common.services import config as config_service
@@ -44,8 +43,7 @@ mock_sys = mock.Mock()
 mock_sys.argv = []
 
 
-# TODO: Fix with pluggable runners
-@mock.patch('st2actions.runners.pythonrunner.sys', mock_sys)
+@mock.patch('pythonrunner.sys', mock_sys)
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     register_packs = True
     register_pack_configs = True

@@ -20,8 +20,7 @@ from oslo_config import cfg
 
 from st2common.constants import action as action_constants
 from st2common.runners import get_runner
-# TODO: Fix with pluggable runners
-from st2actions.runners.localrunner import LocalShellRunner
+from localrunner import LocalShellRunner
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB

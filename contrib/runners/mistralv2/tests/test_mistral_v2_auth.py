@@ -30,9 +30,8 @@ import st2tests.config as tests_config
 tests_config.parse_args()
 
 import st2common.bootstrap.runnersregistrar as runners_registrar
-# TODO: Fix with pluggable runners
-from st2actions.runners.localrunner import LocalShellRunner
-from st2actions.runners.mistral.v2 import MistralRunner
+from localrunner import LocalShellRunner
+from mistralv2 import MistralRunner
 from st2common.constants import action as action_constants
 from st2common.models.api.auth import TokenAPI
 from st2common.models.api.action import ActionAPI

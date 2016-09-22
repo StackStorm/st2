@@ -21,7 +21,6 @@ from oslo_config import cfg
 from mock import (call, patch, Mock, MagicMock)
 import paramiko
 
-# TODO: Fix with pluggable runners
 from st2common.runners.paramiko_ssh import ParamikoSSHClient
 from st2tests.fixturesloader import get_resources_base_path
 import st2tests.config as tests_config

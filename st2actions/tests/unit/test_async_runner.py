@@ -18,9 +18,8 @@ try:
 except:
     import json
 
-# TODO: Fix with pluggable runners
-from st2actions.runners import AsyncActionRunner
-from st2common.constants.action import (LIVEACTION_STATUS_RUNNING)
+from st2common.runners import AsyncActionRunner
+from st2common.constants.action import (LIVEACTION_STATUS_aUNNING)
 
 RAISE_PROPERTY = 'raise'
 

@@ -19,7 +19,6 @@ import os
 from mock import (patch, Mock, MagicMock)
 import unittest2
 
-# TODO: Fix with pluggable runners
 from st2common.runners.parallel_ssh import ParallelSSHClient
 from st2common.runners.paramiko_ssh import ParamikoSSHClient
 from st2common.runners.paramiko_ssh import SSHCommandTimeoutError

@@ -17,8 +17,7 @@
 import mock
 import unittest2
 
-# TODO: Fix with pluggable runners
-from st2actions.runners.httprunner import HTTPClient
+from httprunner import HTTPClient
 import st2tests.config as tests_config
 
 
@@ -31,8 +30,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
     def setUpClass(cls):
         tests_config.parse_args()
 
-# TODO: Fix with pluggable runners
-    @mock.patch('st2actions.runners.httprunner.requests')
+    @mock.patch('httprunner.requests')
     def test_parse_response_body(self, mock_requests):
         client = HTTPClient(url='http://127.0.0.1')
         mock_result = MockResult()
@@ -88,8 +86,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
         self.assertFalse(isinstance(result['body'], dict))
         self.assertEqual(result['body'], mock_result.text)
 
-# TODO: Fix with pluggable runners
-    @mock.patch('st2actions.runners.httprunner.requests')
+    @mock.patch('httprunner.requests')
     def test_https_verify(self, mock_requests):
         url = 'https://127.0.0.1:8888'
         client = HTTPClient(url=url, verify=True)
@@ -109,8 +106,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
             data='', files=None, headers={}, params=None, proxies=None,
             timeout=60, verify=True)
 
-# TODO: Fix with pluggable runners
-    @mock.patch('st2actions.runners.httprunner.requests')
+    @mock.patch('httprunner.requests')
     def test_https_verify_false(self, mock_requests):
         url = 'https://127.0.0.1:8888'
         client = HTTPClient(url=url)

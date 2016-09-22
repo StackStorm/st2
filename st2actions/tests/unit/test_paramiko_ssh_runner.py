@@ -19,7 +19,6 @@ import unittest2
 import mock
 from oslo_config import cfg
 
-# TODO: Fix with pluggable runners
 from st2common.runners.paramiko_ssh_runner import BaseParallelSSHRunner
 from st2common.runners.paramiko_ssh_runner import RUNNER_HOSTS
 from st2common.runners.paramiko_ssh_runner import RUNNER_USERNAME

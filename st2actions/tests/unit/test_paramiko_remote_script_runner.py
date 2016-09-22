@@ -67,7 +67,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         ParallelSSHClient.run.assert_called_with(exp_cmd,
                                                  timeout=None)
 
-    @patch('st2common.runners.ssh.parallel_ssh.ParallelSSHClient', Mock)
+    @patch('st2common.runners.parallel_ssh.ParallelSSHClient', Mock)
     @patch.object(ParallelSSHClient, 'run', MagicMock(return_value={}))
     @patch.object(ParallelSSHClient, 'connect', MagicMock(return_value={}))
     def test_username_only_ssh(self):
@@ -87,7 +87,7 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         paramiko_runner.context = {}
         self.assertRaises(NoHostsConnectedToException, paramiko_runner.pre_run)
 
-    @patch('st2common.runners.ssh.parallel_ssh.ParallelSSHClient', Mock)
+    @patch('st2common.runners.parallel_ssh.ParallelSSHClient', Mock)
     @patch.object(ParallelSSHClient, 'run', MagicMock(return_value={}))
     @patch.object(ParallelSSHClient, 'connect', MagicMock(return_value={}))
     def test_top_level_error_is_correctly_reported(self):

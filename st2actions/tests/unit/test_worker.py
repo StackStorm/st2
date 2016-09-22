@@ -24,9 +24,7 @@ from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions
 from st2common.util import date as date_utils
-from st2common.util.loader import register_runner
-
-LocalShellRunner = register_runner('localrunner').LocalShellRunner
+from localrunner import LocalShellRunner
 
 
 from st2tests.base import DbTestCase
