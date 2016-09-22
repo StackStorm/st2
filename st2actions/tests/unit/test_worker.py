@@ -17,6 +17,7 @@ from bson.errors import InvalidStringData
 import mock
 from oslo_config import cfg
 
+import st2actions.worker as actions_worker
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.system.common import ResourceReference

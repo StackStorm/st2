@@ -24,7 +24,7 @@
       description: The command will be executed with sudo.
       type: boolean
     timeout:
-      default: LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
+      default: 60
       description: Action timeout in seconds. Action will get killed if it doesn't
         finish in timeout seconds.
       type: integer
@@ -51,7 +51,7 @@
       description: The command will be executed with sudo.
       type: boolean
     timeout:
-      default: LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
+      default: 60
       description: Action timeout in seconds. Action will get killed if it doesn't
         finish in timeout seconds.
       type: integer

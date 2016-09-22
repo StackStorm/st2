@@ -19,7 +19,7 @@ except:
     import json
 
 from st2common.runners import AsyncActionRunner
-from st2common.constants.action import (LIVEACTION_STATUS_aUNNING)
+from st2common.constants.action import (LIVEACTION_STATUS_RUNNING)
 
 RAISE_PROPERTY = 'raise'
 

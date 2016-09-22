@@ -53,7 +53,7 @@ class ExecutionCancellationTest(DbTestCase):
     @classmethod
     def setUpClass(cls):
         super(ExecutionCancellationTest, cls).setUpClass()
-        runners_registrar.register_runner_types()
+        runners_registrar.register_runners()
         action_local = ActionAPI(**copy.deepcopy(fixture.ARTIFACTS['actions']['local']))
         Action.add_or_update(ActionAPI.to_model(action_local))
 
