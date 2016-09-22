@@ -68,7 +68,6 @@ def _register_app_opts():
                    help='location of the logging.conf file'),
         cfg.IntOpt('max_page_size', default=100,
                    help=('Maximum limit (page size) argument which can be specified by the user '
-                         'in a query string. If a larger value is provided, it will default to  '
-                         'this value.'))
+                         'in a query string.'))
     ]
     CONF.register_opts(logging_opts, group='api')

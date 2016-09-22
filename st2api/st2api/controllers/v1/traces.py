@@ -16,6 +16,7 @@
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.trace import TraceAPI
 from st2common.persistence.trace import Trace
+from st2common.models.api.base import jsexpose
 
 __all__ = [
     'TracesController'
@@ -33,5 +34,18 @@ class TracesController(ResourceController):
     }
 
     query_options = {
-        'sort': ['trace_tag']
+        'sort': ['-start_timestamp', 'trace_tag']
     }
+
+    @jsexpose()
+    def get_all(self, **kwargs):
+        # Use a custom sort order when filtering on a timestamp so we return a correct result as
+        # expected by the user
+        if 'sort_desc' in kwargs:
+            query_options = {'sort': ['-start_timestamp', 'action.ref']}
+            kwargs['query_options'] = query_options
+        elif 'sort_asc' in kwargs:
+            query_options = {'sort': ['+start_timestamp', 'action.ref']}
+            kwargs['query_options'] = query_options
+
+        return self._get_all(**kwargs)

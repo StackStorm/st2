@@ -459,6 +459,33 @@ class ParamsUtilsTest(DbTestCase):
                                 liveaction_parameters=params,
                                 action_context={})
 
+    def test_get_finalized_param_object_contains_template_notation_in_the_value(self):
+        runner_param_info = {'r1': {}}
+        action_param_info = {
+            'params': {
+                'type': 'object',
+                'default': {
+                    'host': '{{host}}',
+                    'port': '{{port}}',
+                    'path': '/bar'}
+            }
+        }
+        params = {
+            'host': 'lolcathost',
+            'port': 5555
+        }
+        action_context = {}
+
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+
+        expected_params = {
+            'host': 'lolcathost',
+            'port': '5555',
+            'path': '/bar'
+        }
+        self.assertEqual(r_action_params['params'], expected_params)
+
     def test_cast_param_referenced_action_doesnt_exist(self):
         # Make sure the function throws if the action doesnt exist
         expected_msg = 'Action with ref "foo.doesntexist" doesn\'t exist'

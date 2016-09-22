@@ -63,6 +63,16 @@ class OperatorTest(unittest2.TestCase):
         string = 'fooponiesbarfooooo'
         self.assertTrue(op(string, 'ponies'), 'Failed regex.')
 
+        # Example with | modifier
+        string = 'apple ponies oranges'
+        self.assertTrue(op(string, '(ponies|unicorns)'), 'Failed regex.')
+
+        string = 'apple unicorns oranges'
+        self.assertTrue(op(string, '(ponies|unicorns)'), 'Failed regex.')
+
+        string = 'apple unicorns oranges'
+        self.assertFalse(op(string, '(pikachu|snorlax|charmander)'), 'Failed regex.')
+
     def test_regex_fail(self):
         op = operators.get_operator('regex')
         self.assertFalse(op('v1_foo', 'v1$'), 'Passed regex.')

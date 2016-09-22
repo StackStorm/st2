@@ -892,15 +892,28 @@ class ActionExecutionReadCommand(resource.ResourceCommand):
     Base class for read / view commands (list and get).
     """
 
-    def _get_exclude_attributes(self, args):
+    @classmethod
+    def _get_exclude_attributes(cls, args):
         """
         Retrieve a list of exclude attributes for particular command line arguments.
         """
         exclude_attributes = []
 
-        if 'result' not in args.attr:
+        result_included = False
+        trigger_instance_included = False
+
+        for attr in args.attr:
+            # Note: We perform startswith check so we correctly detected child attribute properties
+            # (e.g. result, result.stdout, result.stderr, etc.)
+            if attr.startswith('result'):
+                result_included = True
+
+            if attr.startswith('trigger_instance'):
+                trigger_instance_included = True
+
+        if not result_included:
             exclude_attributes.append('result')
-        if 'trigger_instance' not in args.attr:
+        if not trigger_instance_included:
             exclude_attributes.append('trigger_instance')
 
         return exclude_attributes

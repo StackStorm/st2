@@ -1,12 +1,27 @@
 Changelog
 =========
 
+In development
+--------------
+
+* Fix ``st2 execution get`` command so now ``--attr`` argument correctly works with child
+  properties of the ``result`` and ``trigger_instance`` dictionary (e.g. ``--attr
+  result.stdout result.stderr``). (bug fix)
+* Update traces list API endpoint and ``st2 trace list`` so the traces are sorted by
+  ``start_timestamp`` in descending order by default. This way it's consistent with executions
+  list and ``-n`` CLI parameter works as expected. (improvement)
+* Allow users to specify sort order when listing traces using the API endpoint by specifying
+  ``?sort_desc=True|False`` query parameters and by passing ``--sort=asc|desc`` parameter to
+  the ``st2 trace list`` CLI command. (improvement)
+* Fix a bug with action default parameter values not supporting Jinja template
+  notation for parameters of type ``object``. (bug fix, improvement)
+
 2.0.0 - August 31, 2016
 -----------------------
 
-* Implement custom jina filter functions ``to_json_string``, ``to_yaml_string``,
+* Implement custom Jinja filter functions ``to_json_string``, ``to_yaml_string``,
   ``to_human_time_from_seconds`` that can be used in actions and workflows. (improvement)
-* Refactor jinja filter functions into appropriate modules. (improvement)
+* Refactor Jinja filter functions into appropriate modules. (improvement)
 * Default chatops message to include time taken to complete an execution. This uses
   ``to_human_time_from_seconds`` function. (improvement)
 * Fix a bug when jinja templates with filters (for example,
