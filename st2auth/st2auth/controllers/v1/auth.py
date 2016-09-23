@@ -21,9 +21,10 @@ from six.moves import http_client
 from oslo_config import cfg
 
 from st2common.exceptions.auth import TokenNotFoundError, TokenExpiredError
-from st2common.exceptions.auth import TTLTooLargeException
+from st2common.exceptions.auth import TTLTooLargeException, UserNotFoundError
 from st2common.models.api.base import jsexpose
 from st2common.models.api.auth import TokenAPI
+from st2common.persistence.auth import User
 from st2common.services.access import create_token
 from st2common.util import auth as auth_utils
 from st2common import log as logging
@@ -124,6 +125,21 @@ class TokenController(rest.RestController):
         result = self._auth_backend.authenticate(username=username, password=password)
         if result is True:
             ttl = getattr(request, 'ttl', None)
+            impersonate_user = getattr(request, 'user', None)
+
+            if impersonate_user is not None:
+                username = impersonate_user
+            else:
+                impersonate_user = getattr(request, 'impersonate_user', None)
+            if impersonate_user is not None:
+                try:
+                    username = User.get_by_chatops_id(impersonate_user).username
+                except UserNotFoundError:
+                    message = "Could not locate user with chatops_id '%s'" % \
+                              impersonate_user
+                    self._abort_request(status_code=http_client.BAD_REQUEST,
+                                        message=message)
+                    return
             try:
                 token = self._create_token_for_user(username=username, ttl=ttl)
                 return self._process_successful_response(token=token)
