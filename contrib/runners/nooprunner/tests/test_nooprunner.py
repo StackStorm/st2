@@ -24,9 +24,7 @@ from unittest2 import TestCase
 from st2actions.container.service import RunnerContainerService
 from st2common.constants import action as action_constants
 from st2tests.fixturesloader import FixturesLoader
-from st2common.util.loader import register_runner
-
-nooprunner = register_runner('nooprunner')
+import nooprunner
 
 
 class TestNoopRunner(TestCase):

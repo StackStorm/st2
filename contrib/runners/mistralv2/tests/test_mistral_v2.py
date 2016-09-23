@@ -53,10 +53,8 @@ from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from tests.unit.base import MockLiveActionPublisher
-from st2common.util.loader import register_runner
-
-LocalShellRunner = register_runner('LocalShellRunner')
-MistralRunner = register_runner('mistralv2')
+from localrunner import LocalShellRunner
+from mistralv2 import MistralRunner
 
 
 TEST_FIXTURES = {

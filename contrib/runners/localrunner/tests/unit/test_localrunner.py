@@ -28,9 +28,7 @@ from st2tests.fixturesloader import FixturesLoader
 from st2tests.fixturesloader import get_fixtures_base_path
 from st2common.util.api import get_full_public_api_url
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
-from st2common.util.loader import register_runner
-
-localrunner = register_runner('localrunner')
+import localrunner
 
 
 class LocalShellCommandRunnerTestCase(TestCase):
