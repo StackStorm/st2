@@ -14,8 +14,10 @@
 # limitations under the License.
 
 import os
+import re
 
 import six
+import jsonschema
 
 from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
@@ -124,7 +126,24 @@ class ActionsRegistrar(ResourceRegistrar):
                             (pack, pack_field))
 
         action_api = ActionAPI(**content)
-        action_api.validate()
+
+        try:
+            action_api.validate()
+        except jsonschema.ValidationError as e:
+            # We throw a more user-friendly exception on invalid parameter name
+            msg = str(e)
+
+            is_invalid_parameter_name = 'Additional properties are not allowed' in msg
+            is_invalid_parameter_name &= 'in schema[\'properties\'][\'parameters\']' in msg
+
+            if is_invalid_parameter_name:
+                parameter_name = re.search('\'(.+?)\' was unexpected', msg).groups()[0]
+                new_msg = ('Parameter name "%s" is invalid. Valid characters for parameter name '
+                           'are [a-zA-Z0-0_].' % (parameter_name))
+                new_msg += '\n\n' + msg
+                raise jsonschema.ValidationError(new_msg)
+            raise e
+
         action_validator.validate_action(action_api)
         model = ActionAPI.to_model(action_api)
 
