@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.exceptions.auth import TokenNotFoundError, ApiKeyNotFoundError
+from st2common.exceptions.auth import (TokenNotFoundError, ApiKeyNotFoundError,
+                                       UserNotFoundError)
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
 from st2common.persistence.base import Access
@@ -26,6 +27,15 @@ class User(Access):
     @classmethod
     def get(cls, username):
         return cls.get_by_name(username)
+
+    @classmethod
+    def get_by_chatops_id(cls, value):
+        result = cls.query(chatops_id=value).first()
+
+        if not result:
+            raise UserNotFoundError()
+
+        return result
 
     @classmethod
     def _get_impl(cls):
