@@ -131,10 +131,11 @@ FIXTURE_PERSISTENCE_MODEL = {
 def get_fixtures_base_path():
     return os.path.join(os.path.dirname(__file__), 'fixtures')
 
-
 def get_fixtures_packs_base_path():
     return os.path.join(os.path.dirname(__file__), 'fixtures/packs')
 
+def get_fixtures_runners_base_path():
+    return os.path.join(os.path.dirname(__file__), 'fixtures/packs/runners/')
 
 def get_resources_base_path():
     return os.path.join(os.path.dirname(__file__), 'resources')
