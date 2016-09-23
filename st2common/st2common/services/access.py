@@ -20,7 +20,7 @@ from oslo_config import cfg
 
 from st2common.util import isotime
 from st2common.util import date as date_utils
-from st2common.exceptions.auth import TokenNotFoundError
+from st2common.exceptions.auth import TokenNotFoundError, UserNotFoundError
 from st2common.exceptions.auth import TTLTooLargeException
 from st2common.models.db.auth import TokenDB, UserDB
 from st2common.persistence.auth import Token, User
@@ -34,7 +34,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-def create_token(username, ttl=None, metadata=None):
+def create_token(username, ttl=None, metadata=None, add_missing_user=True):
     """
     :param username: Username of the user to create the token for. If the account for this user
                      doesn't exist yet it will be created.
@@ -45,6 +45,9 @@ def create_token(username, ttl=None, metadata=None):
 
     :param metadata: Optional metadata to associate with the token.
     :type metadata: ``dict``
+
+    :param add_missing_user: Add the user given by `username` if they don't exist
+    :type  add_missing_user: ``bool``
     """
 
     if ttl:
@@ -60,11 +63,14 @@ def create_token(username, ttl=None, metadata=None):
         try:
             User.get_by_name(username)
         except:
-            user = UserDB(name=username)
-            User.add_or_update(user)
+            if add_missing_user:
+                user = UserDB(name=username)
+                User.add_or_update(user)
 
-            extra = {'username': username, 'user': user}
-            LOG.audit('Registered new user "%s".' % (username), extra=extra)
+                extra = {'username': username, 'user': user}
+                LOG.audit('Registered new user "%s".' % (username), extra=extra)
+            else:
+                raise UserNotFoundError()
 
     token = uuid.uuid4().hex
     expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
