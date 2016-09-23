@@ -33,6 +33,7 @@ __all__ = [
 class UserDB(stormbase.StormFoundationDB):
     name = me.StringField(required=True, unique=True)
     is_service = me.BooleanField(required=True, default=False)
+    chatops_id = me.StringField(required=False, unique=True)
 
     def get_roles(self):
         """
