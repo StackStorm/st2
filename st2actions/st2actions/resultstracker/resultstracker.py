@@ -20,7 +20,7 @@ import six
 from collections import defaultdict
 from kombu import Connection
 
-from st2actions.query.base import QueryContext
+from st2common.query.base import QueryContext
 from st2common import log as logging
 from st2common.models.db.executionstate import ActionExecutionStateDB
 from st2common.persistence.executionstate import ActionExecutionState

@@ -6,7 +6,7 @@ from mistralclient.api.v2 import executions
 from oslo_config import cfg
 import retrying
 
-from st2actions.query.base import Querier
+from st2common.query.base import Querier
 from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2common.services import action as action_service
