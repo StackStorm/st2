@@ -179,7 +179,7 @@ function st2start(){
         RUNNER_NAME=st2-actionrunner-$i
         RUNNER_SCREENS+=($RUNNER_NAME)
         echo '  starting '$RUNNER_NAME'...'
-        screen -d -L -m -S $RUNNER_NAME ./virtualenv/bin/python \
+        screen -d -m -S $RUNNER_NAME ./virtualenv/bin/python \
             ./st2actions/bin/st2actionrunner \
             --config-file $ST2_CONF
     done
