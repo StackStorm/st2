@@ -17,9 +17,9 @@ import os
 
 import mock
 
-from st2common.runners import base_action as pythonrunner
+import pythonrunner
 from st2common.runners.python_action_wrapper import PythonActionWrapper
-from pythonrunner import Action
+from st2common.runners.base_action import Action
 from st2actions.container import service
 from st2common.runners.utils import get_action_class_instance
 from st2common.services import config as config_service
