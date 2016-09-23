@@ -17,8 +17,8 @@ import unittest2
 
 from st2common.logging.misc import get_logger_name_for_module
 from st2reactor.cmd import sensormanager
-from st2actions.runners import pythonrunner
-from st2actions import runners
+import pythonrunner
+from st2common import runners
 
 __all__ = [
     'LoggingMiscUtilsTestCase'
@@ -31,7 +31,7 @@ class LoggingMiscUtilsTestCase(unittest2.TestCase):
         self.assertEqual(logger_name, 'st2reactor.cmd.sensormanager')
 
         logger_name = get_logger_name_for_module(pythonrunner)
-        self.assertEqual(logger_name, 'st2actions.runners.pythonrunner')
+        self.assertEqual(logger_name, 'pythonrunner')
 
         logger_name = get_logger_name_for_module(runners)
-        self.assertEqual(logger_name, 'st2actions.runners.__init__')
+        self.assertEqual(logger_name, 'st2common.runners.__init__')
