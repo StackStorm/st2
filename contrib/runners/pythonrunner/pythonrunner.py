@@ -15,15 +15,12 @@
 
 import os
 import sys
-import abc
 import json
 import uuid
 
-import six
 from eventlet.green import subprocess
 
 from st2common.runners import ActionRunner
-from st2common.runners.utils import get_logger_for_python_runner_action
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
@@ -43,9 +40,7 @@ from st2common.util.sandboxing import get_sandbox_virtualenv_path
 
 __all__ = [
     'get_runner',
-
     'PythonRunner',
-    'Action'
 ]
 
 # constants to lookup in runner_parameters.

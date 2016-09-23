@@ -181,7 +181,6 @@ def register_runner(module_name):
     return module
 
 
-
 ALLOWED_EXTS = ['.json', '.yaml', '.yml']
 PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
 

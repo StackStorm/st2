@@ -43,6 +43,7 @@ def get_system_packs_base_path():
     """
     return cfg.CONF.content.system_packs_base_path
 
+
 def get_system_runners_base_path():
     """
     Return a path to the directory where system runners are stored.
@@ -50,6 +51,7 @@ def get_system_runners_base_path():
     :rtype: ``str``
     """
     return cfg.CONF.content.system_runners_base_path
+
 
 def get_runners_base_paths():
     """
