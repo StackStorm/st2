@@ -25,7 +25,9 @@ __all__ = [
     'ApiKeyNotFoundError',
     'MultipleAuthSourcesError',
     'NoAuthSourceProvidedError',
-    'UserNotFoundError'
+    'NoNicknameOriginProvidedError',
+    'UserNotFoundError',
+    'AmbiguousUserError',
 ]
 
 
@@ -65,5 +67,13 @@ class NoAuthSourceProvidedError(StackStormBaseException):
     pass
 
 
+class NoNicknameOriginProvidedError(StackStormBaseException):
+    pass
+
+
 class UserNotFoundError(StackStormBaseException):
+    pass
+
+
+class AmbiguousUserError(StackStormBaseException):
     pass
