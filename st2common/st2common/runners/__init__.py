@@ -46,7 +46,6 @@ def get_runner(module_name):
     try:
         # TODO: Explore modifying this to support register_plugin
         module = register_runner(module_name)
-
     except Exception as e:
         LOG.exception('Failed to import module %s.', module_name)
         raise ActionRunnerCreateError(e)

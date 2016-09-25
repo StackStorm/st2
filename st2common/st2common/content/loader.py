@@ -137,8 +137,8 @@ class ContentPackLoader(object):
             for pack_name, pack_content in six.iteritems(dir_content):
                 if pack_name in content:
                     pack_dir = pack_to_dir_map[pack_name]
-                    LOG.warning('Pack "%s" already found in "%s", ignoring content from "%s"',
-                                pack_name, pack_dir, base_dir)
+                    LOG.warning('Pack "%s" already found in "%s", ignoring content from "%s"' %
+                                (pack_name, pack_dir, base_dir))
                 else:
                     content[pack_name] = pack_content
                     pack_to_dir_map[pack_name] = base_dir
