@@ -27,7 +27,7 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED, LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.pack import SYSTEM_PACK_NAME
-from st2actions.tests.unit.base import RunnerTestCase
+from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 import st2tests.base as tests_base
 

@@ -45,7 +45,6 @@ from st2reactor.rules.enforcer import RuleEnforcer
 from st2tests.fixtures.packs import executions as fixture
 from st2tests import DbTestCase
 from tests.unit.base import MockLiveActionPublisher
-from st2common.util.loader import register_runner
 
 
 MOCK_FAIL_EXECUTION_CREATE = False
