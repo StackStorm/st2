@@ -36,9 +36,9 @@ class User(Access):
 
         result = cls.query(**{('nickname__%s' % origin): nickname})
 
-        if not result:
+        if not result.first():
             raise UserNotFoundError()
-        if result.count > 1:
+        if result.count() > 1:
             raise AmbiguousUserError()
 
         return result.first()
