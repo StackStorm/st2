@@ -22,6 +22,7 @@ from oslo_config import cfg
 
 from st2common.exceptions.auth import TokenNotFoundError, TokenExpiredError
 from st2common.exceptions.auth import TTLTooLargeException, UserNotFoundError
+from st2common.exceptions.auth import NoNicknameOriginProvidedError, AmbiguousUserError
 from st2common.models.api.base import jsexpose
 from st2common.models.api.auth import TokenAPI
 from st2common.persistence.auth import User
@@ -131,12 +132,25 @@ class TokenController(rest.RestController):
                 username = impersonate_user
             else:
                 impersonate_user = getattr(request, 'impersonate_user', None)
+                nickname_origin = getattr(request, 'nickname_origin', None)
             if impersonate_user is not None:
                 try:
-                    username = User.get_by_chatops_id(impersonate_user).username
+                    username = User.get_by_nickname(impersonate_user, nickname_origin).username
                 except UserNotFoundError:
-                    message = "Could not locate user with chatops_id '%s'" % \
+                    message = "Could not locate user %s@%s" % \
+                              (impersonate_user, nickname_origin)
+                    self._abort_request(status_code=http_client.BAD_REQUEST,
+                                        message=message)
+                    return
+                except NoNicknameOriginProvidedError:
+                    message = "Nickname origin is not provided for nickname '%s'" % \
                               impersonate_user
+                    self._abort_request(status_code=http_client.BAD_REQUEST,
+                                        message=message)
+                    return
+                except AmbiguousUserError:
+                    message = "%s@%s matched more than one username" % \
+                              (impersonate_user, nickname_origin)
                     self._abort_request(status_code=http_client.BAD_REQUEST,
                                         message=message)
                     return
