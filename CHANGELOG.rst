@@ -19,6 +19,7 @@ In development
   the ``st2 trace list`` CLI command. (improvement)
 * Fix a bug with action default parameter values not supporting Jinja template
   notation for parameters of type ``object``. (bug fix, improvement)
+* Fix ``--user`` / ``-u`` argument in the ``st2 key delete`` CLI command.
 
 2.0.0 - August 31, 2016
 -----------------------
