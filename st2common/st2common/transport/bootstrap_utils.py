@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import retrying
 from kombu import Connection
 from st2common import log as logging
 from st2common.transport import utils as transport_utils
@@ -56,6 +57,9 @@ def _do_register_exchange(exchange, connection, channel, retry_wrapper):
         LOG.exception('Failed to register exchange : %s.', exchange.name)
 
 
+@retrying.retry(
+    wait_fixed=10000,
+    stop_max_attempt_number=10)
 def register_exchanges():
     LOG.debug('Registering exchanges...')
     connection_urls = transport_utils.get_messaging_urls()
