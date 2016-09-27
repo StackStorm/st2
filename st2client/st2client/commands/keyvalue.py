@@ -184,6 +184,7 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
         scope = getattr(args, 'scope', DEFAULT_SCOPE)
         kwargs['params'] = {}
         kwargs['params']['scope'] = scope
+        kwargs['params']['user'] = args.user
         instance = self.get_resource(resource_id, **kwargs)
 
         if not instance:
