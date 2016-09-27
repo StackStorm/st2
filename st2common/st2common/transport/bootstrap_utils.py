@@ -14,6 +14,8 @@
 # limitations under the License.
 
 import retrying
+import socket
+from oslo_config import cfg
 from kombu import Connection
 from st2common import log as logging
 from st2common.transport import utils as transport_utils
@@ -57,10 +59,7 @@ def _do_register_exchange(exchange, connection, channel, retry_wrapper):
         LOG.exception('Failed to register exchange : %s.', exchange.name)
 
 
-@retrying.retry(
-    wait_fixed=10000,
-    stop_max_attempt_number=10)
-def register_exchanges():
+def _register_exchanges():
     LOG.debug('Registering exchanges...')
     connection_urls = transport_utils.get_messaging_urls()
     with Connection(connection_urls) as conn:
@@ -73,3 +72,12 @@ def register_exchanges():
                                       retry_wrapper=retry_wrapper)
 
         retry_wrapper.run(connection=conn, wrapped_callback=wrapped_register_exchanges)
+
+
+def register_exchanges():
+    retrying_obj = retrying.Retrying(
+        retry_on_exception=socket.error,
+        wait_fixed=cfg.CONF.messaging.connection_retry_wait,
+        stop_max_attempt_number=cfg.CONF.messaging.connection_retries
+    )
+    return retrying_obj.call(_register_exchanges)
