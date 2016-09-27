@@ -1,11 +1,7 @@
 Changelog
 =========
 
-In development
---------------
-
-
-2.0.1 - September 23, 2016
+2.0.1 - September 30, 2016
 --------------------------
 
 * Fix ``st2 execution get`` command so now ``--attr`` argument correctly works with child
