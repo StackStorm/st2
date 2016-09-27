@@ -131,9 +131,9 @@ def register_opts(ignore_errors=False):
         cfg.ListOpt('cluster_urls', default=[],
                     help='URL of all the nodes in a messaging service cluster.'),
         cfg.IntOpt('connection_retries', default=10,
-                    help='On initial connection how many times should we retry connection before failing.'),
+                   help='How many times should we retry connection before failing.'),
         cfg.IntOpt('connection_retry_wait', default=10000,
-                    help='On initial connection how long should we wait between connection retries.')
+                   help='How long should we wait between connection retries.')
     ]
     do_register_opts(messaging_opts, 'messaging', ignore_errors)
 
