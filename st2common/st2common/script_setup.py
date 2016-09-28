@@ -30,7 +30,7 @@ from st2common import log as logging
 from st2common.service_setup import db_setup
 from st2common.service_setup import db_teardown
 from st2common.logging.filters import LogLevelFilter
-from st2common.transport.bootstrap_utils import register_exchanges
+from st2common.transport.bootstrap_utils import register_exchanges_with_retry
 
 __all__ = [
     'setup',
@@ -86,7 +86,7 @@ def setup(config, setup_db=True, register_mq_exchanges=True):
         db_setup()
 
     if register_mq_exchanges:
-        register_exchanges()
+        register_exchanges_with_retry()
 
 
 def teardown():
