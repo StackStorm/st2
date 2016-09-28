@@ -59,7 +59,7 @@ def _do_register_exchange(exchange, connection, channel, retry_wrapper):
         LOG.exception('Failed to register exchange : %s.', exchange.name)
 
 
-def _register_exchanges():
+def register_exchanges():
     LOG.debug('Registering exchanges...')
     connection_urls = transport_utils.get_messaging_urls()
     with Connection(connection_urls) as conn:
@@ -74,10 +74,10 @@ def _register_exchanges():
         retry_wrapper.run(connection=conn, wrapped_callback=wrapped_register_exchanges)
 
 
-def register_exchanges():
+def register_exchanges_with_retry():
     retrying_obj = retrying.Retrying(
         retry_on_exception=socket.error,
         wait_fixed=cfg.CONF.messaging.connection_retry_wait,
         stop_max_attempt_number=cfg.CONF.messaging.connection_retries
     )
-    return retrying_obj.call(_register_exchanges)
+    return retrying_obj.call(register_exchanges)
