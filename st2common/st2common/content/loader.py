@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import re
 
 from yaml.parser import ParserError
 import six
@@ -23,9 +24,10 @@ from st2common.constants.meta import ALLOWED_EXTS
 from st2common.constants.meta import PARSER_FUNCS
 from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.runners import MANIFEST_FILE_NAME as RUNNER_MANIFEST_FILE_NAME
+from st2common.constants.runners import RUNNER_NAME_WHITELIST
 
 __all__ = [
-    'ContentRunnerLoader',
+    'RunnersLoader',
     'ContentPackLoader',
     'MetaLoader'
 ]
@@ -33,7 +35,7 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-class ContentRunnerLoader(object):
+class RunnersLoader(object):
     """Class for loading runners from directories on disk.
     """
 
@@ -243,6 +245,9 @@ class ContentPackLoader(object):
     def _get_runners_from_dir(self, base_dir):
         result = {}
         for runner_name in os.listdir(base_dir):
+            if not re.match(RUNNER_NAME_WHITELIST, runner_name):
+                raise ValueError('Invalid runner name "%s"' % (runner_name))
+
             runner_dir = os.path.join(base_dir, runner_name)
             runner_manifest_file = os.path.join(runner_dir, RUNNER_MANIFEST_FILE_NAME)
 

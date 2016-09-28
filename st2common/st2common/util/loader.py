@@ -181,6 +181,19 @@ def register_runner(module_name):
     return module
 
 
+def register_query_module(module_name):
+    base_path = cfg.CONF.system.base_path
+    module_path = os.path.join(
+        "%s/runners/%s/query/%s.py" % (base_path, module_name, module_name)
+    )
+
+    LOG.debug('Loading query module from: %s', module_path)
+
+    module = imp.load_source(module_name, module_path)
+
+    return module
+
+
 ALLOWED_EXTS = ['.json', '.yaml', '.yml']
 PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
 

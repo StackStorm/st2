@@ -3,7 +3,7 @@
   description: A runner for launching python actions.
   enabled: true
   name: python-script
-  runner_module: pythonrunner
+  runner_module: python_runner
   runner_parameters:
     env:
       description: Environment variables which will be available to the script(e.g.

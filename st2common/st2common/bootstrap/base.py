@@ -23,7 +23,7 @@ from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import CONFIG_SCHEMA_FILE_NAME
 from st2common.content.loader import MetaLoader
 from st2common.content.loader import ContentPackLoader
-from st2common.content.loader import ContentRunnerLoader
+from st2common.content.loader import RunnersLoader
 from st2common.models.api.pack import PackAPI
 from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import Pack
@@ -65,7 +65,7 @@ class ResourceRegistrar(object):
 
         self._meta_loader = MetaLoader()
         self._pack_loader = ContentPackLoader()
-        self._runner_loader = ContentRunnerLoader()
+        self._runner_loader = RunnersLoader()
 
     def get_resources_from_pack(self, resources_dir):
         resources = []

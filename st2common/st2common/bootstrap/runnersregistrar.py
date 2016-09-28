@@ -19,7 +19,7 @@ from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import RunnerTypeAPI
 from st2common.persistence.runner import RunnerType
-from st2common.content.loader import ContentRunnerLoader, MetaLoader
+from st2common.content.loader import RunnersLoader, MetaLoader
 from st2common.constants.runners import MANIFEST_FILE_NAME
 from st2common.util.action_db import get_runnertype_by_name
 
@@ -36,7 +36,7 @@ def register_runners(runner_dir=None, experimental=False, fail_on_failure=True):
     """
     LOG.debug('Start : register runners')
     runner_count = 0
-    runner_loader = ContentRunnerLoader()
+    runner_loader = RunnersLoader()
 
     if runner_dir:
         assert isinstance(runner_dir, list)
