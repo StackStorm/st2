@@ -1,4 +1,5 @@
-- aliases: []
+- aliases:
+    - run-remote
   description: A remote execution runner that executes actions as a fixed system user.
   enabled: true
   name: remote-shell-cmd
