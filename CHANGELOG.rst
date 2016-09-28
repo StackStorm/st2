@@ -16,6 +16,8 @@ Changelog
 * Fix a bug with action default parameter values not supporting Jinja template
   notation for parameters of type ``object``. (bug fix, improvement)
 * Fix ``--user`` / ``-u`` argument in the ``st2 key delete`` CLI command.
+* Retry connecting to RabbitMQ on services start-up if connecting fails because
+  of an intermediate network error or similar. (improvements)
 
 2.0.0 - August 31, 2016
 -----------------------
