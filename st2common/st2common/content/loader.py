@@ -247,7 +247,10 @@ class ContentPackLoader(object):
             runner_manifest_file = os.path.join(runner_dir, RUNNER_MANIFEST_FILE_NAME)
 
             if os.path.isdir(runner_dir) and os.path.isfile(runner_manifest_file):
+                LOG.debug("Loading runner manifest for: %s" % (runner_name))
                 result[runner_name] = runner_dir
+            else:
+                LOG.debug("Could not load manifest for runner: %s" % (runner_name))
 
         return result
 
