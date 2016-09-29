@@ -14,16 +14,17 @@
 # limitations under the License.
 
 import unittest2
+from tests.base import FunctionalTest
 import st2auth.handlers as handlers
 import pecan
 
 
-class HandlerTestCase(unittest2.TestCase):
+class HandlerTestCase(FunctionalTest):
     def test_proxy_handler(self):
-        type(pecan.request).remote_user = 'test_proxy_handler'
         h = handlers.ProxyAuthHandler()
-        request = {}
-        token = h.handle_auth(request)
+        request={}
+        token = h.handle_auth(request, headers={}, remote_addr=None, 
+        remote_user='test_proxy_handler')
         self.assertEqual(token.user, 'test_proxy_handler')
 
 if __name__ == '__main__':
