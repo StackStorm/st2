@@ -24,7 +24,7 @@ from unittest2 import TestCase
 from st2actions.container.service import RunnerContainerService
 from st2common.constants import action as action_constants
 from st2tests.fixturesloader import FixturesLoader
-import nooprunner
+import noop_runner
 
 
 class TestNoopRunner(TestCase):
@@ -46,7 +46,7 @@ class TestNoopRunner(TestCase):
 
     @staticmethod
     def _get_runner(action_db):
-        runner = nooprunner.NoopRunner(uuid.uuid4().hex)
+        runner = noop_runner.NoopRunner(uuid.uuid4().hex)
         runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
