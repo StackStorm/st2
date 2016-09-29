@@ -1,6 +1,7 @@
 ---
 pack_group: st2packs
 exchange_url: https://github.com/StackStorm-Exchange
+exchange_prefix: stackstorm
 
 repositories:
 

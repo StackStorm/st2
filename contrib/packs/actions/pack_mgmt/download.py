@@ -33,6 +33,7 @@ PACK_VERSION_SEPARATOR = '#'
 
 PACK_GROUP_CFG_KEY = 'pack_group'
 EXCHANGE_URL_KEY = 'exchange_url'
+EXCHANGE_PREFIX_KEY = 'exchange_prefix'
 
 
 class DownloadGitRepoAction(Action):
@@ -45,7 +46,8 @@ class DownloadGitRepoAction(Action):
         for pack in packs:
             pack_name, pack_url, pack_version = self._get_pack_name_and_url(
                 pack,
-                self.config.get(EXCHANGE_URL_KEY, None)
+                self.config.get(EXCHANGE_URL_KEY, None),
+                self.config.get(EXCHANGE_PREFIX_KEY, None)
             )
 
             lock_name = hashlib.md5(pack_name).hexdigest() + '.lock'
@@ -173,7 +175,7 @@ class DownloadGitRepoAction(Action):
         return sanitized_result
 
     @staticmethod
-    def _get_pack_name_and_url(pack, exchange_url):
+    def _get_pack_name_and_url(pack, exchange_url, exchange_prefix):
         try:
             name_or_url, version = pack.split(PACK_VERSION_SEPARATOR)
         except ValueError:
@@ -181,7 +183,9 @@ class DownloadGitRepoAction(Action):
             version = None
 
         if len(name_or_url.split('/')) == 1:
-            return (name_or_url, "{}/{}.git".format(exchange_url, name_or_url), version)
+            return (name_or_url, "{}/{}-{}.git".format(exchange_url, exchange_prefix,
+                                                       name_or_url),
+                    version)
         else:
             return (DownloadGitRepoAction._eval_repo_name(name_or_url),
                     DownloadGitRepoAction._eval_repo_url(name_or_url),
