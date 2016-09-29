@@ -16,7 +16,7 @@
 import logging
 import st2common.config as config
 
-from st2common.transport.bootstrap_utils import register_exchanges
+from st2common.transport.bootstrap_utils import register_exchanges_with_retry
 
 
 def _setup():
@@ -29,7 +29,7 @@ def _setup():
 
 def main():
     _setup()
-    register_exchanges()
+    register_exchanges_with_retry()
 
 
 # The scripts sets up Exchanges in RabbitMQ.
