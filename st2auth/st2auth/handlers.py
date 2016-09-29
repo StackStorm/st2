@@ -23,7 +23,7 @@ from st2common.exceptions.auth import TTLTooLargeException, UserNotFoundError
 from st2common.exceptions.auth import NoNicknameOriginProvidedError, AmbiguousUserError
 from st2common.exceptions.auth import NotServiceUserError
 from st2common.persistence.auth import User
-from st2common.util.pecan import abort_request
+from st2common.util.pecan_util import abort_request
 from st2common.services.access import create_token
 from st2common.models.api.auth import TokenAPI
 from st2auth.backends import get_backend_instance
