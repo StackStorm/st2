@@ -50,11 +50,11 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
     def test_get_querier(self):
         tracker = results_tracker.get_tracker()
         self.assertEqual(tracker.get_querier('this_module_aint_exist'), None)
-        self.assertTrue(tracker.get_querier('tests.resources.test_querymodule') is not None)
+        self.assertTrue(tracker.get_querier('test_querymodule') is not None)
 
     def test_querier_started(self):
         tracker = results_tracker.get_tracker()
-        querier = tracker.get_querier('tests.resources.test_querymodule')
+        querier = tracker.get_querier('test_querymodule')
         eventlet.sleep(0.1)
         self.assertTrue(querier.is_started(), 'querier must have been started.')
 
