@@ -126,8 +126,9 @@ class TokenController(rest.RestController):
 
         result = self._auth_backend.authenticate(username=username, password=password)
         if result is True:
+            LOG.audit(request.body)
             ttl = getattr(request, 'ttl', None)
-            impersonate_user = getattr(request, 'user', None)
+            impersonate_user = getattr(request.body, 'user', None)
 
             if impersonate_user is not None:
                 # check this is a service account
@@ -173,7 +174,8 @@ class TokenController(rest.RestController):
                                             message=message)
                         return
             try:
-                token = self._create_token_for_user(username=username, ttl=ttl)
+                token = self._create_token_for_user(
+                    username=username, ttl=ttl)
                 return self._process_successful_response(token=token)
             except TTLTooLargeException as e:
                 self._abort_request(status_code=http_client.BAD_REQUEST,

@@ -218,7 +218,10 @@ class TestTokenController(FunctionalTest):
 
     @mock.patch.object(
         User, 'get_by_name',
-        mock.MagicMock(side_effect=UserNotFoundError))
+        mock.MagicMock(return_value=UserDB(name='barry_bones')))
+    @mock.patch.object(
+        pecan.request, 'remote_user',
+        mock.PropertyMock(return_value=UserDB('the_first_user')))
     def test_token_for_bad_user(self):
         response = self.app.post_json(TOKEN_V1_PATH, {'user': 'barry_bones'}, expect_errors=False)
         
@@ -229,7 +232,7 @@ class TestTokenController(FunctionalTest):
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name='barry_bones')))
     def test_token_post_set_user(self):
-        response = self.app.post_json(TOKEN_V1_PATH, {'user': 'barry_bones'}, expect_errors=False)
+        response = self.app.post_json(TOKEN_V1_PATH, data={'user': 'barry_bones'}, expect_errors=False)
         
         self.assertEqual(response.status_int, 201)
         self.assertEqual(response.json['user'], 'barry_bones')
