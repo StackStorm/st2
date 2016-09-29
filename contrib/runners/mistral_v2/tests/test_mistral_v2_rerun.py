@@ -47,8 +47,8 @@ from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 from tests.unit.base import MockLiveActionPublisher
-from localrunner import LocalShellRunner
-from mistralv2 import MistralRunner
+from local_runner import LocalShellRunner
+from mistral_v2 import MistralRunner
 
 
 TEST_FIXTURES = {

@@ -28,7 +28,7 @@ from st2tests.fixturesloader import FixturesLoader
 from st2tests.fixturesloader import get_fixtures_base_path
 from st2common.util.api import get_full_public_api_url
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
-import localrunner
+import local_runner
 
 
 class LocalShellCommandRunnerTestCase(TestCase):
@@ -128,22 +128,22 @@ class LocalShellCommandRunnerTestCase(TestCase):
                     cmd=None,
                     on_behalf_user=None,
                     user=None,
-                    kwarg_op=localrunner.DEFAULT_KWARG_OP,
+                    kwarg_op=local_runner.DEFAULT_KWARG_OP,
                     timeout=LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT,
                     sudo=False,
                     env=None):
-        runner = localrunner.LocalShellRunner(uuid.uuid4().hex)
+        runner = local_runner.LocalShellRunner(uuid.uuid4().hex)
         runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name
         runner.liveaction_id = uuid.uuid4().hex
         runner.entry_point = entry_point
-        runner.runner_parameters = {localrunner.RUNNER_COMMAND: cmd,
-                                    localrunner.RUNNER_SUDO: sudo,
-                                    localrunner.RUNNER_ENV: env,
-                                    localrunner.RUNNER_ON_BEHALF_USER: user,
-                                    localrunner.RUNNER_KWARG_OP: kwarg_op,
-                                    localrunner.RUNNER_TIMEOUT: timeout}
+        runner.runner_parameters = {local_runner.RUNNER_COMMAND: cmd,
+                                    local_runner.RUNNER_SUDO: sudo,
+                                    local_runner.RUNNER_ENV: env,
+                                    local_runner.RUNNER_ON_BEHALF_USER: user,
+                                    local_runner.RUNNER_KWARG_OP: kwarg_op,
+                                    local_runner.RUNNER_TIMEOUT: timeout}
         runner.context = dict()
         runner.callback = dict()
         runner.libs_dir_path = None
@@ -218,7 +218,7 @@ class LocalShellScriptRunner(TestCase):
         self.assertTrue('PARAM_FLOAT=\n' in result['stdout'])
 
     def _get_runner(self, action_db, entry_point):
-        runner = localrunner.LocalShellRunner(uuid.uuid4().hex)
+        runner = local_runner.LocalShellRunner(uuid.uuid4().hex)
         runner.container_service = RunnerContainerService()
         runner.action = action_db
         runner.action_name = action_db.name

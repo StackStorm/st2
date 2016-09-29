@@ -15,7 +15,7 @@
 
 import unittest2
 
-import actionchainrunner as acr
+import action_chain_runner as acr
 from st2common.exceptions.action import ParameterRenderingFailedException
 from st2common.models.system.actionchain import Node
 

@@ -21,8 +21,8 @@ import mock
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-import localrunner
-import actionchainrunner
+import local_runner
+import action_chain_runner
 import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
@@ -50,11 +50,11 @@ from tests.unit.base import MockLiveActionPublisher
 MOCK_FAIL_EXECUTION_CREATE = False
 
 
-@mock.patch.object(localrunner.LocalShellRunner, 'run',
+@mock.patch.object(local_runner.LocalShellRunner, 'run',
                    mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_FAILED,
                                                 'Non-empty', None)))
 @mock.patch('st2common.runners.register_runner',
-            mock.MagicMock(return_value=localrunner))
+            mock.MagicMock(return_value=local_runner))
 @mock.patch.object(CUDPublisher, 'publish_create',
                    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
 @mock.patch.object(LiveActionPublisher, 'publish_state',
@@ -105,7 +105,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
 
     def test_chained_executions(self):
         with mock.patch('st2common.runners.register_runner',
-                        mock.MagicMock(return_value=actionchainrunner)):
+                        mock.MagicMock(return_value=action_chain_runner)):
             liveaction = LiveActionDB(action='executions.chain')
             liveaction, _ = action_service.request(liveaction)
             liveaction = LiveAction.get_by_id(str(liveaction.id))

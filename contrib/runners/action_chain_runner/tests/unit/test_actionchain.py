@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import mock
-import actionchainrunner as acr
+import action_chain_runner as acr
 from st2actions.container.service import RunnerContainerService
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
