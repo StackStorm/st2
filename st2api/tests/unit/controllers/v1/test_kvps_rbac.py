@@ -72,7 +72,8 @@ class KeyValuesControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.kvps['kvp_3'] = kvp_db
 
         name = get_key_reference(scope=FULL_USER_SCOPE, name='test_user_scope_2', user='user1')
-        kvp_api = KeyValuePairSetAPI(name=name, value='user_secret', scope=FULL_USER_SCOPE, secret=True)
+        kvp_api = KeyValuePairSetAPI(name=name, value='user_secret', scope=FULL_USER_SCOPE,
+                                     secret=True)
         kvp_db = KeyValuePairSetAPI.to_model(kvp_api)
         kvp_db = KeyValuePair.add_or_update(kvp_db)
         kvp_db = KeyValuePairAPI.from_model(kvp_db)
@@ -192,7 +193,9 @@ class KeyValuesControllerRBACTestCase(APIControllerWithRBACTestCase):
         # User can request decrypted value of the item scoped to themselves
         self.use_user(self.users['user_1'])
 
-        resp = self.app.get('/v1/keys/%s?scope=st2kv.user&decrypt=True' % (self.kvps['kvp_4'].name))
+        resp = self.app.get(
+            '/v1/keys/%s?scope=st2kv.user&decrypt=True' % (self.kvps['kvp_4'].name)
+        )
         self.assertEqual(resp.json['scope'], FULL_USER_SCOPE)
         self.assertEqual(resp.json['user'], 'user1')
         self.assertTrue(resp.json['secret'])
@@ -312,16 +315,24 @@ class KeyValuesControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/keys/%s?scope=st2kv.user&user=user2' % (self.kvps['kvp_5'].name))
         self.assertEqual(resp.status_code, httplib.OK)
 
-        resp = self.app.delete('/v1/keys/%s?scope=st2kv.user&user=user1' % (self.kvps['kvp_3'].name))
+        resp = self.app.delete(
+            '/v1/keys/%s?scope=st2kv.user&user=user1' % (self.kvps['kvp_3'].name)
+        )
         self.assertEqual(resp.status_code, httplib.NO_CONTENT)
-        resp = self.app.delete('/v1/keys/%s?scope=st2kv.user&user=user2' % (self.kvps['kvp_5'].name))
+        resp = self.app.delete(
+            '/v1/keys/%s?scope=st2kv.user&user=user2' % (self.kvps['kvp_5'].name)
+        )
         self.assertEqual(resp.status_code, httplib.NO_CONTENT)
 
-        resp = self.app.delete('/v1/keys/%s?scope=st2kv.user&user=user1' % (self.kvps['kvp_3'].name),
-                               expect_errors=True)
+        resp = self.app.delete(
+            '/v1/keys/%s?scope=st2kv.user&user=user1' % (self.kvps['kvp_3'].name),
+            expect_errors=True
+        )
         self.assertEqual(resp.status_code, httplib.NOT_FOUND)
-        resp = self.app.delete('/v1/keys/%s?scope=st2kv.user&user=user2' % (self.kvps['kvp_5'].name),
-                               expect_errors=True)
+        resp = self.app.delete(
+            '/v1/keys/%s?scope=st2kv.user&user=user2' % (self.kvps['kvp_5'].name),
+            expect_errors=True
+        )
 
     def test_delete_user_scope_item_non_admin_failure(self):
         # Non admin user can't delete user-scoped items which are not scoped to them
