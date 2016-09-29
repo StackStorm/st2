@@ -1,0 +1,162 @@
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import pecan
+import base64
+import logging
+from six.moves import http_client
+from oslo_config import cfg
+
+from st2common.exceptions.auth import TTLTooLargeException, UserNotFoundError
+from st2common.exceptions.auth import NoNicknameOriginProvidedError, AmbiguousUserError
+from st2common.exceptions.auth import NotServiceUserError
+from st2common.persistence.auth import User
+from st2common.util.pecan import abort_request
+from st2common.services.access import create_token
+from st2common.models.api.auth import TokenAPI
+from st2auth.backends import get_backend_instance
+
+LOG = logging.getLogger(__name__)
+
+
+class AuthHandlerBase(object):
+    def handle_auth(self, request, **kwargs):
+        raise NotImplementedError()
+
+    def _create_token_for_user(self, username, ttl=None):
+        tokendb = create_token(username=username, ttl=ttl)
+        return TokenAPI.from_model(tokendb)
+
+
+class ProxyAuthHandler(AuthHandlerBase):
+    def handle_auth(self, request, **kwargs):
+        remote_addr = pecan.request.headers.get('x-forwarded-for',
+                                                pecan.request.remote_addr)
+        extra = {'remote_addr': remote_addr}
+
+        if pecan.request.remote_user:
+            ttl = getattr(request, 'ttl', None)
+            try:
+                token = self._create_token_for_user(username=pecan.request.remote_user,
+                                                    ttl=ttl)
+            except TTLTooLargeException as e:
+                abort_request(status_code=http_client.BAD_REQUEST,
+                              message=e.message)
+            return token
+
+        LOG.audit('Access denied to anonymous user.', extra=extra)
+        abort_request()
+
+
+class StandaloneAuthHandler(AuthHandlerBase):
+    def __init__(self, *args, **kwargs):
+        self._auth_backend = get_backend_instance(name=cfg.CONF.auth.backend)
+        super(StandaloneAuthHandler, self).__init__(*args, **kwargs)
+
+    def handle_auth(self, request, **kwargs):
+        authorization = pecan.request.authorization
+
+        auth_backend = self._auth_backend.__class__.__name__
+        remote_addr = pecan.request.remote_addr
+        extra = {'auth_backend': auth_backend, 'remote_addr': remote_addr}
+
+        if not authorization:
+            LOG.audit('Authorization header not provided', extra=extra)
+            abort_request()
+            return
+
+        auth_type, auth_value = authorization
+        if auth_type.lower() not in ['basic']:
+            extra['auth_type'] = auth_type
+            LOG.audit('Unsupported authorization type: %s' % (auth_type), extra=extra)
+            abort_request()
+            return
+
+        try:
+            auth_value = base64.b64decode(auth_value)
+        except Exception:
+            LOG.audit('Invalid authorization header', extra=extra)
+            abort_request()
+            return
+
+        split = auth_value.split(':')
+        if len(split) != 2:
+            LOG.audit('Invalid authorization header', extra=extra)
+            abort_request()
+            return
+
+        username, password = split
+        result = self._auth_backend
+
+        result = self._auth_backend.authenticate(username=username, password=password)
+        if result is True:
+            LOG.audit(request.body)
+            ttl = getattr(request, 'ttl', None)
+            impersonate_user = getattr(request.body, 'user', None)
+
+            if impersonate_user is not None:
+                # check this is a service account
+                if not User.get_by_name(username).is_service:
+                    message = "Current user is not a service and cannot " \
+                              "request impersonated tokens"
+                    abort_request(status_code=http_client.BAD_REQUEST,
+                                  message=message)
+                    return
+                username = impersonate_user
+            else:
+                impersonate_user = getattr(request, 'impersonate_user', None)
+                nickname_origin = getattr(request, 'nickname_origin', None)
+                if impersonate_user is not None:
+                    try:
+                        # check this is a service account
+                        if not User.get_by_name(username).is_service:
+                            raise NotServiceUserError()
+                        username = User.get_by_nickname(impersonate_user,
+                                                        nickname_origin).name
+                    except NotServiceUserError:
+                        message = "Current user is not a service and cannot " \
+                                  "request impersonated tokens"
+                        abort_request(status_code=http_client.BAD_REQUEST,
+                                      message=message)
+                        return
+                    except UserNotFoundError:
+                        message = "Could not locate user %s@%s" % \
+                                  (impersonate_user, nickname_origin)
+                        abort_request(status_code=http_client.BAD_REQUEST,
+                                      message=message)
+                        return
+                    except NoNicknameOriginProvidedError:
+                        message = "Nickname origin is not provided for nickname '%s'" % \
+                                  impersonate_user
+                        abort_request(status_code=http_client.BAD_REQUEST,
+                                      message=message)
+                        return
+                    except AmbiguousUserError:
+                        message = "%s@%s matched more than one username" % \
+                                  (impersonate_user, nickname_origin)
+                        abort_request(status_code=http_client.BAD_REQUEST,
+                                      message=message)
+                        return
+            try:
+                token = self._create_token_for_user(
+                    username=username, ttl=ttl)
+                return token
+            except TTLTooLargeException as e:
+                abort_request(status_code=http_client.BAD_REQUEST,
+                              message=e.message)
+                return
+
+        LOG.audit('Invalid credentials provided', extra=extra)
+        abort_request()
