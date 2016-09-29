@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.constants.keyvalue import DEPRECATED_SYSTEM_SCOPE
+from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2reactor.rules import datatransform
@@ -67,13 +67,13 @@ class DataTransformTest(DbTestCase):
         k6 = KeyValuePair.add_or_update(KeyValuePairDB(name='k6', value='v6'))
         k7 = KeyValuePair.add_or_update(KeyValuePairDB(name='k7', value='v7'))
         k8 = KeyValuePair.add_or_update(KeyValuePairDB(name='k8', value='v8',
-                                                       scope=DEPRECATED_SYSTEM_SCOPE))
+                                                       scope=SYSTEM_SCOPE))
 
         try:
             transformer = datatransform.get_transformer(PAYLOAD)
             mapping = {'ip5': '{{trigger.k2}}-static',
-                       'ip6': '{{st2system.k6}}-static',
-                       'ip7': '{{st2system.k7}}-static',
+                       'ip6': '{{st2kv.system.k6}}-static',
+                       'ip7': '{{st2kv.system.k7}}-static',
                        'ip8': '{{system.k8}}-static'}
             result = transformer(mapping)
             expected = {'ip5': 'v2-static',

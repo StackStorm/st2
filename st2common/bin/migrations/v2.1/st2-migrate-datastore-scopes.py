@@ -18,8 +18,8 @@ import sys
 import traceback as tb
 
 from st2common import config
-from st2common.constants.keyvalue import DEPRECATED_SYSTEM_SCOPE, SYSTEM_SCOPE
-from st2common.constants.keyvalue import DEPRECATED_USER_SCOPE, USER_SCOPE
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, SYSTEM_SCOPE
+from st2common.constants.keyvalue import FULL_USER_SCOPE, USER_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.service_setup import db_setup
@@ -35,11 +35,11 @@ def migrate_datastore():
             secret = getattr(kvp, 'secret', False)
             scope = getattr(kvp, 'scope', SYSTEM_SCOPE)
 
-            if scope == DEPRECATED_USER_SCOPE:
-                scope = USER_SCOPE
+            if scope == USER_SCOPE:
+                scope = FULL_USER_SCOPE
 
-            if scope == DEPRECATED_SYSTEM_SCOPE:
-                scope = SYSTEM_SCOPE
+            if scope == SYSTEM_SCOPE:
+                scope = FULL_SYSTEM_SCOPE
 
             new_kvp_db = KeyValuePairDB(id=kvp_id, name=kvp.name,
                                         expire_timestamp=kvp.expire_timestamp,

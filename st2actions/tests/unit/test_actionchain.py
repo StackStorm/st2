@@ -22,7 +22,6 @@ from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
-from st2common.constants.keyvalue import DEPRECATED_SYSTEM_SCOPE
 from st2common.exceptions import actionrunner as runnerexceptions
 from st2common.models.api.notification import NotificationsHelper
 from st2common.models.db.liveaction import LiveActionDB
@@ -580,8 +579,6 @@ class TestActionChainRunner(DbTestCase):
         kvps = []
         try:
             kvps.append(KeyValuePair.add_or_update(KeyValuePairDB(name='a', value='two')))
-            kvps.append(KeyValuePair.add_or_update(KeyValuePairDB(name='a', value='three',
-                                                                  scope=DEPRECATED_SYSTEM_SCOPE)))
             chain_runner = acr.get_runner()
             chain_runner.entry_point = CHAIN_WITH_SYSTEM_VARS
             chain_runner.action = ACTION_2
@@ -591,7 +588,7 @@ class TestActionChainRunner(DbTestCase):
             self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
             expected_value = {'inttype': 1,
                               'strtype': 'two',
-                              'strtype_legacy': 'three',
+                              'strtype_legacy': 'two',
                               'booltype': True}
             mock_args, _ = request.call_args
             self.assertEqual(mock_args[0].parameters, expected_value)

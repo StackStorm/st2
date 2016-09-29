@@ -20,8 +20,8 @@ from mongoengine import ValidationError
 
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
-from st2common.constants.keyvalue import DEPRECATED_SYSTEM_SCOPE, DEPRECATED_USER_SCOPE
-from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, ALLOWED_SCOPES
+from st2common.constants.keyvalue import ALL_SCOPE, SYSTEM_SCOPE
+from st2common.constants.keyvalue import FULL_USER_SCOPE, USER_SCOPE, ALLOWED_SCOPES
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.models.api.keyvalue import KeyValuePairAPI
@@ -31,6 +31,7 @@ from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services import coordination
 from st2common.services.keyvalues import get_key_reference
 from st2common.util.api import get_requester
+from st2common.util.keyvalue import get_datastore_full_scope
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.rbac.utils import request_user_is_admin
 from st2common.rbac.utils import assert_request_user_is_admin_if_user_query_param_is_provider
@@ -72,13 +73,12 @@ class KeyValuePairController(ResourceController):
         if not scope:
             scope = SYSTEM_SCOPE
 
-        scope = self._get_new_scope(scope)
-        self._validate_scope(scope=scope)
-
         if user:
             # Providing a user implies a user scope
             scope = USER_SCOPE
 
+        scope = get_datastore_full_scope(scope)
+        self._validate_scope(scope=scope)
         requester_user = get_requester()
         user = user or requester_user
         is_admin = request_user_is_admin(request=pecan.request)
@@ -115,10 +115,10 @@ class KeyValuePairController(ResourceController):
             # Providing a user implies a user scope
             scope = USER_SCOPE
 
-        scope = self._get_new_scope(scope)
+        scope = get_datastore_full_scope(scope)
         requester_user = get_requester()
         user = user or requester_user
-        is_all_scope = (scope == 'all')
+        is_all_scope = (scope == ALL_SCOPE)
         is_admin = request_user_is_admin(request=pecan.request)
 
         if is_all_scope and not is_admin:
@@ -135,11 +135,11 @@ class KeyValuePairController(ResourceController):
         from_model_kwargs = {'mask_secrets': not decrypt}
         kwargs['prefix'] = prefix
 
-        if scope and scope not in ['all']:
+        if scope and scope not in ALL_SCOPE:
             self._validate_scope(scope=scope)
             kwargs['scope'] = scope
 
-        if scope == USER_SCOPE:
+        if scope == USER_SCOPE or scope == FULL_USER_SCOPE:
             # Make sure we only returned values scoped to current user
             if kwargs['prefix']:
                 kwargs['prefix'] = get_key_reference(name=kwargs['prefix'], scope=scope,
@@ -162,7 +162,7 @@ class KeyValuePairController(ResourceController):
         requester_user = get_requester()
 
         scope = getattr(kvp, 'scope', scope)
-        scope = self._get_new_scope(scope)
+        scope = get_datastore_full_scope(scope)
         self._validate_scope(scope=scope)
 
         user = getattr(kvp, 'user', requester_user) or requester_user
@@ -225,7 +225,7 @@ class KeyValuePairController(ResourceController):
         if not scope:
             scope = SYSTEM_SCOPE
 
-        scope = self._get_new_scope(scope)
+        scope = get_datastore_full_scope(scope)
         self._validate_scope(scope=scope)
 
         requester_user = get_requester()
@@ -280,7 +280,8 @@ class KeyValuePairController(ResourceController):
         """
         requester_user = get_requester()
 
-        if decrypt and (scope != USER_SCOPE and not is_admin):
+        is_user_scope = (scope == USER_SCOPE or scope == FULL_USER_SCOPE)
+        if decrypt and (not is_user_scope and not is_admin):
             msg = 'Decrypt option requires administrator access'
             raise AccessDeniedError(message=msg, user_db=requester_user)
 
@@ -288,12 +289,3 @@ class KeyValuePairController(ResourceController):
         if scope not in ALLOWED_SCOPES:
             msg = 'Scope %s is not in allowed scopes list: %s.' % (scope, ALLOWED_SCOPES)
             raise ValueError(msg)
-
-    def _get_new_scope(self, scope):
-        if scope == DEPRECATED_SYSTEM_SCOPE:
-            return SYSTEM_SCOPE
-
-        if scope == DEPRECATED_USER_SCOPE:
-            return USER_SCOPE
-
-        return scope

@@ -15,8 +15,8 @@
 
 import copy
 
+from st2common.constants.keyvalue import SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
-from st2common.constants.keyvalue import SYSTEM_SCOPES
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import jinja as jinja_utils
 
@@ -28,8 +28,12 @@ class Jinja2BasedTransformer(object):
 
     def __call__(self, mapping):
         context = copy.copy(self._payload_context)
-        for system_scope in SYSTEM_SCOPES:
-            context[system_scope] = KeyValueLookup(scope=system_scope)
+        context[SYSTEM_SCOPE] = KeyValueLookup(scope=SYSTEM_SCOPE)
+        context.update({
+            DATASTORE_PARENT_SCOPE: {
+                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+            }
+        })
         return jinja_utils.render_values(mapping=mapping, context=context)
 
     @staticmethod
@@ -38,8 +42,12 @@ class Jinja2BasedTransformer(object):
             return context
 
         context = context or {}
-        for system_scope in SYSTEM_SCOPES:
-            context[system_scope] = KeyValueLookup(scope=system_scope)
+        context[SYSTEM_SCOPE] = KeyValueLookup(scope=SYSTEM_SCOPE)
+        context.update({
+            DATASTORE_PARENT_SCOPE: {
+                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+            }
+        })
         # add in the data in the context without any processing. Payload may
         # contain renderable keys however those are often due to nature of the
         # events being posted e.g. ActionTrigger with template variables. Rendering

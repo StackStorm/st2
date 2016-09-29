@@ -29,7 +29,7 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.action import LIVEACTION_FAILED_STATES
-from st2common.constants.keyvalue import SYSTEM_SCOPES
+from st2common.constants.keyvalue import SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.content.loader import MetaLoader
 from st2common.exceptions.action import (ParameterRenderingFailedException,
                                          InvalidActionReferencedException)
@@ -193,8 +193,12 @@ class ChainHolder(object):
         if not vars:
             return {}
         context = {}
-        for system_scope in SYSTEM_SCOPES:
-            context.update({system_scope: KeyValueLookup(scope=system_scope)})
+        context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        context.update({
+            DATASTORE_PARENT_SCOPE: {
+                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+            }
+        })
         context.update(action_parameters)
         return jinja_utils.render_values(mapping=vars, context=context)
 
@@ -465,8 +469,12 @@ class ActionChainRunner(ActionRunner):
         context.update(previous_execution_results)
         context.update(chain_vars)
         context.update({RESULTS_KEY: previous_execution_results})
-        for system_scope in SYSTEM_SCOPES:
-            context.update({system_scope: KeyValueLookup(scope=system_scope)})
+        context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        context.update({
+            DATASTORE_PARENT_SCOPE: {
+                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+            }
+        })
 
         try:
             rendered_result = jinja_utils.render_values(mapping=action_node.publish,
@@ -488,8 +496,12 @@ class ActionChainRunner(ActionRunner):
         context.update(results)
         context.update(chain_vars)
         context.update({RESULTS_KEY: results})
-        for system_scope in SYSTEM_SCOPES:
-            context.update({system_scope: KeyValueLookup(scope=system_scope)})
+        context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        context.update({
+            DATASTORE_PARENT_SCOPE: {
+                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+            }
+        })
         context.update({ACTION_CONTEXT_KV_PREFIX: chain_context})
         try:
             rendered_params = jinja_utils.render_values(mapping=action_node.get_parameters(),
