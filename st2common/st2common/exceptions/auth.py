@@ -28,6 +28,7 @@ __all__ = [
     'NoNicknameOriginProvidedError',
     'UserNotFoundError',
     'AmbiguousUserError',
+    'NotServiceUserError'
 ]
 
 
@@ -76,4 +77,7 @@ class UserNotFoundError(StackStormBaseException):
 
 
 class AmbiguousUserError(StackStormBaseException):
+    pass
+
+class NotServiceUserError(StackStormBaseException):
     pass

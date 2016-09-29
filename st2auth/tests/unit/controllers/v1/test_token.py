@@ -23,6 +23,7 @@ import pecan
 from oslo_config import cfg
 
 from tests.base import FunctionalTest
+from st2common.exceptions.auth import UserNotFoundError
 from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
@@ -217,6 +218,24 @@ class TestTokenController(FunctionalTest):
 
     @mock.patch.object(
         User, 'get_by_name',
+        mock.MagicMock(side_effect=UserNotFoundError))
+    def test_token_for_bad_user(self):
+        response = self.app.post_json(TOKEN_V1_PATH, {'user': 'barry_bones'}, expect_errors=False)
+        
+        self.assertEqual(response.status_int, 201)
+        self.assertEqual(response.json['user'], 'barry_bones')
+
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name='barry_bones')))
+    def test_token_post_set_user(self):
+        response = self.app.post_json(TOKEN_V1_PATH, {'user': 'barry_bones'}, expect_errors=False)
+        
+        self.assertEqual(response.status_int, 201)
+        self.assertEqual(response.json['user'], 'barry_bones')
+
+    @mock.patch.object(
+        User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name=USERNAME)))
     @mock.patch.object(
         ApiKey, 'get',
@@ -234,3 +253,7 @@ class TestTokenController(FunctionalTest):
         response = self.app.post_json(TOKEN_VERIFY_PATH, data, headers=headers, expect_errors=False)
         self.assertEqual(response.status_int, 200)
         self.assertFalse(response.json['valid'])
+
+if __name__ == '__main__':
+    import unittest
+    unittest.main()

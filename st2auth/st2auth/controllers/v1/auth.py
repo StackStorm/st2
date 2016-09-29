@@ -23,6 +23,7 @@ from oslo_config import cfg
 from st2common.exceptions.auth import TokenNotFoundError, TokenExpiredError
 from st2common.exceptions.auth import TTLTooLargeException, UserNotFoundError
 from st2common.exceptions.auth import NoNicknameOriginProvidedError, AmbiguousUserError
+from st2common.exceptions.auth import NotServiceUserError
 from st2common.models.api.base import jsexpose
 from st2common.models.api.auth import TokenAPI
 from st2common.persistence.auth import User
@@ -129,31 +130,48 @@ class TokenController(rest.RestController):
             impersonate_user = getattr(request, 'user', None)
 
             if impersonate_user is not None:
+                # check this is a service account
+                if not User.get_by_name(username).is_service:
+                    message = "Current user is not a service and cannot " \
+                              "request impersonated tokens"
+                    self._abort_request(status_code=http_client.BAD_REQUEST,
+                                        message=message)
+                    return
                 username = impersonate_user
             else:
                 impersonate_user = getattr(request, 'impersonate_user', None)
                 nickname_origin = getattr(request, 'nickname_origin', None)
-            if impersonate_user is not None:
-                try:
-                    username = User.get_by_nickname(impersonate_user, nickname_origin).username
-                except UserNotFoundError:
-                    message = "Could not locate user %s@%s" % \
-                              (impersonate_user, nickname_origin)
-                    self._abort_request(status_code=http_client.BAD_REQUEST,
-                                        message=message)
-                    return
-                except NoNicknameOriginProvidedError:
-                    message = "Nickname origin is not provided for nickname '%s'" % \
-                              impersonate_user
-                    self._abort_request(status_code=http_client.BAD_REQUEST,
-                                        message=message)
-                    return
-                except AmbiguousUserError:
-                    message = "%s@%s matched more than one username" % \
-                              (impersonate_user, nickname_origin)
-                    self._abort_request(status_code=http_client.BAD_REQUEST,
-                                        message=message)
-                    return
+                if impersonate_user is not None:
+                    try:
+                        # check this is a service account
+                        if not User.get_by_name(username).is_service:
+                            raise NotServiceUserError()
+                        username = User.get_by_nickname(impersonate_user,
+                                                        nickname_origin).name
+                    except NotServiceUserError:
+                        message = "Current user is not a service and cannot " \
+                                  "request impersonated tokens"
+                        self._abort_request(status_code=http_client.BAD_REQUEST,
+                                            message=message)
+                        return
+                    except UserNotFoundError:
+                        message = "Could not locate user %s@%s" % \
+                                  (impersonate_user, nickname_origin)
+                        self._abort_request(status_code=http_client.BAD_REQUEST,
+                                            message=message)
+                        return
+                    except NoNicknameOriginProvidedError:
+                        message = "Nickname origin is not provided for nickname '%s'" % \
+                                  impersonate_user
+                        self._abort_request(status_code=http_client.BAD_REQUEST,
+                                            message=message)
+                        return
+                    except AmbiguousUserError:
+                        message = "%s@%s matched more than one username" % \
+                                  (impersonate_user, nickname_origin)
+                        self._abort_request(status_code=http_client.BAD_REQUEST,
+                                            message=message)
+                        return
             try:
                 token = self._create_token_for_user(username=username, ttl=ttl)
                 return self._process_successful_response(token=token)
