@@ -32,7 +32,8 @@ LOG = logging.getLogger(__name__)
 
 
 class AuthHandlerBase(object):
-    def handle_auth(self, request, **kwargs):
+    def handle_auth(self, request, headers=None, remote_addr=None,
+                    remote_user=None, **kwargs):
         raise NotImplementedError()
 
     def _create_token_for_user(self, username, ttl=None):
@@ -41,15 +42,16 @@ class AuthHandlerBase(object):
 
 
 class ProxyAuthHandler(AuthHandlerBase):
-    def handle_auth(self, request, **kwargs):
-        remote_addr = pecan.request.headers.get('x-forwarded-for',
-                                                pecan.request.remote_addr)
+    def handle_auth(self, request, headers=None, remote_addr=None,
+                    remote_user=None, **kwargs):
+        remote_addr = headers.get('x-forwarded-for',
+                                  remote_addr)
         extra = {'remote_addr': remote_addr}
 
-        if pecan.request.remote_user:
+        if remote_user:
             ttl = getattr(request, 'ttl', None)
             try:
-                token = self._create_token_for_user(username=pecan.request.remote_user,
+                token = self._create_token_for_user(username=remote_user,
                                                     ttl=ttl)
             except TTLTooLargeException as e:
                 abort_request(status_code=http_client.BAD_REQUEST,
@@ -65,11 +67,12 @@ class StandaloneAuthHandler(AuthHandlerBase):
         self._auth_backend = get_backend_instance(name=cfg.CONF.auth.backend)
         super(StandaloneAuthHandler, self).__init__(*args, **kwargs)
 
-    def handle_auth(self, request, **kwargs):
+    def handle_auth(self, request, headers=None, remote_addr=None, remote_user=None,
+                    **kwargs):
         authorization = pecan.request.authorization
 
         auth_backend = self._auth_backend.__class__.__name__
-        remote_addr = pecan.request.remote_addr
+
         extra = {'auth_backend': auth_backend, 'remote_addr': remote_addr}
 
         if not authorization:

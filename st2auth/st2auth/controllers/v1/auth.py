@@ -70,7 +70,10 @@ class TokenController(rest.RestController):
 
     @jsexpose(body_cls=TokenAPI, status_code=http_client.CREATED)
     def post(self, request, **kwargs):
-        token = self.handler.handle_auth(request=request, **kwargs)
+        token = self.handler.handle_auth(request=request, headers=pecan.request.headers,
+                                         remote_addr=pecan.request.remote_addr,
+                                         remote_user=pecan.request.remote_user,
+                                         **kwargs)
         return process_successful_response(token=token)
 
 
