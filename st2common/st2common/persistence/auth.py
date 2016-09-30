@@ -34,7 +34,7 @@ class User(Access):
         if not origin:
             raise NoNicknameOriginProvidedError()
 
-        result = cls.query(**{('nickname__%s' % origin): nickname})
+        result = cls.query(**{('nicknames__%s' % origin): nickname})
 
         if not result.first():
             raise UserNotFoundError()
