@@ -73,6 +73,7 @@ class TokenController(rest.RestController):
         token = self.handler.handle_auth(request=request, headers=pecan.request.headers,
                                          remote_addr=pecan.request.remote_addr,
                                          remote_user=pecan.request.remote_user,
+                                         authorization=pecan.request.authorization,
                                          **kwargs)
         return process_successful_response(token=token)
 
