@@ -54,6 +54,7 @@ class MockRequest():
 def get_mock_backend(name):
     return MockAuthBackend()
 
+
 @mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend)
 class HandlerTestCase(FunctionalTest):
     def setUp(self):
@@ -170,7 +171,7 @@ class HandlerTestCase(FunctionalTest):
         request.impersonate_user = 'anotheruser'
         request.nickname_origin = 'slack'
 
-        h.handle_auth(
+        token = h.handle_auth(
             request, headers={}, remote_addr=None,
             remote_user=None, authorization=('basic', DUMMY_CREDS))
         self.assertEqual(token.user, 'anotheruser')
