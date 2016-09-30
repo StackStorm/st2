@@ -164,6 +164,9 @@ class HandlerTestCase(FunctionalTest):
     @mock.patch.object(
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name='auser', is_service=True)))
+    @mock.patch.object(
+        User, 'get_by_nickname',
+        mock.MagicMock(return_value=UserDB(name='anotheruser', is_service=True)))
     def test_standalone_impersonate_user_with_nick_origin(self):
         h = handlers.StandaloneAuthHandler()
         request = MockRequest(60)
