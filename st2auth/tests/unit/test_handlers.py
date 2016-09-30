@@ -185,6 +185,3 @@ class HandlerTestCase(FunctionalTest):
             h.handle_auth(
                 request, headers={}, remote_addr=None,
                 remote_user=None, authorization=('basic', DUMMY_CREDS))
-
-if __name__ == '__main__':
-    unittest2.main()
