@@ -20,7 +20,7 @@ from mongoengine import ValidationError
 
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
-from st2common.constants.keyvalue import ALL_SCOPE, SYSTEM_SCOPE
+from st2common.constants.keyvalue import ALL_SCOPE, FULL_SYSTEM_SCOPE
 from st2common.constants.keyvalue import FULL_USER_SCOPE, USER_SCOPE, ALLOWED_SCOPES
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
@@ -63,7 +63,7 @@ class KeyValuePairController(ResourceController):
         self.get_one_db_method = self._get_by_name
 
     @jsexpose(arg_types=[str, str, str, bool])
-    def get_one(self, name, scope=None, user=None, decrypt=False):
+    def get_one(self, name, scope=FULL_SYSTEM_SCOPE, user=None, decrypt=False):
         """
             List key by name.
 
@@ -71,11 +71,11 @@ class KeyValuePairController(ResourceController):
                 GET /keys/key1
         """
         if not scope:
-            scope = SYSTEM_SCOPE
+            scope = FULL_SYSTEM_SCOPE
 
         if user:
             # Providing a user implies a user scope
-            scope = USER_SCOPE
+            scope = FULL_USER_SCOPE
 
         scope = get_datastore_full_scope(scope)
         self._validate_scope(scope=scope)
@@ -101,7 +101,7 @@ class KeyValuePairController(ResourceController):
         return kvp_api
 
     @jsexpose(arg_types=[str, str, str, bool])
-    def get_all(self, prefix=None, scope=None, user=None, decrypt=False, **kwargs):
+    def get_all(self, prefix=None, scope=FULL_SYSTEM_SCOPE, user=None, decrypt=False, **kwargs):
         """
             List all keys.
 
@@ -109,11 +109,11 @@ class KeyValuePairController(ResourceController):
                 GET /keys/
         """
         if not scope:
-            scope = SYSTEM_SCOPE
+            scope = FULL_SYSTEM_SCOPE
 
         if user:
             # Providing a user implies a user scope
-            scope = USER_SCOPE
+            scope = FULL_USER_SCOPE
 
         scope = get_datastore_full_scope(scope)
         requester_user = get_requester()
@@ -153,12 +153,12 @@ class KeyValuePairController(ResourceController):
         return kvp_apis
 
     @jsexpose(arg_types=[str, str, str], body_cls=KeyValuePairSetAPI)
-    def put(self, kvp, name, scope=None):
+    def put(self, kvp, name, scope=FULL_SYSTEM_SCOPE):
         """
         Create a new entry or update an existing one.
         """
         if not scope:
-            scope = SYSTEM_SCOPE
+            scope = FULL_SYSTEM_SCOPE
         requester_user = get_requester()
 
         scope = getattr(kvp, 'scope', scope)
@@ -215,7 +215,7 @@ class KeyValuePairController(ResourceController):
         return kvp_api
 
     @jsexpose(arg_types=[str, str, str], status_code=http_client.NO_CONTENT)
-    def delete(self, name, scope=None, user=None):
+    def delete(self, name, scope=FULL_SYSTEM_SCOPE, user=None):
         """
             Delete the key value pair.
 
@@ -223,7 +223,7 @@ class KeyValuePairController(ResourceController):
                 DELETE /keys/1
         """
         if not scope:
-            scope = SYSTEM_SCOPE
+            scope = FULL_SYSTEM_SCOPE
 
         scope = get_datastore_full_scope(scope)
         self._validate_scope(scope=scope)
@@ -263,7 +263,7 @@ class KeyValuePairController(ResourceController):
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair deleted. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
 
-    def _get_lock_name_for_key(self, name, scope=SYSTEM_SCOPE):
+    def _get_lock_name_for_key(self, name, scope=FULL_SYSTEM_SCOPE):
         """
         Retrieve a coordination lock name for the provided datastore item name.
 
