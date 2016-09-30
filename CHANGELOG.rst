@@ -35,6 +35,11 @@ In development
 * Fix ``--user`` / ``-u`` argument in the ``st2 key delete`` CLI command.
 * Retry connecting to RabbitMQ on services start-up if connecting fails because
   of an intermediate network error or similar. (improvements)
+* Allow jinja expressions ``{{st2kv.system.foo}}`` and ``{{st2kv.user.foo}}`` to access
+  datastore items from workflows, actions and rules. This is in addition to supporting
+  expressions ``{{system.foo}}`` and ``{{user.foo}}``. In subsequent releases, the expressions
+  ``{{system.}}`` and ``{{user.}}`` will be deprecated. It is recommended to switch to using
+  ``{{st2kv.system.}}`` and ``{{st2kv.user.}}`` for your content. (improvement)
 
 2.0.0 - August 31, 2016
 -----------------------
