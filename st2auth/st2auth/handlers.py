@@ -33,7 +33,7 @@ LOG = logging.getLogger(__name__)
 
 class AuthHandlerBase(object):
     def handle_auth(self, request, headers=None, remote_addr=None,
-                    remote_user=None, **kwargs):
+                    remote_user=None, authorization=None, **kwargs):
         raise NotImplementedError()
 
     def _create_token_for_user(self, username, ttl=None):
@@ -43,7 +43,7 @@ class AuthHandlerBase(object):
 
 class ProxyAuthHandler(AuthHandlerBase):
     def handle_auth(self, request, headers=None, remote_addr=None,
-                    remote_user=None, **kwargs):
+                    remote_user=None, authorization=None, **kwargs):
         remote_addr = headers.get('x-forwarded-for',
                                   remote_addr)
         extra = {'remote_addr': remote_addr}
@@ -68,9 +68,7 @@ class StandaloneAuthHandler(AuthHandlerBase):
         super(StandaloneAuthHandler, self).__init__(*args, **kwargs)
 
     def handle_auth(self, request, headers=None, remote_addr=None, remote_user=None,
-                    **kwargs):
-        authorization = pecan.request.authorization
-
+                    authorization=None, **kwargs):
         auth_backend = self._auth_backend.__class__.__name__
 
         extra = {'auth_backend': auth_backend, 'remote_addr': remote_addr}
