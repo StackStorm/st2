@@ -19,7 +19,7 @@ from six.moves import http_client
 
 __all__ = [
     'abort_request',
-]    
+]
 
 
 def abort_request(status_code=http_client.UNAUTHORIZED,

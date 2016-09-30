@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import unittest2
-import pecan
 import mock
 from oslo_config import cfg
 import webob.exc
@@ -22,7 +21,6 @@ import webob.exc
 from tests.base import FunctionalTest
 
 import st2auth.handlers as handlers
-import st2auth.backends
 from st2auth.backends.base import BaseAuthenticationBackend
 from st2common.models.db.auth import UserDB
 from st2common.persistence.auth import User
@@ -47,9 +45,9 @@ class MockRequest():
     def __init__(self, ttl):
         self.ttl = ttl
 
-    user=None
-    ttl=None
-    impersonate_user=None
+    user = None
+    ttl = None
+    impersonate_user = None
 
 
 def get_mock_backend(name):
@@ -62,60 +60,61 @@ class HandlerTestCase(FunctionalTest):
 
     def test_proxy_handler(self):
         h = handlers.ProxyAuthHandler()
-        request={}
-        token = h.handle_auth(request, headers={}, remote_addr=None, 
-        remote_user='test_proxy_handler')
+        request = {}
+        token = h.handle_auth(
+            request, headers={}, remote_addr=None,
+            remote_user='test_proxy_handler')
         self.assertEqual(token.user, 'test_proxy_handler')
 
     def test_standalone_bad_auth_type(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
+        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
             h = handlers.StandaloneAuthHandler()
-        request={}
-     
+        request = {}
+
         with self.assertRaises(webob.exc.HTTPUnauthorized):
-            token = h.handle_auth(
-                request, headers={}, remote_addr=None, 
+            h.handle_auth(
+                request, headers={}, remote_addr=None,
                 remote_user=None, authorization=('complex', DUMMY_CREDS))
 
     def test_standalone_no_auth(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
+        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
             h = handlers.StandaloneAuthHandler()
-        request={}
-     
+        request = {}
+
         with self.assertRaises(webob.exc.HTTPUnauthorized):
-            token = h.handle_auth(
-                request, headers={}, remote_addr=None, 
+            h.handle_auth(
+                request, headers={}, remote_addr=None,
                 remote_user=None, authorization=None)
 
     def test_standalone_bad_auth_value(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
+        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
             h = handlers.StandaloneAuthHandler()
-        request={}
-     
+        request = {}
+
         with self.assertRaises(webob.exc.HTTPUnauthorized):
-            token = h.handle_auth(
-                request, headers={}, remote_addr=None, 
+            h.handle_auth(
+                request, headers={}, remote_addr=None,
                 remote_user=None, authorization=('basic', 'gobblegobble'))
 
     def test_standalone_handler(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
+        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
             h = handlers.StandaloneAuthHandler()
-        request={}
-     
+        request = {}
+
         token = h.handle_auth(
-            request, headers={}, remote_addr=None, 
+            request, headers={}, remote_addr=None,
             remote_user=None, authorization=('basic', DUMMY_CREDS))
         self.assertEqual(token.user, 'auser')
 
     def test_standalone_handler_ttl(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
+        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
             h = handlers.StandaloneAuthHandler()
-     
+
         token1 = h.handle_auth(
-            MockRequest(23), headers={}, remote_addr=None, 
+            MockRequest(23), headers={}, remote_addr=None,
             remote_user=None, authorization=('basic', DUMMY_CREDS))
         token2 = h.handle_auth(
-            MockRequest(2300), headers={}, remote_addr=None, 
+            MockRequest(2300), headers={}, remote_addr=None,
             remote_user=None, authorization=('basic', DUMMY_CREDS))
         self.assertEqual(token1.user, 'auser')
         self.assertNotEqual(token1.expiry, token2.expiry)
@@ -124,41 +123,40 @@ class HandlerTestCase(FunctionalTest):
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name='auser')))
     def test_standalone_for_user_not_service(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
+        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
             h = handlers.StandaloneAuthHandler()
-        request=MockRequest(60)
+        request = MockRequest(60)
         request.user = 'anotheruser'
-     
+
         with self.assertRaises(webob.exc.HTTPBadRequest):
-            token = h.handle_auth(
-                request, headers={}, remote_addr=None, 
+            h.handle_auth(
+                request, headers={}, remote_addr=None,
                 remote_user=None, authorization=('basic', DUMMY_CREDS))
-    
+
     @mock.patch.object(
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name='auser', is_service=True)))
     def test_standalone_for_user_service(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
+        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
             h = handlers.StandaloneAuthHandler()
-        request=MockRequest(60)
+        request = MockRequest(60)
         request.user = 'anotheruser'
-     
+
         token = h.handle_auth(
-            request, headers={}, remote_addr=None, 
+            request, headers={}, remote_addr=None,
             remote_user=None, authorization=('basic', DUMMY_CREDS))
         self.assertEqual(token.user, 'anotheruser')
-    
 
     def test_standalone_for_user_not_found(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
+        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
             h = handlers.StandaloneAuthHandler()
-        request=MockRequest(60)
+        request = MockRequest(60)
         request.user = 'anotheruser'
-     
+
         with self.assertRaises(webob.exc.HTTPBadRequest):
-            token = h.handle_auth(
-                request, headers={}, remote_addr=None, 
+            h.handle_auth(
+                request, headers={}, remote_addr=None,
                 remote_user=None, authorization=('basic', DUMMY_CREDS))
-    
+
 if __name__ == '__main__':
     unittest2.main()

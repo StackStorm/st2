@@ -79,5 +79,6 @@ class UserNotFoundError(StackStormBaseException):
 class AmbiguousUserError(StackStormBaseException):
     pass
 
+
 class NotServiceUserError(StackStormBaseException):
     pass
