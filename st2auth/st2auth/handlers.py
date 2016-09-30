@@ -40,6 +40,61 @@ class AuthHandlerBase(object):
         tokendb = create_token(username=username, ttl=ttl)
         return TokenAPI.from_model(tokendb)
 
+    def _get_username_for_request(self, username, request):
+        impersonate_user = getattr(request, 'user', None)
+
+        if impersonate_user is not None:
+            # check this is a service account
+            try:
+                if not User.get_by_name(username).is_service:
+                    message = "Current user is not a service and cannot " \
+                              "request impersonated tokens"
+                    abort_request(status_code=http_client.BAD_REQUEST,
+                                  message=message)
+                    return
+                username = impersonate_user
+            except (UserNotFoundError, StackStormDBObjectNotFoundError):
+                message = "Could not locate user %s" % \
+                          (impersonate_user)
+                abort_request(status_code=http_client.BAD_REQUEST,
+                              message=message)
+                return
+        else:
+            impersonate_user = getattr(request, 'impersonate_user', None)
+            nickname_origin = getattr(request, 'nickname_origin', None)
+            if impersonate_user is not None:
+                try:
+                    # check this is a service account
+                    if not User.get_by_name(username).is_service:
+                        raise NotServiceUserError()
+                    username = User.get_by_nickname(impersonate_user,
+                                                    nickname_origin).name
+                except NotServiceUserError:
+                    message = "Current user is not a service and cannot " \
+                              "request impersonated tokens"
+                    abort_request(status_code=http_client.BAD_REQUEST,
+                                  message=message)
+                    return
+                except (UserNotFoundError, StackStormDBObjectNotFoundError):
+                    message = "Could not locate user %s@%s" % \
+                              (impersonate_user, nickname_origin)
+                    abort_request(status_code=http_client.BAD_REQUEST,
+                                  message=message)
+                    return
+                except NoNicknameOriginProvidedError:
+                    message = "Nickname origin is not provided for nickname '%s'" % \
+                              impersonate_user
+                    abort_request(status_code=http_client.BAD_REQUEST,
+                                  message=message)
+                    return
+                except AmbiguousUserError:
+                    message = "%s@%s matched more than one username" % \
+                              (impersonate_user, nickname_origin)
+                    abort_request(status_code=http_client.BAD_REQUEST,
+                                  message=message)
+                    return
+        return username
+
 
 class ProxyAuthHandler(AuthHandlerBase):
     def handle_auth(self, request, headers=None, remote_addr=None,
@@ -50,8 +105,9 @@ class ProxyAuthHandler(AuthHandlerBase):
 
         if remote_user:
             ttl = getattr(request, 'ttl', None)
+            username = self._get_username_for_request(remote_user, request)
             try:
-                token = self._create_token_for_user(username=remote_user,
+                token = self._create_token_for_user(username=username,
                                                     ttl=ttl)
             except TTLTooLargeException as e:
                 abort_request(status_code=http_client.BAD_REQUEST,
@@ -104,58 +160,7 @@ class StandaloneAuthHandler(AuthHandlerBase):
         result = self._auth_backend.authenticate(username=username, password=password)
         if result is True:
             ttl = getattr(request, 'ttl', None)
-            impersonate_user = getattr(request, 'user', None)
-
-            if impersonate_user is not None:
-                # check this is a service account
-                try:
-                    if not User.get_by_name(username).is_service:
-                        message = "Current user is not a service and cannot " \
-                                  "request impersonated tokens"
-                        abort_request(status_code=http_client.BAD_REQUEST,
-                                      message=message)
-                        return
-                    username = impersonate_user
-                except (UserNotFoundError, StackStormDBObjectNotFoundError):
-                    message = "Could not locate user %s" % \
-                              (impersonate_user)
-                    abort_request(status_code=http_client.BAD_REQUEST,
-                                  message=message)
-                    return
-            else:
-                impersonate_user = getattr(request, 'impersonate_user', None)
-                nickname_origin = getattr(request, 'nickname_origin', None)
-                if impersonate_user is not None:
-                    try:
-                        # check this is a service account
-                        if not User.get_by_name(username).is_service:
-                            raise NotServiceUserError()
-                        username = User.get_by_nickname(impersonate_user,
-                                                        nickname_origin).name
-                    except NotServiceUserError:
-                        message = "Current user is not a service and cannot " \
-                                  "request impersonated tokens"
-                        abort_request(status_code=http_client.BAD_REQUEST,
-                                      message=message)
-                        return
-                    except (UserNotFoundError, StackStormDBObjectNotFoundError):
-                        message = "Could not locate user %s@%s" % \
-                                  (impersonate_user, nickname_origin)
-                        abort_request(status_code=http_client.BAD_REQUEST,
-                                      message=message)
-                        return
-                    except NoNicknameOriginProvidedError:
-                        message = "Nickname origin is not provided for nickname '%s'" % \
-                                  impersonate_user
-                        abort_request(status_code=http_client.BAD_REQUEST,
-                                      message=message)
-                        return
-                    except AmbiguousUserError:
-                        message = "%s@%s matched more than one username" % \
-                                  (impersonate_user, nickname_origin)
-                        abort_request(status_code=http_client.BAD_REQUEST,
-                                      message=message)
-                        return
+            username = self._get_username_for_request(username, request)
             try:
                 token = self._create_token_for_user(
                     username=username, ttl=ttl)
