@@ -48,12 +48,13 @@ class MockRequest():
     user = None
     ttl = None
     impersonate_user = None
+    nickname_origin = None
 
 
 def get_mock_backend(name):
     return MockAuthBackend()
 
-
+@mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend)
 class HandlerTestCase(FunctionalTest):
     def setUp(self):
         cfg.CONF.auth.backend = 'mock'
@@ -67,8 +68,7 @@ class HandlerTestCase(FunctionalTest):
         self.assertEqual(token.user, 'test_proxy_handler')
 
     def test_standalone_bad_auth_type(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
-            h = handlers.StandaloneAuthHandler()
+        h = handlers.StandaloneAuthHandler()
         request = {}
 
         with self.assertRaises(webob.exc.HTTPUnauthorized):
@@ -77,8 +77,7 @@ class HandlerTestCase(FunctionalTest):
                 remote_user=None, authorization=('complex', DUMMY_CREDS))
 
     def test_standalone_no_auth(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
-            h = handlers.StandaloneAuthHandler()
+        h = handlers.StandaloneAuthHandler()
         request = {}
 
         with self.assertRaises(webob.exc.HTTPUnauthorized):
@@ -87,8 +86,7 @@ class HandlerTestCase(FunctionalTest):
                 remote_user=None, authorization=None)
 
     def test_standalone_bad_auth_value(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
-            h = handlers.StandaloneAuthHandler()
+        h = handlers.StandaloneAuthHandler()
         request = {}
 
         with self.assertRaises(webob.exc.HTTPUnauthorized):
@@ -97,8 +95,7 @@ class HandlerTestCase(FunctionalTest):
                 remote_user=None, authorization=('basic', 'gobblegobble'))
 
     def test_standalone_handler(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
-            h = handlers.StandaloneAuthHandler()
+        h = handlers.StandaloneAuthHandler()
         request = {}
 
         token = h.handle_auth(
@@ -107,8 +104,7 @@ class HandlerTestCase(FunctionalTest):
         self.assertEqual(token.user, 'auser')
 
     def test_standalone_handler_ttl(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
-            h = handlers.StandaloneAuthHandler()
+        h = handlers.StandaloneAuthHandler()
 
         token1 = h.handle_auth(
             MockRequest(23), headers={}, remote_addr=None,
@@ -123,8 +119,7 @@ class HandlerTestCase(FunctionalTest):
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name='auser')))
     def test_standalone_for_user_not_service(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
-            h = handlers.StandaloneAuthHandler()
+        h = handlers.StandaloneAuthHandler()
         request = MockRequest(60)
         request.user = 'anotheruser'
 
@@ -137,8 +132,7 @@ class HandlerTestCase(FunctionalTest):
         User, 'get_by_name',
         mock.MagicMock(return_value=UserDB(name='auser', is_service=True)))
     def test_standalone_for_user_service(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
-            h = handlers.StandaloneAuthHandler()
+        h = handlers.StandaloneAuthHandler()
         request = MockRequest(60)
         request.user = 'anotheruser'
 
@@ -148,10 +142,43 @@ class HandlerTestCase(FunctionalTest):
         self.assertEqual(token.user, 'anotheruser')
 
     def test_standalone_for_user_not_found(self):
-        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend):
-            h = handlers.StandaloneAuthHandler()
+        h = handlers.StandaloneAuthHandler()
         request = MockRequest(60)
         request.user = 'anotheruser'
+
+        with self.assertRaises(webob.exc.HTTPBadRequest):
+            h.handle_auth(
+                request, headers={}, remote_addr=None,
+                remote_user=None, authorization=('basic', DUMMY_CREDS))
+
+    def test_standalone_impersonate_user_not_found(self):
+        h = handlers.StandaloneAuthHandler()
+        request = MockRequest(60)
+        request.impersonate_user = 'anotheruser'
+
+        with self.assertRaises(webob.exc.HTTPBadRequest):
+            h.handle_auth(
+                request, headers={}, remote_addr=None,
+                remote_user=None, authorization=('basic', DUMMY_CREDS))
+
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name='auser', is_service=True)))
+    def test_standalone_impersonate_user_with_nick_origin(self):
+        h = handlers.StandaloneAuthHandler()
+        request = MockRequest(60)
+        request.impersonate_user = 'anotheruser'
+        request.nickname_origin = 'slack'
+
+        h.handle_auth(
+            request, headers={}, remote_addr=None,
+            remote_user=None, authorization=('basic', DUMMY_CREDS))
+        self.assertEqual(token.user, 'anotheruser')
+
+    def test_standalone_impersonate_user_no_origin(self):
+        h = handlers.StandaloneAuthHandler()
+        request = MockRequest(60)
+        request.impersonate_user = '@anotheruser'
 
         with self.assertRaises(webob.exc.HTTPBadRequest):
             h.handle_auth(
