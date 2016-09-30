@@ -14,10 +14,10 @@
 # limitations under the License.
 
 import base64
-import logging
 from six.moves import http_client
 from oslo_config import cfg
 
+from st2common import log as logging
 from st2common.exceptions.auth import TTLTooLargeException, UserNotFoundError
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.auth import NoNicknameOriginProvidedError, AmbiguousUserError
