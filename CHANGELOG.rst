@@ -32,6 +32,9 @@ In development
   improvement)
 * Adding ability to pass complex array types via CLI by first trying to
   seralize the array as JSON and then falling back to comma seperated array.
+* Fix ``--user`` / ``-u`` argument in the ``st2 key delete`` CLI command.
+* Retry connecting to RabbitMQ on services start-up if connecting fails because
+  of an intermediate network error or similar. (improvements)
 
 2.0.0 - August 31, 2016
 -----------------------

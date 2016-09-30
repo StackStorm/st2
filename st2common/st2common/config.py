@@ -129,7 +129,11 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('url', default='amqp://guest:guest@127.0.0.1:5672//',
                    help='URL of the messaging server.'),
         cfg.ListOpt('cluster_urls', default=[],
-                    help='URL of all the nodes in a messaging service cluster.')
+                    help='URL of all the nodes in a messaging service cluster.'),
+        cfg.IntOpt('connection_retries', default=10,
+                   help='How many times should we retry connection before failing.'),
+        cfg.IntOpt('connection_retry_wait', default=10000,
+                   help='How long should we wait between connection retries.')
     ]
     do_register_opts(messaging_opts, 'messaging', ignore_errors)
 

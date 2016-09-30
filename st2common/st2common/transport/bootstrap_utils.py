@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import retrying
+import socket
+from oslo_config import cfg
 from kombu import Connection
 from st2common import log as logging
 from st2common.transport import utils as transport_utils
@@ -69,3 +72,12 @@ def register_exchanges():
                                       retry_wrapper=retry_wrapper)
 
         retry_wrapper.run(connection=conn, wrapped_callback=wrapped_register_exchanges)
+
+
+def register_exchanges_with_retry():
+    retrying_obj = retrying.Retrying(
+        retry_on_exception=socket.error,
+        wait_fixed=cfg.CONF.messaging.connection_retry_wait,
+        stop_max_attempt_number=cfg.CONF.messaging.connection_retries
+    )
+    return retrying_obj.call(register_exchanges)
