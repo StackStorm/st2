@@ -24,6 +24,9 @@ from tests.base import FunctionalTest
 import st2auth.handlers as handlers
 import st2auth.backends
 from st2auth.backends.base import BaseAuthenticationBackend
+from st2common.models.db.auth import UserDB
+from st2common.persistence.auth import User
+
 
 # auser:apassword in b64
 DUMMY_CREDS = 'YXVzZXI6YXBhc3N3b3Jk'
@@ -34,14 +37,19 @@ class MockAuthBackend(BaseAuthenticationBackend):
         pass
 
     def authenticate(self, username, password):
-        return True
+        return username == 'auser' and password == 'apassword'
 
     def get_user(self, username):
         return username
 
 
-class MockRequest(object):
-    body = ''
+class MockRequest():
+    def __init__(self, ttl):
+        self.ttl = ttl
+
+    user=None
+    ttl=None
+    impersonate_user=None
 
 
 def get_mock_backend(name):
@@ -92,12 +100,65 @@ class HandlerTestCase(FunctionalTest):
     def test_standalone_handler(self):
         with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
             h = handlers.StandaloneAuthHandler()
-        request=MockRequest()
+        request={}
      
         token = h.handle_auth(
             request, headers={}, remote_addr=None, 
             remote_user=None, authorization=('basic', DUMMY_CREDS))
         self.assertEqual(token.user, 'auser')
 
+    def test_standalone_handler_ttl(self):
+        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
+            h = handlers.StandaloneAuthHandler()
+     
+        token1 = h.handle_auth(
+            MockRequest(23), headers={}, remote_addr=None, 
+            remote_user=None, authorization=('basic', DUMMY_CREDS))
+        token2 = h.handle_auth(
+            MockRequest(2300), headers={}, remote_addr=None, 
+            remote_user=None, authorization=('basic', DUMMY_CREDS))
+        self.assertEqual(token1.user, 'auser')
+        self.assertNotEqual(token1.expiry, token2.expiry)
+
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name='auser')))
+    def test_standalone_for_user_not_service(self):
+        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
+            h = handlers.StandaloneAuthHandler()
+        request=MockRequest(60)
+        request.user = 'anotheruser'
+     
+        with self.assertRaises(webob.exc.HTTPBadRequest):
+            token = h.handle_auth(
+                request, headers={}, remote_addr=None, 
+                remote_user=None, authorization=('basic', DUMMY_CREDS))
+    
+    @mock.patch.object(
+        User, 'get_by_name',
+        mock.MagicMock(return_value=UserDB(name='auser', is_service=True)))
+    def test_standalone_for_user_service(self):
+        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
+            h = handlers.StandaloneAuthHandler()
+        request=MockRequest(60)
+        request.user = 'anotheruser'
+     
+        token = h.handle_auth(
+            request, headers={}, remote_addr=None, 
+            remote_user=None, authorization=('basic', DUMMY_CREDS))
+        self.assertEqual(token.user, 'anotheruser')
+    
+
+    def test_standalone_for_user_not_found(self):
+        with mock.patch('st2auth.handlers.get_backend_instance', get_mock_backend) as m:
+            h = handlers.StandaloneAuthHandler()
+        request=MockRequest(60)
+        request.user = 'anotheruser'
+     
+        with self.assertRaises(webob.exc.HTTPBadRequest):
+            token = h.handle_auth(
+                request, headers={}, remote_addr=None, 
+                remote_user=None, authorization=('basic', DUMMY_CREDS))
+    
 if __name__ == '__main__':
     unittest2.main()

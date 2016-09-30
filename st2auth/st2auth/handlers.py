@@ -20,6 +20,7 @@ from six.moves import http_client
 from oslo_config import cfg
 
 from st2common.exceptions.auth import TTLTooLargeException, UserNotFoundError
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.auth import NoNicknameOriginProvidedError, AmbiguousUserError
 from st2common.exceptions.auth import NotServiceUserError
 from st2common.persistence.auth import User
@@ -103,19 +104,25 @@ class StandaloneAuthHandler(AuthHandlerBase):
 
         result = self._auth_backend.authenticate(username=username, password=password)
         if result is True:
-            LOG.audit(request.body)
             ttl = getattr(request, 'ttl', None)
-            impersonate_user = getattr(request.body, 'user', None)
+            impersonate_user = getattr(request, 'user', None)
 
             if impersonate_user is not None:
                 # check this is a service account
-                if not User.get_by_name(username).is_service:
-                    message = "Current user is not a service and cannot " \
-                              "request impersonated tokens"
+                try:
+                    if not User.get_by_name(username).is_service:
+                        message = "Current user is not a service and cannot " \
+                                  "request impersonated tokens"
+                        abort_request(status_code=http_client.BAD_REQUEST,
+                                      message=message)
+                        return
+                    username = impersonate_user
+                except (UserNotFoundError, StackStormDBObjectNotFoundError):
+                    message = "Could not locate user %s" % \
+                              (impersonate_user)
                     abort_request(status_code=http_client.BAD_REQUEST,
                                   message=message)
                     return
-                username = impersonate_user
             else:
                 impersonate_user = getattr(request, 'impersonate_user', None)
                 nickname_origin = getattr(request, 'nickname_origin', None)
@@ -132,7 +139,7 @@ class StandaloneAuthHandler(AuthHandlerBase):
                         abort_request(status_code=http_client.BAD_REQUEST,
                                       message=message)
                         return
-                    except UserNotFoundError:
+                    except (UserNotFoundError, StackStormDBObjectNotFoundError):
                         message = "Could not locate user %s@%s" % \
                                   (impersonate_user, nickname_origin)
                         abort_request(status_code=http_client.BAD_REQUEST,
