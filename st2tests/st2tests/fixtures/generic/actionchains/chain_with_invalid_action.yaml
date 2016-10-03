@@ -16,4 +16,4 @@ chain:
 default: c1
 vars:
   inttype: 1
-  strtype: '{{system.a}}'
+  strtype: '{{st2kv.system.a}}'

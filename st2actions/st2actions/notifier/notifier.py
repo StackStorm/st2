@@ -39,7 +39,7 @@ from st2common.util import jinja as jinja_utils
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.action import ACTION_PARAMETERS_KV_PREFIX
 from st2common.constants.action import ACTION_RESULTS_KV_PREFIX
-from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.keyvalue import SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.services.keyvalues import KeyValueLookup
 
 __all__ = [
@@ -190,7 +190,13 @@ class Notifier(consumers.MessageHandler):
                 raise Exception('Failed notifications to routes: %s' % ', '.join(failed_routes))
 
     def _build_jinja_context(self, liveaction, execution):
-        context = {SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)}
+        context = {}
+        context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        context.update({
+            DATASTORE_PARENT_SCOPE: {
+                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+            }
+        })
         context.update({ACTION_PARAMETERS_KV_PREFIX: liveaction.parameters})
         context.update({ACTION_CONTEXT_KV_PREFIX: liveaction.context})
         context.update({ACTION_RESULTS_KV_PREFIX: execution.result})

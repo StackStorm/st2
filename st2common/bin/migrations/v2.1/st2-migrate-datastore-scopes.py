@@ -18,15 +18,12 @@ import sys
 import traceback as tb
 
 from st2common import config
-from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, SYSTEM_SCOPE
+from st2common.constants.keyvalue import FULL_USER_SCOPE, USER_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.service_setup import db_setup
 from st2common.service_setup import db_teardown
-
-
-class DatastoreMigration(object):
-    pass
 
 
 def migrate_datastore():
@@ -37,6 +34,13 @@ def migrate_datastore():
             kvp_id = getattr(kvp, 'id', None)
             secret = getattr(kvp, 'secret', False)
             scope = getattr(kvp, 'scope', SYSTEM_SCOPE)
+
+            if scope == USER_SCOPE:
+                scope = FULL_USER_SCOPE
+
+            if scope == SYSTEM_SCOPE:
+                scope = FULL_SYSTEM_SCOPE
+
             new_kvp_db = KeyValuePairDB(id=kvp_id, name=kvp.name,
                                         expire_timestamp=kvp.expire_timestamp,
                                         value=kvp.value, secret=secret,

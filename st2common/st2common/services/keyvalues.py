@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, ALLOWED_SCOPES
+from st2common.constants.keyvalue import SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
+from st2common.constants.keyvalue import USER_SCOPE, FULL_USER_SCOPE
+from st2common.constants.keyvalue import ALLOWED_SCOPES
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
 from st2common.models.system.keyvalue import UserKeyReference
@@ -105,7 +107,9 @@ class KeyValueLookup(object):
 
 class UserKeyValueLookup(object):
 
-    def __init__(self, user, prefix=None, key_prefix=None, cache=None, scope=USER_SCOPE):
+    def __init__(self, user, prefix=None, key_prefix=None, cache=None, scope=None):
+        if not scope:
+            scope = FULL_USER_SCOPE
         self._prefix = prefix
         self._key_prefix = key_prefix or ''
         self._value_cache = cache or {}
@@ -140,7 +144,7 @@ class UserKeyValueLookup(object):
         # will expect to do a dictionary style lookup for key_base and key_value as subsequent
         # calls. Saving the value in cache avoids extra DB calls.
         return UserKeyValueLookup(prefix=self._prefix, user=self._user, key_prefix=key,
-                                  cache=self._value_cache)
+                                  cache=self._value_cache, scope=self._scope)
 
     def _get_kv(self, key):
         scope = self._scope
@@ -161,9 +165,9 @@ def get_key_reference(scope, name, user=None):
 
     :rtype: ``str``
     """
-    if scope == SYSTEM_SCOPE:
+    if (scope == SYSTEM_SCOPE or scope == FULL_SYSTEM_SCOPE):
         return name
-    elif scope == USER_SCOPE:
+    elif (scope == USER_SCOPE or scope == FULL_USER_SCOPE):
         if not user:
             raise InvalidUserException('A valid user must be specified for user key ref.')
         return UserKeyReference(name=name, user=user).ref
