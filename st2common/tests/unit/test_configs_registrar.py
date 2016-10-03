@@ -58,8 +58,8 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(len(config_dbs), 1)
 
         config_db = config_dbs[0]
-        self.assertEqual(config_db.values['api_key'], '{{user.api_key}}')
-        self.assertEqual(config_db.values['api_secret'], '{{user.api_secret}}')
+        self.assertEqual(config_db.values['api_key'], '{{st2kv.user.api_key}}')
+        self.assertEqual(config_db.values['api_secret'], '{{st2kv.user.api_secret}}')
         self.assertEqual(config_db.values['region'], 'us-west-1')
 
     def test_register_all_configs_invalid_config_no_config_schema(self):

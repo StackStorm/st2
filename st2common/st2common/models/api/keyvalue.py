@@ -21,7 +21,8 @@ from keyczar.keys import AesKey
 from oslo_config import cfg
 import six
 
-from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE, ALLOWED_SCOPES
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, FULL_USER_SCOPE, ALLOWED_SCOPES
+from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.log import logging
 from st2common.util import isotime
@@ -74,7 +75,7 @@ class KeyValuePairAPI(BaseAPI):
             'scope': {
                 'type': 'string',
                 'required': False,
-                'default': SYSTEM_SCOPE
+                'default': FULL_SYSTEM_SCOPE
             },
             'expire_timestamp': {
                 'type': 'string',
@@ -145,7 +146,7 @@ class KeyValuePairAPI(BaseAPI):
             doc['scope'] = scope
 
         key = doc.get('name', None)
-        if scope == USER_SCOPE and key:
+        if (scope == USER_SCOPE or scope == FULL_USER_SCOPE) and key:
             doc['user'] = UserKeyReference.get_user(key)
             doc['name'] = UserKeyReference.get_name(key)
 
@@ -179,7 +180,7 @@ class KeyValuePairAPI(BaseAPI):
                 raise CryptoKeyNotSetupException(msg)
             value = symmetric_encrypt(KeyValuePairAPI.crypto_key, value)
 
-        scope = getattr(kvp, 'scope', SYSTEM_SCOPE)
+        scope = getattr(kvp, 'scope', FULL_SYSTEM_SCOPE)
 
         if scope not in ALLOWED_SCOPES:
             raise InvalidScopeException('Invalid scope "%s"! Allowed scopes are %s.' % (

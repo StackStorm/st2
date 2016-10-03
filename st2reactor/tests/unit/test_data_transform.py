@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2tests import DbTestCase
+from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2reactor.rules import datatransform
+from st2tests import DbTestCase
 
 
 PAYLOAD = {'k1': 'v1', 'k2': 'v2', 'k3': 3, 'k4': True, 'k5': {'foo': 'bar'}, 'k6': [1, 3]}
@@ -65,17 +66,23 @@ class DataTransformTest(DbTestCase):
         k5 = KeyValuePair.add_or_update(KeyValuePairDB(name='k5', value='v5'))
         k6 = KeyValuePair.add_or_update(KeyValuePairDB(name='k6', value='v6'))
         k7 = KeyValuePair.add_or_update(KeyValuePairDB(name='k7', value='v7'))
+        k8 = KeyValuePair.add_or_update(KeyValuePairDB(name='k8', value='v8',
+                                                       scope=SYSTEM_SCOPE))
+
         try:
             transformer = datatransform.get_transformer(PAYLOAD)
             mapping = {'ip5': '{{trigger.k2}}-static',
-                       'ip6': '{{system.k6}}-static',
-                       'ip7': '{{system.k7}}-static'}
+                       'ip6': '{{st2kv.system.k6}}-static',
+                       'ip7': '{{st2kv.system.k7}}-static',
+                       'ip8': '{{system.k8}}-static'}
             result = transformer(mapping)
             expected = {'ip5': 'v2-static',
                         'ip6': 'v6-static',
-                        'ip7': 'v7-static'}
+                        'ip7': 'v7-static',
+                        'ip8': 'v8-static'}
             self.assertEqual(result, expected)
         finally:
             KeyValuePair.delete(k5)
             KeyValuePair.delete(k6)
             KeyValuePair.delete(k7)
+            KeyValuePair.delete(k8)

@@ -39,26 +39,26 @@ class TemplatingUtilsTestCase(CleanDbTestCase):
 
     def test_render_template_with_system_and_user_context(self):
         # 1. No reference to the user inside the template
-        template = '{{system.key1}}'
+        template = '{{st2kv.system.key1}}'
         user = 'stanley'
 
         result = render_template_with_system_and_user_context(value=template, user=user)
         self.assertEqual(result, 'valuea')
 
-        template = '{{system.key2}}'
+        template = '{{st2kv.system.key2}}'
         user = 'stanley'
 
         result = render_template_with_system_and_user_context(value=template, user=user)
         self.assertEqual(result, 'valueb')
 
         # 2. Reference to the user inside the template
-        template = '{{user.key1}}'
+        template = '{{st2kv.user.key1}}'
         user = 'stanley'
 
         result = render_template_with_system_and_user_context(value=template, user=user)
         self.assertEqual(result, 'valuestanley1')
 
-        template = '{{user.key1}}'
+        template = '{{st2kv.user.key1}}'
         user = 'joe'
 
         result = render_template_with_system_and_user_context(value=template, user=user)

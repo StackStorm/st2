@@ -19,7 +19,7 @@ import networkx as nx
 from jinja2 import meta
 from st2common import log as logging
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
-from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE, SYSTEM_SCOPE
 from st2common.exceptions.param import ParamException
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util.casts import get_cast
@@ -75,6 +75,8 @@ def _create_graph(action_context):
     '''
     G = nx.DiGraph()
     G.add_node(SYSTEM_SCOPE, value=KeyValueLookup(scope=SYSTEM_SCOPE))
+    system_keyvalue_context = {SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)}
+    G.add_node(DATASTORE_PARENT_SCOPE, value=system_keyvalue_context)
     G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
     return G
 

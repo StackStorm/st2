@@ -19,7 +19,7 @@ from jsonpath_rw import parse
 from st2common import log as logging
 import st2common.operators as criteria_operators
 from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX, RULE_TYPE_BACKSTOP
-from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.keyvalue import SYSTEM_SCOPES
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util.templating import render_template_with_system_context
 
@@ -189,9 +189,11 @@ class PayloadLookup(object):
 
     def __init__(self, payload):
         self._context = {
-            SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE),
             TRIGGER_PAYLOAD_PREFIX: payload
         }
+
+        for system_scope in SYSTEM_SCOPES:
+            self._context[system_scope] = KeyValueLookup(scope=system_scope)
 
     def get_value(self, lookup_key):
         expr = parse(lookup_key)

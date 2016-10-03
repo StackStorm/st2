@@ -33,7 +33,7 @@ class PackConfigsControllerTestCase(FunctionalTest):
         resp = self.app.get('/v1/configs/dummy_pack_1')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['pack'], 'dummy_pack_1')
-        self.assertEqual(resp.json['values']['api_key'], '{{user.api_key}}')
+        self.assertEqual(resp.json['values']['api_key'], '{{st2kv.user.api_key}}')
         self.assertEqual(resp.json['values']['region'], 'us-west-1')
 
     def test_get_one_pack_config_doesnt_exist(self):

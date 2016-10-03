@@ -6,9 +6,9 @@ name: action_system_default
 pack: wolfpack
 parameters:
   actionnumber:
-    default: '{{system.actionnumber}}'
+    default: '{{st2kv.system.actionnumber}}'
     type: number
   actionstr:
-    default: '{{system.actionstr}}'
+    default: '{{st2kv.system.actionstr}}'
     type: string
 runner_type: test-runner-1
