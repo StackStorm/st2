@@ -6,7 +6,7 @@ name: action_user_default
 pack: wolfpack
 parameters:
   actionstr:
-    default: '{{user.foo}}'
+    default: '{{st2kv.user.foo}}'
     type: string
   user:
     default: 'unholy mess'
