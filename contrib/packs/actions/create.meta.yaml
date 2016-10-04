@@ -1,0 +1,41 @@
+---
+  name: "create"
+  runner_type: "action-chain"
+  description: "Creates a new pack"
+  enabled: true
+  entry_point: "workflows/create.yaml"
+  parameters:
+    name:
+      type: "string"
+      required: true
+      description: "Name of the pack to create"
+    description:
+      type: "string"
+      description: "Pack description"
+    keywords:
+      type: "array"
+      items:
+        type: "string"
+      description: "Search keywords"
+    version:
+      type: "string"
+      description: "Initial version of the pack"
+      required: true
+    author:
+      type: "string"
+      description: "Pack's author"
+      required: true
+    email:
+      type: "string"
+      description: "Pack's author email"
+    directories:
+      type: "array"
+      default:
+        - actions
+        - rules
+        - tests
+      description: "List of internal directories to create within the pack"
+    env:
+      type: "object"
+      description: "Optional environment variables"
+      required: false

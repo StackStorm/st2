@@ -408,9 +408,16 @@ class PackResourceManager(ResourceManager):
         return instance
 
     @add_auth_token_to_kwargs_from_env
-    def create(self, name, **kwargs):
+    def create(self, args, **kwargs):
         url = '/%s/init' % (self.resource.get_url_path_name())
-        response = self.client.post(url, {'name': name})
+        response = self.client.post(url, {
+            'name': args.name,
+            'description': args.description,
+            'keywords': args.keywords,
+            'version': args.version,
+            'author': args.author,
+            'email': args.email
+        })
         if response.status_code != 200:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
