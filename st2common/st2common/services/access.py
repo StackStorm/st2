@@ -64,17 +64,17 @@ def create_token(username, ttl=None, metadata=None, add_missing_user=True):
             User.get_by_name(username)
         except:
             if add_missing_user:
-                user = UserDB(name=username)
-                User.add_or_update(user)
+                user_db = UserDB(name=username)
+                User.add_or_update(user_db)
 
-                extra = {'username': username, 'user': user}
+                extra = {'username': username, 'user': user_db}
                 LOG.audit('Registered new user "%s".' % (username), extra=extra)
             else:
                 raise UserNotFoundError()
 
     token = uuid.uuid4().hex
     expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
-    token = TokenDB(user=username, token=token, expiry=expiry, metadata=metadata)
+    token = TokenDB(user_db=username, token=token, expiry=expiry, metadata=metadata)
     Token.add_or_update(token)
 
     username_string = username if username else 'an anonymous user'
