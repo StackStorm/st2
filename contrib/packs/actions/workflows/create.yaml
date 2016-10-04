@@ -1,0 +1,51 @@
+---
+vars:
+  pack_path: '/opt/stackstorm/packs/{{ name }}'
+  pack_group: stanley
+  pack_permissions: '775'
+
+chain:
+  -
+    name: "create directory"
+    ref: "core.local_sudo"
+    parameters:
+      cmd: "mkdir -p {{ pack_path }}"
+    on-success: "change permissions"
+  -
+    name: "change permissions"
+    ref: "core.local_sudo"
+    parameters:
+      cmd: "chmod -R {{ pack_permissions }} {{ pack_path }}"
+    on-success: "change ownership"
+  -
+    name: "change ownership"
+    ref: "core.local_sudo"
+    parameters:
+      cmd: "chgrp -R {{ pack_group }} {{ pack_path }}"
+    on-success: "render pack.yml"
+  -
+    name: "render pack.yml"
+    ref: "packs.render_template"
+    parameters:
+      template_path: "templates/pack.yml.j2"
+      context:
+        name: "{{ name }}"
+        description: "{{ description or '' }}"
+        keywords: "{{ keywords or '' }}"
+        version: "{{ version }}"
+        author: "{{ author }}"
+        email: "{{ email or '' }}"
+    on-success: "save pack.yml"
+  -
+    name: "save pack.yml"
+    ref: "core.local"
+    parameters:
+        cmd: "echo '{{ __results['render pack.yml'].result }}' > {{ pack_path }}/pack.yml"
+    on-success: "create subdirectories"
+  -
+    name: "create subdirectories"
+    ref: "core.local"
+    parameters:
+      cmd: "mkdir -p {%- for directory in directories %} {{ pack_path }}/{{ directory }}{%- endfor -%}"
+
+default: "create directory"

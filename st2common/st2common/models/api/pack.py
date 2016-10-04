@@ -253,6 +253,44 @@ class ConfigItemSetAPI(BaseAPI):
     }
 
 
+class PackInitRequestAPI(BaseAPI):
+    schema = {
+        "type": "object",
+        "properties": {
+            "name": {
+                "type": "string",
+                "required": True,
+                "description": "Name of the pack to create"
+            },
+            "description": {
+                "type": "string",
+                "description": "Pack description"
+            },
+            "keywords": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "Search keywords"
+            },
+            "version": {
+              "type": "string",
+              "description": "Initial version of the pack",
+              "required": True
+            },
+            "author": {
+              "type": "string",
+              "description": "Pack's author",
+              "required": True
+            },
+            "email": {
+              "type": "string",
+              "description": "Pack's author email"
+            }
+        }
+    }
+
+
 class PackInstallRequestAPI(BaseAPI):
     schema = {
         "type": "object",
