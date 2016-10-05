@@ -68,14 +68,7 @@ class PackInitController(ActionExecutionsControllerMixin, RestController):
 
     @jsexpose(body_cls=PackInitRequestAPI, status_code=http_client.ACCEPTED)
     def post(self, args):
-        parameters = {
-            'name': args.name,
-            'description': args.description,
-            'keywords': args.keywords,
-            'version': args.version,
-            'author': args.author,
-            'email': args.email
-        }
+        parameters = vars(args)
 
         new_liveaction_api = LiveActionCreateAPI(action='packs.create',
                                                  parameters=parameters,

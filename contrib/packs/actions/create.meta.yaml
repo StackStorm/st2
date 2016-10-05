@@ -11,6 +11,7 @@
       description: "Name of the pack to create"
     description:
       type: "string"
+      required: true
       description: "Pack description"
     keywords:
       type: "array"
@@ -20,7 +21,7 @@
     version:
       type: "string"
       description: "Initial version of the pack"
-      required: true
+      default: "0.0.1"
     author:
       type: "string"
       description: "Pack's author"
