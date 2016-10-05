@@ -23,6 +23,12 @@ chain:
     ref: "core.local_sudo"
     parameters:
       cmd: "chgrp -R {{ pack_group }} {{ pack_path }}"
+    on-success: "init git repo"
+  -
+    name: "init git repo"
+    ref: "core.local"
+    parameters:
+      cmd: "git init {{ pack_path }}"
     on-success: "render pack.yaml"
   -
     name: "render pack.yaml"
