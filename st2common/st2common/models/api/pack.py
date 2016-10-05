@@ -37,6 +37,7 @@ __all__ = [
 
     'PackInstallRequestAPI',
     'PackRegisterRequestAPI',
+    'PackSearchRequestAPI',
     'PackAsyncAPI'
 ]
 
@@ -317,13 +318,26 @@ class PackRegisterRequestAPI(BaseAPI):
 class PackSearchRequestAPI(BaseAPI):
     schema = {
         "type": "object",
-        "properties": {
-            "query": {
-                "type": "string",
-                "required": True
-            }
-        },
-        "additionalProperties": False
+        "oneOf": [
+            {
+                "properties": {
+                    "query": {
+                        "type": "string",
+                    },
+                },
+                "required": ["query"],
+                "additionalProperties": False,
+            }, 
+            {
+                "properties": {
+                    "pack": {
+                        "type": "string",
+                    },
+                },
+                "required": ["pack"],
+                "additionalProperties": False,
+            },
+        ]
     }
 
 
