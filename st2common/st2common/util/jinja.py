@@ -18,6 +18,7 @@ import six
 
 import jinja2
 
+from st2common.jinja.filters import crypto
 from st2common.jinja.filters import data
 from st2common.jinja.filters import regex
 from st2common.jinja.filters import time
@@ -48,6 +49,7 @@ def use_none(value):
 
 def get_filters():
     return {
+        'decrypt_kv': crypto.decrypt_kv,
         'to_json_string': data.to_json_string,
         'to_yaml_string': data.to_yaml_string,
 

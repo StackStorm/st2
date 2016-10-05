@@ -15,10 +15,30 @@
 
 import binascii
 
+from keyczar.keys import AesKey
+
 __all__ = [
+    'read_crypto_key',
     'symmetric_encrypt',
     'symmetric_decrypt'
 ]
+
+
+def read_crypto_key(key_path, key_type=AesKey):
+    """
+    Return the crypto key given a path to key file and the key type.
+
+    :param key_path: Absolute path to file containing crypto key.
+    :type key_path: ``str``
+
+    :param key_type: Type of crypto key.
+    :type key_type: :class:`keyczar.keys.KeyType`
+
+    :rtype: ``str``
+    """
+    with open(key_path) as key_file:
+        key = key_type.Read(key_file.read())
+        return key
 
 
 def symmetric_encrypt(encrypt_key, plaintext):
