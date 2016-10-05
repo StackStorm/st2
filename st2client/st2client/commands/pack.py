@@ -151,6 +151,7 @@ class PackCreateCommand(PackAsyncCommand):
                                  help='Name of the %s to create.' %
                                  resource.get_display_name().lower())
         self.parser.add_argument('--description',
+                                 required=True,
                                  help='Description of the %s.' %
                                  resource.get_display_name().lower())
         self.parser.add_argument('--keywords',
@@ -158,7 +159,6 @@ class PackCreateCommand(PackAsyncCommand):
                                  help='Keywords describing the %s.' %
                                  resource.get_display_name().lower())
         self.parser.add_argument('--version',
-                                 required=True,
                                  help='Version of the %s.' %
                                  resource.get_display_name().lower())
         self.parser.add_argument('--author',

@@ -27,6 +27,7 @@ from mongoengine import ValidationError
 from st2api.controllers import resource
 from st2api.controllers.v1.actionviews import ActionViewsController
 from st2common import log as logging
+from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.constants.triggers import ACTION_FILE_WRITTEN_TRIGGER
 from st2common.exceptions.action import InvalidActionParameterException
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -106,6 +107,9 @@ class ActionsController(resource.ContentPackResourceController):
             Handles requests:
                 POST /actions/
         """
+
+        if not hasattr(action, 'pack'):
+            setattr(action, 'pack', DEFAULT_PACK_NAME)
 
         try:
             # Perform validation

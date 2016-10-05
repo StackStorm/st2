@@ -264,6 +264,7 @@ class PackInitRequestAPI(BaseAPI):
             },
             "description": {
                 "type": "string",
+                "required": True,
                 "description": "Pack description"
             },
             "keywords": {
@@ -274,18 +275,18 @@ class PackInitRequestAPI(BaseAPI):
                 "description": "Search keywords"
             },
             "version": {
-              "type": "string",
-              "description": "Initial version of the pack",
-              "required": True
+                "type": "string",
+                "description": "Initial version of the pack",
+                "default": "0.0.1"
             },
             "author": {
-              "type": "string",
-              "description": "Pack's author",
-              "required": True
+                "type": "string",
+                "description": "Pack's author",
+                "required": True
             },
             "email": {
-              "type": "string",
-              "description": "Pack's author email"
+                "type": "string",
+                "description": "Pack's author email"
             }
         }
     }

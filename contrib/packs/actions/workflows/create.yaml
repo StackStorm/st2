@@ -1,5 +1,6 @@
 ---
 vars:
+  # TODO: don't forget to find a way to substitute this with global settings
   pack_path: '/opt/stackstorm/packs/{{ name }}'
   pack_group: stanley
   pack_permissions: '775'
@@ -22,25 +23,25 @@ chain:
     ref: "core.local_sudo"
     parameters:
       cmd: "chgrp -R {{ pack_group }} {{ pack_path }}"
-    on-success: "render pack.yml"
+    on-success: "render pack.yaml"
   -
-    name: "render pack.yml"
+    name: "render pack.yaml"
     ref: "packs.render_template"
     parameters:
-      template_path: "templates/pack.yml.j2"
+      template_path: "templates/pack.yaml.j2"
       context:
         name: "{{ name }}"
-        description: "{{ description or '' }}"
+        description: "{{ description }}"
         keywords: "{{ keywords or '' }}"
         version: "{{ version }}"
         author: "{{ author }}"
         email: "{{ email or '' }}"
-    on-success: "save pack.yml"
+    on-success: "save pack.yaml"
   -
-    name: "save pack.yml"
+    name: "save pack.yaml"
     ref: "core.local"
     parameters:
-        cmd: "echo '{{ __results['render pack.yml'].result }}' > {{ pack_path }}/pack.yml"
+        cmd: "echo '{{ __results['render pack.yaml'].result }}' > {{ pack_path }}/pack.yaml"
     on-success: "create subdirectories"
   -
     name: "create subdirectories"
