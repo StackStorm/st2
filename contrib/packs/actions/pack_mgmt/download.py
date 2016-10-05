@@ -23,7 +23,7 @@ from git.repo import Repo
 from lockfile import LockFile
 
 from st2common.runners.base_action import Action
-from st2common.services.packs import 
+from st2common.services.packs import search_pack_index
 from st2common.util.green import shell
 
 MANIFEST_FILE = 'pack.yaml'
