@@ -27,4 +27,4 @@ class pause(Action):
 
         time.sleep(delay)
 
-        return
+        return delay
