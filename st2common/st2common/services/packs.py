@@ -32,6 +32,7 @@ def get_pack_by_ref(pack_ref):
     pack_db = Pack.get_by_ref(pack_ref)
     return pack_db
 
+
 def fetch_pack_index(index_url=None):
     """
     Fetch the pack indexes (either from the config or provided as an argument)
@@ -45,26 +46,27 @@ def fetch_pack_index(index_url=None):
         index_urls = index_url
     else:
         raise TypeError('"index_url" should either be a string or an iterable object.')
-        
+
     result = {}
     for index_url in index_urls:
         result.update(requests.get(index_url).json())
     return result
 
+
 def search_pack_index(query=None, pack=None):
     """
     Search the pack index either by pack name or by query.
-    Returns a pack object if the pack name is specified, otherwise returns 
+    Returns a pack object if the pack name is specified, otherwise returns
     a list of matches for a query.
     """
     if (not query and not pack) or (query and pack):
         raise ValueError("Either a query or a pack name must be specified.")
-    
+
     index = fetch_pack_index()
-    
+
     if pack:
         return index.get(pack, None)
-    
+
     pack_list = index.values()
     matches = []
     for pack in pack_list:
