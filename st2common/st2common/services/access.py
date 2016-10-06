@@ -74,7 +74,7 @@ def create_token(username, ttl=None, metadata=None, add_missing_user=True):
 
     token = uuid.uuid4().hex
     expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
-    token = TokenDB(user_db=username, token=token, expiry=expiry, metadata=metadata)
+    token = TokenDB(user=username, token=token, expiry=expiry, metadata=metadata)
     Token.add_or_update(token)
 
     username_string = username if username else 'an anonymous user'
