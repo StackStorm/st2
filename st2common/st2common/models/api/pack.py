@@ -288,7 +288,7 @@ class PackSearchRequestAPI(BaseAPI):
                 },
                 "required": ["query"],
                 "additionalProperties": False,
-            }, 
+            },
             {
                 "properties": {
                     "pack": {
