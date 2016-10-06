@@ -579,6 +579,24 @@ class ParamikoSSHClient(object):
         if socket:
             conninfo['sock'] = socket
 
+        if cfg.CONF.ssh_runner.use_ssh_config:
+            ssh_config = paramiko.SSHConfig()
+            user_config_file = os.path.expanduser("~/.ssh/config")
+            if os.path.exists(user_config_file):
+                with open(user_config_file) as f:
+                    ssh_config.parse(f)
+
+            user_config = ssh_config.lookup(conninfo['hostname'])
+            for k in ('hostname', 'username', 'port'):
+                if k in user_config:
+                    conninfo[k] = user_config[k]
+
+            if 'proxycommand' in user_config:
+                conninfo['sock'] = paramiko.ProxyCommand(user_config['proxycommand'])
+
+            if 'identityfile' in user_config:
+                conninfo['key_filename'] = user_config['identityfile']
+
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(**conninfo)
