@@ -1,0 +1,13 @@
+---
+name: {{ name }}
+description: {{ description }}
+{% if keywords %}
+keywords:
+{% for keyword in keywords %}
+  - {{ keyword }}
+{% endfor -%}{% endif %}
+version: {{ version }}
+author: {{ author }}
+{% if email %}
+email: {{ email }}
+{% endif %}

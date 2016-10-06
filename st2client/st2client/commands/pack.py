@@ -157,7 +157,7 @@ class PackRemoveCommand(PackAsyncCommand):
         return self.manager.remove(args.packs, **kwargs)
 
 
-class PackCreateCommand(PackResourceCommand):
+class PackCreateCommand(PackAsyncCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackCreateCommand, self).__init__(resource, 'create',
             'Create a template for a new %s.' % resource.get_display_name().lower(),
@@ -166,10 +166,28 @@ class PackCreateCommand(PackResourceCommand):
         self.parser.add_argument('name',
                                  help='Name of the %s to create.' %
                                  resource.get_display_name().lower())
+        self.parser.add_argument('--description',
+                                 required=True,
+                                 help='Description of the %s.' %
+                                 resource.get_display_name().lower())
+        self.parser.add_argument('--keywords',
+                                 nargs='+',
+                                 help='Keywords describing the %s.' %
+                                 resource.get_display_name().lower())
+        self.parser.add_argument('--version',
+                                 help='Version of the %s.' %
+                                 resource.get_display_name().lower())
+        self.parser.add_argument('--author',
+                                 required=True,
+                                 help='Author of the %s.' %
+                                 resource.get_display_name().lower())
+        self.parser.add_argument('--email',
+                                 help='%s author\'s email.' %
+                                 resource.get_display_name())
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.create(args.name, **kwargs)
+        return self.manager.create(args, **kwargs)
 
 
 class PackRegisterCommand(PackResourceCommand):

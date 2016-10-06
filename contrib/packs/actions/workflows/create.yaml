@@ -1,0 +1,58 @@
+---
+vars:
+  # TODO: don't forget to find a way to substitute this with global settings
+  pack_path: '/opt/stackstorm/packs/{{ name }}'
+  pack_group: stanley
+  pack_permissions: '775'
+
+chain:
+  -
+    name: "create directory"
+    ref: "core.local_sudo"
+    parameters:
+      cmd: "mkdir -p {{ pack_path }}"
+    on-success: "change permissions"
+  -
+    name: "change permissions"
+    ref: "core.local_sudo"
+    parameters:
+      cmd: "chmod -R {{ pack_permissions }} {{ pack_path }}"
+    on-success: "change ownership"
+  -
+    name: "change ownership"
+    ref: "core.local_sudo"
+    parameters:
+      cmd: "chgrp -R {{ pack_group }} {{ pack_path }}"
+    on-success: "init git repo"
+  -
+    name: "init git repo"
+    ref: "core.local"
+    parameters:
+      cmd: "git init {{ pack_path }}"
+    on-success: "render pack.yaml"
+  -
+    name: "render pack.yaml"
+    ref: "packs.render_template"
+    parameters:
+      template_path: "templates/pack.yaml.j2"
+      context:
+        name: "{{ name }}"
+        description: "{{ description }}"
+        keywords: "{{ keywords or '' }}"
+        version: "{{ version }}"
+        author: "{{ author }}"
+        email: "{{ email or '' }}"
+    on-success: "save pack.yaml"
+  -
+    name: "save pack.yaml"
+    ref: "core.local"
+    parameters:
+        cmd: "echo '{{ __results['render pack.yaml'].result }}' > {{ pack_path }}/pack.yaml"
+    on-success: "create subdirectories"
+  -
+    name: "create subdirectories"
+    ref: "core.local"
+    parameters:
+      cmd: "mkdir -p {%- for directory in directories %} {{ pack_path }}/{{ directory }}{%- endfor -%}"
+
+default: "create directory"
