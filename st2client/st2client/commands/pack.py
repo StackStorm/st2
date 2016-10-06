@@ -114,7 +114,7 @@ class PackShowCommand(PackResourceCommand):
               'Get information about a %s from the index.' % resource.get_display_name().lower(),
               *args, **kwargs)
 
-        self.parser.add_argument('name',
+        self.parser.add_argument('pack',
                                  help='Name of the %s to show.' %
                                  resource.get_display_name().lower())
 

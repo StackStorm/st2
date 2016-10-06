@@ -431,7 +431,7 @@ class PackResourceManager(ResourceManager):
         if 'query' in vars(args):
             payload = {'query': args.query}
         else:
-            payload = {'name': args.name}
+            payload = {'pack': args.pack}
         response = self.client.post(url, payload)
         if response.status_code != 200:
             self.handle_error(response)
