@@ -441,7 +441,7 @@ class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def register(self, types=None, **kwargs):
         url = '/%s/register' % (self.resource.get_url_path_name())
-        payload = None
+        payload = {}
         if types:
             payload = {'types': types}
         response = self.client.post(url, payload)

@@ -124,7 +124,7 @@ class PackRegisterController(RestController):
 
     @jsexpose(body_cls=PackRegisterRequestAPI)
     def post(self, pack_register_request):
-        if pack_register_request and pack_register_request.types:
+        if pack_register_request and hasattr(pack_register_request, 'types'):
             types = pack_register_request.types
         else:
             types = ['runner', 'action', 'trigger', 'sensor', 'rule', 'rule_type', 'alias',
