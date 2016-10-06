@@ -155,8 +155,10 @@ class PackSearchController(RestController):
 
     @jsexpose(body_cls=PackSearchRequestAPI)
     def post(self, pack_search_request):
-        return search_pack_index(pack_search_request.query,
-                                 pack_search_request.pack)
+        if hasattr(pack_search_request, 'query'):
+            return search_pack_index(query=pack_search_request.query)
+        else:
+            return search_pack_index(pack=pack_search_request.pack)
 
 
 class BasePacksController(ResourceController):
