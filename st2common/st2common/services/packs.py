@@ -39,9 +39,9 @@ def fetch_pack_index(index_url=None):
     """
     if not index_url:
         index_urls = cfg.CONF.content.index_url
-    else if isinstance(index_url, str):
+    elif isinstance(index_url, str):
         index_urls = [index_url]
-    else if hasattr(index_url, '__iter__'):
+    elif hasattr(index_url, '__iter__'):
         index_urls = index_url
     else:
         raise TypeError('"index_url" should either be a string or an iterable object.')
@@ -72,5 +72,5 @@ def search_pack_index(query=None, pack=None):
             if query in value:
                 matches.append(pack)
                 break
-                
+
     return matches
