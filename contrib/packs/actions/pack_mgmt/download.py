@@ -23,6 +23,7 @@ from git.repo import Repo
 from lockfile import LockFile
 
 from st2actions.runners.pythonrunner import Action
+from st2common.services.packs import search_pack_index
 from st2common.util.green import shell
 
 MANIFEST_FILE = 'pack.yaml'
@@ -32,8 +33,6 @@ PACK_RESERVE_CHARACTER = '.'
 PACK_VERSION_SEPARATOR = '#'
 
 PACK_GROUP_CFG_KEY = 'pack_group'
-EXCHANGE_URL_KEY = 'exchange_url'
-EXCHANGE_PREFIX_KEY = 'exchange_prefix'
 
 
 class DownloadGitRepoAction(Action):
@@ -44,11 +43,7 @@ class DownloadGitRepoAction(Action):
         result = {}
 
         for pack in packs:
-            pack_name, pack_url, pack_version = self._get_pack_name_and_url(
-                pack,
-                self.config.get(EXCHANGE_URL_KEY, None),
-                self.config.get(EXCHANGE_PREFIX_KEY, None)
-            )
+            pack_name, pack_url, pack_version = self._get_pack_name_and_url(pack)
 
             lock_name = hashlib.md5(pack_name).hexdigest() + '.lock'
 
@@ -175,7 +170,7 @@ class DownloadGitRepoAction(Action):
         return sanitized_result
 
     @staticmethod
-    def _get_pack_name_and_url(pack, exchange_url, exchange_prefix):
+    def _get_pack_name_and_url(pack):
         try:
             name_or_url, version = pack.split(PACK_VERSION_SEPARATOR)
         except ValueError:
@@ -183,9 +178,10 @@ class DownloadGitRepoAction(Action):
             version = None
 
         if len(name_or_url.split('/')) == 1:
-            return (name_or_url, "{}/{}-{}.git".format(exchange_url, exchange_prefix,
-                                                       name_or_url),
-                    version)
+            pack = search_pack_index(pack=name_or_url)
+            if not pack:
+                raise Exception('No record of the "%s" pack in the index.' % name_or_url)
+            return (pack.name, pack.repo_url, version)
         else:
             return (DownloadGitRepoAction._eval_repo_name(name_or_url),
                     DownloadGitRepoAction._eval_repo_url(name_or_url),

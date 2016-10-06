@@ -58,6 +58,7 @@ class PackBranch(resource.ResourceBranch):
         self.commands['install'] = PackInstallCommand(self.resource, self.app, self.subparsers)
         self.commands['remove'] = PackRemoveCommand(self.resource, self.app, self.subparsers)
         self.commands['search'] = PackSearchCommand(self.resource, self.app, self.subparsers)
+        self.commands['show'] = PackShowCommand(self.resource, self.app, self.subparsers)
 
 
 class PackResourceCommand(resource.ResourceCommand):
@@ -105,6 +106,21 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
 class PackListCommand(resource.ResourceListCommand):
     display_attributes = ['name', 'description', 'version', 'author']
     attribute_display_order = ['name', 'description', 'version', 'author']
+
+
+class PackShowCommand(PackResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(PackShowCommand, self).__init__(resource, 'show',
+              'Get information about a %s from the index.' % resource.get_display_name().lower(),
+              *args, **kwargs)
+
+        self.parser.add_argument('name',
+                                 help='Name of the %s to show.' %
+                                 resource.get_display_name().lower())
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        return self.manager.search(args, **kwargs)
 
 
 class PackInstallCommand(PackAsyncCommand):
@@ -172,7 +188,10 @@ class PackRegisterCommand(PackResourceCommand):
         return self.manager.register(args.types, **kwargs)
 
 
-class PackSearchCommand(PackResourceCommand):
+class PackSearchCommand(resource.ResourceTableCommand):
+    display_attributes = ['name', 'description', 'version', 'author']
+    attribute_display_order = ['name', 'description', 'version', 'author']
+
     def __init__(self, resource, *args, **kwargs):
         super(PackSearchCommand, self).__init__(resource, 'search',
             'Search for a %s in the directory.' % resource.get_display_name().lower(),
@@ -183,4 +202,4 @@ class PackSearchCommand(PackResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.search(args.query, **kwargs)
+        return self.manager.search(args, **kwargs)

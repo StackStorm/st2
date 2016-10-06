@@ -37,11 +37,13 @@ from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.pack import PackAPI
 from st2common.models.api.pack import PackInstallRequestAPI
 from st2common.models.api.pack import PackRegisterRequestAPI
+from st2common.models.api.pack import PackSearchRequestAPI
 from st2common.models.api.pack import PackAsyncAPI
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
+from st2common.services.packs import search_pack_index
 
 http_client = six.moves.http_client
 
@@ -133,6 +135,14 @@ class PackRegisterController(RestController):
         return result
 
 
+class PackSearchController(RestController):
+
+    @jsexpose(body_cls=PackSearchRequestAPI)
+    def post(self, pack_search_request):
+        return search_pack_index(pack_search_request.query,
+                                 pack_search_request.pack)
+
+
 class BasePacksController(ResourceController):
     model = PackAPI
     access = Pack
@@ -189,6 +199,7 @@ class PacksController(BasePacksController):
     install = PackInstallController()
     uninstall = PackUninstallController()
     register = PackRegisterController()
+    search = PackSearchController()
     views = PackViewsController()
 
     @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
