@@ -323,18 +323,18 @@ class PackSearchRequestAPI(BaseAPI):
                 "properties": {
                     "query": {
                         "type": "string",
+                        "required": True,
                     },
                 },
-                "required": ["query"],
                 "additionalProperties": False,
             },
             {
                 "properties": {
                     "pack": {
                         "type": "string",
+                        "required": True,
                     },
                 },
-                "required": ["pack"],
                 "additionalProperties": False,
             },
         ]
