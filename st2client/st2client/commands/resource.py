@@ -236,13 +236,12 @@ class ResourceCommand(commands.Command):
         return result
 
 
-class ResourceListCommand(ResourceCommand):
+class ResourceTableCommand(ResourceCommand):
     display_attributes = ['id', 'name', 'description']
 
-    def __init__(self, resource, *args, **kwargs):
-        super(ResourceListCommand, self).__init__(resource, 'list',
-            'Get the list of %s.' % resource.get_plural_display_name().lower(),
-            *args, **kwargs)
+    def __init__(self, resource, name, description, *args, **kwargs):
+        super(ResourceTableCommand, self).__init__(resource, name, description,
+                                                   *args, **kwargs)
 
         self.parser.add_argument('-a', '--attr', nargs='+',
                                  default=self.display_attributes,
@@ -262,6 +261,13 @@ class ResourceListCommand(ResourceCommand):
         self.print_output(instances, table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json, yaml=args.yaml)
+
+
+class ResourceListCommand(ResourceTableCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(ResourceListCommand, self).__init__(resource, 'list',
+            'Get the list of %s.' % resource.get_plural_display_name().lower(),
+            *args, **kwargs)
 
 
 class ContentPackResourceListCommand(ResourceListCommand):
