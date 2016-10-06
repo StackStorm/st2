@@ -172,7 +172,10 @@ class PackRegisterCommand(PackResourceCommand):
         return self.manager.register(args.types, **kwargs)
 
 
-class PackSearchCommand(PackListCommand):
+class PackSearchCommand(resource.ResourceTableCommand):
+    display_attributes = ['name', 'description', 'version', 'author']
+    attribute_display_order = ['name', 'description', 'version', 'author']
+
     def __init__(self, resource, *args, **kwargs):
         super(PackSearchCommand, self).__init__(resource, 'search',
             'Search for a %s in the directory.' % resource.get_display_name().lower(),
