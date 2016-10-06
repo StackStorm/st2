@@ -32,6 +32,9 @@ __all__ = [
 
 class UserDB(stormbase.StormFoundationDB):
     name = me.StringField(required=True, unique=True)
+    is_service = me.BooleanField(required=True, default=False)
+    nicknames = me.DictField(required=False,
+                             help_text='"Nickname + origin" pairs for ChatOps auth')
 
     def get_roles(self):
         """
@@ -42,7 +45,7 @@ class UserDB(stormbase.StormFoundationDB):
         result = get_roles_for_user(user_db=self)
         return result
 
-    def get_permission_assingments(self):
+    def get_permission_assignments(self):
         # TODO
         pass
 
