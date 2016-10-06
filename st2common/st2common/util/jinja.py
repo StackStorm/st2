@@ -18,6 +18,7 @@ import six
 
 import jinja2
 
+from st2common import log as logging
 from st2common.jinja.filters import crypto
 from st2common.jinja.filters import data
 from st2common.jinja.filters import regex
@@ -38,6 +39,8 @@ JINJA_EXPRESSIONS_START_MARKERS = [
     '{{',
     '{%'
 ]
+
+LOG = logging.getLogger(__name__)
 
 
 def use_none(value):
@@ -142,6 +145,7 @@ def render_values(mapping=None, context=None, allow_undefined=False):
         if reverse_json_dumps:
             rendered_v = json.loads(rendered_v)
         rendered_mapping[k] = rendered_v
+    LOG.info('Mapping: %s, rendered_mapping: %s, context: %s', mapping, rendered_mapping, context)
     return rendered_mapping
 
 

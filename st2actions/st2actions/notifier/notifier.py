@@ -39,7 +39,7 @@ from st2common.util import jinja as jinja_utils
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.action import ACTION_PARAMETERS_KV_PREFIX
 from st2common.constants.action import ACTION_RESULTS_KV_PREFIX
-from st2common.constants.keyvalue import SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.services.keyvalues import KeyValueLookup
 
 __all__ = [
@@ -194,7 +194,7 @@ class Notifier(consumers.MessageHandler):
         context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
         context.update({
             DATASTORE_PARENT_SCOPE: {
-                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+                SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)
             }
         })
         context.update({ACTION_PARAMETERS_KV_PREFIX: liveaction.parameters})

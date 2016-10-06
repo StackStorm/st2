@@ -15,7 +15,7 @@
 
 import copy
 
-from st2common.constants.keyvalue import SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
+from st2common.constants.keyvalue import SYSTEM_SCOPE, FULL_SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util import jinja as jinja_utils
@@ -31,7 +31,7 @@ class Jinja2BasedTransformer(object):
         context[SYSTEM_SCOPE] = KeyValueLookup(scope=SYSTEM_SCOPE)
         context.update({
             DATASTORE_PARENT_SCOPE: {
-                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+                SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)
             }
         })
         return jinja_utils.render_values(mapping=mapping, context=context)
@@ -45,7 +45,7 @@ class Jinja2BasedTransformer(object):
         context[SYSTEM_SCOPE] = KeyValueLookup(scope=SYSTEM_SCOPE)
         context.update({
             DATASTORE_PARENT_SCOPE: {
-                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+                SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)
             }
         })
         # add in the data in the context without any processing. Payload may
