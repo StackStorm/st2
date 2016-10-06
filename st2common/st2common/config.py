@@ -85,7 +85,7 @@ def register_opts(ignore_errors=False):
                    help='Paths which will be searched for integration packs.'),
         cfg.StrOpt('runners_base_paths', default=None,
                    help='Paths which will be searched for runners.'),
-        cfg.ListOpt('index_url', default='https://exchange.stackstorm.org/index/v1/index.json',
+        cfg.ListOpt('index_url', default=['https://index.stackstorm.org/v1/index.json'],
                     help=('A URL pointing to the pack index. StackStorm Exchange is used by '
                           'default. Use a comma-separated list for multiple indexes if you '
                           'want to get other packs discovered with "st2 pack search".')),
