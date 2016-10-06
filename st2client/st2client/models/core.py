@@ -428,7 +428,7 @@ class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def search(self, args, **kwargs):
         url = '/%s/search' % (self.resource.get_url_path_name())
-        if getattr(args, 'query'):
+        if 'query' in vars(args):
             payload = {'query': args.query}
         else:
             payload = {'name': args.name}
