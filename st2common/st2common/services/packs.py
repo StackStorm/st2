@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
-import requests
 import itertools
+
+import requests
+import six
+from oslo_config import cfg
 
 from st2common.persistence.pack import Pack
 
@@ -82,10 +84,9 @@ def search_pack_index(query=None, pack=None, exclude=None, priority=None):
     if pack:
         return index.get(pack, None)
 
-    pack_list = index.values()
-    matches = [[] for _ in xrange(len(priority)+1)]
-    for pack in pack_list:
-        for key, value in pack.items():
+    matches = [[] for _ in xrange(len(priority) + 1)]
+    for pack in six.itervalues(index):
+        for key, value in six.iteritems(pack):
             if key not in exclude and query in value:
                 if key in priority:
                     matches[priority.index(key)].append(pack)
