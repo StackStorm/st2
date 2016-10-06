@@ -15,6 +15,7 @@
 
 from oslo_config import cfg
 import requests
+import itertools
 
 from st2common.persistence.pack import Pack
 
@@ -22,6 +23,16 @@ __all__ = [
     'get_pack_by_ref',
     'fetch_pack_index',
     'search_pack_index'
+]
+
+EXCLUDE_FIELDS = [
+    "repo_url",
+    "email"
+]
+
+SEARCH_PRIORITY = [
+    "name",
+    "keywords"
 ]
 
 
@@ -53,7 +64,7 @@ def fetch_pack_index(index_url=None):
     return result
 
 
-def search_pack_index(query=None, pack=None):
+def search_pack_index(query=None, pack=None, exclude=None, priority=None):
     """
     Search the pack index either by pack name or by query.
     Returns a pack object if the pack name is specified, otherwise returns
@@ -61,6 +72,10 @@ def search_pack_index(query=None, pack=None):
     """
     if (not query and not pack) or (query and pack):
         raise ValueError("Either a query or a pack name must be specified.")
+    if not exclude:
+        exclude = EXCLUDE_FIELDS
+    if not priority:
+        priority = SEARCH_PRIORITY
 
     index = fetch_pack_index()
 
@@ -68,11 +83,14 @@ def search_pack_index(query=None, pack=None):
         return index.get(pack, None)
 
     pack_list = index.values()
-    matches = []
+    matches = [[] for _ in xrange(len(priority)+1)]
     for pack in pack_list:
-        for value in pack.values():
-            if query in value:
-                matches.append(pack)
+        for key, value in pack.items():
+            if key not in exclude and query in value:
+                if key in priority:
+                    matches[priority.index(key)].append(pack)
+                else:
+                    matches[-1].append(pack)
                 break
 
-    return matches
+    return list(itertools.chain.from_iterable(matches))
