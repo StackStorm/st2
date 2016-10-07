@@ -12,11 +12,11 @@
       required: false
       type: string
     cwd:
-      default: "~/"
+      default: "/tmp"
       description: Working directory where the script will be executed in.
       type: string
     dir:
-      default: "~/"
+      default: "/tmp"
       description: The working directory where the script will be copied to on the
         remote host.
       type: string
