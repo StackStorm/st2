@@ -130,8 +130,10 @@ class PackRegisterController(RestController):
             types = ['runner', 'action', 'trigger', 'sensor', 'rule', 'rule_type', 'alias',
                      'policy_type', 'policy', 'config']
 
-        use_pack_cache = True
-        packs_base_paths = content_utils.get_packs_base_paths()
+        if pack_register_request and hasattr(pack_register_request, 'packs'):
+            packs = pack_register_request.packs
+        else:
+            packs = None
 
         result = {}
 
@@ -142,11 +144,19 @@ class PackRegisterController(RestController):
         if 'policy_type' in types or 'policy' in types:
             result['policy_types'] = policies_registrar.register_policy_types(st2common)
 
+        use_pack_cache = True
+
         for type, (Registrar, name) in six.iteritems(ENTITIES):
             if type in types:
                 registrar = Registrar(use_pack_cache=use_pack_cache,
                                       fail_on_failure=False)
-                result[name] = registrar.register_from_packs(base_dirs=packs_base_paths)
+                if packs:
+                    for pack in packs:
+                        pack_path = content_utils.get_pack_base_path(pack)
+                        result[name] = registrar.register_from_pack(pack_dir=pack_path)
+                else:
+                    packs_base_paths = content_utils.get_packs_base_paths()
+                    result[name] = registrar.register_from_packs(base_dirs=packs_base_paths)
 
         return result
 

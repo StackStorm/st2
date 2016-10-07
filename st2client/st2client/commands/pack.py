@@ -198,14 +198,18 @@ class PackRegisterCommand(PackResourceCommand):
               'Register a %s: sync all file changes with DB.' % resource.get_display_name().lower(),
               *args, **kwargs)
 
+        self.parser.add_argument('packs',
+                                 nargs='+',
+                                 help='Name of the %s(s) to register.' %
+                                 resource.get_display_name().lower())
+
         self.parser.add_argument('--types',
                                  nargs='+',
-                                 help='Name of the %s to register.' %
-                                 resource.get_display_name().lower())
+                                 help='Types of content to register.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.register(args.types, **kwargs)
+        return self.manager.register(args.packs, args.types, **kwargs)
 
 
 class PackSearchCommand(resource.ResourceTableCommand):
