@@ -76,6 +76,8 @@ def register_opts(ignore_errors=False):
 
     system_packs_base_path = os.path.join(cfg.CONF.system.base_path, 'packs')
     content_opts = [
+        cfg.StrOpt('pack_group', default='st2packs',
+                   help='User group that can write to packs directory.'),
         cfg.StrOpt('system_packs_base_path', default=system_packs_base_path,
                    help='Path to the directory which contains system packs.'),
         cfg.StrOpt('packs_base_paths', default=None,

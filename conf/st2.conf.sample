@@ -73,8 +73,12 @@ backend = flat_file
 home_dir = /opt/cslang
 
 [content]
+# A URL pointing to the pack index. StackStorm Exchange is used by default. Use a comma-separated list for multiple indexes if you want to get other packs discovered with "st2 pack search".
+index_url = https://exchange.stackstorm.org/index/v1/index.json # comma separated list allowed here.
 # Path to the directory which contains system packs.
 system_packs_base_path = /opt/stackstorm/packs
+# User group that can write to packs directory.
+pack_group = st2packs
 # Paths which will be searched for integration packs.
 packs_base_paths = None
 
@@ -147,6 +151,10 @@ mask_secrets = True
 [messaging]
 # URL of the messaging server.
 url = amqp://guest:guest@127.0.0.1:5672//
+# How long should we wait between connection retries.
+connection_retry_wait = 10000
+# How many times should we retry connection before failing.
+connection_retries = 10
 # URL of all the nodes in a messaging service cluster.
 cluster_urls =  # comma separated list allowed here.
 

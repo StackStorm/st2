@@ -23,6 +23,7 @@ from git.repo import Repo
 from lockfile import LockFile
 
 from st2actions.runners.pythonrunner import Action
+from st2common.content import utils
 from st2common.services.packs import search_pack_index
 from st2common.util.green import shell
 
@@ -31,8 +32,6 @@ CONFIG_FILE = 'config.yaml'
 GITINFO_FILE = '.gitinfo'
 PACK_RESERVE_CHARACTER = '.'
 PACK_VERSION_SEPARATOR = '#'
-
-PACK_GROUP_CFG_KEY = 'pack_group'
 
 
 class DownloadGitRepoAction(Action):
@@ -110,7 +109,7 @@ class DownloadGitRepoAction(Action):
         Will recursively apply permission 770 to pack and its contents.
         """
         # 1. switch owner group to configured group
-        pack_group = self.config.get(PACK_GROUP_CFG_KEY, None)
+        pack_group = utils.get_pack_group()
         if pack_group:
             shell.run_command(['sudo', 'chgrp', '-R', pack_group, pack_path])
 

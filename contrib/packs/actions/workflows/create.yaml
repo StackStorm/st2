@@ -1,11 +1,15 @@
 ---
 vars:
-  # TODO: don't forget to find a way to substitute this with global settings
-  pack_path: '/opt/stackstorm/packs/{{ name }}'
-  pack_group: stanley
   pack_permissions: '775'
 
 chain:
+  -
+    name: "get config"
+    ref: "packs.get_config"
+    publish:
+      pack_path: "{{ __results['get config'].result['pack_path'] }}/{{ name }}"
+      pack_group: "{{ __results['get config'].result['pack_group'] }}"
+    on-success: "create directory"
   -
     name: "create directory"
     ref: "core.local_sudo"
@@ -55,4 +59,4 @@ chain:
     parameters:
       cmd: "mkdir -p {%- for directory in directories %} {{ pack_path }}/{{ directory }}{%- endfor -%}"
 
-default: "create directory"
+default: "get config"
