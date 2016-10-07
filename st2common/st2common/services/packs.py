@@ -62,7 +62,10 @@ def fetch_pack_index(index_url=None):
 
     result = {}
     for index_url in index_urls:
-        result.update(requests.get(index_url).json())
+        try:
+            result.update(requests.get(index_url).json())
+        except ValueError:
+            raise ValueError("Malformed index: %s does not contain valid JSON." % index_url)
     return result
 
 
@@ -87,6 +90,11 @@ def search_pack_index(query=None, pack=None, exclude=None, priority=None):
     matches = [[] for _ in xrange(len(priority) + 1)]
     for pack in six.itervalues(index):
         for key, value in six.iteritems(pack):
+            if not hasattr(value, '__contains__'):
+                try:
+                    value = str(value)
+                except:
+                    continue
             if key not in exclude and query in value:
                 if key in priority:
                     matches[priority.index(key)].append(pack)
