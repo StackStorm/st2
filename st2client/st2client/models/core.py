@@ -392,7 +392,7 @@ class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def install(self, packs, **kwargs):
         url = '/%s/install' % (self.resource.get_url_path_name())
-        response = self.client.post(url, {'packs': packs})
+        response = self.client.post(url, {'packs': packs}, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
@@ -401,7 +401,7 @@ class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def remove(self, packs, **kwargs):
         url = '/%s/uninstall' % (self.resource.get_url_path_name())
-        response = self.client.post(url, {'packs': packs})
+        response = self.client.post(url, {'packs': packs}, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
@@ -419,7 +419,7 @@ class PackResourceManager(ResourceManager):
             if value:
                 payload[key] = value
 
-        response = self.client.post(url, payload)
+        response = self.client.post(url, payload, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
@@ -432,7 +432,7 @@ class PackResourceManager(ResourceManager):
             payload = {'query': args.query}
         else:
             payload = {'pack': args.pack}
-        response = self.client.post(url, payload)
+        response = self.client.post(url, payload, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
@@ -444,7 +444,7 @@ class PackResourceManager(ResourceManager):
         payload = {}
         if types:
             payload = {'types': types}
-        response = self.client.post(url, payload)
+        response = self.client.post(url, payload, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
