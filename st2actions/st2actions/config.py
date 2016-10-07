@@ -73,7 +73,10 @@ def _register_action_runner_opts():
                         'Works only with Paramiko SSH runner.'),
         cfg.BoolOpt('use_ssh_config',
                     default=False,
-                    help='Use the .ssh/config file. Useful to override ports etc.')
+                    help='Use the ~/.ssh/config file. Useful to override ports etc.'),
+        cfg.StrOpt('ssh_config_path',
+                   default='~/.ssh/config',
+                   help='Path to the ssh config file.')
     ]
     CONF.register_opts(ssh_runner_opts, group='ssh_runner')
 
