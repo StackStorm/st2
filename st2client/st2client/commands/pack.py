@@ -66,9 +66,11 @@ class PackResourceCommand(resource.ResourceCommand):
         try:
             instance = self.run(args, **kwargs)
             if not instance:
-                raise Exception('Server did not create instance.')
+                raise resource.ResourceNotFoundError("No matching items found")
             self.print_output(instance, table.PropertyValueTable,
                               attributes=['all'], json=args.json, yaml=args.yaml)
+        except resource.ResourceNotFoundError:
+            print("No matching items found")
         except Exception as e:
             message = e.message or str(e)
             print('ERROR: %s' % (message))
