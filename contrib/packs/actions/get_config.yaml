@@ -1,0 +1,7 @@
+---
+name: "get_config"
+pack: packs
+runner_type: "run-python"
+description: "Returns config variables"
+enabled: true
+entry_point: "get_config.py"

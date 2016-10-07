@@ -23,6 +23,7 @@ from st2common.util.types import OrderedSet
 from st2common.util.shell import quote_unix
 
 __all__ = [
+    'get_pack_group',
     'get_system_packs_base_path',
     'get_packs_base_paths',
     'get_pack_base_path',
@@ -33,6 +34,15 @@ __all__ = [
     'check_pack_directory_exists',
     'check_pack_content_directory_exists'
 ]
+
+
+def get_pack_group():
+    """
+    Return a name of the group with write permissions to pack directory.
+
+    :rtype: ``str``
+    """
+    return cfg.CONF.content.pack_group
 
 
 def get_system_packs_base_path():
