@@ -442,11 +442,13 @@ class PackResourceManager(ResourceManager):
             return self.resource.deserialize(data) if data else None
 
     @add_auth_token_to_kwargs_from_env
-    def register(self, types=None, **kwargs):
+    def register(self, packs=None, types=None, **kwargs):
         url = '/%s/register' % (self.resource.get_url_path_name())
         payload = {}
         if types:
-            payload = {'types': types}
+            payload['types'] = types
+        if packs:
+            payload['packs'] = packs
         response = self.client.post(url, payload, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)

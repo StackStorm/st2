@@ -309,7 +309,16 @@ class PackRegisterRequestAPI(BaseAPI):
         "type": "object",
         "properties": {
             "types": {
-                "type": "array"
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "packs": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
             }
         }
     }
