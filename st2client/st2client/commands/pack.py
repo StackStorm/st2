@@ -198,7 +198,7 @@ class PackRegisterCommand(PackResourceCommand):
               'Register a %s: sync all file changes with DB.' % resource.get_display_name().lower(),
               *args, **kwargs)
 
-        self.parser.add_argument('packs',
+        self.parser.add_argument('--packs',
                                  nargs='+',
                                  help='Name of the %s(s) to register.' %
                                  resource.get_display_name().lower())
