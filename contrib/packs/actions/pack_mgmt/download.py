@@ -24,7 +24,7 @@ from lockfile import LockFile
 
 from st2common.runners.base_action import Action
 from st2common.content import utils
-from st2common.services.packs import search_pack_index
+from st2common.services.packs import get_pack_from_index
 from st2common.util.green import shell
 
 MANIFEST_FILE = 'pack.yaml'
@@ -177,7 +177,7 @@ class DownloadGitRepoAction(Action):
             version = None
 
         if len(name_or_url.split('/')) == 1:
-            pack = search_pack_index(pack=name_or_url)
+            pack = get_pack_from_index(name_or_url)
             if not pack:
                 raise Exception('No record of the "%s" pack in the index.' % name_or_url)
             return (pack.name, pack.repo_url, version)

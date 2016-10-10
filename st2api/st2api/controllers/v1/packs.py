@@ -44,7 +44,7 @@ from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
-from st2common.services.packs import search_pack_index
+from st2common.services import packs as packs_service
 
 http_client = six.moves.http_client
 
@@ -166,9 +166,9 @@ class PackSearchController(RestController):
     @jsexpose(body_cls=PackSearchRequestAPI)
     def post(self, pack_search_request):
         if hasattr(pack_search_request, 'query'):
-            return search_pack_index(query=pack_search_request.query)
+            return packs_service.search_pack_index(pack_search_request.query)
         else:
-            return search_pack_index(pack=pack_search_request.pack)
+            return packs_service.get_pack_from_index(pack_search_request.pack)
 
 
 class BasePacksController(ResourceController):

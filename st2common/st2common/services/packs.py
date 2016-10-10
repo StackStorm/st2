@@ -19,11 +19,13 @@ import requests
 import six
 from oslo_config import cfg
 
+from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 
 __all__ = [
     'get_pack_by_ref',
     'fetch_pack_index',
+    'get_pack_from_index',
     'search_pack_index'
 ]
 
@@ -69,14 +71,27 @@ def fetch_pack_index(index_url=None):
     return result
 
 
-def search_pack_index(query=None, pack=None, exclude=None, priority=None):
+def get_pack_from_index(pack):
     """
-    Search the pack index either by pack name or by query.
-    Returns a pack object if the pack name is specified, otherwise returns
-    a list of matches for a query.
+    Search index by pack name.
+    Returns a pack.
     """
-    if (not query and not pack) or (query and pack):
-        raise ValueError("Either a query or a pack name must be specified.")
+    if not pack:
+        raise ValueError("Pack name must be specified.")
+
+    index = fetch_pack_index()
+
+    return PackAPI(**index.get(pack))
+
+
+def search_pack_index(query, exclude=None, priority=None):
+    """
+    Search the pack index by query.
+    Returns a list of matches for a query.
+    """
+    if not query:
+        raise ValueError("Query must be specified.")
+
     if not exclude:
         exclude = EXCLUDE_FIELDS
     if not priority:
@@ -84,17 +99,14 @@ def search_pack_index(query=None, pack=None, exclude=None, priority=None):
 
     index = fetch_pack_index()
 
-    if pack:
-        return index.get(pack, None)
+    matches = [[] for _ in range(len(priority) + 1)]
+    for pack_dict in six.itervalues(index):
+        pack = PackAPI(**pack_dict)
 
-    matches = [[] for _ in xrange(len(priority) + 1)]
-    for pack in six.itervalues(index):
-        for key, value in six.iteritems(pack):
+        for key, value in six.iteritems(vars(pack)):
             if not hasattr(value, '__contains__'):
-                try:
-                    value = str(value)
-                except:
-                    continue
+                value = str(value)
+
             if key not in exclude and query in value:
                 if key in priority:
                     matches[priority.index(key)].append(pack)
