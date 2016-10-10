@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 from st2client.models import Pack
+from st2client.models import LiveAction
 from st2client.commands import resource
 from st2client.commands.action import ActionRunCommandMixin
 from st2client.commands.noop import NoopCommand
@@ -78,6 +81,11 @@ class PackResourceCommand(resource.ResourceCommand):
 
 
 class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
+    def __init__(self, *args, **kwargs):
+        super(PackAsyncCommand, self).__init__(*args, **kwargs)
+
+        self._add_common_options()
+
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
         if not instance:
@@ -87,15 +95,19 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
         stream_mgr = self.app.client.managers['Stream']
 
+        execution = None
+
         with term.TaskIndicator() as indicator:
-            for execution in stream_mgr.listen(['st2.execution__create', 'st2.execution__update']):
-                if execution['id'] == parent_id \
-                        and execution['status'] in LIVEACTION_COMPLETED_STATES:
+            for event in stream_mgr.listen(['st2.execution__create', 'st2.execution__update']):
+                execution = LiveAction(**event)
+
+                if execution.id == parent_id \
+                        and execution.status in LIVEACTION_COMPLETED_STATES:
                     break
 
-                if execution.get('parent', None) == parent_id:
-                    status = execution['status']
-                    name = execution['context']['chain']['name']
+                if getattr(execution, 'parent', None) == parent_id:
+                    status = execution.status
+                    name = execution.context['chain']['name']
 
                     if status == LIVEACTION_STATUS_SCHEDULED:
                         indicator.add_stage(status, name)
@@ -103,6 +115,10 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
                         indicator.update_stage(status, name)
                     if status in LIVEACTION_COMPLETED_STATES:
                         indicator.finish_stage(status, name)
+
+        if execution and execution.status == LIVEACTION_STATUS_FAILED:
+            self._print_execution_details(execution=execution, args=args, **kwargs)
+            sys.exit(1)
 
 
 class PackListCommand(resource.ResourceListCommand):
