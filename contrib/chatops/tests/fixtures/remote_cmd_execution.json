@@ -53,7 +53,7 @@
         "enabled": true,
         "id": "54c6bb640640fd5211edef0b",
         "name": "remote-shell-cmd",
-        "runner_module": "st2actions.runners.remote_command_runner",
+        "runner_module": "remote_command_runner",
         "runner_parameters": {
             "cmd": {
                 "type": "string"

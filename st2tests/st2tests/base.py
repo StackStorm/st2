@@ -30,6 +30,10 @@ import psutil
 from oslo_config import cfg
 from unittest2 import TestCase
 
+import unittest2
+from st2common.util.api import get_full_public_api_url
+from st2common.constants.runners import COMMON_ACTION_ENV_VARIABLES
+from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
 from st2common.bootstrap.base import ResourceRegistrar
@@ -63,6 +67,7 @@ __all__ = [
     'CleanDbTestCase',
     'CleanFilesTestCase',
     'IntegrationTestCase',
+    'RunnerTestCase',
 
     # Pack test classes
     'BaseSensorTestCase',
@@ -88,6 +93,19 @@ ALL_MODELS.extend(rule_enforcement_model.MODELS)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_CONFIG_PATH = os.path.join(BASE_DIR, '../conf/st2.conf')
+
+
+class RunnerTestCase(unittest2.TestCase):
+    def assertCommonSt2EnvVarsAvailableInEnv(self, env):
+        """
+        Method which asserts that the common ST2 environment variables are present in the provided
+        environment.
+        """
+        for var_name in COMMON_ACTION_ENV_VARIABLES:
+            self.assertTrue(var_name in env)
+
+        self.assertEqual(env['ST2_ACTION_API_URL'], get_full_public_api_url())
+        self.assertTrue(env[AUTH_TOKEN_ENV_VARIABLE_NAME] is not None)
 
 
 class BaseTestCase(TestCase):

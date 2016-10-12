@@ -23,7 +23,7 @@ import six
 from git.repo import Repo
 from lockfile import LockFile
 
-from st2actions.runners.pythonrunner import Action
+from st2common.runners.base_action import Action
 from st2common.util.green import shell
 
 ALL_PACKS = '*'

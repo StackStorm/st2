@@ -16,6 +16,10 @@
 from oslo_config import cfg
 
 __all__ = [
+    'RUNNER_NAME_WHITELIST',
+
+    'MANIFEST_FILE_NAME',
+
     'LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT',
 
     'REMOTE_RUNNER_DEFAULT_ACTION_TIMEOUT',
@@ -30,6 +34,12 @@ __all__ = [
     'COMMON_ACTION_ENV_VARIABLE_PREFIX',
     'COMMON_ACTION_ENV_VARIABLES'
 ]
+
+# A list of allowed characters for the pack name
+RUNNER_NAME_WHITELIST = r'^[A-Za-z0-9_-]+'
+
+# Manifest file name for runners
+MANIFEST_FILE_NAME = 'runner.yaml'
 
 # Local runner
 LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT = 60

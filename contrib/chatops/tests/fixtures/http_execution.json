@@ -44,7 +44,7 @@
         "enabled": true,
         "id": "54c6bb640640fd5211edef0b",
         "name": "http-request",
-        "runner_module": "st2actions.runners.httprunner",
+        "runner_module": "httprunner",
         "runner_parameters": {
             "url": {
                 "type": "string"

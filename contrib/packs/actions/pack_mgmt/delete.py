@@ -18,7 +18,7 @@ import shutil
 
 from oslo_config import cfg
 
-from st2actions.runners.pythonrunner import Action
+from st2common.runners.base_action import Action
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.util.shell import quote_unix
 

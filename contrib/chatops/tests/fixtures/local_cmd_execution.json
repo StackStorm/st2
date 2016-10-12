@@ -37,7 +37,7 @@
         "enabled": true,
         "id": "54c6bb640640fd5211edef0b",
         "name": "local-shell-cmd",
-        "runner_module": "st2actions.runners.localrunner",
+        "runner_module": "local_runner",
         "runner_parameters": {
             "cmd": {
                 "type": "string"

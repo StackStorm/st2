@@ -19,9 +19,9 @@ import os
 from mock import (patch, Mock, MagicMock)
 import unittest2
 
-from st2actions.runners.ssh.parallel_ssh import ParallelSSHClient
-from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
-from st2actions.runners.ssh.paramiko_ssh import SSHCommandTimeoutError
+from st2common.runners.parallel_ssh import ParallelSSHClient
+from st2common.runners.paramiko_ssh import ParamikoSSHClient
+from st2common.runners.paramiko_ssh import SSHCommandTimeoutError
 import st2tests.config as tests_config
 tests_config.parse_args()
 

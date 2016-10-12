@@ -16,7 +16,7 @@
 import os
 import json
 
-from st2actions.runners.pythonrunner import Action
+from st2common.runners.base_action import Action
 from st2common.content.utils import get_packs_base_paths
 
 GITINFO_FILE = '.gitinfo'
