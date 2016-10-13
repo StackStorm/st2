@@ -31,17 +31,14 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-def register_runners(runner_dir=None, experimental=False, fail_on_failure=True):
+def register_runners(runner_dirs=None, experimental=False, fail_on_failure=True):
     """ Register runners
     """
     LOG.debug('Start : register runners')
     runner_count = 0
     runner_loader = RunnersLoader()
 
-    if runner_dir:
-        assert isinstance(runner_dir, list)
-
-    if not runner_dir:
+    if not runner_dirs:
         runner_dirs = content_utils.get_runners_base_paths()
 
     runners = runner_loader.get_runners(runner_dirs)

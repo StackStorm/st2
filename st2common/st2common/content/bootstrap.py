@@ -176,7 +176,7 @@ def register_runners():
         LOG.info('=========================================================')
         LOG.info('############## Registering runners ######################')
         LOG.info('=========================================================')
-        registered_count = runners_registrar.register_runners(runner_dir=runner_dir,
+        registered_count = runners_registrar.register_runners(runner_dirs=[runner_dir],
                                                               fail_on_failure=fail_on_failure,
                                                               experimental=False)
     except Exception as error:
@@ -345,7 +345,11 @@ def register_content():
         register_runners()
 
     if cfg.CONF.register.actions and not register_all:
-        register_runners()
+        # If --register-runners is passed, registering runners again would be duplicate.
+        # If it's not passed, we still want to register runners. Otherwise, actions will complain
+        # about runners not being registered.
+        if not cfg.CONF.register.runners:
+            register_runners()
         register_actions()
 
     if cfg.CONF.register.rules and not register_all:
