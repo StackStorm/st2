@@ -38,6 +38,7 @@ class ContentRegisterScripTestCase(IntegrationTestCase):
         pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1')
 
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir)]
+        print('Command to run: %s' % cmd)
         exit_code, _, stderr = run_command(cmd=cmd)
         self.assertTrue('Registered 1 actions.' in stderr)
         self.assertEqual(exit_code, 0)
