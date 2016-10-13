@@ -29,15 +29,20 @@ BASE_CMD_ARGS = [SCRIPT_PATH, '--config-file=conf/st2.tests.conf', '-v']
 BASE_REGISTER_ACTIONS_CMD_ARGS = BASE_CMD_ARGS + ['--register-actions']
 
 
-class ContentRegisterScripTestCase(IntegrationTestCase):
+class ContentRegisterScriptTestCase(IntegrationTestCase):
     def setUp(self):
-        super(ContentRegisterScripTestCase, self).setUp()
+        super(ContentRegisterScriptTestCase, self).setUp()
         test_config.parse_args()
 
     def test_register_from_pack_success(self):
         pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1')
+        runner_dirs = os.path.join(get_fixtures_packs_base_path(), 'runners')
 
-        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir)]
+        opts = [
+            '--register-pack=%s' % (pack_dir),
+            '--register-runner-dir=%s' % (runner_dirs),
+        ]
+        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
         exit_code, _, stderr = run_command(cmd=cmd)
         self.assertTrue('Registered 1 actions.' in stderr)
         self.assertEqual(exit_code, 0)
@@ -45,14 +50,24 @@ class ContentRegisterScripTestCase(IntegrationTestCase):
     def test_register_from_pack_fail_on_failure_pack_dir_doesnt_exist(self):
         # No fail on failure flag, should succeed
         pack_dir = 'doesntexistblah'
-        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir),
-                                                '--register-no-fail-on-failure']
+        runner_dirs = os.path.join(get_fixtures_packs_base_path(), 'runners')
+
+        opts = [
+            '--register-pack=%s' % (pack_dir),
+            '--register-runner-dir=%s' % (runner_dirs),
+            '--register-no-fail-on-failure'
+        ]
+        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
         exit_code, _, _ = run_command(cmd=cmd)
         self.assertEqual(exit_code, 0)
 
         # Fail on failure, should fail
-        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir),
-                                                '--register-fail-on-failure']
+        opts = [
+            '--register-pack=%s' % (pack_dir),
+            '--register-runner-dir=%s' % (runner_dirs),
+            '--register-fail-on-failure'
+        ]
+        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
         exit_code, _, stderr = run_command(cmd=cmd)
         self.assertTrue('Directory "doesntexistblah" doesn\'t exist' in stderr)
         self.assertEqual(exit_code, 1)
@@ -60,16 +75,27 @@ class ContentRegisterScripTestCase(IntegrationTestCase):
     def test_register_from_pack_action_metadata_fails_validation(self):
         # No fail on failure flag, should succeed
         pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_4')
-        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir),
-                                                '--register-no-fail-on-failure']
+        runner_dirs = os.path.join(get_fixtures_packs_base_path(), 'runners')
+
+        opts = [
+            '--register-pack=%s' % (pack_dir),
+            '--register-no-fail-on-failure',
+            '--register-runner-dir=%s' % (runner_dirs),
+        ]
+
+        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
         exit_code, _, stderr = run_command(cmd=cmd)
         self.assertTrue('Registered 0 actions.' in stderr)
         self.assertEqual(exit_code, 0)
 
         # Fail on failure, should fail
         pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_4')
-        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir),
-                                                '--register-fail-on-failure']
+        opts = [
+            '--register-pack=%s' % (pack_dir),
+            '--register-fail-on-failure',
+            '--register-runner-dir=%s' % (runner_dirs),
+        ]
+        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + opts
         exit_code, _, stderr = run_command(cmd=cmd)
         self.assertTrue('object has no attribute \'get\'' in stderr)
         self.assertEqual(exit_code, 1)
