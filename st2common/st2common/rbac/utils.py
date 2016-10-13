@@ -30,6 +30,7 @@ from st2common.rbac.types import SystemRole
 from st2common.rbac import resolvers
 from st2common.services import rbac as rbac_services
 from st2common.util import action_db as action_utils
+from st2common.util.api import get_requester
 
 __all__ = [
     'request_user_is_admin',
@@ -46,6 +47,8 @@ __all__ = [
     'assert_request_user_is_system_admin',
     'assert_request_user_has_permission',
     'assert_request_user_has_resource_db_permission',
+
+    'assert_request_user_is_admin_if_user_query_param_is_provider',
 
     'assert_request_user_has_rule_trigger_and_action_permission',
 
@@ -278,6 +281,19 @@ def assert_request_user_has_rule_trigger_and_action_permission(request, rule_api
         raise AccessDeniedError(message=msg, user_db=user_db)
 
     return True
+
+
+def assert_request_user_is_admin_if_user_query_param_is_provider(request, user):
+    """
+    Function which asserts that the request user is administator if "user" query parameter is
+    provided and doesn't match the current user.
+    """
+    requester_user = get_requester()
+    is_admin = request_user_is_admin(request=request)
+
+    if user != requester_user and not is_admin:
+        msg = '"user" attribute can only be provided by admins'
+        raise AccessDeniedError(message=msg, user_db=requester_user)
 
 
 def user_is_admin(user_db):

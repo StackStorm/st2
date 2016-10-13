@@ -19,11 +19,13 @@ import ssl as ssl_lib
 
 import six
 import mongoengine
+from pymongo.errors import OperationFailure
 
 from st2common import log as logging
 from st2common.util import isotime
 from st2common.models.db import stormbase
 from st2common.models.utils.profiling import log_query_and_profile_data_for_queryset
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 
 LOG = logging.getLogger(__name__)
@@ -36,6 +38,7 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.execution',
     'st2common.models.db.executionstate',
     'st2common.models.db.liveaction',
+    'st2common.models.db.pack',
     'st2common.models.db.policy',
     'st2common.models.db.rule',
     'st2common.models.db.runner',
@@ -59,8 +62,8 @@ def get_model_classes():
     return result
 
 
-def db_setup(db_name, db_host, db_port, username=None, password=None,
-             ensure_indexes=True, ssl=False, ssl_keyfile=None, ssl_certfile=None,
+def db_setup(db_name, db_host, db_port, username=None, password=None, ensure_indexes=True,
+             ssl=False, ssl_keyfile=None, ssl_certfile=None,
              ssl_cert_reqs=None, ssl_ca_certs=None, ssl_match_hostname=True):
     LOG.info('Connecting to database "%s" @ "%s:%s" as user "%s".',
              db_name, db_host, db_port, str(username))
@@ -84,7 +87,8 @@ def db_setup(db_name, db_host, db_port, username=None, password=None,
 
 def db_ensure_indexes():
     """
-    This function ensures that indexes for all the models have been created.
+    This function ensures that indexes for all the models have been created and the
+    extra indexes cleaned up.
 
     Note #1: When calling this method database connection already needs to be
     established.
@@ -95,9 +99,38 @@ def db_ensure_indexes():
     LOG.debug('Ensuring database indexes...')
     model_classes = get_model_classes()
 
-    for cls in model_classes:
-        LOG.debug('Ensuring indexes for model "%s"...' % (cls.__name__))
-        cls.ensure_indexes()
+    for model_class in model_classes:
+        # Note: We need to ensure / create new indexes before removing extra ones
+        LOG.debug('Ensuring indexes for model "%s"...' % (model_class.__name__))
+        model_class.ensure_indexes()
+
+        LOG.debug('Removing extra indexes for model "%s"...' % (model_class.__name__))
+        removed_count = cleanup_extra_indexes(model_class=model_class)
+        LOG.debug('Removed "%s" extra indexes for model "%s"' %
+                  (removed_count, model_class.__name__))
+
+
+def cleanup_extra_indexes(model_class):
+    """
+    Finds any extra indexes and removes those from mongodb.
+    """
+    extra_indexes = model_class.compare_indexes().get('extra', None)
+    if not extra_indexes:
+        return 0
+
+    # mongoengine does not have the necessary method so we need to drop to
+    # pymongo interfaces via some private methods.
+    removed_count = 0
+    c = model_class._get_collection()
+    for extra_index in extra_indexes:
+        try:
+            c.drop_index(extra_index)
+            LOG.debug('Dropped index %s for model %s.', extra_index, model_class.__name__)
+            removed_count += 1
+        except OperationFailure:
+            LOG.warning('Attempt to cleanup index %s failed.', extra_index, exc_info=True)
+
+    return removed_count
 
 
 def db_teardown():
@@ -145,8 +178,14 @@ class MongoDBAccess(object):
     def get_by_id(self, value):
         return self.get(id=value, raise_exception=True)
 
+    def get_by_uid(self, value):
+        return self.get(uid=value, raise_exception=True)
+
     def get_by_ref(self, value):
         return self.get(ref=value, raise_exception=True)
+
+    def get_by_pack(self, value):
+        return self.get(pack=value, raise_exception=True)
 
     def get(self, exclude_fields=None, *args, **kwargs):
         raise_exception = kwargs.pop('raise_exception', False)
@@ -160,7 +199,9 @@ class MongoDBAccess(object):
         log_query_and_profile_data_for_queryset(queryset=instances)
 
         if not instance and raise_exception:
-            raise ValueError('Unable to find the %s instance. %s' % (self.model.__name__, kwargs))
+            msg = 'Unable to find the %s instance. %s' % (self.model.__name__, kwargs)
+            raise StackStormDBObjectNotFoundError(msg)
+
         return instance
 
     def get_all(self, *args, **kwargs):

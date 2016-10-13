@@ -6,22 +6,26 @@ python:
   - 2.7
 
 # Note: We enable artifacts addons since we upload integration tests logs to S3
-addons:
-  artifacts:
-    s3_region: "us-west-2"
-    paths:
-      - $(ls /tmp/st2*.log | tr "\n" ":")
+#addons:
+#  artifacts:
+#    s3_region: "us-west-2"
+#    paths:
+#      - $(ls /tmp/st2*.log | tr "\n" ":")
 
 env:
   global:
     - ARTIFACTS_DEBUG=1
     - ARTIFACTS_BUCKET=st2travistestslogs
-    - secure: "2k3NMsOqDOXZLGMo+fuTSl35VqR41cm7Z4ZPSduh2ceIMyhgtnKGmElklxV7DxaZtFgl0GD0EZWLSErqlOsjDdAA0IsBMzisQRMBWl+Rqpvjsn2P0jtZBPwe/5OPDpBUqE7t/BOaPBbyTSA9vtLPMhTWdDlR4l28NifAC+k977Q="
-    - secure: "AxPXLPSPGqa8lrwysXxTFHTdEVecK4ZhH91PFu6pZ+IfrSKLek23+CM08J50tmat991swSM8qodhIUfCcvJObcqDFbl295VPYM++H4U9w1dzi571WA0VKZLs3pBhwHf6ACnBX8bzxz3s/7+vE/g2bdrqI6Z6aK3UR98POjbsdOg="
+#    - secure: "2k3NMsOqDOXZLGMo+fuTSl35VqR41cm7Z4ZPSduh2ceIMyhgtnKGmElklxV7DxaZtFgl0GD0EZWLSErqlOsjDdAA0IsBMzisQRMBWl+Rqpvjsn2P0jtZBPwe/5OPDpBUqE7t/BOaPBbyTSA9vtLPMhTWdDlR4l28NifAC+k977Q="
+#    - secure: "AxPXLPSPGqa8lrwysXxTFHTdEVecK4ZhH91PFu6pZ+IfrSKLek23+CM08J50tmat991swSM8qodhIUfCcvJObcqDFbl295VPYM++H4U9w1dzi571WA0VKZLs3pBhwHf6ACnBX8bzxz3s/7+vE/g2bdrqI6Z6aK3UR98POjbsdOg="
   matrix:
     - TASK=checks
-    - TASK=unit
-    - TASK=integration
+#    - TASK=unit MONGODB=2.4.9
+#    - TASK=integration MONGODB=2.4.9
+#    - TASK=unit MONGODB=2.6.12
+#    - TASK=integration MONGODB=2.6.12
+    - TASK=unit MONGODB=3.2.8
+    - TASK=integration MONGODB=3.2.8
     - TASK=mistral
     - TASK=packs-tests
 
@@ -31,7 +35,6 @@ matrix:
     - env: TASK=mistral
 
 services:
-  - mongodb
   - postgresql
   - rabbitmq
 
@@ -39,8 +42,13 @@ cache:
   directories:
     - $HOME/.cache/pip/
 
+before_script:
+  # Note: We use ramdisk for better performance
+  - if [ ${TASK} = 'unit' ] || [ ${TASK} = 'integration' ]; then sudo -E ./scripts/travis/create-and-mount-ramdisk.sh; fi
+  - if [ ${TASK} = 'unit' ] || [ ${TASK} = 'integration' ]; then ./scripts/travis/install-and-run-mongodb.sh; fi
+
 install:
-  - pip install --upgrade pip
+  - pip install --upgrade "pip>=8.1.2,<8.2"
   - pip install python-coveralls
   - if [ ${TASK} != 'checks' ]; then pip install python-coveralls; fi
   - make requirements

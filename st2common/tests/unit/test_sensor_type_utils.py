@@ -35,7 +35,7 @@ class SensorTypeUtilsTestCase(unittest2.TestCase):
         self.assertEqual(sensor_model.artifact_uri, sensor_meta['artifact_uri'])
         self.assertListEqual(sensor_model.trigger_types, [])
 
-    @mock.patch.object(sensor_type_utils, '_create_trigger_types', mock.MagicMock(
+    @mock.patch.object(sensor_type_utils, 'create_trigger_types', mock.MagicMock(
         return_value=['mock.trigger_ref']))
     def test_to_sensor_db_model_with_trigger_types(self):
         sensor_meta = {

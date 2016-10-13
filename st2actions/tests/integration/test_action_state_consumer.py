@@ -23,7 +23,7 @@ from st2common.persistence.executionstate import ActionExecutionState
 from st2common.transport import utils as transport_utils
 from st2tests.base import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
-from tests.resources.test_querymodule import TestQuerier
+from st2tests.fixtures.packs.runners.test_querymodule.query.test_querymodule import TestQuerier
 
 FIXTURES_PACK = 'generic'
 FIXTURES = {'liveactions': ['liveaction1.yaml']}
@@ -50,13 +50,13 @@ class ActionStateConsumerTests(EventletTestCase, DbTestCase):
             state = ActionStateConsumerTests.get_state(
                 ActionStateConsumerTests.liveactions['liveaction1.yaml'])
             tracker._queue_consumer._process_message(state)
-            querier = tracker.get_querier('tests.resources.test_querymodule')
+            querier = tracker.get_querier('test_querymodule')
             self.assertEqual(querier._query_contexts.qsize(), 1)
 
     @classmethod
     def get_state(cls, exec_db):
         state = ActionExecutionStateDB(execution_id=str(exec_db.id), query_context={'id': 'foo'},
-                                       query_module='tests.resources.test_querymodule')
+                                       query_module='test_querymodule')
         return ActionExecutionState.add_or_update(state)
 
     @classmethod

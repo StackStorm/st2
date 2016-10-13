@@ -49,5 +49,8 @@ setup(
         'bin/st2-purge-trigger-instances',
         'bin/st2-run-pack-tests',
         'bin/st2ctl',
+        'bin/st2-generate-symmetric-crypto-key',
+        'bin/migrations/v1.5/st2-migrate-datastore-to-include-scope-secret.py',
+        'bin/st2-self-check'
     ]
 )

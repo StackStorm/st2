@@ -18,9 +18,9 @@ import six
 
 from oslo_config import cfg
 from pecan import abort
-from pecan.rest import RestController
 from mongoengine import ValidationError
 
+from st2api.controllers.base import BaseRestControllerMixin, SHOW_SECRETS_QUERY_PARAM
 from st2common import log as logging
 from st2common.models.api.auth import ApiKeyAPI, ApiKeyCreateResponseAPI
 from st2common.models.api.base import jsexpose
@@ -42,7 +42,7 @@ __all__ = [
 ]
 
 
-class ApiKeyController(RestController):
+class ApiKeyController(BaseRestControllerMixin):
     """
     Implements the REST endpoint for managing the key value store.
     """
@@ -77,7 +77,8 @@ class ApiKeyController(RestController):
             abort(http_client.NOT_FOUND, msg)
 
         try:
-            return ApiKeyAPI.from_model(api_key_db, mask_secrets=True)
+            mask_secrets = self._get_mask_secrets(pecan.request)
+            return ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
         except (ValidationError, ValueError) as e:
             LOG.exception('Failed to serialize API key.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
@@ -91,9 +92,9 @@ class ApiKeyController(RestController):
             Handles requests:
                 GET /keys/
         """
-
+        mask_secrets, kw = self._get_mask_secrets_ex(**kw)
         api_key_dbs = ApiKey.get_all(**kw)
-        api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=True)
+        api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
                     for api_key_db in api_key_dbs]
 
         return api_keys
@@ -102,14 +103,19 @@ class ApiKeyController(RestController):
     @request_user_has_resource_api_permission(permission_type=PermissionType.API_KEY_CREATE)
     def post(self, api_key_api):
         """
-        Create a new entry or update an existing one.
+        Create a new entry.
         """
         api_key_db = None
+        api_key = None
         try:
-            api_key_api.user = self._get_user()
-            api_key, api_key_hash = auth_util.generate_api_key_and_hash()
-            # store key_hash in DB
-            api_key_api.key_hash = api_key_hash
+            if not getattr(api_key_api, 'user', None):
+                api_key_api.user = self._get_user()
+            # If key_hash is provided use that and do not create a new key. The assumption
+            # is user already has the original api-key
+            if not getattr(api_key_api, 'key_hash', None):
+                api_key, api_key_hash = auth_util.generate_api_key_and_hash()
+                # store key_hash in DB
+                api_key_api.key_hash = api_key_hash
             api_key_db = ApiKey.add_or_update(ApiKeyAPI.to_model(api_key_api))
         except (ValidationError, ValueError) as e:
             LOG.exception('Validation failed for api_key data=%s.', api_key_api)
@@ -127,7 +133,7 @@ class ApiKeyController(RestController):
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_MODIFY)
     @jsexpose(arg_types=[str], body_cls=ApiKeyAPI)
-    def put(self, api_key_id_or_key, api_key_api):
+    def put(self, api_key_api, api_key_id_or_key):
         api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
 
         LOG.debug('PUT /apikeys/ lookup with api_key_id_or_key=%s found object: %s',
@@ -187,3 +193,12 @@ class ApiKeyController(RestController):
 
         user_db = auth_context.get('user', None)
         return user_db.name if user_db else cfg.CONF.system_user.user
+
+    def _get_mask_secrets_ex(self, **kw):
+        """
+        Allowing SHOW_SECRETS_QUERY_PARAM to remain in the parameters causes downstream
+        lookup failures there removing. This is a pretty hackinsh way to manage query params.
+        """
+        mask_secrets = self._get_mask_secrets(pecan.request)
+        kw.pop(SHOW_SECRETS_QUERY_PARAM, None)
+        return mask_secrets, kw

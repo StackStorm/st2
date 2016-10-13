@@ -45,9 +45,9 @@ class RetryOnPolicy(Enum):
 
 
 class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
-    def __init__(self, policy_ref, policy_type, retry_on, max_retry_count=2, delay=None):
+    def __init__(self, policy_ref, policy_type, retry_on, max_retry_count=2, delay=0):
         """
-        :param retry_on: Condition to retry the execution on.
+        :param retry_on: Condition to retry the execution on (failure, timeout).
         :type retry_on: ``str``
 
         :param max_retry_count: Maximum number of times to try to retry an action.

@@ -19,12 +19,12 @@ import unittest2
 import mock
 from oslo_config import cfg
 
-from st2actions.runners.ssh.paramiko_ssh_runner import BaseParallelSSHRunner
-from st2actions.runners.ssh.paramiko_ssh_runner import RUNNER_HOSTS
-from st2actions.runners.ssh.paramiko_ssh_runner import RUNNER_USERNAME
-from st2actions.runners.ssh.paramiko_ssh_runner import RUNNER_PASSWORD
-from st2actions.runners.ssh.paramiko_ssh_runner import RUNNER_PRIVATE_KEY
-from st2actions.runners.ssh.paramiko_ssh_runner import RUNNER_PASSPHRASE
+from st2common.runners.paramiko_ssh_runner import BaseParallelSSHRunner
+from st2common.runners.paramiko_ssh_runner import RUNNER_HOSTS
+from st2common.runners.paramiko_ssh_runner import RUNNER_USERNAME
+from st2common.runners.paramiko_ssh_runner import RUNNER_PASSWORD
+from st2common.runners.paramiko_ssh_runner import RUNNER_PRIVATE_KEY
+from st2common.runners.paramiko_ssh_runner import RUNNER_PASSPHRASE
 
 import st2tests.config as tests_config
 from st2tests.fixturesloader import get_resources_base_path
@@ -37,7 +37,7 @@ class Runner(BaseParallelSSHRunner):
 
 
 class ParamikoSSHRunnerTestCase(unittest2.TestCase):
-    @mock.patch('st2actions.runners.ssh.paramiko_ssh_runner.ParallelSSHClient')
+    @mock.patch('st2common.runners.paramiko_ssh_runner.ParallelSSHClient')
     def test_pre_run(self, mock_client):
         # Test case which verifies that ParamikoSSHClient is instantiated with the correct arguments
         private_key_path = os.path.join(get_resources_base_path(),

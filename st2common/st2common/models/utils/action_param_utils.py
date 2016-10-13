@@ -40,7 +40,7 @@ def _merge_param_meta_values(action_meta=None, runner_meta=None):
         elif key in runner_meta_keys and key not in action_meta_keys:
             merged_meta[key] = runner_meta[key]
         else:
-            if key in ['immutable', 'required']:
+            if key in ['immutable']:
                 merged_meta[key] = runner_meta.get(key, False) or action_meta.get(key, False)
             else:
                 merged_meta[key] = action_meta.get(key)
@@ -119,9 +119,11 @@ def cast_params(action_ref, params, cast_overrides=None):
 
         try:
             params[k] = cast(v)
-        except Exception:
-            msg = ('Failed to cast value "%s" for parameter "%s" of type "%s". Perhaphs the '
-                   'value is of an invalid type?' % (v, k, parameter_type))
+        except Exception as e:
+            v_type = type(v).__name__
+            msg = ('Failed to cast value "%s" (type: %s) for parameter "%s" of type "%s": %s. '
+                   'Perhaphs the value is of an invalid type?' %
+                   (v, v_type, k, parameter_type, str(e)))
             raise ValueError(msg)
 
     return params

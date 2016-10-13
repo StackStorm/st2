@@ -115,8 +115,8 @@ def get_exception_for_type_error(func, exc):
 
     # Note: Those checks are hacky, but it's better than having no checks and silently
     # accepting invalid requests
-    invalid_num_args_pattern = ('%s\(\) takes (exactly|at most) \d+ arguments \(\d+ given\)' %
-                                (func_name))
+    invalid_num_args_pattern = ('%s\(\) takes %s \d+ arguments? \(\d+ given\)' %
+                                (func_name, '(exactly|at most|at least)'))
     unexpected_keyword_arg_pattern = ('%s\(\) got an unexpected keyword argument \'(.*?)\'' %
                                       (func_name))
 
@@ -126,10 +126,15 @@ def get_exception_for_type_error(func, exc):
         result = webob_exc.HTTPNotFound()
     elif re.search(unexpected_keyword_arg_pattern, message):
         # User passed in an unsupported query parameter
-        groups = re.match(unexpected_keyword_arg_pattern, message).groups()
-        query_param_name = groups[0]
+        match = re.match(unexpected_keyword_arg_pattern, message)
 
-        msg = 'Unsupported query parameter: %s' % (query_param_name)
+        if match:
+            groups = match.groups()
+            query_param_name = groups[0]
+
+            msg = 'Unsupported query parameter: %s' % (query_param_name)
+        else:
+            msg = 'Unknown error, please contact the administrator.'
         result = webob_exc.HTTPBadRequest(detail=msg)
     else:
         result = exc

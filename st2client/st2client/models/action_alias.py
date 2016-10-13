@@ -16,7 +16,8 @@
 from st2client.models import core
 
 __all__ = [
-    'ActionAlias'
+    'ActionAlias',
+    'ActionAliasMatch'
 ]
 
 
@@ -27,3 +28,12 @@ class ActionAlias(core.Resource):
     _plural_display_name = 'Runners'
     _url_path = 'actionalias'
     _repr_attributes = ['name', 'pack', 'action_ref']
+
+
+class ActionAliasMatch(core.Resource):
+    _alias = 'Action-Alias-Match'
+    _display_name = 'ActionAlias Match'
+    _plural = 'ActionAliasMatches'
+    _plural_display_name = 'Action Alias Matches'
+    _url_path = 'actionalias'
+    _repr_attributes = ['command']

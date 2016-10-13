@@ -14,21 +14,60 @@
 # limitations under the License.
 
 import os
+import re
 
-import six
 from yaml.parser import ParserError
+import six
 
 from st2common import log as logging
 from st2common.constants.meta import ALLOWED_EXTS
 from st2common.constants.meta import PARSER_FUNCS
 from st2common.constants.pack import MANIFEST_FILE_NAME
+from st2common.constants.runners import MANIFEST_FILE_NAME as RUNNER_MANIFEST_FILE_NAME
+from st2common.constants.runners import RUNNER_NAME_WHITELIST
 
 __all__ = [
+    'RunnersLoader',
     'ContentPackLoader',
     'MetaLoader'
 ]
 
 LOG = logging.getLogger(__name__)
+
+
+class RunnersLoader(object):
+    """Class for loading runners from directories on disk.
+    """
+
+    def get_runners(self, base_dirs):
+        """Retrieve a list of runners in the provided directories.
+
+        :return: Dictionary where the key is runner name and the value is full path to the runner
+                 directory.
+        :rtype: ``dict``
+        """
+        assert isinstance(base_dirs, list)
+
+        result = {}
+        for base_dir in base_dirs:
+            if not os.path.isdir(base_dir):
+                raise ValueError('Directory "%s" doesn\'t exist' % (base_dir))
+
+            runners_in_dir = self._get_runners_from_dir(base_dir=base_dir)
+            result.update(runners_in_dir)
+
+        return result
+
+    def _get_runners_from_dir(self, base_dir):
+        result = {}
+        for runner_name in os.listdir(base_dir):
+            runner_dir = os.path.join(base_dir, runner_name)
+            runner_manifest_file = os.path.join(runner_dir, RUNNER_MANIFEST_FILE_NAME)
+
+            if os.path.isdir(runner_dir) and os.path.isfile(runner_manifest_file):
+                result[runner_name] = runner_dir
+
+        return result
 
 
 class ContentPackLoader(object):
@@ -39,7 +78,14 @@ class ContentPackLoader(object):
     # TODO: Rename "get_content" methods since they don't actually return
     # content - they just return a path
 
-    ALLOWED_CONTENT_TYPES = ['sensors', 'actions', 'rules', 'aliases', 'policies']
+    ALLOWED_CONTENT_TYPES = [
+        'triggers',
+        'sensors',
+        'actions',
+        'rules',
+        'aliases',
+        'policies'
+    ]
 
     def get_packs(self, base_dirs):
         """
@@ -152,17 +198,18 @@ class ContentPackLoader(object):
         return content
 
     def _get_content_from_pack_dir(self, pack_dir, content_type):
-        if content_type == 'sensors':
-            get_func = self._get_sensors
-        elif content_type == 'actions':
-            get_func = self._get_actions
-        elif content_type == 'rules':
-            get_func = self._get_rules
-        elif content_type == 'aliases':
-            get_func = self._get_aliases
-        elif content_type == 'policies':
-            get_func = self._get_policies
-        else:
+        content_types = dict(
+            triggers=self._get_triggers,
+            sensors=self._get_sensors,
+            actions=self._get_actions,
+            rules=self._get_rules,
+            aliases=self._get_aliases,
+            policies=self._get_policies
+        )
+
+        get_func = content_types.get(content_type)
+
+        if get_func is None:
             raise ValueError('Invalid content_type: %s' % (content_type))
 
         if not os.path.isdir(pack_dir):
@@ -170,6 +217,9 @@ class ContentPackLoader(object):
 
         pack_content = get_func(pack_dir=pack_dir)
         return pack_content
+
+    def _get_triggers(self, pack_dir):
+        return self._get_folder(pack_dir=pack_dir, content_type='triggers')
 
     def _get_sensors(self, pack_dir):
         return self._get_folder(pack_dir=pack_dir, content_type='sensors')
@@ -191,6 +241,42 @@ class ContentPackLoader(object):
         if not os.path.isdir(path):
             return None
         return path
+
+    def _get_runners_from_dir(self, base_dir):
+        result = {}
+        for runner_name in os.listdir(base_dir):
+            if not re.match(RUNNER_NAME_WHITELIST, runner_name):
+                raise ValueError('Invalid runner name "%s"' % (runner_name))
+
+            runner_dir = os.path.join(base_dir, runner_name)
+            runner_manifest_file = os.path.join(runner_dir, RUNNER_MANIFEST_FILE_NAME)
+
+            if os.path.isdir(runner_dir) and os.path.isfile(runner_manifest_file):
+                LOG.debug("Loading runner manifest for: %s" % (runner_name))
+                result[runner_name] = runner_dir
+            else:
+                LOG.debug("Could not load manifest for runner: %s" % (runner_name))
+
+        return result
+
+    def get_runners(self, base_dirs):
+        """Retrieve a list of runners in the provided directories.
+
+        :return: Dictionary where the key is runner name and the value is full path to the runner
+                 directory.
+        :rtype: ``dict``
+        """
+        assert isinstance(base_dirs, list)
+
+        result = {}
+        for base_dir in base_dirs:
+            if not os.path.isdir(base_dir):
+                raise ValueError('Directory "%s" doesn\'t exist' % (base_dir))
+
+            runners_in_dir = self._get_runners_from_dir(base_dir=base_dir)
+            result.update(runners_in_dir)
+
+        return result
 
 
 class MetaLoader(object):

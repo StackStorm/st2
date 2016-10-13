@@ -25,6 +25,7 @@ from st2common.constants.meta import ALLOWED_EXTS
 from st2common.bootstrap.base import ResourceRegistrar
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.persistence.policy import PolicyType, Policy
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.util import loader
 
 
@@ -139,12 +140,12 @@ class PolicyRegistrar(ResourceRegistrar):
                             (pack, pack_field))
 
         policy_api = PolicyAPI(**content)
-        policy_api.validate()
+        policy_api = policy_api.validate()
         policy_db = PolicyAPI.to_model(policy_api)
 
         try:
             policy_db.id = Policy.get_by_name(policy_api.name).id
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             LOG.debug('Policy "%s" is not found. Creating new entry.', policy)
 
         try:
@@ -177,7 +178,7 @@ def register_policy_types(module):
                 existing_entry = PolicyType.get_by_ref(policy_type_db.ref)
                 if existing_entry:
                     policy_type_db.id = existing_entry.id
-            except ValueError:
+            except StackStormDBObjectNotFoundError:
                 LOG.debug('Policy type "%s" is not found. Creating new entry.',
                           policy_type_db.ref)
 

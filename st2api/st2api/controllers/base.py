@@ -15,11 +15,19 @@
 
 import six
 from pecan.rest import RestController
+from oslo_config import cfg
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 
+from st2api.controllers.controller_transforms import transform_to_bool
+from st2common.rbac.utils import request_user_is_admin
+
 __all__ = [
-    'BaseRestControllerMixin'
+    'BaseRestControllerMixin',
+    'SHOW_SECRETS_QUERY_PARAM'
 ]
+
+
+SHOW_SECRETS_QUERY_PARAM = 'show_secrets'
 
 
 class BaseRestControllerMixin(RestController):
@@ -59,6 +67,28 @@ class BaseRestControllerMixin(RestController):
         value = query_params.get(param_name, default_value)
 
         if param_type == 'bool' and isinstance(value, six.string_types):
-            value = value.lower() in ['1', 'true']
+            value = transform_to_bool(value)
 
         return value
+
+    def _get_mask_secrets(self, request):
+        """
+        Return a value for mask_secrets which can be used in masking secret properties
+        to be retruned by any API. The default value is as per the config however admin
+        users have the ability to override by passing in a special query parameter
+        ?show_secrets=True.
+
+        :param request: Request object.
+
+        :rtype: ``bool``
+        """
+        mask_secrets = cfg.CONF.api.mask_secrets
+        show_secrets = self._get_query_param_value(request=request,
+                                                   param_name=SHOW_SECRETS_QUERY_PARAM,
+                                                   param_type='bool',
+                                                   default_value=False)
+
+        if show_secrets and request_user_is_admin(request=request):
+            mask_secrets = False
+
+        return mask_secrets

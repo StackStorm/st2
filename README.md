@@ -2,7 +2,7 @@
 
 **StackStorm** is a platform for integration and automation across services and tools, taking actions in response to events. Learn more at [www.stackstorm.com](http://www.stackstorm.com/product).
 
-[![Build Status](https://api.travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2) [![Coverage Status](https://coveralls.io/repos/StackStorm/st2/badge.svg?branch=master&service=github)](https://coveralls.io/github/StackStorm/st2?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/StackStorm/st2/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/StackStorm/st2/?branch=master) ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg) [![IRC](https://img.shields.io/irc/%23stackstorm.png)](http://webchat.freenode.net/?channels=stackstorm)
+[![Build Status](https://api.travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2) [![Coverage Status](https://coveralls.io/repos/StackStorm/st2/badge.svg?branch=master&service=github)](https://coveralls.io/github/StackStorm/st2?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/StackStorm/st2/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/StackStorm/st2/?branch=master) ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg) [![Join our community Slack](https://stackstorm-community.herokuapp.com/badge.svg)](https://stackstorm.typeform.com/to/K76GRP) [![IRC](https://img.shields.io/irc/%23stackstorm.png)](http://webchat.freenode.net/?channels=stackstorm)
 
 ## StackStorm Overview
 [![StackStorm 5 min Intro Video](https://cloud.githubusercontent.com/assets/1294734/10356016/16278d0a-6d27-11e5-987d-c8a7629a69ed.png)](https://www.youtube.com/watch?v=pzZws3ftDtA)
@@ -40,7 +40,6 @@ StackStorm plugs into the environment via the extensible set of adapters: sensor
 
 * **Audit trail** of action executions, manual or automated, is recorded and stored with full details of triggering context and execution results. It is is also captured in audit logs for integrating with external logging and analytical tools: LogStash, Splunk, statsd, syslog.
 
-
 StackStorm is a service with modular architecture. It comprises loosely coupled  service components that communicate over the message bus, and scales horizontally to deliver automation at scale. StackStorm has a full REST API, CLI client for admins and users to operate it locally or remotely, and Python client bindings for developer’s convenience. Web UI is coming soon.
 
 StackStorm is new and under active development. We are opening it early to engage community, get feedback, and refine directions, and welcome contributions.
@@ -51,7 +50,7 @@ Additional documentation describing installation proceduces, action/rule/workflo
 
 ## Hacking / Contributing
 
-To set up dev environment and run StackStorm from sources, follow [these instructions](https://docs.stackstorm.com/install/sources.html).
+To set up dev environment and run StackStorm from sources, follow [these instructions](https://docs.stackstorm.com/development/sources.html).
 
 For information on how to contribute, style guide, coding conventions and more,
 please visit the [Development section](http://docs.stackstorm.com/development/index.html)

@@ -1,0 +1,7 @@
+- aliases: []
+  description: A runner that returns a static response regardless of input parameters
+  enabled: true
+  name: noop
+  runner_module: noop_runner
+  runner_parameters: {}
+

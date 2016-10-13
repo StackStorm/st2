@@ -54,60 +54,6 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         st2debug.cmd.submit_debug_info.get_packs_base_paths = mock.Mock()
         st2debug.cmd.submit_debug_info.get_packs_base_paths.return_value = return_value
 
-    def _verify_archive(self, archive_path, extract_path, required_directories):
-        # Verify archive has been created
-        self.assertTrue(os.path.isfile(archive_path))
-        self.to_delete_files.append(archive_path)
-
-        self.to_delete_directories.append(extract_path)
-        self._extract_archive(archive_path=archive_path, extract_path=extract_path)
-
-        for directory_name in required_directories:
-            full_path = os.path.join(extract_path, directory_name)
-            self.assertTrue(os.path.isdir(full_path))
-
-        # Verify system info file has ben created
-        full_path = os.path.join(extract_path, 'system_info.yaml')
-        self.assertTrue(os.path.isfile(full_path))
-
-        # Verify logs have been copied
-        logs_path = os.path.join(extract_path, 'logs')
-        log_files = os.listdir(logs_path)
-        self.assertTrue(len(log_files), 2)
-
-        # Verify configs have been copied
-        st2_config_path = os.path.join(extract_path, 'configs', 'st2.conf')
-        mistral_config_path = os.path.join(extract_path, 'configs', 'mistral.conf')
-        self.assertTrue(os.path.isfile(st2_config_path))
-        self.assertTrue(os.path.isfile(mistral_config_path))
-
-        # Verify packs have been copied
-        content_path = os.path.join(extract_path, 'content/dir-1')
-        pack_directories = os.listdir(content_path)
-        self.assertEqual(len(pack_directories), 1)
-
-        # Verify sensitive data has been masked in the configs
-        with open(st2_config_path, 'r') as fp:
-            st2_config_content = fp.read()
-
-        with open(mistral_config_path, 'r') as fp:
-            mistral_config_content = fp.read()
-
-        self.assertTrue('ponies' not in st2_config_content)
-        self.assertTrue('username = **removed**' in st2_config_content)
-        self.assertTrue('password = **removed**' in st2_config_content)
-        self.assertTrue('url = **removed**' in st2_config_content)
-
-        self.assertTrue('StackStorm' not in mistral_config_content)
-        self.assertTrue('connection = **removed**' in mistral_config_content)
-
-        # Very config.yaml has been removed from the content pack directories
-        pack_dir = os.path.join(content_path, 'twilio')
-        config_path = os.path.join(pack_dir, 'config.yaml')
-
-        self.assertTrue(os.path.isdir(pack_dir))
-        self.assertTrue(not os.path.exists(config_path))
-
     def test_create_archive_include_all(self):
         debug_collector = DebugInfoCollector(include_logs=True, include_configs=True,
                                              include_content=True,
@@ -118,22 +64,15 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
                              extract_path=extract_path,
                              required_directories=['logs', 'configs', 'content'])
 
-    def _get_yaml_config(self):
-        return {
-            'log_file_paths': [
-                os.path.join(FIXTURES_DIR, 'logs/st2*.log')
-            ],
-            'st2_config_file_path': os.path.join(FIXTURES_DIR, 'configs/st2.conf'),
-            'mistral_config_file_path': os.path.join(FIXTURES_DIR, 'configs/mistral.conf'),
-            's3_bucket_url': S3_BUCKET_URL,
-            'gpg_key_fingerprint': GPG_KEY_FINGERPRINT,
-            'gpg_key': GPG_KEY,
-            'shell_commands': [
-                'echo foo',
-                'echo bar 1>&2'
-            ],
-            'company_name': 'MyCompany'
-        }
+    def test_create_archive_deletes_temp_dir(self):
+        debug_collector = DebugInfoCollector(include_logs=True, include_configs=True,
+                                             include_content=True,
+                                             include_system_info=True)
+        archive_path = debug_collector.create_archive()
+        self.to_delete_files.append(archive_path)
+
+        self.assertTrue(debug_collector._temp_dir_path)
+        self.assertTrue(not os.path.exists(debug_collector._temp_dir_path))
 
     def test_config_option_overrides_defaults(self):
         config = {
@@ -262,6 +201,77 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
 
         self.assertRaises(Exception, archive_path=encrypted_archive_path,
                           extract_path='/tmp')
+
+    def _verify_archive(self, archive_path, extract_path, required_directories):
+        # Verify archive has been created
+        self.assertTrue(os.path.isfile(archive_path))
+        self.to_delete_files.append(archive_path)
+
+        self.to_delete_directories.append(extract_path)
+        self._extract_archive(archive_path=archive_path, extract_path=extract_path)
+
+        for directory_name in required_directories:
+            full_path = os.path.join(extract_path, directory_name)
+            self.assertTrue(os.path.isdir(full_path))
+
+        # Verify system info file has ben created
+        full_path = os.path.join(extract_path, 'system_info.yaml')
+        self.assertTrue(os.path.isfile(full_path))
+
+        # Verify logs have been copied
+        logs_path = os.path.join(extract_path, 'logs')
+        log_files = os.listdir(logs_path)
+        self.assertTrue(len(log_files), 2)
+
+        # Verify configs have been copied
+        st2_config_path = os.path.join(extract_path, 'configs', 'st2.conf')
+        mistral_config_path = os.path.join(extract_path, 'configs', 'mistral.conf')
+        self.assertTrue(os.path.isfile(st2_config_path))
+        self.assertTrue(os.path.isfile(mistral_config_path))
+
+        # Verify packs have been copied
+        content_path = os.path.join(extract_path, 'content/dir-1')
+        pack_directories = os.listdir(content_path)
+        self.assertEqual(len(pack_directories), 1)
+
+        # Verify sensitive data has been masked in the configs
+        with open(st2_config_path, 'r') as fp:
+            st2_config_content = fp.read()
+
+        with open(mistral_config_path, 'r') as fp:
+            mistral_config_content = fp.read()
+
+        self.assertTrue('ponies' not in st2_config_content)
+        self.assertTrue('username = **removed**' in st2_config_content)
+        self.assertTrue('password = **removed**' in st2_config_content)
+        self.assertTrue('url = **removed**' in st2_config_content)
+
+        self.assertTrue('StackStorm' not in mistral_config_content)
+        self.assertTrue('connection = **removed**' in mistral_config_content)
+
+        # Very config.yaml has been removed from the content pack directories
+        pack_dir = os.path.join(content_path, 'twilio')
+        config_path = os.path.join(pack_dir, 'config.yaml')
+
+        self.assertTrue(os.path.isdir(pack_dir))
+        self.assertTrue(not os.path.exists(config_path))
+
+    def _get_yaml_config(self):
+        return {
+            'log_file_paths': [
+                os.path.join(FIXTURES_DIR, 'logs/st2*.log')
+            ],
+            'st2_config_file_path': os.path.join(FIXTURES_DIR, 'configs/st2.conf'),
+            'mistral_config_file_path': os.path.join(FIXTURES_DIR, 'configs/mistral.conf'),
+            's3_bucket_url': S3_BUCKET_URL,
+            'gpg_key_fingerprint': GPG_KEY_FINGERPRINT,
+            'gpg_key': GPG_KEY,
+            'shell_commands': [
+                'echo foo',
+                'echo bar 1>&2'
+            ],
+            'company_name': 'MyCompany'
+        }
 
     def _extract_archive(self, archive_path, extract_path):
         with tarfile.open(archive_path) as tar:

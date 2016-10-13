@@ -44,8 +44,7 @@ class RuleListCommand(resource.ContentPackResourceListCommand):
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=50,
-                                 help=('List N most recent %s; '
-                                       'list all if 0.' %
+                                 help=('List N most recent %s.' %
                                        resource.get_plural_display_name().lower()))
         self.parser.add_argument('--iftt', action='store_true',
                                  help='Show trigger and action in display list.')
@@ -53,14 +52,25 @@ class RuleListCommand(resource.ContentPackResourceListCommand):
                                 help='Action reference to filter the list.')
         self.group.add_argument('-g', '--trigger',
                                 help='Trigger type reference to filter the list.')
+        self.enabled_filter_group = self.parser.add_mutually_exclusive_group()
+        self.enabled_filter_group.add_argument('--enabled', action='store_true',
+                                               help='Show rules that are enabled.')
+        self.enabled_filter_group.add_argument('--disabled', action='store_true',
+                                               help='Show rules that are disabled.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         # Filtering options
+        if args.pack:
+            kwargs['pack'] = args.pack
         if args.action:
             kwargs['action'] = args.action
         if args.trigger:
             kwargs['trigger'] = args.trigger
+        if args.enabled:
+            kwargs['enabled'] = True
+        if args.disabled:
+            kwargs['enabled'] = False
         if args.iftt:
             # switch attr to display the trigger and action
             args.attr = self.display_attributes_iftt

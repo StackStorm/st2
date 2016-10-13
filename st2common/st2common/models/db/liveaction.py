@@ -36,17 +36,6 @@ PACK_SEPARATOR = '.'
 
 
 class LiveActionDB(stormbase.StormFoundationDB):
-    """
-        The databse entity that represents a Stack Action/Automation in
-        the system.
-
-        Attributes:
-            status: the most recently observed status of the execution.
-                    One of "starting", "running", "completed", "error".
-            result: an embedded document structure that holds the
-                    output and exit status code from the action.
-    """
-
     # TODO: Can status be an enum at the Mongo layer?
     status = me.StringField(
         required=True,
@@ -59,6 +48,9 @@ class LiveActionDB(stormbase.StormFoundationDB):
     action = me.StringField(
         required=True,
         help_text='Reference to the action that has to be executed.')
+    action_is_workflow = me.BooleanField(
+        default=False,
+        help_text='A flag indicating whether the referenced action is a workflow.')
     parameters = stormbase.EscapedDynamicField(
         default={},
         help_text='The key-value pairs passed as to the action runner & execution.')

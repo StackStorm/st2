@@ -16,6 +16,7 @@
 
 import mock
 
+from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.exceptions.param import ParamException
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB
@@ -358,14 +359,32 @@ class ParamsUtilsTest(DbTestCase):
             'r1': '{{r2}}',
             'r2': ['1', '2'],
             'a1': True,
-            'a2': '{{a1}}'
+            'a2': 'Test',
+            'a3': 'Test2',
+            'a4': '{{a1}}',
+            'a5': ['{{a2}}', '{{a3}}']
         }
         runner_param_info = {'r1': {'type': 'array'}, 'r2': {'type': 'array'}}
-        action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'boolean'}}
+        action_param_info = {
+            'a1': {'type': 'boolean'},
+            'a2': {'type': 'string'},
+            'a3': {'type': 'string'},
+            'a4': {'type': 'boolean'},
+            'a5': {'type': 'array'}
+        }
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, {})
         self.assertEqual(r_runner_params, {'r1': ['1', '2'], 'r2': ['1', '2']})
-        self.assertEqual(r_action_params, {'a1': True, 'a2': True})
+        self.assertEqual(
+            r_action_params,
+            {
+                'a1': True,
+                'a2': 'Test',
+                'a3': 'Test2',
+                'a4': True,
+                'a5': ['Test', 'Test2']
+            }
+        )
 
     def test_get_finalized_params_with_cyclic_dependency(self):
         params = {'r1': '{{r2}}', 'r2': '{{r1}}'}
@@ -417,6 +436,39 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(r_runner_params, {'r1': '{{ missing }}'})
         self.assertEqual(r_action_params, {})
 
+    def test_get_finalized_params_jinja_filters(self):
+        params = {'cmd': 'echo {{"1.6.0" | version_bump_minor}}'}
+        runner_param_info = {'r1': {}}
+        action_param_info = {'cmd': {}}
+        action_context = {}
+
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+
+        self.assertEqual(r_action_params['cmd'], "echo 1.7.0")
+
+    def test_get_finalized_params_older_kv_scopes_backwards_compatibility(self):
+        KeyValuePair.add_or_update(KeyValuePairDB(name='cmd_to_run', value='echo MELANIA',
+                                                  scope=SYSTEM_SCOPE))
+        # k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='ivanka:cmd_to_run',
+        #                                                value='echo MA DAD IS GREAT',
+        #                                                scope=USER_SCOPE))
+        params = {
+            'sys_cmd': '{{system.cmd_to_run}}',
+            # 'user_cmd': '{{user.ivanka:cmd_to_run}}' Not supported yet.
+        }
+        runner_param_info = {'r1': {}}
+        action_param_info = {
+            'sys_cmd': {}
+        }
+        action_context = {}
+
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+
+        self.assertEqual(r_action_params['sys_cmd'], "echo MELANIA")
+        # self.assertEqual(r_action_params['user_cmd'], "echo MA DAD IS GREAT")
+
     def test_get_finalized_params_param_rendering_failure(self):
         params = {'cmd': '{{a2.foo}}', 'a2': 'test'}
         action_param_info = {'cmd': {}, 'a2': {}}
@@ -429,6 +481,33 @@ class ParamsUtilsTest(DbTestCase):
                                 action_parameter_info=action_param_info,
                                 liveaction_parameters=params,
                                 action_context={})
+
+    def test_get_finalized_param_object_contains_template_notation_in_the_value(self):
+        runner_param_info = {'r1': {}}
+        action_param_info = {
+            'params': {
+                'type': 'object',
+                'default': {
+                    'host': '{{host}}',
+                    'port': '{{port}}',
+                    'path': '/bar'}
+            }
+        }
+        params = {
+            'host': 'lolcathost',
+            'port': 5555
+        }
+        action_context = {}
+
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context)
+
+        expected_params = {
+            'host': 'lolcathost',
+            'port': '5555',
+            'path': '/bar'
+        }
+        self.assertEqual(r_action_params['params'], expected_params)
 
     def test_cast_param_referenced_action_doesnt_exist(self):
         # Make sure the function throws if the action doesnt exist

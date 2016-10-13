@@ -61,7 +61,8 @@ class PolicyTypeAPI(BaseAPI):
                 "type": "object",
                 "patternProperties": {
                     "^\w+$": util_schema.get_draft_schema()
-                }
+                },
+                'additionalProperties': False
             }
         },
         "additionalProperties": False
@@ -126,7 +127,9 @@ class PolicyAPI(BaseAPI):
                             {"type": "string"}
                         ]
                     }
-                }
+                },
+                'additionalProperties': False
+
             }
         },
         "additionalProperties": False

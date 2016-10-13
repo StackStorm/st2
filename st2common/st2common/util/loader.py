@@ -13,12 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import importlib
+import imp
 import inspect
 import json
 import os
 import sys
 import yaml
+from oslo_config import cfg
 
 from st2common.exceptions.plugins import IncompatiblePluginException
 from st2common import log as logging
@@ -35,7 +36,7 @@ PYTHON_EXTENSIONS = ('.py')
 
 def _register_plugin_path(plugin_dir_abs_path):
     if not os.path.isdir(plugin_dir_abs_path):
-        raise Exception('Directory "%s" with plugins doesn\'t exist')
+        raise Exception('Directory "%s" with plugins doesn\'t exist' % (plugin_dir_abs_path))
 
     for x in sys.path:
         if plugin_dir_abs_path in (x, x + os.sep):
@@ -127,7 +128,7 @@ def register_plugin_class(base_class, file_path, class_name):
     if module_name is None:
         return None
 
-    module = importlib.import_module(module_name)
+    module = imp.load_source(module_name, file_path)
     klass = getattr(module, class_name, None)
 
     if not klass:
@@ -142,10 +143,12 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
     registered_plugins = []
     plugin_dir = os.path.dirname(os.path.realpath(plugin_abs_file_path))
     _register_plugin_path(plugin_dir)
+
     module_name = _get_plugin_module(plugin_abs_file_path)
     if module_name is None:
         return None
-    module = importlib.import_module(module_name)
+
+    module = imp.load_source(module_name, plugin_abs_file_path)
     klasses = _get_plugin_classes(module)
 
     # Try registering classes in plugin file. Some may fail.
@@ -163,6 +166,32 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
                         (plugin_abs_file_path))
 
     return registered_plugins
+
+
+def register_runner(module_name):
+    base_path = cfg.CONF.system.base_path
+    module_path = os.path.join(
+        "%s/runners/%s/%s.py" % (base_path, module_name, module_name)
+    )
+
+    LOG.debug('Loading runner from: %s', module_path)
+
+    module = imp.load_source(module_name, module_path)
+
+    return module
+
+
+def register_query_module(module_name):
+    base_path = cfg.CONF.system.base_path
+    module_path = os.path.join(
+        "%s/runners/%s/query/%s.py" % (base_path, module_name, module_name)
+    )
+
+    LOG.debug('Loading query module from: %s', module_path)
+
+    module = imp.load_source(module_name, module_path)
+
+    return module
 
 
 ALLOWED_EXTS = ['.json', '.yaml', '.yml']

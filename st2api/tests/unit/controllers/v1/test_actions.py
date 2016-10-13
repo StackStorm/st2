@@ -29,7 +29,7 @@ from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
 from st2common.constants.pack import SYSTEM_PACK_NAME
 from st2common.persistence.pack import Pack
-from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.fixturesloader import get_fixtures_packs_base_path
 from st2tests.base import CleanFilesTestCase
 
 from tests import FunctionalTest
@@ -273,7 +273,7 @@ ACTION_WITH_NOTIFY = {
 class TestActionController(FunctionalTest, CleanFilesTestCase):
     register_packs = True
     to_delete_files = [
-        os.path.join(get_fixtures_base_path(), 'dummy_pack_1/actions/filea.txt')
+        os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1/actions/filea.txt')
     ]
 
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
@@ -321,6 +321,34 @@ class TestActionController(FunctionalTest, CleanFilesTestCase):
 
         item = [i for i in resp.json if i['id'] == action_1_id][0]
         self.assertEqual(item['ref'], action_1_ref)
+
+        self.__do_delete(action_1_id)
+        self.__do_delete(action_2_id)
+
+    def test_get_all_invalid_limit_too_large(self):
+        resp = self.app.get('/v1/actions?limit=1000', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'], 'Limit "1000" specified, maximum value is "100"')
+
+    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
+        return_value=True))
+    def test_get_all_exclude_attributes(self):
+        action_1_id = self.__get_action_id(self.__do_post(ACTION_1))
+        action_2_id = self.__get_action_id(self.__do_post(ACTION_2))
+
+        # Invalid exclude attribute
+        resp = self.app.get('/v1/actions?exclude_attributes=invalid',
+                            expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue('Invalid or unsupported attribute specified' in
+                        resp.json['faultstring'])
+
+        # Valid exclude attribute
+        resp = self.app.get('/v1/actions?exclude_attributes=parameters')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 2, '/v1/actions did not return all actions.')
+        self.assertEqual(resp.json[0]['parameters'], {})
+        self.assertEqual(resp.json[1]['parameters'], {})
 
         self.__do_delete(action_1_id)
         self.__do_delete(action_2_id)

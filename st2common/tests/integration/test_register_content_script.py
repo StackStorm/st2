@@ -18,7 +18,7 @@ import os
 from st2tests.base import IntegrationTestCase
 from st2common.util.shell import run_command
 from st2tests import config as test_config
-from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.fixturesloader import get_fixtures_packs_base_path
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -35,7 +35,7 @@ class ContentRegisterScripTestCase(IntegrationTestCase):
         test_config.parse_args()
 
     def test_register_from_pack_success(self):
-        pack_dir = os.path.join(get_fixtures_base_path(), 'dummy_pack_1')
+        pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1')
 
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir)]
         exit_code, _, stderr = run_command(cmd=cmd)
@@ -45,7 +45,8 @@ class ContentRegisterScripTestCase(IntegrationTestCase):
     def test_register_from_pack_fail_on_failure_pack_dir_doesnt_exist(self):
         # No fail on failure flag, should succeed
         pack_dir = 'doesntexistblah'
-        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir)]
+        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir),
+                                                '--register-no-fail-on-failure']
         exit_code, _, _ = run_command(cmd=cmd)
         self.assertEqual(exit_code, 0)
 
@@ -58,14 +59,15 @@ class ContentRegisterScripTestCase(IntegrationTestCase):
 
     def test_register_from_pack_action_metadata_fails_validation(self):
         # No fail on failure flag, should succeed
-        pack_dir = os.path.join(get_fixtures_base_path(), 'dummy_pack_4')
-        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir)]
+        pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_4')
+        cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir),
+                                                '--register-no-fail-on-failure']
         exit_code, _, stderr = run_command(cmd=cmd)
         self.assertTrue('Registered 0 actions.' in stderr)
         self.assertEqual(exit_code, 0)
 
         # Fail on failure, should fail
-        pack_dir = os.path.join(get_fixtures_base_path(), 'dummy_pack_4')
+        pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_4')
         cmd = BASE_REGISTER_ACTIONS_CMD_ARGS + ['--register-pack=%s' % (pack_dir),
                                                 '--register-fail-on-failure']
         exit_code, _, stderr = run_command(cmd=cmd)
@@ -83,7 +85,8 @@ class ContentRegisterScripTestCase(IntegrationTestCase):
         self.assertTrue('Registered 0 sensors.' in stderr)
         self.assertEqual(exit_code, 0)
 
-        cmd = [SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v', '--register-all']
+        cmd = [SCRIPT_PATH, '--config-file=conf/st2.tests1.conf', '-v', '--register-all',
+               '--register-no-fail-on-failure']
         exit_code, _, stderr = run_command(cmd=cmd)
         self.assertTrue('Registered 0 actions.' in stderr)
         self.assertTrue('Registered 0 sensors.' in stderr)
@@ -92,18 +95,20 @@ class ContentRegisterScripTestCase(IntegrationTestCase):
 
     def test_register_all_and_register_setup_virtualenvs(self):
         # Verify that --register-all works in combinations with --register-setuo-virtualenvs
-        cmd = BASE_CMD_ARGS + ['--register-all', '--register-setup-virtualenvs']
+        cmd = BASE_CMD_ARGS + ['--register-all', '--register-setup-virtualenvs',
+                               '--register-no-fail-on-failure']
         exit_code, stdout, stderr = run_command(cmd=cmd)
         self.assertTrue('Registering actions' in stderr)
         self.assertTrue('Registering rules' in stderr)
-        self.assertTrue('Setup virtualenv for 4 pack(s)' in stderr)
+        self.assertTrue('Setup virtualenv for 6 pack(s)' in stderr)
         self.assertEqual(exit_code, 0)
 
     def test_register_setup_virtualenvs(self):
         # Single pack
-        pack_dir = os.path.join(get_fixtures_base_path(), 'dummy_pack_1')
+        pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1')
 
-        cmd = BASE_CMD_ARGS + ['--register-pack=%s' % (pack_dir), '--register-setup-virtualenvs']
+        cmd = BASE_CMD_ARGS + ['--register-pack=%s' % (pack_dir), '--register-setup-virtualenvs',
+                               '--register-no-fail-on-failure']
         exit_code, stdout, stderr = run_command(cmd=cmd)
 
         self.assertTrue('Setting up virtualenv for pack "dummy_pack_1"' in stderr)
@@ -111,7 +116,7 @@ class ContentRegisterScripTestCase(IntegrationTestCase):
         self.assertEqual(exit_code, 0)
 
         # All packs
-        cmd = BASE_CMD_ARGS + ['--register-setup-virtualenvs']
+        cmd = BASE_CMD_ARGS + ['--register-setup-virtualenvs', '--register-no-fail-on-failure']
         exit_code, stdout, stderr = run_command(cmd=cmd)
-        self.assertTrue('Setup virtualenv for 4 pack(s)' in stderr)
+        self.assertTrue('Setup virtualenv for 6 pack(s)' in stderr)
         self.assertEqual(exit_code, 0)

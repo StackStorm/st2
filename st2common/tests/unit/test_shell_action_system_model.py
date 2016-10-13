@@ -77,7 +77,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         }
 
     def _get_fixture(self, name):
-        path = os.path.join(FIXTURES_DIR, 'localrunner', name)
+        path = os.path.join(FIXTURES_DIR, 'local_runner', name)
 
         with open(path, 'r') as fp:
             content = fp.read().strip()

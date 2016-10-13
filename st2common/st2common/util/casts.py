@@ -62,6 +62,15 @@ def _cast_number(x):
 
 
 def _cast_string(x):
+    if x is None:
+        # Preserve None as-is
+        return x
+
+    if not isinstance(x, six.string_types):
+        value_type = type(x).__name__
+        msg = 'Value "%s" must either be a string or None. Got "%s".' % (x, value_type)
+        raise ValueError(msg)
+
     x = to_unicode(x)
     x = _cast_none(x)
     return x

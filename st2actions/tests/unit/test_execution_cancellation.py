@@ -24,8 +24,8 @@ import st2tests.config as tests_config
 tests_config.parse_args()
 
 import st2common.bootstrap.runnersregistrar as runners_registrar
-from st2actions.runners import ActionRunner
-from st2actions.runners.localrunner import LocalShellRunner
+from st2common.runners import ActionRunner
+import local_runner
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.api.action import ActionAPI
@@ -34,7 +34,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
-from st2tests.fixtures import executions as fixture
+from st2tests.fixtures.packs import executions as fixture
 from st2tests import DbTestCase
 from tests.unit.base import MockLiveActionPublisher
 
@@ -45,15 +45,17 @@ MOCK_RESULT = {
 }
 
 
-@mock.patch.object(LocalShellRunner, 'run',
+@mock.patch.object(local_runner.LocalShellRunner, 'run',
                    mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_RUNNING,
                                                 'Non-empty', None)))
+@mock.patch('st2common.runners.register_runner',
+            mock.MagicMock(return_value=local_runner))
 class ExecutionCancellationTest(DbTestCase):
 
     @classmethod
     def setUpClass(cls):
         super(ExecutionCancellationTest, cls).setUpClass()
-        runners_registrar.register_runner_types()
+        runners_registrar.register_runners()
         action_local = ActionAPI(**copy.deepcopy(fixture.ARTIFACTS['actions']['local']))
         Action.add_or_update(ActionAPI.to_model(action_local))
 

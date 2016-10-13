@@ -6,26 +6,32 @@
 enable = True
 
 [actionrunner]
-# List of virtualenv options to be passsed to "virtualenv" command that creates pack virtualenv.
-virtualenv_opts = --system-site-packages # comma separated list allowed here.
-# Python binary which will be used by Python actions.
-python_binary = /data/stanley/virtualenv/bin/python
-# location of the logging.conf file
-logging = conf/logging.conf
 # Virtualenv binary which should be used to create pack virtualenvs.
 virtualenv_binary = /data/stanley/virtualenv/bin/virtualenv
-
-[api]
-# List of origins allowed for st2api, st2auth and st2stream
-allow_origin = http://127.0.0.1:3000 # comma separated list allowed here.
-# StackStorm API server host
-host = 0.0.0.0
+# List of virtualenv options to be passsed to "virtualenv" command that creates pack virtualenv.
+virtualenv_opts = --system-site-packages # comma separated list allowed here.
+# Internal pool size for dispatcher used by workflow actions.
+workflows_pool_size = 40
+# Internal pool size for dispatcher used by regular actions.
+actions_pool_size = 60
 # location of the logging.conf file
 logging = conf/logging.conf
-# StackStorm API server port
-port = 9101
+# Python binary which will be used by Python actions.
+python_binary = /data/stanley/virtualenv/bin/python
+
+[api]
+# List of origins allowed for api, auth and stream
+allow_origin = http://127.0.0.1:3000 # comma separated list allowed here.
+# location of the logging.conf file
+logging = conf/logging.conf
+# Maximum limit (page size) argument which can be specified by the user in a query string.
+max_page_size = 100
 # True to mask secrets in the API responses
 mask_secrets = True
+# StackStorm API server host
+host = 0.0.0.0
+# StackStorm API server port
+port = 9101
 
 [auth]
 # Common option - options below apply in both scenarios - when auth service is running as a WSGI
@@ -83,14 +89,26 @@ lock_timeout = 60
 username = None
 # Connection retry total time (minutes).
 connection_retry_max_delay_m = 3
+# ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from MongoDB.
+ssl_ca_certs = None
+# Certificate file used to identify the localconnection
+ssl_certfile = None
 # Connection retry backoff max (seconds).
 connection_retry_backoff_max_s = 10
+# Specifies whether a certificate is required from the other side of the connection, and whether it will be validated if provided
+ssl_cert_reqs = None
+# Create the connection to mongodb using SSL
+ssl = False
 # host of db server
 host = 0.0.0.0
 # name of database
 db_name = st2
 # Backoff multiplier (seconds).
 connection_retry_backoff_mul = 1
+# Private keyfile used to identify the local connection against MongoDB.
+ssl_keyfile = None
+# If True and `ssl_cert_reqs` is not None, enables hostname verification
+ssl_match_hostname = True
 # password for db login
 password = None
 # port of db server
@@ -112,6 +130,12 @@ logging = conf/logging.garbagecollector.conf
 # How often to check database for old data and perform garbage collection.
 collection_interval = 600
 
+[keyvalue]
+# Location of the symmetric encryption key for encrypting values in kvstore. This key should be in JSON and should've been generated using keyczar.
+encryption_key_path = 
+# Allow encryption of values in key value stored qualified as "secret".
+enable_encryption = True
+
 [log]
 # Controls if stderr should be redirected to the logs.
 redirect_stderr = False
@@ -131,6 +155,8 @@ cluster_urls =  # comma separated list allowed here.
 api_url = None
 # Multiplier for the exponential backoff.
 retry_exp_msec = 1000
+# Allow insecure communication with Mistral.
+insecure = False
 # Username for authentication.
 keystone_username = None
 # OpenStack project scope.
@@ -139,6 +165,8 @@ keystone_project_name = None
 keystone_password = None
 # Auth endpoint for Keystone.
 keystone_auth_url = None
+# Optional certificate to validate endpoint.
+cacert = None
 # v2 API root endpoint.
 v2_base_url = http://127.0.0.1:8989/v2
 # Max time to stop retrying.
@@ -161,6 +189,8 @@ logging = conf/logging.rulesengine.conf
 [scheduler]
 # The frequency for rescheduling action executions.
 rescheduling_interval = 300
+# Specify to enable actions rescheduler.
+enable = True
 # The time in seconds to wait before recovering delayed action executions.
 delayed_execution_recovery = 600
 
@@ -181,10 +211,10 @@ sensor_node_name = sensornode1
 [ssh_runner]
 # Max number of parallel remote SSH actions that should be run.  Works only with Paramiko SSH runner.
 max_parallel_actions = 50
-# Use the .ssh/config file. Useful to override ports etc.
-use_ssh_config = False
 # Location of the script on the remote filesystem.
 remote_dir = /tmp
+# Use the .ssh/config file. Useful to override ports etc.
+use_ssh_config = False
 # How partial success of actions run on multiple nodes should be treated.
 allow_partial_failure = False
 
@@ -223,5 +253,12 @@ ssh_key_file = /home/vagrant/.ssh/stanley_rsa
 user = stanley
 
 [timer]
+# Specify to enable Timer.
+enable = True
 # Timezone pertaining to the location where st2 is run.
 local_timezone = America/Los_Angeles
+
+[webui]
+# Base https URL to access st2 Web UI. This is used to constructhistory URLs that are sent out when chatops is used to kick off executions.
+webui_base_url = https://localhost
+

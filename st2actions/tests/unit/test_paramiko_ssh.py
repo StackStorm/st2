@@ -21,7 +21,7 @@ from oslo_config import cfg
 from mock import (call, patch, Mock, MagicMock)
 import paramiko
 
-from st2actions.runners.ssh.paramiko_ssh import ParamikoSSHClient
+from st2common.runners.paramiko_ssh import ParamikoSSHClient
 from st2tests.fixturesloader import get_resources_base_path
 import st2tests.config as tests_config
 tests_config.parse_args()
@@ -44,6 +44,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         self.ssh_cli = ParamikoSSHClient(**conn_params)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_create_with_password(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
@@ -61,6 +63,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         mock.client.connect.assert_called_once_with(**expected_conn)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_deprecated_key_argument(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
@@ -89,6 +93,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                                 ParamikoSSHClient, **conn_params)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_key_material_argument(self):
         path = os.path.join(get_resources_base_path(),
                             'ssh', 'dummy_rsa')
@@ -113,6 +119,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         mock.client.connect.assert_called_once_with(**expected_conn)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_key_material_argument_invalid_key(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
@@ -125,6 +133,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                                 expected_msg, mock.connect)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=True))
     def test_passphrase_no_key_provided(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
@@ -135,6 +145,18 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                                 **conn_params)
 
     @patch('paramiko.SSHClient', Mock)
+    def test_passphrase_not_provided_for_encrypted_key_file(self):
+        path = os.path.join(get_resources_base_path(),
+                            'ssh', 'dummy_rsa_passphrase')
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu',
+                       'key_files': path}
+        mock = ParamikoSSHClient(**conn_params)
+        self.assertRaises(paramiko.ssh_exception.PasswordRequiredException, mock.connect)
+
+    @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=True))
     def test_key_with_passphrase_success(self):
         path = os.path.join(get_resources_base_path(),
                             'ssh', 'dummy_rsa_passphrase')
@@ -179,6 +201,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         mock.client.connect.assert_called_once_with(**expected_conn)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=True))
     def test_passphrase_and_no_key(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
@@ -189,6 +213,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                                 ParamikoSSHClient, **conn_params)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=True))
     def test_incorrect_passphrase(self):
         path = os.path.join(get_resources_base_path(),
                             'ssh', 'dummy_rsa_passphrase')
@@ -207,6 +233,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                                 expected_msg, mock.connect)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_key_material_contains_path_not_contents(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu'}
@@ -228,6 +256,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                                     expected_msg, mock.connect)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_create_with_key(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
@@ -245,6 +275,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         mock.client.connect.assert_called_once_with(**expected_conn)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_create_with_key_via_bastion(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'bastion_host': 'bastion.host.org',
@@ -273,6 +305,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         mock.client.connect.assert_called_once_with(**expected_conn)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_create_with_password_and_key(self):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu',
@@ -292,6 +326,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         mock.client.connect.assert_called_once_with(**expected_conn)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_create_without_credentials(self):
         """
         Initialize object with no credentials.
@@ -313,6 +349,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         mock.client.connect.assert_called_once_with(**expected_conn)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_create_without_credentials_use_default_key(self):
         # No credentials are provided by default stanley ssh key exists so it should use that
         cfg.CONF.set_override(name='ssh_key_file', override='stanley_rsa', group='system_user')
@@ -338,6 +376,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                   MagicMock(return_value=StringIO('')))
     @patch.object(os.path, 'exists', MagicMock(return_value=True))
     @patch.object(os, 'stat', MagicMock(return_value=None))
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_basic_usage_absolute_path(self):
         """
         Basic execution.
@@ -370,6 +410,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         mock.close()
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_delete_script(self):
         """
         Provide a basic test with 'delete' action.
@@ -387,6 +429,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         mock.close()
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     @patch.object(ParamikoSSHClient, 'exists', return_value=False)
     def test_put_dir(self, *args):
         mock = self.ssh_cli
@@ -410,6 +454,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         mock_cli.open_sftp().put.assert_has_calls(calls, any_order=True)
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_consume_stdout(self):
         # Test utf-8 decoding of ``stdout`` still works fine when reading CHUNK_SIZE splits a
         # multi-byte utf-8 character in the middle. We should wait to collect all bytes
@@ -431,6 +477,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         self.assertEqual(u'\U00010348', stdout.getvalue())
 
     @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
     def test_consume_stderr(self):
         # Test utf-8 decoding of ``stderr`` still works fine when reading CHUNK_SIZE splits a
         # multi-byte utf-8 character in the middle. We should wait to collect all bytes
@@ -450,3 +498,70 @@ class ParamikoSSHClientTests(unittest2.TestCase):
             pass
         stderr = mock._consume_stderr(chan)
         self.assertEqual(u'\U00010348', stderr.getvalue())
+
+    @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_consume_stdout',
+                  MagicMock(return_value=StringIO('')))
+    @patch.object(ParamikoSSHClient, '_consume_stderr',
+                  MagicMock(return_value=StringIO('')))
+    @patch.object(os.path, 'exists', MagicMock(return_value=True))
+    @patch.object(os, 'stat', MagicMock(return_value=None))
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
+    def test_sftp_connection_is_only_established_if_required(self):
+        # Verify that SFTP connection is lazily established only if and when needed.
+        conn_params = {'hostname': 'dummy.host.org',
+                       'username': 'ubuntu'}
+
+        # Verify sftp connection and client hasn't been established yet
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+
+        self.assertTrue(client.sftp_client is None)
+
+        # run method doesn't require sftp access so it shouldn't establish connection
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+        client.run(cmd='whoami')
+
+        self.assertTrue(client.sftp_client is None)
+
+        # Methods bellow require SFTP access so they should cause SFTP connection to be established
+        # put
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+        path = '/root/random_script.sh'
+        client.put(path, path, mirror_local_mode=False)
+
+        self.assertTrue(client.sftp_client is not None)
+
+        # exists
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+        client.exists('/root/somepath.txt')
+
+        self.assertTrue(client.sftp_client is not None)
+
+        # mkdir
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+        client.mkdir('/root/somedirfoo')
+
+        self.assertTrue(client.sftp_client is not None)
+
+        # Verify close doesn't throw if SFTP connection is not established
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+
+        self.assertTrue(client.sftp_client is None)
+        client.close()
+
+        # Verify SFTP connection is closed if it's opened
+        client = ParamikoSSHClient(**conn_params)
+        client.connect()
+        client.mkdir('/root/somedirfoo')
+
+        self.assertTrue(client.sftp_client is not None)
+        client.close()
+
+        self.assertEqual(client.sftp_client.close.call_count, 1)

@@ -20,6 +20,8 @@ from st2api.controllers.v1.aliasexecution import ActionAliasExecutionController
 from st2api.controllers.v1.auth import ApiKeyController
 from st2api.controllers.v1.keyvalue import KeyValuePairController
 from st2api.controllers.v1.packs import PacksController
+from st2api.controllers.v1.pack_config_schemas import PackConfigSchemasController
+from st2api.controllers.v1.pack_configs import PackConfigsController
 from st2api.controllers.v1.policies import PolicyTypeController, PolicyController
 from st2api.controllers.v1.ruletypes import RuleTypesController
 from st2api.controllers.v1.rules import RuleController
@@ -38,7 +40,11 @@ __all__ = [
 
 
 class RootController(object):
+    # Pack related controllers
     packs = PacksController()
+    config_schemas = PackConfigSchemasController()
+    configs = PackConfigsController()
+
     actions = ActionsController()
     actionexecutions = ActionExecutionsController()
     executions = actionexecutions  # We should deprecate actionexecutions.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6]" >&2
 }
 
 subcommand=$1; shift
@@ -10,8 +10,9 @@ use_gunicorn=true
 use_uwsgi_for_auth=false
 copy_examples=false
 load_content=true
+use_ipv6=false
 
-while getopts ":r:gxcu" o; do
+while getopts ":r:gxcu6" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
@@ -27,6 +28,9 @@ while getopts ":r:gxcu" o; do
             ;;
         c)
             load_content=false
+            ;;
+        6)
+            use_ipv6=true
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -84,6 +88,12 @@ function st2start(){
     # Change working directory to the root of the repo.
     echo "Changing working directory to ${ST2_REPO}..."
     cd ${ST2_REPO}
+    RUNNERS_BASE_DIR=$(grep 'runners_base_path' ${ST2_CONF} \
+        | awk 'BEGIN {FS=" = "}; {print $2}')
+    if [ -z $RUNNERS_BASE_DIR ]; then
+        RUNNERS_BASE_DIR="/opt/stackstorm/runners"
+    fi
+    echo "Using runners base dir: $RUNNERS_BASE_DIR"
 
     PACKS_BASE_DIR=$(grep 'packs_base_path' ${ST2_CONF} \
         | awk 'BEGIN {FS=" = "}; {print $2}')
@@ -96,18 +106,29 @@ function st2start(){
     if [ ! -d "$ST2_BASE_DIR" ]; then
         echo "$ST2_BASE_DIR doesn't exist. Creating..."
         sudo mkdir -p $PACKS_BASE_DIR
+        sudo mkdir -p $RUNNERS_BASE_DIR
     fi
 
+    if [ "${use_ipv6}" = true ]; then
+        echo '  using IPv6 bindings...'
+        BINDING_ADDRESS="[::]"
+    else
+        BINDING_ADDRESS="0.0.0.0"
+    fi
+    
     VIRTUALENVS_DIR=$ST2_BASE_DIR/virtualenvs
 
     sudo mkdir -p $PACKS_BASE_DIR/default/sensors/
     sudo mkdir -p $PACKS_BASE_DIR/default/actions/
     sudo mkdir -p $PACKS_BASE_DIR/default/rules/
     sudo mkdir -p $VIRTUALENVS_DIR
+    sudo mkdir -p $RUNNERS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
+    sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $RUNNERS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $VIRTUALENVS_DIR
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
+    cp -Rp ./contrib/runners/* $RUNNERS_BASE_DIR
 
     if [ "$copy_examples" = true ]; then
         echo "Copying examples from ./contrib/examples to $PACKS_BASE_DIR"
@@ -131,7 +152,7 @@ function st2start(){
         echo '  using gunicorn to run st2-api...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-api ./virtualenv/bin/gunicorn_pecan \
-            ./st2api/st2api/gunicorn_config.py -k eventlet -b 0.0.0.0:9101 --workers 1
+            ./st2api/st2api/gunicorn_config.py -k eventlet -b "$BINDING_ADDRESS:9101" --workers 1
     else
         screen -d -m -S st2-api ./virtualenv/bin/python \
             ./st2api/bin/st2api \
@@ -143,7 +164,7 @@ function st2start(){
         echo '  using gunicorn to run st2-stream'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-stream ./virtualenv/bin/gunicorn_pecan \
-            ./st2stream/st2stream/gunicorn_config.py -k eventlet -b 0.0.0.0:9102 --workers 1
+            ./st2stream/st2stream/gunicorn_config.py -k eventlet -b "$BINDING_ADDRESS:9102" --workers 1
     else
         screen -d -m -S st2-stream ./virtualenv/bin/python \
             ./st2stream/bin/st2stream \
@@ -193,13 +214,13 @@ function st2start(){
         echo '  using uwsgi for auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-auth ./virtualenv/bin/uwsgi \
-            --http 0.0.0.0:9100 --wsgi-file ./st2auth/st2auth/wsgi.py --processes 1 --threads 10 \
+            --http "$BINDING_ADDRESS:9100" --wsgi-file ./st2auth/st2auth/wsgi.py --processes 1 --threads 10 \
             --buffer-size=32768
     elif [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-auth ./virtualenv/bin/gunicorn_pecan \
-            ./st2auth/st2auth/gunicorn_config.py -k eventlet -b 0.0.0.0:9100 --workers 1
+            ./st2auth/st2auth/gunicorn_config.py -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
     else
         screen -d -m -S st2-auth ./virtualenv/bin/python \
         ./st2auth/bin/st2auth \
@@ -238,7 +259,7 @@ function st2start(){
 
     if [ "$load_content" = true ]; then
         # Register contents
-        echo 'Registering sensors, actions, rules, aliases, and policies...'
+        echo 'Registering sensors, runners, actions, rules, aliases, and policies...'
         ./virtualenv/bin/python \
             ./st2common/bin/st2-register-content \
             --config-file $ST2_CONF --register-all

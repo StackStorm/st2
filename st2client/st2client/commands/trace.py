@@ -66,6 +66,7 @@ class SingleTraceDisplayMixin(object):
         options = {'attributes': TRACE_ATTRIBUTE_DISPLAY_ORDER if args.json else
                    TRACE_HEADER_DISPLAY_ORDER}
         options['json'] = args.json
+        options['yaml'] = args.yaml
         options['attribute_transform_functions'] = self.attribute_transform_functions
 
         formatter = execution_formatter.ExecutionResult
@@ -73,7 +74,7 @@ class SingleTraceDisplayMixin(object):
         self.print_output(trace, formatter, **options)
 
         # Everything should be printed if we are printing json.
-        if args.json:
+        if args.json or args.yaml:
             return
 
         components = []
@@ -99,7 +100,7 @@ class SingleTraceDisplayMixin(object):
             components.sort(key=lambda resource: resource.updated_at)
             self.print_output(components, table.MultiColumnTable,
                               attributes=TRACE_COMPONENT_DISPLAY_LABELS,
-                              json=args.json)
+                              json=args.json, yaml=args.yaml)
 
 
 class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
@@ -120,8 +121,13 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
         self.group = self.parser.add_mutually_exclusive_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=50,
-                                 help=('List N most recent %s; '
-                                       'list all if 0.' %
+                                 help=('List N most recent %s.' %
+                                       resource.get_plural_display_name().lower()))
+        self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
+                                 default='descending',
+                                 help=('Sort %s by start timestamp, '
+                                       'asc|ascending (earliest first) '
+                                       'or desc|descending (latest first)' %
                                        resource.get_plural_display_name().lower()))
 
         # Filter options
@@ -152,6 +158,12 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
         if args.rule:
             kwargs['rule'] = args.rule
 
+        if args.sort_order:
+            if args.sort_order in ['asc', 'ascending']:
+                kwargs['sort_asc'] = True
+            elif args.sort_order in ['desc', 'descending']:
+                kwargs['sort_desc'] = True
+
         return self.manager.query(limit=args.last, **kwargs)
 
     def run_and_print(self, args, **kwargs):
@@ -165,7 +177,7 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
         else:
             self.print_output(reversed(instances), table.MultiColumnTable,
                               attributes=args.attr, widths=args.width,
-                              json=args.json,
+                              json=args.json, yaml=args.yaml,
                               attribute_transform_functions=self.attribute_transform_functions)
 
 

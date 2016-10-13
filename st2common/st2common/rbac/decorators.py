@@ -115,6 +115,7 @@ def request_user_has_resource_db_permission(permission_type):
 
             get_one_db_method = controller_instance.get_one_db_method
             resource_db = get_one_db_method(resource_id)
+            assert resource_db is not None
             utils.assert_request_user_has_resource_db_permission(request=pecan.request,
                                                                  resource_db=resource_db,
                                                                  permission_type=permission_type)

@@ -17,7 +17,6 @@ from bson.errors import InvalidStringData
 import mock
 from oslo_config import cfg
 
-from st2actions.runners.localrunner import LocalShellRunner
 import st2actions.worker as actions_worker
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
@@ -26,6 +25,7 @@ from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.services import executions
 from st2common.util import date as date_utils
+from local_runner import LocalShellRunner
 
 
 from st2tests.base import DbTestCase
@@ -41,6 +41,7 @@ TEST_FIXTURES = {
 FIXTURES_PACK = 'generic'
 
 NON_UTF8_RESULT = {'stderr': '', 'stdout': '\x82\n', 'succeeded': True, 'failed': False,
+
                    'return_code': 0}
 
 

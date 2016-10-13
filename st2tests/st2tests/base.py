@@ -30,10 +30,16 @@ import psutil
 from oslo_config import cfg
 from unittest2 import TestCase
 
+import unittest2
+from st2common.util.api import get_full_public_api_url
+from st2common.constants.runners import COMMON_ACTION_ENV_VARIABLES
+from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.models.db import db_setup, db_teardown, db_ensure_indexes
 from st2common.bootstrap.base import ResourceRegistrar
+from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.content.utils import get_packs_base_paths
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 import st2common.models.db.rule as rule_model
 import st2common.models.db.rule_enforcement as rule_enforcement_model
 import st2common.models.db.sensor as sensor_model
@@ -61,6 +67,7 @@ __all__ = [
     'CleanDbTestCase',
     'CleanFilesTestCase',
     'IntegrationTestCase',
+    'RunnerTestCase',
 
     # Pack test classes
     'BaseSensorTestCase',
@@ -88,6 +95,19 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TESTS_CONFIG_PATH = os.path.join(BASE_DIR, '../conf/st2.conf')
 
 
+class RunnerTestCase(unittest2.TestCase):
+    def assertCommonSt2EnvVarsAvailableInEnv(self, env):
+        """
+        Method which asserts that the common ST2 environment variables are present in the provided
+        environment.
+        """
+        for var_name in COMMON_ACTION_ENV_VARIABLES:
+            self.assertTrue(var_name in env)
+
+        self.assertEqual(env['ST2_ACTION_API_URL'], get_full_public_api_url())
+        self.assertTrue(env[AUTH_TOKEN_ENV_VARIABLE_NAME] is not None)
+
+
 class BaseTestCase(TestCase):
 
     @classmethod
@@ -98,6 +118,14 @@ class BaseTestCase(TestCase):
 
         registrar = ResourceRegistrar(use_pack_cache=False)
         registrar.register_packs(base_dirs=get_packs_base_paths())
+
+    @classmethod
+    def _register_pack_configs(self, validate_configs=False):
+        """
+        Register all the packs inside the fixtures directory.
+        """
+        registrar = ConfigsRegistrar(use_pack_cache=False, validate_configs=validate_configs)
+        registrar.register_configs_for_all_packs(base_dirs=get_packs_base_paths())
 
 
 class EventletTestCase(TestCase):
@@ -185,6 +213,7 @@ class DbTestCase(BaseDbTestCase):
     db_connection = None
     current_result = None
     register_packs = False
+    register_pack_configs = False
 
     @classmethod
     def setUpClass(cls):
@@ -193,6 +222,9 @@ class DbTestCase(BaseDbTestCase):
 
         if cls.register_packs:
             cls._register_packs()
+
+        if cls.register_pack_configs:
+            cls._register_pack_configs()
 
     @classmethod
     def tearDownClass(cls):
@@ -270,7 +302,8 @@ class DbModelTestCase(DbTestCase):
         # Assert instance is deleted from the database.
         retrieved = self.access_type.get_by_id(instance.id)
         retrieved.delete()
-        self.assertRaises(ValueError, self.access_type.get_by_id, instance.id)
+        self.assertRaises(StackStormDBObjectNotFoundError,
+                          self.access_type.get_by_id, instance.id)
 
     def _assert_unique_key_constraint(self, instance):
         # Assert instance is not already in the database.
@@ -295,8 +328,17 @@ class CleanDbTestCase(BaseDbTestCase):
     database.
     """
 
+    register_packs = False
+    register_pack_configs = False
+
     def setUp(self):
         self._establish_connection_and_re_create_db()
+
+        if self.register_packs:
+            self._register_packs()
+
+        if self.register_pack_configs:
+            self._register_pack_configs()
 
 
 class CleanFilesTestCase(TestCase):

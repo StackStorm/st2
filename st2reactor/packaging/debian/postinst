@@ -1,5 +1,0 @@
-#!/bin/bash
-
-if [ -d /etc/st2reactor ]; then
-  sed -i -r "s~logs~/var/log/st2~g" /etc/st2reactor/logging*.conf
-fi

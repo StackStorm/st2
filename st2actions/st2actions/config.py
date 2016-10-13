@@ -45,6 +45,14 @@ def _register_action_runner_opts():
     ]
     CONF.register_opts(logging_opts, group='actionrunner')
 
+    dispatcher_pool_opts = [
+        cfg.IntOpt('workflows_pool_size', default=40,
+                   help='Internal pool size for dispatcher used by workflow actions.'),
+        cfg.IntOpt('actions_pool_size', default=60,
+                   help='Internal pool size for dispatcher used by regular actions.')
+    ]
+    CONF.register_opts(dispatcher_pool_opts, group='actionrunner')
+
     db_opts = [
         cfg.StrOpt('host', default='0.0.0.0', help='host of db server'),
         cfg.IntOpt('port', default=27017, help='port of db server'),

@@ -1,0 +1,6 @@
+---
+name : pack_invalid_requirements
+description : dummy pack
+version : 0.1
+author : st2-dev
+email : info@stackstorm.com

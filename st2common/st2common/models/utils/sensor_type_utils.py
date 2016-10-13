@@ -22,7 +22,8 @@ from st2common.services import triggers as trigger_service
 
 __all__ = [
     'to_sensor_db_model',
-    'get_sensor_entry_point'
+    'get_sensor_entry_point',
+    'create_trigger_types'
 ]
 
 
@@ -53,7 +54,7 @@ def to_sensor_db_model(sensor_api_model=None):
     # Add pack to each trigger type item
     for trigger_type in trigger_types:
         trigger_type['pack'] = pack
-    trigger_type_refs = _create_trigger_types(trigger_types)
+    trigger_type_refs = create_trigger_types(trigger_types)
 
     return _create_sensor_type(pack=pack,
                                name=class_name,
@@ -65,7 +66,7 @@ def to_sensor_db_model(sensor_api_model=None):
                                enabled=enabled)
 
 
-def _create_trigger_types(trigger_types):
+def create_trigger_types(trigger_types):
     if not trigger_types:
         return []
 

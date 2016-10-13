@@ -17,6 +17,7 @@
 Mock classes for use in pack testing.
 """
 
+from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.services.datastore import DatastoreService
 from st2client.models.keyvalue import KeyValuePair
 
@@ -53,7 +54,7 @@ class MockDatastoreService(DatastoreService):
 
         return result
 
-    def get_value(self, name, local=True):
+    def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
         """
         Return a particular value stored in a dictionary which is local to this class.
         """
@@ -65,7 +66,7 @@ class MockDatastoreService(DatastoreService):
         kvp = self._datastore_items[name]
         return kvp.value
 
-    def set_value(self, name, value, ttl=None, local=True):
+    def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
         """
         Store a value in a dictionary which is local to this class.
         """
@@ -82,7 +83,7 @@ class MockDatastoreService(DatastoreService):
         self._datastore_items[name] = instance
         return True
 
-    def delete_value(self, name, local=True):
+    def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
         """
         Delete a value from a dictionary which is local to this class.
         """

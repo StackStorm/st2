@@ -395,6 +395,7 @@ class ActionRunCommandMixin(object):
             self.print_output(child_instances, table.MultiColumnTable,
                               attributes=['id', 'status', 'task', 'action', 'start_timestamp'],
                               widths=args.width, json=args.json,
+                              yaml=args.yaml,
                               attribute_transform_functions=self.attribute_transform_functions)
 
     def _get_execution_result(self, execution, action_exec_mgr, args, **kwargs):
@@ -408,7 +409,7 @@ class ActionRunCommandMixin(object):
         if not args.async:
             while execution.status in pending_statuses:
                 time.sleep(self.poll_interval)
-                if not args.json:
+                if not args.json and not args.yaml:
                     sys.stdout.write('.')
                     sys.stdout.flush()
                 execution = action_exec_mgr.get_by_id(execution.id, **kwargs)
@@ -501,8 +502,15 @@ class ActionRunCommandMixin(object):
                     result[key] = value
             return result
 
+        def transform_array(value):
+            try:
+                result = json.loads(value)
+            except ValueError:
+                result = [v.strip() for v in value.split(',')]
+            return result
+
         transformer = {
-            'array': (lambda cs_x: [v.strip() for v in cs_x.split(',')]),
+            'array': transform_array,
             'boolean': (lambda x: ast.literal_eval(x.capitalize())),
             'integer': int,
             'number': float,
@@ -819,6 +827,8 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
                                           'which are accessible to the CLI as "env" '
                                           'parameter to the action. Note: Only works '
                                           'with python, local and remote runners.')
+            self.parser.add_argument('-u', '--user', type=str, default=None,
+                                           help='User under which to run the action (admins only).')
 
         if self.name == 'run':
             self.parser.set_defaults(async=False)
@@ -848,6 +858,7 @@ class ActionRunCommand(ActionRunCommandMixin, resource.ResourceCommand):
         execution = models.LiveAction()
         execution.action = action_ref
         execution.parameters = action_parameters
+        execution.user = args.user
 
         if not args.trace_id and args.trace_tag:
             execution.context = {'trace_context': {'trace_tag': args.trace_tag}}
@@ -888,15 +899,28 @@ class ActionExecutionReadCommand(resource.ResourceCommand):
     Base class for read / view commands (list and get).
     """
 
-    def _get_exclude_attributes(self, args):
+    @classmethod
+    def _get_exclude_attributes(cls, args):
         """
         Retrieve a list of exclude attributes for particular command line arguments.
         """
         exclude_attributes = []
 
-        if 'result' not in args.attr:
+        result_included = False
+        trigger_instance_included = False
+
+        for attr in args.attr:
+            # Note: We perform startswith check so we correctly detected child attribute properties
+            # (e.g. result, result.stdout, result.stderr, etc.)
+            if attr.startswith('result'):
+                result_included = True
+
+            if attr.startswith('trigger_instance'):
+                trigger_instance_included = True
+
+        if not result_included:
             exclude_attributes.append('result')
-        if 'trigger_instance' not in args.attr:
+        if not trigger_instance_included:
             exclude_attributes.append('trigger_instance')
 
         return exclude_attributes
@@ -921,8 +945,13 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=50,
-                                 help=('List N most recent %s; '
-                                       'list all if 0.' %
+                                 help=('List N most recent %s.' %
+                                       resource.get_plural_display_name().lower()))
+        self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
+                                 default='descending',
+                                 help=('Sort %s by start timestamp, '
+                                       'asc|ascending (earliest first) '
+                                       'or desc|descending (latest first)' %
                                        resource.get_plural_display_name().lower()))
 
         # Filter options
@@ -972,6 +1001,11 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
             kwargs['timestamp_gt'] = args.timestamp_gt
         if args.timestamp_lt:
             kwargs['timestamp_lt'] = args.timestamp_lt
+        if args.sort_order:
+            if args.sort_order in ['asc', 'ascending']:
+                kwargs['sort_asc'] = True
+            elif args.sort_order in ['desc', 'descending']:
+                kwargs['sort_desc'] = True
 
         # We exclude "result" and "trigger_instance" attributes which can contain a lot of data
         # since they are not displayed nor used which speeds the common operation substantially.
@@ -984,13 +1018,14 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
     def run_and_print(self, args, **kwargs):
         instances = format_wf_instances(self.run(args, **kwargs))
 
-        if not args.json:
+        if not args.json and not args.yaml:
             # Include elapsed time for running executions
             instances = format_execution_statuses(instances)
 
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
                           json=args.json,
+                          yaml=args.yaml,
                           attribute_transform_functions=self.attribute_transform_functions)
 
 
@@ -1027,7 +1062,7 @@ class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadComman
         try:
             execution = self.run(args, **kwargs)
 
-            if not args.json:
+            if not args.json and not args.yaml:
                 # Include elapsed time for running executions
                 execution = format_execution_status(execution)
         except resource.ResourceNotFoundError:
@@ -1040,30 +1075,41 @@ class ActionExecutionCancelCommand(resource.ResourceCommand):
 
     def __init__(self, resource, *args, **kwargs):
         super(ActionExecutionCancelCommand, self).__init__(
-            resource, 'cancel', 'Cancel an %s.' %
+            resource, 'cancel', 'Cancel %s.' %
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
-        self.parser.add_argument('id',
-                                 help=('ID of the %s.' %
+        self.parser.add_argument('ids',
+                                 nargs='+',
+                                 help=('IDs of the %ss to cancel.' %
                                        resource.get_display_name().lower()))
 
     def run(self, args, **kwargs):
-        return self.manager.delete_by_id(args.id)
+        responses = []
+        for execution_id in args.ids:
+            response = self.manager.delete_by_id(execution_id)
+            responses.append([execution_id, response])
+
+        return responses
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
-        response = self.run(args, **kwargs)
+        responses = self.run(args, **kwargs)
+
+        for execution_id, response in responses:
+            self._print_result(execution_id=execution_id, response=response)
+
+    def _print_result(self, execution_id, response):
         if response and 'faultstring' in response:
             message = response.get('faultstring', 'Cancellation requested for %s with id %s.' %
-                                   (self.resource.get_display_name().lower(), args.id))
+                                   (self.resource.get_display_name().lower(), execution_id))
 
         elif response:
             message = '%s with id %s canceled.' % (self.resource.get_display_name().lower(),
-                                                   args.id)
+                                                   execution_id)
         else:
             message = 'Cannot cancel %s with id %s.' % (self.resource.get_display_name().lower(),
-                                                        args.id)
+                                                        execution_id)
         print(message)
 
 

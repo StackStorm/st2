@@ -13,13 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import retrying
+import socket
+from oslo_config import cfg
 from kombu import Connection
 from st2common import log as logging
 from st2common.transport import utils as transport_utils
+from st2common.transport.actionexecutionstate import ACTIONEXECUTIONSTATE_XCHG
 from st2common.transport.announcement import ANNOUNCEMENT_XCHG
 from st2common.transport.connection_retry_wrapper import ConnectionRetryWrapper
 from st2common.transport.execution import EXECUTION_XCHG
-from st2common.transport.liveaction import LIVEACTION_XCHG
+from st2common.transport.liveaction import LIVEACTION_XCHG, LIVEACTION_STATUS_MGMT_XCHG
 from st2common.transport.reactor import SENSOR_CUD_XCHG
 from st2common.transport.reactor import TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG
 
@@ -29,8 +33,9 @@ __all__ = [
     'register_exchanges'
 ]
 
-EXCHANGES = [ANNOUNCEMENT_XCHG, EXECUTION_XCHG, LIVEACTION_XCHG, TRIGGER_CUD_XCHG,
-             TRIGGER_INSTANCE_XCHG, SENSOR_CUD_XCHG]
+EXCHANGES = [ACTIONEXECUTIONSTATE_XCHG, ANNOUNCEMENT_XCHG, EXECUTION_XCHG, LIVEACTION_XCHG,
+             LIVEACTION_STATUS_MGMT_XCHG, TRIGGER_CUD_XCHG, TRIGGER_INSTANCE_XCHG,
+             SENSOR_CUD_XCHG]
 
 
 def _do_register_exchange(exchange, connection, channel, retry_wrapper):
@@ -67,3 +72,12 @@ def register_exchanges():
                                       retry_wrapper=retry_wrapper)
 
         retry_wrapper.run(connection=conn, wrapped_callback=wrapped_register_exchanges)
+
+
+def register_exchanges_with_retry():
+    retrying_obj = retrying.Retrying(
+        retry_on_exception=socket.error,
+        wait_fixed=cfg.CONF.messaging.connection_retry_wait,
+        stop_max_attempt_number=cfg.CONF.messaging.connection_retries
+    )
+    return retrying_obj.call(register_exchanges)

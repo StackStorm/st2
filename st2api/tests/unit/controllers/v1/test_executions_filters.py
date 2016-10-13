@@ -21,8 +21,11 @@ import bson
 import six
 from six.moves import http_client
 
+import st2tests.config as tests_config
+tests_config.parse_args()
+
 from tests import FunctionalTest
-from st2tests.fixtures import executions as fixture
+from st2tests.fixtures.packs import executions as fixture
 from st2tests.fixtures import history_views
 from st2common.util import isotime
 from st2common.util import date as date_utils
@@ -215,6 +218,19 @@ class TestActionExecutionFilters(FunctionalTest):
             retrieved += ids
         self.assertListEqual(sorted(retrieved), sorted(self.refs.keys()))
 
+    def test_ui_history_query(self):
+        # In this test we only care about making sure this exact query works. This query is used
+        # by the webui for the history page so it is special and breaking this is bad.
+        limit = 50
+        history_query = '/v1/executions?limit={}&parent=null&exclude_attributes=' \
+                        'result%2Ctrigger_instance&status=&action=&trigger_type=&rule=&' \
+                        'offset=0'.format(limit)
+        response = self.app.get(history_query)
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        self.assertEqual(len(response.json), limit)
+        self.assertTrue(response.headers['X-Total-Count'] > limit)
+
     def test_datetime_range(self):
         dt_range = '2014-12-25T00:00:10Z..2014-12-25T00:00:19Z'
         response = self.app.get('/v1/executions?timestamp=%s' % dt_range)
@@ -240,6 +256,22 @@ class TestActionExecutionFilters(FunctionalTest):
 
     def test_default_sort(self):
         response = self.app.get('/v1/executions')
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        dt1 = response.json[0]['start_timestamp']
+        dt2 = response.json[len(response.json) - 1]['start_timestamp']
+        self.assertLess(isotime.parse(dt2), isotime.parse(dt1))
+
+    def test_ascending_sort(self):
+        response = self.app.get('/v1/executions?sort_asc=True')
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        dt1 = response.json[0]['start_timestamp']
+        dt2 = response.json[len(response.json) - 1]['start_timestamp']
+        self.assertLess(isotime.parse(dt1), isotime.parse(dt2))
+
+    def test_descending_sort(self):
+        response = self.app.get('/v1/executions?sort_desc=True')
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, list)
         dt1 = response.json[0]['start_timestamp']
@@ -275,15 +307,15 @@ class TestActionExecutionFilters(FunctionalTest):
         self.assertEqual(len(response.json), 1)
         self.assertTrue(isotime.parse(response.json[0]['start_timestamp']) < timestamp)
 
-        # Half timestamps should be smaller
-        index = (len(self.start_timestamps) - 1)
+        # Half of the timestamps should be smaller
+        index = (len(self.start_timestamps) - 1) // 2
         timestamp = self.start_timestamps[index]
         response = self.app.get('/v1/executions?timestamp_lt=%s' % (isoformat(timestamp)))
         self.assertEqual(len(response.json), index)
         self.assertTrue(isotime.parse(response.json[0]['start_timestamp']) < timestamp)
 
-        # Half timestamps should be greater
-        index = (len(self.start_timestamps) - 1)
+        # Half of the timestamps should be greater
+        index = (len(self.start_timestamps) - 1) // 2
         timestamp = self.start_timestamps[-index]
         response = self.app.get('/v1/executions?timestamp_gt=%s' % (isoformat(timestamp)))
         self.assertEqual(len(response.json), (index - 1))

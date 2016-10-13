@@ -15,5 +15,9 @@
       type: "string"
       default: "actions,aliases,sensors"
       description: "Possible options are all, sensors, actions, rules, aliases."
+    timeout:
+      type: "integer"
+      default: 100
+      description: "Action timeout."
     kwarg_op:
       immutable: true

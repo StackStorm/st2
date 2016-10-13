@@ -34,7 +34,7 @@ class DBModelUIDFieldTestCase(unittest2.TestCase):
         sensor_type_db = SensorTypeDB(name='sname', pack='spack')
         self.assertEqual(sensor_type_db.get_uid(), 'sensor_type:spack:sname')
 
-        action_db = ActionDB(name='aname', pack='apack', runner_info={})
+        action_db = ActionDB(name='aname', pack='apack', runner_type={})
         self.assertEqual(action_db.get_uid(), 'action:apack:aname')
 
         rule_db = RuleDB(name='rname', pack='rpack')

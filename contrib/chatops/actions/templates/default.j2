@@ -14,6 +14,14 @@ Action {{ execution.action.ref }} completed.
 status : {{ execution.status }}
 execution: {{ execution.id }}
 
+{% if execution.web_url -%}
+web_url: {{ execution.web_url }}
+{% endif %}
+
+{% if execution.elapsed_seconds -%}
+Took {{execution.elapsed_seconds | to_human_time_from_seconds}} to complete.
+{% endif %}
+
 {% if execution.result -%}
 result :
 --------

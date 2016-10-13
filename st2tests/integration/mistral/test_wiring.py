@@ -14,14 +14,32 @@
 # limitations under the License.
 
 import ast
-import eventlet
 import os
+import shutil
 import tempfile
+
+import eventlet
 
 from integration.mistral import base
 
 
 class WiringTest(base.TestWorkflowExecution):
+
+    temp_dir_path = None
+
+    def setUp(self):
+        super(WiringTest, self).setUp()
+
+        # Create temporary directory used by the tests
+        _, self.temp_dir_path = tempfile.mkstemp()
+        os.chmod(self.temp_dir_path, 0666)   # nosec
+
+    def tearDown(self):
+        if self.temp_dir_path and os.path.exists(self.temp_dir_path):
+            if os.path.isdir(self.temp_dir_path):
+                shutil.rmtree(self.temp_dir_path)
+            else:
+                os.remove(self.temp_dir_path)
 
     def test_basic_workflow(self):
         execution = self._execute_workflow('examples.mistral-basic', {'cmd': 'date'})
@@ -100,8 +118,7 @@ class WiringTest(base.TestWorkflowExecution):
         self.assertDictEqual(ast.literal_eval(task_results[0]['state_info']), expected_state_info)
 
     def test_basic_rerun(self):
-        fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        path = self.temp_dir_path
 
         with open(path, 'w') as f:
             f.write('1')
@@ -122,8 +139,7 @@ class WiringTest(base.TestWorkflowExecution):
         self.assertNotEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
 
     def test_basic_rerun_task(self):
-        fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        path = self.temp_dir_path
 
         with open(path, 'w') as f:
             f.write('1')
@@ -144,8 +160,7 @@ class WiringTest(base.TestWorkflowExecution):
         self.assertEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
 
     def test_rerun_subflow_task(self):
-        fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        path = self.temp_dir_path
 
         with open(path, 'w') as f:
             f.write('1')
@@ -167,8 +182,7 @@ class WiringTest(base.TestWorkflowExecution):
         self.assertEqual(execution.context['mistral']['execution_id'], orig_wf_ex_id)
 
     def test_basic_rerun_and_reset_with_items_task(self):
-        fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        path = self.temp_dir_path
 
         with open(path, 'w') as f:
             f.write('1')
@@ -197,8 +211,7 @@ class WiringTest(base.TestWorkflowExecution):
         self.assertEqual(len(children), 4)
 
     def test_basic_rerun_and_resume_with_items_task(self):
-        fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        path = self.temp_dir_path
 
         with open(path, 'w') as f:
             f.write('1')
@@ -232,8 +245,7 @@ class WiringTest(base.TestWorkflowExecution):
         self.assertEqual(len(children), 2)
 
     def test_rerun_subflow_and_reset_with_items_task(self):
-        fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        path = self.temp_dir_path
 
         with open(path, 'w') as f:
             f.write('1')
@@ -262,8 +274,7 @@ class WiringTest(base.TestWorkflowExecution):
         self.assertEqual(len(children), 4)
 
     def test_rerun_subflow_and_resume_with_items_task(self):
-        fd, path = tempfile.mkstemp()
-        os.chmod(path, 0666)
+        path = self.temp_dir_path
 
         with open(path, 'w') as f:
             f.write('1')

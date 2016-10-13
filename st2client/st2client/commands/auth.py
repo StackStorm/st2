@@ -67,7 +67,7 @@ class TokenCreateCommand(resource.ResourceCommand):
             print(instance.token)
         else:
             self.print_output(instance, table.PropertyValueTable,
-                              attributes=self.display_attributes, json=args.json)
+                              attributes=self.display_attributes, json=args.json, yaml=args.yaml)
 
 
 class ApiKeyBranch(resource.ResourceBranch):
@@ -86,9 +86,11 @@ class ApiKeyBranch(resource.ResourceBranch):
 
         self.commands['enable'] = ApiKeyEnableCommand(self.resource, self.app, self.subparsers)
         self.commands['disable'] = ApiKeyDisableCommand(self.resource, self.app, self.subparsers)
+        self.commands['load'] = ApiKeyLoadCommand(self.resource, self.app, self.subparsers)
 
 
 class ApiKeyListCommand(resource.ResourceListCommand):
+    detail_display_attributes = ['all']
     display_attributes = ['id', 'user', 'metadata']
 
     def __init__(self, resource, *args, **kwargs):
@@ -96,13 +98,30 @@ class ApiKeyListCommand(resource.ResourceListCommand):
 
         self.parser.add_argument('-u', '--user', type=str,
                                  help='Only return ApiKeys belonging to the provided user')
+        self.parser.add_argument('-d', '--detail', action='store_true',
+                                 help='Full list of attributes.')
+        self.parser.add_argument('--show-secrets', action='store_true',
+                                 help='Full list of attributes.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         filters = {}
         filters['user'] = args.user
         filters.update(**kwargs)
+        # show_secrets is not a filter but a query param. There is some special
+        # handling for filters in the get method which reuqires this odd hack.
+        if args.show_secrets:
+            params = filters.get('params', {})
+            params['show_secrets'] = True
+            filters['params'] = params
         return self.manager.get_all(**filters)
+
+    def run_and_print(self, args, **kwargs):
+        instances = self.run(args, **kwargs)
+        attr = self.detail_display_attributes if args.detail else args.attr
+        self.print_output(instances, table.MultiColumnTable,
+                          attributes=attr, widths=args.width,
+                          json=args.json, yaml=args.yaml)
 
 
 class ApiKeyGetCommand(resource.ResourceGetCommand):
@@ -152,7 +171,53 @@ class ApiKeyCreateCommand(resource.ResourceCommand):
             print(instance.key)
         else:
             self.print_output(instance, table.PropertyValueTable,
-                              attributes=['all'], json=args.json)
+                              attributes=['all'], json=args.json, yaml=args.yaml)
+
+
+class ApiKeyLoadCommand(resource.ResourceCommand):
+
+    def __init__(self, resource, *args, **kwargs):
+        super(ApiKeyLoadCommand, self).__init__(
+            resource, 'load', 'Load %s from a file.' % resource.get_display_name().lower(),
+            *args, **kwargs)
+
+        self.parser.add_argument('file',
+                                 help=('JSON/YAML file containing the %s(s) to load.'
+                                       % resource.get_display_name().lower()),
+                                 default='')
+
+        self.parser.add_argument('-w', '--width', nargs='+', type=int,
+                                 default=None,
+                                 help=('Set the width of columns in output.'))
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        resources = resource.load_meta_file(args.file)
+        if not resources:
+            print('No %s found in %s.' % (self.resource.get_display_name().lower(), args.file))
+            return None
+        if not isinstance(resources, list):
+            resources = [resources]
+        instances = []
+        for res in resources:
+            # pick only the meaningful properties.
+            instance = {
+                'user': res['user'],  # required
+                'key_hash': res['key_hash'],  # required
+                'metadata': res.get('metadata', {}),
+                'enabled': res.get('enabled', False)
+            }
+            instance = self.resource.deserialize(instance)
+            instances.append(self.manager.create(instance, **kwargs))
+        return instances
+
+    def run_and_print(self, args, **kwargs):
+        instances = self.run(args, **kwargs)
+        if instances:
+            self.print_output(instances, table.MultiColumnTable,
+                              attributes=ApiKeyListCommand.display_attributes,
+                              widths=args.width,
+                              json=args.json, yaml=args.yaml)
 
 
 class ApiKeyDeleteCommand(resource.ResourceDeleteCommand):

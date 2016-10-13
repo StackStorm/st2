@@ -19,8 +19,11 @@ import random
 import string
 import unittest
 
+from oslo_config import cfg
+
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.models.db.auth import UserDB
+from st2common.persistence.auth import ApiKey
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
 
@@ -53,6 +56,10 @@ class TestApiKeyController(FunctionalTest):
     @classmethod
     def setUpClass(cls):
         super(TestApiKeyController, cls).setUpClass()
+
+        cfg.CONF.set_override(name='mask_secrets', override=True, group='api')
+        cfg.CONF.set_override(name='mask_secrets', override=True, group='log')
+
         models = FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                       fixtures_dict=TEST_MODELS)
         cls.apikey1 = models['apikeys']['apikey1.yaml']
@@ -101,6 +108,14 @@ class TestApiKeyController(FunctionalTest):
         self.assertEqual(resp.json['key_hash'], MASKED_ATTRIBUTE_VALUE,
                          'Key should be masked.')
 
+    def test_get_show_secrets(self):
+
+        resp = self.app.get('/v1/apikeys/?show_secrets=True')
+        self.assertEqual(resp.status_int, 200)
+        for key in resp.json:
+            self.assertNotEqual(key['key_hash'], MASKED_ATTRIBUTE_VALUE)
+            self.assertNotEqual(key['uid'], MASKED_ATTRIBUTE_VALUE)
+
     def test_post_delete_key(self):
         api_key = {
             'user': 'herge'
@@ -122,6 +137,24 @@ class TestApiKeyController(FunctionalTest):
         self.assertEqual(resp.status_int, 204)
 
         resp = self.app.delete('/v1/apikeys/%s' % resp2.json['key'])
+        self.assertEqual(resp.status_int, 204)
+
+    def test_post_delete_same_key_hash(self):
+        api_key = {
+            'user': 'herge',
+            'key_hash': 'ABCDE'
+        }
+        resp1 = self.app.post_json('/v1/apikeys/', api_key)
+        self.assertEqual(resp1.status_int, 201)
+        self.assertEqual(resp1.json['key'], None, 'Key should be None.')
+
+        # drop into the DB since API will be masking this value.
+        api_key_db = ApiKey.get_by_id(resp1.json['id'])
+
+        self.assertEqual(api_key_db.key_hash, api_key['key_hash'], 'Key_hash should match.')
+        self.assertEqual(api_key_db.user, api_key['user'], 'Key_hash should match.')
+
+        resp = self.app.delete('/v1/apikeys/%s' % resp1.json['id'])
         self.assertEqual(resp.status_int, 204)
 
     def test_put_api_key(self):

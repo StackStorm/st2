@@ -1,0 +1,7 @@
+---
+description: A sample workflow for testing bad input to with-items statement.
+enabled: true
+entry_point: workflows/mistral-error-bad-with-items-yaql.yaml
+name: mistral-error-bad-with-items-yaql
+pack: examples
+runner_type: mistral-v2

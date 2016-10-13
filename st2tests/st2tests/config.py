@@ -18,7 +18,7 @@ from oslo_config import cfg, types
 from st2common import log as logging
 import st2common.config as common_config
 from st2common.constants.sensors import DEFAULT_PARTITION_LOADER
-from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.fixturesloader import get_fixtures_packs_base_path, get_fixtures_runners_base_path
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -67,10 +67,13 @@ def _override_db_opts():
 
 
 def _override_common_opts():
-    packs_base_path = get_fixtures_base_path()
+    packs_base_path = get_fixtures_packs_base_path()
+    runners_base_path = get_fixtures_runners_base_path()
     CONF.set_override(name='base_path', override=packs_base_path, group='system')
     CONF.set_override(name='system_packs_base_path', override=packs_base_path, group='content')
     CONF.set_override(name='packs_base_paths', override=packs_base_path, group='content')
+    CONF.set_override(name='system_runners_base_path', override=runners_base_path, group='content')
+    CONF.set_override(name='runners_base_paths', override=runners_base_path, group='content')
     CONF.set_override(name='api_url', override='http://127.0.0.1', group='auth')
     CONF.set_override(name='mask_secrets', override=True, group='log')
     CONF.set_override(name='url', override='zake://', group='coordination')
@@ -110,6 +113,14 @@ def _register_api_opts():
         cfg.DictOpt('errors', default={404: '/error/404', '__force_dict__': True})
     ]
     _register_opts(pecan_opts, group='api_pecan')
+
+    api_opts = [
+        cfg.IntOpt('max_page_size', default=100,
+                   help=('Maximum limit (page size) argument which can be specified by the user '
+                         'in a query string. If a larger value is provided, it will default to  '
+                         'this value.'))
+    ]
+    _register_opts(api_opts, group='api')
 
     messaging_opts = [
         cfg.StrOpt('url', default='amqp://guest:guest@127.0.0.1:5672//',

@@ -14,15 +14,16 @@
 # limitations under the License.
 
 from st2common.constants import action as action_constants
-from st2common.policies import base
 from st2common.util import action_db as action_utils
+from st2actions.policies.concurrency import BaseConcurrencyApplicator
 
 
-class FakeConcurrencyApplicator(base.ResourcePolicyApplicator):
+class FakeConcurrencyApplicator(BaseConcurrencyApplicator):
 
     def __init__(self, policy_ref, policy_type, *args, **kwargs):
-        super(FakeConcurrencyApplicator, self).__init__(policy_ref, policy_type, *args, **kwargs)
-        self.threshold = kwargs.get('threshold', 0)
+        super(FakeConcurrencyApplicator, self).__init__(policy_ref=policy_ref,
+                                                        policy_type=policy_type,
+                                                        threshold=kwargs.get('threshold', 0))
 
     def get_threshold(self):
         return self.threshold

@@ -5,8 +5,9 @@ chain:
     booltype: true
     inttype: '{{inttype}}'
     strtype: '{{strtype}}'
+    strtype_legacy: '{{system.a}}'
   ref: wolfpack.a2
 default: c1
 vars:
   inttype: 1
-  strtype: '{{system.a}}'
+  strtype: '{{st2kv.system.a}}'

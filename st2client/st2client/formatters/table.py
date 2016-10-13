@@ -99,8 +99,14 @@ class MultiColumnTable(formatters.Formatter):
                 widths.append(current_col_width)
 
         if not attributes or 'all' in attributes:
-            attributes = sorted([attr for attr in entries[0].__dict__
-                                 if not attr.startswith('_')])
+            entries = list(entries) if entries else []
+
+            if len(entries) >= 1:
+                attributes = entries[0].__dict__.keys()
+                attributes = sorted([attr for attr in attributes if not attr.startswith('_')])
+            else:
+                # There are no entries so we can't infer available attributes
+                attributes = []
 
         # Determine table format.
         if len(attributes) == len(widths):

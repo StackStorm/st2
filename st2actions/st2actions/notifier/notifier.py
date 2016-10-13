@@ -39,7 +39,7 @@ from st2common.util import jinja as jinja_utils
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
 from st2common.constants.action import ACTION_PARAMETERS_KV_PREFIX
 from st2common.constants.action import ACTION_RESULTS_KV_PREFIX
-from st2common.constants.system import SYSTEM_KV_PREFIX
+from st2common.constants.keyvalue import SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.services.keyvalues import KeyValueLookup
 
 __all__ = [
@@ -90,7 +90,7 @@ class Notifier(consumers.MessageHandler):
                           live_action_id, extra=extra)
             return None
 
-        self._apply_post_run_policies(liveaction=liveaction)
+        self._apply_post_run_policies(liveaction_db=liveaction)
 
         if liveaction.notify is not None:
             self._post_notify_triggers(liveaction=liveaction, execution=execution)
@@ -190,7 +190,13 @@ class Notifier(consumers.MessageHandler):
                 raise Exception('Failed notifications to routes: %s' % ', '.join(failed_routes))
 
     def _build_jinja_context(self, liveaction, execution):
-        context = {SYSTEM_KV_PREFIX: KeyValueLookup()}
+        context = {}
+        context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
+        context.update({
+            DATASTORE_PARENT_SCOPE: {
+                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+            }
+        })
         context.update({ACTION_PARAMETERS_KV_PREFIX: liveaction.parameters})
         context.update({ACTION_CONTEXT_KV_PREFIX: liveaction.context})
         context.update({ACTION_RESULTS_KV_PREFIX: execution.result})
@@ -238,9 +244,9 @@ class Notifier(consumers.MessageHandler):
         self._trigger_dispatcher.dispatch(self._action_trigger, payload=payload,
                                           trace_context=trace_context)
 
-    def _apply_post_run_policies(self, liveaction=None):
+    def _apply_post_run_policies(self, liveaction_db):
         # Apply policies defined for the action.
-        policy_dbs = Policy.query(resource_ref=liveaction.action)
+        policy_dbs = Policy.query(resource_ref=liveaction_db.action, enabled=True)
         LOG.debug('Applying %s post_run policies' % (len(policy_dbs)))
 
         for policy_db in policy_dbs:
@@ -250,10 +256,12 @@ class Notifier(consumers.MessageHandler):
 
             try:
                 LOG.debug('Applying post_run policy "%s" (%s) for liveaction %s' %
-                          (policy_db.ref, policy_db.policy_type, str(liveaction.id)))
-                liveaction = driver.apply_after(liveaction)
+                          (policy_db.ref, policy_db.policy_type, str(liveaction_db.id)))
+                liveaction_db = driver.apply_after(liveaction_db)
             except:
                 LOG.exception('An exception occurred while applying policy "%s".', policy_db.ref)
+
+        return liveaction_db
 
     def _get_runner_ref(self, action_ref):
         """

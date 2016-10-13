@@ -75,8 +75,7 @@ class TriggerInstanceListCommand(resource.ResourceCommand):
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=50,
-                                 help=('List N most recent %s; '
-                                       'list all if 0.' %
+                                 help=('List N most recent %s.' %
                                        resource.get_plural_display_name().lower()))
 
         # Filter options
@@ -124,7 +123,7 @@ class TriggerInstanceListCommand(resource.ResourceCommand):
         instances = self.run(args, **kwargs)
         self.print_output(reversed(instances), table.MultiColumnTable,
                           attributes=args.attr, widths=args.width,
-                          json=args.json,
+                          json=args.json, yaml=args.yaml,
                           attribute_transform_functions=self.attribute_transform_functions)
 
 

@@ -35,7 +35,12 @@ __all__ = [
     'ActionAPI',
     'ActionCreateAPI',
     'LiveActionAPI',
-    'RunnerTypeAPI'
+    'LiveActionCreateAPI',
+    'RunnerTypeAPI',
+
+    'AliasExecutionAPI',
+    'ActionAliasAPI',
+    'ActionAliasMatchAPI'
 ]
 
 
@@ -92,7 +97,8 @@ class RunnerTypeAPI(BaseAPI):
                 "type": "object",
                 "patternProperties": {
                     "^\w+$": util_schema.get_action_parameters_schema()
-                }
+                },
+                'additionalProperties': False
             }
         },
         "additionalProperties": False
@@ -184,6 +190,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
                 "patternProperties": {
                     "^\w+$": util_schema.get_action_parameters_schema()
                 },
+                'additionalProperties': False,
                 "default": {}
             },
             "tags": {
@@ -245,7 +252,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
             # to use an empty document.
             notify = NotificationsHelper.to_model({})
 
-        model = cls.model(name=name, description=description, enable=enabled, enabled=enabled,
+        model = cls.model(name=name, description=description, enabled=enabled,
                           entry_point=entry_point, pack=pack, runner_type=runner_type,
                           tags=tags, parameters=parameters, notify=notify,
                           ref=ref)
@@ -329,7 +336,8 @@ class LiveActionAPI(BaseAPI):
                             {"type": "null"}
                         ]
                     }
-                }
+                },
+                'additionalProperties': False
             },
             "result": {
                 "anyOf": [{"type": "array"},
@@ -377,8 +385,6 @@ class LiveActionAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, live_action):
-        name = getattr(live_action, 'name', None)
-        description = getattr(live_action, 'description', None)
         action = live_action.action
 
         if getattr(live_action, 'start_timestamp', None):
@@ -402,12 +408,24 @@ class LiveActionAPI(BaseAPI):
         else:
             notify = None
 
-        model = cls.model(name=name, description=description, action=action,
+        model = cls.model(action=action,
                           start_timestamp=start_timestamp, end_timestamp=end_timestamp,
                           status=status, parameters=parameters, context=context,
                           callback=callback, result=result, notify=notify)
 
         return model
+
+
+class LiveActionCreateAPI(LiveActionAPI):
+    """
+    API model for action execution create (run action) operations.
+    """
+    schema = copy.deepcopy(LiveActionAPI.schema)
+    schema['properties']['user'] = {
+        'description': 'User context under which action should run (admins only)',
+        'type': 'string',
+        'default': None
+    }
 
 
 class ActionExecutionStateAPI(BaseAPI):
@@ -620,6 +638,35 @@ class AliasExecutionAPI(BaseAPI):
     @classmethod
     def to_model(cls, aliasexecution):
         # probably should be unsupported
+        raise NotImplementedError()
+
+    @classmethod
+    def from_model(cls, aliasexecution):
+        raise NotImplementedError()
+
+
+class ActionAliasMatchAPI(BaseAPI):
+    """
+    API model used for alias match API endpoint.
+    """
+    model = None
+
+    schema = {
+        "title": "ActionAliasMatchAPI",
+        "description": "ActionAliasMatchAPI.",
+        "type": "object",
+        "properties": {
+            "command": {
+                "type": "string",
+                "description": "Command string to try to match the aliases against.",
+                "required": True
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, aliasexecution):
         raise NotImplementedError()
 
     @classmethod

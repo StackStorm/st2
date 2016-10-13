@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2actions.runners.utils import get_action_class_instance
+from st2common.runners.utils import get_action_class_instance
 from st2tests.mocks.action import MockActionWrapper
 from st2tests.mocks.action import MockActionService
 from st2tests.pack_resource import BasePackResourceTestCase

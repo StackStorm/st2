@@ -17,6 +17,7 @@ from st2client.client import Client
 from st2client.models import KeyValuePair
 from st2common.services.access import create_token
 from st2common.util.api import get_full_public_api_url
+from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR, SYSTEM_SCOPE
 
 
 class DatastoreService(object):
@@ -24,7 +25,7 @@ class DatastoreService(object):
     Class provides public methods for accessing datastore items.
     """
 
-    DATASTORE_NAME_SEPARATOR = ':'
+    DATASTORE_NAME_SEPARATOR = DATASTORE_KEY_SEPARATOR
 
     def __init__(self, logger, pack_name, class_name, api_username):
         self._api_username = api_username
@@ -57,7 +58,7 @@ class DatastoreService(object):
         kvps = client.keys.get_all(prefix=key_prefix)
         return kvps
 
-    def get_value(self, name, local=True):
+    def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
         """
         Retrieve a value from the datastore for the provided key.
 
@@ -70,15 +71,25 @@ class DatastoreService(object):
         :param local: Retrieve value from a namespace local to the pack/class. Defaults to True.
         :type: local: ``bool``
 
+        :param scope: Scope under which item is saved. Defaults to system scope.
+        :type: local: ``str``
+
+        :param encrypt: Return the decrypted value. Defaults to False.
+        :type: local: ``bool``
+
         :rtype: ``str`` or ``None``
         """
+        if scope != SYSTEM_SCOPE:
+            raise ValueError('Scope %s is unsupported.' % scope)
+
         name = self._get_full_key_name(name=name, local=local)
 
         client = self._get_api_client()
         self._logger.audit('Retrieving value from the datastore (name=%s)', name)
 
         try:
-            kvp = client.keys.get_by_id(id=name)
+            params = {'decrypt': str(decrypt).lower(), 'scope': scope}
+            kvp = client.keys.get_by_id(id=name, params=params)
         except Exception:
             return None
 
@@ -87,7 +98,7 @@ class DatastoreService(object):
 
         return None
 
-    def set_value(self, name, value, ttl=None, local=True):
+    def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
         """
         Set a value for the provided key.
 
@@ -106,9 +117,18 @@ class DatastoreService(object):
         :param local: Set value in a namespace local to the pack/class. Defaults to True.
         :type: local: ``bool``
 
+        :param scope: Scope under which to place the item. Defaults to system scope.
+        :type: local: ``str``
+
+        :param encrypt: Encrypyt the value when saving. Defaults to False.
+        :type: local: ``bool``
+
         :return: ``True`` on success, ``False`` otherwise.
         :rtype: ``bool``
         """
+        if scope != SYSTEM_SCOPE:
+            raise ValueError('Scope %s is unsupported.', scope)
+
         name = self._get_full_key_name(name=name, local=local)
 
         value = str(value)
@@ -120,6 +140,9 @@ class DatastoreService(object):
         instance.id = name
         instance.name = name
         instance.value = value
+        instance.scope = scope
+        if encrypt:
+            instance.secret = True
 
         if ttl:
             instance.ttl = ttl
@@ -127,7 +150,7 @@ class DatastoreService(object):
         client.keys.update(instance=instance)
         return True
 
-    def delete_value(self, name, local=True):
+    def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
         """
         Delete the provided key.
 
@@ -140,9 +163,15 @@ class DatastoreService(object):
         :param local: Delete a value in a namespace local to the pack/class. Defaults to True.
         :type: local: ``bool``
 
+        :param scope: Scope under which item is saved. Defaults to system scope.
+        :type: local: ``str``
+
         :return: ``True`` on success, ``False`` otherwise.
         :rtype: ``bool``
         """
+        if scope != SYSTEM_SCOPE:
+            raise ValueError('Scope %s is unsupported.', scope)
+
         name = self._get_full_key_name(name=name, local=local)
 
         client = self._get_api_client()
@@ -154,7 +183,8 @@ class DatastoreService(object):
         self._logger.audit('Deleting value from the datastore (name=%s)', name)
 
         try:
-            client.keys.delete(instance=instance)
+            params = {'scope': scope}
+            client.keys.delete(instance=instance, params=params)
         except Exception:
             return False
 

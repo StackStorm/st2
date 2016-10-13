@@ -1,0 +1,45 @@
+#!/usr/bin/env python2.7
+
+import argparse
+import os
+import sys
+
+from keyczar.keys import AesKey
+
+
+def main(key_path, force=False):
+    base_path = os.path.dirname(key_path)
+    if not os.access(base_path, os.W_OK):
+        print('ERROR: You do not have sufficient permissions to write to path: %s.' % key_path)
+        print('Try setting up permissions correctly and then run this tool.')
+        sys.exit(1)
+
+    if os.path.exists(key_path):
+        print('You already have a key at the specified location %s!' % key_path)
+
+        if not force:
+            print('Not generating a new key. Either delete the file or re-run with --force.')
+            sys.exit(2)
+
+        print('WARNING: Rewriting existing key with new key!')
+
+    with open(key_path, 'w') as key_file:
+        k = AesKey.Generate()
+        key_file.write(str(k))
+        key_file.flush()
+
+    msg = ('Key written to %s. ' % key_path + 'Secure the permissions so only StackStorm API ' +
+           'process and StackStorm admin access the file.')
+    print(msg)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Tool for crypto key generation.')
+    parser.add_argument('-k', '--key-path',
+                        required=True,
+                        help='Path to file to write key to. Secure permissions of file so ' +
+                        'only admin can read the crypto key.')
+    parser.add_argument('-f', '--force', action='store_true',
+                        help='Force rewrite the key file if already exists.')
+
+    args = parser.parse_args()
+    main(key_path=args.key_path, force=args.force)

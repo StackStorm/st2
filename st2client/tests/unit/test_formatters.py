@@ -40,7 +40,9 @@ FIXTURES_MANIFEST = {
                 'execution_get_detail.txt',
                 'execution_get_result_by_key.txt',
                 'execution_result_has_carriage_return.txt',
-                'execution_get_attributes.txt']
+                'execution_get_attributes.txt',
+                'execution_list_attr_start_timestamp.txt',
+                'execution_list_empty_response_start_timestamp_attr.txt']
 }
 
 FIXTURES = loader.load_fixtures(fixtures_dict=FIXTURES_MANIFEST)
@@ -134,6 +136,34 @@ class TestExecutionResultFormatter(unittest2.TestCase):
             content = fd.read()
         self.assertEqual(
             content, FIXTURES['results']['execution_result_has_carriage_return.txt'])
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([EXECUTION]), 200, 'OK')))
+    def test_execution_list_attribute_provided(self):
+        # Client shouldn't throw if "-a" flag is provided when listing executions
+        argv = ['execution', 'list', '-a', 'start_timestamp']
+        self.assertEqual(self.shell.run(argv), 0)
+        self._undo_console_redirect()
+
+        with open(self.path, 'r') as fd:
+            content = fd.read()
+        self.assertEqual(
+            content, FIXTURES['results']['execution_list_attr_start_timestamp.txt'])
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([]), 200, 'OK')))
+    def test_execution_list_attribute_provided_empty_response(self):
+        # Client shouldn't throw if "-a" flag is provided, but there are no executions
+        argv = ['execution', 'list', '-a', 'start_timestamp']
+        self.assertEqual(self.shell.run(argv), 0)
+        self._undo_console_redirect()
+
+        with open(self.path, 'r') as fd:
+            content = fd.read()
+        self.assertEqual(
+            content, FIXTURES['results']['execution_list_empty_response_start_timestamp_attr.txt'])
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',

@@ -70,6 +70,11 @@ class ActionsController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
+    valid_exclude_attributes = [
+        'parameters',
+        'notify'
+    ]
+
     include_reference = True
 
     def __init__(self, *args, **kwargs):
@@ -78,8 +83,14 @@ class ActionsController(resource.ContentPackResourceController):
 
     @request_user_has_permission(permission_type=PermissionType.ACTION_LIST)
     @jsexpose()
-    def get_all(self, **kwargs):
-        return super(ActionsController, self)._get_all(**kwargs)
+    def get_all(self, exclude_attributes=None, **kwargs):
+        if exclude_attributes:
+            exclude_fields = exclude_attributes.split(',')
+        else:
+            exclude_fields = None
+
+        exclude_fields = self._validate_exclude_fields(exclude_fields)
+        return super(ActionsController, self)._get_all(exclude_fields=exclude_fields, **kwargs)
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_VIEW)
     @jsexpose(arg_types=[str])
@@ -133,7 +144,7 @@ class ActionsController(resource.ContentPackResourceController):
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_MODIFY)
     @jsexpose(arg_types=[str], body_cls=ActionCreateAPI)
-    def put(self, action_ref_or_id, action):
+    def put(self, action, action_ref_or_id):
         action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
 
         # Assert permissions

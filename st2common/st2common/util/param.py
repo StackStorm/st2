@@ -19,7 +19,7 @@ import networkx as nx
 from jinja2 import meta
 from st2common import log as logging
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
-from st2common.constants.system import SYSTEM_KV_PREFIX
+from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE, SYSTEM_SCOPE
 from st2common.exceptions.param import ParamException
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util.casts import get_cast
@@ -74,7 +74,9 @@ def _create_graph(action_context):
     Creates a generic directed graph for depencency tree and fills it with basic context variables
     '''
     G = nx.DiGraph()
-    G.add_node(SYSTEM_KV_PREFIX, value=KeyValueLookup())
+    G.add_node(SYSTEM_SCOPE, value=KeyValueLookup(scope=SYSTEM_SCOPE))
+    system_keyvalue_context = {SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)}
+    G.add_node(DATASTORE_PARENT_SCOPE, value=system_keyvalue_context)
     G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
     return G
 
@@ -87,15 +89,31 @@ def _process(G, name, value):
     # Instead we're just assuming every string to be a unicode string
     if isinstance(value, str):
         value = to_unicode(value)
-    template_ast = ENV.parse(value)
-    # Dependencies of the node represent jinja variables used in the template
-    # We're connecting nodes with an edge for every depencency to traverse them in the right order
-    # and also make sure that we don't have missing or cyclic dependencies upfront.
-    dependencies = meta.find_undeclared_variables(template_ast)
-    if dependencies:
+
+    complex_value_str = None
+    if isinstance(value, list) or isinstance(value, dict):
+        complex_value_str = str(value)
+
+    is_jinja_expr = (
+        jinja_utils.is_jinja_expression(value) or jinja_utils.is_jinja_expression(
+            complex_value_str
+        )
+    )
+
+    if is_jinja_expr:
         G.add_node(name, template=value)
-        for dependency in dependencies:
-            G.add_edge(dependency, name)
+
+        template_ast = ENV.parse(value)
+        LOG.debug('Template ast: %s', template_ast)
+        # Dependencies of the node represent jinja variables used in the template
+        # We're connecting nodes with an edge for every depencency to traverse them
+        # in the right order and also make sure that we don't have missing or cyclic
+        # dependencies upfront.
+        dependencies = meta.find_undeclared_variables(template_ast)
+        LOG.debug('Dependencies: %s', dependencies)
+        if dependencies:
+            for dependency in dependencies:
+                G.add_edge(dependency, name)
     else:
         G.add_node(name, value=value)
 
@@ -132,6 +150,7 @@ def _render(node, render_context):
     Render the node depending on its type
     '''
     if 'template' in node:
+        LOG.debug('Rendering node: %s with context: %s', node, render_context)
         return ENV.from_string(node['template']).render(render_context)
     if 'value' in node:
         return node['value']
@@ -145,11 +164,33 @@ def _resolve_dependencies(G):
     for name in nx.topological_sort(G):
         node = G.node[name]
         try:
-            context[name] = _render(node, context)
+            template = node.get('template', None)
+
+            # Special case for non simple types which contains Jinja notation (lists, dicts)
+            if 'template' in node and isinstance(template, (list, dict)):
+                if isinstance(template, list):
+                    rendered_list = list()
+
+                    for template in G.node[name]['template']:
+                        rendered_list.append(
+                            _render(dict(template=template), context)
+                        )
+                    context[name] = rendered_list
+                elif isinstance(template, dict):
+                    rendered_dict = dict()
+
+                    for key, value in G.node[name]['template'].items():
+                        value = _render(dict(template=value), context)
+                        rendered_dict[key] = value
+
+                    context[name] = rendered_dict
+            else:
+                context[name] = _render(node, context)
         except Exception as e:
             LOG.debug('Failed to render %s: %s', name, e, exc_info=True)
             msg = 'Failed to render parameter "%s": %s' % (name, str(e))
             raise ParamException(msg)
+
     return context
 
 

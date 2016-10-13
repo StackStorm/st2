@@ -23,7 +23,7 @@ from st2common.content.utils import get_packs_base_paths
 from st2common.content.utils import get_aliases_base_paths
 from st2common.content.utils import get_pack_resource_file_abs_path
 from st2tests import config as tests_config
-from st2tests.fixturesloader import get_fixtures_base_path
+from st2tests.fixturesloader import get_fixtures_packs_base_path
 
 
 class ContentUtilsTestCase(unittest2.TestCase):
@@ -80,7 +80,7 @@ class ContentUtilsTestCase(unittest2.TestCase):
 
     def test_get_pack_resource_file_abs_path(self):
         # Mock the packs path to point to the fixtures directory
-        cfg.CONF.content.packs_base_paths = get_fixtures_base_path()
+        cfg.CONF.content.packs_base_paths = get_fixtures_packs_base_path()
 
         # Invalid resource type
         expected_msg = 'Invalid resource type: fooo'
@@ -101,7 +101,8 @@ class ContentUtilsTestCase(unittest2.TestCase):
         # Valid paths
         file_paths = ['foo.py', 'a/foo.py', 'a/b/foo.py']
         for file_path in file_paths:
-            expected = os.path.join(get_fixtures_base_path(), 'dummy_pack_1/actions', file_path)
+            expected = os.path.join(get_fixtures_packs_base_path(),
+                                    'dummy_pack_1/actions', file_path)
             result = get_pack_resource_file_abs_path(pack_name='dummy_pack_1',
                                                      resource_type='action',
                                                      file_path=file_path)

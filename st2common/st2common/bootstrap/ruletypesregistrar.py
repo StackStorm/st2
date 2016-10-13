@@ -19,6 +19,7 @@ from st2common import log as logging
 from st2common.constants.rules import RULE_TYPE_STANDARD, RULE_TYPE_BACKSTOP
 from st2common.models.api.rule import RuleTypeAPI
 from st2common.persistence.rule import RuleType
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
     'register_rule_types',
@@ -55,7 +56,7 @@ def register_rule_types():
         try:
             rule_type_db = RuleType.get_by_name(rule_type['name'])
             update = True
-        except ValueError:
+        except StackStormDBObjectNotFoundError:
             rule_type_db = None
             update = False
 

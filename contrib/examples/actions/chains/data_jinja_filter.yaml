@@ -1,0 +1,19 @@
+---
+  chain:
+    -
+      name: "c1"
+      ref: "examples.object_return"
+      parameters: {}
+      on-success: "c2"
+    -
+      name: "c2"
+      ref: "examples.json_string_to_object"
+      parameters:
+        json_str: "{{c1.result | to_json_string}}"
+      on-success: "c3"
+    -
+      name: "c3"
+      ref: "examples.yaml_string_to_object"
+      parameters:
+        yaml_str: "{{ c1.result | to_yaml_string}}"
+

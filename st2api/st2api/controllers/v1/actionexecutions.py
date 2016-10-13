@@ -20,7 +20,6 @@ import sys
 import traceback
 
 import jsonschema
-from oslo_config import cfg
 import pecan
 from pecan import abort
 from six.moves import http_client
@@ -36,15 +35,15 @@ from st2common.exceptions.param import ParamException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.trace import TraceNotFoundException
 from st2common.models.api.action import LiveActionAPI
+from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import jsexpose
+from st2common.models.api.base import cast_argument_value
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.services import trace as trace_service
-from st2common.rbac.utils import request_user_is_admin
 from st2common.util import jsonify
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
@@ -54,6 +53,7 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 from st2common.rbac.utils import assert_request_user_has_resource_db_permission
+from st2common.rbac.utils import assert_request_user_is_admin_if_user_query_param_is_provider
 
 __all__ = [
     'ActionExecutionsController'
@@ -67,10 +67,6 @@ SUPPORTED_EXECUTIONS_FILTERS.update({
     'timestamp_gt': 'start_timestamp.gt',
     'timestamp_lt': 'start_timestamp.lt'
 })
-
-# Name of the query parameter for toggling on the display of secrets to the admin users in the API
-# responses
-SHOW_SECRETS_QUERY_PARAM = 'show_secrets'
 
 MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
@@ -94,28 +90,28 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         """
         Set mask_secrets=False if the user is an admin and provided ?show_secrets=True query param.
         """
-        from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
+        return {'mask_secrets': self._get_mask_secrets(request)}
 
-        show_secrets = self._get_query_param_value(request=request,
-                                                   param_name=SHOW_SECRETS_QUERY_PARAM,
-                                                   param_type='bool',
-                                                   default_value=False)
+    def _handle_schedule_execution(self, liveaction_api):
+        """
+        :param liveaction: LiveActionAPI object.
+        :type liveaction: :class:`LiveActionAPI`
+        """
 
-        if show_secrets and request_user_is_admin(request=request):
-            from_model_kwargs['mask_secrets'] = False
-
-        return from_model_kwargs
-
-    def _handle_schedule_execution(self, liveaction):
         # Assert the permissions
-        action_ref = liveaction.action
+        action_ref = liveaction_api.action
         action_db = action_utils.get_action_by_ref(action_ref)
+        user = liveaction_api.user or get_requester()
 
         assert_request_user_has_resource_db_permission(request=pecan.request, resource_db=action_db,
             permission_type=PermissionType.ACTION_EXECUTE)
 
+        # TODO: Validate user is admin if user is provided
+        assert_request_user_is_admin_if_user_query_param_is_provider(request=pecan.request,
+                                                                     user=user)
+
         try:
-            return self._schedule_execution(liveaction=liveaction)
+            return self._schedule_execution(liveaction=liveaction_api, user=user)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
@@ -130,12 +126,12 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def _schedule_execution(self, liveaction):
+    def _schedule_execution(self, liveaction, user=None):
         # Initialize execution context if it does not exist.
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
-        liveaction.context['user'] = get_requester()
+        liveaction.context['user'] = user
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
@@ -199,20 +195,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         return [self.model.from_model(descendant, from_model_kwargs) for
                 descendant in descendants]
 
-    def _validate_exclude_fields(self, exclude_fields):
-        """
-        Validate that provided exclude fields are valid.
-        """
-        if not exclude_fields:
-            return exclude_fields
-
-        for field in exclude_fields:
-            if field not in self.valid_exclude_attributes:
-                msg = 'Invalid or unsupported attribute specified: %s' % (field)
-                raise ValueError(msg)
-
-        return exclude_fields
-
 
 class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, ResourceController):
     # Note: We need to override "get_one" and "get_all" to return 404 since nested controller
@@ -231,14 +213,15 @@ class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, Resou
 
 class ActionExecutionChildrenController(BaseActionExecutionNestedController):
     @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_VIEW)
-    @jsexpose(arg_types=[str])
-    def get(self, id, **kwargs):
+    @jsexpose(arg_types=[str, int, str])
+    def get(self, id, depth=-1, result_fmt=None, **kwargs):
         """
         Retrieve children for the provided action execution.
 
         :rtype: ``list``
         """
-        return self._get_children(id_=id, **kwargs)
+
+        return self._get_children(id_=id, depth=depth, result_fmt=result_fmt)
 
 
 class ActionExecutionAttributeController(BaseActionExecutionNestedController):
@@ -269,10 +252,11 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
     ]
 
     class ExecutionSpecificationAPI(object):
-        def __init__(self, parameters=None, tasks=None, reset=None):
+        def __init__(self, parameters=None, tasks=None, reset=None, user=None):
             self.parameters = parameters or {}
             self.tasks = tasks or []
             self.reset = reset or []
+            self.user = user
 
         def validate(self):
             if (self.tasks or self.reset) and self.parameters:
@@ -294,7 +278,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
             return self
 
     @jsexpose(body_cls=ExecutionSpecificationAPI, status_code=http_client.CREATED)
-    def post(self, spec, execution_id):
+    def post(self, spec_api, execution_id, no_merge=False):
         """
         Re-run the provided action execution optionally specifying override parameters.
 
@@ -302,14 +286,17 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             POST /executions/<id>/re_run
         """
+        no_merge = cast_argument_value(value_type=bool, value=no_merge)
         existing_execution = self._get_one(id=execution_id, exclude_fields=self.exclude_fields)
 
-        if spec.tasks and existing_execution.runner['name'] != 'mistral-v2':
+        if spec_api.tasks and existing_execution.runner['name'] != 'mistral-v2':
             raise ValueError('Task option is only supported for Mistral workflows.')
 
         # Merge in any parameters provided by the user
-        new_parameters = copy.deepcopy(getattr(existing_execution, 'parameters', {}))
-        new_parameters.update(spec.parameters)
+        new_parameters = {}
+        if not no_merge:
+            new_parameters.update(getattr(existing_execution, 'parameters', {}))
+        new_parameters.update(spec_api.parameters)
 
         # Create object for the new execution
         action_ref = existing_execution.action['ref']
@@ -321,11 +308,11 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
             }
         }
 
-        if spec.tasks:
-            context['re-run']['tasks'] = spec.tasks
+        if spec_api.tasks:
+            context['re-run']['tasks'] = spec_api.tasks
 
-        if spec.reset:
-            context['re-run']['reset'] = spec.reset
+        if spec_api.reset:
+            context['re-run']['reset'] = spec_api.reset
 
         # Add trace to the new execution
         trace = trace_service.get_trace_db_by_action_execution(
@@ -334,11 +321,12 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
         if trace:
             context['trace_context'] = {'id_': str(trace.id)}
 
-        new_liveaction = LiveActionDB(action=action_ref,
-                                      context=context,
-                                      parameters=new_parameters)
+        new_liveaction_api = LiveActionCreateAPI(action=action_ref,
+                                                 context=context,
+                                                 parameters=new_parameters,
+                                                 user=spec_api.user)
 
-        return self._handle_schedule_execution(liveaction=new_liveaction)
+        return self._handle_schedule_execution(liveaction_api=new_liveaction_api)
 
 
 class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceController):
@@ -385,10 +373,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
-        if 'timestamp_lt' in kw:
+        if 'timestamp_lt' in kw or 'sort_desc' in kw:
             query_options = {'sort': ['-start_timestamp', 'action.ref']}
             kw['query_options'] = query_options
-        elif 'timestamp_gt' in kw:
+        elif 'timestamp_gt' in kw or 'sort_asc' in kw:
             query_options = {'sort': ['+start_timestamp', 'action.ref']}
             kw['query_options'] = query_options
 
@@ -415,9 +403,9 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         return self._get_one(id=id, exclude_fields=exclude_fields)
 
-    @jsexpose(body_cls=LiveActionAPI, status_code=http_client.CREATED)
-    def post(self, liveaction):
-        return self._handle_schedule_execution(liveaction=liveaction)
+    @jsexpose(body_cls=LiveActionCreateAPI, status_code=http_client.CREATED)
+    def post(self, liveaction_api):
+        return self._handle_schedule_execution(liveaction_api=liveaction_api)
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_STOP)
     @jsexpose(arg_types=[str])
@@ -471,7 +459,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
-        kw['limit'] = int(kw.get('limit', 100))
+
+        kw['limit'] = int(kw.get('limit', self.default_limit))
 
         LOG.debug('Retrieving all action executions with filters=%s', kw)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,

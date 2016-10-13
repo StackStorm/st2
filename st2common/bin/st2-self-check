@@ -1,0 +1,135 @@
+#!/bin/bash
+
+function usage() {
+  echo ""
+  echo "Usage: $0"
+  echo ""
+  echo "Options:"
+  echo "  -w  Run Windows tests"
+  echo ""
+  >&2
+}
+
+RUN_WINDOWS_TESTS=false
+
+while getopts "w" o
+do
+    case "${o}" in
+        w)
+            RUN_WINDOWS_TESTS=true
+            ;;
+        \?)
+            usage
+            exit 2
+            ;;
+        :)
+            usage
+            exit 2
+            ;;
+    esac
+done
+
+shift $(($OPTIND-1))
+
+## Script to install samples, tests, and run all workflows in tests pack.
+if [[ `id -u` != 0 ]]; then
+  echo "st2-self-check must be run as root"
+  exit 1
+fi
+
+ERRORS=0
+PACKS="tests examples"
+
+#Determine API HTTP Protocol
+PROTOCOL="http"
+ST2_CLI_CONFIG_FILE=`readlink -f ~/.st2/config`
+if [ ! -z ${ST2_API_URL+x} ]; then
+  if [[ ${ST2_API_URL} = https* ]]; then
+    PROTOCOL="https"
+  fi
+elif [ ! -z ${ST2_BASE_URL+x} ]; then
+  if [[ ${ST2_BASE_URL} = https* ]]; then
+    PROTOCOL="https"
+  fi
+elif [ -e "${ST2_CLI_CONFIG_FILE}" ]; then
+  if [ ! "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'https://(.+):9101'" ]; then
+    PROTOCOL="https"
+  elif [ ! "cat ${ST2_CLI_CONFIG_FILE} | grep -E 'base_url\s?=\s?https'" ]; then
+    PROTOCOL="https"
+  fi
+fi
+
+echo -n "Installing asserts,fixtures,tests"
+st2 run packs.install subtree=true repo_url=StackStorm/st2tests packs=asserts,fixtures,tests
+
+echo -n "Installing examples"
+cp -Rf /usr/share/doc/st2/examples /opt/stackstorm/packs/
+st2ctl reload
+
+# Retrieve test action list
+TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`
+
+# Run all the tests
+for TEST in $TEST_ACTION_LIST
+do
+    # If -w option is not set, skip Windows related tests
+    # because smbclient is not installed by default.
+    if [ ${RUN_WINDOWS_TESTS} = "false" ] && [ ${TEST} = "tests.test_windows_runners" ]; then
+        echo "Skipping ${TEST}..."
+        continue
+    fi
+
+    echo -n "Attempting Test ${TEST}..."
+    st2 run ${TEST} protocol=${PROTOCOL} token=${ST2_AUTH_TOKEN} | grep "status" | grep -q "succeeded"
+    if [ $? -ne 0 ]; then
+        echo -e "ERROR!"
+        ((ERRORS++))
+    else
+        echo "OK!"
+    fi
+done
+
+echo -n "Attempting Example examples.mistral_examples..."
+st2 run examples.mistral_examples | grep "status" | grep -q "succeeded"
+if [ $? -ne 0 ]; then
+    echo -e "ERROR!"
+    ((ERRORS++))
+else
+    echo "OK!"
+fi
+
+if [ $ERRORS -ne 0 ]; then
+    echo "SELF CHECK FAILED!"
+    echo "st2-self-check failed.  See above.  Also check the execution list for details."
+    echo "st2 execution list"
+else
+    echo "SELF CHECK SUCCEEDED!"
+    echo -e "st2-self-check succeeded."
+
+cat << EOF
+
+#############################################################
+###################################################   #######
+###############################################   /~\   #####
+############################################   _- \`~~~', ####
+##########################################  _-~       )  ####
+#######################################  _-~          |  ####
+####################################  _-~            ;  #####
+##########################  __---___-~              |   #####
+#######################   _~   ,,                  ;  \`,,  ##
+#####################  _-~    ;'                  |  ,'  ; ##
+###################  _~      '                    \`~'   ; ###
+############   __---;                                 ,' ####
+########   __~~  ___                                ,' ######
+#####  _-~~   -~~ _                               ,' ########
+##### \`-_         _                              ; ##########
+#######  ~~----~~~   ;                          ; ###########
+#########  /          ;                        ; ############
+#######  /             ;                      ; #############
+#####  /                \`                    ; ##############
+###  /                                      ; ###############
+#                                            ################
+
+EOF
+
+fi

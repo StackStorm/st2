@@ -86,4 +86,4 @@ class TriggerTypeSubTriggerCommand(resource.ResourceCommand):
             return
         instances = self.run(args, **kwargs)
         self.print_output(instances, table.MultiColumnTable,
-                          json=args.json)
+                          json=args.json, yaml=args.yaml)

@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    import simplejson as json
-except ImportError:
-    import json
-
 import yaml
 
-ALLOWED_EXTS = ['.json', '.yaml', '.yml']
-PARSER_FUNCS = {'.json': json.load, '.yml': yaml.safe_load, '.yaml': yaml.safe_load}
+__all__ = [
+    'ALLOWED_EXTS',
+    'PARSER_FUNCS'
+]
+
+ALLOWED_EXTS = ['.yaml', '.yml']
+PARSER_FUNCS = {'.yml': yaml.safe_load, '.yaml': yaml.safe_load}

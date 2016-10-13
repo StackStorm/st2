@@ -13,9 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 from st2common import log as logging
+from st2common.constants.triggers import CRON_TIMER_TRIGGER_REF
 from st2common.exceptions.sensors import TriggerTypeRegistrationException
 from st2common.exceptions.triggers import TriggerDoesNotExistException
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.trigger import (TriggerAPI, TriggerTypeAPI)
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import (Trigger, TriggerType)
@@ -24,6 +28,8 @@ __all__ = [
     'add_trigger_models',
 
     'get_trigger_db_by_ref',
+    'get_trigger_db_by_id',
+    'get_trigger_db_by_uid',
     'get_trigger_db_given_type_and_params',
     'get_trigger_type_db',
 
@@ -45,6 +51,36 @@ def get_trigger_db_given_type_and_params(type=None, parameters=None):
 
         trigger_db = trigger_dbs[0] if len(trigger_dbs) > 0 else None
 
+        # NOTE: This is a work-around which we might be able to remove once we upgrade
+        # pymongo and mongoengine
+        # Work around for cron-timer when in some scenarios finding an object fails when Python
+        # value types are unicode :/
+        is_cron_trigger = (type == CRON_TIMER_TRIGGER_REF)
+        has_parameters = bool(parameters)
+
+        if not trigger_db and six.PY2 and is_cron_trigger and has_parameters:
+            non_unicode_literal_parameters = {}
+            for key, value in six.iteritems(parameters):
+                key = key.encode('utf-8')
+
+                if isinstance(value, six.text_type):
+                    # We only encode unicode to str
+                    value = value.encode('utf-8')
+
+                non_unicode_literal_parameters[key] = value
+            parameters = non_unicode_literal_parameters
+
+            trigger_dbs = Trigger.query(type=type,
+                                        parameters=non_unicode_literal_parameters).no_cache()
+
+            # Note: We need to directly access the object, using len or accessing the query set
+            # twice won't work - there seems to bug a bug with cursor where accessing it twice
+            # will throw an exception
+            try:
+                trigger_db = trigger_dbs[0]
+            except IndexError:
+                trigger_db = None
+
         if not parameters and not trigger_db:
             # We need to do double query because some TriggeDB objects without
             # parameters have "parameters" attribute stored in the db and others
@@ -52,10 +88,46 @@ def get_trigger_db_given_type_and_params(type=None, parameters=None):
             trigger_db = Trigger.query(type=type, parameters=None).first()
 
         return trigger_db
-    except ValueError as e:
+    except StackStormDBObjectNotFoundError as e:
         LOG.debug('Database lookup for type="%s" parameters="%s" resulted ' +
                   'in exception : %s.', type, parameters, e, exc_info=True)
         return None
+
+
+def get_trigger_db_by_id(id):
+    """
+    Returns the trigger object from db given a trigger id.
+
+    :param ref: Reference to the trigger db object.
+    :type ref: ``str``
+
+    :rtype: ``object``
+    """
+    try:
+        return Trigger.get_by_id(id)
+    except StackStormDBObjectNotFoundError as e:
+        LOG.debug('Database lookup for id="%s" resulted in exception : %s.',
+                  id, e, exc_info=True)
+
+    return None
+
+
+def get_trigger_db_by_uid(uid):
+    """
+    Returns the trigger object from db given a trigger uid.
+
+    :param ref: Reference to the trigger db object.
+    :type ref: ``str``
+
+    :rtype: ``object``
+    """
+    try:
+        return Trigger.get_by_uid(uid)
+    except StackStormDBObjectNotFoundError as e:
+        LOG.debug('Database lookup for uid="%s" resulted in exception : %s.',
+                  uid, e, exc_info=True)
+
+    return None
 
 
 def get_trigger_db_by_ref(ref):
@@ -67,7 +139,13 @@ def get_trigger_db_by_ref(ref):
 
     :rtype trigger_type: ``object``
     """
-    return Trigger.get_by_ref(ref)
+    try:
+        return Trigger.get_by_ref(ref)
+    except StackStormDBObjectNotFoundError as e:
+        LOG.debug('Database lookup for ref="%s" resulted ' +
+                  'in exception : %s.', ref, e, exc_info=True)
+
+    return None
 
 
 def _get_trigger_db(trigger):
@@ -98,10 +176,11 @@ def get_trigger_type_db(ref):
     """
     try:
         return TriggerType.get_by_ref(ref)
-    except ValueError as e:
+    except StackStormDBObjectNotFoundError as e:
         LOG.debug('Database lookup for ref="%s" resulted ' +
                   'in exception : %s.', ref, e, exc_info=True)
-        return None
+
+    return None
 
 
 def _get_trigger_dict_given_rule(rule):
@@ -314,7 +393,8 @@ def _validate_trigger_type(trigger_type):
     required_fields = ['name']
     for field in required_fields:
         if field not in trigger_type:
-            raise TriggerTypeRegistrationException('Invalid trigger type. Missing field %s' % field)
+            raise TriggerTypeRegistrationException('Invalid trigger type. Missing field "%s"' %
+                                                   (field))
 
 
 def _create_trigger(trigger_type):

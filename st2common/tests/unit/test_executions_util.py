@@ -26,6 +26,7 @@ from st2common.persistence.execution import ActionExecution
 from st2common.transport.publishers import PoolPublisher
 import st2common.services.executions as executions_util
 import st2common.util.action_db as action_utils
+import st2common.util.date as date_utils
 
 from st2tests.base import CleanDbTestCase
 from st2tests.fixturesloader import FixturesLoader
@@ -66,7 +67,9 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
 
     def test_execution_creation_manual_action_run(self):
         liveaction = self.MODELS['liveactions']['liveaction1.yaml']
+        pre_creation_timestamp = date_utils.get_datetime_utc_now()
         executions_util.create_execution_object(liveaction)
+        post_creation_timestamp = date_utils.get_datetime_utc_now()
         execution = self._get_action_execution(liveaction__id=str(liveaction.id),
                                                raise_exception=True)
         self.assertDictEqual(execution.trigger, {})
@@ -79,6 +82,10 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         self.assertDictEqual(execution.runner, vars(RunnerTypeAPI.from_model(runner)))
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEquals(execution.liveaction['id'], str(liveaction.id))
+        self.assertEquals(len(execution.log), 1)
+        self.assertEquals(execution.log[0]['status'], liveaction.status)
+        self.assertGreater(execution.log[0]['timestamp'], pre_creation_timestamp)
+        self.assertLess(execution.log[0]['timestamp'], post_creation_timestamp)
 
     def test_execution_creation_action_triggered_by_rule(self):
         # Wait for the action execution to complete and then confirm outcome.
@@ -111,6 +118,15 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEquals(execution.liveaction['id'], str(liveaction.id))
 
+    def test_execution_creation_with_web_url(self):
+        liveaction = self.MODELS['liveactions']['liveaction1.yaml']
+        executions_util.create_execution_object(liveaction)
+        execution = self._get_action_execution(liveaction__id=str(liveaction.id),
+                                               raise_exception=True)
+        self.assertTrue(execution.web_url is not None)
+        execution_id = str(execution.id)
+        self.assertTrue(('history/%s/general' % execution_id) in execution.web_url)
+
     def test_execution_creation_chains(self):
         childliveaction = self.MODELS['liveactions']['childliveaction.yaml']
         child_exec = executions_util.create_execution_object(childliveaction)
@@ -118,6 +134,20 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         parent_execution = ActionExecution.get_by_id(parent_execution_id)
         child_execs = parent_execution.children
         self.assertTrue(str(child_exec.id) in child_execs)
+
+    def test_execution_update(self):
+        liveaction = self.MODELS['liveactions']['liveaction1.yaml']
+        executions_util.create_execution_object(liveaction)
+        liveaction.status = 'running'
+        pre_update_timestamp = date_utils.get_datetime_utc_now()
+        executions_util.update_execution(liveaction)
+        post_update_timestamp = date_utils.get_datetime_utc_now()
+        execution = self._get_action_execution(liveaction__id=str(liveaction.id),
+                                               raise_exception=True)
+        self.assertEquals(len(execution.log), 2)
+        self.assertEquals(execution.log[1]['status'], liveaction.status)
+        self.assertGreater(execution.log[1]['timestamp'], pre_update_timestamp)
+        self.assertLess(execution.log[1]['timestamp'], post_update_timestamp)
 
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
     def test_abandon_executions(self):

@@ -21,6 +21,7 @@ from functools import wraps
 import six
 
 from six.moves import urllib
+
 from st2client.utils import httpclient
 
 
@@ -32,6 +33,9 @@ def add_auth_token_to_kwargs_from_env(func):
     def decorate(*args, **kwargs):
         if not kwargs.get('token') and os.environ.get('ST2_AUTH_TOKEN', None):
             kwargs['token'] = os.environ.get('ST2_AUTH_TOKEN')
+        if not kwargs.get('api_key') and os.environ.get('ST2_API_KEY', None):
+            kwargs['api_key'] = os.environ.get('ST2_API_KEY')
+
         return func(*args, **kwargs)
     return decorate
 
@@ -208,16 +212,21 @@ class ResourceManager(object):
         property_name: Name of the property
         self_deserialize: #Implies use the deserialize method implemented by this resource.
         """
-        token = None
-        if kwargs:
-            token = kwargs.pop('token', None)
+        token = kwargs.pop('token', None)
+        api_key = kwargs.pop('api_key', None)
 
+        if kwargs:
             url = '/%s/%s/%s/?%s' % (self.resource.get_url_path_name(), id_, property_name,
                                      urllib.parse.urlencode(kwargs))
         else:
             url = '/%s/%s/%s/' % (self.resource.get_url_path_name(), id_, property_name)
 
-        response = self.client.get(url, token=token) if token else self.client.get(url)
+        if token:
+            response = self.client.get(url, token=token)
+        elif api_key:
+            response = self.client.get(url, api_key=api_key)
+        else:
+            response = self.client.get(url)
 
         if response.status_code == 404:
             return None
@@ -239,14 +248,26 @@ class ResourceManager(object):
             raise Exception('Query parameter is not provided.')
         if 'limit' in kwargs and kwargs.get('limit') <= 0:
             kwargs.pop('limit')
+
         token = kwargs.get('token', None)
+        api_key = kwargs.get('api_key', None)
         params = kwargs.get('params', {})
+
         for k, v in six.iteritems(kwargs):
-            if k != 'token':
+            # Note: That's a special case to support api_key and token kwargs
+            if k not in ['token', 'api_key']:
                 params[k] = v
+
         url = '/%s/?%s' % (self.resource.get_url_path_name(),
                            urllib.parse.urlencode(params))
-        response = self.client.get(url, token=token) if token else self.client.get(url)
+
+        if token:
+            response = self.client.get(url, token=token)
+        elif api_key:
+            response = self.client.get(url, api_key=api_key)
+        else:
+            response = self.client.get(url)
+
         if response.status_code == 404:
             return []
         if response.status_code != 200:
@@ -317,6 +338,19 @@ class ActionAliasResourceManager(ResourceManager):
         self.debug = debug
         self.client = httpclient.HTTPClient(root=endpoint, cacert=cacert, debug=debug)
 
+    @add_auth_token_to_kwargs_from_env
+    def match(self, instance, **kwargs):
+        url = '/%s/match' % self.resource.get_url_path_name()
+        response = self.client.post(url, instance.serialize(), **kwargs)
+        if response.status_code != 201:
+            self.handle_error(response)
+        matches = response.json()
+        if len(matches) > 0:
+            return (self.resource.deserialize(matches[0]['actionalias']),
+                    matches[0]['representation'])
+        else:
+            return matches
+
 
 class LiveActionResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
@@ -347,7 +381,7 @@ class TriggerInstanceResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def re_emit(self, trigger_instance_id, **kwargs):
         url = '/%s/%s/re_emit' % (self.resource.get_url_path_name(), trigger_instance_id)
-        response = self.client.post(url, None)
+        response = self.client.post(url, None, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
         return response.json()

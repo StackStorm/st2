@@ -23,6 +23,7 @@ from six.moves import http_client
 from webob import exc
 import pecan
 import traceback
+
 from oslo_config import cfg
 
 from st2common.constants.pack import DEFAULT_PACK_NAME
@@ -35,9 +36,7 @@ from st2common import log as logging
 
 __all__ = [
     'BaseAPI',
-
     'APIUIDMixin',
-
     'jsexpose'
 ]
 
@@ -83,7 +82,8 @@ class BaseAPI(object):
                                        cls=util_schema.CustomValidator, use_default=True,
                                        allow_default_none=True)
 
-        return self.__class__(**cleaned)
+        # Note: We use type() instead of self.__class__ since self.__class__ confuses pylint
+        return type(self)(**cleaned)
 
     @classmethod
     def _from_model(cls, model, mask_secrets=False):
@@ -195,7 +195,8 @@ def get_controller_args_for_types(func, arg_types, args, kwargs):
     return result_args, result_kwargs
 
 
-def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='application/json'):
+def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='application/json',
+             method=None):
     """
     :param arg_types: A list of types for the function arguments (e.g. [str, str, int, bool]).
     :type arg_types: ``list``
@@ -231,6 +232,34 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                 result = cast_func(value)
                 return result
 
+            if body_cls:
+                if pecan.request.body:
+                    data = pecan.request.json
+
+                    obj = body_cls(**data)
+                    try:
+                        obj = obj.validate()
+                    except (jsonschema.ValidationError, ValueError) as e:
+                        raise exc.HTTPBadRequest(detail=e.message,
+                                                 comment=traceback.format_exc())
+                    except Exception as e:
+                        raise exc.HTTPInternalServerError(detail=e.message,
+                                                          comment=traceback.format_exc())
+
+                    # Set default pack if one is not provided for resource create
+                    if function_name == 'post' and not hasattr(obj, 'pack'):
+                        extra = {
+                            'resource_api': obj,
+                            'default_pack_name': DEFAULT_PACK_NAME
+                        }
+                        LOG.debug('Pack not provided in the body, setting a default pack name',
+                                  extra=extra)
+                        setattr(obj, 'pack', DEFAULT_PACK_NAME)
+                else:
+                    obj = None
+
+                more.append(obj)
+
             if arg_types:
                 # Cast and transform arguments based on the provided arg_types specification
                 result_args, result_kwargs = get_controller_args_for_types(func=f,
@@ -239,34 +268,6 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                                                                            kwargs=kwargs)
                 more = more + result_args
                 kwargs.update(result_kwargs)
-
-            if body_cls:
-                if pecan.request.body:
-                    data = pecan.request.json
-                else:
-                    data = {}
-
-                obj = body_cls(**data)
-                try:
-                    obj = obj.validate()
-                except (jsonschema.ValidationError, ValueError) as e:
-                    raise exc.HTTPBadRequest(detail=e.message,
-                                             comment=traceback.format_exc())
-                except Exception as e:
-                    raise exc.HTTPInternalServerError(detail=e.message,
-                                                      comment=traceback.format_exc())
-
-                # Set default pack if one is not provided for resource create
-                if function_name == 'post' and not hasattr(obj, 'pack'):
-                    extra = {
-                        'resource_api': obj,
-                        'default_pack_name': DEFAULT_PACK_NAME
-                    }
-                    LOG.debug('Pack not provided in the body, setting a default pack name',
-                              extra=extra)
-                    setattr(obj, 'pack', DEFAULT_PACK_NAME)
-
-                more.append(obj)
 
             args = tuple(more) + tuple(args)
 
