@@ -8,3 +8,4 @@ jsonpath-rw
 requests
 six
 sseclient
+python-editor

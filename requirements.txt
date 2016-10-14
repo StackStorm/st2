@@ -26,6 +26,7 @@ prettytable
 pyinotify<=0.10,>=0.9.5
 pymongo==3.2.2
 python-dateutil
+python-editor
 python-gnupg<0.4,>=0.3.7
 python-json-logger
 python-keyczar==0.715

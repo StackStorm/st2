@@ -13,15 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models.core import *         # noqa
-from st2client.models.auth import *       # noqa
-from st2client.models.action import *       # noqa
-from st2client.models.action_alias import *  # noqa
-from st2client.models.aliasexecution import *  # noqa
-from st2client.models.config import *  # noqa
-from st2client.models.keyvalue import *    # noqa
-from st2client.models.pack import *          # noqa
-from st2client.models.policy import *       # noqa
-from st2client.models.reactor import *      # noqa
-from st2client.models.trace import *      # noqa
-from st2client.models.webhook import *      # noqa
+from st2client.models import core
+
+
+class Config(core.Resource):
+    _display_name = 'Config'
+    _plural = 'Configs'
+    _plural_display_name = 'Configs'
+
+
+class ConfigSchema(core.Resource):
+    _display_name = 'Config Schema'
+    _plural = 'ConfigSchema'
+    _plural_display_name = 'Config Schemas'
+    _url_path = 'config_schemas'
+    _repr_attributes = ['id', 'pack', 'attributes']
