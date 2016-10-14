@@ -13,9 +13,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
+
+from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.pack import PackDB
 from st2common.persistence.pack import Pack
+from st2common.services import packs as pack_service
+from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
 from tests import FunctionalTest
+
+PACK_INDEX = {
+    "test": {
+        "version": "0.4",
+        "name": "test",
+        "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test",
+        "author": "st2-dev",
+        "keywords": ["some", "search", "another", "terms"],
+        "email": "info@stackstorm.com",
+        "description": "st2 pack to test package management pipeline"
+    },
+    "test2": {
+        "version": "0.5",
+        "name": "test2",
+        "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test2",
+        "author": "stanley",
+        "keywords": ["some", "special", "terms"],
+        "email": "info@stackstorm.com",
+        "description": "another st2 pack to test package management pipeline"
+    }
+}
 
 
 class PacksControllerTestCase(FunctionalTest):
@@ -50,3 +76,52 @@ class PacksControllerTestCase(FunctionalTest):
     def test_get_one_doesnt_exist(self):
         resp = self.app.get('/v1/packs/doesntexistfoo', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
+
+    @mock.patch.object(ActionExecutionsControllerMixin, '_handle_schedule_execution')
+    def test_install(self, _handle_schedule_execution):
+        _handle_schedule_execution.return_value = ActionExecutionAPI(id='123')
+        payload = {'packs': ['some']}
+
+        resp = self.app.post_json('/v1/packs/install', payload)
+
+        self.assertEqual(resp.status_int, 202)
+        self.assertEqual(resp.json, {'execution_id': '123'})
+
+    @mock.patch.object(ActionExecutionsControllerMixin, '_handle_schedule_execution')
+    def test_uninstall(self, _handle_schedule_execution):
+        _handle_schedule_execution.return_value = ActionExecutionAPI(id='123')
+        payload = {'packs': ['some']}
+
+        resp = self.app.post_json('/v1/packs/uninstall', payload)
+
+        self.assertEqual(resp.status_int, 202)
+        self.assertEqual(resp.json, {'execution_id': '123'})
+
+    @mock.patch.object(pack_service, 'fetch_pack_index', mock.MagicMock(return_value=PACK_INDEX))
+    def test_search(self):
+        resp = self.app.post_json('/v1/packs/search', {'query': 'test'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test'], PACK_INDEX['test2']])
+
+        resp = self.app.post_json('/v1/packs/search', {'query': 'stanley'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test2']])
+
+        resp = self.app.post_json('/v1/packs/search', {'query': 'special'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test2']])
+
+    @mock.patch.object(pack_service, 'fetch_pack_index', mock.MagicMock(return_value=PACK_INDEX))
+    def test_show(self):
+        resp = self.app.post_json('/v1/packs/search', {'pack': 'test'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, PACK_INDEX['test'])
+
+        resp = self.app.post_json('/v1/packs/search', {'pack': 'test2'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, PACK_INDEX['test2'])
