@@ -21,6 +21,8 @@ In development
   improvement)
 * Adding ability to pass complex array types via CLI by first trying to
   seralize the array as JSON and then falling back to comma seperated array.
+* Allow user scoped variables to be used in action execution run from CLI or UI.
+  For example, you can now use ``st2 run core.local date='{{user.date_cmd}}'``. (improvement)
 
 2.0.1 - September 30, 2016
 --------------------------
@@ -217,6 +219,7 @@ In development
   When this flag is provided, all triggers contained within a pack triggers directory are
   registered, consistent with the behavior of sensors, actions, etc. This feature allows users
   to register trigger types outside the scope of the sensors. (new-feature) [Cody A. Ray]
+
 
 1.4.0 - April 18, 2016
 ----------------------

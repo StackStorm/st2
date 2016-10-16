@@ -1,0 +1,14 @@
+---
+description: Awesome action-1
+enabled: true
+entry_point: ''
+name: action_user_default
+pack: wolfpack
+parameters:
+  actionstr:
+    default: '{{st2kv.user.foo}}'
+    type: string
+  user:
+    default: 'unholy mess'
+    type: string
+runner_type: test-runner-1

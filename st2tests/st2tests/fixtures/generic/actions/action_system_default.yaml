@@ -11,4 +11,7 @@ parameters:
   actionstr:
     default: '{{st2kv.system.actionstr}}'
     type: string
+  system:
+    default: 'this will break things'
+    type: string
 runner_type: test-runner-1
