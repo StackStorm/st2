@@ -1,0 +1,10 @@
+---
+name : test2
+description : another st2 pack to test package management pipeline
+keywords:
+  - some
+  - special
+  - terms
+version : "0.5"
+author : stanley
+email : info@stackstorm.com
