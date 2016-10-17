@@ -26,7 +26,8 @@ LICENSE_CURL_TEST=`curl --output /dev/null --silent --fail ${BWC_LICENSE_CHECK_U
 
 if [ $? -ne 0 ]; then
   echo -e "License is not Valid"
-   exit 2
+  exit 2
 else
   echo -e "License is Valid"
+  exit 0
 fi
