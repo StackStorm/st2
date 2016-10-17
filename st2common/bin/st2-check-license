@@ -15,9 +15,9 @@
 # limitations under the License.
 
 if [[ $# -eq 0 ]] ; then
-   echo 'No License Key Entered'
-   echo 'Enter License Key'
-   exit 0
+  echo "No license key entered"
+  echo "Usage: $0 <license key to check>"
+  exit 1
 fi
 
 LICENSE=$@
@@ -25,8 +25,8 @@ BWC_LICENSE_CHECK_URL="https://${LICENSE}:@packagecloud.io/install/repositories/
 LICENSE_CURL_TEST=`curl --output /dev/null --silent --fail ${BWC_LICENSE_CHECK_URL}`
 
 if [ $? -ne 0 ]; then
-   echo -e "License is not Valid"
+  echo -e "License is not Valid"
    exit 2
 else
-   echo -e "License is Valid"
+  echo -e "License is Valid"
 fi
