@@ -18,7 +18,7 @@ from random import randint
 from st2actions.runners.pythonrunner import Action
 
 
-class pause(Action):
+class PauseAction(Action):
     def run(self, max_pause, random):
         if random:
             delay = randint(1, int(max_pause))
