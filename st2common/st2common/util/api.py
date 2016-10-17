@@ -16,6 +16,7 @@
 import re
 
 import pecan
+import mongoengine
 from oslo_config import cfg
 from webob import exc as webob_exc
 
@@ -29,8 +30,8 @@ __all__ = [
     'get_mistral_api_url',
 
     'get_requester',
-    'get_exception_for_type_error'
-
+    'get_exception_for_type_error',
+    'get_exception_for_uncaught_api_error'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -140,3 +141,17 @@ def get_exception_for_type_error(func, exc):
         result = exc
 
     return result
+
+
+def get_exception_for_uncaught_api_error(func, exc):
+    """
+    Utility function which tries to map an uncaught exception throwed inside an
+    API to a more user-friendly exception which is returned instead of returning
+    internal server error.
+    """
+
+    if isinstance(exc, mongoengine.ValidationError):
+        result = webob_exc.HTTPBadRequest(detail=exc.message)
+        return result
+
+    return exc
