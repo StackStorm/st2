@@ -20,7 +20,12 @@ In development
   parameter name needs to be adjusted otherwise action registration will fail. (bug fix,
   improvement)
 * Adding ability to pass complex array types via CLI by first trying to
-  seralize the array as JSON and then falling back to comma seperated array.
+  seralize the array as JSON and then falling back to comma separated array.
+* Add new ``core.pause`` action. This action behaves like sleep and can be used inside the action
+  chain or Mistral workflows where waiting / sleeping is desired before proceeding with a next
+  task. (new feature) #2933
+
+  Contribution by Paul Mulvihill.
 
 2.0.1 - September 30, 2016
 --------------------------
