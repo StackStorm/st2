@@ -51,6 +51,7 @@ setup(
         'bin/st2ctl',
         'bin/st2-generate-symmetric-crypto-key',
         'bin/migrations/v1.5/st2-migrate-datastore-to-include-scope-secret.py',
-        'bin/st2-self-check'
+        'bin/st2-self-check',
+        'bin/st2-check-license'
     ]
 )
