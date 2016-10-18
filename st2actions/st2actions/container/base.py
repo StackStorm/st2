@@ -32,7 +32,7 @@ from st2common.util.action_db import (update_liveaction_status, get_liveaction_b
 from st2common.util import param as param_utils
 
 from st2actions.container.service import RunnerContainerService
-from st2actions.runners import get_runner, AsyncActionRunner
+from st2common.runners import get_runner, AsyncActionRunner
 
 LOG = logging.getLogger(__name__)
 

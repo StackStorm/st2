@@ -32,6 +32,7 @@ from st2common.util import schema as util_schema
 from st2common.util.debugging import is_enabled as is_debugging_enabled
 from st2common.util.jsonify import json_encode
 from st2common.util.api import get_exception_for_type_error
+from st2common.util.api import get_exception_for_uncaught_api_error
 from st2common import log as logging
 
 __all__ = [
@@ -283,6 +284,9 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                 result = f(*args, **kwargs)
             except TypeError as e:
                 e = get_exception_for_type_error(func=f, exc=e)
+                raise e
+            except Exception as e:
+                e = get_exception_for_uncaught_api_error(func=f, exc=e)
                 raise e
 
             if status_code:

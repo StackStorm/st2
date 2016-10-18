@@ -1,6 +1,6 @@
 ---
-    name: "test-runner"
-    description: "A test runner."
+    name: test-runner
+    description: A test runner.
     enabled: true
     runner_parameters: {}
-    runner_module: "st2tests.mocks.runner"
+    runner_module: runner

@@ -1,7 +1,7 @@
 import math
 
 
-from st2actions.runners.pythonrunner import Action
+from st2common.runners.base_action import Action
 
 
 class PascalRowAction(Action):

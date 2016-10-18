@@ -51,12 +51,14 @@ def register_opts():
         cfg.BoolOpt('triggers', default=False, help='Register triggers.'),
         cfg.BoolOpt('sensors', default=False, help='Register sensors.'),
         cfg.BoolOpt('actions', default=False, help='Register actions.'),
+        cfg.BoolOpt('runners', default=False, help='Register runners.'),
         cfg.BoolOpt('rules', default=False, help='Register rules.'),
         cfg.BoolOpt('aliases', default=False, help='Register aliases.'),
         cfg.BoolOpt('policies', default=False, help='Register policies.'),
         cfg.BoolOpt('configs', default=False, help='Register and load pack configs.'),
 
         cfg.StrOpt('pack', default=None, help='Directory to the pack to register content from.'),
+        cfg.StrOpt('runner-dir', default=None, help='Directory to load runners from.'),
         cfg.BoolOpt('setup-virtualenvs', default=False, help=('Setup Python virtual environments '
                                                               'all the Python runner actions.')),
 
@@ -83,7 +85,6 @@ def setup_virtualenvs():
     LOG.info('=========================================================')
     LOG.info('########### Setting up virtual environments #############')
     LOG.info('=========================================================')
-
     pack_dir = cfg.CONF.register.pack
     fail_on_failure = not cfg.CONF.register.no_fail_on_failure
 
@@ -164,6 +165,34 @@ def register_sensors():
     LOG.info('Registered %s sensors.' % (registered_count))
 
 
+def register_runners():
+    # Register runners
+    runner_dir = cfg.CONF.register.runner_dir
+    if runner_dir:
+        runner_dir = [runner_dir]
+    registered_count = 0
+    fail_on_failure = cfg.CONF.register.fail_on_failure
+
+    # 1. Register runner types
+    try:
+        LOG.info('=========================================================')
+        LOG.info('############## Registering runners ######################')
+        LOG.info('=========================================================')
+        registered_count = runners_registrar.register_runners(runner_dirs=runner_dir,
+                                                              fail_on_failure=fail_on_failure,
+                                                              experimental=False)
+    except Exception as error:
+        exc_info = not fail_on_failure
+
+        # TODO: Narrow exception window
+        LOG.warning('Failed to register runners: %s', error, exc_info=exc_info)
+
+        if fail_on_failure:
+            raise error
+
+    LOG.info('Registered %s runners.', registered_count)
+
+
 def register_actions():
     # Register runnertypes and actions. The order is important because actions require action
     # types to be present in the system.
@@ -172,19 +201,10 @@ def register_actions():
 
     registered_count = 0
 
-    # 1. Register runner types
     try:
         LOG.info('=========================================================')
         LOG.info('############## Registering actions ######################')
         LOG.info('=========================================================')
-        runners_registrar.register_runner_types(experimental=cfg.CONF.experimental)
-    except Exception as e:
-        LOG.warning('Failed to register runner types: %s', e, exc_info=True)
-        LOG.warning('Not registering stock runners .')
-        return
-
-    # 2. Register actions
-    try:
         registered_count = actions_registrar.register_actions(pack_dir=pack_dir,
                                                               fail_on_failure=fail_on_failure)
     except Exception as e:
@@ -310,6 +330,7 @@ def register_content():
     if register_all:
         register_triggers()
         register_sensors()
+        register_runners()
         register_actions()
         register_rules()
         register_aliases()
@@ -322,7 +343,15 @@ def register_content():
     if cfg.CONF.register.sensors and not register_all:
         register_sensors()
 
+    if cfg.CONF.register.runners and not register_all:
+        register_runners()
+
     if cfg.CONF.register.actions and not register_all:
+        # If --register-runners is passed, registering runners again would be duplicate.
+        # If it's not passed, we still want to register runners. Otherwise, actions will complain
+        # about runners not being registered.
+        if not cfg.CONF.register.runners:
+            register_runners()
         register_actions()
 
     if cfg.CONF.register.rules and not register_all:

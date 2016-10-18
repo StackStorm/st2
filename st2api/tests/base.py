@@ -66,7 +66,7 @@ class FunctionalTest(DbTestCase):
 
         # TODO(manas) : register action types here for now. RunnerType registration can be moved
         # to posting to /runnertypes but that implies implementing POST.
-        runners_registrar.register_runner_types()
+        runners_registrar.register_runners()
 
         cls.app = load_test_app(config=cfg_dict)
 

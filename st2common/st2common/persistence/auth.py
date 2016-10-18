@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.exceptions.auth import TokenNotFoundError, ApiKeyNotFoundError
+from st2common.exceptions.auth import (TokenNotFoundError, ApiKeyNotFoundError,
+                                       UserNotFoundError, AmbiguousUserError,
+                                       NoNicknameOriginProvidedError)
 from st2common.models.db import MongoDBAccess
 from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
 from st2common.persistence.base import Access
@@ -26,6 +28,20 @@ class User(Access):
     @classmethod
     def get(cls, username):
         return cls.get_by_name(username)
+
+    @classmethod
+    def get_by_nickname(cls, nickname, origin):
+        if not origin:
+            raise NoNicknameOriginProvidedError()
+
+        result = cls.query(**{('nicknames__%s' % origin): nickname})
+
+        if not result.first():
+            raise UserNotFoundError()
+        if result.count() > 1:
+            raise AmbiguousUserError()
+
+        return result.first()
 
     @classmethod
     def _get_impl(cls):

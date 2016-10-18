@@ -1,0 +1,18 @@
+---
+  name: "pause"
+  runner_type: "run-python"
+  description: "Action to pause current thread of workflow/sub-workflow."
+  enabled: true
+  entry_point: "pause.py"
+  parameters:
+    max_pause:
+      type: "integer"
+      description: "Maximum length of time to pause (Seconds)"
+      required: true
+      position: 0
+    random:
+      type: "boolean"
+      description: "Randomize pause for current flow/sub-flow to a max of max_pause. "
+      required: false
+      default: false
+      position: 1

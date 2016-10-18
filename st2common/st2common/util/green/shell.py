@@ -21,6 +21,7 @@ import os
 
 import six
 import eventlet
+from st2common import log as logging
 from eventlet.green import subprocess
 
 __all__ = [
@@ -28,6 +29,8 @@ __all__ = [
 ]
 
 TIMEOUT_EXIT_CODE = -9
+
+LOG = logging.getLogger(__name__)
 
 
 def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False,
@@ -70,13 +73,16 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
 
     :rtype: ``tuple`` (exit_code, stdout, stderr, timed_out)
     """
+    LOG.debug("Entering run_command.")
     assert isinstance(cmd, (list, tuple) + six.string_types)
 
+    LOG.debug("Setting env if not set.")
     if not env:
         env = os.environ.copy()
 
     # Note: We are using eventlet friendly implementation of subprocess
     # which uses GreenPipe so it doesn't block
+    LOG.debug("Creating subprocess.")
     process = subprocess.Popen(args=cmd, stdin=stdin, stdout=stdout, stderr=stderr,
                                env=env, cwd=cwd, shell=shell, preexec_fn=preexec_func)
 
@@ -84,25 +90,34 @@ def run_command(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         global timed_out
 
         try:
+            LOG.debug("Starting process wait.")
             process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             # Command has timed out, kill the process and propagate the error.
             # Note: We explicitly set the returncode to indicate the timeout.
+            LOG.debug("Timeout.")
             process.returncode = TIMEOUT_EXIT_CODE
 
             if kill_func:
+                LOG.debug("Kill_func.")
                 kill_func(process=process)
             else:
+                LOG.debug("Kill process.")
                 process.kill()
 
+    LOG.debug("Setting up process and callback.")
     timeout_thread = eventlet.spawn(on_timeout_expired, timeout)
+    LOG.debug("Attaching to process.")
     stdout, stderr = process.communicate()
     timeout_thread.cancel()
     exit_code = process.returncode
 
     if exit_code == TIMEOUT_EXIT_CODE:
+        LOG.debug("Timeout.")
         timed_out = True
     else:
+        LOG.debug("No timeout.")
         timed_out = False
 
+    LOG.debug("Returning.")
     return (exit_code, stdout, stderr, timed_out)

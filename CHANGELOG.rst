@@ -20,7 +20,18 @@ In development
   parameter name needs to be adjusted otherwise action registration will fail. (bug fix,
   improvement)
 * Adding ability to pass complex array types via CLI by first trying to
-  seralize the array as JSON and then falling back to comma seperated array.
+  seralize the array as JSON and then falling back to comma separated array.
+* Add new ``core.pause`` action. This action behaves like sleep and can be used inside the action
+  chain or Mistral workflows where waiting / sleeping is desired before proceeding with a next
+  task. (new feature) #2933
+
+  Contribution by Paul Mulvihill.
+* Improve API exception handling and make sure 400 status code is returned instead of 500 on
+  mongoengine field validation error. (improvement)
+* Allow user to supply multiple resource ids using ``?id`` query parameter when filtering
+  "get all" API endpoint result set (e.g. `?id=1,2,3,4`). This allows for a better client and
+  servers performance when user is polling and interested in multiple resources such as polling on
+  multiple action executions.(improvement)
 
 2.0.1 - September 30, 2016
 --------------------------

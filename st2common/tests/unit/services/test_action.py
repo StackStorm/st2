@@ -41,7 +41,7 @@ RUNNER = {
         'cmd': {'type': 'string'},
         'sudo': {'type': 'boolean', 'default': False}
     },
-    'runner_module': 'st2actions.runners.remoterunner'
+    'runner_module': 'remoterunner'
 }
 
 RUNNER_ACTION_CHAIN = {
@@ -50,7 +50,7 @@ RUNNER_ACTION_CHAIN = {
     'enabled': True,
     'runner_parameters': {
     },
-    'runner_module': 'st2actions.runners.remoterunner'
+    'runner_module': 'remoterunner'
 }
 
 ACTION = {
