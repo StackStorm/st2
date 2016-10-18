@@ -19,6 +19,7 @@ import mock
 import os
 import shutil
 import tempfile
+import hashlib
 
 from git.repo import Repo
 from st2common.services import packs as pack_service
@@ -77,10 +78,12 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_download(self):
         action = self.get_action_instance()
         result = action.run(packs=['test'], abs_repo_base=self.repo_base)
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+
 
         self.assertEqual(result, {'test': 'Success.'})
         self.clone_from.assert_called_once_with(PACK_INDEX['test']['repo_url'],
-                                           os.path.join(os.path.expanduser('~'), 'test'),
+                                           os.path.join(os.path.expanduser('~'), temp_dir),
                                            branch='master')
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test/pack.yaml')))
 
@@ -96,13 +99,17 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_download_multiple_packs(self):
         action = self.get_action_instance()
         result = action.run(packs=['test', 'test2'], abs_repo_base=self.repo_base)
+        temp_dirs = [
+            hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest(),
+            hashlib.md5(PACK_INDEX['test2']['repo_url']).hexdigest()
+        ]
 
         self.assertEqual(result, {'test': 'Success.', 'test2': 'Success.'})
         self.clone_from.assert_any_call(PACK_INDEX['test']['repo_url'],
-                                        os.path.join(os.path.expanduser('~'), 'test'),
+                                        os.path.join(os.path.expanduser('~'), temp_dirs[0]),
                                         branch='master')
         self.clone_from.assert_any_call(PACK_INDEX['test2']['repo_url'],
-                                        os.path.join(os.path.expanduser('~'), 'test2'),
+                                        os.path.join(os.path.expanduser('~'), temp_dirs[1]),
                                         branch='master')
         self.assertEqual(self.clone_from.call_count, 2)
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test/pack.yaml')))
