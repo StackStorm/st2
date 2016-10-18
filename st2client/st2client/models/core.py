@@ -462,10 +462,19 @@ class StreamManager(object):
         self.debug = debug
         self.cacert = cacert
 
-    def listen(self, events):
+    @add_auth_token_to_kwargs_from_env
+    def listen(self, events, **kwargs):
+        url = self._url
+
+        if 'token' in kwargs:
+            url += '?x-auth-token=%s' % kwargs.get('token')
+
+        if 'api_key' in kwargs:
+            url += '?st2-api-key=%s' % kwargs.get('api_key')
+
         if isinstance(events, six.string_types):
             events = [events]
 
-        for message in SSEClient(self._url):
+        for message in SSEClient(url):
             if message.event in events:
                 yield json.loads(message.data)

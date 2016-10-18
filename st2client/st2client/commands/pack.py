@@ -86,6 +86,7 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
         self._add_common_options()
 
+    @resource.add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
         if not instance:
@@ -98,7 +99,8 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
         execution = None
 
         with term.TaskIndicator() as indicator:
-            for event in stream_mgr.listen(['st2.execution__create', 'st2.execution__update']):
+            events = ['st2.execution__create', 'st2.execution__update']
+            for event in stream_mgr.listen(events, **kwargs):
                 execution = LiveAction(**event)
 
                 if execution.id == parent_id \
