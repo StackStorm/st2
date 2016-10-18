@@ -71,9 +71,10 @@ class DownloadGitRepoAction(Action):
         if not branch:
             branch = 'master'
 
-        # Shallow clone the repo to avoid getting all the metadata. We only need HEAD of a
-        # specific branch so save some download time.
-        Repo.clone_from(repo_url, abs_local_path, branch=branch, depth=1)
+        # Clone the repo from git; we don't use shallow copying
+        # because we want the user to work with the repo in the
+        # future.
+        Repo.clone_from(repo_url, abs_local_path, branch=branch)
         return abs_local_path
 
     def _move_pack(self, abs_repo_base, pack_name, abs_local_path):
