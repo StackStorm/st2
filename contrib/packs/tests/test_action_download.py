@@ -81,7 +81,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.assertEqual(result, {'test': 'Success.'})
         self.clone_from.assert_called_once_with(PACK_INDEX['test']['repo_url'],
                                            os.path.join(os.path.expanduser('~'), 'test'),
-                                           branch='master', depth=1)
+                                           branch='master')
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test/pack.yaml')))
 
     def test_run_pack_download_existing_pack(self):
@@ -100,10 +100,10 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.assertEqual(result, {'test': 'Success.', 'test2': 'Success.'})
         self.clone_from.assert_any_call(PACK_INDEX['test']['repo_url'],
                                         os.path.join(os.path.expanduser('~'), 'test'),
-                                        branch='master', depth=1)
+                                        branch='master')
         self.clone_from.assert_any_call(PACK_INDEX['test2']['repo_url'],
                                         os.path.join(os.path.expanduser('~'), 'test2'),
-                                        branch='master', depth=1)
+                                        branch='master')
         self.assertEqual(self.clone_from.call_count, 2)
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test/pack.yaml')))
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test2/pack.yaml')))
