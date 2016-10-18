@@ -27,7 +27,7 @@ def main():
     args = [
         'st2ctl',
         'reload',
-        '--register-all',
+        '--register-runners',
         '--register-fail-on-failure'
     ]
 
