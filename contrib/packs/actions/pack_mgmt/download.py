@@ -19,6 +19,7 @@ import hashlib
 import stat
 
 import six
+import yaml
 from git.repo import Repo
 from lockfile import LockFile
 
@@ -42,13 +43,13 @@ class DownloadGitRepoAction(Action):
         result = {}
 
         for pack in packs:
-            pack_name, pack_url, pack_version = self._get_pack_name_and_url(pack)
+            pack_url, pack_version = self._get_repo_url(pack)
+            temp_dir = hashlib.md5(pack_url).hexdigest()
 
-            lock_name = hashlib.md5(pack_name).hexdigest() + '.lock'
-
-            with LockFile('/tmp/%s' % (lock_name)):
-                abs_local_path = self._clone_repo(repo_name=pack_name, repo_url=pack_url,
+            with LockFile('/tmp/%s' % (temp_dir)):
+                abs_local_path = self._clone_repo(temp_dir=temp_dir, repo_url=pack_url,
                                                   verifyssl=verifyssl, branch=pack_version)
+                pack_name = self._read_pack_name(abs_local_path)
                 try:
                     result[pack_name] = self._move_pack(abs_repo_base, pack_name, abs_local_path)
                 finally:
@@ -57,9 +58,9 @@ class DownloadGitRepoAction(Action):
         return self._validate_result(result=result, repo_url=pack_url)
 
     @staticmethod
-    def _clone_repo(repo_name, repo_url, verifyssl=True, branch=None):
+    def _clone_repo(temp_dir, repo_url, verifyssl=True, branch=None):
         user_home = os.path.expanduser('~')
-        abs_local_path = os.path.join(user_home, repo_name)
+        abs_local_path = os.path.join(user_home, temp_dir)
 
         # Switch to non-interactive mode
         os.environ['GIT_TERMINAL_PROMPT'] = '0'
@@ -96,7 +97,7 @@ class DownloadGitRepoAction(Action):
                 shutil.rmtree(dest_pack_path)
 
             self.logger.debug('Moving pack from %s to %s.', abs_local_path, to)
-            shutil.move(abs_local_path, to)
+            shutil.move(abs_local_path, dest_pack_path)
             # post move fix all permissions.
             self._apply_pack_permissions(pack_path=dest_pack_path)
             message = 'Success.'
@@ -170,22 +171,18 @@ class DownloadGitRepoAction(Action):
         return sanitized_result
 
     @staticmethod
-    def _get_pack_name_and_url(pack):
-        try:
-            name_or_url, version = pack.split(PACK_VERSION_SEPARATOR)
-        except ValueError:
-            name_or_url = pack
-            version = None
+    def _get_repo_url(pack):
+        pack_and_version = pack.split(PACK_VERSION_SEPARATOR)
+        name_or_url = pack_and_version[0]
+        version = pack_and_version[1] if len(pack_and_version) > 1 else None
 
         if len(name_or_url.split('/')) == 1:
             pack = get_pack_from_index(name_or_url)
             if not pack:
                 raise Exception('No record of the "%s" pack in the index.' % name_or_url)
-            return (pack.name, pack.repo_url, version)
+            return (pack.repo_url, version)
         else:
-            return (DownloadGitRepoAction._eval_repo_name(name_or_url),
-                    DownloadGitRepoAction._eval_repo_url(name_or_url),
-                    version)
+            return (DownloadGitRepoAction._eval_repo_url(name_or_url), version)
 
     @staticmethod
     def _eval_repo_url(repo_url):
@@ -200,17 +197,10 @@ class DownloadGitRepoAction(Action):
         return url if has_git_extension else "{}.git".format(url)
 
     @staticmethod
-    def _eval_repo_name(repo_url):
+    def _read_pack_name(pack_dir):
         """
-        Evaluate the name of the repo.
-        https://github.com/StackStorm/st2contrib.git -> st2contrib
-        https://github.com/StackStorm/st2contrib -> st2contrib
-        git@github.com:StackStorm/st2contrib.git -> st2contrib
-        git@github.com:StackStorm/st2contrib -> st2contrib
+        Read pack name from the metadata file.
         """
-        last_forward_slash = repo_url.rfind('/')
-        next_dot = repo_url.find('.', last_forward_slash)
-        # If dot does not follow last_forward_slash return till the end
-        if next_dot < last_forward_slash:
-            return repo_url[last_forward_slash + 1:]
-        return repo_url[last_forward_slash + 1:next_dot]
+        with open(os.path.join(pack_dir, MANIFEST_FILE), 'r') as manifest_file:
+            pack_meta = yaml.load(manifest_file)
+        return pack_meta['name']
