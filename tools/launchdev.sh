@@ -12,8 +12,11 @@ copy_examples=false
 load_content=true
 use_ipv6=false
 
-while getopts ":r:gxcu6" o; do
+while getopts ":r:t:gxcu6" o; do
     case "${o}" in
+        t)
+            token=${OPTARG}
+            ;;
         r)
             runner_count=${OPTARG}
             ;;
@@ -262,7 +265,7 @@ function st2start(){
         echo 'Registering sensors, runners, actions, rules, aliases, and policies...'
         ./virtualenv/bin/python \
             ./st2common/bin/st2-register-content \
-            --config-file $ST2_CONF --register-all
+            --config-file $ST2_CONF --register-all --token $token
     fi
 
     # List screen sessions

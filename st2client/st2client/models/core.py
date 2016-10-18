@@ -452,7 +452,7 @@ class PackResourceManager(ResourceManager):
         response = self.client.post(url, payload, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = response.json()
         return instance
 
 

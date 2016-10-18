@@ -19,21 +19,12 @@ import logging
 
 from oslo_config import cfg
 
-import st2common
 from st2common import config
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
 from st2common.bootstrap.base import ResourceRegistrar
-import st2common.bootstrap.triggersregistrar as triggers_registrar
-import st2common.bootstrap.sensorsregistrar as sensors_registrar
-import st2common.bootstrap.actionsregistrar as actions_registrar
-import st2common.bootstrap.aliasesregistrar as aliases_registrar
-import st2common.bootstrap.policiesregistrar as policies_registrar
-import st2common.bootstrap.runnersregistrar as runners_registrar
-import st2common.bootstrap.rulesregistrar as rules_registrar
-import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
-import st2common.bootstrap.configsregistrar as configs_registrar
 import st2common.content.utils as content_utils
+from st2client.client import Client
 from st2common.util.virtualenvs import setup_pack_virtualenv
 
 __all__ = [
@@ -70,8 +61,17 @@ def register_opts():
         cfg.BoolOpt('fail-on-failure', default=False,
                     help=('Exit with non-zero if some resource registration fails.'))
     ]
+
+    opts = [
+        cfg.StrOpt('api-url', default=None,
+                   help='Base URL to the API endpoint excluding the version.'),
+        cfg.StrOpt('token', default=None,
+                   help='Access token for user authentication.')
+    ]
+
     try:
         cfg.CONF.register_cli_opts(content_opts, group='register')
+        cfg.CONF.register_cli_opts(opts)
     except:
         sys.stderr.write('Failed registering opts.\n')
 register_opts()
@@ -121,250 +121,54 @@ def setup_virtualenvs():
     LOG.info('Setup virtualenv for %s pack(s).' % (setup_count))
 
 
-def register_triggers():
-    pack_dir = cfg.CONF.register.pack
-    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
-
-    registered_count = 0
-
-    try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering triggers #####################')
-        LOG.info('=========================================================')
-        registered_count = triggers_registrar.register_triggers(pack_dir=pack_dir,
-                                                                fail_on_failure=fail_on_failure)
-    except Exception as e:
-        exc_info = not fail_on_failure
-        LOG.warning('Failed to register sensors: %s', e, exc_info=exc_info)
-
-        if fail_on_failure:
-            raise e
-
-    LOG.info('Registered %s triggers.' % (registered_count))
-
-
-def register_sensors():
-    pack_dir = cfg.CONF.register.pack
-    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
-
-    registered_count = 0
-
-    try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering sensors ######################')
-        LOG.info('=========================================================')
-        registered_count = sensors_registrar.register_sensors(pack_dir=pack_dir,
-                                                              fail_on_failure=fail_on_failure)
-    except Exception as e:
-        exc_info = not fail_on_failure
-        LOG.warning('Failed to register sensors: %s', e, exc_info=exc_info)
-
-        if fail_on_failure:
-            raise e
-
-    LOG.info('Registered %s sensors.' % (registered_count))
-
-
-def register_runners():
-    # Register runners
-    runner_dir = cfg.CONF.register.runner_dir
-    if runner_dir:
-        runner_dir = [runner_dir]
-    registered_count = 0
-    fail_on_failure = cfg.CONF.register.fail_on_failure
-
-    # 1. Register runner types
-    try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering runners ######################')
-        LOG.info('=========================================================')
-        registered_count = runners_registrar.register_runners(runner_dirs=runner_dir,
-                                                              fail_on_failure=fail_on_failure,
-                                                              experimental=False)
-    except Exception as error:
-        exc_info = not fail_on_failure
-
-        # TODO: Narrow exception window
-        LOG.warning('Failed to register runners: %s', error, exc_info=exc_info)
-
-        if fail_on_failure:
-            raise error
-
-    LOG.info('Registered %s runners.', registered_count)
-
-
-def register_actions():
-    # Register runnertypes and actions. The order is important because actions require action
-    # types to be present in the system.
-    pack_dir = cfg.CONF.register.pack
-    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
-
-    registered_count = 0
-
-    try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering actions ######################')
-        LOG.info('=========================================================')
-        registered_count = actions_registrar.register_actions(pack_dir=pack_dir,
-                                                              fail_on_failure=fail_on_failure)
-    except Exception as e:
-        exc_info = not fail_on_failure
-        LOG.warning('Failed to register actions: %s', e, exc_info=exc_info)
-
-        if fail_on_failure:
-            raise e
-
-    LOG.info('Registered %s actions.' % (registered_count))
-
-
-def register_rules():
-    # Register ruletypes and rules.
-    pack_dir = cfg.CONF.register.pack
-    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
-
-    registered_count = 0
-
-    try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering rules ########################')
-        LOG.info('=========================================================')
-        rule_types_registrar.register_rule_types()
-    except Exception as e:
-        LOG.warning('Failed to register rule types: %s', e, exc_info=True)
-        return
-
-    try:
-        registered_count = rules_registrar.register_rules(pack_dir=pack_dir,
-                                                          fail_on_failure=fail_on_failure)
-    except Exception as e:
-        exc_info = not fail_on_failure
-        LOG.warning('Failed to register rules: %s', e, exc_info=exc_info)
-
-        if fail_on_failure:
-            raise e
-
-    LOG.info('Registered %s rules.', registered_count)
-
-
-def register_aliases():
-    pack_dir = cfg.CONF.register.pack
-    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
-
-    registered_count = 0
-
-    try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering aliases ######################')
-        LOG.info('=========================================================')
-        registered_count = aliases_registrar.register_aliases(pack_dir=pack_dir,
-                                                              fail_on_failure=fail_on_failure)
-    except Exception as e:
-        if fail_on_failure:
-            raise e
-
-        LOG.warning('Failed to register aliases.', exc_info=True)
-
-    LOG.info('Registered %s aliases.', registered_count)
-
-
-def register_policies():
-    # Register policy types and policies.
-    pack_dir = cfg.CONF.register.pack
-    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
-
-    registered_type_count = 0
-
-    try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering policy types #################')
-        LOG.info('=========================================================')
-        registered_type_count = policies_registrar.register_policy_types(st2common)
-    except Exception:
-        LOG.warning('Failed to register policy types.', exc_info=True)
-
-    LOG.info('Registered %s policy types.', registered_type_count)
-
-    registered_count = 0
-    try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering policies #####################')
-        LOG.info('=========================================================')
-        registered_count = policies_registrar.register_policies(pack_dir=pack_dir,
-                                                                fail_on_failure=fail_on_failure)
-    except Exception as e:
-        exc_info = not fail_on_failure
-        LOG.warning('Failed to register policies: %s', e, exc_info=exc_info)
-
-        if fail_on_failure:
-            raise e
-
-    LOG.info('Registered %s policies.', registered_count)
-
-
-def register_configs():
-    pack_dir = cfg.CONF.register.pack
-    fail_on_failure = not cfg.CONF.register.no_fail_on_failure
-
-    registered_count = 0
-
-    try:
-        LOG.info('=========================================================')
-        LOG.info('############## Registering configs ######################')
-        LOG.info('=========================================================')
-        registered_count = configs_registrar.register_configs(pack_dir=pack_dir,
-                                                              fail_on_failure=fail_on_failure,
-                                                              validate_configs=True)
-    except Exception as e:
-        exc_info = not fail_on_failure
-        LOG.warning('Failed to register configs: %s', e, exc_info=exc_info)
-
-        if fail_on_failure:
-            raise e
-
-    LOG.info('Registered %s configs.' % (registered_count))
+def print_registered(registered):
+    for name in registered:
+        LOG.info('===========================%s=======================', '=' * len(name))
+        LOG.info('############## Registering %s ######################', name)
+        LOG.info('===========================%s=======================', '=' * len(name))
+        LOG.info('Registered %s %s.' % (registered[name], name))
 
 
 def register_content():
     register_all = cfg.CONF.register.all
 
-    if register_all:
-        register_triggers()
-        register_sensors()
-        register_runners()
-        register_actions()
-        register_rules()
-        register_aliases()
-        register_policies()
-        register_configs()
+    types = None
 
-    if cfg.CONF.register.triggers and not register_all:
-        register_triggers()
+    if not register_all:
+        types = []
 
-    if cfg.CONF.register.sensors and not register_all:
-        register_sensors()
+        if cfg.CONF.register.triggers:
+            types.append('trigger')
 
-    if cfg.CONF.register.runners and not register_all:
-        register_runners()
+        if cfg.CONF.register.sensors:
+            types.append('sensor')
 
-    if cfg.CONF.register.actions and not register_all:
-        # If --register-runners is passed, registering runners again would be duplicate.
-        # If it's not passed, we still want to register runners. Otherwise, actions will complain
-        # about runners not being registered.
-        if not cfg.CONF.register.runners:
-            register_runners()
-        register_actions()
+        if cfg.CONF.register.runners:
+            types.append('runner')
 
-    if cfg.CONF.register.rules and not register_all:
-        register_rules()
+        if cfg.CONF.register.actions:
+            types.append('action')
 
-    if cfg.CONF.register.aliases and not register_all:
-        register_aliases()
+        if cfg.CONF.register.rules:
+            types.append('rule')
 
-    if cfg.CONF.register.policies and not register_all:
-        register_policies()
+        if cfg.CONF.register.aliases:
+            types.append('alias')
 
-    if cfg.CONF.register.configs and not register_all:
-        register_configs()
+        if cfg.CONF.register.policies:
+            types.append('policy')
+
+        if cfg.CONF.register.configs:
+            types.append('config')
+
+    api_url = cfg.CONF.api_url
+    token = cfg.CONF.token
+
+    client = Client(api_url=api_url, token=token)
+
+    result = client.packs.register(types)
+
+    print_registered(result)
 
     if cfg.CONF.register.setup_virtualenvs:
         setup_virtualenvs()

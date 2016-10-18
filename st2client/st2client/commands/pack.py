@@ -15,6 +15,7 @@
 
 import sys
 
+from st2client.models import core
 from st2client.models import Pack
 from st2client.models import LiveAction
 from st2client.commands import resource
@@ -225,7 +226,8 @@ class PackRegisterCommand(PackResourceCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.register(args.packs, args.types, **kwargs)
+        result = self.manager.register(args.packs, args.types, **kwargs)
+        return core.Resource(**result)
 
 
 class PackSearchCommand(resource.ResourceTableCommand):
