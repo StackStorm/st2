@@ -205,6 +205,34 @@ class TestActionExecutionController(FunctionalTest):
         if 'end_timestamp' in get_resp:
             self.assertTrue('elapsed_seconds' in get_resp)
 
+    def test_get_all_id_query_param_filtering_success(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+        get_resp = self._do_get_one(actionexecution_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(self._get_actionexecution_id(get_resp), actionexecution_id)
+
+        resp = self.app.get('/v1/executions?id=%s' % (actionexecution_id), expect_errors=False)
+        self.assertEqual(resp.status_int, 200)
+
+    def test_get_all_id_query_param_filtering_invalid_id(self):
+        resp = self.app.get('/v1/executions?id=invalidid', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue('not a valid ObjectId' in resp.json['faultstring'])
+
+    def test_get_all_id_query_param_filtering_multiple_ids_provided(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        id_1 = self._get_actionexecution_id(post_resp)
+
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        id_2 = self._get_actionexecution_id(post_resp)
+
+        resp = self.app.get('/v1/executions?id=%s,%s' % (id_1, id_2), expect_errors=False)
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 2)
+
     def test_get_all(self):
         self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
         self._get_actionexecution_id(self._do_post(LIVE_ACTION_2))
