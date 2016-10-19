@@ -171,6 +171,13 @@ class PackSearchController(RestController):
             return packs_service.get_pack_from_index(pack_search_request.pack)
 
 
+class IndexHealthController(RestController):
+
+    @jsexpose()
+    def get(self):
+        return packs_service.check_index_health()
+
+
 class BasePacksController(ResourceController):
     model = PackAPI
     access = Pack
@@ -230,6 +237,7 @@ class PacksController(BasePacksController):
     register = PackRegisterController()
     search = PackSearchController()
     views = PackViewsController()
+    health = IndexHealthController()
 
     @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
     @jsexpose()

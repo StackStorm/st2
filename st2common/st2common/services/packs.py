@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import itertools
+import json
 
 import requests
 import six
@@ -27,7 +28,8 @@ __all__ = [
     'get_pack_by_ref',
     'fetch_pack_index',
     'get_pack_from_index',
-    'search_pack_index'
+    'search_pack_index',
+    'check_index_health'
 ]
 
 EXCLUDE_FIELDS = [
@@ -41,6 +43,69 @@ SEARCH_PRIORITY = [
 ]
 
 LOG = logging.getLogger(__name__)
+
+
+def _build_index_list(index_url):
+    if not index_url:
+        # Reversing the indexes list from config so that the indexes have
+        # descending (left-to-right) priority.
+        # When multiple indexes have a pack with a given name, the index
+        # that comes first in the list will be used.
+        index_urls = cfg.CONF.content.index_url[::-1]
+    elif isinstance(index_url, str):
+        index_urls = [index_url]
+    elif hasattr(index_url, '__iter__'):
+        index_urls = index_url
+    else:
+        raise TypeError('"index_url" should either be a string or an iterable object.')
+    return index_urls
+
+
+def _fetch_and_compile_index(index_urls, logger=None):
+    """
+    Go through the index list and compile results into a single object.
+    """
+    status = []
+    index = {}
+
+    for index_url in index_urls:
+
+        index_status = {
+            'url': index_url,
+            'packs': 0,
+            'message': None,
+            'error': None,
+        }
+        index_json = None
+
+        try:
+            request = requests.get(index_url)
+            request.raise_for_status()
+            index_json = request.json()
+        except ValueError as e:
+            index_status['error'] = 'malformed'
+            index_status['message'] = e
+        except requests.exceptions.RequestException as e:
+            index_status['error'] = 'unresponsive'
+            index_status['message'] = e
+
+        if index_json == {}:
+            index_status['error'] = 'empty'
+            index_status['message'] = 'The index URL returned an empty object.'
+        elif type(index_json) is list:
+            index_status['error'] = 'malformed'
+            index_status['message'] = 'Expected an index object, got a list instead.'
+
+        if index_status['error']:
+            logger.error("Index parsing error: %s" % json.dumps(index_status, indent=4))
+        else:
+            index_status['message'] = 'Success.'
+            index_status['packs'] = len(index_json)
+            index.update(index_json)
+
+        status.append(index_status)
+
+    return index, status
 
 
 def get_pack_by_ref(pack_ref):
@@ -58,40 +123,57 @@ def fetch_pack_index(index_url=None, logger=None):
     """
     logger = logger or LOG
 
-    if not index_url:
-        # Reversing the indexes list from config so that the indexes have
-        # descending (left-to-right) priority.
-        # When multiple indexes have a pack with a given name, the index
-        # that comes first in the list will be used.
-        index_urls = cfg.CONF.content.index_url[::-1]
-    elif isinstance(index_url, str):
-        index_urls = [index_url]
-    elif hasattr(index_url, '__iter__'):
-        index_urls = index_url
-    else:
-        raise TypeError('"index_url" should either be a string or an iterable object.')
+    index_urls = _build_index_list(index_url)
+    index, status = _fetch_and_compile_index(index_urls, logger)
 
-    errors = []
-    result = {}
-    for index_url in index_urls:
-        try:
-            result.update(requests.get(index_url).json())
-        except ValueError:
-            errors.append(index_url)
-            logger.debug('Malformed index: %s' % index_url)
-        except requests.exceptions.RequestException:
-            errors.append(index_url)
-            logger.debug('Could not fetch index: %s' % index_url)
     # If one of the indexes on the list is unresponsive, we do not throw
     # immediately. The only case where an exception is raised is when no
     # results could be obtained from all listed indexes.
     # This behavior allows for mirrors / backups and handling connection
     # or network issues in one of the indexes.
-    if not result:
-        raise ValueError("Malformed or empty %s: could not get results from %s." % (
-            ("index" if len(errors) == 1 else "indexes"), ", ".join(errors)
+    if not index:
+        raise ValueError("No results from the %s: tried %s.\nStatus: %s" % (
+            ("index" if len(index_urls) == 1 else "indexes"),
+            ", ".join(index_urls),
+            json.dumps(status, indent=4)
         ))
-    return result
+    return index
+
+
+def check_index_health(index_url=None, status=None, logger=None):
+    """
+    Check if all listed indexes are healthy: they should be reachable,
+    return valid JSON objects, and yield more than one result.
+    """
+    logger = logger or LOG
+
+    if not status:
+        index_urls = _build_index_list(index_url)
+        _, status = _fetch_and_compile_index(index_urls, logger)
+
+    health = {
+        "indexes": {
+            "count": len(status),
+            "valid": 0,
+            "invalid": 0,
+            "errors": {},
+            "status": status,
+        },
+        "packs": {
+            "count": 0,
+        },
+    }
+
+    for index in status:
+        if index['error']:
+            error_count = health['indexes']['errors'].get(index['error'], 0) + 1
+            health['indexes']['invalid'] += 1
+            health['indexes']['errors'][index['error']] = error_count
+        else:
+            health['indexes']['valid'] += 1
+        health['packs']['count'] += index['packs']
+
+    return health
 
 
 def get_pack_from_index(pack):
