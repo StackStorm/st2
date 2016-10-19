@@ -92,12 +92,12 @@ class TestKeyValueLookup(CleanDbTestCase):
 
     def test_lookups_older_scope_names_backward_compatibility(self):
         k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='a.b', value='v1',
-                                                       scope=SYSTEM_SCOPE))
+                                                       scope=FULL_SYSTEM_SCOPE))
         lookup = KeyValueLookup(scope=SYSTEM_SCOPE)
         self.assertEquals(str(lookup['a']['b']), k1.value)
 
         k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='stanley:r.i.p', value='v4',
-                                                       scope=USER_SCOPE))
+                                                       scope=FULL_USER_SCOPE))
         user_lookup = UserKeyValueLookup(scope=USER_SCOPE, user='stanley')
         self.assertEquals(str(user_lookup['r']['i']['p']), k2.value)
 

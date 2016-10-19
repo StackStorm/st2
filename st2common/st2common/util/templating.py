@@ -17,8 +17,8 @@ import six
 
 from st2common.util.jinja import get_jinja_environment
 from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE
-from st2common.constants.keyvalue import SYSTEM_SCOPE
-from st2common.constants.keyvalue import USER_SCOPE
+from st2common.constants.keyvalue import SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
+from st2common.constants.keyvalue import USER_SCOPE, FULL_USER_SCOPE
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.services.keyvalues import UserKeyValueLookup
 
@@ -96,8 +96,8 @@ def render_template_with_system_and_user_context(value, user, context=None, pref
     context[SYSTEM_SCOPE] = KeyValueLookup(prefix=prefix, scope=SYSTEM_SCOPE)
     context[USER_SCOPE] = UserKeyValueLookup(prefix=prefix, user=user, scope=USER_SCOPE)
     context[DATASTORE_PARENT_SCOPE] = {
-        SYSTEM_SCOPE: KeyValueLookup(prefix=prefix, scope=SYSTEM_SCOPE),
-        USER_SCOPE: UserKeyValueLookup(prefix=prefix, user=user, scope=USER_SCOPE)
+        SYSTEM_SCOPE: KeyValueLookup(prefix=prefix, scope=FULL_SYSTEM_SCOPE),
+        USER_SCOPE: UserKeyValueLookup(prefix=prefix, user=user, scope=FULL_USER_SCOPE)
     }
 
     rendered = render_template(value=value, context=context)

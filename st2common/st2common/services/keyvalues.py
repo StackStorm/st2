@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from st2common import log as logging
+
 from st2common.constants.keyvalue import SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE, FULL_USER_SCOPE
 from st2common.constants.keyvalue import ALLOWED_SCOPES
@@ -28,6 +30,8 @@ __all__ = [
     'KeyValueLookup',
     'UserKeyValueLookup'
 ]
+
+LOG = logging.getLogger(__name__)
 
 
 def get_kvp_for_name(name):
@@ -63,7 +67,13 @@ def get_values_for_names(names, default_value=None):
 
 class KeyValueLookup(object):
 
-    def __init__(self, prefix=None, key_prefix=None, cache=None, scope=SYSTEM_SCOPE):
+    def __init__(self, prefix=None, key_prefix=None, cache=None, scope=FULL_SYSTEM_SCOPE):
+        if not scope:
+            scope = FULL_SYSTEM_SCOPE
+
+        if scope == SYSTEM_SCOPE:
+            scope = FULL_SYSTEM_SCOPE
+
         self._prefix = prefix
         self._key_prefix = key_prefix or ''
         self._value_cache = cache or {}
@@ -101,15 +111,22 @@ class KeyValueLookup(object):
 
     def _get_kv(self, key):
         scope = self._scope
+        LOG.debug('Lookup system kv: scope: %s and key: %s', scope, key)
         kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+        if kvp:
+            LOG.debug('Got value %s from datastore.', kvp.value)
         return kvp.value if kvp else ''
 
 
 class UserKeyValueLookup(object):
 
-    def __init__(self, user, prefix=None, key_prefix=None, cache=None, scope=None):
+    def __init__(self, user, prefix=None, key_prefix=None, cache=None, scope=FULL_USER_SCOPE):
         if not scope:
             scope = FULL_USER_SCOPE
+
+        if scope == USER_SCOPE:
+            scope = FULL_USER_SCOPE
+
         self._prefix = prefix
         self._key_prefix = key_prefix or ''
         self._value_cache = cache or {}

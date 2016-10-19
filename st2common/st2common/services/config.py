@@ -19,8 +19,8 @@ Service functions for managing pack configuration inside the datastore.
 
 from st2common import log as logging
 from st2common.services.keyvalues import get_key_reference
-from st2common.constants.keyvalue import USER_SCOPE
-from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.keyvalue import FULL_USER_SCOPE
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
 from st2common.util.crypto import symmetric_decrypt
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.persistence.keyvalue import KeyValuePair
@@ -55,9 +55,9 @@ def set_datastore_value_for_config_key(pack_name, key_name, value, secret=False,
     """
 
     if user:
-        scope = USER_SCOPE
+        scope = FULL_USER_SCOPE
     else:
-        scope = SYSTEM_SCOPE
+        scope = FULL_SYSTEM_SCOPE
 
     name = get_key_reference(scope=scope, name=key_name, user=user)
 

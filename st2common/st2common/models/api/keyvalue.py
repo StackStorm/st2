@@ -17,7 +17,6 @@ import os
 import copy
 import datetime
 
-from keyczar.keys import AesKey
 from oslo_config import cfg
 import six
 
@@ -27,7 +26,7 @@ from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidSco
 from st2common.log import logging
 from st2common.util import isotime
 from st2common.util import date as date_utils
-from st2common.util.crypto import symmetric_encrypt, symmetric_decrypt
+from st2common.util.crypto import read_crypto_key, symmetric_encrypt, symmetric_decrypt
 from st2common.models.api.base import BaseAPI
 from st2common.models.system.keyvalue import UserKeyReference
 from st2common.models.db.keyvalue import KeyValuePairDB
@@ -111,16 +110,10 @@ class KeyValuePairAPI(BaseAPI):
                          'if you ask to store secrets in key value store.')
                 KeyValuePairAPI.crypto_key = None
             else:
-                KeyValuePairAPI.crypto_key = KeyValuePairAPI._read_crypto_key(
-                    KeyValuePairAPI.crypto_key_path
+                KeyValuePairAPI.crypto_key = read_crypto_key(
+                    key_path=KeyValuePairAPI.crypto_key_path
                 )
         KeyValuePairAPI.crypto_setup = True
-
-    @staticmethod
-    def _read_crypto_key(key_path):
-        with open(key_path) as key_file:
-            key = AesKey.Read(key_file.read())
-            return key
 
     @classmethod
     def from_model(cls, model, mask_secrets=True):
