@@ -21,7 +21,6 @@ import six
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 
 __all__ = [
@@ -149,7 +148,7 @@ def get_pack_from_index(pack):
 
     index, _ = fetch_pack_index()
 
-    return PackAPI(**index.get(pack))
+    return index.get(pack)
 
 
 def search_pack_index(query, exclude=None, priority=None):
@@ -168,10 +167,9 @@ def search_pack_index(query, exclude=None, priority=None):
     index, _ = fetch_pack_index()
 
     matches = [[] for i in range(len(priority) + 1)]
-    for pack_dict in six.itervalues(index):
-        pack = PackAPI(**pack_dict)
+    for pack in six.itervalues(index):
 
-        for key, value in six.iteritems(vars(pack)):
+        for key, value in six.iteritems(pack):
             if not hasattr(value, '__contains__'):
                 value = str(value)
 
