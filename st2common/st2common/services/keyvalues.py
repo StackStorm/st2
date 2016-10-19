@@ -70,6 +70,10 @@ class KeyValueLookup(object):
     def __init__(self, prefix=None, key_prefix=None, cache=None, scope=FULL_SYSTEM_SCOPE):
         if not scope:
             scope = FULL_SYSTEM_SCOPE
+
+        if scope == SYSTEM_SCOPE:
+            scope = FULL_SYSTEM_SCOPE
+
         self._prefix = prefix
         self._key_prefix = key_prefix or ''
         self._value_cache = cache or {}
@@ -109,6 +113,7 @@ class KeyValueLookup(object):
         scope = self._scope
         LOG.info('Lookup system kv: scope: %s and key: %s', scope, key)
         kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
+        LOG.info('Got value %s from datastore.', kvp.value)
         return kvp.value if kvp else ''
 
 
@@ -117,6 +122,10 @@ class UserKeyValueLookup(object):
     def __init__(self, user, prefix=None, key_prefix=None, cache=None, scope=FULL_USER_SCOPE):
         if not scope:
             scope = FULL_USER_SCOPE
+
+        if scope == USER_SCOPE:
+            scope = FULL_USER_SCOPE
+
         self._prefix = prefix
         self._key_prefix = key_prefix or ''
         self._value_cache = cache or {}

@@ -77,6 +77,7 @@ class ChainHolder(object):
             self.vars = self._get_rendered_vars(self.actionchain.vars,
                                                 action_parameters=action_parameters)
 
+
     def validate(self):
         """
         Function which performs a simple compile time validation.
@@ -294,6 +295,21 @@ class ActionChainRunner(ActionRunner):
             # initialize vars once we have the action_parameters. This allows
             # vars to refer to action_parameters.
             self.chain_holder.init_vars(action_parameters)
+        except Exception as e:
+            error = 'Failed initializing ``vars`` in chain.'
+
+            LOG.exception(error)
+
+            trace = traceback.format_exc(10)
+            top_level_error = {
+                'error': error,
+                'traceback': trace
+            }
+            result['error'] = top_level_error['error']
+            result['traceback'] = top_level_error['traceback']
+            return (LIVEACTION_STATUS_FAILED, result, None)
+
+        try:
             action_node = self.chain_holder.get_next_node()
         except Exception as e:
             LOG.exception('Failed to get starting node "%s".', action_node.name)

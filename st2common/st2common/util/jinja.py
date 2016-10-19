@@ -130,6 +130,7 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             v = str(v)
 
         try:
+            LOG.info('Rendering string %s. Super context=%s', v, super_context)
             rendered_v = env.from_string(v).render(super_context)
         except Exception as e:
             # Attach key and value which failed the rendering
