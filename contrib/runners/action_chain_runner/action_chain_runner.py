@@ -77,7 +77,6 @@ class ChainHolder(object):
             self.vars = self._get_rendered_vars(self.actionchain.vars,
                                                 action_parameters=action_parameters)
 
-
     def validate(self):
         """
         Function which performs a simple compile time validation.

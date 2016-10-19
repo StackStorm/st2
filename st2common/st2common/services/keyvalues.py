@@ -111,9 +111,10 @@ class KeyValueLookup(object):
 
     def _get_kv(self, key):
         scope = self._scope
-        LOG.info('Lookup system kv: scope: %s and key: %s', scope, key)
+        LOG.debug('Lookup system kv: scope: %s and key: %s', scope, key)
         kvp = KeyValuePair.get_by_scope_and_name(scope=scope, name=key)
-        LOG.info('Got value %s from datastore.', kvp.value)
+        if kvp:
+            LOG.debug('Got value %s from datastore.', kvp.value)
         return kvp.value if kvp else ''
 
 
