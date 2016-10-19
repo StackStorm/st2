@@ -19,6 +19,7 @@ import requests
 import six
 from oslo_config import cfg
 
+from st2common import log as logging
 from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 
@@ -39,6 +40,8 @@ SEARCH_PRIORITY = [
     "keywords"
 ]
 
+LOG = logging.getLogger(__name__)
+
 
 def get_pack_by_ref(pack_ref):
     """
@@ -48,13 +51,19 @@ def get_pack_by_ref(pack_ref):
     return pack_db
 
 
-def fetch_pack_index(index_url=None):
+def fetch_pack_index(index_url=None, logger=None):
     """
     Fetch the pack indexes (either from the config or provided as an argument)
     and return the object.
     """
+    logger = logger or LOG
+
     if not index_url:
-        index_urls = cfg.CONF.content.index_url
+        # Reversing the indexes list from config so that the indexes have
+        # descending (left-to-right) priority.
+        # When multiple indexes have a pack with a given name, the index
+        # that comes first in the list will be used.
+        index_urls = cfg.CONF.content.index_url[::-1]
     elif isinstance(index_url, str):
         index_urls = [index_url]
     elif hasattr(index_url, '__iter__'):
@@ -62,12 +71,26 @@ def fetch_pack_index(index_url=None):
     else:
         raise TypeError('"index_url" should either be a string or an iterable object.')
 
+    errors = []
     result = {}
     for index_url in index_urls:
         try:
             result.update(requests.get(index_url).json())
         except ValueError:
-            raise ValueError("Malformed index: %s does not contain valid JSON." % index_url)
+            errors.append(index_url)
+            logger.debug('Malformed index: %s' % index_url)
+        except requests.exceptions.RequestException:
+            errors.append(index_url)
+            logger.debug('Could not fetch index: %s' % index_url)
+    # If one of the indexes on the list is unresponsive, we do not throw
+    # immediately. The only case where an exception is raised is when no
+    # results could be obtained from all listed indexes.
+    # This behavior allows for mirrors / backups and handling connection
+    # or network issues in one of the indexes.
+    if not result:
+        raise ValueError("Malformed or empty %s: could not get results from %s." % (
+            ("index" if len(errors) == 1 else "indexes"), ", ".join(errors)
+        ))
     return result
 
 
