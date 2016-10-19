@@ -28,8 +28,7 @@ __all__ = [
     'get_pack_by_ref',
     'fetch_pack_index',
     'get_pack_from_index',
-    'search_pack_index',
-    'check_index_health'
+    'search_pack_index'
 ]
 
 EXCLUDE_FIELDS = [
@@ -116,7 +115,7 @@ def get_pack_by_ref(pack_ref):
     return pack_db
 
 
-def fetch_pack_index(index_url=None, logger=None):
+def fetch_pack_index(index_url=None, logger=None, allow_empty=False):
     """
     Fetch the pack indexes (either from the config or provided as an argument)
     and return the object.
@@ -131,49 +130,13 @@ def fetch_pack_index(index_url=None, logger=None):
     # results could be obtained from all listed indexes.
     # This behavior allows for mirrors / backups and handling connection
     # or network issues in one of the indexes.
-    if not index:
+    if not index and not allow_empty:
         raise ValueError("No results from the %s: tried %s.\nStatus: %s" % (
             ("index" if len(index_urls) == 1 else "indexes"),
             ", ".join(index_urls),
             json.dumps(status, indent=4)
         ))
-    return index
-
-
-def check_index_health(index_url=None, status=None, logger=None):
-    """
-    Check if all listed indexes are healthy: they should be reachable,
-    return valid JSON objects, and yield more than one result.
-    """
-    logger = logger or LOG
-
-    if not status:
-        index_urls = _build_index_list(index_url)
-        _, status = _fetch_and_compile_index(index_urls, logger)
-
-    health = {
-        "indexes": {
-            "count": len(status),
-            "valid": 0,
-            "invalid": 0,
-            "errors": {},
-            "status": status,
-        },
-        "packs": {
-            "count": 0,
-        },
-    }
-
-    for index in status:
-        if index['error']:
-            error_count = health['indexes']['errors'].get(index['error'], 0) + 1
-            health['indexes']['invalid'] += 1
-            health['indexes']['errors'][index['error']] = error_count
-        else:
-            health['indexes']['valid'] += 1
-        health['packs']['count'] += index['packs']
-
-    return health
+    return (index, status)
 
 
 def get_pack_from_index(pack):
@@ -184,7 +147,7 @@ def get_pack_from_index(pack):
     if not pack:
         raise ValueError("Pack name must be specified.")
 
-    index = fetch_pack_index()
+    index, _ = fetch_pack_index()
 
     return PackAPI(**index.get(pack))
 
@@ -202,9 +165,9 @@ def search_pack_index(query, exclude=None, priority=None):
     if not priority:
         priority = SEARCH_PRIORITY
 
-    index = fetch_pack_index()
+    index, _ = fetch_pack_index()
 
-    matches = [[] for _ in range(len(priority) + 1)]
+    matches = [[] for i in range(len(priority) + 1)]
     for pack_dict in six.itervalues(index):
         pack = PackAPI(**pack_dict)
 

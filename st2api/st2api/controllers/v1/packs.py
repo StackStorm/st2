@@ -175,7 +175,35 @@ class IndexHealthController(RestController):
 
     @jsexpose()
     def get(self):
-        return packs_service.check_index_health()
+        """
+        Check if all listed indexes are healthy: they should be reachable,
+        return valid JSON objects, and yield more than one result.
+        """
+        _, status = packs_service.fetch_pack_index(allow_empty=True)
+
+        health = {
+            "indexes": {
+                "count": len(status),
+                "valid": 0,
+                "invalid": 0,
+                "errors": {},
+                "status": status,
+            },
+            "packs": {
+                "count": 0,
+            },
+        }
+
+        for index in status:
+            if index['error']:
+                error_count = health['indexes']['errors'].get(index['error'], 0) + 1
+                health['indexes']['invalid'] += 1
+                health['indexes']['errors'][index['error']] = error_count
+            else:
+                health['indexes']['valid'] += 1
+            health['packs']['count'] += index['packs']
+
+        return health
 
 
 class BasePacksController(ResourceController):

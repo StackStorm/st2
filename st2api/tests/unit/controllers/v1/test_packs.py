@@ -97,7 +97,8 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 202)
         self.assertEqual(resp.json, {'execution_id': '123'})
 
-    @mock.patch.object(pack_service, 'fetch_pack_index', mock.MagicMock(return_value=PACK_INDEX))
+    @mock.patch.object(pack_service, 'fetch_pack_index',
+                       mock.MagicMock(return_value=(PACK_INDEX, {})))
     def test_search(self):
         resp = self.app.post_json('/v1/packs/search', {'query': 'test'})
 
@@ -114,7 +115,8 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, [PACK_INDEX['test2']])
 
-    @mock.patch.object(pack_service, 'fetch_pack_index', mock.MagicMock(return_value=PACK_INDEX))
+    @mock.patch.object(pack_service, 'fetch_pack_index',
+                       mock.MagicMock(return_value=(PACK_INDEX, {})))
     def test_show(self):
         resp = self.app.post_json('/v1/packs/search', {'pack': 'test'})
 

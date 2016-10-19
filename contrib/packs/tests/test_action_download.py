@@ -49,7 +49,7 @@ PACK_INDEX = {
 }
 
 
-@mock.patch.object(pack_service, 'fetch_pack_index', mock.MagicMock(return_value=PACK_INDEX))
+@mock.patch.object(pack_service, 'fetch_pack_index', mock.MagicMock(return_value=(PACK_INDEX, {})))
 @mock.patch.object(os.path, 'expanduser', mock.MagicMock(return_value=tempfile.mkdtemp()))
 class DownloadGitRepoActionTestCase(BaseActionTestCase):
     action_cls = DownloadGitRepoAction
