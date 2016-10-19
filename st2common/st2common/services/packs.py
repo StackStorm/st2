@@ -84,10 +84,10 @@ def _fetch_and_compile_index(index_urls, logger=None):
             index_json = request.json()
         except ValueError as e:
             index_status['error'] = 'malformed'
-            index_status['message'] = e
+            index_status['message'] = repr(e)
         except requests.exceptions.RequestException as e:
             index_status['error'] = 'unresponsive'
-            index_status['message'] = e
+            index_status['message'] = repr(e)
 
         if index_json == {}:
             index_status['error'] = 'empty'
