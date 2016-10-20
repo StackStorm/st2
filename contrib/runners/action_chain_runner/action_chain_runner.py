@@ -29,7 +29,7 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.action import LIVEACTION_FAILED_STATES
-from st2common.constants.keyvalue import SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.content.loader import MetaLoader
 from st2common.exceptions.action import (ParameterRenderingFailedException,
                                          InvalidActionReferencedException)
@@ -196,10 +196,11 @@ class ChainHolder(object):
         context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
         context.update({
             DATASTORE_PARENT_SCOPE: {
-                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+                SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)
             }
         })
         context.update(action_parameters)
+        LOG.info('Rendering action chain vars. Mapping = %s; Context = %s', vars, context)
         return jinja_utils.render_values(mapping=vars, context=context)
 
     def get_node(self, node_name=None, raise_on_failure=False):
@@ -293,6 +294,21 @@ class ActionChainRunner(ActionRunner):
             # initialize vars once we have the action_parameters. This allows
             # vars to refer to action_parameters.
             self.chain_holder.init_vars(action_parameters)
+        except Exception as e:
+            error = 'Failed initializing ``vars`` in chain.'
+
+            LOG.exception(error)
+
+            trace = traceback.format_exc(10)
+            top_level_error = {
+                'error': error,
+                'traceback': trace
+            }
+            result['error'] = top_level_error['error']
+            result['traceback'] = top_level_error['traceback']
+            return (LIVEACTION_STATUS_FAILED, result, None)
+
+        try:
             action_node = self.chain_holder.get_next_node()
         except Exception as e:
             LOG.exception('Failed to get starting node "%s".', action_node.name)
@@ -472,7 +488,7 @@ class ActionChainRunner(ActionRunner):
         context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
         context.update({
             DATASTORE_PARENT_SCOPE: {
-                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+                SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)
             }
         })
 
@@ -499,7 +515,7 @@ class ActionChainRunner(ActionRunner):
         context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
         context.update({
             DATASTORE_PARENT_SCOPE: {
-                SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)
+                SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)
             }
         })
         context.update({ACTION_CONTEXT_KV_PREFIX: chain_context})
