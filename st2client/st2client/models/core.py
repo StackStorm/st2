@@ -408,24 +408,6 @@ class PackResourceManager(ResourceManager):
         return instance
 
     @add_auth_token_to_kwargs_from_env
-    def create(self, args, **kwargs):
-        url = '/%s/init' % (self.resource.get_url_path_name())
-        keys = ['name', 'description', 'keywords', 'version', 'author',
-                'email']
-        payload = {}
-
-        for key in keys:
-            value = getattr(args, key)
-            if value:
-                payload[key] = value
-
-        response = self.client.post(url, payload, **kwargs)
-        if response.status_code != 200:
-            self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
-        return instance
-
-    @add_auth_token_to_kwargs_from_env
     def search(self, args, **kwargs):
         url = '/%s/search' % (self.resource.get_url_path_name())
         if 'query' in vars(args):

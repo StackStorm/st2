@@ -35,7 +35,6 @@ from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.pack import PackAPI
-from st2common.models.api.pack import PackInitRequestAPI
 from st2common.models.api.pack import PackInstallRequestAPI
 from st2common.models.api.pack import PackRegisterRequestAPI
 from st2common.models.api.pack import PackSearchRequestAPI
@@ -64,21 +63,6 @@ ENTITIES = {
     'policy': (PolicyRegistrar, 'policy'),
     'config': (ConfigsRegistrar, 'config')
 }
-
-
-class PackInitController(ActionExecutionsControllerMixin, RestController):
-
-    @jsexpose(body_cls=PackInitRequestAPI, status_code=http_client.ACCEPTED)
-    def post(self, args):
-        parameters = vars(args)
-
-        new_liveaction_api = LiveActionCreateAPI(action='packs.create',
-                                                 parameters=parameters,
-                                                 user=None)
-
-        execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
-
-        return PackAsyncAPI(execution_id=execution.id)
 
 
 class PackInstallController(ActionExecutionsControllerMixin, RestController):
@@ -261,7 +245,6 @@ class PacksController(BasePacksController):
     }
 
     # Nested controllers
-    init = PackInitController()
     install = PackInstallController()
     uninstall = PackUninstallController()
     register = PackRegisterController()
