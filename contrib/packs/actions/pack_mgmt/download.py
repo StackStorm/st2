@@ -17,6 +17,7 @@ import os
 import shutil
 import hashlib
 import stat
+import re
 
 import six
 import yaml
@@ -33,6 +34,7 @@ CONFIG_FILE = 'config.yaml'
 GITINFO_FILE = '.gitinfo'
 PACK_RESERVE_CHARACTER = '.'
 PACK_VERSION_SEPARATOR = '#'
+SEMVER_REGEX = "^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$"
 
 
 class DownloadGitRepoAction(Action):
@@ -48,7 +50,7 @@ class DownloadGitRepoAction(Action):
 
             with LockFile('/tmp/%s' % (temp_dir)):
                 abs_local_path = self._clone_repo(temp_dir=temp_dir, repo_url=pack_url,
-                                                  verifyssl=verifyssl, branch=pack_version)
+                                                  verifyssl=verifyssl, ref=pack_version)
                 pack_name = self._get_pack_name(abs_local_path)
                 try:
                     result[pack_name] = self._move_pack(abs_repo_base, pack_name, abs_local_path)
@@ -58,7 +60,7 @@ class DownloadGitRepoAction(Action):
         return self._validate_result(result=result, repo_url=pack_url)
 
     @staticmethod
-    def _clone_repo(temp_dir, repo_url, verifyssl=True, branch=None):
+    def _clone_repo(temp_dir, repo_url, verifyssl=True, ref=None):
         user_home = os.path.expanduser('~')
         abs_local_path = os.path.join(user_home, temp_dir)
 
@@ -69,13 +71,23 @@ class DownloadGitRepoAction(Action):
         if not verifyssl:
             os.environ['GIT_SSL_NO_VERIFY'] = 'true'
 
-        if not branch:
-            branch = 'master'
+        if not ref:
+            ref = 'master'
 
         # Clone the repo from git; we don't use shallow copying
         # because we want the user to work with the repo in the
         # future.
-        Repo.clone_from(repo_url, abs_local_path, branch=branch)
+        repo = Repo.clone_from(repo_url, abs_local_path)
+
+        if not repo.commit(ref):
+            if re.match(SEMVER_REGEX, ref) and repo.commit("v%s" % ref):
+                ref = "v%s" % ref
+            else:
+                raise ValueError("\"%s\" is not a valid ref in %s." % (ref, repo_url))
+
+        repo.head.reference = repo.commit(ref)
+        repo.head.reset(index=True, working_tree=True)
+
         return abs_local_path
 
     def _move_pack(self, abs_repo_base, pack_name, abs_local_path):
