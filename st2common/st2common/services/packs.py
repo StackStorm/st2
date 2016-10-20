@@ -67,7 +67,6 @@ def _fetch_and_compile_index(index_urls, logger=None):
     index = {}
 
     for index_url in index_urls:
-
         index_status = {
             'url': index_url,
             'packs': 0,
@@ -93,13 +92,18 @@ def _fetch_and_compile_index(index_urls, logger=None):
         elif type(index_json) is list:
             index_status['error'] = 'malformed'
             index_status['message'] = 'Expected an index object, got a list instead.'
+        elif 'packs' not in index_json:
+            index_status['error'] = 'malformed'
+            index_status['message'] = 'Index object is missing "packs" attribute.'
 
         if index_status['error']:
             logger.error("Index parsing error: %s" % json.dumps(index_status, indent=4))
         else:
+            # TODO: Notify on a duplicate pack aka pack being overwritten from a different index
+            packs_data = index_json['packs']
             index_status['message'] = 'Success.'
-            index_status['packs'] = len(index_json)
-            index.update(index_json)
+            index_status['packs'] = len(packs_data)
+            index.update(packs_data)
 
         status.append(index_status)
 
