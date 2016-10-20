@@ -22,6 +22,7 @@ import re
 import six
 import yaml
 from git.repo import Repo
+from gitdb.exc import BadName
 from lockfile import LockFile
 
 from st2common.runners.base_action import Action
@@ -34,7 +35,8 @@ CONFIG_FILE = 'config.yaml'
 GITINFO_FILE = '.gitinfo'
 PACK_RESERVE_CHARACTER = '.'
 PACK_VERSION_SEPARATOR = '#'
-SEMVER_REGEX = "^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$"
+SEMVER_REGEX = (r"^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+                r"(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$")
 
 
 class DownloadGitRepoAction(Action):
@@ -77,10 +79,10 @@ class DownloadGitRepoAction(Action):
         # Clone the repo from git; we don't use shallow copying
         # because we want the user to work with the repo in the
         # future.
-        repo = Repo.clone_from(repo_url, abs_local_path)
+        repo = Repo.clone_from(repo_url, abs_local_path, branch='master')
 
-        if not repo.commit(ref):
-            if re.match(SEMVER_REGEX, ref) and repo.commit("v%s" % ref):
+        if not DownloadGitRepoAction._ref_exists(repo, ref):
+            if re.match(SEMVER_REGEX, ref) and DownloadGitRepoAction._ref_exists(repo, "v%s" % ref):
                 ref = "v%s" % ref
             else:
                 raise ValueError("\"%s\" is not a valid ref in %s." % (ref, repo_url))
@@ -216,3 +218,11 @@ class DownloadGitRepoAction(Action):
         with open(os.path.join(pack_dir, MANIFEST_FILE), 'r') as manifest_file:
             pack_meta = yaml.load(manifest_file)
         return pack_meta['name'].replace(' ', '-').lower()
+
+    @staticmethod
+    def _ref_exists(repo, ref):
+        try:
+            repo.commit(ref)
+        except BadName:
+            return False
+        return True
