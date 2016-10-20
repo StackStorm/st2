@@ -42,6 +42,7 @@ from st2client.commands import sensor
 from st2client.commands import trace
 from st2client.commands import trigger
 from st2client.commands import triggerinstance
+from st2client.commands import timer
 from st2client.commands import webhook
 from st2client.commands import rule
 from st2client.commands import rule_enforcement
@@ -226,6 +227,10 @@ class Shell(BaseCLIApp):
 
         self.commands['webhook'] = webhook.WebhookBranch(
             'Webhooks.',
+            self, self.subparsers)
+
+        self.commands['timer'] = timer.TimerBranch(
+            'Timers.',
             self, self.subparsers)
 
         self.commands['rule-enforcement'] = rule_enforcement.RuleEnforcementBranch(
