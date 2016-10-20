@@ -180,7 +180,7 @@ class DownloadGitRepoAction(Action):
             pack = get_pack_from_index(name_or_url)
             if not pack:
                 raise Exception('No record of the "%s" pack in the index.' % name_or_url)
-            return (pack.repo_url, version)
+            return (pack['repo_url'], version)
         else:
             return (DownloadGitRepoAction._eval_repo_url(name_or_url), version)
 
