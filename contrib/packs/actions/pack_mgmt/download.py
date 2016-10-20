@@ -49,7 +49,7 @@ class DownloadGitRepoAction(Action):
             with LockFile('/tmp/%s' % (temp_dir)):
                 abs_local_path = self._clone_repo(temp_dir=temp_dir, repo_url=pack_url,
                                                   verifyssl=verifyssl, branch=pack_version)
-                pack_name = self._read_pack_name(abs_local_path)
+                pack_name = self._get_pack_name(abs_local_path)
                 try:
                     result[pack_name] = self._move_pack(abs_repo_base, pack_name, abs_local_path)
                 finally:
@@ -197,10 +197,10 @@ class DownloadGitRepoAction(Action):
         return url if has_git_extension else "{}.git".format(url)
 
     @staticmethod
-    def _read_pack_name(pack_dir):
+    def _get_pack_name(pack_dir):
         """
-        Read pack name from the metadata file.
+        Read pack name from the metadata file and sanitize it.
         """
         with open(os.path.join(pack_dir, MANIFEST_FILE), 'r') as manifest_file:
             pack_meta = yaml.load(manifest_file)
-        return pack_meta['name']
+        return pack_meta['name'].replace(' ', '-').lower()
