@@ -159,12 +159,12 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'payload': {'types': ['actions']}
             },
             {
-                'path': '/v1/packs/search',
+                'path': '/v1/packs/index/search',
                 'method': 'POST',
                 'payload': {'query': 'cloud'}
             },
             {
-                'path': '/v1/packs/health',
+                'path': '/v1/packs/index/health',
                 'method': 'GET'
             },
             # Pack views

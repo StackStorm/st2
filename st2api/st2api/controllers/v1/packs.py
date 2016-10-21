@@ -235,6 +235,11 @@ class BasePacksController(ResourceController):
         return resource_db
 
 
+class PacksIndexController(RestController):
+    search = PackSearchController()
+    health = IndexHealthController()
+
+
 class PacksController(BasePacksController):
     from st2api.controllers.v1.packviews import PackViewsController
 
@@ -253,9 +258,8 @@ class PacksController(BasePacksController):
     install = PackInstallController()
     uninstall = PackUninstallController()
     register = PackRegisterController()
-    search = PackSearchController()
     views = PackViewsController()
-    health = IndexHealthController()
+    index = PacksIndexController()
 
     @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
     @jsexpose()
