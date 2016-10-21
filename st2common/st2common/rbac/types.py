@@ -129,6 +129,11 @@ class PermissionType(Enum):
         """
         split = permission_type.split('_')
         assert len(split) >= 2
+
+        # Special case for PACK_VIEW_INDEX_HEALTH
+        if permission_type == PermissionType.PACK_VIEW_INDEX_HEALTH:
+            return split[0]
+
         return '_'.join(split[:-1])
 
     @classmethod
@@ -140,6 +145,12 @@ class PermissionType(Enum):
         """
         split = permission_type.split('_')
         assert len(split) >= 2
+
+        # Special case for PACK_VIEW_INDEX_HEALTH
+        if permission_type == PermissionType.PACK_VIEW_INDEX_HEALTH:
+            split = permission_type.split('_', 1)
+            return split[1]
+
         return split[-1]
 
     @classmethod

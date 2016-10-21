@@ -337,8 +337,9 @@ class PackPermissionsResolver(PermissionsResolver):
 
     def user_has_permission(self, user_db, permission_type):
         assert permission_type in [PermissionType.PACK_LIST, PermissionType.PACK_INSTALL,
-                                   PermissionType.PACK_UNINSTALL,
-                                   PermissionType.PACK_REGISTER, PermissionType.PACK_SEARCH]
+                                   PermissionType.PACK_UNINSTALL, PermissionType.PACK_REGISTER,
+                                   PermissionType.PACK_SEARCH,
+                                   PermissionType.PACK_VIEW_INDEX_HEALTH]
 
         if permission_type == PermissionType.PACK_LIST:
             return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
