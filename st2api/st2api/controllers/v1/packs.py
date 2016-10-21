@@ -67,6 +67,7 @@ ENTITIES = {
 
 class PackInstallController(ActionExecutionsControllerMixin, RestController):
 
+    @request_user_has_permission(permission_type=PermissionType.PACK_INSTALL)
     @jsexpose(body_cls=PackInstallRequestAPI, status_code=http_client.ACCEPTED)
     def post(self, pack_install_request):
         parameters = {
@@ -84,6 +85,7 @@ class PackInstallController(ActionExecutionsControllerMixin, RestController):
 
 class PackUninstallController(ActionExecutionsControllerMixin, RestController):
 
+    @request_user_has_permission(permission_type=PermissionType.PACK_UNINSTALL)
     @jsexpose(body_cls=PackInstallRequestAPI, arg_types=[str], status_code=http_client.ACCEPTED)
     def post(self, pack_uninstall_request, ref_or_id=None):
         if ref_or_id:
@@ -106,6 +108,7 @@ class PackUninstallController(ActionExecutionsControllerMixin, RestController):
 
 class PackRegisterController(RestController):
 
+    @request_user_has_permission(permission_type=PermissionType.PACK_REGISTER)
     @jsexpose(body_cls=PackRegisterRequestAPI)
     def post(self, pack_register_request):
         if pack_register_request and hasattr(pack_register_request, 'types'):
@@ -147,6 +150,7 @@ class PackRegisterController(RestController):
 
 class PackSearchController(RestController):
 
+    @request_user_has_permission(permission_type=PermissionType.PACK_SEARCH)
     @jsexpose(body_cls=PackSearchRequestAPI)
     def post(self, pack_search_request):
         if hasattr(pack_search_request, 'query'):
