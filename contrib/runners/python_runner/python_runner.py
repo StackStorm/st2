@@ -17,6 +17,7 @@ import os
 import sys
 import json
 import uuid
+from subprocess import list2cmdline
 
 from eventlet.green import subprocess
 
@@ -133,7 +134,9 @@ class PythonRunner(ActionRunner):
         datastore_env_vars = self._get_datastore_access_env_vars()
         env.update(datastore_env_vars)
 
-        LOG.debug('Running command.')
+        command_string = list2cmdline(args)
+        LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
+                                                                 command_string))
         exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
                                                            stderr=subprocess.PIPE, shell=False,
                                                            env=env, timeout=self._timeout)
