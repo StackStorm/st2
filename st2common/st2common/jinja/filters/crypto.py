@@ -13,25 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest2
+from oslo_config import cfg
 
-from st2common.logging.misc import get_logger_name_for_module
-from st2reactor.cmd import sensormanager
-import python_runner
-from st2common import runners
+from st2common.services.keyvalues import KeyValueLookup
+from st2common.util.crypto import read_crypto_key, symmetric_decrypt
 
 __all__ = [
-    'LoggingMiscUtilsTestCase'
+    'decrypt_kv'
 ]
 
 
-class LoggingMiscUtilsTestCase(unittest2.TestCase):
-    def test_get_logger_name_for_module(self):
-        logger_name = get_logger_name_for_module(sensormanager)
-        self.assertEqual(logger_name, 'st2reactor.cmd.sensormanager')
-
-        logger_name = get_logger_name_for_module(python_runner)
-        self.assertTrue(logger_name.endswith('contrib.runners.python_runner.python_runner'))
-
-        logger_name = get_logger_name_for_module(runners)
-        self.assertEqual(logger_name, 'st2common.runners.__init__')
+def decrypt_kv(value):
+    if isinstance(value, KeyValueLookup):
+        # Since this is a filter the incoming value is still a KeyValueLookup
+        # object as the jinja rendering is not yet complete. So we cast
+        # the KeyValueLookup object to a simple string before decrypting.
+        value = str(value)
+    crypto_key_path = cfg.CONF.keyvalue.encryption_key_path
+    crypto_key = read_crypto_key(key_path=crypto_key_path)
+    return symmetric_decrypt(decrypt_key=crypto_key, ciphertext=value)

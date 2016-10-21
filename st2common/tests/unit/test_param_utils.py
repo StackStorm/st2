@@ -16,7 +16,7 @@
 
 import mock
 
-from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
 from st2common.exceptions.param import ParamException
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB
@@ -449,7 +449,7 @@ class ParamsUtilsTest(DbTestCase):
 
     def test_get_finalized_params_older_kv_scopes_backwards_compatibility(self):
         KeyValuePair.add_or_update(KeyValuePairDB(name='cmd_to_run', value='echo MELANIA',
-                                                  scope=SYSTEM_SCOPE))
+                                                  scope=FULL_SYSTEM_SCOPE))
         # k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='ivanka:cmd_to_run',
         #                                                value='echo MA DAD IS GREAT',
         #                                                scope=USER_SCOPE))

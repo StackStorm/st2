@@ -13,25 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest2
-
-from st2common.logging.misc import get_logger_name_for_module
-from st2reactor.cmd import sensormanager
-import python_runner
-from st2common import runners
-
-__all__ = [
-    'LoggingMiscUtilsTestCase'
-]
+import time
+from random import randint
+from st2actions.runners.pythonrunner import Action
 
 
-class LoggingMiscUtilsTestCase(unittest2.TestCase):
-    def test_get_logger_name_for_module(self):
-        logger_name = get_logger_name_for_module(sensormanager)
-        self.assertEqual(logger_name, 'st2reactor.cmd.sensormanager')
+class PauseAction(Action):
+    def run(self, max_pause, random):
+        if random:
+            delay = randint(1, int(max_pause))
+        else:
+            delay = max_pause
 
-        logger_name = get_logger_name_for_module(python_runner)
-        self.assertTrue(logger_name.endswith('contrib.runners.python_runner.python_runner'))
+        time.sleep(delay)
 
-        logger_name = get_logger_name_for_module(runners)
-        self.assertEqual(logger_name, 'st2common.runners.__init__')
+        return delay

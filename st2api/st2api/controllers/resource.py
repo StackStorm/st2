@@ -40,6 +40,24 @@ RESERVED_QUERY_PARAMS = {
 }
 
 
+def split_id_value(value):
+    if not value:
+        return value
+
+    split = value.split(',')
+
+    if len(split) > 100:
+        raise ValueError('Maximum of 100 items can be provided for a query parameter value')
+
+    return split
+
+DEFAULT_FILTER_TRANSFORM_FUNCTIONS = {
+    # Support for filtering on multiple ids when a commona delimited string is provided
+    # (e.g. ?id=1,2,3)
+    'id': split_id_value
+}
+
+
 @six.add_metaclass(abc.ABCMeta)
 class ResourceController(rest.RestController):
     model = abc.abstractproperty
@@ -62,7 +80,8 @@ class ResourceController(rest.RestController):
     }
 
     # A list of optional transformation functions for user provided filter values
-    filter_transform_functions = {}
+    filter_transform_functions = {
+    }
 
     # A list of attributes which can be specified using ?exclude_attributes filter
     valid_exclude_attributes = []
@@ -75,6 +94,10 @@ class ResourceController(rest.RestController):
     def __init__(self):
         self.supported_filters = copy.deepcopy(self.__class__.supported_filters)
         self.supported_filters.update(RESERVED_QUERY_PARAMS)
+
+        self.filter_transform_functions = copy.deepcopy(self.__class__.filter_transform_functions)
+        self.filter_transform_functions.update(DEFAULT_FILTER_TRANSFORM_FUNCTIONS)
+
         self.get_one_db_method = self._get_by_name_or_id
 
     @jsexpose()
@@ -142,7 +165,10 @@ class ResourceController(rest.RestController):
             value_transform_function = value_transform_function or (lambda value: value)
             filter_value = value_transform_function(value=filter_value)
 
-            filters['__'.join(v.split('.'))] = filter_value
+            if k == 'id' and isinstance(filter_value, list):
+                filters[k + '__in'] = filter_value
+            else:
+                filters['__'.join(v.split('.'))] = filter_value
 
         extra = {
             'filters': filters,

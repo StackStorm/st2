@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,25 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest2
+if [[ $# -eq 0 ]] ; then
+  echo "No license key entered"
+  echo "Usage: $0 <license key to check>"
+  exit 1
+fi
 
-from st2common.logging.misc import get_logger_name_for_module
-from st2reactor.cmd import sensormanager
-import python_runner
-from st2common import runners
+LICENSE=$@
+BWC_LICENSE_CHECK_URL="https://${LICENSE}:@packagecloud.io/install/repositories/StackStorm/enterprise/script.deb.sh"
+LICENSE_CURL_TEST=`curl --output /dev/null --silent --fail ${BWC_LICENSE_CHECK_URL}`
 
-__all__ = [
-    'LoggingMiscUtilsTestCase'
-]
-
-
-class LoggingMiscUtilsTestCase(unittest2.TestCase):
-    def test_get_logger_name_for_module(self):
-        logger_name = get_logger_name_for_module(sensormanager)
-        self.assertEqual(logger_name, 'st2reactor.cmd.sensormanager')
-
-        logger_name = get_logger_name_for_module(python_runner)
-        self.assertTrue(logger_name.endswith('contrib.runners.python_runner.python_runner'))
-
-        logger_name = get_logger_name_for_module(runners)
-        self.assertEqual(logger_name, 'st2common.runners.__init__')
+if [ $? -ne 0 ]; then
+  echo -e "✖ License is not valid"
+  exit 2
+else
+  echo -e "✓ License is valid"
+  exit 0
+fi

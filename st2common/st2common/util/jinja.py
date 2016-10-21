@@ -18,6 +18,8 @@ import six
 
 import jinja2
 
+from st2common import log as logging
+from st2common.jinja.filters import crypto
 from st2common.jinja.filters import data
 from st2common.jinja.filters import regex
 from st2common.jinja.filters import time
@@ -38,6 +40,8 @@ JINJA_EXPRESSIONS_START_MARKERS = [
     '{%'
 ]
 
+LOG = logging.getLogger(__name__)
+
 
 def use_none(value):
     if value is None:
@@ -48,6 +52,7 @@ def use_none(value):
 
 def get_filters():
     return {
+        'decrypt_kv': crypto.decrypt_kv,
         'to_json_string': data.to_json_string,
         'to_yaml_string': data.to_yaml_string,
 
@@ -125,6 +130,7 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             v = str(v)
 
         try:
+            LOG.info('Rendering string %s. Super context=%s', v, super_context)
             rendered_v = env.from_string(v).render(super_context)
         except Exception as e:
             # Attach key and value which failed the rendering
@@ -140,6 +146,7 @@ def render_values(mapping=None, context=None, allow_undefined=False):
         if reverse_json_dumps:
             rendered_v = json.loads(rendered_v)
         rendered_mapping[k] = rendered_v
+    LOG.info('Mapping: %s, rendered_mapping: %s, context: %s', mapping, rendered_mapping, context)
     return rendered_mapping
 
 
