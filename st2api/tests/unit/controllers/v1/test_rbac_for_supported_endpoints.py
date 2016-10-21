@@ -142,6 +142,31 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'path': '/v1/packs/dummy_pack_1',
                 'method': 'GET'
             },
+            # Pack management
+            {
+                'path': '/v1/packs/install',
+                'method': 'POST',
+                'payload': {'packs': 'libcloud'}
+            },
+            {
+                'path': '/v1/packs/uninstall',
+                'method': 'POST',
+                'payload': {'packs': 'libcloud'}
+            },
+            {
+                'path': '/v1/packs/register',
+                'method': 'POST',
+                'payload': {'types': ['actions']}
+            },
+            {
+                'path': '/v1/packs/index/search',
+                'method': 'POST',
+                'payload': {'query': 'cloud'}
+            },
+            {
+                'path': '/v1/packs/index/health',
+                'method': 'GET'
+            },
             # Pack views
             {
                 'path': '/v1/packs/views/files/dummy_pack_1',

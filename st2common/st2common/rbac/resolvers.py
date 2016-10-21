@@ -336,8 +336,16 @@ class PackPermissionsResolver(PermissionsResolver):
     resource_type = ResourceType.PACK
 
     def user_has_permission(self, user_db, permission_type):
-        assert permission_type in [PermissionType.PACK_LIST]
-        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+        assert permission_type in [PermissionType.PACK_LIST, PermissionType.PACK_INSTALL,
+                                   PermissionType.PACK_UNINSTALL, PermissionType.PACK_REGISTER,
+                                   PermissionType.PACK_SEARCH,
+                                   PermissionType.PACK_VIEW_INDEX_HEALTH]
+
+        if permission_type == PermissionType.PACK_LIST:
+            return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+        else:
+            return self._user_has_global_permission(user_db=user_db,
+                                                    permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
