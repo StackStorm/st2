@@ -50,6 +50,7 @@ class PermissionType(Enum):
     PACK_UNINSTALL = 'pack_uninstall'
     PACK_REGISTER = 'pack_register'
     PACK_SEARCH = 'pack_search'
+    PACK_VIEW_INDEX_HEALTH = 'pack_view_index_health'
 
     PACK_ALL = 'pack_all'
 
@@ -217,6 +218,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.PACK_UNINSTALL,
         PermissionType.PACK_REGISTER,
         PermissionType.PACK_SEARCH,
+        PermissionType.PACK_VIEW_INDEX_HEALTH,
         PermissionType.PACK_ALL,
 
         PermissionType.SENSOR_VIEW,
@@ -318,9 +320,7 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.PACK_UNINSTALL: 'Ability to uninstall packs.',
     PermissionType.PACK_REGISTER: 'Ability to register packs and corresponding resources.',
     PermissionType.PACK_SEARCH: 'Ability to query registry and search packs.',
-    PermissionType.PACK_DELETE: 'Ability to delete an existing pack.',
-    PermissionType.PACK_DELETE: 'Ability to delete an existing pack.',
-    PermissionType.PACK_DELETE: 'Ability to delete an existing pack.',
+    PermissionType.PACK_VIEW_INDEX_HEALTH: 'Ability to query health of pack registries.',
     PermissionType.PACK_ALL: ('Ability to perform all the supported operations on a particular '
                               'pack.'),
 

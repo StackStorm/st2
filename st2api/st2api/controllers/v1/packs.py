@@ -163,6 +163,7 @@ class PackSearchController(RestController):
 
 class IndexHealthController(RestController):
 
+    @request_user_has_permission(permission_type=PermissionType.PACK_VIEW_INDEX_HEALTH)
     @jsexpose()
     def get(self):
         """

@@ -163,6 +163,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'method': 'POST',
                 'payload': {'query': 'cloud'}
             },
+            {
+                'path': '/v1/packs/health',
+                'method': 'GET'
+            },
             # Pack views
             {
                 'path': '/v1/packs/views/files/dummy_pack_1',
