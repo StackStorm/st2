@@ -42,6 +42,15 @@ class PermissionType(Enum):
     PACK_CREATE = 'pack_create'
     PACK_MODIFY = 'pack_modify'
     PACK_DELETE = 'pack_delete'
+
+    # Pack-management specific permissions
+    # Note: Right now those permissions are global and apply to all the packs.
+    # In the future we plan to support globs.
+    PACK_INSTALL = 'pack_install'
+    PACK_UNINSTALL = 'pack_uninstall'
+    PACK_REGISTER = 'pack_register'
+    PACK_SEARCH = 'pack_search'
+
     PACK_ALL = 'pack_all'
 
     # Note: Right now we only have read endpoints + update for sensors types
@@ -204,6 +213,10 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.PACK_CREATE,
         PermissionType.PACK_MODIFY,
         PermissionType.PACK_DELETE,
+        PermissionType.PACK_INSTALL,
+        PermissionType.PACK_UNINSTALL,
+        PermissionType.PACK_REGISTER,
+        PermissionType.PACK_SEARCH,
         PermissionType.PACK_ALL,
 
         PermissionType.SENSOR_VIEW,
@@ -300,6 +313,13 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.PACK_VIEW: 'Ability to view a pack.',
     PermissionType.PACK_CREATE: 'Ability to create a new pack.',
     PermissionType.PACK_MODIFY: 'Ability to modify (update) an existing pack.',
+    PermissionType.PACK_DELETE: 'Ability to delete an existing pack.',
+    PermissionType.PACK_INSTALL: 'Ability to install packs.',
+    PermissionType.PACK_UNINSTALL: 'Ability to uninstall packs.',
+    PermissionType.PACK_REGISTER: 'Ability to register packs and corresponding resources.',
+    PermissionType.PACK_SEARCH: 'Ability to query registry and search packs.',
+    PermissionType.PACK_DELETE: 'Ability to delete an existing pack.',
+    PermissionType.PACK_DELETE: 'Ability to delete an existing pack.',
     PermissionType.PACK_DELETE: 'Ability to delete an existing pack.',
     PermissionType.PACK_ALL: ('Ability to perform all the supported operations on a particular '
                               'pack.'),
