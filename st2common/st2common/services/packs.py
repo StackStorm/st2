@@ -92,7 +92,7 @@ def _fetch_and_compile_index(index_urls, logger=None):
         elif type(index_json) is list:
             index_status['error'] = 'malformed'
             index_status['message'] = 'Expected an index object, got a list instead.'
-        elif 'packs' not in index_json:
+        elif index_json and 'packs' not in index_json:
             index_status['error'] = 'malformed'
             index_status['message'] = 'Index object is missing "packs" attribute.'
 
