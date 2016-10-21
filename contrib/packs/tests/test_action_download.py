@@ -22,6 +22,7 @@ import tempfile
 import hashlib
 
 from git.repo import Repo
+from gitdb.exc import BadName
 from st2common.services import packs as pack_service
 from st2tests.base import BaseActionTestCase
 
@@ -50,7 +51,6 @@ PACK_INDEX = {
 
 
 @mock.patch.object(pack_service, 'fetch_pack_index', mock.MagicMock(return_value=(PACK_INDEX, {})))
-@mock.patch.object(os.path, 'expanduser', mock.MagicMock(return_value=tempfile.mkdtemp()))
 class DownloadGitRepoActionTestCase(BaseActionTestCase):
     action_cls = DownloadGitRepoAction
 
@@ -62,18 +62,28 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.addCleanup(clone_from.stop)
         self.clone_from = clone_from.start()
 
+        expand_user = mock.patch.object(os.path, 'expanduser',
+                                        mock.MagicMock(return_value=tempfile.mkdtemp()))
+
+        self.addCleanup(expand_user.stop)
+        self.expand_user = expand_user.start()
+
         self.repo_base = tempfile.mkdtemp()
+
+        self.repo_instance = mock.MagicMock()
 
         def side_effect(url, to_path, **kwargs):
             # Since we have no way to pass pack name here, we would have to derive it from repo url
             fixture_name = url.split('/')[-1]
             fixture_path = os.path.join(self._get_base_pack_path(), 'tests/fixtures', fixture_name)
             shutil.copytree(fixture_path, to_path)
+            return self.repo_instance
 
         self.clone_from.side_effect = side_effect
 
     def tearDown(self):
         shutil.rmtree(self.repo_base)
+        shutil.rmtree(self.expand_user())
 
     def test_run_pack_download(self):
         action = self.get_action_instance()
@@ -121,3 +131,22 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
         action = self.get_action_instance()
         self.assertRaises(Exception, action.run, packs=['test'], abs_repo_base=self.repo_base)
+
+    def test_run_pack_download_no_tag(self):
+        self.repo_instance.commit.side_effect = BadName
+
+        action = self.get_action_instance()
+        self.assertRaises(ValueError, action.run, packs=['test#1.2.3'],
+                          abs_repo_base=self.repo_base)
+
+    def test_run_pack_download_v_tag(self):
+        def side_effect(ref):
+            if ref[0] != 'v':
+                raise BadName()
+
+        self.repo_instance.commit.side_effect = side_effect
+
+        action = self.get_action_instance()
+        result = action.run(packs=['test#1.2.3'], abs_repo_base=self.repo_base)
+
+        self.assertEqual(result, {'test': 'Success.'})
