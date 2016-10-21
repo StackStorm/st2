@@ -51,6 +51,12 @@ __all__ = [
 RUNNER_ENV = 'env'
 RUNNER_TIMEOUT = 'timeout'
 
+# Environment variables which can't be specified by the user
+BLACKLISTED_ENV_VARS = [
+    # We don't allow user to override PYTHONPATH since this would break things
+    'pythonpath'
+]
+
 BASE_DIR = os.path.dirname(os.path.abspath(python_action_wrapper.__file__))
 WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
@@ -230,8 +236,6 @@ class PythonRunner(ActionRunner):
 
         :rtype: ``dict``
         """
-        # Don't allow user to override PYTHONPATH since this would break things
-        blacklisted_vars = ['pythonpath']
         env_vars = {}
 
         if self._env:
@@ -240,10 +244,12 @@ class PythonRunner(ActionRunner):
         # Remove "blacklisted" environment variables
         to_delete = []
         for key, value in env_vars.items():
-            if key.lower() in blacklisted_vars:
+            if key.lower() in BLACKLISTED_ENV_VARS:
                 to_delete.append(key)
 
         for key in to_delete:
+            LOG.debug('User specified environment variable "%s" which is being ignored...' %
+                      (key))
             del env_vars[key]
 
         return env_vars
