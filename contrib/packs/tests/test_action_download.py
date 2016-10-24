@@ -136,7 +136,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.repo_instance.commit.side_effect = BadName
 
         action = self.get_action_instance()
-        self.assertRaises(ValueError, action.run, packs=['test#1.2.3'],
+        self.assertRaises(ValueError, action.run, packs=['test=1.2.3'],
                           abs_repo_base=self.repo_base)
 
     def test_run_pack_download_v_tag(self):
@@ -147,6 +147,6 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.repo_instance.commit.side_effect = side_effect
 
         action = self.get_action_instance()
-        result = action.run(packs=['test#1.2.3'], abs_repo_base=self.repo_base)
+        result = action.run(packs=['test=1.2.3'], abs_repo_base=self.repo_base)
 
         self.assertEqual(result, {'test': 'Success.'})
