@@ -34,7 +34,7 @@ MANIFEST_FILE = 'pack.yaml'
 CONFIG_FILE = 'config.yaml'
 GITINFO_FILE = '.gitinfo'
 PACK_RESERVE_CHARACTER = '.'
-PACK_VERSION_SEPARATOR = '#'
+PACK_VERSION_SEPARATOR = '='
 SEMVER_REGEX = (r"^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
                 r"(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$")
 
