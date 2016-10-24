@@ -7,3 +7,4 @@ pyyaml
 jsonpath-rw
 requests
 six
+sseclient

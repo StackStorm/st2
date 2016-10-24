@@ -26,7 +26,6 @@ import traceback
 
 from oslo_config import cfg
 
-from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.util import mongoescape as util_mongodb
 from st2common.util import schema as util_schema
 from st2common.util.debugging import is_enabled as is_debugging_enabled
@@ -219,7 +218,6 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
     def decorate(f):
         @functools.wraps(f)
         def callfunction(*args, **kwargs):
-            function_name = f.__name__
             args = list(args)
             more = [args.pop(0)]
 
@@ -246,16 +244,6 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
                     except Exception as e:
                         raise exc.HTTPInternalServerError(detail=e.message,
                                                           comment=traceback.format_exc())
-
-                    # Set default pack if one is not provided for resource create
-                    if function_name == 'post' and not hasattr(obj, 'pack'):
-                        extra = {
-                            'resource_api': obj,
-                            'default_pack_name': DEFAULT_PACK_NAME
-                        }
-                        LOG.debug('Pack not provided in the body, setting a default pack name',
-                                  extra=extra)
-                        setattr(obj, 'pack', DEFAULT_PACK_NAME)
                 else:
                     obj = None
 

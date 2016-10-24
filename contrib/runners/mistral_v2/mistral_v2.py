@@ -58,6 +58,8 @@ class MistralRunner(AsyncActionRunner):
             insecure=cfg.CONF.mistral.insecure)
 
     def pre_run(self):
+        super(MistralRunner, self).pre_run()
+
         if getattr(self, 'liveaction', None):
             self._notify = getattr(self.liveaction, 'notify', None)
         self._skip_notify_tasks = self.runner_parameters.get('skip_notify', [])

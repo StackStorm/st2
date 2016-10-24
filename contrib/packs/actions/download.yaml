@@ -9,19 +9,11 @@
       type: "array"
       items:
         type: "string"
-    repo_url:
-      type: "string"
-      default: "StackStorm/st2contrib"
-    branch:
-      type: "string"
-      default: "master"
+      required: true
     abs_repo_base:
       type: "string"
       default: "/opt/stackstorm/packs/"
       immutable: true
-    subtree:
-      type: "boolean"
-      default: false
     verifyssl:
       type: "boolean"
       default: true

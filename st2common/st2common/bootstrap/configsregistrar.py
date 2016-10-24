@@ -47,7 +47,7 @@ class ConfigsRegistrar(ResourceRegistrar):
 
         self._validate_configs = validate_configs
 
-    def register_configs_for_all_packs(self, base_dirs):
+    def register_from_packs(self, base_dirs):
         """
         Register configs for all the available packs.
         """
@@ -79,7 +79,7 @@ class ConfigsRegistrar(ResourceRegistrar):
 
         return registered_count
 
-    def register_config_for_pack(self, pack_dir):
+    def register_from_pack(self, pack_dir):
         """
         Register config for a provided pack.
         """
@@ -143,8 +143,8 @@ def register_configs(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
                                  validate_configs=validate_configs)
 
     if pack_dir:
-        result = registrar.register_config_for_pack(pack_dir=pack_dir)
+        result = registrar.register_from_pack(pack_dir=pack_dir)
     else:
-        result = registrar.register_configs_for_all_packs(base_dirs=packs_base_paths)
+        result = registrar.register_from_packs(base_dirs=packs_base_paths)
 
     return result

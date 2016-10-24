@@ -28,24 +28,6 @@ from pack_mgmt.download import DownloadGitRepoAction
 
 
 class InstallPackTestCase(unittest2.TestCase):
-    def test_eval_subtree(self):
-        result = DownloadGitRepoAction._eval_subtree('stackstorm/st2contrib', False)
-        self.assertTrue(result)
-
-        result = DownloadGitRepoAction._eval_subtree('stackstorm/st2contrib', True)
-        self.assertTrue(result)
-
-        result = DownloadGitRepoAction._eval_subtree('stackstorm/st2incubator', False)
-        self.assertTrue(result)
-
-        result = DownloadGitRepoAction._eval_subtree('stackstorm/foobar', False)
-        self.assertFalse(result)
-
-        result = DownloadGitRepoAction._eval_subtree('kami/foobar', False)
-        self.assertFalse(result)
-
-        result = DownloadGitRepoAction._eval_subtree('kami/foobar', True)
-        self.assertTrue(result)
 
     def test_eval_repo(self):
         result = DownloadGitRepoAction._eval_repo_url('stackstorm/st2contrib')
@@ -61,24 +43,3 @@ class InstallPackTestCase(unittest2.TestCase):
         repo_url = 'https://git-wip-us.apache.org/repos/asf/libcloud.git'
         result = DownloadGitRepoAction._eval_repo_url(repo_url)
         self.assertEqual(result, repo_url)
-
-    def test_eval_repo_name(self):
-        result = DownloadGitRepoAction._eval_repo_name(
-            'https://github.com/StackStorm/st2contrib.git')
-        self.assertEqual(result, 'st2contrib')
-
-        result = DownloadGitRepoAction._eval_repo_name(
-            'https://github.com/StackStorm/st2contrib')
-        self.assertEqual(result, 'st2contrib')
-
-        result = DownloadGitRepoAction._eval_repo_name(
-            'git@github.com:StackStorm/st2contrib.git')
-        self.assertEqual(result, 'st2contrib')
-
-        result = DownloadGitRepoAction._eval_repo_name(
-            'git@github.com:StackStorm/st2contrib')
-        self.assertEqual(result, 'st2contrib')
-
-        result = DownloadGitRepoAction._eval_repo_name(
-            'https://git-wip-us.apache.org/repos/asf/libcloud.git')
-        self.assertEqual(result, 'libcloud')

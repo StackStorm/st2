@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,14 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models.core import *         # noqa
-from st2client.models.auth import *       # noqa
-from st2client.models.action import *       # noqa
-from st2client.models.action_alias import *  # noqa
-from st2client.models.aliasexecution import *  # noqa
-from st2client.models.keyvalue import *    # noqa
-from st2client.models.pack import *          # noqa
-from st2client.models.policy import *       # noqa
-from st2client.models.reactor import *      # noqa
-from st2client.models.trace import *      # noqa
-from st2client.models.webhook import *      # noqa
+from st2actions.runners.pythonrunner import Action
+from st2common.content import utils
+
+
+class RenderTemplateAction(Action):
+    def run(self):
+        result = {
+            'pack_group': utils.get_pack_group(),
+            'pack_path': utils.get_system_packs_base_path()
+        }
+
+        return result

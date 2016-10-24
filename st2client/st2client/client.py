@@ -23,6 +23,8 @@ from st2client.models.core import ResourceManager
 from st2client.models.core import ActionAliasResourceManager
 from st2client.models.core import LiveActionResourceManager
 from st2client.models.core import TriggerInstanceResourceManager
+from st2client.models.core import PackResourceManager
+from st2client.models.core import StreamManager
 
 
 LOG = logging.getLogger(__name__)
@@ -30,14 +32,15 @@ LOG = logging.getLogger(__name__)
 # Default values for the options not explicitly specified by the user
 DEFAULT_API_PORT = 9101
 DEFAULT_AUTH_PORT = 9100
+DEFAULT_STREAM_PORT = 9102
 
 DEFAULT_BASE_URL = 'http://127.0.0.1'
 DEFAULT_API_VERSION = 'v1'
 
 
 class Client(object):
-    def __init__(self, base_url=None, auth_url=None, api_url=None, api_version=None, cacert=None,
-                 debug=False, token=None, api_key=None):
+    def __init__(self, base_url=None, auth_url=None, api_url=None, stream_url=None,
+                 api_version=None, cacert=None, debug=False, token=None, api_key=None):
         # Get CLI options. If not given, then try to get it from the environment.
         self.endpoints = dict()
 
@@ -60,6 +63,13 @@ class Client(object):
         else:
             self.endpoints['auth'] = os.environ.get(
                 'ST2_AUTH_URL', '%s:%s' % (self.endpoints['base'], DEFAULT_AUTH_PORT))
+
+        if stream_url:
+            self.endpoints['stream'] = auth_url
+        else:
+            self.endpoints['stream'] = os.environ.get(
+                'ST2_STREAM_URL', '%s:%s/%s' %
+                                  (self.endpoints['base'], DEFAULT_STREAM_PORT, api_version))
 
         if cacert is not None:
             self.cacert = cacert
@@ -101,6 +111,8 @@ class Client(object):
             models.ApiKey, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['LiveAction'] = LiveActionResourceManager(
             models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Pack'] = PackResourceManager(
+            models.Pack, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Policy'] = ResourceManager(
             models.Policy, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['PolicyType'] = ResourceManager(
@@ -123,6 +135,8 @@ class Client(object):
             models.Trace, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['RuleEnforcement'] = ResourceManager(
             models.RuleEnforcement, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Stream'] = StreamManager(
+            self.endpoints['stream'], cacert=self.cacert, debug=self.debug)
 
     @property
     def actions(self):
@@ -139,6 +153,10 @@ class Client(object):
     @property
     def liveactions(self):
         return self.managers['LiveAction']
+
+    @property
+    def packs(self):
+        return self.managers['Pack']
 
     @property
     def policies(self):

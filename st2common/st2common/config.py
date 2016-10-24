@@ -77,6 +77,8 @@ def register_opts(ignore_errors=False):
     system_packs_base_path = os.path.join(cfg.CONF.system.base_path, 'packs')
     system_runners_base_path = os.path.join(cfg.CONF.system.base_path, 'runners')
     content_opts = [
+        cfg.StrOpt('pack_group', default='st2packs',
+                   help='User group that can write to packs directory.'),
         cfg.StrOpt('system_packs_base_path', default=system_packs_base_path,
                    help='Path to the directory which contains system packs.'),
         cfg.StrOpt('system_runners_base_path', default=system_runners_base_path,
@@ -84,7 +86,11 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('packs_base_paths', default=None,
                    help='Paths which will be searched for integration packs.'),
         cfg.StrOpt('runners_base_paths', default=None,
-                   help='Paths which will be searched for runners.')
+                   help='Paths which will be searched for runners.'),
+        cfg.ListOpt('index_url', default=['https://index.stackstorm.org/v1/index.json'],
+                    help=('A URL pointing to the pack index. StackStorm Exchange is used by '
+                          'default. Use a comma-separated list for multiple indexes if you '
+                          'want to get other packs discovered with "st2 pack search".')),
     ]
     do_register_opts(content_opts, 'content', ignore_errors)
 

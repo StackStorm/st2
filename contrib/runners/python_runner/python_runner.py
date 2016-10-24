@@ -17,6 +17,7 @@ import os
 import sys
 import json
 import uuid
+from subprocess import list2cmdline
 
 from eventlet.green import subprocess
 
@@ -50,6 +51,12 @@ __all__ = [
 RUNNER_ENV = 'env'
 RUNNER_TIMEOUT = 'timeout'
 
+# Environment variables which can't be specified by the user
+BLACKLISTED_ENV_VARS = [
+    # We don't allow user to override PYTHONPATH since this would break things
+    'pythonpath'
+]
+
 BASE_DIR = os.path.dirname(os.path.abspath(python_action_wrapper.__file__))
 WRAPPER_SCRIPT_NAME = 'python_action_wrapper.py'
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
@@ -80,31 +87,31 @@ class PythonRunner(ActionRunner):
         self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT, self._timeout)
 
     def run(self, action_parameters):
-        LOG.debug("Running pythonrunner.")
-        LOG.debug("Getting pack name.")
+        LOG.debug('Running pythonrunner.')
+        LOG.debug('Getting pack name.')
         pack = self.get_pack_name()
-        LOG.debug("Getting user.")
+        LOG.debug('Getting user.')
         user = self.get_user()
-        LOG.debug("Serializing parameters.")
+        LOG.debug('Serializing parameters.')
         serialized_parameters = json.dumps(action_parameters) if action_parameters else ''
-        LOG.debug("Getting virtualenv_path.")
+        LOG.debug('Getting virtualenv_path.')
         virtualenv_path = get_sandbox_virtualenv_path(pack=pack)
-        LOG.debug("Getting python path.")
+        LOG.debug('Getting python path.')
         python_path = get_sandbox_python_binary_path(pack=pack)
 
-        LOG.debug("Checking virtualenv path.")
+        LOG.debug('Checking virtualenv path.')
         if virtualenv_path and not os.path.isdir(virtualenv_path):
             format_values = {'pack': pack, 'virtualenv_path': virtualenv_path}
             msg = PACK_VIRTUALENV_DOESNT_EXIST % format_values
-            LOG.error("virtualenv_path set but not a directory: %s", msg)
+            LOG.error('virtualenv_path set but not a directory: %s', msg)
             raise Exception(msg)
 
-        LOG.debug("Checking entry_point.")
+        LOG.debug('Checking entry_point.')
         if not self.entry_point:
             LOG.error('Action "%s" is missing entry_point attribute' % (self.action.name))
             raise Exception('Action "%s" is missing entry_point attribute' % (self.action.name))
 
-        LOG.debug("Setting args.")
+        LOG.debug('Setting args.')
         args = [
             python_path,
             WRAPPER_SCRIPT_PATH,
@@ -117,7 +124,7 @@ class PythonRunner(ActionRunner):
 
         # We need to ensure all the st2 dependencies are also available to the
         # subprocess
-        LOG.debug("Setting env.")
+        LOG.debug('Setting env.')
         env = os.environ.copy()
         env['PATH'] = get_sandbox_path(virtualenv_path=virtualenv_path)
         env['PYTHONPATH'] = get_sandbox_python_path(inherit_from_parent=True,
@@ -133,12 +140,14 @@ class PythonRunner(ActionRunner):
         datastore_env_vars = self._get_datastore_access_env_vars()
         env.update(datastore_env_vars)
 
-        LOG.debug("Running command.")
+        command_string = list2cmdline(args)
+        LOG.debug('Running command: PATH=%s PYTHONPATH=%s %s' % (env['PATH'], env['PYTHONPATH'],
+                                                                 command_string))
         exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdout=subprocess.PIPE,
                                                            stderr=subprocess.PIPE, shell=False,
                                                            env=env, timeout=self._timeout)
-        LOG.debug("Returning values: %s, %s, %s, %s" % (exit_code, stdout, stderr, timed_out))
-        LOG.debug("Returning.")
+        LOG.debug('Returning values: %s, %s, %s, %s' % (exit_code, stdout, stderr, timed_out))
+        LOG.debug('Returning.')
         return self._get_output_values(exit_code, stdout, stderr, timed_out)
 
     def _get_output_values(self, exit_code, stdout, stderr, timed_out):
@@ -227,8 +236,6 @@ class PythonRunner(ActionRunner):
 
         :rtype: ``dict``
         """
-        # Don't allow user to override PYTHONPATH since this would break things
-        blacklisted_vars = ['pythonpath']
         env_vars = {}
 
         if self._env:
@@ -237,10 +244,12 @@ class PythonRunner(ActionRunner):
         # Remove "blacklisted" environment variables
         to_delete = []
         for key, value in env_vars.items():
-            if key.lower() in blacklisted_vars:
+            if key.lower() in BLACKLISTED_ENV_VARS:
                 to_delete.append(key)
 
         for key in to_delete:
+            LOG.debug('User specified environment variable "%s" which is being ignored...' %
+                      (key))
             del env_vars[key]
 
         return env_vars

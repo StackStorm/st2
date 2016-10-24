@@ -125,7 +125,7 @@ class BaseTestCase(TestCase):
         Register all the packs inside the fixtures directory.
         """
         registrar = ConfigsRegistrar(use_pack_cache=False, validate_configs=validate_configs)
-        registrar.register_configs_for_all_packs(base_dirs=get_packs_base_paths())
+        registrar.register_from_packs(base_dirs=get_packs_base_paths())
 
 
 class EventletTestCase(TestCase):

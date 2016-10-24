@@ -14,16 +14,38 @@
 # limitations under the License.
 
 import pecan
-from six.moves import http_client
+from pecan.rest import RestController
+import six
 
+import st2common
 from st2common import log as logging
+from st2common.bootstrap.triggersregistrar import TriggersRegistrar
+from st2common.bootstrap.sensorsregistrar import SensorsRegistrar
+from st2common.bootstrap.actionsregistrar import ActionsRegistrar
+from st2common.bootstrap.aliasesregistrar import AliasesRegistrar
+from st2common.bootstrap.policiesregistrar import PolicyRegistrar
+import st2common.bootstrap.policiesregistrar as policies_registrar
+import st2common.bootstrap.runnersregistrar as runners_registrar
+from st2common.bootstrap.rulesregistrar import RulesRegistrar
+import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
+from st2common.bootstrap.configsregistrar import ConfigsRegistrar
+import st2common.content.utils as content_utils
 from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
+from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
+from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.pack import PackAPI
+from st2common.models.api.pack import PackInstallRequestAPI
+from st2common.models.api.pack import PackRegisterRequestAPI
+from st2common.models.api.pack import PackSearchRequestAPI
+from st2common.models.api.pack import PackAsyncAPI
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
+from st2common.services import packs as packs_service
+
+http_client = six.moves.http_client
 
 __all__ = [
     'PacksController',
@@ -31,6 +53,148 @@ __all__ = [
 ]
 
 LOG = logging.getLogger(__name__)
+
+ENTITIES = {
+    'action': (ActionsRegistrar, 'actions'),
+    'trigger': (TriggersRegistrar, 'triggers'),
+    'sensor': (SensorsRegistrar, 'sensors'),
+    'rule': (RulesRegistrar, 'rules'),
+    'alias': (AliasesRegistrar, 'aliases'),
+    'policy': (PolicyRegistrar, 'policy'),
+    'config': (ConfigsRegistrar, 'config')
+}
+
+
+class PackInstallController(ActionExecutionsControllerMixin, RestController):
+
+    @request_user_has_permission(permission_type=PermissionType.PACK_INSTALL)
+    @jsexpose(body_cls=PackInstallRequestAPI, status_code=http_client.ACCEPTED)
+    def post(self, pack_install_request):
+        parameters = {
+            'packs': pack_install_request.packs
+        }
+
+        new_liveaction_api = LiveActionCreateAPI(action='packs.install',
+                                                 parameters=parameters,
+                                                 user=None)
+
+        execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
+
+        return PackAsyncAPI(execution_id=execution.id)
+
+
+class PackUninstallController(ActionExecutionsControllerMixin, RestController):
+
+    @request_user_has_permission(permission_type=PermissionType.PACK_UNINSTALL)
+    @jsexpose(body_cls=PackInstallRequestAPI, arg_types=[str], status_code=http_client.ACCEPTED)
+    def post(self, pack_uninstall_request, ref_or_id=None):
+        if ref_or_id:
+            parameters = {
+                'packs': [ref_or_id]
+            }
+        else:
+            parameters = {
+                'packs': pack_uninstall_request.packs
+            }
+
+        new_liveaction_api = LiveActionCreateAPI(action='packs.uninstall',
+                                                 parameters=parameters,
+                                                 user=None)
+
+        execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
+
+        return PackAsyncAPI(execution_id=execution.id)
+
+
+class PackRegisterController(RestController):
+
+    @request_user_has_permission(permission_type=PermissionType.PACK_REGISTER)
+    @jsexpose(body_cls=PackRegisterRequestAPI)
+    def post(self, pack_register_request):
+        if pack_register_request and hasattr(pack_register_request, 'types'):
+            types = pack_register_request.types
+        else:
+            types = ['runner', 'action', 'trigger', 'sensor', 'rule', 'rule_type', 'alias',
+                     'policy_type', 'policy', 'config']
+
+        if pack_register_request and hasattr(pack_register_request, 'packs'):
+            packs = pack_register_request.packs
+        else:
+            packs = None
+
+        result = {}
+
+        if 'runner' in types or 'action' in types:
+            result['runners'] = runners_registrar.register_runners(experimental=True)
+        if 'rule_type' in types or 'rule' in types:
+            result['rule_types'] = rule_types_registrar.register_rule_types()
+        if 'policy_type' in types or 'policy' in types:
+            result['policy_types'] = policies_registrar.register_policy_types(st2common)
+
+        use_pack_cache = True
+
+        for type, (Registrar, name) in six.iteritems(ENTITIES):
+            if type in types:
+                registrar = Registrar(use_pack_cache=use_pack_cache,
+                                      fail_on_failure=False)
+                if packs:
+                    for pack in packs:
+                        pack_path = content_utils.get_pack_base_path(pack)
+                        result[name] = registrar.register_from_pack(pack_dir=pack_path)
+                else:
+                    packs_base_paths = content_utils.get_packs_base_paths()
+                    result[name] = registrar.register_from_packs(base_dirs=packs_base_paths)
+
+        return result
+
+
+class PackSearchController(RestController):
+
+    @request_user_has_permission(permission_type=PermissionType.PACK_SEARCH)
+    @jsexpose(body_cls=PackSearchRequestAPI)
+    def post(self, pack_search_request):
+        if hasattr(pack_search_request, 'query'):
+            packs = packs_service.search_pack_index(pack_search_request.query)
+            return [PackAPI(**pack) for pack in packs]
+        else:
+            pack = packs_service.get_pack_from_index(pack_search_request.pack)
+            return PackAPI(**pack) if pack else None
+
+
+class IndexHealthController(RestController):
+
+    @request_user_has_permission(permission_type=PermissionType.PACK_VIEW_INDEX_HEALTH)
+    @jsexpose()
+    def get(self):
+        """
+        Check if all listed indexes are healthy: they should be reachable,
+        return valid JSON objects, and yield more than one result.
+        """
+        _, status = packs_service.fetch_pack_index(allow_empty=True)
+
+        health = {
+            "indexes": {
+                "count": len(status),
+                "valid": 0,
+                "invalid": 0,
+                "errors": {},
+                "status": status,
+            },
+            "packs": {
+                "count": 0,
+            },
+        }
+
+        for index in status:
+            if index['error']:
+                error_count = health['indexes']['errors'].get(index['error'], 0) + 1
+                health['indexes']['invalid'] += 1
+                health['indexes']['errors'][index['error']] = error_count
+            else:
+                health['indexes']['valid'] += 1
+            health['packs']['count'] += index['packs']
+
+        return health
 
 
 class BasePacksController(ResourceController):
@@ -71,6 +235,11 @@ class BasePacksController(ResourceController):
         return resource_db
 
 
+class PacksIndexController(RestController):
+    search = PackSearchController()
+    health = IndexHealthController()
+
+
 class PacksController(BasePacksController):
     from st2api.controllers.v1.packviews import PackViewsController
 
@@ -86,7 +255,11 @@ class PacksController(BasePacksController):
     }
 
     # Nested controllers
+    install = PackInstallController()
+    uninstall = PackUninstallController()
+    register = PackRegisterController()
     views = PackViewsController()
+    index = PacksIndexController()
 
     @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
     @jsexpose()

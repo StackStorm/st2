@@ -159,7 +159,8 @@ class RuleAPI(BaseAPI, APIUIDMixin):
                 'required': True
             },
             'pack': {
-                'type': 'string'
+                'type': 'string',
+                'default': DEFAULT_PACK_NAME
             },
             'description': {
                 'type': 'string'

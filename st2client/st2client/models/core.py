@@ -19,6 +19,7 @@ import logging
 from functools import wraps
 
 import six
+from sseclient import SSEClient
 
 from six.moves import urllib
 
@@ -385,3 +386,77 @@ class TriggerInstanceResourceManager(ResourceManager):
         if response.status_code != 200:
             self.handle_error(response)
         return response.json()
+
+
+class PackResourceManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def install(self, packs, **kwargs):
+        url = '/%s/install' % (self.resource.get_url_path_name())
+        response = self.client.post(url, {'packs': packs}, **kwargs)
+        if response.status_code != 200:
+            self.handle_error(response)
+        instance = self.resource.deserialize(response.json())
+        return instance
+
+    @add_auth_token_to_kwargs_from_env
+    def remove(self, packs, **kwargs):
+        url = '/%s/uninstall' % (self.resource.get_url_path_name())
+        response = self.client.post(url, {'packs': packs}, **kwargs)
+        if response.status_code != 200:
+            self.handle_error(response)
+        instance = self.resource.deserialize(response.json())
+        return instance
+
+    @add_auth_token_to_kwargs_from_env
+    def search(self, args, **kwargs):
+        url = '/%s/index/search' % (self.resource.get_url_path_name())
+        if 'query' in vars(args):
+            payload = {'query': args.query}
+        else:
+            payload = {'pack': args.pack}
+        response = self.client.post(url, payload, **kwargs)
+        if response.status_code != 200:
+            self.handle_error(response)
+        data = response.json()
+        if isinstance(data, list):
+            return [self.resource.deserialize(item) for item in data]
+        else:
+            return self.resource.deserialize(data) if data else None
+
+    @add_auth_token_to_kwargs_from_env
+    def register(self, packs=None, types=None, **kwargs):
+        url = '/%s/register' % (self.resource.get_url_path_name())
+        payload = {}
+        if types:
+            payload['types'] = types
+        if packs:
+            payload['packs'] = packs
+        response = self.client.post(url, payload, **kwargs)
+        if response.status_code != 200:
+            self.handle_error(response)
+        instance = self.resource.deserialize(response.json())
+        return instance
+
+
+class StreamManager(object):
+    def __init__(self, endpoint, cacert, debug):
+        self._url = httpclient.get_url_without_trailing_slash(endpoint) + '/stream'
+        self.debug = debug
+        self.cacert = cacert
+
+    @add_auth_token_to_kwargs_from_env
+    def listen(self, events, **kwargs):
+        url = self._url
+
+        if 'token' in kwargs:
+            url += '?x-auth-token=%s' % kwargs.get('token')
+
+        if 'api_key' in kwargs:
+            url += '?st2-api-key=%s' % kwargs.get('api_key')
+
+        if isinstance(events, six.string_types):
+            events = [events]
+
+        for message in SSEClient(url):
+            if message.event in events:
+                yield json.loads(message.data)

@@ -1,6 +1,4 @@
 ---
-pack_group: st2packs
-
 repositories:
 
   # To deploy a pack from a forked st2contrib on GitHub update & uncomment the following

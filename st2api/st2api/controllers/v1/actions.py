@@ -34,6 +34,7 @@ from st2common.models.api.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.models.api.action import ActionCreateAPI
+from st2common.models.api.action import ActionUpdateAPI
 from st2common.persistence.pack import Pack
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.content.utils import get_pack_base_path
@@ -143,7 +144,7 @@ class ActionsController(resource.ContentPackResourceController):
         return action_api
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_MODIFY)
-    @jsexpose(arg_types=[str], body_cls=ActionCreateAPI)
+    @jsexpose(arg_types=[str], body_cls=ActionUpdateAPI)
     def put(self, action, action_ref_or_id):
         action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
 

@@ -33,7 +33,12 @@ __all__ = [
     'ConfigSchemaAPI',
     'ConfigAPI',
 
-    'ConfigItemSetAPI'
+    'ConfigItemSetAPI',
+
+    'PackInstallRequestAPI',
+    'PackRegisterRequestAPI',
+    'PackSearchRequestAPI',
+    'PackAsyncAPI'
 ]
 
 
@@ -243,6 +248,76 @@ class ConfigItemSetAPI(BaseAPI):
                 "type": "string",
                 "required": False,
                 "default": None
+            }
+        },
+        "additionalProperties": False
+    }
+
+
+class PackInstallRequestAPI(BaseAPI):
+    schema = {
+        "type": "object",
+        "properties": {
+            "packs": {
+                "type": "array"
+            }
+        }
+    }
+
+
+class PackRegisterRequestAPI(BaseAPI):
+    schema = {
+        "type": "object",
+        "properties": {
+            "types": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "packs": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+
+
+class PackSearchRequestAPI(BaseAPI):
+    schema = {
+        "type": "object",
+        "oneOf": [
+            {
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "required": True,
+                    },
+                },
+                "additionalProperties": False,
+            },
+            {
+                "properties": {
+                    "pack": {
+                        "type": "string",
+                        "required": True,
+                    },
+                },
+                "additionalProperties": False,
+            },
+        ]
+    }
+
+
+class PackAsyncAPI(BaseAPI):
+    schema = {
+        "type": "object",
+        "properties": {
+            "execution_id": {
+                "type": "string",
+                "required": True
             }
         },
         "additionalProperties": False
