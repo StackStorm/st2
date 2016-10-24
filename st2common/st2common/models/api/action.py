@@ -18,6 +18,7 @@ import copy
 from st2common.util import isotime
 from st2common.util import schema as util_schema
 from st2common import log as logging
+from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.models.api.base import BaseAPI
 from st2common.models.api.base import APIUIDMixin
 from st2common.models.api.tag import TagsHelper
@@ -182,7 +183,8 @@ class ActionAPI(BaseAPI, APIUIDMixin):
             },
             "pack": {
                 "description": "The content pack this action belongs to.",
-                "type": "string"
+                "type": "string",
+                "default": DEFAULT_PACK_NAME
             },
             "parameters": {
                 "description": "Input parameters for the action.",
@@ -262,7 +264,7 @@ class ActionAPI(BaseAPI, APIUIDMixin):
 
 class ActionCreateAPI(ActionAPI, APIUIDMixin):
     """
-    API model for create action operations.
+    API model for create action operation.
     """
     schema = copy.deepcopy(ActionAPI.schema)
     schema['properties']['data_files'] = {
@@ -284,6 +286,14 @@ class ActionCreateAPI(ActionAPI, APIUIDMixin):
         },
         'default': []
     }
+
+
+class ActionUpdateAPI(ActionAPI, APIUIDMixin):
+    """
+    API model for update action operation.
+    """
+    schema = copy.deepcopy(ActionCreateAPI.schema)
+    del schema['properties']['pack']['default']
 
 
 class LiveActionAPI(BaseAPI):

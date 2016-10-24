@@ -27,7 +27,6 @@ from mongoengine import ValidationError
 from st2api.controllers import resource
 from st2api.controllers.v1.actionviews import ActionViewsController
 from st2common import log as logging
-from st2common.constants.pack import DEFAULT_PACK_NAME
 from st2common.constants.triggers import ACTION_FILE_WRITTEN_TRIGGER
 from st2common.exceptions.action import InvalidActionParameterException
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -35,6 +34,7 @@ from st2common.models.api.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
 from st2common.models.api.action import ActionCreateAPI
+from st2common.models.api.action import ActionUpdateAPI
 from st2common.persistence.pack import Pack
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.content.utils import get_pack_base_path
@@ -108,9 +108,6 @@ class ActionsController(resource.ContentPackResourceController):
                 POST /actions/
         """
 
-        if not hasattr(action, 'pack'):
-            setattr(action, 'pack', DEFAULT_PACK_NAME)
-
         try:
             # Perform validation
             validate_not_part_of_system_pack(action)
@@ -147,7 +144,7 @@ class ActionsController(resource.ContentPackResourceController):
         return action_api
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_MODIFY)
-    @jsexpose(arg_types=[str], body_cls=ActionCreateAPI)
+    @jsexpose(arg_types=[str], body_cls=ActionUpdateAPI)
     def put(self, action, action_ref_or_id):
         action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
 
