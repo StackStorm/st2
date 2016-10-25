@@ -1,0 +1,7 @@
+---
+ref: "dummy_pack_7 invalid \" @"
+name : dummy_pack_7
+description : dummy pack
+version : 0.1aa
+author : st2-dev
+email : info@stackstorm.com
