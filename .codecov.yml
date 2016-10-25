@@ -1,0 +1,27 @@
+codecov:
+  notify:
+    require_ci_to_pass: yes
+
+coverage:
+  precision: 2         # decimal places to display: 0 <= value <= 4
+  round: nearest
+  range: 50...90      # custom range of coverage colors from red -> yellow -> green
+
+  status:
+    project: yes
+    patch: yes
+    changes: yes
+
+  notify:
+    slack:
+      default:
+        url:  "secret:8cqmX1vD14d+NVA6rkwI6rkG8oxaeF5U3WmH23ByQbxMQUqZU3wIVpFnktSoLnvucW2asoHjqpqVmUF29OJZKfEdldBdYS6WL68/JIJQi/Rk/+6NYypm9tD2dNSgiNciHmyjRBUZy2JjxFvxscQj/drg9cPAdGra1b/YLoq9UkQ="
+        threshold: 1%
+
+comment:
+  layout: "header, diff, tree"
+  behavior: default
+  require_changes: false  # if true: only post the comment if coverage changes
+  branches: null
+  flags: null
+  paths: null
