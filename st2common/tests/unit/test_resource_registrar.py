@@ -22,7 +22,7 @@ from st2common.bootstrap.base import ResourceRegistrar
 from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 
-from st2tests import DbTestCase
+from st2tests.base import CleanDbTestCase
 from st2tests import fixturesloader
 
 
@@ -30,10 +30,11 @@ __all__ = [
     'ResourceRegistrarTestCase'
 ]
 
-PACK_PATH = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_1')
+PACK_PATH_1 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_1')
+PACK_PATH_6 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_6')
 
 
-class ResourceRegistrarTestCase(DbTestCase):
+class ResourceRegistrarTestCase(CleanDbTestCase):
     def test_register_packs(self):
         # Verify DB is empty
         pack_dbs = Pack.get_all()
@@ -44,7 +45,7 @@ class ResourceRegistrarTestCase(DbTestCase):
 
         registrar = ResourceRegistrar(use_pack_cache=False)
         registrar._pack_loader.get_packs = mock.Mock()
-        registrar._pack_loader.get_packs.return_value = {'dummy_pack_1': PACK_PATH}
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_1': PACK_PATH_1}
         packs_base_paths = content_utils.get_packs_base_paths()
         registrar.register_packs(base_dirs=packs_base_paths)
 
@@ -58,3 +59,28 @@ class ResourceRegistrarTestCase(DbTestCase):
         self.assertEqual(pack_dbs[0].name, 'dummy_pack_1')
         self.assertTrue('api_key' in config_schema_dbs[0].attributes)
         self.assertTrue('api_secret' in config_schema_dbs[0].attributes)
+
+    def test_register_pack_ref_metadata_field_is_used_if_provided(self):
+        # Verify DB is empty
+        pack_dbs = Pack.get_all()
+        config_schema_dbs = ConfigSchema.get_all()
+
+        self.assertEqual(len(pack_dbs), 0)
+        self.assertEqual(len(config_schema_dbs), 0)
+
+        registrar = ResourceRegistrar(use_pack_cache=False)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {
+            'dummy_pack_1': PACK_PATH_1,
+            'dummy_pack_6': PACK_PATH_6
+        }
+        packs_base_paths = content_utils.get_packs_base_paths()
+        registrar.register_packs(base_dirs=packs_base_paths)
+
+        # Ref is provided
+        pack_db = Pack.get_by_name('dummy_pack_6')
+        self.assertEqual(pack_db.ref, 'dummy_pack_6_ref')
+
+        # Ref is not provided, directory name should be used
+        pack_db = Pack.get_by_name('dummy_pack_1')
+        self.assertEqual(pack_db.ref, 'dummy_pack_1')
