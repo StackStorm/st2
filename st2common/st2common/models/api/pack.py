@@ -68,7 +68,7 @@ class PackAPI(BaseAPI):
                 'default': []
             },
             'version': {
-                'type': 'string'
+                'type': ['number', 'string']
             },
             'author': {
                 'type': 'string'
