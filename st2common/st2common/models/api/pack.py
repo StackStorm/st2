@@ -22,6 +22,7 @@ from st2common.util import schema as util_schema
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE
 from st2common.constants.pack import PACK_NAME_WHITELIST_REGEX
+from st2common.constants.pack import PACK_VERSION_REGEX
 from st2common.persistence.pack import ConfigSchema
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
@@ -69,7 +70,7 @@ class PackAPI(BaseAPI):
             },
             'version': {
                 'type': ['number', 'string'],
-                'pattern': r'^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$'
+                'pattern': PACK_VERSION_REGEX
             },
             'author': {
                 'type': 'string'
