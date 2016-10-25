@@ -68,7 +68,8 @@ class PackAPI(BaseAPI):
                 'default': []
             },
             'version': {
-                'type': ['number', 'string']
+                'type': ['number', 'string'],
+                'pattern': r'^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$'
             },
             'author': {
                 'type': 'string'
