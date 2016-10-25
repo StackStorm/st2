@@ -28,6 +28,10 @@ class ReaderNotImplemented(OperationFailureException):
     pass
 
 
+class DialogInterrupted(OperationFailureException):
+    pass
+
+
 class MuxValidator(validation.Validator):
     def __init__(self, validators, spec):
         super(MuxValidator, self).__init__()
@@ -149,7 +153,8 @@ class ObjectReader(StringReader):
     def read(self):
         prefix = u'{}.'.format(self.name)
 
-        result = InteractiveForm(self.spec.get('properties', {}), prefix=prefix).initiate_dialog()
+        result = InteractiveForm(self.spec.get('properties', {}),
+                                 prefix=prefix, reraise=True).initiate_dialog()
 
         return result
 
@@ -255,18 +260,24 @@ class InteractiveForm(object):
         StringReader
     ]
 
-    def __init__(self, schema, prefix=None):
+    def __init__(self, schema, prefix=None, reraise=False):
         self.schema = schema
         self.prefix = prefix
+        self.reraise = reraise
 
     def initiate_dialog(self):
         result = {}
 
-        for field in self.schema:
-            try:
-                result[field] = self._read_field(field)
-            except ReaderNotImplemented as e:
-                print('%s. Skipping...', str(e))
+        try:
+            for field in self.schema:
+                try:
+                    result[field] = self._read_field(field)
+                except ReaderNotImplemented as e:
+                    print('%s. Skipping...', str(e))
+        except DialogInterrupted:
+            if self.reraise:
+                raise
+            print('Dialog interrupted.')
 
         return result
 
@@ -281,9 +292,12 @@ class InteractiveForm(object):
                 break
 
         if not reader:
-            raise OperationFailureException('No reader for the field spec')
+            raise ReaderNotImplemented('No reader for the field spec')
 
-        return reader.read()
+        try:
+            return reader.read()
+        except KeyboardInterrupt:
+            raise DialogInterrupted()
 
 
 class Question(StringReader):
