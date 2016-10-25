@@ -24,6 +24,10 @@ from prompt_toolkit import validation
 from st2client.exceptions.operations import OperationFailureException
 
 
+POSITIVE_BOOLEAN = {'1', 'y', 'yes', 'true'}
+NEGATIVE_BOOLEAN = {'0', 'n', 'no', 'nope', 'nah', 'false'}
+
+
 class ReaderNotImplemented(OperationFailureException):
     pass
 
@@ -47,11 +51,13 @@ class MuxValidator(validation.Validator):
 
 
 class StringReader(object):
-    def __init__(self, name, spec, prefix=None, **kw):
+    def __init__(self, name, spec, prefix=None, secret=False, **kw):
         self.name = name
         self.spec = spec
         self.prefix = prefix or ''
-        self.options = {}
+        self.options = {
+            'is_password': secret
+        }
 
         self._construct_description()
         self._construct_template()
@@ -99,6 +105,108 @@ class StringReader(object):
 
     def _transform_response(self, response):
         return response
+
+
+class BooleanReader(StringReader):
+    @staticmethod
+    def condition(spec):
+        return spec.get('type', None) == 'boolean'
+
+    @staticmethod
+    def validate(input, spec):
+        if input.lower() not in POSITIVE_BOOLEAN | NEGATIVE_BOOLEAN:
+            raise validation.ValidationError(len(input),
+                                             'Does not look like boolean. Pick from [%s]'
+                                             % ', '.join(POSITIVE_BOOLEAN | NEGATIVE_BOOLEAN))
+
+    def _construct_template(self):
+        self.template = u'{0} (boolean)'
+
+        if 'default' in self.spec:
+            self.template += u' [{default}]: '.format(default=','.join(self.spec.get('default')))
+        else:
+            self.template += u': '
+
+    def _transform_response(self, response):
+        if response.lower() in POSITIVE_BOOLEAN:
+            return True
+        if response.lower() in NEGATIVE_BOOLEAN:
+            return False
+
+        # Hopefully, it will never happen
+        raise OperationFailureException('Response neither positive no negative. '
+                                        'Value have not been properly validated.')
+
+
+class NumberReader(StringReader):
+    @staticmethod
+    def condition(spec):
+        return spec.get('type', None) == 'number'
+
+    @staticmethod
+    def validate(input, spec):
+        if input:
+            try:
+                input = float(input)
+            except ValueError as e:
+                raise validation.ValidationError(len(input), str(e))
+
+            super(NumberReader, NumberReader).validate(input, spec)
+
+    def _construct_template(self):
+        self.template = u'{0} (float)'
+
+        if 'default' in self.spec:
+            self.template += u'[{default}]: '.format(default=self.spec.get('default'))
+        else:
+            self.template += u': '
+
+    def _transform_response(self, response):
+        return float(response)
+
+
+class IntegerReader(StringReader):
+    @staticmethod
+    def condition(spec):
+        return spec.get('type', None) == 'integer'
+
+    @staticmethod
+    def validate(input, spec):
+        if input:
+            try:
+                input = int(input)
+            except ValueError as e:
+                raise validation.ValidationError(len(input), str(e))
+
+            super(IntegerReader, IntegerReader).validate(input, spec)
+
+    def _construct_template(self):
+        self.template = u'{0} (integer)'
+
+        if 'default' in self.spec:
+            self.template += u' [{default}]: '.format(default=self.spec.get('default'))
+        else:
+            self.template += u': '
+
+    def _transform_response(self, response):
+        return int(response)
+
+
+class SecretStringReader(StringReader):
+    def __init__(self, *args, **kwargs):
+        super(SecretStringReader, self).__init__(*args, secret=True, **kwargs)
+
+    @staticmethod
+    def condition(spec):
+        return spec.get('secret', None)
+
+    def _construct_template(self):
+        self.template = u'{0} (secret)'
+
+        if 'default' in self.spec:
+            self.template += u' [{default}]: '.format(default=','.join(self.spec.get('default')))
+        else:
+            self.template += u': '
 
 
 class EnumReader(StringReader):
@@ -191,7 +299,7 @@ class ArrayReader(StringReader):
         self.template = u'{0} (comma-separated list)'
 
         if 'default' in self.spec:
-            self.template += u'[{default}]: '.format(default=','.join(self.spec.get('default')))
+            self.template += u' [{default}]: '.format(default=','.join(self.spec.get('default')))
         else:
             self.template += u': '
 
@@ -254,9 +362,13 @@ class ArrayEnumReader(EnumReader):
 class InteractiveForm(object):
     readers = [
         EnumReader,
+        BooleanReader,
+        NumberReader,
+        IntegerReader,
         ObjectReader,
         ArrayEnumReader,
         ArrayReader,
+        SecretStringReader,
         StringReader
     ]
 

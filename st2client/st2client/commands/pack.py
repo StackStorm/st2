@@ -240,7 +240,8 @@ class PackConfigCommand(resource.ResourceCommand):
         config = interactive.InteractiveForm(schema.attributes).initiate_dialog()
 
         message = '---\nDo you want to preview the config in an editor before saving?'
-        preview_dialog = interactive.Question(message, {'default': 'y'})
+        description = 'Secrets would be shown in plain text.'
+        preview_dialog = interactive.Question(message, {'default': 'y', 'description': description})
         if preview_dialog.read() == 'y':
             contents = yaml.safe_dump(config, indent=4, default_flow_style=False)
             modified = editor.edit(contents=contents)
