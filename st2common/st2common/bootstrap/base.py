@@ -149,7 +149,9 @@ class ResourceRegistrar(object):
         if not content:
             raise ValueError('Pack "%s" metadata file is empty' % (pack_name))
 
-        content['ref'] = pack_name
+        # Note: We use a ref if available, if not we fall back to pack name
+        # (pack directory name)
+        content['ref'] = content.get('ref', pack_name)
 
         # Include a list of pack files
         pack_file_list = get_file_list(directory=pack_dir, exclude_patterns=EXCLUDE_FILE_PATTERNS)
