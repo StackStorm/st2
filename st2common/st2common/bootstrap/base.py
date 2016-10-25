@@ -158,6 +158,7 @@ class ResourceRegistrar(object):
         content['files'] = pack_file_list
 
         pack_api = PackAPI(**content)
+        pack_api.validate()
         pack_db = PackAPI.to_model(pack_api)
 
         try:
