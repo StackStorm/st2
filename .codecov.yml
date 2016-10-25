@@ -15,7 +15,7 @@ coverage:
   notify:
     slack:
       default:
-        url:  "https://hooks.slack.com/services/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"
+        url:  "secret:8cqmX1vD14d+NVA6rkwI6rkG8oxaeF5U3WmH23ByQbxMQUqZU3wIVpFnktSoLnvucW2asoHjqpqVmUF29OJZKfEdldBdYS6WL68/JIJQi/Rk/+6NYypm9tD2dNSgiNciHmyjRBUZy2JjxFvxscQj/drg9cPAdGra1b/YLoq9UkQ="
         threshold: 1%
 
 comment:
