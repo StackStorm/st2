@@ -79,6 +79,7 @@ class PackAPI(BaseAPI):
             },
             'email': {
                 'type': 'string',
+                'format': 'email',
                 'required': True
             },
             'files': {
