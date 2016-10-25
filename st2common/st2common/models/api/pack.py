@@ -70,13 +70,16 @@ class PackAPI(BaseAPI):
             },
             'version': {
                 'type': ['number', 'string'],
-                'pattern': PACK_VERSION_REGEX
+                'pattern': PACK_VERSION_REGEX,
+                'required': True
             },
             'author': {
-                'type': 'string'
+                'type': 'string',
+                'required': True
             },
             'email': {
-                'type': 'string'
+                'type': 'string',
+                'required': True
             },
             'files': {
                 'type': 'array',
