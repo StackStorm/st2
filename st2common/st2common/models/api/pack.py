@@ -69,7 +69,7 @@ class PackAPI(BaseAPI):
                 'default': []
             },
             'version': {
-                'type': ['number', 'string'],
+                'type': 'string',
                 'pattern': PACK_VERSION_REGEX,
                 'required': True
             },
