@@ -1,0 +1,13 @@
+coverage:
+  precision: 2         # how many decimal places to display in the UI: 0 <= value <= 4
+  round: nearest          # how coverage is rounded: down/up/nearest
+  range: 50...100      # custom range of coverage colors from red -> yellow -> green
+
+
+comment:
+  layout: "header, diff, tree"
+  behavior: new
+  require_changes: false  # if true: only post the comment if coverage changes
+  branches: null
+  flags: null
+  paths: null
