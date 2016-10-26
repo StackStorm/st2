@@ -86,12 +86,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(pack_db.ref, 'dummy_pack_1')
 
         # "ref" is not provided, but "name" is
-        registrar._pack_loader.get_packs = mock.Mock()
-        registrar._pack_loader.get_packs.return_value = {
-            None: PACK_PATH_7
-        }
-        packs_base_paths = content_utils.get_packs_base_paths()
-        registrar.register_packs(base_dirs=packs_base_paths)
+        registrar._register_pack_db(pack_name=None, pack_dir=PACK_PATH_7)
 
         pack_db = Pack.get_by_name('dummy_pack_7_name')
         self.assertEqual(pack_db.ref, 'dummy_pack_7_name')

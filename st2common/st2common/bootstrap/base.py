@@ -156,7 +156,7 @@ class ResourceRegistrar(object):
         # 1. If ref attribute is available, we used that
         # 2. If pack_name is available we use that (this only applies to packs
         # 2hich are in sub-directories)
-        # 2. If attribute is not available, but pack name is and pack name meets the valid name 
+        # 2. If attribute is not available, but pack name is and pack name meets the valid name
         # criteria, we use that
         if content.get('ref', None):
             content['ref'] = content['ref']
