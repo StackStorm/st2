@@ -32,6 +32,8 @@ __all__ = [
 
 PACK_PATH_1 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_1')
 PACK_PATH_6 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_6')
+PACK_PATH_7 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_7')
+PACK_PATH_8 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_8')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -60,13 +62,11 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertTrue('api_key' in config_schema_dbs[0].attributes)
         self.assertTrue('api_secret' in config_schema_dbs[0].attributes)
 
-    def test_register_pack_ref_metadata_field_is_used_if_provided(self):
+    def test_register_pack_pack_ref(self):
         # Verify DB is empty
         pack_dbs = Pack.get_all()
-        config_schema_dbs = ConfigSchema.get_all()
 
         self.assertEqual(len(pack_dbs), 0)
-        self.assertEqual(len(config_schema_dbs), 0)
 
         registrar = ResourceRegistrar(use_pack_cache=False)
         registrar._pack_loader.get_packs = mock.Mock()
@@ -84,3 +84,19 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         # Ref is not provided, directory name should be used
         pack_db = Pack.get_by_name('dummy_pack_1')
         self.assertEqual(pack_db.ref, 'dummy_pack_1')
+
+        # "ref" is not provided, but "name" is
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {
+            None: PACK_PATH_7
+        }
+        packs_base_paths = content_utils.get_packs_base_paths()
+        registrar.register_packs(base_dirs=packs_base_paths)
+
+        pack_db = Pack.get_by_name('dummy_pack_7_name')
+        self.assertEqual(pack_db.ref, 'dummy_pack_7_name')
+
+        # "ref" is not provided and "name" contains invalid characters
+        expected_msg = 'contains invalid characters'
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
+                                pack_name=None, pack_dir=PACK_PATH_8)
