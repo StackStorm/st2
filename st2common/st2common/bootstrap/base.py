@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import re
 import glob
 
 import six
@@ -29,6 +30,7 @@ from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 from st2common.util.file_system import get_file_list
+from st2common.constants.pack import PACK_NAME_WHITELIST_REGEX
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
@@ -140,6 +142,7 @@ class ResourceRegistrar(object):
         return pack_db, config_schema_db
 
     def _register_pack_db(self, pack_name, pack_dir):
+        pack_name = pack_name or ''
         manifest_path = os.path.join(pack_dir, MANIFEST_FILE_NAME)
 
         if not os.path.isfile(manifest_path):
@@ -148,6 +151,23 @@ class ResourceRegistrar(object):
         content = self._meta_loader.load(manifest_path)
         if not content:
             raise ValueError('Pack "%s" metadata file is empty' % (pack_name))
+
+        # The rules for the pack ref are as follows:
+        # 1. If ref attribute is available, we used that
+        # 2. If pack_name is available we use that (this only applies to packs
+        # 2hich are in sub-directories)
+        # 2. If attribute is not available, but pack name is and pack name meets the valid name 
+        # criteria, we use that
+        if content.get('ref', None):
+            content['ref'] = content['ref']
+        elif re.match(PACK_NAME_WHITELIST_REGEX, pack_name):
+            content['ref'] = pack_name
+        else:
+            if re.match(PACK_NAME_WHITELIST_REGEX, content['name']):
+                content['ref'] = content['name']
+            else:
+                raise ValueError('Pack name "%s" contains invalid characters and "ref" '
+                                 'attribute is not available' % (content['name']))
 
         # Note: We use a ref if available, if not we fall back to pack name
         # (pack directory name)
