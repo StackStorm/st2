@@ -131,7 +131,7 @@ class PackRegisterController(RestController):
         if 'policy_type' in types or 'policy' in types:
             result['policy_types'] = policies_registrar.register_policy_types(st2common)
 
-        use_pack_cache = True
+        use_pack_cache = False
 
         for type, (Registrar, name) in six.iteritems(ENTITIES):
             if type in types:
