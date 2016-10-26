@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import hashlib
 
 import mongoengine as me
@@ -20,7 +21,6 @@ import mongoengine as me
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
-from st2common.util import bencode
 
 __all__ = [
     'TriggerTypeDB',
@@ -91,8 +91,10 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         # pylint: disable=no-member
         uid = super(TriggerDB, self).get_uid()
 
+        # Note: We sort the resulting JSON object so that the same dictionary always results
+        # in the same hash
         parameters = getattr(self, 'parameters', {})
-        parameters = bencode.bencode(parameters)
+        parameters = json.dumps(parameters, sort_keys=True)
         parameters = hashlib.md5(parameters).hexdigest()
 
         uid = uid + self.UID_SEPARATOR + parameters
