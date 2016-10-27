@@ -95,6 +95,19 @@ function st2start(){
     fi
     echo "Using runners base dir: $RUNNERS_BASE_DIR"
 
+    BASE_DIR=$(grep 'base_path' ${ST2_CONF} \
+        | awk 'BEGIN {FS=" = "}; {print $2}')
+    if [ -z BASE_DIR ]; then
+        BASE_DIR="/opt/stackstorm"
+    fi
+    CONFIG_BASE_DIR="${BASE_DIR}/configs"
+    echo "Using config base dir: $CONFIG_BASE_DIR"
+
+    if [ ! -d "$CONFIG_BASE_DIR" ]; then
+        echo "$CONFIG_BASE_DIR doesn't exist. Creating..."
+        sudo mkdir -p $CONFIG_BASE_DIR
+    fi
+
     PACKS_BASE_DIR=$(grep 'packs_base_path' ${ST2_CONF} \
         | awk 'BEGIN {FS=" = "}; {print $2}')
     if [ -z $PACKS_BASE_DIR ]; then
