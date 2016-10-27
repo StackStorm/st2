@@ -50,6 +50,7 @@ before_script:
 install:
   - pip install --upgrade "pip>=8.1.2,<8.2"
   - pip install python-coveralls
+  - pip install codecov
   - if [ ${TASK} != 'checks' ]; then pip install python-coveralls; fi
   - make requirements
   - if [ ${TASK} = 'integration' ] || [ ${TASK} = 'mistral' ]; then sudo -E ./scripts/travis/prepare-integration.sh; fi
@@ -59,4 +60,5 @@ script:
   - ./scripts/travis/build.sh
 
 after_success:
+  - if [ ${TASK} != 'checks' ]; then codecov; fi
   - if [ ${TASK} != 'checks' ]; then coveralls; fi

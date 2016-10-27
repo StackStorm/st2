@@ -23,6 +23,14 @@ __all__ = [
     'St2RegisterAction'
 ]
 
+COMPATIBILITY_TRANSFORMATIONS = {
+    'triggers': 'trigger',
+    'sensors': 'sensor',
+    'actions': 'action',
+    'rules': 'rule',
+    'aliases': 'alias'
+}
+
 
 def filter_none_values(value):
     """
@@ -48,8 +56,16 @@ class St2RegisterAction(Action):
         self.client = self._get_client()
 
     def run(self, register, **kwargs):
+        types = []
+
+        for type in register.split(','):
+            if type in COMPATIBILITY_TRANSFORMATIONS:
+                types.append(COMPATIBILITY_TRANSFORMATIONS[type])
+            else:
+                types.append(type)
+
         method_kwargs = {
-            'types': register.split(',')
+            'types': types
         }
 
         result = self._run_client_method(method=self.client.packs.register,
