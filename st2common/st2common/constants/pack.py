@@ -15,6 +15,8 @@
 
 __all__ = [
     'PACKS_PACK_NAME',
+    'PACK_REF_WHITELIST_REGEX',
+    'PACK_VERSION_REGEX',
     'SYSTEM_PACK_NAME',
     'PACKS_PACK_NAME',
     'LINUX_PACK_NAME',
@@ -27,7 +29,9 @@ __all__ = [
 ]
 
 # A list of allowed characters for the pack name
-PACK_NAME_WHITELIST = r'^[A-Za-z0-9_-]+'
+PACK_REF_WHITELIST_REGEX = r'^[a-z0-9_-]+$'
+
+PACK_VERSION_REGEX = r'^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$'  # noqa
 
 # Name used for system pack
 SYSTEM_PACK_NAME = 'core'

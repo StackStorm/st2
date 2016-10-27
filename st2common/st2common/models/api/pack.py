@@ -21,6 +21,8 @@ from oslo_config import cfg
 from st2common.util import schema as util_schema
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE
+from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
+from st2common.constants.pack import PACK_VERSION_REGEX
 from st2common.persistence.pack import ConfigSchema
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
@@ -53,7 +55,8 @@ class PackAPI(BaseAPI):
             },
             'ref': {
                 'type': 'string',
-                'default': None
+                'default': None,
+                'pattern': PACK_REF_WHITELIST_REGEX
             },
             "uid": {
                 "type": "string"
@@ -71,13 +74,18 @@ class PackAPI(BaseAPI):
                 'default': []
             },
             'version': {
-                'type': 'string'
+                'type': 'string',
+                'pattern': PACK_VERSION_REGEX,
+                'required': True
             },
             'author': {
-                'type': 'string'
+                'type': 'string',
+                'required': True
             },
             'email': {
-                'type': 'string'
+                'type': 'string',
+                'format': 'email',
+                'required': True
             },
             'files': {
                 'type': 'array',

@@ -31,7 +31,13 @@ In development
 * Allow user to supply multiple resource ids using ``?id`` query parameter when filtering
   "get all" API endpoint result set (e.g. `?id=1,2,3,4`). This allows for a better client and
   servers performance when user is polling and interested in multiple resources such as polling on
-  multiple action executions.(improvement)
+  multiple action executions. (improvement)
+* Actually validate pack metadata file when registering packs. (bug fix, improvement)
+* Improve pack validation - now when the packs are registered we require that
+  "version" attribute in the pack metadata file matches valid semver format and we also require
+  that "email" attribute (if specified) contains a valid email address. (improvement)
+* For consistency with new pack name validation changes, sample ``hello-st2`` pack has been renamed
+  to ``hello_st2``.
 
 2.0.1 - September 30, 2016
 --------------------------
