@@ -1,6 +1,0 @@
-api_key: ""
-api_secret: ""
-regions:
-  - "us-west-1"
-  - "us-east-1"
-private_key_path: null
