@@ -30,7 +30,7 @@ from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 from st2common.util.file_system import get_file_list
-from st2common.constants.pack import PACK_NAME_WHITELIST_REGEX
+from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
@@ -160,10 +160,10 @@ class ResourceRegistrar(object):
         # criteria, we use that
         if content.get('ref', None):
             content['ref'] = content['ref']
-        elif re.match(PACK_NAME_WHITELIST_REGEX, pack_name):
+        elif re.match(PACK_REF_WHITELIST_REGEX, pack_name):
             content['ref'] = pack_name
         else:
-            if re.match(PACK_NAME_WHITELIST_REGEX, content['name']):
+            if re.match(PACK_REF_WHITELIST_REGEX, content['name']):
                 content['ref'] = content['name']
             else:
                 raise ValueError('Pack name "%s" contains invalid characters and "ref" '

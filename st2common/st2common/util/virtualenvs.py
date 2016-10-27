@@ -24,7 +24,7 @@ import shutil
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common.constants.pack import PACK_NAME_WHITELIST_REGEX
+from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.constants.pack import BASE_PACK_REQUIREMENTS
 from st2common.util.shell import run_command
 from st2common.content.utils import get_packs_base_paths
@@ -53,7 +53,7 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None):
     """
     logger = logger or LOG
 
-    if not re.match(PACK_NAME_WHITELIST_REGEX, pack_name):
+    if not re.match(PACK_REF_WHITELIST_REGEX, pack_name):
         raise ValueError('Invalid pack name "%s"' % (pack_name))
 
     base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path, 'virtualenvs/')
