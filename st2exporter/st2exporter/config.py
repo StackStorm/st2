@@ -55,3 +55,6 @@ def _register_app_opts():
                    help='location of the logging.exporter.conf file')
     ]
     CONF.register_opts(logging_opts, group='exporter')
+
+
+register_opts()
