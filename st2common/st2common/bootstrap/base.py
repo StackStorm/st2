@@ -187,7 +187,7 @@ class ResourceRegistrar(object):
         pack_db = PackAPI.to_model(pack_api)
 
         try:
-            pack_db.id = Pack.get_by_ref(pack_name).id
+            pack_db.id = Pack.get_by_ref(content['ref']).id
         except StackStormDBObjectNotFoundError:
             LOG.debug('Pack %s not found. Creating new one.', pack_name)
 
