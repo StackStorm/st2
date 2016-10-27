@@ -38,7 +38,7 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     name = me.StringField(required=True, unique=True)
     description = me.StringField(required=True)
     keywords = me.ListField(field=me.StringField())
-    version = me.StringField(required=True)  # TODO: Enforce format
+    version = me.StringField(required=True)
     author = me.StringField(required=True)
     email = me.EmailField(required=True)
     files = me.ListField(field=me.StringField())
