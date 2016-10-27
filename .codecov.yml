@@ -10,7 +10,7 @@ coverage:
   status:
     project: yes
     patch: yes
-    changes: yes
+    changes: no
 
   notify:
     slack:
