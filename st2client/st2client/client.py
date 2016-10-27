@@ -131,6 +131,8 @@ class Client(object):
             models.KeyValuePair, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Webhook'] = ResourceManager(
             models.Webhook, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Timer'] = ResourceManager(
+            models.Timer, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Trace'] = ResourceManager(
             models.Trace, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['RuleEnforcement'] = ResourceManager(
