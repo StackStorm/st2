@@ -18,6 +18,7 @@ import mongoengine as me
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
+from st2common.constants.pack import PACK_VERSION_REGEX
 
 __all__ = [
     'PackDB',
@@ -38,7 +39,7 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     name = me.StringField(required=True, unique=True)
     description = me.StringField(required=True)
     keywords = me.ListField(field=me.StringField())
-    version = me.StringField(required=True)
+    version = me.StringField(regex=PACK_VERSION_REGEX, required=True)
     author = me.StringField(required=True)
     email = me.EmailField(required=True)
     files = me.ListField(field=me.StringField())
