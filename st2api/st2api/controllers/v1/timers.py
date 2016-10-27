@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
+from pecan import abort
+from six import iteritems
+from six.moves import http_client
 
 from st2api.controllers import resource
 from st2common import log as logging
@@ -39,18 +41,14 @@ class TimersHolder(object):
     def remove_trigger(self, ref, trigger):
         del self._timers[ref]
 
-    def get_all(self):
+    def get_all(self, timer_type=None):
         timer_triggers = []
 
-        LOG.info('Timers: %s', self._timers)
+        for _, timer in iteritems(self._timers):
+            if not timer_type or timer['type'] == timer_type:
+                timer_triggers.append(timer)
 
-        for _, timer in six.iteritems(self._timers):
-            LOG.info('Appending timer: %s', timer)
-            timer_triggers.append(timer)
-
-        LOG.info('Returning timers: %s', timer_triggers)
         return timer_triggers
-
 
 
 class TimersController(resource.ContentPackResourceController):
@@ -77,11 +75,16 @@ class TimersController(resource.ContentPackResourceController):
                                                exclusive=True)
         self._trigger_watcher.start()
         self._register_timer_trigger_types()
+        self._allowed_timer_types = TIMER_TRIGGER_TYPES.keys()
 
-    @jsexpose()
-    def get_all(self):
-        t_all = self._timers.get_all()
-        LOG.info('Got timers: %s', t_all)
+    @jsexpose(str)
+    def get_all(self, timer_type=None):
+        if timer_type and timer_type not in self._allowed_timer_types:
+            msg = 'Timer type %s not in supported types - %s.' % self._allowed_timer_types
+            abort(http_client.BAD_REQUEST, msg)
+
+        t_all = self._timers.get_all(timer_type=timer_type)
+        LOG.debug('Got timers: %s', t_all)
         return t_all
 
     def add_trigger(self, trigger):
@@ -101,7 +104,7 @@ class TimersController(resource.ContentPackResourceController):
 
         removed = self._timers.remove_trigger(ref, trigger)
         if removed:
-            LOG.info('Stopped timer %s with parameters', ref, trigger['parameters'])
+            LOG.info('Stopped timer %s with parameters %s.', ref, trigger['parameters'])
 
     def _register_timer_trigger_types(self):
         for trigger_type in TIMER_TRIGGER_TYPES.values():

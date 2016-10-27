@@ -25,14 +25,32 @@ class TimerBranch(resource.ResourceBranch):
             read_only=True,
             commands={
                 'list': TimerListCommand,
-                'get': TimerGetCommand
+                # 'get': TimerGetCommand
             })
 
 
-class TimerListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ['type', 'pack', 'name', 'description', 'parameters']
+class TimerListCommand(resource.ResourceListCommand):
+    display_attributes = ['id', 'pack', 'name', 'type', 'parameters']
+
+    def __init__(self, resource, *args, **kwargs):
+        super(TimerListCommand, self).__init__(resource, *args, **kwargs)
+
+        self.parser.add_argument('-ty', '--timer-type', type=str, dest='timer_type',
+                                 help=('List N most recent %s.' %
+                                       resource.get_plural_display_name().lower()),
+                                 required=False)
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        if args.timer_type:
+            kwargs['timer_type'] = args.timer_type
+
+        if kwargs:
+            return self.manager.query(**kwargs)
+        else:
+            return self.manager.get_all(**kwargs)
 
 
-class TimerGetCommand(resource.ContentPackResourceGetCommand):
+class TimerGetCommand(resource.ResourceGetCommand):
     display_attributes = ['all']
     attribute_display_order = ['type', 'pack', 'name', 'description', 'parameters']
