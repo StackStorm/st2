@@ -1,6 +1,6 @@
 ---
 name: greet
-pack: hello-st2
+pack: hello_st2
 runner_type: "local-shell-cmd"
 description: Greet StackStorm!
 enabled: true
