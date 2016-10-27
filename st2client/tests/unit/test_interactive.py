@@ -18,6 +18,9 @@ import mock
 from StringIO import StringIO
 import unittest2
 
+import prompt_toolkit
+from prompt_toolkit.document import Document
+
 from st2client.utils import interactive
 
 
@@ -25,6 +28,21 @@ LOG = logging.getLogger(__name__)
 
 
 class TestInteractive(unittest2.TestCase):
+
+    def assertPromptMessage(self, prompt_mock, message, msg=None):
+        self.assertEqual(prompt_mock.call_args[0], (message,), msg)
+
+    def assertPromptDescription(self, prompt_mock, message, msg=None):
+        toolbar_factory = prompt_mock.call_args[1]['get_bottom_toolbar_tokens']
+        self.assertEqual(toolbar_factory(None)[0][1], message, msg)
+
+    def assertPromptValidate(self, prompt_mock, value):
+        validator = prompt_mock.call_args[1]['validator']
+
+        validator.validate(Document(text=unicode(value)))
+
+    def assertPromptPassword(self, prompt_mock, value, msg=None):
+        self.assertEqual(prompt_mock.call_args[1]['is_password'], value, msg)
 
     def test_interactive_form(self):
         reader = mock.MagicMock()
@@ -93,3 +111,188 @@ class TestInteractive(unittest2.TestCase):
         with mock.patch.object(interactive.InteractiveForm, 'readers', [Reader]):
             self.assertRaises(interactive.DialogInterrupted,
                               interactive.InteractiveForm(schema, reraise=True).initiate_dialog)
+
+    @mock.patch.object(interactive, 'prompt')
+    def test_stringreader(self, prompt_mock):
+        spec = {
+            'description': 'some description',
+            'default': 'hey'
+        }
+        Reader = interactive.StringReader('some', spec)
+
+        prompt_mock.return_value = 'stuff'
+        result = Reader.read()
+
+        self.assertEqual(result, 'stuff')
+        self.assertPromptMessage(prompt_mock, 'some [hey]: ')
+        self.assertPromptDescription(prompt_mock, 'some description')
+        self.assertPromptValidate(prompt_mock, 'stuff')
+
+        prompt_mock.return_value = ''
+        result = Reader.read()
+
+        self.assertEqual(result, 'hey')
+
+    @mock.patch.object(interactive, 'prompt')
+    def test_booleanreader(self, prompt_mock):
+        spec = {
+            'description': 'some description',
+            'default': False
+        }
+        Reader = interactive.BooleanReader('some', spec)
+
+        prompt_mock.return_value = 'y'
+        result = Reader.read()
+
+        self.assertEqual(result, True)
+        self.assertPromptMessage(prompt_mock, 'some (boolean) [n]: ')
+        self.assertPromptDescription(prompt_mock, 'some description')
+        self.assertPromptValidate(prompt_mock, 'y')
+        self.assertRaises(prompt_toolkit.validation.ValidationError,
+                          self.assertPromptValidate, prompt_mock, 'some')
+
+        prompt_mock.return_value = ''
+        result = Reader.read()
+
+        self.assertEqual(result, False)
+
+    @mock.patch.object(interactive, 'prompt')
+    def test_numberreader(self, prompt_mock):
+        spec = {
+            'description': 'some description',
+            'default': 3.2
+        }
+        Reader = interactive.NumberReader('some', spec)
+
+        prompt_mock.return_value = '5.3'
+        result = Reader.read()
+
+        self.assertEqual(result, 5.3)
+        self.assertPromptMessage(prompt_mock, 'some (float) [3.2]: ')
+        self.assertPromptDescription(prompt_mock, 'some description')
+        self.assertPromptValidate(prompt_mock, '5.3')
+        self.assertRaises(prompt_toolkit.validation.ValidationError,
+                          self.assertPromptValidate, prompt_mock, 'some')
+
+        prompt_mock.return_value = ''
+        result = Reader.read()
+
+        self.assertEqual(result, 3.2)
+
+    @mock.patch.object(interactive, 'prompt')
+    def test_integerreader(self, prompt_mock):
+        spec = {
+            'description': 'some description',
+            'default': 3
+        }
+        Reader = interactive.IntegerReader('some', spec)
+
+        prompt_mock.return_value = '5'
+        result = Reader.read()
+
+        self.assertEqual(result, 5)
+        self.assertPromptMessage(prompt_mock, 'some (integer) [3]: ')
+        self.assertPromptDescription(prompt_mock, 'some description')
+        self.assertPromptValidate(prompt_mock, '5')
+        self.assertRaises(prompt_toolkit.validation.ValidationError,
+                          self.assertPromptValidate, prompt_mock, '5.3')
+
+        prompt_mock.return_value = ''
+        result = Reader.read()
+
+        self.assertEqual(result, 3)
+
+    @mock.patch.object(interactive, 'prompt')
+    def test_secretstringreader(self, prompt_mock):
+        spec = {
+            'description': 'some description',
+            'default': 'hey'
+        }
+        Reader = interactive.SecretStringReader('some', spec)
+
+        prompt_mock.return_value = 'stuff'
+        result = Reader.read()
+
+        self.assertEqual(result, 'stuff')
+        self.assertPromptMessage(prompt_mock, 'some (secret) [hey]: ')
+        self.assertPromptDescription(prompt_mock, 'some description')
+        self.assertPromptValidate(prompt_mock, 'stuff')
+        self.assertPromptPassword(prompt_mock, True)
+
+        prompt_mock.return_value = ''
+        result = Reader.read()
+
+        self.assertEqual(result, 'hey')
+
+    @mock.patch.object(interactive, 'prompt')
+    def test_enumreader(self, prompt_mock):
+        spec = {
+            'enum': ['some', 'thing', 'else'],
+            'description': 'some description',
+            'default': 'thing'
+        }
+        Reader = interactive.EnumReader('some', spec)
+
+        prompt_mock.return_value = '2'
+        result = Reader.read()
+
+        self.assertEqual(result, 'else')
+        message = 'some: \n 0 - some\n 1 - thing\n 2 - else\nChoose from 0, 1, 2 [1]: '
+        self.assertPromptMessage(prompt_mock, message)
+        self.assertPromptDescription(prompt_mock, 'some description')
+        self.assertPromptValidate(prompt_mock, '0')
+        self.assertRaises(prompt_toolkit.validation.ValidationError,
+                          self.assertPromptValidate, prompt_mock, 'some')
+        self.assertRaises(prompt_toolkit.validation.ValidationError,
+                          self.assertPromptValidate, prompt_mock, '5')
+
+        prompt_mock.return_value = ''
+        result = Reader.read()
+
+        self.assertEqual(result, 'thing')
+
+    @mock.patch.object(interactive, 'prompt')
+    def test_arrayreader(self, prompt_mock):
+        spec = {
+            'description': 'some description',
+            'default': ['a', 'b']
+        }
+        Reader = interactive.ArrayReader('some', spec)
+
+        prompt_mock.return_value = 'some,thing,else'
+        result = Reader.read()
+
+        self.assertEqual(result, ['some', 'thing', 'else'])
+        self.assertPromptMessage(prompt_mock, 'some (comma-separated list) [a,b]: ')
+        self.assertPromptDescription(prompt_mock, 'some description')
+        self.assertPromptValidate(prompt_mock, 'some,thing,else')
+
+        prompt_mock.return_value = ''
+        result = Reader.read()
+
+        self.assertEqual(result, ['a', 'b'])
+
+    @mock.patch.object(interactive, 'prompt')
+    def test_arrayenumreader(self, prompt_mock):
+        spec = {
+            'items': {
+                'enum': ['a', 'b', 'c', 'd', 'e']
+            },
+            'description': 'some description',
+            'default': ['a', 'b']
+        }
+        Reader = interactive.ArrayEnumReader('some', spec)
+
+        prompt_mock.return_value = '0,2,4'
+        result = Reader.read()
+
+        self.assertEqual(result, ['a', 'c', 'e'])
+        message = 'some: \n 0 - a\n 1 - b\n 2 - c\n 3 - d\n 4 - e\nChoose from 0, 1, 2... [0, 1]: '
+        self.assertPromptMessage(prompt_mock, message)
+        self.assertPromptDescription(prompt_mock, 'some description')
+        self.assertPromptValidate(prompt_mock, '0,2,4')
+
+        prompt_mock.return_value = ''
+        result = Reader.read()
+
+        self.assertEqual(result, ['a', 'b'])

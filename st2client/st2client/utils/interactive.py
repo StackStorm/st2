@@ -123,7 +123,7 @@ class BooleanReader(StringReader):
         self.template = u'{0} (boolean)'
 
         if 'default' in self.spec:
-            self.template += u' [{default}]: '.format(default=','.join(self.spec.get('default')))
+            self.template += u' [{}]: '.format(self.spec.get('default') and 'y' or 'n')
         else:
             self.template += u': '
 
@@ -157,7 +157,7 @@ class NumberReader(StringReader):
         self.template = u'{0} (float)'
 
         if 'default' in self.spec:
-            self.template += u'[{default}]: '.format(default=self.spec.get('default'))
+            self.template += u' [{default}]: '.format(default=self.spec.get('default'))
         else:
             self.template += u': '
 
@@ -204,7 +204,7 @@ class SecretStringReader(StringReader):
         self.template = u'{0} (secret)'
 
         if 'default' in self.spec:
-            self.template += u' [{default}]: '.format(default=','.join(self.spec.get('default')))
+            self.template += u' [{default}]: '.format(default=self.spec.get('default'))
         else:
             self.template += u': '
 
