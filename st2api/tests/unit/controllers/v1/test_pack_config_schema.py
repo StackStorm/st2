@@ -13,7 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import glob
+
 from tests import FunctionalTest
+
+from st2tests.fixturesloader import get_fixtures_base_path
 
 __all__ = [
     'PackConfigSchemasControllerTestCase'
@@ -24,9 +29,14 @@ class PackConfigSchemasControllerTestCase(FunctionalTest):
     register_packs = True
 
     def test_get_all(self):
+        packs_path = os.path.join(get_fixtures_base_path(), 'packs/')
+        config_schema_count = len(glob.glob('%s/*/config.schema.yaml' % (packs_path)))
+        assert config_schema_count > 1
+
         resp = self.app.get('/v1/config_schemas')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 6, '/v1/config_schemas did not return all schemas.')
+        self.assertEqual(len(resp.json), config_schema_count,
+                         '/v1/config_schemas did not return all schemas.')
 
     def test_get_one_success(self):
         resp = self.app.get('/v1/config_schemas/dummy_pack_1')
