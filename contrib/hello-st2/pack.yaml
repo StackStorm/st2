@@ -1,4 +1,5 @@
 ---
+ref: hello_st2
 name: hello-st2
 description: A simple pack containing examples of sensor, rule, and action.
 keywords:
