@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+import hashlib
+from collections import OrderedDict
+
 import unittest2
 
 from st2common.models.db.pack import PackDB
@@ -45,3 +49,24 @@ class DBModelUIDFieldTestCase(unittest2.TestCase):
 
         trigger_db = TriggerDB(name='tname', pack='tpack')
         self.assertTrue(trigger_db.get_uid().startswith('trigger:tpack:tname:'))
+
+        # Verify that same set of parameters always results in the same hash
+        parameters = {'a': 1, 'b': 2, 'c': [1, 2, 3], 'd': {'g': 1, 'h': 2}, 'b': u'unicode'}
+        paramers_hash = json.dumps(parameters, sort_keys=True)
+        paramers_hash = hashlib.md5(paramers_hash).hexdigest()
+
+        parameters = {'a': 1, 'b': 2, 'c': [1, 2, 3], 'b': u'unicode', 'd': {'g': 1, 'h': 2}}
+        trigger_db = TriggerDB(name='tname', pack='tpack', parameters=parameters)
+        self.assertEqual(trigger_db.get_uid(), 'trigger:tpack:tname:%s' % (paramers_hash))
+
+        parameters = {'c': [1, 2, 3], 'b': u'unicode', 'd': {'h': 2, 'g': 1}, 'a': 1}
+        trigger_db = TriggerDB(name='tname', pack='tpack', parameters=parameters)
+        self.assertEqual(trigger_db.get_uid(), 'trigger:tpack:tname:%s' % (paramers_hash))
+
+        parameters = {'b': u'unicode', 'c': [1, 2, 3], 'd': {'h': 2, 'g': 1}, 'a': 1}
+        trigger_db = TriggerDB(name='tname', pack='tpack', parameters=parameters)
+        self.assertEqual(trigger_db.get_uid(), 'trigger:tpack:tname:%s' % (paramers_hash))
+
+        parameters = OrderedDict({'c': [1, 2, 3], 'b': u'unicode', 'd': {'h': 2, 'g': 1}, 'a': 1})
+        trigger_db = TriggerDB(name='tname', pack='tpack', parameters=parameters)
+        self.assertEqual(trigger_db.get_uid(), 'trigger:tpack:tname:%s' % (paramers_hash))

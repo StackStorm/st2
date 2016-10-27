@@ -17,6 +17,5 @@ retrying
 semver
 six
 tooz
-bencode
 ipaddr
 git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
