@@ -354,7 +354,8 @@ class ArrayEnumReader(EnumReader):
         result = []
 
         for i in (item.strip() for item in response.split(',')):
-            result.append(self.items.get('enum')[int(i)])
+            if i:
+                result.append(self.items.get('enum')[int(i)])
 
         return result
 
