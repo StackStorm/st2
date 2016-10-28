@@ -13,18 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import six
+
+import jsonschema
+from oslo_config import cfg
+import yaml
+
+from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
+from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.services import packs as packs_service
 from st2common.models.api.pack import ConfigAPI
+from st2common.models.api.pack import ConfigUpdateRequestAPI
 from st2common.persistence.pack import Config
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 
+http_client = six.moves.http_client
+
 __all__ = [
     'PackConfigsController'
 ]
+
+LOG = logging.getLogger(__name__)
 
 
 class PackConfigsController(ResourceController):
@@ -63,3 +77,28 @@ class PackConfigsController(ResourceController):
         """
         # TODO: Make sure secret values are masked
         return self._get_one_by_pack_ref(pack_ref=pack_ref)
+
+    @request_user_has_permission(permission_type=PermissionType.PACK_CREATE)
+    @jsexpose(body_cls=ConfigUpdateRequestAPI, arg_types=[str])
+    def put(self, pack_uninstall_request, pack_ref):
+        """
+            Create a new config for the action.
+
+            Handles requests:
+                POST /configs/<pack_ref>
+        """
+
+        try:
+            config_api = ConfigAPI(pack=pack_ref, values=vars(pack_uninstall_request))
+            config_api.validate(validate_against_schema=True)
+        except jsonschema.ValidationError as e:
+            raise ValueValidationException(str(e))
+
+        config_content = yaml.safe_dump(config_api.values, default_flow_style=False)
+
+        configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
+        config_path = os.path.join(configs_path, '%s.yaml' % config_api.pack)
+        with open(config_path, 'w') as f:
+            f.write(config_content)
+
+        return config_api

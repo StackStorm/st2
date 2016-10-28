@@ -438,6 +438,17 @@ class PackResourceManager(ResourceManager):
         return instance
 
 
+class ConfigManager(ResourceManager):
+    @add_auth_token_to_kwargs_from_env
+    def update(self, instance, **kwargs):
+        url = '/%s/%s' % (self.resource.get_url_path_name(), instance.pack)
+        response = self.client.put(url, instance.values, **kwargs)
+        if response.status_code != 200:
+            self.handle_error(response)
+        instance = self.resource.deserialize(response.json())
+        return instance
+
+
 class StreamManager(object):
     def __init__(self, endpoint, cacert, debug):
         self._url = httpclient.get_url_without_trailing_slash(endpoint) + '/stream'

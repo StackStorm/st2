@@ -24,6 +24,7 @@ from st2client.models.core import ActionAliasResourceManager
 from st2client.models.core import LiveActionResourceManager
 from st2client.models.core import TriggerInstanceResourceManager
 from st2client.models.core import PackResourceManager
+from st2client.models.core import ConfigManager
 from st2client.models.core import StreamManager
 
 
@@ -109,6 +110,10 @@ class Client(object):
             cacert=self.cacert, debug=self.debug)
         self.managers['ApiKey'] = ResourceManager(
             models.ApiKey, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['Config'] = ConfigManager(
+            models.Config, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
+        self.managers['ConfigSchema'] = ResourceManager(
+            models.ConfigSchema, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['LiveAction'] = LiveActionResourceManager(
             models.LiveAction, self.endpoints['api'], cacert=self.cacert, debug=self.debug)
         self.managers['Pack'] = PackResourceManager(

@@ -15,6 +15,10 @@
 
 import sys
 
+import editor
+import yaml
+
+from st2client.models import Config
 from st2client.models import Pack
 from st2client.models import LiveAction
 from st2client.commands import resource
@@ -23,6 +27,7 @@ from st2client.commands.noop import NoopCommand
 from st2client.formatters import table
 from st2client.exceptions.operations import OperationFailureException
 import st2client.utils.terminal as term
+from st2client.utils import interactive
 
 
 LIVEACTION_STATUS_REQUESTED = 'requested'
@@ -61,6 +66,7 @@ class PackBranch(resource.ResourceBranch):
         self.commands['remove'] = PackRemoveCommand(self.resource, self.app, self.subparsers)
         self.commands['search'] = PackSearchCommand(self.resource, self.app, self.subparsers)
         self.commands['show'] = PackShowCommand(self.resource, self.app, self.subparsers)
+        self.commands['config'] = PackConfigCommand(self.resource, self.app, self.subparsers)
 
 
 class PackResourceCommand(resource.ResourceCommand):
@@ -211,3 +217,58 @@ class PackSearchCommand(resource.ResourceTableCommand):
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.search(args, **kwargs)
+
+
+class PackConfigCommand(resource.ResourceCommand):
+    def __init__(self, resource, *args, **kwargs):
+        super(PackConfigCommand, self).__init__(resource, 'config',
+              'Configure a %s based on config schema.' % resource.get_display_name().lower(),
+              *args, **kwargs)
+
+        self.parser.add_argument('name',
+                                 help='Name of the %s(s) to configure.' %
+                                      resource.get_display_name().lower())
+
+    @resource.add_auth_token_to_kwargs_from_cli
+    def run(self, args, **kwargs):
+        schema = self.app.client.managers['ConfigSchema'].get_by_ref_or_id(args.name, **kwargs)
+
+        if not schema:
+            raise resource.ResourceNotFoundError("%s doesn't have config schema defined" %
+                                                 self.resource.get_display_name())
+
+        config = interactive.InteractiveForm(schema.attributes).initiate_dialog()
+
+        message = '---\nDo you want to preview the config in an editor before saving?'
+        description = 'Secrets would be shown in plain text.'
+        preview_dialog = interactive.Question(message, {'default': 'y', 'description': description})
+        if preview_dialog.read() == 'y':
+            contents = yaml.safe_dump(config, indent=4, default_flow_style=False)
+            modified = editor.edit(contents=contents)
+            config = yaml.safe_load(modified)
+
+        message = '---\nDo you want me to save it?'
+        save_dialog = interactive.Question(message, {'default': 'y'})
+        if save_dialog.read() == 'n':
+            raise OperationFailureException('Interrupted')
+
+        result = self.app.client.managers['Config'].update(Config(pack=args.name, values=config))
+
+        return result
+
+    def run_and_print(self, args, **kwargs):
+        try:
+            instance = self.run(args, **kwargs)
+            if not instance:
+                raise Exception("Configuration failed")
+            self.print_output(instance, table.PropertyValueTable,
+                              attributes=['all'], json=args.json, yaml=args.yaml)
+        except (KeyboardInterrupt, SystemExit):
+            raise OperationFailureException('Interrupted')
+        except Exception as e:
+            if self.app.client.debug:
+                raise
+
+            message = e.message or str(e)
+            print('ERROR: %s' % (message))
+            raise OperationFailureException(message)

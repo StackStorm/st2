@@ -222,6 +222,12 @@ class ConfigAPI(BaseAPI):
         return model
 
 
+class ConfigUpdateRequestAPI(BaseAPI):
+    schema = {
+        "type": "object"
+    }
+
+
 class ConfigItemSetAPI(BaseAPI):
     """
     API class used with the config set API endpoint.
