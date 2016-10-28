@@ -95,8 +95,18 @@ class DownloadGitRepoAction(Action):
                 "\"%s\" is not a valid version, hash, tag, or branch in %s." % (ref, repo_url)
             )
 
-        repo.head.reference = repo.commit(gitref)
-        repo.head.reset(index=True, working_tree=True)
+        # We're trying to figure out which branch the ref is actually on,
+        # since there's no direct way to check for this in git-python.
+        branches = repo.git.branch('--color=never', '--all', '--contains', gitref.hexsha)
+        branches = branches.replace('*', '').split()
+        if 'master' not in branches:
+            branch = branches[0]
+            repo.git.checkout('--track', branches[0])
+            branch = repo.head.reference
+        else:
+            branch = 'master'
+
+        repo.git.checkout('-B', branch, gitref.hexsha)
 
         return temp_dir
 
