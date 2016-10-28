@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -22,7 +23,7 @@ import re
 import six
 import yaml
 from git.repo import Repo
-from gitdb.exc import BadName
+from gitdb.exc import BadName, BadObject
 from lockfile import LockFile
 
 from st2common.runners.base_action import Action
@@ -51,10 +52,12 @@ class DownloadGitRepoAction(Action):
             temp_dir = hashlib.md5(pack_url).hexdigest()
 
             with LockFile('/tmp/%s' % (temp_dir)):
-                abs_local_path = self._clone_repo(temp_dir=temp_dir, repo_url=pack_url,
-                                                  verifyssl=verifyssl, ref=pack_version)
-                pack_name = self._get_pack_name(abs_local_path)
                 try:
+                    user_home = os.path.expanduser('~')
+                    abs_local_path = os.path.join(user_home, temp_dir)
+                    self._clone_repo(temp_dir=abs_local_path, repo_url=pack_url,
+                                     verifyssl=verifyssl, ref=pack_version)
+                    pack_name = self._get_pack_name(abs_local_path)
                     result[pack_name] = self._move_pack(abs_repo_base, pack_name, abs_local_path)
                 finally:
                     self._cleanup_repo(abs_local_path)
@@ -62,10 +65,7 @@ class DownloadGitRepoAction(Action):
         return self._validate_result(result=result, repo_url=pack_url)
 
     @staticmethod
-    def _clone_repo(temp_dir, repo_url, verifyssl=True, ref=None):
-        user_home = os.path.expanduser('~')
-        abs_local_path = os.path.join(user_home, temp_dir)
-
+    def _clone_repo(temp_dir, repo_url, verifyssl=True, ref='master'):
         # Switch to non-interactive mode
         os.environ['GIT_TERMINAL_PROMPT'] = '0'
 
@@ -73,24 +73,32 @@ class DownloadGitRepoAction(Action):
         if not verifyssl:
             os.environ['GIT_SSL_NO_VERIFY'] = 'true'
 
-        if not ref:
-            ref = 'master'
-
         # Clone the repo from git; we don't use shallow copying
         # because we want the user to work with the repo in the
         # future.
-        repo = Repo.clone_from(repo_url, abs_local_path, branch='master')
+        repo = Repo.clone_from(repo_url, temp_dir)
 
-        if not DownloadGitRepoAction._ref_exists(repo, ref):
-            if re.match(SEMVER_REGEX, ref) and DownloadGitRepoAction._ref_exists(repo, "v%s" % ref):
-                ref = "v%s" % ref
-            else:
-                raise ValueError("\"%s\" is not a valid ref in %s." % (ref, repo_url))
+        # Try to match the reference to a commit hash, a tag, or "master"
+        gitref = DownloadGitRepoAction._get_gitref(repo, ref)
 
-        repo.head.reference = repo.commit(ref)
+        # Try to match the reference to a "vX.Y.Z" tag
+        if not gitref and re.match(SEMVER_REGEX, ref):
+            gitref = DownloadGitRepoAction._get_gitref(repo, "v%s" % ref)
+
+        # Try to match the reference to a branch name
+        if not gitref:
+            gitref = DownloadGitRepoAction._get_gitref(repo, "origin/%s" % ref)
+
+        # Giving up ¯\_(ツ)_/¯
+        if not gitref:
+            raise ValueError(
+                "\"%s\" is not a valid version, hash, tag, or branch in %s." % (ref, repo_url)
+            )
+
+        repo.head.reference = repo.commit(gitref)
         repo.head.reset(index=True, working_tree=True)
 
-        return abs_local_path
+        return temp_dir
 
     def _move_pack(self, abs_repo_base, pack_name, abs_local_path):
         desired, message = DownloadGitRepoAction._is_desired_pack(abs_local_path, pack_name)
@@ -220,9 +228,8 @@ class DownloadGitRepoAction(Action):
         return pack_meta['name'].replace(' ', '-').lower()
 
     @staticmethod
-    def _ref_exists(repo, ref):
+    def _get_gitref(repo, ref):
         try:
-            repo.commit(ref)
-        except BadName:
+            return repo.commit(ref)
+        except (BadName, BadObject):
             return False
-        return True
