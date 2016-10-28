@@ -2,6 +2,7 @@
 argcomplete
 jsonpath-rw>=1.3.0
 prettytable
+prompt-toolkit==1.0.7
 python-dateutil
 python-editor==1.0.1
 pytz

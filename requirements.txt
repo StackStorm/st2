@@ -22,6 +22,7 @@ oslo.utils<3.1.0
 paramiko<1.17,>=1.16.0
 passlib<1.7,>=1.6.2
 prettytable
+prompt-toolkit==1.0.7
 pyinotify<=0.10,>=0.9.5
 pymongo==3.2.2
 python-dateutil
