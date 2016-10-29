@@ -143,6 +143,6 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.repo_instance.commit.side_effect = side_effect
 
         action = self.get_action_instance()
-        result = action.run(packs=['test=1.2.0'], abs_repo_base=self.repo_base)
+        result = action.run(packs=['test=1.2.3'], abs_repo_base=self.repo_base)
 
         self.assertEqual(result, {'test': 'Success.'})
