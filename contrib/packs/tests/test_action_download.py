@@ -139,8 +139,13 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         def side_effect(ref):
             if ref[0] != 'v':
                 raise BadName()
+            return mock.MagicMock(hexsha='abcdef')
 
         self.repo_instance.commit.side_effect = side_effect
+        self.repo_instance.git = mock.MagicMock(
+            branch=(lambda *args: 'master'),
+            checkout=(lambda *args: True)
+        )
 
         action = self.get_action_instance()
         result = action.run(packs=['test=1.2.3'], abs_repo_base=self.repo_base)
