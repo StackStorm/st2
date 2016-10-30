@@ -1,0 +1,22 @@
+---
+name: "pack_install"
+action_ref: "packs.install"
+pack: "packs"
+description: "Install StackStorm packs (pack = name or git URL, gitref = tag/branch/commit)."
+formats:
+  - display: "pack install <pack>[,<pack>]"
+  - display: "pack install <pack>#<gitref>[,<pack#gitref>]"
+    representation:
+      - "pack install {{packs}}"
+ack:
+  enabled: true
+  append_url: false
+  format: "Deploying the requested pack(s) for you."
+result:
+  format: |
+    {% if execution.status == "succeeded" %}
+    Successful deployment of{% for pack in execution.result.packs %} *{{pack.name}}*{% endfor %}!{~}
+    {% else %}
+    Deployment failed for *{{execution.parameters.packs}}*.{~}
+    Please check {{ execution.id }} for details.
+    {% endif %}
