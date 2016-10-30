@@ -5,6 +5,8 @@
       ref: "packs.download"
       parameters:
         packs: "{{packs}}"
+      publish:
+        installed_packs: "{{ __results['download pack'].result }}"
       on-success: "make a prerun"
     -
       name: "make a prerun"
