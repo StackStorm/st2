@@ -9,4 +9,3 @@ parameters:
     type: "string"
     description: "Name of pack to introspect"
     required: true
-

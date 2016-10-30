@@ -14,41 +14,66 @@
 # limitations under the License.
 
 import os
-import json
+import yaml
+
+from git.repo import Repo
+from gitdb.exc import InvalidGitRepositoryError
 
 from st2common.runners.base_action import Action
 from st2common.content.utils import get_packs_base_paths
 
-GITINFO_FILE = '.gitinfo'
+MANIFEST_FILE = 'pack.yaml'
 
 
 class PackInfo(Action):
     def run(self, pack):
         packs_base_paths = get_packs_base_paths()
 
-        pack_git_info_path = None
+        metadata_file = None
         for packs_base_path in packs_base_paths:
-            git_info_path = os.path.join(packs_base_path, pack, GITINFO_FILE)
+            pack_path = os.path.join(packs_base_path, pack)
+            pack_yaml_path = os.path.join(pack_path, MANIFEST_FILE)
 
-            if os.path.isfile(git_info_path):
-                pack_git_info_path = git_info_path
+            if os.path.isfile(pack_yaml_path):
+                metadata_file = pack_yaml_path
                 break
 
-        if not pack_git_info_path:
-            error = ('Pack "%s" doesn\'t exist or it doesn\'t contain a .gitinfo file' % (pack))
+        if not metadata_file:
+            error = ('Pack "%s" doesn\'t exist or it doesn\'t contain pack.yaml.' % (pack))
             raise Exception(error)
 
         try:
-            details = self._parse_git_info_file(git_info_path)
+            details = self._parse_yaml_file(metadata_file)
         except Exception as e:
-            error = ('Pack "%s" doesn\'t contain a valid .gitinfo file: %s' % (pack, str(e)))
+            error = ('Pack "%s" doesn\'t contain a valid pack.yaml file: %s' % (pack, str(e)))
             raise Exception(error)
 
-        return details
+        try:
+            repo = Repo(pack_path)
+            git_status = "Status:\n%s\n\nRemotes:\n%s" % (
+                repo.git.status().split('\n')[0],
+                "\n".join([remote.url for remote in repo.remotes])
+            )
 
-    def _parse_git_info_file(self, file_path):
+            ahead_behind = repo.git.rev_list(
+                '--left-right', '--count', 'HEAD...origin/master'
+            ).split()
+            # Dear god.
+            if ahead_behind != [u'0', u'0']:
+                git_status += "\n\n"
+                git_status += "%s commits ahead " if ahead_behind[0] != u'0' else ""
+                git_status += "and " if u'0' not in ahead_behind else ""
+                git_status += "%s commits behind " if ahead_behind[1] != u'0' else ""
+                git_status += "origin/master."
+        except InvalidGitRepositoryError:
+            git_status = None
+
+        return {'pack': details,
+                'git_status': git_status}
+
+    def _parse_yaml_file(self, file_path):
         with open(file_path) as data_file:
-            details = json.load(data_file)
-            return details
-
+            # details = yaml.load(data_file)
+            # You know what? We'll just output yaml, it's pretty as it is.
+            details = data_file.read()
         return details
