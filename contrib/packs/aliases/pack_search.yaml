@@ -1,0 +1,34 @@
+---
+name: "pack_search"
+action_ref: "packs.search"
+pack: "packs"
+description: "Search for packs in the StackStorm Exchange index."
+formats:
+  - display: "pack search <query>"
+    representation:
+      - "pack search {{ query }}"
+ack:
+  enabled: true
+  append_url: false
+  format: "Alright! Let me check if that matches anything in the pack index."
+result:
+  format: |
+    {% if execution.status == "succeeded" %}
+      {% if execution.result %}
+        Got something for you!{~}
+        {% for pack in execution.result %}
+          • *{{ pack.name }}*: {{ pack.description }}
+        {% endfor %}
+
+        I can tell you more about a particular pack, or even get it installed for you right away:
+        ```
+        pack show available <pack>
+        pack install <pack>
+        ```
+      {% else %}
+        I couldn't get any results for `{{ execution.parameters.query }}`, unfortunately.
+      {% endif %}
+    {% else %}
+      Search failed for `{{ execution.parameters.query }}`.{~}
+      Please check {{ execution.id }} for details. Index problems maybe?
+    {% endif %}
