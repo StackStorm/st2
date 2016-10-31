@@ -13,20 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+
 import yaml
+import requests
 
 from st2common.runners.base_action import Action
 from st2common.services.packs import get_pack_from_index
 
 MANIFEST_FILE = 'pack.yaml'
+EXCHANGE_REPO_URL_REGEX = r'(git@|https?://)github\.com[/:]StackStorm-Exchange/stackstorm-\S+'
+EXCHANGE_YAML_PATH = 'https://index.stackstorm.org/v1/packs/%s.yaml'
 
 
 class LookupRemote(Action):
     def run(self, pack):
-        index_pack = get_pack_from_index(pack)
+        pack_meta = get_pack_from_index(pack)
+        pack_formatted = None
+        # Try to get the original yaml file because we know
+        # how it's stored in the Exchange, otherwise fall back
+        # to transforming json.
+        if pack_meta:
+            if re.match(EXCHANGE_REPO_URL_REGEX, pack_meta['repo_url'], re.IGNORECASE):
+                pack_formatted = requests.get(EXCHANGE_YAML_PATH % pack).text
+            else:
+                pack_formatted = yaml.dump(pack_meta)
+
         return {
-            'pack': index_pack,
-            # Would be nice to fetch the original pack.yaml from the index repo,
-            # but then we would lose support for user-created indexes.
-            'pack_formatted': yaml.dump(index_pack) if index_pack else None
+            'pack': pack_meta,
+            'pack_formatted': pack_formatted
         }
