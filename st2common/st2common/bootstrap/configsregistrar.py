@@ -111,10 +111,17 @@ class ConfigsRegistrar(ResourceRegistrar):
 
         config_api = ConfigAPI(**content)
         config_api.validate(validate_against_schema=self._validate_configs)
+        config_db = self.save_model(config_api)
+
+        return config_db
+
+    @staticmethod
+    def save_model(config_api):
+        pack = config_api.pack
         config_db = ConfigAPI.to_model(config_api)
 
         try:
-            config_db.id = Config.get_by_pack(config_api.pack).id
+            config_db.id = Config.get_by_pack(pack).id
         except StackStormDBObjectNotFoundError:
             LOG.debug('Config for pack "%s" not found. Creating new entry.', pack)
 
