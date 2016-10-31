@@ -11,10 +11,7 @@ http://docs.stackstorm.com/development/index.html
 Managing Python dependencies
 ----------------------------
 
-.. note::
-
-    ``requirements.txt`` files are generated automatically using
-    ``scripts/fixate-requirements.py`` script and should't be edited manually.
+    ``requirements.txt`` files are generated automatically using ``scripts/fixate-requirements.py`` script and should't be edited manually.
 
 To manage Python dependencies for each StackStorm component, we use the
 following files:
