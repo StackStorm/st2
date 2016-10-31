@@ -34,7 +34,7 @@ cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
 cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
 cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
 
-from mistral_v2.query import mistral_v2 as mistral
+from mistral_v2.query import mistral_v2 as mistral_querier
 from st2common.constants import action as action_constants
 from st2common.services import action as action_service
 from st2tests import DbTestCase
@@ -109,7 +109,7 @@ class MistralQuerierTest(DbTestCase):
 
     def setUp(self):
         super(MistralQuerierTest, self).setUp()
-        self.querier = mistral.get_query_instance()
+        self.querier = mistral_querier.get_instance()
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
