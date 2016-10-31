@@ -32,6 +32,8 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 PYTHON_EXTENSIONS = ('.py')
+RUNNER_MODULES = {}
+QUERIER_MODULES = {}
 
 
 def _register_plugin_path(plugin_dir_abs_path):
@@ -176,9 +178,10 @@ def register_runner(module_name):
 
     LOG.debug('Loading runner from: %s', module_path)
 
-    module = imp.load_source(module_name, module_path)
+    if module_name not in RUNNER_MODULES:
+        RUNNER_MODULES[module_name] = imp.load_source(module_name, module_path)
 
-    return module
+    return RUNNER_MODULES[module_name]
 
 
 def register_query_module(module_name):
@@ -189,9 +192,10 @@ def register_query_module(module_name):
 
     LOG.debug('Loading query module from: %s', module_path)
 
-    module = imp.load_source(module_name, module_path)
+    if module_name not in QUERIER_MODULES:
+        QUERIER_MODULES[module_name] = imp.load_source(module_name, module_path)
 
-    return module
+    return QUERIER_MODULES[module_name]
 
 
 ALLOWED_EXTS = ['.json', '.yaml', '.yml']
