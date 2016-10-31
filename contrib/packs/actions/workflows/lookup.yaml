@@ -1,0 +1,21 @@
+---
+  chain:
+    -
+      name: "local lookup"
+      ref: "packs.local_lookup"
+      parameters:
+        pack: "{{pack}}"
+      publish:
+        pack: "{{ __results['local lookup'].result.pack }}"
+        git_status: "{{ __results['local lookup'].result.git_status }}"
+      on-success: "index lookup"
+    -
+      name: "index lookup"
+      ref: "packs.index_lookup"
+      parameters:
+        pack: "{{pack}}"
+      publish:
+        available: "{{ __results['index lookup'].result.pack_formatted }}"
+        repo_url: "{{ __results['index lookup'].result.pack.repo_url }}"
+
+  default: "local lookup"

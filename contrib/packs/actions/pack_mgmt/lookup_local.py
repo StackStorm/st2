@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import os
-import yaml
 
 from git.repo import Repo
 from gitdb.exc import InvalidGitRepositoryError
@@ -25,7 +24,7 @@ from st2common.content.utils import get_packs_base_paths
 MANIFEST_FILE = 'pack.yaml'
 
 
-class PackInfo(Action):
+class LookupLocal(Action):
     def run(self, pack):
         packs_base_paths = get_packs_base_paths()
 

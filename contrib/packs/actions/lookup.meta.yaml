@@ -1,0 +1,21 @@
+---
+  name: "lookup"
+  runner_type: "action-chain"
+  description: "Will get pack information from the Exchange index and the list
+                of currently installed packs. This action is mostly meant to be
+                launched through its ChatOps alias."
+  enabled: true
+  entry_point: "workflows/lookup.yaml"
+  parameters:
+    pack:
+      type: "string"
+      description: "Pack name"
+      required: true
+    location:
+      type: "string"
+      description: "Primary source of information: installed packs or the pack
+                    index."
+      enum:
+        - "available"
+        - "installed"
+      required: true
