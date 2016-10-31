@@ -114,6 +114,9 @@ class BooleanReader(StringReader):
 
     @staticmethod
     def validate(input, spec):
+        if not input and (not spec.get('required', None) or spec.get('default', None)):
+            return
+
         if input.lower() not in POSITIVE_BOOLEAN | NEGATIVE_BOOLEAN:
             raise validation.ValidationError(len(input),
                                              'Does not look like boolean. Pick from [%s]'
