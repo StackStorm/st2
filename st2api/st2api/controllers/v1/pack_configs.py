@@ -23,6 +23,7 @@ import yaml
 from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
+from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.services import packs as packs_service
 from st2common.models.api.pack import ConfigAPI
@@ -100,5 +101,7 @@ class PackConfigsController(ResourceController):
         config_path = os.path.join(configs_path, '%s.yaml' % config_api.pack)
         with open(config_path, 'w') as f:
             f.write(config_content)
+
+        ConfigsRegistrar.save_model(config_api)
 
         return config_api

@@ -243,9 +243,12 @@ class PackConfigCommand(resource.ResourceCommand):
         description = 'Secrets would be shown in plain text.'
         preview_dialog = interactive.Question(message, {'default': 'y', 'description': description})
         if preview_dialog.read() == 'y':
-            contents = yaml.safe_dump(config, indent=4, default_flow_style=False)
-            modified = editor.edit(contents=contents)
-            config = yaml.safe_load(modified)
+            try:
+                contents = yaml.safe_dump(config, indent=4, default_flow_style=False)
+                modified = editor.edit(contents=contents)
+                config = yaml.safe_load(modified)
+            except editor.EditorError as e:
+                print(str(e))
 
         message = '---\nDo you want me to save it?'
         save_dialog = interactive.Question(message, {'default': 'y'})
