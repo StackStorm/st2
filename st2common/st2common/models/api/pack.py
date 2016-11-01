@@ -116,10 +116,12 @@ class PackAPI(BaseAPI):
             'system': {
                 'type': 'object',
                 'description': 'Specification for the system components and packages '
-                               'required for the pack. Example: { "stackstorm": "1.6" }',
+                               'required for the pack.',
                 'properties': {
                     'stackstorm': {
                         'type': 'string',
+                        'description': 'Required StackStorm version. Examples: ">1.6", '
+                                       '">=1.8dev, <2.0"',
                         'pattern': ST2_VERSION_REGEX,
                     }
                 }
