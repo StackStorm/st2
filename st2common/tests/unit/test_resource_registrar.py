@@ -114,7 +114,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         # Dependencies / engines / future values are ok.
         pack_db = Pack.get_by_name('dummy_pack_9_deps')
         self.assertEqual(pack_db.dependencies, ['core=0.2.0'])
-        self.assertEqual(pack_db.system, {'stackstorm': '1.6dev'})
+        self.assertEqual(pack_db.system, {'stackstorm': '>=1.6dev, <2.2'})
         self.assertEqual(pack_db.future, 'arguments')
 
         # Wrong characters in the required st2 version
