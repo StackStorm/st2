@@ -34,6 +34,8 @@ PACK_PATH_1 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy
 PACK_PATH_6 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_6')
 PACK_PATH_7 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_7')
 PACK_PATH_8 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_8')
+PACK_PATH_9 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_9')
+PACK_PATH_10 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_10')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -95,3 +97,29 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         expected_msg = 'contains invalid characters'
         self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_8)
+
+    def test_register_pack_future(self):
+        # Verify DB is empty
+        pack_dbs = Pack.get_all()
+
+        self.assertEqual(len(pack_dbs), 0)
+
+        registrar = ResourceRegistrar(use_pack_cache=False)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {
+            'dummy_pack_9': PACK_PATH_9,
+            'dummy_pack_10': PACK_PATH_10
+        }
+        packs_base_paths = content_utils.get_packs_base_paths()
+        registrar.register_packs(base_dirs=packs_base_paths)
+
+        # Dependencies / engines / future values are ok.
+        pack_db = Pack.get_by_name('dummy_pack_9_deps')
+        self.assertEqual(pack_db.dependencies, ['core=0.2.0'])
+        self.assertEqual(pack_db.engines, {'st2': '1.6dev'})
+        self.assertEqual(pack_db.future, 'arguments')
+
+        # Wrong characters in the required st2 version
+        expected_msg = 'contains invalid characters'
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
+                                pack_name=None, pack_dir=PACK_PATH_10)

@@ -1,0 +1,14 @@
+---
+name : dummy_pack_9_deps
+description : dummy pack with pack and engine dependencies
+version : 0.1.0
+author : st2-dev
+email : info@stackstorm.com
+dependencies :
+  - core=0.2.0
+engines :
+  st2 : 1.6dev
+this :
+  is : a
+  test : of
+future : arguments
