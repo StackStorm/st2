@@ -115,18 +115,14 @@ class PackAPI(BaseAPI):
             },
             'system': {
                 'type': 'object',
-                'description': 'Minimum version of the underlying components and packages '
+                'description': 'Specification for the system components and packages '
                                'required for the pack. Example: { "stackstorm": "1.6" }',
                 'properties': {
-                    'st2': {
+                    'stackstorm': {
                         'type': 'string',
                         'pattern': ST2_VERSION_REGEX,
                     }
-                },
-                "patternProperties": {
-                    "^[A-Za-z0-9_]+$": {'type': 'string'}
-                },
-                "additionalProperties": False
+                }
             }
         }
     }
