@@ -30,9 +30,6 @@ parameters:
   content_type:
     type: string
     description: Content type of message to be sent
-    enum:
-      - "text/plain"
-      - "text/html"
     default: "text/html"
     position: 4
   body:
