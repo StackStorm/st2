@@ -6,8 +6,8 @@ author : st2-dev
 email : info@stackstorm.com
 dependencies :
   - core=0.2.0
-engines :
-  st2 : 1.6dev
+system :
+  stackstorm : 1.6dev
 this :
   is : a
   test : of

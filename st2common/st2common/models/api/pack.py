@@ -113,10 +113,10 @@ class PackAPI(BaseAPI):
                 'items': {'type': 'string'},
                 'default': []
             },
-            'engines': {
+            'system': {
                 'type': 'object',
-                'description': 'Minimum version of the underlying components required '
-                               'for the pack. Example: { "st2": "1.6" }.',
+                'description': 'Minimum version of the underlying components and packages '
+                               'required for the pack. Example: { "stackstorm": "1.6" }',
                 'properties': {
                     'st2': {
                         'type': 'string',
@@ -137,7 +137,7 @@ class PackAPI(BaseAPI):
         parameters['keywords'] = parameters.get('keywords', [])
         parameters['files'] = parameters.get('files', [])
         parameters['dependencies'] = parameters.get('dependencies', [])
-        parameters['engines'] = parameters.get('engines', {})
+        parameters['system'] = parameters.get('system', {})
 
         model = cls.model(**parameters)
         return model

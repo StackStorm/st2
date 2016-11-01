@@ -6,5 +6,5 @@ author : st2-dev
 email : info@stackstorm.com
 dependencies :
   - core=0.2.0
-engines :
-  st2 : wrongversion
+system :
+  stackstorm : wrongversion

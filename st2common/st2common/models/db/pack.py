@@ -45,7 +45,7 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin,
     email = me.EmailField()
     files = me.ListField(field=me.StringField())
     dependencies = me.ListField(field=me.StringField())
-    engines = me.DictField()
+    system = me.DictField()
 
     meta = {
         'indexes': stormbase.UIDFieldMixin.get_indexes()
