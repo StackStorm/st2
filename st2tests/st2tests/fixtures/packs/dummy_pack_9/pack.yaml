@@ -7,7 +7,7 @@ email : info@stackstorm.com
 dependencies :
   - core=0.2.0
 system :
-  stackstorm : 1.6dev
+  stackstorm : ">=1.6dev, <2.2"
 this :
   is : a
   test : of

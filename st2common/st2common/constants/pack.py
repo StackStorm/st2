@@ -36,7 +36,7 @@ PACK_REF_WHITELIST_REGEX = r'^[a-z0-9_-]+$'
 PACK_VERSION_REGEX = r'^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$'  # noqa
 
 # Check for st2 version in engines
-ST2_VERSION_REGEX = r'^[0-9]+\.[0-9]+(\.[0-9]+)?(dev)?$'
+ST2_VERSION_REGEX = r'^((>?>|>=|=|<=|<?<)\s*[0-9]+\.[0-9]+(\.[0-9]+)?(dev)?(\s*,)?\s*)+$'
 
 # Name used for system pack
 SYSTEM_PACK_NAME = 'core'
