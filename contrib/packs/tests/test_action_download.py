@@ -90,11 +90,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         result = action.run(packs=['test'], abs_repo_base=self.repo_base)
         temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
 
-
         self.assertEqual(result, {'test': 'Success.'})
         self.clone_from.assert_called_once_with(PACK_INDEX['test']['repo_url'],
-                                           os.path.join(os.path.expanduser('~'), temp_dir),
-                                           branch='master')
+                                                os.path.join(os.path.expanduser('~'), temp_dir))
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test/pack.yaml')))
 
     def test_run_pack_download_existing_pack(self):
@@ -116,11 +114,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
         self.assertEqual(result, {'test': 'Success.', 'test2': 'Success.'})
         self.clone_from.assert_any_call(PACK_INDEX['test']['repo_url'],
-                                        os.path.join(os.path.expanduser('~'), temp_dirs[0]),
-                                        branch='master')
+                                        os.path.join(os.path.expanduser('~'), temp_dirs[0]))
         self.clone_from.assert_any_call(PACK_INDEX['test2']['repo_url'],
-                                        os.path.join(os.path.expanduser('~'), temp_dirs[1]),
-                                        branch='master')
+                                        os.path.join(os.path.expanduser('~'), temp_dirs[1]))
         self.assertEqual(self.clone_from.call_count, 2)
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test/pack.yaml')))
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, 'test2/pack.yaml')))
@@ -143,8 +139,13 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         def side_effect(ref):
             if ref[0] != 'v':
                 raise BadName()
+            return mock.MagicMock(hexsha='abcdef')
 
         self.repo_instance.commit.side_effect = side_effect
+        self.repo_instance.git = mock.MagicMock(
+            branch=(lambda *args: 'master'),
+            checkout=(lambda *args: True)
+        )
 
         action = self.get_action_instance()
         result = action.run(packs=['test=1.2.3'], abs_repo_base=self.repo_base)
