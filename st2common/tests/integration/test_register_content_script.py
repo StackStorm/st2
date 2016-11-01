@@ -120,13 +120,13 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         self.assertEqual(exit_code, 0)
 
     def test_register_all_and_register_setup_virtualenvs(self):
-        # Verify that --register-all works in combinations with --register-setuo-virtualenvs
+        # Verify that --register-all works in combinations with --register-setup-virtualenvs
         cmd = BASE_CMD_ARGS + ['--register-all', '--register-setup-virtualenvs',
                                '--register-no-fail-on-failure']
         exit_code, stdout, stderr = run_command(cmd=cmd)
         self.assertTrue('Registering actions' in stderr)
         self.assertTrue('Registering rules' in stderr)
-        self.assertTrue('Setup virtualenv for 8 pack(s)' in stderr)
+        self.assertTrue('Setup virtualenv for 10 pack(s)' in stderr)
         self.assertEqual(exit_code, 0)
 
     def test_register_setup_virtualenvs(self):
@@ -144,5 +144,5 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         # All packs
         cmd = BASE_CMD_ARGS + ['--register-setup-virtualenvs', '--register-no-fail-on-failure']
         exit_code, stdout, stderr = run_command(cmd=cmd)
-        self.assertTrue('Setup virtualenv for 8 pack(s)' in stderr)
+        self.assertTrue('Setup virtualenv for 10 pack(s)' in stderr)
         self.assertEqual(exit_code, 0)

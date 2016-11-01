@@ -133,7 +133,7 @@ class PackAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, pack):
-        parameters = pack.to_mongo().to_dict()
+        parameters = pack.__dict__
         parameters['keywords'] = parameters.get('keywords', [])
         parameters['files'] = parameters.get('files', [])
         parameters['dependencies'] = parameters.get('dependencies', [])

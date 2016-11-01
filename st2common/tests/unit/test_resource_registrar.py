@@ -16,6 +16,7 @@
 import os
 
 import mock
+from jsonschema import ValidationError
 
 from st2common.content import utils as content_utils
 from st2common.bootstrap.base import ResourceRegistrar
@@ -106,10 +107,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
 
         registrar = ResourceRegistrar(use_pack_cache=False)
         registrar._pack_loader.get_packs = mock.Mock()
-        registrar._pack_loader.get_packs.return_value = {
-            'dummy_pack_9': PACK_PATH_9,
-            'dummy_pack_10': PACK_PATH_10
-        }
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_9': PACK_PATH_9}
         packs_base_paths = content_utils.get_packs_base_paths()
         registrar.register_packs(base_dirs=packs_base_paths)
 
@@ -120,6 +118,6 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(pack_db.future, 'arguments')
 
         # Wrong characters in the required st2 version
-        expected_msg = 'contains invalid characters'
-        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
+        expected_msg = "'wrongversion' does not match"
+        self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_10)
