@@ -133,17 +133,13 @@ class PackAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, pack):
-        name = pack.name
-        description = pack.description
-        ref = pack.ref
-        keywords = getattr(pack, 'keywords', [])
-        version = str(pack.version)
-        author = pack.author
-        email = pack.email
-        files = getattr(pack, 'files', [])
+        parameters = pack.to_mongo().to_dict()
+        parameters['keywords'] = parameters.get('keywords', [])
+        parameters['files'] = parameters.get('files', [])
+        parameters['dependencies'] = parameters.get('dependencies', [])
+        parameters['engines'] = parameters.get('engines', {})
 
-        model = cls.model(name=name, description=description, ref=ref, keywords=keywords,
-                          version=version, author=author, email=email, files=files)
+        model = cls.model(**parameters)
         return model
 
 
