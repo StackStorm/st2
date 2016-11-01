@@ -27,7 +27,8 @@ __all__ = [
 ]
 
 
-class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
+class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin,
+             me.DynamicDocument):
     """
     System entity which represents a pack.
     """
@@ -41,8 +42,10 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     keywords = me.ListField(field=me.StringField())
     version = me.StringField(regex=PACK_VERSION_REGEX, required=True)
     author = me.StringField(required=True)
-    email = me.EmailField(required=True)
+    email = me.EmailField()
     files = me.ListField(field=me.StringField())
+    dependencies = me.ListField(field=me.StringField())
+    engines = me.DictField()
 
     meta = {
         'indexes': stormbase.UIDFieldMixin.get_indexes()

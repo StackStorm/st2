@@ -23,6 +23,7 @@ from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.constants.pack import PACK_VERSION_REGEX
+from st2common.constants.pack import ST2_VERSION_REGEX
 from st2common.persistence.pack import ConfigSchema
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
@@ -48,52 +49,86 @@ class PackAPI(BaseAPI):
     model = PackDB
     schema = {
         'type': 'object',
+        'description': 'Content pack schema.',
         'properties': {
             'id': {
                 'type': 'string',
+                'description': 'Unique identifier for the pack.',
                 'default': None
-            },
-            'ref': {
-                'type': 'string',
-                'default': None,
-                'pattern': PACK_REF_WHITELIST_REGEX
-            },
-            "uid": {
-                "type": "string"
             },
             'name': {
                 'type': 'string',
+                'description': 'Display name of the pack. If the name only contains lowercase'
+                               'letters, digits and underscores, the "ref" field is not required.',
                 'required': True
             },
-            'description': {
+            'ref': {
+                'type': 'string',
+                'description': 'Reference for the pack, used as an internal id.',
+                'default': None,
+                'pattern': PACK_REF_WHITELIST_REGEX
+            },
+            'uid': {
                 'type': 'string'
+            },
+            'description': {
+                'type': 'string',
+                'description': 'Brief description of the pack and the service it integrates with.',
+                'required': True
             },
             'keywords': {
                 'type': 'array',
+                'description': 'Keywords describing the pack.',
                 'items': {'type': 'string'},
                 'default': []
             },
             'version': {
                 'type': 'string',
+                'description': 'Pack version. Must follow the semver format '
+                               '(for instance, "0.1.0").',
                 'pattern': PACK_VERSION_REGEX,
                 'required': True
             },
             'author': {
                 'type': 'string',
+                'description': 'Pack author or authors.',
                 'required': True
             },
             'email': {
                 'type': 'string',
-                'format': 'email',
-                'required': True
+                'description': 'E-mail of the pack author.',
+                'format': 'email'
             },
             'files': {
                 'type': 'array',
+                'description': 'A list of files inside the pack.',
                 'items': {'type': 'string'},
                 'default': []
+            },
+            'dependencies': {
+                'type': 'array',
+                'description': 'A list of other StackStorm packs this pack depends upon. '
+                               'The same format as in "st2 pack install" is used: '
+                               '"<name or full URL>[=<version or git ref>]".',
+                'items': {'type': 'string'},
+                'default': []
+            },
+            'engines': {
+                'type': 'object',
+                'description': 'Minimum version of the underlying components required '
+                               'for the pack. Example: { "st2": "1.6" }.',
+                'properties': {
+                    'st2': {
+                        'type': 'string',
+                        'pattern': ST2_VERSION_REGEX,
+                    }
+                },
+                "patternProperties": {
+                    "^[A-Za-z0-9_]+$": {'type': 'string'}
+                },
+                "additionalProperties": False
             }
-        },
-        'additionalProperties': False
+        }
     }
 
     @classmethod
