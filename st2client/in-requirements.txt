@@ -10,3 +10,5 @@ six
 sseclient
 python-editor
 prompt-toolkit
+gitpython
+cookiecutter
