@@ -18,6 +18,7 @@ import os
 import jsonschema
 from oslo_config import cfg
 
+from st2common import log as logging
 from st2common.util import schema as util_schema
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE
@@ -43,6 +44,8 @@ __all__ = [
     'PackSearchRequestAPI',
     'PackAsyncAPI'
 ]
+
+LOG = logging.getLogger(__name__)
 
 
 class PackAPI(BaseAPI):
@@ -89,6 +92,12 @@ class PackAPI(BaseAPI):
                 'pattern': PACK_VERSION_REGEX,
                 'required': True
             },
+            'stackstorm_version': {
+                'type': 'string',
+                'description': 'Required StackStorm version. Examples: ">1.6.0", '
+                               '">=1.8.0, <2.2.0"',
+                'pattern': ST2_VERSION_REGEX,
+            },
             'author': {
                 'type': 'string',
                 'description': 'Pack author or authors.',
@@ -117,27 +126,68 @@ class PackAPI(BaseAPI):
                 'type': 'object',
                 'description': 'Specification for the system components and packages '
                                'required for the pack.',
-                'properties': {
-                    'stackstorm': {
-                        'type': 'string',
-                        'description': 'Required StackStorm version. Examples: ">1.6", '
-                                       '">=1.8dev, <2.0"',
-                        'pattern': ST2_VERSION_REGEX,
-                    }
-                }
+                'default': {}
             }
         }
     }
 
+    def __init__(self, **values):
+        name = values.get('name', None)
+
+        # Note: If some version values are not explicitly surrounded by quotes they are recognized
+        # as numbers so we cast them to string
+        if values.get('version', None):
+            values['version'] = str(values['version'])
+
+        # Special case for old version which didn't follow semver format (e.g. 0.1, 1.0, etc.)
+        # In case the version doesn't match that format, we simply append ".0" to the end (e.g.
+        # 0.1 -> 0.1.0, 1.0, -> 1.0.0, etc.)
+        version_seperator_count = values['version'].count('.')
+        if version_seperator_count == 1:
+            new_version = values['version'] + '.0'
+            LOG.info('Pack "%s" contains invalid semver version specifer, casting it to a full '
+                     'semver version specifier (%s -> %s)' % (name, values['version'],
+                                                              new_version))
+            values['version'] = new_version
+
+        super(PackAPI, self).__init__(**values)
+
+    def validate(self):
+        # We wrap default validate() implementation and throw a more user-friendly exception in
+        # case pack version doesn't follow a valid semver format
+        try:
+            super(PackAPI, self).validate()
+        except jsonschema.ValidationError as e:
+            msg = str(e)
+
+            if "Failed validating 'pattern' in schema['properties']['version']" in msg:
+                new_msg = ('Pack version "%s" doesn\'t follow a valid semver format. Valid '
+                           'versions and formats include: 0.1.0, 0.2.1, 1.1.0, etc.' %
+                           (self.version))
+                new_msg += '\n\n' + msg
+                raise jsonschema.ValidationError(new_msg)
+
+            raise e
+
     @classmethod
     def to_model(cls, pack):
-        parameters = pack.__dict__
-        parameters['keywords'] = parameters.get('keywords', [])
-        parameters['files'] = parameters.get('files', [])
-        parameters['dependencies'] = parameters.get('dependencies', [])
-        parameters['system'] = parameters.get('system', {})
+        ref = pack.ref
+        name = pack.name
+        description = pack.description
+        keywords = getattr(pack, 'keywords', [])
+        version = str(pack.version)
 
-        model = cls.model(**parameters)
+        stackstorm_version = getattr(pack, 'stackstorm_version', None)
+        author = pack.author
+        email = pack.email
+        files = getattr(pack, 'files', [])
+        dependencies = getattr(pack, 'dependencies', [])
+        system = getattr(pack, 'system', {})
+
+        model = cls.model(ref=ref, name=name, description=description, keywords=keywords,
+                          version=version, author=author, email=email, files=files,
+                          dependencies=dependencies, system=system,
+                          stackstorm_version=stackstorm_version)
         return model
 
 

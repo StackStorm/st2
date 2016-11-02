@@ -37,6 +37,8 @@ PACK_PATH_7 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy
 PACK_PATH_8 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_8')
 PACK_PATH_9 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_9')
 PACK_PATH_10 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_10')
+PACK_PATH_11 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_11')
+PACK_PATH_12 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_12')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -99,10 +101,56 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_8)
 
-    def test_register_pack_future(self):
+    def test_register_pack_invalid_semver_version_friendly_error_message(self):
+        registrar = ResourceRegistrar(use_pack_cache=False)
+
+        expected_msg = ('Pack version "0.1.2.3.4" doesn\'t follow a valid semver format. Valid '
+                        'versions and formats include: 0.1.0, 0.2.1, 1.1.0, etc.')
+        self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
+                                pack_name=None, pack_dir=PACK_PATH_12)
+
+    @mock.patch('st2common.bootstrap.base.get_stackstorm_version')
+    def test_register_pack_stackstorm_version_identifier_check(self, mock_get_stackstorm_version):
+        # Version is satisfied
+        mock_get_stackstorm_version.return_value = '2.0.0'
+
+        registrar = ResourceRegistrar(use_pack_cache=False)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_9': PACK_PATH_9}
+        packs_base_paths = content_utils.get_packs_base_paths()
+        registrar.register_packs(base_dirs=packs_base_paths)
+
+        pack_db = Pack.get_by_name('dummy_pack_9_deps')
+        self.assertEqual(pack_db.stackstorm_version, '>=1.6.0, <2.2.0')
+
+        # Pack requires a version which is not satisfied by current StackStorm version
+        mock_get_stackstorm_version.return_value = '2.2.0'
+        expected_msg = ('Pack "dummy_pack_9_deps" requires StackStorm ">=1.6.0, <2.2.0", but '
+                        'current version is "2.2.0"')
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
+                                pack_name=None, pack_dir=PACK_PATH_9)
+
+        mock_get_stackstorm_version.return_value = '2.3.0'
+        expected_msg = ('Pack "dummy_pack_9_deps" requires StackStorm ">=1.6.0, <2.2.0", but '
+                        'current version is "2.3.0"')
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
+                                pack_name=None, pack_dir=PACK_PATH_9)
+
+        mock_get_stackstorm_version.return_value = '1.5.9'
+        expected_msg = ('Pack "dummy_pack_9_deps" requires StackStorm ">=1.6.0, <2.2.0", but '
+                        'current version is "1.5.9"')
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
+                                pack_name=None, pack_dir=PACK_PATH_9)
+
+        mock_get_stackstorm_version.return_value = '1.5.0'
+        expected_msg = ('Pack "dummy_pack_9_deps" requires StackStorm ">=1.6.0, <2.2.0", but '
+                        'current version is "1.5.0"')
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
+                                pack_name=None, pack_dir=PACK_PATH_9)
+
+    def test_register_pack_pack_stackstorm_version_and_future_parameters(self):
         # Verify DB is empty
         pack_dbs = Pack.get_all()
-
         self.assertEqual(len(pack_dbs), 0)
 
         registrar = ResourceRegistrar(use_pack_cache=False)
@@ -111,13 +159,33 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         packs_base_paths = content_utils.get_packs_base_paths()
         registrar.register_packs(base_dirs=packs_base_paths)
 
-        # Dependencies / engines / future values are ok.
+        # Dependencies, stackstorm_version and future values
         pack_db = Pack.get_by_name('dummy_pack_9_deps')
         self.assertEqual(pack_db.dependencies, ['core=0.2.0'])
-        self.assertEqual(pack_db.system, {'stackstorm': '>=1.6dev, <2.2'})
-        self.assertEqual(pack_db.future, 'arguments')
+        self.assertEqual(pack_db.stackstorm_version, '>=1.6.0, <2.2.0')
+        self.assertEqual(pack_db.system, {'centos': {'foo': '>= 1.0'}})
+
+        # Note: We only store paramters which are defined in the schema, all other custom user
+        # defined attributes are ignored
+        self.assertTrue(not hasattr(pack_db, 'future'))
+        self.assertTrue(not hasattr(pack_db, 'this'))
 
         # Wrong characters in the required st2 version
-        expected_msg = "'wrongversion' does not match"
+        expected_msg = "'wrongstackstormversion' does not match"
         self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_10)
+
+    def test_register_pack_old_style_non_semver_version_is_normalized_to_valid_version(self):
+        # Verify DB is empty
+        pack_dbs = Pack.get_all()
+        self.assertEqual(len(pack_dbs), 0)
+
+        registrar = ResourceRegistrar(use_pack_cache=False)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_11': PACK_PATH_11}
+        packs_base_paths = content_utils.get_packs_base_paths()
+        registrar.register_packs(base_dirs=packs_base_paths)
+
+        # Non-semver valid version 0.2 should be normalize to 0.2.0
+        pack_db = Pack.get_by_name('dummy_pack_11')
+        self.assertEqual(pack_db.version, '0.2.0')
