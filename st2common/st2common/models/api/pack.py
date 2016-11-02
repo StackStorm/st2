@@ -18,6 +18,7 @@ import os
 import jsonschema
 from oslo_config import cfg
 
+from st2common import log as logging
 from st2common.util import schema as util_schema
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE
@@ -43,6 +44,8 @@ __all__ = [
     'PackSearchRequestAPI',
     'PackAsyncAPI'
 ]
+
+LOG = logging.getLogger(__name__)
 
 
 class PackAPI(BaseAPI):
@@ -132,6 +135,23 @@ class PackAPI(BaseAPI):
     @classmethod
     def to_model(cls, pack):
         parameters = pack.__dict__
+
+        # Note: If some version values are not explicitly surrounded by quotes they are recognized
+        # as numbers so we cast them to string
+        if getattr(pack, 'version', None):
+            pack.version = str(pack['version'])
+
+        # Special case for old version which didn't follow semver format (e.g. 0.1, 1.0, etc.)
+        # In case the version doesn't match that format, we simply append ".0" to the end (e.g.
+        # 0.1 -> 0.1.0, 1.0, -> 1.0.0, etc.)
+        dot_count = len(pack.version.split(''))
+        if dot_count == 1:
+            new_version = pack.version + '.0'
+            LOG.info('Pack "%s" contains invalid semver version specifer, casting it to a full '
+                     'semver version specifier (%s -> %s)' % (pack.name, pack.version,
+                                                              new_version))
+            pack.version = new_version
+
         parameters['keywords'] = parameters.get('keywords', [])
         parameters['files'] = parameters.get('files', [])
         parameters['dependencies'] = parameters.get('dependencies', [])
@@ -174,7 +194,7 @@ class ConfigSchemaAPI(BaseAPI):
         pack = config_schema.pack
         attributes = config_schema.attributes
 
-        model = cls.model(pack=pack, attributes=attributes)
+         = cls.model(pack=pack, attributes=attributes)
         return model
 
 
