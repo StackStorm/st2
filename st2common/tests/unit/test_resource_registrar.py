@@ -99,7 +99,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_8)
 
-    def test_register_pack_future(self):
+    def test_register_pack_pack_stackstorm_version_and_future_parameters(self):
         # Verify DB is empty
         pack_dbs = Pack.get_all()
 
@@ -111,13 +111,18 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         packs_base_paths = content_utils.get_packs_base_paths()
         registrar.register_packs(base_dirs=packs_base_paths)
 
-        # Dependencies / engines / future values are ok.
+        # Dependencies, stackstorm_version and future values
         pack_db = Pack.get_by_name('dummy_pack_9_deps')
         self.assertEqual(pack_db.dependencies, ['core=0.2.0'])
-        self.assertEqual(pack_db.system, {'stackstorm': '>=1.6dev, <2.2'})
-        self.assertEqual(pack_db.future, 'arguments')
+        self.assertEqual(pack_db.stackstorm_version, '>=1.6dev, <2.2')
+        self.assertEqual(pack_db.system, {'centos': {'foo': '>= 1.0'}})
+
+        # Note: We only store paramters which are defined in the schema, all other custom user 
+        # defined attributes are ignored
+        self.assertTrue(not hasattr(pack_db, 'future'))
+        self.assertTrue(not hasattr(pack_db, 'this'))
 
         # Wrong characters in the required st2 version
-        expected_msg = "'wrongversion' does not match"
+        expected_msg = "'wrongstackstormversion' does not match"
         self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_10)
