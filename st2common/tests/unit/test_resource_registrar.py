@@ -38,6 +38,7 @@ PACK_PATH_8 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy
 PACK_PATH_9 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_9')
 PACK_PATH_10 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_10')
 PACK_PATH_11 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_11')
+PACK_PATH_12 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_12')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -99,6 +100,15 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         expected_msg = 'contains invalid characters'
         self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_8)
+
+    def test_register_pack_invalid_semver_version_friendly_error_message(self):
+        registrar = ResourceRegistrar(use_pack_cache=False)
+
+        packs_base_paths = content_utils.get_packs_base_paths()
+        expected_msg = ('Pack version "0.1.2.3.4" doesn\'t follow a valid semver format. Valid '
+                        'versions and formats include: 0.1.0, 0.2.1, 1.1.0, etc.')
+        self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
+                                pack_name=None, pack_dir=PACK_PATH_12)
 
     def test_register_pack_pack_stackstorm_version_and_future_parameters(self):
         # Verify DB is empty
