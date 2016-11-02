@@ -104,7 +104,6 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
     def test_register_pack_invalid_semver_version_friendly_error_message(self):
         registrar = ResourceRegistrar(use_pack_cache=False)
 
-        packs_base_paths = content_utils.get_packs_base_paths()
         expected_msg = ('Pack version "0.1.2.3.4" doesn\'t follow a valid semver format. Valid '
                         'versions and formats include: 0.1.0, 0.2.1, 1.1.0, etc.')
         self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
@@ -127,7 +126,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(pack_db.stackstorm_version, '>=1.6dev, <2.2')
         self.assertEqual(pack_db.system, {'centos': {'foo': '>= 1.0'}})
 
-        # Note: We only store paramters which are defined in the schema, all other custom user 
+        # Note: We only store paramters which are defined in the schema, all other custom user
         # defined attributes are ignored
         self.assertTrue(not hasattr(pack_db, 'future'))
         self.assertTrue(not hasattr(pack_db, 'this'))

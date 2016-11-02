@@ -181,7 +181,7 @@ class PackAPI(BaseAPI):
         author = pack.author
         email = pack.email
         files = getattr(pack, 'files', [])
-        dependencies  = getattr(pack, 'dependencies', [])
+        dependencies = getattr(pack, 'dependencies', [])
         system = getattr(pack, 'system', {})
 
         model = cls.model(ref=ref, name=name, description=description, keywords=keywords,
