@@ -137,7 +137,7 @@ class PackGetCommand(resource.ResourceGetCommand):
     pk_argument_name = 'ref'
     display_attributes = ['all']
     # attribute_display_order = [] ResourceCommand
-    help_string = 'Get information about an installed %s.' % resource.get_display_name().lower()
+    help_string = 'Get information about an installed pack.'
 
 
 class PackShowCommand(PackResourceCommand):
