@@ -164,7 +164,7 @@ class PackAPI(BaseAPI):
                 new_msg = ('Pack version "%s" doesn\'t follow a valid semver format. Valid '
                            'versions and formats include: 0.1.0, 0.2.1, 1.1.0, etc.' %
                            (self.version))
-                new_msg += '\n' + msg
+                new_msg += '\n\n' + msg
                 raise jsonschema.ValidationError(new_msg)
 
             raise e
