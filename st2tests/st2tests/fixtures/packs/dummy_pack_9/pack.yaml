@@ -2,7 +2,7 @@
 name : dummy_pack_9_deps
 description : dummy pack with pack and engine dependencies
 version : 0.1.0
-stackstorm_version : ">=1.6dev, <2.2"
+stackstorm_version : ">=1.6.0, <2.2.0"
 author : st2-dev
 email : info@stackstorm.com
 dependencies :

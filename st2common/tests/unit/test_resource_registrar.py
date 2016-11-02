@@ -123,7 +123,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         # Dependencies, stackstorm_version and future values
         pack_db = Pack.get_by_name('dummy_pack_9_deps')
         self.assertEqual(pack_db.dependencies, ['core=0.2.0'])
-        self.assertEqual(pack_db.stackstorm_version, '>=1.6dev, <2.2')
+        self.assertEqual(pack_db.stackstorm_version, '>=1.6.0, <2.2.0')
         self.assertEqual(pack_db.system, {'centos': {'foo': '>= 1.0'}})
 
         # Note: We only store paramters which are defined in the schema, all other custom user
