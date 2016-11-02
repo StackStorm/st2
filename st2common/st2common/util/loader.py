@@ -176,10 +176,11 @@ def register_runner(module_name):
         "%s/runners/%s/%s.py" % (base_path, module_name, module_name)
     )
 
-    LOG.debug('Loading runner from: %s', module_path)
-
     if module_name not in RUNNER_MODULES:
+        LOG.info('Loading runner module from "%s".', module_path)
         RUNNER_MODULES[module_name] = imp.load_source(module_name, module_path)
+    else:
+        LOG.info('Reusing runner module "%s" from cache.', module_path)
 
     return RUNNER_MODULES[module_name]
 
@@ -190,10 +191,11 @@ def register_query_module(module_name):
         "%s/runners/%s/query/%s.py" % (base_path, module_name, module_name)
     )
 
-    LOG.debug('Loading query module from: %s', module_path)
-
     if module_name not in QUERIER_MODULES:
+        LOG.info('Loading query module from "%s".', module_path)
         QUERIER_MODULES[module_name] = imp.load_source(module_name, module_path)
+    else:
+        LOG.info('Reusing query module "%s" from cache.', module_path)
 
     return QUERIER_MODULES[module_name]
 
