@@ -23,7 +23,6 @@ from st2client.models import Pack
 from st2client.models import LiveAction
 from st2client.commands import resource
 from st2client.commands.action import ActionRunCommandMixin
-from st2client.commands.noop import NoopCommand
 from st2client.formatters import table
 from st2client.exceptions.operations import OperationFailureException
 import st2client.utils.terminal as term
@@ -142,9 +141,10 @@ class PackGetCommand(resource.ResourceGetCommand):
 
 class PackShowCommand(PackResourceCommand):
     def __init__(self, resource, *args, **kwargs):
-        super(PackShowCommand, self).__init__(resource, 'show',
-              'Get information about an available %s from the index.' % resource.get_display_name().lower(),
-              *args, **kwargs)
+        help_string = ('Get information about an available %s from the index.' %
+                       resource.get_display_name().lower())
+        super(PackShowCommand, self).__init__(resource, 'show', help_string,
+                                              *args, **kwargs)
 
         self.parser.add_argument('pack',
                                  help='Name of the %s to show.' %
