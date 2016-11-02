@@ -161,7 +161,8 @@ class Shell(BaseCLIApp):
         )
 
         # Set up list of commands and subcommands.
-        self.subparsers = self.parser.add_subparsers()
+        # Setting metavar to "" cuts down 
+        self.subparsers = self.parser.add_subparsers(metavar="")
         self.commands = dict()
 
         self.commands['action'] = action.ActionBranch(
