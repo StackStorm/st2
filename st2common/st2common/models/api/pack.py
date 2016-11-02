@@ -92,6 +92,12 @@ class PackAPI(BaseAPI):
                 'pattern': PACK_VERSION_REGEX,
                 'required': True
             },
+            'stackstorm_version': {
+                'type': 'string',
+                'description': 'Required StackStorm version. Examples: ">1.6", '
+                               '">=1.8dev, <2.0"',
+                'pattern': ST2_VERSION_REGEX,
+            },
             'author': {
                 'type': 'string',
                 'description': 'Pack author or authors.',
@@ -120,14 +126,7 @@ class PackAPI(BaseAPI):
                 'type': 'object',
                 'description': 'Specification for the system components and packages '
                                'required for the pack.',
-                'properties': {
-                    'stackstorm': {
-                        'type': 'string',
-                        'description': 'Required StackStorm version. Examples: ">1.6", '
-                                       '">=1.8dev, <2.0"',
-                        'pattern': ST2_VERSION_REGEX,
-                    }
-                }
+                'default': {}
             }
         }
     }
@@ -156,6 +155,7 @@ class PackAPI(BaseAPI):
                                                               new_version))
             version = new_version
 
+        stackstorm_version = getattr(pack, 'stackstorm_version', None)
         author = pack.author
         email = pack.email
         files = getattr(pack, 'files', [])
@@ -164,7 +164,8 @@ class PackAPI(BaseAPI):
 
         model = cls.model(ref=ref, name=name, description=description, keywords=keywords,
                           version=version, author=author, email=email, files=files,
-                          dependencies=dependencies, system=system)
+                          dependencies=dependencies, system=system,
+                          stackstorm_version=stackstorm_version)
         return model
 
 
