@@ -94,8 +94,8 @@ class PackAPI(BaseAPI):
             },
             'stackstorm_version': {
                 'type': 'string',
-                'description': 'Required StackStorm version. Examples: ">1.6", '
-                               '">=1.8dev, <2.0"',
+                'description': 'Required StackStorm version. Examples: ">1.6.0", '
+                               '">=1.8.0, <2.2.0"',
                 'pattern': ST2_VERSION_REGEX,
             },
             'author': {
