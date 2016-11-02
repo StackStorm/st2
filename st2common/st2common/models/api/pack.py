@@ -134,30 +134,37 @@ class PackAPI(BaseAPI):
 
     @classmethod
     def to_model(cls, pack):
-        parameters = pack.__dict__
+        ref = pack.ref
+        name = pack.name
+        description = pack.description
+        keywords = getattr(pack, 'keywords', [])
+        version = str(pack.version)
 
         # Note: If some version values are not explicitly surrounded by quotes they are recognized
         # as numbers so we cast them to string
         if getattr(pack, 'version', None):
-            pack.version = str(pack['version'])
+            version = str(pack['version'])
 
         # Special case for old version which didn't follow semver format (e.g. 0.1, 1.0, etc.)
         # In case the version doesn't match that format, we simply append ".0" to the end (e.g.
         # 0.1 -> 0.1.0, 1.0, -> 1.0.0, etc.)
         dot_count = len(pack.version.split(''))
         if dot_count == 1:
-            new_version = pack.version + '.0'
+            new_version = version + '.0'
             LOG.info('Pack "%s" contains invalid semver version specifer, casting it to a full '
-                     'semver version specifier (%s -> %s)' % (pack.name, pack.version,
+                     'semver version specifier (%s -> %s)' % (name, version,
                                                               new_version))
-            pack.version = new_version
+            version = new_version
 
-        parameters['keywords'] = parameters.get('keywords', [])
-        parameters['files'] = parameters.get('files', [])
-        parameters['dependencies'] = parameters.get('dependencies', [])
-        parameters['system'] = parameters.get('system', {})
+        author = pack.author
+        email = pack.email
+        files = getattr(pack, 'files', [])
+        dependencies  = getattr(pack, 'dependencies', [])
+        system = getattr(pack, 'system', {})
 
-        model = cls.model(**parameters)
+        model = cls.model(ref=ref, name=name, description=description, keywords=keywords,
+                          version=version, author=author, email=email, files=files,
+                          dependencies=dependencies, system=system)
         return model
 
 
@@ -194,7 +201,7 @@ class ConfigSchemaAPI(BaseAPI):
         pack = config_schema.pack
         attributes = config_schema.attributes
 
-         = cls.model(pack=pack, attributes=attributes)
+        model = cls.model(pack=pack, attributes=attributes)
         return model
 
 
