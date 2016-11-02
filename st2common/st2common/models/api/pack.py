@@ -142,13 +142,13 @@ class PackAPI(BaseAPI):
         # Note: If some version values are not explicitly surrounded by quotes they are recognized
         # as numbers so we cast them to string
         if getattr(pack, 'version', None):
-            version = str(pack['version'])
+            version = str(pack.version)
 
         # Special case for old version which didn't follow semver format (e.g. 0.1, 1.0, etc.)
         # In case the version doesn't match that format, we simply append ".0" to the end (e.g.
         # 0.1 -> 0.1.0, 1.0, -> 1.0.0, etc.)
-        dot_count = len(pack.version.split(''))
-        if dot_count == 1:
+        version_seperator_count = len(pack.version.split('.'))
+        if version_seperator_count == 1:
             new_version = version + '.0'
             LOG.info('Pack "%s" contains invalid semver version specifer, casting it to a full '
                      'semver version specifier (%s -> %s)' % (name, version,
