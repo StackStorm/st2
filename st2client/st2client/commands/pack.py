@@ -135,8 +135,8 @@ class PackListCommand(resource.ResourceListCommand):
 
 class PackGetCommand(resource.ResourceGetCommand):
     pk_argument_name = 'ref'
-    display_attributes = ['all']
-    # attribute_display_order = [] ResourceCommand
+    display_attributes = ['name', 'version', 'author', 'email', 'keywords', 'description']
+    attribute_display_order = ['name', 'version', 'author', 'email', 'keywords', 'description']
     help_string = 'Get information about an installed pack.'
 
 
