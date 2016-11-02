@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import glob
 
 from st2tests.base import IntegrationTestCase
 from st2common.util.shell import run_command
@@ -27,6 +28,9 @@ SCRIPT_PATH = os.path.abspath(SCRIPT_PATH)
 
 BASE_CMD_ARGS = [SCRIPT_PATH, '--config-file=conf/st2.tests.conf', '-v']
 BASE_REGISTER_ACTIONS_CMD_ARGS = BASE_CMD_ARGS + ['--register-actions']
+
+PACKS_PATH = get_fixtures_packs_base_path()
+PACKS_COUNT = len(glob.glob('%s/*/pack.yaml' % (PACKS_PATH))) - 1
 
 
 class ContentRegisterScriptTestCase(IntegrationTestCase):
@@ -126,7 +130,7 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         exit_code, stdout, stderr = run_command(cmd=cmd)
         self.assertTrue('Registering actions' in stderr)
         self.assertTrue('Registering rules' in stderr)
-        self.assertTrue('Setup virtualenv for 10 pack(s)' in stderr)
+        self.assertTrue('Setup virtualenv for %s pack(s)' % (PACKS_COUNT) in stderr)
         self.assertEqual(exit_code, 0)
 
     def test_register_setup_virtualenvs(self):
@@ -144,5 +148,5 @@ class ContentRegisterScriptTestCase(IntegrationTestCase):
         # All packs
         cmd = BASE_CMD_ARGS + ['--register-setup-virtualenvs', '--register-no-fail-on-failure']
         exit_code, stdout, stderr = run_command(cmd=cmd)
-        self.assertTrue('Setup virtualenv for 10 pack(s)' in stderr)
+        self.assertTrue('Setup virtualenv for %s pack(s)' % (PACKS_COUNT)  in stderr)
         self.assertEqual(exit_code, 0)
