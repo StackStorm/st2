@@ -131,6 +131,27 @@ class PackAPI(BaseAPI):
         }
     }
 
+    def __init__(self, **values):
+        name = values.get('name', None)
+
+        # Note: If some version values are not explicitly surrounded by quotes they are recognized
+        # as numbers so we cast them to string
+        if values.get('version', None):
+            values['version'] = str(values['version'])
+
+        # Special case for old version which didn't follow semver format (e.g. 0.1, 1.0, etc.)
+        # In case the version doesn't match that format, we simply append ".0" to the end (e.g.
+        # 0.1 -> 0.1.0, 1.0, -> 1.0.0, etc.)
+        version_seperator_count = values['version'].count('.')
+        if version_seperator_count == 1:
+            new_version = values['version'] + '.0'
+            LOG.info('Pack "%s" contains invalid semver version specifer, casting it to a full '
+                     'semver version specifier (%s -> %s)' % (name, values['version'],
+                                                              new_version))
+            values['version'] = new_version
+
+        super(PackAPI, self).__init__(**values)
+
     @classmethod
     def to_model(cls, pack):
         ref = pack.ref
@@ -138,22 +159,6 @@ class PackAPI(BaseAPI):
         description = pack.description
         keywords = getattr(pack, 'keywords', [])
         version = str(pack.version)
-
-        # Note: If some version values are not explicitly surrounded by quotes they are recognized
-        # as numbers so we cast them to string
-        if getattr(pack, 'version', None):
-            version = str(pack.version)
-
-        # Special case for old version which didn't follow semver format (e.g. 0.1, 1.0, etc.)
-        # In case the version doesn't match that format, we simply append ".0" to the end (e.g.
-        # 0.1 -> 0.1.0, 1.0, -> 1.0.0, etc.)
-        version_seperator_count = len(pack.version.split('.'))
-        if version_seperator_count == 1:
-            new_version = version + '.0'
-            LOG.info('Pack "%s" contains invalid semver version specifer, casting it to a full '
-                     'semver version specifier (%s -> %s)' % (name, version,
-                                                              new_version))
-            version = new_version
 
         stackstorm_version = getattr(pack, 'stackstorm_version', None)
         author = pack.author
