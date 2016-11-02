@@ -37,6 +37,7 @@ PACK_PATH_7 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy
 PACK_PATH_8 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_8')
 PACK_PATH_9 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_9')
 PACK_PATH_10 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_10')
+PACK_PATH_11 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_11')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -102,7 +103,6 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
     def test_register_pack_pack_stackstorm_version_and_future_parameters(self):
         # Verify DB is empty
         pack_dbs = Pack.get_all()
-
         self.assertEqual(len(pack_dbs), 0)
 
         registrar = ResourceRegistrar(use_pack_cache=False)
@@ -126,3 +126,18 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         expected_msg = "'wrongstackstormversion' does not match"
         self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_10)
+
+    def test_register_pack_old_style_non_semver_version_is_normalized_to_valid_version(self):
+        # Verify DB is empty
+        pack_dbs = Pack.get_all()
+        self.assertEqual(len(pack_dbs), 0)
+
+        registrar = ResourceRegistrar(use_pack_cache=False)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_11': PACK_PATH_11}
+        packs_base_paths = content_utils.get_packs_base_paths()
+        registrar.register_packs(base_dirs=packs_base_paths)
+
+        # Non-semver valid version 0.2 should be normalize to 0.2.0
+        pack_db = Pack.get_by_name('dummy_pack_11')
+        self.assertEqual(pack_db.version, '0.2.0')
