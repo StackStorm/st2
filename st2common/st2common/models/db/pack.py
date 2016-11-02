@@ -19,6 +19,7 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
 from st2common.constants.pack import PACK_VERSION_REGEX
+from st2common.constants.pack import ST2_VERSION_REGEX
 
 __all__ = [
     'PackDB',
@@ -41,7 +42,7 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin,
     description = me.StringField(required=True)
     keywords = me.ListField(field=me.StringField())
     version = me.StringField(regex=PACK_VERSION_REGEX, required=True)
-    stackstorm_version = me.StringField()
+    stackstorm_version = me.StringField(regex=ST2_VERSION_REGEX)
     author = me.StringField(required=True)
     email = me.EmailField()
     files = me.ListField(field=me.StringField())
