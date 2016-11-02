@@ -41,6 +41,9 @@ def complex_semver_match(version, version_specifier):
         for version_specifier_part in split_version_specifier:
             version_specifier_part = version_specifier_part.strip()
 
+            if not version_specifier_part:
+                continue
+
             if not semver.match(version, version_specifier_part):
                 return False
 
