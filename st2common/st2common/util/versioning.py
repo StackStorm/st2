@@ -27,6 +27,7 @@ __all__ = [
     'complex_semver_match'
 ]
 
+
 def get_stackstorm_version():
     """
     Return a valid semver version string for the currently running StackStorm version.
