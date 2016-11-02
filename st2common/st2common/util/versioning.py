@@ -19,9 +19,24 @@ Module containing various versioning utils.
 
 import semver
 
+from st2common import __version__ as stackstorm_version
+
 __all__ = [
+    'get_stackstorm_version',
+
     'complex_semver_match'
 ]
+
+def get_stackstorm_version():
+    """
+    Return a valid semver version string for the currently running StackStorm version.
+    """
+    # Special handling for dev versions which are not valid semver identifiers
+    if 'dev' in stackstorm_version and stackstorm_version.count('.') == 1:
+        version = stackstorm_version.replace('dev', '.0')
+        return version
+
+    return stackstorm_version
 
 
 def complex_semver_match(version, version_specifier):
