@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime, timedelta
 from st2client.client import Client
 from st2client.models import KeyValuePair
 from st2common.services.access import create_token
@@ -34,6 +35,7 @@ class DatastoreService(object):
         self._logger = logger
 
         self._client = None
+        self._token_expire = datetime.now()
 
     ##################################
     # Methods for datastore management
@@ -90,7 +92,8 @@ class DatastoreService(object):
         try:
             params = {'decrypt': str(decrypt).lower(), 'scope': scope}
             kvp = client.keys.get_by_id(id=name, params=params)
-        except Exception:
+        except Exception, e:
+            self._logger.warning('Exception retrieving value from datastore (name=%s): %s', name, e)
             return None
 
         if kvp:
@@ -194,8 +197,12 @@ class DatastoreService(object):
         """
         Retrieve API client instance.
         """
-        if not self._client:
+        token_expire = self._token_expire <= datetime.now()
+
+        if not self._client or token_expire:
+            self._logger.audit('Creating new Client object.')
             ttl = (24 * 60 * 60)
+            self._token_expire = datetime.now() + timedelta(seconds=ttl)
             temporary_token = create_token(username=self._api_username, ttl=ttl)
             api_url = get_full_public_api_url()
             self._client = Client(api_url=api_url, token=temporary_token.token)
