@@ -23,7 +23,7 @@ DONE_STATES = {
 }
 
 
-def get_query_instance():
+def get_instance():
     return MistralResultsQuerier(str(uuid.uuid4()))
 
 
@@ -146,7 +146,3 @@ class MistralResultsQuerier(Querier):
             status = DONE_STATES[wf_state]
 
         return status
-
-
-def get_instance():
-    return MistralResultsQuerier(str(uuid.uuid4()))
