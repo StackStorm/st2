@@ -80,7 +80,7 @@ class ResourceBranch(commands.Branch):
             "enable": ResourceEnableCommand,
             "disable": ResourceDisableCommand
         }
-        for cmd, cmd_class in cmd_map:
+        for cmd, cmd_class in cmd_map.items():
             if cmd not in commands:
                 commands[cmd] = cmd_class
 
