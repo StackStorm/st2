@@ -131,6 +131,14 @@ class PackAPI(BaseAPI):
         }
     }
 
+    def __init__(self, **values):
+        # Note: If some version values are not explicitly surrounded by quotes they are recognized
+        # as numbers so we cast them to string
+        if values.get('version', None):
+            values['version'] = str(values['version'])
+
+        super(PackAPI, self).__init__(**values)
+
     def validate(self):
         # We wrap default validate() implementation and throw a more user-friendly exception in
         # case pack version doesn't follow a valid semver format

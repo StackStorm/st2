@@ -30,8 +30,6 @@ from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 from st2common.util.file_system import get_file_list
-from st2common.util.versioning import get_stackstorm_version
-from st2common.util.versioning import complex_semver_match
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
