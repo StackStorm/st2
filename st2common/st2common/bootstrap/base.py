@@ -183,17 +183,6 @@ class ResourceRegistrar(object):
         pack_api.validate()
         pack_db = PackAPI.to_model(pack_api)
 
-        # If stackstorm_version attribute is speficied, verify that the pack works with currently
-        # running version of StackStorm
-        required_stackstorm_version = content.get('stackstorm_version', None)
-        if required_stackstorm_version:
-            current_stackstorm_version = get_stackstorm_version()
-
-            if not complex_semver_match(current_stackstorm_version, required_stackstorm_version):
-                msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s"' %
-                       (pack_db.name, required_stackstorm_version, current_stackstorm_version))
-                raise ValueError(msg)
-
         try:
             pack_db.id = Pack.get_by_ref(content['ref']).id
         except StackStormDBObjectNotFoundError:

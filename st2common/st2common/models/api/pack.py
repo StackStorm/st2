@@ -131,27 +131,6 @@ class PackAPI(BaseAPI):
         }
     }
 
-    def __init__(self, **values):
-        name = values.get('name', None)
-
-        # Note: If some version values are not explicitly surrounded by quotes they are recognized
-        # as numbers so we cast them to string
-        if values.get('version', None):
-            values['version'] = str(values['version'])
-
-        # Special case for old version which didn't follow semver format (e.g. 0.1, 1.0, etc.)
-        # In case the version doesn't match that format, we simply append ".0" to the end (e.g.
-        # 0.1 -> 0.1.0, 1.0, -> 1.0.0, etc.)
-        version_seperator_count = values['version'].count('.')
-        if version_seperator_count == 1:
-            new_version = values['version'] + '.0'
-            LOG.info('Pack "%s" contains invalid semver version specifer, casting it to a full '
-                     'semver version specifier (%s -> %s)' % (name, values['version'],
-                                                              new_version))
-            values['version'] = new_version
-
-        super(PackAPI, self).__init__(**values)
-
     def validate(self):
         # We wrap default validate() implementation and throw a more user-friendly exception in
         # case pack version doesn't follow a valid semver format
