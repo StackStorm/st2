@@ -114,45 +114,6 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_11)
 
-    @mock.patch('st2common.bootstrap.base.get_stackstorm_version')
-    def test_register_pack_stackstorm_version_identifier_check(self, mock_get_stackstorm_version):
-        # Version is satisfied
-        mock_get_stackstorm_version.return_value = '2.0.0'
-
-        registrar = ResourceRegistrar(use_pack_cache=False)
-        registrar._pack_loader.get_packs = mock.Mock()
-        registrar._pack_loader.get_packs.return_value = {'dummy_pack_9': PACK_PATH_9}
-        packs_base_paths = content_utils.get_packs_base_paths()
-        registrar.register_packs(base_dirs=packs_base_paths)
-
-        pack_db = Pack.get_by_name('dummy_pack_9_deps')
-        self.assertEqual(pack_db.stackstorm_version, '>=1.6.0, <2.2.0')
-
-        # Pack requires a version which is not satisfied by current StackStorm version
-        mock_get_stackstorm_version.return_value = '2.2.0'
-        expected_msg = ('Pack "dummy_pack_9_deps" requires StackStorm ">=1.6.0, <2.2.0", but '
-                        'current version is "2.2.0"')
-        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
-                                pack_name=None, pack_dir=PACK_PATH_9)
-
-        mock_get_stackstorm_version.return_value = '2.3.0'
-        expected_msg = ('Pack "dummy_pack_9_deps" requires StackStorm ">=1.6.0, <2.2.0", but '
-                        'current version is "2.3.0"')
-        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
-                                pack_name=None, pack_dir=PACK_PATH_9)
-
-        mock_get_stackstorm_version.return_value = '1.5.9'
-        expected_msg = ('Pack "dummy_pack_9_deps" requires StackStorm ">=1.6.0, <2.2.0", but '
-                        'current version is "1.5.9"')
-        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
-                                pack_name=None, pack_dir=PACK_PATH_9)
-
-        mock_get_stackstorm_version.return_value = '1.5.0'
-        expected_msg = ('Pack "dummy_pack_9_deps" requires StackStorm ">=1.6.0, <2.2.0", but '
-                        'current version is "1.5.0"')
-        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
-                                pack_name=None, pack_dir=PACK_PATH_9)
-
     def test_register_pack_pack_stackstorm_version_and_future_parameters(self):
         # Verify DB is empty
         pack_dbs = Pack.get_all()
