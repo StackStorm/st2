@@ -1,7 +1,7 @@
 ---
   name: "lookup"
   runner_type: "action-chain"
-  description: "Will get pack information from the Exchange index and the list
+  description: "Will get information about a pack from both the index and the list
                 of currently installed packs. This action is mostly meant to be
                 launched through its ChatOps alias."
   enabled: true

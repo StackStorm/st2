@@ -1,7 +1,7 @@
 ---
 name: "pack_show"
 action_ref: "packs.lookup"
-description: "Get information about a StackStorm pack, either installed or available through the Exchange"
+description: "Get information about a StackStorm pack: either installed or availble"
 formats:
   - display: "pack show [available] {{ pack }}"
     representation:
@@ -30,14 +30,14 @@ result:
             This pack does not appear to be a git repository though.
           {% endif %}
         {% else %}
-          Couldn't locate it in your installed packs.
+          It looks like there is no installed pack with this name.
           {% if not execution.result.available %}
             It's not on StackStorm Exchange either. What a sad world.
           {% endif %}
         {% endif %}
         {% if execution.result.available %}
 
-            StackStorm Exchange has an entry for this pack. You can take a look:
+            This pack is available in the pack directory. You can take a look:
             ```
             pack show available {{ execution.parameters.pack }}
             ```
@@ -61,9 +61,9 @@ result:
           ```
           pack install {{ execution.parameters.pack }}
           ```
-          If the pack is already installed, I will overwrite it with the latest version, keeping the config.
+          If the pack is already installed, I will upgrade it to the latest version, keeping the config.
         {% else %}
-          There's nothing like that on StackStorm Exchange.
+          There's nothing like that in the pack index.
           I know how sad it is, but life goes on. Cheer up!
         {% endif %}
       {% endif %}

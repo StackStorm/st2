@@ -2,7 +2,7 @@
 name: "pack_search"
 action_ref: "packs.search"
 pack: "packs"
-description: "Search for packs in the StackStorm Exchange index."
+description: "Search for packs in StackStorm Exchange and other directories."
 formats:
   - display: "pack search <query>"
     representation:
