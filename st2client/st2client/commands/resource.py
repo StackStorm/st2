@@ -71,22 +71,18 @@ class ResourceBranch(commands.Branch):
 
         # Resolves if commands need to be overridden.
         commands = commands or {}
-        if 'list' not in commands:
-            commands['list'] = ResourceListCommand
-        if 'get' not in commands:
-            commands['get'] = ResourceGetCommand
-        if 'create' not in commands:
-            commands['create'] = ResourceCreateCommand
-        if 'update' not in commands:
-            commands['update'] = ResourceUpdateCommand
-        if 'delete' not in commands:
-            commands['delete'] = ResourceDeleteCommand
-
-        if 'enable' not in commands:
-            commands['enable'] = ResourceEnableCommand
-
-        if 'disable' not in commands:
-            commands['disable'] = ResourceDisableCommand
+        cmd_map = {
+            "list": ResourceListCommand,
+            "get": ResourceGetCommand,
+            "create": ResourceCreateCommand,
+            "update": ResourceUpdateCommand,
+            "delete": ResourceDeleteCommand,
+            "enable": ResourceEnableCommand,
+            "disable": ResourceDisableCommand
+        }
+        for cmd, cmd_class in cmd_map:
+            if cmd not in commands:
+                commands[cmd] = cmd_class
 
         # Instantiate commands.
         args = [self.resource, self.app, self.subparsers]
