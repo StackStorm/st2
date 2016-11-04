@@ -170,6 +170,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '2.0.0'
 
         result = action.run(packs=['test3'], abs_repo_base=self.repo_base)
+        self.assertEqual(result['test3'], 'Success.')
 
         # Pack requires a version which is not satisfied by current StackStorm version
         pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '2.2.0'
@@ -195,3 +196,8 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
                         'current version is "1.5.0"')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
                                 abs_repo_base=self.repo_base)
+
+        # Version is not met, but force=true parameter is provided
+        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '1.5.0'
+        result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=True)
+        self.assertEqual(result['test3'], 'Success.')
