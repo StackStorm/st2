@@ -13,11 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from st2client.client import Client
 from st2client.models import KeyValuePair
 from st2common.services.access import create_token
 from st2common.util.api import get_full_public_api_url
+from st2common.util.date import get_datetime_utc_now
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR, SYSTEM_SCOPE
 
 
@@ -35,7 +36,7 @@ class DatastoreService(object):
         self._logger = logger
 
         self._client = None
-        self._token_expire = datetime.now()
+        self._token_expire = get_datetime_utc_now()
 
     ##################################
     # Methods for datastore management
@@ -92,8 +93,8 @@ class DatastoreService(object):
         try:
             params = {'decrypt': str(decrypt).lower(), 'scope': scope}
             kvp = client.keys.get_by_id(id=name, params=params)
-        except Exception, e:
-            self._logger.warning('Exception retrieving value from datastore (name=%s): %s', name, e)
+        except Exception as e:
+            self._logger.exception('Exception retrieving value from datastore (name=%s): %s', name, e)
             return None
 
         if kvp:
@@ -188,8 +189,8 @@ class DatastoreService(object):
         try:
             params = {'scope': scope}
             client.keys.delete(instance=instance, params=params)
-        except Exception, e:
-            self._logger.warning('Exception deleting value from datastore (name=%s): %s', name, e)
+        except Exception as e:
+            self._logger.exception('Exception deleting value from datastore (name=%s): %s', name, e)
             return False
 
         return True
@@ -198,12 +199,12 @@ class DatastoreService(object):
         """
         Retrieve API client instance.
         """
-        token_expire = self._token_expire <= datetime.now()
+        token_expire = self._token_expire <= get_datetime_utc_now()
 
         if not self._client or token_expire:
             self._logger.audit('Creating new Client object.')
             ttl = (24 * 60 * 60)
-            self._token_expire = datetime.now() + timedelta(seconds=ttl)
+            self._token_expire = get_datetime_utc_now() + timedelta(seconds=ttl)
             temporary_token = create_token(username=self._api_username, ttl=ttl)
             api_url = get_full_public_api_url()
             self._client = Client(api_url=api_url, token=temporary_token.token)

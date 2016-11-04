@@ -16,7 +16,8 @@
 
 import os
 import unittest2
-from datetime import datetime, timedelta
+from datetime import timedelta
+from st2common.util.date import get_datetime_utc_now
 
 import mock
 
@@ -155,7 +156,7 @@ class DatastoreServiceTestCase(unittest2.TestCase):
         kvp1.value = 'bar'
         mock_api_client.keys.get_by_id.return_value = kvp1
 
-        token_expire_time = datetime.now() - timedelta(seconds=5)
+        token_expire_time = get_datetime_utc_now() - timedelta(seconds=5)
         datastore_service._client = mock_api_client
         datastore_service._token_expire = token_expire_time
 

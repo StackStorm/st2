@@ -38,6 +38,7 @@ In development
   that "email" attribute (if specified) contains a valid email address. (improvement)
 * For consistency with new pack name validation changes, sample ``hello-st2`` pack has been renamed
   to ``hello_st2``.
+* Adding check for datastore Client expired tokens used in sensor container
 
 2.0.1 - September 30, 2016
 --------------------------
