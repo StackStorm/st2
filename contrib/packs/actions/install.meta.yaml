@@ -21,3 +21,8 @@
       type: "object"
       description: "Optional environment variables"
       required: false
+    force:
+      type: "boolean"
+      description: "Set to True to force install the pack and skip StackStorm version compatibility check"
+      required: false
+      default: false
