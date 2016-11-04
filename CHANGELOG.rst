@@ -38,6 +38,15 @@ In development
   that "email" attribute (if specified) contains a valid email address. (improvement)
 * For consistency with new pack name validation changes, sample ``hello-st2`` pack has been renamed
   to ``hello_st2``.
+* Add new ``stackstorm_version`` and ``system`` fields to the pack.yaml metadata file. Value of the
+  first field can contain a specific for StackStorm version with which the pack is designed to work
+  with (e.g. ``>=1.6.0,<2.2.0`` or ``>2.0.0``). This field is checked when installing / registering
+  a pack and installation is aborted if pack doesn't support StackStorm version which is currently
+  running. Second field can contain an object with optional system / OS level dependencies.
+  (new feature)
+* Require pack metadata ``version`` attribute to contain a valid semver version identifier (e.g
+  ``0.1.0``, ``2.0.0``, etc.). If version identifier is invalid, pack registration will fail.
+  (improvement)
 * Adding check for datastore Client expired tokens used in sensor container
 
 2.0.1 - September 30, 2016

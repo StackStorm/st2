@@ -33,6 +33,10 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 PYTHON_EXTENSIONS = ('.py')
 
+# Cache for dynamically loaded runner modules
+RUNNER_MODULES_CACHE = {}
+QUERIER_MODULES_CACHE = {}
+
 
 def _register_plugin_path(plugin_dir_abs_path):
     if not os.path.isdir(plugin_dir_abs_path):
@@ -174,11 +178,13 @@ def register_runner(module_name):
         "%s/runners/%s/%s.py" % (base_path, module_name, module_name)
     )
 
-    LOG.debug('Loading runner from: %s', module_path)
+    if module_name not in RUNNER_MODULES_CACHE:
+        LOG.info('Loading runner module from "%s".', module_path)
+        RUNNER_MODULES_CACHE[module_name] = imp.load_source(module_name, module_path)
+    else:
+        LOG.info('Reusing runner module "%s" from cache.', module_path)
 
-    module = imp.load_source(module_name, module_path)
-
-    return module
+    return RUNNER_MODULES_CACHE[module_name]
 
 
 def register_query_module(module_name):
@@ -187,11 +193,13 @@ def register_query_module(module_name):
         "%s/runners/%s/query/%s.py" % (base_path, module_name, module_name)
     )
 
-    LOG.debug('Loading query module from: %s', module_path)
+    if module_name not in QUERIER_MODULES_CACHE:
+        LOG.info('Loading query module from "%s".', module_path)
+        QUERIER_MODULES_CACHE[module_name] = imp.load_source(module_name, module_path)
+    else:
+        LOG.info('Reusing query module "%s" from cache.', module_path)
 
-    module = imp.load_source(module_name, module_path)
-
-    return module
+    return QUERIER_MODULES_CACHE[module_name]
 
 
 ALLOWED_EXTS = ['.json', '.yaml', '.yml']
