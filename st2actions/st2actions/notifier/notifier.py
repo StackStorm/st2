@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 import json
 
 from kombu import Connection
@@ -167,7 +168,15 @@ class Notifier(consumers.MessageHandler):
             payload['execution_id'] = execution_id
             payload['status'] = liveaction.status
             payload['start_timestamp'] = isotime.format(liveaction.start_timestamp)
-            payload['end_timestamp'] = isotime.format(liveaction.end_timestamp)
+
+            try:
+                payload['end_timestamp'] = isotime.format(liveaction.end_timestamp)
+            except AttributeError:
+                # This can be raised if liveaction.end_timestamp is None, which is caused
+                # when policy cancels a request due to concurrency
+                # In this case, use datetime.now() instead
+                payload['end_timestamp'] = isotime.format(datetime.now())
+
             payload['action_ref'] = liveaction.action
             payload['runner_ref'] = self._get_runner_ref(liveaction.action)
 
