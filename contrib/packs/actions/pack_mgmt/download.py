@@ -30,6 +30,8 @@ from st2common.runners.base_action import Action
 from st2common.content import utils
 from st2common.services.packs import get_pack_from_index
 from st2common.util.green import shell
+from st2common.util.versioning import complex_semver_match
+from st2common.util.versioning import get_stackstorm_version
 
 MANIFEST_FILE = 'pack.yaml'
 CONFIG_FILE = 'config.yaml'
@@ -40,15 +42,19 @@ SEMVER_REGEX = (r"^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
                 r"(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$")
 
 
+CURRENT_STACKSTROM_VERSION = get_stackstorm_version()
+
+
 class DownloadGitRepoAction(Action):
     def __init__(self, config=None, action_service=None):
         super(DownloadGitRepoAction, self).__init__(config=config, action_service=action_service)
 
-    def run(self, packs, abs_repo_base, verifyssl=True):
+    def run(self, packs, abs_repo_base, verifyssl=True, force=False):
         result = {}
 
         for pack in packs:
             pack_url, pack_version = self._get_repo_url(pack)
+
             temp_dir = hashlib.md5(pack_url).hexdigest()
 
             with LockFile('/tmp/%s' % (temp_dir)):
@@ -57,7 +63,14 @@ class DownloadGitRepoAction(Action):
                     abs_local_path = os.path.join(user_home, temp_dir)
                     self._clone_repo(temp_dir=abs_local_path, repo_url=pack_url,
                                      verifyssl=verifyssl, ref=pack_version)
+
                     pack_name = self._get_pack_name(abs_local_path)
+
+                    # Verify that the pack version if compatible with current
+                    # StackStorm version
+                    if not force:
+                        self._verify_pack_version(pack_dir=abs_local_path)
+
                     result[pack_name] = self._move_pack(abs_repo_base, pack_name, abs_local_path)
                 finally:
                     self._cleanup_repo(abs_local_path)
@@ -160,6 +173,21 @@ class DownloadGitRepoAction(Action):
                 os.chmod(os.path.join(root, f), mode)
 
     @staticmethod
+    def _verify_pack_version(pack_dir):
+        pack_metadata = DownloadGitRepoAction._get_pack_metadata(pack_dir=pack_dir)
+        pack_name = pack_metadata.get('name', None)
+        pack_version = pack_metadata.get('version', None)
+        required_stackstorm_version = pack_metadata.get('stackstorm_version', None)
+
+        # If stackstorm_version attribute is speficied, verify that the pack works with currently
+        # running version of StackStorm
+        if required_stackstorm_version:
+            if not complex_semver_match(CURRENT_STACKSTROM_VERSION, required_stackstorm_version):
+                msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s"' %
+                       (pack_name, required_stackstorm_version, CURRENT_STACKSTROM_VERSION))
+                raise ValueError(msg)
+
+    @staticmethod
     def _is_desired_pack(abs_pack_path, pack_name):
         # path has to exist.
         if not os.path.exists(abs_pack_path):
@@ -229,13 +257,20 @@ class DownloadGitRepoAction(Action):
         return url if has_git_extension else "{}.git".format(url)
 
     @staticmethod
+    def _get_pack_metadata(pack_dir):
+        with open(os.path.join(pack_dir, MANIFEST_FILE), 'r') as fp:
+            content = fp.read()
+
+        metadata = yaml.load(content)
+        return metadata
+
+    @staticmethod
     def _get_pack_name(pack_dir):
         """
         Read pack name from the metadata file and sanitize it.
         """
-        with open(os.path.join(pack_dir, MANIFEST_FILE), 'r') as manifest_file:
-            pack_meta = yaml.load(manifest_file)
-        return pack_meta['name'].replace(' ', '-').lower()
+        metadata = DownloadGitRepoAction._get_pack_metadata(pack_dir=pack_dir)
+        return metadata['name'].replace(' ', '-').lower()
 
     @staticmethod
     def _get_gitref(repo, ref):
