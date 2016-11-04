@@ -176,7 +176,6 @@ class DownloadGitRepoAction(Action):
     def _verify_pack_version(pack_dir):
         pack_metadata = DownloadGitRepoAction._get_pack_metadata(pack_dir=pack_dir)
         pack_name = pack_metadata.get('name', None)
-        pack_version = pack_metadata.get('version', None)
         required_stackstorm_version = pack_metadata.get('stackstorm_version', None)
 
         # If stackstorm_version attribute is speficied, verify that the pack works with currently
