@@ -47,6 +47,8 @@ In development
 * Require pack metadata ``version`` attribute to contain a valid semver version identifier (e.g
   ``0.1.0``, ``2.0.0``, etc.). If version identifier is invalid, pack registration will fail.
   (improvement)
+* When a policy cancels a request due to concurrency, it leaves end_timestamp set to None which
+  the notifier expects to be a date. This causes an exception in "isotime.format()". A patch was released that catches this exception, and populates payload['end_timestamp'] with the equivalent of "datetime.now()" when the exception occurs.
 * Adding check for datastore Client expired tokens used in sensor container
 
 2.0.1 - September 30, 2016
