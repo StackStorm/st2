@@ -177,11 +177,6 @@ class ResourceRegistrar(object):
         pack_file_list = get_file_list(directory=pack_dir, exclude_patterns=EXCLUDE_FILE_PATTERNS)
         content['files'] = pack_file_list
 
-        # Note: If some version values are not explicitly surrounded by quotes they are recognized
-        # as numbers so we cast them to string
-        if 'version' in content:
-            content['version'] = str(content['version'])
-
         pack_api = PackAPI(**content)
         pack_api.validate()
         pack_db = PackAPI.to_model(pack_api)
@@ -218,9 +213,6 @@ class ResourceRegistrar(object):
         config_schema_db = ConfigSchema.add_or_update(config_schema_db)
         LOG.debug('Config schema for pack %s registered.' % (pack_name))
         return config_schema_db
-
-    def _register_runner(self):
-        pass
 
     def register_runner(self):
         pass
