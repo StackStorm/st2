@@ -30,7 +30,7 @@ from pack_mgmt.download import DownloadGitRepoAction
 
 PACK_INDEX = {
     "test": {
-        "version": "0.4",
+        "version": "0.4.0",
         "name": "test",
         "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test",
         "author": "st2-dev",
@@ -39,7 +39,7 @@ PACK_INDEX = {
         "description": "st2 pack to test package management pipeline"
     },
     "test2": {
-        "version": "0.5",
+        "version": "0.5.0",
         "name": "test2",
         "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test2",
         "author": "stanley",
