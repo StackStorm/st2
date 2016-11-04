@@ -26,11 +26,12 @@ from gitdb.exc import BadName
 from st2common.services import packs as pack_service
 from st2tests.base import BaseActionTestCase
 
+import pack_mgmt.download
 from pack_mgmt.download import DownloadGitRepoAction
 
 PACK_INDEX = {
     "test": {
-        "version": "0.4",
+        "version": "0.4.0",
         "name": "test",
         "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test",
         "author": "st2-dev",
@@ -39,9 +40,19 @@ PACK_INDEX = {
         "description": "st2 pack to test package management pipeline"
     },
     "test2": {
-        "version": "0.5",
+        "version": "0.5.0",
         "name": "test2",
         "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test2",
+        "author": "stanley",
+        "keywords": ["some", "special", "terms"],
+        "email": "info@stackstorm.com",
+        "description": "another st2 pack to test package management pipeline"
+    },
+    "test3": {
+        "version": "0.5.0",
+        "stackstorm_version": ">=1.6.0, <2.2.0",
+        "name": "test3",
+        "repo_url": "https://github.com/StackStorm-Exchange/stackstorm-test3",
         "author": "stanley",
         "keywords": ["some", "special", "terms"],
         "email": "info@stackstorm.com",
@@ -151,3 +162,42 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         result = action.run(packs=['test=1.2.3'], abs_repo_base=self.repo_base)
 
         self.assertEqual(result, {'test': 'Success.'})
+
+    def test_download_pack_stackstorm_version_identifier_check(self):
+        action = self.get_action_instance()
+
+        # Version is satisfied
+        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '2.0.0'
+
+        result = action.run(packs=['test3'], abs_repo_base=self.repo_base)
+        self.assertEqual(result['test3'], 'Success.')
+
+        # Pack requires a version which is not satisfied by current StackStorm version
+        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '2.2.0'
+        expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
+                        'current version is "2.2.0"')
+        self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
+                                abs_repo_base=self.repo_base)
+
+        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '2.3.0'
+        expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
+                        'current version is "2.3.0"')
+        self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
+                                abs_repo_base=self.repo_base)
+
+        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '1.5.9'
+        expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
+                        'current version is "1.5.9"')
+        self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
+                                abs_repo_base=self.repo_base)
+
+        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '1.5.0'
+        expected_msg = ('Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
+                        'current version is "1.5.0"')
+        self.assertRaisesRegexp(ValueError, expected_msg, action.run, packs=['test3'],
+                                abs_repo_base=self.repo_base)
+
+        # Version is not met, but force=true parameter is provided
+        pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '1.5.0'
+        result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=True)
+        self.assertEqual(result['test3'], 'Success.')

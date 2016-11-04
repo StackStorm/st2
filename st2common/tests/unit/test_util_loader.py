@@ -45,8 +45,8 @@ class PluginLoaderTestCase(unittest2.TestCase):
 
     def setUp(self):
         super(PluginLoaderTestCase, self).setUp()
-        loader.RUNNER_MODULES = {}
-        loader.QUERIER_MODULES = {}
+        loader.RUNNER_MODULES_CACHE = {}
+        loader.QUERIER_MODULES_CACHE = {}
 
     @mock.patch.object(
         imp,
@@ -58,8 +58,8 @@ class PluginLoaderTestCase(unittest2.TestCase):
 
         self.assertIsNotNone(runner)
         self.assertEqual('mock_runner', runner.__name__)
-        self.assertIn('mock_runner', loader.RUNNER_MODULES)
-        self.assertEqual(runner, loader.RUNNER_MODULES['mock_runner'])
+        self.assertIn('mock_runner', loader.RUNNER_MODULES_CACHE)
+        self.assertEqual(runner, loader.RUNNER_MODULES_CACHE['mock_runner'])
 
     @mock.patch.object(
         imp,
@@ -72,8 +72,8 @@ class PluginLoaderTestCase(unittest2.TestCase):
         self.assertEqual(1, imp.load_source.call_count)
         self.assertIsNotNone(runner1)
         self.assertEqual('mock_runner', runner1.__name__)
-        self.assertIn('mock_runner', loader.RUNNER_MODULES)
-        self.assertEqual(runner1, loader.RUNNER_MODULES['mock_runner'])
+        self.assertIn('mock_runner', loader.RUNNER_MODULES_CACHE)
+        self.assertEqual(runner1, loader.RUNNER_MODULES_CACHE['mock_runner'])
 
         runner2 = loader.register_runner('mock_runner')
 
@@ -81,8 +81,8 @@ class PluginLoaderTestCase(unittest2.TestCase):
         self.assertEqual(runner1, runner2)
         self.assertIsNotNone(runner2)
         self.assertEqual('mock_runner', runner2.__name__)
-        self.assertIn('mock_runner', loader.RUNNER_MODULES)
-        self.assertEqual(runner2, loader.RUNNER_MODULES['mock_runner'])
+        self.assertIn('mock_runner', loader.RUNNER_MODULES_CACHE)
+        self.assertEqual(runner2, loader.RUNNER_MODULES_CACHE['mock_runner'])
 
     @mock.patch.object(
         imp,
@@ -94,8 +94,8 @@ class PluginLoaderTestCase(unittest2.TestCase):
 
         self.assertIsNotNone(querier)
         self.assertEqual('mock_runner', querier.__name__)
-        self.assertIn('mock_runner', loader.QUERIER_MODULES)
-        self.assertEqual(querier, loader.QUERIER_MODULES['mock_runner'])
+        self.assertIn('mock_runner', loader.QUERIER_MODULES_CACHE)
+        self.assertEqual(querier, loader.QUERIER_MODULES_CACHE['mock_runner'])
 
     @mock.patch.object(
         imp,
@@ -108,8 +108,8 @@ class PluginLoaderTestCase(unittest2.TestCase):
         self.assertEqual(1, imp.load_source.call_count)
         self.assertIsNotNone(querier1)
         self.assertEqual('mock_runner', querier1.__name__)
-        self.assertIn('mock_runner', loader.QUERIER_MODULES)
-        self.assertEqual(querier1, loader.QUERIER_MODULES['mock_runner'])
+        self.assertIn('mock_runner', loader.QUERIER_MODULES_CACHE)
+        self.assertEqual(querier1, loader.QUERIER_MODULES_CACHE['mock_runner'])
 
         querier2 = loader.register_query_module('mock_runner')
 
@@ -117,5 +117,5 @@ class PluginLoaderTestCase(unittest2.TestCase):
         self.assertEqual(querier1, querier2)
         self.assertIsNotNone(querier2)
         self.assertEqual('mock_runner', querier2.__name__)
-        self.assertIn('mock_runner', loader.QUERIER_MODULES)
-        self.assertEqual(querier2, loader.QUERIER_MODULES['mock_runner'])
+        self.assertIn('mock_runner', loader.QUERIER_MODULES_CACHE)
+        self.assertEqual(querier2, loader.QUERIER_MODULES_CACHE['mock_runner'])

@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import os
-import re
 import glob
 
 import six
@@ -30,7 +29,7 @@ from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 from st2common.util.file_system import get_file_list
-from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
+from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
@@ -158,20 +157,8 @@ class ResourceRegistrar(object):
         # 2hich are in sub-directories)
         # 2. If attribute is not available, but pack name is and pack name meets the valid name
         # criteria, we use that
-        if content.get('ref', None):
-            content['ref'] = content['ref']
-        elif re.match(PACK_REF_WHITELIST_REGEX, pack_name):
-            content['ref'] = pack_name
-        else:
-            if re.match(PACK_REF_WHITELIST_REGEX, content['name']):
-                content['ref'] = content['name']
-            else:
-                raise ValueError('Pack name "%s" contains invalid characters and "ref" '
-                                 'attribute is not available' % (content['name']))
-
-        # Note: We use a ref if available, if not we fall back to pack name
-        # (pack directory name)
-        content['ref'] = content.get('ref', pack_name)
+        content['ref'] = get_pack_ref_from_metadata(metadata=content,
+                                                    pack_directory_name=pack_name)
 
         # Include a list of pack files
         pack_file_list = get_file_list(directory=pack_dir, exclude_patterns=EXCLUDE_FILE_PATTERNS)

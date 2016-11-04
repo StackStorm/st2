@@ -47,5 +47,5 @@
       name: "dump_results"
       ref: "core.local"
       parameters:
-        cmd: "echo 'ST2 Workflow\tdiag_loadavg:\t{{__results}}' >> /tmp/diag_loadavg && echo 'Output written to file /tmp/diag_loadavg'"
+        cmd: "echo \"ST2 Workflow\tdiag_loadavg:\t{{__results}}\" >> /tmp/diag_loadavg && echo 'Output written to file /tmp/diag_loadavg'"
   default: "check_load"

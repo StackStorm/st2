@@ -16,6 +16,8 @@
 
 import os
 import unittest2
+from datetime import timedelta
+from st2common.util.date import get_datetime_utc_now
 
 import mock
 
@@ -127,6 +129,47 @@ class DatastoreServiceTestCase(unittest2.TestCase):
             value='foo', scope='NOT_SYSTEM')
         self.assertRaises(ValueError, self._datastore_service.delete_value, name='test1',
             scope='NOT_SYSTEM')
+
+    def test_datastore_get_exception(self):
+        mock_api_client = mock.Mock()
+        mock_api_client.keys.get_by_id.side_effect = ValueError("Exception test")
+        self._set_mock_api_client(mock_api_client)
+        value = self._datastore_service.get_value(name='test1')
+        self.assertEquals(value, None)
+
+    def test_datastore_delete_exception(self):
+        mock_api_client = mock.Mock()
+        mock_api_client.keys.delete.side_effect = ValueError("Exception test")
+        self._set_mock_api_client(mock_api_client)
+        delete_success = self._datastore_service.delete_value(name='test1')
+        self.assertEquals(delete_success, False)
+
+    def test_datastore_token_timeout(self):
+        datastore_service = DatastoreService(logger=mock.Mock(),
+                                             pack_name='core',
+                                             class_name='TestSensor',
+                                             api_username='sensor_service')
+
+        mock_api_client = mock.Mock()
+        kvp1 = KeyValuePair()
+        kvp1.name = 'test1'
+        kvp1.value = 'bar'
+        mock_api_client.keys.get_by_id.return_value = kvp1
+
+        token_expire_time = get_datetime_utc_now() - timedelta(seconds=5)
+        datastore_service._client = mock_api_client
+        datastore_service._token_expire = token_expire_time
+
+        self._set_mock_api_client(mock_api_client)
+
+        with mock.patch(
+            'st2common.services.datastore.Client',
+            return_value=mock_api_client
+        ) as datastore_client:
+            value = datastore_service.get_value(name='test1', local=False)
+            datastore_client.assert_called()
+            self.assertEqual(value, kvp1.value)
+            self.assertGreater(datastore_service._token_expire, token_expire_time)
 
     def _set_mock_api_client(self, mock_api_client):
         mock_method = mock.Mock()

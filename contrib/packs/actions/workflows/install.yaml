@@ -5,6 +5,7 @@
       ref: "packs.download"
       parameters:
         packs: "{{packs}}"
+        force: "{{force}}"
       on-success: "make a prerun"
     -
       name: "make a prerun"
