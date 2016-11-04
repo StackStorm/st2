@@ -47,6 +47,7 @@ In development
 * Require pack metadata ``version`` attribute to contain a valid semver version identifier (e.g
   ``0.1.0``, ``2.0.0``, etc.). If version identifier is invalid, pack registration will fail.
   (improvement)
+* Adding check for datastore Client expired tokens used in sensor container
 
 2.0.1 - September 30, 2016
 --------------------------
