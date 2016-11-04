@@ -29,6 +29,7 @@ from lockfile import LockFile
 from st2common.runners.base_action import Action
 from st2common.content import utils
 from st2common.services.packs import get_pack_from_index
+from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.util.green import shell
 from st2common.util.versioning import complex_semver_match
 from st2common.util.versioning import get_stackstorm_version
@@ -64,14 +65,13 @@ class DownloadGitRepoAction(Action):
                     self._clone_repo(temp_dir=abs_local_path, repo_url=pack_url,
                                      verifyssl=verifyssl, ref=pack_version)
 
-                    pack_name = self._get_pack_name(abs_local_path)
+                    pack_ref = self._get_pack_ref(abs_local_path)
 
-                    # Verify that the pack version if compatible with current
-                    # StackStorm version
+                    # Verify that the pack version if compatible with current StackStorm version
                     if not force:
                         self._verify_pack_version(pack_dir=abs_local_path)
 
-                    result[pack_name] = self._move_pack(abs_repo_base, pack_name, abs_local_path)
+                    result[pack_ref] = self._move_pack(abs_repo_base, pack_ref, abs_local_path)
                 finally:
                     self._cleanup_repo(abs_local_path)
 
@@ -265,12 +265,14 @@ class DownloadGitRepoAction(Action):
         return metadata
 
     @staticmethod
-    def _get_pack_name(pack_dir):
+    def _get_pack_ref(pack_dir):
         """
         Read pack name from the metadata file and sanitize it.
         """
         metadata = DownloadGitRepoAction._get_pack_metadata(pack_dir=pack_dir)
-        return metadata['name'].replace(' ', '-').lower()
+        pack_ref = get_pack_ref_from_metadata(metadata=metadata,
+                                              pack_directory_name=None)
+        return pack_ref
 
     @staticmethod
     def _get_gitref(repo, ref):
