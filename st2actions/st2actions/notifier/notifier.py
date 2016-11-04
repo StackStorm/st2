@@ -175,7 +175,7 @@ class Notifier(consumers.MessageHandler):
                 # This can be raised if liveaction.end_timestamp is None, which is caused
                 # when policy cancels a request due to concurrency
                 # In this case, use datetime.now() instead
-                payload['end_timestamp'] = isotime.format(datetime.now())
+                payload['end_timestamp'] = isotime.format(datetime.utcnow())
 
             payload['action_ref'] = liveaction.action
             payload['runner_ref'] = self._get_runner_ref(liveaction.action)
