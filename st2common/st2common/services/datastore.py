@@ -188,7 +188,8 @@ class DatastoreService(object):
         try:
             params = {'scope': scope}
             client.keys.delete(instance=instance, params=params)
-        except Exception:
+        except Exception, e:
+            self._logger.warning('Exception deleting value from datastore (name=%s): %s', name, e)
             return False
 
         return True

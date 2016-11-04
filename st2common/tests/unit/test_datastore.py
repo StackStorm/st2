@@ -129,6 +129,20 @@ class DatastoreServiceTestCase(unittest2.TestCase):
         self.assertRaises(ValueError, self._datastore_service.delete_value, name='test1',
             scope='NOT_SYSTEM')
 
+    def test_datastore_get_exception(self):
+        mock_api_client = mock.Mock()
+        mock_api_client.keys.get_by_id.side_effect = ValueError("Exception test")
+        self._set_mock_api_client(mock_api_client)
+        value = self._datastore_service.get_value(name='test1')
+        self.assertEquals(value, None)
+
+    def test_datastore_delete_exception(self):
+        mock_api_client = mock.Mock()
+        mock_api_client.keys.delete.side_effect = ValueError("Exception test")
+        self._set_mock_api_client(mock_api_client)
+        delete_success = self._datastore_service.delete_value(name='test1')
+        self.assertEquals(delete_success, False)
+
     def test_datastore_token_timeout(self):
         datastore_service = DatastoreService(logger=mock.Mock(),
                                              pack_name='core',
