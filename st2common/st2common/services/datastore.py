@@ -94,7 +94,11 @@ class DatastoreService(object):
             params = {'decrypt': str(decrypt).lower(), 'scope': scope}
             kvp = client.keys.get_by_id(id=name, params=params)
         except Exception as e:
-            self._logger.exception('Exception retrieving value from datastore (name=%s): %s', name, e)
+            self._logger.exception(
+                'Exception retrieving value from datastore (name=%s): %s',
+                name,
+                e
+            )
             return None
 
         if kvp:
@@ -190,7 +194,11 @@ class DatastoreService(object):
             params = {'scope': scope}
             client.keys.delete(instance=instance, params=params)
         except Exception as e:
-            self._logger.exception('Exception deleting value from datastore (name=%s): %s', name, e)
+            self._logger.exception(
+                'Exception deleting value from datastore (name=%s): %s',
+                name,
+                e
+            )
             return False
 
         return True
