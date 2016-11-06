@@ -259,11 +259,14 @@ class MongoDBAccess(object):
         return instance.delete()
 
     def delete_by_query(self, **query):
+        """
+        Delete objects by query and return number of deleted objects.
+        """
         qs = self.model.objects.filter(**query)
-        qs.delete()
+        count = qs.delete()
         log_query_and_profile_data_for_queryset(queryset=qs)
-        # mongoengine does not return anything useful so cannot return anything meaningful.
-        return None
+
+        return count
 
     def _undo_dict_field_escape(self, instance):
         for attr, field in instance._fields.iteritems():
