@@ -70,12 +70,8 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
     if action_ref:
         liveaction_filters['action'] = action_ref
 
-    # TODO: Update this code to return statistics on deleted objects once we
-    # upgrade to newer version of MongoDB where delete_by_query actually returns
-    # some data
-
     try:
-        ActionExecution.delete_by_query(**exec_filters)
+        deleted_count = ActionExecution.delete_by_query(**exec_filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete execution instances: %s'
                'Please contact support.' % (exec_filters, str(e)))
@@ -83,9 +79,11 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
     except:
         logger.exception('Deletion of execution models failed for query with filters: %s.',
                          exec_filters)
+    else:
+        logger.info('Deleted %s action execution objects' % (deleted_count))
 
     try:
-        LiveAction.delete_by_query(**liveaction_filters)
+        deleted_count = LiveAction.delete_by_query(**liveaction_filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete liveaction instances: %s'
                'Please contact support.' % (liveaction_filters, str(e)))
@@ -93,6 +91,8 @@ def purge_executions(logger, timestamp, action_ref=None, purge_incomplete=False)
     except:
         logger.exception('Deletion of liveaction models failed for query with filters: %s.',
                          liveaction_filters)
+    else:
+        logger.info('Deleted %s liveaction objects' % (deleted_count))
 
     zombie_execution_instances = len(ActionExecution.query(**exec_filters))
     zombie_liveaction_instances = len(LiveAction.query(**liveaction_filters))
