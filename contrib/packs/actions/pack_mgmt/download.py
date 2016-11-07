@@ -104,7 +104,7 @@ class DownloadGitRepoAction(Action):
         if not gitref:
             valid_versions_string = DownloadGitRepoAction._get_valid_version_for_repo(repo=repo)
             valid_versions_string = ', '.join(valid_versions_string)
-            msg = ('"%s" is not a valid version, hash, tag, or branch in %s. Valid versions '
+            msg = ('"%s" is not a valid version, hash, tag, or branch in %s. Available versions '
                    'are: %s' % (ref, repo_url, valid_versions_string))
             raise ValueError(msg)
 
