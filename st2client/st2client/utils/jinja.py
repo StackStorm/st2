@@ -20,6 +20,6 @@ def get_jinja_environment():
     '''
     jinja2.Environment object that is setup with right behaviors.
     '''
-    env = jinja2.Environment(keep_trailing_newline=True)
+    env = jinja2.Environment(keep_trailing_newline=True)  # nosec
 
     return env
