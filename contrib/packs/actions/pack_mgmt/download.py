@@ -102,11 +102,17 @@ class DownloadGitRepoAction(Action):
 
         # Giving up ¯\_(ツ)_/¯
         if not gitref:
-            valid_versions_string = DownloadGitRepoAction._get_valid_version_for_repo(repo=repo)
-            valid_versions_string = ', '.join(valid_versions_string)
-            msg = ('"%s" is not a valid version, hash, tag, or branch in %s. Available versions '
-                   'are: %s' % (ref, repo_url, valid_versions_string))
-            raise ValueError(msg)
+            format_values = [ref, repo_url]
+            msg = '"%s" is not a valid version, hash, tag, or branch in %s.'
+
+            valid_versions = DownloadGitRepoAction._get_valid_version_for_repo(repo=repo)
+            if len(valid_versions) >= 1:
+                valid_versions_string = ', '.join(valid_versions)
+
+                msg += ' Available versions are: %s.'
+                format_values.append(valid_versions_string)
+
+            raise ValueError(msg % tuple(format_values))
 
         # We're trying to figure out which branch the ref is actually on,
         # since there's no direct way to check for this in git-python.
