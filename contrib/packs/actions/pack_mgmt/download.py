@@ -28,6 +28,7 @@ from lockfile import LockFile
 
 from st2common.runners.base_action import Action
 from st2common.content import utils
+from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import PACK_RESERVED_CHARACTERS
 from st2common.constants.pack import PACK_VERSION_SEPARATOR
 from st2common.constants.pack import PACK_VERSION_REGEX
@@ -37,7 +38,6 @@ from st2common.util.green import shell
 from st2common.util.versioning import complex_semver_match
 from st2common.util.versioning import get_stackstorm_version
 
-MANIFEST_FILE = 'pack.yaml'
 CONFIG_FILE = 'config.yaml'
 
 
@@ -200,8 +200,9 @@ class DownloadGitRepoAction(Action):
                         (pack_name, character))
 
         # must contain a manifest file. Empty file is ok for now.
-        if not os.path.isfile(os.path.join(abs_pack_path, MANIFEST_FILE)):
-            return (False, 'Pack is missing a manifest file (%s).' % (MANIFEST_FILE))
+        if not os.path.isfile(os.path.join(abs_pack_path, MANIFEST_FILE_NAME)):
+            return (False, 'Pack is missing a manifest file (%s).' % (MANIFEST_FILE_NAME))
+
         return (True, '')
 
     @staticmethod
@@ -260,7 +261,7 @@ class DownloadGitRepoAction(Action):
 
     @staticmethod
     def _get_pack_metadata(pack_dir):
-        with open(os.path.join(pack_dir, MANIFEST_FILE), 'r') as fp:
+        with open(os.path.join(pack_dir, MANIFEST_FILE_NAME), 'r') as fp:
             content = fp.read()
 
         metadata = yaml.load(content)
