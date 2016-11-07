@@ -39,7 +39,6 @@ from st2common.util.versioning import get_stackstorm_version
 
 MANIFEST_FILE = 'pack.yaml'
 CONFIG_FILE = 'config.yaml'
-GITINFO_FILE = '.gitinfo'
 
 
 CURRENT_STACKSTROM_VERSION = get_stackstorm_version()
