@@ -170,7 +170,7 @@ class DatastoreServiceTestCase(DbTestCase):
             return_value=mock_api_client
         ) as datastore_client:
             value = datastore_service.get_value(name='test1', local=False)
-            datastore_client.assert_called()
+            self.assertTrue(datastore_client.called)
             self.assertEqual(value, kvp1.value)
             self.assertGreater(datastore_service._token_expire, token_expire_time)
 
