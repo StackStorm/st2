@@ -24,14 +24,17 @@ import mock
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.services.datastore import DatastoreService
 from st2client.models.keyvalue import KeyValuePair
+from st2tests import DbTestCase
+from st2tests import config
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../resources'))
 
 
-class DatastoreServiceTestCase(unittest2.TestCase):
+class DatastoreServiceTestCase(DbTestCase):
     def setUp(self):
         super(DatastoreServiceTestCase, self).setUp()
+        config.parse_args()
 
         self._datastore_service = DatastoreService(logger=mock.Mock(),
                                                    pack_name='core',
