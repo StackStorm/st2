@@ -217,7 +217,7 @@ class PackSearchCommand(resource.ResourceTableCommand):
 
     def __init__(self, resource, *args, **kwargs):
         super(PackSearchCommand, self).__init__(resource, 'search',
-            'Search for a %s in remote pack exchange directory.' % resource.get_display_name().lower(),
+            'Search for a %s in remote exchange directory.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
         self.parser.add_argument('query',
