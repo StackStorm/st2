@@ -103,9 +103,11 @@ class DownloadGitRepoAction(Action):
 
         # Giving up ¯\_(ツ)_/¯
         if not gitref:
-            raise ValueError(
-                "\"%s\" is not a valid version, hash, tag, or branch in %s." % (ref, repo_url)
-            )
+            valid_versions_string = DownloadGitRepoAction._get_valid_version_for_repo(repo=repo)
+            valid_versions_string = ', '.join(valid_versions_string)
+            msg = ('"%s" is not a valid version, hash, tag, or branch in %s. Valid versions '
+                   'are: %s' % (ref, repo_url, valid_versions_string))
+            raise ValueError(msg)
 
         # We're trying to figure out which branch the ref is actually on,
         # since there's no direct way to check for this in git-python.
@@ -274,6 +276,23 @@ class DownloadGitRepoAction(Action):
         pack_ref = get_pack_ref_from_metadata(metadata=metadata,
                                               pack_directory_name=None)
         return pack_ref
+
+    @staticmethod
+    def _get_valid_version_for_repo(repo):
+        """
+        Method which returns a valid versions for a particular repo (pack).
+
+        It does so by introspecting available tags.
+
+        :rtype: ``list`` of ``str``
+        """
+        valid_versions = []
+
+        for tag in repo.tags:
+            if tag.name.startswith('v') and re.match(PACK_VERSION_REGEX, tag.name[1:]):
+                valid_versions.append(tag.name)
+
+        return valid_versions
 
     @staticmethod
     def _get_gitref(repo, ref):
