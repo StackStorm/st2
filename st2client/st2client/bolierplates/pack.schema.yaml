@@ -1,0 +1,24 @@
+name:
+  type: string
+  description: The pack's primary identifier.
+  required: true
+description:
+  type: string
+  description: Brief (1-2 sentences) description.
+keywords:
+  type: array
+  description: A list of keywords.
+version:
+  type: string
+  description: "Version number in the SemVer format (e.g. '0.0.1')."
+  pattern: '^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$'
+  required: true
+  default: '0.0.1'
+author:
+  type: string
+  description: Name, nickname, company name, whatever.
+  required: true
+email:
+  type: string
+  format: email
+  description: Contact e-mail address.

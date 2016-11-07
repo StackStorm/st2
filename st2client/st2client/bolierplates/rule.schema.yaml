@@ -1,0 +1,17 @@
+name:
+  type: string
+  description: The rule's primary identifier.
+  required: true
+description:
+  type: string
+  description: Brief (1-2 sentences) description.
+trigger_type:
+  type: string
+  description: Trigger type that would invoke the rule.
+  default: core.st2.webhook
+  required: true
+action:
+  type: string
+  description: Action that should be executed on rule invocation.
+  default: core.noop
+  required: true

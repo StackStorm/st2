@@ -1,0 +1,23 @@
+---
+name: {{ name.lower().replace(' ', '-') }}
+description: {{ description }}
+enabled: true
+type:
+  ref: standard
+  parameters:
+tags: []
+trigger:
+  type: {{ trigger_type }}
+  parameters:
+#     url: gope
+criteria:
+#   trigger.body.status:
+#     pattern: fail
+#     type: eq
+#   trigger.body.group:
+#     pattern: internet
+#     type: eq
+action:
+  ref: {{ action }}
+  parameters:
+#     cmd: '/bin/false'

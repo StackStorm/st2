@@ -1,0 +1,12 @@
+name:
+  type: string
+  description: The action's primary identifier.
+  required: true
+description:
+  type: string
+  description: Brief (1-2 sentences) description.
+entry_point:
+  type: string
+  description: Workflow file name.
+  default: "chains/{{ name.lower().replace(' ', '-') }}.yaml"
+  required: true

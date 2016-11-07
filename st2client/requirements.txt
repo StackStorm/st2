@@ -1,6 +1,5 @@
 # Don't edit this file. It's generated automatically!
 argcomplete
-cookiecutter
 gitpython==0.3.2.1
 jsonpath-rw>=1.3.0
 prettytable

@@ -1,0 +1,12 @@
+---
+chain:
+#   - name: "alert_slack_users"
+#     ref: "core.noop"
+#     parameters:
+#     on-success: "perform_action"
+#     on-failure: "fail"
+#   - name: "perform_action"
+#     ref: "core.local"
+#     parameters:
+#         cmd: "/bin/false"
+#     on-failure: "fail"

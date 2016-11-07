@@ -1,0 +1,18 @@
+---
+name: {{ name.lower().replace(' ', '-') }}
+action_ref: {{ action }}
+description: {{ description }}
+formats:
+    - "{% raw %}run {{cmd}} on {{hosts}}{% endraw %}"
+# ack:
+#     format: "{% raw %}Hold tight while I run command: *{{execution.parameters.cmd}}* on hosts *{{execution.parameters.hosts}}*{% endraw %}"
+# result:
+#     format: |
+#         {% raw -%}Ran command *{{execution.parameters.cmd}}* on *{{ execution.result | length }}* hosts.
+#         Details are as follows:
+#         {% for host in execution.result -%}
+#             Host: *{{host}}*
+#             ---> stdout: {{execution.result[host].stdout}}
+#             ---> stderr: {{execution.result[host].stderr}}
+#         {%+ endfor %}
+#         {%- endraw %}

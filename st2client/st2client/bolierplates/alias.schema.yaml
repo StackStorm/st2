@@ -1,0 +1,12 @@
+name:
+  type: string
+  description: The alias' primary identifier.
+  required: true
+description:
+  type: string
+  description: Brief (1-2 sentences) description.
+action:
+  type: string
+  description: Action ref alias should invoke.
+  required: true
+  default: core.local
