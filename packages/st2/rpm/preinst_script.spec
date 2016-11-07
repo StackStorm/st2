@@ -17,7 +17,7 @@ EHD
 create_users() {
   # create st2 user (services user)
   (id $ST2_USER 1>/dev/null 2>&1) ||
-    adduser --no-create-home --system $ST2_USER
+    adduser --no-create-home --system --user-group $ST2_USER
 
   # make st2 member of st2packs group
   (getent group $PACKS_GROUP 1>/dev/null 2>&1) || groupadd -r $PACKS_GROUP
