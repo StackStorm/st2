@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import os
-import unittest2
 from datetime import timedelta
 from st2common.util.date import get_datetime_utc_now
 
