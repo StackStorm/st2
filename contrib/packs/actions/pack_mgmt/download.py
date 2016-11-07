@@ -28,19 +28,17 @@ from lockfile import LockFile
 
 from st2common.runners.base_action import Action
 from st2common.content import utils
+from st2common.constants.pack import MANIFEST_FILE_NAME
+from st2common.constants.pack import PACK_RESERVED_CHARACTERS
+from st2common.constants.pack import PACK_VERSION_SEPARATOR
+from st2common.constants.pack import PACK_VERSION_REGEX
 from st2common.services.packs import get_pack_from_index
 from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.util.green import shell
 from st2common.util.versioning import complex_semver_match
 from st2common.util.versioning import get_stackstorm_version
 
-MANIFEST_FILE = 'pack.yaml'
 CONFIG_FILE = 'config.yaml'
-GITINFO_FILE = '.gitinfo'
-PACK_RESERVE_CHARACTER = '.'
-PACK_VERSION_SEPARATOR = '='
-SEMVER_REGEX = (r"^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
-                r"(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$")
 
 
 CURRENT_STACKSTROM_VERSION = get_stackstorm_version()
@@ -95,7 +93,7 @@ class DownloadGitRepoAction(Action):
         gitref = DownloadGitRepoAction._get_gitref(repo, ref)
 
         # Try to match the reference to a "vX.Y.Z" tag
-        if not gitref and re.match(SEMVER_REGEX, ref):
+        if not gitref and re.match(PACK_VERSION_REGEX, ref):
             gitref = DownloadGitRepoAction._get_gitref(repo, "v%s" % ref)
 
         # Try to match the reference to a branch name
@@ -104,9 +102,17 @@ class DownloadGitRepoAction(Action):
 
         # Giving up ¯\_(ツ)_/¯
         if not gitref:
-            raise ValueError(
-                "\"%s\" is not a valid version, hash, tag, or branch in %s." % (ref, repo_url)
-            )
+            format_values = [ref, repo_url]
+            msg = '"%s" is not a valid version, hash, tag, or branch in %s.'
+
+            valid_versions = DownloadGitRepoAction._get_valid_version_for_repo(repo=repo)
+            if len(valid_versions) >= 1:
+                valid_versions_string = ', '.join(valid_versions)
+
+                msg += ' Available versions are: %s.'
+                format_values.append(valid_versions_string)
+
+            raise ValueError(msg % tuple(format_values))
 
         # We're trying to figure out which branch the ref is actually on,
         # since there's no direct way to check for this in git-python.
@@ -192,13 +198,17 @@ class DownloadGitRepoAction(Action):
         if not os.path.exists(abs_pack_path):
             return (False, 'Pack "%s" not found or it\'s missing a "pack.yaml" file.' %
                     (pack_name))
-        # should not include reserve characters
-        if PACK_RESERVE_CHARACTER in pack_name:
-            return (False, 'Pack name "%s" contains reserve character "%s"' %
-                    (pack_name, PACK_RESERVE_CHARACTER))
+
+        # should not include reserved characters
+        for character in PACK_RESERVED_CHARACTERS:
+            if character in pack_name:
+                return (False, 'Pack name "%s" contains reserved character "%s"' %
+                        (pack_name, character))
+
         # must contain a manifest file. Empty file is ok for now.
-        if not os.path.isfile(os.path.join(abs_pack_path, MANIFEST_FILE)):
-            return (False, 'Pack is missing a manifest file (%s).' % (MANIFEST_FILE))
+        if not os.path.isfile(os.path.join(abs_pack_path, MANIFEST_FILE_NAME)):
+            return (False, 'Pack is missing a manifest file (%s).' % (MANIFEST_FILE_NAME))
+
         return (True, '')
 
     @staticmethod
@@ -257,7 +267,7 @@ class DownloadGitRepoAction(Action):
 
     @staticmethod
     def _get_pack_metadata(pack_dir):
-        with open(os.path.join(pack_dir, MANIFEST_FILE), 'r') as fp:
+        with open(os.path.join(pack_dir, MANIFEST_FILE_NAME), 'r') as fp:
             content = fp.read()
 
         metadata = yaml.load(content)
@@ -272,6 +282,23 @@ class DownloadGitRepoAction(Action):
         pack_ref = get_pack_ref_from_metadata(metadata=metadata,
                                               pack_directory_name=None)
         return pack_ref
+
+    @staticmethod
+    def _get_valid_version_for_repo(repo):
+        """
+        Method which returns a valid versions for a particular repo (pack).
+
+        It does so by introspecting available tags.
+
+        :rtype: ``list`` of ``str``
+        """
+        valid_versions = []
+
+        for tag in repo.tags:
+            if tag.name.startswith('v') and re.match(PACK_VERSION_REGEX, tag.name[1:]):
+                valid_versions.append(tag.name)
+
+        return valid_versions
 
     @staticmethod
     def _get_gitref(repo, ref):

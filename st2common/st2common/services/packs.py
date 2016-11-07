@@ -172,7 +172,6 @@ def search_pack_index(query, exclude=None, priority=None):
 
     matches = [[] for i in range(len(priority) + 1)]
     for pack in six.itervalues(index):
-
         for key, value in six.iteritems(pack):
             if not hasattr(value, '__contains__'):
                 value = str(value)
