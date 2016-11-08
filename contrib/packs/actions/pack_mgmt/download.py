@@ -88,17 +88,20 @@ class DownloadGitRepoAction(Action):
         # because we want the user to work with the repo in the
         # future.
         repo = Repo.clone_from(repo_url, temp_dir)
+        use_branch = False
+
+        # Try to match the reference to a branch name (i.e. "master")
+        gitref = DownloadGitRepoAction._get_gitref(repo, "origin/%s" % ref)
+        if gitref:
+            use_branch = True
 
         # Try to match the reference to a commit hash, a tag, or "master"
-        gitref = DownloadGitRepoAction._get_gitref(repo, ref)
+        if not gitref:
+            gitref = DownloadGitRepoAction._get_gitref(repo, ref)
 
         # Try to match the reference to a "vX.Y.Z" tag
         if not gitref and re.match(PACK_VERSION_REGEX, ref):
             gitref = DownloadGitRepoAction._get_gitref(repo, "v%s" % ref)
-
-        # Try to match the reference to a branch name
-        if not gitref:
-            gitref = DownloadGitRepoAction._get_gitref(repo, "origin/%s" % ref)
 
         # Giving up ¯\_(ツ)_/¯
         if not gitref:
@@ -118,14 +121,17 @@ class DownloadGitRepoAction(Action):
         # since there's no direct way to check for this in git-python.
         branches = repo.git.branch('--color=never', '-a', '--contains', gitref.hexsha)
         branches = branches.replace('*', '').split()
-        if 'master' not in branches:
-            branch = branches[0]
-            repo.git.checkout('--track', branches[0])
+        if 'master' not in branches or use_branch:
+            branch = "origin/%s" % ref if use_branch else branches[0]
+            short_branch = ref if use_branch else branches[0].split('/')[-1]
+            repo.git.checkout('-b', short_branch, branch)
             branch = repo.head.reference
         else:
             branch = 'master'
 
-        repo.git.checkout('-B', branch, gitref.hexsha)
+        repo.git.checkout(gitref.hexsha)
+        repo.git.branch('-f', branch, gitref.hexsha)
+        repo.git.checkout(branch)
 
         return temp_dir
 
