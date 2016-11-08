@@ -116,7 +116,7 @@ class DownloadGitRepoAction(Action):
 
         # We're trying to figure out which branch the ref is actually on,
         # since there's no direct way to check for this in git-python.
-        branches = repo.git.branch('--color=never', '--all', '--contains', gitref.hexsha)
+        branches = repo.git.branch('--color=never', '-a', '--contains', gitref.hexsha)
         branches = branches.replace('*', '').split()
         if 'master' not in branches:
             branch = branches[0]
