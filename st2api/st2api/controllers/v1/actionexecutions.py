@@ -53,7 +53,7 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 from st2common.rbac.utils import assert_request_user_has_resource_db_permission
-from st2common.rbac.utils import assert_request_user_is_admin_if_user_query_param_is_provider
+from st2common.rbac.utils import assert_request_user_is_admin_if_user_query_param_is_provided
 
 __all__ = [
     'ActionExecutionsController'
@@ -107,7 +107,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             permission_type=PermissionType.ACTION_EXECUTE)
 
         # TODO: Validate user is admin if user is provided
-        assert_request_user_is_admin_if_user_query_param_is_provider(request=pecan.request,
+        assert_request_user_is_admin_if_user_query_param_is_provided(request=pecan.request,
                                                                      user=user)
 
         try:

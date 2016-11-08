@@ -48,7 +48,7 @@ __all__ = [
     'assert_request_user_has_permission',
     'assert_request_user_has_resource_db_permission',
 
-    'assert_request_user_is_admin_if_user_query_param_is_provider',
+    'assert_request_user_is_admin_if_user_query_param_is_provided',
 
     'assert_request_user_has_rule_trigger_and_action_permission',
 
@@ -283,7 +283,7 @@ def assert_request_user_has_rule_trigger_and_action_permission(request, rule_api
     return True
 
 
-def assert_request_user_is_admin_if_user_query_param_is_provider(request, user):
+def assert_request_user_is_admin_if_user_query_param_is_provided(request, user):
     """
     Function which asserts that the request user is administator if "user" query parameter is
     provided and doesn't match the current user.
