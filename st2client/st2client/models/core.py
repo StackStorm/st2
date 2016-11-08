@@ -278,14 +278,14 @@ class ResourceManager(object):
         return instances
 
     @add_auth_token_to_kwargs_from_env
-    def get_by_name(self, name_or_id, **kwargs):
-        instances = self.query(name=name_or_id, **kwargs)
+    def get_by_name(self, name, **kwargs):
+        instances = self.query(name=name, **kwargs)
         if not instances:
             return None
         else:
             if len(instances) > 1:
                 raise Exception('More than one %s named "%s" are found.' %
-                                (self.resource.__name__.lower(), name_or_id))
+                                (self.resource.__name__.lower(), name))
             return instances[0]
 
     @add_auth_token_to_kwargs_from_env
