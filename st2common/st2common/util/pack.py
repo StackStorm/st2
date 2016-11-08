@@ -13,12 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import re
 
+from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
+from st2common.content.loader import MetaLoader
 
 __all__ = [
-    'get_pack_ref_from_metadata'
+    'get_pack_ref_from_metadata',
+    'get_pack_metadata'
 ]
 
 
@@ -50,3 +54,22 @@ def get_pack_ref_from_metadata(metadata, pack_directory_name=None):
                              'attribute is not available' % (metadata['name']))
 
     return pack_ref
+
+
+def get_pack_metadata(pack_dir):
+    """
+    Return parsed metadata for a particular pack directory.
+
+    :rtype: ``dict``
+    """
+    manifest_path = os.path.join(pack_dir, MANIFEST_FILE_NAME)
+
+    if not os.path.isfile(manifest_path):
+        raise ValueError('Pack "%s" is missing %s file' % (pack_dir, MANIFEST_FILE_NAME))
+
+    meta_loader = MetaLoader()
+    content = meta_loader.load(manifest_path)
+    if not content:
+        raise ValueError('Pack "%s" metadata file is empty' % (pack_dir))
+
+    return content

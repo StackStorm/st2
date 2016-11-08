@@ -21,7 +21,6 @@ import stat
 import re
 
 import six
-import yaml
 from git.repo import Repo
 from gitdb.exc import BadName, BadObject
 from lockfile import LockFile
@@ -33,6 +32,7 @@ from st2common.constants.pack import PACK_RESERVED_CHARACTERS
 from st2common.constants.pack import PACK_VERSION_SEPARATOR
 from st2common.constants.pack import PACK_VERSION_REGEX
 from st2common.services.packs import get_pack_from_index
+from st2common.util.pack import get_pack_metadata
 from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.util.green import shell
 from st2common.util.versioning import complex_semver_match
@@ -267,10 +267,7 @@ class DownloadGitRepoAction(Action):
 
     @staticmethod
     def _get_pack_metadata(pack_dir):
-        with open(os.path.join(pack_dir, MANIFEST_FILE_NAME), 'r') as fp:
-            content = fp.read()
-
-        metadata = yaml.load(content)
+        metadata = get_pack_metadata(pack_dir=pack_dir)
         return metadata
 
     @staticmethod
