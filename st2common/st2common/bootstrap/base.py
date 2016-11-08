@@ -19,7 +19,6 @@ import glob
 import six
 
 from st2common import log as logging
-from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import CONFIG_SCHEMA_FILE_NAME
 from st2common.content.loader import MetaLoader
 from st2common.content.loader import ContentPackLoader
@@ -29,6 +28,7 @@ from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 from st2common.util.file_system import get_file_list
+from st2common.util.pack import get_pack_metadata
 from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
@@ -141,15 +141,7 @@ class ResourceRegistrar(object):
         return pack_db, config_schema_db
 
     def _register_pack_db(self, pack_name, pack_dir):
-        pack_name = pack_name or ''
-        manifest_path = os.path.join(pack_dir, MANIFEST_FILE_NAME)
-
-        if not os.path.isfile(manifest_path):
-            raise ValueError('Pack "%s" is missing %s file' % (pack_name, MANIFEST_FILE_NAME))
-
-        content = self._meta_loader.load(manifest_path)
-        if not content:
-            raise ValueError('Pack "%s" metadata file is empty' % (pack_name))
+        content = get_pack_metadata(pack_dir=pack_dir)
 
         # The rules for the pack ref are as follows:
         # 1. If ref attribute is available, we used that
