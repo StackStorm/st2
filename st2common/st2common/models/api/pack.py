@@ -101,6 +101,7 @@ class PackAPI(BaseAPI):
             'author': {
                 'type': 'string',
                 'description': 'Pack author or authors.',
+                'items': {'type': 'string'},
                 'required': True
             },
             'email': {
@@ -109,7 +110,7 @@ class PackAPI(BaseAPI):
                 'format': 'email'
             },
             'contributors': {
-                'type': 'string',
+                'type': 'array',
                 'description': ('A list of people who have contributed to the pack. Format is: '
                                 'Name <email address> e.g. Tomaz Muraus <tomaz@stackstorm.com>.')
             },
@@ -172,13 +173,14 @@ class PackAPI(BaseAPI):
         stackstorm_version = getattr(pack, 'stackstorm_version', None)
         author = pack.author
         email = pack.email
+        contributors = getattr(pack, 'contributors', [])
         files = getattr(pack, 'files', [])
         dependencies = getattr(pack, 'dependencies', [])
         system = getattr(pack, 'system', {})
 
         model = cls.model(ref=ref, name=name, description=description, keywords=keywords,
-                          version=version, author=author, email=email, files=files,
-                          dependencies=dependencies, system=system,
+                          version=version, author=author, email=email, contributors=contributors,
+                          files=files, dependencies=dependencies, system=system,
                           stackstorm_version=stackstorm_version)
         return model
 
