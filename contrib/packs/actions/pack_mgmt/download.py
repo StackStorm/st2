@@ -54,8 +54,8 @@ class DownloadGitRepoAction(Action):
         for pack in packs:
             pack_url, pack_version = self._get_repo_url(pack)
 
-            temp_dir = hashlib.md5(pack_url).hexdigest()
-            lock_file = LockFile(temp_dir)
+            temp_dir_name = hashlib.md5(pack_url).hexdigest()
+            lock_file = LockFile('/tmp/%s' % (temp_dir_name))
             lock_file_path = lock_file.lock_file
 
             if force:
@@ -70,7 +70,7 @@ class DownloadGitRepoAction(Action):
             with lock_file:
                 try:
                     user_home = os.path.expanduser('~')
-                    abs_local_path = os.path.join(user_home, temp_dir)
+                    abs_local_path = os.path.join(user_home, temp_dir_name)
                     self._clone_repo(temp_dir=abs_local_path, repo_url=pack_url,
                                      verifyssl=verifyssl, ref=pack_version)
 
