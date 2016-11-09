@@ -15,12 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
 import os
+import mock
 import shutil
 import tempfile
 import hashlib
 
+from lockfile import LockFile
+from lockfile import LockTimeout
 from git.repo import Repo
 from gitdb.exc import BadName
 from st2common.services import packs as pack_service
@@ -145,6 +147,52 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
         self.assertRaises(ValueError, action.run, packs=['test=1.2.3'],
                           abs_repo_base=self.repo_base)
+
+    def test_run_pack_lock_is_already_acquired(self):
+        action = self.get_action_instance()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+
+        original_acquire = LockFile.acquire
+        def mock_acquire(self, timeout=None):
+            original_acquire(self, timeout=0.1)
+
+        LockFile.acquire = mock_acquire
+
+        try:
+            lock_file = LockFile('/tmp/%s' % (temp_dir))
+
+            # Acquire a lock (file) so acquire inside download will fail
+            with open(lock_file.lock_file, 'w') as fp:
+                fp.write('')
+
+            expected_msg = 'Timeout waiting to acquire lock for'
+            self.assertRaisesRegexp(LockTimeout, expected_msg, action.run, packs=['test'],
+                                    abs_repo_base=self.repo_base)
+        finally:
+            os.unlink(lock_file.lock_file)
+            LockFile.acquire = original_acquire
+
+    def test_run_pack_lock_is_already_acquired_force_flag(self):
+        # Lock is already acquired but force is true so it should be deleted and released
+        action = self.get_action_instance()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+
+        original_acquire = LockFile.acquire
+        def mock_acquire(self, timeout=None):
+            original_acquire(self, timeout=0.1)
+
+        LockFile.acquire = mock_acquire
+
+        try:
+            lock_file = LockFile('/tmp/%s' % (temp_dir))
+
+            # Acquire a lock (file) so acquire inside download will fail
+            with open(lock_file.lock_file, 'w') as fp:
+                fp.write('')
+
+            result = action.run(packs=['test'], abs_repo_base=self.repo_base, force=True)
+        finally:
+            LockFile.acquire = original_acquire
 
     def test_run_pack_download_v_tag(self):
         def side_effect(ref):
