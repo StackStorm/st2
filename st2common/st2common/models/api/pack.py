@@ -110,9 +110,12 @@ class PackAPI(BaseAPI):
             },
             'contributors': {
                 'type': 'array',
+                'items': {
+                    'type': 'string',
+                    'maxLength': 100
+                },
                 'description': ('A list of people who have contributed to the pack. Format is: '
-                                'Name <email address> e.g. Tomaz Muraus <tomaz@stackstorm.com>.'),
-                'items': {'type': 'string'}
+                                'Name <email address> e.g. Tomaz Muraus <tomaz@stackstorm.com>.')
             },
             'files': {
                 'type': 'array',
