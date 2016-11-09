@@ -108,6 +108,11 @@ class PackAPI(BaseAPI):
                 'description': 'E-mail of the pack author.',
                 'format': 'email'
             },
+            'contributors': {
+                'type': 'string',
+                'description': ('A list of people who have contributed to the pack. Format is: '
+                                'Name <email address> e.g. Tomaz Muraus <tomaz@stackstorm.com>.')
+            },
             'files': {
                 'type': 'array',
                 'description': 'A list of files inside the pack.',
