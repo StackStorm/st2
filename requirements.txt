@@ -7,7 +7,7 @@ git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
 git+https://github.com/StackStorm/python-mistralclient.git#egg=python-mistralclient
 git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file
-gitpython==0.3.2.1
+gitpython<1.0,>=0.3.7
 gunicorn<20.0,>=19.4.5
 ipaddr
 jinja2
