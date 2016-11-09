@@ -101,7 +101,6 @@ class PackAPI(BaseAPI):
             'author': {
                 'type': 'string',
                 'description': 'Pack author or authors.',
-                'items': {'type': 'string'},
                 'required': True
             },
             'email': {
@@ -112,7 +111,8 @@ class PackAPI(BaseAPI):
             'contributors': {
                 'type': 'array',
                 'description': ('A list of people who have contributed to the pack. Format is: '
-                                'Name <email address> e.g. Tomaz Muraus <tomaz@stackstorm.com>.')
+                                'Name <email address> e.g. Tomaz Muraus <tomaz@stackstorm.com>.'),
+                'items': {'type': 'string'}
             },
             'files': {
                 'type': 'array',
