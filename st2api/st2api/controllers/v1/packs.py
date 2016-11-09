@@ -71,8 +71,11 @@ class PackInstallController(ActionExecutionsControllerMixin, RestController):
     @jsexpose(body_cls=PackInstallRequestAPI, status_code=http_client.ACCEPTED)
     def post(self, pack_install_request):
         parameters = {
-            'packs': pack_install_request.packs
+            'packs': pack_install_request.packs,
         }
+
+        if pack_install_request.force:
+            parameters['force'] = True
 
         new_liveaction_api = LiveActionCreateAPI(action='packs.install',
                                                  parameters=parameters,

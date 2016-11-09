@@ -159,10 +159,14 @@ class PackInstallCommand(PackAsyncCommand):
                                  metavar='pack',
                                  help='Name of the %s to install.' %
                                  resource.get_plural_display_name().lower())
+        self.parser.add_argument('--force',
+                                 action='store_true',
+                                 default=False,
+                                 help='Force pack installation.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.install(args.packs, **kwargs)
+        return self.manager.install(args.packs, force=args.force, **kwargs)
 
 
 class PackRemoveCommand(PackAsyncCommand):
@@ -179,7 +183,7 @@ class PackRemoveCommand(PackAsyncCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.remove(args.packs, **kwargs)
+        return self.manager.register(args.packs, args.types, **kwargs)
 
 
 class PackRegisterCommand(PackResourceCommand):

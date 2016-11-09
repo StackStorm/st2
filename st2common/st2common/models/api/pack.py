@@ -350,6 +350,11 @@ class PackInstallRequestAPI(BaseAPI):
         "properties": {
             "packs": {
                 "type": "array"
+            },
+            "force": {
+                "type": "boolean",
+                "description": "Force pack installation",
+                "default": False
             }
         }
     }

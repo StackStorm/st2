@@ -390,9 +390,13 @@ class TriggerInstanceResourceManager(ResourceManager):
 
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
-    def install(self, packs, **kwargs):
+    def install(self, packs, force=False, **kwargs):
         url = '/%s/install' % (self.resource.get_url_path_name())
-        response = self.client.post(url, {'packs': packs}, **kwargs)
+        payload = {
+            'packs': packs,
+            'force': force
+        }
+        response = self.client.post(url, payload, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
         instance = self.resource.deserialize(response.json())
