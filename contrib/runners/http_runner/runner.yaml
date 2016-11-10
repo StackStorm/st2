@@ -21,9 +21,15 @@
     https_proxy:
       description: A URL of a HTTPs proxy to use (e.g. http://10.10.1.10:3128).
       type: string
+    password:
+      description: Password for username.
+      type: string
     url:
       description: URL to the HTTP endpoint.
       required: true
+      type: string
+    username:
+      description: Username used to log-in.
       type: string
     verify_ssl_cert:
       default: true

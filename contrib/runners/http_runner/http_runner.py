@@ -21,6 +21,8 @@ import uuid
 import requests
 from oslo_config import cfg
 
+from requests.auth import HTTPDigestAuth
+
 from st2common.runners import ActionRunner
 from st2common import __version__ as st2_version
 from st2common import log as logging
@@ -40,6 +42,8 @@ RUNNER_ALLOW_REDIRECTS = 'allow_redirects'
 RUNNER_HTTP_PROXY = 'http_proxy'
 RUNNER_HTTPS_PROXY = 'https_proxy'
 RUNNER_VERIFY_SSL_CERT = 'verify_ssl_cert'
+RUNNER_USERNAME = 'username'
+RUNNER_PASSWORD = 'password'
 
 # Lookup constants for action params
 ACTION_AUTH = 'auth'
@@ -77,6 +81,8 @@ class HttpRunner(ActionRunner):
 
         self._cookies = self.runner_parameters.get(RUNNER_COOKIES, None)
         self._allow_redirects = self.runner_parameters.get(RUNNER_ALLOW_REDIRECTS, False)
+        self._username = self.runner_parameters.get(RUNNER_USERNAME, None)
+        self._password = self.runner_parameters.get(RUNNER_PASSWORD, None)
         self._http_proxy = self.runner_parameters.get(RUNNER_HTTP_PROXY, None)
         self._https_proxy = self.runner_parameters.get(RUNNER_HTTPS_PROXY, None)
         self._verify_ssl_cert = self.runner_parameters.get(RUNNER_VERIFY_SSL_CERT, None)
@@ -133,7 +139,8 @@ class HttpRunner(ActionRunner):
         return HTTPClient(url=self._url, method=method, body=body, params=params,
                           headers=headers, cookies=self._cookies, auth=auth,
                           timeout=timeout, allow_redirects=self._allow_redirects,
-                          proxies=proxies, files=files, verify=self._verify_ssl_cert)
+                          proxies=proxies, files=files, verify=self._verify_ssl_cert,
+                          username=self._username, password=self._password)
 
     @staticmethod
     def _get_result_status(status_code):
@@ -144,7 +151,7 @@ class HttpRunner(ActionRunner):
 class HTTPClient(object):
     def __init__(self, url=None, method=None, body='', params=None, headers=None, cookies=None,
                  auth=None, timeout=60, allow_redirects=False, proxies=None,
-                 files=None, verify=False):
+                 files=None, verify=False, username=None, password=None):
         if url is None:
             raise Exception('URL must be specified.')
 
@@ -172,6 +179,8 @@ class HTTPClient(object):
         self.proxies = proxies
         self.files = files
         self.verify = verify
+        self.username = username
+        self.password = password
 
     def run(self):
         results = {}
@@ -190,6 +199,12 @@ class HTTPClient(object):
                     raise ValueError(msg)
             else:
                 data = self.body
+
+            # TODO: What should be done if username is specified
+            #       and self.auth is already defined?
+            if self.username
+                self.auth = HTTPDigestAuth(self.username, self.password)
+            }
 
             resp = requests.request(
                 self.method,
