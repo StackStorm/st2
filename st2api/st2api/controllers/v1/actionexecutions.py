@@ -434,7 +434,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                   'Execution object missing link to liveaction %s.' % liveaction_id)
 
         if liveaction_db.status == LIVEACTION_STATUS_CANCELED:
-            abort(http_client.OK, 'Action is already in "canceled" state.')
+            LOG.info('Action %s is already in "canceled" state; returning entire execution object to caller.' % liveaction_db.id)
+            return execution_api
 
         if liveaction_db.status not in LIVEACTION_CANCELABLE_STATES:
             abort(http_client.OK, 'Action cannot be canceled. State = %s.' % liveaction_db.status)
