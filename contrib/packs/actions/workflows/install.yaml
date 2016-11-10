@@ -25,6 +25,7 @@
       ref: "packs.load"
       parameters:
         register: "{{register}}"
+        packs: "{{ __results['make a prerun'].result }}"
       on-success: "restart sensor container"
     -
       name: "restart sensor container"
