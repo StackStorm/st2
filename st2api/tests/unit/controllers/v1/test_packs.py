@@ -88,6 +88,16 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.json, {'execution_id': '123'})
 
     @mock.patch.object(ActionExecutionsControllerMixin, '_handle_schedule_execution')
+    def test_install_with_force_parameter(self, _handle_schedule_execution):
+        _handle_schedule_execution.return_value = ActionExecutionAPI(id='123')
+        payload = {'packs': ['some'], 'force': True}
+
+        resp = self.app.post_json('/v1/packs/install', payload)
+
+        self.assertEqual(resp.status_int, 202)
+        self.assertEqual(resp.json, {'execution_id': '123'})
+
+    @mock.patch.object(ActionExecutionsControllerMixin, '_handle_schedule_execution')
     def test_uninstall(self, _handle_schedule_execution):
         _handle_schedule_execution.return_value = ActionExecutionAPI(id='123')
         payload = {'packs': ['some']}

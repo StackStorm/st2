@@ -108,6 +108,15 @@ class PackAPI(BaseAPI):
                 'description': 'E-mail of the pack author.',
                 'format': 'email'
             },
+            'contributors': {
+                'type': 'array',
+                'items': {
+                    'type': 'string',
+                    'maxLength': 100
+                },
+                'description': ('A list of people who have contributed to the pack. Format is: '
+                                'Name <email address> e.g. Tomaz Muraus <tomaz@stackstorm.com>.')
+            },
             'files': {
                 'type': 'array',
                 'description': 'A list of files inside the pack.',
@@ -167,13 +176,14 @@ class PackAPI(BaseAPI):
         stackstorm_version = getattr(pack, 'stackstorm_version', None)
         author = pack.author
         email = pack.email
+        contributors = getattr(pack, 'contributors', [])
         files = getattr(pack, 'files', [])
         dependencies = getattr(pack, 'dependencies', [])
         system = getattr(pack, 'system', {})
 
         model = cls.model(ref=ref, name=name, description=description, keywords=keywords,
-                          version=version, author=author, email=email, files=files,
-                          dependencies=dependencies, system=system,
+                          version=version, author=author, email=email, contributors=contributors,
+                          files=files, dependencies=dependencies, system=system,
                           stackstorm_version=stackstorm_version)
         return model
 
@@ -340,6 +350,11 @@ class PackInstallRequestAPI(BaseAPI):
         "properties": {
             "packs": {
                 "type": "array"
+            },
+            "force": {
+                "type": "boolean",
+                "description": "Force pack installation",
+                "default": False
             }
         }
     }
