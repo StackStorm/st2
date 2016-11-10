@@ -11,11 +11,5 @@
       ref: "packs.delete"
       parameters:
         packs: "{{packs}}"
-      on-success: "restart sensor container"
-    -
-      name: "restart sensor container"
-      ref: "packs.restart_component"
-      parameters:
-        servicename: "st2sensorcontainer"
 
   default: "unregister packs"
