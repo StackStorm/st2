@@ -1,0 +1,11 @@
+{ "name": "send_mail"
+, "runner_type": "shell"
+, "description": "This sends an email using the system sendmail"
+, "enabled": true
+, "artifact_paths": ["actions/bash_mail"]
+, "uri": null
+, "entry_point": "actions/bash_mail/bash_mail"
+, "parameters": {"to": ""
+                ,"subject": ""
+                ,"msg": ""}
+}
