@@ -262,7 +262,7 @@ class ResourceTableCommand(ResourceCommand):
 class ResourceListCommand(ResourceTableCommand):
     def __init__(self, resource, *args, **kwargs):
         super(ResourceListCommand, self).__init__(resource, 'list',
-            'Get the list of %s.' % resource.get_plural_display_name().lower(),
+            'Get the list of installed %s.' % resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
 

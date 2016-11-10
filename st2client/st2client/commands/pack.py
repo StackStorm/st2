@@ -17,6 +17,7 @@ import sys
 
 import editor
 import yaml
+import argparse
 
 from st2client.models import Config
 from st2client.models import Pack
@@ -164,6 +165,14 @@ class PackInstallCommand(PackAsyncCommand):
                                  default=False,
                                  help='Force pack installation.')
 
+        self.parser.formatter_class = argparse.RawDescriptionHelpFormatter
+        self.parser.epilog = '''examples:
+                        st2 pack install github
+                        st2 pack install trello slack
+                        st2 pack install stackstorm/st2-mysql
+                        st2 pack install https://github.com/StackStorm/st2-kafka.git
+        '''
+
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.install(args.packs, force=args.force, **kwargs)
@@ -212,7 +221,7 @@ class PackSearchCommand(resource.ResourceTableCommand):
 
     def __init__(self, resource, *args, **kwargs):
         super(PackSearchCommand, self).__init__(resource, 'search',
-            'Search for a %s in the directory.' % resource.get_display_name().lower(),
+            'Search for a %s in remote exchange directory.' % resource.get_display_name().lower(),
             *args, **kwargs)
 
         self.parser.add_argument('query',
