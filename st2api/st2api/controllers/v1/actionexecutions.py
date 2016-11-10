@@ -434,7 +434,10 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                   'Execution object missing link to liveaction %s.' % liveaction_id)
 
         if liveaction_db.status == LIVEACTION_STATUS_CANCELED:
-            LOG.info('Action %s is already in "canceled" state; returning entire execution object to caller.' % liveaction_db.id)
+            LOG.info(
+                'Action %s already in "canceled" state; \
+                returning execution object.' % liveaction_db.id
+            )
             return execution_api
 
         if liveaction_db.status not in LIVEACTION_CANCELABLE_STATES:
