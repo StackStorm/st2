@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import six
 import networkx as nx
 
@@ -150,8 +151,23 @@ def _render(node, render_context):
     Render the node depending on its type
     '''
     if 'template' in node:
+        complex_type = False
+        if isinstance(node['template'], list) or isinstance(node['template'], dict):
+            LOG.debug('Rendering complex type.')
+            node['template'] = json.dumps(node['template'])
+            complex_type = True
+
         LOG.debug('Rendering node: %s with context: %s', node, render_context)
-        return ENV.from_string(node['template']).render(render_context)
+
+        result = ENV.from_string(str(node['template'])).render(render_context)
+
+        LOG.debug('Render complete: %s', result)
+
+        if complex_type:
+            result = json.loads(result)
+            LOG.debug('Complex Type Rendered: %s', result)
+
+        return result
     if 'value' in node:
         return node['value']
 
