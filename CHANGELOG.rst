@@ -60,6 +60,9 @@ In development
   install workflow. This step hasn't been needed for a while now because sensor container
   dynamically reads a list of available sensors from the database and starts the sub processes.
   (improvement)
+* Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
+  management approach. Now pack directories are actual checkouts of the corresponding pack git
+  repositories so this file is not needed anymore.
 
 2.0.1 - September 30, 2016
 --------------------------
