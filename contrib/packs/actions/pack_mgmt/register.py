@@ -55,7 +55,7 @@ class St2RegisterAction(Action):
         self._kvp = KeyValuePair
         self.client = self._get_client()
 
-    def run(self, register, **kwargs):
+    def run(self, register, packs=None):
         types = []
 
         for type in register.split(','):
@@ -67,6 +67,9 @@ class St2RegisterAction(Action):
         method_kwargs = {
             'types': types
         }
+
+        if packs:
+            method_kwargs['packs'] = packs
 
         result = self._run_client_method(method=self.client.packs.register,
                                          method_kwargs=method_kwargs,

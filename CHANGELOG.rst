@@ -55,6 +55,11 @@ In development
 * Add new ``contributors`` field to the pack metadata file. This field can contain a list of
   people who have contributed to the pack. The format is ``Name <email>``, e.g.
   ``Tomaz Muraus <tomaz@stackstorm.com>`` (new feature)
+* Update ``packs.install`` action (``pack install`` command) to only load resources from the packs
+  which are being installed. Also update it and remove "restart sensor container" step from the
+  install workflow. This step hasn't been needed for a while now because sensor container
+  dynamically reads a list of available sensors from the database and starts the sub processes.
+  (improvement)
 
 2.0.1 - September 30, 2016
 --------------------------

@@ -190,7 +190,7 @@ class PackRemoveCommand(PackAsyncCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.register(args.packs, args.types, **kwargs)
+        return self.manager.remove(args.packs, **kwargs)
 
 
 class PackRegisterCommand(PackResourceCommand):
