@@ -60,6 +60,8 @@ In development
   install workflow. This step hasn't been needed for a while now because sensor container
   dynamically reads a list of available sensors from the database and starts the sub processes.
   (improvement)
+* Change st2api so that a full execution object is returned instead of an error message, when an
+  API client requests cancellation of an execution that is already canceled
 
 2.0.1 - September 30, 2016
 --------------------------
