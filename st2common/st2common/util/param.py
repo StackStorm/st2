@@ -153,8 +153,8 @@ def _render(node, render_context):
     if 'template' in node:
         complex_type = False
         if isinstance(node['template'], list) or isinstance(node['template'], dict):
-            LOG.debug('Rendering complex type.')
             node['template'] = json.dumps(node['template'])
+            LOG.debug('Rendering complex type: %s', node['template'])
             complex_type = True
 
         LOG.debug('Rendering node: %s with context: %s', node, render_context)

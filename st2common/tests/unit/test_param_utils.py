@@ -362,7 +362,8 @@ class ParamsUtilsTest(DbTestCase):
             'a2': 'Test',
             'a3': 'Test2',
             'a4': '{{a1}}',
-            'a5': ['{{a2}}', '{{a3}}']
+            'a5': ['{{a2}}', '{{a3}}'],
+            'a6': [['{{r1}}', '{{a2}}'], ['{{a3}}', '{{a1}}']]
         }
         runner_param_info = {'r1': {'type': 'array'}, 'r2': {'type': 'array'}}
         action_param_info = {
@@ -370,7 +371,8 @@ class ParamsUtilsTest(DbTestCase):
             'a2': {'type': 'string'},
             'a3': {'type': 'string'},
             'a4': {'type': 'boolean'},
-            'a5': {'type': 'array'}
+            'a5': {'type': 'array'},
+            'a6': {'type': 'array'}
         }
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, {})
@@ -382,7 +384,8 @@ class ParamsUtilsTest(DbTestCase):
                 'a2': 'Test',
                 'a3': 'Test2',
                 'a4': True,
-                'a5': ['Test', 'Test2']
+                'a5': ['Test', 'Test2'],
+                'a6': [[['1', '2'], 'Test'], ['Test2', True]]
             }
         )
 
