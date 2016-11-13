@@ -208,9 +208,8 @@ class DownloadGitRepoAction(Action):
         if required_stackstorm_version:
             if not complex_semver_match(CURRENT_STACKSTORM_VERSION, required_stackstorm_version):
                 candidates = DownloadGitRepoAction._get_compatible_pack_version(
-                                repo,
-                                CURRENT_STACKSTORM_VERSION
-                             )
+                    repo,
+                    CURRENT_STACKSTORM_VERSION)
                 msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s". ' %
                        (pack_name, required_stackstorm_version, CURRENT_STACKSTORM_VERSION))
                 if candidates['strict']:
