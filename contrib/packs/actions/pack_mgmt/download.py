@@ -213,17 +213,17 @@ class DownloadGitRepoAction(Action):
                 msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s". ' %
                        (pack_name, required_stackstorm_version, CURRENT_STACKSTORM_VERSION))
                 if candidates['strict']:
-                    msg += ('\n\n',
-                            'The latest version of the pack that is compatible with your ',
-                            ('StackStorm version is "%s". Try installing that version ' %
-                             candidates['strict']), 'specifically.')
+                    msg += ('\n\n'
+                            'The latest version of the pack that is compatible with your '
+                            'StackStorm version is "%s". Try installing that version ',
+                            'specifically.') % candidates['strict']
                 elif candidates['loose']:
-                    msg += ('\n\n',
-                            'The latest version of the pack that does not have a version ',
-                            ('restriction for StackStorm is "%s". Try installing that version ' %
-                             candidates['loose']), 'specifically, but there are no guarantees.')
-                msg += ('\n\n',
-                        'You can override this restriction completely by providing the "force" ',
+                    msg += ('\n\n'
+                            'The latest version of the pack that does not have a version '
+                            'restriction for StackStorm is "%s". Try installing that version '
+                            'specifically, but there are no guarantees.') % candidates['loose']
+                msg += ('\n\n'
+                        'You can override this restriction completely by providing the "force" '
                         'flag if you know exactly what you are doing. You are on your own.')
 
                 raise ValueError(msg)
