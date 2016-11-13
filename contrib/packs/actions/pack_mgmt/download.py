@@ -205,8 +205,10 @@ class DownloadGitRepoAction(Action):
         # running version of StackStorm
         if required_stackstorm_version:
             if not complex_semver_match(CURRENT_STACKSTROM_VERSION, required_stackstorm_version):
-                msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s"' %
-                       (pack_name, required_stackstorm_version, CURRENT_STACKSTROM_VERSION))
+                msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s". ' %
+                       (pack_name, required_stackstorm_version, CURRENT_STACKSTROM_VERSION),
+                       'You can override this restriction by providing the "force" flag, but ',
+                       'the pack is not guaranteed to work.')
                 raise ValueError(msg)
 
     @staticmethod
