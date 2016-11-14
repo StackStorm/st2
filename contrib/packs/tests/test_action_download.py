@@ -153,6 +153,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
 
         original_acquire = LockFile.acquire
+
         def mock_acquire(self, timeout=None):
             original_acquire(self, timeout=0.1)
 
@@ -178,6 +179,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
 
         original_acquire = LockFile.acquire
+
         def mock_acquire(self, timeout=None):
             original_acquire(self, timeout=0.1)
 
@@ -193,6 +195,8 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             result = action.run(packs=['test'], abs_repo_base=self.repo_base, force=True)
         finally:
             LockFile.acquire = original_acquire
+
+        self.assertEqual(result, {'test': 'Success.'})
 
     def test_run_pack_download_v_tag(self):
         def side_effect(ref):
@@ -210,6 +214,18 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         result = action.run(packs=['test=1.2.3'], abs_repo_base=self.repo_base)
 
         self.assertEqual(result, {'test': 'Success.'})
+
+    @mock.patch.object(DownloadGitRepoAction, '_get_valid_versions_for_repo',
+                      mock.Mock(return_value=['1.0.0', '2.0.0']))
+    def test_run_pack_download_invalid_version(self):
+        self.repo_instance.commit.side_effect = lambda ref: None
+
+        action = self.get_action_instance()
+
+        expected_msg = ('is not a valid version, hash, tag or branch.*?'
+                        'Available versions are: 1.0.0, 2.0.0.')
+        self.assertRaisesRegexp(ValueError, expected_msg, action.run,
+                                packs=['test=2.2.3'], abs_repo_base=self.repo_base)
 
     def test_download_pack_stackstorm_version_identifier_check(self):
         action = self.get_action_instance()

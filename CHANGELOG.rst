@@ -62,6 +62,9 @@ In development
   (improvement)
 * Change st2api so that a full execution object is returned instead of an error message, when an
   API client requests cancellation of an execution that is already canceled
+* Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
+  management approach. Now pack directories are actual checkouts of the corresponding pack git
+  repositories so this file is not needed anymore.
 
 2.0.1 - September 30, 2016
 --------------------------
