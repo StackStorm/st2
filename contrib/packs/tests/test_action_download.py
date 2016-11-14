@@ -215,15 +215,20 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
         self.assertEqual(result, {'test': 'Success.'})
 
-    @mock.patch.object(DownloadGitRepoAction, '_get_valid_versions_for_repo',
-                      mock.Mock(return_value=['1.0.0', '2.0.0']))
     def test_run_pack_download_invalid_version(self):
         self.repo_instance.commit.side_effect = lambda ref: None
-
+        mock_tag_1 = mock.Mock()
+        mock_tag_1.name = 'v1.0.3'
+        mock_tag_2 = mock.Mock()
+        mock_tag_2.name = 'v1.0.0'
+        mock_tag_3 = mock.Mock()
+        mock_tag_3.name = 'v2.0.0'
+        mock_tags = [mock_tag_1, mock_tag_2, mock_tag_3]
+        self.repo_instance.tags = mock_tags
         action = self.get_action_instance()
 
         expected_msg = ('is not a valid version, hash, tag or branch.*?'
-                        'Available versions are: 1.0.0, 2.0.0.')
+                        'Available versions are: 2.0.0, 1.0.3, 1.0.0.')
         self.assertRaisesRegexp(ValueError, expected_msg, action.run,
                                 packs=['test=2.2.3'], abs_repo_base=self.repo_base)
 
