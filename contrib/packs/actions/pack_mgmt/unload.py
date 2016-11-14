@@ -94,7 +94,7 @@ class UnregisterPackAction(BaseAction):
 
         # delete rules that has an association with the pack in trigger or action.
         def _match_trigger(r):
-            return (r.trigger.split('.')[0] == pack)
+            return r.trigger.split('.')[0] == pack
 
         def _match_action(r):
             return r.action.ref.split('.')[0] == pack
