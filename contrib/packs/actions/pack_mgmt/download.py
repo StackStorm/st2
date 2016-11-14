@@ -311,7 +311,8 @@ class DownloadGitRepoAction(Action):
 
         for tag in repo.tags:
             if tag.name.startswith('v') and re.match(PACK_VERSION_REGEX, tag.name[1:]):
-                valid_versions.append(tag.name)
+                # Note: We strip leading "v" from the version number
+                valid_versions.append(tag.name[1:])
 
         return valid_versions
 
