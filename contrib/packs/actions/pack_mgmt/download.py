@@ -90,6 +90,7 @@ class DownloadGitRepoAction(Action):
     def _clone_repo(temp_dir, repo_url, verifyssl=True, ref='master'):
         # Switch to non-interactive mode
         os.environ['GIT_TERMINAL_PROMPT'] = '0'
+        os.environ['GIT_ASKPASS'] = '/bin/echo'
 
         # Disable SSL cert checking if explictly asked
         if not verifyssl:
