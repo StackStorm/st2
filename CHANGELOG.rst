@@ -60,6 +60,8 @@ In development
   install workflow. This step hasn't been needed for a while now because sensor container
   dynamically reads a list of available sensors from the database and starts the sub processes.
   (improvement)
+* Change st2api so that a full execution object is returned instead of an error message, when an
+  API client requests cancellation of an execution that is already canceled
 * Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
   management approach. Now pack directories are actual checkouts of the corresponding pack git
   repositories so this file is not needed anymore.
