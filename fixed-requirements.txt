@@ -35,3 +35,5 @@ virtualenv==15.1.0
 sseclient==0.0.12
 python-editor==1.0.1
 prompt-toolkit==1.0.7
+routes==2.3.1
+swagger_spec_validator==2.0.2

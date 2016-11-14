@@ -15,9 +15,9 @@
 
 import os
 
-from pecan import load_app
 from oslo_config import cfg
 
+from st2auth import app
 from st2auth import config  # noqa
 config.register_opts()
 from st2common import log as logging
@@ -38,13 +38,4 @@ db_init.db_setup_with_retry(cfg.CONF.database.db_name, cfg.CONF.database.host,
                             ssl_ca_certs=cfg.CONF.database.ssl_ca_certs,
                             ssl_match_hostname=cfg.CONF.database.ssl_match_hostname)
 
-pecan_config = {
-    'app': {
-        'root': 'st2auth.controllers.root.RootController',
-        'modules': ['st2auth'],
-        'debug': cfg.CONF.auth.debug,
-        'errors': {'__force_dict__': True}
-    }
-}
-
-application = load_app(pecan_config)
+application = app.setup_app()

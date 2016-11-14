@@ -1,0 +1,162 @@
+swagger: '2.0'
+
+info:
+  version: "1.0.0"
+  title: StackStorm st2auth API
+
+basePath: /v1
+
+paths:
+  /tokens:
+    post:
+      operationId: st2auth.controllers.v1.auth:token_controller.post
+      description: |
+        Authenticates a user with `Authorization` header and returns a `token`
+        object.
+      parameters:
+        - name: authorization
+          in: header
+          description: base64 encoded string containing login and password
+          type: string
+        - name: x-forwarded-for
+          in: header
+          description: set externally to indicate real source of the request
+          type: string
+        - name: request
+          in: body
+          description: Lifespan of the token
+          schema:
+            $ref: '#/definitions/TokenRequest'
+      x-parameters:
+        - name: remote_addr
+          in: environ
+          description: source of the request
+          type: string
+        - name: remote_user
+          in: environ
+          description: set externally to indicate user identity in case of proxy auth
+          type: string
+      responses:
+        '201':
+          description: New token has been created
+          schema:
+            $ref: '#/definitions/Token'
+          headers:
+            x-api-url:
+              type: string
+          examples:
+            application/json:
+              user: st2admin
+              token: '5e86421776f946e98faea36c29e5a7c7'
+              expiry: '2016-05-28T12:39:28.650231Z'
+              id: '574840001878c10d0b6e8fbf'
+              metadata: {}
+        '401':
+          description: Invalid or missing credentials has been provided
+          schema:
+            $ref: '#/definitions/Error'
+          examples:
+            application/json:
+              faultstring: Invalid or missing credentials
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      security: []
+  /tokens/validate:
+    post:
+      operationId: st2auth.controllers.v1.auth:token_validation_controller.post
+      description: |
+        Validates a token provided in the request body.
+      parameters:
+        - name: request
+          in: body
+          description: Token to validate
+          schema:
+            $ref: '#/definitions/TokenValidationRequest'
+      responses:
+        '200':
+          description: Validation results
+          schema:
+            $ref: '#/definitions/TokenValidationResult'
+          examples:
+            application/json:
+              valid: false
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+definitions:
+  TokenRequest:
+    type: object
+    properties:
+      ttl:
+        type:
+          - integer
+          - 'null'
+        minimum: 1
+  Token:
+    type: object
+    properties:
+      expiry:
+        type: string
+        format: datetime
+      id:
+        type: string
+        format: uuid
+      metadata:
+        type: object
+      token:
+        type: string
+      user:
+        type: string
+  TokenValidationRequest:
+    type: object
+    properties:
+      token:
+        type:
+          - string
+          - 'null'
+  TokenValidationResult:
+    type: object
+    properties:
+      valid:
+        type: boolean
+  Error:
+    type: object
+    properties:
+      faultstring:
+        type: string
+
+securityDefinitions:
+  X-Auth-Token:
+    description: Header representing user's short-lived access token.
+    type: apiKey
+    name: X-Auth-Token
+    in: header
+    x-operationId: st2common.util.auth:validate_token
+  St2-Api-Key:
+    description: Header representing service's long-lived API key.
+    type: apiKey
+    name: St2-Api-Key
+    in: header
+    x-operationId: st2common.util.auth:validate_api_key
+  x-auth-token:
+    description: Query parameter representing user's short-lived access token. Used as a backup authentication strategy for environments where it is impossible to provide a header.
+    type: apiKey
+    name: x-auth-token
+    in: query
+    x-operationId: st2common.util.auth:validate_token
+  st2-api-key:
+    description: Query parameter representing service's long-lived API key. Used as a backup authentication strategy for environments where it is impossible to provide a header.
+    type: apiKey
+    name: st2-api-key
+    in: query
+    x-operationId: st2common.util.auth:validate_api_key
+
+security:
+  - X-Auth-Token: []
+  - St2-Api-Key: []
+  - x-auth-token: []
+  - st2-api-key: []

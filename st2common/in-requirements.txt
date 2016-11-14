@@ -21,3 +21,5 @@ ipaddr
 git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
 # Note: our fork of entrypoints contains a fix for backports mess
 git+https://github.com/Kami/entrypoints.git@dont_use_backports#egg=entrypoints
+routes
+swagger_spec_validator
