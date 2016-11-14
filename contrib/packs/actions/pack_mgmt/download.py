@@ -118,9 +118,9 @@ class DownloadGitRepoAction(Action):
         # Giving up ¯\_(ツ)_/¯
         if not gitref:
             format_values = [ref, repo_url]
-            msg = '"%s" is not a valid version, hash, tag, or branch in %s.'
+            msg = '"%s" is not a valid version, hash, tag or branch in %s.'
 
-            valid_versions = DownloadGitRepoAction._get_valid_version_for_repo(repo=repo)
+            valid_versions = DownloadGitRepoAction._get_valid_versions_for_repo(repo=repo)
             if len(valid_versions) >= 1:
                 valid_versions_string = ', '.join(valid_versions)
 
@@ -299,7 +299,7 @@ class DownloadGitRepoAction(Action):
         return pack_ref
 
     @staticmethod
-    def _get_valid_version_for_repo(repo):
+    def _get_valid_versions_for_repo(repo):
         """
         Method which returns a valid versions for a particular repo (pack).
 
@@ -311,7 +311,8 @@ class DownloadGitRepoAction(Action):
 
         for tag in repo.tags:
             if tag.name.startswith('v') and re.match(PACK_VERSION_REGEX, tag.name[1:]):
-                valid_versions.append(tag.name)
+                # Note: We strip leading "v" from the version number
+                valid_versions.append(tag.name[1:])
 
         return valid_versions
 
