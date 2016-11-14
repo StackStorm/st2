@@ -330,6 +330,8 @@ class DownloadGitRepoAction(Action):
             if tag.name.startswith('v') and re.match(PACK_VERSION_REGEX, tag.name[1:]):
                 version_tags.append(tag.name)
 
+        # Note: We sorte the versions in reverse order so the newest tags come first
+        version_tags = list(reversed(sorted(version_tags)))
         return version_tags
 
     @staticmethod
