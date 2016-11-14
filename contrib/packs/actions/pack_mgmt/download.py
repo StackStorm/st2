@@ -318,21 +318,33 @@ class DownloadGitRepoAction(Action):
         return pack_ref
 
     @staticmethod
+    def _get_valid_version_tags_for_repo(repo):
+        """
+        Return a list of valid version tags for a particular repo.
+
+        :rtype: ``list`` of ``str``
+        """
+        version_tags = []
+
+        for tag in repo.tags:
+            if tag.name.startswith('v') and re.match(PACK_VERSION_REGEX, tag.name[1:]):
+                version_tags.append(tag.name)
+
+        return version_tags
+
+    @staticmethod
     def _get_valid_versions_for_repo(repo):
         """
-        Method which returns a valid versions for a particular repo (pack).
+        Return valid versions for a particular repo (pack).
 
         It does so by introspecting available tags.
 
         :rtype: ``list`` of ``str``
         """
-        valid_versions = []
+        version_tags = DownloadGitRepoAction._get_valid_version_tags_for_repo(repo=repo)
 
-        for tag in repo.tags:
-            if tag.name.startswith('v') and re.match(PACK_VERSION_REGEX, tag.name[1:]):
-                # Note: We strip leading "v" from the version number
-                valid_versions.append(tag.name[1:])
-
+        # Note: We strip leading "v" from the version number
+        valid_versions = [tag[1:] for tag in version_tags]
         return valid_versions
 
     @staticmethod
@@ -341,7 +353,7 @@ class DownloadGitRepoAction(Action):
             'loose': None,
             'strict': None
         }
-        versions = DownloadGitRepoAction._get_valid_version_for_repo(repo)
+        versions = DownloadGitRepoAction._get_valid_version_tags_for_repo(repo)
         for tag in versions:
             try:
                 tagged_data = repo.commit(tag).tree('pack.yaml').data_stream.read()
