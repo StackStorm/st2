@@ -344,7 +344,7 @@ class DownloadGitRepoAction(Action):
         version_tags = DownloadGitRepoAction._get_valid_version_tags_for_repo(repo=repo)
 
         # Note: We strip leading "v" from the version number
-        valid_versions = [tag[1:] for tag in version_tags]
+        valid_versions = [DownloadGitRepoAction._sanitize_version_tag(tag) for tag in version_tags]
         return valid_versions
 
     @staticmethod
@@ -353,22 +353,37 @@ class DownloadGitRepoAction(Action):
             'loose': None,
             'strict': None
         }
-        versions = DownloadGitRepoAction._get_valid_version_tags_for_repo(repo)
-        for tag in versions:
+
+        version_tags = DownloadGitRepoAction._get_valid_version_tags_for_repo(repo)
+        for tag in version_tags:
             try:
                 tagged_data = repo.commit(tag).tree('pack.yaml').data_stream.read()
             except KeyError:
                 continue
+
             tagged_metadata = yaml.safe_load(tagged_data)
             tagged_requirement = tagged_metadata.get('stackstorm_version', None)
+
+            version = DownloadGitRepoAction._sanitize_version_tag(tag=tag)
+
             if not tagged_requirement:
-                if not candidates['loose'] or semver.compare(tag[1:], candidates['loose']):
-                    candidates['loose'] = tag[1:]
+                if not candidates['loose'] or semver.compare(version, candidates['loose']):
+                    candidates['loose'] = version
             else:
                 if complex_semver_match(tagged_requirement, stackstorm_version):
-                    if not candidates['strict'] or semver.compare(tag[1:], candidates['strict']):
-                        candidates['strict'] = tag[1:]
+                    if not candidates['strict'] or semver.compare(version, candidates['strict']):
+                        candidates['strict'] = DownloadGitRepoAction._sanitize_version_tag(tag)
+
         return candidates
+
+    @staticmethod
+    def _sanitize_version_tag(tag):
+        """
+        Sanitize version tag and return just the version without the prefix.
+
+        :rtype: ``str``
+        """
+        return tag[1:]
 
     @staticmethod
     def _get_gitref(repo, ref):
