@@ -65,7 +65,8 @@ class ActionService(object):
         from st2common.services.datastore import DatastoreService
 
         if not self._datastore_service:
-            logger = get_logger_for_python_runner_action(action_name=action_wrapper._class_name)
+            action_name = self._action_wrapper._class_name
+            logger = get_logger_for_python_runner_action(action_name=action_name)
             self._datastore_service = DatastoreService(logger=logger,
                                                        pack_name=self._action_wrapper._pack,
                                                        class_name=self._action_wrapper._class_name,
@@ -84,7 +85,7 @@ class ActionService(object):
 
     def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
         return self.datastore_service.set_value(name, value, ttl, local, scope=scope,
-                                                 encrypt=encrypt)
+                                                encrypt=encrypt)
 
     def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
         return self.datastore_service.delete_value(name, local)
