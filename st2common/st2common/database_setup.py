@@ -15,6 +15,7 @@
 
 from oslo_config import cfg
 
+from st2common.models import db
 from st2common.persistence import db_init
 
 __all__ = [
