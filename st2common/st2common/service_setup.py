@@ -32,6 +32,7 @@ from st2common.signal_handlers import register_common_signal_handlers
 from st2common.util.debugging import enable_debugging
 from st2common.models.utils.profiling import enable_profiling
 from st2common import triggers
+from st2common.rbac.migrations import run_all as run_all_rbac_migrations
 
 # Note: This is here for backward compatibility.
 # Function has been moved in a standalone module to avoid expensive in-direct
