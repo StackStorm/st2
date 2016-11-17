@@ -16,6 +16,8 @@
 import os
 import re
 
+import jsonschema
+
 from st2common.util import schema as util_schema
 from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
@@ -78,17 +80,28 @@ def get_pack_metadata(pack_dir):
     return content
 
 
-def validate_config_against_schema(config_schema, config_object):
+def validate_config_against_schema(config_schema, config_object, config_path,
+                                  pack_name=None):
     """
     Validate provided config dictionary against the provided config schema
     dictionary.
     """
+    pack_name = pack_name or 'unknown'
+
     schema = util_schema.get_schema_for_resource_parameters(parameters_schema=config_schema,
                                                             allow_additional_properties=True)
     instance = config_object
 
-    cleaned = util_schema.validate(instance=instance, schema=schema,
-                                   cls=util_schema.CustomValidator, use_default=True,
-                                   allow_default_none=True)
+    try:
+        cleaned = util_schema.validate(instance=instance, schema=schema,
+                                       cls=util_schema.CustomValidator, use_default=True,
+                                       allow_default_none=True)
+    except jsonschema.ValidationError as e:
+        attribute = getattr(e, 'path', [])
+        attribute = '.'.join(attribute)
+
+        msg = ('Failed validating attribute "%s" in config for pack "%s" (%s): %s' %
+               (attribute, pack_name, config_path, str(e)))
+        raise jsonschema.ValidationError(msg)
 
     return cleaned

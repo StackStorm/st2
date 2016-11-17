@@ -272,18 +272,13 @@ class ConfigAPI(BaseAPI):
         instance = self.values or {}
         schema = config_schema_db.attributes
 
-        try:
-            cleaned = validate_config_against_schema(config_schema=schema,
-                                                     config_object=instance)
-        except jsonschema.ValidationError as e:
-            attribute = getattr(e, 'path', [])
-            attribute = '.'.join(attribute)
-            configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
-            config_path = os.path.join(configs_path, '%s.yaml' % (self.pack))
+        configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
+        config_path = os.path.join(configs_path, '%s.yaml' % (self.pack))
 
-            msg = ('Failed validating attribute "%s" in config for pack "%s" (%s): %s' %
-                   (attribute, self.pack, config_path, str(e)))
-            raise jsonschema.ValidationError(msg)
+        cleaned = validate_config_against_schema(config_schema=schema,
+                                                 config_object=instance,
+                                                 config_path=config_path,
+                                                 pack_name=self.pack)
 
         return cleaned
 

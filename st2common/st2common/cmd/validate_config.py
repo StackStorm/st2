@@ -69,7 +69,8 @@ def main():
         config_object = yaml.safe_load(fp.read())
 
     try:
-        validate_config_against_schema(config_schema=config_schema, config_object=config_object)
+        validate_config_against_schema(config_schema=config_schema, config_object=config_object,
+                                       config_path=config_path)
     except Exception as e:
         print('Failed to validate pack config: %s' % str(e))
         return FAILURE_EXIT_CODE
