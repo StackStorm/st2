@@ -594,7 +594,7 @@ class ParamikoSSHClient(object):
         ssh_conn_info = {}
         ssh_config = paramiko.SSHConfig()
         user_config_file = os.path.expanduser(cfg.CONF.ssh_runner.ssh_config_path or
-                "~/.ssh/config")
+                                              "~/.ssh/config")
         try:
             with open(user_config_file) as f:
                 ssh_config.parse(f)
