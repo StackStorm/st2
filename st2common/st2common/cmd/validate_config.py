@@ -18,7 +18,6 @@ Script for validating a config file against a a particular config schema.
 """
 
 import yaml
-import traceback
 
 from oslo_config import cfg
 
@@ -71,8 +70,7 @@ def main():
     try:
         validate_config_against_schema(config_schema=config_schema, config_object=config_object)
     except Exception as e:
-        print('Failed to validate pack config: %s', str(e))
-        traceback.print_exc()
+        print('Failed to validate pack config: %s' % str(e))
         return FAILURE_EXIT_CODE
 
     print('Config "%s" successfuly validated against schema in %s.' % (config_path, schema_path))
