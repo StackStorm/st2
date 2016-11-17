@@ -63,8 +63,8 @@ class Access(object):
         """
         Return a dispatcher class which is used for dispatching triggers.
         """
-        # Late import to avoid very expensive in-direct jsonschema import (~1 second) when this function
-        # is not called / used
+        # Late import to avoid very expensive in-direct jsonschema import (~1 second) when this
+        # function is not called / used
         from st2common.transport.reactor import TriggerDispatcher
 
         if not cls.dispatcher:

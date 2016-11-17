@@ -24,9 +24,7 @@ import os
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common.models import db
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
-from st2common.persistence import db_init
 from st2common.transport.bootstrap_utils import register_exchanges_with_retry
 from st2common.signal_handlers import register_common_signal_handlers
 from st2common.util.debugging import enable_debugging

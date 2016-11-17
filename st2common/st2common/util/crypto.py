@@ -40,7 +40,6 @@ def read_crypto_key(key_path, key_type=None):
     from keyczar.keys import AesKey
     key_type = key_type or AesKey
 
-
     with open(key_path) as key_file:
         key = key_type.Read(key_file.read())
         return key

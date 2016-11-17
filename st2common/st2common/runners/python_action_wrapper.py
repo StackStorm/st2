@@ -55,8 +55,6 @@ class ActionService(object):
     """
 
     def __init__(self, action_wrapper):
-        logger = get_logger_for_python_runner_action(action_name=action_wrapper._class_name)
-
         self._action_wrapper = action_wrapper
         self._datastore_service = None
 
@@ -67,6 +65,7 @@ class ActionService(object):
         from st2common.services.datastore import DatastoreService
 
         if not self._datastore_service:
+            logger = get_logger_for_python_runner_action(action_name=action_wrapper._class_name)
             self._datastore_service = DatastoreService(logger=logger,
                                                        pack_name=self._action_wrapper._pack,
                                                        class_name=self._action_wrapper._class_name,
