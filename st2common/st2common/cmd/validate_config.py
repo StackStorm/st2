@@ -72,7 +72,7 @@ def main():
         validate_config_against_schema(config_schema=config_schema, config_object=config_object,
                                        config_path=config_path)
     except Exception as e:
-        print('Failed to validate pack config: %s' % str(e))
+        print('Failed to validate pack config.\n%s' % str(e))
         return FAILURE_EXIT_CODE
 
     print('Config "%s" successfuly validated against schema in %s.' % (config_path, schema_path))
