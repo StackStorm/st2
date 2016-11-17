@@ -17,6 +17,7 @@
 Script for validating a config file against a a particular config schema.
 """
 
+import os
 import yaml
 
 from oslo_config import cfg
@@ -56,8 +57,8 @@ def main():
     _register_cli_opts()
     cfg.CONF(args=None, version=VERSION_STRING)
 
-    schema_path = cfg.CONF.schema_path
-    config_path = cfg.CONF.config_path
+    schema_path = os.path.abspath(cfg.CONF.schema_path)
+    config_path = os.path.abspath(cfg.CONF.config_path)
 
     print('Validating config "%s" against schema in "%s"' % (config_path, schema_path))
 
