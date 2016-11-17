@@ -17,11 +17,6 @@ import json
 import six
 
 from st2common import log as logging
-from st2common.jinja.filters import crypto
-from st2common.jinja.filters import data
-from st2common.jinja.filters import regex
-from st2common.jinja.filters import time
-from st2common.jinja.filters import version
 
 
 __all__ = [
@@ -49,6 +44,13 @@ def use_none(value):
 
 
 def get_filters():
+    # Lazy / late import to avoid long module import times
+    from st2common.jinja.filters import crypto
+    from st2common.jinja.filters import data
+    from st2common.jinja.filters import regex
+    from st2common.jinja.filters import time
+    from st2common.jinja.filters import version
+
     return {
         'decrypt_kv': crypto.decrypt_kv,
         'to_json_string': data.to_json_string,
