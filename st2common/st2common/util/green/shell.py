@@ -22,7 +22,6 @@ from st2common.util.monkey_patch import monkey_patch_pkg_resources
 monkey_patch_pkg_resources()
 
 import os
-import sys
 
 import six
 import eventlet
