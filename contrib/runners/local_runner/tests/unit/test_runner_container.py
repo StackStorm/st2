@@ -19,7 +19,7 @@ from bson.errors import InvalidStringData
 from oslo_config import cfg
 
 from st2common.constants import action as action_constants
-from st2common.runners import get_runner
+from st2common.runners.base import get_runner
 import local_runner
 from st2common.exceptions.actionrunner import ActionRunnerCreateError
 from st2common.models.system.common import ResourceReference

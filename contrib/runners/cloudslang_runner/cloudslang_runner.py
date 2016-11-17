@@ -25,7 +25,7 @@ from st2common.util.green.shell import run_command
 from st2common.util.shell import kill_process
 from st2common.util.shell import quote_unix
 from st2common import log as logging
-from st2common.runners import ActionRunner
+from st2common.runners.base import ActionRunner
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT

@@ -23,6 +23,7 @@ __all__ = [
     'db_init'
 ]
 
+
 def db_setup():
     username = getattr(cfg.CONF.database, 'username', None)
     password = getattr(cfg.CONF.database, 'password', None)
@@ -40,4 +41,3 @@ def db_setup():
 
 def db_teardown():
     return db.db_teardown()
-
