@@ -67,7 +67,8 @@ In development
   repositories so this file is not needed anymore.
 * Speed up short-lived Python runner actions by up to 70%. This way done by re-organizing and
   re-factoring code to avoid expensive imports such as jsonschema, jinja2, kombu and mongoengine
-  in the places where those imports are not actually needed. (improvement)
+  in the places where those imports are not actually needed and by various other optimizations.
+  (improvement)
 
 2.0.1 - September 30, 2016
 --------------------------
