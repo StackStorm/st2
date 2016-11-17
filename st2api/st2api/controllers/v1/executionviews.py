@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cachetools import TTLCache, cachedmethod
 from pecan.rest import RestController
+import operator
 import six
 
 from st2common import log as logging
@@ -54,7 +56,12 @@ def csv(s):
 
 
 class FiltersController(RestController):
+    def __init__(self, *args, **kwargs):
+        super(RestController, self).__init__(*args, **kwargs)
+        self.cache = TTLCache(ttl=600, maxsize=10000)
+
     @jsexpose(arg_types=[csv])
+    @cachedmethod(operator.attrgetter('cache'))
     def get_all(self, types=None):
         """
             List all distinct filters.
