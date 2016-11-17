@@ -28,7 +28,7 @@ from st2common.util import loader as action_loader
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
-from st2common.service_setup import db_setup
+from st2common.database_setup import db_setup
 
 __all__ = [
     'PythonActionWrapper',
