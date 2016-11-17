@@ -13,9 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Note: This must be called before other imports to affect speedsup
+from st2common.util.monkey_patch import monkey_patch_pkg_resources
+monkey_patch_pkg_resources()
+
 import sys
 import json
 import argparse
+
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -166,6 +171,7 @@ class PythonActionWrapper(object):
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
         sys.stdout.write(print_output + '\n')
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
+        sys.stdout.flush()
 
     def _get_action_instance(self):
         actions_cls = action_loader.register_plugin(Action, self._file_path)

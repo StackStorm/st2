@@ -17,7 +17,12 @@
 Shell utility functions which use non-blocking and eventlet friendly code.
 """
 
+# Note: This must be called before other imports to affect speedsup
+from st2common.util.monkey_patch import monkey_patch_pkg_resources
+monkey_patch_pkg_resources()
+
 import os
+import sys
 
 import six
 import eventlet
