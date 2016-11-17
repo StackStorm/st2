@@ -16,7 +16,6 @@
 import abc
 
 import six
-from mongoengine import NotUniqueError
 
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectConflictError
@@ -125,6 +124,10 @@ class Access(object):
     @classmethod
     def insert(cls, model_object, publish=True, dispatch_trigger=True,
                log_not_unique_error_as_debug=False):
+        # Late import to avoid very expensive in-direct import (~1 second) when this function
+        # is not called / used
+        from mongoengine import NotUniqueError
+
         if model_object.id:
             raise ValueError('id for object %s was unexpected.' % model_object)
         try:
@@ -161,6 +164,10 @@ class Access(object):
     @classmethod
     def add_or_update(cls, model_object, publish=True, dispatch_trigger=True,
                       log_not_unique_error_as_debug=False):
+        # Late import to avoid very expensive in-direct import (~1 second) when this function
+        # is not called / used
+        from mongoengine import NotUniqueError
+
         pre_persist_id = model_object.id
         try:
             model_object = cls._get_impl().add_or_update(model_object)

@@ -16,8 +16,6 @@
 import json
 import six
 
-import jinja2
-
 from st2common import log as logging
 from st2common.jinja.filters import crypto
 from st2common.jinja.filters import data
@@ -83,6 +81,10 @@ def get_jinja_environment(allow_undefined=False, trim_blocks=True, lstrip_blocks
     :type strict_undefined: ``bool``
 
     '''
+    # Late import to avoid very expensive in-direct import (~1 second) when this function
+    # is not called / used
+    import jinja2
+
     undefined = jinja2.Undefined if allow_undefined else jinja2.StrictUndefined
     env = jinja2.Environment(  # nosec
         undefined=undefined,

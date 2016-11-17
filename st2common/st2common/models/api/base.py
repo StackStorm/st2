@@ -19,7 +19,6 @@ import inspect
 
 import six
 from six.moves import http_client
-from webob import exc
 import traceback
 
 from oslo_config import cfg
@@ -207,10 +206,12 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
     :param content_type: Response content type.
     :type content_type: ``str``
     """
-    # Late import to avoid very expensive in-direct jsonschema import (~1 second) when this function
+    # Late import to avoid very expensive in-direct import (~1 second) when this function
     # is not called / used
     import jsonschema
     import pecan
+
+    from webob import exc
 
     from st2common.util.jsonify import json_encode
     from st2common.util.api import get_exception_for_type_error
