@@ -26,7 +26,7 @@ StackStorm helps you compose these and other operational patterns as rules and w
 
 StackStorm plugs into the environment via the extensible set of adapters: sensors and actions.
 
-* **Sensors** are python plugins for inbound integration that watch for events from external systems and fire a StackStorm trigger when event happens.
+* **Sensors** are python plugins for inbound integration that watch for events from external systems and fire a StackStorm trigger when an event happens.
 
 * **Triggers** are StackStorm representations of external events. There are generic triggers (e.g. timers, webhooks) and integration triggers (e.g. Sensu alert, JIRA issue updated). A new trigger type can be defined by writing a sensor plugin.
 
