@@ -17,7 +17,10 @@
 import mock
 import unittest2
 
-from httprunner import HTTPClient
+import requests
+from requests.auth import HTTPDigestAuth
+
+from http_runner import HTTPClient
 import st2tests.config as tests_config
 
 
@@ -30,7 +33,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
     def setUpClass(cls):
         tests_config.parse_args()
 
-    @mock.patch('httprunner.requests')
+    @mock.patch('http_runner.requests')
     def test_parse_response_body(self, mock_requests):
         client = HTTPClient(url='http://127.0.0.1')
         mock_result = MockResult()
@@ -86,7 +89,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
         self.assertFalse(isinstance(result['body'], dict))
         self.assertEqual(result['body'], mock_result.text)
 
-    @mock.patch('httprunner.requests')
+    @mock.patch('http_runner.requests')
     def test_https_verify(self, mock_requests):
         url = 'https://127.0.0.1:8888'
         client = HTTPClient(url=url, verify=True)
@@ -106,7 +109,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
             data='', files=None, headers={}, params=None, proxies=None,
             timeout=60, verify=True)
 
-    @mock.patch('httprunner.requests')
+    @mock.patch('http_runner.requests')
     def test_https_verify_false(self, mock_requests):
         url = 'https://127.0.0.1:8888'
         client = HTTPClient(url=url)
@@ -123,5 +126,27 @@ class HTTPRunnerTestCase(unittest2.TestCase):
 
         mock_requests.request.assert_called_with(
             'GET', url, allow_redirects=False, auth=None, cookies=None,
+            data='', files=None, headers={}, params=None, proxies=None,
+            timeout=60, verify=False)
+
+    @mock.patch('http_runner.requests')
+    def test_https_auth_digest(self, mock_requests):
+        url = 'https://127.0.0.1:8888'
+        username = 'misspiggy'
+        password = 'kermit'
+        client = HTTPClient(url=url, username=username, password=password)
+        mock_result = MockResult()
+
+        mock_result.text = '{"title":"name"}'
+        mock_result.headers = {'Content-Type': 'application/json'}
+        mock_result.status_code = 200
+
+        mock_requests.request.return_value = mock_result
+        client.run()
+
+        self.assertEqual(client.auth, HTTPDigestAuth(username, password))
+
+        mock_requests.request.assert_called_once_with(
+            'GET', url, allow_redirects=False, auth=client.auth, cookies=None,
             data='', files=None, headers={}, params=None, proxies=None,
             timeout=60, verify=False)

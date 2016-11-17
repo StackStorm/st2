@@ -19,9 +19,8 @@ import json
 import uuid
 
 import requests
-from oslo_config import cfg
-
 from requests.auth import HTTPDigestAuth
+from oslo_config import cfg
 
 from st2common.runners import ActionRunner
 from st2common import __version__ as st2_version
@@ -200,11 +199,8 @@ class HTTPClient(object):
             else:
                 data = self.body
 
-            # TODO: What should be done if username is specified
-            #       and self.auth is already defined?
-            if self.username
+            if self.username or self.password:
                 self.auth = HTTPDigestAuth(self.username, self.password)
-            }
 
             resp = requests.request(
                 self.method,
