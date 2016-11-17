@@ -129,7 +129,7 @@ class RunnerContainerTest(DbTestCase):
 
     @mock.patch.object(local_runner.LocalShellRunner, 'run', mock.MagicMock(
         return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_UTF8_RESULT, None)))
-    @mock.patch('st2common.runners.register_runner',
+    @mock.patch('st2common.runners.base.register_runner',
                 mock.MagicMock(return_value=local_runner))
     def test_dispatch_non_utf8_result(self):
         runner_container = get_runner_container()

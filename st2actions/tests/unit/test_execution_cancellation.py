@@ -48,7 +48,7 @@ MOCK_RESULT = {
 @mock.patch.object(local_runner.LocalShellRunner, 'run',
                    mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_RUNNING,
                                                 'Non-empty', None)))
-@mock.patch('st2common.runners.register_runner',
+@mock.patch('st2common.runners.base.register_runner',
             mock.MagicMock(return_value=local_runner))
 class ExecutionCancellationTest(DbTestCase):
 

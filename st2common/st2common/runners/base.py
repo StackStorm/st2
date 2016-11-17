@@ -29,7 +29,9 @@ from st2common.util.api import get_full_public_api_url
 __all__ = [
     'ActionRunner',
     'AsyncActionRunner',
-    'ShellRunnerMixin'
+    'ShellRunnerMixin',
+
+    'get_runner'
 ]
 
 
