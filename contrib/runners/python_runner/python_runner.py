@@ -119,7 +119,8 @@ class PythonRunner(ActionRunner):
             '--file-path=%s' % (self.entry_point),
             '--parameters=%s' % (serialized_parameters),
             '--user=%s' % (user),
-            '--parent-args=%s' % (json.dumps(sys.argv[1:]))
+            '--parent-args=%s' % (json.dumps(sys.argv[1:])),
+            '--is-subprocess'
         ]
 
         # We need to ensure all the st2 dependencies are also available to the

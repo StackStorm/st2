@@ -13,9 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 # Note: This must be called before other imports to affect speedsup
-from st2common.util.monkey_patch import monkey_patch_pkg_resources
-monkey_patch_pkg_resources()
+# We only ran it if script is ran as subprocess by action runner so we don't break the tests and
+# other code
+if '--is-subprocess' in sys.argv:
+    from st2common.util.monkey_patch import monkey_patch_pkg_resources
+    monkey_patch_pkg_resources()
 
 import sys
 import json
@@ -209,6 +214,8 @@ if __name__ == '__main__':
                         help='User who triggered the action execution')
     parser.add_argument('--parent-args', required=False,
                         help='Command line arguments passed to the parent process')
+    parser.add_argument('--is-subprocess', required=False, action='store_true', default=False,
+                        help='Flag which indicates script was ran by action runner')
     args = parser.parse_args()
 
     parameters = args.parameters
