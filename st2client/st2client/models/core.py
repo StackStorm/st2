@@ -19,7 +19,6 @@ import logging
 from functools import wraps
 
 import six
-from sseclient import SSEClient
 
 from six.moves import urllib
 
@@ -461,6 +460,10 @@ class StreamManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def listen(self, events, **kwargs):
+        # Late import to avoid very expensive in-direct import (~1 second) when this function is
+        # not called / used
+        from sseclient import SSEClient
+
         url = self._url
 
         if 'token' in kwargs:

@@ -18,7 +18,6 @@ import six
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common.services.config import deserialize_key_value
 from st2common.persistence.pack import ConfigSchema
 from st2common.persistence.pack import Config
 from st2common.content import utils as content_utils
@@ -119,6 +118,8 @@ class ContentPackConfigLoader(object):
         Retrieve datastore value by first resolving the datastore expression and then retrieving
         the value from the datastore.
         """
+        from st2common.services.config import deserialize_key_value
+
         config_schema_item = config_schema_item or {}
         secret = config_schema_item.get('secret', False)
 
