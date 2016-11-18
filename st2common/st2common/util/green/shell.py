@@ -17,6 +17,8 @@
 Shell utility functions which use non-blocking and eventlet friendly code.
 """
 
+import os
+
 import six
 import eventlet
 from st2common import log as logging
