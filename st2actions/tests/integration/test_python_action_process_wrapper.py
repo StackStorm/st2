@@ -32,8 +32,13 @@ command: "profimp "from st2common.runners import python_action_wrapper" --html >
 import os
 
 import unittest2
+from distutils.spawn import find_executable
 
 from st2common.util.shell import run_command
+
+__all__ = [
+    'PythonRunnerActionWrapperProcessTestCase'
+]
 
 # Maximum limit for the process wrapper script execution time (in seconds)
 WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.20
@@ -49,12 +54,13 @@ re-organize code if possible.
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, '../../st2common/runners/python_action_wrapper.py')
+TIME_BINARY_PATH = find_executable('time')
 
 
-class PythonRunnerActionWrapperProcess(unittest2.TestCase):
+class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
     def test_process_wrapper_exits_in_reasonable_timeframe(self):
-        _, _, stderr = run_command('/usr/bin/time -f "%%e" python %s --is-subprocess' %
-                                   (WRAPPER_SCRIPT_PATH), shell=True)
+        _, _, stderr = run_command('%s -f "%%e" python %s --is-subprocess' %
+                                   (TIME_BINARY_PATH, WRAPPER_SCRIPT_PATH), shell=True)
 
         stderr = stderr.strip().split('\n')[-1]
 
