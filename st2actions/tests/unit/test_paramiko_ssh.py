@@ -53,7 +53,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         Loads proxy commands from ssh config file
         """
         ssh_config_path = os.path.join(get_resources_base_path(),
-                            'ssh', 'dummy_ssh_config')
+                                       'ssh', 'dummy_ssh_config')
         cfg.CONF.set_override(name='ssh_config_path', override=ssh_config_path,
                               group='ssh_runner')
         cfg.CONF.set_override(name='use_ssh_config', override=True,
@@ -74,7 +74,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         Loads proxy commands from ssh config file
         """
         ssh_config_path = os.path.join(get_resources_base_path(),
-                            'ssh', 'dummy_ssh_config_fail')
+                                       'ssh', 'dummy_ssh_config_fail')
         cfg.CONF.set_override(name='ssh_config_path',
                               override=ssh_config_path, group='ssh_runner')
         cfg.CONF.set_override(name='use_ssh_config',
@@ -83,7 +83,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu'}
         mock = ParamikoSSHClient(**conn_params)
-        self.assertRaises(Exception, mock.connect())
+        self.assertRaises(Exception, mock.connect)
         mock_ProxyCommand.assert_not_called()
 
     @patch('paramiko.SSHClient', Mock)
