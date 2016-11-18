@@ -67,6 +67,10 @@ In development
   repositories so this file is not needed anymore.
 * Add new ``st2-validate-config`` tool for validating config file against a particular config
   schema file. (new-feature)
+* Speed up short-lived Python runner actions by up to 70%. This way done by re-organizing and
+  re-factoring code to avoid expensive imports such as jsonschema, jinja2, kombu and mongoengine
+  in the places where those imports are not actually needed and by various other optimizations.
+  (improvement)
 
 2.0.1 - September 30, 2016
 --------------------------

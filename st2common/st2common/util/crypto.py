@@ -15,8 +15,6 @@
 
 import binascii
 
-from keyczar.keys import AesKey
-
 __all__ = [
     'read_crypto_key',
     'symmetric_encrypt',
@@ -24,7 +22,7 @@ __all__ = [
 ]
 
 
-def read_crypto_key(key_path, key_type=AesKey):
+def read_crypto_key(key_path, key_type=None):
     """
     Return the crypto key given a path to key file and the key type.
 
@@ -36,6 +34,12 @@ def read_crypto_key(key_path, key_type=AesKey):
 
     :rtype: ``str``
     """
+
+    # Late import to avoid very expensive in-direct import (~1 second) when this function
+    # is not called / used
+    from keyczar.keys import AesKey
+    key_type = key_type or AesKey
+
     with open(key_path) as key_file:
         key = key_type.Read(key_file.read())
         return key

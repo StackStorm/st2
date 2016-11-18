@@ -16,14 +16,7 @@
 import json
 import six
 
-import jinja2
-
 from st2common import log as logging
-from st2common.jinja.filters import crypto
-from st2common.jinja.filters import data
-from st2common.jinja.filters import regex
-from st2common.jinja.filters import time
-from st2common.jinja.filters import version
 
 
 __all__ = [
@@ -51,6 +44,13 @@ def use_none(value):
 
 
 def get_filters():
+    # Lazy / late import to avoid long module import times
+    from st2common.jinja.filters import crypto
+    from st2common.jinja.filters import data
+    from st2common.jinja.filters import regex
+    from st2common.jinja.filters import time
+    from st2common.jinja.filters import version
+
     return {
         'decrypt_kv': crypto.decrypt_kv,
         'to_json_string': data.to_json_string,
@@ -83,6 +83,10 @@ def get_jinja_environment(allow_undefined=False, trim_blocks=True, lstrip_blocks
     :type strict_undefined: ``bool``
 
     '''
+    # Late import to avoid very expensive in-direct import (~1 second) when this function
+    # is not called / used
+    import jinja2
+
     undefined = jinja2.Undefined if allow_undefined else jinja2.StrictUndefined
     env = jinja2.Environment(  # nosec
         undefined=undefined,

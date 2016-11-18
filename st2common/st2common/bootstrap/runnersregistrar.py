@@ -44,7 +44,7 @@ def register_runners(runner_dirs=None, experimental=False, fail_on_failure=True)
     runners = runner_loader.get_runners(runner_dirs)
 
     for runner, path in runners.iteritems():
-        LOG.info('Runner "%s"' % (runner))
+        LOG.debug('Runner "%s"' % (runner))
         runner_manifest = os.path.join(path, MANIFEST_FILE_NAME)
         meta_loader = MetaLoader()
         runner_types = meta_loader.load(runner_manifest)
