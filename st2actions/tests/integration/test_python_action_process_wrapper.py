@@ -55,8 +55,10 @@ re-organize code if possible.
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, '../../st2common/runners/python_action_wrapper.py')
 TIME_BINARY_PATH = find_executable('time')
+TIME_BINARY_AVAILABLE = TIME_BINARY_PATH is not None
 
 
+@unittest2.skipIf(not TIME_BINARY_PATH, 'time binary not available')
 class PythonRunnerActionWrapperProcessTestCase(unittest2.TestCase):
     def test_process_wrapper_exits_in_reasonable_timeframe(self):
         _, _, stderr = run_command('%s -f "%%e" python %s --is-subprocess' %
