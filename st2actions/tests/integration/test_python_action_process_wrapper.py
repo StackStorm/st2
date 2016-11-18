@@ -36,7 +36,7 @@ import unittest2
 from st2common.util.shell import run_command
 
 # Maximum limit for the process wrapper script execution time (in seconds)
-WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.35
+WRAPPER_PROCESS_RUN_TIME_UPPER_LIMIT = 0.20
 
 ASSERTION_ERROR_MESSAGE = ("""
 Python wrapper process script took more than %s seconds to execute (%s). This most likely means
@@ -53,8 +53,8 @@ WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, '../../st2common/runners/python_act
 
 class PythonRunnerActionWrapperProcess(unittest2.TestCase):
     def test_process_wrapper_exits_in_reasonable_timeframe(self):
-        _, _, stderr = run_command('/usr/bin/time -f "%%e" python %s' % (WRAPPER_SCRIPT_PATH),
-                                   shell=True)
+        _, _, stderr = run_command('/usr/bin/time -f "%%e" python %s --is-subprocess' %
+                                   (WRAPPER_SCRIPT_PATH), shell=True)
 
         stderr = stderr.strip().split('\n')[-1]
 
