@@ -65,6 +65,8 @@ In development
 * Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
   management approach. Now pack directories are actual checkouts of the corresponding pack git
   repositories so this file is not needed anymore.
+* Add ssh config support for paramiko ssh config feature. This adds support for user defined
+  ``ssh_config`` location and proxycommand #2941 #3032 [Eric Edgar] (improvement)
 
 2.0.1 - September 30, 2016
 --------------------------
