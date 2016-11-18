@@ -48,7 +48,12 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.sensor',
     'st2common.models.db.trace',
     'st2common.models.db.trigger',
-    'st2common.models.db.webhook',
+    'st2common.models.db.webhook'
+]
+
+# A list of model names for which we don't perform extra index cleanup
+INDEX_CLEANUP_MODEL_NAMES_BLACKLIST = [
+    'PermissionGrantDB'
 ]
 
 
@@ -105,14 +110,19 @@ def db_ensure_indexes():
     model_classes = get_model_classes()
 
     for model_class in model_classes:
+        class_name = model_class.__name__
+
         # Note: We need to ensure / create new indexes before removing extra ones
         LOG.debug('Ensuring indexes for model "%s"...' % (model_class.__name__))
         model_class.ensure_indexes()
 
-        LOG.debug('Removing extra indexes for model "%s"...' % (model_class.__name__))
+        if model_class.__name__ in INDEX_CLEANUP_MODEL_NAMES_BLACKLIST:
+            LOG.debug('Skipping index cleanup for blacklisted model "%s"...' % (class_name))
+            continue
+
+        LOG.debug('Removing extra indexes for model "%s"...' % (class_name))
         removed_count = cleanup_extra_indexes(model_class=model_class)
-        LOG.debug('Removed "%s" extra indexes for model "%s"' %
-                  (removed_count, model_class.__name__))
+        LOG.debug('Removed "%s" extra indexes for model "%s"' % (removed_count, class_name))
 
 
 def cleanup_extra_indexes(model_class):
