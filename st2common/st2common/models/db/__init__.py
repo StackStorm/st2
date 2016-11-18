@@ -38,12 +38,17 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.execution',
     'st2common.models.db.executionstate',
     'st2common.models.db.liveaction',
+    'st2common.models.db.notification',
     'st2common.models.db.pack',
     'st2common.models.db.policy',
+    'st2common.models.db.rbac',
     'st2common.models.db.rule',
+    'st2common.models.db.rule_enforcement',
     'st2common.models.db.runner',
     'st2common.models.db.sensor',
+    'st2common.models.db.trace',
     'st2common.models.db.trigger',
+    'st2common.models.db.webhook',
 ]
 
 
