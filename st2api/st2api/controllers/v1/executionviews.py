@@ -57,7 +57,7 @@ def csv(s):
 
 class FiltersController(RestController):
     def __init__(self, *args, **kwargs):
-        super(RestController, self).__init__(*args, **kwargs)
+        super(FiltersController, self).__init__(*args, **kwargs)
         self.cache = TTLCache(ttl=600, maxsize=10000)
 
     @jsexpose(arg_types=[csv])
