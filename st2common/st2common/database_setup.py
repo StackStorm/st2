@@ -28,13 +28,14 @@ __all__ = [
 ]
 
 
-def db_setup():
+def db_setup(ensure_indexes=True):
     username = getattr(cfg.CONF.database, 'username', None)
     password = getattr(cfg.CONF.database, 'password', None)
 
     connection = db_init.db_setup_with_retry(
         db_name=cfg.CONF.database.db_name, db_host=cfg.CONF.database.host,
         db_port=cfg.CONF.database.port, username=username, password=password,
+        ensure_indexes=ensure_indexes,
         ssl=cfg.CONF.database.ssl, ssl_keyfile=cfg.CONF.database.ssl_keyfile,
         ssl_certfile=cfg.CONF.database.ssl_certfile,
         ssl_cert_reqs=cfg.CONF.database.ssl_cert_reqs,

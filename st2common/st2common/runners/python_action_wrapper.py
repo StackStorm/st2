@@ -133,7 +133,9 @@ class PythonActionWrapper(object):
         except Exception:
             pass
 
-        db_setup()
+        # We don't need to ensure indexes every subprocess because they should already be created
+        # and ensured by other services
+        db_setup(ensure_indexes=False)
 
         # Note: We can only set a default user value if one is not provided after parsing the
         # config
