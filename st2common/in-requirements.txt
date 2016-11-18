@@ -19,4 +19,6 @@ six
 tooz
 ipaddr
 git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
+# Note: configparser is needed by entrypoints module
+configparser
 entrypoints
