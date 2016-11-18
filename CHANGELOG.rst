@@ -69,6 +69,8 @@ In development
   re-factoring code to avoid expensive imports such as jsonschema, jinja2, kombu and mongoengine
   in the places where those imports are not actually needed and by various other optimizations.
   (improvement)
+* Add new ``st2-validate-pack-config`` tool for validating config file against a particular config
+  schema file. (new-feature)
 
 2.0.1 - September 30, 2016
 --------------------------
