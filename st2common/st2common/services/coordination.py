@@ -42,10 +42,10 @@ class NoOpLock(locking.Lock):
         return True
 
     def release(self):
-        pass
+        return True
 
     def heartbeat(self):
-        pass
+        return True
 
 
 class NoOpDriver(coordination.CoordinationDriver):

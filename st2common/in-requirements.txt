@@ -17,8 +17,6 @@ retrying
 semver
 six
 tooz
-# Note: zake is needed by tooz for our tests
-zake
 ipaddr
 git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
 # Note: our fork of entrypoints contains a fix for backports mess
