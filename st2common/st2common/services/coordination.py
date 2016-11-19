@@ -39,7 +39,7 @@ class NoOpLock(locking.Lock):
         super(NoOpLock, self).__init__(name=name)
 
     def acquire(self, blocking=True):
-        pass
+        return True
 
     def release(self):
         pass
