@@ -2,7 +2,7 @@
 # Note: greenlet is used by eventlet
 greenlet>=0.4.10,<0.5
 eventlet>=0.18.4,<0.19
-gunicorn>=19.4.5,<20.0
+gunicorn==19.6.0
 kombu>=3.0.35,<3.1
 # Note: amqp is used by kombu
 amqp>=1.4.9,<2.0
