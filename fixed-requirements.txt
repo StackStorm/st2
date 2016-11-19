@@ -8,7 +8,7 @@ kombu>=3.0.35,<3.1
 amqp>=1.4.9,<2.0
 oslo.config>=1.12.1,<1.13
 oslo.utils<3.1.0
-six==1.9.0
+six==1.10.0
 pyyaml>=3.11,<4.0
 requests[security]>=2.11.1,<2.12
 apscheduler>=3.0.5,<3.1
