@@ -25,7 +25,7 @@ passlib==1.6.5
 prettytable
 prompt-toolkit==1.0.7
 pyinotify<=0.10,>=0.9.5
-pymongo==3.2.2
+pymongo==3.3.0
 python-dateutil
 python-editor==1.0.1
 python-gnupg==0.3.9
