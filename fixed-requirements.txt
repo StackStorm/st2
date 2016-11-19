@@ -3,9 +3,9 @@
 greenlet>=0.4.10,<0.5
 eventlet>=0.18.4,<0.19
 gunicorn==19.6.0
-kombu>=3.0.35,<3.1
+kombu==3.0.37
 # Note: amqp is used by kombu
-amqp>=1.4.9,<2.0
+amqp==1.4.9
 oslo.config>=1.12.1,<1.13
 oslo.utils<3.1.0
 six==1.10.0
