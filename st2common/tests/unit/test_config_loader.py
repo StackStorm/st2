@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from st2tests.base import DbTestCase
+from st2common.persistence.pack import Config
 from st2common.services.config import set_datastore_value_for_config_key
 from st2common.util.config_loader import ContentPackConfigLoader
 
@@ -88,3 +91,50 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
         loader = ContentPackConfigLoader(pack_name='dummy_pack_1')
         config = loader.get_config()
         self.assertEqual(config['region'], 'us-west-1')
+
+    def test_get_config_nested_schema_default_values_from_config_schema_are_used(self):
+        # Special case for more complex config schemas with attributes ntesting.
+        # Validate that the default values are also used for one level nested object properties.
+        pack_name = 'dummy_pack_schema_with_nested_object'
+
+        # 1. None of the nested object values are provided
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+
+        expected_config = {
+            'api_key': '',
+            'api_secret': '',
+            'regions': ['us-west-1', 'us-east-1'],
+            'auth_settings': {
+                'host': '127.0.0.3',
+                'port': 8080,
+                'device_uids': ['a', 'b', 'c']
+            }
+        }
+        self.assertEqual(config, expected_config)
+
+        # 2. Some of the nested object values are provided (host, port)
+        config_db = Config.get_by_pack(value=pack_name)
+        original_values = copy.deepcopy(config_db.values)
+
+        config_db.values = {}
+        config_db.values.update(original_values)
+        config_db.values['auth_settings'] = {}
+        config_db.values['auth_settings']['host'] = '127.0.0.6'
+        config_db.values['auth_settings']['port'] = 9090
+        config_db = Config.add_or_update(config_db)
+
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+
+        expected_config = {
+            'api_key': '',
+            'api_secret': '',
+            'regions': ['us-west-1', 'us-east-1'],
+            'auth_settings': {
+                'host': '127.0.0.6',
+                'port': 9090,
+                'device_uids': ['a', 'b', 'c']
+            }
+        }
+        self.assertEqual(config, expected_config)
