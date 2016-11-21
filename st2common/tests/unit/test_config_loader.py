@@ -128,7 +128,7 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
         }
         self.assertEqual(config, expected_config)
 
-        # 3. Nested attribute (auth_settings.token) references a datastore value
+        # 3. Nested attribute (auth_settings.token) references a non-secret datastore value
         pack_name = 'dummy_pack_schema_with_nested_object_3'
 
         kvp_db = set_datastore_value_for_config_key(pack_name=pack_name,
@@ -151,5 +151,57 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
                 'token': 'some_auth_settings_token'
             }
         }
+        self.assertEqual(config, expected_config)
 
+        # 4. Nested attribute (auth_settings.token) references a secret datastore value
+        pack_name = 'dummy_pack_schema_with_nested_object_4'
+
+        kvp_db = set_datastore_value_for_config_key(pack_name=pack_name,
+                                                    key_name='auth_settings_token',
+                                                    value='joe_token_secret',
+                                                    secret=True,
+                                                    user='joe')
+        self.assertTrue(kvp_db.value != 'joe_token_secret')
+        self.assertTrue(len(kvp_db.value) > len('joe_token_secret') * 2)
+        self.assertTrue(kvp_db.secret)
+
+        kvp_db = set_datastore_value_for_config_key(pack_name=pack_name,
+                                                    key_name='auth_settings_token',
+                                                    value='alice_token_secret',
+                                                    secret=True,
+                                                    user='alice')
+        self.assertTrue(kvp_db.value != 'alice_token_secret')
+        self.assertTrue(len(kvp_db.value) > len('alice_token_secret') * 2)
+        self.assertTrue(kvp_db.secret)
+
+        loader = ContentPackConfigLoader(pack_name=pack_name, user='joe')
+        config = loader.get_config()
+
+        expected_config = {
+            'api_key': '',
+            'api_secret': '',
+            'regions': ['us-west-1', 'us-east-1'],
+            'auth_settings': {
+                'host': '127.0.0.11',
+                'port': 8080,
+                'device_uids': ['a', 'b', 'c'],
+                'token': 'joe_token_secret'
+            }
+        }
+        self.assertEqual(config, expected_config)
+
+        loader = ContentPackConfigLoader(pack_name=pack_name, user='alice')
+        config = loader.get_config()
+
+        expected_config = {
+            'api_key': '',
+            'api_secret': '',
+            'regions': ['us-west-1', 'us-east-1'],
+            'auth_settings': {
+                'host': '127.0.0.11',
+                'port': 8080,
+                'device_uids': ['a', 'b', 'c'],
+                'token': 'alice_token_secret'
+            }
+        }
         self.assertEqual(config, expected_config)
