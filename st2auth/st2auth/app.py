@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
 import pkg_resources
 
+from oslo_config import cfg
 import yaml
 
 from st2auth import config as st2auth_config

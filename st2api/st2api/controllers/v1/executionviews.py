@@ -54,7 +54,6 @@ def csv(s):
 
 
 class FiltersController(RestController):
-    @jsexpose(arg_types=[csv])
     def get_all(self, types=None):
         """
             List all distinct filters.
@@ -76,3 +75,6 @@ class FiltersController(RestController):
 
 class ExecutionViewsController(RestController):
     filters = FiltersController()
+
+
+filters_controller = FiltersController()

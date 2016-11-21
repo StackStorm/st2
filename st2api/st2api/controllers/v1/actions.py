@@ -19,6 +19,7 @@ import os.path
 import six
 from pecan import abort
 from mongoengine import ValidationError
+from webob import Response
 
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
 #       that bubble up to this layer should be core Python exceptions or
@@ -41,6 +42,7 @@ from st2common.content.utils import get_pack_base_path
 from st2common.content.utils import get_pack_resource_file_abs_path
 from st2common.content.utils import get_relative_path_to_pack
 from st2common.transport.reactor import TriggerDispatcher
+from st2common.util.jsonify import json_encode
 from st2common.util.system_info import get_host_info
 import st2common.validators.api.action as action_validator
 from st2common.rbac.types import PermissionType
@@ -82,8 +84,8 @@ class ActionsController(resource.ContentPackResourceController):
         super(ActionsController, self).__init__(*args, **kwargs)
         self._trigger_dispatcher = TriggerDispatcher(LOG)
 
-    @request_user_has_permission(permission_type=PermissionType.ACTION_LIST)
-    @jsexpose()
+    # @request_user_has_permission(permission_type=PermissionType.ACTION_LIST)
+    # @jsexpose()
     def get_all(self, exclude_attributes=None, **kwargs):
         if exclude_attributes:
             exclude_fields = exclude_attributes.split(',')
@@ -93,13 +95,13 @@ class ActionsController(resource.ContentPackResourceController):
         exclude_fields = self._validate_exclude_fields(exclude_fields)
         return super(ActionsController, self)._get_all(exclude_fields=exclude_fields, **kwargs)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_VIEW)
-    @jsexpose(arg_types=[str])
+    # @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_VIEW)
+    # @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return super(ActionsController, self)._get_one(ref_or_id)
 
-    @jsexpose(body_cls=ActionCreateAPI, status_code=http_client.CREATED)
-    @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_CREATE)
+    # @jsexpose(body_cls=ActionCreateAPI, status_code=http_client.CREATED)
+    # @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_CREATE)
     def post(self, action):
         """
             Create a new action.
@@ -141,12 +143,15 @@ class ActionsController(resource.ContentPackResourceController):
         LOG.audit('Action created. Action.id=%s' % (action_db.id), extra=extra)
         action_api = ActionAPI.from_model(action_db)
 
-        return action_api
+        resp = Response(body=json_encode(action_api), status=http_client.CREATED)
+        resp.headers['Content-Type'] = 'application/json'
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_MODIFY)
-    @jsexpose(arg_types=[str], body_cls=ActionUpdateAPI)
-    def put(self, action, action_ref_or_id):
-        action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
+        return resp
+
+    # @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_MODIFY)
+    # @jsexpose(arg_types=[str], body_cls=ActionUpdateAPI)
+    def put(self, action, ref_or_id):
+        action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
         # Assert permissions
         action_id = action_db.id
@@ -177,7 +182,7 @@ class ActionsController(resource.ContentPackResourceController):
             return
 
         # Dispatch an internal trigger for each written data file. This way user
-        # automate comitting this files to git using StackStorm rule
+        # automate committing this files to git using StackStorm rule
         if written_data_files:
             self._dispatch_trigger_for_written_data_files(action_db=action_db,
                                                           written_data_files=written_data_files)
@@ -187,9 +192,9 @@ class ActionsController(resource.ContentPackResourceController):
 
         return action_api
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_DELETE)
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
-    def delete(self, action_ref_or_id):
+    # @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_DELETE)
+    # @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
+    def delete(self, ref_or_id):
         """
             Delete an action.
 
@@ -198,7 +203,7 @@ class ActionsController(resource.ContentPackResourceController):
                 DELETE /actions/1
                 DELETE /actions/mypack.myaction
         """
-        action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
+        action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         action_id = action_db.id
 
         try:
@@ -207,7 +212,7 @@ class ActionsController(resource.ContentPackResourceController):
             abort(http_client.BAD_REQUEST, str(e))
 
         LOG.debug('DELETE /actions/ lookup with ref_or_id=%s found object: %s',
-                  action_ref_or_id, action_db)
+                  ref_or_id, action_db)
 
         try:
             Action.delete(action_db)
@@ -219,7 +224,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         extra = {'action_db': action_db}
         LOG.audit('Action deleted. Action.id=%s' % (action_db.id), extra=extra)
-        return None
+        return Response(status=http_client.NO_CONTENT)
 
     def _handle_data_files(self, pack_ref, data_files):
         """
@@ -307,3 +312,5 @@ class ActionsController(resource.ContentPackResourceController):
                 'host_info': host_info
             }
             self._trigger_dispatcher.dispatch(trigger=trigger, payload=payload)
+
+actions_controller = ActionsController()

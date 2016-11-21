@@ -17,6 +17,7 @@ from mongoengine import ValidationError
 from pecan import abort
 from pecan.rest import RestController
 import six
+from webob import Response
 
 from st2api.controllers import resource
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -27,6 +28,7 @@ from st2common.models.api.base import jsexpose
 from st2common.models.utils import action_param_utils
 from st2common.persistence.action import Action
 from st2common.persistence.runner import RunnerType
+from st2common.util.jsonify import json_encode
 
 http_client = six.moves.http_client
 
@@ -65,7 +67,7 @@ class LookupUtils(object):
 
 class ParametersViewController(RestController):
 
-    @jsexpose(arg_types=[str], status_code=http_client.OK)
+    # @jsexpose(arg_types=[str], status_code=http_client.OK)
     def get_one(self, action_id):
         return self._get_one(action_id)
 
@@ -98,7 +100,7 @@ class OverviewController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @jsexpose(arg_types=[str])
+    # @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         """
             List action by id.
@@ -106,10 +108,15 @@ class OverviewController(resource.ContentPackResourceController):
             Handle:
                 GET /actions/views/overview/1
         """
-        action_api = super(OverviewController, self)._get_one(ref_or_id)
-        return self._transform_action_api(action_api)
+        result = super(OverviewController, self)._get_one(ref_or_id)
+        resp = Response(body=json_encode(result))
+        resp.headers['Content-Type'] = 'application/json'
+        action_api = resp.json
+        result = self._transform_action_api(action_api)
+        resp.body = json_encode(result)
+        return resp
 
-    @jsexpose(arg_types=[str])
+    # @jsexpose(arg_types=[str])
     def get_all(self, **kwargs):
         """
             List all actions.
@@ -117,13 +124,16 @@ class OverviewController(resource.ContentPackResourceController):
             Handles requests:
                 GET /actions/views/overview
         """
-        action_apis = super(OverviewController, self)._get_all(**kwargs)
-        return map(self._transform_action_api, action_apis)
+        resp = super(OverviewController, self)._get_all(**kwargs)
+        action_apis = resp.json
+        result = map(self._transform_action_api, action_apis)
+        resp.body = json_encode(result)
+        return resp
 
     @staticmethod
     def _transform_action_api(action_api):
-        action_id = action_api.id
-        action_api.parameters = ParametersViewController._get_one(action_id).get('parameters')
+        action_id = action_api['id']
+        action_api['parameters'] = ParametersViewController._get_one(action_id).get('parameters')
         return action_api
 
 
@@ -133,11 +143,11 @@ class EntryPointController(resource.ContentPackResourceController):
 
     supported_filters = {}
 
-    @jsexpose()
-    def get_all(self, **kwargs):
-        return abort(404)
+    # @jsexpose()
+    # def get_all(self, **kwargs):
+    #     return abort(404)
 
-    @jsexpose(arg_types=[str], content_type='text/plain', status_code=http_client.OK)
+    # @jsexpose(arg_types=[str], content_type='text/plain', status_code=http_client.OK)
     def get_one(self, ref_or_id):
         """
             Outputs the file associated with action entry_point
@@ -167,3 +177,7 @@ class ActionViewsController(RestController):
     parameters = ParametersViewController()
     overview = OverviewController()
     entry_point = EntryPointController()
+
+parameters_view_controller = ParametersViewController()
+overview_controller = OverviewController()
+entry_point_controller = EntryPointController()

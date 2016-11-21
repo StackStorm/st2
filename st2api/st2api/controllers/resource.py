@@ -24,12 +24,15 @@ import pecan
 from pecan import rest
 import six
 from six.moves import http_client
+from webob import Response
 
 from st2common.models.api.base import jsexpose
 from st2common import log as logging
 from st2common.models.system.common import InvalidResourceReferenceError
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.util.jsonify import json_encode
+from st2common.util import schema as util_schema
 
 LOG = logging.getLogger(__name__)
 
@@ -56,6 +59,23 @@ DEFAULT_FILTER_TRANSFORM_FUNCTIONS = {
     # (e.g. ?id=1,2,3)
     'id': split_id_value
 }
+
+
+def parameter_validation(validator, properties, instance, schema):
+    parameter_specific_schema = {
+        "description": "Input parameters for the action.",
+        "type": "object",
+        "patternProperties": {
+            "^\w+$": util_schema.get_action_parameters_schema()
+        },
+        'additionalProperties': False,
+        "default": {}
+    }
+
+    parameter_specific_validator = util_schema.CustomValidator(parameter_specific_schema)
+
+    for error in parameter_specific_validator.iter_errors(instance=instance):
+        yield error
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -176,38 +196,40 @@ class ResourceController(rest.RestController):
             'offset': offset,
             'limit': limit
         }
-        LOG.info('GET all %s with filters=%s' % (pecan.request.path, filters), extra=extra)
+        # LOG.info('GET all %s with filters=%s' % (pecan.request.path, filters), extra=extra)
 
         instances = self.access.query(exclude_fields=exclude_fields, **filters)
         if limit == 1:
             # Perform the filtering on the DB side
             instances = instances.limit(limit)
 
-        if limit:
-            pecan.response.headers['X-Limit'] = str(limit)
-        pecan.response.headers['X-Total-Count'] = str(instances.count())
-
         from_model_kwargs = from_model_kwargs or {}
-        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
 
         result = []
         for instance in instances[offset:eop]:
             item = self.model.from_model(instance, **from_model_kwargs)
             result.append(item)
 
-        return result
+        resp = Response(body=json_encode(result))
+        resp.headers['Content-Type'] = 'application/json'
+        resp.headers['X-Total-Count'] = str(instances.count())
+        if limit:
+            resp.headers['X-Limit'] = str(limit)
+
+        return resp
 
     def _get_one(self, id, exclude_fields=None):
         # Note: This is here for backward compatibility reasons
         return self._get_one_by_id(id=id, exclude_fields=exclude_fields)
 
-    def _get_one_by_id(self, id, exclude_fields=None, from_model_kwargs=None):
+    def _get_one_by_id(self, id, exclude_fields=None, from_model_kwargs=None, **kwargs):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
 
-        LOG.info('GET %s with id=%s', pecan.request.path, id)
+        # LOG.info('GET %s with id=%s', pecan.request.path, id)
 
         instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields)
 
@@ -216,19 +238,19 @@ class ResourceController(rest.RestController):
             pecan.abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = from_model_kwargs or {}
-        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
         result = self.model.from_model(instance, **from_model_kwargs)
-        LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
+        # LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
 
-    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None, from_model_kwargs=None):
+    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None, from_model_kwargs=None, **kwargs):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
 
-        LOG.info('GET %s with name_or_id=%s', pecan.request.path, name_or_id)
+        # LOG.info('GET %s with name_or_id=%s', pecan.request.path, name_or_id)
 
         instance = self._get_by_name_or_id(name_or_id=name_or_id, exclude_fields=exclude_fields)
 
@@ -237,14 +259,14 @@ class ResourceController(rest.RestController):
             pecan.abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = from_model_kwargs or {}
-        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
         result = self.model.from_model(instance, **from_model_kwargs)
-        LOG.debug('GET %s with name_or_id=%s, client_result=%s', pecan.request.path, id, result)
+        # LOG.debug('GET %s with name_or_id=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
 
-    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None):
-        LOG.info('GET %s with pack_ref=%s', pecan.request.path, pack_ref)
+    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None, **kwargs):
+        # LOG.info('GET %s with pack_ref=%s', pecan.request.path, pack_ref)
 
         instance = self._get_by_pack_ref(pack_ref=pack_ref, exclude_fields=exclude_fields)
 
@@ -253,9 +275,9 @@ class ResourceController(rest.RestController):
             pecan.abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = from_model_kwargs or {}
-        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
         result = self.model.from_model(instance, **from_model_kwargs)
-        LOG.debug('GET %s with pack_ref=%s, client_result=%s', pecan.request.path, id, result)
+        # LOG.debug('GET %s with pack_ref=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
 
@@ -299,7 +321,7 @@ class ResourceController(rest.RestController):
 
         return resource_db
 
-    def _get_from_model_kwargs_for_request(self, request):
+    def _get_from_model_kwargs_for_request(self, **kwargs):
         """
         Retrieve kwargs which are passed to "LiveActionAPI.model" method.
 
@@ -359,8 +381,8 @@ class ContentPackResourceController(ResourceController):
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
-    def _get_one(self, ref_or_id, exclude_fields=None, from_model_kwargs=None):
-        LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
+    def _get_one(self, ref_or_id, exclude_fields=None, from_model_kwargs=None, **kwargs):
+        # LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
 
         try:
             instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
@@ -370,28 +392,30 @@ class ContentPackResourceController(ResourceController):
             return
 
         from_model_kwargs = from_model_kwargs or {}
-        from_model_kwargs.update(self._get_from_model_kwargs_for_request(request=pecan.request))
+        from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
         result = self.model.from_model(instance, **from_model_kwargs)
         if result and self.include_reference:
             pack = getattr(result, 'pack', None)
             name = getattr(result, 'name', None)
             result.ref = ResourceReference(pack=pack, name=name).ref
 
-        LOG.debug('GET %s with ref_or_id=%s, client_result=%s',
-                  pecan.request.path, ref_or_id, result)
+        # LOG.debug('GET %s with ref_or_id=%s, client_result=%s',
+        #           pecan.request.path, ref_or_id, result)
 
         return result
 
     def _get_all(self, **kwargs):
-        result = super(ContentPackResourceController, self)._get_all(**kwargs)
+        resp = super(ContentPackResourceController, self)._get_all(**kwargs)
 
         if self.include_reference:
+            result = resp.json
             for item in result:
-                pack = getattr(item, 'pack', None)
-                name = getattr(item, 'name', None)
-                item.ref = ResourceReference(pack=pack, name=name).ref
+                pack = item.get('pack', None)
+                name = item.get('name', None)
+                item['ref'] = ResourceReference(pack=pack, name=name).ref
+            resp.body = json_encode(result)
 
-        return result
+        return resp
 
     def _get_by_ref_or_id(self, ref_or_id, exclude_fields=None):
         """

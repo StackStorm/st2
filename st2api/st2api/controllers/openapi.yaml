@@ -1,0 +1,957 @@
+swagger: '2.0'
+
+info:
+  version: "1.0.0"
+  title: StackStorm st2api API
+
+basePath: /v1
+
+paths:
+  /actions:
+    get:
+      operationId: st2api.controllers.v1.actions:actions_controller.get_all
+      x-permissions: action_list
+      description: Returns a list of all actions.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+        - name: id
+          in: query
+          description: Action id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Action name filter
+          type: string
+        - name: pack
+          in: query
+          description: Action pack name filter
+          type: string
+      responses:
+        '200':
+          description: List of actions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.actions:actions_controller.post
+      x-permissions: action_create
+      description: |
+        Create a new action.
+      parameters:
+        - name: action
+          in: body
+          description: Action content
+          schema:
+            $ref: '#/definitions/ActionCreateRequest'
+      responses:
+        '200':
+          description: Single action being created
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /actions/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.actions:actions_controller.get_one
+      x-permissions: action_view
+      description: |
+        Get one action.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Action requested
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.actions:actions_controller.put
+      x-permissions: action_modify
+      description: |
+        Update an action.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: action
+          in: body
+          description: Action content
+          schema:
+            $ref: '#/definitions/ActionUpdateRequest'
+      responses:
+        '200':
+          description: Action updated
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.actions:actions_controller.delete
+      x-permissions: action_delete
+      description: |
+        Delete an action.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '204':
+          description: Action deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /actions/views/parameters/{action_id}:
+    get:
+      operationId: st2api.controllers.v1.actionviews:parameters_view_controller.get_one
+      x-permissions: action_view
+      description: |
+        Get parameters for an action.
+      parameters:
+        - name: action_id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: An object containing action parameters
+          schema:
+            $ref: '#/definitions/ActionParameters'
+          examples:
+            application/json:
+              parameters:
+                cmd:
+                  type: string
+                # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /actions/views/overview:
+    get:
+      operationId: st2api.controllers.v1.actionviews:overview_controller.get_all
+      x-permissions: action_list
+      description: Returns a list of all the actions with runner parameters included.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+        - name: id
+          in: query
+          description: Action id filter
+          type: string
+        - name: name
+          in: query
+          description: Action name filter
+          type: string
+        - name: pack
+          in: query
+          description: Action pack name filter
+          type: string
+      responses:
+        '200':
+          description: List of actions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /actions/views/overview/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.actionviews:overview_controller.get_one
+      x-permissions: action_view
+      description: |
+        Get one action with runner parameters included.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Action requested
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /actions/views/entry_point/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.actionviews:entry_point_controller.get_one
+      x-permissions: action_view
+      description: |
+        Get code of the action's entry_point.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Entry point code
+          schema:
+            type: string
+          examples:
+            text/plain: |-
+              # Licensed to the StackStorm, Inc ('StackStorm') under one or more
+              # contributor license agreements.  See the NOTICE file distributed with
+              # this work for additional information regarding copyright ownership.
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /executions:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_all
+      x-permissions: execution_list
+      description: Returns a list of all executions.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: sort_asc
+          in: query
+          description: Sort in ascending order
+          type: string
+        - name: sort_desc
+          in: query
+          description: Sort in descending order
+          type: string
+        - name: id
+          in: query
+          description: Execution id filter
+          type: array
+          items:
+            type: string
+        - name: status
+          in: query
+          description: Execution status filter
+          type: string
+        - name: parent
+          in: query
+          description: Parent execution filter
+          type: string
+        - name: trigger_type
+          in: query
+          description: Trigger type filter
+          type: string
+        - name: trigger
+          in: query
+          description: Trigger filter
+          type: string
+        - name: trigger_instance
+          in: query
+          description: Trigger instance filter
+          type: string
+        - name: rule
+          in: query
+          description: Rule filter
+          type: string
+        - name: action
+          in: query
+          description: Action ref filter
+          type: string
+        - name: runner
+          in: query
+          description: Runner filter
+          type: string
+        - name: user
+          in: query
+          description: User filter
+          type: string
+        - name: liveaction
+          in: query
+          description: Liveaction id filter
+          type: string
+        - name: timestamp
+          in: query
+          description: Start timestamp filter
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+        - name: timestamp_lt
+          in: query
+          description: Start timestamp less than filter
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+        - name: timestamp_gt
+          in: query
+          description: Start timestamp greater than filter
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+      responses:
+        '200':
+          description: List of executions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Execution'
+          examples:
+            application/json:
+              - trigger:
+                  type: object
+                action:
+                  type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.post
+      x-permissions: action_execute
+      description: |
+        Create a new execution.
+      parameters:
+        - name: liveaction_api
+          in: body
+          description: Execution request
+          schema:
+            $ref: '#/definitions/ExecutionRequest'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+        - name: st2-context
+          in: header
+          description: Additional execution context
+          type: string
+      x-parameters:
+        - name: user
+          in: context
+          description: User running the action
+      responses:
+        '200':
+          description: Single action being created
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              trigger:
+                type: object
+              action:
+                type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /executions/{id}:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_one
+      x-permissions: execution_view
+      description: |
+        Get one execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Execution requested
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              trigger:
+                type: object
+              action:
+                type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.delete
+      x-permissions: execution_stop
+      description: |
+        Cancel an execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          description: User running the action
+      responses:
+        '204':
+          description: Execution cancelled
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /executions/{id}/re_run:
+    post:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_rerun_controller.post
+      x-permissions: action_execute
+      description: |
+        Create a new execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: spec_api
+          in: body
+          description: Execution request
+          schema:
+            type: object
+            properties:
+              parameters:
+                type: object
+                default: {}
+              tasks:
+                type: array
+                default: []
+              reset:
+                type: array
+                default: []
+              user:
+                type: string
+                default: ''
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          description: User running the action
+      responses:
+        '200':
+          description: Single action being created
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              trigger:
+                type: object
+              action:
+                type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /executions/{id}/attribute/{attribute}:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_attribute_controller.get_one
+      x-permissions: execution_view
+      description: |
+        Get one execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: attribute
+          in: path
+          description: Attribute to fetch
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Execution attribute requested
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              trigger:
+                type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /executions/{id}/children:
+    get:
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_children_controller.get_one
+      x-permissions: execution_view
+      description: |
+        Get one execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: depth
+          in: query
+          description: Depth to fetch
+          type: integer
+          default: -1
+        - name: result_fmt
+          in: query
+          description: Result format
+          type: string
+      responses:
+        '200':
+          description: Execution attribute requested
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              trigger:
+                type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /executions/views/filters:
+    get:
+      operationId: st2api.controllers.v1.executionviews:filters_controller.get_all
+      x-permissions: execution_view
+      description: |
+        Get a list of distinct values for the execution filters.
+      parameters:
+        - name: types
+          in: query
+          description: List of types of filters to return
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: A number of distinct values for the requested filters
+          schema:
+            $ref: '#/definitions/Action'
+          examples:
+            application/json:
+              trigger:
+                type: object
+              action:
+                type: object
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+definitions:
+  Action:
+    type: object
+    required:
+      - name
+      - runner_type
+    properties:
+      id:
+        type: string
+        description: The unique identifier for the action.
+      ref:
+        type: string
+        description: |
+          System computed user friendly reference for the action. Provided value will be overridden by computed value.
+      uid:
+        type: string
+      name:
+        type: string
+        description: The name of the action.
+      description:
+        type: string
+        description: The description of the action.
+      enabled:
+        type: boolean
+        description: Enable or disable the action from invocation.
+        default: True
+      runner_type:
+        type: string
+        description: The type of runner that executes the action.
+      entry_point:
+        type: string
+        description: The entry point for the action.
+        default: ''
+      pack:
+        type: string
+        description: The content pack this action belongs to.
+      parameters:
+        $ref: '#/definitions/ActionParametersSubSchema'
+      tags:
+        type: array
+        description: User associated metadata assigned to this object.
+        items:
+          type: object
+      notify:
+        description: Notification settings for action.
+        type: object
+        properties:
+          on-complete: {$ref: '#/definitions/NotificationPropertySubSchema'}
+          on-failure: {$ref: '#/definitions/NotificationPropertySubSchema'}
+          on-success: {$ref: '#/definitions/NotificationPropertySubSchema'}
+        additionalProperties: False
+    # additionalProperties: false
+  ActionCreateRequest:
+    allOf:
+      - type: object
+        properties:
+          pack:
+            type: string
+            description: The content pack this action belongs to.
+            default: '{{ DEFAULT_PACK_NAME }}'
+      - $ref: '#/definitions/Action'
+      - $ref: '#/definitions/DataFilesSubSchema'
+  ActionUpdateRequest:
+    allOf:
+      - $ref: '#/definitions/Action'
+      - $ref: '#/definitions/DataFilesSubSchema'
+  ActionParameters:
+    type: object
+    properties:
+      parameters:
+        $ref: '#/definitions/ActionParametersSubSchema'
+  Execution:
+    title: ActionExecution
+    description: Record of the execution of an action.
+    type: object
+    properties:
+      id:
+        type: string
+      trigger:
+        $ref: '#/definitions/Trigger'
+      trigger_type:
+        $ref: '#/definitions/TriggerType'
+      trigger_instance:
+        $ref: '#/definitions/TriggerInstance'
+      rule:
+        $ref: '#/definitions/Rule'
+      action:
+        $ref: '#/definitions/Action'
+      runner:
+        $ref: '#/definitions/RunnerType'
+      liveaction:
+        $ref: '#/definitions/LiveAction'
+      status:
+        description: The current status of the action execution.
+        type: string
+        enum: {{ LIVEACTION_STATUSES }}
+      start_timestamp:
+        description: The start time when the action is executed.
+        type: string
+        pattern: {{ ISO8601_UTC_REGEX }}
+      end_timestamp:
+        description: The timestamp when the action has finished.
+        type: string
+        pattern: {{ ISO8601_UTC_REGEX }}
+      elapsed_seconds:
+        description: Time duration in seconds taken for completion of this execution.
+        type: number
+#        required: False
+      web_url:
+        description: History URL for this execution if you want to view in UI.
+        type: string
+#        required: False
+      parameters:
+        description: Input parameters for the action.
+        type: object
+#        patternProperties:
+#          ^\w+$:
+#            anyOf:
+#              - type: array
+#              - type: boolean
+#              - type: integer
+#              - type: number
+#              - type: object
+#              - type: string
+#        additionalProperties: False
+        x-additional-check: st2api.controllers.resource:parameter_validation
+      context:
+        type: object
+      result:
+        type: object
+#        anyOf:
+#          - type: array
+#          - type: boolean
+#          - type: integer
+#          - type: number
+#          - type: object
+#          - type: string
+      parent:
+        type: string
+      children:
+        type: array
+        items:
+          type: string
+        uniqueItems: True
+      log:
+        description: Contains information about execution state transitions.
+        type: array
+        items:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              pattern: {{ ISO8601_UTC_REGEX }}
+            status:
+              type: string
+              enum: {{ LIVEACTION_STATUSES }}
+    required:
+      - id
+    additionalProperties: False
+  ExecutionRequest:
+    allOf:
+      - $ref: '#/definitions/LiveAction'
+      - type: object
+        properties:
+          user:
+            type: string
+            description: User context under which action should run (admins only)
+            default: ''
+  Trigger:
+    type: object
+  TriggerType:
+    type: object
+  TriggerInstance:
+    type: object
+  Rule:
+    type: object
+  RunnerType:
+    type: object
+  LiveAction:
+    title: liveaction
+    description: An execution of an action.
+    type: object
+    properties:
+      id:
+        description: The unique identifier for the action execution.
+        type: string
+      status:
+        description: The current status of the action execution.
+        type: string
+        enum: {{ LIVEACTION_STATUSES }}
+      start_timestamp:
+        description: The start time when the action is executed.
+        type: string
+        pattern: {{ ISO8601_UTC_REGEX }}
+      end_timestamp:
+        description: The timestamp when the action has finished.
+        type: string
+        pattern: {{ ISO8601_UTC_REGEX }}
+      action:
+        description: Reference to the action to be executed.
+        type: string
+      parameters:
+        description: Input parameters for the action.
+        type: object
+        # patternProperties:
+        #   ^\w+$:
+        #     anyOf: [
+        #       type: array
+        #       type: boolean
+        #       type: integer
+        #       type: number
+        #       type: object
+        #       type: string
+        #       type: null
+        #     ]
+        # 'additionalProperties': False
+      result:
+        type: object
+        # anyOf: [type: array
+        #      type: boolean
+        #      type: integer
+        #      type: number
+        #      type: object
+        #      type: string]
+      context:
+        type: object
+      callback:
+        type: object
+      runner_info:
+        type: object
+      notify:
+        description: Notification settings for liveaction.
+        type: object
+        properties:
+          on-complete: {$ref: '#/definitions/NotificationPropertySubSchema'}
+          on-failure: {$ref: '#/definitions/NotificationPropertySubSchema'}
+          on-success: {$ref: '#/definitions/NotificationPropertySubSchema'}
+        additionalProperties: False
+    additionalProperties: False
+    required:
+      - action
+  ActionParametersSubSchema:
+    type: object
+    description: Input parameters for the action.
+    # patternProperties:
+    #     ^\w+$:
+    #       type: object  # util_schema.get_action_parameters_schema() is too complex for now
+    # additionalProperties: False
+    x-additional-check: st2api.controllers.resource:parameter_validation
+    default: {}
+  DataFilesSubSchema:
+    type: object
+    properties:
+      data_files:
+        description: Optional action script and data files which are written to the filesystem.
+        type: array
+        items:
+          type: object
+          required:
+            - file_path
+            - content
+          properties:
+            file_path:
+              type: string
+            content:
+              type: string
+          additionalProperties: False
+        default: []
+    # additionalProperties: false
+  NotificationPropertySubSchema:
+    type: object
+    properties:
+      message:
+        type: string
+        description: Message to use for notification
+      data:
+        type: object
+        description: Data to be sent as part of notification
+      routes:
+        type: array
+        description: Channels to post notifications to.
+        items:
+          type: string
+      channels:  # Deprecated. Only here for backward compatibility.
+        type: array
+        description: Channels to post notifications to.
+        items:
+          type: string
+    additionalProperties: false
+  Error:
+    type: object
+    properties:
+      faultstring:
+        type: string
+
+securityDefinitions:
+  X-Auth-Token:
+    description: Header representing user's short-lived access token.
+    type: apiKey
+    name: X-Auth-Token
+    in: header
+    x-operationId: st2common.util.auth:validate_token
+  St2-Api-Key:
+    description: Header representing service's long-lived API key.
+    type: apiKey
+    name: St2-Api-Key
+    in: header
+    x-operationId: st2common.util.auth:validate_api_key
+  x-auth-token:
+    description: Query parameter representing user's short-lived access token. Used as a backup authentication strategy for environments where it is impossible to provide a header.
+    type: apiKey
+    name: x-auth-token
+    in: query
+    x-operationId: st2common.util.auth:validate_token
+  st2-api-key:
+    description: Query parameter representing service's long-lived API key. Used as a backup authentication strategy for environments where it is impossible to provide a header.
+    type: apiKey
+    name: st2-api-key
+    in: query
+    x-operationId: st2common.util.auth:validate_api_key
+
+security:
+  - X-Auth-Token: []
+  - St2-Api-Key: []
+  - x-auth-token: []
+  - st2-api-key: []

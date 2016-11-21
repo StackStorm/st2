@@ -240,7 +240,7 @@ class BasePacksController(ResourceController):
             pecan.abort(http_client.NOT_FOUND, msg)
             return
 
-        from_model_kwargs = self._get_from_model_kwargs_for_request(request=pecan.request)
+        from_model_kwargs = self._get_from_model_kwargs_for_request(**kwargs)
         result = self.model.from_model(instance, **from_model_kwargs)
         LOG.debug('GET %s with ref_or_id=%s, client_result=%s', pecan.request.path, ref_or_id,
                   result)

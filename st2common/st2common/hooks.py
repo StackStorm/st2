@@ -19,6 +19,7 @@ import traceback
 import uuid
 
 import webob
+import mongoengine
 from oslo_config import cfg
 from pecan.hooks import PecanHook
 from six.moves.urllib import parse as urlparse
@@ -261,7 +262,7 @@ class JSONErrorResponseHook(PecanHook):
         elif isinstance(e, rbac_exceptions.AccessDeniedError):
             status_code = httplib.FORBIDDEN
             message = str(e)
-        elif isinstance(e, (ValueValidationException, ValueError)):
+        elif isinstance(e, (ValueValidationException, ValueError, mongoengine.ValidationError)):
             status_code = httplib.BAD_REQUEST
             message = getattr(e, 'message', str(e))
         else:

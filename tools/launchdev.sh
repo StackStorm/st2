@@ -164,8 +164,8 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-api...'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-api ./virtualenv/bin/gunicorn_pecan \
-            ./st2api/st2api/gunicorn_config.py -k eventlet -b "$BINDING_ADDRESS:9101" --workers 1
+        screen -d -m -S st2-api ./virtualenv/bin/gunicorn \
+            st2api.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
     else
         screen -d -m -S st2-api ./virtualenv/bin/python \
             ./st2api/bin/st2api \

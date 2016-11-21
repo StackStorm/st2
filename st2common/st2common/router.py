@@ -22,7 +22,7 @@ import traceback
 
 import jsonschema
 import routes
-from swagger_spec_validator.validator20 import validate_spec, deref
+from swagger_spec_validator.validator20 import validate_spec
 from webob import exc, Request, Response
 
 from st2common.exceptions import auth as auth_exc
@@ -42,6 +42,38 @@ def op_resolver(op_id):
 
 def abort_unauthorized(msg=None):
     raise exc.HTTPUnauthorized('Unauthorized - %s' % msg if msg else 'Unauthorized')
+
+
+def extend_with_default(validator_class):
+    validate_properties = validator_class.VALIDATORS["properties"]
+
+    def set_defaults(validator, properties, instance, schema):
+        for property, subschema in six.iteritems(properties):
+            if "default" in subschema:
+                instance.setdefault(property, subschema["default"])
+
+        for error in validate_properties(
+            validator, properties, instance, schema,
+        ):
+            yield error
+
+    return jsonschema.validators.extend(
+        validator_class, {"properties": set_defaults},
+    )
+
+
+def extend_with_additional_check(validator_class):
+    def set_additional_check(validator, properties, instance, schema):
+        ref = schema.get("x-additional-check")
+        func = op_resolver(ref)
+        for error in func(validator, properties, instance, schema):
+            yield error
+
+    return jsonschema.validators.extend(
+        validator_class, {"x-additional-check": set_additional_check},
+    )
+
+CustomValidator = extend_with_default(extend_with_additional_check(jsonschema.Draft4Validator))
 
 
 class NotFoundException(Exception):
@@ -78,8 +110,9 @@ class ErrorHandlingMiddleware(object):
 
 
 class Router(object):
-    def __init__(self, arguments=None, debug=False):
+    def __init__(self, arguments=None, debug=False, auth=True):
         self.debug = debug
+        self.auth = auth
 
         self.arguments = arguments or {}
 
@@ -123,16 +156,15 @@ class Router(object):
         path = path_vars.pop('_api_path')
         method = path_vars.pop('_api_method')
         endpoint = self.spec['paths'][path][method]
+        context = {}
 
         # Handle security
-        user = None
-
         if 'security' in endpoint:
             security = endpoint.get('security')
         else:
             security = self.spec.get('security', [])
 
-        if security:
+        if self.auth and security:
             try:
                 security_definitions = self.spec.get('securityDefinitions', {})
                 for statement in security:
@@ -151,9 +183,9 @@ class Router(object):
                             auth_func = op_resolver(definition['x-operationId'])
                             auth_resp = auth_func(token)
 
-                            user = auth_resp.user
+                            context['user'] = auth_resp.user
 
-                if not user:
+                if not context['user']:
                     raise auth_exc.NoAuthSourceProvidedError('One of Token or API key required.')
             except (auth_exc.NoAuthSourceProvidedError,
                     auth_exc.MultipleAuthSourcesError) as e:
@@ -184,18 +216,19 @@ class Router(object):
             name = param['name']
             type = param['in']
             required = param.get('required', False)
+            default = param.get('default', None)
 
             if type == 'query':
-                kw[name] = req.GET.get(name)
+                kw[name] = req.GET.get(name, default)
             elif type == 'path':
                 kw[name] = path_vars[name]
             elif type == 'header':
-                kw[name] = req.headers.get(name)
+                kw[name] = req.headers.get(name, default)
             elif type == 'body':
                 if req.body:
                     data = req.json
                     try:
-                        jsonschema.validate(data, deref(param['schema'], self.spec_resolver))
+                        CustomValidator(param['schema'], resolver=self.spec_resolver).validate(data)
                     except (jsonschema.ValidationError, ValueError) as e:
                         raise exc.HTTPBadRequest(detail=e.message,
                                                  comment=traceback.format_exc())
@@ -208,9 +241,11 @@ class Router(object):
                 else:
                     kw[name] = None
             elif type == 'formData':
-                kw[name] = req.POST.get(name)
+                kw[name] = req.POST.get(name, default)
             elif type == 'environ':
-                kw[name] = req.environ.get(name.upper())
+                kw[name] = req.environ.get(name.upper(), default)
+            elif type == 'context':
+                kw[name] = context.get(name, default)
 
             if required and not kw[name]:
                 detail = 'Required parameter "%s" is missing' % name
@@ -226,6 +261,8 @@ class Router(object):
                 resp = Response(json_encode(resp), content_type='application/json')
 
             return resp
+        else:
+            return Response()
 
     def as_wsgi(self, environ, start_response):
         """Invoke router as an wsgi application."""
