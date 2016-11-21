@@ -111,20 +111,19 @@ class ContentPackConfigLoader(object):
         :rtype: ``dict``
         """
         for config_item_key, config_item_value in six.iteritems(config):
-            config_schema_item = schema.get(config_item_key, {})
+            schema_item = schema.get(config_item_key, {})
             is_dictionary = isinstance(config_item_value, dict)
 
             # Inspect nested object properties
             if is_dictionary:
-                self._assign_dynamic_config_values(schema=config_schema_item,
+                self._assign_dynamic_config_values(schema=schema_item.get('properties', {}),
                                                    config=config[config_item_key])
             else:
                 is_jinja_expression = jinja_utils.is_jinja_expression(value=config_item_value)
 
                 if is_jinja_expression:
-                    config_schema_item = schema.get(config_item_key, {})
                     value = self._get_datastore_value_for_expression(value=config_item_value,
-                        config_schema_item=config_schema_item)
+                        config_schema_item=schema_item)
                     config[config_item_key] = value
                 else:
                     # Static value, no resolution needed
