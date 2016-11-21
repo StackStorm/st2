@@ -95,7 +95,7 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
     def test_get_config_nested_schema_default_values_from_config_schema_are_used(self):
         # Special case for more complex config schemas with attributes ntesting.
         # Validate that the default values are also used for one level nested object properties.
-        pack_name = 'dummy_pack_schema_with_nested_object'
+        pack_name = 'dummy_pack_schema_with_nested_object_1'
 
         # 1. None of the nested object values are provided
         loader = ContentPackConfigLoader(pack_name=pack_name)
@@ -114,15 +114,7 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
         self.assertEqual(config, expected_config)
 
         # 2. Some of the nested object values are provided (host, port)
-        config_db = Config.get_by_pack(value=pack_name)
-        original_values = copy.deepcopy(config_db.values)
-
-        config_db.values = {}
-        config_db.values.update(original_values)
-        config_db.values['auth_settings'] = {}
-        config_db.values['auth_settings']['host'] = '127.0.0.6'
-        config_db.values['auth_settings']['port'] = 9090
-        config_db = Config.add_or_update(config_db)
+        pack_name = 'dummy_pack_schema_with_nested_object_2'
 
         loader = ContentPackConfigLoader(pack_name=pack_name)
         config = loader.get_config()
