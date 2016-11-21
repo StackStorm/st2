@@ -33,3 +33,6 @@
             - "a"
             - "b"
             - "c"
+      token:
+        type: "string"
+        required: true
