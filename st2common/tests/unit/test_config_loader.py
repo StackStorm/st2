@@ -13,9 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2tests.base import DbTestCase
+from st2common.persistence.pack import Config
+from st2common.models.db.pack import ConfigDB
 from st2common.services.config import set_datastore_value_for_config_key
 from st2common.util.config_loader import ContentPackConfigLoader
+
+from st2tests.base import DbTestCase
 
 __all__ = [
     'ContentPackConfigLoaderTestCase'
@@ -205,3 +208,51 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
             }
         }
         self.assertEqual(config, expected_config)
+
+    def test_get_config_dynamic_config_item_render_fails_user_friendly_exception_is_thrown(self):
+        pack_name = 'dummy_pack_schema_with_nested_object_5'
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+
+        # Render fails on top-level item
+        values = {
+            'level0_key': '{{st2kvXX.invalid}}'
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        expected_msg = ('Failed to render dynamic configuration value for key "level0_key" with '
+                        'value "{{st2kvXX.invalid}}": \'st2kvXX\' is undefined')
+        self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
+        config_db.delete()
+
+        # Renders fails on fist level item
+        values = {
+            'level0_object': {
+                'level1_key': '{{st2kvXX.invalid}}'
+            }
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        Config.add_or_update(config_db)
+
+        expected_msg = ('Failed to render dynamic configuration value for key '
+                        '"level0_object.level1_key" with value "{{st2kvXX.invalid}}": '
+                        '\'st2kvXX\' is undefined')
+        self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
+        config_db.delete()
+
+        # Renders fails on second level item
+        values = {
+            'level0_object': {
+                'level1_object': {
+                    'level2_key': '{{st2kvXX.invalid}}'
+                }
+            }
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        Config.add_or_update(config_db)
+
+        expected_msg = ('Failed to render dynamic configuration value for key '
+                        '"level0_object.level1_object.level2_key" with value "{{st2kvXX.invalid}}"'
+                        ': \'st2kvXX\' is undefined')
+        self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
+        config_db.delete()
