@@ -13,10 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-
 from st2tests.base import DbTestCase
-from st2common.persistence.pack import Config
 from st2common.services.config import set_datastore_value_for_config_key
 from st2common.util.config_loader import ContentPackConfigLoader
 
@@ -129,4 +126,30 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
                 'device_uids': ['a', 'b', 'c']
             }
         }
+        self.assertEqual(config, expected_config)
+
+        # 3. Nested attribute (auth_settings.token) references a datastore value
+        pack_name = 'dummy_pack_schema_with_nested_object_3'
+
+        kvp_db = set_datastore_value_for_config_key(pack_name=pack_name,
+                                                    key_name='auth_settings_token',
+                                                    value='some_auth_settings_token')
+        self.assertEqual(kvp_db.value, 'some_auth_settings_token')
+        self.assertFalse(kvp_db.secret)
+
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+
+        expected_config = {
+            'api_key': '',
+            'api_secret': '',
+            'regions': ['us-west-1', 'us-east-1'],
+            'auth_settings': {
+                'host': '127.0.0.10',
+                'port': 8080,
+                'device_uids': ['a', 'b', 'c'],
+                'token': 'some_auth_settings_token'
+            }
+        }
+
         self.assertEqual(config, expected_config)
