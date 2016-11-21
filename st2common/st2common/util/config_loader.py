@@ -102,7 +102,7 @@ class ContentPackConfigLoader(object):
         config = self._assign_default_values(schema=schema_values, config=config)
         return config
 
-    def _assign_dynamic_config_values(self, schema, config):
+    def _assign_dynamic_config_values(self, schema, config, parent_keys=None):
         """
         Assign dynamic config value for a particular config item if the ite utilizes a Jinja
         expression for dynamic config values.
@@ -111,20 +111,28 @@ class ContentPackConfigLoader(object):
 
         :rtype: ``dict``
         """
+        parent_keys = parent_keys or []
+
         for config_item_key, config_item_value in six.iteritems(config):
             schema_item = schema.get(config_item_key, {})
             is_dictionary = isinstance(config_item_value, dict)
 
             # Inspect nested object properties
             if is_dictionary:
+                parent_keys += [config_item_key]
                 self._assign_dynamic_config_values(schema=schema_item.get('properties', {}),
-                                                   config=config[config_item_key])
+                                                   config=config[config_item_key],
+                                                   parent_keys=parent_keys)
             else:
                 is_jinja_expression = jinja_utils.is_jinja_expression(value=config_item_value)
 
                 if is_jinja_expression:
-                    value = self._get_datastore_value_for_expression(value=config_item_value,
+                    # Resolve / render the Jinja template expression
+                    full_config_item_key = '.'.join(parent_keys + [config_item_key])
+                    value = self._get_datastore_value_for_expression(key=full_config_item_key,
+                        value=config_item_value,
                         config_schema_item=schema_item)
+
                     config[config_item_key] = value
                 else:
                     # Static value, no resolution needed
@@ -160,19 +168,28 @@ class ContentPackConfigLoader(object):
 
         return config
 
-    def _get_datastore_value_for_expression(self, value, config_schema_item=None):
+    def _get_datastore_value_for_expression(self, key, value, config_schema_item=None):
         """
         Retrieve datastore value by first resolving the datastore expression and then retrieving
         the value from the datastore.
+
+        :param key: Full path to the config item key (e.g. "token" / "auth.settings.token", etc.)
         """
         from st2common.services.config import deserialize_key_value
 
         config_schema_item = config_schema_item or {}
         secret = config_schema_item.get('secret', False)
 
-        # TODO: Get key name so we can throw a more friendly exception
-        value = render_template_with_system_and_user_context(value=value,
-                                                             user=self.user)
+        try:
+            value = render_template_with_system_and_user_context(value=value,
+                                                                 user=self.user)
+        except Exception as e:
+            # Throw a more user-friendly exception on failed render
+            exc_class = type(e)
+            original_msg = str(e)
+            msg = ('Failed to render dynamic configuration value for key "%s" with value '
+                   '"%s": %s ' % (key, value, original_msg))
+            raise exc_class(msg)
 
         if value:
             # Deserialize the value
