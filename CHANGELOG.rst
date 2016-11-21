@@ -71,6 +71,8 @@ In development
   (improvement)
 * Add new ``st2-validate-pack-config`` tool for validating config file against a particular config
   schema file. (new-feature)
+* Add support for default values and dynamic config values for nested config objects. (new feature,
+  improvement)
 
 2.0.1 - September 30, 2016
 --------------------------
