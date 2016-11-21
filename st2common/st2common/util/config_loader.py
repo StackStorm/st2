@@ -91,10 +91,11 @@ class ContentPackConfigLoader(object):
     def _get_values_for_config(self, config_schema_db, config_db):
         schema_values = getattr(config_schema_db, 'attributes', {})
         config_values = getattr(config_db, 'values', {})
-        config_values = copy.deepcopy(config_values)
+
+        config = copy.deepcopy(config_values)
 
         # Assign dynamic config values based on the values in the datastore
-        config = self._assign_dynamic_config_values(schema=schema_values, config=config_values)
+        config = self._assign_dynamic_config_values(schema=schema_values, config=config)
 
         # If config_schema is available we do a second pass and set default values for required
         # items which values are not provided / available in the config itself
