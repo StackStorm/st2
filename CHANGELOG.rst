@@ -73,6 +73,8 @@ In development
   schema file. (new-feature)
 * Add support for default values and dynamic config values for nested config objects. (new feature,
   improvement)
+* Throw a more user-friendly exception if rendering a dynamic configuration value inside the config
+  fails. (improvement)
 
 2.0.1 - September 30, 2016
 --------------------------
