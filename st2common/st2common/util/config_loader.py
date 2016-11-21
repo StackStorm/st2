@@ -104,14 +104,36 @@ class ContentPackConfigLoader(object):
 
         # If config_schema is available we do a second pass and set default values for required
         # items which values are not provided / available in the config itself
-        for schema_item_key, schema_item in six.iteritems(schema_values):
+        result = self._assign_default_values(schema=schema_values, config=result)
+        return result
+
+    def _assign_default_values(self, schema, config):
+        """
+        Assign default values for particular config if default values are provided in the config
+        schema and a value is not specified in the config.
+
+        Note: This method mutates config argument in place.
+
+        :rtype: ``dict``
+        """
+        for schema_item_key, schema_item in six.iteritems(schema):
             default_value = schema_item.get('default', None)
             is_required = schema_item.get('required', False)
+            is_object = schema_item.get('type', None) == 'object'
+            has_properties = schema_item.get('properties', None)
 
-            if is_required and default_value and not result.get(schema_item_key, None):
-                result[schema_item_key] = default_value
+            if is_required and default_value and not config.get(schema_item_key, None):
+                config[schema_item_key] = default_value
 
-        return result
+            # Inspect nested object properties
+            if is_object and has_properties:
+                if not config.get(schema_item_key, None):
+                    config[schema_item_key] = {}
+
+                self._assign_default_values(schema=schema_item['properties'],
+                                            config=config[schema_item_key])
+
+        return config
 
     def _get_datastore_value_for_expression(self, value, config_schema_item=None):
         """
