@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 import six
 
 from oslo_config import cfg
@@ -89,22 +91,22 @@ class ContentPackConfigLoader(object):
     def _get_values_for_config(self, config_schema_db, config_db):
         schema_values = getattr(config_schema_db, 'attributes', {})
         config_values = getattr(config_db, 'values', {})
+        config_values = copy.deepcopy(config_values)
 
         # Assign dynamic config values based on the values in the datastore
-
-        result = {}
-        result = self._assign_dynamic_config_values(schema=schema_values,
-                config=config_values)
+        config = self._assign_dynamic_config_values(schema=schema_values, config=config_values)
 
         # If config_schema is available we do a second pass and set default values for required
         # items which values are not provided / available in the config itself
-        result = self._assign_default_values(schema=schema_values, config=result)
-        return result
+        config = self._assign_default_values(schema=schema_values, config=config)
+        return config
 
     def _assign_dynamic_config_values(self, schema, config):
         """
         Assign dynamic config value for a particular config item if the ite utilizes a Jinja
         expression for dynamic config values.
+
+        Note: This method mutates config argument in place.
 
         :rtype: ``dict``
         """
