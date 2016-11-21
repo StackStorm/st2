@@ -88,24 +88,47 @@ class ContentPackConfigLoader(object):
 
     def _get_values_for_config(self, config_schema_db, config_db):
         schema_values = getattr(config_schema_db, 'attributes', {})
+        config_values = getattr(config_db, 'values', {})
+
+        # Assign dynamic config values based on the values in the datastore
 
         result = {}
-        for config_item_key, config_item_value in six.iteritems(config_db.values):
-            is_jinja_expression = jinja_utils.is_jinja_expression(value=config_item_value)
-
-            if is_jinja_expression:
-                config_schema_item = schema_values.get(config_item_key, {})
-                value = self._get_datastore_value_for_expression(value=config_item_value,
-                    config_schema_item=config_schema_item)
-                result[config_item_key] = value
-            else:
-                # Static value, no resolution needed
-                result[config_item_key] = config_item_value
+        result = self._assign_dynamic_config_values(schema=schema_values,
+                config=config_values)
 
         # If config_schema is available we do a second pass and set default values for required
         # items which values are not provided / available in the config itself
         result = self._assign_default_values(schema=schema_values, config=result)
         return result
+
+    def _assign_dynamic_config_values(self, schema, config):
+        """
+        Assign dynamic config value for a particular config item if the ite utilizes a Jinja
+        expression for dynamic config values.
+
+        :rtype: ``dict``
+        """
+        for config_item_key, config_item_value in six.iteritems(config):
+            config_schema_item = schema.get(config_item_key, {})
+            is_dictionary = isinstance(config_item_value, dict)
+
+            # Inspect nested object properties
+            if is_dictionary:
+                self._assign_dynamic_config_values(schema=config_schema_item,
+                                                   config=config[config_item_key])
+            else:
+                is_jinja_expression = jinja_utils.is_jinja_expression(value=config_item_value)
+
+                if is_jinja_expression:
+                    config_schema_item = schema.get(config_item_key, {})
+                    value = self._get_datastore_value_for_expression(value=config_item_value,
+                        config_schema_item=config_schema_item)
+                    config[config_item_key] = value
+                else:
+                    # Static value, no resolution needed
+                    config[config_item_key] = config_item_value
+
+        return config
 
     def _assign_default_values(self, schema, config):
         """
