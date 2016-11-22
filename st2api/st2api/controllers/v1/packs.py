@@ -129,17 +129,20 @@ class PackRegisterController(RestController):
 
         result = {}
 
-        if 'runner' in types or 'action' in types:
+        # Register depended resources (actions depend on runners, rules depend on rule types, etc)
+        if ('runner' in types or 'runners' in types) or ('action' in types or 'actions' in types):
             result['runners'] = runners_registrar.register_runners(experimental=True)
-        if 'rule_type' in types or 'rule' in types:
+        if ('rule_type' in types or 'rule_types' in types) or \
+           ('rule' in types or 'rules' in types):
             result['rule_types'] = rule_types_registrar.register_rule_types()
-        if 'policy_type' in types or 'policy' in types:
+        if ('policy_type' in types or 'policy_types' in types) or \
+           ('policy' in types or 'policies' in types):
             result['policy_types'] = policies_registrar.register_policy_types(st2common)
 
         use_pack_cache = False
 
         for type, (Registrar, name) in six.iteritems(ENTITIES):
-            if type in types:
+            if type in types or name in types:
                 registrar = Registrar(use_pack_cache=use_pack_cache,
                                       fail_on_failure=False)
                 if packs:
