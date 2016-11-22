@@ -121,7 +121,7 @@ class PackRegisterController(RestController):
                      'policy_type', 'policy', 'config']
 
         if pack_register_request and hasattr(pack_register_request, 'packs'):
-            packs = pack_register_request.packs
+            packs = list(set(pack_register_request.packs))
         else:
             packs = None
 
