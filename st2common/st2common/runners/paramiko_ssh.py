@@ -582,6 +582,9 @@ class ParamikoSSHClient(object):
         if cfg.CONF.ssh_runner.use_ssh_config:
             conninfo_host_ssh_config = self._get_conninfo_from_ssh_config_for_host(host)
             conninfo.update(conninfo_host_ssh_config)
+            extra = {'_conninfo_sshconfig': conninfo, '_sshconfig_path':
+                     cfg.CONF.ssh_runner.ssh_config_path}
+            self.logger.debug('Updated connection info', extra=extra)
 
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -603,15 +606,22 @@ class ParamikoSSHClient(object):
                 user_config_file, e.errno, e.strerror))
 
         user_config = ssh_config.lookup(host)
-        for k in ('hostname', 'username', 'port'):
+        for k in ('hostname', 'port'):
             if k in user_config:
                 ssh_conn_info[k] = user_config[k]
-
+        if 'user' in user_config:
+            ssh_conn_info['username'] = user_config['user']
+        else:
+            raise Exception('User directive missing for host: %s' % ssh_conn_info['hostname'])
         if 'proxycommand' in user_config:
             ssh_conn_info['sock'] = paramiko.ProxyCommand(user_config['proxycommand'])
 
         if 'identityfile' in user_config:
             ssh_conn_info['key_filename'] = user_config['identityfile']
+
+        extra = {'_get_conninfo': user_config}
+        logger = logging.getLogger("ParamikoSSHClient")
+        logger.debug('_get_conninfo', extra=extra)
         return ssh_conn_info
 
     @staticmethod

@@ -59,8 +59,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         cfg.CONF.set_override(name='use_ssh_config', override=True,
                               group='ssh_runner')
 
-        conn_params = {'hostname': 'dummy.host.org',
-                       'username': 'ubuntu'}
+        conn_params = {'hostname': 'dummy.host.org'}
         mock = ParamikoSSHClient(**conn_params)
         mock.connect()
         mock_ProxyCommand.assert_called_once_with('ssh -q -W dummy.host.org:22 dummy_bastion')
@@ -80,8 +79,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         cfg.CONF.set_override(name='use_ssh_config',
                               override=True, group='ssh_runner')
 
-        conn_params = {'hostname': 'dummy.host.org',
-                       'username': 'ubuntu'}
+        conn_params = {'hostname': 'dummy.host.org'}
         mock = ParamikoSSHClient(**conn_params)
         self.assertRaises(Exception, mock.connect)
         mock_ProxyCommand.assert_not_called()

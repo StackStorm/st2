@@ -1,3 +1,4 @@
 Host dummy.host.org
    IdentityFile ~/.ssh/id_rsa_dummy
+   User ubuntu
    ProxyCommand ssh -q -W %h:%p dummy_bastion
