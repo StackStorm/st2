@@ -71,6 +71,8 @@ In development
   (improvement)
 * Add new ``st2-validate-pack-config`` tool for validating config file against a particular config
   schema file. (new-feature)
+* Upgrade various internal Python library dependencies to the latest stable versions (gunicorn,
+  kombu, six, appscheduler, passlib, python-gnupg, semver, paramiko, python-keyczar, virtualenv).
 * Add support for default values and dynamic config values for nested config objects. (new feature,
   improvement)
 * Throw a more user-friendly exception if rendering a dynamic configuration value inside the config
