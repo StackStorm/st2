@@ -188,6 +188,15 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, {'actions': 1, 'runners': 11})
 
+        # Register single resource from a single pack specified multiple times - verify that
+        # resources from the same pack are only registered once
+        resp = self.app.post_json('/v1/packs/register',
+                                  {'packs': ['dummy_pack_1', 'dummy_pack_1', 'dummy_pack_1'],
+                                   'types': ['actions']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 11})
+
         # Register resources from a single (non-existent pack)
         resp = self.app.post_json('/v1/packs/register', {'packs': ['doesntexist']},
                                   expect_errors=True)
