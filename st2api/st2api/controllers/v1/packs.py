@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+
 import pecan
 from pecan.rest import RestController
 import six
@@ -143,7 +145,16 @@ class PackRegisterController(RestController):
                 if packs:
                     for pack in packs:
                         pack_path = content_utils.get_pack_base_path(pack)
-                        result[name] = registrar.register_from_pack(pack_dir=pack_path)
+
+                        try:
+                            result[name] = registrar.register_from_pack(pack_dir=pack_path)
+                        except ValueError as e:
+                            # Throw more user-friendly exception if requsted pack doesn't exist
+                            if re.match('Directory ".*?" doesn\'t exist', str(e)):
+                                msg = 'Pack "%s" not found on disk: %s' % (pack, str(e))
+                                raise ValueError(msg)
+
+                            raise e
                 else:
                     packs_base_paths = content_utils.get_packs_base_paths()
                     result[name] = registrar.register_from_packs(base_dirs=packs_base_paths)
