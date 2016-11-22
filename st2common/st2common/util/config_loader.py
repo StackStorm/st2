@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 import six
 
 from oslo_config import cfg
@@ -88,44 +90,106 @@ class ContentPackConfigLoader(object):
 
     def _get_values_for_config(self, config_schema_db, config_db):
         schema_values = getattr(config_schema_db, 'attributes', {})
+        config_values = getattr(config_db, 'values', {})
 
-        result = {}
-        for config_item_key, config_item_value in six.iteritems(config_db.values):
-            is_jinja_expression = jinja_utils.is_jinja_expression(value=config_item_value)
+        config = copy.deepcopy(config_values)
 
-            if is_jinja_expression:
-                config_schema_item = schema_values.get(config_item_key, {})
-                value = self._get_datastore_value_for_expression(value=config_item_value,
-                    config_schema_item=config_schema_item)
-                result[config_item_key] = value
-            else:
-                # Static value, no resolution needed
-                result[config_item_key] = config_item_value
+        # Assign dynamic config values based on the values in the datastore
+        config = self._assign_dynamic_config_values(schema=schema_values, config=config)
 
         # If config_schema is available we do a second pass and set default values for required
         # items which values are not provided / available in the config itself
-        for schema_item_key, schema_item in six.iteritems(schema_values):
+        config = self._assign_default_values(schema=schema_values, config=config)
+        return config
+
+    def _assign_dynamic_config_values(self, schema, config, parent_keys=None):
+        """
+        Assign dynamic config value for a particular config item if the ite utilizes a Jinja
+        expression for dynamic config values.
+
+        Note: This method mutates config argument in place.
+
+        :rtype: ``dict``
+        """
+        parent_keys = parent_keys or []
+
+        for config_item_key, config_item_value in six.iteritems(config):
+            schema_item = schema.get(config_item_key, {})
+            is_dictionary = isinstance(config_item_value, dict)
+
+            # Inspect nested object properties
+            if is_dictionary:
+                parent_keys += [config_item_key]
+                self._assign_dynamic_config_values(schema=schema_item.get('properties', {}),
+                                                   config=config[config_item_key],
+                                                   parent_keys=parent_keys)
+            else:
+                is_jinja_expression = jinja_utils.is_jinja_expression(value=config_item_value)
+
+                if is_jinja_expression:
+                    # Resolve / render the Jinja template expression
+                    full_config_item_key = '.'.join(parent_keys + [config_item_key])
+                    value = self._get_datastore_value_for_expression(key=full_config_item_key,
+                        value=config_item_value,
+                        config_schema_item=schema_item)
+
+                    config[config_item_key] = value
+                else:
+                    # Static value, no resolution needed
+                    config[config_item_key] = config_item_value
+
+        return config
+
+    def _assign_default_values(self, schema, config):
+        """
+        Assign default values for particular config if default values are provided in the config
+        schema and a value is not specified in the config.
+
+        Note: This method mutates config argument in place.
+
+        :rtype: ``dict``
+        """
+        for schema_item_key, schema_item in six.iteritems(schema):
             default_value = schema_item.get('default', None)
             is_required = schema_item.get('required', False)
+            is_object = schema_item.get('type', None) == 'object'
+            has_properties = schema_item.get('properties', None)
 
-            if is_required and default_value and not result.get(schema_item_key, None):
-                result[schema_item_key] = default_value
+            if is_required and default_value and not config.get(schema_item_key, None):
+                config[schema_item_key] = default_value
 
-        return result
+            # Inspect nested object properties
+            if is_object and has_properties:
+                if not config.get(schema_item_key, None):
+                    config[schema_item_key] = {}
 
-    def _get_datastore_value_for_expression(self, value, config_schema_item=None):
+                self._assign_default_values(schema=schema_item['properties'],
+                                            config=config[schema_item_key])
+
+        return config
+
+    def _get_datastore_value_for_expression(self, key, value, config_schema_item=None):
         """
         Retrieve datastore value by first resolving the datastore expression and then retrieving
         the value from the datastore.
+
+        :param key: Full path to the config item key (e.g. "token" / "auth.settings.token", etc.)
         """
         from st2common.services.config import deserialize_key_value
 
         config_schema_item = config_schema_item or {}
         secret = config_schema_item.get('secret', False)
 
-        # TODO: Get key name so we can throw a more friendly exception
-        value = render_template_with_system_and_user_context(value=value,
-                                                             user=self.user)
+        try:
+            value = render_template_with_system_and_user_context(value=value,
+                                                                 user=self.user)
+        except Exception as e:
+            # Throw a more user-friendly exception on failed render
+            exc_class = type(e)
+            original_msg = str(e)
+            msg = ('Failed to render dynamic configuration value for key "%s" with value '
+                   '"%s" for pack "%s" config: %s ' % (key, value, self.pack_name, original_msg))
+            raise exc_class(msg)
 
         if value:
             # Deserialize the value
