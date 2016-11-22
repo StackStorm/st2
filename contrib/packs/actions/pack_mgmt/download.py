@@ -20,6 +20,8 @@ import hashlib
 import stat
 import re
 
+import yaml
+import semver
 import six
 from git.repo import Repo
 from gitdb.exc import BadName, BadObject
@@ -41,7 +43,7 @@ from st2common.util.versioning import get_stackstorm_version
 CONFIG_FILE = 'config.yaml'
 
 
-CURRENT_STACKSTROM_VERSION = get_stackstorm_version()
+CURRENT_STACKSTORM_VERSION = get_stackstorm_version()
 
 
 class DownloadGitRepoAction(Action):
@@ -71,14 +73,14 @@ class DownloadGitRepoAction(Action):
                 try:
                     user_home = os.path.expanduser('~')
                     abs_local_path = os.path.join(user_home, temp_dir_name)
-                    self._clone_repo(temp_dir=abs_local_path, repo_url=pack_url,
-                                     verifyssl=verifyssl, ref=pack_version)
+                    repo = self._clone_repo(temp_dir=abs_local_path, repo_url=pack_url,
+                                            verifyssl=verifyssl, ref=pack_version)
 
                     pack_ref = self._get_pack_ref(abs_local_path)
 
                     # Verify that the pack version if compatible with current StackStorm version
                     if not force:
-                        self._verify_pack_version(pack_dir=abs_local_path)
+                        self._verify_pack_version(pack_dir=abs_local_path, repo=repo)
 
                     result[pack_ref] = self._move_pack(abs_repo_base, pack_ref, abs_local_path)
                 finally:
@@ -145,7 +147,7 @@ class DownloadGitRepoAction(Action):
         repo.git.branch('-f', branch, gitref.hexsha)
         repo.git.checkout(branch)
 
-        return temp_dir
+        return repo
 
     def _move_pack(self, abs_repo_base, pack_name, abs_local_path):
         desired, message = DownloadGitRepoAction._is_desired_pack(abs_local_path, pack_name)
@@ -197,7 +199,7 @@ class DownloadGitRepoAction(Action):
                 os.chmod(os.path.join(root, f), mode)
 
     @staticmethod
-    def _verify_pack_version(pack_dir):
+    def _verify_pack_version(pack_dir, repo):
         pack_metadata = DownloadGitRepoAction._get_pack_metadata(pack_dir=pack_dir)
         pack_name = pack_metadata.get('name', None)
         required_stackstorm_version = pack_metadata.get('stackstorm_version', None)
@@ -205,9 +207,26 @@ class DownloadGitRepoAction(Action):
         # If stackstorm_version attribute is speficied, verify that the pack works with currently
         # running version of StackStorm
         if required_stackstorm_version:
-            if not complex_semver_match(CURRENT_STACKSTROM_VERSION, required_stackstorm_version):
-                msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s"' %
-                       (pack_name, required_stackstorm_version, CURRENT_STACKSTROM_VERSION))
+            if not complex_semver_match(CURRENT_STACKSTORM_VERSION, required_stackstorm_version):
+                candidates = DownloadGitRepoAction._get_compatible_pack_version(
+                    repo,
+                    CURRENT_STACKSTORM_VERSION)
+                msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s". ' %
+                       (pack_name, required_stackstorm_version, CURRENT_STACKSTORM_VERSION))
+                if candidates['strict']:
+                    msg += ('\n\n'
+                            'The latest version of the pack that is compatible with your '
+                            'StackStorm version is "%s". Try installing that version ',
+                            'specifically.') % candidates['strict']
+                elif candidates['loose']:
+                    msg += ('\n\n'
+                            'The latest version of the pack that does not have a version '
+                            'restriction for StackStorm is "%s". Try installing that version '
+                            'specifically, but there are no guarantees.') % candidates['loose']
+                msg += ('\n\n'
+                        'You can override this restriction completely by providing the "force" '
+                        'flag if you know exactly what you are doing. You are on your own.')
+
                 raise ValueError(msg)
 
     @staticmethod
@@ -299,22 +318,74 @@ class DownloadGitRepoAction(Action):
         return pack_ref
 
     @staticmethod
+    def _get_valid_version_tags_for_repo(repo):
+        """
+        Return a list of valid version tags for a particular repo.
+
+        :rtype: ``list`` of ``str``
+        """
+        version_tags = []
+
+        for tag in repo.tags:
+            if tag.name.startswith('v') and re.match(PACK_VERSION_REGEX, tag.name[1:]):
+                version_tags.append(tag.name)
+
+        # Note: We sorte the versions in reverse order so the newest tags come first
+        version_tags = list(reversed(sorted(version_tags)))
+        return version_tags
+
+    @staticmethod
     def _get_valid_versions_for_repo(repo):
         """
-        Method which returns a valid versions for a particular repo (pack).
+        Return valid versions for a particular repo (pack).
 
         It does so by introspecting available tags.
 
         :rtype: ``list`` of ``str``
         """
-        valid_versions = []
+        version_tags = DownloadGitRepoAction._get_valid_version_tags_for_repo(repo=repo)
 
-        for tag in repo.tags:
-            if tag.name.startswith('v') and re.match(PACK_VERSION_REGEX, tag.name[1:]):
-                # Note: We strip leading "v" from the version number
-                valid_versions.append(tag.name[1:])
-
+        # Note: We strip leading "v" from the version number
+        valid_versions = [DownloadGitRepoAction._sanitize_version_tag(tag) for tag in version_tags]
         return valid_versions
+
+    @staticmethod
+    def _get_compatible_pack_version(repo, stackstorm_version):
+        candidates = {
+            'loose': None,
+            'strict': None
+        }
+
+        version_tags = DownloadGitRepoAction._get_valid_version_tags_for_repo(repo)
+        for tag in version_tags:
+            try:
+                tagged_data = repo.commit(tag).tree('pack.yaml').data_stream.read()
+            except KeyError:
+                continue
+
+            tagged_metadata = yaml.safe_load(tagged_data)
+            tagged_requirement = tagged_metadata.get('stackstorm_version', None)
+
+            version = DownloadGitRepoAction._sanitize_version_tag(tag=tag)
+
+            if not tagged_requirement:
+                if not candidates['loose'] or semver.compare(version, candidates['loose']):
+                    candidates['loose'] = version
+            else:
+                if complex_semver_match(tagged_requirement, stackstorm_version):
+                    if not candidates['strict'] or semver.compare(version, candidates['strict']):
+                        candidates['strict'] = DownloadGitRepoAction._sanitize_version_tag(tag)
+
+        return candidates
+
+    @staticmethod
+    def _sanitize_version_tag(tag):
+        """
+        Sanitize version tag and return just the version without the prefix.
+
+        :rtype: ``str``
+        """
+        return tag[1:]
 
     @staticmethod
     def _get_gitref(repo, ref):
