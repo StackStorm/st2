@@ -60,8 +60,8 @@ ENTITIES = {
     'sensor': (SensorsRegistrar, 'sensors'),
     'rule': (RulesRegistrar, 'rules'),
     'alias': (AliasesRegistrar, 'aliases'),
-    'policy': (PolicyRegistrar, 'policy'),
-    'config': (ConfigsRegistrar, 'config')
+    'policy': (PolicyRegistrar, 'policies'),
+    'config': (ConfigsRegistrar, 'configs')
 }
 
 
