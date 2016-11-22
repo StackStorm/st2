@@ -221,7 +221,8 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
         config_db = Config.add_or_update(config_db)
 
         expected_msg = ('Failed to render dynamic configuration value for key "level0_key" with '
-                        'value "{{st2kvXX.invalid}}": \'st2kvXX\' is undefined')
+                        'value "{{st2kvXX.invalid}}" for pack ".*?" config: '
+                        '\'st2kvXX\' is undefined')
         self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
         config_db.delete()
 
@@ -235,8 +236,8 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
         Config.add_or_update(config_db)
 
         expected_msg = ('Failed to render dynamic configuration value for key '
-                        '"level0_object.level1_key" with value "{{st2kvXX.invalid}}": '
-                        '\'st2kvXX\' is undefined')
+                        '"level0_object.level1_key" with value "{{st2kvXX.invalid}}"'
+                        ' for pack ".*?" config: \'st2kvXX\' is undefined')
         self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
         config_db.delete()
 
@@ -253,6 +254,6 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
 
         expected_msg = ('Failed to render dynamic configuration value for key '
                         '"level0_object.level1_object.level2_key" with value "{{st2kvXX.invalid}}"'
-                        ': \'st2kvXX\' is undefined')
+                        ' for pack ".*?" config: \'st2kvXX\' is undefined')
         self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
         config_db.delete()

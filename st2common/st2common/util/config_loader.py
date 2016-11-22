@@ -188,7 +188,7 @@ class ContentPackConfigLoader(object):
             exc_class = type(e)
             original_msg = str(e)
             msg = ('Failed to render dynamic configuration value for key "%s" with value '
-                   '"%s": %s ' % (key, value, original_msg))
+                   '"%s" for pack "%s" config: %s ' % (key, value, self.pack_name, original_msg))
             raise exc_class(msg)
 
         if value:
