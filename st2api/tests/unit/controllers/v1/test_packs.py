@@ -169,9 +169,21 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, {'sensors': 1})
 
+        # Verify that plural name form also works
+        resp = self.app.post_json('/v1/packs/register', {'types': ['sensors']})
+
+        self.assertEqual(resp.status_int, 200)
+
         # Register specific type for a single packs
         resp = self.app.post_json('/v1/packs/register',
                                   {'packs': ['dummy_pack_1'], 'types': ['action']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 11})
+
+        # Verify that plural name form also works
+        resp = self.app.post_json('/v1/packs/register',
+                                  {'packs': ['dummy_pack_1'], 'types': ['actions']})
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, {'actions': 1, 'runners': 11})
