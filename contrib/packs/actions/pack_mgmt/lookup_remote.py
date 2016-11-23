@@ -27,6 +27,7 @@ EXCHANGE_YAML_PATH = 'https://index.stackstorm.org/v1/packs/%s.yaml'
 
 
 class LookupRemote(Action):
+    """Get detailed information about an available pack from the pack index"""
     def run(self, pack):
         pack_meta = get_pack_from_index(pack)
         pack_formatted = None
