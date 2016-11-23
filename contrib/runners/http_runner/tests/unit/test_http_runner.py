@@ -17,7 +17,6 @@
 import mock
 import unittest2
 
-import requests
 from requests.auth import HTTPDigestAuth
 
 from http_runner import HTTPClient
