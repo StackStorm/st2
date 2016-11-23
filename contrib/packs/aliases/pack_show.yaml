@@ -6,7 +6,7 @@ formats:
   - display: "pack show [available] {{ pack }}"
     representation:
       - "pack show {{ pack }}"
-      - "pack show available {{ pack }}({{ location="available" }}){0}"
+      - "pack show available {{ pack }}({{ location='available' }}){0}"
 
 ack:
   enabled: false
