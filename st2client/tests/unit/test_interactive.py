@@ -132,6 +132,7 @@ class TestInteractive(unittest2.TestCase):
         result = Reader.read()
 
         self.assertEqual(result, 'hey')
+        self.assertPromptValidate(prompt_mock, '')
 
     @mock.patch.object(interactive, 'prompt')
     def test_booleanreader(self, prompt_mock):
@@ -155,6 +156,7 @@ class TestInteractive(unittest2.TestCase):
         result = Reader.read()
 
         self.assertEqual(result, False)
+        self.assertPromptValidate(prompt_mock, '')
 
     @mock.patch.object(interactive, 'prompt')
     def test_numberreader(self, prompt_mock):
@@ -178,6 +180,7 @@ class TestInteractive(unittest2.TestCase):
         result = Reader.read()
 
         self.assertEqual(result, 3.2)
+        self.assertPromptValidate(prompt_mock, '')
 
     @mock.patch.object(interactive, 'prompt')
     def test_integerreader(self, prompt_mock):
@@ -201,6 +204,7 @@ class TestInteractive(unittest2.TestCase):
         result = Reader.read()
 
         self.assertEqual(result, 3)
+        self.assertPromptValidate(prompt_mock, '')
 
     @mock.patch.object(interactive, 'prompt')
     def test_secretstringreader(self, prompt_mock):
@@ -223,6 +227,7 @@ class TestInteractive(unittest2.TestCase):
         result = Reader.read()
 
         self.assertEqual(result, 'hey')
+        self.assertPromptValidate(prompt_mock, '')
 
     @mock.patch.object(interactive, 'prompt')
     def test_enumreader(self, prompt_mock):
@@ -250,6 +255,7 @@ class TestInteractive(unittest2.TestCase):
         result = Reader.read()
 
         self.assertEqual(result, 'thing')
+        self.assertPromptValidate(prompt_mock, '')
 
     @mock.patch.object(interactive, 'prompt')
     def test_arrayreader(self, prompt_mock):
@@ -271,6 +277,23 @@ class TestInteractive(unittest2.TestCase):
         result = Reader.read()
 
         self.assertEqual(result, ['a', 'b'])
+        self.assertPromptValidate(prompt_mock, '')
+
+    @mock.patch.object(interactive, 'prompt')
+    def test_arrayreader_ends_with_comma(self, prompt_mock):
+        spec = {
+            'description': 'some description',
+            'default': ['a', 'b']
+        }
+        Reader = interactive.ArrayReader('some', spec)
+
+        prompt_mock.return_value = 'some,thing,else,'
+        result = Reader.read()
+
+        self.assertEqual(result, ['some', 'thing', 'else', ''])
+        self.assertPromptMessage(prompt_mock, 'some (comma-separated list) [a,b]: ')
+        self.assertPromptDescription(prompt_mock, 'some description')
+        self.assertPromptValidate(prompt_mock, 'some,thing,else,')
 
     @mock.patch.object(interactive, 'prompt')
     def test_arrayenumreader(self, prompt_mock):
@@ -296,3 +319,24 @@ class TestInteractive(unittest2.TestCase):
         result = Reader.read()
 
         self.assertEqual(result, ['a', 'b'])
+        self.assertPromptValidate(prompt_mock, '')
+
+    @mock.patch.object(interactive, 'prompt')
+    def test_arrayenumreader_ends_with_comma(self, prompt_mock):
+        spec = {
+            'items': {
+                'enum': ['a', 'b', 'c', 'd', 'e']
+            },
+            'description': 'some description',
+            'default': ['a', 'b']
+        }
+        Reader = interactive.ArrayEnumReader('some', spec)
+
+        prompt_mock.return_value = '0,2,4,'
+        result = Reader.read()
+
+        self.assertEqual(result, ['a', 'c', 'e'])
+        message = 'some: \n 0 - a\n 1 - b\n 2 - c\n 3 - d\n 4 - e\nChoose from 0, 1, 2... [0, 1]: '
+        self.assertPromptMessage(prompt_mock, message)
+        self.assertPromptDescription(prompt_mock, 'some description')
+        self.assertPromptValidate(prompt_mock, '0,2,4,')

@@ -19,6 +19,7 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
 from st2common.constants.pack import PACK_VERSION_REGEX
+from st2common.constants.pack import ST2_VERSION_REGEX
 
 __all__ = [
     'PackDB',
@@ -27,7 +28,8 @@ __all__ = [
 ]
 
 
-class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
+class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin,
+             me.DynamicDocument):
     """
     System entity which represents a pack.
     """
@@ -40,9 +42,13 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     description = me.StringField(required=True)
     keywords = me.ListField(field=me.StringField())
     version = me.StringField(regex=PACK_VERSION_REGEX, required=True)
+    stackstorm_version = me.StringField(regex=ST2_VERSION_REGEX)
     author = me.StringField(required=True)
-    email = me.EmailField(required=True)
+    email = me.EmailField()
+    contributors = me.ListField(field=me.StringField())
     files = me.ListField(field=me.StringField())
+    dependencies = me.ListField(field=me.StringField())
+    system = me.DictField()
 
     meta = {
         'indexes': stormbase.UIDFieldMixin.get_indexes()

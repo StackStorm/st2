@@ -114,6 +114,9 @@ class BooleanReader(StringReader):
 
     @staticmethod
     def validate(input, spec):
+        if not input and (not spec.get('required', None) or spec.get('default', None)):
+            return
+
         if input.lower() not in POSITIVE_BOOLEAN | NEGATIVE_BOOLEAN:
             raise validation.ValidationError(len(input),
                                              'Does not look like boolean. Pick from [%s]'
@@ -354,7 +357,8 @@ class ArrayEnumReader(EnumReader):
         result = []
 
         for i in (item.strip() for item in response.split(',')):
-            result.append(self.items.get('enum')[int(i)])
+            if i:
+                result.append(self.items.get('enum')[int(i)])
 
         return result
 

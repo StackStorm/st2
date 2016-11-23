@@ -25,3 +25,4 @@ from st2client.models.policy import *       # noqa
 from st2client.models.reactor import *      # noqa
 from st2client.models.trace import *      # noqa
 from st2client.models.webhook import *      # noqa
+from st2client.models.timer import *      # noqa

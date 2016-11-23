@@ -31,6 +31,7 @@ from st2api.controllers.v1.sensors import SensorTypeController
 from st2api.controllers.v1.traces import TracesController
 from st2api.controllers.v1.triggers import TriggerTypeController, TriggerController, \
     TriggerInstanceController
+from st2api.controllers.v1.timers import TimersController
 from st2api.controllers.v1.webhooks import WebhooksController
 from st2api.controllers.v1.rbac import RBACController
 
@@ -65,3 +66,4 @@ class RootController(object):
     traces = TracesController()
     rbac = RBACController()
     apikeys = ApiKeyController()
+    timers = TimersController()

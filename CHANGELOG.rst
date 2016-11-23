@@ -38,6 +38,47 @@ In development
   that "email" attribute (if specified) contains a valid email address. (improvement)
 * For consistency with new pack name validation changes, sample ``hello-st2`` pack has been renamed
   to ``hello_st2``.
+* Add new ``stackstorm_version`` and ``system`` fields to the pack.yaml metadata file. Value of the
+  first field can contain a specific for StackStorm version with which the pack is designed to work
+  with (e.g. ``>=1.6.0,<2.2.0`` or ``>2.0.0``). This field is checked when installing / registering
+  a pack and installation is aborted if pack doesn't support StackStorm version which is currently
+  running. Second field can contain an object with optional system / OS level dependencies.
+  (new feature)
+* Require pack metadata ``version`` attribute to contain a valid semver version identifier (e.g
+  ``0.1.0``, ``2.0.0``, etc.). If version identifier is invalid, pack registration will fail.
+  (improvement)
+* When a policy cancels a request due to concurrency, it leaves end_timestamp set to None which
+  the notifier expects to be a date. This causes an exception in "isotime.format()". A patch was
+  released that catches this exception, and populates payload['end_timestamp'] with the equivalent
+  of "datetime.now()" when the exception occurs.
+* Adding check for datastore Client expired tokens used in sensor container
+* Add new ``contributors`` field to the pack metadata file. This field can contain a list of
+  people who have contributed to the pack. The format is ``Name <email>``, e.g.
+  ``Tomaz Muraus <tomaz@stackstorm.com>`` (new feature)
+* Update ``packs.install`` action (``pack install`` command) to only load resources from the packs
+  which are being installed. Also update it and remove "restart sensor container" step from the
+  install workflow. This step hasn't been needed for a while now because sensor container
+  dynamically reads a list of available sensors from the database and starts the sub processes.
+  (improvement)
+* Change st2api so that a full execution object is returned instead of an error message, when an
+  API client requests cancellation of an execution that is already canceled
+* Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
+  management approach. Now pack directories are actual checkouts of the corresponding pack git
+  repositories so this file is not needed anymore.
+* Speed up short-lived Python runner actions by up to 70%. This way done by re-organizing and
+  re-factoring code to avoid expensive imports such as jsonschema, jinja2, kombu and mongoengine
+  in the places where those imports are not actually needed and by various other optimizations.
+  (improvement)
+* Add new ``st2-validate-pack-config`` tool for validating config file against a particular config
+  schema file. (new-feature)
+* Upgrade various internal Python library dependencies to the latest stable versions (gunicorn,
+  kombu, six, appscheduler, passlib, python-gnupg, semver, paramiko, python-keyczar, virtualenv).
+* Improve performance of ``GET /executions/views/filters`` by creating additional indexes on
+  executions collection
+* Add support for default values and dynamic config values for nested config objects. (new feature,
+  improvement)
+* Throw a more user-friendly exception if rendering a dynamic configuration value inside the config
+  fails. (improvement)
 
 2.0.1 - September 30, 2016
 --------------------------

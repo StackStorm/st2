@@ -13,9 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2tests.base import DbTestCase
+from st2common.persistence.pack import Config
+from st2common.models.db.pack import ConfigDB
 from st2common.services.config import set_datastore_value_for_config_key
 from st2common.util.config_loader import ContentPackConfigLoader
+
+from st2tests.base import DbTestCase
 
 __all__ = [
     'ContentPackConfigLoaderTestCase'
@@ -88,3 +91,169 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
         loader = ContentPackConfigLoader(pack_name='dummy_pack_1')
         config = loader.get_config()
         self.assertEqual(config['region'], 'us-west-1')
+
+    def test_get_config_nested_schema_default_values_from_config_schema_are_used(self):
+        # Special case for more complex config schemas with attributes ntesting.
+        # Validate that the default values are also used for one level nested object properties.
+        pack_name = 'dummy_pack_schema_with_nested_object_1'
+
+        # 1. None of the nested object values are provided
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+
+        expected_config = {
+            'api_key': '',
+            'api_secret': '',
+            'regions': ['us-west-1', 'us-east-1'],
+            'auth_settings': {
+                'host': '127.0.0.3',
+                'port': 8080,
+                'device_uids': ['a', 'b', 'c']
+            }
+        }
+        self.assertEqual(config, expected_config)
+
+        # 2. Some of the nested object values are provided (host, port)
+        pack_name = 'dummy_pack_schema_with_nested_object_2'
+
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+
+        expected_config = {
+            'api_key': '',
+            'api_secret': '',
+            'regions': ['us-west-1', 'us-east-1'],
+            'auth_settings': {
+                'host': '127.0.0.6',
+                'port': 9090,
+                'device_uids': ['a', 'b', 'c']
+            }
+        }
+        self.assertEqual(config, expected_config)
+
+        # 3. Nested attribute (auth_settings.token) references a non-secret datastore value
+        pack_name = 'dummy_pack_schema_with_nested_object_3'
+
+        kvp_db = set_datastore_value_for_config_key(pack_name=pack_name,
+                                                    key_name='auth_settings_token',
+                                                    value='some_auth_settings_token')
+        self.assertEqual(kvp_db.value, 'some_auth_settings_token')
+        self.assertFalse(kvp_db.secret)
+
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+
+        expected_config = {
+            'api_key': '',
+            'api_secret': '',
+            'regions': ['us-west-1', 'us-east-1'],
+            'auth_settings': {
+                'host': '127.0.0.10',
+                'port': 8080,
+                'device_uids': ['a', 'b', 'c'],
+                'token': 'some_auth_settings_token'
+            }
+        }
+        self.assertEqual(config, expected_config)
+
+        # 4. Nested attribute (auth_settings.token) references a secret datastore value
+        pack_name = 'dummy_pack_schema_with_nested_object_4'
+
+        kvp_db = set_datastore_value_for_config_key(pack_name=pack_name,
+                                                    key_name='auth_settings_token',
+                                                    value='joe_token_secret',
+                                                    secret=True,
+                                                    user='joe')
+        self.assertTrue(kvp_db.value != 'joe_token_secret')
+        self.assertTrue(len(kvp_db.value) > len('joe_token_secret') * 2)
+        self.assertTrue(kvp_db.secret)
+
+        kvp_db = set_datastore_value_for_config_key(pack_name=pack_name,
+                                                    key_name='auth_settings_token',
+                                                    value='alice_token_secret',
+                                                    secret=True,
+                                                    user='alice')
+        self.assertTrue(kvp_db.value != 'alice_token_secret')
+        self.assertTrue(len(kvp_db.value) > len('alice_token_secret') * 2)
+        self.assertTrue(kvp_db.secret)
+
+        loader = ContentPackConfigLoader(pack_name=pack_name, user='joe')
+        config = loader.get_config()
+
+        expected_config = {
+            'api_key': '',
+            'api_secret': '',
+            'regions': ['us-west-1', 'us-east-1'],
+            'auth_settings': {
+                'host': '127.0.0.11',
+                'port': 8080,
+                'device_uids': ['a', 'b', 'c'],
+                'token': 'joe_token_secret'
+            }
+        }
+        self.assertEqual(config, expected_config)
+
+        loader = ContentPackConfigLoader(pack_name=pack_name, user='alice')
+        config = loader.get_config()
+
+        expected_config = {
+            'api_key': '',
+            'api_secret': '',
+            'regions': ['us-west-1', 'us-east-1'],
+            'auth_settings': {
+                'host': '127.0.0.11',
+                'port': 8080,
+                'device_uids': ['a', 'b', 'c'],
+                'token': 'alice_token_secret'
+            }
+        }
+        self.assertEqual(config, expected_config)
+
+    def test_get_config_dynamic_config_item_render_fails_user_friendly_exception_is_thrown(self):
+        pack_name = 'dummy_pack_schema_with_nested_object_5'
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+
+        # Render fails on top-level item
+        values = {
+            'level0_key': '{{st2kvXX.invalid}}'
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        expected_msg = ('Failed to render dynamic configuration value for key "level0_key" with '
+                        'value "{{st2kvXX.invalid}}" for pack ".*?" config: '
+                        '\'st2kvXX\' is undefined')
+        self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
+        config_db.delete()
+
+        # Renders fails on fist level item
+        values = {
+            'level0_object': {
+                'level1_key': '{{st2kvXX.invalid}}'
+            }
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        Config.add_or_update(config_db)
+
+        expected_msg = ('Failed to render dynamic configuration value for key '
+                        '"level0_object.level1_key" with value "{{st2kvXX.invalid}}"'
+                        ' for pack ".*?" config: \'st2kvXX\' is undefined')
+        self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
+        config_db.delete()
+
+        # Renders fails on second level item
+        values = {
+            'level0_object': {
+                'level1_object': {
+                    'level2_key': '{{st2kvXX.invalid}}'
+                }
+            }
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        Config.add_or_update(config_db)
+
+        expected_msg = ('Failed to render dynamic configuration value for key '
+                        '"level0_object.level1_object.level2_key" with value "{{st2kvXX.invalid}}"'
+                        ' for pack ".*?" config: \'st2kvXX\' is undefined')
+        self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
+        config_db.delete()

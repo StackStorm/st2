@@ -16,7 +16,10 @@
 __all__ = [
     'PACKS_PACK_NAME',
     'PACK_REF_WHITELIST_REGEX',
+    'PACK_RESERVED_CHARACTERS',
+    'PACK_VERSION_SEPARATOR',
     'PACK_VERSION_REGEX',
+    'ST2_VERSION_REGEX',
     'SYSTEM_PACK_NAME',
     'PACKS_PACK_NAME',
     'LINUX_PACK_NAME',
@@ -29,9 +32,22 @@ __all__ = [
 ]
 
 # A list of allowed characters for the pack name
-PACK_REF_WHITELIST_REGEX = r'^[a-z0-9_-]+$'
+PACK_REF_WHITELIST_REGEX = r'^[a-z0-9_]+$'
 
+# Check for a valid semver string
 PACK_VERSION_REGEX = r'^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$'  # noqa
+
+# Special characters which can't be used in pack names
+PACK_RESERVED_CHARACTERS = [
+    '.'
+]
+
+# Version sperator when version is supplied in pack name
+# Example: libcloud@1.0.1
+PACK_VERSION_SEPARATOR = '='
+
+# Check for st2 version in engines
+ST2_VERSION_REGEX = r'^((>?>|>=|=|<=|<?<)\s*[0-9]+\.[0-9]+\.[0-9]+?(\s*,)?\s*)+$'
 
 # Name used for system pack
 SYSTEM_PACK_NAME = 'core'

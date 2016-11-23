@@ -6,7 +6,7 @@
       parameters:
         packs: "{{packs}}"
       publish:
-        installed_packs: "{{ __results['download pack'].result }}"
+        force: "{{force}}"
       on-success: "make a prerun"
     -
       name: "make a prerun"
@@ -26,11 +26,6 @@
       ref: "packs.load"
       parameters:
         register: "{{register}}"
-      on-success: "restart sensor container"
-    -
-      name: "restart sensor container"
-      ref: "packs.restart_component"
-      parameters:
-        servicename: "st2sensorcontainer"
+        packs: "{{ __results['make a prerun'].result }}"
 
   default: "download pack"

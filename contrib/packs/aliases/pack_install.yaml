@@ -15,7 +15,7 @@ ack:
 result:
   format: |
     {% if execution.status == "succeeded" %}
-      Successful deployment of{% for pack in execution.result.installed_packs %} *{{pack.name}}*{% endfor %}!{~}
+      Successful deployment of{% for pack in execution.result.packs_status %} *{{pack.name}}*{% endfor %}!{~}
     {% else %}
       Deployment failed for *{{execution.parameters.packs}}*.{~}
       Please check {{ execution.id }} for details.

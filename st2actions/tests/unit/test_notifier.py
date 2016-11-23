@@ -113,6 +113,39 @@ class NotifierTestCase(unittest2.TestCase):
         notifier.process(liveaction)
 
     @mock.patch('st2common.util.action_db.get_action_by_ref', mock.MagicMock(
+        return_value=ActionDB(pack='core', name='local', runner_type={'name': 'run-local-cmd'},
+                              parameters={})))
+    @mock.patch('st2common.util.action_db.get_runnertype_by_name', mock.MagicMock(
+        return_value=RunnerTypeDB(name='foo', runner_parameters={})))
+    @mock.patch.object(Action, 'get_by_ref', mock.MagicMock(
+        return_value={'runner_type': {'name': 'run-local-cmd'}}))
+    @mock.patch.object(Policy, 'query', mock.MagicMock(
+        return_value=[]))
+    @mock.patch.object(Notifier, '_get_execution_for_liveaction', mock.MagicMock(
+        return_value=MOCK_EXECUTION))
+    @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(return_value={}))
+    def test_notify_triggers_end_timestamp_none(self):
+        liveaction = LiveActionDB(action='core.local')
+        liveaction.description = ''
+        liveaction.status = 'succeeded'
+        liveaction.parameters = {}
+        on_success = NotificationSubSchema(message='Action succeeded.')
+        on_failure = NotificationSubSchema(message='Action failed.')
+        liveaction.notify = NotificationSchema(on_success=on_success,
+                                               on_failure=on_failure)
+        liveaction.start_timestamp = date_utils.get_datetime_utc_now()
+
+        # This tests for end_timestamp being set to None, which can happen when a policy cancels
+        # a request.
+        # The assertions within "MockDispatcher.dispatch" will validate that the underlying code
+        # handles this properly, so all we need to do is keep the call to "notifier.process" below
+        liveaction.end_timestamp = None
+
+        dispatcher = NotifierTestCase.MockDispatcher(self)
+        notifier = Notifier(connection=None, queues=[], trigger_dispatcher=dispatcher)
+        notifier.process(liveaction)
+
+    @mock.patch('st2common.util.action_db.get_action_by_ref', mock.MagicMock(
         return_value=ActionDB(pack='core', name='local', runner_type={'name': 'run-local-cmd'})))
     @mock.patch('st2common.util.action_db.get_runnertype_by_name', mock.MagicMock(
         return_value=RunnerTypeDB(name='foo', runner_parameters={'runner_foo': 'foo'})))

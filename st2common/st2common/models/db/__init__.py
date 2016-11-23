@@ -38,12 +38,22 @@ MODEL_MODULE_NAMES = [
     'st2common.models.db.execution',
     'st2common.models.db.executionstate',
     'st2common.models.db.liveaction',
+    'st2common.models.db.notification',
     'st2common.models.db.pack',
     'st2common.models.db.policy',
+    'st2common.models.db.rbac',
     'st2common.models.db.rule',
+    'st2common.models.db.rule_enforcement',
     'st2common.models.db.runner',
     'st2common.models.db.sensor',
+    'st2common.models.db.trace',
     'st2common.models.db.trigger',
+    'st2common.models.db.webhook'
+]
+
+# A list of model names for which we don't perform extra index cleanup
+INDEX_CLEANUP_MODEL_NAMES_BLACKLIST = [
+    'PermissionGrantDB'
 ]
 
 
@@ -100,14 +110,19 @@ def db_ensure_indexes():
     model_classes = get_model_classes()
 
     for model_class in model_classes:
+        class_name = model_class.__name__
+
         # Note: We need to ensure / create new indexes before removing extra ones
         LOG.debug('Ensuring indexes for model "%s"...' % (model_class.__name__))
         model_class.ensure_indexes()
 
-        LOG.debug('Removing extra indexes for model "%s"...' % (model_class.__name__))
+        if model_class.__name__ in INDEX_CLEANUP_MODEL_NAMES_BLACKLIST:
+            LOG.debug('Skipping index cleanup for blacklisted model "%s"...' % (class_name))
+            continue
+
+        LOG.debug('Removing extra indexes for model "%s"...' % (class_name))
         removed_count = cleanup_extra_indexes(model_class=model_class)
-        LOG.debug('Removed "%s" extra indexes for model "%s"' %
-                  (removed_count, model_class.__name__))
+        LOG.debug('Removed "%s" extra indexes for model "%s"' % (removed_count, class_name))
 
 
 def cleanup_extra_indexes(model_class):
@@ -259,11 +274,14 @@ class MongoDBAccess(object):
         return instance.delete()
 
     def delete_by_query(self, **query):
+        """
+        Delete objects by query and return number of deleted objects.
+        """
         qs = self.model.objects.filter(**query)
-        qs.delete()
+        count = qs.delete()
         log_query_and_profile_data_for_queryset(queryset=qs)
-        # mongoengine does not return anything useful so cannot return anything meaningful.
-        return None
+
+        return count
 
     def _undo_dict_field_escape(self, instance):
         for attr, field in instance._fields.iteritems():

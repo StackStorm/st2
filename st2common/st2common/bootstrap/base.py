@@ -14,13 +14,11 @@
 # limitations under the License.
 
 import os
-import re
 import glob
 
 import six
 
 from st2common import log as logging
-from st2common.constants.pack import MANIFEST_FILE_NAME
 from st2common.constants.pack import CONFIG_SCHEMA_FILE_NAME
 from st2common.content.loader import MetaLoader
 from st2common.content.loader import ContentPackLoader
@@ -30,7 +28,8 @@ from st2common.models.api.pack import ConfigSchemaAPI
 from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 from st2common.util.file_system import get_file_list
-from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
+from st2common.util.pack import get_pack_metadata
+from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 
 __all__ = [
@@ -142,15 +141,7 @@ class ResourceRegistrar(object):
         return pack_db, config_schema_db
 
     def _register_pack_db(self, pack_name, pack_dir):
-        pack_name = pack_name or ''
-        manifest_path = os.path.join(pack_dir, MANIFEST_FILE_NAME)
-
-        if not os.path.isfile(manifest_path):
-            raise ValueError('Pack "%s" is missing %s file' % (pack_name, MANIFEST_FILE_NAME))
-
-        content = self._meta_loader.load(manifest_path)
-        if not content:
-            raise ValueError('Pack "%s" metadata file is empty' % (pack_name))
+        content = get_pack_metadata(pack_dir=pack_dir)
 
         # The rules for the pack ref are as follows:
         # 1. If ref attribute is available, we used that
@@ -158,29 +149,12 @@ class ResourceRegistrar(object):
         # 2hich are in sub-directories)
         # 2. If attribute is not available, but pack name is and pack name meets the valid name
         # criteria, we use that
-        if content.get('ref', None):
-            content['ref'] = content['ref']
-        elif re.match(PACK_REF_WHITELIST_REGEX, pack_name):
-            content['ref'] = pack_name
-        else:
-            if re.match(PACK_REF_WHITELIST_REGEX, content['name']):
-                content['ref'] = content['name']
-            else:
-                raise ValueError('Pack name "%s" contains invalid characters and "ref" '
-                                 'attribute is not available' % (content['name']))
-
-        # Note: We use a ref if available, if not we fall back to pack name
-        # (pack directory name)
-        content['ref'] = content.get('ref', pack_name)
+        content['ref'] = get_pack_ref_from_metadata(metadata=content,
+                                                    pack_directory_name=pack_name)
 
         # Include a list of pack files
         pack_file_list = get_file_list(directory=pack_dir, exclude_patterns=EXCLUDE_FILE_PATTERNS)
         content['files'] = pack_file_list
-
-        # Note: If some version values are not explicitly surrounded by quotes they are recognized
-        # as numbers so we cast them to string
-        if 'version' in content:
-            content['version'] = str(content['version'])
 
         pack_api = PackAPI(**content)
         pack_api.validate()
@@ -218,9 +192,6 @@ class ResourceRegistrar(object):
         config_schema_db = ConfigSchema.add_or_update(config_schema_db)
         LOG.debug('Config schema for pack %s registered.' % (pack_name))
         return config_schema_db
-
-    def _register_runner(self):
-        pass
 
     def register_runner(self):
         pass

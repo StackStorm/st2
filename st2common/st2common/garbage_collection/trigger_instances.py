@@ -40,18 +40,16 @@ def purge_trigger_instances(logger, timestamp):
 
     query_filters = {'occurrence_time__lt': isotime.parse(timestamp)}
 
-    # TODO: Update this code to return statistics on deleted objects once we
-    # upgrade to newer version of MongoDB where delete_by_query actually returns
-    # some data
-
     try:
-        TriggerInstance.delete_by_query(**query_filters)
+        deleted_count = TriggerInstance.delete_by_query(**query_filters)
     except InvalidQueryError as e:
         msg = ('Bad query (%s) used to delete trigger instances: %s'
                'Please contact support.' % (query_filters, str(e)))
         raise InvalidQueryError(msg)
     except:
         logger.exception('Deleting instances using query_filters %s failed.', query_filters)
+    else:
+        logger.info('Deleted %s trigger instance objects' % (deleted_count))
 
     # Print stats
     logger.info('All trigger instance models older than timestamp %s were deleted.', timestamp)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -20,77 +21,131 @@ import stat
 import re
 
 import six
-import yaml
 from git.repo import Repo
-from gitdb.exc import BadName
+from gitdb.exc import BadName, BadObject
 from lockfile import LockFile
 
 from st2common.runners.base_action import Action
 from st2common.content import utils
+from st2common.constants.pack import MANIFEST_FILE_NAME
+from st2common.constants.pack import PACK_RESERVED_CHARACTERS
+from st2common.constants.pack import PACK_VERSION_SEPARATOR
+from st2common.constants.pack import PACK_VERSION_REGEX
 from st2common.services.packs import get_pack_from_index
+from st2common.util.pack import get_pack_metadata
+from st2common.util.pack import get_pack_ref_from_metadata
 from st2common.util.green import shell
+from st2common.util.versioning import complex_semver_match
+from st2common.util.versioning import get_stackstorm_version
 
-MANIFEST_FILE = 'pack.yaml'
 CONFIG_FILE = 'config.yaml'
-GITINFO_FILE = '.gitinfo'
-PACK_RESERVE_CHARACTER = '.'
-PACK_VERSION_SEPARATOR = '='
-SEMVER_REGEX = (r"^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
-                r"(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$")
+
+
+CURRENT_STACKSTROM_VERSION = get_stackstorm_version()
 
 
 class DownloadGitRepoAction(Action):
     def __init__(self, config=None, action_service=None):
         super(DownloadGitRepoAction, self).__init__(config=config, action_service=action_service)
 
-    def run(self, packs, abs_repo_base, verifyssl=True):
+    def run(self, packs, abs_repo_base, verifyssl=True, force=False):
         result = {}
 
         for pack in packs:
             pack_url, pack_version = self._get_repo_url(pack)
-            temp_dir = hashlib.md5(pack_url).hexdigest()
 
-            with LockFile('/tmp/%s' % (temp_dir)):
-                abs_local_path = self._clone_repo(temp_dir=temp_dir, repo_url=pack_url,
-                                                  verifyssl=verifyssl, ref=pack_version)
-                pack_name = self._get_pack_name(abs_local_path)
+            temp_dir_name = hashlib.md5(pack_url).hexdigest()
+            lock_file = LockFile('/tmp/%s' % (temp_dir_name))
+            lock_file_path = lock_file.lock_file
+
+            if force:
+                self.logger.debug('Force mode is enabled, deleting lock file...')
+
                 try:
-                    result[pack_name] = self._move_pack(abs_repo_base, pack_name, abs_local_path)
+                    os.unlink(lock_file_path)
+                except OSError:
+                    # Lock file doesn't exist or similar
+                    pass
+
+            with lock_file:
+                try:
+                    user_home = os.path.expanduser('~')
+                    abs_local_path = os.path.join(user_home, temp_dir_name)
+                    self._clone_repo(temp_dir=abs_local_path, repo_url=pack_url,
+                                     verifyssl=verifyssl, ref=pack_version)
+
+                    pack_ref = self._get_pack_ref(abs_local_path)
+
+                    # Verify that the pack version if compatible with current StackStorm version
+                    if not force:
+                        self._verify_pack_version(pack_dir=abs_local_path)
+
+                    result[pack_ref] = self._move_pack(abs_repo_base, pack_ref, abs_local_path)
                 finally:
                     self._cleanup_repo(abs_local_path)
 
         return self._validate_result(result=result, repo_url=pack_url)
 
     @staticmethod
-    def _clone_repo(temp_dir, repo_url, verifyssl=True, ref=None):
-        user_home = os.path.expanduser('~')
-        abs_local_path = os.path.join(user_home, temp_dir)
-
+    def _clone_repo(temp_dir, repo_url, verifyssl=True, ref='master'):
         # Switch to non-interactive mode
         os.environ['GIT_TERMINAL_PROMPT'] = '0'
+        os.environ['GIT_ASKPASS'] = '/bin/echo'
 
         # Disable SSL cert checking if explictly asked
         if not verifyssl:
             os.environ['GIT_SSL_NO_VERIFY'] = 'true'
 
-        if not ref:
-            ref = 'master'
-
         # Clone the repo from git; we don't use shallow copying
         # because we want the user to work with the repo in the
         # future.
-        repo = Repo.clone_from(repo_url, abs_local_path, branch='master')
+        repo = Repo.clone_from(repo_url, temp_dir)
+        use_branch = False
 
-        if not DownloadGitRepoAction._ref_exists(repo, ref):
-            if re.match(SEMVER_REGEX, ref) and DownloadGitRepoAction._ref_exists(repo, "v%s" % ref):
-                ref = "v%s" % ref
-            else:
-                raise ValueError("\"%s\" is not a valid ref in %s." % (ref, repo_url))
+        # Try to match the reference to a branch name (i.e. "master")
+        gitref = DownloadGitRepoAction._get_gitref(repo, "origin/%s" % ref)
+        if gitref:
+            use_branch = True
 
-        repo.head.reference = repo.commit(ref)
-        repo.head.reset(index=True, working_tree=True)
+        # Try to match the reference to a commit hash, a tag, or "master"
+        if not gitref:
+            gitref = DownloadGitRepoAction._get_gitref(repo, ref)
 
-        return abs_local_path
+        # Try to match the reference to a "vX.Y.Z" tag
+        if not gitref and re.match(PACK_VERSION_REGEX, ref):
+            gitref = DownloadGitRepoAction._get_gitref(repo, "v%s" % ref)
+
+        # Giving up ¯\_(ツ)_/¯
+        if not gitref:
+            format_values = [ref, repo_url]
+            msg = '"%s" is not a valid version, hash, tag or branch in %s.'
+
+            valid_versions = DownloadGitRepoAction._get_valid_versions_for_repo(repo=repo)
+            if len(valid_versions) >= 1:
+                valid_versions_string = ', '.join(valid_versions)
+
+                msg += ' Available versions are: %s.'
+                format_values.append(valid_versions_string)
+
+            raise ValueError(msg % tuple(format_values))
+
+        # We're trying to figure out which branch the ref is actually on,
+        # since there's no direct way to check for this in git-python.
+        branches = repo.git.branch('-a', '--contains', gitref.hexsha)
+        branches = branches.replace('*', '').split()
+        if 'master' not in branches or use_branch:
+            branch = "origin/%s" % ref if use_branch else branches[0]
+            short_branch = ref if use_branch else branches[0].split('/')[-1]
+            repo.git.checkout('-b', short_branch, branch)
+            branch = repo.head.reference
+        else:
+            branch = 'master'
+
+        repo.git.checkout(gitref.hexsha)
+        repo.git.branch('-f', branch, gitref.hexsha)
+        repo.git.checkout(branch)
+
+        return temp_dir
 
     def _move_pack(self, abs_repo_base, pack_name, abs_local_path):
         desired, message = DownloadGitRepoAction._is_desired_pack(abs_local_path, pack_name)
@@ -142,18 +197,38 @@ class DownloadGitRepoAction(Action):
                 os.chmod(os.path.join(root, f), mode)
 
     @staticmethod
+    def _verify_pack_version(pack_dir):
+        pack_metadata = DownloadGitRepoAction._get_pack_metadata(pack_dir=pack_dir)
+        pack_name = pack_metadata.get('name', None)
+        required_stackstorm_version = pack_metadata.get('stackstorm_version', None)
+
+        # If stackstorm_version attribute is speficied, verify that the pack works with currently
+        # running version of StackStorm
+        if required_stackstorm_version:
+            if not complex_semver_match(CURRENT_STACKSTROM_VERSION, required_stackstorm_version):
+                msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s". ' %
+                       (pack_name, required_stackstorm_version, CURRENT_STACKSTROM_VERSION),
+                       'You can override this restriction by providing the "force" flag, but ',
+                       'the pack is not guaranteed to work.')
+                raise ValueError(msg)
+
+    @staticmethod
     def _is_desired_pack(abs_pack_path, pack_name):
         # path has to exist.
         if not os.path.exists(abs_pack_path):
             return (False, 'Pack "%s" not found or it\'s missing a "pack.yaml" file.' %
                     (pack_name))
-        # should not include reserve characters
-        if PACK_RESERVE_CHARACTER in pack_name:
-            return (False, 'Pack name "%s" contains reserve character "%s"' %
-                    (pack_name, PACK_RESERVE_CHARACTER))
+
+        # should not include reserved characters
+        for character in PACK_RESERVED_CHARACTERS:
+            if character in pack_name:
+                return (False, 'Pack name "%s" contains reserved character "%s"' %
+                        (pack_name, character))
+
         # must contain a manifest file. Empty file is ok for now.
-        if not os.path.isfile(os.path.join(abs_pack_path, MANIFEST_FILE)):
-            return (False, 'Pack is missing a manifest file (%s).' % (MANIFEST_FILE))
+        if not os.path.isfile(os.path.join(abs_pack_path, MANIFEST_FILE_NAME)):
+            return (False, 'Pack is missing a manifest file (%s).' % (MANIFEST_FILE_NAME))
+
         return (True, '')
 
     @staticmethod
@@ -211,18 +286,41 @@ class DownloadGitRepoAction(Action):
         return url if has_git_extension else "{}.git".format(url)
 
     @staticmethod
-    def _get_pack_name(pack_dir):
+    def _get_pack_metadata(pack_dir):
+        metadata = get_pack_metadata(pack_dir=pack_dir)
+        return metadata
+
+    @staticmethod
+    def _get_pack_ref(pack_dir):
         """
         Read pack name from the metadata file and sanitize it.
         """
-        with open(os.path.join(pack_dir, MANIFEST_FILE), 'r') as manifest_file:
-            pack_meta = yaml.load(manifest_file)
-        return pack_meta['name'].replace(' ', '-').lower()
+        metadata = DownloadGitRepoAction._get_pack_metadata(pack_dir=pack_dir)
+        pack_ref = get_pack_ref_from_metadata(metadata=metadata,
+                                              pack_directory_name=None)
+        return pack_ref
 
     @staticmethod
-    def _ref_exists(repo, ref):
+    def _get_valid_versions_for_repo(repo):
+        """
+        Method which returns a valid versions for a particular repo (pack).
+
+        It does so by introspecting available tags.
+
+        :rtype: ``list`` of ``str``
+        """
+        valid_versions = []
+
+        for tag in repo.tags:
+            if tag.name.startswith('v') and re.match(PACK_VERSION_REGEX, tag.name[1:]):
+                # Note: We strip leading "v" from the version number
+                valid_versions.append(tag.name[1:])
+
+        return valid_versions
+
+    @staticmethod
+    def _get_gitref(repo, ref):
         try:
-            repo.commit(ref)
-        except BadName:
+            return repo.commit(ref)
+        except (BadName, BadObject):
             return False
-        return True

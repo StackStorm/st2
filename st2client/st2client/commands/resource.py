@@ -71,22 +71,18 @@ class ResourceBranch(commands.Branch):
 
         # Resolves if commands need to be overridden.
         commands = commands or {}
-        if 'list' not in commands:
-            commands['list'] = ResourceListCommand
-        if 'get' not in commands:
-            commands['get'] = ResourceGetCommand
-        if 'create' not in commands:
-            commands['create'] = ResourceCreateCommand
-        if 'update' not in commands:
-            commands['update'] = ResourceUpdateCommand
-        if 'delete' not in commands:
-            commands['delete'] = ResourceDeleteCommand
-
-        if 'enable' not in commands:
-            commands['enable'] = ResourceEnableCommand
-
-        if 'disable' not in commands:
-            commands['disable'] = ResourceDisableCommand
+        cmd_map = {
+            "list": ResourceListCommand,
+            "get": ResourceGetCommand,
+            "create": ResourceCreateCommand,
+            "update": ResourceUpdateCommand,
+            "delete": ResourceDeleteCommand,
+            "enable": ResourceEnableCommand,
+            "disable": ResourceDisableCommand
+        }
+        for cmd, cmd_class in cmd_map.items():
+            if cmd not in commands:
+                commands[cmd] = cmd_class
 
         # Instantiate commands.
         args = [self.resource, self.app, self.subparsers]
@@ -295,10 +291,14 @@ class ResourceGetCommand(ResourceCommand):
 
     pk_argument_name = 'name_or_id'  # name of the attribute which stores resource PK
 
+    help_string = None
+
     def __init__(self, resource, *args, **kwargs):
-        super(ResourceGetCommand, self).__init__(resource, 'get',
-            'Get individual %s.' % resource.get_display_name().lower(),
-            *args, **kwargs)
+        super(ResourceGetCommand, self).__init__(
+            resource, 'get',
+            self.help_string or 'Get individual %s.' % resource.get_display_name().lower(),
+            *args, **kwargs
+        )
 
         argument = self.pk_argument_name
         metavar = self._get_metavar_for_argument(argument=self.pk_argument_name)

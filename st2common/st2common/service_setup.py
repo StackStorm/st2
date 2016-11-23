@@ -24,16 +24,20 @@ import os
 from oslo_config import cfg
 
 from st2common import log as logging
-from st2common.models import db
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
-from st2common.persistence import db_init
 from st2common.transport.bootstrap_utils import register_exchanges_with_retry
 from st2common.signal_handlers import register_common_signal_handlers
 from st2common.util.debugging import enable_debugging
 from st2common.models.utils.profiling import enable_profiling
 from st2common import triggers
-
 from st2common.rbac.migrations import run_all as run_all_rbac_migrations
+
+# Note: This is here for backward compatibility.
+# Function has been moved in a standalone module to avoid expensive in-direct
+# import costs
+from st2common.database_setup import db_setup
+from st2common.database_setup import db_teardown
+
 
 __all__ = [
     'setup',
@@ -122,22 +126,3 @@ def teardown():
     Common teardown function.
     """
     db_teardown()
-
-
-def db_setup():
-    username = getattr(cfg.CONF.database, 'username', None)
-    password = getattr(cfg.CONF.database, 'password', None)
-
-    connection = db_init.db_setup_with_retry(
-        db_name=cfg.CONF.database.db_name, db_host=cfg.CONF.database.host,
-        db_port=cfg.CONF.database.port, username=username, password=password,
-        ssl=cfg.CONF.database.ssl, ssl_keyfile=cfg.CONF.database.ssl_keyfile,
-        ssl_certfile=cfg.CONF.database.ssl_certfile,
-        ssl_cert_reqs=cfg.CONF.database.ssl_cert_reqs,
-        ssl_ca_certs=cfg.CONF.database.ssl_ca_certs,
-        ssl_match_hostname=cfg.CONF.database.ssl_match_hostname)
-    return connection
-
-
-def db_teardown():
-    return db.db_teardown()

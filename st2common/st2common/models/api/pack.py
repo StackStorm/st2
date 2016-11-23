@@ -18,17 +18,20 @@ import os
 import jsonschema
 from oslo_config import cfg
 
+from st2common import log as logging
 from st2common.util import schema as util_schema
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.keyvalue import USER_SCOPE
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.constants.pack import PACK_VERSION_REGEX
+from st2common.constants.pack import ST2_VERSION_REGEX
 from st2common.persistence.pack import ConfigSchema
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
 from st2common.models.db.pack import ConfigSchemaDB
 from st2common.models.db.pack import ConfigDB
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.util.pack import validate_config_against_schema
 
 __all__ = [
     'PackAPI',
@@ -43,72 +46,146 @@ __all__ = [
     'PackAsyncAPI'
 ]
 
+LOG = logging.getLogger(__name__)
+
 
 class PackAPI(BaseAPI):
     model = PackDB
     schema = {
         'type': 'object',
+        'description': 'Content pack schema.',
         'properties': {
             'id': {
                 'type': 'string',
+                'description': 'Unique identifier for the pack.',
                 'default': None
-            },
-            'ref': {
-                'type': 'string',
-                'default': None,
-                'pattern': PACK_REF_WHITELIST_REGEX
-            },
-            "uid": {
-                "type": "string"
             },
             'name': {
                 'type': 'string',
+                'description': 'Display name of the pack. If the name only contains lowercase'
+                               'letters, digits and underscores, the "ref" field is not required.',
                 'required': True
             },
-            'description': {
+            'ref': {
+                'type': 'string',
+                'description': 'Reference for the pack, used as an internal id.',
+                'default': None,
+                'pattern': PACK_REF_WHITELIST_REGEX
+            },
+            'uid': {
                 'type': 'string'
+            },
+            'description': {
+                'type': 'string',
+                'description': 'Brief description of the pack and the service it integrates with.',
+                'required': True
             },
             'keywords': {
                 'type': 'array',
+                'description': 'Keywords describing the pack.',
                 'items': {'type': 'string'},
                 'default': []
             },
             'version': {
                 'type': 'string',
+                'description': 'Pack version. Must follow the semver format '
+                               '(for instance, "0.1.0").',
                 'pattern': PACK_VERSION_REGEX,
                 'required': True
             },
+            'stackstorm_version': {
+                'type': 'string',
+                'description': 'Required StackStorm version. Examples: ">1.6.0", '
+                               '">=1.8.0, <2.2.0"',
+                'pattern': ST2_VERSION_REGEX,
+            },
             'author': {
                 'type': 'string',
+                'description': 'Pack author or authors.',
                 'required': True
             },
             'email': {
                 'type': 'string',
-                'format': 'email',
-                'required': True
+                'description': 'E-mail of the pack author.',
+                'format': 'email'
+            },
+            'contributors': {
+                'type': 'array',
+                'items': {
+                    'type': 'string',
+                    'maxLength': 100
+                },
+                'description': ('A list of people who have contributed to the pack. Format is: '
+                                'Name <email address> e.g. Tomaz Muraus <tomaz@stackstorm.com>.')
             },
             'files': {
                 'type': 'array',
+                'description': 'A list of files inside the pack.',
                 'items': {'type': 'string'},
                 'default': []
+            },
+            'dependencies': {
+                'type': 'array',
+                'description': 'A list of other StackStorm packs this pack depends upon. '
+                               'The same format as in "st2 pack install" is used: '
+                               '"<name or full URL>[=<version or git ref>]".',
+                'items': {'type': 'string'},
+                'default': []
+            },
+            'system': {
+                'type': 'object',
+                'description': 'Specification for the system components and packages '
+                               'required for the pack.',
+                'default': {}
             }
-        },
-        'additionalProperties': False
+        }
     }
+
+    def __init__(self, **values):
+        # Note: If some version values are not explicitly surrounded by quotes they are recognized
+        # as numbers so we cast them to string
+        if values.get('version', None):
+            values['version'] = str(values['version'])
+
+        super(PackAPI, self).__init__(**values)
+
+    def validate(self):
+        # We wrap default validate() implementation and throw a more user-friendly exception in
+        # case pack version doesn't follow a valid semver format
+        try:
+            super(PackAPI, self).validate()
+        except jsonschema.ValidationError as e:
+            msg = str(e)
+
+            if "Failed validating 'pattern' in schema['properties']['version']" in msg:
+                new_msg = ('Pack version "%s" doesn\'t follow a valid semver format. Valid '
+                           'versions and formats include: 0.1.0, 0.2.1, 1.1.0, etc.' %
+                           (self.version))
+                new_msg += '\n\n' + msg
+                raise jsonschema.ValidationError(new_msg)
+
+            raise e
 
     @classmethod
     def to_model(cls, pack):
+        ref = pack.ref
         name = pack.name
         description = pack.description
-        ref = pack.ref
         keywords = getattr(pack, 'keywords', [])
         version = str(pack.version)
+
+        stackstorm_version = getattr(pack, 'stackstorm_version', None)
         author = pack.author
         email = pack.email
+        contributors = getattr(pack, 'contributors', [])
         files = getattr(pack, 'files', [])
+        dependencies = getattr(pack, 'dependencies', [])
+        system = getattr(pack, 'system', {})
 
-        model = cls.model(name=name, description=description, ref=ref, keywords=keywords,
-                          version=version, author=author, email=email, files=files)
+        model = cls.model(ref=ref, name=name, description=description, keywords=keywords,
+                          version=version, author=author, email=email, contributors=contributors,
+                          files=files, dependencies=dependencies, system=system,
+                          stackstorm_version=stackstorm_version)
         return model
 
 
@@ -194,22 +271,14 @@ class ConfigAPI(BaseAPI):
         # Note: We are doing optional validation so for now, we do allow additional properties
         instance = self.values or {}
         schema = config_schema_db.attributes
-        schema = util_schema.get_schema_for_resource_parameters(parameters_schema=schema,
-                                                                allow_additional_properties=True)
 
-        try:
-            cleaned = util_schema.validate(instance=instance, schema=schema,
-                                           cls=util_schema.CustomValidator, use_default=True,
-                                           allow_default_none=True)
-        except jsonschema.ValidationError as e:
-            attribute = getattr(e, 'path', [])
-            attribute = '.'.join(attribute)
-            configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
-            config_path = os.path.join(configs_path, '%s.yaml' % (self.pack))
+        configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
+        config_path = os.path.join(configs_path, '%s.yaml' % (self.pack))
 
-            msg = ('Failed validating attribute "%s" in config for pack "%s" (%s): %s' %
-                   (attribute, self.pack, config_path, str(e)))
-            raise jsonschema.ValidationError(msg)
+        cleaned = validate_config_against_schema(config_schema=schema,
+                                                 config_object=instance,
+                                                 config_path=config_path,
+                                                 pack_name=self.pack)
 
         return cleaned
 
@@ -274,6 +343,11 @@ class PackInstallRequestAPI(BaseAPI):
         "properties": {
             "packs": {
                 "type": "array"
+            },
+            "force": {
+                "type": "boolean",
+                "description": "Force pack installation",
+                "default": False
             }
         }
     }
