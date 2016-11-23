@@ -45,7 +45,7 @@ set_permissions() {
 }
 
 register_runners() {
-    st2ctl reload --register-runners
+    st2ctl reload --register-runners --register-fail-on-failure
 }
 
 # Choose first install or upgrade
