@@ -91,6 +91,25 @@ class UnregisterPackAction(BaseAction):
 
     def _unregister_rules(self, pack):
         deleted_rules = self._delete_pack_db_objects(pack=pack, access_cls=Rule)
+
+        # delete rules that has an association with the pack in trigger or action.
+        def _match_trigger(r):
+            return r.trigger.split('.')[0] == pack
+
+        def _match_action(r):
+            return r.action.ref.split('.')[0] == pack
+
+        for rule_obj in [x for x in Rule.get_all() if _match_trigger(x) or _match_action(x)]:
+            # This rule should have already been deleted.
+            if rule_obj.pack == pack:
+                continue
+
+            try:
+                Rule.delete(rule_obj)
+                deleted_rules.append(rule_obj)
+            except:
+                self.logger.exception('Failed to remove DB object %s.', rule_obj)
+
         for rule_db in deleted_rules:
             cleanup_trigger_db_for_rule(rule_db=rule_db)
 
