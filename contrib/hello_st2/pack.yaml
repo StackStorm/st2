@@ -5,6 +5,6 @@ description: A simple pack containing examples of sensor, rule, and action.
 keywords:
     - example
     - test
-version: 0.1
+version: 0.1.0
 author: st2-dev
 email: info@stackstorm.com
