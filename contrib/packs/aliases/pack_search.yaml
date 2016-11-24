@@ -10,25 +10,26 @@ formats:
 ack:
   enabled: true
   append_url: false
-  format: "Alright! Let me check if that matches anything in the pack index."
+  format: "Alright! Let me check if that matches anything in the StackStorm Exchange index."
 result:
   format: |
     {% if execution.status == "succeeded" %}
-      {% if execution.result %}
-        Got something for you!{~}
-        {% for pack in execution.result %}
-          • *{{ pack.name }}*: {{ pack.description }}
-        {% endfor %}
+    {% if execution.result.result | length %}
+    Got something for you matching `{{ execution.parameters.query }}`!{~}
+    {% for pack in execution.result.result %}
+    • *{{ pack.name }}*: {{ pack.description }}
+    {% endfor %}
 
-        I can tell you more about a particular pack, or even get it installed for you right away:
-        ```
-        pack show available <pack>
-        pack install <pack>
-        ```
-      {% else %}
-        I couldn't get any results for `{{ execution.parameters.query }}`, unfortunately.
-      {% endif %}
+    I can tell you more about a particular pack, or even get it installed for you right away:
+    ```
+    pack show <pack>
+    pack install <pack>
+    ```
     {% else %}
-      Search failed for `{{ execution.parameters.query }}`.{~}
-      Please check {{ execution.id }} for details. Index problems maybe?
+    Unfortunately I couldn't find any results for `{{ execution.parameters.query }}` in pack index.
+    {% endif %}
+    {% else %}
+    Search failed for `{{ execution.parameters.query }}`.{~}
+    Please check {{ execution.id }} for details. Index problems maybe?
+    {% if execution.result.stderr %}*Stderr:* ```{{ execution.result.stderr }}```{% endif %}
     {% endif %}

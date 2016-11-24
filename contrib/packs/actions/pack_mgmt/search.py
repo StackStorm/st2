@@ -18,6 +18,10 @@ from st2common.services.packs import search_pack_index
 
 
 class PackSearch(Action):
+    """"Search for packs in StackStorm Exchange and other directories."""
     def run(self, query):
-        # Yup. That's all folks!
+        """
+        :param query: A word or a phrase to search for
+        :type query: ``str``
+        """
         return search_pack_index(query)
