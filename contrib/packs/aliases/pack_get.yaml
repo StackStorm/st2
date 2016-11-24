@@ -12,23 +12,17 @@ ack:
 result:
   format: |
     {% if execution.status == "succeeded" %}
-        Getting back to you about the `{{ execution.parameters.pack }}` pack:{~}
-        {% if execution.result.pack %}
-          Here's the full index entry for the pack:
-          ```
-          {{ execution.result.pack }}
-          ```
-          Its source code is available at {{ execution.result.pack.repo_url }}.
-
-          To install the pack:
-          ```
-          pack install {{ execution.parameters.pack }}
-          ```
-          If the pack is already installed, I will upgrade it to the latest version, keeping the config.
-        {% else %}
-          There's nothing like that in the pack index.
-          I know how sad it is, but life goes on. Cheer up!
-        {% endif %}
+    {% if execution.result.result.pack %}
+    Getting back to you about the installed `{{ execution.parameters.pack }}` pack:{~}
+    Here's the full entry: ```{{ execution.result.result.pack|to_yaml_string }}```
+    {% if execution.result.result.git_status %}
+    Git status: ```{{ execution.result.result.git_status }}```
+    {% endif %}
     {% else %}
-      Couldn't locate *{{execution.parameters.pack}}*. :({~}
+    The requested pack is not present in your StackStorm installation.
+    To install the pack: `pack install {{ execution.parameters.pack }}`
+    {% endif %}
+    {% else %}
+    Couldn't locate *{{execution.parameters.pack}}*. :({~}
+    {% if execution.result.stderr %}*Stderr:* ```{{ execution.result.stderr }}```{% endif %}
     {% endif %}
