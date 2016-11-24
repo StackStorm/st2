@@ -1,72 +1,27 @@
 ---
 name: "pack_show"
-action_ref: "packs.lookup"
-description: "Get information about a StackStorm pack: either installed or availble"
+action_ref: "packs.show"
+description: "Show information about the pack from StackStorm Exchange."
 formats:
-  - display: "pack show [available] {{ pack }}"
+  - display: "pack show <pack>"
     representation:
       - "pack show {{ pack }}"
-      - "pack show available {{ pack }}({{ location='available' }}){0}"
 
 ack:
   enabled: false
 result:
   format: |
     {% if execution.status == "succeeded" %}
-      {% if execution.parameters.location == "installed" %}
-        Getting back to you about the `{{ execution.parameters.pack }}` pack:{~}
-        {% if execution.result.pack %}
-          Full metadata:
-          ```
-          {{ execution.result.pack }}
-          ```
-          {% if execution.result.git_status %}
-
-            Git status:
-            ```
-            {{ execution.result.git_status }}
-            ```
-          {% else %}
-            This pack does not appear to be a git repository though.
-          {% endif %}
-        {% else %}
-          It looks like there is no installed pack with this name.
-          {% if not execution.result.available %}
-            It's not on StackStorm Exchange either. What a sad world.
-          {% endif %}
-        {% endif %}
-        {% if execution.result.available %}
-
-            This pack is available in the pack directory. You can take a look:
-            ```
-            pack show available {{ execution.parameters.pack }}
-            ```
-            {% if not execution.result.pack %}
-              Or ask me to install it for you right away:
-              ```
-              pack install {{ execution.parameters.pack }}
-              ```
-            {% endif %}
-          {% endif %}
-      {% else %}
-        Getting back to you about the `{{ execution.parameters.pack }}` pack:{~}
-        {% if execution.result.available %}
-          Here's the full index entry for the pack:
-          ```
-          {{ execution.result.available }}
-          ```
-          Its source code is available at {{ execution.result.repo_url }}.
-
-          To install the pack, just ask me:
-          ```
-          pack install {{ execution.parameters.pack }}
-          ```
-          If the pack is already installed, I will upgrade it to the latest version, keeping the config.
-        {% else %}
-          There's nothing like that in the pack index.
-          I know how sad it is, but life goes on. Cheer up!
-        {% endif %}
-      {% endif %}
+    Getting back to you about the `{{ execution.parameters.pack }}` pack: {~}
+    {% if execution.result.result.pack %}
+    Here's the full index entry at StackStorm Exchange: ```{{ execution.result.result.pack|to_yaml_string }}```
+    To install the pack: `pack install {{ execution.parameters.pack }}`
+    If the pack is already installed, I will upgrade it to the latest version, keeping the config.
     {% else %}
-      Couldn't locate *{{execution.parameters.pack}}*. :({~}
+    There's nothing like that in the pack index.
+    https://exchange.stackstorm.org/
+    {% endif %}
+    {% else %}
+    Couldn't locate `{{execution.parameters.pack}}`.{~}
+    {% if execution.result.stderr %}*Stderr:* ```{{ execution.result.stderr }}```{% endif %}
     {% endif %}

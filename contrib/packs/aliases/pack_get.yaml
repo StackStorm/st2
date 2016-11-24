@@ -1,0 +1,34 @@
+---
+name: "pack_get"
+action_ref: "packs.get"
+description: "Get information about installed StackStorm pack."
+formats:
+  - display: "pack get <pack>"
+    representation:
+      - "pack get {{ pack }}"
+
+ack:
+  enabled: false
+result:
+  format: |
+    {% if execution.status == "succeeded" %}
+        Getting back to you about the `{{ execution.parameters.pack }}` pack:{~}
+        {% if execution.result.pack %}
+          Here's the full index entry for the pack:
+          ```
+          {{ execution.result.pack }}
+          ```
+          Its source code is available at {{ execution.result.pack.repo_url }}.
+
+          To install the pack:
+          ```
+          pack install {{ execution.parameters.pack }}
+          ```
+          If the pack is already installed, I will upgrade it to the latest version, keeping the config.
+        {% else %}
+          There's nothing like that in the pack index.
+          I know how sad it is, but life goes on. Cheer up!
+        {% endif %}
+    {% else %}
+      Couldn't locate *{{execution.parameters.pack}}*. :({~}
+    {% endif %}

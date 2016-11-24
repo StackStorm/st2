@@ -24,7 +24,7 @@ from st2common.content.utils import get_packs_base_paths
 MANIFEST_FILE = 'pack.yaml'
 
 
-class LookupLocal(Action):
+class GetInstalled(Action):
     def run(self, pack):
         packs_base_paths = get_packs_base_paths()
 

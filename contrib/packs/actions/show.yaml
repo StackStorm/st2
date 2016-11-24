@@ -1,0 +1,11 @@
+---
+name: "show"
+runner_type: "python-script"
+description: "Get detailed information about pack from the remote StackStorm exchange index."
+enabled: true
+entry_point: "pack_mgmt/show_remote.py"
+parameters:
+  pack:
+    type: "string"
+    description: "Name of pack to lookup"
+    required: true
