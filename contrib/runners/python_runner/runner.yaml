@@ -6,8 +6,7 @@
   runner_module: python_runner
   runner_parameters:
     env:
-      description: Environment variables which will be available to the script(e.g.
-        key1=val1,key2=val2)
+      description: Environment variables which will be available to the script.
       type: object
     timeout:
       default: 600
