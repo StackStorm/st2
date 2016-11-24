@@ -624,7 +624,7 @@ class ParamikoSSHClient(object):
                 try:
                     client.connect(**conninfo_ssh_config)
                 except Exception:
-                    raise Exception('Tried with system user. Provide '\
+                    raise Exception('Tried with system user. Provide '
                                     'User directive for the host in .ssh/config.')
         else:
             extra = {'_conninfo': conninfo}
