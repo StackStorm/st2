@@ -18,10 +18,6 @@
       type: "string"
       default: "actions,aliases,sensors,triggers"
       description: "Possible options are all, triggers, sensors, actions, rules, aliases."
-    upgrade:
-      type: "boolean"
-      default: false
-      description: "Upgrade the pack if already installed."
     env:
       type: "object"
       description: "Optional environment variables."
