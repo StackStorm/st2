@@ -1,0 +1,11 @@
+---
+name: "get"
+runner_type: "python-script"
+description: "Get information about installed pack."
+enabled: true
+entry_point: "pack_mgmt/get_installed.py"
+parameters:
+  pack:
+    type: "string"
+    description: "Name of pack to lookup"
+    required: true
