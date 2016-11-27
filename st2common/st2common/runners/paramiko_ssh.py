@@ -81,7 +81,10 @@ class ParamikoSSHClient(object):
     # Connect socket timeout
     CONNECT_TIMEOUT = 60
 
-    def __init__(self, hostname, port=22, username=None, password=None, bastion_host=None,
+    # Default SSH port
+    SSH_PORT = 22
+
+    def __init__(self, hostname, port=SSH_PORT, username=None, password=None, bastion_host=None,
                  key_files=None, key_material=None, timeout=None, passphrase=None):
         """
         Authentication is always attempted in the following order:
@@ -597,7 +600,9 @@ class ParamikoSSHClient(object):
     def _ssh_priority(client, conninfo, conninfo_ssh_config):
         logger = logging.getLogger("ParamikoSSHClient")
 
-        if conninfo['username'] == cfg.CONF.system_user.user:
+        # No Action params.
+        if conninfo['username'] == cfg.CONF.system_user.user\
+                and conninfo['port'] == ParamikoSSHClient.SSH_PORT:
 
             if 'username' in conninfo_ssh_config:
 
@@ -610,8 +615,10 @@ class ParamikoSSHClient(object):
                     client.connect(**conninfo)
 
                 else:
-                    extra = {'_conninfo_ssh_config': conninfo_ssh_config,
-                             '_conninfo': conninfo}
+                    if 'port' in conninfo_ssh_config:
+                        conninfo_ssh_config['port'] = int(conninfo_ssh_config['port'])
+                    extra = {'_sshconfig_conninfo': conninfo_ssh_config,
+                             '_default_conninfo': conninfo}
                     logger.debug('Connection info from config',
                                  extra=extra)
                     client.connect(**conninfo_ssh_config)
@@ -625,10 +632,11 @@ class ParamikoSSHClient(object):
                     client.connect(**conninfo_ssh_config)
                 except Exception:
                     raise Exception('Tried with system user. Provide '
-                                    'User directive for the host in .ssh/config.')
+                                    '\'User\' directive for the host in'
+                                    '.ssh/config.')
         else:
             extra = {'_conninfo': conninfo}
-            logger.debug('Connection info, action param. over config',
+            logger.debug('Connection info, action param. over ssh config',
                          extra=extra)
             client.connect(**conninfo)
 
