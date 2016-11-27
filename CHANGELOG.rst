@@ -65,6 +65,20 @@ In development
 * Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
   management approach. Now pack directories are actual checkouts of the corresponding pack git
   repositories so this file is not needed anymore.
+* Speed up short-lived Python runner actions by up to 70%. This way done by re-organizing and
+  re-factoring code to avoid expensive imports such as jsonschema, jinja2, kombu and mongoengine
+  in the places where those imports are not actually needed and by various other optimizations.
+  (improvement)
+* Add new ``st2-validate-pack-config`` tool for validating config file against a particular config
+  schema file. (new-feature)
+* Upgrade various internal Python library dependencies to the latest stable versions (gunicorn,
+  kombu, six, appscheduler, passlib, python-gnupg, semver, paramiko, python-keyczar, virtualenv).
+* Improve performance of ``GET /executions/views/filters`` by creating additional indexes on
+  executions collection
+* Add support for default values and dynamic config values for nested config objects. (new feature,
+  improvement)
+* Throw a more user-friendly exception if rendering a dynamic configuration value inside the config
+  fails. (improvement)
 * Add support for ssh config file for ParamikoSSHrunner. Now ``ssh_config_path`` can be set
   in ``st2.config`` and can be used to access remote hosts when ``use_ssh_config`` is set to
   ``True``. However, to access remote hosts, action paramters like username and

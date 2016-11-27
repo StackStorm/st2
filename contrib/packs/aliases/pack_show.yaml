@@ -1,0 +1,27 @@
+---
+name: "pack_show"
+action_ref: "packs.show"
+description: "Show information about the pack from StackStorm Exchange."
+formats:
+  - display: "pack show <pack>"
+    representation:
+      - "pack show {{ pack }}"
+
+ack:
+  enabled: false
+result:
+  format: |
+    {% if execution.status == "succeeded" %}
+    Getting back to you about the `{{ execution.parameters.pack }}` pack: {~}
+    {% if execution.result.result.pack %}
+    Here's the full index entry at StackStorm Exchange: ```{{ execution.result.result.pack|to_yaml_string }}```
+    To install the pack: `pack install {{ execution.parameters.pack }}`
+    If the pack is already installed, I will upgrade it to the latest version, keeping the config.
+    {% else %}
+    There's nothing like that in the pack index.
+    https://exchange.stackstorm.org/
+    {% endif %}
+    {% else %}
+    Couldn't locate `{{execution.parameters.pack}}`.{~}
+    {% if execution.result.stderr %}*Stderr:* ```{{ execution.result.stderr }}```{% endif %}
+    {% endif %}

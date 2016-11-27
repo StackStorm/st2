@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -16,27 +14,14 @@
 # limitations under the License.
 
 from st2common.runners.base_action import Action
+from st2common.services.packs import search_pack_index
 
 
-class ExpandRepoName(Action):
-    def run(self, repo_name):
-        """Returns the data required to install packs from repo_name.
-
-        Keyword arguments:
-          repo_name -- The Reposistory name to look up in the Packs config.yaml.
-
-        Returns: A Dict containing repo_url and subtree.
-
-        Raises:
-          ValueError: If the supplied repo_name is present (or complete).
+class PackSearch(Action):
+    """"Search for packs in StackStorm Exchange and other directories."""
+    def run(self, query):
         """
-        # Set up the results object
-        results = {}
-
-        try:
-            results['repo_url'] = self.config["repositories"][repo_name]["repo"]
-            results['subtree'] = self.config["repositories"][repo_name]["subtree"]
-        except KeyError:
-            raise ValueError("Missing repositories config for '%s'" % repo_name)
-        else:
-            return results
+        :param query: A word or a phrase to search for
+        :type query: ``str``
+        """
+        return search_pack_index(query)

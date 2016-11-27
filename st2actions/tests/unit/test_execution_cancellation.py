@@ -24,7 +24,7 @@ import st2tests.config as tests_config
 tests_config.parse_args()
 
 import st2common.bootstrap.runnersregistrar as runners_registrar
-from st2common.runners import ActionRunner
+from st2common.runners.base import ActionRunner
 import local_runner
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
@@ -48,7 +48,7 @@ MOCK_RESULT = {
 @mock.patch.object(local_runner.LocalShellRunner, 'run',
                    mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_RUNNING,
                                                 'Non-empty', None)))
-@mock.patch('st2common.runners.register_runner',
+@mock.patch('st2common.runners.base.register_runner',
             mock.MagicMock(return_value=local_runner))
 class ExecutionCancellationTest(DbTestCase):
 

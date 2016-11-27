@@ -64,6 +64,7 @@ def _register_config_opts():
 
 def _override_db_opts():
     CONF.set_override(name='db_name', override='st2-test', group='database')
+    CONF.set_override(name='host', override='127.0.0.1', group='database')
 
 
 def _override_common_opts():

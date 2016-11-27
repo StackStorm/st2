@@ -137,3 +137,69 @@ class PacksControllerTestCase(FunctionalTest):
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, PACK_INDEX['test2'])
+
+    def test_packs_register_endpoint(self):
+        # Register resources from all packs
+        resp = self.app.post_json('/v1/packs/register')
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue('runners' in resp.json)
+        self.assertTrue('actions' in resp.json)
+        self.assertTrue('triggers' in resp.json)
+        self.assertTrue('sensors' in resp.json)
+        self.assertTrue('rules' in resp.json)
+        self.assertTrue('rule_types' in resp.json)
+        self.assertTrue('aliases' in resp.json)
+        self.assertTrue('policy_types' in resp.json)
+        self.assertTrue('policies' in resp.json)
+        self.assertTrue('configs' in resp.json)
+        self.assertTrue(resp.json['actions'] >= 1)
+
+        # Register resources from a specific pack
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(resp.json['actions'] >= 1)
+        self.assertTrue(resp.json['sensors'] >= 1)
+        self.assertTrue(resp.json['configs'] >= 1)
+
+        # Register specific type for all packs
+        resp = self.app.post_json('/v1/packs/register', {'types': ['sensor']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {'sensors': 1})
+
+        # Verify that plural name form also works
+        resp = self.app.post_json('/v1/packs/register', {'types': ['sensors']})
+
+        self.assertEqual(resp.status_int, 200)
+
+        # Register specific type for a single packs
+        resp = self.app.post_json('/v1/packs/register',
+                                  {'packs': ['dummy_pack_1'], 'types': ['action']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 11})
+
+        # Verify that plural name form also works
+        resp = self.app.post_json('/v1/packs/register',
+                                  {'packs': ['dummy_pack_1'], 'types': ['actions']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 11})
+
+        # Register single resource from a single pack specified multiple times - verify that
+        # resources from the same pack are only registered once
+        resp = self.app.post_json('/v1/packs/register',
+                                  {'packs': ['dummy_pack_1', 'dummy_pack_1', 'dummy_pack_1'],
+                                   'types': ['actions']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 11})
+
+        # Register resources from a single (non-existent pack)
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['doesntexist']},
+                                  expect_errors=True)
+
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue('Pack "doesntexist" not found on disk:' in resp.json['faultstring'])

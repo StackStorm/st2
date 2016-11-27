@@ -22,7 +22,7 @@ from subprocess import list2cmdline
 from eventlet.green import subprocess
 
 from st2common import log as logging
-from st2common.runners import ActionRunner
+from st2common.runners.base import ActionRunner
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
@@ -119,7 +119,8 @@ class PythonRunner(ActionRunner):
             '--file-path=%s' % (self.entry_point),
             '--parameters=%s' % (serialized_parameters),
             '--user=%s' % (user),
-            '--parent-args=%s' % (json.dumps(sys.argv[1:]))
+            '--parent-args=%s' % (json.dumps(sys.argv[1:])),
+            '--is-subprocess'
         ]
 
         # We need to ensure all the st2 dependencies are also available to the

@@ -15,7 +15,7 @@
 
 import json
 
-from st2common.runners import ActionRunner
+from st2common.runners.base import ActionRunner
 from st2common.constants.action import (LIVEACTION_STATUS_SUCCEEDED)
 
 __all__ = [

@@ -1,0 +1,28 @@
+---
+name: "pack_get"
+action_ref: "packs.get"
+description: "Get information about installed StackStorm pack."
+formats:
+  - display: "pack get <pack>"
+    representation:
+      - "pack get {{ pack }}"
+
+ack:
+  enabled: false
+result:
+  format: |
+    {% if execution.status == "succeeded" %}
+    {% if execution.result.result.pack %}
+    Getting back to you about the installed `{{ execution.parameters.pack }}` pack:{~}
+    Here's the full entry: ```{{ execution.result.result.pack|to_yaml_string }}```
+    {% if execution.result.result.git_status %}
+    Git status: ```{{ execution.result.result.git_status }}```
+    {% endif %}
+    {% else %}
+    The requested pack is not present in your StackStorm installation.
+    To install the pack: `pack install {{ execution.parameters.pack }}`
+    {% endif %}
+    {% else %}
+    Couldn't locate *{{execution.parameters.pack}}*. :({~}
+    {% if execution.result.stderr %}*Stderr:* ```{{ execution.result.stderr }}```{% endif %}
+    {% endif %}
