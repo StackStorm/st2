@@ -65,8 +65,11 @@ In development
 * Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
   management approach. Now pack directories are actual checkouts of the corresponding pack git
   repositories so this file is not needed anymore.
-* Add ssh config support for paramiko ssh config feature. This adds support for user defined
-  ``ssh_config`` location and proxycommand #2941 #3032 [Eric Edgar] (improvement)
+* Add support for ssh config file for ParamikoSSHrunner. Now ``ssh_config_path`` can be set
+  in ``st2.config`` and can be used to access remote hosts when ``use_ssh_config`` is set to
+  ``True``. However, to access remote hosts, action paramters like username and
+  password/private_key, if provided with action, will have precedence over the config file
+  entry for the host. #2941 #3032 [Eric Edgar] (improvement)
 
 2.0.1 - September 30, 2016
 --------------------------
