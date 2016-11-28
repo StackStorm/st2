@@ -22,6 +22,7 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.persistence.pack import Pack
+from st2common.util.misc import lowercase_value
 
 __all__ = [
     'get_pack_by_ref',
@@ -155,18 +156,21 @@ def get_pack_from_index(pack):
     return index.get(pack)
 
 
-def search_pack_index(query, exclude=None, priority=None):
+def search_pack_index(query, exclude=None, priority=None, case_sensitive=True):
     """
     Search the pack index by query.
     Returns a list of matches for a query.
     """
     if not query:
-        raise ValueError("Query must be specified.")
+        raise ValueError('Query must be specified.')
 
     if not exclude:
         exclude = EXCLUDE_FIELDS
     if not priority:
         priority = SEARCH_PRIORITY
+
+    if not case_sensitive:
+        query = str(query).lower()
 
     index, _ = fetch_pack_index()
 
@@ -175,6 +179,9 @@ def search_pack_index(query, exclude=None, priority=None):
         for key, value in six.iteritems(pack):
             if not hasattr(value, '__contains__'):
                 value = str(value)
+
+            if not case_sensitive:
+                value = lowercase_value(value=value)
 
             if key not in exclude and query in value:
                 if key in priority:
