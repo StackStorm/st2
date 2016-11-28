@@ -170,7 +170,8 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.json, PACK_INDEX['test2'])
 
     def test_packs_register_endpoint(self):
-        # Register resources from all packs
+        # Register resources from all packs - make sure the count values are correctly added
+        # together
         resp = self.app.post_json('/v1/packs/register')
 
         self.assertEqual(resp.status_int, 200)
@@ -184,7 +185,9 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertTrue('policy_types' in resp.json)
         self.assertTrue('policies' in resp.json)
         self.assertTrue('configs' in resp.json)
-        self.assertTrue(resp.json['actions'] >= 1)
+
+        self.assertTrue(resp.json['actions'] >= 3)
+        self.assertTrue(resp.json['configs'] >= 3)
 
         # Register resources from a specific pack
         resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1']})
