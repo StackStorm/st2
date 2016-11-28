@@ -15,6 +15,8 @@
 
 import re
 
+from collections import defaultdict
+
 import pecan
 from pecan.rest import RestController
 import six
@@ -127,7 +129,7 @@ class PackRegisterController(RestController):
         else:
             packs = None
 
-        result = {}
+        result = defaultdict(int)
 
         # Register depended resources (actions depend on runners, rules depend on rule types, etc)
         if ('runner' in types or 'runners' in types) or ('action' in types or 'actions' in types):
@@ -150,7 +152,8 @@ class PackRegisterController(RestController):
                         pack_path = content_utils.get_pack_base_path(pack)
 
                         try:
-                            result[name] = registrar.register_from_pack(pack_dir=pack_path)
+                            registered_count = registrar.register_from_pack(pack_dir=pack_path)
+                            result[name] += registered_count
                         except ValueError as e:
                             # Throw more user-friendly exception if requsted pack doesn't exist
                             if re.match('Directory ".*?" doesn\'t exist', str(e)):
@@ -160,7 +163,8 @@ class PackRegisterController(RestController):
                             raise e
                 else:
                     packs_base_paths = content_utils.get_packs_base_paths()
-                    result[name] = registrar.register_from_packs(base_dirs=packs_base_paths)
+                    registered_count = registrar.register_from_packs(base_dirs=packs_base_paths)
+                    result[name] += registered_count
 
         return result
 
