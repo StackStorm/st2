@@ -125,6 +125,37 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, [PACK_INDEX['test2']])
 
+        # Search should be case insensitive by default
+        resp = self.app.post_json('/v1/packs/index/search', {'query': 'TEST'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test'], PACK_INDEX['test2']])
+
+        resp = self.app.post_json('/v1/packs/index/search', {'query': 'SPECIAL'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test2']])
+
+        resp = self.app.post_json('/v1/packs/index/search', {'query': 'sPeCiAL'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test2']])
+
+        resp = self.app.post_json('/v1/packs/index/search', {'query': 'st2-dev'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test']])
+
+        resp = self.app.post_json('/v1/packs/index/search', {'query': 'ST2-dev'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test']])
+
+        resp = self.app.post_json('/v1/packs/index/search', {'query': '-dev'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test']])
+
     @mock.patch.object(pack_service, 'fetch_pack_index',
                        mock.MagicMock(return_value=(PACK_INDEX, {})))
     def test_show(self):
