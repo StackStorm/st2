@@ -637,15 +637,12 @@ class ParamikoSSHClient(object):
 
         ssh_config = ssh_config_parser.lookup(host)
         if ssh_config:
-            for k in ('hostname', 'user', 'port'):
+            for k in ('hostname', 'user', 'port', 'identityfile'):
                 if k in ssh_config:
                     ssh_config_info[k] = ssh_config[k]
 
             if 'proxycommand' in ssh_config:
                 ssh_config_info['sock'] = paramiko.ProxyCommand(ssh_config['proxycommand'])
-
-            if 'identityfile' in ssh_config:
-                ssh_config_info['key_filename'] = ssh_config['identityfile']
 
         return ssh_config_info
 
