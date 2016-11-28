@@ -70,17 +70,12 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._kwarg_op = '--'
         self._cwd = None
         self._env = None
+        self._ssh_port = None
         self._timeout = None
         self._bastion_host = None
         self._on_behalf_user = cfg.CONF.system_user.user
 
         self._ssh_key_file = None
-        ssh_key_file = cfg.CONF.system_user.ssh_key_file
-        if ssh_key_file:
-            ssh_key_file = os.path.expanduser(ssh_key_file)
-            if os.path.exists(ssh_key_file):
-                self._ssh_key_file = ssh_key_file
-
         self._parallel_ssh_client = None
         self._max_concurrency = cfg.CONF.ssh_runner.max_parallel_actions
 
@@ -99,15 +94,8 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._private_key = self.runner_parameters.get(RUNNER_PRIVATE_KEY, None)
         self._passphrase = self.runner_parameters.get(RUNNER_PASSPHRASE, None)
 
-        if self._username:
-            if not self._password and not self._private_key:
-                msg = ('Either password or private_key data needs to be supplied for user: %s' %
-                       self._username)
-                raise InvalidCredentialsException(msg)
-
-        self._username = self._username or cfg.CONF.system_user.user
-        self._ssh_port = self.runner_parameters.get(RUNNER_SSH_PORT, 22)
-        self._ssh_key_file = self._private_key or self._ssh_key_file
+        self._ssh_port = self.runner_parameters.get(RUNNER_SSH_PORT, None)
+        self._ssh_key_file = self._private_key
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._sudo = self._sudo if self._sudo else False

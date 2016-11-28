@@ -22,6 +22,7 @@ import eventlet
 from oslo_config import cfg
 
 import paramiko
+from paramiko.ssh_exception import SSHException
 
 # Depending on your version of Paramiko, it may cause a deprecation
 # warning on Python 2.6.
@@ -105,7 +106,7 @@ class ParamikoSSHClient(object):
         self.bastion_host = bastion_host
         self.passphrase = passphrase
         self.ssh_config_file = os.path.expanduser(
-            cfg.CONF.ssh_runner.ssh_config_path or
+            cfg.CONF.ssh_runner.ssh_config_file_path or
             '~/.ssh/config'
         )
         self.logger = logging.getLogger(__name__)
@@ -549,11 +550,11 @@ class ParamikoSSHClient(object):
                     'timeout': self.timeout}
 
         ssh_config_file_info = {}
-        if cfg.CONF.ssh_runner.use_ssh_config:
+        if cfg.CONF.ssh_runner.use_ssh_config_file:
             ssh_config_file_info = self._get_ssh_config_for_host(host)
 
         self.username = (self.username or ssh_config_file_info.get('user', None) or
-                         cfg.CONF.system_user)
+                         cfg.CONF.system_user.user)
         self.port = self.port or ssh_config_file_info.get('port' or None) or DEFAULT_SSH_PORT
 
         # If both key file and key material are provided as action parameters,
@@ -620,7 +621,18 @@ class ParamikoSSHClient(object):
 
         extra = {'_conninfo': conninfo}
         self.logger.debug('Connection info', extra=extra)
-        client.connect(**conninfo)
+        try:
+            client.connect(**conninfo)
+        except SSHException as e:
+            paramiko_msg = e.message
+
+            if conninfo.get('password', None):
+                conninfo['password'] = '<redacted>'
+
+            msg = ('Error connecting to host %s ' % host +
+                   'with connection parameters %s.' % conninfo +
+                   'Paramiko error: %s.' % paramiko_msg)
+            raise SSHException(msg)
 
         return client
 
@@ -636,10 +648,18 @@ class ParamikoSSHClient(object):
                             (self.ssh_config_file, e.errno, e.strerror))
 
         ssh_config = ssh_config_parser.lookup(host)
+        self.logger.info('Parsed SSH config file contents: %s', ssh_config)
         if ssh_config:
-            for k in ('hostname', 'user', 'port', 'identityfile'):
+            for k in ('hostname', 'user', 'port'):
                 if k in ssh_config:
                     ssh_config_info[k] = ssh_config[k]
+
+            if 'identityfile' in ssh_config:
+                key_file = ssh_config['identityfile']
+                if type(key_file) is list:
+                    key_file = key_file[0]
+
+                ssh_config_info['identityfile'] = key_file
 
             if 'proxycommand' in ssh_config:
                 ssh_config_info['sock'] = paramiko.ProxyCommand(ssh_config['proxycommand'])
