@@ -81,10 +81,8 @@ class ParamikoSSHClient(object):
     # Connect socket timeout
     CONNECT_TIMEOUT = 60
 
-    # Default SSH port
-    SSH_PORT = 22
-
-    def __init__(self, hostname, port=SSH_PORT, username=None, password=None, bastion_host=None,
+    def __init__(self, hostname, port=DEFAULT_SSH_PORT, username=None, password=None,
+                 bastion_host=None,
                  key_files=None, key_material=None, timeout=None, passphrase=None):
         """
         Authentication is always attempted in the following order:
