@@ -248,8 +248,9 @@ class PackConfigCommand(resource.ResourceCommand):
         schema = self.app.client.managers['ConfigSchema'].get_by_ref_or_id(args.name, **kwargs)
 
         if not schema:
-            raise resource.ResourceNotFoundError("%s doesn't have config schema defined" %
-                                                 self.resource.get_display_name())
+            msg = '%s "%s" doesn\'t exist or doesn\'t have config schema defined.'
+            raise resource.ResourceNotFoundError(msg % (self.resource.get_display_name(),
+                                                        args.name))
 
         config = interactive.InteractiveForm(schema.attributes).initiate_dialog()
 
