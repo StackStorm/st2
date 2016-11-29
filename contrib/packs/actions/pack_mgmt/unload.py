@@ -118,6 +118,7 @@ class UnregisterPackAction(BaseAction):
             pack_db = None
 
         # 2. Try by name (here for backward compatibility)
+        # TODO: This shouldn't be needed in the future, remove it in v2.1 or similar
         if not pack_db:
             try:
                 pack_db = Pack.get_by_name(value=pack)
