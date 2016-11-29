@@ -109,9 +109,22 @@ class UnregisterPackAction(BaseAction):
         return True
 
     def _delete_pack_db_object(self, pack):
+        pack_db = None
+
+        # 1. Try by ref
         try:
-            pack_db = Pack.get_by_name(value=pack)
+            pack_db = Pack.get_by_ref(value=pack)
         except StackStormDBObjectNotFoundError:
+            pack_db = None
+
+        # 2. Try by name (here for backward compatibility)
+        if not pack_db:
+            try:
+                pack_db = Pack.get_by_name(value=pack)
+            except StackStormDBObjectNotFoundError:
+                pack_db = None
+
+        if not pack_db:
             self.logger.exception('Pack DB object not found')
             return
 
