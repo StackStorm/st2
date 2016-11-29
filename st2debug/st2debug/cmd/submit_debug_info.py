@@ -395,8 +395,8 @@ class DebugInfoCollector(object):
         """
         LOG.debug('Including system info')
 
-        system_information = yaml.dump(self.get_system_information(),
-                                       default_flow_style=False)
+        system_information = yaml.safe_dump(self.get_system_information(),
+                                            default_flow_style=False)
 
         with open(output_path, 'w') as fp:
             fp.write(system_information)
@@ -409,7 +409,7 @@ class DebugInfoCollector(object):
         :type output_path: ``str``
         """
         LOG.debug('Including user info')
-        user_info = yaml.dump(self.user_info, default_flow_style=False)
+        user_info = yaml.safe_dump(self.user_info, default_flow_style=False)
 
         with open(output_path, 'w') as fp:
             fp.write(user_info)
