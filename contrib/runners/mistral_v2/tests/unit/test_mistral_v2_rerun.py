@@ -17,7 +17,6 @@ import copy
 import uuid
 
 import mock
-import six
 import yaml
 
 from mistralclient.api.v2 import executions
@@ -30,25 +29,20 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-# Set defaults for retry options.
-cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
-cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
-cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
-
+from mistral_v2 import MistralRunner
+from st2common.bootstrap import actionsregistrar
 import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2common.constants import action as action_constants
-from st2common.models.api.action import ActionAPI
 from st2common.models.db.liveaction import LiveActionDB
-from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
+from st2common.runners import base as runners
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
+from st2common.util import loader
 from st2tests import DbTestCase
-from st2tests.fixturesloader import FixturesLoader
-from tests.unit.base import MockLiveActionPublisher
-from local_runner import LocalShellRunner
-from mistral_v2 import MistralRunner
+from st2tests import fixturesloader
+from st2tests.mocks.liveaction import MockLiveActionPublisher
 
 
 TEST_FIXTURES = {
@@ -58,21 +52,30 @@ TEST_FIXTURES = {
     ],
     'actions': [
         'workflow_v2.yaml',
-        'workbook_v2_many_workflows.yaml',
-        'local.yaml'
+        'workbook_v2_many_workflows.yaml'
     ]
 }
 
-PACK = 'generic'
-LOADER = FixturesLoader()
-FIXTURES = LOADER.load_fixtures(fixtures_pack=PACK, fixtures_dict=TEST_FIXTURES)
+TEST_PACK = 'mistral_tests'
+TEST_PACK_PATH = fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
+
+PACKS = [
+    TEST_PACK_PATH,
+    fixturesloader.get_fixtures_packs_base_path() + '/core'
+]
+
+# Action executions requirements
+ACTION_PARAMS = {'friend': 'Rocky'}
+NON_EMPTY_RESULT = 'non-empty'
 
 # Workbook with multiple workflows
-WB1_YAML_FILE_NAME = TEST_FIXTURES['workflows'][1]
-WB1_YAML_FILE_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WB1_YAML_FILE_NAME)
-WB1_SPEC = FIXTURES['workflows'][WB1_YAML_FILE_NAME]
+WB1_META_FILE_NAME = TEST_FIXTURES['workflows'][1]
+WB1_META_FILE_PATH = TEST_PACK_PATH + '/actions/' + WB1_META_FILE_NAME
+WB1_META_CONTENT = loader.load_meta_file(WB1_META_FILE_PATH)
+WB1_NAME = WB1_META_CONTENT['pack'] + '.' + WB1_META_CONTENT['name']
+WB1_ENTRY_POINT = TEST_PACK_PATH + '/actions/' + WB1_META_CONTENT['entry_point']
+WB1_SPEC = yaml.safe_load(MistralRunner.get_workflow_definition(WB1_ENTRY_POINT))
 WB1_YAML = yaml.safe_dump(WB1_SPEC, default_flow_style=False)
-WB1_NAME = '%s.%s' % (PACK, WB1_YAML_FILE_NAME.replace('.yaml', ''))
 WB1 = workbooks.Workbook(None, {'name': WB1_NAME, 'definition': WB1_YAML})
 WB1_MAIN_EXEC = {'id': str(uuid.uuid4()), 'state': 'RUNNING'}
 WB1_MAIN_EXEC['workflow_name'] = WB1_NAME + '.main'
@@ -90,11 +93,13 @@ WB1_SUB1_TASK2 = {'id': str(uuid.uuid4()), 'name': 'say-friend', 'state': 'ERROR
 WB1_SUB1_TASKS = [tasks.Task(None, WB1_SUB1_TASK1), tasks.Task(None, WB1_SUB1_TASK2)]
 
 # Non-workbook with a single workflow
-WF1_YAML_FILE_NAME = TEST_FIXTURES['workflows'][0]
-WF1_YAML_FILE_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WF1_YAML_FILE_NAME)
-WF1_SPEC = FIXTURES['workflows'][WF1_YAML_FILE_NAME]
+WF1_META_FILE_NAME = TEST_FIXTURES['workflows'][0]
+WF1_META_FILE_PATH = TEST_PACK_PATH + '/actions/' + WF1_META_FILE_NAME
+WF1_META_CONTENT = loader.load_meta_file(WF1_META_FILE_PATH)
+WF1_NAME = WF1_META_CONTENT['pack'] + '.' + WF1_META_CONTENT['name']
+WF1_ENTRY_POINT = TEST_PACK_PATH + '/actions/' + WF1_META_CONTENT['entry_point']
+WF1_SPEC = yaml.safe_load(MistralRunner.get_workflow_definition(WF1_ENTRY_POINT))
 WF1_YAML = yaml.safe_dump(WF1_SPEC, default_flow_style=False)
-WF1_NAME = '%s.%s' % (PACK, WF1_YAML_FILE_NAME.replace('.yaml', ''))
 WF1 = workflows.Workflow(None, {'name': WF1_NAME, 'definition': WF1_YAML})
 WF1_EXEC = {'id': str(uuid.uuid4()), 'state': 'ERROR', 'workflow_name': WF1_NAME}
 WF1_EXEC_NOT_RERUNABLE = copy.deepcopy(WF1_EXEC)
@@ -103,35 +108,56 @@ WF1_TASK1 = {'id': str(uuid.uuid4()), 'name': 'say-greeting', 'state': 'SUCCESS'
 WF1_TASK2 = {'id': str(uuid.uuid4()), 'name': 'say-friend', 'state': 'SUCCESS'}
 WF1_TASKS = [tasks.Task(None, WF1_TASK1), tasks.Task(None, WF1_TASK2)]
 
-# Action executions requirements
-ACTION_PARAMS = {'friend': 'Rocky'}
 
-NON_EMPTY_RESULT = 'non-empty'
-
-
-@mock.patch.object(LocalShellRunner, 'run', mock.
-                   MagicMock(return_value=(action_constants.LIVEACTION_STATUS_SUCCEEDED,
-                                           NON_EMPTY_RESULT, None)))
-@mock.patch.object(CUDPublisher, 'publish_update', mock.MagicMock(return_value=None))
-@mock.patch.object(CUDPublisher, 'publish_create',
-                   mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
-@mock.patch.object(LiveActionPublisher, 'publish_state',
-                   mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
+@mock.patch.object(
+    CUDPublisher,
+    'publish_update',
+    mock.MagicMock(return_value=None))
+@mock.patch.object(
+    CUDPublisher,
+    'publish_create',
+    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
+@mock.patch.object(
+    LiveActionPublisher,
+    'publish_state',
+    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
 class MistralRunnerTest(DbTestCase):
 
     @classmethod
     def setUpClass(cls):
         super(MistralRunnerTest, cls).setUpClass()
-        runners_registrar.register_runner_types()
 
-        for _, fixture in six.iteritems(FIXTURES['actions']):
-            instance = ActionAPI(**fixture)
-            Action.add_or_update(ActionAPI.to_model(instance))
+        # Override the retry configuration here otherwise st2tests.config.parse_args
+        # in DbTestCase.setUpClass will reset these overrides.
+        cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
+        cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
+        cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
+
+        # Register runners.
+        runners_registrar.register_runners()
+
+        # Register test pack(s).
+        registrar = actionsregistrar.ActionsRegistrar(
+            use_pack_cache=False,
+            fail_on_failure=True
+        )
+
+        for pack in PACKS:
+            registrar.register_from_pack(pack)
 
     def setUp(self):
         super(MistralRunnerTest, self).setUp()
         cfg.CONF.set_override('api_url', 'http://0.0.0.0:9101', group='auth')
 
+        # Mock the local runner run method.
+        local_runner_cls = self.get_runner_class('local_runner')
+        local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
+        local_runner_cls.run = mock.Mock(return_value=local_run_result)
+
+    @classmethod
+    def get_runner_class(cls, runner_name):
+        return runners.get_runner(runner_name).__class__
+
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
         mock.MagicMock(return_value=[]))
@@ -144,40 +170,45 @@ class MistralRunnerTest(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
-    @mock.patch.object(
-        MistralRunner, 'resume',
-        mock.MagicMock(
-            return_value=(action_constants.LIVEACTION_STATUS_RUNNING,
-                          {'tasks': []},
-                          {'execution_id': str(uuid.uuid4())})
-        )
-    )
     def test_resume_option(self):
-        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
-        liveaction1 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
-        liveaction1, execution1 = action_service.request(liveaction1)
-        self.assertFalse(MistralRunner.resume.called)
+        patched_mistral_runner = self.get_runner_class('mistral_v2')
 
-        # Rerun the execution.
-        context = {
-            're-run': {
-                'ref': execution1.id,
-                'tasks': ['x']
+        mock_resume_result = (
+            action_constants.LIVEACTION_STATUS_RUNNING,
+            {'tasks': []},
+            {'execution_id': str(uuid.uuid4())}
+        )
+
+        with mock.patch.object(patched_mistral_runner, 'resume',
+                               mock.MagicMock(return_value=mock_resume_result)):
+
+            liveaction1 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+            liveaction1, execution1 = action_service.request(liveaction1)
+            self.assertFalse(patched_mistral_runner.resume.called)
+
+            # Rerun the execution.
+            context = {
+                're-run': {
+                    'ref': execution1.id,
+                    'tasks': ['x']
+                }
             }
-        }
 
-        liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
-        liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+            liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
+            liveaction2, execution2 = action_service.request(liveaction2)
+            liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
+            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
-        task_specs = {
-            'x': {
-                'reset': False
+            task_specs = {
+                'x': {
+                    'reset': False
+                }
             }
-        }
 
-        MistralRunner.resume.assert_called_with(ex_ref=execution1, task_specs=task_specs)
+            patched_mistral_runner.resume.assert_called_with(
+                ex_ref=execution1,
+                task_specs=task_specs
+            )
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -191,44 +222,49 @@ class MistralRunnerTest(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
-    @mock.patch.object(
-        MistralRunner, 'resume',
-        mock.MagicMock(
-            return_value=(action_constants.LIVEACTION_STATUS_RUNNING,
-                          {'tasks': []},
-                          {'execution_id': str(uuid.uuid4())})
-        )
-    )
     def test_resume_option_reset_tasks(self):
-        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
-        liveaction1 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
-        liveaction1, execution1 = action_service.request(liveaction1)
-        self.assertFalse(MistralRunner.resume.called)
+        patched_mistral_runner = self.get_runner_class('mistral_v2')
 
-        # Rerun the execution.
-        context = {
-            're-run': {
-                'ref': execution1.id,
-                'tasks': ['x', 'y'],
-                'reset': ['y']
+        mock_resume_result = (
+            action_constants.LIVEACTION_STATUS_RUNNING,
+            {'tasks': []},
+            {'execution_id': str(uuid.uuid4())}
+        )
+
+        with mock.patch.object(patched_mistral_runner, 'resume',
+                               mock.MagicMock(return_value=mock_resume_result)):
+
+            liveaction1 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+            liveaction1, execution1 = action_service.request(liveaction1)
+            self.assertFalse(patched_mistral_runner.resume.called)
+
+            # Rerun the execution.
+            context = {
+                're-run': {
+                    'ref': execution1.id,
+                    'tasks': ['x', 'y'],
+                    'reset': ['y']
+                }
             }
-        }
 
-        liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
-        liveaction2, execution2 = action_service.request(liveaction2)
-        liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
-        self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
+            liveaction2 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=context)
+            liveaction2, execution2 = action_service.request(liveaction2)
+            liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
+            self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
-        task_specs = {
-            'x': {
-                'reset': False
-            },
-            'y': {
-                'reset': True
+            task_specs = {
+                'x': {
+                    'reset': False
+                },
+                'y': {
+                    'reset': True
+                }
             }
-        }
 
-        MistralRunner.resume.assert_called_with(ex_ref=execution1, task_specs=task_specs)
+            patched_mistral_runner.resume.assert_called_with(
+                ex_ref=execution1,
+                task_specs=task_specs
+            )
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
@@ -249,7 +285,6 @@ class MistralRunnerTest(DbTestCase):
         tasks.TaskManager, 'list',
         mock.MagicMock(return_value=WF1_TASKS))
     def test_resume_workflow_not_in_rerunable_state(self):
-        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
         liveaction1 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
 
@@ -289,7 +324,6 @@ class MistralRunnerTest(DbTestCase):
         tasks.TaskManager, 'list',
         mock.MagicMock(return_value=WF1_TASKS))
     def test_resume_tasks_not_in_rerunable_state(self):
-        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
         liveaction1 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
 
@@ -329,7 +363,6 @@ class MistralRunnerTest(DbTestCase):
         tasks.TaskManager, 'list',
         mock.MagicMock(return_value=WF1_TASKS))
     def test_resume_unidentified_tasks(self):
-        MistralRunner.entry_point = mock.PropertyMock(return_value=WF1_YAML_FILE_PATH)
         liveaction1 = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
 
@@ -375,7 +408,6 @@ class MistralRunnerTest(DbTestCase):
         tasks.TaskManager, 'rerun',
         mock.MagicMock(return_value=None))
     def test_resume_subworkflow_task(self):
-        MistralRunner.entry_point = mock.PropertyMock(return_value=WB1_YAML_FILE_PATH)
         liveaction1 = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
 
@@ -444,7 +476,6 @@ class MistralRunnerTest(DbTestCase):
         tasks.TaskManager, 'list',
         mock.MagicMock(side_effect=[WB1_MAIN_TASKS, WB1_SUB1_TASKS]))
     def test_resume_unidentified_subworkflow_task(self):
-        MistralRunner.entry_point = mock.PropertyMock(return_value=WB1_YAML_FILE_PATH)
         liveaction1 = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
 
@@ -490,7 +521,6 @@ class MistralRunnerTest(DbTestCase):
         tasks.TaskManager, 'rerun',
         mock.MagicMock(return_value=None))
     def test_resume_and_reset_subworkflow_task(self):
-        MistralRunner.entry_point = mock.PropertyMock(return_value=WB1_YAML_FILE_PATH)
         liveaction1 = LiveActionDB(action=WB1_NAME, parameters=ACTION_PARAMS)
         liveaction1, execution1 = action_service.request(liveaction1)
 

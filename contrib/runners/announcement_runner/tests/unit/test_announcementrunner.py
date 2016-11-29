@@ -17,9 +17,9 @@ import mock
 
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.models.api.trace import TraceContext
-from base import RunnerTestCase
+from st2tests.base import RunnerTestCase
 import st2tests.config as tests_config
-import announcementrunner
+import announcement_runner
 
 
 mock_dispatcher = mock.Mock()
@@ -33,14 +33,14 @@ class AnnouncementRunnerTestCase(RunnerTestCase):
         tests_config.parse_args()
 
     def test_runner_creation(self, dispatch):
-        runner = announcementrunner.get_runner()
+        runner = announcement_runner.get_runner()
         self.assertTrue(runner is not None, 'Creation failed. No instance.')
-        self.assertEqual(type(runner), announcementrunner.AnnouncementRunner,
+        self.assertEqual(type(runner), announcement_runner.AnnouncementRunner,
                          'Creation failed. No instance.')
         self.assertEqual(runner._dispatcher.dispatch, dispatch)
 
     def test_announcement(self, dispatch):
-        runner = announcementrunner.get_runner()
+        runner = announcement_runner.get_runner()
         runner.runner_parameters = {
             'experimental': True,
             'route': 'general'
@@ -57,7 +57,7 @@ class AnnouncementRunnerTestCase(RunnerTestCase):
                                          trace_context=None)
 
     def test_announcement_no_experimental(self, dispatch):
-        runner = announcementrunner.get_runner()
+        runner = announcement_runner.get_runner()
         runner.action = mock.Mock(ref='some.thing')
         runner.runner_parameters = {
             'route': 'general'
@@ -69,7 +69,7 @@ class AnnouncementRunnerTestCase(RunnerTestCase):
 
     @mock.patch('st2common.models.api.trace.TraceContext.__new__')
     def test_announcement_with_trace(self, context, dispatch):
-        runner = announcementrunner.get_runner()
+        runner = announcement_runner.get_runner()
         runner.runner_parameters = {
             'experimental': True,
             'route': 'general'

@@ -15,6 +15,10 @@
 
 import unittest2
 
+# XXX: actionsensor import depends on config being setup.
+import st2tests.config as tests_config
+tests_config.parse_args()
+
 from st2actions.handlers.mistral import get_action_execution_id_from_url
 
 

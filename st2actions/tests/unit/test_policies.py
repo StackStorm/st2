@@ -28,9 +28,9 @@ from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
+from st2tests.mocks.liveaction import MockLiveActionPublisher
 from st2tests.policies.concurrency import FakeConcurrencyApplicator
 from st2tests.policies.mock_exception import RaiseExceptionApplicator
-from tests.unit.base import MockLiveActionPublisher
 
 
 TEST_FIXTURES = {

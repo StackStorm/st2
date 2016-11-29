@@ -26,7 +26,7 @@ from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
-from tests.unit.base import MockLiveActionPublisher
+from st2tests.mocks.liveaction import MockLiveActionPublisher
 from st2tests.mocks import runner
 
 PACK = 'generic'
