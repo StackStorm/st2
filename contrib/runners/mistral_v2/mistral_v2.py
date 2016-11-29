@@ -57,6 +57,11 @@ class MistralRunner(AsyncActionRunner):
             cacert=cfg.CONF.mistral.cacert,
             insecure=cfg.CONF.mistral.insecure)
 
+    @staticmethod
+    def get_workflow_definition(entry_point):
+        with open(entry_point, 'r') as def_file:
+            return def_file.read()
+
     def pre_run(self):
         super(MistralRunner, self).pre_run()
 
@@ -223,9 +228,7 @@ class MistralRunner(AsyncActionRunner):
         inputs.update(action_parameters)
 
         # Get workbook/workflow definition from file.
-        with open(self.entry_point, 'r') as def_file:
-            def_yaml = def_file.read()
-
+        def_yaml = self.get_workflow_definition(self.entry_point)
         def_dict = yaml.safe_load(def_yaml)
         is_workbook = ('workflows' in def_dict)
 

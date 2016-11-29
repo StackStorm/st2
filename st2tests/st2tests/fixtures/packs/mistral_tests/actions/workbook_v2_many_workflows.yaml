@@ -1,9 +1,9 @@
 ---
 description: Say hi to friend!
 enabled: true
-entry_point: workbook_v2_many_workflows.yaml
+entry_point: workflows/workbook_v2_many_workflows.yaml
 name: workbook_v2_many_workflows
-pack: generic
+pack: mistral_tests
 parameters:
   count:
     default: '3'

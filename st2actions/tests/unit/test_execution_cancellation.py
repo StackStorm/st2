@@ -36,7 +36,7 @@ from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2tests.fixtures.packs import executions as fixture
 from st2tests import DbTestCase
-from tests.unit.base import MockLiveActionPublisher
+from st2tests.mocks.liveaction import MockLiveActionPublisher
 
 
 MOCK_RESULT = {

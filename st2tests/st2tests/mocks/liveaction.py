@@ -15,10 +15,6 @@
 
 import traceback
 
-
-from st2tests import config as test_config
-test_config.parse_args()
-
 from st2actions import worker
 from st2actions import scheduler
 from st2actions.notifier import notifier

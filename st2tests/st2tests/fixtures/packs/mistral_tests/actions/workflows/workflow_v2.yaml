@@ -1,6 +1,6 @@
 version: '2.0'
 
-generic.workflow_v2:
+mistral_tests.workflow_v2:
   type: direct
   input:
     - count

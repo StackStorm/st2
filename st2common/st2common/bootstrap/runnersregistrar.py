@@ -108,4 +108,4 @@ def register_runner(runner_type, experimental):
 
 
 def register_runner_types(experimental=False):
-    pass
+    raise NotImplementedError()
