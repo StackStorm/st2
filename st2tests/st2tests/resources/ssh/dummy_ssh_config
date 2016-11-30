@@ -1,0 +1,3 @@
+Host dummy.host.org
+   IdentityFile ~/.ssh/id_rsa_dummy
+   ProxyCommand ssh -q -W %h:%p dummy_bastion

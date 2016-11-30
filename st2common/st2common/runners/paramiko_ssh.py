@@ -81,7 +81,10 @@ class ParamikoSSHClient(object):
     # Connect socket timeout
     CONNECT_TIMEOUT = 60
 
-    def __init__(self, hostname, port=22, username=None, password=None, bastion_host=None,
+    # Default SSH port
+    SSH_PORT = 22
+
+    def __init__(self, hostname, port=SSH_PORT, username=None, password=None, bastion_host=None,
                  key_files=None, key_material=None, timeout=None, passphrase=None):
         """
         Authentication is always attempted in the following order:
@@ -581,9 +584,95 @@ class ParamikoSSHClient(object):
 
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(**conninfo)
+
+        if cfg.CONF.ssh_runner.use_ssh_config:
+            conninfo_ssh_config = self._get_conninfo_from_ssh_config_for_host(host)
+            client = self._ssh_priority(client, conninfo, conninfo_ssh_config)
+
+        else:
+            extra = {'_conninfo': conninfo}
+            self.logger.debug('Connection info', extra=extra)
+            client.connect(**conninfo)
 
         return client
+
+    @staticmethod
+    def _ssh_priority(client, conninfo, conninfo_ssh_config):
+        logger = logging.getLogger("ParamikoSSHClient")
+
+        # No Action params.
+        if conninfo['username'] == cfg.CONF.system_user.user\
+                and conninfo['port'] == ParamikoSSHClient.SSH_PORT:
+
+            if 'username' in conninfo_ssh_config:
+
+                # Corner Case: Config file username or key_filename same as
+                # system user.
+                if conninfo_ssh_config['username'] == cfg.CONF.system_user.user\
+                        or conninfo_ssh_config['key_filename'] ==\
+                        cfg.CONF.system_user.ssh_key_file:
+                    conninfo.update(conninfo_ssh_config)
+                    client.connect(**conninfo)
+
+                else:
+                    if 'port' in conninfo_ssh_config:
+                        conninfo_ssh_config['port'] = int(conninfo_ssh_config['port'])
+                    extra = {'_sshconfig_conninfo': conninfo_ssh_config,
+                             '_default_conninfo': conninfo}
+                    logger.debug('Connection info from config',
+                                 extra=extra)
+                    client.connect(**conninfo_ssh_config)
+
+            else:
+                conninfo_ssh_config.update(conninfo)
+                extra = {'_conninfo_ssh_config': conninfo_ssh_config}
+                logger.debug('Connection info, no username, using sys. user',
+                             extra=extra)
+                try:
+                    client.connect(**conninfo_ssh_config)
+                except Exception:
+                    raise Exception('Tried with system user. Provide '
+                                    '\'User\' directive for the host in'
+                                    '.ssh/config.')
+        else:
+            extra = {'_conninfo': conninfo}
+            logger.debug('Connection info, action param. over ssh config',
+                         extra=extra)
+            client.connect(**conninfo)
+
+        return client
+
+    @staticmethod
+    def _get_conninfo_from_ssh_config_for_host(host):
+        ssh_conn_info = {}
+        ssh_config = paramiko.SSHConfig()
+        user_config_file = os.path.expanduser(cfg.CONF.ssh_runner.ssh_config_path or
+                                              "~/.ssh/config")
+        try:
+            with open(user_config_file) as f:
+                ssh_config.parse(f)
+        except IOError as e:
+            raise Exception('Error accessing ssh config file %s. Code: %s Reason %s' %
+                            (user_config_file, e.errno, e.strerror))
+
+        user_config = ssh_config.lookup(host)
+        for k in ('hostname', 'port'):
+            if k in user_config:
+                ssh_conn_info[k] = user_config[k]
+
+        if 'user' in user_config:
+            ssh_conn_info['username'] = user_config['user']
+
+        if 'proxycommand' in user_config:
+            ssh_conn_info['sock'] = paramiko.ProxyCommand(user_config['proxycommand'])
+
+        if 'identityfile' in user_config:
+            ssh_conn_info['key_filename'] = user_config['identityfile']
+
+        extra = {'_get_conninfo': user_config, '_ssh_conninfo': ssh_conn_info}
+        logger = logging.getLogger("ParamikoSSHClient")
+        logger.debug('_get_conninfo', extra=extra)
+        return ssh_conn_info
 
     @staticmethod
     def _is_key_file_needs_passphrase(file):

@@ -83,6 +83,11 @@ in development
   improvement)
 * Throw a more user-friendly exception if rendering a dynamic configuration value inside the config
   fails. (improvement)
+* Add support for ssh config file for ParamikoSSHrunner. Now ``ssh_config_path`` can be set
+  in ``st2.config`` and can be used to access remote hosts when ``use_ssh_config`` is set to
+  ``True``. However, to access remote hosts, action paramters like username and
+  password/private_key, if provided with action, will have precedence over the config file
+  entry for the host. #2941 #3032 [Eric Edgar] (improvement)
 
 2.0.1 - September 30, 2016
 --------------------------

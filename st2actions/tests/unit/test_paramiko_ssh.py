@@ -35,6 +35,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         Creates the object patching the actual connection.
         """
         cfg.CONF.set_override(name='ssh_key_file', override=None, group='system_user')
+        cfg.CONF.set_override(name='use_ssh_config', override=False, group='ssh_runner')
 
         conn_params = {'hostname': 'dummy.host.org',
                        'port': 8822,
@@ -42,6 +43,46 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                        'key_files': '~/.ssh/ubuntu_ssh',
                        'timeout': '600'}
         self.ssh_cli = ParamikoSSHClient(**conn_params)
+
+    @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
+    @patch('paramiko.ProxyCommand')
+    def test_set_proxycommand(self, mock_ProxyCommand):
+        """
+        Loads proxy commands from ssh config file
+        """
+        ssh_config_path = os.path.join(get_resources_base_path(),
+                                       'ssh', 'dummy_ssh_config')
+        cfg.CONF.set_override(name='ssh_config_path', override=ssh_config_path,
+                              group='ssh_runner')
+        cfg.CONF.set_override(name='use_ssh_config', override=True,
+                              group='ssh_runner')
+
+        conn_params = {'hostname': 'dummy.host.org'}
+        mock = ParamikoSSHClient(**conn_params)
+        mock.connect()
+        mock_ProxyCommand.assert_called_once_with('ssh -q -W dummy.host.org:22 dummy_bastion')
+
+    @patch('paramiko.SSHClient', Mock)
+    @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
+                  MagicMock(return_value=False))
+    @patch('paramiko.ProxyCommand')
+    def test_fail_set_proxycommand(self, mock_ProxyCommand):
+        """
+        Loads proxy commands from ssh config file
+        """
+        ssh_config_path = os.path.join(get_resources_base_path(),
+                                       'ssh', 'dummy_ssh_config_fail')
+        cfg.CONF.set_override(name='ssh_config_path',
+                              override=ssh_config_path, group='ssh_runner')
+        cfg.CONF.set_override(name='use_ssh_config',
+                              override=True, group='ssh_runner')
+
+        conn_params = {'hostname': 'dummy.host.org'}
+        mock = ParamikoSSHClient(**conn_params)
+        self.assertRaises(Exception, mock.connect)
+        mock_ProxyCommand.assert_not_called()
 
     @patch('paramiko.SSHClient', Mock)
     @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
