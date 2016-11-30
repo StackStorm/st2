@@ -2,10 +2,10 @@
 name: "pack_install"
 action_ref: "packs.install"
 pack: "packs"
-description: "Install/upgrade StackStorm packs (pack = name or git URL, gitref = tag/branch/commit)."
+description: "Install/upgrade StackStorm packs."
 formats:
   - display: "pack install <pack>[,<pack>]"
-  - display: "pack install <pack>=<gitref>[,<pack>=<gitref>]"
+  - display: "pack install <gitUrl>[,<gitUrl>]"
     representation:
       - "pack install {{ packs }}"
 ack:
