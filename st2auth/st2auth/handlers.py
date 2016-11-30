@@ -17,24 +17,18 @@ import base64
 from six.moves import http_client
 from oslo_config import cfg
 
-from webob import exc
-
 from st2common import log as logging
 from st2common.exceptions.auth import TTLTooLargeException, UserNotFoundError
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.auth import NoNicknameOriginProvidedError, AmbiguousUserError
 from st2common.exceptions.auth import NotServiceUserError
 from st2common.persistence.auth import User
+from st2common.router import abort as abort_request
 from st2common.services.access import create_token
 from st2common.models.api.auth import TokenAPI
 from st2auth.backends import get_backend_instance
 
 LOG = logging.getLogger(__name__)
-
-
-def abort_request(status_code=http_client.UNAUTHORIZED,
-                  message='Invalid or missing credentials'):
-    raise exc.status_map[status_code](message)
 
 
 class AuthHandlerBase(object):

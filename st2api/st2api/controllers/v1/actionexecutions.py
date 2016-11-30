@@ -40,6 +40,7 @@ from st2common.models.api.base import cast_argument_value
 from st2common.models.api.execution import ActionExecutionAPI
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
+from st2common.router import abort
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.services import trace as trace_service
@@ -68,11 +69,6 @@ SUPPORTED_EXECUTIONS_FILTERS.update({
 
 MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
-
-
-def abort(status_code=http_client.INTERNAL_SERVER_ERROR,
-          message='Unhandled exception'):
-    raise exc.status_map[status_code](message)
 
 
 class ActionExecutionsControllerMixin(BaseRestControllerMixin):

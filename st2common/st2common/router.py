@@ -40,6 +40,10 @@ def op_resolver(op_id):
     return functools.reduce(getattr, func_name.split('.'), module)
 
 
+def abort(status_code=exc.HTTPInternalServerError.code, message='Unhandled exception'):
+    raise exc.status_map[status_code](message)
+
+
 def abort_unauthorized(msg=None):
     raise exc.HTTPUnauthorized('Unauthorized - %s' % msg if msg else 'Unauthorized')
 

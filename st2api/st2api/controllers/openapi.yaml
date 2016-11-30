@@ -628,6 +628,161 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /rules:
+    get:
+      operationId: st2api.controllers.v1.rules:rule_controller.get_all
+      x-permissions: rule_list
+      description: Returns a list of all rules.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of entities to get
+          type: integer
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: string
+        - name: pack
+          in: query
+          description: Entity pack name filter
+          type: string
+        - name: action
+          in: query
+          description: Action ref filter
+          type: string
+        - name: trigger
+          in: query
+          description: Trigger filter
+          type: string
+        - name: enabled
+          in: query
+          description: Enabled filter
+          type: string
+      responses:
+        '200':
+          description: List of rules
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.rules:rule_controller.post
+      x-permissions: rule_create
+      description: |
+        Create a new rule.
+      parameters:
+        - name: rule
+          in: body
+          description: Action content
+          schema:
+            $ref: '#/definitions/Rule'
+      responses:
+        '200':
+          description: Single action being created
+          schema:
+            $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /rules/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.rules:rule_controller.get_one
+      x-permissions: rule_view
+      description: |
+        Get one rule.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Rule requested
+          schema:
+            $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /rules/{rule_ref_or_id}:
+    put:
+      operationId: st2api.controllers.v1.rules:rule_controller.put
+      x-permissions: rule_modify
+      description: |
+        Update a rule.
+      parameters:
+        - name: rule_ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: rule
+          in: body
+          description: Rule content
+          schema:
+            $ref: '#/definitions/Rule'
+      responses:
+        '200':
+          description: Action updated
+          schema:
+            $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.rules:rule_controller.delete
+      x-permissions: rule_delete
+      description: |
+        Delete a rule.
+      parameters:
+        - name: rule_ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '204':
+          description: Rule deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 
 definitions:
   Action:
