@@ -550,7 +550,7 @@ class ParamikoSSHClient(object):
                     'timeout': self.timeout}
 
         ssh_config_file_info = {}
-        if cfg.CONF.ssh_runner.use_ssh_config_file:
+        if cfg.CONF.ssh_runner.use_ssh_config:
             ssh_config_file_info = self._get_ssh_config_for_host(host)
 
         self.username = (self.username or ssh_config_file_info.get('user', None) or

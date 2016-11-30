@@ -222,7 +222,7 @@ max_parallel_actions = 50
 # Location of the script on the remote filesystem.
 remote_dir = /tmp
 # Use the .ssh/config file. Useful to override ports etc.
-use_ssh_config_file = False
+use_ssh_config = False
 # Path to the ssh config file. Useful to override the default path
 ssh_config_file_path = ~/.ssh/config
 # How partial success of actions run on multiple nodes should be treated.

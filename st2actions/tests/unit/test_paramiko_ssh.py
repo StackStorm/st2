@@ -57,7 +57,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         cfg.CONF.set_override(name='ssh_config_file_path',
                               override=ssh_config_file_path,
                               group='ssh_runner')
-        cfg.CONF.set_override(name='use_ssh_config_file', override=True,
+        cfg.CONF.set_override(name='use_ssh_config', override=True,
                               group='ssh_runner')
 
         conn_params = {'hostname': 'dummy.host.org', 'username': 'ubuntu', 'password': 'foo'}
