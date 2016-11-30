@@ -560,13 +560,12 @@ class ParamikoSSHClient(object):
         # If both key file and key material are provided as action parameters,
         # throw an error informing user only one is required.
         if self.key_files and self.key_material:
-            msg = ('key_files (%s) and key_material arguments are '
-                   'mutually exclusive. Supply only one.' % self.key_files)
+            msg = ('key_files and key_material arguments are mutually exclusive. Supply only one.')
             raise ValueError(msg)
 
-        # If key material is not provided, only then we look at key file and decide
+        # If neither key material nor password is provided, only then we look at key file and decide
         # if we want to use the user supplied one or the one in SSH config.
-        if not self.key_material:
+        if not self.key_material and not self.password:
             self.key_files = (self.key_files or ssh_config_file_info.get('identityfile', None) or
                               cfg.CONF.system_user.ssh_key_file)
 
@@ -578,7 +577,7 @@ class ParamikoSSHClient(object):
         if not credentials_provided:
             msg = ('Either password or key file location or key material should be supplied ' +
                    'for action. You can also add an entry for host %s in SSH config file %s.' %
-                   (self.ssh_config_file, host))
+                   (host, self.ssh_config_file))
             raise ValueError(msg)
 
         conninfo['username'] = self.username

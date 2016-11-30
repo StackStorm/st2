@@ -17,7 +17,6 @@ import os
 
 import unittest2
 import mock
-from oslo_config import cfg
 
 from st2common.runners.paramiko_ssh_runner import BaseParallelSSHRunner
 from st2common.runners.paramiko_ssh_runner import RUNNER_HOSTS
@@ -25,6 +24,7 @@ from st2common.runners.paramiko_ssh_runner import RUNNER_USERNAME
 from st2common.runners.paramiko_ssh_runner import RUNNER_PASSWORD
 from st2common.runners.paramiko_ssh_runner import RUNNER_PRIVATE_KEY
 from st2common.runners.paramiko_ssh_runner import RUNNER_PASSPHRASE
+from st2common.runners.paramiko_ssh_runner import RUNNER_SSH_PORT
 
 import st2tests.config as tests_config
 from st2tests.fixturesloader import get_resources_base_path
@@ -61,7 +61,7 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
             'hosts': ['localhost'],
             'user': 'someuser1',
             'password': 'somepassword',
-            'port': 22,
+            'port': None,
             'concurrency': 1,
             'bastion_host': None,
             'raise_on_any_error': False,
@@ -75,7 +75,8 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
         runner_parameters = {
             RUNNER_HOSTS: 'localhost',
             RUNNER_USERNAME: 'someuser2',
-            RUNNER_PRIVATE_KEY: private_key
+            RUNNER_PRIVATE_KEY: private_key,
+            RUNNER_SSH_PORT: 22
         }
         runner.runner_parameters = runner_parameters
         runner.pre_run()
@@ -99,7 +100,8 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
             RUNNER_HOSTS: 'localhost21',
             RUNNER_USERNAME: 'someuser21',
             RUNNER_PRIVATE_KEY: private_key,
-            RUNNER_PASSPHRASE: 'passphrase21'
+            RUNNER_PASSPHRASE: 'passphrase21',
+            RUNNER_SSH_PORT: 22
         }
         runner.runner_parameters = runner_parameters
         runner.pre_run()
@@ -123,7 +125,8 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
         runner_parameters = {
             RUNNER_HOSTS: 'localhost',
             RUNNER_USERNAME: 'someuser3',
-            RUNNER_PRIVATE_KEY: private_key_path
+            RUNNER_PRIVATE_KEY: private_key_path,
+            RUNNER_SSH_PORT: 22
         }
         runner.runner_parameters = runner_parameters
         runner.pre_run()
@@ -147,7 +150,8 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
             RUNNER_HOSTS: 'localhost31',
             RUNNER_USERNAME: 'someuser31',
             RUNNER_PRIVATE_KEY: private_key_path,
-            RUNNER_PASSPHRASE: 'passphrase31'
+            RUNNER_PASSPHRASE: 'passphrase31',
+            RUNNER_SSH_PORT: 22
         }
         runner.runner_parameters = runner_parameters
         runner.pre_run()
@@ -170,14 +174,15 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
         runner.context = {}
         runner_parameters = {
             RUNNER_HOSTS: 'localhost4',
+            RUNNER_SSH_PORT: 22
         }
         runner.runner_parameters = runner_parameters
         runner.pre_run()
 
         expected_kwargs = {
             'hosts': ['localhost4'],
-            'user': cfg.CONF.system_user.user,
-            'pkey_file': cfg.CONF.system_user.ssh_key_file,
+            'user': None,
+            'pkey_file': None,
             'port': 22,
             'concurrency': 1,
             'bastion_host': None,

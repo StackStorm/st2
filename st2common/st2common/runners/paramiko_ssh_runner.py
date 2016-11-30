@@ -96,7 +96,8 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._parallel = self.runner_parameters.get(RUNNER_PARALLEL, True)
         self._sudo = self.runner_parameters.get(RUNNER_SUDO, False)
         self._sudo = self._sudo if self._sudo else False
-        self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, self._on_behalf_user)
+        if self.context:
+            self._on_behalf_user = self.context.get(RUNNER_ON_BEHALF_USER, self._on_behalf_user)
         self._cwd = self.runner_parameters.get(RUNNER_CWD, None)
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, '--')

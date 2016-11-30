@@ -52,14 +52,15 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         """
         Loads proxy commands from ssh config file
         """
-        ssh_config_path = os.path.join(get_resources_base_path(),
-                                       'ssh', 'dummy_ssh_config')
-        cfg.CONF.set_override(name='ssh_config_path', override=ssh_config_path,
+        ssh_config_file_path = os.path.join(get_resources_base_path(),
+                                            'ssh', 'dummy_ssh_config')
+        cfg.CONF.set_override(name='ssh_config_file_path',
+                              override=ssh_config_file_path,
                               group='ssh_runner')
-        cfg.CONF.set_override(name='use_ssh_config', override=True,
+        cfg.CONF.set_override(name='use_ssh_config_file', override=True,
                               group='ssh_runner')
 
-        conn_params = {'hostname': 'dummy.host.org'}
+        conn_params = {'hostname': 'dummy.host.org', 'username': 'ubuntu', 'password': 'foo'}
         mock = ParamikoSSHClient(**conn_params)
         mock.connect()
         mock_ProxyCommand.assert_called_once_with('ssh -q -W dummy.host.org:22 dummy_bastion')
@@ -72,10 +73,11 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         """
         Loads proxy commands from ssh config file
         """
-        ssh_config_path = os.path.join(get_resources_base_path(),
-                                       'ssh', 'dummy_ssh_config_fail')
-        cfg.CONF.set_override(name='ssh_config_path',
-                              override=ssh_config_path, group='ssh_runner')
+        ssh_config_file_path = os.path.join(get_resources_base_path(),
+                                            'ssh', 'dummy_ssh_config_fail')
+        cfg.CONF.set_override(name='ssh_config_file_path',
+                              override=ssh_config_file_path,
+                              group='ssh_runner')
         cfg.CONF.set_override(name='use_ssh_config',
                               override=True, group='ssh_runner')
 
@@ -128,10 +130,13 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                        'key_files': 'id_rsa',
                        'key_material': 'key'}
 
-        expected_msg = ('key_files and key_material arguments are mutually '
-                        'exclusive')
+        expected_msg = ('key_files and key_material arguments are mutually exclusive. '
+                        'Supply only one.')
+
+        client = ParamikoSSHClient(**conn_params)
+
         self.assertRaisesRegexp(ValueError, expected_msg,
-                                ParamikoSSHClient, **conn_params)
+                                client.connect)
 
     @patch('paramiko.SSHClient', Mock)
     @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
@@ -182,8 +187,8 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                        'passphrase': 'testphrase'}
 
         expected_msg = 'passphrase should accompany private key material'
-        self.assertRaisesRegexp(ValueError, expected_msg, ParamikoSSHClient,
-                                **conn_params)
+        client = ParamikoSSHClient(**conn_params)
+        self.assertRaisesRegexp(ValueError, expected_msg, client.connect)
 
     @patch('paramiko.SSHClient', Mock)
     def test_passphrase_not_provided_for_encrypted_key_file(self):
@@ -250,8 +255,10 @@ class ParamikoSSHClientTests(unittest2.TestCase):
                        'passphrase': 'testphrase'}
 
         expected_msg = 'passphrase should accompany private key material'
+        client = ParamikoSSHClient(**conn_params)
+
         self.assertRaisesRegexp(ValueError, expected_msg,
-                                ParamikoSSHClient, **conn_params)
+                                client.connect)
 
     @patch('paramiko.SSHClient', Mock)
     @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
@@ -374,20 +381,17 @@ class ParamikoSSHClientTests(unittest2.TestCase):
         Initialize object with no credentials.
 
         Just to have better coverage, initialize the object
-        without 'password' neither 'key'.
+        without 'password' neither 'key'. Now that we only reconcile
+        the final parameters at the last moment when we explicitly
+        try to connect, all the credentials should be set to None.
         """
         conn_params = {'hostname': 'dummy.host.org',
                        'username': 'ubuntu'}
         mock = ParamikoSSHClient(**conn_params)
-        mock.connect()
 
-        expected_conn = {'username': 'ubuntu',
-                         'hostname': 'dummy.host.org',
-                         'allow_agent': True,
-                         'look_for_keys': True,
-                         'timeout': 60,
-                         'port': 22}
-        mock.client.connect.assert_called_once_with(**expected_conn)
+        self.assertEqual(mock.password, None)
+        self.assertEqual(mock.key_material, None)
+        self.assertEqual(mock.key_files, None)
 
     @patch('paramiko.SSHClient', Mock)
     @patch.object(ParamikoSSHClient, '_is_key_file_needs_passphrase',
@@ -552,7 +556,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
     def test_sftp_connection_is_only_established_if_required(self):
         # Verify that SFTP connection is lazily established only if and when needed.
         conn_params = {'hostname': 'dummy.host.org',
-                       'username': 'ubuntu'}
+                       'username': 'ubuntu', 'password': 'ubuntu'}
 
         # Verify sftp connection and client hasn't been established yet
         client = ParamikoSSHClient(**conn_params)
