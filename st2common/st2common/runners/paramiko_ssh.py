@@ -22,6 +22,7 @@ import eventlet
 from oslo_config import cfg
 
 import paramiko
+from paramiko.ssh_exception import SSHException
 
 # Depending on your version of Paramiko, it may cause a deprecation
 # warning on Python 2.6.
@@ -30,7 +31,7 @@ import paramiko
 from st2common.log import logging
 from st2common.util.misc import strip_shell_chars
 from st2common.util.shell import quote_unix
-from st2common.constants.runners import REMOTE_RUNNER_PRIVATE_KEY_HEADER
+from st2common.constants.runners import DEFAULT_SSH_PORT, REMOTE_RUNNER_PRIVATE_KEY_HEADER
 
 __all__ = [
     'ParamikoSSHClient',
@@ -81,7 +82,8 @@ class ParamikoSSHClient(object):
     # Connect socket timeout
     CONNECT_TIMEOUT = 60
 
-    def __init__(self, hostname, port=22, username=None, password=None, bastion_host=None,
+    def __init__(self, hostname, port=DEFAULT_SSH_PORT, username=None, password=None,
+                 bastion_host=None,
                  key_files=None, key_material=None, timeout=None, passphrase=None):
         """
         Authentication is always attempted in the following order:
@@ -94,27 +96,19 @@ class ParamikoSSHClient(object):
         - Plain username/password auth, if a password was given (if password is
           provided)
         """
-        if key_files and key_material:
-            raise ValueError(('key_files and key_material arguments are '
-                              'mutually exclusive'))
-
-        if passphrase and not (key_files or key_material):
-            raise ValueError('passphrase should accompany private key material')
-
-        credentials_provided = password or key_files or key_material
-        if not credentials_provided and cfg.CONF.system_user.ssh_key_file:
-            key_files = cfg.CONF.system_user.ssh_key_file
-
         self.hostname = hostname
         self.port = port
-        self.username = username if username else cfg.CONF.system_user
+        self.username = username
         self.password = password
         self.key_files = key_files
         self.timeout = timeout or ParamikoSSHClient.CONNECT_TIMEOUT
         self.key_material = key_material
         self.bastion_host = bastion_host
         self.passphrase = passphrase
-
+        self.ssh_config_file = os.path.expanduser(
+            cfg.CONF.ssh_runner.ssh_config_file_path or
+            '~/.ssh/config'
+        )
         self.logger = logging.getLogger(__name__)
 
         self.client = None
@@ -530,6 +524,14 @@ class ParamikoSSHClient(object):
 
     def _connect(self, host, socket=None):
         """
+        Order of precedence for SSH connection parameters:
+
+        1. If user supplies parameters via action parameters, we use them to connect.
+        2. For parameters not supplied via action parameters, if there is an entry
+           for host in SSH config file, we use those. Note that this is a merge operation.
+        3. If user does not supply certain action parameters (username and key file location)
+           and there is no entry for host in SSH config file, we use values supplied in
+           st2 config file for those parameters.
 
         :type host: ``str``
         :param host: Host to connect to
@@ -541,12 +543,45 @@ class ParamikoSSHClient(object):
         :return: A connected SSHClient
         :rtype: :class:`paramiko.SSHClient`
         """
+
         conninfo = {'hostname': host,
-                    'port': self.port,
-                    'username': self.username,
                     'allow_agent': False,
                     'look_for_keys': False,
                     'timeout': self.timeout}
+
+        ssh_config_file_info = {}
+        if cfg.CONF.ssh_runner.use_ssh_config:
+            ssh_config_file_info = self._get_ssh_config_for_host(host)
+
+        self.username = (self.username or ssh_config_file_info.get('user', None) or
+                         cfg.CONF.system_user.user)
+        self.port = self.port or ssh_config_file_info.get('port' or None) or DEFAULT_SSH_PORT
+
+        # If both key file and key material are provided as action parameters,
+        # throw an error informing user only one is required.
+        if self.key_files and self.key_material:
+            msg = ('key_files and key_material arguments are mutually exclusive. Supply only one.')
+            raise ValueError(msg)
+
+        # If neither key material nor password is provided, only then we look at key file and decide
+        # if we want to use the user supplied one or the one in SSH config.
+        if not self.key_material and not self.password:
+            self.key_files = (self.key_files or ssh_config_file_info.get('identityfile', None) or
+                              cfg.CONF.system_user.ssh_key_file)
+
+        if self.passphrase and not (self.key_files or self.key_material):
+            raise ValueError('passphrase should accompany private key material')
+
+        credentials_provided = self.password or self.key_files or self.key_material
+
+        if not credentials_provided:
+            msg = ('Either password or key file location or key material should be supplied ' +
+                   'for action. You can also add an entry for host %s in SSH config file %s.' %
+                   (host, self.ssh_config_file))
+            raise ValueError(msg)
+
+        conninfo['username'] = self.username
+        conninfo['port'] = self.port
 
         if self.password:
             conninfo['password'] = self.password
@@ -576,14 +611,59 @@ class ParamikoSSHClient(object):
                  '_username': self.username, '_timeout': self.timeout}
         self.logger.debug('Connecting to server', extra=extra)
 
+        socket = socket or ssh_config_file_info.get('sock', None)
         if socket:
             conninfo['sock'] = socket
 
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(**conninfo)
+
+        extra = {'_conninfo': conninfo}
+        self.logger.debug('Connection info', extra=extra)
+        try:
+            client.connect(**conninfo)
+        except SSHException as e:
+            paramiko_msg = e.message
+
+            if conninfo.get('password', None):
+                conninfo['password'] = '<redacted>'
+
+            msg = ('Error connecting to host %s ' % host +
+                   'with connection parameters %s.' % conninfo +
+                   'Paramiko error: %s.' % paramiko_msg)
+            raise SSHException(msg)
 
         return client
+
+    def _get_ssh_config_for_host(self, host):
+        ssh_config_info = {}
+        ssh_config_parser = paramiko.SSHConfig()
+
+        try:
+            with open(self.ssh_config_file) as f:
+                ssh_config_parser.parse(f)
+        except IOError as e:
+            raise Exception('Error accessing ssh config file %s. Code: %s Reason %s' %
+                            (self.ssh_config_file, e.errno, e.strerror))
+
+        ssh_config = ssh_config_parser.lookup(host)
+        self.logger.info('Parsed SSH config file contents: %s', ssh_config)
+        if ssh_config:
+            for k in ('hostname', 'user', 'port'):
+                if k in ssh_config:
+                    ssh_config_info[k] = ssh_config[k]
+
+            if 'identityfile' in ssh_config:
+                key_file = ssh_config['identityfile']
+                if type(key_file) is list:
+                    key_file = key_file[0]
+
+                ssh_config_info['identityfile'] = key_file
+
+            if 'proxycommand' in ssh_config:
+                ssh_config_info['sock'] = paramiko.ProxyCommand(ssh_config['proxycommand'])
+
+        return ssh_config_info
 
     @staticmethod
     def _is_key_file_needs_passphrase(file):

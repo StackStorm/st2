@@ -136,7 +136,7 @@ collection_interval = 600
 
 [keyvalue]
 # Location of the symmetric encryption key for encrypting values in kvstore. This key should be in JSON and should've been generated using keyczar.
-encryption_key_path = 
+encryption_key_path =
 # Allow encryption of values in key value stored qualified as "secret".
 enable_encryption = True
 
@@ -223,6 +223,8 @@ max_parallel_actions = 50
 remote_dir = /tmp
 # Use the .ssh/config file. Useful to override ports etc.
 use_ssh_config = False
+# Path to the ssh config file. Useful to override the default path
+ssh_config_file_path = ~/.ssh/config
 # How partial success of actions run on multiple nodes should be treated.
 allow_partial_failure = False
 

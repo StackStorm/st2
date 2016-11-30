@@ -32,8 +32,12 @@ __all__ = [
     'WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT',
 
     'COMMON_ACTION_ENV_VARIABLE_PREFIX',
-    'COMMON_ACTION_ENV_VARIABLES'
+    'COMMON_ACTION_ENV_VARIABLES',
+
+    'DEFAULT_SSH_PORT'
 ]
+
+DEFAULT_SSH_PORT = 22
 
 # A list of allowed characters for the pack name
 RUNNER_NAME_WHITELIST = r'^[A-Za-z0-9_-]+'

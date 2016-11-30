@@ -25,7 +25,6 @@ tests_config.parse_args()
 from st2common.util import jsonify
 from remote_script_runner import ParamikoRemoteScriptRunner
 from st2common.runners.parallel_ssh import ParallelSSHClient
-from st2common.exceptions.ssh import InvalidCredentialsException
 from st2common.exceptions.ssh import NoHostsConnectedToException
 from st2common.models.system.paramiko_script_action import ParamikoRemoteScriptAction
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
@@ -66,15 +65,6 @@ class ParamikoScriptRunnerTestCase(unittest2.TestCase):
         exp_cmd = "cd /test/cwd/ && /tmp/shiz_storm.py 'blank space'"
         ParallelSSHClient.run.assert_called_with(exp_cmd,
                                                  timeout=None)
-
-    @patch('st2common.runners.parallel_ssh.ParallelSSHClient', Mock)
-    @patch.object(ParallelSSHClient, 'run', MagicMock(return_value={}))
-    @patch.object(ParallelSSHClient, 'connect', MagicMock(return_value={}))
-    def test_username_only_ssh(self):
-        paramiko_runner = ParamikoRemoteScriptRunner('runner_1')
-
-        paramiko_runner.runner_parameters = {'username': 'test_user', 'hosts': '127.0.0.1'}
-        self.assertRaises(InvalidCredentialsException, paramiko_runner.pre_run)
 
     def test_username_invalid_private_key(self):
         paramiko_runner = ParamikoRemoteScriptRunner('runner_1')
