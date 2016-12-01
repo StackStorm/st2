@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
 
 # Note: This must be called before other imports to affect speedsup
@@ -39,6 +40,15 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
 from st2common.database_setup import db_setup
+from st2common.util.monkey_patch import remove_from_sys_path
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Note: This work-around is required to fix the issue with other Python modules which live
+# inside this directory polluting and masking sys.path for Python runner actions.
+# Since this module is ran as a Python script inside a subprocess, directory where the script
+# lives gets added to sys.path and we don't want that.
+remove_from_sys_path(directory=BASE_DIR)
 
 __all__ = [
     'PythonActionWrapper',
