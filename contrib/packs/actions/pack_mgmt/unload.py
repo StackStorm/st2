@@ -19,12 +19,14 @@ from st2common.models.db import db_setup
 from st2common.runners.base_action import Action as BaseAction
 from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
+from st2common.persistence.pack import Config
 from st2common.persistence.reactor import SensorType
 from st2common.persistence.reactor import TriggerType
 from st2common.persistence.reactor import Trigger
 from st2common.persistence.reactor import Rule
 from st2common.persistence.action import Action
 from st2common.persistence.action import ActionAlias
+from st2common.persistence.policy import Policy
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.services.triggers import cleanup_trigger_db_for_rule
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -64,6 +66,7 @@ class UnregisterPackAction(BaseAction):
             self._unregister_actions(pack=pack)
             self._unregister_rules(pack=pack)
             self._unregister_aliases(pack=pack)
+            self._unregister_policies(pack=pack)
             self._unregister_pack(pack=pack)
             self.logger.info('Removed pack %s.', pack)
 
@@ -99,6 +102,9 @@ class UnregisterPackAction(BaseAction):
     def _unregister_aliases(self, pack):
         return self._delete_pack_db_objects(pack=pack, access_cls=ActionAlias)
 
+    def _unregister_policies(self, pack):
+        return self._delete_pack_db_objects(pack=pack, access_cls=Policy)
+
     def _unregister_pack(self, pack):
         # 1. Delete pack
         self._delete_pack_db_object(pack=pack)
@@ -106,12 +112,29 @@ class UnregisterPackAction(BaseAction):
         # 2. Delete corresponding config schema
         self._delete_config_schema_db_object(pack=pack)
 
+        # 3. Delete correponding config object
+        self._delete_pack_db_objects(pack=pack, access_cls=Config)
+
         return True
 
     def _delete_pack_db_object(self, pack):
+        pack_db = None
+
+        # 1. Try by ref
         try:
-            pack_db = Pack.get_by_name(value=pack)
+            pack_db = Pack.get_by_ref(value=pack)
         except StackStormDBObjectNotFoundError:
+            pack_db = None
+
+        # 2. Try by name (here for backward compatibility)
+        # TODO: This shouldn't be needed in the future, remove it in v2.1 or similar
+        if not pack_db:
+            try:
+                pack_db = Pack.get_by_name(value=pack)
+            except StackStormDBObjectNotFoundError:
+                pack_db = None
+
+        if not pack_db:
             self.logger.exception('Pack DB object not found')
             return
 
