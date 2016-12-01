@@ -1,0 +1,6 @@
+---
+name: mock_policy_error
+description: Raises an exception when applying policy.
+enabled: true
+resource_type: action
+module: st2tests.policies.mock_exception
