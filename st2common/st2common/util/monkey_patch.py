@@ -23,8 +23,7 @@ import sys
 
 __all__ = [
     'monkey_patch',
-    'monkey_patch_pkg_resources',
-    'remove_from_sys_path'
+    'monkey_patch_pkg_resources'
 ]
 
 USE_DEBUGGER_FLAG = '--use-debugger'
@@ -52,14 +51,6 @@ def monkey_patch_pkg_resources():
     # See https://github.com/pypa/setuptools/issues/510 for details
     import entrypoints
     sys.modules['pkg_resources'] = entrypoints
-
-
-def remove_from_sys_path(directory):
-    """
-    Remove provided directory from sys.path (if inside the sys.path).
-    """
-    if directory in sys.path:
-        sys.path.remove(directory)
 
 
 def is_use_debugger_flag_provided():

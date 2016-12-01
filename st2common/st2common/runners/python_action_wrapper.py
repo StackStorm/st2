@@ -13,15 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import sys
 
 # Note: This must be called before other imports to affect speedsup
 # We only ran it if script is ran as subprocess by action runner so we don't break the tests and
-# other code
+# other code.
 if '--is-subprocess' in sys.argv:
     from st2common.util.monkey_patch import monkey_patch_pkg_resources
     monkey_patch_pkg_resources()
+
+# Note: This work-around is required to fix the issue with other Python modules which live
+# inside this directory polluting and masking sys.path for Python runner actions.
+# Since this module is ran as a Python script inside a subprocess, directory where the script
+# lives gets added to sys.path and we don't want that.
+# TODO: sys.pop(0) should also work when the script is ran as subprocess
+if __name__ == '__main__':
+    script_path = sys.path[0]
+    if 'st2common/runners' in script_path:
+        sys.path.pop(0)
 
 import sys
 import json
@@ -40,15 +49,6 @@ from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
 from st2common.database_setup import db_setup
-from st2common.util.monkey_patch import remove_from_sys_path
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Note: This work-around is required to fix the issue with other Python modules which live
-# inside this directory polluting and masking sys.path for Python runner actions.
-# Since this module is ran as a Python script inside a subprocess, directory where the script
-# lives gets added to sys.path and we don't want that.
-remove_from_sys_path(directory=BASE_DIR)
 
 __all__ = [
     'PythonActionWrapper',
