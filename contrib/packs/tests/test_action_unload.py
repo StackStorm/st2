@@ -26,6 +26,7 @@ from st2common.persistence.pack import ConfigSchema
 from st2common.persistence.actionalias import ActionAlias
 from st2common.persistence.action import Action
 from st2common.persistence.rule import Rule
+from st2common.persistence.policy import Policy
 from st2common.persistence.sensor import SensorType as Sensor
 from st2common.persistence.trigger import TriggerType
 
@@ -74,6 +75,7 @@ class UnloadActionTestCase(BaseActionTestCase, CleanDbTestCase):
         rule_dbs = Rule.query(pack=pack)
         sensor_dbs = Sensor.query(pack=pack)
         trigger_type_dbs = TriggerType.query(pack=pack)
+        policy_dbs = Policy.query(pack=pack)
 
         config_schema_dbs = ConfigSchema.query(pack=pack)
         config_dbs = Config.query(pack=pack)
@@ -84,6 +86,7 @@ class UnloadActionTestCase(BaseActionTestCase, CleanDbTestCase):
         self.assertEqual(len(rule_dbs), 1)
         self.assertEqual(len(sensor_dbs), 1)
         self.assertEqual(len(trigger_type_dbs), 3)
+        self.assertEqual(len(policy_dbs), 2)
 
         self.assertEqual(len(config_schema_dbs), 1)
         self.assertEqual(len(config_dbs), 1)
@@ -99,6 +102,7 @@ class UnloadActionTestCase(BaseActionTestCase, CleanDbTestCase):
         rule_dbs = Rule.query(pack=pack)
         sensor_dbs = Sensor.query(pack=pack)
         trigger_type_dbs = TriggerType.query(pack=pack)
+        policy_dbs = Policy.query(pack=pack)
 
         config_schema_dbs = ConfigSchema.query(pack=pack)
         config_dbs = Config.query(pack=pack)
@@ -109,6 +113,7 @@ class UnloadActionTestCase(BaseActionTestCase, CleanDbTestCase):
         self.assertEqual(len(rule_dbs), 0)
         self.assertEqual(len(sensor_dbs), 0)
         self.assertEqual(len(trigger_type_dbs), 0)
+        self.assertEqual(len(policy_dbs), 0)
 
         self.assertEqual(len(config_schema_dbs), 0)
         self.assertEqual(len(config_dbs), 0)
