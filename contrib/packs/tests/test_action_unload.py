@@ -63,6 +63,7 @@ class UnloadActionTestCase(BaseActionTestCase, CleanDbTestCase):
         # TODO: Don't use pack cache
         cfg.CONF.set_override(name='all', override=True, group='register')
         cfg.CONF.set_override(name='pack', override=PACK_PATH_1, group='register')
+        cfg.CONF.set_override(name='no_fail_on_failure', override=True, group='register')
         register_content()
 
     def test_run(self):
