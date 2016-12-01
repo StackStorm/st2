@@ -1,10 +1,6 @@
 Changelog
 =========
 
-in development
---------------
-
-
 2.1.0 - November 30, 2016
 -------------------------
 
@@ -88,6 +84,8 @@ in development
   ``True``. However, to access remote hosts, action paramters like username and
   password/private_key, if provided with action, will have precedence over the config file
   entry for the host. #2941 #3032 #3058 [Eric Edgar] (improvement)
+* Fix ``packs.uninstall`` action so it also deletes ``configs`` and ``policies`` which belong to
+  the pack which is being uninstalled. (bug fix)
 
 2.0.1 - September 30, 2016
 --------------------------
