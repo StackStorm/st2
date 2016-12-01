@@ -65,7 +65,6 @@ class UnregisterPackAction(BaseAction):
             self._unregister_actions(pack=pack)
             self._unregister_rules(pack=pack)
             self._unregister_aliases(pack=pack)
-            self._unregister_configs(pack=pack)
             self._unregister_pack(pack=pack)
             self.logger.info('Removed pack %s.', pack)
 
@@ -101,15 +100,15 @@ class UnregisterPackAction(BaseAction):
     def _unregister_aliases(self, pack):
         return self._delete_pack_db_objects(pack=pack, access_cls=ActionAlias)
 
-    def _unregister_configs(self, pack):
-        return self._delete_pack_db_objects(pack=pack, access_cls=Config)
-
     def _unregister_pack(self, pack):
         # 1. Delete pack
         self._delete_pack_db_object(pack=pack)
 
         # 2. Delete corresponding config schema
         self._delete_config_schema_db_object(pack=pack)
+
+        # 3. Delete correponding config object
+        self._delete_pack_db_objects(pack=pack, access_cls=Config)
 
         return True
 
