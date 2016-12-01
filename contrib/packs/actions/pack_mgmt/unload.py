@@ -26,6 +26,7 @@ from st2common.persistence.reactor import Trigger
 from st2common.persistence.reactor import Rule
 from st2common.persistence.action import Action
 from st2common.persistence.action import ActionAlias
+from st2common.persistence.policy import Policy
 from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.services.triggers import cleanup_trigger_db_for_rule
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -65,6 +66,7 @@ class UnregisterPackAction(BaseAction):
             self._unregister_actions(pack=pack)
             self._unregister_rules(pack=pack)
             self._unregister_aliases(pack=pack)
+            self._unregister_policies(pack=pack)
             self._unregister_pack(pack=pack)
             self.logger.info('Removed pack %s.', pack)
 
@@ -99,6 +101,9 @@ class UnregisterPackAction(BaseAction):
 
     def _unregister_aliases(self, pack):
         return self._delete_pack_db_objects(pack=pack, access_cls=ActionAlias)
+
+    def _unregister_policies(self, pack):
+        return self._delete_pack_db_objects(pack=pack, access_cls=Policy)
 
     def _unregister_pack(self, pack):
         # 1. Delete pack
