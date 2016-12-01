@@ -18,7 +18,7 @@ try:
 except:
     import json
 
-from st2common.runners.base import AsyncActionRunner
+from st2common.runners.base_runner import AsyncActionRunner
 from st2common.constants.action import (LIVEACTION_STATUS_RUNNING)
 
 RAISE_PROPERTY = 'raise'

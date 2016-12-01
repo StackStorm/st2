@@ -22,7 +22,7 @@ from subprocess import list2cmdline
 from eventlet.green import subprocess
 
 from st2common import log as logging
-from st2common.runners.base import ActionRunner
+from st2common.runners.base_runner import ActionRunner
 from st2common.util.green.shell import run_command
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED

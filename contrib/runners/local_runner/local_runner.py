@@ -21,8 +21,8 @@ from oslo_config import cfg
 from eventlet.green import subprocess
 
 from st2common import log as logging
-from st2common.runners.base import ActionRunner
-from st2common.runners.base import ShellRunnerMixin
+from st2common.runners.base_runner import ActionRunner
+from st2common.runners.base_runner import ShellRunnerMixin
 from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
