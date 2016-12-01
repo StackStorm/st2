@@ -287,7 +287,6 @@ class DownloadGitRepoAction(Action):
                 url = repo_url
             return url if url.endswith('.git') else "{}.git".format(url)
 
-
     @staticmethod
     def _get_pack_metadata(pack_dir):
         metadata = get_pack_metadata(pack_dir=pack_dir)
