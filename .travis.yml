@@ -27,7 +27,7 @@ env:
     - TASK=unit MONGODB=3.2.8
     - TASK=integration MONGODB=3.2.8
     - TASK=mistral
-    - TASK=packs-tests
+    - TASK=packs-tests MONGODB=3.2.8
 
 matrix:
   fast_finish: true
