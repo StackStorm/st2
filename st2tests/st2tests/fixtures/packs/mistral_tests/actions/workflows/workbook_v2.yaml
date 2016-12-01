@@ -1,4 +1,4 @@
-name: 'generic.workbook_v2'
+name: 'mistral_tests.workbook_v2'
 version: '2.0'
 
 workflows:

@@ -29,15 +29,11 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-# Set defaults for retry options before loading the query module.
-cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
-cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
-cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
-
-from mistral_v2.query import mistral_v2 as mistral_querier
 from st2common.constants import action as action_constants
 from st2common.services import action as action_service
+from st2common.util import loader
 from st2tests import DbTestCase
+
 
 MOCK_WF_TASKS_SUCCEEDED = [
     {'name': 'task1', 'state': 'SUCCESS'},
@@ -107,9 +103,22 @@ MOCK_QRY_CONTEXT = {
 
 class MistralQuerierTest(DbTestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        super(MistralQuerierTest, cls).setUpClass()
+
+        # Override the retry configuration here otherwise st2tests.config.parse_args
+        # in DbTestCase.setUpClass will reset these overrides.
+        cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
+        cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
+        cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
+
+        # Register query module.
+        cls.query_module = loader.register_query_module('mistral_v2')
+
     def setUp(self):
         super(MistralQuerierTest, self).setUp()
-        self.querier = mistral_querier.get_instance()
+        self.querier = self.query_module.get_instance()
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',

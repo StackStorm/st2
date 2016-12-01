@@ -164,7 +164,7 @@ class PackInstallCommand(PackAsyncCommand):
         self.parser.add_argument('packs',
                                  nargs='+',
                                  metavar='pack',
-                                 help='Name of the %s to install.' %
+                                 help='Name of the %s in Exchange, or a git repo URL.' %
                                  resource.get_plural_display_name().lower())
         self.parser.add_argument('--force',
                                  action='store_true',

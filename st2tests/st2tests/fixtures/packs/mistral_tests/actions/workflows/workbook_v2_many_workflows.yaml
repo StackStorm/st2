@@ -1,20 +1,9 @@
-name: 'generic.workbook_v2_many_workflows_no_default'
+name: 'mistral_tests.workbook_v2_many_workflows'
 version: '2.0'
 
 workflows:
 
-  main1:
-    type: direct
-    input:
-      - count
-      - friend
-    tasks:
-      greet:
-        workflow: subflow1 count=<% $.count %> friend=<% $.friend %> 
-        publish:
-          towhom: <% task(greet).result.towhom %>
-
-  main2:
+  main:
     type: direct
     input:
       - count

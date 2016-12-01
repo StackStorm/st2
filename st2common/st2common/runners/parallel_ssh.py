@@ -19,6 +19,7 @@ import os
 import traceback
 
 import eventlet
+from paramiko.ssh_exception import SSHException
 
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.runners.paramiko_ssh import ParamikoSSHClient
@@ -240,6 +241,13 @@ class ParallelSSHClient(object):
                                    port=port)
         try:
             client.connect()
+        except SSHException as ex:
+            LOG.exception(ex)
+            if raise_on_any_error:
+                raise
+            error_dict = self._generate_error_result(exc=ex, message='Connection error.')
+            self._bad_hosts[hostname] = error_dict
+            results[hostname] = error_dict
         except Exception as ex:
             error = 'Failed connecting to host %s.' % hostname
             LOG.exception(error)
@@ -343,7 +351,7 @@ class ParallelSSHClient(object):
         :type message: ``str``
         """
         exc_message = getattr(exc, 'message', str(exc))
-        error_message = '%s: %s' % (message, exc_message)
+        error_message = '%s %s' % (message, exc_message)
         traceback_message = traceback.format_exc()
 
         if isinstance(exc, SSHCommandTimeoutError):

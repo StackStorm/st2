@@ -1,6 +1,6 @@
 version: '2.0'
 
-generic.workflow_v2.main1:
+mistral_tests.workflow_v2_many_workflows.main1:
   type: direct
   input:
     - count
@@ -21,7 +21,7 @@ generic.workflow_v2.main1:
       publish:
         towhom: <% task(say-friend).result.stdout %>
 
-generic.workflow_v2.main2:
+mistral_tests.workflow_v2_many_workflows.main2:
   type: direct
   input:
     - count

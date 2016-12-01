@@ -5,7 +5,7 @@ pack: "packs"
 description: "Install/upgrade StackStorm packs (pack = name or git URL, gitref = tag/branch/commit)."
 formats:
   - display: "pack install <pack>[,<pack>]"
-  - display: "pack install <pack>#<gitref>[,<pack#gitref>]"
+  - display: "pack install <pack>=<gitref>[,<pack>=<gitref>]"
     representation:
       - "pack install {{ packs }}"
 ack:
