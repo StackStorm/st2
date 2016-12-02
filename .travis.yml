@@ -24,10 +24,10 @@ env:
 #    - TASK=integration MONGODB=2.4.9
 #    - TASK=unit MONGODB=2.6.12
 #    - TASK=integration MONGODB=2.6.12
-    - TASK=unit MONGODB=3.2.8
-    - TASK=integration MONGODB=3.2.8
-    - TASK=mistral
-    - TASK=packs-tests MONGODB=3.2.8
+    - TASK=unit MONGODB=3.2.11
+    - TASK=integration MONGODB=3.2.11
+    - TASK=packs-tests MONGODB=3.2.11
+#    - TASK=mistral
 
 matrix:
   fast_finish: true
