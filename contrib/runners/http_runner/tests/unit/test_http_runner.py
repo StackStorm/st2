@@ -17,7 +17,7 @@
 import mock
 import unittest2
 
-from requests.auth import HTTPDigestAuth
+from requests.auth import HTTPBasicAuth
 
 from http_runner import HTTPClient
 import st2tests.config as tests_config
@@ -129,21 +129,21 @@ class HTTPRunnerTestCase(unittest2.TestCase):
             timeout=60, verify=False)
 
     @mock.patch('http_runner.requests')
-    def test_https_auth_digest(self, mock_requests):
+    def test_https_auth_basic(self, mock_requests):
         url = 'https://127.0.0.1:8888'
         username = 'misspiggy'
         password = 'kermit'
         client = HTTPClient(url=url, username=username, password=password)
         mock_result = MockResult()
 
-        mock_result.text = '{"title":"name"}'
-        mock_result.headers = {'Content-Type': 'application/json'}
+        mock_result.text = 'muppet show'
+        mock_result.headers = {'Authorization':'bWlzc3BpZ2d5Omtlcm1pdA=='}
         mock_result.status_code = 200
 
         mock_requests.request.return_value = mock_result
-        client.run()
+        result = client.run()
 
-        self.assertEqual(client.auth, HTTPDigestAuth(username, password))
+        self.assertEqual(result['headers'], mock_result.headers)
 
         mock_requests.request.assert_called_once_with(
             'GET', url, allow_redirects=False, auth=client.auth, cookies=None,

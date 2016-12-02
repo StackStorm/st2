@@ -19,7 +19,7 @@ import json
 import uuid
 
 import requests
-from requests.auth import HTTPDigestAuth
+from requests.auth import HTTPBasicAuth
 from oslo_config import cfg
 
 from st2common.runners import ActionRunner
@@ -200,7 +200,7 @@ class HTTPClient(object):
                 data = self.body
 
             if self.username or self.password:
-                self.auth = HTTPDigestAuth(self.username, self.password)
+                self.auth = HTTPBasicAuth(self.username, self.password)
 
             resp = requests.request(
                 self.method,
