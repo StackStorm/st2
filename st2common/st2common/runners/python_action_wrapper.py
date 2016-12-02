@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
 
 # Note: This must be called before other imports to affect speedsup
@@ -26,10 +27,10 @@ if __name__ == '__main__':
 # inside this directory polluting and masking sys.path for Python runner actions.
 # Since this module is ran as a Python script inside a subprocess, directory where the script
 # lives gets added to sys.path and we don't want that.
-# TODO: sys.pop(0) should also work when the script is ran as subprocess
 if __name__ == '__main__':
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     script_path = sys.path[0]
-    if 'st2common/runners' in script_path:
+    if BASE_DIR in script_path:
         sys.path.pop(0)
 
 import sys
