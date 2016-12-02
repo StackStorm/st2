@@ -265,3 +265,27 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '1.5.0'
         result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=True)
         self.assertEqual(result['test3'], 'Success.')
+
+    def test_resolve_urls(self):
+        url = DownloadGitRepoAction._eval_repo_url(
+            "https://github.com/StackStorm-Exchange/stackstorm-test")
+        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
+
+        url = DownloadGitRepoAction._eval_repo_url(
+            "https://github.com/StackStorm-Exchange/stackstorm-test.git")
+        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
+
+        url = DownloadGitRepoAction._eval_repo_url("StackStorm-Exchange/stackstorm-test")
+        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
+
+        url = DownloadGitRepoAction._eval_repo_url("git://StackStorm-Exchange/stackstorm-test")
+        self.assertEqual(url, "git://StackStorm-Exchange/stackstorm-test.git")
+
+        url = DownloadGitRepoAction._eval_repo_url("git://StackStorm-Exchange/stackstorm-test.git")
+        self.assertEqual(url, "git://StackStorm-Exchange/stackstorm-test.git")
+
+        url = DownloadGitRepoAction._eval_repo_url("git@github.com:foo/bar.git")
+        self.assertEqual(url, "git@github.com:foo/bar.git")
+
+        url = DownloadGitRepoAction._eval_repo_url("file:///home/vagrant/stackstorm-test")
+        self.assertEqual(url, "file:///home/vagrant/stackstorm-test")

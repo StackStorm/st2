@@ -16,13 +16,6 @@
 import os
 import sys
 
-# Note: This must be called before other imports to affect speedsup
-# We only ran it if script is ran as subprocess by action runner so we don't break the tests and
-# other code.
-if __name__ == '__main__':
-    from st2common.util.monkey_patch import monkey_patch_pkg_resources
-    monkey_patch_pkg_resources()
-
 # Note: This work-around is required to fix the issue with other Python modules which live
 # inside this directory polluting and masking sys.path for Python runner actions.
 # Since this module is ran as a Python script inside a subprocess, directory where the script

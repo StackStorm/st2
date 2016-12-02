@@ -278,12 +278,14 @@ class DownloadGitRepoAction(Action):
         """Allow passing short GitHub style URLs"""
         if not repo_url:
             raise Exception('No valid repo_url provided or could be inferred.')
-        has_git_extension = repo_url.endswith('.git')
-        if len(repo_url.split('/')) == 2 and "git@" not in repo_url:
-            url = "https://github.com/{}".format(repo_url)
+        if repo_url.startswith("file://"):
+            return repo_url
         else:
-            url = repo_url
-        return url if has_git_extension else "{}.git".format(url)
+            if len(repo_url.split('/')) == 2 and "git@" not in repo_url:
+                url = "https://github.com/{}".format(repo_url)
+            else:
+                url = repo_url
+            return url if url.endswith('.git') else "{}.git".format(url)
 
     @staticmethod
     def _get_pack_metadata(pack_dir):
