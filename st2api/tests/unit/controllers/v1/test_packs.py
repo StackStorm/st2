@@ -172,7 +172,7 @@ class PacksControllerTestCase(FunctionalTest):
     def test_packs_register_endpoint(self):
         # Register resources from all packs - make sure the count values are correctly added
         # together
-        resp = self.app.post_json('/v1/packs/register')
+        resp = self.app.post_json('/v1/packs/register', {'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
         self.assertTrue('runners' in resp.json)
@@ -190,7 +190,8 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertTrue(resp.json['configs'] >= 3)
 
         # Register resources from a specific pack
-        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1']})
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1'],
+                                                         'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(resp.json['actions'] >= 1)
@@ -198,14 +199,15 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertTrue(resp.json['configs'] >= 1)
 
         # Register specific type for all packs
-        resp = self.app.post_json('/v1/packs/register', {'types': ['sensor']})
+        resp = self.app.post_json('/v1/packs/register', {'types': ['sensor'],
+                                                         'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, {'sensors': 1})
 
         # Verify that plural name form also works
-        resp = self.app.post_json('/v1/packs/register', {'types': ['sensors']})
-
+        resp = self.app.post_json('/v1/packs/register', {'types': ['sensors'],
+                                                         'fail_on_failure': False})
         self.assertEqual(resp.status_int, 200)
 
         # Register specific type for a single packs
@@ -226,7 +228,8 @@ class PacksControllerTestCase(FunctionalTest):
         # resources from the same pack are only registered once
         resp = self.app.post_json('/v1/packs/register',
                                   {'packs': ['dummy_pack_1', 'dummy_pack_1', 'dummy_pack_1'],
-                                   'types': ['actions']})
+                                   'types': ['actions'],
+                                   'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, {'actions': 1, 'runners': 13})
@@ -237,3 +240,9 @@ class PacksControllerTestCase(FunctionalTest):
 
         self.assertEqual(resp.status_int, 400)
         self.assertTrue('Pack "doesntexist" not found on disk:' in resp.json['faultstring'])
+
+        # Fail on failure is enabled by default
+
+        # Fail on failure (invalid pack version)
+
+        # Fail on failure (broken pack metadata)
