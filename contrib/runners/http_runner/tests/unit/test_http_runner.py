@@ -17,8 +17,6 @@
 import mock
 import unittest2
 
-from requests.auth import HTTPBasicAuth
-
 from http_runner import HTTPClient
 import st2tests.config as tests_config
 
@@ -137,7 +135,7 @@ class HTTPRunnerTestCase(unittest2.TestCase):
         mock_result = MockResult()
 
         mock_result.text = 'muppet show'
-        mock_result.headers = {'Authorization':'bWlzc3BpZ2d5Omtlcm1pdA=='}
+        mock_result.headers = {'Authorization': 'bWlzc3BpZ2d5Omtlcm1pdA=='}
         mock_result.status_code = 200
 
         mock_requests.request.return_value = mock_result
