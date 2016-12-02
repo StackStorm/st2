@@ -242,7 +242,24 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertTrue('Pack "doesntexist" not found on disk:' in resp.json['faultstring'])
 
         # Fail on failure is enabled by default
+        resp = self.app.post_json('/v1/packs/register', expect_errors=True)
+
+        expected_msg = 'Failed to register pack "dummy_pack_11": Pack version "0.2"'
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(expected_msg in resp.json['faultstring'])
 
         # Fail on failure (invalid pack version)
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_11']},
+                                  expect_errors=True)
+
+        expected_msg = 'Failed to register pack "dummy_pack_11": Pack version "0.2"'
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(expected_msg in resp.json['faultstring'])
 
         # Fail on failure (broken pack metadata)
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1']},
+                                  expect_errors=True)
+
+        expected_msg = 'Referenced policy_type "action.mock_policy_error" doesnt exist'
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(expected_msg in resp.json['faultstring'])
