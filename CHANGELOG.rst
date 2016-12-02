@@ -86,6 +86,8 @@ Changelog
   entry for the host. #2941 #3032 #3058 [Eric Edgar] (improvement)
 * Fix ``packs.uninstall`` action so it also deletes ``configs`` and ``policies`` which belong to
   the pack which is being uninstalled. (bug fix)
+* Fix python action runner actions and make sure that modules from ``st2common/st2common/runners``
+  directory don't pollute ``PYTHONPATH`` for python runner actions. (bug fix)
 
 2.0.1 - September 30, 2016
 --------------------------
