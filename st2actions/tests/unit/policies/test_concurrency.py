@@ -26,7 +26,7 @@ from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
-from tests.unit.base import MockLiveActionPublisher
+from st2tests.mocks.liveaction import MockLiveActionPublisher
 from st2tests.mocks import runner
 
 PACK = 'generic'
@@ -57,7 +57,7 @@ SCHEDULED_STATES = [
     runner.MockActionRunner, 'run',
     mock.MagicMock(
         return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
-@mock.patch('st2common.runners.register_runner',
+@mock.patch('st2common.runners.base.register_runner',
             mock.MagicMock(return_value=runner))
 @mock.patch.object(
     CUDPublisher, 'publish_update',

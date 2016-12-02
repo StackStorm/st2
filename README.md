@@ -5,7 +5,9 @@
 [![Build Status](https://api.travis-ci.org/StackStorm/st2.svg?branch=master)](https://travis-ci.org/StackStorm/st2) [![Coverage Status](https://coveralls.io/repos/StackStorm/st2/badge.svg?branch=master&service=github)](https://coveralls.io/github/StackStorm/st2?branch=master) [![Codecov](https://codecov.io/github/StackStorm/st2/badge.svg?branch=master&service=github)](https://codecov.io/github/StackStorm/st2?branch=master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/StackStorm/st2/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/StackStorm/st2/?branch=master) ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg) [![Join our community Slack](https://stackstorm-community.herokuapp.com/badge.svg)](https://stackstorm.typeform.com/to/K76GRP) [![IRC](https://img.shields.io/irc/%23stackstorm.png)](http://webchat.freenode.net/?channels=stackstorm)
 
 ## StackStorm Overview
+
 [![StackStorm 5 min Intro Video](https://cloud.githubusercontent.com/assets/1294734/10356016/16278d0a-6d27-11e5-987d-c8a7629a69ed.png)](https://www.youtube.com/watch?v=pzZws3ftDtA)
+
 ### About
 
 StackStorm is a platform for integration and automation across services and tools. It ties together your existing infrastructure and application environment so you can more easily automate that environment -- with a particular focus on taking actions in response to events.
@@ -26,7 +28,7 @@ StackStorm helps you compose these and other operational patterns as rules and w
 
 StackStorm plugs into the environment via the extensible set of adapters: sensors and actions.
 
-* **Sensors** are python plugins for inbound integration that watch for events from external systems and fire a StackStorm trigger when event happens.
+* **Sensors** are python plugins for inbound integration that watch for events from external systems and fire a StackStorm trigger when an event happens.
 
 * **Triggers** are StackStorm representations of external events. There are generic triggers (e.g. timers, webhooks) and integration triggers (e.g. Sensu alert, JIRA issue updated). A new trigger type can be defined by writing a sensor plugin.
 

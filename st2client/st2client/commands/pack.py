@@ -23,7 +23,6 @@ from st2client.models import Pack
 from st2client.models import LiveAction
 from st2client.commands import resource
 from st2client.commands.action import ActionRunCommandMixin
-from st2client.commands.noop import NoopCommand
 from st2client.formatters import table
 from st2client.exceptions.operations import OperationFailureException
 import st2client.utils.terminal as term
@@ -58,14 +57,14 @@ class PackBranch(resource.ResourceBranch):
             read_only=True,
             commands={
                 'list': PackListCommand,
-                'get': NoopCommand
+                'get': PackGetCommand
             })
 
-        self.commands['register'] = PackRegisterCommand(self.resource, self.app, self.subparsers)
+        self.commands['show'] = PackShowCommand(self.resource, self.app, self.subparsers)
+        self.commands['search'] = PackSearchCommand(self.resource, self.app, self.subparsers)
         self.commands['install'] = PackInstallCommand(self.resource, self.app, self.subparsers)
         self.commands['remove'] = PackRemoveCommand(self.resource, self.app, self.subparsers)
-        self.commands['search'] = PackSearchCommand(self.resource, self.app, self.subparsers)
-        self.commands['show'] = PackShowCommand(self.resource, self.app, self.subparsers)
+        self.commands['register'] = PackRegisterCommand(self.resource, self.app, self.subparsers)
         self.commands['config'] = PackConfigCommand(self.resource, self.app, self.subparsers)
 
 
@@ -133,11 +132,19 @@ class PackListCommand(resource.ResourceListCommand):
     attribute_display_order = ['name', 'description', 'version', 'author']
 
 
+class PackGetCommand(resource.ResourceGetCommand):
+    pk_argument_name = 'ref'
+    display_attributes = ['name', 'version', 'author', 'email', 'keywords', 'description']
+    attribute_display_order = ['name', 'version', 'author', 'email', 'keywords', 'description']
+    help_string = 'Get information about an installed pack.'
+
+
 class PackShowCommand(PackResourceCommand):
     def __init__(self, resource, *args, **kwargs):
-        super(PackShowCommand, self).__init__(resource, 'show',
-              'Get information about a %s from the index.' % resource.get_display_name().lower(),
-              *args, **kwargs)
+        help_string = ('Get information about an available %s from the index.' %
+                       resource.get_display_name().lower())
+        super(PackShowCommand, self).__init__(resource, 'show', help_string,
+                                              *args, **kwargs)
 
         self.parser.add_argument('pack',
                                  help='Name of the %s to show.' %
@@ -157,12 +164,16 @@ class PackInstallCommand(PackAsyncCommand):
         self.parser.add_argument('packs',
                                  nargs='+',
                                  metavar='pack',
-                                 help='Name of the %s to install.' %
+                                 help='Name of the %s in Exchange, or a git repo URL.' %
                                  resource.get_plural_display_name().lower())
+        self.parser.add_argument('--force',
+                                 action='store_true',
+                                 default=False,
+                                 help='Force pack installation.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.install(args.packs, **kwargs)
+        return self.manager.install(args.packs, force=args.force, **kwargs)
 
 
 class PackRemoveCommand(PackAsyncCommand):
@@ -188,8 +199,9 @@ class PackRegisterCommand(PackResourceCommand):
               'Register a %s: sync all file changes with DB.' % resource.get_display_name().lower(),
               *args, **kwargs)
 
-        self.parser.add_argument('--packs',
-                                 nargs='+',
+        self.parser.add_argument('packs',
+                                 nargs='*',
+                                 metavar='pack',
                                  help='Name of the %s(s) to register.' %
                                  resource.get_display_name().lower())
 
@@ -208,8 +220,10 @@ class PackSearchCommand(resource.ResourceTableCommand):
 
     def __init__(self, resource, *args, **kwargs):
         super(PackSearchCommand, self).__init__(resource, 'search',
-            'Search for a %s in the directory.' % resource.get_display_name().lower(),
-            *args, **kwargs)
+            'Search the index for a %s with any attribute matching the query.'
+            % resource.get_display_name().lower(),
+            *args, **kwargs
+        )
 
         self.parser.add_argument('query',
                                  help='Search query.')
@@ -234,8 +248,9 @@ class PackConfigCommand(resource.ResourceCommand):
         schema = self.app.client.managers['ConfigSchema'].get_by_ref_or_id(args.name, **kwargs)
 
         if not schema:
-            raise resource.ResourceNotFoundError("%s doesn't have config schema defined" %
-                                                 self.resource.get_display_name())
+            msg = '%s "%s" doesn\'t exist or doesn\'t have config schema defined.'
+            raise resource.ResourceNotFoundError(msg % (self.resource.get_display_name(),
+                                                        args.name))
 
         config = interactive.InteractiveForm(schema.attributes).initiate_dialog()
 

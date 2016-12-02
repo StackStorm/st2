@@ -24,10 +24,10 @@ env:
 #    - TASK=integration MONGODB=2.4.9
 #    - TASK=unit MONGODB=2.6.12
 #    - TASK=integration MONGODB=2.6.12
-    - TASK=unit MONGODB=3.2.8
-    - TASK=integration MONGODB=3.2.8
-    - TASK=mistral
-    - TASK=packs-tests
+    - TASK=unit MONGODB=3.2.11
+    - TASK=integration MONGODB=3.2.11
+    - TASK=packs-tests MONGODB=3.2.11
+#    - TASK=mistral
 
 matrix:
   fast_finish: true
@@ -44,8 +44,8 @@ cache:
 
 before_script:
   # Note: We use ramdisk for better performance
-  - if [ ${TASK} = 'unit' ] || [ ${TASK} = 'integration' ]; then sudo -E ./scripts/travis/create-and-mount-ramdisk.sh; fi
-  - if [ ${TASK} = 'unit' ] || [ ${TASK} = 'integration' ]; then ./scripts/travis/install-and-run-mongodb.sh; fi
+  - if [ ${TASK} = 'unit' ] || [ ${TASK} = 'integration' ] || [ ${TASK} = 'packs-tests' ]; then sudo -E ./scripts/travis/create-and-mount-ramdisk.sh; fi
+  - if [ ${TASK} = 'unit' ] || [ ${TASK} = 'integration' ] || [ ${TASK} = 'packs-tests' ]; then ./scripts/travis/install-and-run-mongodb.sh; fi
 
 install:
   - pip install --upgrade "pip>=8.1.2,<8.2"
