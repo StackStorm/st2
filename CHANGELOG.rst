@@ -21,9 +21,9 @@ in development
     ``Tomaz Muraus <tomaz@stackstorm.com>`` (new feature)
   - Add support for default values and dynamic config values for nested config objects. (new feature, improvement)
   - Add new ``st2-validate-pack-config`` tool for validating config file against a particular config
-  schema file. (new-feature)
+    schema file. (new-feature)
   - Improved pack validation - now when the packs are registered we check that:
-  
+
     + ``version`` attribute in the pack metadata file matches valid semver format (e.g
       ``0.1.0``, ``2.0.0``, etc.)
     + ``email`` attribute (if specified) contains a valid email address. (improvement)
@@ -33,17 +33,17 @@ in development
     If validation fails, pack registration will fail. If you have an existing action or pack definition which
     uses invalid characters, pack registration will fail. You must update your packs.
   - For consistency with new pack name validation changes, sample ``hello-st2`` pack has been renamed
-  to ``hello_st2``.
+    to ``hello_st2``.
   - Fix ``packs.uninstall`` action so it also deletes ``configs`` and ``policies`` which belong to
-  the pack which is being uninstalled. (bug fix)
+    the pack which is being uninstalled. (bug fix)
   - Update ``packs.install`` action (``pack install`` command) to only load resources from the packs
-  which are being installed. Also update it and remove "restart sensor container" step from the
-  install workflow. This step hasn't been needed for a while now because sensor container
-  dynamically reads a list of available sensors from the database and starts the sub processes.
-  (improvement)
+    which are being installed. Also update it and remove "restart sensor container" step from the
+    install workflow. This step hasn't been needed for a while now because sensor container
+    dynamically reads a list of available sensors from the database and starts the sub processes.
+    (improvement)
   - Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
-  management approach. Now pack directories are actual checkouts of the corresponding pack git
-  repositories so this file is not needed anymore.
+    management approach. Now pack directories are actual checkouts of the corresponding pack git
+    repositories so this file is not needed anymore.
 
 * Add new ``POST /v1/actionalias/match`` API endpoint which allows users to perform ChatOps action
   alias matching server-side. This makes it easier to build and maintain StackStorm ChatOps
