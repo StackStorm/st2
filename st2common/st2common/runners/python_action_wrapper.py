@@ -13,14 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
 
 # Note: This must be called before other imports to affect speedsup
 # We only ran it if script is ran as subprocess by action runner so we don't break the tests and
-# other code
-if '--is-subprocess' in sys.argv:
+# other code.
+if __name__ == '__main__':
     from st2common.util.monkey_patch import monkey_patch_pkg_resources
     monkey_patch_pkg_resources()
+
+# Note: This work-around is required to fix the issue with other Python modules which live
+# inside this directory polluting and masking sys.path for Python runner actions.
+# Since this module is ran as a Python script inside a subprocess, directory where the script
+# lives gets added to sys.path and we don't want that.
+if __name__ == '__main__':
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    script_path = sys.path[0]
+    if BASE_DIR in script_path:
+        sys.path.pop(0)
 
 import sys
 import json
@@ -216,8 +227,6 @@ if __name__ == '__main__':
                         help='User who triggered the action execution')
     parser.add_argument('--parent-args', required=False,
                         help='Command line arguments passed to the parent process')
-    parser.add_argument('--is-subprocess', required=False, action='store_true', default=False,
-                        help='Flag which indicates script was ran by action runner')
     args = parser.parse_args()
 
     parameters = args.parameters
