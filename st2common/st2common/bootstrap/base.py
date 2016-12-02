@@ -120,7 +120,8 @@ class ResourceRegistrar(object):
             pack_db, _ = self._register_pack(pack_name=pack_name, pack_dir=pack_dir)
         except Exception as e:
             if self._fail_on_failure:
-                raise e
+                msg = 'Failed to register pack "%s": %s' % (pack_name, str(e))
+                raise ValueError(msg)
 
             LOG.exception('Failed to register pack "%s"' % (pack_name))
             return None
