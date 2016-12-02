@@ -1,8 +1,12 @@
 Changelog
 =========
 
-In development
+in development
 --------------
+
+
+2.1.0 - November 30, 2016
+-------------------------
 
 * Add new ``POST /v1/actionalias/match`` API endpoint which allows users to perform ChatOps action
   alias matching server-side. This makes it easier to build and maintain StackStorm ChatOps
@@ -48,8 +52,46 @@ In development
   ``0.1.0``, ``2.0.0``, etc.). If version identifier is invalid, pack registration will fail.
   (improvement)
 * When a policy cancels a request due to concurrency, it leaves end_timestamp set to None which
-  the notifier expects to be a date. This causes an exception in "isotime.format()". A patch was released that catches this exception, and populates payload['end_timestamp'] with the equivalent of "datetime.now()" when the exception occurs.
+  the notifier expects to be a date. This causes an exception in "isotime.format()". A patch was
+  released that catches this exception, and populates payload['end_timestamp'] with the equivalent
+  of "datetime.now()" when the exception occurs.
 * Adding check for datastore Client expired tokens used in sensor container
+* Add new ``contributors`` field to the pack metadata file. This field can contain a list of
+  people who have contributed to the pack. The format is ``Name <email>``, e.g.
+  ``Tomaz Muraus <tomaz@stackstorm.com>`` (new feature)
+* Update ``packs.install`` action (``pack install`` command) to only load resources from the packs
+  which are being installed. Also update it and remove "restart sensor container" step from the
+  install workflow. This step hasn't been needed for a while now because sensor container
+  dynamically reads a list of available sensors from the database and starts the sub processes.
+  (improvement)
+* Change st2api so that a full execution object is returned instead of an error message, when an
+  API client requests cancellation of an execution that is already canceled
+* Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
+  management approach. Now pack directories are actual checkouts of the corresponding pack git
+  repositories so this file is not needed anymore.
+* Speed up short-lived Python runner actions by up to 70%. This way done by re-organizing and
+  re-factoring code to avoid expensive imports such as jsonschema, jinja2, kombu and mongoengine
+  in the places where those imports are not actually needed and by various other optimizations.
+  (improvement)
+* Add new ``st2-validate-pack-config`` tool for validating config file against a particular config
+  schema file. (new-feature)
+* Upgrade various internal Python library dependencies to the latest stable versions (gunicorn,
+  kombu, six, appscheduler, passlib, python-gnupg, semver, paramiko, python-keyczar, virtualenv).
+* Improve performance of ``GET /executions/views/filters`` by creating additional indexes on
+  executions collection
+* Add support for default values and dynamic config values for nested config objects. (new feature,
+  improvement)
+* Throw a more user-friendly exception if rendering a dynamic configuration value inside the config
+  fails. (improvement)
+* Add support for ssh config file for ParamikoSSHrunner. Now ``ssh_config_file_path`` can be set
+  in st2 config and can be used to access remote hosts when ``use_ssh_config`` is set to
+  ``True``. However, to access remote hosts, action paramters like username and
+  password/private_key, if provided with action, will have precedence over the config file
+  entry for the host. #2941 #3032 #3058 [Eric Edgar] (improvement)
+* Fix ``packs.uninstall`` action so it also deletes ``configs`` and ``policies`` which belong to
+  the pack which is being uninstalled. (bug fix)
+* Fix python action runner actions and make sure that modules from ``st2common/st2common/runners``
+  directory don't pollute ``PYTHONPATH`` for python runner actions. (bug fix)
 
 2.0.1 - September 30, 2016
 --------------------------

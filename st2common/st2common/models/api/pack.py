@@ -31,6 +31,7 @@ from st2common.models.db.pack import PackDB
 from st2common.models.db.pack import ConfigSchemaDB
 from st2common.models.db.pack import ConfigDB
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.util.pack import validate_config_against_schema
 
 __all__ = [
     'PackAPI',
@@ -108,6 +109,15 @@ class PackAPI(BaseAPI):
                 'description': 'E-mail of the pack author.',
                 'format': 'email'
             },
+            'contributors': {
+                'type': 'array',
+                'items': {
+                    'type': 'string',
+                    'maxLength': 100
+                },
+                'description': ('A list of people who have contributed to the pack. Format is: '
+                                'Name <email address> e.g. Tomaz Muraus <tomaz@stackstorm.com>.')
+            },
             'files': {
                 'type': 'array',
                 'description': 'A list of files inside the pack.',
@@ -167,13 +177,14 @@ class PackAPI(BaseAPI):
         stackstorm_version = getattr(pack, 'stackstorm_version', None)
         author = pack.author
         email = pack.email
+        contributors = getattr(pack, 'contributors', [])
         files = getattr(pack, 'files', [])
         dependencies = getattr(pack, 'dependencies', [])
         system = getattr(pack, 'system', {})
 
         model = cls.model(ref=ref, name=name, description=description, keywords=keywords,
-                          version=version, author=author, email=email, files=files,
-                          dependencies=dependencies, system=system,
+                          version=version, author=author, email=email, contributors=contributors,
+                          files=files, dependencies=dependencies, system=system,
                           stackstorm_version=stackstorm_version)
         return model
 
@@ -260,22 +271,14 @@ class ConfigAPI(BaseAPI):
         # Note: We are doing optional validation so for now, we do allow additional properties
         instance = self.values or {}
         schema = config_schema_db.attributes
-        schema = util_schema.get_schema_for_resource_parameters(parameters_schema=schema,
-                                                                allow_additional_properties=True)
 
-        try:
-            cleaned = util_schema.validate(instance=instance, schema=schema,
-                                           cls=util_schema.CustomValidator, use_default=True,
-                                           allow_default_none=True)
-        except jsonschema.ValidationError as e:
-            attribute = getattr(e, 'path', [])
-            attribute = '.'.join(attribute)
-            configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
-            config_path = os.path.join(configs_path, '%s.yaml' % (self.pack))
+        configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
+        config_path = os.path.join(configs_path, '%s.yaml' % (self.pack))
 
-            msg = ('Failed validating attribute "%s" in config for pack "%s" (%s): %s' %
-                   (attribute, self.pack, config_path, str(e)))
-            raise jsonschema.ValidationError(msg)
+        cleaned = validate_config_against_schema(config_schema=schema,
+                                                 config_object=instance,
+                                                 config_path=config_path,
+                                                 pack_name=self.pack)
 
         return cleaned
 
@@ -340,6 +343,11 @@ class PackInstallRequestAPI(BaseAPI):
         "properties": {
             "packs": {
                 "type": "array"
+            },
+            "force": {
+                "type": "boolean",
+                "description": "Force pack installation",
+                "default": False
             }
         }
     }

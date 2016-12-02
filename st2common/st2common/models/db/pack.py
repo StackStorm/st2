@@ -45,6 +45,7 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin,
     stackstorm_version = me.StringField(regex=ST2_VERSION_REGEX)
     author = me.StringField(required=True)
     email = me.EmailField()
+    contributors = me.ListField(field=me.StringField())
     files = me.ListField(field=me.StringField())
     dependencies = me.ListField(field=me.StringField())
     system = me.DictField()

@@ -15,7 +15,7 @@
 
 import uuid
 from st2common import log as logging
-from st2common.runners import ActionRunner
+from st2common.runners.base import ActionRunner
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 import st2common.util.jsonify as jsonify
 

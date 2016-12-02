@@ -1,9 +1,10 @@
 ---
   name: "install"
   runner_type: "action-chain"
-  description: "Installs a pack from StackStorm Exchange into local content repository.
+  description: "Installs or upgrades a pack into local content repository, either by
+                git URL or a short name matching an index entry.
                 Will download pack, load the actions, sensors and rules from the pack.
-                Note that install require reboot of some st2 services."
+                Note that install requires reboot of some st2 services."
   enabled: true
   entry_point: "workflows/install.yaml"
   parameters:
@@ -12,17 +13,17 @@
       items:
         type: "string"
       required: true
-      description: "Name of the pack in Exchange or a git repo URL"
+      description: "Name of the pack in Exchange or a git repo URL."
     register:
       type: "string"
       default: "actions,aliases,sensors,triggers"
       description: "Possible options are all, triggers, sensors, actions, rules, aliases."
     env:
       type: "object"
-      description: "Optional environment variables"
+      description: "Optional environment variables."
       required: false
     force:
       type: "boolean"
-      description: "Set to True to force install the pack and skip StackStorm version compatibility check"
+      description: "Set to True to force install the pack and skip StackStorm version compatibility check and also delete and ignore lock file if one exists."
       required: false
       default: false

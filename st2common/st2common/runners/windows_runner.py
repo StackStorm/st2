@@ -18,7 +18,7 @@ from distutils.spawn import find_executable
 
 import six
 
-from st2common.runners import ActionRunner
+from st2common.runners.base import ActionRunner
 
 __all__ = [
     'BaseWindowsRunner',

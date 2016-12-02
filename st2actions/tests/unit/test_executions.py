@@ -44,7 +44,7 @@ from st2common.util import reference
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2tests.fixtures.packs import executions as fixture
 from st2tests import DbTestCase
-from tests.unit.base import MockLiveActionPublisher
+from st2tests.mocks.liveaction import MockLiveActionPublisher
 
 
 MOCK_FAIL_EXECUTION_CREATE = False
@@ -53,7 +53,7 @@ MOCK_FAIL_EXECUTION_CREATE = False
 @mock.patch.object(local_runner.LocalShellRunner, 'run',
                    mock.MagicMock(return_value=(action_constants.LIVEACTION_STATUS_FAILED,
                                                 'Non-empty', None)))
-@mock.patch('st2common.runners.register_runner',
+@mock.patch('st2common.runners.base.register_runner',
             mock.MagicMock(return_value=local_runner))
 @mock.patch.object(CUDPublisher, 'publish_create',
                    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_create))
@@ -104,7 +104,7 @@ class TestActionExecutionHistoryWorker(DbTestCase):
         self.test_basic_execution()
 
     def test_chained_executions(self):
-        with mock.patch('st2common.runners.register_runner',
+        with mock.patch('st2common.runners.base.register_runner',
                         mock.MagicMock(return_value=action_chain_runner)):
             liveaction = LiveActionDB(action='executions.chain')
             liveaction, _ = action_service.request(liveaction)

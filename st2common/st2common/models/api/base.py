@@ -17,21 +17,14 @@ import abc
 import functools
 import inspect
 
-import jsonschema
 import six
 from six.moves import http_client
-from webob import exc
-import pecan
 import traceback
 
 from oslo_config import cfg
 
 from st2common.util import mongoescape as util_mongodb
-from st2common.util import schema as util_schema
 from st2common.util.debugging import is_enabled as is_debugging_enabled
-from st2common.util.jsonify import json_encode
-from st2common.util.api import get_exception_for_type_error
-from st2common.util.api import get_exception_for_uncaught_api_error
 from st2common import log as logging
 
 __all__ = [
@@ -75,6 +68,8 @@ class BaseAPI(object):
 
         :return: Cleaned / validated object.
         """
+        from st2common.util import schema as util_schema
+
         schema = getattr(self, 'schema', {})
         attributes = vars(self)
 
@@ -211,6 +206,17 @@ def jsexpose(arg_types=None, body_cls=None, status_code=None, content_type='appl
     :param content_type: Response content type.
     :type content_type: ``str``
     """
+    # Late import to avoid very expensive in-direct import (~1 second) when this function
+    # is not called / used
+    import jsonschema
+    import pecan
+
+    from webob import exc
+
+    from st2common.util.jsonify import json_encode
+    from st2common.util.api import get_exception_for_type_error
+    from st2common.util.api import get_exception_for_uncaught_api_error
+
     pecan_json_decorate = pecan.expose(
         content_type=content_type,
         generic=False)

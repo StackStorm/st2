@@ -28,4 +28,5 @@ def to_json_string(value, indent=4, sort_keys=False, separators=(',', ':')):
 
 
 def to_yaml_string(value, indent=4, allow_unicode=True):
-    return yaml.safe_dump(value, indent=indent, allow_unicode=allow_unicode)
+    return yaml.safe_dump(value, indent=indent, allow_unicode=allow_unicode,
+                          default_flow_style=False)

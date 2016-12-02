@@ -291,10 +291,14 @@ class ResourceGetCommand(ResourceCommand):
 
     pk_argument_name = 'name_or_id'  # name of the attribute which stores resource PK
 
+    help_string = None
+
     def __init__(self, resource, *args, **kwargs):
-        super(ResourceGetCommand, self).__init__(resource, 'get',
-            'Get individual %s.' % resource.get_display_name().lower(),
-            *args, **kwargs)
+        super(ResourceGetCommand, self).__init__(
+            resource, 'get',
+            self.help_string or 'Get individual %s.' % resource.get_display_name().lower(),
+            *args, **kwargs
+        )
 
         argument = self.pk_argument_name
         metavar = self._get_metavar_for_argument(argument=self.pk_argument_name)

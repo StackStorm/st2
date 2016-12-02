@@ -54,12 +54,23 @@ class DownloadGitRepoAction(Action):
         for pack in packs:
             pack_url, pack_version = self._get_repo_url(pack)
 
-            temp_dir = hashlib.md5(pack_url).hexdigest()
+            temp_dir_name = hashlib.md5(pack_url).hexdigest()
+            lock_file = LockFile('/tmp/%s' % (temp_dir_name))
+            lock_file_path = lock_file.lock_file
 
-            with LockFile('/tmp/%s' % (temp_dir)):
+            if force:
+                self.logger.debug('Force mode is enabled, deleting lock file...')
+
+                try:
+                    os.unlink(lock_file_path)
+                except OSError:
+                    # Lock file doesn't exist or similar
+                    pass
+
+            with lock_file:
                 try:
                     user_home = os.path.expanduser('~')
-                    abs_local_path = os.path.join(user_home, temp_dir)
+                    abs_local_path = os.path.join(user_home, temp_dir_name)
                     self._clone_repo(temp_dir=abs_local_path, repo_url=pack_url,
                                      verifyssl=verifyssl, ref=pack_version)
 
@@ -79,6 +90,7 @@ class DownloadGitRepoAction(Action):
     def _clone_repo(temp_dir, repo_url, verifyssl=True, ref='master'):
         # Switch to non-interactive mode
         os.environ['GIT_TERMINAL_PROMPT'] = '0'
+        os.environ['GIT_ASKPASS'] = '/bin/echo'
 
         # Disable SSL cert checking if explictly asked
         if not verifyssl:
@@ -106,9 +118,9 @@ class DownloadGitRepoAction(Action):
         # Giving up ¯\_(ツ)_/¯
         if not gitref:
             format_values = [ref, repo_url]
-            msg = '"%s" is not a valid version, hash, tag, or branch in %s.'
+            msg = '"%s" is not a valid version, hash, tag or branch in %s.'
 
-            valid_versions = DownloadGitRepoAction._get_valid_version_for_repo(repo=repo)
+            valid_versions = DownloadGitRepoAction._get_valid_versions_for_repo(repo=repo)
             if len(valid_versions) >= 1:
                 valid_versions_string = ', '.join(valid_versions)
 
@@ -194,8 +206,10 @@ class DownloadGitRepoAction(Action):
         # running version of StackStorm
         if required_stackstorm_version:
             if not complex_semver_match(CURRENT_STACKSTROM_VERSION, required_stackstorm_version):
-                msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s"' %
-                       (pack_name, required_stackstorm_version, CURRENT_STACKSTROM_VERSION))
+                msg = ('Pack "%s" requires StackStorm "%s", but current version is "%s". ' %
+                       (pack_name, required_stackstorm_version, CURRENT_STACKSTROM_VERSION),
+                       'You can override this restriction by providing the "force" flag, but ',
+                       'the pack is not guaranteed to work.')
                 raise ValueError(msg)
 
     @staticmethod
@@ -264,12 +278,14 @@ class DownloadGitRepoAction(Action):
         """Allow passing short GitHub style URLs"""
         if not repo_url:
             raise Exception('No valid repo_url provided or could be inferred.')
-        has_git_extension = repo_url.endswith('.git')
-        if len(repo_url.split('/')) == 2 and "git@" not in repo_url:
-            url = "https://github.com/{}".format(repo_url)
+        if repo_url.startswith("file://"):
+            return repo_url
         else:
-            url = repo_url
-        return url if has_git_extension else "{}.git".format(url)
+            if len(repo_url.split('/')) == 2 and "git@" not in repo_url:
+                url = "https://github.com/{}".format(repo_url)
+            else:
+                url = repo_url
+            return url if url.endswith('.git') else "{}.git".format(url)
 
     @staticmethod
     def _get_pack_metadata(pack_dir):
@@ -287,7 +303,7 @@ class DownloadGitRepoAction(Action):
         return pack_ref
 
     @staticmethod
-    def _get_valid_version_for_repo(repo):
+    def _get_valid_versions_for_repo(repo):
         """
         Method which returns a valid versions for a particular repo (pack).
 
@@ -299,7 +315,8 @@ class DownloadGitRepoAction(Action):
 
         for tag in repo.tags:
             if tag.name.startswith('v') and re.match(PACK_VERSION_REGEX, tag.name[1:]):
-                valid_versions.append(tag.name)
+                # Note: We strip leading "v" from the version number
+                valid_versions.append(tag.name[1:])
 
         return valid_versions
 

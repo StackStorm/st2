@@ -22,7 +22,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 from oslo_config import cfg
 
-from st2common.runners import ActionRunner
+from st2common.runners.base import ActionRunner
 from st2common import __version__ as st2_version
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED

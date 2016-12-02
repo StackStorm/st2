@@ -15,12 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
 import os
+import mock
 import shutil
 import tempfile
 import hashlib
 
+from lockfile import LockFile
+from lockfile import LockTimeout
 from git.repo import Repo
 from gitdb.exc import BadName
 from st2common.services import packs as pack_service
@@ -146,6 +148,56 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.assertRaises(ValueError, action.run, packs=['test=1.2.3'],
                           abs_repo_base=self.repo_base)
 
+    def test_run_pack_lock_is_already_acquired(self):
+        action = self.get_action_instance()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+
+        original_acquire = LockFile.acquire
+
+        def mock_acquire(self, timeout=None):
+            original_acquire(self, timeout=0.1)
+
+        LockFile.acquire = mock_acquire
+
+        try:
+            lock_file = LockFile('/tmp/%s' % (temp_dir))
+
+            # Acquire a lock (file) so acquire inside download will fail
+            with open(lock_file.lock_file, 'w') as fp:
+                fp.write('')
+
+            expected_msg = 'Timeout waiting to acquire lock for'
+            self.assertRaisesRegexp(LockTimeout, expected_msg, action.run, packs=['test'],
+                                    abs_repo_base=self.repo_base)
+        finally:
+            os.unlink(lock_file.lock_file)
+            LockFile.acquire = original_acquire
+
+    def test_run_pack_lock_is_already_acquired_force_flag(self):
+        # Lock is already acquired but force is true so it should be deleted and released
+        action = self.get_action_instance()
+        temp_dir = hashlib.md5(PACK_INDEX['test']['repo_url']).hexdigest()
+
+        original_acquire = LockFile.acquire
+
+        def mock_acquire(self, timeout=None):
+            original_acquire(self, timeout=0.1)
+
+        LockFile.acquire = mock_acquire
+
+        try:
+            lock_file = LockFile('/tmp/%s' % (temp_dir))
+
+            # Acquire a lock (file) so acquire inside download will fail
+            with open(lock_file.lock_file, 'w') as fp:
+                fp.write('')
+
+            result = action.run(packs=['test'], abs_repo_base=self.repo_base, force=True)
+        finally:
+            LockFile.acquire = original_acquire
+
+        self.assertEqual(result, {'test': 'Success.'})
+
     def test_run_pack_download_v_tag(self):
         def side_effect(ref):
             if ref[0] != 'v':
@@ -162,6 +214,18 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         result = action.run(packs=['test=1.2.3'], abs_repo_base=self.repo_base)
 
         self.assertEqual(result, {'test': 'Success.'})
+
+    @mock.patch.object(DownloadGitRepoAction, '_get_valid_versions_for_repo',
+                      mock.Mock(return_value=['1.0.0', '2.0.0']))
+    def test_run_pack_download_invalid_version(self):
+        self.repo_instance.commit.side_effect = lambda ref: None
+
+        action = self.get_action_instance()
+
+        expected_msg = ('is not a valid version, hash, tag or branch.*?'
+                        'Available versions are: 1.0.0, 2.0.0.')
+        self.assertRaisesRegexp(ValueError, expected_msg, action.run,
+                                packs=['test=2.2.3'], abs_repo_base=self.repo_base)
 
     def test_download_pack_stackstorm_version_identifier_check(self):
         action = self.get_action_instance()
@@ -201,3 +265,27 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         pack_mgmt.download.CURRENT_STACKSTROM_VERSION = '1.5.0'
         result = action.run(packs=['test3'], abs_repo_base=self.repo_base, force=True)
         self.assertEqual(result['test3'], 'Success.')
+
+    def test_resolve_urls(self):
+        url = DownloadGitRepoAction._eval_repo_url(
+            "https://github.com/StackStorm-Exchange/stackstorm-test")
+        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
+
+        url = DownloadGitRepoAction._eval_repo_url(
+            "https://github.com/StackStorm-Exchange/stackstorm-test.git")
+        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
+
+        url = DownloadGitRepoAction._eval_repo_url("StackStorm-Exchange/stackstorm-test")
+        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
+
+        url = DownloadGitRepoAction._eval_repo_url("git://StackStorm-Exchange/stackstorm-test")
+        self.assertEqual(url, "git://StackStorm-Exchange/stackstorm-test.git")
+
+        url = DownloadGitRepoAction._eval_repo_url("git://StackStorm-Exchange/stackstorm-test.git")
+        self.assertEqual(url, "git://StackStorm-Exchange/stackstorm-test.git")
+
+        url = DownloadGitRepoAction._eval_repo_url("git@github.com:foo/bar.git")
+        self.assertEqual(url, "git@github.com:foo/bar.git")
+
+        url = DownloadGitRepoAction._eval_repo_url("file:///home/vagrant/stackstorm-test")
+        self.assertEqual(url, "file:///home/vagrant/stackstorm-test")
