@@ -18,7 +18,7 @@ import sys
 # Note: This must be called before other imports to affect speedsup
 # We only ran it if script is ran as subprocess by action runner so we don't break the tests and
 # other code.
-if '--is-subprocess' in sys.argv:
+if __name__ == '__main__':
     from st2common.util.monkey_patch import monkey_patch_pkg_resources
     monkey_patch_pkg_resources()
 
@@ -226,8 +226,6 @@ if __name__ == '__main__':
                         help='User who triggered the action execution')
     parser.add_argument('--parent-args', required=False,
                         help='Command line arguments passed to the parent process')
-    parser.add_argument('--is-subprocess', required=False, action='store_true', default=False,
-                        help='Flag which indicates script was ran by action runner')
     args = parser.parse_args()
 
     parameters = args.parameters
