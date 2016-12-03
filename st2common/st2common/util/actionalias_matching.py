@@ -39,16 +39,20 @@ def list_format_strings_from_aliases(aliases):
     for alias in aliases:
         for format_ in alias.formats:
             display, representations = normalise_alias_format_string(format_)
-            patterns.extend([(display, representation) for representation in representations])
+            if display and len(representations) == 0:
+                patterns.extend([(display, [])])
+            else:
+                patterns.extend([(display, representation) for representation in representations])
     return patterns
 
 
 def normalise_alias_format_string(alias_format):
     '''
-    StackStorm action aliases can have two types;
-        1. A simple string holding the format
-        2. A dictionary which hold numerous alias format "representation(s)"
-           With a single "display" for help about the action alias.
+    StackStorm action aliases come in two forms;
+        1. A string holding the format, which is also used as the help string.
+        2. A dictionary containing "display" and/or "representation" keys.
+           "representation": a list of numerous alias format "representation(s)"
+           "display": a help string to be displayed.
     This function processes both forms and returns a standardized form.
 
     :param alias_format: The alias format
@@ -64,8 +68,10 @@ def normalise_alias_format_string(alias_format):
         display = alias_format
         representation.append(alias_format)
     elif isinstance(alias_format, dict):
-        display = alias_format['display']
-        representation = alias_format['representation']
+        display = alias_format.get('display')
+        representation = alias_format.get('representation') or []
+        if isinstance(representation, six.string_types):
+            representation = [representation]
     else:
         raise TypeError("alias_format '%s' is neither a dictionary or string type."
                         % repr(alias_format))
