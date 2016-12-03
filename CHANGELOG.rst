@@ -31,7 +31,7 @@ in development
       names. Previously, due to bug in the code, any character was allowed.
 
     If validation fails, pack registration will fail. If you have an existing action or pack definition which
-    uses invalid characters, pack registration will fail. You must update your packs.
+    uses invalid characters, pack registration will fail. **You must update your packs**.
   - For consistency with new pack name validation changes, sample ``hello-st2`` pack has been renamed
     to ``hello_st2``.
   - Fix ``packs.uninstall`` action so it also deletes ``configs`` and ``policies`` which belong to
@@ -51,17 +51,12 @@ in development
   around this new API endpoint.
 
   Also add two new corresponding CLI commands - ``st2 alias-execution match`` and
-  ``st2 alias-execution execute``. (new feature) #2895
-
-  Contribution by Anthony Shaw
-
+  ``st2 alias-execution execute``. Contribution by Anthony Shaw. (new feature) #2895. 
 * Adding ability to pass complex array types via CLI by first trying to
   seralize the array as JSON and then falling back to comma separated array.
 * Add new ``core.pause`` action. This action behaves like sleep and can be used inside the action
   chain or Mistral workflows where waiting / sleeping is desired before proceeding with a next
-  task. (new feature) #2933
-
-  Contribution by Paul Mulvihill.
+  task. Contribution by Paul Mulvihill. (new feature) #2933. 
 * When a policy cancels a request due to concurrency, it leaves end_timestamp set to None which
   the notifier expects to be a date. This causes an exception in "isotime.format()". A patch was
   released that catches this exception, and populates payload['end_timestamp'] with the equivalent
