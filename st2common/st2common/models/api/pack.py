@@ -33,6 +33,7 @@ from st2common.models.db.pack import ConfigSchemaDB
 from st2common.models.db.pack import ConfigDB
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.util.pack import validate_config_against_schema
+from st2common.util.pack import normalize_pack_version
 
 __all__ = [
     'PackAPI',
@@ -153,12 +154,12 @@ class PackAPI(BaseAPI):
         # Special case for old version which didn't follow semver format (e.g. 0.1, 1.0, etc.)
         # In case the version doesn't match that format, we simply append ".0" to the end (e.g.
         # 0.1 -> 0.1.0, 1.0, -> 1.0.0, etc.)
-        version_seperator_count = values['version'].count('.')
-        if version_seperator_count == 1 and NORMALIZE_PACK_VERSION:
-            new_version = values['version'] + '.0'
-            LOG.info('Pack "%s" contains invalid semver version specifer, casting it to a full '
-                     'semver version specifier (%s -> %s)' % (name, values['version'],
-                                                              new_version))
+        if NORMALIZE_PACK_VERSION:
+            new_version = normalize_pack_version(version=values['version'])
+            if new_version != values['version']:
+                LOG.info('Pack "%s" contains invalid semver version specifer, casting it to a full '
+                         'semver version specifier (%s -> %s)' % (name, values['version'],
+                                                                  new_version))
             values['version'] = new_version
 
         super(PackAPI, self).__init__(**values)
