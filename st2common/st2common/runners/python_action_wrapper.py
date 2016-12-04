@@ -135,8 +135,9 @@ class PythonActionWrapper(object):
 
         try:
             config.parse_args(args=self._parent_args)
-        except Exception:
-            pass
+        except Exception as e:
+            LOG.debug('Failed to parse config using parent args (parent_args=%s): %s' %
+                      (self._parent_args, str(e)))
 
         # We don't need to ensure indexes every subprocess because they should already be created
         # and ensured by other services
