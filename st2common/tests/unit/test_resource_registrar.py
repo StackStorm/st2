@@ -105,6 +105,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_8)
 
+    @mock.patch('st2common.models.api.pack.NORMALIZE_PACK_VERSION', False)
     def test_register_pack_invalid_semver_version_friendly_error_message(self):
         registrar = ResourceRegistrar(use_pack_cache=False)
 
