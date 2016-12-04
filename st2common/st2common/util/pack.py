@@ -27,7 +27,9 @@ __all__ = [
     'get_pack_ref_from_metadata',
     'get_pack_metadata',
 
-    'validate_config_against_schema'
+    'validate_config_against_schema',
+
+    'normalize_pack_version'
 ]
 
 
@@ -105,3 +107,19 @@ def validate_config_against_schema(config_schema, config_object, config_path,
         raise jsonschema.ValidationError(msg)
 
     return cleaned
+
+
+def normalize_pack_version(version):
+    """
+    Normalize old, pre StackStorm v2.1 non valid semver version string (e.g. 0.2) to a valid
+    semver version string (0.2.0).
+
+    :rtype: ``str``
+    """
+    version = str(version)
+
+    version_seperator_count = version.count('.')
+    if version_seperator_count == 1:
+        version = version + '.0'
+
+    return version
