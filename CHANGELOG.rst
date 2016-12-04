@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.1.0 - November 30, 2016
+2.1.0 - December 05, 2016
 -------------------------
 
 * Add new ``POST /v1/actionalias/match`` API endpoint which allows users to perform ChatOps action
