@@ -59,25 +59,22 @@ elif [ -e "${ST2_CLI_CONFIG_FILE}" ]; then
   fi
 fi
 
-echo -n "Cloning st2tests in /tmp.."
-echo ""
-cd /tmp
+pushd ~
+echo "Cloning st2tests in `pwd`."
 git clone --depth 1 https://github.com/StackStorm/st2tests.git
 
-echo -n "Copying asserts, fixtures, tests and examples packs.."
-echo ""
+echo "Copying asserts, fixtures, tests and examples packs."
 cp -R st2tests/packs/* /opt/stackstorm/packs/
 cp -Rf /usr/share/doc/st2/examples /opt/stackstorm/packs/
 
 
-echo -n "Installing asserts, fixtures, tests and examples packs.."
-echo ""
+echo "Installing asserts, fixtures, tests and examples packs."
 st2 run packs.setup_virtualenv packs=examples,tests,asserts,fixtures,webui
 st2ctl reload --register-all
 
-echo -n "Deleting 'st2tests' directory from /tmp.."
-echo ""
-rm -R /tmp/st2tests/
+echo "Deleting 'st2tests' directory from `pwd`."
+rm -R st2tests/
+popd
 
 # Retrieve test action list
 TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`
