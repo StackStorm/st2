@@ -13,17 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import sys
 
 # Note: This work-around is required to fix the issue with other Python modules which live
 # inside this directory polluting and masking sys.path for Python runner actions.
 # Since this module is ran as a Python script inside a subprocess, directory where the script
 # lives gets added to sys.path and we don't want that.
+# Note: We need to use just the suffix, because full path is different depending if the process
+# is ran in virtualenv or not
+RUNNERS_PATH_SUFFIX = 'st2common/runners'
 if __name__ == '__main__':
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     script_path = sys.path[0]
-    if BASE_DIR in script_path:
+    if RUNNERS_PATH_SUFFIX in script_path:
         sys.path.pop(0)
 
 import sys
