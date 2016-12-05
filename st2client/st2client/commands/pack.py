@@ -208,7 +208,7 @@ class PackInstallCommand(PackAsyncCommand):
             pack_instances = []
 
             for pack in all_pack_instances:
-                if pack.ref in packs:
+                if pack.name in packs:
                     pack_instances.append(pack)
 
             self.print_output(pack_instances, table.MultiColumnTable,
@@ -231,6 +231,40 @@ class PackRemoveCommand(PackAsyncCommand):
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.remove(args.packs, **kwargs)
+
+    def run_and_print(self, args, **kwargs):
+        all_pack_instances = self.app.client.managers['Pack'].get_all()
+
+        super(PackRemoveCommand, self).run_and_print(args, **kwargs)
+
+        packs = args.packs
+
+        if len(packs) == 1:
+            pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0])
+
+            if pack_instance:
+                raise OperationFailureException('Pack %s has not been removed properly', packs[0])
+
+            removed_pack_instance = next((pack for pack in all_pack_instances
+                                         if pack.name == packs[0]), None)
+
+            self.print_output(removed_pack_instance, table.PropertyValueTable,
+                              attributes=args.attr, json=args.json, yaml=args.yaml,
+                              attribute_display_order=self.attribute_display_order)
+        else:
+            remaining_pack_instances = self.app.client.managers['Pack'].get_all()
+            pack_instances = []
+
+            for pack in all_pack_instances:
+                if pack.name in packs:
+                    pack_instances.append(pack)
+                if pack in remaining_pack_instances:
+                    raise OperationFailureException('Pack %s has not been removed properly',
+                                                    pack.name)
+
+            self.print_output(pack_instances, table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              json=args.json, yaml=args.yaml)
 
 
 class PackRegisterCommand(PackResourceCommand):
