@@ -162,7 +162,7 @@ class PackAPI(BaseAPI):
                             'Short versions will become INVALID in StackStorm 2.2, and the pack '
                             'will stop working. Update the pack version in "pack.yaml".'
                             % (name, values['version'], new_version))
-           values['version'] = new_version
+            values['version'] = new_version
 
         super(PackAPI, self).__init__(**values)
 
