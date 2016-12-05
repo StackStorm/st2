@@ -157,9 +157,11 @@ class PackAPI(BaseAPI):
         if NORMALIZE_PACK_VERSION:
             new_version = normalize_pack_version(version=values['version'])
             if new_version != values['version']:
-                LOG.info('Pack "%s" contains invalid semver version specifer, casting it to a full '
-                         'semver version specifier (%s -> %s)' % (name, values['version'],
-                                                                  new_version))
+                LOG.warning('Pack "%s" contains invalid semver version specifer, casting it to a '
+                            'full semver version specifier (%s -> %s).\n'
+                            'Short versions will become INVALID in StackStorm 2.2, and the pack '
+                            'will stop working. Update the pack version in "pack.yaml".'
+                            % (name, values['version'], new_version))
             values['version'] = new_version
 
         super(PackAPI, self).__init__(**values)
