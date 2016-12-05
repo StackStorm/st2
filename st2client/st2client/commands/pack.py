@@ -121,6 +121,10 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
                         and execution.status in LIVEACTION_COMPLETED_STATES:
                     break
 
+                # Suppress intermediate output in case output formatter is requested
+                if args.json or args.yaml:
+                    continue
+
                 if getattr(execution, 'parent', None) == parent_id:
                     status = execution.status
                     name = execution.context['chain']['name']
