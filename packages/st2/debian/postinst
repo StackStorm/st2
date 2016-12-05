@@ -25,6 +25,7 @@ upgrading=0
 ## Permissions of files which should be set on install
 SET_PERMS=$(cat <<EHD | sed 's/\s\+/ /g'
 -R ug+rw root:_packsgroup /opt/stackstorm/packs
+   ug+rw root:_packsgroup /usr/share/doc/st2/examples
    ug+rw root:_packsgroup /opt/stackstorm/virtualenvs
    755 _st2user:root      /opt/stackstorm/configs
    755 _st2user:root      /opt/stackstorm/exports

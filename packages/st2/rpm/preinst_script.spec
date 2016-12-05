@@ -7,6 +7,7 @@ ST2_USER=%{svc_user}
 ## Permissions of directories which has to be reset on upgrade
 RESET_PERMS=$(cat <<EHD | sed 's/\s\+/ /g'
 ug+rw root:_packsgroup /opt/stackstorm/packs
+ug+rw root:_packsgroup /usr/share/doc/st2/examples
 ug+rw root:_packsgroup /opt/stackstorm/virtualenvs
 755 _st2user:root      /opt/stackstorm/configs
 755 _st2user:root      /opt/stackstorm/exports
