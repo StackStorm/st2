@@ -67,10 +67,10 @@ class ActionAliasTestCase(unittest2.TestCase):
 
     def test_list_format_strings_from_aliases_with_display_only(self, mock):
         ALIASES = [
-            MemoryActionAliasDB(name='andy', ref='the_goonies.1', formats=[
-                                {'display': 'Watch this.'}]),
-            MemoryActionAliasDB(name='andy', ref='the_goonies.2', formats=[
-                                {'display': "He's just like his {{relation}}."}])
+            MemoryActionAliasDB(name='andy',
+                                ref='the_goonies.1', formats=[{'display': 'Watch this.'}]),
+            MemoryActionAliasDB(name='andy', ref='the_goonies.2',
+                                formats=[{'display': "He's just like his {{relation}}."}])
         ]
         result = matching.list_format_strings_from_aliases(ALIASES)
         self.assertEqual(len(result), 2)
@@ -82,9 +82,9 @@ class ActionAliasTestCase(unittest2.TestCase):
     def test_list_format_strings_from_aliases_with_representation_only(self, mock):
         ALIASES = [
             MemoryActionAliasDB(name='data', ref='the_goonies.1', formats=[
-                            {'representation': "That's okay daddy. You can't hug a {{object}}."}]),
-            MemoryActionAliasDB(name='mr_wang',  ref='the_goonies.2', formats=[
-                            {'representation': 'You are my greatest invention.'}])
+                {'representation': "That's okay daddy. You can't hug a {{object}}."}]),
+            MemoryActionAliasDB(name='mr_wang', ref='the_goonies.2', formats=[
+                {'representation': 'You are my greatest invention.'}])
         ]
         result = matching.list_format_strings_from_aliases(ALIASES)
         self.assertEqual(len(result), 2)
