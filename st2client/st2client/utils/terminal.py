@@ -70,6 +70,7 @@ def get_terminal_size(default=(80, 20)):
 
 class TaskIndicator(object):
     def __enter__(self):
+        self.dirty = False
         return self
 
     def __exit__(self, type, value, traceback):
@@ -85,7 +86,8 @@ class TaskIndicator(object):
         self._write('\t[{:^20}] {}'.format(format_status(status), name), override=True)
 
     def close(self):
-        self._write('\n')
+        if self.dirty:
+            self._write('\n')
 
     def _write(self, string, override=False):
         if override:
@@ -95,3 +97,5 @@ class TaskIndicator(object):
 
         sys.stdout.write(string)
         sys.stdout.flush()
+
+        self.dirty = True
