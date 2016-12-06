@@ -142,6 +142,72 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertEqual(live_action_dbs[0].status, LIVEACTION_STATUS_TIMED_OUT)
         self.assertEqual(live_action_dbs[1].status, LIVEACTION_STATUS_SUCCEEDED)
 
+    def test_retry_on_timeout_policy_is_retried_twice(self):
+        # Verify initial state
+        self.assertSequenceEqual(LiveAction.get_all(), [])
+        self.assertSequenceEqual(ActionExecution.get_all(), [])
+
+        # Start a mock action which times out
+        liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
+        live_action_db, execution_db = action_service.request(liveaction)
+
+        live_action_db.status = LIVEACTION_STATUS_TIMED_OUT
+        execution_db.status = LIVEACTION_STATUS_TIMED_OUT
+        LiveAction.add_or_update(live_action_db)
+        ActionExecution.add_or_update(execution_db)
+
+        # Simulate policy "apply_after" run
+        self.policy.apply_after(target=live_action_db)
+
+        # There should be two objects - original execution and retried execution
+        live_action_dbs = LiveAction.get_all()
+        action_execution_dbs = ActionExecution.get_all()
+        self.assertEqual(len(live_action_dbs), 2)
+        self.assertEqual(len(action_execution_dbs), 2)
+        self.assertEqual(action_execution_dbs[0].status, LIVEACTION_STATUS_TIMED_OUT)
+        self.assertEqual(action_execution_dbs[1].status, LIVEACTION_STATUS_REQUESTED)
+
+        # Verify retried execution contains policy related context
+        original_liveaction_id = action_execution_dbs[0].liveaction['id']
+
+        context = action_execution_dbs[1].context
+        self.assertTrue('policies' in context)
+        self.assertEqual(context['policies']['retry']['retry_count'], 1)
+        self.assertEqual(context['policies']['retry']['applied_policy'], 'test_policy')
+        self.assertEqual(context['policies']['retry']['retried_liveaction_id'],
+                         original_liveaction_id)
+
+        # Simulate timeout of second action which should cause another retry
+        live_action_db = live_action_dbs[1]
+        live_action_db.status = LIVEACTION_STATUS_TIMED_OUT
+        LiveAction.add_or_update(live_action_db)
+
+        execution_db = action_execution_dbs[1]
+        execution_db.status = LIVEACTION_STATUS_TIMED_OUT
+        ActionExecution.add_or_update(execution_db)
+
+        # Simulate policy "apply_after" run
+        self.policy.apply_after(target=live_action_db)
+
+        # There should be three objects - original execution and 2 retried executions
+        live_action_dbs = LiveAction.get_all()
+        action_execution_dbs = ActionExecution.get_all()
+        self.assertEqual(len(live_action_dbs), 3)
+        self.assertEqual(len(action_execution_dbs), 3)
+        self.assertEqual(action_execution_dbs[0].status, LIVEACTION_STATUS_TIMED_OUT)
+        self.assertEqual(action_execution_dbs[1].status, LIVEACTION_STATUS_TIMED_OUT)
+        self.assertEqual(action_execution_dbs[2].status, LIVEACTION_STATUS_REQUESTED)
+
+        # Verify retried execution contains policy related context
+        original_liveaction_id = action_execution_dbs[1].liveaction['id']
+
+        context = action_execution_dbs[2].context
+        self.assertTrue('policies' in context)
+        self.assertEqual(context['policies']['retry']['retry_count'], 2)
+        self.assertEqual(context['policies']['retry']['applied_policy'], 'test_policy')
+        self.assertEqual(context['policies']['retry']['retried_liveaction_id'],
+                         original_liveaction_id)
+
     def test_retry_on_timeout_max_retries_reached(self):
         # Verify initial state
         self.assertSequenceEqual(LiveAction.get_all(), [])
