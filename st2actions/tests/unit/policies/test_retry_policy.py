@@ -116,6 +116,16 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.assertEqual(action_execution_dbs[0].status, LIVEACTION_STATUS_TIMED_OUT)
         self.assertEqual(action_execution_dbs[1].status, LIVEACTION_STATUS_REQUESTED)
 
+        # Verify retried execution contains policy related context
+        original_liveaction_id = action_execution_dbs[0].liveaction['id']
+
+        context = action_execution_dbs[1].context
+        self.assertTrue('policies' in context)
+        self.assertEqual(context['policies']['retry']['retry_count'], 1)
+        self.assertEqual(context['policies']['retry']['applied_policy'], 'test_policy')
+        self.assertEqual(context['policies']['retry']['retried_liveaction_id'],
+                         original_liveaction_id)
+
         # Simulate success of second action so no it shouldn't be retried anymore
         live_action_db = live_action_dbs[1]
         live_action_db.status = LIVEACTION_STATUS_SUCCEEDED
