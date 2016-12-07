@@ -4,6 +4,8 @@ Changelog
 in development
 --------------
 
+* Throw a more user-friendly exception when registering packs (``st2ctl reload``) if pack ref /
+  name is invalid. (improvement)
 
 2.1.0 - November 30, 2016
 -------------------------
