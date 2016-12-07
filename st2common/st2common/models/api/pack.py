@@ -168,16 +168,24 @@ class PackAPI(BaseAPI):
 
     def validate(self):
         # We wrap default validate() implementation and throw a more user-friendly exception in
-        # case pack version doesn't follow a valid semver format
+        # case pack version doesn't follow a valid semver format and other errors
         try:
             super(PackAPI, self).validate()
         except jsonschema.ValidationError as e:
             msg = str(e)
 
+            # Invalid version
             if "Failed validating 'pattern' in schema['properties']['version']" in msg:
                 new_msg = ('Pack version "%s" doesn\'t follow a valid semver format. Valid '
                            'versions and formats include: 0.1.0, 0.2.1, 1.1.0, etc.' %
                            (self.version))
+                new_msg += '\n\n' + msg
+                raise jsonschema.ValidationError(new_msg)
+
+            # Invalid ref / name
+            if "Failed validating 'pattern' in schema['properties']['ref']" in msg:
+                new_msg = ('Pack ref  name can only contain valid word characters (``a-z``, '
+                           '``0-9`` and ``_``), dashes are not allowed.')
                 new_msg += '\n\n' + msg
                 raise jsonschema.ValidationError(new_msg)
 
