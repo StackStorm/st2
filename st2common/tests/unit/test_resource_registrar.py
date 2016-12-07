@@ -39,6 +39,7 @@ PACK_PATH_9 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy
 PACK_PATH_10 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_10')
 PACK_PATH_11 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_11')
 PACK_PATH_12 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_12')
+PACK_PATH_13 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_13')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -104,6 +105,15 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         expected_msg = 'contains invalid characters'
         self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_8)
+
+    def test_register_pack_invalid_ref_name_friendly_error_message(self):
+        registrar = ResourceRegistrar(use_pack_cache=False)
+
+        # Invalid ref
+        expected_msg = (r'Pack ref / name can only contain valid word characters .*?,'
+                        ' dashes are not allowed.')
+        self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
+                                pack_name=None, pack_dir=PACK_PATH_13)
 
     @mock.patch('st2common.models.api.pack.NORMALIZE_PACK_VERSION', False)
     def test_register_pack_invalid_semver_version_friendly_error_message(self):
