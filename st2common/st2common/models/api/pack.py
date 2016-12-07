@@ -184,8 +184,8 @@ class PackAPI(BaseAPI):
 
             # Invalid ref / name
             if "Failed validating 'pattern' in schema['properties']['ref']" in msg:
-                new_msg = ('Pack ref  name can only contain valid word characters (``a-z``, '
-                           '``0-9`` and ``_``), dashes are not allowed.')
+                new_msg = ('Pack ref / name can only contain valid word characters (a-z, 0-9 and '
+                           '_), dashes are not allowed.')
                 new_msg += '\n\n' + msg
                 raise jsonschema.ValidationError(new_msg)
 
