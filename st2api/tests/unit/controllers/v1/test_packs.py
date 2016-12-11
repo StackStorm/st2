@@ -255,3 +255,15 @@ class PacksControllerTestCase(FunctionalTest):
         expected_msg = 'Referenced policy_type "action.mock_policy_error" doesnt exist'
         self.assertEqual(resp.status_int, 400)
         self.assertTrue(expected_msg in resp.json['faultstring'])
+
+        # Fail on failure (broken action metadata)
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_13']},
+                                  expect_errors=True)
+
+        expected_msg = 'Failed to register action'
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(expected_msg in resp.json['faultstring'])
+
+        expected_msg = '\'stringa\' is not valid under any of the given schemas'
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(expected_msg in resp.json['faultstring'])
