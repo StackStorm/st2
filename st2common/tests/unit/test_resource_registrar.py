@@ -105,6 +105,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_8)
 
+    @mock.patch('st2common.models.api.pack.NORMALIZE_PACK_VERSION', False)
     def test_register_pack_invalid_semver_version_friendly_error_message(self):
         registrar = ResourceRegistrar(use_pack_cache=False)
 
@@ -117,6 +118,21 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
                         'versions and formats include: 0.1.0, 0.2.1, 1.1.0, etc.')
         self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_11)
+
+    def test_register_pack_old_style_non_semver_version_is_normalized_to_valid_version(self):
+        # Verify DB is empty
+        pack_dbs = Pack.get_all()
+        self.assertEqual(len(pack_dbs), 0)
+
+        registrar = ResourceRegistrar(use_pack_cache=False)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_11': PACK_PATH_11}
+        packs_base_paths = content_utils.get_packs_base_paths()
+        registrar.register_packs(base_dirs=packs_base_paths)
+
+        # Non-semver valid version 0.2 should be normalize to 0.2.0
+        pack_db = Pack.get_by_name('dummy_pack_11')
+        self.assertEqual(pack_db.version, '0.2.0')
 
     def test_register_pack_pack_stackstorm_version_and_future_parameters(self):
         # Verify DB is empty

@@ -13,17 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import sys
 
 # Note: This work-around is required to fix the issue with other Python modules which live
 # inside this directory polluting and masking sys.path for Python runner actions.
 # Since this module is ran as a Python script inside a subprocess, directory where the script
 # lives gets added to sys.path and we don't want that.
+# Note: We need to use just the suffix, because full path is different depending if the process
+# is ran in virtualenv or not
+RUNNERS_PATH_SUFFIX = 'st2common/runners'
 if __name__ == '__main__':
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     script_path = sys.path[0]
-    if BASE_DIR in script_path:
+    if RUNNERS_PATH_SUFFIX in script_path:
         sys.path.pop(0)
 
 import sys
@@ -64,8 +65,8 @@ For more information, please see: https://docs.stackstorm.com/upgrade_notes.html
 
 class ActionService(object):
     """
-    Instance of this class is passed to the action instance and exposes "public"
-    methods which can be called by the action.
+    Instance of this class is passed to the action instance and exposes "public" methods which can
+    be called by the action.
     """
 
     def __init__(self, action_wrapper):
@@ -129,13 +130,15 @@ class PythonActionWrapper(object):
         self._parameters = parameters or {}
         self._user = user
         self._parent_args = parent_args or []
+
         self._class_name = None
         self._logger = logging.getLogger('PythonActionWrapper')
 
         try:
             config.parse_args(args=self._parent_args)
-        except Exception:
-            pass
+        except Exception as e:
+            LOG.debug('Failed to parse config using parent args (parent_args=%s): %s' %
+                      (str(self._parent_args), str(e)))
 
         # We don't need to ensure indexes every subprocess because they should already be created
         # and ensured by other services
@@ -191,6 +194,8 @@ class PythonActionWrapper(object):
         if not action_cls:
             raise Exception('File "%s" has no action or the file doesn\'t exist.' %
                             (self._file_path))
+
+        self._class_name = action_cls.__class__.__name__
 
         config_loader = ContentPackConfigLoader(pack_name=self._pack, user=self._user)
         config = config_loader.get_config()

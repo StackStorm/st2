@@ -65,6 +65,34 @@ class ActionAliasTestCase(unittest2.TestCase):
         self.assertEqual(result[2][0], "How do I feel? I feel... {{status}}!")
         self.assertEqual(result[2][1], "How do I feel? I feel... {{status}}!")
 
+    def test_list_format_strings_from_aliases_with_display_only(self, mock):
+        ALIASES = [
+            MemoryActionAliasDB(name='andy',
+                                ref='the_goonies.1', formats=[{'display': 'Watch this.'}]),
+            MemoryActionAliasDB(name='andy', ref='the_goonies.2',
+                                formats=[{'display': "He's just like his {{relation}}."}])
+        ]
+        result = matching.list_format_strings_from_aliases(ALIASES)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0][0], 'Watch this.')
+        self.assertEqual(result[0][1], [])
+        self.assertEqual(result[1][0], "He's just like his {{relation}}.")
+        self.assertEqual(result[1][1], [])
+
+    def test_list_format_strings_from_aliases_with_representation_only(self, mock):
+        ALIASES = [
+            MemoryActionAliasDB(name='data', ref='the_goonies.1', formats=[
+                {'representation': "That's okay daddy. You can't hug a {{object}}."}]),
+            MemoryActionAliasDB(name='mr_wang', ref='the_goonies.2', formats=[
+                {'representation': 'You are my greatest invention.'}])
+        ]
+        result = matching.list_format_strings_from_aliases(ALIASES)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0][0], None)
+        self.assertEqual(result[0][1], "That's okay daddy. You can't hug a {{object}}.")
+        self.assertEqual(result[1][0], None)
+        self.assertEqual(result[1][1], 'You are my greatest invention.')
+
     def test_normalise_alias_format_string(self, mock):
         result = matching.normalise_alias_format_string(
             'Quite an experience to live in fear, isn\'t it?')
