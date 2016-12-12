@@ -125,3 +125,25 @@ class HTTPRunnerTestCase(unittest2.TestCase):
             'GET', url, allow_redirects=False, auth=None, cookies=None,
             data='', files=None, headers={}, params=None, proxies=None,
             timeout=60, verify=False)
+
+    @mock.patch('http_runner.requests')
+    def test_https_auth_basic(self, mock_requests):
+        url = 'https://127.0.0.1:8888'
+        username = 'misspiggy'
+        password = 'kermit'
+        client = HTTPClient(url=url, username=username, password=password)
+        mock_result = MockResult()
+
+        mock_result.text = 'muppet show'
+        mock_result.headers = {'Authorization': 'bWlzc3BpZ2d5Omtlcm1pdA=='}
+        mock_result.status_code = 200
+
+        mock_requests.request.return_value = mock_result
+        result = client.run()
+
+        self.assertEqual(result['headers'], mock_result.headers)
+
+        mock_requests.request.assert_called_once_with(
+            'GET', url, allow_redirects=False, auth=client.auth, cookies=None,
+            data='', files=None, headers={}, params=None, proxies=None,
+            timeout=60, verify=False)
