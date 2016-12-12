@@ -4,8 +4,7 @@ Changelog
 in development
 --------------
 
-
-2.1.0 - November 30, 2016
+2.1.0 - December 05, 2016
 -------------------------
 
 * Pack management changes:
