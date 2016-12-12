@@ -71,7 +71,10 @@ class ConfigsRegistrar(ResourceRegistrar):
                 self._register_config_for_pack(pack=pack_name, config_path=config_path)
             except Exception as e:
                 if self._fail_on_failure:
-                    raise e
+                    msg = ('Failed to register config "%s" for pack "%s": %s' % (config_path,
+                                                                                 pack_name,
+                                                                                 str(e)))
+                    raise ValueError(msg)
 
                 LOG.exception('Failed to register config for pack "%s": %s', pack_name, str(e))
             else:
@@ -130,7 +133,7 @@ class ConfigsRegistrar(ResourceRegistrar):
             extra = {'config_db': config_db}
             LOG.audit('Config for pack "%s" is updated.', config_db.pack, extra=extra)
         except Exception:
-            LOG.exception('Failed to config for pack %s.', pack)
+            LOG.exception('Failed to save config for pack %s.', pack)
             raise
 
         return config_db

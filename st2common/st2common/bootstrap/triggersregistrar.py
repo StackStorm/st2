@@ -111,7 +111,9 @@ class TriggersRegistrar(ResourceRegistrar):
                 self._register_trigger_from_pack(pack=pack, trigger=trigger)
             except Exception as e:
                 if self._fail_on_failure:
-                    raise e
+                    msg = ('Failed to register trigger "%s" from pack "%s": %s' % (trigger, pack,
+                                                                                   str(e)))
+                    raise ValueError(msg)
 
                 LOG.debug('Failed to register trigger "%s": %s', trigger, str(e))
             else:

@@ -393,6 +393,11 @@ class PackRegisterRequestAPI(BaseAPI):
                 "items": {
                     "type": "string"
                 }
+            },
+            "fail_on_failure": {
+                "type": "boolean",
+                "description": "True to fail on failure",
+                "default": True
             }
         }
     }
