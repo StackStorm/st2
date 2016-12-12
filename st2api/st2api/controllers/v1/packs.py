@@ -143,10 +143,11 @@ class PackRegisterController(RestController):
 
         use_pack_cache = False
 
+        fail_on_failure = getattr(pack_register_request, 'fail_on_failure', True)
         for type, (Registrar, name) in six.iteritems(ENTITIES):
             if type in types or name in types:
                 registrar = Registrar(use_pack_cache=use_pack_cache,
-                                      fail_on_failure=False)
+                                      fail_on_failure=fail_on_failure)
                 if packs:
                     for pack in packs:
                         pack_path = content_utils.get_pack_base_path(pack)

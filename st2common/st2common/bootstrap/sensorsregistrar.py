@@ -113,7 +113,9 @@ class SensorsRegistrar(ResourceRegistrar):
                 self._register_sensor_from_pack(pack=pack, sensor=sensor)
             except Exception as e:
                 if self._fail_on_failure:
-                    raise e
+                    msg = ('Failed to register sensor "%s" from pack "%s": %s' % (sensor, pack,
+                                                                                  str(e)))
+                    raise ValueError(msg)
 
                 LOG.debug('Failed to register sensor "%s": %s', sensor, str(e))
             else:

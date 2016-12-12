@@ -16,7 +16,6 @@
 import os
 
 import mock
-import jsonschema
 
 from st2common.content import utils as content_utils
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
@@ -106,6 +105,6 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
 
         expected_msg = ('Failed validating attribute "regions" in config for pack "dummy_pack_6" '
                         '(.*?): 1000 is not of type u\'array\'')
-        self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
+        self.assertRaisesRegexp(ValueError, expected_msg,
                                 registrar.register_from_packs,
                                 base_dirs=packs_base_paths)

@@ -149,7 +149,9 @@ class AliasesRegistrar(ResourceRegistrar):
                 self._register_action_alias(pack, alias)
             except Exception as e:
                 if self._fail_on_failure:
-                    raise e
+                    msg = ('Failed to register alias "%s" from pack "%s": %s' % (alias, pack,
+                                                                                 str(e)))
+                    raise ValueError(msg)
 
                 LOG.exception('Unable to register alias: %s', alias)
                 continue
