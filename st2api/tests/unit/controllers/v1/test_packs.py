@@ -257,7 +257,7 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertTrue(expected_msg in resp.json['faultstring'])
 
         # Fail on failure (broken action metadata)
-        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_13']},
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_15']},
                                   expect_errors=True)
 
         expected_msg = 'Failed to register action'

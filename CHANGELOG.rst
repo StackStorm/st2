@@ -10,6 +10,8 @@ in development
 
   If user doesn't want the API endpoint to fail on failure, they can pass
   ``"fail_on_failure": false`` attribute in the request payload. (improvement)
+* Throw a more user-friendly exception when registering packs (``st2ctl reload``) if pack ref /
+  name is invalid. (improvement)
 
 2.1.0 - December 05, 2016
 -------------------------
