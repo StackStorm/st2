@@ -4,8 +4,14 @@ Changelog
 in development
 --------------
 
+* Update ``/v1/packs/register`` API endpoint so it throws on failure (e.g. invalid pack or resource
+  metadata). This way the default behavior is consistent with default
+  ``st2ctl reload --register-all`` behavior.
 
-2.1.0 - November 30, 2016
+  If user doesn't want the API endpoint to fail on failure, they can pass
+  ``"fail_on_failure": false`` attribute in the request payload. (improvement)
+
+2.1.0 - December 05, 2016
 -------------------------
 
 * Pack management changes:
