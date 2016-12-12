@@ -8,6 +8,8 @@ Changelog
   (improvement)
 * Throw a more user-friendly exception when registering packs (``st2ctl reload``) if pack ref /
   name is invalid. (improvement)
+* ``core.http`` action now also supports HTTP basic auth and digest authentication by passing
+  ``username`` and ``password`` parameter to the action. (new feature)
 
 2.1.0 - December 05, 2016
 -------------------------
