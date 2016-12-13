@@ -47,18 +47,18 @@ class RunnerTypesController(ResourceController):
         'sort': ['name']
     }
 
-    @request_user_has_permission(permission_type=PermissionType.RUNNER_LIST)
-    @jsexpose()
+    # @request_user_has_permission(permission_type=PermissionType.RUNNER_LIST)
+    # @jsexpose()
     def get_all(self, **kwargs):
         return super(RunnerTypesController, self)._get_all(**kwargs)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.RUNNER_VIEW)
-    @jsexpose(arg_types=[str])
+    # @request_user_has_resource_db_permission(permission_type=PermissionType.RUNNER_VIEW)
+    # @jsexpose(arg_types=[str])
     def get_one(self, name_or_id):
         return super(RunnerTypesController, self)._get_one_by_name_or_id(name_or_id)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.RUNNER_MODIFY)
-    @jsexpose(arg_types=[str], body_cls=RunnerTypeAPI)
+    # @request_user_has_resource_db_permission(permission_type=PermissionType.RUNNER_MODIFY)
+    # @jsexpose(arg_types=[str], body_cls=RunnerTypeAPI)
     def put(self, runner_type_api, name_or_id):
         # Note: We only allow "enabled" attribute of the runner to be changed
         runner_type_db = self._get_by_name_or_id(name_or_id=name_or_id)
@@ -82,3 +82,5 @@ class RunnerTypesController(ResourceController):
         LOG.audit('Runner Type updated. RunnerType.id=%s.' % (runner_type_db.id), extra=extra)
         runner_type_api = RunnerTypeAPI.from_model(runner_type_db)
         return runner_type_api
+
+runner_types_controller = RunnerTypesController()

@@ -694,7 +694,7 @@ paths:
       parameters:
         - name: rule
           in: body
-          description: Action content
+          description: Rule content
           schema:
             $ref: '#/definitions/Rule'
       responses:
@@ -858,6 +858,118 @@ paths:
           description: Rule requested
           schema:
             $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /runnertypes:
+    get:
+      operationId: st2api.controllers.v1.runnertypes:runner_types_controller.get_all
+      x-permissions: runner_list
+      description: Returns a list of all runner types.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of entities to get
+          type: integer
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: string
+        - name: pack
+          in: query
+          description: Entity pack name filter
+          type: string
+        - name: action
+          in: query
+          description: Action ref filter
+          type: string
+        - name: trigger
+          in: query
+          description: Trigger filter
+          type: string
+        - name: enabled
+          in: query
+          description: Enabled filter
+          type: string
+      responses:
+        '200':
+          description: List of rules
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RunnerType'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /runnertypes/{name_or_id}:
+    get:
+      operationId: st2api.controllers.v1.runnertypes:runner_types_controller.get_one
+      x-permissions: runner_view
+      description: |
+        Get one runner type.
+      parameters:
+        - name: name_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: RunnerType requested
+          schema:
+            $ref: '#/definitions/RunnerType'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.runnertypes:runner_types_controller.put
+      x-permissions: runner_modify
+      description: |
+        Update a runner type.
+      parameters:
+        - name: name_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: runner_type_api
+          in: body
+          description: RunnerType content
+          schema:
+            $ref: '#/definitions/RunnerType'
+      responses:
+        '200':
+          description: RunnerType updated
+          schema:
+            $ref: '#/definitions/RunnerType'
           examples:
             application/json:
               ref: 'core.webhook'
