@@ -14,6 +14,8 @@ in development
   name is invalid. (improvement)
 * ``core.http`` action now also supports HTTP basic auth and digest authentication by passing
   ``username`` and ``password`` parameter to the action. (new feature)
+* Update ``/v1/packs/register`` API endpoint so it registers resources in the correct order which
+  is the same as order used in ``st2-register-content`` script. (bug fix)
 
 2.1.0 - December 05, 2016
 -------------------------
