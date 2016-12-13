@@ -83,12 +83,9 @@ class BaseRestControllerMixin(RestController):
         :rtype: ``bool``
         """
         mask_secrets = cfg.CONF.api.mask_secrets
-        show_secrets = self._get_query_param_value(request=request,
-                                                   param_name=SHOW_SECRETS_QUERY_PARAM,
-                                                   param_type='bool',
-                                                   default_value=False)
+        show_secrets = request.get(SHOW_SECRETS_QUERY_PARAM, False)
 
-        if show_secrets and request_user_is_admin(request=request):
+        if show_secrets:  # and request_user_is_admin(request=request):
             mask_secrets = False
 
         return mask_secrets

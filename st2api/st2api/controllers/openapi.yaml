@@ -1090,6 +1090,135 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /apikeys:
+    get:
+      operationId: st2api.controllers.v1.auth:api_key_controller.get_all
+      x-permissions: api_key_list
+      description: Returns a list of all actions.
+      parameters:
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      responses:
+        '200':
+          description: List of actions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ApiKey'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.auth:api_key_controller.post
+      x-permissions: api_key_create
+      description: |
+        Create a new action.
+      parameters:
+        - name: api_key_api
+          in: body
+          description: Action content
+          schema:
+            $ref: '#/definitions/ApiKeyRequest'
+      x-parameters:
+        - name: user
+          in: context
+          description: User running the action
+      responses:
+        '200':
+          description: Single action being created
+          schema:
+            $ref: '#/definitions/ApiKey'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /apikeys/{api_key_id_or_key}:
+    get:
+      operationId: st2api.controllers.v1.auth:api_key_controller.get_one
+      x-permissions: api_key_view
+      description: |
+        Get one action.
+      parameters:
+        - name: api_key_id_or_key
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      responses:
+        '200':
+          description: Action requested
+          schema:
+            $ref: '#/definitions/ApiKey'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.auth:api_key_controller.put
+      x-permissions: api_key_modify
+      description: |
+        Update an action.
+      parameters:
+        - name: api_key_id_or_key
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: api_key_api
+          in: body
+          description: Action content
+          schema:
+            $ref: '#/definitions/ApiKeyRequest'
+      responses:
+        '200':
+          description: Action updated
+          schema:
+            $ref: '#/definitions/ApiKey'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.auth:api_key_controller.delete
+      x-permissions: api_key_delete
+      description: |
+        Delete an action.
+      parameters:
+        - name: api_key_id_or_key
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '204':
+          description: Action deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 
 definitions:
   Action:
@@ -1270,6 +1399,10 @@ definitions:
   RunnerType:
     type: object
   SensorType:
+    type: object
+  ApiKey:
+    type: object
+  ApiKeyRequest:
     type: object
   LiveAction:
     title: liveaction
