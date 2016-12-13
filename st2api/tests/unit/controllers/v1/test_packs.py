@@ -198,6 +198,35 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertTrue(resp.json['sensors'] >= 1)
         self.assertTrue(resp.json['configs'] >= 1)
 
+        # Registering single resource type should also cause dependent resources
+        # to be registered
+        # * actions -> runners
+        # * rules -> rule types
+        # * policies -> policy types
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1'],
+                                                         'fail_on_failure': False,
+                                                         'types': ['actions']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(resp.json['runners'] >= 1)
+        self.assertTrue(resp.json['actions'] >= 1)
+
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1'],
+                                                         'fail_on_failure': False,
+                                                         'types': ['rules']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(resp.json['rule_types'] >= 1)
+        self.assertTrue(resp.json['rules'] >= 1)
+
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_2'],
+                                                         'fail_on_failure': False,
+                                                         'types': ['policies']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(resp.json['policy_types'] >= 1)
+        self.assertTrue(resp.json['policies'] >= 0)
+
         # Register specific type for all packs
         resp = self.app.post_json('/v1/packs/register', {'types': ['sensor'],
                                                          'fail_on_failure': False})

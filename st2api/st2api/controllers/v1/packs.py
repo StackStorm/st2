@@ -54,7 +54,8 @@ http_client = six.moves.http_client
 
 __all__ = [
     'PacksController',
-    'BasePacksController'
+    'BasePacksController',
+    'ENTITIES'
 ]
 
 LOG = logging.getLogger(__name__)
