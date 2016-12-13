@@ -47,18 +47,18 @@ class SensorTypeController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @request_user_has_permission(permission_type=PermissionType.SENSOR_LIST)
-    @jsexpose()
+    # @request_user_has_permission(permission_type=PermissionType.SENSOR_LIST)
+    # @jsexpose()
     def get_all(self, **kwargs):
         return super(SensorTypeController, self)._get_all(**kwargs)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.SENSOR_VIEW)
-    @jsexpose(arg_types=[str])
+    # @request_user_has_resource_db_permission(permission_type=PermissionType.SENSOR_VIEW)
+    # @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return super(SensorTypeController, self)._get_one(ref_or_id)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.SENSOR_MODIFY)
-    @jsexpose(arg_types=[str], body_cls=SensorTypeAPI)
+    # @request_user_has_resource_db_permission(permission_type=PermissionType.SENSOR_MODIFY)
+    # @jsexpose(arg_types=[str], body_cls=SensorTypeAPI)
     def put(self, sensor_type, ref_or_id):
         # Note: Right now this function only supports updating of "enabled"
         # attribute on the SensorType model.
@@ -99,3 +99,5 @@ class SensorTypeController(resource.ContentPackResourceController):
         sensor_type_api = SensorTypeAPI.from_model(sensor_type_db)
 
         return sensor_type_api
+
+sensor_type_controller = SensorTypeController()
