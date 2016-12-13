@@ -284,6 +284,10 @@ class PacksController(BasePacksController):
     views = PackViewsController()
     index = PacksIndexController()
 
+    def __init__(self):
+        super(PacksController, self).__init__()
+        self.get_one_db_method = self._get_by_ref_or_id
+
     @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
     @jsexpose()
     def get_all(self, **kwargs):
