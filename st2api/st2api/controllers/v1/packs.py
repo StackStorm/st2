@@ -43,6 +43,7 @@ from st2common.models.api.pack import PackInstallRequestAPI
 from st2common.models.api.pack import PackRegisterRequestAPI
 from st2common.models.api.pack import PackSearchRequestAPI
 from st2common.models.api.pack import PackAsyncAPI
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
@@ -247,6 +248,10 @@ class BasePacksController(ResourceController):
         if not resource_db:
             # Try ref
             resource_db = self._get_by_ref(ref=ref_or_id, exclude_fields=exclude_fields)
+
+        if not resource_db:
+            msg = 'Resource with a ref or id "%s" not found' % (ref_or_id)
+            raise StackStormDBObjectNotFoundError(msg)
 
         return resource_db
 
