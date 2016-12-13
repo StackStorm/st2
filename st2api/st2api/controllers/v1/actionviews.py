@@ -108,9 +108,7 @@ class OverviewController(resource.ContentPackResourceController):
             Handle:
                 GET /actions/views/overview/1
         """
-        result = super(OverviewController, self)._get_one(ref_or_id)
-        resp = Response(body=json_encode(result))
-        resp.headers['Content-Type'] = 'application/json'
+        resp = super(OverviewController, self)._get_one(ref_or_id)
         action_api = resp.json
         result = self._transform_action_api(action_api)
         resp.body = json_encode(result)

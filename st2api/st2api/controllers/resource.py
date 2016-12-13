@@ -402,7 +402,10 @@ class ContentPackResourceController(ResourceController):
         # LOG.debug('GET %s with ref_or_id=%s, client_result=%s',
         #           pecan.request.path, ref_or_id, result)
 
-        return result
+        resp = Response(body=json_encode(result))
+        resp.headers['Content-Type'] = 'application/json'
+
+        return resp
 
     def _get_all(self, **kwargs):
         resp = super(ContentPackResourceController, self)._get_all(**kwargs)

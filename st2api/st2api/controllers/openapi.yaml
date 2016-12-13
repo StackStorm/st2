@@ -783,6 +783,89 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /rules/views:
+    get:
+      operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_all
+      x-permissions: rule_list
+      description: Returns a list of all rules.
+      parameters:
+        - name: exclude_attributes
+          in: query
+          description: List of attributes to exclude
+          type: array
+          items:
+            type: string
+          required: false
+        - name: limit
+          in: query
+          description: Number of entities to get
+          type: integer
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: string
+        - name: pack
+          in: query
+          description: Entity pack name filter
+          type: string
+        - name: action
+          in: query
+          description: Action ref filter
+          type: string
+        - name: trigger
+          in: query
+          description: Trigger filter
+          type: string
+        - name: enabled
+          in: query
+          description: Enabled filter
+          type: string
+      responses:
+        '200':
+          description: List of rules
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /rules/views/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_one
+      x-permissions: rule_view
+      description: |
+        Get one rule.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Rule requested
+          schema:
+            $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 
 definitions:
   Action:
