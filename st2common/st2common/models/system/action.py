@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -236,7 +237,7 @@ class ShellScriptAction(ShellCommandAction):
                     if value is True:
                         command_parts.append(arg)
                 else:
-                    command_parts.append('%s=%s' % (quote_unix(arg), quote_unix(str(value))))
+                    command_parts.append(u'%s=%s' % (quote_unix(arg), quote_unix(unicode(value))))
 
         # add the positional args
         if positional_args:
