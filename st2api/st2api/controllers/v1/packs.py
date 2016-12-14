@@ -16,6 +16,7 @@
 import re
 
 from collections import defaultdict
+from collections import OrderedDict
 
 import pecan
 from pecan.rest import RestController
@@ -53,20 +54,24 @@ http_client = six.moves.http_client
 
 __all__ = [
     'PacksController',
-    'BasePacksController'
+    'BasePacksController',
+    'ENTITIES'
 ]
 
 LOG = logging.getLogger(__name__)
 
-ENTITIES = {
-    'action': (ActionsRegistrar, 'actions'),
-    'trigger': (TriggersRegistrar, 'triggers'),
-    'sensor': (SensorsRegistrar, 'sensors'),
-    'rule': (RulesRegistrar, 'rules'),
-    'alias': (AliasesRegistrar, 'aliases'),
-    'policy': (PolicyRegistrar, 'policies'),
-    'config': (ConfigsRegistrar, 'configs')
-}
+# Note: The order those are defined it's important so they are registered in the same order as
+# they are in st2-register-content.
+# We also need to use list of tuples to preserve the order.
+ENTITIES = OrderedDict([
+    ('trigger', (TriggersRegistrar, 'triggers')),
+    ('sensor', (SensorsRegistrar, 'sensors')),
+    ('action', (ActionsRegistrar, 'actions')),
+    ('rule', (RulesRegistrar, 'rules')),
+    ('alias', (AliasesRegistrar, 'aliases')),
+    ('policy', (PolicyRegistrar, 'policies')),
+    ('config', (ConfigsRegistrar, 'configs'))
+])
 
 
 class PackInstallController(ActionExecutionsControllerMixin, RestController):

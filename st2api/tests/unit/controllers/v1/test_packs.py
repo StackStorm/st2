@@ -20,6 +20,7 @@ from st2common.models.db.pack import PackDB
 from st2common.persistence.pack import Pack
 from st2common.services import packs as pack_service
 from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
+from st2api.controllers.v1.packs import ENTITIES
 from tests import FunctionalTest
 
 PACK_INDEX = {
@@ -169,6 +170,22 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, PACK_INDEX['test2'])
 
+    def test_packs_register_endpoint_resource_register_order(self):
+        # Verify that resources are registered in the same order as they are inside
+        # st2-register-content.
+        # Note: Sadly there is no easier / better way to test this
+        resource_types = ENTITIES.keys()
+        expected_order = [
+            'trigger',
+            'sensor',
+            'action',
+            'rule',
+            'alias',
+            'policy',
+            'config'
+        ]
+        self.assertEqual(resource_types, expected_order)
+
     def test_packs_register_endpoint(self):
         # Register resources from all packs - make sure the count values are correctly added
         # together
@@ -197,6 +214,35 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertTrue(resp.json['actions'] >= 1)
         self.assertTrue(resp.json['sensors'] >= 1)
         self.assertTrue(resp.json['configs'] >= 1)
+
+        # Registering single resource type should also cause dependent resources
+        # to be registered
+        # * actions -> runners
+        # * rules -> rule types
+        # * policies -> policy types
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1'],
+                                                         'fail_on_failure': False,
+                                                         'types': ['actions']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(resp.json['runners'] >= 1)
+        self.assertTrue(resp.json['actions'] >= 1)
+
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1'],
+                                                         'fail_on_failure': False,
+                                                         'types': ['rules']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(resp.json['rule_types'] >= 1)
+        self.assertTrue(resp.json['rules'] >= 1)
+
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_2'],
+                                                         'fail_on_failure': False,
+                                                         'types': ['policies']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(resp.json['policy_types'] >= 1)
+        self.assertTrue(resp.json['policies'] >= 0)
 
         # Register specific type for all packs
         resp = self.app.post_json('/v1/packs/register', {'types': ['sensor'],
