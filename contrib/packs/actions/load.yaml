@@ -7,7 +7,7 @@
   parameters:
     register:
       type: "string"
-      default: "actions,aliases,sensors"
+      default: "actions,aliases,sensors,triggers"
       description: "Possible options are all, sensors, actions, rules, aliases."
     packs:
       type: "array"
