@@ -14,6 +14,8 @@ in development
   name is invalid. (improvement)
 * ``core.http`` action now also supports HTTP basic auth and digest authentication by passing
   ``username`` and ``password`` parameter to the action. (new feature)
+* Fix ``GET /v1/packs/<pack ref or id>`` API endpoint - make sure pack object is correctly returned
+  when pack ref doesn't match pack name. Previously, 404 not found was thrown. (bug fix)
 * Update ``/v1/packs/register`` API endpoint so it registers resources in the correct order which
   is the same as order used in ``st2-register-content`` script. (bug fix)
 * Update ``packs.load`` action to also register triggers by default. (improvement)
