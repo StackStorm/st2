@@ -22,6 +22,7 @@ Changelog
   values. (bug fix)
 
   Contribution by Hiroyasu OHYAMA. #3116
+* Update ``packs.load`` action to also register triggers by default. (improvement)
 
 2.1.0 - December 05, 2016
 -------------------------
