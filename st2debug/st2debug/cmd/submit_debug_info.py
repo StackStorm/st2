@@ -424,7 +424,7 @@ class DebugInfoCollector(object):
         LOG.debug('Including the required shell commands output files')
         for cmd in self.shell_commands:
             output_file = os.path.join(output_path, '%s.txt' % self.format_output_filename(cmd))
-            exit_code, stdout, stderr = run_command(cmd=cmd, shell=True)
+            exit_code, stdout, stderr = run_command(cmd=cmd, shell=True, cwd=output_path)
             with open(output_file, 'w') as fp:
                 fp.write('[BEGIN STDOUT]\n')
                 fp.write(stdout)
