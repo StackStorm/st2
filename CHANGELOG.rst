@@ -23,6 +23,8 @@ Changelog
 
   Contribution by Hiroyasu OHYAMA. #3116
 * Update ``packs.load`` action to also register triggers by default. (improvement)
+* Update ``/v1/packs/register`` API endpoint so it registers resources in the correct order which
+  is the same as order used in ``st2-register-content`` script. (bug fix)
 
 2.1.0 - December 05, 2016
 -------------------------
