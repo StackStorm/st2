@@ -145,8 +145,8 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
 
 
 class PackListCommand(resource.ResourceListCommand):
-    display_attributes = ['name', 'description', 'version', 'author']
-    attribute_display_order = ['name', 'description', 'version', 'author']
+    display_attributes = ['ref', 'name', 'description', 'version', 'author']
+    attribute_display_order = ['ref', 'name', 'description', 'version', 'author']
 
 
 class PackGetCommand(resource.ResourceGetCommand):
