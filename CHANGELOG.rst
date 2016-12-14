@@ -14,6 +14,7 @@ in development
   name is invalid. (improvement)
 * ``core.http`` action now also supports HTTP basic auth and digest authentication by passing
   ``username`` and ``password`` parameter to the action. (new feature)
+* Update ``packs.load`` action to also register triggers by default. (improvement)
 * Update local action runner so it supports and works with non-ascii (unicode) parameter keys and
   values. (bug fix)
 
