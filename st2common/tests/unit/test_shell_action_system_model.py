@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -207,3 +208,23 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         command = action.get_full_command_string()
         expected = self._get_fixture('escaping_test_command_2.txt')
         self.assertEqual(command, expected)
+
+    def test_various_ascii_parameters(self):
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = False
+        kwargs['user'] = LOGGED_USER_USERNAME
+        kwargs['named_args'] = {'foo1': 'bar1', 'foo2': 'bar2'}
+        kwargs['positional_args'] = []
+        action = ShellScriptAction(**kwargs)
+        command = action.get_full_command_string()
+        self.assertEqual(command, u"/tmp/foo.sh foo1=bar1 foo2=bar2")
+
+    def test_unicode_parameter_specifing(self):
+        kwargs = copy.deepcopy(self._base_kwargs)
+        kwargs['sudo'] = False
+        kwargs['user'] = LOGGED_USER_USERNAME
+        kwargs['named_args'] = {u'ｆｏｏ': u'ｂａｒ'}
+        kwargs['positional_args'] = []
+        action = ShellScriptAction(**kwargs)
+        command = action.get_full_command_string()
+        self.assertEqual(command, u"/tmp/foo.sh 'ｆｏｏ'='ｂａｒ'")
