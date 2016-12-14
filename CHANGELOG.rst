@@ -14,6 +14,10 @@ in development
   name is invalid. (improvement)
 * ``core.http`` action now also supports HTTP basic auth and digest authentication by passing
   ``username`` and ``password`` parameter to the action. (new feature)
+* Update local action runner so it supports and works with non-ascii (unicode) parameter keys and
+  values. (bug fix)
+
+  Contribution by Hiroyasu OHYAMA. #3116
 
 2.1.0 - December 05, 2016
 -------------------------
@@ -61,7 +65,7 @@ in development
   around this new API endpoint.
 
   Also add two new corresponding CLI commands - ``st2 alias-execution match`` and
-  ``st2 alias-execution execute``. Contribution by Anthony Shaw. (new feature) #2895. 
+  ``st2 alias-execution execute``. Contribution by Anthony Shaw. (new feature) #2895.
 * Adding ability to pass complex array types via CLI by first trying to
   seralize the array as JSON and then falling back to comma separated array.
 * Add new ``core.pause`` action. This action behaves like sleep and can be used inside the action
