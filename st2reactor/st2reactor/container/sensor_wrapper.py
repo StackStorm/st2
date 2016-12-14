@@ -19,6 +19,7 @@ import atexit
 import argparse
 
 from oslo_config import cfg
+from jsonschema import ValidationError
 
 from st2common import log as logging
 from st2common.logging.misc import set_log_level_for_all_loggers
@@ -33,7 +34,7 @@ from st2reactor.sensor.base import Sensor, PollingSensor
 from st2reactor.sensor import config
 from st2common.services.datastore import DatastoreService
 from st2common.util.monkey_patch import monkey_patch
-from st2common.services import triggers
+from st2common.validators.api.reactor import validate_trigger_parameters
 
 __all__ = [
     'SensorWrapper',
@@ -100,71 +101,18 @@ class SensorService(object):
         :param trace_context: Trace context to associate with Trigger.
         :type trace_context: ``st2common.api.models.api.trace.TraceContext``
         """
-        # checks specified payload comply trigger_type schema
-        if not self._check_payload_validation(trigger, payload):
-            output_msg = 'invalid payload is specified (%s)' % (payload)
-            if cfg.CONF.sensorcontainer.permit_invalid_payload:
-                self._logger.warn(output_msg)
-            else:
-                self._logger.error(output_msg)
-                return None
+        # This means specified payload is complied with trigger_type schema, or not.
+        is_valid = False
+        try:
+            is_valid = validate_trigger_parameters(trigger, payload)
+        except ValidationError:
+            self._logger.warn('The specified payload (%s) makes a validation error' % payload)
+
+        # This condition prevents unexpected restriction.
+        if not is_valid and not cfg.CONF.sensorcontainer.permit_invalid_payload:
+            return None
 
         self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
-
-    # This checks that payload format is complied with schema of TriggerType
-    def _check_payload_validation(self, trigger, payload):
-        trigger_type = triggers.get_trigger_type_db(trigger)
-
-        if not trigger_type:
-            self._logger.warn("failed to get TriggerType object from the datastore")
-            return True
-
-        if not trigger_type.payload_schema:
-            # the case trigger doesn't have any properfies
-            return True
-
-        return self._do_check_payload_validation(trigger_type.payload_schema, payload)
-
-    def _do_check_payload_validation(self, schema, payload):
-        if not payload:
-            return 'default' in schema
-        elif 'type' in schema:
-            return self._is_valid_type(payload, schema, schema['type'])
-        elif 'anyOf' in schema:
-            return self._is_valid_any_of_type(payload, schema, schema['anyOf'])
-        else:
-            return True
-
-    def _is_valid_type(self, payload, schema, schema_type):
-        if schema_type in {'integer', 'number'}:
-            return isinstance(payload, int)
-
-        if schema_type == 'string':
-            return isinstance(payload, str)
-
-        if schema_type == 'boolean':
-            return isinstance(payload, bool)
-
-        if schema_type == 'array':
-            return isinstance(payload, list)
-
-        if schema_type == 'object':
-            if 'properties' not in schema:
-                return isinstance(payload, dict)
-
-            # This means payload has extend properties.
-            if set(payload.keys()) - set(schema['properties'].keys()) != set([]):
-                return False
-
-            # Tracking nested properties recursively
-            if not all([self._do_check_payload_validation(schema['properties'][k], payload[k]
-                        if k in payload else None) for k in schema['properties'].keys()]):
-                return False
-
-        return True
-
-    def _is_valid_any_of_type(self, payload, schema, schema_any_of):
-        return any([self._is_valid_type(payload, schema, x['type']) for x in schema_any_of])
 
     ##################################
     # Methods for datastore management
