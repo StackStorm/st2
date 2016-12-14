@@ -124,7 +124,7 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         # Verify commands output have been copied
         commands_path = os.path.join(extract_path, 'commands')
         command_files = os.listdir(commands_path)
-        self.assertTrue(len(command_files), 2)
+        self.assertEqual(len(command_files), 2)
 
         # Verify command output file names
         self.assertTrue('echofoo.txt' in command_files)
