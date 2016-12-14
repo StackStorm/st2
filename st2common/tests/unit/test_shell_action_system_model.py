@@ -209,7 +209,7 @@ class ShellScriptActionTestCase(unittest2.TestCase):
         expected = self._get_fixture('escaping_test_command_2.txt')
         self.assertEqual(command, expected)
 
-    def test_unicode_parameter_specifiing(self):
+    def test_unicode_parameter_specifing(self):
         kwargs = copy.deepcopy(self._base_kwargs)
         kwargs['sudo'] = False
         kwargs['user'] = LOGGED_USER_USERNAME

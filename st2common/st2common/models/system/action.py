@@ -237,7 +237,8 @@ class ShellScriptAction(ShellCommandAction):
                     if value is True:
                         command_parts.append(arg)
                 else:
-                    command_parts.append(u'%s=%s' % (quote_unix(arg), quote_unix(unicode(value))))
+                    values = (quote_unix(arg), quote_unix(six.text_type(value)))
+                    command_parts.append(six.text_type('%s=%s' % values))
 
         # add the positional args
         if positional_args:
