@@ -164,7 +164,9 @@ class RulesRegistrar(ResourceRegistrar):
                     cleanup_trigger_db_for_rule(existing)
             except Exception as e:
                 if self._fail_on_failure:
-                    raise e
+                    msg = ('Failed to register rule "%s" from pack "%s": %s' % (rule, pack,
+                                                                                str(e)))
+                    raise ValueError(msg)
 
                 LOG.exception('Failed registering rule from %s.', rule)
             else:

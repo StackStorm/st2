@@ -65,8 +65,8 @@ For more information, please see: https://docs.stackstorm.com/upgrade_notes.html
 
 class ActionService(object):
     """
-    Instance of this class is passed to the action instance and exposes "public"
-    methods which can be called by the action.
+    Instance of this class is passed to the action instance and exposes "public" methods which can
+    be called by the action.
     """
 
     def __init__(self, action_wrapper):
@@ -130,13 +130,15 @@ class PythonActionWrapper(object):
         self._parameters = parameters or {}
         self._user = user
         self._parent_args = parent_args or []
+
         self._class_name = None
         self._logger = logging.getLogger('PythonActionWrapper')
 
         try:
             config.parse_args(args=self._parent_args)
-        except Exception:
-            pass
+        except Exception as e:
+            LOG.debug('Failed to parse config using parent args (parent_args=%s): %s' %
+                      (str(self._parent_args), str(e)))
 
         # We don't need to ensure indexes every subprocess because they should already be created
         # and ensured by other services
@@ -192,6 +194,8 @@ class PythonActionWrapper(object):
         if not action_cls:
             raise Exception('File "%s" has no action or the file doesn\'t exist.' %
                             (self._file_path))
+
+        self._class_name = action_cls.__class__.__name__
 
         config_loader = ContentPackConfigLoader(pack_name=self._pack, user=self._user)
         config = config_loader.get_config()

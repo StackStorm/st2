@@ -16,6 +16,7 @@
 import re
 
 from collections import defaultdict
+from collections import OrderedDict
 
 import pecan
 from pecan.rest import RestController
@@ -43,6 +44,7 @@ from st2common.models.api.pack import PackInstallRequestAPI
 from st2common.models.api.pack import PackRegisterRequestAPI
 from st2common.models.api.pack import PackSearchRequestAPI
 from st2common.models.api.pack import PackAsyncAPI
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
@@ -53,20 +55,24 @@ http_client = six.moves.http_client
 
 __all__ = [
     'PacksController',
-    'BasePacksController'
+    'BasePacksController',
+    'ENTITIES'
 ]
 
 LOG = logging.getLogger(__name__)
 
-ENTITIES = {
-    'action': (ActionsRegistrar, 'actions'),
-    'trigger': (TriggersRegistrar, 'triggers'),
-    'sensor': (SensorsRegistrar, 'sensors'),
-    'rule': (RulesRegistrar, 'rules'),
-    'alias': (AliasesRegistrar, 'aliases'),
-    'policy': (PolicyRegistrar, 'policies'),
-    'config': (ConfigsRegistrar, 'configs')
-}
+# Note: The order those are defined it's important so they are registered in the same order as
+# they are in st2-register-content.
+# We also need to use list of tuples to preserve the order.
+ENTITIES = OrderedDict([
+    ('trigger', (TriggersRegistrar, 'triggers')),
+    ('sensor', (SensorsRegistrar, 'sensors')),
+    ('action', (ActionsRegistrar, 'actions')),
+    ('rule', (RulesRegistrar, 'rules')),
+    ('alias', (AliasesRegistrar, 'aliases')),
+    ('policy', (PolicyRegistrar, 'policies')),
+    ('config', (ConfigsRegistrar, 'configs'))
+])
 
 
 class PackInstallController(ActionExecutionsControllerMixin, RestController):
@@ -143,10 +149,11 @@ class PackRegisterController(RestController):
 
         use_pack_cache = False
 
+        fail_on_failure = getattr(pack_register_request, 'fail_on_failure', True)
         for type, (Registrar, name) in six.iteritems(ENTITIES):
             if type in types or name in types:
                 registrar = Registrar(use_pack_cache=use_pack_cache,
-                                      fail_on_failure=False)
+                                      fail_on_failure=fail_on_failure)
                 if packs:
                     for pack in packs:
                         pack_path = content_utils.get_pack_base_path(pack)
@@ -247,6 +254,10 @@ class BasePacksController(ResourceController):
             # Try ref
             resource_db = self._get_by_ref(ref=ref_or_id, exclude_fields=exclude_fields)
 
+        if not resource_db:
+            msg = 'Resource with a ref or id "%s" not found' % (ref_or_id)
+            raise StackStormDBObjectNotFoundError(msg)
+
         return resource_db
 
     def _get_by_ref(self, ref, exclude_fields=None):
@@ -282,6 +293,10 @@ class PacksController(BasePacksController):
     register = PackRegisterController()
     views = PackViewsController()
     index = PacksIndexController()
+
+    def __init__(self):
+        super(PacksController, self).__init__()
+        self.get_one_db_method = self._get_by_ref_or_id
 
     @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
     @jsexpose()

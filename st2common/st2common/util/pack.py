@@ -57,8 +57,11 @@ def get_pack_ref_from_metadata(metadata, pack_directory_name=None):
         if re.match(PACK_REF_WHITELIST_REGEX, metadata['name']):
             pack_ref = metadata['name']
         else:
-            raise ValueError('Pack name "%s" contains invalid characters and "ref" '
-                             'attribute is not available' % (metadata['name']))
+            msg = ('Pack name "%s" contains invalid characters and "ref" attribute is not '
+                   'available. You either need to add "ref" attribute which contains only word '
+                   'characters to the pack metadata file or update name attribute to contain only'
+                   'word characters.')
+            raise ValueError(msg % (metadata['name']))
 
     return pack_ref
 

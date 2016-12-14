@@ -16,6 +16,7 @@
 import re
 
 import pecan
+import jsonschema
 import mongoengine
 from oslo_config import cfg
 from webob import exc as webob_exc
@@ -151,6 +152,9 @@ def get_exception_for_uncaught_api_error(func, exc):
     """
 
     if isinstance(exc, mongoengine.ValidationError):
+        result = webob_exc.HTTPBadRequest(detail=exc.message)
+        return result
+    elif isinstance(exc, jsonschema.ValidationError):
         result = webob_exc.HTTPBadRequest(detail=exc.message)
         return result
 
