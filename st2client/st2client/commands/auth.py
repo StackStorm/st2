@@ -116,28 +116,32 @@ class LoginCommand(resource.ResourceCommand):
         manager = self.manager.create(instance, auth=(args.username, args.password), **kwargs)
 
         cli = BaseCLIApp()
-        logging.basicConfig(level=logging.DEBUG, format='%(relativeCreated)6d %(threadName)s %(message)s') #TODO(mierdin) send to nullhandler
+        logging.basicConfig(
+            level=logging.CRITICAL,
+            handlers=[logging.NullHandler]
+        )
         cli.LOG = logging.getLogger("st2client.base")
         cli._cache_auth_token(token_obj=manager)
 
+        # Update existing configuration with new credentials
         config_file = "%s/.st2/config" % expanduser("~")
-
         config = configparser.ConfigParser()
         config.read(config_file)
-
+        config['credentials'] = {
+            "username": args.username,
+            "password": args.password
+        }
         with open(config_file, "w") as cfg_file_out:
             config.write(cfg_file_out)
 
         return manager
 
     def run_and_print(self, args, **kwargs):
-        # instance = self.run(args, **kwargs)
-
         try:
             self.run(args, **kwargs)
-            print("Failed to log in as %s" % args.username)
-        except Exception:
             print("Logged in as %s" % args.username)
+        except Exception:
+            print("Failed to log in as %s" % args.username)
 
 
 class ApiKeyBranch(resource.ResourceBranch):

@@ -33,6 +33,7 @@ class Branch(object):
         self.description = description
         self.app = app
         self.parent_parser = parent_parser
+
         self.parser = subparsers.add_parser(self.name,
                                             description=self.description,
                                             help=self.description)

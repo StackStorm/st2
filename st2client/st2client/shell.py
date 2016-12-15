@@ -190,8 +190,7 @@ class Shell(BaseCLIApp):
             self, self.subparsers)
 
         self.commands['login'] = auth.LoginCommand(
-            'Set current username/password in config, and cache API token',
-            self, self.subparsers)
+            models.Token, self, self.subparsers, name='login')
 
         self.commands['pack'] = pack.PackBranch(
             'A group of related integration resources: '
@@ -257,8 +256,6 @@ class Shell(BaseCLIApp):
         if '--print-config' in argv:
             # Hack because --print-config requires no command to be specified
             argv = argv + ['action', 'list']
-
-        import pdb; pdb.set_trace()
 
         # Parse command line arguments.
         args = self.parser.parse_args(args=argv)
