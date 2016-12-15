@@ -37,6 +37,8 @@ test:
   override:
     - cd ${ST2_REPO_ROOT_DIR} && case $CIRCLE_NODE_INDEX in 0) make ci-checks ;; 1) make ci-unit clean ;; 2) make ci-integration clean ;; 3) make ci-packs clean ;; esac:
         parallel: true
+  post:
+    - bash <(curl -s https://codecov.io/bash)
 
 experimental:
   notify:
