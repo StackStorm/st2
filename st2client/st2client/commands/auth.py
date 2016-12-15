@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import configparser
+from os.path import expanduser
 import getpass
 import json
 import logging
 
+from st2client.base import BaseCLIApp
 from st2client import models
 from st2client.commands import resource
 from st2client.commands.noop import NoopCommand
@@ -37,7 +40,7 @@ class TokenCreateCommand(resource.ResourceCommand):
 
         super(TokenCreateCommand, self).__init__(
             resource, kwargs.pop('name', 'create'),
-            'Authenticate user and aquire access token.',
+            'Authenticate user and acquire access token.',
             *args, **kwargs)
 
         self.parser.add_argument('username',
@@ -68,6 +71,73 @@ class TokenCreateCommand(resource.ResourceCommand):
         else:
             self.print_output(instance, table.PropertyValueTable,
                               attributes=self.display_attributes, json=args.json, yaml=args.yaml)
+
+# (Notes for future PR)
+# This PR introduces a new `st2 login` command to the StackStorm client.
+
+# This is in repsonse to https://github.com/StackStorm/st2/issues/3110, where a
+# user asked if there was a more friendly way of specifying the current user
+# (i.e. without explicitly modifying configuration files).
+
+# Initially, I considered adding a flag to `st2 auth` that caches the token in
+# `~/.st2/token-<username>` but realized that `~/st2/config` would also need
+# to be modified to specify the "current" user. This seemed like a bit too
+# much functionality to have in a single "flag" off of `st2 auth`, so I decided
+# a separate command was ideal, and more self-explanatory.
+
+
+class LoginCommand(resource.ResourceCommand):
+    display_attributes = ['user', 'token', 'expiry']
+
+    def __init__(self, resource, *args, **kwargs):
+
+        kwargs['has_token_opt'] = False
+
+        super(LoginCommand, self).__init__(
+            resource, kwargs.pop('name', 'create'),
+            'Authenticate user, acquire access token, and update CLI config directory',
+            *args, **kwargs)
+
+        self.parser.add_argument('username',
+                                 help='Name of the user to authenticate.')
+
+        self.parser.add_argument('-p', '--password', dest='password',
+                                 help='Password for the user. If password is not provided, '
+                                      'it will be prompted.')
+        self.parser.add_argument('-l', '--ttl', type=int, dest='ttl', default=None,
+                                 help='The life span of the token in seconds. '
+                                      'Max TTL configured by the admin supersedes this.')
+
+    def run(self, args, **kwargs):
+        if not args.password:
+            args.password = getpass.getpass()
+        instance = self.resource(ttl=args.ttl) if args.ttl else self.resource()
+
+        manager = self.manager.create(instance, auth=(args.username, args.password), **kwargs)
+
+        cli = BaseCLIApp()
+        logging.basicConfig(level=logging.DEBUG, format='%(relativeCreated)6d %(threadName)s %(message)s') #TODO(mierdin) send to nullhandler
+        cli.LOG = logging.getLogger("st2client.base")
+        cli._cache_auth_token(token_obj=manager)
+
+        config_file = "%s/.st2/config" % expanduser("~")
+
+        config = configparser.ConfigParser()
+        config.read(config_file)
+
+        with open(config_file, "w") as cfg_file_out:
+            config.write(cfg_file_out)
+
+        return manager
+
+    def run_and_print(self, args, **kwargs):
+        # instance = self.run(args, **kwargs)
+
+        try:
+            self.run(args, **kwargs)
+            print("Failed to log in as %s" % args.username)
+        except Exception:
+            print("Logged in as %s" % args.username)
 
 
 class ApiKeyBranch(resource.ResourceBranch):
