@@ -35,7 +35,7 @@ dependencies:
 
 test:
   override:
-    - case $CIRCLE_NODE_INDEX in 0) make ci-checks ;; 1) make ci-unit ;; 2) make ci-integration ;; 3) make ci-packs ;; esac:
+    - case $CIRCLE_NODE_INDEX in 0) make ci-checks ;; 1) make ci-unit ;; 2) make ci-integration ;; 3) make ci-packs-tests ;; esac:
         parallel: true
   post:
     - case $CIRCLE_NODE_INDEX in [1-3]) codecov ;; esac:
