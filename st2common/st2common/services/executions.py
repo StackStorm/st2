@@ -59,7 +59,7 @@ LOG = logging.getLogger(__name__)
 
 # Attributes which are stored in the "liveaction" dictionary when composing LiveActionDB object
 # into a ActionExecution compatible dictionary.
-# Those attributes are LiveAction specified and are therefore stored in a "liveaction" key
+# Those attributes are LiveAction specific and are therefore stored in a "liveaction" key
 LIVEACTION_ATTRIBUTES = [
     'id',
     'callback',

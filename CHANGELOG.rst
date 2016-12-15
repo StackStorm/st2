@@ -1,8 +1,70 @@
 Changelog
 =========
 
+2.1.1 - in development
+----------------------
+
+* After running ``st2 pack install`` CLI command display which packs have been installed.
+  (improvement)
+* Update ``/v1/packs/register`` API endpoint so it throws on failure (e.g. invalid pack or resource
+  metadata). This way the default behavior is consistent with default
+  ``st2ctl reload --register-all`` behavior.
+
+  If user doesn't want the API endpoint to fail on failure, they can pass
+  ``"fail_on_failure": false`` attribute in the request payload. (improvement)
+* Throw a more user-friendly exception when registering packs (``st2ctl reload``) if pack ref /
+  name is invalid. (improvement)
+* ``core.http`` action now also supports HTTP basic auth and digest authentication by passing
+  ``username`` and ``password`` parameter to the action. (new feature)
+* Fix ``GET /v1/packs/<pack ref or id>`` API endpoint - make sure pack object is correctly returned
+  when pack ref doesn't match pack name. Previously, 404 not found was thrown. (bug fix)
+* Update local action runner so it supports and works with non-ascii (unicode) parameter keys and
+  values. (bug fix)
+
+  Contribution by Hiroyasu OHYAMA. #3116
+* Update ``packs.load`` action to also register triggers by default. (improvement)
+* Update ``/v1/packs/register`` API endpoint so it registers resources in the correct order which
+  is the same as order used in ``st2-register-content`` script. (bug fix)
+
 2.1.0 - December 05, 2016
 -------------------------
+
+* Pack management changes:
+
+  - Add new ``stackstorm_version`` and ``system`` fields to the pack.yaml metadata file. Value of the
+    first field can contain a specific StackStorm version with which the pack is designed to work
+    with (e.g. ``>=1.6.0,<2.2.0`` or ``>2.0.0``). This field is checked when installing / registering
+    a pack and installation is aborted if pack doesn't support the currently running StackStorm version.
+    Second field can contain an object with optional system / OS level dependencies.
+    (new feature)
+  - Add new ``contributors`` field to the pack metadata file. This field can contain a list of
+    people who have contributed to the pack. The format is ``Name <email>``, e.g.
+    ``Tomaz Muraus <tomaz@stackstorm.com>`` (new feature)
+  - Add support for default values and dynamic config values for nested config objects. (new feature, improvement)
+  - Add new ``st2-validate-pack-config`` tool for validating config file against a particular config
+    schema file. (new-feature)
+  - Improved pack validation - now when the packs are registered we check that:
+
+    + ``version`` attribute in the pack metadata file matches valid semver format (e.g
+      ``0.1.0``, ``2.0.0``, etc.)
+    + ``email`` attribute (if specified) contains a valid email address. (improvement)
+    + Only valid word characters (``a-z``, ``0-9`` and ``_``) used for action parameter
+      names. Previously, due to bug in the code, any character was allowed.
+
+    If validation fails, pack registration will fail. If you have an existing action or pack definition which
+    uses invalid characters, pack registration will fail. **You must update your packs**.
+  - For consistency with new pack name validation changes, sample ``hello-st2`` pack has been renamed
+    to ``hello_st2``.
+  - Fix ``packs.uninstall`` action so it also deletes ``configs`` and ``policies`` which belong to
+    the pack which is being uninstalled. (bug fix)
+  - Update ``packs.install`` action (``pack install`` command) to only load resources from the packs
+    which are being installed. Also update it and remove "restart sensor container" step from the
+    install workflow. This step hasn't been needed for a while now because sensor container
+    dynamically reads a list of available sensors from the database and starts the sub processes.
+    (improvement)
+  - Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
+    management approach. Now pack directories are actual checkouts of the corresponding pack git
+    repositories so this file is not needed anymore.
 
 * Add new ``POST /v1/actionalias/match`` API endpoint which allows users to perform ChatOps action
   alias matching server-side. This makes it easier to build and maintain StackStorm ChatOps
@@ -10,82 +72,40 @@ Changelog
   around this new API endpoint.
 
   Also add two new corresponding CLI commands - ``st2 alias-execution match`` and
-  ``st2 alias-execution execute``. (new feature) #2895
-
-  Contributed by Anthony Shaw
-* Only allow valid word characters (``a-z``, ``0-9`` and ``_``) to be used for action parameter
-  names. Previously, due to bug in the code, any character was allowed.
-
-  If you have an existing action definition which uses parameter with an invalid character, the
-  parameter name needs to be adjusted otherwise action registration will fail. (bug fix,
-  improvement)
+  ``st2 alias-execution execute``. Contribution by Anthony Shaw. (new feature) #2895.
 * Adding ability to pass complex array types via CLI by first trying to
   seralize the array as JSON and then falling back to comma separated array.
 * Add new ``core.pause`` action. This action behaves like sleep and can be used inside the action
   chain or Mistral workflows where waiting / sleeping is desired before proceeding with a next
-  task. (new feature) #2933
-
-  Contribution by Paul Mulvihill.
-* Improve API exception handling and make sure 400 status code is returned instead of 500 on
-  mongoengine field validation error. (improvement)
-* Allow user to supply multiple resource ids using ``?id`` query parameter when filtering
-  "get all" API endpoint result set (e.g. `?id=1,2,3,4`). This allows for a better client and
-  servers performance when user is polling and interested in multiple resources such as polling on
-  multiple action executions. (improvement)
-* Actually validate pack metadata file when registering packs. (bug fix, improvement)
-* Improve pack validation - now when the packs are registered we require that
-  "version" attribute in the pack metadata file matches valid semver format and we also require
-  that "email" attribute (if specified) contains a valid email address. (improvement)
-* For consistency with new pack name validation changes, sample ``hello-st2`` pack has been renamed
-  to ``hello_st2``.
-* Add new ``stackstorm_version`` and ``system`` fields to the pack.yaml metadata file. Value of the
-  first field can contain a specific for StackStorm version with which the pack is designed to work
-  with (e.g. ``>=1.6.0,<2.2.0`` or ``>2.0.0``). This field is checked when installing / registering
-  a pack and installation is aborted if pack doesn't support StackStorm version which is currently
-  running. Second field can contain an object with optional system / OS level dependencies.
-  (new feature)
-* Require pack metadata ``version`` attribute to contain a valid semver version identifier (e.g
-  ``0.1.0``, ``2.0.0``, etc.). If version identifier is invalid, pack registration will fail.
-  (improvement)
+  task. Contribution by Paul Mulvihill. (new feature) #2933. 
 * When a policy cancels a request due to concurrency, it leaves end_timestamp set to None which
   the notifier expects to be a date. This causes an exception in "isotime.format()". A patch was
   released that catches this exception, and populates payload['end_timestamp'] with the equivalent
   of "datetime.now()" when the exception occurs.
 * Adding check for datastore Client expired tokens used in sensor container
-* Add new ``contributors`` field to the pack metadata file. This field can contain a list of
-  people who have contributed to the pack. The format is ``Name <email>``, e.g.
-  ``Tomaz Muraus <tomaz@stackstorm.com>`` (new feature)
-* Update ``packs.install`` action (``pack install`` command) to only load resources from the packs
-  which are being installed. Also update it and remove "restart sensor container" step from the
-  install workflow. This step hasn't been needed for a while now because sensor container
-  dynamically reads a list of available sensors from the database and starts the sub processes.
-  (improvement)
+* Improve API exception handling and make sure 400 status code is returned instead of 500 on
+  mongoengine field validation error. (improvement)
+* Throw a more user-friendly exception if rendering a dynamic configuration value inside the config
+  fails. (improvement)
 * Change st2api so that a full execution object is returned instead of an error message, when an
   API client requests cancellation of an execution that is already canceled
-* Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
-  management approach. Now pack directories are actual checkouts of the corresponding pack git
-  repositories so this file is not needed anymore.
 * Speed up short-lived Python runner actions by up to 70%. This way done by re-organizing and
   re-factoring code to avoid expensive imports such as jsonschema, jinja2, kombu and mongoengine
   in the places where those imports are not actually needed and by various other optimizations.
   (improvement)
-* Add new ``st2-validate-pack-config`` tool for validating config file against a particular config
-  schema file. (new-feature)
-* Upgrade various internal Python library dependencies to the latest stable versions (gunicorn,
-  kombu, six, appscheduler, passlib, python-gnupg, semver, paramiko, python-keyczar, virtualenv).
 * Improve performance of ``GET /executions/views/filters`` by creating additional indexes on
   executions collection
-* Add support for default values and dynamic config values for nested config objects. (new feature,
-  improvement)
-* Throw a more user-friendly exception if rendering a dynamic configuration value inside the config
-  fails. (improvement)
+* Allow user to supply multiple resource ids using ``?id`` query parameter when filtering
+  "get all" API endpoint result set (e.g. `?id=1,2,3,4`). This allows for a better client and
+  servers performance when user is polling and interested in multiple resources such as polling on
+  multiple action executions. (improvement)
+* Upgrade various internal Python library dependencies to the latest stable versions (gunicorn,
+  kombu, six, appscheduler, passlib, python-gnupg, semver, paramiko, python-keyczar, virtualenv).
 * Add support for ssh config file for ParamikoSSHrunner. Now ``ssh_config_file_path`` can be set
   in st2 config and can be used to access remote hosts when ``use_ssh_config`` is set to
   ``True``. However, to access remote hosts, action paramters like username and
   password/private_key, if provided with action, will have precedence over the config file
   entry for the host. #2941 #3032 #3058 [Eric Edgar] (improvement)
-* Fix ``packs.uninstall`` action so it also deletes ``configs`` and ``policies`` which belong to
-  the pack which is being uninstalled. (bug fix)
 * Fix python action runner actions and make sure that modules from ``st2common/st2common/runners``
   directory don't pollute ``PYTHONPATH`` for python runner actions. (bug fix)
 

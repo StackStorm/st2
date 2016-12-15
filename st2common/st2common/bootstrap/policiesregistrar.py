@@ -120,7 +120,9 @@ class PolicyRegistrar(ResourceRegistrar):
                 self._register_policy(pack, policy)
             except Exception as e:
                 if self._fail_on_failure:
-                    raise e
+                    msg = ('Failed to register policy "%s" from pack "%s": %s' % (policy, pack,
+                                                                                  str(e)))
+                    raise ValueError(msg)
 
                 LOG.exception('Unable to register policy: %s', policy)
                 continue
