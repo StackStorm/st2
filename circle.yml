@@ -13,7 +13,6 @@ notify:
 
 machine:
   environment:
-    ST2_REPO_ROOT_DIR: ${HOME}/${CIRCLE_PROJECT_REPONAME}
     BUILD_DOCKER: 0
   services:
     - docker
@@ -28,17 +27,18 @@ dependencies:
     - sudo .circle/configure-services.sh
     - sudo .circle/add-itest-user.sh
     - sudo apt-get -y install parallel jq
-  override:  # Let's install Mongo 3 manually because circle doesn't support mongo3 yet
+  # Let's install Mongo 3 manually because circle doesn't support mongo3 yet
     - sudo .circle/install-mongo.sh
-  post:
-    - cd ${ST2_REPO_ROOT_DIR} && hostname && make compile requirements
+  override:
+    - make compile requirements
 
 test:
   override:
-    - cd ${ST2_REPO_ROOT_DIR} && case $CIRCLE_NODE_INDEX in 0) make ci-checks ;; 1) make ci-unit clean ;; 2) make ci-integration clean ;; 3) make ci-packs clean ;; esac:
+    - case $CIRCLE_NODE_INDEX in 0) make ci-checks ;; 1) make ci-unit ;; 2) make ci-integration ;; 3) make ci-packs ;; esac:
         parallel: true
   post:
-    - bash <(curl -s https://codecov.io/bash)
+    - case $CIRCLE_NODE_INDEX in [1-3]) bash <(curl -s https://codecov.io/bash) ;; esac:
+        parallel: true
 
 experimental:
   notify:
