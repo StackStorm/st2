@@ -55,6 +55,9 @@ class TestLogin(base.BaseCLITestCase):
     def tearDown(self):
         super(TestLogin, self).tearDown()
 
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
     @mock.patch("st2client.commands.auth.ConfigParser")
     @mock.patch("st2client.commands.auth.open")
     @mock.patch("st2client.commands.auth.BaseCLIApp")
