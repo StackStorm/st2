@@ -684,6 +684,7 @@ class ActionAliasMatchAPI(BaseAPI):
     def from_model(cls, aliasexecution):
         raise NotImplementedError()
 
+
 class ActionAliasHelpAPI(BaseAPI):
     """
     API model used to display action-alias help API endpoint.
@@ -697,19 +698,25 @@ class ActionAliasHelpAPI(BaseAPI):
         "properties": {
             "filtering": {
                 "type": "string",
-                "description": "Filter the list of help strings based on the first word.",
+                "description": "Find help strings containing keywords.",
                 "required": False,
                 "default": ""
             },
             "pack": {
                 "type": "string",
-                "description": "Pack name to match when looking for help string.",
+                "description": "List help strings for a specific pack.",
                 "required": False,
                 "default": ""
             },
+            "offset": {
+                "type": "integer",
+                "description": "List help strings from the offset position.",
+                "required": False,
+                "default": 0
+            },
             "limit": {
                 "type": "integer",
-                "description": "Limit the number of help strings returned.",
+                "description": "Limit the number of help strings listed.",
                 "required": False,
                 "default": 0
             }

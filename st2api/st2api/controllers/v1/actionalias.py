@@ -31,8 +31,8 @@ from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_api_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 
-from st2common.util.actionalias_matching import match_command_to_alias, \
-                                                normalise_alias_format_string
+from st2common.util.actionalias_matching import match_command_to_alias
+from st2common.util.actionalias_helpstring import generate_helpstring_list
 
 
 http_client = six.moves.http_client
@@ -110,7 +110,8 @@ class ActionAliasController(resource.ContentPackResourceController):
             return [self._match_tuple_to_dict(match) for match in e.matches]
 
     @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_HELP)
-    @jsexpose(arg_types=[str, str, int], body_cls=ActionAliasHelpAPI, status_code=http_client.ACCEPTED)
+    @jsexpose(arg_types=[str, str, int], body_cls=ActionAliasHelpAPI,
+    status_code=http_client.ACCEPTED)
     def help(self, action_alias_help_api, **kwargs):
         """
             Get available help strings for action aliases.
@@ -121,37 +122,15 @@ class ActionAliasController(resource.ContentPackResourceController):
         filtering = action_alias_help_api.filtering
         pack = action_alias_help_api.pack
         limit = action_alias_help_api.limit
+        offset = action_alias_help_api.offset
 
-        matches = {}
-        cnt = 0
         try:
-            # 1. Get aliases
             aliases = super(ActionAliasController, self)._get_all(**kwargs)
-            # 2. Retrieve alias(es)
-            for alias in aliases:
-                if not alias.enabled:
-                    continue
-                if pack != alias.pack and pack != "":
-                    continue
-                for format_ in alias.formats:
-                    display, _ = normalise_alias_format_string(format_)
-                    if display:
-                        # Filtering on subfield needs to be fixed, use regex module?
-                        #~ if not display.startswith(filtering):
-                            #~ continue
-                        if not matches.get(alias.pack):
-                            matches[alias.pack] = []
-                        matches[alias.pack].append({
-                            "display": display,
-                            "description": alias.description
-                        })
-                        cnt += 1
-                    if cnt >= limit and limit > 0:
-                        return matches
-            return matches
-        except Exception as e:
-            LOG.exception('Error encountered while creating actionalias help: %s.', e)
-
+            return generate_helpstring_list(aliases, filtering, pack, limit, offset)
+        except (TypeError) as e:
+            LOG.exception('Error encountered while creating actionalias help: %s.', str(e))
+            pecan.abort(http_client.BAD_REQUEST, str(e))
+            return
 
     @jsexpose(body_cls=ActionAliasAPI, status_code=http_client.CREATED)
     @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_CREATE)
