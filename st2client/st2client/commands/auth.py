@@ -104,19 +104,26 @@ class LoginCommand(resource.ResourceCommand):
             args.password = getpass.getpass()
         instance = self.resource(ttl=args.ttl) if args.ttl else self.resource()
 
-        manager = self.manager.create(instance, auth=(args.username, args.password), **kwargs)
-
         cli = BaseCLIApp()
+
+        # Determine path to config file
+        try:
+            config_file = cli._get_config_file_path(args)
+        except ValueError:
+            # config file not found in args or in env, defaulting
+            config_file = expanduser('~/.st2/config')
 
         logging.basicConfig(
             level=logging.CRITICAL,
             handlers=[logging.NullHandler]
         )
         cli.LOG = logging.getLogger("st2client.base")
+
+        # Retrieve token
+        manager = self.manager.create(instance, auth=(args.username, args.password), **kwargs)
         cli._cache_auth_token(token_obj=manager)
 
         # Update existing configuration with new credentials
-        config_file = expanduser('~/.st2/config')
         config = ConfigParser()
         config.read(config_file)
 

@@ -66,7 +66,9 @@ class TestLogin(base.BaseCLITestCase):
 
         test_cases = [
             {
-                "args": ['login', 'st2admin', '--password', 'Password1!'],
+                "args": [
+                    '--config', '/tmp/st2config', 'login', 'st2admin', '--password', 'Password1!'
+                ],
                 "expected_config": {
                     'credentials': {
                         "username": 'st2admin',
@@ -93,7 +95,7 @@ class TestLogin(base.BaseCLITestCase):
                 }
             },
             {
-                "args": ['login', 'st2admin', '-w'],
+                "args": ['--config', '/tmp/st2config', 'login', 'st2admin', '-w'],
                 "expected_config": {
                     'credentials': {
                         "username": 'st2admin',
@@ -107,6 +109,13 @@ class TestLogin(base.BaseCLITestCase):
 
             mock_gp.getpass.return_value = "Password1!"
 
+            # Mock config
+            if '--config' in test_case['args']:
+                config_file = test_case['args'][test_case['args'].index('--config') + 1]
+            else:
+                config_file = expanduser('~/.st2/config')
+            mock_cli.return_value._get_config_file_path.return_value = config_file
+
             self.shell.run(test_case['args'])
 
             # Ensure getpass was only used if "--password" option was omitted
@@ -119,7 +128,7 @@ class TestLogin(base.BaseCLITestCase):
             mock_cli.return_value._cache_auth_token.assert_called_once()
 
             # Ensure configuration was performed properly
-            config_file = "%s/.st2/config" % expanduser("~")
+            mock_open.assert_called_once_with(config_file, 'w')
             mock_cfg.return_value.read.assert_called_once_with(config_file)
             mock_cfg.return_value.__setitem__.assert_called_once_with(
                 'credentials', test_case['expected_config']['credentials'])
@@ -133,6 +142,7 @@ class TestLogin(base.BaseCLITestCase):
             mock_cli.return_value._cache_auth_token.reset_mock()
             mock_cfg.return_value.read.reset_mock()
             mock_cfg.return_value.__setitem__.reset_mock()
+            mock_open.reset_mock()
             mock_open.return_value.__enter__.reset_mock()
             mock_open.return_value.__exit__.reset_mock()
 
