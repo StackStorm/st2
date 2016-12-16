@@ -403,3 +403,32 @@ debs:
 	#	cp -f CONTRIBUTING.rst $$component/; \
 	#	cp -f LICENSE $$component/; \
 	#done
+
+
+
+
+.PHONY: ci
+ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
+
+.PHONY: ci-checks
+ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common-circular-dependencies-check
+
+.PHONY: ci-unit
+ci-unit: compile .unit-tests-coverage-html
+
+.PHONY: .ci-prepare-integration
+.ci-prepare-integration:
+	sudo -E ./scripts/travis/prepare-integration.sh
+
+.PHONY: ci-integration
+ci-integration: .ci-prepare-integration .itests-coverage-html
+
+.PHONY: .ci-prepare-mistral
+.ci-prepare-mistral:
+	sudo -E ./scripts/travis/setup-mistral.sh
+
+.PHONY: ci-mistral
+ci-mistral: .ci-prepare-integration .ci-prepare-mistral .mistral-itests-coverage-html
+
+.PHONY: ci-packs-tests
+ci-packs-tests: .packs-tests
