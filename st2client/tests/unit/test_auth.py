@@ -80,7 +80,6 @@ class TestLogin(base.BaseCLITestCase):
         mock_open.return_value.__enter__.assert_called_once()
         mock_open.return_value.__exit__.assert_called_once()
 
-
     @mock.patch("st2client.commands.auth.ConfigParser")
     @mock.patch("st2client.commands.auth.open")
     @mock.patch("st2client.commands.auth.BaseCLIApp")
