@@ -104,6 +104,7 @@ class LoginCommand(resource.ResourceCommand):
         manager = self.manager.create(instance, auth=(args.username, args.password), **kwargs)
 
         cli = BaseCLIApp()
+
         logging.basicConfig(
             level=logging.CRITICAL,
             handlers=[logging.NullHandler]
@@ -112,9 +113,10 @@ class LoginCommand(resource.ResourceCommand):
         cli._cache_auth_token(token_obj=manager)
 
         # Update existing configuration with new credentials
-        config_file = "%s/.st2/config" % expanduser("~")
+        config_file = expanduser('~/.st2/config')
         config = ConfigParser()
         config.read(config_file)
+
         config['credentials'] = {
             "username": args.username,
             "password": args.password
