@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import configparser
+from configparser import ConfigParser
 from os.path import expanduser
 import getpass
 import json
@@ -72,19 +72,6 @@ class TokenCreateCommand(resource.ResourceCommand):
             self.print_output(instance, table.PropertyValueTable,
                               attributes=self.display_attributes, json=args.json, yaml=args.yaml)
 
-# (Notes for future PR)
-# This PR introduces a new `st2 login` command to the StackStorm client.
-
-# This is in repsonse to https://github.com/StackStorm/st2/issues/3110, where a
-# user asked if there was a more friendly way of specifying the current user
-# (i.e. without explicitly modifying configuration files).
-
-# Initially, I considered adding a flag to `st2 auth` that caches the token in
-# `~/.st2/token-<username>` but realized that `~/st2/config` would also need
-# to be modified to specify the "current" user. This seemed like a bit too
-# much functionality to have in a single "flag" off of `st2 auth`, so I decided
-# a separate command was ideal, and more self-explanatory.
-
 
 class LoginCommand(resource.ResourceCommand):
     display_attributes = ['user', 'token', 'expiry']
@@ -109,6 +96,7 @@ class LoginCommand(resource.ResourceCommand):
                                       'Max TTL configured by the admin supersedes this.')
 
     def run(self, args, **kwargs):
+
         if not args.password:
             args.password = getpass.getpass()
         instance = self.resource(ttl=args.ttl) if args.ttl else self.resource()
@@ -125,7 +113,7 @@ class LoginCommand(resource.ResourceCommand):
 
         # Update existing configuration with new credentials
         config_file = "%s/.st2/config" % expanduser("~")
-        config = configparser.ConfigParser()
+        config = ConfigParser()
         config.read(config_file)
         config['credentials'] = {
             "username": args.username,

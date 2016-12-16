@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from os.path import expanduser
 import os
 import uuid
 import json
@@ -37,6 +38,74 @@ RULE = {
     'name': 'drule',
     'pack': 'cli',
 }
+
+
+class TestLogin(base.BaseCLITestCase):
+
+    def __init__(self, *args, **kwargs):
+        super(TestLogin, self).__init__(*args, **kwargs)
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-t', '--token', dest='token')
+        self.parser.add_argument('--api-key', dest='api_key')
+        self.shell = shell.Shell()
+
+    def setUp(self):
+        super(TestLogin, self).setUp()
+
+    def tearDown(self):
+        super(TestLogin, self).tearDown()
+
+    @mock.patch("st2client.commands.auth.ConfigParser")
+    @mock.patch("st2client.commands.auth.open")
+    @mock.patch("st2client.commands.auth.BaseCLIApp")
+    @mock.patch("st2client.commands.auth.getpass")
+    def test_login_with_password(self, mock_gp, mock_cli, mock_open, mock_cfg):
+
+        self.shell.run(['login', 'st2admin', '--password', 'Password1!'])
+
+        # Ensure token was generated
+        mock_cli.return_value._cache_auth_token.assert_called_once()
+
+        # Ensure configuration was performed properly
+        config_file = "%s/.st2/config" % expanduser("~")
+        mock_cfg.return_value.read.assert_called_once_with(config_file)
+        mock_cfg.return_value.__setitem__.assert_called_once_with(
+            'credentials', {
+                "username": 'st2admin',
+                "password": 'Password1!'
+            }
+        )
+
+        # Ensure file was written to with a context manager
+        mock_open.return_value.__enter__.assert_called_once()
+        mock_open.return_value.__exit__.assert_called_once()
+
+
+    @mock.patch("st2client.commands.auth.ConfigParser")
+    @mock.patch("st2client.commands.auth.open")
+    @mock.patch("st2client.commands.auth.BaseCLIApp")
+    @mock.patch("st2client.commands.auth.getpass")
+    def test_login_no_password(self, mock_gp, mock_cli, mock_open, mock_cfg):
+        mock_gp.getpass.return_value = 'Password1!'
+
+        self.shell.run(['login', 'st2admin'])
+
+        # Ensure token was generated
+        mock_cli.return_value._cache_auth_token.assert_called_once()
+
+        # Ensure configuration was performed properly
+        config_file = "%s/.st2/config" % expanduser("~")
+        mock_cfg.return_value.read.assert_called_once_with(config_file)
+        mock_cfg.return_value.__setitem__.assert_called_once_with(
+            'credentials', {
+                "username": 'st2admin',
+                "password": 'Password1!'
+            }
+        )
+
+        # Ensure file was written to with a context manager
+        mock_open.return_value.__enter__.assert_called_once()
+        mock_open.return_value.__exit__.assert_called_once()
 
 
 class TestAuthToken(base.BaseCLITestCase):
