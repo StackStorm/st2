@@ -112,6 +112,7 @@ class TestLogin(base.BaseCLITestCase):
             # Mock config
             if '--config' in test_case['args']:
                 config_file = test_case['args'][test_case['args'].index('--config') + 1]
+                self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
             else:
                 config_file = expanduser('~/.st2/config')
             mock_cli.return_value._get_config_file_path.return_value = config_file
