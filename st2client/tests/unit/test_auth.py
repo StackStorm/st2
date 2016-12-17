@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from mock import call
 from os.path import expanduser
 import os
 import uuid
@@ -69,39 +70,19 @@ class TestLogin(base.BaseCLITestCase):
                 "args": [
                     '--config', '/tmp/st2config', 'login', 'st2admin', '--password', 'Password1!'
                 ],
-                "expected_config": {
-                    'credentials': {
-                        "username": 'st2admin',
-                        "password": 'notarealpassword'
-                    }
-                }
+                "expected_username": 'st2admin'
             },
             {
                 "args": ['login', 'st2admin'],
-                "expected_config": {
-                    'credentials': {
-                        "username": 'st2admin',
-                        "password": 'notarealpassword'
-                    }
-                }
+                "expected_username": 'st2admin'
             },
             {
                 "args": ['login', 'st2admin', '--password', 'Password1!', '-w'],
-                "expected_config": {
-                    'credentials': {
-                        "username": 'st2admin',
-                        "password": 'Password1!'
-                    }
-                }
+                "expected_username": 'st2admin'
             },
             {
                 "args": ['--config', '/tmp/st2config', 'login', 'st2admin', '-w'],
-                "expected_config": {
-                    'credentials': {
-                        "username": 'st2admin',
-                        "password": 'Password1!'
-                    }
-                }
+                "expected_username": 'st2admin'
             }
         ]
 
@@ -131,14 +112,28 @@ class TestLogin(base.BaseCLITestCase):
             # Ensure configuration was performed properly
             mock_open.assert_called_once_with(config_file, 'w')
             mock_cfg.return_value.read.assert_called_once_with(config_file)
-            mock_cfg.return_value.__setitem__.assert_called_once_with(
-                'credentials', test_case['expected_config']['credentials'])
+            mock_cfg.return_value.add_section.assert_called_once_with('credentials')
+            if '-w' in test_case['args']:
+                calls = [
+                    call('username', test_case['expected_username']), call('password', 'Password1!')
+                ]
+            else:
+                calls = [
+                    call('username', test_case['expected_username'])
+                ]
+            mock_cfg.return_value.__getitem__.return_value.__setitem__.assert_has_calls(
+                calls,
+                any_order=True
+            )
+            mock_cfg.reset_mock()
 
             # Ensure file was written to with a context manager
             mock_open.return_value.__enter__.assert_called_once()
             mock_open.return_value.__exit__.assert_called_once()
 
             # Reset "called" counters
+            mock_cfg.return_value.reset_mock()
+            mock_cfg.return_value.__getitem__.return_value.reset_mock()
             mock_gp.getpass.reset_mock()
             mock_cli.return_value._cache_auth_token.reset_mock()
             mock_cfg.return_value.read.reset_mock()

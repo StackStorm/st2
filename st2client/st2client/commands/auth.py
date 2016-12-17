@@ -96,7 +96,8 @@ class LoginCommand(resource.ResourceCommand):
                                       'Max TTL configured by the admin supersedes this.')
         self.parser.add_argument('-w', '--write-real-password', action='store_true', default=False,
                                  dest='write_password',
-                                 help='Write the real (plain-text) password to the config file')
+                                 help='Write the real (plain-text) password to the config file '
+                                      '(default is to omit it')
 
     def run(self, args, **kwargs):
 
@@ -127,13 +128,13 @@ class LoginCommand(resource.ResourceCommand):
         config = ConfigParser()
         config.read(config_file)
 
-        # Other st2 commands error out if the "password" field is missing from the "credentials"
-        # section. So, here we will write it to "notarealpassword", unless the args.write_password
-        # option is provided, in which case we'll write the real password.
-        config['credentials'] = {
-            "username": args.username,
-            "password": args.password if args.write_password else "notarealpassword"
-        }
+        # Modify config (and optionally populate with password)
+        if 'credentials' not in config:
+            config.add_section('credentials')
+            config['credentials'] == {}
+        config['credentials']['username'] = args.username
+        if args.write_password:
+            config['credentials']['password'] = args.password
 
         with open(config_file, "w") as cfg_file_out:
             config.write(cfg_file_out)
