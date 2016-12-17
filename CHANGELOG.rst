@@ -2,7 +2,7 @@ Changelog
 =========
 
 2.1.1 - December 16, 2016
-----------------------
+-------------------------
 
 * After running ``st2 pack install`` CLI command display which packs have been installed.
   (improvement)
