@@ -19,6 +19,7 @@ import uuid
 import mock
 import yaml
 
+from mistralclient.api.v2 import action_executions
 from mistralclient.api.v2 import executions
 from mistralclient.api.v2 import workflows
 from oslo_config import cfg
@@ -143,6 +144,9 @@ class MistralRunnerPolicyTest(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
     def test_cancel_on_task_action_concurrency(self):
         # Delete other policies in the test pack to avoid conflicts.
         required_policy = 'mistral_tests.cancel_on_concurrency'
@@ -181,6 +185,13 @@ class MistralRunnerPolicyTest(DbTestCase):
 
             liveaction2 = LiveActionDB(action=WF1_NAME, parameters=params, callback=callback)
             liveaction2, execution2 = action_service.request(liveaction2)
+
+            action_executions.ActionExecutionManager.update.assert_called_once_with(
+                '12345',
+                output='{"error": "Execution canceled by user."}',
+                state='ERROR'
+            )
+
             liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
             self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
@@ -199,6 +210,9 @@ class MistralRunnerPolicyTest(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
+    @mock.patch.object(
+        action_executions.ActionExecutionManager, 'update',
+        mock.MagicMock(return_value=None))
     def test_cancel_on_task_action_concurrency_by_attr(self):
         # Delete other policies in the test pack to avoid conflicts.
         required_policy = 'mistral_tests.cancel_on_concurrency_by_attr'
@@ -238,6 +252,13 @@ class MistralRunnerPolicyTest(DbTestCase):
 
             liveaction2 = LiveActionDB(action=WF1_NAME, parameters=params, callback=callback)
             liveaction2, execution2 = action_service.request(liveaction2)
+
+            action_executions.ActionExecutionManager.update.assert_called_once_with(
+                '12345',
+                output='{"error": "Execution canceled by user."}',
+                state='ERROR'
+            )
+
             liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
             self.assertEqual(liveaction2.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
