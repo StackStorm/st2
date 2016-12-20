@@ -17,6 +17,7 @@ import os
 import json
 import atexit
 import argparse
+import traceback
 
 from oslo_config import cfg
 
@@ -264,8 +265,10 @@ class SensorWrapper(object):
                                                         file_path=self._file_path,
                                                         class_name=self._class_name)
         except Exception as e:
-            msg = ('Failed to load sensor class from file "%s"'
-                   ' (sensor file most likely doesn\'t exist): %s' % (self._file_path, str(e)))
+            tb_msg = traceback.format_exc()
+            msg = ('Failed to load sensor class from file "%s" (sensor file most likely doesn\'t'
+                   'exist): %s' % (self._file_path, str(e)))
+            msg += '\n\n' + tb_msg
             raise ValueError(msg)
 
         if not sensor_class:
