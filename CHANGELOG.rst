@@ -4,6 +4,14 @@ Changelog
 in development
 --------------
 
+* Fix ``/v1/packs/views/files/<pack ref or id>`` and
+  ``/v2/packs/views/files/<pack ref or id>/<file path>`` API endpoint so it
+  works correctly for packs where pack name is not equal to the pack ref. (bug fix)
+
+  Reported by skjbulcher #3128
+* Improve binary file detection and fix "pack files" API controller so it works correctly for
+  new-style packs which are also git repositories. (bug fix)
+
 2.1.1 - December 16, 2016
 -------------------------
 
