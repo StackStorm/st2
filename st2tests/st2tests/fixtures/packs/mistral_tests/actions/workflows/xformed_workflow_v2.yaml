@@ -7,16 +7,20 @@ mistral_tests.workflow_v2:
         - friend
     tasks:
         say-greeting:
-            action: core.local
+            action: st2.action
             input:
-                cmd: <% $.count %>
+                ref: core.local
+                parameters:
+                    cmd: <% $.count %>
             publish:
                 greet: <% task(say-greeting).result.stdout %>
             on-success:
                 - say-friend
         say-friend:
-            action: core.local
+            action: st2.action
             input:
-                cmd: <% $.friend %>
+                ref: core.local
+                parameters:
+                    cmd: <% $.friend %>
             publish:
                 towhom: <% task(say-friend).result.stdout %>

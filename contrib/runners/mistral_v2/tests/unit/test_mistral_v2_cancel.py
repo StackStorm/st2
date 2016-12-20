@@ -17,9 +17,10 @@ import copy
 import uuid
 
 import mock
+from mock import call
+import requests
 import yaml
 
-from mistralclient.api.v2 import client
 from mistralclient.api.v2 import executions
 from mistralclient.api.v2 import workflows
 from oslo_config import cfg
@@ -32,30 +33,17 @@ from mistral_v2 import MistralRunner
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
-from st2common.models.api.auth import TokenAPI
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.runners import base as runners
-from st2common.services import access as access_service
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
-from st2common.util import isotime
-from st2common.util import date as date_utils
 from st2common.util import loader
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 
-
-TEST_FIXTURES = {
-    'workflows': [
-        'workflow_v2.yaml'
-    ],
-    'actions': [
-        'workflow_v2.yaml'
-    ]
-}
 
 TEST_PACK = 'mistral_tests'
 TEST_PACK_PATH = fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
@@ -67,12 +55,11 @@ PACKS = [
 
 # Action executions requirements
 MISTRAL_EXECUTION = {'id': str(uuid.uuid4()), 'state': 'RUNNING', 'workflow_name': None}
-ACTION_CONTEXT = {'user': 'stanley'}
 ACTION_PARAMS = {'friend': 'Rocky'}
 NON_EMPTY_RESULT = 'non-empty'
 
 # Non-workbook with a single workflow
-WF1_META_FILE_NAME = TEST_FIXTURES['workflows'][0]
+WF1_META_FILE_NAME = 'workflow_v2.yaml'
 WF1_META_FILE_PATH = TEST_PACK_PATH + '/actions/' + WF1_META_FILE_NAME
 WF1_META_CONTENT = loader.load_meta_file(WF1_META_FILE_PATH)
 WF1_NAME = WF1_META_CONTENT['pack'] + '.' + WF1_META_CONTENT['name']
@@ -84,12 +71,8 @@ WF1 = workflows.Workflow(None, {'name': WF1_NAME, 'definition': WF1_YAML})
 WF1_OLD = workflows.Workflow(None, {'name': WF1_NAME, 'definition': ''})
 WF1_EXEC = copy.deepcopy(MISTRAL_EXECUTION)
 WF1_EXEC['workflow_name'] = WF1_NAME
-
-# Token for auth test cases
-TOKEN_API = TokenAPI(
-    user=ACTION_CONTEXT['user'], token=uuid.uuid4().hex,
-    expiry=isotime.format(date_utils.get_datetime_utc_now(), offset=False))
-TOKEN_DB = TokenAPI.to_model(TOKEN_API)
+WF1_EXEC_PAUSED = copy.deepcopy(WF1_EXEC)
+WF1_EXEC_PAUSED['state'] = 'PAUSED'
 
 
 @mock.patch.object(
@@ -104,11 +87,11 @@ TOKEN_DB = TokenAPI.to_model(TOKEN_API)
     LiveActionPublisher,
     'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
-class MistralAuthTest(DbTestCase):
+class MistralRunnerCancelTest(DbTestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(MistralAuthTest, cls).setUpClass()
+        super(MistralRunnerCancelTest, cls).setUpClass()
 
         # Override the retry configuration here otherwise st2tests.config.parse_args
         # in DbTestCase.setUpClass will reset these overrides.
@@ -129,25 +112,10 @@ class MistralAuthTest(DbTestCase):
         for pack in PACKS:
             actions_registrar.register_from_pack(pack)
 
-    def setUp(self):
-        super(MistralAuthTest, self).setUp()
-
-        # Mock the local runner run method.
-        local_runner_cls = self.get_runner_class('local_runner')
-        local_run_result = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, None)
-        local_runner_cls.run = mock.Mock(return_value=local_run_result)
-
     @classmethod
     def get_runner_class(cls, runner_name):
         return runners.get_runner(runner_name).__class__
 
-    def tearDown(self):
-        super(MistralAuthTest, self).tearDown()
-        cfg.CONF.set_default('keystone_username', None, group='mistral')
-        cfg.CONF.set_default('keystone_password', None, group='mistral')
-        cfg.CONF.set_default('keystone_project_name', None, group='mistral')
-        cfg.CONF.set_default('keystone_auth_url', None, group='mistral')
-
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
         mock.MagicMock(return_value=[]))
@@ -161,67 +129,9 @@ class MistralAuthTest(DbTestCase):
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
     @mock.patch.object(
-        access_service, 'create_token',
-        mock.MagicMock(return_value=TOKEN_DB))
-    def test_launch_workflow_with_st2_auth(self):
-        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ACTION_CONTEXT)
-        liveaction, execution = action_service.request(liveaction)
-        liveaction = LiveAction.get_by_id(str(liveaction.id))
-        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
-
-        mistral_context = liveaction.context.get('mistral', None)
-        self.assertIsNotNone(mistral_context)
-        self.assertEqual(mistral_context['execution_id'], WF1_EXEC.get('id'))
-        self.assertEqual(mistral_context['workflow_name'], WF1_EXEC.get('workflow_name'))
-
-        workflow_input = copy.deepcopy(ACTION_PARAMS)
-        workflow_input.update({'count': '3'})
-
-        env = {
-            'st2_execution_id': str(execution.id),
-            'st2_liveaction_id': str(liveaction.id),
-            'st2_action_api_url': 'http://0.0.0.0:9101/v1',
-            '__actions': {
-                'st2.action': {
-                    'st2_context': {
-                        'auth_token': TOKEN_DB.token,
-                        'api_url': 'http://0.0.0.0:9101/v1',
-                        'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
-                        'parent': {
-                            'user': liveaction.context['user'],
-                            'execution_id': str(execution.id)
-                        },
-                        'notify': {},
-                        'skip_notify_tasks': []
-                    }
-                }
-            }
-        }
-
-        executions.ExecutionManager.create.assert_called_with(
-            WF1_NAME, workflow_input=workflow_input, env=env)
-
-    @mock.patch.object(
-        client.Client, 'authenticate',
-        mock.MagicMock(return_value=(cfg.CONF.mistral.v2_base_url, '123', 'abc', 'xyz')))
-    @mock.patch.object(
-        workflows.WorkflowManager, 'list',
-        mock.MagicMock(return_value=[]))
-    @mock.patch.object(
-        workflows.WorkflowManager, 'get',
-        mock.MagicMock(return_value=WF1))
-    @mock.patch.object(
-        workflows.WorkflowManager, 'create',
-        mock.MagicMock(return_value=[WF1]))
-    @mock.patch.object(
-        executions.ExecutionManager, 'create',
-        mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
-    def test_launch_workflow_with_mistral_auth(self):
-        cfg.CONF.set_default('keystone_username', 'foo', group='mistral')
-        cfg.CONF.set_default('keystone_password', 'bar', group='mistral')
-        cfg.CONF.set_default('keystone_project_name', 'admin', group='mistral')
-        cfg.CONF.set_default('keystone_auth_url', 'http://127.0.0.1:5000/v3', group='mistral')
-
+        executions.ExecutionManager, 'update',
+        mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC_PAUSED)))
+    def test_cancel(self):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
@@ -232,35 +142,76 @@ class MistralAuthTest(DbTestCase):
         self.assertEqual(mistral_context['execution_id'], WF1_EXEC.get('id'))
         self.assertEqual(mistral_context['workflow_name'], WF1_EXEC.get('workflow_name'))
 
-        workflow_input = copy.deepcopy(ACTION_PARAMS)
-        workflow_input.update({'count': '3'})
+        requester = cfg.CONF.system_user.user
+        liveaction, execution = action_service.request_cancellation(liveaction, requester)
+        executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'PAUSED')
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
-        env = {
-            'st2_execution_id': str(execution.id),
-            'st2_liveaction_id': str(liveaction.id),
-            'st2_action_api_url': 'http://0.0.0.0:9101/v1',
-            '__actions': {
-                'st2.action': {
-                    'st2_context': {
-                        'api_url': 'http://0.0.0.0:9101/v1',
-                        'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
-                        'parent': {
-                            'execution_id': str(execution.id)
-                        },
-                        'notify': {},
-                        'skip_notify_tasks': []
-                    }
-                }
-            }
-        }
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF1))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
+    @mock.patch.object(
+        executions.ExecutionManager, 'update',
+        mock.MagicMock(side_effect=[requests.exceptions.ConnectionError(),
+                                    executions.Execution(None, WF1_EXEC_PAUSED)]))
+    def test_cancel_retry(self):
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
-        client.Client.authenticate.assert_called_with(
-            cfg.CONF.mistral.v2_base_url,
-            cfg.CONF.mistral.keystone_username,
-            cfg.CONF.mistral.keystone_password,
-            cfg.CONF.mistral.keystone_project_name,
-            cfg.CONF.mistral.keystone_auth_url,
-            None, 'publicURL', 'workflow', None, None, None, False)
+        mistral_context = liveaction.context.get('mistral', None)
+        self.assertIsNotNone(mistral_context)
+        self.assertEqual(mistral_context['execution_id'], WF1_EXEC.get('id'))
+        self.assertEqual(mistral_context['workflow_name'], WF1_EXEC.get('workflow_name'))
 
-        executions.ExecutionManager.create.assert_called_with(
-            WF1_NAME, workflow_input=workflow_input, env=env)
+        requester = cfg.CONF.system_user.user
+        liveaction, execution = action_service.request_cancellation(liveaction, requester)
+        executions.ExecutionManager.update.assert_called_with(WF1_EXEC.get('id'), 'PAUSED')
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF1))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
+    @mock.patch.object(
+        executions.ExecutionManager, 'update',
+        mock.MagicMock(side_effect=requests.exceptions.ConnectionError('Connection refused')))
+    def test_cancel_retry_exhausted(self):
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        mistral_context = liveaction.context.get('mistral', None)
+        self.assertIsNotNone(mistral_context)
+        self.assertEqual(mistral_context['execution_id'], WF1_EXEC.get('id'))
+        self.assertEqual(mistral_context['workflow_name'], WF1_EXEC.get('workflow_name'))
+
+        requester = cfg.CONF.system_user.user
+        liveaction, execution = action_service.request_cancellation(liveaction, requester)
+
+        calls = [call(WF1_EXEC.get('id'), 'PAUSED') for i in range(0, 2)]
+        executions.ExecutionManager.update.assert_has_calls(calls)
+
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELING)

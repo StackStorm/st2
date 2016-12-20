@@ -1,9 +1,20 @@
-name: 'mistral_tests.workbook_v2_many_workflows'
+name: 'mistral_tests.workbook_v2_many_workflows_no_default'
 version: '2.0'
 
 workflows:
 
-    main:
+    main1:
+        type: direct
+        input:
+            - count
+            - friend
+        tasks:
+            greet:
+                workflow: subflow1 count=<% $.count %> friend=<% $.friend %> 
+                publish:
+                    towhom: <% task(greet).result.towhom %>
+
+    main2:
         type: direct
         input:
             - count
@@ -23,16 +34,20 @@ workflows:
             towhom: <% $.towhom %>
         tasks:
             say-greeting:
-                action: core.local
+                action: st2.action
                 input:
-                    cmd: <% $.count %>
+                    ref: core.local
+                    parameters:
+                        cmd: <% $.count %>
                 publish:
                     greet: <% task(say-greeting).result.stdout %>
                 on-success:
                     - say-friend
             say-friend:
-                action: core.local
+                action: st2.action
                 input:
-                    cmd: <% $.friend %>
+                    ref: core.local
+                    parameters:
+                        cmd: <% $.friend %>
                 publish:
                     towhom: <% task(say-friend).result.stdout %>
