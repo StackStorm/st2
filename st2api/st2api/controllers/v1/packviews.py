@@ -118,7 +118,7 @@ class FilesController(BaseFileController):
             msg = 'Pack with ref_or_id "%s" does not exist' % (ref_or_id)
             raise StackStormDBObjectNotFoundError(msg)
 
-        pack_name = pack_db.name
+        pack_name = pack_db.ref
         pack_files = pack_db.files
 
         result = []
@@ -184,7 +184,7 @@ class FileController(BaseFileController):
             raise ValueError('Missing file path')
 
         file_path = os.path.join(*file_path_components)
-        pack_name = pack_db.name
+        pack_name = pack_db.ref
 
         # Note: Until list filtering is in place we don't require RBAC check for icon file
         if file_path not in WHITELISTED_FILE_PATHS:
