@@ -266,8 +266,8 @@ class SensorWrapper(object):
                                                         class_name=self._class_name)
         except Exception as e:
             tb_msg = traceback.format_exc()
-            msg = ('Failed to load sensor class from file "%s" (sensor file most likely doesn\'t'
-                   'exist): %s' % (self._file_path, str(e)))
+            msg = ('Failed to load sensor class from file "%s" (sensor file most likely doesn\'t '
+                   'exist or contains invalid syntax): %s' % (self._file_path, str(e)))
             msg += '\n\n' + tb_msg
             raise ValueError(msg)
 
