@@ -50,12 +50,6 @@ class TestLogin(base.BaseCLITestCase):
         self.parser.add_argument('--api-key', dest='api_key')
         self.shell = shell.Shell()
 
-    def setUp(self):
-        super(TestLogin, self).setUp()
-
-    def tearDown(self):
-        super(TestLogin, self).tearDown()
-
     @mock.patch.object(
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
