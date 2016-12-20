@@ -63,13 +63,8 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
         self.max_retry_count = max_retry_count
         self.delay = delay or 0
 
-    def apply_before(self, target):
-        # Nothing to do here
-        target = super(ExecutionRetryPolicyApplicator, self).apply_before(target=target)
-        return target
-
     def apply_after(self, target):
-        target = super(ExecutionRetryPolicyApplicator, self).apply_before(target=target)
+        target = super(ExecutionRetryPolicyApplicator, self).apply_after(target=target)
 
         live_action_db = target
         retry_count = self._get_live_action_retry_count(live_action_db=live_action_db)
