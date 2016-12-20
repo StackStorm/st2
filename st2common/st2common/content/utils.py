@@ -218,8 +218,9 @@ def get_entry_point_abs_path(pack=None, entry_point=None):
     """
     Return full absolute path of an action entry point in a pack.
 
-    :param pack_name: Content pack name.
-    :type pack_name: ``str``
+    :param pack: Content pack reference.
+    :type pack: ``str``
+
     :param entry_point: Action entry point.
     :type entry_point: ``str``
 
@@ -238,21 +239,21 @@ def get_entry_point_abs_path(pack=None, entry_point=None):
 
         return entry_point
 
-    entry_point_abs_path = get_pack_resource_file_abs_path(pack_name=pack,
+    entry_point_abs_path = get_pack_resource_file_abs_path(pack_ref=pack,
                                                            resource_type='action',
                                                            file_path=entry_point)
     return entry_point_abs_path
 
 
-def get_pack_file_abs_path(pack_name, file_path):
+def get_pack_file_abs_path(pack_ref, file_path):
     """
     Retrieve full absolute path to the pack file.
 
     Note: This function also takes care of sanitizing ``file_name`` argument
           preventing directory traversal and similar attacks.
 
-    :param pack_name: Pack name.
-    :type pack_name: ``str``
+    :param pack_ref: Pack reference (needs to be the same as directory on disk).
+    :type pack_ref: ``str``
 
     :pack file_path: Resource file path relative to the pack directory (e.g. my_file.py or
                      actions/directory/my_file.py)
@@ -260,7 +261,7 @@ def get_pack_file_abs_path(pack_name, file_path):
 
     :rtype: ``str``
     """
-    pack_base_path = get_pack_base_path(pack_name=pack_name)
+    pack_base_path = get_pack_base_path(pack_name=pack_ref)
 
     path_components = []
     path_components.append(pack_base_path)
@@ -284,15 +285,15 @@ def get_pack_file_abs_path(pack_name, file_path):
     return result
 
 
-def get_pack_resource_file_abs_path(pack_name, resource_type, file_path):
+def get_pack_resource_file_abs_path(pack_ref, resource_type, file_path):
     """
     Retrieve full absolute path to the pack resource file.
 
     Note: This function also takes care of sanitizing ``file_name`` argument
           preventing directory traversal and similar attacks.
 
-    :param pack_name: Pack name.
-    :type pack_name: ``str``
+    :param pack_ref: Pack reference (needs to be the same as directory on disk).
+    :type pack_ref: ``str``
 
     :param resource_type: Pack resource type (e.g. action, sensor, etc.).
     :type resource_type: ``str``
@@ -315,17 +316,17 @@ def get_pack_resource_file_abs_path(pack_name, resource_type, file_path):
 
     path_components.append(file_path)
     file_path = os.path.join(*path_components)
-    result = get_pack_file_abs_path(pack_name=pack_name, file_path=file_path)
+    result = get_pack_file_abs_path(pack_ref=pack_ref, file_path=file_path)
     return result
 
 
-def get_relative_path_to_pack(pack_name, file_path):
+def get_relative_path_to_pack(pack_ref, file_path):
     """
     Retrieve a file path which is relative to the provided pack directory.
 
     :rtype: ``str``
     """
-    pack_base_path = get_pack_base_path(pack_name=pack_name)
+    pack_base_path = get_pack_base_path(pack_name=pack_ref)
 
     if not os.path.isabs(file_path):
         return file_path

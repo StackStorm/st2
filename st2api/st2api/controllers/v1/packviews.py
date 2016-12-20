@@ -122,12 +122,12 @@ class FilesController(BaseFileController):
             msg = 'Pack with ref_or_id "%s" does not exist' % (ref_or_id)
             raise StackStormDBObjectNotFoundError(msg)
 
-        pack_name = pack_db.ref
+        pack_ref = pack_db.ref
         pack_files = pack_db.files
 
         result = []
         for file_path in pack_files:
-            normalized_file_path = get_pack_file_abs_path(pack_name=pack_name, file_path=file_path)
+            normalized_file_path = get_pack_file_abs_path(pack_ref=pack_ref, file_path=file_path)
             if not normalized_file_path or not os.path.isfile(normalized_file_path):
                 # Ignore references to files which don't exist on disk
                 continue
@@ -192,14 +192,14 @@ class FileController(BaseFileController):
             raise ValueError('Missing file path')
 
         file_path = os.path.join(*file_path_components)
-        pack_name = pack_db.ref
+        pack_ref = pack_db.ref
 
         # Note: Until list filtering is in place we don't require RBAC check for icon file
         if file_path not in WHITELISTED_FILE_PATHS:
             assert_request_user_has_resource_db_permission(request=pecan.request,
                resource_db=pack_db, permission_type=PermissionType.PACK_VIEW)
 
-        normalized_file_path = get_pack_file_abs_path(pack_name=pack_name, file_path=file_path)
+        normalized_file_path = get_pack_file_abs_path(pack_ref=pack_ref, file_path=file_path)
         if not normalized_file_path or not os.path.isfile(normalized_file_path):
             # Ignore references to files which don't exist on disk
             raise StackStormDBObjectNotFoundError('File "%s" not found' % (file_path))
