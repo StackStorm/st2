@@ -18,6 +18,7 @@ import httplib
 import mock
 
 import st2common.bootstrap.actionsregistrar as actions_registrar
+from st2common.persistence.pack import Pack
 from tests import FunctionalTest
 
 
@@ -44,11 +45,29 @@ class PacksViewsControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, httplib.NOT_FOUND)
 
     def test_get_pack_files_binary_files_are_excluded(self):
+        binary_files = [
+            'icon.png',
+            'etc/permissions.png',
+            'etc/travisci.png',
+            'etc/generate_new_token.png'
+        ]
+
+        pack_db = Pack.get_by_ref('dummy_pack_1')
+
+        all_files_count = len(pack_db.files)
+        non_binary_files_count = all_files_count - len(binary_files)
+
         resp = self.app.get('/v1/packs/views/files/dummy_pack_1')
         self.assertEqual(resp.status_int, httplib.OK)
-        self.assertTrue(len(resp.json) > 1)
-        icon_item = [item for item in resp.json if item['file_path'] == 'icon.png']
-        self.assertFalse(icon_item)
+        self.assertEqual(len(resp.json), non_binary_files_count)
+
+        for file_path in binary_files:
+            self.assertTrue(file_path in pack_db.files)
+
+        # But not in files controller response
+        for file_path in binary_files:
+            item = [item for item in resp.json if item['file_path'] == file_path]
+            self.assertFalse(item)
 
     def test_get_pack_file_success(self):
         resp = self.app.get('/v1/packs/views/file/dummy_pack_1/pack.yaml')
