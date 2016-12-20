@@ -115,3 +115,14 @@ class PacksViewsControllerTestCase(FunctionalTest):
                             headers={'If-Modified-Since': 'Last-Modified'})
         self.assertEqual(resp.status_code, httplib.OK)
         self.assertTrue('name : dummy_pack_1' in resp.body)
+
+    def test_get_pack_files_and_pack_file_ref_doesnt_equal_pack_name(self):
+        # Ref is not equal to the name, controller should still work
+        resp = self.app.get('/v1/packs/views/files/dummy_pack_16')
+        self.assertEqual(resp.status_int, httplib.OK)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['file_path'], 'pack.yaml')
+
+        resp = self.app.get('/v1/packs/views/file/dummy_pack_16/pack.yaml')
+        self.assertEqual(resp.status_int, httplib.OK)
+        self.assertTrue('ref: dummy_pack_16' in resp.text)
