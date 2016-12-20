@@ -144,9 +144,9 @@ class LoginCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         try:
             self.run(args, **kwargs)
-            print("Logged in as %s" % args.username)
+            print("Logged in as %s" % (args.username))
         except Exception:
-            print("Failed to log in as %s" % args.username)
+            print("Failed to log in as %s" % (args.username))
             if self.app.client.debug:
                 raise
 
