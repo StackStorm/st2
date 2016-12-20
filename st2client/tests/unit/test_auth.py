@@ -122,22 +122,16 @@ class TestLogin(base.BaseCLITestCase):
                 calls,
                 any_order=True
             )
-            mock_cfg.reset_mock()
 
             # Ensure file was written to with a context manager
             mock_open.return_value.__enter__.assert_called_once()
             mock_open.return_value.__exit__.assert_called_once()
 
             # Reset "called" counters
-            mock_cfg.return_value.reset_mock()
-            mock_cfg.return_value.__getitem__.return_value.reset_mock()
-            mock_gp.getpass.reset_mock()
-            mock_cli.return_value._cache_auth_token.reset_mock()
-            mock_cfg.return_value.read.reset_mock()
-            mock_cfg.return_value.__setitem__.reset_mock()
             mock_open.reset_mock()
-            mock_open.return_value.__enter__.reset_mock()
-            mock_open.return_value.__exit__.reset_mock()
+            mock_cfg.reset_mock()
+            mock_cli.reset_mock()
+            mock_gp.reset_mock()
 
 
 class TestAuthToken(base.BaseCLITestCase):
