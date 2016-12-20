@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from mock import call
-from os.path import expanduser
 import os
 import uuid
 import json
@@ -25,6 +24,7 @@ import argparse
 import logging
 
 from tests import base
+from st2client import config_parser
 from st2client import shell
 from st2client.models.core import add_auth_token_to_kwargs_from_env
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
@@ -95,7 +95,7 @@ class TestLogin(base.BaseCLITestCase):
                 config_file = test_case['args'][test_case['args'].index('--config') + 1]
                 self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
             else:
-                config_file = expanduser('~/.st2/config')
+                config_file = config_parser.ST2_CONFIG_PATH
             mock_cli.return_value._get_config_file_path.return_value = config_file
 
             self.shell.run(test_case['args'])

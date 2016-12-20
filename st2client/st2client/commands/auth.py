@@ -14,12 +14,12 @@
 # limitations under the License.
 
 from configparser import ConfigParser
-from os.path import expanduser
 import getpass
 import json
 import logging
 
 from st2client.base import BaseCLIApp
+from st2client import config_parser
 from st2client import models
 from st2client.commands import resource
 from st2client.commands.noop import NoopCommand
@@ -112,7 +112,7 @@ class LoginCommand(resource.ResourceCommand):
             config_file = cli._get_config_file_path(args)
         except ValueError:
             # config file not found in args or in env, defaulting
-            config_file = expanduser('~/.st2/config')
+            config_file = config_parser.ST2_CONFIG_PATH
 
         logging.basicConfig(
             level=logging.CRITICAL,
