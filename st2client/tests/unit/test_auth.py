@@ -57,81 +57,156 @@ class TestLogin(base.BaseCLITestCase):
     @mock.patch("st2client.commands.auth.open")
     @mock.patch("st2client.commands.auth.BaseCLIApp")
     @mock.patch("st2client.commands.auth.getpass")
-    def test_login(self, mock_gp, mock_cli, mock_open, mock_cfg):
+    def test_login_password_and_config(self, mock_gp, mock_cli, mock_open, mock_cfg):
+        """Test the 'st2 login' functionality by providing a password, and specifying a configuration file
+        """
 
-        test_cases = [
-            {
-                "args": [
-                    '--config', '/tmp/st2config', 'login', 'st2admin', '--password', 'Password1!'
-                ],
-                "expected_username": 'st2admin'
-            },
-            {
-                "args": ['login', 'st2admin'],
-                "expected_username": 'st2admin'
-            },
-            {
-                "args": ['login', 'st2admin', '--password', 'Password1!', '-w'],
-                "expected_username": 'st2admin'
-            },
-            {
-                "args": ['--config', '/tmp/st2config', 'login', 'st2admin', '-w'],
-                "expected_username": 'st2admin'
-            }
-        ]
+        args = ['--config', '/tmp/st2config', 'login', 'st2admin', '--password', 'Password1!']
+        expected_username = 'st2admin'
 
-        for test_case in test_cases:
+        mock_gp.getpass.return_value = "Password1!"
 
-            mock_gp.getpass.return_value = "Password1!"
+        # Mock config
+        config_file = args[args.index('--config') + 1]
+        self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
+        mock_cli.return_value._get_config_file_path.return_value = config_file
 
-            # Mock config
-            if '--config' in test_case['args']:
-                config_file = test_case['args'][test_case['args'].index('--config') + 1]
-                self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
-            else:
-                config_file = config_parser.ST2_CONFIG_PATH
-            mock_cli.return_value._get_config_file_path.return_value = config_file
+        self.shell.run(args)
 
-            self.shell.run(test_case['args'])
+        # Ensure getpass was only used if "--password" option was omitted
+        mock_gp.getpass.assert_not_called()
 
-            # Ensure getpass was only used if "--password" option was omitted
-            if "--password" in test_case['args']:
-                mock_gp.getpass.assert_not_called()
-            else:
-                mock_gp.getpass.assert_called_once()
+        # Ensure token was generated
+        mock_cli.return_value._cache_auth_token.assert_called_once()
 
-            # Ensure token was generated
-            mock_cli.return_value._cache_auth_token.assert_called_once()
+        # Build list of expected calls for mock_cfg
+        config_calls = [call('username', expected_username)]
 
-            # Ensure configuration was performed properly
-            mock_open.assert_called_once_with(config_file, 'w')
-            mock_cfg.return_value.read.assert_called_once_with(config_file)
-            mock_cfg.return_value.add_section.assert_called_once_with('credentials')
-            if '-w' in test_case['args']:
-                calls = [
-                    call('username', test_case['expected_username']), call('password', 'Password1!')
-                ]
-            else:
-                calls = [
-                    call('username', test_case['expected_username'])
-                ]
-            mock_cfg.return_value.__setitem__.assert_has_calls(
-                [call('credentials', {})], any_order=True
-            )
-            mock_cfg.return_value.__getitem__.return_value.__setitem__.assert_has_calls(
-                calls,
-                any_order=True
-            )
+        # Run common assertions for testing login functionality
+        self._login_common_assertions(mock_gp, mock_cli, mock_open, mock_cfg,
+                                      config_calls, config_file)
 
-            # Ensure file was written to with a context manager
-            mock_open.return_value.__enter__.assert_called_once()
-            mock_open.return_value.__exit__.assert_called_once()
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+    @mock.patch("st2client.commands.auth.ConfigParser")
+    @mock.patch("st2client.commands.auth.open")
+    @mock.patch("st2client.commands.auth.BaseCLIApp")
+    @mock.patch("st2client.commands.auth.getpass")
+    def test_login_no_password(self, mock_gp, mock_cli, mock_open, mock_cfg):
+        """Test the 'st2 login' functionality without the "--password" arg
+        """
 
-            # Reset "called" counters
-            mock_open.reset_mock()
-            mock_cfg.reset_mock()
-            mock_cli.reset_mock()
-            mock_gp.reset_mock()
+        args = ['login', 'st2admin']
+        expected_username = 'st2admin'
+
+        mock_gp.getpass.return_value = "Password1!"
+
+        config_file = config_parser.ST2_CONFIG_PATH
+        mock_cli.return_value._get_config_file_path.return_value = config_file
+
+        self.shell.run(args)
+
+        # Ensure getpass was only used if "--password" option was omitted
+        mock_gp.getpass.assert_called_once()
+
+        # Ensure token was generated
+        mock_cli.return_value._cache_auth_token.assert_called_once()
+
+        config_calls = [call('username', expected_username)]
+
+        # Run common assertions for testing login functionality
+        self._login_common_assertions(mock_gp, mock_cli, mock_open, mock_cfg,
+                                      config_calls, config_file)
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+    @mock.patch("st2client.commands.auth.ConfigParser")
+    @mock.patch("st2client.commands.auth.open")
+    @mock.patch("st2client.commands.auth.BaseCLIApp")
+    @mock.patch("st2client.commands.auth.getpass")
+    def test_login_password_with_write(self, mock_gp, mock_cli, mock_open, mock_cfg):
+        """Test the 'st2 login' functionality by providing a password, and writing it to config file
+        """
+
+        args = ['login', 'st2admin', '--password', 'Password1!', '-w']
+        expected_username = 'st2admin'
+
+        mock_gp.getpass.return_value = "Password1!"
+
+        config_file = config_parser.ST2_CONFIG_PATH
+        mock_cli.return_value._get_config_file_path.return_value = config_file
+
+        self.shell.run(args)
+
+        # Ensure getpass was only used if "--password" option was omitted
+        mock_gp.getpass.assert_not_called()
+
+        # Ensure token was generated
+        mock_cli.return_value._cache_auth_token.assert_called_once()
+
+        # Build list of expected calls for mock_cfg
+        config_calls = [call('username', expected_username), call('password', 'Password1!')]
+
+        # Run common assertions for testing login functionality
+        self._login_common_assertions(mock_gp, mock_cli, mock_open, mock_cfg,
+                                      config_calls, config_file)
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+    @mock.patch("st2client.commands.auth.ConfigParser")
+    @mock.patch("st2client.commands.auth.open")
+    @mock.patch("st2client.commands.auth.BaseCLIApp")
+    @mock.patch("st2client.commands.auth.getpass")
+    def test_login_no_password_with_write_and_config(self, mock_gp, mock_cli, mock_open, mock_cfg):
+        """Test the 'st2 login' functionality by providing config file and writing password to it
+        """
+
+        args = ['--config', '/tmp/st2config', 'login', 'st2admin', '-w']
+        expected_username = 'st2admin'
+
+        mock_gp.getpass.return_value = "Password1!"
+
+        # Mock config
+        config_file = args[args.index('--config') + 1]
+        self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
+        mock_cli.return_value._get_config_file_path.return_value = config_file
+
+        self.shell.run(args)
+
+        mock_gp.getpass.assert_called_once()
+
+        # Ensure token was generated
+        mock_cli.return_value._cache_auth_token.assert_called_once()
+
+        # Build list of expected calls for mock_cfg
+        config_calls = [call('username', expected_username), call('password', 'Password1!')]
+
+        # Run common assertions for testing login functionality
+        self._login_common_assertions(mock_gp, mock_cli, mock_open, mock_cfg,
+                                      config_calls, config_file)
+
+    def _login_common_assertions(self, mock_gp, mock_cli, mock_open, mock_cfg,
+                                 config_calls, config_file):
+        # Ensure file was written to with a context manager
+        mock_open.return_value.__enter__.assert_called_once()
+        mock_open.return_value.__exit__.assert_called_once()
+
+        # Make sure 'credentials' key in config was initialized properly
+        mock_cfg.return_value.__setitem__.assert_has_calls(
+            [call('credentials', {})], any_order=True
+        )
+
+        # Ensure configuration was performed properly
+        mock_open.assert_called_once_with(config_file, 'w')
+        mock_cfg.return_value.read.assert_called_once_with(config_file)
+        mock_cfg.return_value.add_section.assert_called_once_with('credentials')
+        mock_cfg.return_value.__getitem__.return_value.__setitem__.assert_has_calls(
+            config_calls,
+            any_order=True
+        )
 
 
 class TestAuthToken(base.BaseCLITestCase):
