@@ -159,7 +159,7 @@ class FilesController(BaseFileController):
         Right now we exclude any file with UTF8 BOM character in it - those are most likely binary
         files such as icon, etc.
         """
-        if codecs.BOM_UTF8 in content:
+        if codecs.BOM_UTF8 in content[:1024]:
             return False
 
         if "\0" in content[:1024]:
