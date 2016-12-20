@@ -103,6 +103,10 @@ class FilesController(BaseFileController):
     Controller which allows user to retrieve content of all the files inside the pack.
     """
 
+    def __init__(self):
+        super(FilesController, self).__init__()
+        self.get_one_db_method = self._get_by_ref_or_id
+
     @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
     @jsexpose(arg_types=[str], status_code=http_client.OK)
     def get_one(self, ref_or_id):
