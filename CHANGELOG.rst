@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+2.1.1 - December 16, 2016
+-------------------------
+
+* After running ``st2 pack install`` CLI command display which packs have been installed.
+  (improvement)
 * Update ``/v1/packs/register`` API endpoint so it throws on failure (e.g. invalid pack or resource
   metadata). This way the default behavior is consistent with default
   ``st2ctl reload --register-all`` behavior.
@@ -16,13 +21,13 @@ in development
   ``username`` and ``password`` parameter to the action. (new feature)
 * Fix ``GET /v1/packs/<pack ref or id>`` API endpoint - make sure pack object is correctly returned
   when pack ref doesn't match pack name. Previously, 404 not found was thrown. (bug fix)
-* Update ``/v1/packs/register`` API endpoint so it registers resources in the correct order which
-  is the same as order used in ``st2-register-content`` script. (bug fix)
-* Update ``packs.load`` action to also register triggers by default. (improvement)
 * Update local action runner so it supports and works with non-ascii (unicode) parameter keys and
   values. (bug fix)
 
   Contribution by Hiroyasu OHYAMA. #3116
+* Update ``packs.load`` action to also register triggers by default. (improvement)
+* Update ``/v1/packs/register`` API endpoint so it registers resources in the correct order which
+  is the same as order used in ``st2-register-content`` script. (bug fix)
 
 2.1.0 - December 05, 2016
 -------------------------
