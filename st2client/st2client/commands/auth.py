@@ -145,8 +145,8 @@ class LoginCommand(resource.ResourceCommand):
         try:
             self.run(args, **kwargs)
             print("Logged in as %s" % (args.username))
-        except Exception:
-            print("Failed to log in as %s" % (args.username))
+        except Exception as e:
+            print("Failed to log in as %s: %s" % (args.username, str(e)))
             if self.app.client.debug:
                 raise
 
