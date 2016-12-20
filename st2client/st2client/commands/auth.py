@@ -131,7 +131,7 @@ class LoginCommand(resource.ResourceCommand):
         # Modify config (and optionally populate with password)
         if 'credentials' not in config:
             config.add_section('credentials')
-            config['credentials'] == {}
+            config['credentials'] = {}
         config['credentials']['username'] = args.username
         if args.write_password:
             config['credentials']['password'] = args.password

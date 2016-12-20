@@ -121,6 +121,9 @@ class TestLogin(base.BaseCLITestCase):
                 calls = [
                     call('username', test_case['expected_username'])
                 ]
+            mock_cfg.return_value.__setitem__.assert_has_calls(
+                [call('credentials', {})], any_order=True
+            )
             mock_cfg.return_value.__getitem__.return_value.__setitem__.assert_has_calls(
                 calls,
                 any_order=True
