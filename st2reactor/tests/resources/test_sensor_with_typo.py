@@ -1,6 +1,6 @@
 from st2reactor.sensor.base import Sensor
 
-typobar
+typobar  # noqa
 
 
 class TestSensorWithTypo(Sensor):
