@@ -4,6 +4,13 @@ Changelog
 in development
 --------------
 
+* Fix ``/v1/packs/views/files/<pack ref or id>`` and
+  ``/v2/packs/views/files/<pack ref or id>/<file path>`` API endpoint so it
+  works correctly for packs where pack name is not equal to the pack ref. (bug fix)
+
+  Reported by skjbulcher #3128
+* Improve binary file detection and fix "pack files" API controller so it works correctly for
+  new-style packs which are also git repositories. (bug fix)
 - Fix returning a tuple from the Python runner so it also works correctly, even if action returns
   a complex type (e.g. Python class instance) as a result. (bug fix)
 
@@ -33,6 +40,8 @@ in development
 * Update ``packs.load`` action to also register triggers by default. (improvement)
 * Update ``/v1/packs/register`` API endpoint so it registers resources in the correct order which
   is the same as order used in ``st2-register-content`` script. (bug fix)
+* Fix cancellation specified in concurrency policies to cancel actions appropriately. Previously, mistral
+  workflow is orphaned and left in a running state. (bug fix)
 
 2.1.0 - December 05, 2016
 -------------------------
