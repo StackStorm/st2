@@ -65,12 +65,27 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(len(pack_dbs), 1)
         self.assertEqual(len(config_schema_dbs), 1)
 
-        self.assertEqual(pack_dbs[0].name, 'dummy_pack_1')
-        self.assertEqual(len(pack_dbs[0].contributors), 2)
-        self.assertEqual(pack_dbs[0].contributors[0], 'John Doe1 <john.doe1@gmail.com>')
-        self.assertEqual(pack_dbs[0].contributors[1], 'John Doe2 <john.doe2@gmail.com>')
-        self.assertTrue('api_key' in config_schema_dbs[0].attributes)
-        self.assertTrue('api_secret' in config_schema_dbs[0].attributes)
+        pack_db = pack_dbs[0]
+        config_schema_db = config_schema_dbs[0]
+
+        self.assertEqual(pack_db.name, 'dummy_pack_1')
+        self.assertEqual(len(pack_db.contributors), 2)
+        self.assertEqual(pack_db.contributors[0], 'John Doe1 <john.doe1@gmail.com>')
+        self.assertEqual(pack_db.contributors[1], 'John Doe2 <john.doe2@gmail.com>')
+        self.assertTrue('api_key' in config_schema_db.attributes)
+        self.assertTrue('api_secret' in config_schema_db.attributes)
+
+        # Verify pack_db.files is correct and doesn't contain excluded files (*.pyc, .git/*, etc.)
+        # Note: We can't test that .git/* files are excluded since git doesn't allow you to add
+        # .git directory to existing repo index :/
+        excluded_files = [
+            '__init__.pyc',
+            'actions/dummy1.pyc',
+            'actions/dummy2.pyc',
+        ]
+
+        for excluded_file in excluded_files:
+            self.assertTrue(excluded_file not in pack_db.files)
 
     def test_register_pack_pack_ref(self):
         # Verify DB is empty

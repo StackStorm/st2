@@ -85,7 +85,7 @@ class ContentUtilsTestCase(unittest2.TestCase):
         # Invalid resource type
         expected_msg = 'Invalid resource type: fooo'
         self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
-                                pack_name='dummy_pack_1',
+                                pack_ref='dummy_pack_1',
                                 resource_type='fooo',
                                 file_path='test.py')
 
@@ -94,7 +94,7 @@ class ContentUtilsTestCase(unittest2.TestCase):
         for file_path in file_paths:
             expected_msg = 'Invalid file path: .*%s' % (file_path)
             self.assertRaisesRegexp(ValueError, expected_msg, get_pack_resource_file_abs_path,
-                                    pack_name='dummy_pack_1',
+                                    pack_ref='dummy_pack_1',
                                     resource_type='action',
                                     file_path=file_path)
 
@@ -103,7 +103,7 @@ class ContentUtilsTestCase(unittest2.TestCase):
         for file_path in file_paths:
             expected = os.path.join(get_fixtures_packs_base_path(),
                                     'dummy_pack_1/actions', file_path)
-            result = get_pack_resource_file_abs_path(pack_name='dummy_pack_1',
+            result = get_pack_resource_file_abs_path(pack_ref='dummy_pack_1',
                                                      resource_type='action',
                                                      file_path=file_path)
             self.assertEqual(result, expected)

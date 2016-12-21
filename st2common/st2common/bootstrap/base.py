@@ -45,7 +45,8 @@ LOG = logging.getLogger(__name__)
 REGISTERED_PACKS_CACHE = {}
 
 EXCLUDE_FILE_PATTERNS = [
-    '*.pyc'
+    '*.pyc',
+    '.git/*'
 ]
 
 

@@ -122,7 +122,7 @@ class ActionsController(resource.ContentPackResourceController):
         data_files = getattr(action, 'data_files', [])
         written_data_files = []
         if data_files:
-            written_data_files = self._handle_data_files(pack_name=action.pack,
+            written_data_files = self._handle_data_files(pack_ref=action.pack,
                                                          data_files=data_files)
 
         action_model = ActionAPI.to_model(action)
@@ -162,7 +162,7 @@ class ActionsController(resource.ContentPackResourceController):
         data_files = getattr(action, 'data_files', [])
         written_data_files = []
         if data_files:
-            written_data_files = self._handle_data_files(pack_name=action.pack,
+            written_data_files = self._handle_data_files(pack_ref=action.pack,
                                                          data_files=data_files)
 
         try:
@@ -221,7 +221,7 @@ class ActionsController(resource.ContentPackResourceController):
         LOG.audit('Action deleted. Action.id=%s' % (action_db.id), extra=extra)
         return None
 
-    def _handle_data_files(self, pack_name, data_files):
+    def _handle_data_files(self, pack_ref, data_files):
         """
         Method for handling action data files.
 
@@ -231,17 +231,17 @@ class ActionsController(resource.ContentPackResourceController):
         2. Updates affected PackDB model
         """
         # Write files to disk
-        written_file_paths = self._write_data_files_to_disk(pack_name=pack_name,
+        written_file_paths = self._write_data_files_to_disk(pack_ref=pack_ref,
                                                             data_files=data_files)
 
         # Update affected PackDB model (update a list of files)
         # Update PackDB
-        self._update_pack_model(pack_name=pack_name, data_files=data_files,
+        self._update_pack_model(pack_ref=pack_ref, data_files=data_files,
                                 written_file_paths=written_file_paths)
 
         return written_file_paths
 
-    def _write_data_files_to_disk(self, pack_name, data_files):
+    def _write_data_files_to_disk(self, pack_ref, data_files):
         """
         Write files to disk.
         """
@@ -251,26 +251,26 @@ class ActionsController(resource.ContentPackResourceController):
             file_path = data_file['file_path']
             content = data_file['content']
 
-            file_path = get_pack_resource_file_abs_path(pack_name=pack_name,
+            file_path = get_pack_resource_file_abs_path(pack_ref=pack_ref,
                                                         resource_type='action',
                                                         file_path=file_path)
 
             LOG.debug('Writing data file "%s" to "%s"' % (str(data_file), file_path))
-            self._write_data_file(pack_name=pack_name, file_path=file_path, content=content)
+            self._write_data_file(pack_ref=pack_ref, file_path=file_path, content=content)
             written_file_paths.append(file_path)
 
         return written_file_paths
 
-    def _update_pack_model(self, pack_name, data_files, written_file_paths):
+    def _update_pack_model(self, pack_ref, data_files, written_file_paths):
         """
         Update PackDB models (update files list).
         """
         file_paths = []  # A list of paths relative to the pack directory for new files
         for file_path in written_file_paths:
-            file_path = get_relative_path_to_pack(pack_name=pack_name, file_path=file_path)
+            file_path = get_relative_path_to_pack(pack_ref=pack_ref, file_path=file_path)
             file_paths.append(file_path)
 
-        pack_db = Pack.get_by_ref(pack_name)
+        pack_db = Pack.get_by_ref(pack_ref)
         pack_db.files = set(pack_db.files)
         pack_db.files.update(set(file_paths))
         pack_db.files = list(pack_db.files)
@@ -278,14 +278,14 @@ class ActionsController(resource.ContentPackResourceController):
 
         return pack_db
 
-    def _write_data_file(self, pack_name, file_path, content):
+    def _write_data_file(self, pack_ref, file_path, content):
         """
         Write data file on disk.
         """
         # Throw if pack directory doesn't exist
-        pack_base_path = get_pack_base_path(pack_name=pack_name)
+        pack_base_path = get_pack_base_path(pack_name=pack_ref)
         if not os.path.isdir(pack_base_path):
-            raise ValueError('Directory for pack "%s" doesn\'t exist' % (pack_name))
+            raise ValueError('Directory for pack "%s" doesn\'t exist' % (pack_ref))
 
         # Create pack sub-directory tree if it doesn't exist
         directory = os.path.dirname(file_path)
