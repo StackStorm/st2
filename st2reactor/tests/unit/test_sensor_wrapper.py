@@ -125,3 +125,13 @@ class SensorWrapperTestCase(unittest2.TestCase):
                                 class_name='TestSensor',
                                 trigger_types=trigger_types,
                                 parent_args=parent_args)
+
+        # Verify error message also contains traceback
+        try:
+            SensorWrapper(pack='core', file_path=file_path, class_name='TestSensor',
+                          trigger_types=trigger_types, parent_args=parent_args)
+        except NameError as e:
+            self.assertTrue('Traceback (most recent call last)' in str(e))
+            self.assertTrue('line 3, in <module>' in str(e))
+        else:
+            self.fail('NameError not thrown')
