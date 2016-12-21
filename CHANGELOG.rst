@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+- Fix returning a tuple from the Python runner so it also works correctly, even if action returns
+  a complex type (e.g. Python class instance) as a result. (bug fix)
+
+  Reported by skjbulcher #3133
+
 2.1.1 - December 16, 2016
 -------------------------
 
