@@ -269,7 +269,8 @@ class SensorWrapper(object):
             msg = ('Failed to load sensor class from file "%s" (sensor file most likely doesn\'t '
                    'exist or contains invalid syntax): %s' % (self._file_path, str(e)))
             msg += '\n\n' + tb_msg
-            raise ValueError(msg)
+            exc_cls = type(e)
+            raise exc_cls(msg)
 
         if not sensor_class:
             raise ValueError('Sensor module is missing a class with name "%s"' %
