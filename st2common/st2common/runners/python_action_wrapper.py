@@ -176,6 +176,13 @@ class PythonActionWrapper(object):
         if action_status is not None and isinstance(action_status, bool):
             action_output['status'] = action_status
 
+            # Special case if result object is not JSON serializable - aka user wanted to return a
+            # non-simple type (e.g. class instance or other non-JSON serializable type)
+            try:
+                json.dumps(action_output['result'])
+            except TypeError:
+                action_output['result'] = str(action_output['result'])
+
         try:
             print_output = json.dumps(action_output)
         except Exception:

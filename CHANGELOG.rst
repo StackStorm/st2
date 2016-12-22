@@ -11,6 +11,10 @@ in development
   Reported by skjbulcher #3128
 * Improve binary file detection and fix "pack files" API controller so it works correctly for
   new-style packs which are also git repositories. (bug fix)
+* Fix returning a tuple from the Python runner so it also works correctly, even if action returns
+  a complex type (e.g. Python class instance) as a result. (bug fix)
+
+  Reported by skjbulcher #3133
 
 2.1.1 - December 16, 2016
 -------------------------
