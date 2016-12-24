@@ -358,12 +358,13 @@ class ParamsUtilsTest(DbTestCase):
         params = {
             'r1': '{{r2}}',
             'r2': ['1', '2'],
+            'i1': 5,
             'a1': True,
             'a2': 'Test',
             'a3': 'Test2',
             'a4': '{{a1}}',
             'a5': ['{{a2}}', '{{a3}}'],
-            'a6': [['{{r1}}', '{{a2}}'], ['{{a3}}', '{{a1}}']]
+            'a6': [['{{r2}}', '{{a2}}'], ['{{a3}}', '{{a1}}'], ['{{i1}}']]
         }
         runner_param_info = {'r1': {'type': 'array'}, 'r2': {'type': 'array'}}
         action_param_info = {
@@ -385,7 +386,7 @@ class ParamsUtilsTest(DbTestCase):
                 'a3': 'Test2',
                 'a4': True,
                 'a5': ['Test', 'Test2'],
-                'a6': [[['1', '2'], 'Test'], ['Test2', True]]
+                'a6': [[['1', '2'], 'Test'], ['Test2', True], [5]]
             }
         )
 

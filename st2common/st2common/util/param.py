@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import json
+import re
 import six
 import networkx as nx
 
@@ -154,6 +155,10 @@ def _render(node, render_context):
         complex_type = False
         if isinstance(node['template'], list) or isinstance(node['template'], dict):
             node['template'] = json.dumps(node['template'])
+            node['template'] = re.sub(
+                r'"{{([A-z0-9_-]+)}}"', r'{{\1 | to_complex}}',
+                node['template']
+            )
             LOG.debug('Rendering complex type: %s', node['template'])
             complex_type = True
 
