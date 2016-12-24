@@ -14,6 +14,9 @@ class PascalRowAction(Action):
             return False, 'This is suppose to fail don\'t worry!!'
         elif row_index == 'b':
             return None
+        elif row_index == 'complex_type':
+            result = PascalRowAction()
+            return (False, result)
         elif row_index == 'c':
             return False, None
         elif row_index == 'd':

@@ -173,7 +173,9 @@ class ActionsRegistrar(ResourceRegistrar):
                 self._register_action(pack, action)
             except Exception as e:
                 if self._fail_on_failure:
-                    raise e
+                    msg = ('Failed to register action "%s" from pack "%s": %s' % (action, pack,
+                                                                                  str(e)))
+                    raise ValueError(msg)
 
                 LOG.exception('Unable to register action: %s', action)
                 continue

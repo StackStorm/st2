@@ -14,8 +14,23 @@
 # limitations under the License.
 
 import sys
+
+# Note: This work-around is required to fix the issue with other Python modules which live
+# inside this directory polluting and masking sys.path for Python runner actions.
+# Since this module is ran as a Python script inside a subprocess, directory where the script
+# lives gets added to sys.path and we don't want that.
+# Note: We need to use just the suffix, because full path is different depending if the process
+# is ran in virtualenv or not
+RUNNERS_PATH_SUFFIX = 'st2common/runners'
+if __name__ == '__main__':
+    script_path = sys.path[0]
+    if RUNNERS_PATH_SUFFIX in script_path:
+        sys.path.pop(0)
+
+import sys
 import json
 import argparse
+
 from oslo_config import cfg
 
 from st2common import log as logging
@@ -28,8 +43,7 @@ from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
 from st2common.constants.keyvalue import SYSTEM_SCOPE
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
-from st2common.service_setup import db_setup
-from st2common.services.datastore import DatastoreService
+from st2common.database_setup import db_setup
 
 __all__ = [
     'PythonActionWrapper',
@@ -51,35 +65,45 @@ For more information, please see: https://docs.stackstorm.com/upgrade_notes.html
 
 class ActionService(object):
     """
-    Instance of this class is passed to the action instance and exposes "public"
-    methods which can be called by the action.
+    Instance of this class is passed to the action instance and exposes "public" methods which can
+    be called by the action.
     """
 
     def __init__(self, action_wrapper):
-        logger = get_logger_for_python_runner_action(action_name=action_wrapper._class_name)
-
         self._action_wrapper = action_wrapper
-        self._datastore_service = DatastoreService(logger=logger,
-                                                   pack_name=self._action_wrapper._pack,
-                                                   class_name=self._action_wrapper._class_name,
-                                                   api_username='action_service')
+        self._datastore_service = None
+
+    @property
+    def datastore_service(self):
+        # Late import to avoid very expensive in-direct import (~1 second) when this function is
+        # not called / used
+        from st2common.services.datastore import DatastoreService
+
+        if not self._datastore_service:
+            action_name = self._action_wrapper._class_name
+            logger = get_logger_for_python_runner_action(action_name=action_name)
+            self._datastore_service = DatastoreService(logger=logger,
+                                                       pack_name=self._action_wrapper._pack,
+                                                       class_name=self._action_wrapper._class_name,
+                                                       api_username='action_service')
+        return self._datastore_service
 
     ##################################
     # Methods for datastore management
     ##################################
 
     def list_values(self, local=True, prefix=None):
-        return self._datastore_service.list_values(local, prefix)
+        return self.datastore_service.list_values(local, prefix)
 
     def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
-        return self._datastore_service.get_value(name, local, scope=scope, decrypt=decrypt)
+        return self.datastore_service.get_value(name, local, scope=scope, decrypt=decrypt)
 
     def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
-        return self._datastore_service.set_value(name, value, ttl, local, scope=scope,
-                                                 encrypt=encrypt)
+        return self.datastore_service.set_value(name, value, ttl, local, scope=scope,
+                                                encrypt=encrypt)
 
     def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
-        return self._datastore_service.delete_value(name, local)
+        return self.datastore_service.delete_value(name, local)
 
 
 class PythonActionWrapper(object):
@@ -106,15 +130,19 @@ class PythonActionWrapper(object):
         self._parameters = parameters or {}
         self._user = user
         self._parent_args = parent_args or []
+
         self._class_name = None
         self._logger = logging.getLogger('PythonActionWrapper')
 
         try:
             config.parse_args(args=self._parent_args)
-        except Exception:
-            pass
+        except Exception as e:
+            LOG.debug('Failed to parse config using parent args (parent_args=%s): %s' %
+                      (str(self._parent_args), str(e)))
 
-        db_setup()
+        # We don't need to ensure indexes every subprocess because they should already be created
+        # and ensured by other services
+        db_setup(ensure_indexes=False)
 
         # Note: We can only set a default user value if one is not provided after parsing the
         # config
@@ -148,6 +176,13 @@ class PythonActionWrapper(object):
         if action_status is not None and isinstance(action_status, bool):
             action_output['status'] = action_status
 
+            # Special case if result object is not JSON serializable - aka user wanted to return a
+            # non-simple type (e.g. class instance or other non-JSON serializable type)
+            try:
+                json.dumps(action_output['result'])
+            except TypeError:
+                action_output['result'] = str(action_output['result'])
+
         try:
             print_output = json.dumps(action_output)
         except Exception:
@@ -157,6 +192,7 @@ class PythonActionWrapper(object):
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
         sys.stdout.write(print_output + '\n')
         sys.stdout.write(ACTION_OUTPUT_RESULT_DELIMITER)
+        sys.stdout.flush()
 
     def _get_action_instance(self):
         actions_cls = action_loader.register_plugin(Action, self._file_path)
@@ -165,6 +201,8 @@ class PythonActionWrapper(object):
         if not action_cls:
             raise Exception('File "%s" has no action or the file doesn\'t exist.' %
                             (self._file_path))
+
+        self._class_name = action_cls.__class__.__name__
 
         config_loader = ContentPackConfigLoader(pack_name=self._pack, user=self._user)
         config = config_loader.get_config()

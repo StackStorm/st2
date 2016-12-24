@@ -25,11 +25,6 @@
       ref: "packs.load"
       parameters:
         register: "{{register}}"
-      on-success: "restart sensor container"
-    -
-      name: "restart sensor container"
-      ref: "packs.restart_component"
-      parameters:
-        servicename: "st2sensorcontainer"
+        packs: "{{ __results['make a prerun'].result }}"
 
   default: "download pack"

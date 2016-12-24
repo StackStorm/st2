@@ -13,11 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import glob
+
 from tests import FunctionalTest
+
+from st2tests.fixturesloader import get_fixtures_packs_base_path
 
 __all__ = [
     'PackConfigsControllerTestCase'
 ]
+
+PACKS_PATH = get_fixtures_packs_base_path()
+CONFIGS_COUNT = len(glob.glob('%s/configs/*.yaml' % (PACKS_PATH)))
+assert CONFIGS_COUNT > 1
 
 
 class PackConfigsControllerTestCase(FunctionalTest):
@@ -27,7 +35,7 @@ class PackConfigsControllerTestCase(FunctionalTest):
     def test_get_all(self):
         resp = self.app.get('/v1/configs')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 3, '/v1/configs did not return all configs.')
+        self.assertEqual(len(resp.json), CONFIGS_COUNT, '/v1/configs did not return all configs.')
 
     def test_get_one_success(self):
         resp = self.app.get('/v1/configs/dummy_pack_1')

@@ -20,6 +20,7 @@ from st2common.models.db.pack import PackDB
 from st2common.persistence.pack import Pack
 from st2common.services import packs as pack_service
 from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
+from st2api.controllers.v1.packs import ENTITIES
 from tests import FunctionalTest
 
 PACK_INDEX = {
@@ -53,13 +54,17 @@ class PacksControllerTestCase(FunctionalTest):
                                email='test@example.com', ref='pack1')
         cls.pack_db_2 = PackDB(name='pack2', description='foo', version='0.1.0', author='foo',
                                email='test@example.com', ref='pack2')
+        cls.pack_db_3 = PackDB(name='pack3-name', ref='pack3-ref', description='foo',
+                               version='0.1.0', author='foo',
+                               email='test@example.com')
         Pack.add_or_update(cls.pack_db_1)
         Pack.add_or_update(cls.pack_db_2)
+        Pack.add_or_update(cls.pack_db_3)
 
     def test_get_all(self):
         resp = self.app.get('/v1/packs')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2, '/v1/actionalias did not return all aliases.')
+        self.assertEqual(len(resp.json), 3, '/v1/actionalias did not return all packs.')
 
     def test_get_one(self):
         # Get by id
@@ -72,6 +77,11 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json['ref'], self.pack_db_1.ref)
         self.assertEqual(resp.json['name'], self.pack_db_1.name)
+
+        # Get by ref (ref != name)
+        resp = self.app.get('/v1/packs/%s' % (self.pack_db_3.ref))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json['ref'], self.pack_db_3.ref)
 
     def test_get_one_doesnt_exist(self):
         resp = self.app.get('/v1/packs/doesntexistfoo', expect_errors=True)
@@ -125,6 +135,37 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, [PACK_INDEX['test2']])
 
+        # Search should be case insensitive by default
+        resp = self.app.post_json('/v1/packs/index/search', {'query': 'TEST'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test'], PACK_INDEX['test2']])
+
+        resp = self.app.post_json('/v1/packs/index/search', {'query': 'SPECIAL'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test2']])
+
+        resp = self.app.post_json('/v1/packs/index/search', {'query': 'sPeCiAL'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test2']])
+
+        resp = self.app.post_json('/v1/packs/index/search', {'query': 'st2-dev'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test']])
+
+        resp = self.app.post_json('/v1/packs/index/search', {'query': 'ST2-dev'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test']])
+
+        resp = self.app.post_json('/v1/packs/index/search', {'query': '-dev'})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, [PACK_INDEX['test']])
+
     @mock.patch.object(pack_service, 'fetch_pack_index',
                        mock.MagicMock(return_value=(PACK_INDEX, {})))
     def test_show(self):
@@ -137,3 +178,147 @@ class PacksControllerTestCase(FunctionalTest):
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, PACK_INDEX['test2'])
+
+    def test_packs_register_endpoint_resource_register_order(self):
+        # Verify that resources are registered in the same order as they are inside
+        # st2-register-content.
+        # Note: Sadly there is no easier / better way to test this
+        resource_types = ENTITIES.keys()
+        expected_order = [
+            'trigger',
+            'sensor',
+            'action',
+            'rule',
+            'alias',
+            'policy',
+            'config'
+        ]
+        self.assertEqual(resource_types, expected_order)
+
+    def test_packs_register_endpoint(self):
+        # Register resources from all packs - make sure the count values are correctly added
+        # together
+        resp = self.app.post_json('/v1/packs/register', {'fail_on_failure': False})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue('runners' in resp.json)
+        self.assertTrue('actions' in resp.json)
+        self.assertTrue('triggers' in resp.json)
+        self.assertTrue('sensors' in resp.json)
+        self.assertTrue('rules' in resp.json)
+        self.assertTrue('rule_types' in resp.json)
+        self.assertTrue('aliases' in resp.json)
+        self.assertTrue('policy_types' in resp.json)
+        self.assertTrue('policies' in resp.json)
+        self.assertTrue('configs' in resp.json)
+
+        self.assertTrue(resp.json['actions'] >= 3)
+        self.assertTrue(resp.json['configs'] >= 3)
+
+        # Register resources from a specific pack
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1'],
+                                                         'fail_on_failure': False})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(resp.json['actions'] >= 1)
+        self.assertTrue(resp.json['sensors'] >= 1)
+        self.assertTrue(resp.json['configs'] >= 1)
+
+        # Registering single resource type should also cause dependent resources
+        # to be registered
+        # * actions -> runners
+        # * rules -> rule types
+        # * policies -> policy types
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1'],
+                                                         'fail_on_failure': False,
+                                                         'types': ['actions']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(resp.json['runners'] >= 1)
+        self.assertTrue(resp.json['actions'] >= 1)
+
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1'],
+                                                         'fail_on_failure': False,
+                                                         'types': ['rules']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(resp.json['rule_types'] >= 1)
+        self.assertTrue(resp.json['rules'] >= 1)
+
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_2'],
+                                                         'fail_on_failure': False,
+                                                         'types': ['policies']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(resp.json['policy_types'] >= 1)
+        self.assertTrue(resp.json['policies'] >= 0)
+
+        # Register specific type for all packs
+        resp = self.app.post_json('/v1/packs/register', {'types': ['sensor'],
+                                                         'fail_on_failure': False})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {'sensors': 1})
+
+        # Verify that plural name form also works
+        resp = self.app.post_json('/v1/packs/register', {'types': ['sensors'],
+                                                         'fail_on_failure': False})
+        self.assertEqual(resp.status_int, 200)
+
+        # Register specific type for a single packs
+        resp = self.app.post_json('/v1/packs/register',
+                                  {'packs': ['dummy_pack_1'], 'types': ['action']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 13})
+
+        # Verify that plural name form also works
+        resp = self.app.post_json('/v1/packs/register',
+                                  {'packs': ['dummy_pack_1'], 'types': ['actions']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 13})
+
+        # Register single resource from a single pack specified multiple times - verify that
+        # resources from the same pack are only registered once
+        resp = self.app.post_json('/v1/packs/register',
+                                  {'packs': ['dummy_pack_1', 'dummy_pack_1', 'dummy_pack_1'],
+                                   'types': ['actions'],
+                                   'fail_on_failure': False})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json, {'actions': 1, 'runners': 13})
+
+        # Register resources from a single (non-existent pack)
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['doesntexist']},
+                                  expect_errors=True)
+
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue('Pack "doesntexist" not found on disk:' in resp.json['faultstring'])
+
+        # Fail on failure is enabled by default
+        resp = self.app.post_json('/v1/packs/register', expect_errors=True)
+
+        expected_msg = 'Failed to register pack "dummy_pack_10":'
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(expected_msg in resp.json['faultstring'])
+
+        # Fail on failure (broken pack metadata)
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1']},
+                                  expect_errors=True)
+
+        expected_msg = 'Referenced policy_type "action.mock_policy_error" doesnt exist'
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(expected_msg in resp.json['faultstring'])
+
+        # Fail on failure (broken action metadata)
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_15']},
+                                  expect_errors=True)
+
+        expected_msg = 'Failed to register action'
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(expected_msg in resp.json['faultstring'])
+
+        expected_msg = '\'stringa\' is not valid under any of the given schemas'
+        self.assertEqual(resp.status_int, 400)
+        self.assertTrue(expected_msg in resp.json['faultstring'])

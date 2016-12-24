@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import mock
+from mock import call
 
 import st2common
 from st2common.bootstrap.policiesregistrar import register_policy_types
@@ -26,7 +27,7 @@ from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
-from tests.unit.base import MockLiveActionPublisher
+from st2tests.mocks.liveaction import MockLiveActionPublisher
 from st2tests.mocks import runner
 
 PACK = 'generic'
@@ -57,7 +58,7 @@ SCHEDULED_STATES = [
     runner.MockActionRunner, 'run',
     mock.MagicMock(
         return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
-@mock.patch('st2common.runners.register_runner',
+@mock.patch('st2common.runners.base.register_runner',
             mock.MagicMock(return_value=runner))
 @mock.patch.object(
     CUDPublisher, 'publish_update',
@@ -100,6 +101,12 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         # Execution is expected to be delayed since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
+
+        # Assert the delayed state is being published.
+        calls = [call(liveaction, action_constants.LIVEACTION_STATUS_DELAYED)]
+        LiveActionPublisher.publish_state.assert_has_calls(calls)
+
+        # Assert the action is delayed.
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_DELAYED)
 
@@ -126,6 +133,12 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         # Execution is expected to be canceled since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-2', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
+
+        # Assert the canceling state is being published.
+        calls = [call(liveaction, action_constants.LIVEACTION_STATUS_CANCELING)]
+        LiveActionPublisher.publish_state.assert_has_calls(calls)
+
+        # Assert the action is canceled.
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
 

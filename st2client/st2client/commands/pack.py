@@ -88,7 +88,17 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
     def __init__(self, *args, **kwargs):
         super(PackAsyncCommand, self).__init__(*args, **kwargs)
 
-        self._add_common_options()
+        self.parser.add_argument('-w', '--width', nargs='+', type=int, default=None,
+                                       help='Set the width of columns in output.')
+
+        detail_arg_grp = self.parser.add_mutually_exclusive_group()
+        detail_arg_grp.add_argument('--attr', nargs='+',
+                                    default=['name', 'description', 'version', 'author'],
+                                    help=('List of attributes to include in the '
+                                          'output. "all" or unspecified will '
+                                          'return all attributes.'))
+        detail_arg_grp.add_argument('-d', '--detail', action='store_true',
+                                    help='Display full detail of the execution in table format.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
@@ -111,6 +121,10 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
                         and execution.status in LIVEACTION_COMPLETED_STATES:
                     break
 
+                # Suppress intermediate output in case output formatter is requested
+                if args.json or args.yaml:
+                    continue
+
                 if getattr(execution, 'parent', None) == parent_id:
                     status = execution.status
                     name = execution.context['chain']['name']
@@ -123,13 +137,16 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
                         indicator.finish_stage(status, name)
 
         if execution and execution.status == LIVEACTION_STATUS_FAILED:
+            args.depth = 1
             self._print_execution_details(execution=execution, args=args, **kwargs)
             sys.exit(1)
 
+        return self.app.client.managers['LiveAction'].get_by_id(parent_id)
+
 
 class PackListCommand(resource.ResourceListCommand):
-    display_attributes = ['name', 'description', 'version', 'author']
-    attribute_display_order = ['name', 'description', 'version', 'author']
+    display_attributes = ['ref', 'name', 'description', 'version', 'author']
+    attribute_display_order = ['ref', 'name', 'description', 'version', 'author']
 
 
 class PackGetCommand(resource.ResourceGetCommand):
@@ -164,7 +181,7 @@ class PackInstallCommand(PackAsyncCommand):
         self.parser.add_argument('packs',
                                  nargs='+',
                                  metavar='pack',
-                                 help='Name of the %s to install.' %
+                                 help='Name of the %s in Exchange, or a git repo URL.' %
                                  resource.get_plural_display_name().lower())
         self.parser.add_argument('--force',
                                  action='store_true',
@@ -174,6 +191,29 @@ class PackInstallCommand(PackAsyncCommand):
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.install(args.packs, force=args.force, **kwargs)
+
+    def run_and_print(self, args, **kwargs):
+        instance = super(PackInstallCommand, self).run_and_print(args, **kwargs)
+
+        # Hack to get a list of resolved references of installed packs
+        packs = instance.result['tasks'][1]['result']['result']
+
+        if len(packs) == 1:
+            pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0])
+            self.print_output(pack_instance, table.PropertyValueTable,
+                              attributes=args.attr, json=args.json, yaml=args.yaml,
+                              attribute_display_order=self.attribute_display_order)
+        else:
+            all_pack_instances = self.app.client.managers['Pack'].get_all()
+            pack_instances = []
+
+            for pack in all_pack_instances:
+                if pack.name in packs:
+                    pack_instances.append(pack)
+
+            self.print_output(pack_instances, table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              json=args.json, yaml=args.yaml)
 
 
 class PackRemoveCommand(PackAsyncCommand):
@@ -190,7 +230,41 @@ class PackRemoveCommand(PackAsyncCommand):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        return self.manager.register(args.packs, args.types, **kwargs)
+        return self.manager.remove(args.packs, **kwargs)
+
+    def run_and_print(self, args, **kwargs):
+        all_pack_instances = self.app.client.managers['Pack'].get_all()
+
+        super(PackRemoveCommand, self).run_and_print(args, **kwargs)
+
+        packs = args.packs
+
+        if len(packs) == 1:
+            pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0])
+
+            if pack_instance:
+                raise OperationFailureException('Pack %s has not been removed properly', packs[0])
+
+            removed_pack_instance = next((pack for pack in all_pack_instances
+                                         if pack.name == packs[0]), None)
+
+            self.print_output(removed_pack_instance, table.PropertyValueTable,
+                              attributes=args.attr, json=args.json, yaml=args.yaml,
+                              attribute_display_order=self.attribute_display_order)
+        else:
+            remaining_pack_instances = self.app.client.managers['Pack'].get_all()
+            pack_instances = []
+
+            for pack in all_pack_instances:
+                if pack.name in packs:
+                    pack_instances.append(pack)
+                if pack in remaining_pack_instances:
+                    raise OperationFailureException('Pack %s has not been removed properly',
+                                                    pack.name)
+
+            self.print_output(pack_instances, table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              json=args.json, yaml=args.yaml)
 
 
 class PackRegisterCommand(PackResourceCommand):
@@ -199,8 +273,9 @@ class PackRegisterCommand(PackResourceCommand):
               'Register a %s: sync all file changes with DB.' % resource.get_display_name().lower(),
               *args, **kwargs)
 
-        self.parser.add_argument('--packs',
-                                 nargs='+',
+        self.parser.add_argument('packs',
+                                 nargs='*',
+                                 metavar='pack',
                                  help='Name of the %s(s) to register.' %
                                  resource.get_display_name().lower())
 
@@ -247,8 +322,9 @@ class PackConfigCommand(resource.ResourceCommand):
         schema = self.app.client.managers['ConfigSchema'].get_by_ref_or_id(args.name, **kwargs)
 
         if not schema:
-            raise resource.ResourceNotFoundError("%s doesn't have config schema defined" %
-                                                 self.resource.get_display_name())
+            msg = '%s "%s" doesn\'t exist or doesn\'t have config schema defined.'
+            raise resource.ResourceNotFoundError(msg % (self.resource.get_display_name(),
+                                                        args.name))
 
         config = interactive.InteractiveForm(schema.attributes).initiate_dialog()
 

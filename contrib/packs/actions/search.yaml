@@ -1,0 +1,11 @@
+---
+name: "search"
+runner_type: "python-script"
+description: "Search the index for a pack with any attribute matching the query."
+enabled: true
+entry_point: "pack_mgmt/search.py"
+parameters:
+  query:
+    type: "string"
+    description: "A word or a phrase to search for."
+    required: true

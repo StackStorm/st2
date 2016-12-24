@@ -59,12 +59,22 @@ elif [ -e "${ST2_CLI_CONFIG_FILE}" ]; then
   fi
 fi
 
-echo -n "Installing asserts,fixtures,tests"
-st2 run packs.install subtree=true repo_url=StackStorm/st2tests packs=asserts,fixtures,tests
+pushd ~
+echo "Cloning st2tests in `pwd`."
+git clone --depth 1 https://github.com/StackStorm/st2tests.git
 
-echo -n "Installing examples"
+echo "Copying asserts, fixtures, tests and examples packs."
+cp -R st2tests/packs/* /opt/stackstorm/packs/
 cp -Rf /usr/share/doc/st2/examples /opt/stackstorm/packs/
-st2ctl reload
+
+
+echo "Installing asserts, fixtures, tests and examples packs."
+st2 run packs.setup_virtualenv packs=examples,tests,asserts,fixtures,webui
+st2ctl reload --register-all
+
+echo "Deleting 'st2tests' directory from `pwd`."
+rm -R st2tests/
+popd
 
 # Retrieve test action list
 TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref"`

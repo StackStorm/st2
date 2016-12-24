@@ -7,5 +7,10 @@
   parameters:
     register:
       type: "string"
-      default: "actions,aliases,sensors"
-      description: "Possible options are all, sensors, actions, rules, aliases."
+      default: "actions,aliases,sensors,triggers"
+      description: "Possible options are all, sensors, actions, rules, aliases, triggers, configs."
+    packs:
+      type: "array"
+      description: "A list of packs to register / load resources from."
+      items:
+        type: "string"

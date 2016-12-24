@@ -124,11 +124,22 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
         # Verify commands output have been copied
         commands_path = os.path.join(extract_path, 'commands')
         command_files = os.listdir(commands_path)
-        self.assertTrue(len(command_files), 2)
+        self.assertEqual(len(command_files), 3)
 
         # Verify command output file names
         self.assertTrue('echofoo.txt' in command_files)
         self.assertTrue('echobar12.txt' in command_files)
+        self.assertTrue('pwd.txt' in command_files)
+
+        # Verify "cwd" is set correctly for the shells where commands run
+        file_path = os.path.join(commands_path, 'pwd.txt')
+        with open(file_path, 'r') as fp:
+            content = fp.read()
+
+        # cwd for the process where commands run should be set to temporary directory where
+        # commands output is stored
+        expected_cwd_path = os.path.join(debug_collector._temp_dir_path, 'commands')
+        self.assertTrue(expected_cwd_path in content)
 
         # Verify file contents
         with open(os.path.join(commands_path, 'echofoo.txt')) as f:
@@ -268,7 +279,8 @@ class SubmitDebugInfoTestCase(CleanFilesTestCase):
             'gpg_key': GPG_KEY,
             'shell_commands': [
                 'echo foo',
-                'echo bar 1>&2'
+                'echo bar 1>&2',
+                'pwd'
             ],
             'company_name': 'MyCompany'
         }

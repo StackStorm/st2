@@ -49,6 +49,7 @@ RULE_TYPES = [
 
 def register_rule_types():
     LOG.debug('Start : register default RuleTypes.')
+    registered_count = 0
 
     for rule_type in RULE_TYPES:
         rule_type = copy.deepcopy(rule_type)
@@ -77,7 +78,9 @@ def register_rule_types():
                 LOG.audit('RuleType created. RuleType %s', rule_type_db, extra=extra)
         except Exception:
             LOG.exception('Unable to register RuleType %s.', rule_type['name'])
+        else:
+            registered_count += 1
 
     LOG.debug('End : register default RuleTypes.')
 
-    return True
+    return registered_count

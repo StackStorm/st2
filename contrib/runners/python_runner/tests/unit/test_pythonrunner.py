@@ -36,6 +36,8 @@ PASCAL_ROW_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                       'pythonactions/actions/pascal_row.py')
 TEST_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                 'pythonactions/actions/test.py')
+PATHS_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
+                                'pythonactions/actions/python_paths.py')
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
 # unrecognized args
@@ -116,6 +118,21 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], "This is suppose to fail don't worry!!")
+
+    def test_simple_action_with_status_complex_type_returned_for_result(self):
+        # Result containing a complex type shouldn't break the returning a tuple with status
+        # behavior
+        runner = python_runner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'complex_type'})
+
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertTrue(output is not None)
+        self.assertTrue('<pascal_row.PascalRowAction object at' in output['result'])
 
     def test_simple_action_with_status_failed_result_none(self):
         runner = python_runner.get_runner()
@@ -380,6 +397,33 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], 'test action')
+
+    def test_python_action_wrapper_script_doesnt_get_added_to_sys_path(self):
+        # Validate that the directory where python_action_wrapper.py script is located
+        # (st2common/runners) doesn't get added to sys.path
+        runner = python_runner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PATHS_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+
+        lines = output['stdout'].split('\n')
+        process_sys_path = lines[0]
+        process_pythonpath = lines[1]
+
+        assert 'sys.path' in process_sys_path
+        assert 'PYTHONPATH' in process_pythonpath
+
+        wrapper_script_path = 'st2common/runners'
+
+        assertion_msg = 'Found python wrapper script path in subprocess path'
+        self.assertTrue(wrapper_script_path not in process_sys_path, assertion_msg)
+        self.assertTrue(wrapper_script_path not in process_pythonpath, assertion_msg)
 
     def _get_mock_action_obj(self):
         """

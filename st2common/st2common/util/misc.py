@@ -21,7 +21,8 @@ import six
 
 __all__ = [
     'prefix_dict_keys',
-    'compare_path_file_name'
+    'compare_path_file_name',
+    'lowercase_value'
 ]
 
 
@@ -126,3 +127,24 @@ def get_normalized_file_path(file_path):
 
     file_path = os.path.normcase(file_path)
     return file_path
+
+
+def lowercase_value(value):
+    """
+    Lowercase the provided value.
+
+    In case of a list, all the string item values are lowercases and in case of a dictionary, all
+    of the string keys and values are lowercased.
+    """
+    if isinstance(value, six.string_types):
+        result = value.lower()
+    elif isinstance(value, (list, tuple)):
+        result = [str(item).lower() for item in value]
+    elif isinstance(value, dict):
+        result = {}
+        for key, value in six.iteritems(value):
+            result[key.lower()] = str(value).lower()
+    else:
+        result = value
+
+    return result

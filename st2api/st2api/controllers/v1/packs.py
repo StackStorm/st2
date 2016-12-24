@@ -13,6 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
+
+from collections import defaultdict
+from collections import OrderedDict
+
 import pecan
 from pecan.rest import RestController
 import six
@@ -39,6 +44,7 @@ from st2common.models.api.pack import PackInstallRequestAPI
 from st2common.models.api.pack import PackRegisterRequestAPI
 from st2common.models.api.pack import PackSearchRequestAPI
 from st2common.models.api.pack import PackAsyncAPI
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
@@ -49,20 +55,24 @@ http_client = six.moves.http_client
 
 __all__ = [
     'PacksController',
-    'BasePacksController'
+    'BasePacksController',
+    'ENTITIES'
 ]
 
 LOG = logging.getLogger(__name__)
 
-ENTITIES = {
-    'action': (ActionsRegistrar, 'actions'),
-    'trigger': (TriggersRegistrar, 'triggers'),
-    'sensor': (SensorsRegistrar, 'sensors'),
-    'rule': (RulesRegistrar, 'rules'),
-    'alias': (AliasesRegistrar, 'aliases'),
-    'policy': (PolicyRegistrar, 'policy'),
-    'config': (ConfigsRegistrar, 'config')
-}
+# Note: The order those are defined it's important so they are registered in the same order as
+# they are in st2-register-content.
+# We also need to use list of tuples to preserve the order.
+ENTITIES = OrderedDict([
+    ('trigger', (TriggersRegistrar, 'triggers')),
+    ('sensor', (SensorsRegistrar, 'sensors')),
+    ('action', (ActionsRegistrar, 'actions')),
+    ('rule', (RulesRegistrar, 'rules')),
+    ('alias', (AliasesRegistrar, 'aliases')),
+    ('policy', (PolicyRegistrar, 'policies')),
+    ('config', (ConfigsRegistrar, 'configs'))
+])
 
 
 class PackInstallController(ActionExecutionsControllerMixin, RestController):
@@ -121,32 +131,47 @@ class PackRegisterController(RestController):
                      'policy_type', 'policy', 'config']
 
         if pack_register_request and hasattr(pack_register_request, 'packs'):
-            packs = pack_register_request.packs
+            packs = list(set(pack_register_request.packs))
         else:
             packs = None
 
-        result = {}
+        result = defaultdict(int)
 
-        if 'runner' in types or 'action' in types:
+        # Register depended resources (actions depend on runners, rules depend on rule types, etc)
+        if ('runner' in types or 'runners' in types) or ('action' in types or 'actions' in types):
             result['runners'] = runners_registrar.register_runners(experimental=True)
-        if 'rule_type' in types or 'rule' in types:
+        if ('rule_type' in types or 'rule_types' in types) or \
+           ('rule' in types or 'rules' in types):
             result['rule_types'] = rule_types_registrar.register_rule_types()
-        if 'policy_type' in types or 'policy' in types:
+        if ('policy_type' in types or 'policy_types' in types) or \
+           ('policy' in types or 'policies' in types):
             result['policy_types'] = policies_registrar.register_policy_types(st2common)
 
         use_pack_cache = False
 
+        fail_on_failure = getattr(pack_register_request, 'fail_on_failure', True)
         for type, (Registrar, name) in six.iteritems(ENTITIES):
-            if type in types:
+            if type in types or name in types:
                 registrar = Registrar(use_pack_cache=use_pack_cache,
-                                      fail_on_failure=False)
+                                      fail_on_failure=fail_on_failure)
                 if packs:
                     for pack in packs:
                         pack_path = content_utils.get_pack_base_path(pack)
-                        result[name] = registrar.register_from_pack(pack_dir=pack_path)
+
+                        try:
+                            registered_count = registrar.register_from_pack(pack_dir=pack_path)
+                            result[name] += registered_count
+                        except ValueError as e:
+                            # Throw more user-friendly exception if requsted pack doesn't exist
+                            if re.match('Directory ".*?" doesn\'t exist', str(e)):
+                                msg = 'Pack "%s" not found on disk: %s' % (pack, str(e))
+                                raise ValueError(msg)
+
+                            raise e
                 else:
                     packs_base_paths = content_utils.get_packs_base_paths()
-                    result[name] = registrar.register_from_packs(base_dirs=packs_base_paths)
+                    registered_count = registrar.register_from_packs(base_dirs=packs_base_paths)
+                    result[name] += registered_count
 
         return result
 
@@ -157,7 +182,8 @@ class PackSearchController(RestController):
     @jsexpose(body_cls=PackSearchRequestAPI)
     def post(self, pack_search_request):
         if hasattr(pack_search_request, 'query'):
-            packs = packs_service.search_pack_index(pack_search_request.query)
+            packs = packs_service.search_pack_index(pack_search_request.query,
+                                                    case_sensitive=False)
             return [PackAPI(**pack) for pack in packs]
         else:
             pack = packs_service.get_pack_from_index(pack_search_request.pack)
@@ -228,6 +254,10 @@ class BasePacksController(ResourceController):
             # Try ref
             resource_db = self._get_by_ref(ref=ref_or_id, exclude_fields=exclude_fields)
 
+        if not resource_db:
+            msg = 'Resource with a ref or id "%s" not found' % (ref_or_id)
+            raise StackStormDBObjectNotFoundError(msg)
+
         return resource_db
 
     def _get_by_ref(self, ref, exclude_fields=None):
@@ -263,6 +293,10 @@ class PacksController(BasePacksController):
     register = PackRegisterController()
     views = PackViewsController()
     index = PacksIndexController()
+
+    def __init__(self):
+        super(PacksController, self).__init__()
+        self.get_one_db_method = self._get_by_ref_or_id
 
     @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
     @jsexpose()

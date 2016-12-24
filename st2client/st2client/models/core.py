@@ -19,7 +19,6 @@ import logging
 from functools import wraps
 
 import six
-from sseclient import SSEClient
 
 from six.moves import urllib
 
@@ -388,6 +387,10 @@ class TriggerInstanceResourceManager(ResourceManager):
         return response.json()
 
 
+class AsyncRequest(Resource):
+    pass
+
+
 class PackResourceManager(ResourceManager):
     @add_auth_token_to_kwargs_from_env
     def install(self, packs, force=False, **kwargs):
@@ -399,7 +402,7 @@ class PackResourceManager(ResourceManager):
         response = self.client.post(url, payload, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = AsyncRequest.deserialize(response.json())
         return instance
 
     @add_auth_token_to_kwargs_from_env
@@ -408,7 +411,7 @@ class PackResourceManager(ResourceManager):
         response = self.client.post(url, {'packs': packs}, **kwargs)
         if response.status_code != 200:
             self.handle_error(response)
-        instance = self.resource.deserialize(response.json())
+        instance = AsyncRequest.deserialize(response.json())
         return instance
 
     @add_auth_token_to_kwargs_from_env
@@ -461,6 +464,10 @@ class StreamManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def listen(self, events, **kwargs):
+        # Late import to avoid very expensive in-direct import (~1 second) when this function is
+        # not called / used
+        from sseclient import SSEClient
+
         url = self._url
 
         if 'token' in kwargs:

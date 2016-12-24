@@ -15,7 +15,13 @@
 
 import unittest2
 
-from st2common.util.misc import rstrip_last_char, strip_shell_chars
+from st2common.util.misc import rstrip_last_char
+from st2common.util.misc import strip_shell_chars
+from st2common.util.misc import lowercase_value
+
+__all__ = [
+    'MiscUtilTestCase'
+]
 
 
 class MiscUtilTestCase(unittest2.TestCase):
@@ -43,3 +49,24 @@ class MiscUtilTestCase(unittest2.TestCase):
         self.assertEqual(strip_shell_chars('foo\r\n'), 'foo')
         self.assertEqual(strip_shell_chars('fo\no\r\n'), 'fo\no')
         self.assertEqual(strip_shell_chars('foo\r\n\r\n'), 'foo\r\n')
+
+    def test_lowercase_value(self):
+        value = 'TEST'
+        expected_value = 'test'
+        self.assertEqual(expected_value, lowercase_value(value=value))
+
+        value = ['testA', 'TESTb', 'TESTC']
+        expected_value = ['testa', 'testb', 'testc']
+        self.assertEqual(expected_value, lowercase_value(value=value))
+
+        value = {
+            'testA': 'testB',
+            'testC': 'TESTD',
+            'TESTE': 'TESTE'
+        }
+        expected_value = {
+            'testa': 'testb',
+            'testc': 'testd',
+            'teste': 'teste'
+        }
+        self.assertEqual(expected_value, lowercase_value(value=value))

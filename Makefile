@@ -151,7 +151,7 @@ compile:
 .st2common-circular-dependencies-check:
 	@echo "Checking st2common for circular dependencies"
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py ! -wholename "*runners/__init__.py" ! -name python_action_wrapper.py ! -wholename "*/query/base.py" \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py ! -wholename "*runners/base.py" ! -name python_action_wrapper.py ! -wholename "*/query/base.py" \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2debug; test $$? -eq 1
@@ -403,3 +403,32 @@ debs:
 	#	cp -f CONTRIBUTING.rst $$component/; \
 	#	cp -f LICENSE $$component/; \
 	#done
+
+
+
+
+.PHONY: ci
+ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
+
+.PHONY: ci-checks
+ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common-circular-dependencies-check
+
+.PHONY: ci-unit
+ci-unit: compile .unit-tests-coverage-html
+
+.PHONY: .ci-prepare-integration
+.ci-prepare-integration:
+	sudo -E ./scripts/travis/prepare-integration.sh
+
+.PHONY: ci-integration
+ci-integration: .ci-prepare-integration .itests-coverage-html
+
+.PHONY: .ci-prepare-mistral
+.ci-prepare-mistral:
+	sudo -E ./scripts/travis/setup-mistral.sh
+
+.PHONY: ci-mistral
+ci-mistral: .ci-prepare-integration .ci-prepare-mistral .mistral-itests-coverage-html
+
+.PHONY: ci-packs-tests
+ci-packs-tests: .packs-tests

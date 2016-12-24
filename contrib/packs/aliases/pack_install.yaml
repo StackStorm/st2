@@ -1,0 +1,22 @@
+---
+name: "pack_install"
+action_ref: "packs.install"
+pack: "packs"
+description: "Install/upgrade StackStorm packs."
+formats:
+  - display: "pack install <pack>[,<pack>]"
+  - display: "pack install <gitUrl>[,<gitUrl>]"
+    representation:
+      - "pack install {{ packs }}"
+ack:
+  enabled: true
+  append_url: false
+  format: "Installing the requested pack(s) for you."
+result:
+  format: |
+    {% if execution.status == "succeeded" %}
+      Successful deployment of *{{ execution.parameters.packs | join('*, *') }}* pack{% if execution.parameters.packs | length > 1 %}s{% endif %}!
+    {% else %}
+      Failed to install `{{ execution.parameters.packs | join('`, `') }}` pack{% if execution.parameters.packs | length > 1 %}s{% endif %}.{~}
+      Please check `{{ execution.id }}` for details.
+    {% endif %}

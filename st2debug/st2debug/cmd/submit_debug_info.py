@@ -395,8 +395,8 @@ class DebugInfoCollector(object):
         """
         LOG.debug('Including system info')
 
-        system_information = yaml.dump(self.get_system_information(),
-                                       default_flow_style=False)
+        system_information = yaml.safe_dump(self.get_system_information(),
+                                            default_flow_style=False)
 
         with open(output_path, 'w') as fp:
             fp.write(system_information)
@@ -409,7 +409,7 @@ class DebugInfoCollector(object):
         :type output_path: ``str``
         """
         LOG.debug('Including user info')
-        user_info = yaml.dump(self.user_info, default_flow_style=False)
+        user_info = yaml.safe_dump(self.user_info, default_flow_style=False)
 
         with open(output_path, 'w') as fp:
             fp.write(user_info)
@@ -424,7 +424,7 @@ class DebugInfoCollector(object):
         LOG.debug('Including the required shell commands output files')
         for cmd in self.shell_commands:
             output_file = os.path.join(output_path, '%s.txt' % self.format_output_filename(cmd))
-            exit_code, stdout, stderr = run_command(cmd=cmd, shell=True)
+            exit_code, stdout, stderr = run_command(cmd=cmd, shell=True, cwd=output_path)
             with open(output_file, 'w') as fp:
                 fp.write('[BEGIN STDOUT]\n')
                 fp.write(stdout)

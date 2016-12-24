@@ -25,12 +25,15 @@ from st2common.constants.keyvalue import USER_SCOPE
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.constants.pack import PACK_VERSION_REGEX
 from st2common.constants.pack import ST2_VERSION_REGEX
+from st2common.constants.pack import NORMALIZE_PACK_VERSION
 from st2common.persistence.pack import ConfigSchema
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
 from st2common.models.db.pack import ConfigSchemaDB
 from st2common.models.db.pack import ConfigDB
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.util.pack import validate_config_against_schema
+from st2common.util.pack import normalize_pack_version
 
 __all__ = [
     'PackAPI',
@@ -141,25 +144,48 @@ class PackAPI(BaseAPI):
     }
 
     def __init__(self, **values):
+        name = values.get('name', None)
+
         # Note: If some version values are not explicitly surrounded by quotes they are recognized
         # as numbers so we cast them to string
         if values.get('version', None):
             values['version'] = str(values['version'])
 
+        # Special case for old version which didn't follow semver format (e.g. 0.1, 1.0, etc.)
+        # In case the version doesn't match that format, we simply append ".0" to the end (e.g.
+        # 0.1 -> 0.1.0, 1.0, -> 1.0.0, etc.)
+        if NORMALIZE_PACK_VERSION:
+            new_version = normalize_pack_version(version=values['version'])
+            if new_version != values['version']:
+                LOG.warning('Pack "%s" contains invalid semver version specifer, casting it to a '
+                            'full semver version specifier (%s -> %s).\n'
+                            'Short versions will become INVALID in StackStorm 2.2, and the pack '
+                            'will stop working. Update the pack version in "pack.yaml".'
+                            % (name, values['version'], new_version))
+            values['version'] = new_version
+
         super(PackAPI, self).__init__(**values)
 
     def validate(self):
         # We wrap default validate() implementation and throw a more user-friendly exception in
-        # case pack version doesn't follow a valid semver format
+        # case pack version doesn't follow a valid semver format and other errors
         try:
             super(PackAPI, self).validate()
         except jsonschema.ValidationError as e:
             msg = str(e)
 
+            # Invalid version
             if "Failed validating 'pattern' in schema['properties']['version']" in msg:
                 new_msg = ('Pack version "%s" doesn\'t follow a valid semver format. Valid '
                            'versions and formats include: 0.1.0, 0.2.1, 1.1.0, etc.' %
                            (self.version))
+                new_msg += '\n\n' + msg
+                raise jsonschema.ValidationError(new_msg)
+
+            # Invalid ref / name
+            if "Failed validating 'pattern' in schema['properties']['ref']" in msg:
+                new_msg = ('Pack ref / name can only contain valid word characters (a-z, 0-9 and '
+                           '_), dashes are not allowed.')
                 new_msg += '\n\n' + msg
                 raise jsonschema.ValidationError(new_msg)
 
@@ -270,22 +296,14 @@ class ConfigAPI(BaseAPI):
         # Note: We are doing optional validation so for now, we do allow additional properties
         instance = self.values or {}
         schema = config_schema_db.attributes
-        schema = util_schema.get_schema_for_resource_parameters(parameters_schema=schema,
-                                                                allow_additional_properties=True)
 
-        try:
-            cleaned = util_schema.validate(instance=instance, schema=schema,
-                                           cls=util_schema.CustomValidator, use_default=True,
-                                           allow_default_none=True)
-        except jsonschema.ValidationError as e:
-            attribute = getattr(e, 'path', [])
-            attribute = '.'.join(attribute)
-            configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
-            config_path = os.path.join(configs_path, '%s.yaml' % (self.pack))
+        configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
+        config_path = os.path.join(configs_path, '%s.yaml' % (self.pack))
 
-            msg = ('Failed validating attribute "%s" in config for pack "%s" (%s): %s' %
-                   (attribute, self.pack, config_path, str(e)))
-            raise jsonschema.ValidationError(msg)
+        cleaned = validate_config_against_schema(config_schema=schema,
+                                                 config_object=instance,
+                                                 config_path=config_path,
+                                                 pack_name=self.pack)
 
         return cleaned
 
@@ -375,6 +393,11 @@ class PackRegisterRequestAPI(BaseAPI):
                 "items": {
                     "type": "string"
                 }
+            },
+            "fail_on_failure": {
+                "type": "boolean",
+                "description": "True to fail on failure",
+                "default": True
             }
         }
     }
