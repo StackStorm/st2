@@ -364,7 +364,11 @@ class ParamsUtilsTest(DbTestCase):
             'a3': 'Test2',
             'a4': '{{a1}}',
             'a5': ['{{a2}}', '{{a3}}'],
-            'a6': [['{{r2}}', '{{a2}}'], ['{{a3}}', '{{a1}}'], ['{{i1}}']]
+            'a6': [
+                ['{{r2}}', '{{a2}}'],
+                ['{{a3}}', '{{a1}}'],
+                ['{{i1}}', 'This should be rendered as a string {{a1}}']
+            ]
         }
         runner_param_info = {'r1': {'type': 'array'}, 'r2': {'type': 'array'}}
         action_param_info = {
@@ -386,7 +390,11 @@ class ParamsUtilsTest(DbTestCase):
                 'a3': 'Test2',
                 'a4': True,
                 'a5': ['Test', 'Test2'],
-                'a6': [[['1', '2'], 'Test'], ['Test2', True], [5]]
+                'a6': [
+                    [['1', '2'], 'Test'],
+                    ['Test2', True],
+                    [5, 'This should be rendered as a string True']
+                ]
             }
         )
 
