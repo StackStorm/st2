@@ -102,14 +102,19 @@ class SensorService(object):
         :type trace_context: ``st2common.api.models.api.trace.TraceContext``
         """
         # This means specified payload is complied with trigger_type schema, or not.
-        is_valid = False
+        is_valid = True
         try:
-            is_valid = validate_trigger_parameters(trigger, payload)
-        except ValidationError:
-            self._logger.warn('The specified payload (%s) makes a validation error' % payload)
+            validate_trigger_parameters(trigger_type_ref=trigger, parameters=payload)
+        except (ValidationError, Exception) as e:
+            is_valid = False
+            self._logger.warn('Failed to validate payload (%s) for trigger "%s": %s' %
+                              (str(payload), trigger, str(e)))
 
+        # If validation is disabled, still dispatch a trigger even if it failed validation
         # This condition prevents unexpected restriction.
-        if not is_valid and not cfg.CONF.sensorcontainer.permit_invalid_payload:
+        if not is_valid and cfg.CONF.system.validate_trigger_parameters:
+            self._logger.warn('Trigger validation failed and validation is enabled, not '
+                              'dispatching a trigger "%s" (%s)' % (trigger, str(payload)))
             return None
 
         self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)

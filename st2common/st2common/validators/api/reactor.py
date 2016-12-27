@@ -67,6 +67,8 @@ def validate_trigger_parameters(trigger_type_ref, parameters):
 
     :param parameters: Trigger parameters.
     :type parameters: ``dict``
+
+    :return: Cleaned parameters on success, None if validation is not performed.
     """
     if not trigger_type_ref:
         return None
