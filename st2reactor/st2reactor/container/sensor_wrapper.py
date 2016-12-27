@@ -34,7 +34,7 @@ from st2reactor.sensor.base import Sensor, PollingSensor
 from st2reactor.sensor import config
 from st2common.services.datastore import DatastoreService
 from st2common.util.monkey_patch import monkey_patch
-from st2common.validators.api.reactor import validate_trigger_parameters
+from st2common.validators.api.reactor import validate_trigger_payload
 
 __all__ = [
     'SensorWrapper',
@@ -104,7 +104,7 @@ class SensorService(object):
         # This means specified payload is complied with trigger_type schema, or not.
         is_valid = True
         try:
-            validate_trigger_parameters(trigger_type_ref=trigger, parameters=payload)
+            validate_trigger_payload(trigger_type_ref=trigger, payload=payload)
         except (ValidationError, Exception) as e:
             is_valid = False
             self._logger.warn('Failed to validate payload (%s) for trigger "%s": %s' %
@@ -112,8 +112,8 @@ class SensorService(object):
 
         # If validation is disabled, still dispatch a trigger even if it failed validation
         # This condition prevents unexpected restriction.
-        if not is_valid and cfg.CONF.system.validate_trigger_parameters:
-            self._logger.warn('Trigger validation failed and validation is enabled, not '
+        if not is_valid and cfg.CONF.system.validate_trigger_payload:
+            self._logger.warn('Trigger payload validation failed and validation is enabled, not '
                               'dispatching a trigger "%s" (%s)' % (trigger, str(payload)))
             return None
 

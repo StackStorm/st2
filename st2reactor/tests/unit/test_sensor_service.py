@@ -37,7 +37,7 @@ class SensorServiceTestCase(unittest2.TestCase):
         self._dispatched_count = 0
 
         # reset default configuration value
-        cfg.CONF.system.validate_trigger_parameters = False
+        cfg.CONF.system.validate_trigger_payload = False
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
                 mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
@@ -69,7 +69,7 @@ class SensorServiceTestCase(unittest2.TestCase):
         }
 
         # set config to stop dispatching when the payload comply with target trigger_type
-        cfg.CONF.system.validate_trigger_parameters = True
+        cfg.CONF.system.validate_trigger_payload = True
 
         self.sensor_service.dispatch('trigger-name', payload)
 
@@ -77,7 +77,7 @@ class SensorServiceTestCase(unittest2.TestCase):
         self.assertEqual(self._dispatched_count, 0)
 
         # reset config to permit force dispatching
-        cfg.CONF.system.validate_trigger_parameters = False
+        cfg.CONF.system.validate_trigger_payload = False
 
         self.sensor_service.dispatch('trigger-name', payload)
         self.assertEqual(self._dispatched_count, 1)
@@ -89,13 +89,13 @@ class SensorServiceTestCase(unittest2.TestCase):
         payload = {
             'age': 25,
         }
-        cfg.CONF.system.validate_trigger_parameters = True
+        cfg.CONF.system.validate_trigger_payload = True
 
         self.sensor_service.dispatch('trigger-name', payload)
         self.assertEqual(self._dispatched_count, 0)
 
         # reset config to permit force dispatching
-        cfg.CONF.system.validate_trigger_parameters = False
+        cfg.CONF.system.validate_trigger_payload = False
 
         self.sensor_service.dispatch('trigger-name', payload)
         self.assertEqual(self._dispatched_count, 1)
@@ -108,7 +108,7 @@ class SensorServiceTestCase(unittest2.TestCase):
             'name': 'John Doe',
             'hobby': 'programming',
         }
-        cfg.CONF.system.validate_trigger_parameters = True
+        cfg.CONF.system.validate_trigger_payload = True
 
         self.sensor_service.dispatch('trigger-name', payload)
         self.assertEqual(self._dispatched_count, 0)
@@ -121,7 +121,7 @@ class SensorServiceTestCase(unittest2.TestCase):
             'income': 1234,
         }
 
-        cfg.CONF.system.validate_trigger_parameters = True
+        cfg.CONF.system.validate_trigger_payload = True
 
         self.sensor_service.dispatch('trigger-name', payload)
 
@@ -139,7 +139,7 @@ class SensorServiceTestCase(unittest2.TestCase):
             'age': None,
         }
 
-        cfg.CONF.system.validate_trigger_parameters = True
+        cfg.CONF.system.validate_trigger_payload = True
 
         self.sensor_service.dispatch('trigger-name', payload)
         self.assertEqual(self._dispatched_count, 1)
@@ -160,7 +160,7 @@ class SensorServiceTestCase(unittest2.TestCase):
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
                 mock.MagicMock(return_value=None))
     def test_dispatch_trigger__type_not_in_db_should_still_dispatch(self):
-        cfg.CONF.system.validate_trigger_parameters = True
+        cfg.CONF.system.validate_trigger_payload = True
 
         self.sensor_service.dispatch('not-in-database-ref', {})
         self.assertEqual(self._dispatched_count, 1)
