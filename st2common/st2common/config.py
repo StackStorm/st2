@@ -70,7 +70,12 @@ def register_opts(ignore_errors=False):
     system_opts = [
         cfg.BoolOpt('debug', help='Enable debug mode.', default=False),
         cfg.StrOpt('base_path', default='/opt/stackstorm',
-                   help='Base path to all st2 artifacts.')
+                   help='Base path to all st2 artifacts.'),
+        cfg.StrOpt('validate_trigger_parameters', default=False,
+                   help=('True to validate parameters for non-system trigger types when creating'
+                         'a rule and when dispatching a trigger inside a sensor. By default, '
+                         'only parameters for system triggers are validated'))
+
     ]
     do_register_opts(system_opts, 'system', ignore_errors)
 

@@ -15,8 +15,10 @@
 
 import six
 
+from oslo_config import cfg
 from apscheduler.triggers.cron import CronTrigger
 
+from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.constants.triggers import SYSTEM_TRIGGER_TYPES
 from st2common.constants.triggers import CRON_TIMER_TRIGGER_REF
@@ -28,6 +30,9 @@ __all__ = [
     'validate_criteria',
     'validate_trigger_parameters'
 ]
+
+
+LOG = logging.getLogger(__name__)
 
 allowed_operators = criteria_operators.get_allowed_operators()
 
@@ -67,11 +72,21 @@ def validate_trigger_parameters(trigger_type_ref, parameters):
         return None
 
     trigger_type = triggers.get_trigger_type_db(trigger_type_ref)
-    if trigger_type_ref in SYSTEM_TRIGGER_TYPES:
+    is_system_trigger = trigger_type_ref in SYSTEM_TRIGGER_TYPES
+    if is_system_trigger:
+        # System trigger
         parameters_schema = SYSTEM_TRIGGER_TYPES[trigger_type_ref]['parameters_schema']
     elif trigger_type and trigger_type.payload_schema:
+        # Non system trigger
         parameters_schema = trigger_type.payload_schema
     else:
+        # Trigger doesn't exist in the database
+        return None
+
+    # We only validate non-system triggers if config option is set (enabled)
+    if not is_system_trigger and not cfg.CONF.system.validate_trigger_parameters:
+        LOG.debug('Got non-system trigger "%s", but trigger parameter validation for non-system'
+                  'triggers is disabled, skipping validation.' % (trigger_type_ref))
         return None
 
     cleaned = util_schema.validate(instance=parameters, schema=parameters_schema,
