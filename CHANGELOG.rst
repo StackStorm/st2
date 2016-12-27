@@ -4,8 +4,46 @@ Changelog
 in development
 --------------
 
+* Fix ``/v1/packs/views/files/<pack ref or id>`` and
+  ``/v2/packs/views/files/<pack ref or id>/<file path>`` API endpoint so it
+  works correctly for packs where pack name is not equal to the pack ref. (bug fix)
 
-2.1.0 - November 30, 2016
+  Reported by skjbulcher #3128
+* Improve binary file detection and fix "pack files" API controller so it works correctly for
+  new-style packs which are also git repositories. (bug fix)
+* Fix returning a tuple from the Python runner so it also works correctly, even if action returns
+  a complex type (e.g. Python class instance) as a result. (bug fix)
+
+  Reported by skjbulcher #3133
+
+2.1.1 - December 16, 2016
+-------------------------
+
+* After running ``st2 pack install`` CLI command display which packs have been installed.
+  (improvement)
+* Update ``/v1/packs/register`` API endpoint so it throws on failure (e.g. invalid pack or resource
+  metadata). This way the default behavior is consistent with default
+  ``st2ctl reload --register-all`` behavior.
+
+  If user doesn't want the API endpoint to fail on failure, they can pass
+  ``"fail_on_failure": false`` attribute in the request payload. (improvement)
+* Throw a more user-friendly exception when registering packs (``st2ctl reload``) if pack ref /
+  name is invalid. (improvement)
+* ``core.http`` action now also supports HTTP basic auth and digest authentication by passing
+  ``username`` and ``password`` parameter to the action. (new feature)
+* Fix ``GET /v1/packs/<pack ref or id>`` API endpoint - make sure pack object is correctly returned
+  when pack ref doesn't match pack name. Previously, 404 not found was thrown. (bug fix)
+* Update local action runner so it supports and works with non-ascii (unicode) parameter keys and
+  values. (bug fix)
+
+  Contribution by Hiroyasu OHYAMA. #3116
+* Update ``packs.load`` action to also register triggers by default. (improvement)
+* Update ``/v1/packs/register`` API endpoint so it registers resources in the correct order which
+  is the same as order used in ``st2-register-content`` script. (bug fix)
+* Fix cancellation specified in concurrency policies to cancel actions appropriately. Previously, mistral
+  workflow is orphaned and left in a running state. (bug fix)
+
+2.1.0 - December 05, 2016
 -------------------------
 
 * Pack management changes:
@@ -51,7 +89,7 @@ in development
   around this new API endpoint.
 
   Also add two new corresponding CLI commands - ``st2 alias-execution match`` and
-  ``st2 alias-execution execute``. Contribution by Anthony Shaw. (new feature) #2895. 
+  ``st2 alias-execution execute``. Contribution by Anthony Shaw. (new feature) #2895.
 * Adding ability to pass complex array types via CLI by first trying to
   seralize the array as JSON and then falling back to comma separated array.
 * Add new ``core.pause`` action. This action behaves like sleep and can be used inside the action

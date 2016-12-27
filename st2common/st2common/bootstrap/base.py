@@ -45,7 +45,8 @@ LOG = logging.getLogger(__name__)
 REGISTERED_PACKS_CACHE = {}
 
 EXCLUDE_FILE_PATTERNS = [
-    '*.pyc'
+    '*.pyc',
+    '.git/*'
 ]
 
 
@@ -118,7 +119,11 @@ class ResourceRegistrar(object):
 
         try:
             pack_db, _ = self._register_pack(pack_name=pack_name, pack_dir=pack_dir)
-        except Exception:
+        except Exception as e:
+            if self._fail_on_failure:
+                msg = 'Failed to register pack "%s": %s' % (pack_name, str(e))
+                raise ValueError(msg)
+
             LOG.exception('Failed to register pack "%s"' % (pack_name))
             return None
 

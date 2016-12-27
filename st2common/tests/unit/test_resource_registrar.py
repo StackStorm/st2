@@ -39,6 +39,8 @@ PACK_PATH_9 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy
 PACK_PATH_10 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_10')
 PACK_PATH_11 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_11')
 PACK_PATH_12 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_12')
+PACK_PATH_13 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_13')
+PACK_PATH_14 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_14')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -63,12 +65,27 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertEqual(len(pack_dbs), 1)
         self.assertEqual(len(config_schema_dbs), 1)
 
-        self.assertEqual(pack_dbs[0].name, 'dummy_pack_1')
-        self.assertEqual(len(pack_dbs[0].contributors), 2)
-        self.assertEqual(pack_dbs[0].contributors[0], 'John Doe1 <john.doe1@gmail.com>')
-        self.assertEqual(pack_dbs[0].contributors[1], 'John Doe2 <john.doe2@gmail.com>')
-        self.assertTrue('api_key' in config_schema_dbs[0].attributes)
-        self.assertTrue('api_secret' in config_schema_dbs[0].attributes)
+        pack_db = pack_dbs[0]
+        config_schema_db = config_schema_dbs[0]
+
+        self.assertEqual(pack_db.name, 'dummy_pack_1')
+        self.assertEqual(len(pack_db.contributors), 2)
+        self.assertEqual(pack_db.contributors[0], 'John Doe1 <john.doe1@gmail.com>')
+        self.assertEqual(pack_db.contributors[1], 'John Doe2 <john.doe2@gmail.com>')
+        self.assertTrue('api_key' in config_schema_db.attributes)
+        self.assertTrue('api_secret' in config_schema_db.attributes)
+
+        # Verify pack_db.files is correct and doesn't contain excluded files (*.pyc, .git/*, etc.)
+        # Note: We can't test that .git/* files are excluded since git doesn't allow you to add
+        # .git directory to existing repo index :/
+        excluded_files = [
+            '__init__.pyc',
+            'actions/dummy1.pyc',
+            'actions/dummy2.pyc',
+        ]
+
+        for excluded_file in excluded_files:
+            self.assertTrue(excluded_file not in pack_db.files)
 
     def test_register_pack_pack_ref(self):
         # Verify DB is empty
@@ -104,6 +121,28 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         expected_msg = 'contains invalid characters'
         self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_8)
+
+    def test_register_pack_invalid_ref_name_friendly_error_message(self):
+        registrar = ResourceRegistrar(use_pack_cache=False)
+
+        # Invalid ref
+        expected_msg = (r'Pack ref / name can only contain valid word characters .*?,'
+                        ' dashes are not allowed.')
+        self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
+                                pack_name=None, pack_dir=PACK_PATH_13)
+
+        try:
+            registrar._register_pack_db(pack_name=None, pack_dir=PACK_PATH_13)
+        except ValidationError as e:
+            self.assertTrue("'invalid-has-dash' does not match '^[a-z0-9_]+$'" in str(e))
+        else:
+            self.fail('Exception not thrown')
+
+        # Pack ref not provided and name doesn't contain valid characters
+        expected_msg = (r'Pack name "dummy pack 14" contains invalid characters and "ref" '
+                        'attribute is not available. You either need to add')
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
+                                pack_name=None, pack_dir=PACK_PATH_14)
 
     @mock.patch('st2common.models.api.pack.NORMALIZE_PACK_VERSION', False)
     def test_register_pack_invalid_semver_version_friendly_error_message(self):

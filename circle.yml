@@ -1,53 +1,31 @@
-# Setup in CircleCI account the following ENV variables:
-# IS_PRODUCTION (default: 0)
-# IS_ENTERPRISE (default: 0)
-# PACKAGECLOUD_ORGANIZATION (default: stackstorm)
-# PACKAGECLOUD_TOKEN
-# DOCKER_USER
-# DOCKER_EMAIL
-# DOCKER_PASSWORD
-
-general:
-  # Don't run CI for PR, only for major branches.
-  # Remove travis and enable per PR at the same time.
-  branches:
-    only:
-      - master
-      - /v[0-9]+\.[0-9]+/
-
 notify:
   webhooks:
     - url: https://webhooks.stackstorm.net:8531/webhooks/build/events
 
 machine:
-  environment:
-    ST2_REPO_ROOT_DIR: ${HOME}/${CIRCLE_PROJECT_REPONAME}
-    BUILD_DOCKER: 0
   services:
-    - docker
     - mongodb
     - postgresql
     - rabbitmq-server
 
 dependencies:
-  override:  # Let's install Mongo 3 manually because circle doesn't support mongo3 yet
-    - sudo apt-get purge mongodb-org*
-    - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-    - echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
-    - sudo apt-get update
-    - sudo apt-get install -y mongodb-org
-    - sudo service mongod restart
   cache_directories:
     - ~/.cache/pip
   pre:
     - sudo .circle/configure-services.sh
     - sudo .circle/add-itest-user.sh
-    - sudo apt-get -y install parallel jq
-  post:
-    - cd ${ST2_REPO_ROOT_DIR} && hostname && make compile requirements
+  # Let's install Mongo 3 manually because circle doesn't support mongo3 yet
+    - sudo .circle/install-mongo.sh
+    - sudo pip install codecov
+  override:
+    - make compile requirements
+
 test:
   override:
-    - case $CIRCLE_NODE_INDEX in 0) cd ${ST2_REPO_ROOT_DIR} && make .flake8 .pylint ;; 1) cd ${ST2_REPO_ROOT_DIR} && make .unit-tests-coverage-html clean ;; 2) cd ${ST2_REPO_ROOT_DIR} && make .itests-coverage-html clean ;; esac:
+    - case $CIRCLE_NODE_INDEX in 0) make ci-checks ci-packs-tests ;; 1) make ci-unit ;; 2) make ci-integration ;; esac:
+        parallel: true
+  post:
+    - case $CIRCLE_NODE_INDEX in [1,2]) codecov ;; esac:
         parallel: true
 
 experimental:

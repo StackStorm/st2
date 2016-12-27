@@ -17,6 +17,7 @@ import os
 import json
 import atexit
 import argparse
+import traceback
 
 from oslo_config import cfg
 from jsonschema import ValidationError
@@ -282,9 +283,12 @@ class SensorWrapper(object):
                                                         file_path=self._file_path,
                                                         class_name=self._class_name)
         except Exception as e:
-            msg = ('Failed to load sensor class from file "%s"'
-                   ' (sensor file most likely doesn\'t exist): %s' % (self._file_path, str(e)))
-            raise ValueError(msg)
+            tb_msg = traceback.format_exc()
+            msg = ('Failed to load sensor class from file "%s" (sensor file most likely doesn\'t '
+                   'exist or contains invalid syntax): %s' % (self._file_path, str(e)))
+            msg += '\n\n' + tb_msg
+            exc_cls = type(e)
+            raise exc_cls(msg)
 
         if not sensor_class:
             raise ValueError('Sensor module is missing a class with name "%s"' %

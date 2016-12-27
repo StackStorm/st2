@@ -35,6 +35,6 @@ class BaseConcurrencyApplicator(base.ResourcePolicyApplicator):
         if action == 'delay':
             status = action_constants.LIVEACTION_STATUS_DELAYED
         elif action == 'cancel':
-            status = action_constants.LIVEACTION_STATUS_CANCELED
+            status = action_constants.LIVEACTION_STATUS_CANCELING
 
         return status

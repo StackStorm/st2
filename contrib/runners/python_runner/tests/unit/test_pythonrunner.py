@@ -119,6 +119,21 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertTrue(output is not None)
         self.assertEqual(output['result'], "This is suppose to fail don't worry!!")
 
+    def test_simple_action_with_status_complex_type_returned_for_result(self):
+        # Result containing a complex type shouldn't break the returning a tuple with status
+        # behavior
+        runner = python_runner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = PASCAL_ROW_ACTION_PATH
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({'row_index': 'complex_type'})
+
+        self.assertEqual(status, LIVEACTION_STATUS_FAILED)
+        self.assertTrue(output is not None)
+        self.assertTrue('<pascal_row.PascalRowAction object at' in output['result'])
+
     def test_simple_action_with_status_failed_result_none(self):
         runner = python_runner.get_runner()
         runner.action = self._get_mock_action_obj()

@@ -30,7 +30,7 @@ tests_config.parse_args()
 
 from mistral_v2 import MistralRunner
 from st2common.bootstrap import actionsregistrar
-import st2common.bootstrap.runnersregistrar as runners_registrar
+from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
 from st2common.models.api.auth import TokenAPI
 from st2common.models.db.liveaction import LiveActionDB
@@ -77,7 +77,8 @@ WF1_META_FILE_PATH = TEST_PACK_PATH + '/actions/' + WF1_META_FILE_NAME
 WF1_META_CONTENT = loader.load_meta_file(WF1_META_FILE_PATH)
 WF1_NAME = WF1_META_CONTENT['pack'] + '.' + WF1_META_CONTENT['name']
 WF1_ENTRY_POINT = TEST_PACK_PATH + '/actions/' + WF1_META_CONTENT['entry_point']
-WF1_SPEC = yaml.safe_load(MistralRunner.get_workflow_definition(WF1_ENTRY_POINT))
+WF1_ENTRY_POINT_X = WF1_ENTRY_POINT.replace(WF1_META_FILE_NAME, 'xformed_' + WF1_META_FILE_NAME)
+WF1_SPEC = yaml.safe_load(MistralRunner.get_workflow_definition(WF1_ENTRY_POINT_X))
 WF1_YAML = yaml.safe_dump(WF1_SPEC, default_flow_style=False)
 WF1 = workflows.Workflow(None, {'name': WF1_NAME, 'definition': WF1_YAML})
 WF1_OLD = workflows.Workflow(None, {'name': WF1_NAME, 'definition': ''})
@@ -114,22 +115,22 @@ class MistralAuthTest(DbTestCase):
         cfg.CONF.set_override('retry_exp_msec', 100, group='mistral')
         cfg.CONF.set_override('retry_exp_max_msec', 200, group='mistral')
         cfg.CONF.set_override('retry_stop_max_msec', 200, group='mistral')
+        cfg.CONF.set_override('api_url', 'http://0.0.0.0:9101', group='auth')
 
         # Register runners.
-        runners_registrar.register_runners()
+        runnersregistrar.register_runners()
 
         # Register test pack(s).
-        registrar = actionsregistrar.ActionsRegistrar(
+        actions_registrar = actionsregistrar.ActionsRegistrar(
             use_pack_cache=False,
             fail_on_failure=True
         )
 
         for pack in PACKS:
-            registrar.register_from_pack(pack)
+            actions_registrar.register_from_pack(pack)
 
     def setUp(self):
         super(MistralAuthTest, self).setUp()
-        cfg.CONF.set_override('api_url', 'http://0.0.0.0:9101', group='auth')
 
         # Mock the local runner run method.
         local_runner_cls = self.get_runner_class('local_runner')
