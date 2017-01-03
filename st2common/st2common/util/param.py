@@ -153,6 +153,9 @@ def _render(node, render_context):
     '''
     if 'template' in node:
         complex_type = False
+
+        LOG.debug("Rendering param of type: %s", type(node['template']))
+
         if isinstance(node['template'], list) or isinstance(node['template'], dict):
             node['template'] = json.dumps(node['template'])
             node['template'] = re.sub(
@@ -161,6 +164,8 @@ def _render(node, render_context):
             )
             LOG.debug('Rendering complex type: %s', node['template'])
             complex_type = True
+
+        LOG.debug("Rendering param template: %s", node['template'])
 
         LOG.debug('Rendering node: %s with context: %s', node, render_context)
 
@@ -185,28 +190,8 @@ def _resolve_dependencies(G):
     for name in nx.topological_sort(G):
         node = G.node[name]
         try:
-            template = node.get('template', None)
+            context[name] = _render(node, context)
 
-            # Special case for non simple types which contains Jinja notation (lists, dicts)
-            if 'template' in node and isinstance(template, (list, dict)):
-                if isinstance(template, list):
-                    rendered_list = list()
-
-                    for template in G.node[name]['template']:
-                        rendered_list.append(
-                            _render(dict(template=template), context)
-                        )
-                    context[name] = rendered_list
-                elif isinstance(template, dict):
-                    rendered_dict = dict()
-
-                    for key, value in G.node[name]['template'].items():
-                        value = _render(dict(template=value), context)
-                        rendered_dict[key] = value
-
-                    context[name] = rendered_dict
-            else:
-                context[name] = _render(node, context)
         except Exception as e:
             LOG.debug('Failed to render %s: %s', name, e, exc_info=True)
             msg = 'Failed to render parameter "%s": %s' % (name, str(e))

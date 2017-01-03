@@ -343,22 +343,65 @@ class ParamsUtilsTest(DbTestCase):
             'r1': '{{r2}}',
             'r2': {'r2.1': 1},
             'a1': True,
-            'a2': '{{a1}}'
+            'a2': '{{a1}}',
+            'a3': {
+                'test': '{{a1}}',
+                'test1': '{{a4}}',
+                'test2': '{{a5}}',
+            },
+            'a4': 3,
+            'a5': ['1', '{{a1}}']
         }
         runner_param_info = {'r1': {'type': 'object'}, 'r2': {'type': 'object'}}
-        action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'boolean'}}
+        action_param_info = {
+            'a1': {
+                'type': 'boolean',
+            },
+            'a2': {
+                'type': 'boolean',
+            },
+            'a3': {
+                'type': 'object',
+            },
+            'a4': {
+                'type': 'integer',
+            },
+            'a5': {
+                'type': 'array',
+            },
+        }
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, {})
-        self.assertEqual(r_runner_params, {'r1': {'r2.1': 1}, 'r2': {'r2.1': 1}})
-        self.assertEqual(r_action_params, {'a1': True, 'a2': True})
+        self.assertEqual(
+            r_runner_params, {'r1': {'r2.1': 1}, 'r2': {'r2.1': 1}})
+        self.assertEqual(
+            r_action_params,
+            {
+                'a1': True,
+                'a2': True,
+                'a3': {
+                    'test': True,
+                    'test1': 3,
+                    'test2': [
+                        '1',
+                        True
+                    ],
+                },
+                'a4': 3,
+                'a5': [
+                    '1',
+                    True
+                ],
+            }
+        )
 
     def test_get_finalized_params_with_list(self):
         # Note : In this test runner_params.r1 has a string value. However per runner_param_info the
         # type is an integer. The expected type is considered and cast is performed accordingly.
+        self.maxDiff = None
         params = {
             'r1': '{{r2}}',
             'r2': ['1', '2'],
-            'i1': 5,
             'a1': True,
             'a2': 'Test',
             'a3': 'Test2',
@@ -367,8 +410,13 @@ class ParamsUtilsTest(DbTestCase):
             'a6': [
                 ['{{r2}}', '{{a2}}'],
                 ['{{a3}}', '{{a1}}'],
-                ['{{i1}}', 'This should be rendered as a string {{a1}}']
-            ]
+                [
+                    '{{a7}}',
+                    'This should be rendered as a string {{a1}}',
+                    '{{a1}} This, too, should be rendered as a string {{a1}}',
+                ]
+            ],
+            'a7': 5,
         }
         runner_param_info = {'r1': {'type': 'array'}, 'r2': {'type': 'array'}}
         action_param_info = {
@@ -377,7 +425,8 @@ class ParamsUtilsTest(DbTestCase):
             'a3': {'type': 'string'},
             'a4': {'type': 'boolean'},
             'a5': {'type': 'array'},
-            'a6': {'type': 'array'}
+            'a6': {'type': 'array'},
+            'a7': {'type': 'integer'},
         }
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, {})
@@ -393,8 +442,13 @@ class ParamsUtilsTest(DbTestCase):
                 'a6': [
                     [['1', '2'], 'Test'],
                     ['Test2', True],
-                    [5, 'This should be rendered as a string True']
-                ]
+                    [
+                        5,
+                        u'This should be rendered as a string True',
+                        u'True This, too, should be rendered as a string True'
+                    ]
+                ],
+                'a7': 5,
             }
         )
 
@@ -516,7 +570,7 @@ class ParamsUtilsTest(DbTestCase):
 
         expected_params = {
             'host': 'lolcathost',
-            'port': '5555',
+            'port': 5555,
             'path': '/bar'
         }
         self.assertEqual(r_action_params['params'], expected_params)
