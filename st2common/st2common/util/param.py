@@ -156,6 +156,10 @@ def _render(node, render_context):
 
         if isinstance(node['template'], list) or isinstance(node['template'], dict):
             node['template'] = json.dumps(node['template'])
+
+            # Finds occourances of "{{variable}}" and adds `to_complex` filter
+            # so types are honored. If it doesn't follow that syntax then it's
+            # rendered as a string.
             node['template'] = re.sub(
                 r'"{{([A-z0-9_-]+)}}"', r'{{\1 | to_complex}}',
                 node['template']
