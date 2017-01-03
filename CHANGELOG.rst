@@ -15,6 +15,9 @@ in development
   a complex type (e.g. Python class instance) as a result. (bug fix)
 
   Reported by skjbulcher #3133
+* Add support for complex rendering inside of array and object types. This allows the user to
+  nest Jinja variables in array and object types.
+
 
 2.1.1 - December 16, 2016
 -------------------------

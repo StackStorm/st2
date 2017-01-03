@@ -48,6 +48,7 @@ def get_filters():
     from st2common.jinja.filters import crypto
     from st2common.jinja.filters import data
     from st2common.jinja.filters import regex
+    from st2common.jinja.filters import complex_type
     from st2common.jinja.filters import time
     from st2common.jinja.filters import version
 
@@ -55,6 +56,8 @@ def get_filters():
         'decrypt_kv': crypto.decrypt_kv,
         'to_json_string': data.to_json_string,
         'to_yaml_string': data.to_yaml_string,
+
+        'to_complex': complex_type.to_complex,
 
         'regex_match': regex.regex_match,
         'regex_replace': regex.regex_replace,
