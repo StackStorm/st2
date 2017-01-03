@@ -57,11 +57,14 @@ ACTION_SENSOR_TRIGGER = {
             'status': {},
             'start_timestamp': {},
             'action_name': {},
+            'action_ref': {},
+            'runner_ref': {},
             'parameters': {},
             'result': {}
         }
     }
 }
+
 ACTION_FILE_WRITTEN_TRIGGER = {
     'name': 'st2.action.file_writen',
     'pack': SYSTEM_PACK_NAME,
@@ -71,7 +74,6 @@ ACTION_FILE_WRITTEN_TRIGGER = {
         'properties': {
             'ref': {},
             'file_path': {},
-            'content': {},
             'host_info': {}
         }
     }
