@@ -23,10 +23,4 @@ __all__ = [
 def to_complex(value):
     result = json.dumps(value)
 
-    if isinstance(result, unicode):
-        try:
-            result = str(result)
-        except UnicodeEncodeError:
-            pass
-
     return result

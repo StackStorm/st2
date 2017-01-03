@@ -154,8 +154,6 @@ def _render(node, render_context):
     if 'template' in node:
         complex_type = False
 
-        LOG.debug("Rendering param of type: %s", type(node['template']))
-
         if isinstance(node['template'], list) or isinstance(node['template'], dict):
             node['template'] = json.dumps(node['template'])
             node['template'] = re.sub(
@@ -164,8 +162,6 @@ def _render(node, render_context):
             )
             LOG.debug('Rendering complex type: %s', node['template'])
             complex_type = True
-
-        LOG.debug("Rendering param template: %s", node['template'])
 
         LOG.debug('Rendering node: %s with context: %s', node, render_context)
 
