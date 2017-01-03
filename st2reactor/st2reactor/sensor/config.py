@@ -55,12 +55,6 @@ def _register_sensor_container_opts(ignore_errors=False):
     ]
     st2cfg.do_register_opts(partition_opts, group='sensorcontainer', ignore_errors=ignore_errors)
 
-    validation_opts = [
-        cfg.BoolOpt('permit_invalid_payload', default=True, help='permit sensors to send payload \
-            that does not comply with payload_schema of Trigger')
-    ]
-    st2cfg.do_register_opts(validation_opts, group='sensorcontainer', ignore_errors=ignore_errors)
-
     sensor_test_opt = cfg.StrOpt('sensor-ref', help='Only run sensor with the provided reference. \
         Value is of the form pack.sensor-name.')
     st2cfg.do_register_cli_opts(sensor_test_opt, ignore_errors=ignore_errors)
