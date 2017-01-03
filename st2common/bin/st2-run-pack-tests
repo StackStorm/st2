@@ -126,7 +126,10 @@ echo "Running tests for pack: ${PACK_NAME}"
 # Create virtualenv
 VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
 
-if [ "${CREATE_VIRTUALENV}" = true ]; then
+if [ "${CREATE_VIRTUALENV}" = false ]; then
+    echo "Activating virtualenv in ${VIRTUALENV_DIR}..."
+    source ${VIRTUALENV_DIR}/bin/activate
+else
     echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
     mkdir -p ${VIRTUALENVS_DIR}
     virtualenv --system-site-packages ${VIRTUALENV_DIR}
@@ -136,6 +139,36 @@ if [ "${CREATE_VIRTUALENV}" = true ]; then
 
     # Activate created virtualenv
     source ${VIRTUALENV_DIR}/bin/activate
+
+    # Ignore irritating urllib3 warnings while installing dependencies
+    export PYTHONWARNINGS="ignore:a true SSLContext object, ignore:an https request"
+
+    # Install st2 dependencies
+    if [ ${ST2_REPO_PATH} ]; then
+        echo "Installing dependencies from st2 repository..."
+        pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/requirements.txt
+        pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/test-requirements.txt
+    fi
+
+    # Install global test dependencies
+    echo "Installing global pack test dependencies..."
+    for dependency in ${PACK_TEST_PYTHON_DEPENDENCIES[@]}; do
+        pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${dependency}"
+    done
+
+    # Install pack dependencies
+    if [ -f ${PACK_REQUIREMENTS_FILE} ]; then
+        echo "Installing pack-specific dependencies..."
+        pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_REQUIREMENTS_FILE}
+    fi
+
+    # Install pack test dependencies (if any)
+    if [ -f ${PACK_TESTS_REQUIREMENTS_FILE} ]; then
+        echo "Installing pack-specific test dependencies..."
+        pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_TESTS_REQUIREMENTS_FILE}
+    fi
+
+    unset PYTHONWARNINGS
 fi
 
 # Note: If we are running outside of st2, we need to add all the st2 components
@@ -148,31 +181,6 @@ else
     # ST2_REPO_PATH not provided, assume all the st2 component packages are
     # already in PYTHONPATH
     PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):${SENSORS_PATH}:${ACTIONS_PATH}:${ETC_PATH}"
-fi
-
-# Install st2 dependencies
-if [ ${ST2_REPO_PATH} ]; then
-    echo "Installing dependencies from st2 repository..."
-    pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/requirements.txt
-    pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/test-requirements.txt
-fi
-
-# Install global test dependencies
-echo "Installing global pack test dependencies..."
-for dependency in ${PACK_TEST_PYTHON_DEPENDENCIES[@]}; do
-    pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${dependency}"
-done
-
-# Install pack dependencies
-if [ -f ${PACK_REQUIREMENTS_FILE} ]; then
-    echo "Installing pack-specific dependencies..."
-    pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_REQUIREMENTS_FILE}
-fi
-
-# Install pack test dependencies (if any)
-if [ -f ${PACK_TESTS_REQUIREMENTS_FILE} ]; then
-    echo "Installing pack-specific test dependencies..."
-    pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_TESTS_REQUIREMENTS_FILE}
 fi
 
 # Set PYTHONPATH, make sure it contains st2 components in PATH
