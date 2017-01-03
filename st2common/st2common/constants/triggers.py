@@ -89,7 +89,9 @@ NOTIFY_TRIGGER = {
             'start_timestamp': {},
             'end_timestamp': {},
             'action_ref': {},
+            'runner_ref': {},
             'channel': {},
+            'route': {},
             'message': {},
             'data': {}
         }
