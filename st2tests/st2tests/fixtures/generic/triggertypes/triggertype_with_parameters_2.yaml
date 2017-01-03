@@ -1,12 +1,12 @@
 ---
-name: triggertype_with_params
+name: triggertype_with_parameters_2
 pack: wolfpack
 parameters_schema:
+  type: object
   additionalProperties: false
   properties:
-    x:
+    param1:
       type: string
       required: true
-  type: object
 payload_schema:
   type: object

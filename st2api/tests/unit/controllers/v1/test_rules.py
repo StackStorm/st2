@@ -14,8 +14,10 @@
 # limitations under the License.
 
 import copy
+
 import mock
 import six
+from oslo_config import cfg
 
 from st2common.constants.rules import RULE_TYPE_STANDARD, RULE_TYPE_BACKSTOP
 from st2common.constants.pack import DEFAULT_PACK_NAME
@@ -31,7 +33,7 @@ TEST_FIXTURES = {
     'runners': ['testrunner1.yaml'],
     'actions': ['action1.yaml'],
     'triggers': ['trigger1.yaml'],
-    'triggertypes': ['triggertype1.yaml']
+    'triggertypes': ['triggertype1.yaml', 'triggertype_with_parameters_2.yaml']
 }
 
 FIXTURES_PACK = 'generic'
@@ -45,6 +47,10 @@ class TestRuleController(FunctionalTest):
     @classmethod
     def setUpClass(cls):
         super(TestRuleController, cls).setUpClass()
+
+        # reset default configuration value
+        cfg.CONF.system.validate_trigger_parameters = False
+
         models = TestRuleController.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
         TestRuleController.RUNNER_TYPE = models['runners']['testrunner1.yaml']
@@ -89,6 +95,16 @@ class TestRuleController(FunctionalTest):
 
         file_name = 'cron_timer_rule_invalid_parameters_3.yaml'
         TestRuleController.RULE_8 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+        file_name = 'rule_invalid_trigger_parameter_type.yaml'
+        TestRuleController.RULE_9 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+        file_name = 'rule_trigger_with_no_parameters.yaml'
+        TestRuleController.RULE_10 = TestRuleController.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
@@ -199,6 +215,35 @@ class TestRuleController(FunctionalTest):
 
         expected_msg = 'Invalid weekday name \\"a\\"'
         self.assertTrue(expected_msg in post_resp.body)
+
+    def test_post_invalid_custom_trigger_parameter_trigger_param_validation_enabled(self):
+        # Invalid custom trigger parameter (invalid type) and non-system trigger parameter
+        # validation is enabled - trigger creation should fail
+        cfg.CONF.system.validate_trigger_parameters = True
+
+        post_resp = self.__do_post(TestRuleController.RULE_9)
+        self.assertEqual(post_resp.status_int, http_client.BAD_REQUEST)
+        self.assertTrue("Failed validating u'type' in schema[u'properties'][u'param1']:" in
+                        post_resp.json['faultstring'])
+        self.assertTrue('12345 is not of type u\'string\'' in post_resp.json['faultstring'])
+
+    def test_post_invalid_custom_trigger_parameter_trigger_param_validation_disabled(self):
+        # Invalid custom trigger parameter (invalid type) and non-system trigger parameter
+        # validation is disabled - trigger creation should succeed
+        cfg.CONF.system.validate_trigger_parameters = False
+
+        post_resp = self.__do_post(TestRuleController.RULE_9)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
+
+    def test_post_invalid_custom_trigger_parameter_trigger_no_parameters_schema(self):
+        # Invalid custom trigger parameters, custom trigger contains no parameters_schema and as
+        # such, no parameters
+        # Rule creation should succeed because parameters_schema is not provided and as such,
+        # validation is not performed.
+        cfg.CONF.system.validate_trigger_parameters = True
+
+        post_resp = self.__do_post(TestRuleController.RULE_10)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
 
     def test_post_no_enabled_attribute_disabled_by_default(self):
         post_resp = self.__do_post(TestRuleController.RULE_3)
