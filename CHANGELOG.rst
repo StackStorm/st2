@@ -30,6 +30,8 @@ in development
   (it's disabled by default) and if trigger object defines ``payload_schema`` attribute.
 
   Contribution by Hiroyasu OHYAMA. #3094
+* Add support for complex rendering inside of array and object types. This allows the user to
+  nest Jinja variables in array and object types.
 
 2.1.1 - December 16, 2016
 -------------------------

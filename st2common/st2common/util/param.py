@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+import re
 import six
 import networkx as nx
 
@@ -150,8 +152,32 @@ def _render(node, render_context):
     Render the node depending on its type
     '''
     if 'template' in node:
+        complex_type = False
+
+        if isinstance(node['template'], list) or isinstance(node['template'], dict):
+            node['template'] = json.dumps(node['template'])
+
+            # Finds occourances of "{{variable}}" and adds `to_complex` filter
+            # so types are honored. If it doesn't follow that syntax then it's
+            # rendered as a string.
+            node['template'] = re.sub(
+                r'"{{([A-z0-9_-]+)}}"', r'{{\1 | to_complex}}',
+                node['template']
+            )
+            LOG.debug('Rendering complex type: %s', node['template'])
+            complex_type = True
+
         LOG.debug('Rendering node: %s with context: %s', node, render_context)
-        return ENV.from_string(node['template']).render(render_context)
+
+        result = ENV.from_string(str(node['template'])).render(render_context)
+
+        LOG.debug('Render complete: %s', result)
+
+        if complex_type:
+            result = json.loads(result)
+            LOG.debug('Complex Type Rendered: %s', result)
+
+        return result
     if 'value' in node:
         return node['value']
 
@@ -164,28 +190,8 @@ def _resolve_dependencies(G):
     for name in nx.topological_sort(G):
         node = G.node[name]
         try:
-            template = node.get('template', None)
+            context[name] = _render(node, context)
 
-            # Special case for non simple types which contains Jinja notation (lists, dicts)
-            if 'template' in node and isinstance(template, (list, dict)):
-                if isinstance(template, list):
-                    rendered_list = list()
-
-                    for template in G.node[name]['template']:
-                        rendered_list.append(
-                            _render(dict(template=template), context)
-                        )
-                    context[name] = rendered_list
-                elif isinstance(template, dict):
-                    rendered_dict = dict()
-
-                    for key, value in G.node[name]['template'].items():
-                        value = _render(dict(template=value), context)
-                        rendered_dict[key] = value
-
-                    context[name] = rendered_dict
-            else:
-                context[name] = _render(node, context)
         except Exception as e:
             LOG.debug('Failed to render %s: %s', name, e, exc_info=True)
             msg = 'Failed to render parameter "%s": %s' % (name, str(e))
