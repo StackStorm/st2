@@ -22,6 +22,7 @@ from st2common.constants.triggers import SYSTEM_TRIGGER_TYPES
 from st2common.constants.triggers import CRON_TIMER_TRIGGER_REF
 from st2common.util import schema as util_schema
 import st2common.operators as criteria_operators
+from st2common.services import triggers
 
 __all__ = [
     'validate_criteria',
@@ -65,11 +66,14 @@ def validate_trigger_parameters(trigger_type_ref, parameters):
     if not trigger_type_ref:
         return None
 
-    if trigger_type_ref not in SYSTEM_TRIGGER_TYPES:
-        # Not a system trigger, skip validation for now
+    trigger_type = triggers.get_trigger_type_db(trigger_type_ref)
+    if trigger_type_ref in SYSTEM_TRIGGER_TYPES:
+        parameters_schema = SYSTEM_TRIGGER_TYPES[trigger_type_ref]['parameters_schema']
+    elif trigger_type and trigger_type.payload_schema:
+        parameters_schema = trigger_type.payload_schema
+    else:
         return None
 
-    parameters_schema = SYSTEM_TRIGGER_TYPES[trigger_type_ref]['parameters_schema']
     cleaned = util_schema.validate(instance=parameters, schema=parameters_schema,
                                    cls=util_schema.CustomValidator, use_default=True,
                                    allow_default_none=True)

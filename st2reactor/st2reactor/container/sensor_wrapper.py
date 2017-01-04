@@ -20,6 +20,7 @@ import argparse
 import traceback
 
 from oslo_config import cfg
+from jsonschema import ValidationError
 
 from st2common import log as logging
 from st2common.logging.misc import set_log_level_for_all_loggers
@@ -34,6 +35,7 @@ from st2reactor.sensor.base import Sensor, PollingSensor
 from st2reactor.sensor import config
 from st2common.services.datastore import DatastoreService
 from st2common.util.monkey_patch import monkey_patch
+from st2common.validators.api.reactor import validate_trigger_parameters
 
 __all__ = [
     'SensorWrapper',
@@ -100,6 +102,17 @@ class SensorService(object):
         :param trace_context: Trace context to associate with Trigger.
         :type trace_context: ``st2common.api.models.api.trace.TraceContext``
         """
+        # This means specified payload is complied with trigger_type schema, or not.
+        is_valid = False
+        try:
+            is_valid = validate_trigger_parameters(trigger, payload)
+        except ValidationError:
+            self._logger.warn('The specified payload (%s) makes a validation error' % payload)
+
+        # This condition prevents unexpected restriction.
+        if not is_valid and not cfg.CONF.sensorcontainer.permit_invalid_payload:
+            return None
+
         self._dispatcher.dispatch(trigger, payload=payload, trace_context=trace_context)
 
     ##################################
