@@ -15,9 +15,23 @@ in development
   a complex type (e.g. Python class instance) as a result. (bug fix)
 
   Reported by skjbulcher #3133
+* Introduce validation of trigger parameters when creating a rule for non-system (user-defined)
+  trigger types.
+
+  Validation is only performed if ``system.validate_trigger_parameters`` config option is enabled
+  (it's disabled by default) and if trigger object defines ``parameters_schema`` attribute.
+
+  Contribution by Hiroyasu OHYAMA. #3094
+* Introduce validation of trigger payload for non-system and user-defined triggers which is
+  performed when dispatching a trigger inside a sensor and when sending a trigger via custom
+  webhook.
+
+  Validation is only performed if ``system.validate_trigger_payload`` config option is enabled
+  (it's disabled by default) and if trigger object defines ``payload_schema`` attribute.
+
+  Contribution by Hiroyasu OHYAMA. #3094
 * Add support for complex rendering inside of array and object types. This allows the user to
   nest Jinja variables in array and object types.
-
 
 2.1.1 - December 16, 2016
 -------------------------
