@@ -206,10 +206,12 @@ class PythonActionWrapper(object):
             exc_cls = type(e)
             raise exc_cls(msg)
 
+        print actions_cls
+
         action_cls = actions_cls[0] if actions_cls and len(actions_cls) > 0 else None
 
         if not action_cls:
-            raise Exception('File "%s" has no action or the file doesn\'t exist.' %
+            raise Exception('File "%s" has no action class or the file doesn\'t exist.' %
                             (self._file_path))
 
         self._class_name = action_cls.__class__.__name__
