@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
+
 import st2actions
 from st2common.constants.action import LIVEACTION_STATUS_REQUESTED
 from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
@@ -21,6 +23,7 @@ from st2common.bootstrap.policiesregistrar import register_policy_types
 from st2common.models.db.action import LiveActionDB
 from st2common.persistence.action import LiveAction, ActionExecution
 from st2common.services import action as action_service
+from st2common.services import trace as trace_service
 from st2actions.policies.retry import ExecutionRetryPolicyApplicator
 from st2tests.base import DbTestCase
 from st2tests.base import CleanDbTestCase
@@ -228,6 +231,42 @@ class RetryPolicyTestCase(CleanDbTestCase):
         self.policy.apply_after(target=live_action_db)
 
         # Note: There should be no new objects since max retries has been reached
+        live_action_dbs = LiveAction.get_all()
+        action_execution_dbs = ActionExecution.get_all()
+        self.assertEqual(len(live_action_dbs), 1)
+        self.assertEqual(len(action_execution_dbs), 1)
+        self.assertEqual(action_execution_dbs[0].status, LIVEACTION_STATUS_TIMED_OUT)
+
+    @mock.patch.object(
+        trace_service, 'get_trace_db_by_live_action',
+        mock.MagicMock(return_value=(None, None)))
+    def test_no_retry_on_workflow_task(self):
+        # Verify initial state
+        self.assertSequenceEqual(LiveAction.get_all(), [])
+        self.assertSequenceEqual(ActionExecution.get_all(), [])
+
+        # Start a mock action which times out
+        live_action_db = LiveActionDB(
+            action='wolfpack.action-1',
+            parameters={'actionstr': 'foo'},
+            context={'parent': {'execution_id': 'abcde'}}
+        )
+
+        live_action_db, execution_db = action_service.request(live_action_db)
+        live_action_db = LiveAction.get_by_id(str(live_action_db.id))
+        self.assertEqual(live_action_db.status, LIVEACTION_STATUS_REQUESTED)
+
+        # Expire the workflow instance.
+        live_action_db.status = LIVEACTION_STATUS_TIMED_OUT
+        live_action_db.context['policies'] = {}
+        execution_db.status = LIVEACTION_STATUS_TIMED_OUT
+        LiveAction.add_or_update(live_action_db)
+        ActionExecution.add_or_update(execution_db)
+
+        # Simulate policy "apply_after" run
+        self.policy.apply_after(target=live_action_db)
+
+        # Note: There should be no new objects since live action is under the context of a workflow.
         live_action_dbs = LiveAction.get_all()
         action_execution_dbs = ActionExecution.get_all()
         self.assertEqual(len(live_action_dbs), 1)
