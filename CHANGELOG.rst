@@ -37,6 +37,8 @@ in development
 * If a retry policy is defined, action executions under the context of a workflow will not be
   retried on timeout or failure. Previously, action execution will be retried but workflow is
   terminated. (bug fix)
+* Update Python runner to throw a more user-friendly exception in case action metadata file
+  references a script file which doesn't exist or which contains invalid syntax. (improvement)
 
 2.1.1 - December 16, 2016
 -------------------------
