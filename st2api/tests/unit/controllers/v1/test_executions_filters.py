@@ -334,10 +334,12 @@ class TestActionExecutionFilters(FunctionalTest):
 
     def test_filters_view(self):
         response = self.app.get('/v1/executions/views/filters')
+        print(response.json)
         self.assertEqual(response.status_int, 200)
         self.assertIsInstance(response.json, dict)
         self.assertEqual(len(response.json), len(history_views.ARTIFACTS['filters']['default']))
         for key, value in six.iteritems(history_views.ARTIFACTS['filters']['default']):
+            # print(value)
             self.assertEqual(set(response.json[key]), set(value))
 
     def test_filters_view_specific_types(self):

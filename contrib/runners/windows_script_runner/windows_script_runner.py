@@ -28,7 +28,7 @@ from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.runners import WINDOWS_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.runners.windows_runner import BaseWindowsRunner
-from st2common.runners.base import ShellRunnerMixin
+from st2common.runners.base_runner import ShellRunnerMixin
 
 __all__ = [
     'get_runner',

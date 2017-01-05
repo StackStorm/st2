@@ -58,7 +58,7 @@ SCHEDULED_STATES = [
     runner.MockActionRunner, 'run',
     mock.MagicMock(
         return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
-@mock.patch('st2common.runners.base.register_runner',
+@mock.patch('st2common.runners.base_runner.register_runner',
             mock.MagicMock(return_value=runner))
 @mock.patch.object(
     CUDPublisher, 'publish_update',
