@@ -37,6 +37,9 @@ in development
 * If a retry policy is defined, action executions under the context of a workflow will not be
   retried on timeout or failure. Previously, action execution will be retried but workflow is
   terminated. (bug fix)
+* Update ``st2auth`` service so it includes more context and throws a more user-friendly exception
+  when retrieving an auth backend instance fails. This makes it easier to debug and spot various
+  auth backend issues related to typos, misconfiguration and similar. (improvement)
 
 2.1.1 - December 16, 2016
 -------------------------
