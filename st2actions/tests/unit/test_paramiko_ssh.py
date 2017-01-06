@@ -571,7 +571,7 @@ class ParamikoSSHClientTests(unittest2.TestCase):
 
         self.assertTrue(client.sftp_client is None)
 
-        # Methods bellow require SFTP access so they should cause SFTP connection to be established
+        # Methods below require SFTP access so they should cause SFTP connection to be established
         # put
         client = ParamikoSSHClient(**conn_params)
         client.connect()
