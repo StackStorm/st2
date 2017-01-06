@@ -77,8 +77,9 @@ def get_backend_instance(name):
         cls_instance = cls(**kwargs)
     except Exception as e:
         tb_msg = traceback.format_exc()
-        msg = ('Failed to instantiate auth backend "%s" with backend settings "%s": %s' %
-               (name, str(kwargs), str(e)))
+        class_name = cls.__name__
+        msg = ('Failed to instantiate auth backend "%s" (class %s) with backend settings '
+               '"%s": %s' % (name, class_name, str(kwargs), str(e)))
         msg += '\n\n' + tb_msg
         exc_cls = type(e)
         raise exc_cls(msg)
