@@ -61,9 +61,10 @@ class ConcurrencyApplicator(BaseConcurrencyApplicator):
                       count, target.action, self._policy_ref, action)
             status = self._get_status_for_policy_action(action=self.policy_action)
 
-        # Update the status in the database and publish status so the appropriate runner can
-        # cancel the execution appropriately.
-        target = action_service.update_status(target, status, publish=True)
+        # Update the status in the database. Publish status for cancellation so the
+        # appropriate runner can cancel the execution.
+        publish = (status == action_constants.LIVEACTION_STATUS_CANCELING)
+        target = action_service.update_status(target, status, publish=publish)
 
         return target
 

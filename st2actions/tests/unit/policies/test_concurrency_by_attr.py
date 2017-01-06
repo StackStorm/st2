@@ -54,10 +54,6 @@ SCHEDULED_STATES = [
 ]
 
 
-@mock.patch.object(
-    runner.MockActionRunner, 'run',
-    mock.MagicMock(
-        return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
 @mock.patch('st2common.runners.base.register_runner',
             mock.MagicMock(return_value=runner))
 @mock.patch.object(
@@ -88,6 +84,10 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
             action_service.update_status(
                 liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
 
+    @mock.patch.object(
+        runner.MockActionRunner, 'run',
+        mock.MagicMock(
+            return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
     def test_over_threshold_delay_executions(self):
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency.attr')
         self.assertGreater(policy_db.parameters['threshold'], 0)
@@ -99,18 +99,16 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
 
         scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
+        self.assertEqual(len(scheduled), runner.MockActionRunner.run.call_count)
 
         # Execution is expected to be delayed since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu'})
         liveaction, _ = action_service.request(liveaction)
 
-        # Assert the delayed state is being published.
-        calls = [call(liveaction, action_constants.LIVEACTION_STATUS_DELAYED)]
-        LiveActionPublisher.publish_state.assert_has_calls(calls)
-
         # Assert the action is delayed.
         delayed = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(delayed.status, action_constants.LIVEACTION_STATUS_DELAYED)
+        self.assertEqual(len(scheduled), runner.MockActionRunner.run.call_count)
 
         # Execution is expected to be scheduled since concurrency threshold is not reached.
         # The execution with actionstr "fu" is over the threshold but actionstr "bar" is not.
@@ -118,6 +116,7 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertIn(liveaction.status, SCHEDULED_STATES)
+        self.assertEqual(len(scheduled) + 1, runner.MockActionRunner.run.call_count)
 
         # Mark one of the execution as completed.
         action_service.update_status(
@@ -126,7 +125,12 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(delayed.id))
         self.assertIn(liveaction.status, SCHEDULED_STATES)
+        self.assertEqual(len(scheduled) + 2, runner.MockActionRunner.run.call_count)
 
+    @mock.patch.object(
+        runner.MockActionRunner, 'run',
+        mock.MagicMock(
+            return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
     def test_over_threshold_cancel_executions(self):
         policy_db = Policy.get_by_ref('wolfpack.action-2.concurrency.attr.cancel')
         self.assertEqual(policy_db.parameters['action'], 'cancel')
@@ -139,6 +143,7 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
 
         scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
+        self.assertEqual(len(scheduled), runner.MockActionRunner.run.call_count)
 
         # Execution is expected to be delayed since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-2', parameters={'actionstr': 'fu'})
@@ -151,7 +156,12 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
         # Assert the action is canceled.
         canceled = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(canceled.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        self.assertEqual(len(scheduled), runner.MockActionRunner.run.call_count)
 
+    @mock.patch.object(
+        runner.MockActionRunner, 'run',
+        mock.MagicMock(
+            return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
     def test_on_cancellation(self):
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency.attr')
         self.assertGreater(policy_db.parameters['threshold'], 0)
@@ -163,12 +173,14 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
 
         scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
+        self.assertEqual(len(scheduled), runner.MockActionRunner.run.call_count)
 
         # Execution is expected to be delayed since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'fu'})
         liveaction, _ = action_service.request(liveaction)
         delayed = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(delayed.status, action_constants.LIVEACTION_STATUS_DELAYED)
+        self.assertEqual(len(scheduled), runner.MockActionRunner.run.call_count)
 
         # Execution is expected to be scheduled since concurrency threshold is not reached.
         # The execution with actionstr "fu" is over the threshold but actionstr "bar" is not.
@@ -176,6 +188,7 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
         liveaction, _ = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertIn(liveaction.status, SCHEDULED_STATES)
+        self.assertEqual(len(scheduled) + 1, runner.MockActionRunner.run.call_count)
 
         # Cancel execution.
         action_service.request_cancellation(scheduled[0], 'stanley')
@@ -183,3 +196,4 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(delayed.id))
         self.assertIn(liveaction.status, SCHEDULED_STATES)
+        self.assertEqual(len(scheduled) + 2, runner.MockActionRunner.run.call_count)

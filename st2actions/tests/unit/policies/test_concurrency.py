@@ -54,10 +54,6 @@ SCHEDULED_STATES = [
 ]
 
 
-@mock.patch.object(
-    runner.MockActionRunner, 'run',
-    mock.MagicMock(
-        return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
 @mock.patch('st2common.runners.base.register_runner',
             mock.MagicMock(return_value=runner))
 @mock.patch.object(
@@ -87,6 +83,10 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
             action_service.update_status(
                 liveaction, action_constants.LIVEACTION_STATUS_CANCELED)
 
+    @mock.patch.object(
+        runner.MockActionRunner, 'run',
+        mock.MagicMock(
+            return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
     def test_over_threshold_delay_executions(self):
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
         self.assertGreater(policy_db.parameters['threshold'], 0)
@@ -97,14 +97,11 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
 
         scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
+        self.assertEqual(len(scheduled), runner.MockActionRunner.run.call_count)
 
         # Execution is expected to be delayed since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
         liveaction, _ = action_service.request(liveaction)
-
-        # Assert the delayed state is being published.
-        calls = [call(liveaction, action_constants.LIVEACTION_STATUS_DELAYED)]
-        LiveActionPublisher.publish_state.assert_has_calls(calls)
 
         # Assert the action is delayed.
         liveaction = LiveAction.get_by_id(str(liveaction.id))
@@ -117,7 +114,12 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertIn(liveaction.status, SCHEDULED_STATES)
+        self.assertEqual(len(scheduled) + 1, runner.MockActionRunner.run.call_count)
 
+    @mock.patch.object(
+        runner.MockActionRunner, 'run',
+        mock.MagicMock(
+            return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
     def test_over_threshold_cancel_executions(self):
         policy_db = Policy.get_by_ref('wolfpack.action-2.concurrency.cancel')
         self.assertEqual(policy_db.parameters['action'], 'cancel')
@@ -129,6 +131,7 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
 
         scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
+        self.assertEqual(len(scheduled), runner.MockActionRunner.run.call_count)
 
         # Execution is expected to be canceled since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-2', parameters={'actionstr': 'foo'})
@@ -141,7 +144,12 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         # Assert the action is canceled.
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_CANCELED)
+        self.assertEqual(len(scheduled), runner.MockActionRunner.run.call_count)
 
+    @mock.patch.object(
+        runner.MockActionRunner, 'run',
+        mock.MagicMock(
+            return_value=(action_constants.LIVEACTION_STATUS_RUNNING, NON_EMPTY_RESULT, None)))
     def test_on_cancellation(self):
         policy_db = Policy.get_by_ref('wolfpack.action-1.concurrency')
         self.assertGreater(policy_db.parameters['threshold'], 0)
@@ -152,6 +160,7 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
 
         scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
         self.assertEqual(len(scheduled), policy_db.parameters['threshold'])
+        self.assertEqual(len(scheduled), runner.MockActionRunner.run.call_count)
 
         # Execution is expected to be delayed since concurrency threshold is reached.
         liveaction = LiveActionDB(action='wolfpack.action-1', parameters={'actionstr': 'foo'})
@@ -165,3 +174,4 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         # Execution is expected to be rescheduled.
         liveaction = LiveAction.get_by_id(str(liveaction.id))
         self.assertIn(liveaction.status, SCHEDULED_STATES)
+        self.assertEqual(len(scheduled) + 1, runner.MockActionRunner.run.call_count)
