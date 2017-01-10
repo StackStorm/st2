@@ -39,6 +39,9 @@ in development
   terminated. (bug fix)
 * Update Python runner to throw a more user-friendly exception in case action metadata file
   references a script file which doesn't exist or which contains invalid syntax. (improvement)
+* Update ``st2auth`` service so it includes more context and throws a more user-friendly exception
+  when retrieving an auth backend instance fails. This makes it easier to debug and spot various
+  auth backend issues related to typos, misconfiguration and similar. (improvement)
 
 2.1.1 - December 16, 2016
 -------------------------
