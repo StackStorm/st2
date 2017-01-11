@@ -42,6 +42,8 @@ in development
 * Update ``st2auth`` service so it includes more context and throws a more user-friendly exception
   when retrieving an auth backend instance fails. This makes it easier to debug and spot various
   auth backend issues related to typos, misconfiguration and similar. (improvement)
+* Fix how mistral client and resource managers are being used in the mistral runner. Authentication
+  has changed in the mistral client. Fix unit test accordingly. (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------

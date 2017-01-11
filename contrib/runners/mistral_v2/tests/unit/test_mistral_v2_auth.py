@@ -19,9 +19,9 @@ import uuid
 import mock
 import yaml
 
-from mistralclient.api.v2 import client
 from mistralclient.api.v2 import executions
 from mistralclient.api.v2 import workflows
+from mistralclient.auth import keystone
 from oslo_config import cfg
 
 # XXX: actionsensor import depends on config being setup.
@@ -202,8 +202,8 @@ class MistralAuthTest(DbTestCase):
             WF1_NAME, workflow_input=workflow_input, env=env)
 
     @mock.patch.object(
-        client.Client, 'authenticate',
-        mock.MagicMock(return_value=(cfg.CONF.mistral.v2_base_url, '123', 'abc', 'xyz')))
+        keystone.KeystoneAuthHandler, 'authenticate',
+        mock.MagicMock(return_value={}))
     @mock.patch.object(
         workflows.WorkflowManager, 'list',
         mock.MagicMock(return_value=[]))
@@ -254,13 +254,17 @@ class MistralAuthTest(DbTestCase):
             }
         }
 
-        client.Client.authenticate.assert_called_with(
-            cfg.CONF.mistral.v2_base_url,
-            cfg.CONF.mistral.keystone_username,
-            cfg.CONF.mistral.keystone_password,
-            cfg.CONF.mistral.keystone_project_name,
-            cfg.CONF.mistral.keystone_auth_url,
-            None, 'publicURL', 'workflow', None, None, None, False)
+        auth_req = {
+            'auth_url': cfg.CONF.mistral.keystone_auth_url,
+            'mistral_url': cfg.CONF.mistral.v2_base_url,
+            'project_name': cfg.CONF.mistral.keystone_project_name,
+            'username': cfg.CONF.mistral.keystone_username,
+            'api_key': cfg.CONF.mistral.keystone_password,
+            'insecure': False,
+            'cacert': None
+        }
+
+        keystone.KeystoneAuthHandler.authenticate.assert_called_with(auth_req)
 
         executions.ExecutionManager.create.assert_called_with(
             WF1_NAME, workflow_input=workflow_input, env=env)

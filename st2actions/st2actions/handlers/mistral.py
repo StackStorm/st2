@@ -20,7 +20,6 @@ import retrying
 
 from oslo_config import cfg
 from mistralclient.api import client as mistral
-from mistralclient.api.v2 import action_executions
 
 from st2actions import handlers
 from st2common.constants import action as action_constants
@@ -80,8 +79,7 @@ class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
             cacert=cfg.CONF.mistral.cacert,
             insecure=cfg.CONF.mistral.insecure)
 
-        manager = action_executions.ActionExecutionManager(client)
-        manager.update(action_execution_id, **data)
+        client.action_executions.update(action_execution_id, **data)
 
     @classmethod
     def callback(cls, url, context, status, result):
