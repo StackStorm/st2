@@ -503,6 +503,24 @@ class ActionRunCommandMixin(object):
             return result
 
         def transform_array(value):
+            # Sometimes an array parameter only has a single element:
+            #   i.e. "st2 run foopack.fooaction arrayparam=51"
+            # Normally, json.loads can handle this, but not if the single element is
+            # an int.
+            #
+            # We want to try to handle this first, so it doesn't get accidentally
+            # sent to the API as an int, instead of an array of single-element int.
+            try:
+                # Force this to be a list containing the single int, then
+                # cast the whole thing to string so json.loads can handle it
+                value = str([int(value)])
+            except ValueError:
+                # Original value wasn't an int, so just let it continue
+                pass
+
+            # At this point, the input is either a a "json.loads"-able construct
+            # like [1, 2, 3], or even [1], or it is a comma-separated list,
+            # Try both, in that order.
             try:
                 result = json.loads(value)
             except ValueError:
@@ -519,6 +537,9 @@ class ActionRunCommandMixin(object):
         }
 
         def normalize(name, value):
+            """ The desired type is contained in the action meta-data, so we can look that up
+                and call the desired "caster" function listed in the "transformer" dict
+            """
             if name in runner.runner_parameters:
                 param = runner.runner_parameters[name]
                 if 'type' in param and param['type'] in transformer:
