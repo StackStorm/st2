@@ -1,8 +1,6 @@
 import uuid
 
 from mistralclient.api import client as mistral
-from mistralclient.api.v2 import tasks
-from mistralclient.api.v2 import executions
 from oslo_config import cfg
 import retrying
 
@@ -84,7 +82,7 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: (``str``, ``dict``)
         """
-        execution = executions.ExecutionManager(self._client).get(exec_id)
+        execution = self._client.executions.get(exec_id)
 
         result = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else {}
 
@@ -103,8 +101,8 @@ class MistralResultsQuerier(Querier):
         :rtype: ``list``
         """
         wf_tasks = [
-            tasks.TaskManager(self._client).get(task.id)
-            for task in tasks.TaskManager(self._client).list(workflow_execution_id=exec_id)
+            self._client.tasks.get(task.id)
+            for task in self._client.tasks.list(workflow_execution_id=exec_id)
         ]
 
         return [self._format_task_result(task=wf_task.to_dict()) for wf_task in wf_tasks]
