@@ -32,7 +32,7 @@ from st2common.rbac.decorators import request_user_has_resource_api_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 from st2common.util.actionalias_matching import match_command_to_alias
-from st2common.util.actionalias_helpstring import generate_helpstring_list
+from st2common.util.actionalias_helpstring import generate_helpstring_result
 
 
 http_client = six.moves.http_client
@@ -119,18 +119,17 @@ class ActionAliasController(resource.ContentPackResourceController):
             Handles requests:
                 POST /actionalias/help
         """
-        filtering = action_alias_help_api.filtering
+        filter_ = action_alias_help_api.filter
         pack = action_alias_help_api.pack
         limit = action_alias_help_api.limit
         offset = action_alias_help_api.offset
 
         try:
             aliases = super(ActionAliasController, self)._get_all(**kwargs)
-            return generate_helpstring_list(aliases, filtering, pack, limit, offset)
+            return generate_helpstring_result(aliases, filter_, pack, limit, offset)
         except (TypeError) as e:
-            LOG.exception('Error encountered while creating actionalias help: %s.', str(e))
+            LOG.exception('Helpstring request contains an invalid data type: %s.', str(e))
             pecan.abort(http_client.BAD_REQUEST, str(e))
-            return
 
     @jsexpose(body_cls=ActionAliasAPI, status_code=http_client.CREATED)
     @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_CREATE)

@@ -696,9 +696,9 @@ class ActionAliasHelpAPI(BaseAPI):
         "description": "ActionAliasHelpAPI.",
         "type": "object",
         "properties": {
-            "filtering": {
+            "filter": {
                 "type": "string",
-                "description": "Find help strings containing keywords.",
+                "description": "Find help strings containing keyword.",
                 "required": False,
                 "default": ""
             },
@@ -716,7 +716,7 @@ class ActionAliasHelpAPI(BaseAPI):
             },
             "limit": {
                 "type": "integer",
-                "description": "Limit the number of help strings listed.",
+                "description": "Limit the number of help strings returned.",
                 "required": False,
                 "default": 0
             }

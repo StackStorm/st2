@@ -17,7 +17,7 @@ import unittest2
 import mock
 
 from st2common.models.db.actionalias import ActionAliasDB
-from st2common.util.actionalias_helpstring import generate_helpstring_list
+from st2common.util.actionalias_helpstring import generate_helpstring_result
 
 
 MemoryActionAliasDB = ActionAliasDB
@@ -64,7 +64,11 @@ ALIASES = [
         formats=["Life moves pretty fast.",
         "If you don't stop and look around once in a while, you could miss it."]
     ),
-    MemoryActionAliasDB(name="spengler", ref="ghostbusters.9",
+    MemoryActionAliasDB(name="economics.teacher", ref="ferris_buellers_day_off.10",
+        pack="the80s", enabled=False,
+        formats=["Bueller?... Bueller?... Bueller? "]
+    ),
+    MemoryActionAliasDB(name="spengler", ref="ghostbusters.10",
         pack="the80s", enabled=True,
         formats=["{{choice}} cross the {{target}}"]
     )
@@ -76,102 +80,130 @@ class ActionAliasTestCase(unittest2.TestCase):
     '''
     Test scenarios must consist of 80s movie quotes.
     '''
+    def check_data_structure(self, result):
+        tmp = result.keys()
+        tmp.sort()
+        self.assertEqual(tmp, ["available", "helpstrings"])
+
+    def check_available_count(self, result, count):
+        self.assertEqual(result.get("available"), count)
+
     def test_filtering_no_arg(self, mock):
-        result = generate_helpstring_list(ALIASES)
-        pack_helpstrings = result.get("the80s")
-        self.assertEqual(len(pack_helpstrings), 10)
-        self.assertEqual(pack_helpstrings[0].get("display"), "Come with me if you want to live")
+        result = generate_helpstring_result(ALIASES)
+        self.check_data_structure(result)
+        self.check_available_count(result, 10)
+        the80s = result.get("helpstrings").get("the80s")
+        self.assertEqual(len(the80s), 10)
+        self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
     def test_filtering_bad_dataype(self, mock):
         result = 80
         try:
-            result = generate_helpstring_list(ALIASES, 44)
+            result = generate_helpstring_result(ALIASES, 44)
         except TypeError:
             pass
         self.assertEqual(result, 80)
 
-    def test_filtering_empty_string(self, mock):
-        result = generate_helpstring_list(ALIASES, "")
-        pack_helpstrings = result.get("the80s")
-        self.assertEqual(len(pack_helpstrings), 10)
-        self.assertEqual(pack_helpstrings[0].get("display"), "Come with me if you want to live")
-
     def test_filtering_no_match(self, mock):
-        result = generate_helpstring_list(ALIASES, "xXxXxXx")
-        self.assertEqual(result, {})
+        result = generate_helpstring_result(ALIASES, "you_will_not_find_this_string")
+        self.check_data_structure(result)
+        self.check_available_count(result, 0)
+        self.assertEqual(result.get("helpstrings"), {})
 
     def test_filtering_match(self, mock):
-        result = generate_helpstring_list(ALIASES, "you")
-        pack_helpstrings = result.get("the80s")
-        self.assertEqual(len(pack_helpstrings), 4)
-        self.assertEqual(pack_helpstrings[0].get("display"), "Come with me if you want to live")
+        result = generate_helpstring_result(ALIASES, "you")
+        self.check_data_structure(result)
+        self.check_available_count(result, 4)
+        the80s = result.get("helpstrings").get("the80s")
+        self.assertEqual(len(the80s), 4)
+        self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
     def test_pack_bad_datatype(self, mock):
-        result = generate_helpstring_list(ALIASES, "", {})
-        self.assertEqual(result, {})
+        result = generate_helpstring_result(ALIASES, "", {})
+        self.check_data_structure(result)
+        self.check_available_count(result, 0)
+        self.assertEqual(result.get("helpstrings"), {})
 
     def test_pack_empty_string(self, mock):
-        result = generate_helpstring_list(ALIASES, "", "")
-        pack_helpstrings = result.get("the80s")
-        self.assertEqual(len(pack_helpstrings), 10)
-        self.assertEqual(pack_helpstrings[0].get("display"), "Come with me if you want to live")
+        result = generate_helpstring_result(ALIASES, "", "")
+        self.check_data_structure(result)
+        self.check_available_count(result, 10)
+        the80s = result.get("helpstrings").get("the80s")
+        self.assertEqual(len(the80s), 10)
+        self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
     def test_pack_no_match(self, mock):
-        result = generate_helpstring_list(ALIASES, "", "xXxXxXx")
-        self.assertEqual(result, {})
+        result = generate_helpstring_result(ALIASES, "", "you_will_not_find_this_string")
+        self.check_data_structure(result)
+        self.check_available_count(result, 0)
+        self.assertEqual(result.get("helpstrings"), {})
 
     def test_pack_match(self, mock):
-        result = generate_helpstring_list(ALIASES, "", "the80s")
-        pack_helpstrings = result.get("the80s")
-        self.assertEqual(len(pack_helpstrings), 10)
-        self.assertEqual(pack_helpstrings[0].get("display"), "Come with me if you want to live")
+        result = generate_helpstring_result(ALIASES, "", "the80s")
+        self.check_data_structure(result)
+        self.check_available_count(result, 10)
+        the80s = result.get("helpstrings").get("the80s")
+        self.assertEqual(len(the80s), 10)
+        self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
     def test_limit_bad_datatype(self, mock):
         result = 80
         try:
-            result = generate_helpstring_list(ALIASES, "", "the80s", "bad")
+            result = generate_helpstring_result(ALIASES, "", "the80s", "bad")
         except TypeError:
             pass
         self.assertEqual(result, 80)
 
     def test_limit_neg_out_of_bounds(self, mock):
-        result = generate_helpstring_list(ALIASES, "", "the80s", -3)
-        pack_helpstrings = result.get("the80s")
-        self.assertEqual(len(pack_helpstrings), 10)
-        self.assertEqual(pack_helpstrings[0].get("display"), "Come with me if you want to live")
+        result = generate_helpstring_result(ALIASES, "", "the80s", -3)
+        self.check_data_structure(result)
+        self.check_available_count(result, 10)
+        the80s = result.get("helpstrings").get("the80s")
+        self.assertEqual(len(the80s), 10)
+        self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
     def test_limit_pos_out_of_bounds(self, mock):
-        result = generate_helpstring_list(ALIASES, "", "the80s", 30)
-        pack_helpstrings = result.get("the80s")
-        self.assertEqual(len(pack_helpstrings), 10)
-        self.assertEqual(pack_helpstrings[0].get("display"), "Come with me if you want to live")
+        result = generate_helpstring_result(ALIASES, "", "the80s", 30)
+        self.check_data_structure(result)
+        self.check_available_count(result, 10)
+        the80s = result.get("helpstrings").get("the80s")
+        self.assertEqual(len(the80s), 10)
+        self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
     def test_limit_in_bounds(self, mock):
-        result = generate_helpstring_list(ALIASES, "", "the80s", 3)
-        pack_helpstrings = result.get("the80s")
-        self.assertEqual(len(pack_helpstrings), 3)
-        self.assertEqual(pack_helpstrings[0].get("display"), "Come with me if you want to live")
+        result = generate_helpstring_result(ALIASES, "", "the80s", 3)
+        self.check_data_structure(result)
+        self.check_available_count(result, 10)
+        the80s = result.get("helpstrings").get("the80s")
+        self.assertEqual(len(the80s), 3)
+        self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
     def test_offset_bad_datatype(self, mock):
         result = 80
         try:
-            result = generate_helpstring_list(ALIASES, "", "the80s", 0, "bad")
+            result = generate_helpstring_result(ALIASES, "", "", 0, "bad")
         except TypeError:
             pass
         self.assertEqual(result, 80)
 
-    def test_offset_neg_out_of_bounds(self, mock):
-        result = generate_helpstring_list(ALIASES, "", "the80s", 0, -1)
-        pack_helpstrings = result.get("the80s")
-        self.assertEqual(len(pack_helpstrings), 10)
-        self.assertEqual(pack_helpstrings[0].get("display"), "Come with me if you want to live")
+    def test_offset_negative_out_of_bounds(self, mock):
+        result = generate_helpstring_result(ALIASES, "", "the80s", 0, -1)
+        self.check_data_structure(result)
+        self.check_available_count(result, 10)
+        the80s = result.get("helpstrings").get("the80s")
+        self.assertEqual(len(the80s), 10)
+        self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
-    def test_offset_pos_out_of_bounds(self, mock):
-        result = generate_helpstring_list(ALIASES, "", "the80s", 0, 30)
-        self.assertEqual(result, {})
+    def test_offset_positive_out_of_bounds(self, mock):
+        result = generate_helpstring_result(ALIASES, "", "the80s", 0, 30)
+        self.check_data_structure(result)
+        self.check_available_count(result, 10)
+        self.assertEqual(result.get("helpstrings"), {})
 
     def test_offset_in_bounds(self, mock):
-        result = generate_helpstring_list(ALIASES, "", "the80s", 0, 6)
-        pack_helpstrings = result.get("the80s")
-        self.assertEqual(len(pack_helpstrings), 4)
-        self.assertEqual(pack_helpstrings[0].get("display"), "He's just like his {{relation}}.")
+        result = generate_helpstring_result(ALIASES, "", "the80s", 0, 6)
+        self.check_data_structure(result)
+        self.check_available_count(result, 10)
+        the80s = result.get("helpstrings").get("the80s")
+        self.assertEqual(len(the80s), 4)
+        self.assertEqual(the80s[0].get("display"), "He's just like his {{relation}}.")
