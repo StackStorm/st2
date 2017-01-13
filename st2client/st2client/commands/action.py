@@ -507,8 +507,10 @@ class ActionRunCommandMixin(object):
             #
             #     i.e. "st2 run foopack.fooaction arrayparam=51"
             #
-            # Normally, json.loads can handle this, but not if the single element is
-            # an int.
+            # Normally, json.loads would throw an exception, and the split method
+            # would be used. However, since this is an int, not only would
+            # splitting not work, but json.loads actually treats this as valid JSON,
+            # but as an int, not an array. This causes a mismatch when the API is called.
             #
             # We want to try to handle this first, so it doesn't get accidentally
             # sent to the API as an int, instead of an array of single-element int.
@@ -542,6 +544,11 @@ class ActionRunCommandMixin(object):
             """ The desired type is contained in the action meta-data, so we can look that up
                 and call the desired "caster" function listed in the "transformer" dict
             """
+
+            # Users can also specify type for each array parameter inside an action metadata
+            # (items: type: int for example) and this information is available here so we could
+            # also leverage that to cast each array item to the correct type.
+
             if name in runner.runner_parameters:
                 param = runner.runner_parameters[name]
                 if 'type' in param and param['type'] in transformer:
