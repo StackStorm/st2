@@ -3,7 +3,6 @@ Changelog
 
 in development
 --------------
-
 * Fix ``/v1/packs/views/files/<pack ref or id>`` and
   ``/v2/packs/views/files/<pack ref or id>/<file path>`` API endpoint so it
   works correctly for packs where pack name is not equal to the pack ref. (bug fix)
@@ -44,6 +43,8 @@ in development
   auth backend issues related to typos, misconfiguration and similar. (improvement)
 * Fix how mistral client and resource managers are being used in the mistral runner. Authentication
   has changed in the mistral client. Fix unit test accordingly. (bug fix)
+* Fixed issue where passing a single integer member for an array parameter for an action would
+  cause a type mismatch in the API (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------
