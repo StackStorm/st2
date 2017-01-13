@@ -17,7 +17,8 @@ LOG = logging.getLogger(__name__)
 
 DONE_STATES = {
     'ERROR': action_constants.LIVEACTION_STATUS_FAILED,
-    'SUCCESS': action_constants.LIVEACTION_STATUS_SUCCEEDED
+    'SUCCESS': action_constants.LIVEACTION_STATUS_SUCCEEDED,
+    'CANCELLED': action_constants.LIVEACTION_STATUS_CANCELED
 }
 
 
@@ -134,14 +135,14 @@ class MistralResultsQuerier(Querier):
         # Identify the list of tasks that are not in completed states.
         active_tasks = [t for t in tasks if t['state'] not in DONE_STATES]
 
-        # On cancellation, mistral workflow executions are paused so that tasks
-        # can gracefully reach completion. This is only temporary until a canceled
-        # status is added to mistral.
-        if (wf_state in DONE_STATES or wf_state == 'PAUSED') and is_action_canceled:
-            status = action_constants.LIVEACTION_STATUS_CANCELED
-        elif wf_state in DONE_STATES and not is_action_canceled and active_tasks:
-            status = action_constants.LIVEACTION_STATUS_RUNNING
+        # Keep the execution in running state if there are active tasks.
+        # In certain use cases, Mistral sets the workflow state to
+        # completion prior to task completion.
+        if is_action_canceled and active_tasks:
+            status = action_constants.LIVEACTION_STATUS_CANCELING
         elif wf_state not in DONE_STATES:
+            status = action_constants.LIVEACTION_STATUS_RUNNING
+        elif wf_state in DONE_STATES and active_tasks:
             status = action_constants.LIVEACTION_STATUS_RUNNING
         else:
             status = DONE_STATES[wf_state]
