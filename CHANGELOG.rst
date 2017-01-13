@@ -3,7 +3,8 @@ Changelog
 
 in development
 --------------
-
+* Fixed issue where passing a single integer member for an array parameter for an action would
+  cause a type mismatch in the API (bug fix)
 * Fix ``/v1/packs/views/files/<pack ref or id>`` and
   ``/v2/packs/views/files/<pack ref or id>/<file path>`` API endpoint so it
   works correctly for packs where pack name is not equal to the pack ref. (bug fix)
