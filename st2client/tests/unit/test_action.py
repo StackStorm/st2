@@ -391,9 +391,3 @@ class ActionCommandTestCase(base.BaseCLITestCase):
         expected = {'action': 'mockety.mock2', 'user': None,
                     'parameters': {'key': 'foo=bar&ponies=unicorns'}}
         httpclient.HTTPClient.post.assert_called_with('/executions', expected)
-
-    # def test_transform_array(self):
-    #     arcm = ActionRunCommandMixin
-    #     # from nose.tools import set_trace; set_trace()
-    #     arcm._get_action_parameters_from_args(None, None, None)
-    #     # transform_array(51)
