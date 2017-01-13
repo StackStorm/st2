@@ -504,7 +504,9 @@ class ActionRunCommandMixin(object):
 
         def transform_array(value):
             # Sometimes an array parameter only has a single element:
-            #   i.e. "st2 run foopack.fooaction arrayparam=51"
+            #
+            #     i.e. "st2 run foopack.fooaction arrayparam=51"
+            #
             # Normally, json.loads can handle this, but not if the single element is
             # an int.
             #
