@@ -107,9 +107,31 @@ class SensorWrapperTestCase(unittest2.TestCase):
         trigger_types = ['trigger1', 'trigger2']
         parent_args = ['--config-file', TESTS_CONFIG_PATH]
 
-        expected_msg = 'Failed to load sensor class from file'
-        self.assertRaisesRegexp(ValueError, expected_msg, SensorWrapper,
+        expected_msg = 'Failed to load sensor class from file.*? No such file or directory'
+        self.assertRaisesRegexp(IOError, expected_msg, SensorWrapper,
                                 pack='core', file_path=file_path,
                                 class_name='TestSensor',
                                 trigger_types=trigger_types,
                                 parent_args=parent_args)
+
+    def test_sensor_init_fails_sensor_code_contains_typo(self):
+        file_path = os.path.join(RESOURCES_DIR, 'test_sensor_with_typo.py')
+        trigger_types = ['trigger1', 'trigger2']
+        parent_args = ['--config-file', TESTS_CONFIG_PATH]
+
+        expected_msg = 'Failed to load sensor class from file.*? \'typobar\' is not defined'
+        self.assertRaisesRegexp(NameError, expected_msg, SensorWrapper,
+                                pack='core', file_path=file_path,
+                                class_name='TestSensor',
+                                trigger_types=trigger_types,
+                                parent_args=parent_args)
+
+        # Verify error message also contains traceback
+        try:
+            SensorWrapper(pack='core', file_path=file_path, class_name='TestSensor',
+                          trigger_types=trigger_types, parent_args=parent_args)
+        except NameError as e:
+            self.assertTrue('Traceback (most recent call last)' in str(e))
+            self.assertTrue('line 3, in <module>' in str(e))
+        else:
+            self.fail('NameError not thrown')

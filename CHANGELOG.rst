@@ -3,7 +3,54 @@ Changelog
 
 in development
 --------------
+* Fix ``/v1/packs/views/files/<pack ref or id>`` and
+  ``/v2/packs/views/files/<pack ref or id>/<file path>`` API endpoint so it
+  works correctly for packs where pack name is not equal to the pack ref. (bug fix)
 
+  Reported by skjbulcher #3128
+* Improve binary file detection and fix "pack files" API controller so it works correctly for
+  new-style packs which are also git repositories. (bug fix)
+* Fix returning a tuple from the Python runner so it also works correctly, even if action returns
+  a complex type (e.g. Python class instance) as a result. (bug fix)
+
+  Reported by skjbulcher #3133
+* Introduce validation of trigger parameters when creating a rule for non-system (user-defined)
+  trigger types.
+
+  Validation is only performed if ``system.validate_trigger_parameters`` config option is enabled
+  (it's disabled by default) and if trigger object defines ``parameters_schema`` attribute.
+
+  Contribution by Hiroyasu OHYAMA. #3094
+* Introduce validation of trigger payload for non-system and user-defined triggers which is
+  performed when dispatching a trigger inside a sensor and when sending a trigger via custom
+  webhook.
+
+  Validation is only performed if ``system.validate_trigger_payload`` config option is enabled
+  (it's disabled by default) and if trigger object defines ``payload_schema`` attribute.
+
+  Contribution by Hiroyasu OHYAMA. #3094
+* Add support for complex rendering inside of array and object types. This allows the user to
+  nest Jinja variables in array and object types.
+* Fix cancellation specified in concurrency policies to cancel actions appropriately. Previously,
+  mistral workflow is orphaned and left in a running state. (bug fix)
+* If a retry policy is defined, action executions under the context of a workflow will not be
+  retried on timeout or failure. Previously, action execution will be retried but workflow is
+  terminated. (bug fix)
+* Update Python runner to throw a more user-friendly exception in case action metadata file
+  references a script file which doesn't exist or which contains invalid syntax. (improvement)
+* Update ``st2auth`` service so it includes more context and throws a more user-friendly exception
+  when retrieving an auth backend instance fails. This makes it easier to debug and spot various
+  auth backend issues related to typos, misconfiguration and similar. (improvement)
+* Fix how mistral client and resource managers are being used in the mistral runner. Authentication
+  has changed in the mistral client. Fix unit test accordingly. (bug fix)
+* Fixed issue where passing a single integer member for an array parameter for an action would
+  cause a type mismatch in the API (bug fix)
+
+2.1.1 - December 16, 2016
+-------------------------
+
+* After running ``st2 pack install`` CLI command display which packs have been installed.
+  (improvement)
 * Update ``/v1/packs/register`` API endpoint so it throws on failure (e.g. invalid pack or resource
   metadata). This way the default behavior is consistent with default
   ``st2ctl reload --register-all`` behavior.
@@ -16,13 +63,13 @@ in development
   ``username`` and ``password`` parameter to the action. (new feature)
 * Fix ``GET /v1/packs/<pack ref or id>`` API endpoint - make sure pack object is correctly returned
   when pack ref doesn't match pack name. Previously, 404 not found was thrown. (bug fix)
-* Update ``/v1/packs/register`` API endpoint so it registers resources in the correct order which
-  is the same as order used in ``st2-register-content`` script. (bug fix)
-* Update ``packs.load`` action to also register triggers by default. (improvement)
 * Update local action runner so it supports and works with non-ascii (unicode) parameter keys and
   values. (bug fix)
 
   Contribution by Hiroyasu OHYAMA. #3116
+* Update ``packs.load`` action to also register triggers by default. (improvement)
+* Update ``/v1/packs/register`` API endpoint so it registers resources in the correct order which
+  is the same as order used in ``st2-register-content`` script. (bug fix)
 
 2.1.0 - December 05, 2016
 -------------------------

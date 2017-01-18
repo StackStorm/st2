@@ -6,8 +6,7 @@ parameters_schema:
   properties:
     x:
       type: string
-  required:
-  - x
+      required: true
   type: object
 payload_schema:
   type: object
