@@ -132,8 +132,6 @@ WF1 = workflows.Workflow(None, {'name': WF1_NAME, 'definition': WF1_YAML})
 WF1_OLD = workflows.Workflow(None, {'name': WF1_NAME, 'definition': ''})
 WF1_EXEC = copy.deepcopy(MISTRAL_EXECUTION)
 WF1_EXEC['workflow_name'] = WF1_NAME
-WF1_EXEC_PAUSED = copy.deepcopy(WF1_EXEC)
-WF1_EXEC_PAUSED['state'] = 'PAUSED'
 
 # Non-workbook with a many workflows
 WF2_META_FILE_NAME = TEST_FIXTURES['workflows'][4]

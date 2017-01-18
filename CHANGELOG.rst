@@ -45,6 +45,8 @@ in development
   has changed in the mistral client. Fix unit test accordingly. (bug fix)
 * Fixed issue where passing a single integer member for an array parameter for an action would
   cause a type mismatch in the API (bug fix)
+* Use the newly introduced CANCELLED state in mistral for workflow cancellation. Currently, st2
+  put the workflow in a PAUSED state in mistral. (improvement)
 
 2.1.1 - December 16, 2016
 -------------------------
