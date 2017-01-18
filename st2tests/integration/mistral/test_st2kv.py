@@ -18,18 +18,18 @@ from integration.mistral import base
 from st2client import models
 
 
-class CustomYaqlKeyValuePairTest(base.TestWorkflowExecution):
+class CustomKeyValuePairTest(base.TestWorkflowExecution):
     secret = None
 
     @classmethod
     def setUpClass(cls):
-        super(CustomYaqlKeyValuePairTest, cls).setUpClass()
+        super(CustomKeyValuePairTest, cls).setUpClass()
         cls.set_kvp('foobar', 'foobar', scope='system', secret=cls.secret)
         cls.set_kvp('marco', 'polo', scope='user', secret=cls.secret)
 
     @classmethod
     def tearDownClass(cls):
-        super(CustomYaqlKeyValuePairTest, cls).tearDownClass()
+        super(CustomKeyValuePairTest, cls).tearDownClass()
         cls.del_kvp('foobar')
         cls.del_kvp('marco')
 
@@ -56,29 +56,49 @@ class CustomYaqlKeyValuePairTest(base.TestWorkflowExecution):
         cls.st2client.keys.delete(kvp)
 
 
-class UnencryptedKeyValuePairTest(CustomYaqlKeyValuePairTest):
+class UnencryptedKeyValuePairTest(CustomKeyValuePairTest):
     secret = False
 
-    def test_system_kvp(self):
+    def test_yaql_system_kvp(self):
         execution = self._execute_workflow('examples.mistral-yaql-st2kv-system-scope')
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
 
-    def test_user_kvp(self):
+    def test_yaql_user_kvp(self):
         execution = self._execute_workflow('examples.mistral-yaql-st2kv-user-scope')
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
 
+    def test_jinja_system_kvp(self):
+        execution = self._execute_workflow('examples.mistral-jinja-st2kv-system-scope')
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
 
-class EncryptedKeyValuePairTest(CustomYaqlKeyValuePairTest):
+    def test_jinja_user_kvp(self):
+        # Pending completion of jinja rendering of user scoped variable.
+        # https://github.com/StackStorm/st2/pull/2931
+        pass
+
+
+class EncryptedKeyValuePairTest(CustomKeyValuePairTest):
     secret = True
 
-    def test_system_kvp(self):
+    def test_yaql_system_kvp(self):
         execution = self._execute_workflow('examples.mistral-yaql-st2kv-system-scope')
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
 
-    def test_user_kvp(self):
+    def test_yaql_user_kvp(self):
         execution = self._execute_workflow('examples.mistral-yaql-st2kv-user-scope')
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=1)
+
+    def test_jinja_system_kvp(self):
+        execution = self._execute_workflow('examples.mistral-jinja-st2kv-system-scope-encrypted')
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=1)
+
+    def test_jinja_user_kvp(self):
+        # Per https://docs.stackstorm.com/datastore.html#storing-secrets,
+        # decrypting user scoped variables is currently unsupported.
+        pass
