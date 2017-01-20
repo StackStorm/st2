@@ -134,7 +134,7 @@ class KeyValuePairAPI(BaseAPI):
             doc['value'] = symmetric_decrypt(KeyValuePairAPI.crypto_key, model.value)
             encrypted = False
 
-        scope = getattr(model, 'scope', SYSTEM_SCOPE)
+        scope = getattr(model, 'scope', FULL_SYSTEM_SCOPE)
         if scope:
             doc['scope'] = scope
 

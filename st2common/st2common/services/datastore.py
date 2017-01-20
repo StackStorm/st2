@@ -19,7 +19,7 @@ from st2client.models import KeyValuePair
 from st2common.services.access import create_token
 from st2common.util.api import get_full_public_api_url
 from st2common.util.date import get_datetime_utc_now
-from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR, SYSTEM_SCOPE
+from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR, FULL_SYSTEM_SCOPE
 
 
 class DatastoreService(object):
@@ -61,7 +61,7 @@ class DatastoreService(object):
         kvps = client.keys.get_all(prefix=key_prefix)
         return kvps
 
-    def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
+    def get_value(self, name, local=True, scope=FULL_SYSTEM_SCOPE, decrypt=False):
         """
         Retrieve a value from the datastore for the provided key.
 
@@ -82,7 +82,7 @@ class DatastoreService(object):
 
         :rtype: ``str`` or ``None``
         """
-        if scope != SYSTEM_SCOPE:
+        if scope != FULL_SYSTEM_SCOPE:
             raise ValueError('Scope %s is unsupported.' % scope)
 
         name = self._get_full_key_name(name=name, local=local)
@@ -106,7 +106,7 @@ class DatastoreService(object):
 
         return None
 
-    def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
+    def set_value(self, name, value, ttl=None, local=True, scope=FULL_SYSTEM_SCOPE, encrypt=False):
         """
         Set a value for the provided key.
 
@@ -134,7 +134,7 @@ class DatastoreService(object):
         :return: ``True`` on success, ``False`` otherwise.
         :rtype: ``bool``
         """
-        if scope != SYSTEM_SCOPE:
+        if scope != FULL_SYSTEM_SCOPE:
             raise ValueError('Scope %s is unsupported.', scope)
 
         name = self._get_full_key_name(name=name, local=local)
@@ -158,7 +158,7 @@ class DatastoreService(object):
         client.keys.update(instance=instance)
         return True
 
-    def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
+    def delete_value(self, name, local=True, scope=FULL_SYSTEM_SCOPE):
         """
         Delete the provided key.
 
@@ -177,7 +177,7 @@ class DatastoreService(object):
         :return: ``True`` on success, ``False`` otherwise.
         :rtype: ``bool``
         """
-        if scope != SYSTEM_SCOPE:
+        if scope != FULL_SYSTEM_SCOPE:
             raise ValueError('Scope %s is unsupported.', scope)
 
         name = self._get_full_key_name(name=name, local=local)
