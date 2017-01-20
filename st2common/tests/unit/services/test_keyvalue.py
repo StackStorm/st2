@@ -15,7 +15,7 @@
 
 import unittest2
 
-from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, FULL_USER_SCOPE
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
 from st2common.services.keyvalues import get_key_reference
 
@@ -23,14 +23,14 @@ from st2common.services.keyvalues import get_key_reference
 class KeyValueServicesTest(unittest2.TestCase):
 
     def test_get_key_reference_system_scope(self):
-        ref = get_key_reference(scope=SYSTEM_SCOPE, name='foo')
+        ref = get_key_reference(scope=FULL_SYSTEM_SCOPE, name='foo')
         self.assertEqual(ref, 'foo')
 
     def test_get_key_reference_user_scope(self):
-        ref = get_key_reference(scope=USER_SCOPE, name='foo', user='stanley')
+        ref = get_key_reference(scope=FULL_USER_SCOPE, name='foo', user='stanley')
         self.assertEqual(ref, 'stanley:foo')
         self.assertRaises(InvalidUserException, get_key_reference,
-                          scope=USER_SCOPE, name='foo', user='')
+                          scope=FULL_USER_SCOPE, name='foo', user='')
 
     def test_get_key_reference_invalid_scope_raises_exception(self):
         self.assertRaises(InvalidScopeException, get_key_reference,

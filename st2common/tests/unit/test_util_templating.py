@@ -63,10 +63,3 @@ class TemplatingUtilsTestCase(CleanDbTestCase):
 
         result = render_template_with_system_and_user_context(value=template, user=user)
         self.assertEqual(result, 'valuejoe1')
-
-        # Backward compatibility test
-        template = '{{user.key1}}'
-        user = 'joe'
-
-        result = render_template_with_system_and_user_context(value=template, user=user)
-        self.assertEqual(result, 'valuejoe1')
