@@ -164,6 +164,8 @@ class MistralAuthTest(DbTestCase):
         access_service, 'create_token',
         mock.MagicMock(return_value=TOKEN_DB))
     def test_launch_workflow_with_st2_auth(self):
+        cfg.CONF.set_override('auth_type', 'st2', group='mistral')
+
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ACTION_CONTEXT)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
@@ -216,7 +218,8 @@ class MistralAuthTest(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
-    def test_launch_workflow_with_mistral_auth(self):
+    def test_launch_workflow_with_keystone_auth(self):
+        cfg.CONF.set_override('auth_type', 'keystone', group='mistral')
         cfg.CONF.set_default('keystone_username', 'foo', group='mistral')
         cfg.CONF.set_default('keystone_password', 'bar', group='mistral')
         cfg.CONF.set_default('keystone_project_name', 'admin', group='mistral')
@@ -225,6 +228,7 @@ class MistralAuthTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)

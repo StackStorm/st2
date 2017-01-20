@@ -87,6 +87,10 @@ def create_token(username, ttl=None, metadata=None, add_missing_user=True):
     return token
 
 
+def get_token(token):
+    return Token.get(token)
+
+
 def delete_token(token):
     try:
         token_db = Token.get(token)

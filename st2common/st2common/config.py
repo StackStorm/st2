@@ -245,6 +245,7 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt('retry_exp_msec', default=1000, help='Multiplier for the exponential backoff.'),
         cfg.IntOpt('retry_exp_max_msec', default=300000, help='Max time for each set of backoff.'),
         cfg.IntOpt('retry_stop_max_msec', default=600000, help='Max time to stop retrying.'),
+        cfg.StrOpt('auth_type', default=None, help='Type of authentication used in Mistral.'),
         cfg.StrOpt('keystone_username', default=None, help='Username for authentication.'),
         cfg.StrOpt('keystone_password', default=None, help='Password for authentication.'),
         cfg.StrOpt('keystone_project_name', default=None, help='OpenStack project scope.'),

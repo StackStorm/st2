@@ -49,6 +49,8 @@ in development
   (new feature)
 * Linux file watch sensor is now disabled by default. To enable it, set ``enabled: true`` in
   ``/opt/stackstorm/packs/linux/sensors/file_watch_sensor.yaml``
+* Add option to use st2 auth token to authenticate with mistral. Previously, OpenStack Keystone
+  is recommended for securing mistral. (improvement)
 
 2.2.0 - February 27, 2017
 -------------------------

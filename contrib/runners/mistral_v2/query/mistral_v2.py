@@ -11,7 +11,7 @@ from st2common.exceptions import resultstracker as exceptions
 from st2common import log as logging
 from st2common.services import action as action_service
 from st2common.util import jsonify
-from st2common.util.url import get_url_without_trailing_slash
+from st2common.util import url as url_utils
 from st2common.util.workflow import mistral as utils
 
 
@@ -37,15 +37,7 @@ class MistralResultsQuerier(Querier):
 
     def __init__(self, id, *args, **kwargs):
         super(MistralResultsQuerier, self).__init__(*args, **kwargs)
-        self._base_url = get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
-        self._client = mistral.client(
-            mistral_url=self._base_url,
-            username=cfg.CONF.mistral.keystone_username,
-            api_key=cfg.CONF.mistral.keystone_password,
-            project_name=cfg.CONF.mistral.keystone_project_name,
-            auth_url=cfg.CONF.mistral.keystone_auth_url,
-            cacert=cfg.CONF.mistral.cacert,
-            insecure=cfg.CONF.mistral.insecure)
+        self._base_url = url_utils.get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
 
     @retrying.retry(
         retry_on_exception=utils.retry_on_exceptions,
@@ -62,14 +54,23 @@ class MistralResultsQuerier(Querier):
         :type query_context: ``objext``
         :rtype: (``str``, ``object``)
         """
-        mistral_exec_id = query_context.get('mistral', {}).get('execution_id', None)
+        mistral_qry_ctx = query_context.get('mistral', {})
+
+        if not mistral_qry_ctx.get('auth_token', None):
+            raise Exception('[%] Missing mistral auth token in query context. %s',
+                            execution_id, query_context)
+
+        client = utils.get_client(self._base_url, auth_token=mistral_qry_ctx['auth_token'])
+
+        mistral_exec_id = mistral_qry_ctx.get('execution_id', None)
+
         if not mistral_exec_id:
             raise Exception('[%s] Missing mistral workflow execution ID in query context. %s',
                             execution_id, query_context)
 
         try:
-            result = self._get_workflow_result(mistral_exec_id)
-            result['tasks'] = self._get_workflow_tasks(mistral_exec_id)
+            result = self._get_workflow_result(client, mistral_exec_id)
+            result['tasks'] = self._get_workflow_tasks(client, mistral_exec_id)
         except exceptions.ReferenceNotFoundError as exc:
             LOG.exception('[%s] Unable to find reference.', execution_id)
             return (action_constants.LIVEACTION_STATUS_FAILED, exc.message)
@@ -86,7 +87,7 @@ class MistralResultsQuerier(Querier):
 
         return (status, result)
 
-    def _get_workflow_result(self, exec_id):
+    def _get_workflow_result(self, client, exec_id):
         """
         Returns the workflow status and output. Mistral workflow status will be converted
         to st2 action status.
@@ -94,12 +95,7 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: (``str``, ``dict``)
         """
-        try:
-            execution = self._client.executions.get(exec_id)
-        except mistralclient_base.APIException as mistral_exc:
-            if 'not found' in mistral_exc.message:
-                raise exceptions.ReferenceNotFoundError(mistral_exc.message)
-            raise mistral_exc
+        execution = client.executions.get(exec_id)
 
         result = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else {}
 
@@ -110,22 +106,17 @@ class MistralResultsQuerier(Querier):
 
         return result
 
-    def _get_workflow_tasks(self, exec_id):
+    def _get_workflow_tasks(self, client, exec_id):
         """
         Returns the list of tasks for a workflow execution.
         :param exec_id: Mistral execution ID
         :type exec_id: ``str``
         :rtype: ``list``
         """
-        wf_tasks = []
-
-        try:
-            for task in self._client.tasks.list(workflow_execution_id=exec_id):
-                wf_tasks.append(self._client.tasks.get(task.id))
-        except mistralclient_base.APIException as mistral_exc:
-            if 'not found' in mistral_exc.message:
-                raise exceptions.ReferenceNotFoundError(mistral_exc.message)
-            raise mistral_exc
+        wf_tasks = [
+            client.tasks.get(task.id)
+            for task in client.tasks.list(workflow_execution_id=exec_id)
+        ]
 
         return [self._format_task_result(task=wf_task.to_dict()) for wf_task in wf_tasks]
 

@@ -20,7 +20,9 @@ import re
 import requests
 import six
 import yaml
+from mistralclient.api import client as mistral
 from mistralclient.api.base import APIException
+from oslo_config import cfg
 
 from st2common.exceptions.workflow import WorkflowDefinitionException
 from st2common import log as logging
@@ -273,3 +275,25 @@ def retry_on_exceptions(exc):
         LOG.warning('Retrying Mistral API invocation on exception type %s.', type(exc))
 
     return retrying
+
+
+def get_client(base_url, auth_token=None):
+    if cfg.CONF.mistral.auth_type and cfg.CONF.mistral.auth_type == 'st2':
+        return mistral.client(
+            mistral_url=base_url,
+            auth_type='st2',
+            auth_token=auth_token,
+            cacert=cfg.CONF.mistral.cacert,
+            insecure=cfg.CONF.mistral.insecure,
+        )
+    else:
+        return mistral.client(
+            mistral_url=base_url,
+            auth_type='keystone',
+            username=cfg.CONF.mistral.keystone_username,
+            api_key=cfg.CONF.mistral.keystone_password,
+            project_name=cfg.CONF.mistral.keystone_project_name,
+            auth_url=cfg.CONF.mistral.keystone_auth_url,
+            cacert=cfg.CONF.mistral.cacert,
+            insecure=cfg.CONF.mistral.insecure
+        )

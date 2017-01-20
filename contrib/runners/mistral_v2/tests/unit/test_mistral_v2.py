@@ -205,7 +205,9 @@ class MistralRunnerTest(DbTestCase):
             'workflow_execution_id': '135e3446-4c89-4afe-821f-6ec6a0849b27'
         }
 
-        context = MistralRunner._build_mistral_context(parent, current)
+        runner = MistralRunner(uuid.uuid4().hex)
+
+        context = runner._build_mistral_context(parent, current)
         self.assertTrue(context is not None)
         self.assertTrue('parent' in context['mistral'].keys())
 
@@ -219,7 +221,7 @@ class MistralRunnerTest(DbTestCase):
                          current['workflow_execution_id'])
 
         parent = None
-        context = MistralRunner._build_mistral_context(parent, current)
+        context = runner._build_mistral_context(parent, current)
         self.assertDictEqual(context['mistral'], current)
 
     @mock.patch.object(
