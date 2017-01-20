@@ -21,7 +21,7 @@ from oslo_config import cfg
 import six
 
 from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, FULL_USER_SCOPE, ALLOWED_SCOPES
-from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE
+from st2common.constants.keyvalue import USER_SCOPE
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.log import logging
 from st2common.util import isotime

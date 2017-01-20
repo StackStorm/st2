@@ -520,7 +520,7 @@ class ParamsUtilsTest(DbTestCase):
         #                                                value='echo MA DAD IS GREAT',
         #                                                scope=USER_SCOPE))
         params = {
-            'sys_cmd': '{{system.cmd_to_run}}',
+            'sys_cmd': '{{st2kv.system.cmd_to_run}}',
             # 'user_cmd': '{{user.ivanka:cmd_to_run}}' Not supported yet.
         }
         runner_param_info = {'r1': {}}
