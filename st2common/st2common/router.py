@@ -22,6 +22,7 @@ import traceback
 
 import jsonschema
 import routes
+from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 from swagger_spec_validator.validator20 import validate_spec
 from webob import exc, Request, Response
 
@@ -29,6 +30,8 @@ from st2common.exceptions import auth as auth_exc
 from st2common import hooks
 from st2common import log as logging
 from st2common.util.jsonify import json_encode
+from st2common.util.http import parse_content_type_header
+
 
 LOG = logging.getLogger(__name__)
 
@@ -230,7 +233,21 @@ class Router(object):
                 kw[name] = req.headers.get(name, default)
             elif type == 'body':
                 if req.body:
-                    data = req.json
+                    content_type = req.headers.get('Content-Type', 'application/json')
+                    content_type = parse_content_type_header(content_type=content_type)[0]
+
+                    try:
+                        if content_type == 'application/json':
+                            data = req.json
+                        elif content_type in ['application/x-www-form-urlencoded',
+                                              'multipart/form-data']:
+                            data = urlparse.parse_qs(req.body)
+                        else:
+                            raise ValueError('Unsupported Content-Type: "%s"' % (content_type))
+                    except Exception as e:
+                        detail = 'Failed to parse request body: %s' % str(e)
+                        raise exc.HTTPBadRequest(detail=detail)
+
                     try:
                         CustomValidator(param['schema'], resolver=self.spec_resolver).validate(data)
                     except (jsonschema.ValidationError, ValueError) as e:
@@ -250,6 +267,8 @@ class Router(object):
                 kw[name] = req.environ.get(name.upper(), default)
             elif type == 'context':
                 kw[name] = context.get(name, default)
+            elif type == 'request':
+                kw[name] = getattr(req, name)
 
             if required and not kw[name]:
                 detail = 'Required parameter "%s" is missing' % name
