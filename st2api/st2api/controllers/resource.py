@@ -373,11 +373,11 @@ class ContentPackResourceController(ResourceController):
         super(ContentPackResourceController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
 
-    @jsexpose(arg_types=[str])
+    # @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id, from_model_kwargs=None):
         return self._get_one(ref_or_id, from_model_kwargs=from_model_kwargs)
 
-    @jsexpose()
+    # @jsexpose()
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 

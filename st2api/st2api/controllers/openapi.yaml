@@ -1219,6 +1219,314 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /triggertypes:
+    get:
+      operationId: st2api.controllers.v1.triggers:triggertype_controller.get_all
+      description: Returns a list of all trigger types.
+      responses:
+        '200':
+          description: List of trigger types
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TriggerType'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.triggers:triggertype_controller.post
+      description: |
+        Create a new trigger type.
+      parameters:
+        - name: triggertype
+          in: body
+          description: TriggerType content
+          schema:
+            $ref: '#/definitions/TriggerTypeRequest'
+      responses:
+        '200':
+          description: Single trigger type being created
+          schema:
+            $ref: '#/definitions/TriggerType'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /triggertypes/{triggertype_ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.triggers:triggertype_controller.get_one
+      description: |
+        Get one trigger type.
+      parameters:
+        - name: triggertype_ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: TriggerType requested
+          schema:
+            $ref: '#/definitions/TriggerType'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.triggers:triggertype_controller.put
+      description: |
+        Update a trigger type.
+      parameters:
+        - name: triggertype_ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: triggertype
+          in: body
+          description: TriggerType content
+          schema:
+            $ref: '#/definitions/TriggerTypeRequest'
+      responses:
+        '200':
+          description: TriggerType updated
+          schema:
+            $ref: '#/definitions/TriggerType'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.triggers:triggertype_controller.delete
+      description: |
+        Delete a trigger type.
+      parameters:
+        - name: triggertype_ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '204':
+          description: TriggerType deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /triggers:
+    get:
+      operationId: st2api.controllers.v1.triggers:trigger_controller.get_all
+      description: Returns a list of all triggers.
+      responses:
+        '200':
+          description: List of triggers
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Trigger'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.triggers:trigger_controller.post
+      description: |
+        Create a new triggers.
+      parameters:
+        - name: trigger
+          in: body
+          description: Trigger content
+          schema:
+            $ref: '#/definitions/TriggerRequest'
+      responses:
+        '200':
+          description: Single trigger being created
+          schema:
+            $ref: '#/definitions/Trigger'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /triggers/{trigger_id}:
+    get:
+      operationId: st2api.controllers.v1.triggers:trigger_controller.get_one
+      description: |
+        Get one trigger.
+      parameters:
+        - name: trigger_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Trigger requested
+          schema:
+            $ref: '#/definitions/Trigger'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.triggers:trigger_controller.put
+      description: |
+        Update a trigger.
+      parameters:
+        - name: trigger_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+        - name: trigger
+          in: body
+          description: Trigger content
+          schema:
+            $ref: '#/definitions/TriggerRequest'
+      responses:
+        '200':
+          description: Trigger updated
+          schema:
+            $ref: '#/definitions/Trigger'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.triggers:trigger_controller.delete
+      description: |
+        Delete a trigger.
+      parameters:
+        - name: trigger_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '204':
+          description: Trigger deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /triggerinstances:
+    get:
+      operationId: st2api.controllers.v1.triggers:triggerinstance_controller.get_all
+      description: Returns a list of all trigger instances.
+      parameters:
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+        - name: trigger
+          in: query
+          description: Trigger filter
+          type: string
+        - name: timestamp_lt
+          in: query
+          description: Start timestamp less than filter
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+        - name: timestamp_gt
+          in: query
+          description: Start timestamp greater than filter
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+      responses:
+        '200':
+          description: List of trigger instances
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TriggerInstance'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /triggerinstances/{instance_id}:
+    get:
+      operationId: st2api.controllers.v1.triggers:triggerinstance_controller.get_one
+      description: |
+        Get one trigger instance.
+      parameters:
+        - name: instance_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Trigger instance requested
+          schema:
+            $ref: '#/definitions/TriggerInstance'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /triggerinstances/{trigger_instance_id}/re_emit:
+    post:
+      operationId: st2api.controllers.v1.triggers:triggerinstance_resend_controller.post
+      description: |
+        Re-emit a trigger instance.
+      parameters:
+        - name: trigger_instance_id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Single trigger being created
+          schema:
+            $ref: '#/definitions/TriggerInstance'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /webhooks:
     get:
       operationId: st2api.controllers.v1.webhooks:webhooks_controller.get_all
@@ -1468,7 +1776,11 @@ definitions:
             default: ''
   Trigger:
     type: object
+  TriggerRequest:
+    type: object
   TriggerType:
+    type: object
+  TriggerTypeRequest:
     type: object
   TriggerInstance:
     type: object
