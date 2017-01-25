@@ -57,7 +57,7 @@ setup(
         'python-dateutil',
         'pyyaml<4.0,>=3.11',
         'requests<3.0,>=2.7.0',
-        'six==1.9.0'
+        'six==1.10.0'
     ],
     dependency_links=[],
     test_suite=ST2_COMPONENT,
