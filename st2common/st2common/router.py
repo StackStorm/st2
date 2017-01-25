@@ -139,10 +139,15 @@ class Router(object):
                 conditions = {
                     'method': [method.upper()]
                 }
+
+                connect_kw = {}
+                if 'x-requirements' in endpoint:
+                    connect_kw['requirements'] = endpoint['x-requirements']
+
                 m = self.routes.submapper(_api_path=path, _api_method=method, conditions=conditions)
-                m.connect(None, self.spec.get('basePath', '') + path)
+                m.connect(None, self.spec.get('basePath', '') + path, **connect_kw)
                 if default:
-                    m.connect(None, path)
+                    m.connect(None, path, **connect_kw)
 
         for route in self.routes.matchlist:
             LOG.debug('Route registered: %s %s', route.routepath, route.conditions)

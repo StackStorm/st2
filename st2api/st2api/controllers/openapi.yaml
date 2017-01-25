@@ -842,6 +842,8 @@ paths:
             $ref: '#/definitions/Error'
   /rules/{ref_or_id}:
     get:
+      x-requirements:
+        ref_or_id: (?!views)
       operationId: st2api.controllers.v1.rules:rule_controller.get_one
       x-permissions: rule_view
       description: |
