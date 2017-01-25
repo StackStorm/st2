@@ -13,20 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2auth import app
-from st2tests import DbTestCase
-from st2tests.api import TestApp
-import st2tests.config as tests_config
+import webtest
 
 
-class FunctionalTest(DbTestCase):
+class ResponseValidationError(ValueError):
+    pass
 
-    @classmethod
-    def setUpClass(cls, **kwargs):
-        super(FunctionalTest, cls).setUpClass()
-        tests_config.parse_args()
-        cls.app = TestApp(app.setup_app(), **kwargs)
 
-    @classmethod
-    def tearDownClass(cls):
-        super(FunctionalTest, cls).tearDownClass()
+class TestApp(webtest.TestApp):
+    def do_request(self, *args, **kwargs):
+        res = super(TestApp, self).do_request(*args, **kwargs)
+
+        if res.headers.get('Warning', None):
+            raise ResponseValidationError('Endpoint produced invalid response. Make sure the '
+                                          'response matches OpenAPI scheme for the endpoint.')
+
+        return res

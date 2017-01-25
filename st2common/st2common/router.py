@@ -282,10 +282,21 @@ class Router(object):
         if resp is not None:
             if not hasattr(resp, '__call__'):
                 resp = Response(json_encode(resp), content_type='application/json')
-
-            return resp
         else:
-            return Response()
+            resp = Response()
+
+        responses = endpoint.get('responses', {})
+        response_spec = responses.get(str(resp.status_code), responses.get('default', None))
+
+        if response_spec and 'schema' in response_spec:
+            try:
+                validator = CustomValidator(response_spec['schema'], resolver=self.spec_resolver)
+                validator.validate(resp.json)
+            except (jsonschema.ValidationError, ValueError):
+                LOG.exception('Response validation failed.')
+                resp.headers.add('Warning', '199 OpenAPI "Response validation failed"')
+
+        return resp
 
     def as_wsgi(self, environ, start_response):
         """Invoke router as an wsgi application."""
