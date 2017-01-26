@@ -628,6 +628,136 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /keys:
+    get:
+      operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
+      # x-permissions:
+      description: Returns a list of all key value pairs.
+      parameters:
+        - name: prefix
+          in: query
+          description: |
+              Only return values which name starts with the provided prefix.
+          type: string
+        - name: scope
+          in: query
+          description: "Scope the item is under. Example: 'user'."
+          type: string
+        - name: user
+          in: query
+          description: User for user scoped items (admin only).
+          type: string
+        - name: decrypt
+          in: query
+          description: Decrypt secrets and display plain text
+          type: boolean
+      responses:
+        '200':
+          description: List of key value pairs
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/KeyValuePair'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /keys/{name}:
+    get:
+      operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_one
+      # x-permissions:
+      description: |
+        Get a specific key vale pair based on key_name.
+      parameters:
+        - name: name
+          in: path
+          description: Key Name
+          type: string
+          required: true
+        - name: scope
+          in: query
+          description: "Scope the item is under. Example: 'user'."
+          type: string
+        - name: user
+          in: query
+          description: User for user scoped items (admin only).
+          type: string
+        - name: decrypt
+          in: query
+          description: Decrypt secrets and display plain text.
+          type: boolean
+      responses:
+        '200':
+          description: Key value pair requested.
+          schema:
+            $ref: '#/definitions/KeyValuePair'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.put
+      # x-permissions:
+      description: |
+        Create a new key value pair or update an existing one.
+      parameters:
+        - name: name
+          in: path
+          description: Key Name.
+          type: string
+          required: true
+        - name: kvp
+          in: body
+          description: Key Value pair content.
+          schema:
+            $ref: '#/definitions/KeyValuePairRequest'
+          required: true
+      responses:
+        '200':
+          description: Key set/updated.
+          schema:
+            $ref: '#/definitions/KeyValuePair'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+        operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.delete
+        # x-permissions:
+        description: Delete a Key.
+        parameters:
+          - name: name
+            in: path
+            description: Key Name.
+            type: string
+            required: true
+          - name: scope
+            in: query
+            description: "Scope the item is under. Example: 'user'."
+            type: string
+          - name: user
+            in: query
+            description: User for user scoped items (admin only).
+            type: string
+        responses:
+          '204':
+            description: Key deleted.
+          default:
+            description: Unexpected error
+            schema:
+              $ref: '#/definitions/Error'
   /rules:
     get:
       operationId: st2api.controllers.v1.rules:rule_controller.get_all
@@ -1606,6 +1736,8 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
+
+
 definitions:
   Action:
     type: object
@@ -1774,6 +1906,29 @@ definitions:
             type: string
             description: User context under which action should run (admins only)
             default: ''
+  KeyValuePair:
+    type: object
+  KeyValuePairRequest:
+    type: object
+    required:
+      - name
+      - value
+    properties:
+      name:
+        description: Key Name.
+        type: string
+      value:
+        description: Key's value.
+        type: string
+      secret:
+        description: Encrypt value before saving the value.
+        type: boolean
+      scope:
+        description: "Scope the item is under. Example: 'user'."
+        type: string
+      user:
+        description: User for user scoped items (admin only).
+        type: string
   Trigger:
     type: object
   TriggerRequest:
