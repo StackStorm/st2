@@ -411,9 +411,9 @@ paths:
           description: User running the action
       responses:
         '200':
-          description: Single action being created
+          description: Execution being created
           schema:
-            $ref: '#/definitions/Action'
+            $ref: '#/definitions/Execution'
           examples:
             application/json:
               trigger:
@@ -441,7 +441,7 @@ paths:
         '200':
           description: Execution requested
           schema:
-            $ref: '#/definitions/Action'
+            $ref: '#/definitions/Execution'
           examples:
             application/json:
               trigger:
@@ -521,7 +521,7 @@ paths:
         '200':
           description: Single action being created
           schema:
-            $ref: '#/definitions/Action'
+            $ref: '#/definitions/Execution'
           examples:
             application/json:
               trigger:
@@ -553,8 +553,6 @@ paths:
       responses:
         '200':
           description: Execution attribute requested
-          schema:
-            $ref: '#/definitions/Action'
           examples:
             application/json:
               trigger:
@@ -589,7 +587,9 @@ paths:
         '200':
           description: Execution attribute requested
           schema:
-            $ref: '#/definitions/Action'
+            type: array
+            items:
+              $ref: '#/definitions/Execution'
           examples:
             application/json:
               trigger:
@@ -616,7 +616,7 @@ paths:
         '200':
           description: A number of distinct values for the requested filters
           schema:
-            $ref: '#/definitions/Action'
+            $ref: '#/definitions/ExecutionFilters'
           examples:
             application/json:
               trigger:
@@ -1908,6 +1908,8 @@ definitions:
             type: string
             description: User context under which action should run (admins only)
             default: ''
+  ExecutionFilters:
+    type: object
   KeyValuePair:
     type: object
   KeyValuePairRequest:
