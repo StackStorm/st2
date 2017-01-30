@@ -272,6 +272,153 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /actionalias:
+    get:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_all
+      x-permissions: action_alias_list
+      description: |
+          Get list of action-alias.
+      parameters:
+        - name: pack
+          in: query
+          description: Only return resources belonging to the provided pack
+          type: string
+      responses:
+        '200':
+          description: List of action alias.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ActionAlias'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.post
+      x-permissions: action_alias_create
+      description: |
+        Create actionalias.
+      parameters:
+        - name: action_alias
+          in: body
+          description: Action alias file.
+          schema:
+            $ref: '#/definitions/ActionAlias'
+      responses:
+        '201':
+          description: Action alias match pattern
+          schema:
+            $ref: '#/definitions/ActionAlias'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /actionalias/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_one
+      x-permissions: action_alias_view
+      description: |
+        Get a specific actionalias based on ref or id.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Action alias requested
+          schema:
+            $ref: '#/definitions/ActionAlias'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.put
+      x-permissions: action_alias_modify
+      description: Update action alias
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Name or ID of the action alias.
+          type: string
+          required: true
+        - name: file
+          in: body
+          description: JSON/YAML file containing the action alias to update.
+          schema:
+            $ref: '#/definitions/ActionAliasRequest'
+          required: true
+      responses:
+        '200':
+          description: Action alias updated.
+          schema:
+            $ref: '#/definitions/ActionAlias'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.delete
+      x-permissions: action_alias_delete
+      description: |
+        Delete action alias based on ref_or_id.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Name or ID of the action alias.
+          type: string
+          required: true
+      responses:
+        '204':
+          description: Action alias deleted
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /actionalias/match:
+    post:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.match
+      x-permissions: action_alias_match
+      description: |
+        Match actionalias based on format (representation or display).
+      parameters:
+        - name: action_alias
+          in: body
+          description: Object containing the format to be matched.
+          schema:
+            $ref: '#/definitions/ActionAliasMatchRequest'
+      responses:
+        '200':
+          description: Action alias match pattern
+          schema:
+            $ref: '#/definitions/ActionAliasMatch'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /executions:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_all
@@ -631,7 +778,7 @@ paths:
   /keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
-      # x-permissions:
+      x-permissions: key_value_pair_view
       description: Returns a list of all key value pairs.
       parameters:
         - name: prefix
@@ -643,14 +790,14 @@ paths:
           in: query
           description: "Scope the item is under. Example: 'user'."
           type: string
-        - name: user
-          in: query
-          description: User for user scoped items (admin only).
-          type: string
         - name: decrypt
           in: query
           description: Decrypt secrets and display plain text
           type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          description: User running the action
       responses:
         '200':
           description: List of key value pairs
@@ -669,7 +816,7 @@ paths:
   /keys/{name}:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_one
-      # x-permissions:
+      x-permissions: key_value_pair_view
       description: |
         Get a specific key vale pair based on key_name.
       parameters:
@@ -682,14 +829,14 @@ paths:
           in: query
           description: "Scope the item is under. Example: 'user'."
           type: string
-        - name: user
-          in: query
-          description: User for user scoped items (admin only).
-          type: string
         - name: decrypt
           in: query
           description: Decrypt secrets and display plain text.
           type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          description: User running the action
       responses:
         '200':
           description: Key value pair requested.
@@ -705,7 +852,7 @@ paths:
             $ref: '#/definitions/Error'
     put:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.put
-      # x-permissions:
+      x-permissions: key_value_pair_set
       description: |
         Create a new key value pair or update an existing one.
       parameters:
@@ -735,7 +882,7 @@ paths:
             $ref: '#/definitions/Error'
     delete:
         operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.delete
-        # x-permissions:
+        x-permissions: key_value_pair_delete
         description: Delete a Key.
         parameters:
           - name: name
@@ -747,10 +894,10 @@ paths:
             in: query
             description: "Scope the item is under. Example: 'user'."
             type: string
+        x-parameters:
           - name: user
-            in: query
-            description: User for user scoped items (admin only).
-            type: string
+            in: context
+            description: User running the action
         responses:
           '204':
             description: Key deleted.
@@ -1811,6 +1958,54 @@ definitions:
     properties:
       parameters:
         $ref: '#/definitions/ActionParametersSubSchema'
+  ActionAlias:
+    type: object
+  ActionAliasRequest:
+    type: object
+    required:
+        - name
+        - ref
+        - pack
+        - action_ref
+    properties:
+      name:
+        description: Alias name.
+        type: string
+      ref:
+        description: Alias reference (pack + name).
+        type: string
+      pack:
+        description: Pack to which this alias belongs.
+        type: string
+      action_ref:
+        description: Reference of an action this alias belongs.
+        type: string
+      id:
+        type: string
+        description: The unique identifier for the action.
+      uid:
+        type: string
+      enabled:
+        type: boolean
+        description: Enable or disable the action from invocation.
+        default: True
+  ActionAliasMatchRequest:
+      type: object
+      required:
+        - command
+      properties:
+        command:
+          description: Command string to try to match the aliases against.
+          type: string
+  ActionAliasMatch:
+      type: object
+      properties:
+        name:
+          description: Name of the Action alias
+          type: string
+        description:
+          description: Description of the Action Alias
+          type: string
   Execution:
     title: ActionExecution
     description: Record of the execution of an action.
