@@ -311,7 +311,7 @@ paths:
             $ref: '#/definitions/ActionAlias'
       responses:
         '201':
-          description: Action alias match pattern
+          description: Action alias created
           schema:
             $ref: '#/definitions/ActionAlias'
           examples:
@@ -401,7 +401,7 @@ paths:
       description: |
         Match actionalias based on format (representation or display).
       parameters:
-        - name: action_alias
+        - name: action_alias_match_api
           in: body
           description: Object containing the format to be matched.
           schema:
@@ -778,7 +778,7 @@ paths:
   /keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
-      x-permissions: key_value_pair_view
+      x-permissions: key_value_pair_list
       description: Returns a list of all key value pairs.
       parameters:
         - name: prefix
@@ -812,7 +812,6 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-
   /keys/{name}:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_one
@@ -905,6 +904,151 @@ paths:
             description: Unexpected error
             schema:
               $ref: '#/definitions/Error'
+  /packs:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.get_all
+      x-permissions: pack_list
+      description: Get list of installed packs.
+      responses:
+        '200':
+          description: List of installed packs.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PacksList'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /packs/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.get_one
+      x-permissions: pack_view
+      description: Get information about an installed pack.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Reference of the pack.
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Information about a pack.
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/PackView'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /packs/install:
+    post:
+      operationId: st2api.controllers.v1.packs:packs_controller.install.post
+      x-permissions: pack_install
+      description: |
+        Install new packs..
+      parameters:
+        - name: pack_install_request
+          in: body
+          description: Packs to be installed
+          schema:
+            $ref: '#/definitions/PacksInstall'
+      responses:
+        '200':
+          description: Packs Installed.
+          schema:
+            $ref: '#/definitions/PacksList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /packs/uninstall:
+    post:
+      operationId: st2api.controllers.v1.packs:packs_controller.uninstall.post
+      x-permissions: pack_uninstall
+      description: |
+        Uninstall packs.
+      parameters:
+        - name: pack_uninstall_request
+          in: body
+          description: Packs to be uninstalled
+          schema:
+            $ref: '#/definitions/PacksUninstall'
+      responses:
+        '200':
+          description: Packs Uninstalled.
+          schema:
+            $ref: '#/definitions/PacksList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /packs/register:
+    post:
+      operationId: st2api.controllers.v1.packs:packs_controller.register.post
+      x-permissions: pack_register
+      description: |
+        Register pack(s): sync all file changes with DB.
+      parameters:
+        - name: pack_register_request
+          in: body
+          description: Pack(s) to be Registered
+          schema:
+            $ref: '#/definitions/PacksRegister'
+      responses:
+        '200':
+          description: Pack(s) Registered.
+          schema:
+            $ref: '#/definitions/PacksList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /packs/index/search:
+    post:
+      operationId: st2api.controllers.v1.packs:packs_controller.index.search.post
+      x-permissions: pack_search
+      description: |
+        Search the index with a query or Get information about an available pack from the index.
+      parameters:
+        - name: pack_search_request
+          in: body
+          description: A query to search a pack or a pack name to get its details
+          schema:
+            $ref: '#/definitions/PacksSearchShow'
+      responses:
+        '200':
+          description: Pack search results.
+          schema:
+            items:
+              - $ref: '#/definitions/PacksList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /rules:
     get:
       operationId: st2api.controllers.v1.rules:rule_controller.get_all
@@ -2127,6 +2271,125 @@ definitions:
         type: string
       user:
         description: User for user scoped items (admin only).
+        type: string
+  PacksList:
+    type: object
+    properties:
+      author:
+        description: Author of the pack.
+        type: string
+      description:
+        description: Description of the pack.
+        type: string
+      name:
+        description: Name of the pack.
+        type: string
+      ref:
+        description: Reference of the pack.
+        type: string
+      version:
+        description: Version of the pack.
+        type: string
+      # for pack show and search
+      content:
+        description: Content type in the pack.
+        type: object
+      keywords:
+        description: Keywords associated with the pack.
+        type: array
+        items:
+          type: string
+      repo_url:
+        description: "URL of the Pack's repo."
+        type: string
+  PackView:
+    type: object
+    properties:
+      author:
+        description: Author of the pack.
+        type: string
+      description:
+        description: Description of the pack.
+        type: string
+      email:
+        description: Email of the author.
+        type: string
+      keywords:
+        description: Keywords associated with the pack.
+        type: array
+        items:
+          type: string
+      name:
+        description: Name of the pack.
+        type: string
+      version:
+        description: Version of the pack.
+        type: string
+  PacksInstall:
+    type: object
+    properties:
+      packs:
+        description: ref of the packs in Exchange, or a git repo URL.
+        type: array
+        items:
+          type: string
+      force:
+        description: Force pack installation.
+        type: boolean
+        default: false
+  PacksUninstall:
+    type: object
+    properties:
+      ref_or_id:
+        description: ref or id of the pack
+        type: string
+      packs:
+        description: Name of the packs in Exchange, or a git repo URL.
+        type: array
+        items:
+          type: string
+  PacksRegister:
+    type: object
+    properties:
+      packs:
+        description: ref of the packs in Exchange, or a git repo URL.
+        type: array
+        items:
+          type: string
+      types:
+        description: Types of content to register.
+        type: array
+        items:
+          $ref: '#/definitions/PacksContentRegisterType'
+  PacksContentRegisterType:
+          type: string
+          enum: ['runner',
+                  'action',
+                  'actions',
+                  'trigger',
+                  'triggers',
+                  'sensor',
+                  'sensors',
+                  'rule',
+                  'rules',
+                  'rule_type',
+                  'rule_types',
+                  'alias',
+                  'aliases',
+                  'policy_type',
+                  'policy_types',
+                  'policy',
+                  'policies',
+                  'config',
+                  'configs']
+  PacksSearchShow:
+    type: object
+    properties:
+      pack:
+        description: Name of the pack to show.
+        type: string
+      query:
+        description: Search query.
         type: string
   Trigger:
     type: object
