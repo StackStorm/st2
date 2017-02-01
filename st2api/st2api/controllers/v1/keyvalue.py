@@ -21,7 +21,7 @@ from mongoengine import ValidationError
 from st2api.controllers.resource import ResourceController
 from st2common import log as logging
 from st2common.constants.keyvalue import ALL_SCOPE, FULL_SYSTEM_SCOPE
-from st2common.constants.keyvalue import FULL_USER_SCOPE, USER_SCOPE, ALLOWED_SCOPES
+from st2common.constants.keyvalue import FULL_USER_SCOPE, ALLOWED_SCOPES
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.models.api.keyvalue import KeyValuePairAPI
@@ -139,7 +139,7 @@ class KeyValuePairController(ResourceController):
             self._validate_scope(scope=scope)
             kwargs['scope'] = scope
 
-        if scope == USER_SCOPE or scope == FULL_USER_SCOPE:
+        if scope == FULL_USER_SCOPE:
             # Make sure we only returned values scoped to current user
             if kwargs['prefix']:
                 kwargs['prefix'] = get_key_reference(name=kwargs['prefix'], scope=scope,
@@ -280,7 +280,7 @@ class KeyValuePairController(ResourceController):
         """
         requester_user = get_requester()
 
-        is_user_scope = (scope == USER_SCOPE or scope == FULL_USER_SCOPE)
+        is_user_scope = (scope == FULL_USER_SCOPE)
         if decrypt and (not is_user_scope and not is_admin):
             msg = 'Decrypt option requires administrator access'
             raise AccessDeniedError(message=msg, user_db=requester_user)

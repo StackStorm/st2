@@ -15,8 +15,8 @@
 
 from st2common import log as logging
 
-from st2common.constants.keyvalue import SYSTEM_SCOPE, FULL_SYSTEM_SCOPE
-from st2common.constants.keyvalue import USER_SCOPE, FULL_USER_SCOPE
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
+from st2common.constants.keyvalue import FULL_USER_SCOPE
 from st2common.constants.keyvalue import ALLOWED_SCOPES
 from st2common.constants.keyvalue import DATASTORE_KEY_SEPARATOR
 from st2common.exceptions.keyvalue import InvalidScopeException, InvalidUserException
@@ -71,9 +71,6 @@ class KeyValueLookup(object):
         if not scope:
             scope = FULL_SYSTEM_SCOPE
 
-        if scope == SYSTEM_SCOPE:
-            scope = FULL_SYSTEM_SCOPE
-
         self._prefix = prefix
         self._key_prefix = key_prefix or ''
         self._value_cache = cache or {}
@@ -122,9 +119,6 @@ class UserKeyValueLookup(object):
 
     def __init__(self, user, prefix=None, key_prefix=None, cache=None, scope=FULL_USER_SCOPE):
         if not scope:
-            scope = FULL_USER_SCOPE
-
-        if scope == USER_SCOPE:
             scope = FULL_USER_SCOPE
 
         self._prefix = prefix
@@ -182,9 +176,9 @@ def get_key_reference(scope, name, user=None):
 
     :rtype: ``str``
     """
-    if (scope == SYSTEM_SCOPE or scope == FULL_SYSTEM_SCOPE):
+    if scope == FULL_SYSTEM_SCOPE:
         return name
-    elif (scope == USER_SCOPE or scope == FULL_USER_SCOPE):
+    elif scope == FULL_USER_SCOPE:
         if not user:
             raise InvalidUserException('A valid user must be specified for user key ref.')
         return UserKeyReference(name=name, user=user).ref

@@ -19,7 +19,7 @@ from st2common.util.date import get_datetime_utc_now
 
 import mock
 
-from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
 from st2common.services.datastore import DatastoreService
 from st2client.models.keyvalue import KeyValuePair
 from st2tests import DbTestCase
@@ -101,7 +101,7 @@ class DatastoreServiceTestCase(DbTestCase):
         self.assertTrue(value)
         kvp = mock_api_client.keys.update.call_args[1]['instance']
         self.assertEquals(kvp.value, 'foo')
-        self.assertEquals(kvp.scope, SYSTEM_SCOPE)
+        self.assertEquals(kvp.scope, FULL_SYSTEM_SCOPE)
 
     def test_datastore_operations_delete_value(self):
         mock_api_client = mock.Mock()
@@ -121,7 +121,7 @@ class DatastoreServiceTestCase(DbTestCase):
         kvp = mock_api_client.keys.update.call_args[1]['instance']
         self.assertEquals(kvp.value, 'foo')
         self.assertTrue(kvp.secret)
-        self.assertEquals(kvp.scope, SYSTEM_SCOPE)
+        self.assertEquals(kvp.scope, FULL_SYSTEM_SCOPE)
 
     def test_datastore_unsupported_scope(self):
         self.assertRaises(ValueError, self._datastore_service.get_value, name='test1',

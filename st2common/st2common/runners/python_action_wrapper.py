@@ -42,7 +42,7 @@ from st2common.runners.utils import get_action_class_instance
 from st2common.util import loader as action_loader
 from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.constants.action import ACTION_OUTPUT_RESULT_DELIMITER
-from st2common.constants.keyvalue import SYSTEM_SCOPE
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
 from st2common.constants.runners import PYTHON_RUNNER_INVALID_ACTION_STATUS_EXIT_CODE
 from st2common.database_setup import db_setup
 
@@ -96,14 +96,14 @@ class ActionService(object):
     def list_values(self, local=True, prefix=None):
         return self.datastore_service.list_values(local, prefix)
 
-    def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
+    def get_value(self, name, local=True, scope=FULL_SYSTEM_SCOPE, decrypt=False):
         return self.datastore_service.get_value(name, local, scope=scope, decrypt=decrypt)
 
-    def set_value(self, name, value, ttl=None, local=True, scope=SYSTEM_SCOPE, encrypt=False):
+    def set_value(self, name, value, ttl=None, local=True, scope=FULL_SYSTEM_SCOPE, encrypt=False):
         return self.datastore_service.set_value(name, value, ttl, local, scope=scope,
                                                 encrypt=encrypt)
 
-    def delete_value(self, name, local=True, scope=SYSTEM_SCOPE):
+    def delete_value(self, name, local=True, scope=FULL_SYSTEM_SCOPE):
         return self.datastore_service.delete_value(name, local)
 
 

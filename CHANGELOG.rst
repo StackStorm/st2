@@ -47,6 +47,9 @@ in development
   cause a type mismatch in the API (bug fix)
 * Use the newly introduced CANCELLED state in mistral for workflow cancellation. Currently, st2
   put the workflow in a PAUSED state in mistral. (improvement)
+* Deprecate  ``{{user.}}`` and ``{{system.}}`` notations to access ``user`` and ``system``
+  scoped items from datastore. From now on, only ``{{st2kv.user.}}`` and ``{{st2kv.system.}}``
+  notations alone are supported. (improvement)
 
 2.1.1 - December 16, 2016
 -------------------------
@@ -124,7 +127,7 @@ in development
   seralize the array as JSON and then falling back to comma separated array.
 * Add new ``core.pause`` action. This action behaves like sleep and can be used inside the action
   chain or Mistral workflows where waiting / sleeping is desired before proceeding with a next
-  task. Contribution by Paul Mulvihill. (new feature) #2933. 
+  task. Contribution by Paul Mulvihill. (new feature) #2933.
 * When a policy cancels a request due to concurrency, it leaves end_timestamp set to None which
   the notifier expects to be a date. This causes an exception in "isotime.format()". A patch was
   released that catches this exception, and populates payload['end_timestamp'] with the equivalent

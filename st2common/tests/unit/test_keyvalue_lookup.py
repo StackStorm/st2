@@ -15,7 +15,6 @@
 
 from st2tests.base import CleanDbTestCase
 from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, FULL_USER_SCOPE
-from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE
 from st2common.models.db.keyvalue import KeyValuePairDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services.keyvalues import KeyValueLookup, UserKeyValueLookup
@@ -89,17 +88,6 @@ class TestKeyValueLookup(CleanDbTestCase):
         self.assertEquals(str(lookup['r']['i']['p']), '')
         user_lookup = UserKeyValueLookup(scope=FULL_USER_SCOPE, user='stanley')
         self.assertEquals(str(user_lookup['r']['i']['p']), k4.value)
-
-    def test_lookups_older_scope_names_backward_compatibility(self):
-        k1 = KeyValuePair.add_or_update(KeyValuePairDB(name='a.b', value='v1',
-                                                       scope=FULL_SYSTEM_SCOPE))
-        lookup = KeyValueLookup(scope=SYSTEM_SCOPE)
-        self.assertEquals(str(lookup['a']['b']), k1.value)
-
-        k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='stanley:r.i.p', value='v4',
-                                                       scope=FULL_USER_SCOPE))
-        user_lookup = UserKeyValueLookup(scope=USER_SCOPE, user='stanley')
-        self.assertEquals(str(user_lookup['r']['i']['p']), k2.value)
 
     def test_user_scope_lookups_dot_in_user(self):
         KeyValuePair.add_or_update(KeyValuePairDB(name='first.last:r.i.p', value='v4',

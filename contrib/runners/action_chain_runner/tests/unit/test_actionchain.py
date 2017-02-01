@@ -587,7 +587,6 @@ class TestActionChainRunner(DbTestCase):
             self.assertNotEqual(chain_runner.chain_holder.actionchain, None)
             expected_value = {'inttype': 1,
                               'strtype': 'two',
-                              'strtype_legacy': 'two',
                               'booltype': True}
             mock_args, _ = request.call_args
             self.assertEqual(mock_args[0].parameters, expected_value)

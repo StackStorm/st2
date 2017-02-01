@@ -20,8 +20,8 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.util import schema as util_schema
-from st2common.constants.keyvalue import SYSTEM_SCOPE
-from st2common.constants.keyvalue import USER_SCOPE
+from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
+from st2common.constants.keyvalue import FULL_USER_SCOPE
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.constants.pack import PACK_VERSION_REGEX
 from st2common.constants.pack import ST2_VERSION_REGEX
@@ -345,10 +345,10 @@ class ConfigItemSetAPI(BaseAPI):
             "scope": {
                 "description": "Config item scope (system / user)",
                 "type": "string",
-                "default": SYSTEM_SCOPE,
+                "default": FULL_SYSTEM_SCOPE,
                 "enum": [
-                    SYSTEM_SCOPE,
-                    USER_SCOPE
+                    FULL_SYSTEM_SCOPE,
+                    FULL_USER_SCOPE
                 ]
             },
             "user": {
