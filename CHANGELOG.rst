@@ -47,6 +47,8 @@ in development
   cause a type mismatch in the API (bug fix)
 * Use the newly introduced CANCELLED state in mistral for workflow cancellation. Currently, st2
   put the workflow in a PAUSED state in mistral. (improvement)
+* Add support for evaluating jinja expressions in mistral workflow definition where yaql
+  expressions are typically accepted. (improvement)
 
 2.1.1 - December 16, 2016
 -------------------------
