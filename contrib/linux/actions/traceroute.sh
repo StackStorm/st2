@@ -17,4 +17,4 @@ if [ $? -ne 0 ]; then
     exit 2
 fi
 
-exec ${TRACEROUTE} -q $MAX_QUERIES_TO_HOP -m $MAX_HOPS $HOST
+exec ${TRACEROUTE} -q ${MAX_QUERIES_TO_HOP} -m ${MAX_HOPS} ${HOST}
