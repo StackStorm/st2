@@ -1049,6 +1049,143 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  # No test
+  /packs/index/health:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.index.health
+      x-permissions: pack_view_index_health
+      description: To get the state of all indexes used by your StackStorm instance.
+      responses:
+        '200':
+          description: Index health.
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/PackIndex'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /configs:
+    get:
+      operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_all
+      x-permissions: pack_list
+      description: Retrieve configs for all the packs.
+      responses:
+        '200':
+          description: Get packs config.
+          # schema:
+            # type: array
+              # items:
+                # $ref: '#/definitions/PackConfig'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /configs/{pack_ref}:
+    get:
+      operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_one
+      x-permissions: pack_view
+      description: Retrieve config for a particular pack.
+      parameters:
+        - name: pack_ref
+          type: string
+          in: path
+          description: Pack ref to retrieve config for the pack.
+          required: true
+      responses:
+        '200':
+          description: Config for a particular pack.
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/PackConfigView'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.put
+      x-permissions: pack_create
+      description: Create a new config for the action.
+      parameters:
+        - name: pack_ref
+          in: path
+          description: Pack ref to create config.
+          type: string
+          required: true
+        - name: pack_uninstall_request
+          in: body
+          description: Pack config content
+          schema:
+            $ref: '#/definitions/PackConfigContent'
+      responses:
+        '200':
+          description: Config for a particular pack.
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/PackConfigCreate'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /config_schemas:
+    get:
+      operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_all
+      x-permissions: pack_list
+      description: Retrieve config schema for all the packs.
+      responses:
+        '200':
+          description: Get packs config schema.
+          # schema:
+            # type: array
+              # items:
+                # $ref: '#/definitions/PackConfig'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /config_schemas/{pack_ref}:
+    get:
+      operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_one
+      x-permissions: pack_view
+      description: Retrieve config schema for a particular pack.
+      parameters:
+        - name: pack_ref
+          type: string
+          in: path
+          description: Pack ref to retrieve config schema for the pack.
+          required: true
+      responses:
+        '200':
+          description: Config schema for a particular pack.
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/PackConfigView'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /rules:
     get:
       operationId: st2api.controllers.v1.rules:rule_controller.get_all
@@ -2391,6 +2528,43 @@ definitions:
       query:
         description: Search query.
         type: string
+  PackIndex:
+    type: object
+    properties:
+      indexes:
+        description: Index details.
+        type: object
+        items:
+          type: object
+          properties:
+            count:
+              description: Number of index.
+              type: integer
+            errors:
+              description: Errors.
+              type: object
+            invalid:
+              description: Invalid.
+              type: integer
+            status:
+              description: Status of the index.
+              type: array
+            valid:
+              description: Valid.
+              type: integer
+      packs:
+        description: Number of packs in the index.
+        type: object
+  PackConfig:
+    type: array
+    items:
+      type: object
+  PackConfigView:
+    type: object
+  PackConfigContent:
+    type: object
+  PackConfigCreate:
+    type: object
   Trigger:
     type: object
   TriggerRequest:
