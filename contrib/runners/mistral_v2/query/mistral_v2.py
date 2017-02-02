@@ -21,6 +21,10 @@ DONE_STATES = {
     'CANCELLED': action_constants.LIVEACTION_STATUS_CANCELED
 }
 
+ACTIVE_STATES = {
+    'RUNNING': action_constants.LIVEACTION_STATUS_RUNNING
+}
+
 
 def get_instance():
     return MistralResultsQuerier(str(uuid.uuid4()))
@@ -132,19 +136,23 @@ class MistralResultsQuerier(Querier):
         # Get the liveaction object to compare state.
         is_action_canceled = action_service.is_action_canceled_or_canceling(execution_id)
 
-        # Identify the list of tasks that are not in completed states.
-        active_tasks = [t for t in tasks if t['state'] not in DONE_STATES]
+        # Identify the list of tasks that are not still running.
+        active_tasks = [t for t in tasks if t['state'] in ACTIVE_STATES]
 
         # Keep the execution in running state if there are active tasks.
         # In certain use cases, Mistral sets the workflow state to
         # completion prior to task completion.
         if is_action_canceled and active_tasks:
             status = action_constants.LIVEACTION_STATUS_CANCELING
-        elif wf_state not in DONE_STATES:
-            status = action_constants.LIVEACTION_STATUS_RUNNING
+        elif is_action_canceled and not active_tasks and wf_state not in DONE_STATES:
+            status = action_constants.LIVEACTION_STATUS_CANCELING
+        elif not is_action_canceled and active_tasks and wf_state == 'CANCELLED':
+            status = action_constants.LIVEACTION_STATUS_CANCELING
         elif wf_state in DONE_STATES and active_tasks:
             status = action_constants.LIVEACTION_STATUS_RUNNING
-        else:
+        elif wf_state in DONE_STATES and not active_tasks:
             status = DONE_STATES[wf_state]
+        else:
+            status = action_constants.LIVEACTION_STATUS_RUNNING
 
         return status
