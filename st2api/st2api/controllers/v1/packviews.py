@@ -31,7 +31,8 @@ from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 from st2common.content.utils import get_pack_file_abs_path
 from st2common.rbac.types import PermissionType
-from st2common.rbac.utils import assert_request_user_has_resource_db_permission
+from st2common.rbac import utils as rbac_utils
+from st2common.rbac.utils import assert_user_has_resource_db_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
@@ -196,8 +197,10 @@ class FileController(BaseFileController):
 
         # Note: Until list filtering is in place we don't require RBAC check for icon file
         if file_path not in WHITELISTED_FILE_PATHS:
-            assert_request_user_has_resource_db_permission(request=pecan.request,
-               resource_db=pack_db, permission_type=PermissionType.PACK_VIEW)
+            user_db = rbac_utils.get_user_db_from_request(request=pecan.request)
+            assert_user_has_resource_db_permission(user_db=user_db,
+                                                   resource_db=pack_db,
+                                                   permission_type=PermissionType.PACK_VIEW)
 
         normalized_file_path = get_pack_file_abs_path(pack_ref=pack_ref, file_path=file_path)
         if not normalized_file_path or not os.path.isfile(normalized_file_path):

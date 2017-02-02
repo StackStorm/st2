@@ -23,6 +23,7 @@ from webob import exc as webob_exc
 
 from st2common import log as logging
 from st2common.constants.api import DEFAULT_API_VERSION
+from st2common.rbac import utils as rbac_utils
 from st2common.util.url import get_url_without_trailing_slash
 
 __all__ = [
@@ -82,15 +83,17 @@ def get_mistral_api_url(api_version=DEFAULT_API_VERSION):
     return api_url
 
 
-def get_requester():
+def get_requester(request=None):
     """
     Retrieve username of the authed user (note - if auth is disabled, user will not be
     set so we fall back to the system user name)
 
     :rtype: ``str``
     """
-    auth_context = pecan.request.context.get('auth', None)
-    user_db = auth_context.get('user', None) if auth_context else None
+    if not request:
+        request = pecan.request
+
+    user_db = rbac_utils.get_user_db_from_request(request=request)
 
     if not user_db:
         LOG.warn('auth is disabled, falling back to system_user')

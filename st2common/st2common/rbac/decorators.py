@@ -36,7 +36,8 @@ def request_user_is_admin():
     def decorate(func):
         @wraps(func)
         def func_wrapper(*args, **kwargs):
-            utils.assert_request_user_is_admin(request=pecan.request)
+            user_db = utils.get_user_db_from_request(request=pecan.request)
+            utils.assert_user_is_admin(user_db=user_db)
             return func(*args, **kwargs)
         return func_wrapper
     return decorate
@@ -46,7 +47,8 @@ def request_user_is_system_admin():
     def decorate(func):
         @wraps(func)
         def func_wrapper(*args, **kwargs):
-            utils.assert_request_user_is_system_admin(request=pecan.request)
+            user_db = utils.get_user_db_from_request(request=pecan.request)
+            utils.assert_user_is_system_admin(user_db=user_db)
             return func(*args, **kwargs)
         return func_wrapper
     return decorate
@@ -56,8 +58,9 @@ def request_user_has_permission(permission_type):
     def decorate(func):
         @wraps(func)
         def func_wrapper(*args, **kwargs):
-            utils.assert_request_user_has_permission(request=pecan.request,
-                                                     permission_type=permission_type)
+            user_db = utils.get_user_db_from_request(request=pecan.request)
+            utils.assert_user_has_permission(user_db=user_db,
+                                             permission_type=permission_type)
             return func(*args, **kwargs)
         return func_wrapper
     return decorate
@@ -78,10 +81,11 @@ def request_user_has_resource_api_permission(permission_type):
         @wraps(func)
         def func_wrapper(*args, **kwargs):
             resource_api = args[1]
+            user_db = utils.get_user_db_from_request(request=pecan.request)
 
-            utils.assert_request_user_has_resource_api_permission(request=pecan.request,
-                                                                  resource_api=resource_api,
-                                                                  permission_type=permission_type)
+            utils.assert_user_has_resource_api_permission(user_db=user_db,
+                                                          resource_api=resource_api,
+                                                          permission_type=permission_type)
             return func(*args, **kwargs)
         return func_wrapper
     return decorate
@@ -112,13 +116,14 @@ def request_user_has_resource_db_permission(permission_type):
         def func_wrapper(*args, **kwargs):
             controller_instance = args[0]
             resource_id = args[1]  # Note: This can either be id, name or ref
+            user_db = utils.get_user_db_from_request(request=pecan.request)
 
             get_one_db_method = controller_instance.get_one_db_method
             resource_db = get_one_db_method(resource_id)
             assert resource_db is not None
-            utils.assert_request_user_has_resource_db_permission(request=pecan.request,
-                                                                 resource_db=resource_db,
-                                                                 permission_type=permission_type)
+            utils.assert_user_has_resource_db_permission(user_db=user_db,
+                                                         resource_db=resource_db,
+                                                         permission_type=permission_type)
             return func(*args, **kwargs)
         return func_wrapper
     return decorate
@@ -138,11 +143,12 @@ def request_user_has_webhook_permission(permission_type):
         def func_wrapper(*args, **kwargs):
             hook = '/'.join(args[1:])  # TODO: There must be a better way to do this.
             webhook_db = WebhookDB(name=hook)
+            user_db = utils.get_user_db_from_request(request=pecan.request)
 
             resource_db = webhook_db
-            utils.assert_request_user_has_resource_db_permission(request=pecan.request,
-                                                                 resource_db=resource_db,
-                                                                 permission_type=permission_type)
+            utils.assert_user_has_resource_db_permission(user_db=user_db,
+                                                         resource_db=resource_db,
+                                                         permission_type=permission_type)
             return func(*args, **kwargs)
         return func_wrapper
     return decorate

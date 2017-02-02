@@ -36,7 +36,8 @@ from st2common.util import reference
 from st2common.util.api import get_requester
 from st2common.util.jinja import render_values as render
 from st2common.rbac.types import PermissionType
-from st2common.rbac.utils import assert_request_user_has_resource_db_permission
+from st2common.rbac import utils as rbac_utils
+from st2common.rbac.utils import assert_user_has_resource_db_permission
 
 
 http_client = six.moves.http_client
@@ -145,8 +146,9 @@ class ActionAliasExecutionController(rest.RestController):
         if not action_db:
             raise StackStormDBObjectNotFoundError('Action with ref "%s" not found ' % (action_ref))
 
-        assert_request_user_has_resource_db_permission(request=request, resource_db=action_db,
-            permission_type=PermissionType.ACTION_EXECUTE)
+        user_db = rbac_utils.get_user_db_from_request(request=request)
+        assert_user_has_resource_db_permission(user_db=user_db, resource_db=action_db,
+                                               permission_type=PermissionType.ACTION_EXECUTE)
 
         try:
             # prior to shipping off the params cast them to the right type.
