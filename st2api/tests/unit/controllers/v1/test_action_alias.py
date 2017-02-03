@@ -113,6 +113,19 @@ class TestActionAlias(FunctionalTest):
                          "Command 'Lorem ipsum banana dolor sit pineapple amet.' "
                          "matched more than 1 pattern")
 
+    def test_help(self):
+        data = {}
+        resp = self.app.post_json("/v1/actionalias/help", data, expect_errors=False)
+        self.assertEqual(resp.status_int, 202)
+        self.assertEqual(resp.json.get('available'), 2)
+
+    def test_help_args(self):
+        data = {"filter": ".*", "pack": "aliases", "limit": 1, "offset": 0}
+        resp = self.app.post_json("/v1/actionalias/help", data, expect_errors=False)
+        self.assertEqual(resp.status_int, 202)
+        self.assertEqual(resp.json.get('available'), 2)
+        self.assertEqual(len(resp.json.get('helpstrings').get("aliases")), 1)
+
     def _do_post(self, actionalias, expect_errors=False):
         return self.app.post_json('/v1/actionalias', actionalias, expect_errors=expect_errors)
 
