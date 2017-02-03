@@ -1,8 +1,6 @@
 import uuid
 
 from mistralclient.api import client as mistral
-from mistralclient.api.v2 import tasks
-from mistralclient.api.v2 import executions
 from oslo_config import cfg
 import retrying
 
@@ -19,7 +17,12 @@ LOG = logging.getLogger(__name__)
 
 DONE_STATES = {
     'ERROR': action_constants.LIVEACTION_STATUS_FAILED,
-    'SUCCESS': action_constants.LIVEACTION_STATUS_SUCCEEDED
+    'SUCCESS': action_constants.LIVEACTION_STATUS_SUCCEEDED,
+    'CANCELLED': action_constants.LIVEACTION_STATUS_CANCELED
+}
+
+ACTIVE_STATES = {
+    'RUNNING': action_constants.LIVEACTION_STATUS_RUNNING
 }
 
 
@@ -84,7 +87,7 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: (``str``, ``dict``)
         """
-        execution = executions.ExecutionManager(self._client).get(exec_id)
+        execution = self._client.executions.get(exec_id)
 
         result = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else {}
 
@@ -102,7 +105,10 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: ``list``
         """
-        wf_tasks = tasks.TaskManager(self._client).list(workflow_execution_id=exec_id)
+        wf_tasks = [
+            self._client.tasks.get(task.id)
+            for task in self._client.tasks.list(workflow_execution_id=exec_id)
+        ]
 
         return [self._format_task_result(task=wf_task.to_dict()) for wf_task in wf_tasks]
 
@@ -130,19 +136,23 @@ class MistralResultsQuerier(Querier):
         # Get the liveaction object to compare state.
         is_action_canceled = action_service.is_action_canceled_or_canceling(execution_id)
 
-        # Identify the list of tasks that are not in completed states.
-        active_tasks = [t for t in tasks if t['state'] not in DONE_STATES]
+        # Identify the list of tasks that are not still running.
+        active_tasks = [t for t in tasks if t['state'] in ACTIVE_STATES]
 
-        # On cancellation, mistral workflow executions are paused so that tasks
-        # can gracefully reach completion. This is only temporary until a canceled
-        # status is added to mistral.
-        if (wf_state in DONE_STATES or wf_state == 'PAUSED') and is_action_canceled:
-            status = action_constants.LIVEACTION_STATUS_CANCELED
-        elif wf_state in DONE_STATES and not is_action_canceled and active_tasks:
+        # Keep the execution in running state if there are active tasks.
+        # In certain use cases, Mistral sets the workflow state to
+        # completion prior to task completion.
+        if is_action_canceled and active_tasks:
+            status = action_constants.LIVEACTION_STATUS_CANCELING
+        elif is_action_canceled and not active_tasks and wf_state not in DONE_STATES:
+            status = action_constants.LIVEACTION_STATUS_CANCELING
+        elif not is_action_canceled and active_tasks and wf_state == 'CANCELLED':
+            status = action_constants.LIVEACTION_STATUS_CANCELING
+        elif wf_state in DONE_STATES and active_tasks:
             status = action_constants.LIVEACTION_STATUS_RUNNING
-        elif wf_state not in DONE_STATES:
-            status = action_constants.LIVEACTION_STATUS_RUNNING
-        else:
+        elif wf_state in DONE_STATES and not active_tasks:
             status = DONE_STATES[wf_state]
+        else:
+            status = action_constants.LIVEACTION_STATUS_RUNNING
 
         return status

@@ -61,6 +61,11 @@ SPEC_TYPES = {
     }
 }
 
+JINJA_WITH_ST2KV = '{{st2kv\..*?|.*?\sst2kv\..*?}}'
+JINJA_WITH_ST2KV_PTRN = re.compile(JINJA_WITH_ST2KV)
+JINJA_WITH_LOCAL_CTX = '{{.*?_\..*?}}'
+JINJA_WITH_LOCAL_CTX_PTRN = re.compile(JINJA_WITH_LOCAL_CTX)
+
 
 def _parse_cmd_and_input(cmd_str):
     cmd_matcher = CMD_PTRN.search(cmd_str)
@@ -128,6 +133,35 @@ def _validate_action_parameters(name, action, action_params):
                                           '"%s"' % (name, action.ref, '", "'.join(unexpected)))
 
 
+def _transform_action_param(action_ref, param_name, param_value):
+    if isinstance(param_value, list):
+        param_value = [
+            _transform_action_param(action_ref, param_name, value)
+            for value in param_value
+        ]
+
+    if isinstance(param_value, dict):
+        param_value = {
+            name: _transform_action_param(action_ref, name, value)
+            for name, value in six.iteritems(param_value)
+        }
+
+    if isinstance(param_value, six.string_types):
+        st2kv_matches = JINJA_WITH_ST2KV_PTRN.findall(param_value)
+        local_ctx_matches = JINJA_WITH_LOCAL_CTX_PTRN.findall(param_value)
+
+        if st2kv_matches and local_ctx_matches:
+            raise WorkflowDefinitionException('Parameter "%s" for action "%s" containing '
+                                              'references to both local context (i.e. _.var1) '
+                                              'and st2kv (i.e. st2kv.system.var1) is not '
+                                              'supported.' % (param_name, action_ref))
+
+        if st2kv_matches:
+            param_value = '{% raw %}' + param_value + '{% endraw %}'
+
+    return param_value
+
+
 def _transform_action(name, spec):
 
     action_key, input_key = None, None
@@ -186,6 +220,17 @@ def _transform_action(name, spec):
         action_input = spec.get(input_key, {})
         action_params = action_input.get('parameters', {})
         _validate_action_parameters(name, action, action_params)
+
+        xformed_action_params = {}
+
+        for param_name in action_params.keys():
+            param_value = copy.deepcopy(action_params[param_name])
+            xformed_param_value = _transform_action_param(
+                action_ref, param_name, param_value)
+            xformed_action_params[param_name] = xformed_param_value
+
+        if xformed_action_params != action_params:
+            spec[input_key]['parameters'] = xformed_action_params
 
 
 def transform_definition(definition):

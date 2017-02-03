@@ -57,18 +57,58 @@ class PoliciesRegistrarTestCase(CleanDbTestCase):
 
         packs_base_path = get_fixtures_packs_base_path()
         count = policies_registrar.register_policies(packs_base_paths=[packs_base_path])
-        self.assertEqual(count, 2)
 
         # Verify PolicyDB objects have been created
         policies_dbs = Policy.get_all()
-        self.assertEqual(len(policies_dbs), 2)
 
-        self.assertEqual(policies_dbs[0].name, 'test_policy_1')
-        self.assertEqual(policies_dbs[0].policy_type, 'action.concurrency')
+        policies = {
+            policies_db.name: {
+                'pack': policies_db.pack,
+                'type': policies_db.policy_type,
+                'parameters': policies_db.parameters
+            }
+            for policies_db in policies_dbs
+        }
 
-        # Verify that a default value for parameter "action" which isn't provided in the file is set
-        self.assertEqual(policies_dbs[0].parameters['action'], 'delay')
-        self.assertEqual(policies_dbs[0].parameters['threshold'], 3)
+        expected_policies = {
+            'test_policy_1': {
+                'pack': 'dummy_pack_1',
+                'type': 'action.concurrency',
+                'parameters': {
+                    'action': 'delay',
+                    'threshold': 3
+                }
+            },
+            'test_policy_3': {
+                'pack': 'dummy_pack_1',
+                'type': 'action.retry',
+                'parameters': {
+                    'retry_on': 'timeout',
+                    'max_retry_count': 5
+                }
+            },
+            'cancel_on_concurrency': {
+                'pack': 'mistral_tests',
+                'type': 'action.concurrency',
+                'parameters': {
+                    'action': 'cancel',
+                    'threshold': 3
+                }
+            },
+            'cancel_on_concurrency_by_attr': {
+                'pack': 'mistral_tests',
+                'type': 'action.concurrency.attr',
+                'parameters': {
+                    'action': 'cancel',
+                    'threshold': 1,
+                    'attributes': ['friend']
+                }
+            }
+        }
+
+        self.assertEqual(len(expected_policies), count)
+        self.assertEqual(len(expected_policies), len(policies_dbs))
+        self.assertDictEqual(expected_policies, policies)
 
     def test_register_policies_from_pack(self):
         pack_dir = os.path.join(get_fixtures_packs_base_path(), 'dummy_pack_1')

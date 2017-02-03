@@ -30,6 +30,10 @@ WB_PRE_XFORM_FILE = 'wb_pre_xform.yaml'
 WB_POST_XFORM_FILE = 'wb_post_xform.yaml'
 WF_PRE_XFORM_FILE = 'wf_pre_xform.yaml'
 WF_POST_XFORM_FILE = 'wf_post_xform.yaml'
+WF_JINJA_ST2KV_PRE_XFORM_FILE = 'wf_has_jinja_st2kv_pre_xform.yaml'
+WF_JINJA_ST2KV_POST_XFORM_FILE = 'wf_has_jinja_st2kv_post_xform.yaml'
+WF_JINJA_MIXED_CTX1_FILE = 'wf_jinja_mixed_context_ref1.yaml'
+WF_JINJA_MIXED_CTX2_FILE = 'wf_jinja_mixed_context_ref2.yaml'
 WF_NO_REQ_PARAM_FILE = 'wf_missing_required_param.yaml'
 WF_UNEXP_PARAM_FILE = 'wf_has_unexpected_param.yaml'
 
@@ -39,6 +43,10 @@ TEST_FIXTURES = {
         WB_POST_XFORM_FILE,
         WF_PRE_XFORM_FILE,
         WF_POST_XFORM_FILE,
+        WF_JINJA_ST2KV_PRE_XFORM_FILE,
+        WF_JINJA_ST2KV_POST_XFORM_FILE,
+        WF_JINJA_MIXED_CTX1_FILE,
+        WF_JINJA_MIXED_CTX2_FILE,
         WF_NO_REQ_PARAM_FILE,
         WF_UNEXP_PARAM_FILE
     ],
@@ -66,6 +74,18 @@ WF_PRE_XFORM_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WF_PRE_X
 WF_PRE_XFORM_DEF = FIXTURES['workflows'][WF_PRE_XFORM_FILE]
 WF_POST_XFORM_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WF_POST_XFORM_FILE)
 WF_POST_XFORM_DEF = FIXTURES['workflows'][WF_POST_XFORM_FILE]
+WF_JINJA_ST2KV_PRE_XFORM_PATH = LOADER.get_fixture_file_path_abs(
+    PACK, 'workflows', WF_JINJA_ST2KV_PRE_XFORM_FILE)
+WF_JINJA_ST2KV_PRE_XFORM_DEF = FIXTURES['workflows'][WF_JINJA_ST2KV_PRE_XFORM_FILE]
+WF_JINJA_ST2KV_POST_XFORM_PATH = LOADER.get_fixture_file_path_abs(
+    PACK, 'workflows', WF_JINJA_ST2KV_POST_XFORM_FILE)
+WF_JINJA_MIXED_CTX1_DEF = FIXTURES['workflows'][WF_JINJA_MIXED_CTX1_FILE]
+WF_JINJA_MIXED_CTX1_PATH = LOADER.get_fixture_file_path_abs(
+    PACK, 'workflows', WF_JINJA_MIXED_CTX1_FILE)
+WF_JINJA_MIXED_CTX2_DEF = FIXTURES['workflows'][WF_JINJA_MIXED_CTX2_FILE]
+WF_JINJA_MIXED_CTX2_PATH = LOADER.get_fixture_file_path_abs(
+    PACK, 'workflows', WF_JINJA_MIXED_CTX2_FILE)
+WF_JINJA_ST2KV_POST_XFORM_DEF = FIXTURES['workflows'][WF_JINJA_ST2KV_POST_XFORM_FILE]
 WF_NO_REQ_PARAM_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WF_NO_REQ_PARAM_FILE)
 WF_NO_REQ_PARAM_DEF = FIXTURES['workflows'][WF_NO_REQ_PARAM_FILE]
 WF_UNEXP_PARAM_PATH = LOADER.get_fixture_file_path_abs(PACK, 'workflows', WF_UNEXP_PARAM_FILE)
@@ -119,6 +139,37 @@ class DSLTransformTestCase(DbTestCase):
         actual = utils.transform_definition(def_dict)
         expected = copy.deepcopy(WF_POST_XFORM_DEF)
         self.assertDictEqual(actual, expected)
+
+    def test_transform_workflow_with_jinja_st2kv_dsl_yaml(self):
+        def_yaml = self._read_file_content(WF_JINJA_ST2KV_PRE_XFORM_PATH)
+        new_def = utils.transform_definition(def_yaml)
+        actual = yaml.safe_load(new_def)
+        expected = copy.deepcopy(WF_JINJA_ST2KV_POST_XFORM_DEF)
+        self.assertDictEqual(actual, expected)
+
+    def test_transform_workflow_with_jinja_st2kv_dsl_dict(self):
+        def_dict = self._read_yaml_file_as_json(WF_JINJA_ST2KV_PRE_XFORM_PATH)
+        actual = utils.transform_definition(def_dict)
+        expected = copy.deepcopy(WF_JINJA_ST2KV_POST_XFORM_DEF)
+        self.assertDictEqual(actual, expected)
+
+    def test_mixed_jinja_context_same_delimiter(self):
+        def_dict = self._read_yaml_file_as_json(WF_JINJA_MIXED_CTX1_PATH)
+
+        with self.assertRaises(WorkflowDefinitionException) as cm:
+            utils.transform_definition(def_dict)
+
+        self.assertIn('strtype', cm.exception.message)
+        self.assertIn('references to both local context', cm.exception.message)
+
+    def test_mixed_jinja_context_separate_delimiters(self):
+        def_dict = self._read_yaml_file_as_json(WF_JINJA_MIXED_CTX2_PATH)
+
+        with self.assertRaises(WorkflowDefinitionException) as cm:
+            utils.transform_definition(def_dict)
+
+        self.assertIn('inttype', cm.exception.message)
+        self.assertIn('references to both local context', cm.exception.message)
 
     def test_required_action_params_failure(self):
         def_dict = self._read_yaml_file_as_json(WF_NO_REQ_PARAM_PATH)

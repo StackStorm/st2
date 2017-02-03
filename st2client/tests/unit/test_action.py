@@ -23,7 +23,6 @@ from st2client import shell
 from st2client import models
 from st2client.utils import httpclient
 
-
 LOG = logging.getLogger(__name__)
 
 RUNNER1 = {
@@ -294,6 +293,50 @@ class ActionCommandTestCase(base.BaseCLITestCase):
                     'one',
                     'two',
                     'three'
+                ]
+            }
+        }
+        httpclient.HTTPClient.post.assert_called_with('/executions', expected)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_param_array_conversion_single_element_str(self):
+        self.shell.run(['run', 'mockety.mock2', 'list=one'])
+        expected = {
+            'action': 'mockety.mock2',
+            'user': None,
+            'parameters': {
+                'list': [
+                    'one'
+                ]
+            }
+        }
+        httpclient.HTTPClient.post.assert_called_with('/executions', expected)
+
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_ref_or_id',
+        mock.MagicMock(side_effect=get_by_ref))
+    @mock.patch.object(
+        models.ResourceManager, 'get_by_name',
+        mock.MagicMock(side_effect=get_by_name))
+    @mock.patch.object(
+        httpclient.HTTPClient, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(LIVE_ACTION), 200, 'OK')))
+    def test_param_array_conversion_single_element_int(self):
+        self.shell.run(['run', 'mockety.mock2', 'list=1'])
+        expected = {
+            'action': 'mockety.mock2',
+            'user': None,
+            'parameters': {
+                'list': [
+                    1
                 ]
             }
         }

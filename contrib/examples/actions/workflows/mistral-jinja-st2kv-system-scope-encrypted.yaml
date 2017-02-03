@@ -1,0 +1,14 @@
+version: '2.0'
+
+examples.mistral-jinja-st2kv-system-scope-encrypted:
+    vars:
+        foobar: unspecified
+    tasks:
+        task1:
+            action: core.local
+            input:
+                cmd: 'echo "{{ st2kv.system.foobar | decrypt_kv }}"'
+            publish:
+                foobar: <% task(task1).result.stdout %>
+            on-complete:
+                - fail: <% $.foobar != foobar %>
