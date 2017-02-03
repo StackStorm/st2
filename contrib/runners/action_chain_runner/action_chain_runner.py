@@ -29,6 +29,7 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.action import LIVEACTION_FAILED_STATES
+from st2common.constants.pack import PACK_CONTEXT_KV_PREFIX
 from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.content.loader import MetaLoader
 from st2common.exceptions.action import (ParameterRenderingFailedException,
@@ -45,6 +46,7 @@ from st2common.util import action_db as action_db_util
 from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.util import jinja as jinja_utils
+from st2common.util.config_loader import ContentPackConfigLoader
 
 
 LOG = logging.getLogger(__name__)
@@ -322,7 +324,7 @@ class ActionChainRunner(ActionRunner):
             }
 
         parent_context = {
-            'execution_id': self.execution_id
+            'execution_id': self.execution_id,
         }
         if getattr(self.liveaction, 'context', None):
             parent_context.update(self.liveaction.context)
@@ -507,6 +509,20 @@ class ActionChainRunner(ActionRunner):
     @staticmethod
     def _resolve_params(action_node, original_parameters, results, chain_vars, chain_context):
         # setup context with original parameters and the intermediate results.
+        chain_parent = chain_context.get('parent', {})
+        pack = chain_parent.get('pack')
+        user = chain_parent.get('user')
+
+        if pack and user:
+            config_loader = ContentPackConfigLoader(
+                pack_name=pack,
+                user=user
+            )
+
+            config = config_loader.get_config()
+        else:
+            config = {}
+
         context = {}
         context.update(original_parameters)
         context.update(results)
@@ -519,6 +535,7 @@ class ActionChainRunner(ActionRunner):
             }
         })
         context.update({ACTION_CONTEXT_KV_PREFIX: chain_context})
+        context.update({PACK_CONTEXT_KV_PREFIX: config})
         try:
             rendered_params = jinja_utils.render_values(mapping=action_node.get_parameters(),
                                                         context=context)

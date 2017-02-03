@@ -20,7 +20,9 @@ import networkx as nx
 
 from jinja2 import meta
 from st2common import log as logging
+from st2common.util.config_loader import ContentPackConfigLoader
 from st2common.constants.action import ACTION_CONTEXT_KV_PREFIX
+from st2common.constants.pack import PACK_CONTEXT_KV_PREFIX
 from st2common.constants.keyvalue import DATASTORE_PARENT_SCOPE, SYSTEM_SCOPE
 from st2common.exceptions.param import ParamException
 from st2common.services.keyvalues import KeyValueLookup
@@ -36,6 +38,21 @@ __all__ = [
     'render_live_params',
     'render_final_params',
 ]
+
+
+def _get_config(pack, user):
+    if pack and user:
+        config_loader = ContentPackConfigLoader(
+            pack_name=pack,
+            user=user
+        )
+
+        config = config_loader.get_config()
+
+    else:
+        config = {}
+
+    return config
 
 
 def _split_params(runner_parameters, action_parameters, mixed_params):
@@ -71,7 +88,7 @@ def _cast(v, parameter_schema):
     return cast(v)
 
 
-def _create_graph(action_context):
+def _create_graph(action_context, config):
     '''
     Creates a generic directed graph for depencency tree and fills it with basic context variables
     '''
@@ -80,6 +97,7 @@ def _create_graph(action_context):
     system_keyvalue_context = {SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)}
     G.add_node(DATASTORE_PARENT_SCOPE, value=system_keyvalue_context)
     G.add_node(ACTION_CONTEXT_KV_PREFIX, value=action_context)
+    G.add_node(PACK_CONTEXT_KV_PREFIX, value=config)
     return G
 
 
@@ -219,7 +237,9 @@ def render_live_params(runner_parameters, action_parameters, params, action_cont
     Renders list of parameters. Ensures that there's no cyclic or missing dependencies. Returns a
     dict of plain rendered parameters.
     '''
-    G = _create_graph(action_context)
+    config = _get_config(action_context.get('pack'), action_context.get('user'))
+
+    G = _create_graph(action_context, config)
 
     [_process(G, name, value) for name, value in six.iteritems(params)]
     _process_defaults(G, [action_parameters, runner_parameters])
@@ -237,7 +257,9 @@ def render_final_params(runner_parameters, action_parameters, params, action_con
     plain values instead of trying to render them again. Returns dicts for action and runner
     parameters.
     '''
-    G = _create_graph(action_context)
+    config = _get_config(action_context.get('pack'), action_context.get('user'))
+
+    G = _create_graph(action_context, config)
 
     # by that point, all params should already be resolved so any template should be treated value
     [G.add_node(name, value=value) for name, value in six.iteritems(params)]

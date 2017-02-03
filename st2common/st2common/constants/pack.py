@@ -32,6 +32,9 @@ __all__ = [
     'CONFIG_SCHEMA_FILE_NAME'
 ]
 
+# Prefix for render context w/ config
+PACK_CONTEXT_KV_PREFIX = 'pack_context'
+
 # A list of allowed characters for the pack name
 PACK_REF_WHITELIST_REGEX = r'^[a-z0-9_]+$'
 

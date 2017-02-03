@@ -102,6 +102,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         action_ref = liveaction_api.action
         action_db = action_utils.get_action_by_ref(action_ref)
         user = liveaction_api.user or get_requester()
+        pack = action_db.pack
 
         assert_request_user_has_resource_db_permission(request=pecan.request, resource_db=action_db,
             permission_type=PermissionType.ACTION_EXECUTE)
@@ -111,7 +112,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                                                                      user=user)
 
         try:
-            return self._schedule_execution(liveaction=liveaction_api, user=user)
+            return self._schedule_execution(liveaction=liveaction_api, user=user,
+                                            pack=pack)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
@@ -126,12 +128,13 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def _schedule_execution(self, liveaction, user=None):
+    def _schedule_execution(self, liveaction, user=None, pack=None):
         # Initialize execution context if it does not exist.
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
 
         liveaction.context['user'] = user
+        liveaction.context['pack'] = pack
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
