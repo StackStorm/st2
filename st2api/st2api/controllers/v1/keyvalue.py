@@ -33,9 +33,10 @@ from st2common.services.keyvalues import get_key_reference
 from st2common.util.api import get_requester
 from st2common.util.keyvalue import get_datastore_full_scope
 from st2common.exceptions.rbac import AccessDeniedError
+from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
 # from st2common.rbac.utils import request_user_is_admin
-# from st2common.rbac.utils import assert_request_user_is_admin_if_user_query_param_is_provided
+from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
 
 http_client = six.moves.http_client
 
@@ -82,14 +83,15 @@ class KeyValuePairController(ResourceController):
         self._validate_scope(scope=scope)
         requester_user = cfg.CONF.system_user.user
         user = user or requester_user
-        # is_admin = request_user_is_admin(request=pecan.request)
+        user_db = rbac_utils.get_user_db_from_request(request=pecan.request)
+        is_admin = rbac_utils.user_is_admin(user_db=user_db)
 
         # # User needs to be either admin or requesting item for itself
         # self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin)
 
-        # # Validate that the authenticated user is admin if user query param is provided
-        # assert_request_user_is_admin_if_user_query_param_is_provided(request=pecan.request,
-        #                                                              user=user)
+        # Validate that the authenticated user is admin if user query param is provided
+        assert_user_is_admin_if_user_query_param_is_provided(user_db=user_db,
+                                                             user=user)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         from_model_kwargs = {'mask_secrets': not decrypt}
@@ -119,20 +121,19 @@ class KeyValuePairController(ResourceController):
         scope = get_datastore_full_scope(scope)
         requester_user = cfg.CONF.system_user.user
         user = user or requester_user
-        # is_all_scope = (scope == ALL_SCOPE)
-        # is_admin = request_user_is_admin(**kwargs)
+        is_all_scope = (scope == ALL_SCOPE)
+        user_db = rbac_utils.get_user_db_from_request(request=pecan.request)
+        is_admin = rbac_utils.user_is_admin(user_db=user_db)
+        if is_all_scope and not is_admin:
+            msg = '"all" scope requires administrator access'
+            raise AccessDeniedError(message=msg, user_db=requester_user)
 
-        # #if is_all_scope and not is_admin:
-        #    msg = '"all" scope requires administrator access'
-        #    raise AccessDeniedError(message=msg, user_db=requester_user)
+        # User needs to be either admin or requesting items for themselves
+        self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin)
 
-        # # User needs to be either admin or requesting items for themselves
-        # self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope,
-        #                                        is_admin=is_admin)
-
-        # #  Validate that the authenticated user is admin if user query param is provided
-        # assert_request_user_is_admin_if_user_query_param_is_provided(user=user,
-        #                                                              **kwargs)
+        # Validate that the authenticated user is admin if user query param is provided
+        assert_user_is_admin_if_user_query_param_is_provided(user_db=user_db,
+                                                             user=user)
 
         from_model_kwargs = {'mask_secrets': not decrypt}
         kwargs['prefix'] = prefix
@@ -169,9 +170,10 @@ class KeyValuePairController(ResourceController):
 
         user = getattr(kvp, 'user', requester_user) or requester_user
 
-        # # Validate that the authenticated user is admin if user query param is provided
-        # assert_request_user_is_admin_if_user_query_param_is_provided(request=pecan.request,
-        #                                                              user=user)
+        # Validate that the authenticated user is admin if user query param is provided
+        user_db = rbac_utils.get_user_db_from_request(request=pecan.request)
+        assert_user_is_admin_if_user_query_param_is_provided(user_db=user_db,
+                                                             user=user)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
@@ -233,9 +235,10 @@ class KeyValuePairController(ResourceController):
         requester_user = cfg.CONF.system_user.user
         user = user or requester_user
 
-        # # Validate that the authenticated user is admin if user query param is provided
-        # assert_request_user_is_admin_if_user_query_param_is_provided(request=pecan.request,
-        #                                                              user=user)
+        # Validate that the authenticated user is admin if user query param is provided
+        user_db = rbac_utils.get_user_db_from_request(request=pecan.request)
+        assert_user_is_admin_if_user_query_param_is_provided(user_db=user_db,
+                                                             user=user)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)

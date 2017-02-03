@@ -33,7 +33,8 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_api_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
-from st2common.rbac.utils import assert_request_user_has_rule_trigger_and_action_permission
+from st2common.rbac import utils as rbac_utils
+from st2common.rbac.utils import assert_user_has_rule_trigger_and_action_permission
 from st2common.router import abort
 from st2common.services.triggers import cleanup_trigger_db_for_rule, increment_trigger_ref_count
 from st2common.util.jsonify import json_encode
@@ -95,11 +96,12 @@ class RuleController(resource.ContentPackResourceController):
             rule_db = RuleAPI.to_model(rule)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
 
-            # # Check referenced trigger and action permissions
-            # # Note: This needs to happen after "to_model" call since to_model performs some
-            # # validation (trigger exists, etc.)
-            # assert_request_user_has_rule_trigger_and_action_permission(request=pecan.request,
-            #                                                            rule_api=rule)
+            # Check referenced trigger and action permissions
+            # Note: This needs to happen after "to_model" call since to_model performs some
+            # validation (trigger exists, etc.)
+            user_db = rbac_utils.get_user_db_from_request(request=pecan.request)
+            assert_user_has_rule_trigger_and_action_permission(user_db=user_db,
+                                                               rule_api=rule)
 
             rule_db = Rule.add_or_update(rule_db)
             # After the rule has been added modify the ref_count. This way a failure to add
@@ -142,11 +144,12 @@ class RuleController(resource.ContentPackResourceController):
             old_rule_db = rule_db
             rule_db = RuleAPI.to_model(rule)
 
-            # # Check referenced trigger and action permissions
-            # # Note: This needs to happen after "to_model" call since to_model performs some
-            # # validation (trigger exists, etc.)
-            # assert_request_user_has_rule_trigger_and_action_permission(request=pecan.request,
-            #                                                            rule_api=rule)
+            # Check referenced trigger and action permissions
+            # Note: This needs to happen after "to_model" call since to_model performs some
+            # validation (trigger exists, etc.)
+            user_db = rbac_utils.get_user_db_from_request(request=pecan.request)
+            assert_user_has_rule_trigger_and_action_permission(user_db=user_db,
+                                                               rule_api=rule)
 
             rule_db.id = rule_ref_or_id
             rule_db = Rule.add_or_update(rule_db)

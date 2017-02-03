@@ -19,7 +19,7 @@ from oslo_config import cfg
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 
 from st2api.controllers.controller_transforms import transform_to_bool
-from st2common.rbac.utils import request_user_is_admin
+from st2common.rbac import utils as rbac_utils
 
 __all__ = [
     'BaseRestControllerMixin',
@@ -85,7 +85,8 @@ class BaseRestControllerMixin(RestController):
         mask_secrets = cfg.CONF.api.mask_secrets
         show_secrets = request.get(SHOW_SECRETS_QUERY_PARAM, False)
 
-        if show_secrets:  # and request_user_is_admin(request=request):
+        user_db = rbac_utils.get_user_db_from_request(request=request)
+        if show_secrets and rbac_utils.user_is_admin(user_db=user_db):
             mask_secrets = False
 
         return mask_secrets

@@ -51,8 +51,9 @@ from st2common.util.jsonify import json_encode, try_loads
 from st2common.rbac.types import PermissionType
 from st2common.rbac.decorators import request_user_has_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
-from st2common.rbac.utils import assert_request_user_has_resource_db_permission
-from st2common.rbac.utils import assert_request_user_is_admin_if_user_query_param_is_provided
+from st2common.rbac import utils as rbac_utils
+from st2common.rbac.utils import assert_user_has_resource_db_permission
+from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
 
 __all__ = [
     'ActionExecutionsController'
@@ -101,13 +102,14 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         action_ref = liveaction_api.action
         action_db = action_utils.get_action_by_ref(action_ref)
         user = liveaction_api.user or user or cfg.CONF.system_user.user
+        user_db = rbac_utils.get_user_db_from_request(request=pecan.request)
 
-        # assert_request_user_has_resource_db_permission(request=pecan.request, resource_db=action_db,
-        #     permission_type=PermissionType.ACTION_EXECUTE)
+        assert_user_has_resource_db_permission(user_db=user_db, resource_db=action_db,
+                                               permission_type=PermissionType.ACTION_EXECUTE)
 
-        # # Validate that the authenticated user is admin if user query param is provided
-        # assert_request_user_is_admin_if_user_query_param_is_provided(request=pecan.request,
-        #                                                              user=user)
+        # Validate that the authenticated user is admin if user query param is provided
+        assert_user_is_admin_if_user_query_param_is_provided(user_db=user_db,
+                                                             user=user)
 
         try:
             return self._schedule_execution(liveaction=liveaction_api, user=user, **kwargs)
