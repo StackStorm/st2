@@ -23,6 +23,7 @@ from st2common.exceptions.actionalias import ActionAliasAmbiguityException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.action import ActionAliasAPI
 from st2common.models.api.action import ActionAliasMatchAPI
+from st2common.models.api.action import ActionAliasHelpAPI
 from st2common.persistence.actionalias import ActionAlias
 from st2common.models.api.base import jsexpose
 from st2common.rbac.types import PermissionType
@@ -31,6 +32,7 @@ from st2common.rbac.decorators import request_user_has_resource_api_permission
 from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 from st2common.util.actionalias_matching import match_command_to_alias
+from st2common.util.actionalias_helpstring import generate_helpstring_result
 
 
 http_client = six.moves.http_client
@@ -54,7 +56,8 @@ class ActionAliasController(resource.ContentPackResourceController):
     }
 
     _custom_actions = {
-        'match': ['POST']
+        'match': ['POST'],
+        'help': ['POST']
     }
 
     def _match_tuple_to_dict(self, match):
@@ -105,6 +108,28 @@ class ActionAliasController(resource.ContentPackResourceController):
             LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
             pecan.abort(http_client.BAD_REQUEST, str(e))
             return [self._match_tuple_to_dict(match) for match in e.matches]
+
+    @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_HELP)
+    @jsexpose(arg_types=[str, str, int], body_cls=ActionAliasHelpAPI,
+    status_code=http_client.ACCEPTED)
+    def help(self, action_alias_help_api, **kwargs):
+        """
+            Get available help strings for action aliases.
+
+            Handles requests:
+                POST /actionalias/help
+        """
+        filter_ = action_alias_help_api.filter
+        pack = action_alias_help_api.pack
+        limit = action_alias_help_api.limit
+        offset = action_alias_help_api.offset
+
+        try:
+            aliases = super(ActionAliasController, self)._get_all(**kwargs)
+            return generate_helpstring_result(aliases, filter_, pack, limit, offset)
+        except (TypeError) as e:
+            LOG.exception('Helpstring request contains an invalid data type: %s.', str(e))
+            pecan.abort(http_client.BAD_REQUEST, str(e))
 
     @jsexpose(body_cls=ActionAliasAPI, status_code=http_client.CREATED)
     @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_CREATE)
