@@ -1,11 +1,13 @@
 import uuid
 
+from mistralclient.api import base as mistralclient_base
 from mistralclient.api import client as mistral
 from oslo_config import cfg
 import retrying
 
 from st2common.query.base import Querier
 from st2common.constants import action as action_constants
+from st2common.exceptions import resultstracker as exceptions
 from st2common import log as logging
 from st2common.services import action as action_service
 from st2common.util import jsonify
@@ -31,6 +33,8 @@ def get_instance():
 
 
 class MistralResultsQuerier(Querier):
+    delete_state_object_on_error = False
+
     def __init__(self, id, *args, **kwargs):
         super(MistralResultsQuerier, self).__init__(*args, **kwargs)
         self._base_url = get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
@@ -66,6 +70,9 @@ class MistralResultsQuerier(Querier):
         try:
             result = self._get_workflow_result(mistral_exec_id)
             result['tasks'] = self._get_workflow_tasks(mistral_exec_id)
+        except exceptions.ReferenceNotFoundError as exc:
+            LOG.exception('[%s] Unable to find reference. %s', execution_id, exc.message)
+            return (action_constants.LIVEACTION_STATUS_FAILED, exc.message)
         except Exception:
             LOG.exception('[%s] Unable to fetch mistral workflow result and tasks. %s',
                           execution_id, query_context)
@@ -87,7 +94,14 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: (``str``, ``dict``)
         """
-        execution = self._client.executions.get(exec_id)
+        try:
+            execution = self._client.executions.get(exec_id)
+        except mistralclient_base.APIException as mistral_exc:
+            if 'not found' in mistral_exc.message:
+                raise exceptions.ReferenceNotFoundError(mistral_exc.message)
+            raise mistral_exc
+        except Exception:
+            raise
 
         result = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else {}
 
@@ -105,10 +119,17 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: ``list``
         """
-        wf_tasks = [
-            self._client.tasks.get(task.id)
-            for task in self._client.tasks.list(workflow_execution_id=exec_id)
-        ]
+        try:
+            wf_tasks = [
+                self._client.tasks.get(task.id)
+                for task in self._client.tasks.list(workflow_execution_id=exec_id)
+            ]
+        except mistralclient_base.APIException as mistral_exc:
+            if 'not found' in mistral_exc.message:
+                raise exceptions.ReferenceNotFoundError(mistral_exc.message)
+            raise mistral_exc
+        except Exception:
+            raise
 
         return [self._format_task_result(task=wf_task.to_dict()) for wf_task in wf_tasks]
 
