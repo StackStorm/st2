@@ -909,6 +909,15 @@ paths:
       operationId: st2api.controllers.v1.packs:packs_controller.get_all
       x-permissions: pack_list
       description: Get list of installed packs.
+      parameters:
+        - name: name
+          in: query
+          description: Name of a pack
+          type: string
+        - name: ref
+          in: query
+          description: ref for a pack
+          type: string
       responses:
         '200':
           description: List of installed packs.
@@ -1049,7 +1058,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  # No test
+  # TODO: No unit test for /packs/index/health
   /packs/index/health:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.index.health
@@ -1182,6 +1191,191 @@ paths:
           examples:
             application/json:
               ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /policytypes:
+    get:
+      operationId: st2api.controllers.v1.policies:policy_type_controller.get_all
+      # x-permissions:
+      description: Returns a list of all the policy types.
+      parameters:
+        - name: resource_type
+          in: query
+          description: Policy type resource type
+          type: string
+        - name: name
+          in: query
+          description: Policy type name
+          type: string
+      responses:
+        '200':
+          description: List of policy types
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PolicyTypeList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /policytypes/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.policies:policy_type_controller.get_one
+      # x-permissions:
+      description: Returns a policy types based on id.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id.
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Specific policy type.
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/PolicyTypeList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /policies:
+    get:
+      operationId: st2api.controllers.v1.policies:policy_controller.get_all
+      # x-permissions:
+      description: |
+        List of policies
+      parameters:
+        - name: pack
+          in: query
+          description: Policies pack
+          type: string
+        - name: name
+          in: query
+          description: Policies name
+          type: string
+      responses:
+        '200':
+          description: Policy created successfully.
+          schema:
+            items:
+              - $ref: '#/definitions/PolicyList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: st2api.controllers.v1.policies:policy_controller.post
+      # x-permissions:
+      description: |
+        Create Policy
+      parameters:
+        - name: instance
+          in: body
+          description: Policy details in yaml/json file
+          schema:
+            $ref: '#/definitions/PolicyCreate'
+          required: true
+      responses:
+        '200':
+          description: Policy created successfully.
+          schema:
+            items:
+              - $ref: '#/definitions/PolicyList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /policies/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.policies:policy_controller.get_one
+      # x-permissions:
+      description: |
+        Get deatials of specific policy based on ref or id
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id.
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Policy found.
+          schema:
+            items:
+              - $ref: '#/definitions/PolicyList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.policies:policy_controller.put
+      # x-permissions:
+      description: |
+        Update Policy
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id.
+          type: string
+          required: true
+        - name: instance
+          in: body
+          description: Policy details in yaml/json file
+          schema:
+            $ref: '#/definitions/PolicyCreate'
+          required: true
+      responses:
+        '200':
+          description: Policy updated successfully.
+          schema:
+            items:
+              - $ref: '#/definitions/PolicyList'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: st2api.controllers.v1.policies:policy_controller.delete
+      # x-permissions:
+      description: |
+        Delete a policy.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Entity reference or id.
+          type: string
+          required: true
+      responses:
+        '204':
+          description: Policy deleted
         default:
           description: Unexpected error
           schema:
@@ -2564,6 +2758,12 @@ definitions:
   PackConfigContent:
     type: object
   PackConfigCreate:
+    type: object
+  PolicyTypeList:
+    type: object
+  PolicyList:
+    type: object
+  PolicyCreate:
     type: object
   Trigger:
     type: object

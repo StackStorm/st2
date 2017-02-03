@@ -51,12 +51,12 @@ class PolicyTypeControllerTest(FunctionalTest):
             instance = PolicyTypeAPI(**fixture)
             PolicyType.add_or_update(PolicyTypeAPI.to_model(instance))
 
-    def test_get_all(self):
+    def test_policy_type_get_all(self):
         resp = self.__do_get_all()
         self.assertEqual(resp.status_int, 200)
         self.assertGreater(len(resp.json), 0)
 
-    def test_filter(self):
+    def test_policy_type_filter(self):
         resp = self.__do_get_all()
         self.assertEqual(resp.status_int, 200)
         self.assertGreater(len(resp.json), 0)
@@ -77,12 +77,12 @@ class PolicyTypeControllerTest(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertGreater(len(resp.json), 1)
 
-    def test_filter_empty(self):
+    def test_policy_type_filter_empty(self):
         resp = self.__do_get_all(filter='resource_type=yo&name=whatever')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 0)
 
-    def test_get_one(self):
+    def test_policy_type_get_one(self):
         resp = self.__do_get_all()
         self.assertEqual(resp.status_int, 200)
         self.assertGreater(len(resp.json), 0)
@@ -96,7 +96,7 @@ class PolicyTypeControllerTest(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(self.__get_obj_id(resp), selected['id'])
 
-    def test_get_one_fail(self):
+    def test_policy_type_get_one_fail(self):
         resp = self.__do_get_one('1')
         self.assertEqual(resp.status_int, 404)
 
@@ -180,7 +180,6 @@ class PolicyControllerTest(FunctionalTest):
 
         post_resp = self.__do_post(instance)
         self.assertEqual(post_resp.status_int, http_client.CREATED)
-
         get_resp = self.__do_get_one(self.__get_obj_id(post_resp))
         self.assertEqual(get_resp.status_int, http_client.OK)
 
