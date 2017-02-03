@@ -114,11 +114,11 @@ class LoginCommand(resource.ResourceCommand):
             # config file not found in args or in env, defaulting
             config_file = config_parser.ST2_CONFIG_PATH
 
-        logging.basicConfig(
-            level=logging.CRITICAL,
-            handlers=[logging.NullHandler]
-        )
-        cli.LOG = logging.getLogger("st2client.base")
+        # logging.basicConfig(
+        #     level=logging.CRITICAL,
+        #     handlers=[logging.NullHandler]
+        # )
+        # LOG = logging.getLogger("st2client.base")
 
         # Retrieve token
         manager = self.manager.create(instance, auth=(args.username, args.password), **kwargs)
