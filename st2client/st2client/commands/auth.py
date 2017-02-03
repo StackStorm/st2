@@ -94,9 +94,9 @@ class LoginCommand(resource.ResourceCommand):
         self.parser.add_argument('-l', '--ttl', type=int, dest='ttl', default=None,
                                  help='The life span of the token in seconds. '
                                       'Max TTL configured by the admin supersedes this.')
-        self.parser.add_argument('-w', '--write-real-password', action='store_true', default=False,
+        self.parser.add_argument('-w', '--write-password', action='store_true', default=False,
                                  dest='write_password',
-                                 help='Write the real (plain-text) password to the config file '
+                                 help='Write the password in plain text to the config file '
                                       '(default is to omit it')
 
     def run(self, args, **kwargs):
