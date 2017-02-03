@@ -41,6 +41,105 @@ RULE = {
 }
 
 
+class TestWhoami(base.BaseCLITestCase):
+
+    def __init__(self, *args, **kwargs):
+        super(TestWhoami, self).__init__(*args, **kwargs)
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-t', '--token', dest='token')
+        self.parser.add_argument('--api-key', dest='api_key')
+        self.shell = shell.Shell()
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+    @mock.patch("st2client.commands.auth.ConfigParser")
+    @mock.patch("st2client.commands.auth.open")
+    @mock.patch("st2client.commands.auth.BaseCLIApp")
+    @mock.patch("st2client.commands.auth.getpass")
+    def test_whoami(self, mock_gp, mock_cli, mock_open, mock_cfg):
+        """Test 'st2 whoami' functionality
+        """
+
+        # Mock config
+        config_file = config_parser.ST2_CONFIG_PATH
+        self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
+        mock_cli.return_value._get_config_file_path.return_value = config_file
+
+        self.shell.run(['whoami'])
+
+        mock_cfg.return_value.__getitem__.assert_called_with('credentials')
+        mock_cfg.return_value.__getitem__('credentials').__getitem__.assert_called_with('username')
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+    @mock.patch("st2client.commands.auth.ConfigParser")
+    @mock.patch("st2client.commands.auth.open")
+    @mock.patch("st2client.commands.auth.BaseCLIApp")
+    @mock.patch("st2client.commands.auth.getpass")
+    def test_whoami_not_logged_in(self, mock_gp, mock_cli, mock_open, mock_cfg):
+        """Test 'st2 whoami' functionality with a missing username
+        """
+
+        # Mock config
+        config_file = config_parser.ST2_CONFIG_PATH
+        self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
+        mock_cli.return_value._get_config_file_path.return_value = config_file
+
+        # Trigger keyerror exception when trying to access username.
+        # We have to do it this way because ConfigParser acts like a
+        # dict but also has methods like read()
+        attrs = {'__getitem__.side_effect': KeyError}
+        mock_cfg.return_value.__getitem__.return_value.configure_mock(**attrs)
+
+        # assert that the config field lookup caused the CLI to return an error code
+        # we are also using "--debug" flag to ensure the exception is re-raised once caught
+        self.assertEqual(
+            self.shell.run(['--debug', 'whoami']),
+            1
+        )
+
+        # Some additional asserts to ensure things are being called correctly
+        mock_cfg.return_value.__getitem__.assert_called_with('credentials')
+        mock_cfg.return_value.__getitem__.return_value.__getitem__.assert_called_with('username')
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+    @mock.patch("st2client.commands.auth.ConfigParser")
+    @mock.patch("st2client.commands.auth.open")
+    @mock.patch("st2client.commands.auth.BaseCLIApp")
+    @mock.patch("st2client.commands.auth.getpass")
+    def test_whoami_missing_credentials_section(self, mock_gp, mock_cli, mock_open, mock_cfg):
+        """Test 'st2 whoami' functionality with a missing credentials section
+        """
+
+        # mocked config that is empty (no credentials section at all)
+        mock_cfg.return_value.read.return_value = {}
+
+        # Mock config
+        config_file = config_parser.ST2_CONFIG_PATH
+        self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
+        mock_cli.return_value._get_config_file_path.return_value = config_file
+
+        # Trigger keyerror exception when trying to access username.
+        # We have to do it this way because ConfigParser acts like a
+        # dict but also has methods like read()
+        attrs = {'__getitem__.side_effect': KeyError}
+        mock_cfg.return_value.configure_mock(**attrs)
+
+        # assert that the config field lookup caused the CLI to return an error code
+        # we are also using "--debug" flag to ensure the exception is re-raised once caught
+        self.assertEqual(
+            self.shell.run(['--debug', 'whoami']),
+            1
+        )
+
+        # An additional assert to ensure things are being called correctly
+        mock_cfg.return_value.__getitem__.assert_called_with('credentials')
+
+
 class TestLogin(base.BaseCLITestCase):
 
     def __init__(self, *args, **kwargs):

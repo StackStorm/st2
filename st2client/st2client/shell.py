@@ -239,6 +239,9 @@ class Shell(BaseCLIApp):
             'Webhooks.',
             self, self.subparsers)
 
+        self.commands['whoami'] = auth.WhoamiCommand(
+            models.Token, self, self.subparsers, name='whoami')
+
         self.commands['timer'] = timer.TimerBranch(
             'Timers.',
             self, self.subparsers)

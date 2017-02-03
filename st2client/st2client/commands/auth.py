@@ -145,6 +145,49 @@ class LoginCommand(resource.ResourceCommand):
                 raise
 
 
+class WhoamiCommand(resource.ResourceCommand):
+    display_attributes = ['user', 'token', 'expiry']
+
+    def __init__(self, resource, *args, **kwargs):
+
+        kwargs['has_token_opt'] = False
+
+        super(WhoamiCommand, self).__init__(
+            resource, kwargs.pop('name', 'create'),
+            'Display the currently authenticated/configured user',
+            *args, **kwargs)
+
+    def run(self, args, **kwargs):
+
+        cli = BaseCLIApp()
+
+        # Determine path to config file
+        try:
+            config_file = cli._get_config_file_path(args)
+        except ValueError:
+            # config file not found in args or in env, defaulting
+            config_file = config_parser.ST2_CONFIG_PATH
+
+        # Update existing configuration with new credentials
+        config = ConfigParser()
+        config.read(config_file)
+
+        return config['credentials']['username']
+
+    def run_and_print(self, args, **kwargs):
+        try:
+            username = self.run(args, **kwargs)
+            print("Currently logged in as %s" % username)
+        except KeyError:
+            print("No user is currently logged in")
+            if self.app.client.debug:
+                raise
+        except Exception:
+            print("Unable to retrieve currently logged-in user")
+            if self.app.client.debug:
+                raise
+
+
 class ApiKeyBranch(resource.ResourceBranch):
 
     def __init__(self, description, app, subparsers, parent_parser=None):
