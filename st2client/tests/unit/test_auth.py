@@ -181,6 +181,9 @@ class TestLogin(base.BaseCLITestCase):
         # Build list of expected calls for mock_cfg
         config_calls = [call('username', expected_username)]
 
+        # Ensure that the password field was removed from the config
+        mock_cfg.return_value.__getitem__.return_value.pop.assert_called_once_with('password', None)
+
         # Run common assertions for testing login functionality
         self._login_common_assertions(mock_gp, mock_cli, mock_open, mock_cfg,
                                       config_calls, config_file)
@@ -213,6 +216,9 @@ class TestLogin(base.BaseCLITestCase):
         mock_cli.return_value._cache_auth_token.assert_called_once()
 
         config_calls = [call('username', expected_username)]
+
+        # Ensure that the password field was removed from the config
+        mock_cfg.return_value.__getitem__.return_value.pop.assert_called_once_with('password', None)
 
         # Run common assertions for testing login functionality
         self._login_common_assertions(mock_gp, mock_cli, mock_open, mock_cfg,

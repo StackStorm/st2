@@ -129,6 +129,9 @@ class LoginCommand(resource.ResourceCommand):
         config['credentials']['username'] = args.username
         if args.write_password:
             config['credentials']['password'] = args.password
+        else:
+            # Remove any existing password from config
+            config['credentials'].pop('password', None)
 
         with open(config_file, "w") as cfg_file_out:
             config.write(cfg_file_out)
