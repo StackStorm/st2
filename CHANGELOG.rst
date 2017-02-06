@@ -49,7 +49,7 @@ in development
   put the workflow in a PAUSED state in mistral. (improvement)
 * Add support for evaluating jinja expressions in mistral workflow definition where yaql
   expressions are typically accepted. (improvement)
-# Added support for `st2 login` and `st2 whoami` commands. These add some additional functionality
+* Added support for `st2 login` and `st2 whoami` commands. These add some additional functionality
   beyond the existing `st2 auth` command and actually works with the local configuration so that
   users do not have to.
 
