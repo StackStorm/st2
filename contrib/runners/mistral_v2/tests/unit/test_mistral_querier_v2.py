@@ -50,6 +50,11 @@ MOCK_WF_TASKS_RUNNING = [
     {'name': 'task2', 'state': 'RUNNING'}
 ]
 
+MOCK_WF_TASKS_WAITING = [
+    {'name': 'task1', 'state': 'SUCCESS'},
+    {'name': 'task2', 'state': 'WAITING'}
+]
+
 MOCK_WF_EX_DATA = {
     'id': uuid.uuid4().hex,
     'name': 'main',
@@ -188,10 +193,18 @@ class MistralQuerierTest(DbTestCase):
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=True))
+    def test_determine_status_wf_canceled_tasks_waiting(self):
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'CANCELLED', MOCK_WF_TASKS_WAITING)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELED, status)
+
+    @mock.patch.object(
+        action_service, 'is_action_canceled_or_canceling',
+        mock.MagicMock(return_value=True))
     def test_determine_status_wf_canceled_exec_running_tasks_completed(self):
         wf_id = uuid.uuid4().hex
         status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_SUCCEEDED)
-        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
@@ -199,6 +212,14 @@ class MistralQuerierTest(DbTestCase):
     def test_determine_status_wf_canceled_exec_running_tasks_running(self):
         wf_id = uuid.uuid4().hex
         status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_RUNNING)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
+
+    @mock.patch.object(
+        action_service, 'is_action_canceled_or_canceling',
+        mock.MagicMock(return_value=True))
+    def test_determine_status_wf_canceled_exec_running_tasks_waiting(self):
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_WAITING)
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
     @mock.patch.object(
@@ -213,10 +234,10 @@ class MistralQuerierTest(DbTestCase):
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=False))
-    def test_determine_status_wf_running_exec_paused_tasks_running(self):
+    def test_determine_status_wf_running_exec_cancelled_tasks_running(self):
         wf_id = uuid.uuid4().hex
         status = self.querier._determine_execution_status(wf_id, 'CANCELLED', MOCK_WF_TASKS_RUNNING)
-        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
     @mock.patch.object(
         executions.ExecutionManager, 'get',

@@ -8,5 +8,5 @@ python-editor==1.0.1
 pytz
 pyyaml<4.0,>=3.11
 requests[security]<2.12,>=2.11.1
-six==1.9.0
+six==1.10.0
 sseclient==0.0.12

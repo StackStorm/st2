@@ -53,9 +53,16 @@ class WiringTest(base.TestWorkflowExecution):
         self._assert_success(execution, num_tasks=1)
         self.assertIn('stdout', execution.result)
 
-    def test_complex_workbook(self):
+    def test_complex_workbook_with_yaql(self):
         execution = self._execute_workflow(
             'examples.mistral-workbook-complex', {'vm_name': 'demo1'})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=8)
+        self.assertIn('vm_id', execution.result)
+
+    def test_complex_workbook_with_jinja(self):
+        execution = self._execute_workflow(
+            'examples.mistral-jinja-workbook-complex', {'vm_name': 'demo2'})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=8)
         self.assertIn('vm_id', execution.result)
