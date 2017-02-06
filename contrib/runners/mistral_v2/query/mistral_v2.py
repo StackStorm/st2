@@ -71,7 +71,7 @@ class MistralResultsQuerier(Querier):
             result = self._get_workflow_result(mistral_exec_id)
             result['tasks'] = self._get_workflow_tasks(mistral_exec_id)
         except exceptions.ReferenceNotFoundError as exc:
-            LOG.exception('[%s] Unable to find reference. %s', execution_id, exc.message)
+            LOG.exception('[%s] Unable to find reference.', execution_id)
             return (action_constants.LIVEACTION_STATUS_FAILED, exc.message)
         except Exception:
             LOG.exception('[%s] Unable to fetch mistral workflow result and tasks. %s',
@@ -100,8 +100,6 @@ class MistralResultsQuerier(Querier):
             if 'not found' in mistral_exc.message:
                 raise exceptions.ReferenceNotFoundError(mistral_exc.message)
             raise mistral_exc
-        except Exception:
-            raise
 
         result = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else {}
 
@@ -128,8 +126,6 @@ class MistralResultsQuerier(Querier):
             if 'not found' in mistral_exc.message:
                 raise exceptions.ReferenceNotFoundError(mistral_exc.message)
             raise mistral_exc
-        except Exception:
-            raise
 
         return [self._format_task_result(task=wf_task.to_dict()) for wf_task in wf_tasks]
 
