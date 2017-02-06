@@ -158,7 +158,7 @@ class ActionAliasController(resource.ContentPackResourceController):
 
     @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_ALIAS_MODIFY)
     @jsexpose(arg_types=[str], body_cls=ActionAliasAPI)
-    def put(self, action_alias_ref_or_id, action_alias):
+    def put(self, action_alias, action_alias_ref_or_id):
         action_alias_db = self._get_by_ref_or_id(ref_or_id=action_alias_ref_or_id)
         LOG.debug('PUT /actionalias/ lookup with id=%s found object: %s', action_alias_ref_or_id,
                   action_alias_db)
