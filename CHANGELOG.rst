@@ -49,6 +49,7 @@ in development
   put the workflow in a PAUSED state in mistral. (improvement)
 * Add support for evaluating jinja expressions in mistral workflow definition where yaql
   expressions are typically accepted. (improvement)
+* Fix action alias update API endpoint. (bug fox)
 
 2.1.1 - December 16, 2016
 -------------------------
