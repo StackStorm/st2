@@ -117,11 +117,11 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: ``list``
         """
+        wf_tasks = []
+
         try:
-            wf_tasks = [
-                self._client.tasks.get(task.id)
-                for task in self._client.tasks.list(workflow_execution_id=exec_id)
-            ]
+            for task in self._client.tasks.list(workflow_execution_id=exec_id):
+                wf_tasks.append(self._client.tasks.get(task.id))
         except mistralclient_base.APIException as mistral_exc:
             if 'not found' in mistral_exc.message:
                 raise exceptions.ReferenceNotFoundError(mistral_exc.message)
