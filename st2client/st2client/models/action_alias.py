@@ -25,7 +25,7 @@ class ActionAlias(core.Resource):
     _alias = 'Action-Alias'
     _display_name = 'Action Alias'
     _plural = 'ActionAliases'
-    _plural_display_name = 'Runners'
+    _plural_display_name = 'Action Aliases'
     _url_path = 'actionalias'
     _repr_attributes = ['name', 'pack', 'action_ref']
 
