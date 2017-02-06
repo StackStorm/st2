@@ -163,6 +163,9 @@ class ActionAliasController(resource.ContentPackResourceController):
         LOG.debug('PUT /actionalias/ lookup with id=%s found object: %s', action_alias_ref_or_id,
                   action_alias_db)
 
+        if not hasattr(action_alias, 'id'):
+            action_alias.id = None
+
         try:
             if action_alias.id is not None and action_alias.id is not '' and \
                action_alias.id != action_alias_ref_or_id:
