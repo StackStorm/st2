@@ -62,6 +62,13 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         querier = tracker.get_querier('test_querymodule')
         querier._invoke_post_run = mock.Mock(return_value=None)
 
+        # Ensure state objects are present.
+        state1 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state1.yaml'].id)
+        state2 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state2.yaml'].id)
+        self.assertIsNotNone(state1)
+        self.assertIsNotNone(state2)
+
+        # Process the state objects.
         tracker._bootstrap()
         eventlet.sleep(1)
 
@@ -77,7 +84,7 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
 
         tracker.shutdown()
 
-        # Ensure state objects are deleted
+        # Ensure state objects are deleted.
         self.assertRaises(
             StackStormDBObjectNotFoundError,
             ActionExecutionState.get_by_id,
@@ -115,6 +122,12 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         querier = tracker.get_querier('test_querymodule')
         querier._delete_state_object = mock.Mock(return_value=None)
 
+        # Ensure state objects are present.
+        state1 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state1.yaml'].id)
+        state2 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state2.yaml'].id)
+        self.assertIsNotNone(state1)
+        self.assertIsNotNone(state2)
+
         with mock.patch.object(
                 querier.__class__, 'query',
                 mock.MagicMock(side_effect=Exception('Mock query exception.'))):
@@ -140,6 +153,12 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         querier._delete_state_object = mock.Mock(return_value=None)
         querier.delete_state_object_on_error = False
 
+        # Ensure state objects are present.
+        state1 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state1.yaml'].id)
+        state2 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state2.yaml'].id)
+        self.assertIsNotNone(state1)
+        self.assertIsNotNone(state2)
+
         with mock.patch.object(
                 querier.__class__, 'query',
                 mock.MagicMock(side_effect=Exception('Mock query exception.'))):
@@ -163,6 +182,12 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         tracker = results_tracker.get_tracker()
         querier = tracker.get_querier('test_querymodule')
         querier._delete_state_object = mock.Mock(return_value=None)
+
+        # Ensure state objects are present.
+        state1 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state1.yaml'].id)
+        state2 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state2.yaml'].id)
+        self.assertIsNotNone(state1)
+        self.assertIsNotNone(state2)
 
         with mock.patch.object(
                 querier.__class__, '_update_action_results',
@@ -188,6 +213,12 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         querier = tracker.get_querier('test_querymodule')
         querier._delete_state_object = mock.Mock(return_value=None)
         querier.delete_state_object_on_error = False
+
+        # Ensure state objects are present.
+        state1 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state1.yaml'].id)
+        state2 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state2.yaml'].id)
+        self.assertIsNotNone(state1)
+        self.assertIsNotNone(state2)
 
         with mock.patch.object(
                 querier.__class__, '_update_action_results',
@@ -215,6 +246,12 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         querier = tracker.get_querier('test_querymodule')
         querier._delete_state_object = mock.Mock(return_value=None)
         querier._invoke_post_run = mock.Mock(return_value=None)
+
+        # Ensure state objects are present.
+        state1 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state1.yaml'].id)
+        state2 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state2.yaml'].id)
+        self.assertIsNotNone(state1)
+        self.assertIsNotNone(state2)
 
         with mock.patch.object(
                 querier.__class__, 'query',
@@ -245,6 +282,13 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
         querier = tracker.get_querier('test_querymodule')
         querier._invoke_post_run = mock.Mock(return_value=None)
 
+        # Ensure state objects are present.
+        state1 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state1.yaml'].id)
+        state2 = ActionExecutionState.get_by_id(ResultsTrackerTests.states['state2.yaml'].id)
+        self.assertIsNotNone(state1)
+        self.assertIsNotNone(state2)
+
+        # Process the state objects.
         tracker._bootstrap()
         eventlet.sleep(1)
 
@@ -260,7 +304,7 @@ class ResultsTrackerTests(EventletTestCase, DbTestCase):
 
         tracker.shutdown()
 
-        # Ensure state objects are deleted
+        # Ensure state objects are deleted.
         self.assertRaises(
             StackStormDBObjectNotFoundError,
             ActionExecutionState.get_by_id,
