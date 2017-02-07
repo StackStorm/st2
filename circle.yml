@@ -21,6 +21,7 @@ dependencies:
     # Tail the logs so it's easier to see what is going on. Sadly when using "background: true" whole output is ignored.
     - case $CIRCLE_NODE_INDEX in [1,2]) cat /tmp/mongodb-install.log ;; [3,4]) cat /tmp/mongodb-install.log ;; esac
     - sudo pip install codecov
+    - echo ${PATH}
   override:
     - make compile requirements
 
