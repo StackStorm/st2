@@ -98,7 +98,8 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(ActionAliasExecuteCommand, self).__init__(
             resource, 'execute',
-            'Execute the command text by finding a matching ActionAlias.',
+            ('Execute the command text by finding a matching %s.' %
+            resource.get_display_name().lower()),
             *args, **kwargs)
 
         self.parser.add_argument('command_text',
