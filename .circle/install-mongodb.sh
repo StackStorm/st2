@@ -27,4 +27,4 @@ if [ ${EXIT_CODE} -ne 0 ]; then
     exit 1
 fi
 
-tail -30 /tmp/mongob.log
+tail -30 /tmp/mongodb.log
