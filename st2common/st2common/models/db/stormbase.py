@@ -203,8 +203,7 @@ class UIDFieldMixin(object):
             {
                 'fields': ['uid'],
                 'unique': True,
-                'sparse': True,
-                'types': False
+                'sparse': True
             }
         ]
         return indexes
