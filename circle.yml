@@ -7,7 +7,7 @@ machine:
     - postgresql
     - rabbitmq-server
   environment:
-    PATH: /tmp/mongodb/:${PATH}
+    PATH: /tmp/mongodb/bin/:${PATH}
 
 dependencies:
   cache_directories:
