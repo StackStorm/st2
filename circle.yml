@@ -4,7 +4,6 @@ notify:
 
 machine:
   services:
-    - mongodb
     - postgresql
     - rabbitmq-server
 
@@ -15,7 +14,7 @@ dependencies:
     - sudo .circle/configure-services.sh
     - sudo .circle/add-itest-user.sh
     # We install and test with all the supported MongoDB versions
-    - case $CIRCLE_NODE_INDEX in [1,2]) MONGODB=3.2.12 sudo -E .circle/install-mongodb.sh ;; [3,4]) MONGODB=3.4.2 sudo -E .circle/install-mongodb.sh ;; esac
+    - case $CIRCLE_NODE_INDEX in [1,2]) MONGODB=3.2.12 sudo -E .circle/install-and-run-mongodb.sh ;; [3,4]) MONGODB=3.4.2 sudo -E .circle/install-and-run-mongodb.sh ;; esac
     - sudo pip install codecov
   override:
     - make compile requirements
