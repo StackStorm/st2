@@ -21,14 +21,18 @@ import sys
 import traceback
 
 import jsonschema
+from oslo_config import cfg
 import routes
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 from swagger_spec_validator.validator20 import validate_spec
 from webob import exc, Request, Response
 
+from st2common.exceptions import rbac as rbac_exc
 from st2common.exceptions import auth as auth_exc
 from st2common import hooks
 from st2common import log as logging
+from st2common.persistence.auth import User
+from st2common.rbac import resolvers
 from st2common.util.jsonify import json_encode
 from st2common.util.http import parse_content_type_header
 
@@ -117,6 +121,9 @@ class ErrorHandlingMiddleware(object):
 
 
 class Router(object):
+    # For mocking during unit tests
+    context = {}
+
     def __init__(self, arguments=None, debug=False, auth=True):
         self.debug = debug
         self.auth = auth
@@ -154,10 +161,11 @@ class Router(object):
 
     def __call__(self, req):
         """Invoke router as a view."""
+        LOG.info('%s %s', req.method, req.path)
         match = self.routes.match(req.path, req.environ)
 
         if match is None:
-            raise NotFoundException
+            raise NotFoundException('No route matches "%s" path' % req.path)
 
         # To account for situation when match may return multiple values
         try:
@@ -168,7 +176,7 @@ class Router(object):
         path = path_vars.pop('_api_path')
         method = path_vars.pop('_api_method')
         endpoint = self.spec['paths'][path][method]
-        context = {}
+        context = self.context
 
         # Handle security
         if 'security' in endpoint:
@@ -195,7 +203,7 @@ class Router(object):
                             auth_func = op_resolver(definition['x-operationId'])
                             auth_resp = auth_func(token)
 
-                            context['user'] = auth_resp.user
+                            context['user'] = User.get_by_name(auth_resp.user)
 
                 if not context['user']:
                     raise auth_exc.NoAuthSourceProvidedError('One of Token or API key required.')
@@ -222,24 +230,39 @@ class Router(object):
                 LOG.exception('API key is disabled.')
                 return abort_unauthorized(str(e))
 
+        if cfg.CONF.rbac.enable:
+            user_db = context['user']
+
+            permission_type = endpoint.get('x-permissions', None)
+            if permission_type:
+                # TODO Verify permission type for the provided resource type
+                resolver = resolvers.get_resolver_for_permission_type(permission_type)
+                has_permission = resolver.user_has_permission(user_db, permission_type)
+
+                if not has_permission:
+                    raise rbac_exc.ResourceTypeAccessDeniedError(user_db,
+                                                                 permission_type)
+
         # Collect parameters
         kw = {}
         for param in endpoint.get('parameters', []) + endpoint.get('x-parameters', []):
             name = param['name']
+            argument_name = param.get('x-as', None) or name
             type = param['in']
             required = param.get('required', False)
             default = param.get('default', None)
 
             if type == 'query':
-                kw[name] = req.GET.get(name, default)
+                kw[argument_name] = req.GET.get(name, default)
             elif type == 'path':
-                kw[name] = path_vars[name]
+                kw[argument_name] = path_vars[name]
             elif type == 'header':
-                kw[name] = req.headers.get(name, default)
+                kw[argument_name] = req.headers.get(name, default)
             elif type == 'body':
                 if req.body:
                     content_type = req.headers.get('Content-Type', 'application/json')
                     content_type = parse_content_type_header(content_type=content_type)[0]
+                    schema = param['schema']
 
                     try:
                         if content_type == 'application/json':
@@ -254,7 +277,7 @@ class Router(object):
                         raise exc.HTTPBadRequest(detail=detail)
 
                     try:
-                        CustomValidator(param['schema'], resolver=self.spec_resolver).validate(data)
+                        CustomValidator(schema, resolver=self.spec_resolver).validate(data)
                     except (jsonschema.ValidationError, ValueError) as e:
                         raise exc.HTTPBadRequest(detail=e.message,
                                                  comment=traceback.format_exc())
@@ -263,19 +286,29 @@ class Router(object):
                         def __init__(self, **entries):
                             self.__dict__.update(entries)
 
-                    kw[name] = Body(**data)
-                else:
-                    kw[name] = None
-            elif type == 'formData':
-                kw[name] = req.POST.get(name, default)
-            elif type == 'environ':
-                kw[name] = req.environ.get(name.upper(), default)
-            elif type == 'context':
-                kw[name] = context.get(name, default)
-            elif type == 'request':
-                kw[name] = getattr(req, name)
+                    ref = schema.get('$ref', None)
+                    if ref:
+                        with self.spec_resolver.resolving(ref) as resolved:
+                            schema = resolved
 
-            if required and not kw[name]:
+                    if 'x-api-model' in schema:
+                        Model = op_resolver(schema['x-api-model'])
+                    else:
+                        Model = Body
+
+                    kw[argument_name] = Model(**data)
+                else:
+                    kw[argument_name] = None
+            elif type == 'formData':
+                kw[argument_name] = req.POST.get(name, default)
+            elif type == 'environ':
+                kw[argument_name] = req.environ.get(name.upper(), default)
+            elif type == 'context':
+                kw[argument_name] = context.get(name, default)
+            elif type == 'request':
+                kw[argument_name] = getattr(req, name)
+
+            if required and not kw[argument_name]:
                 detail = 'Required parameter "%s" is missing' % name
                 raise exc.HTTPBadRequest(detail=detail)
 

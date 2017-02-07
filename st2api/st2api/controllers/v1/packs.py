@@ -18,8 +18,6 @@ import re
 from collections import defaultdict
 from collections import OrderedDict
 
-# import pecan
-# from pecan.rest import RestController
 from webob import Response, request
 import six
 
@@ -36,18 +34,13 @@ from st2common.bootstrap.rulesregistrar import RulesRegistrar
 import st2common.bootstrap.ruletypesregistrar as rule_types_registrar
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 import st2common.content.utils as content_utils
-# from st2common.models.api.base import jsexpose
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.pack import PackAPI
-# from st2common.models.api.pack import PackInstallRequestAPI
-# from st2common.models.api.pack import PackRegisterRequestAPI
-# from st2common.models.api.pack import PackSearchRequestAPI
 from st2common.models.api.pack import PackAsyncAPI
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.pack import Pack
-# from st2common.rbac.types import PermissionType
-# from st2common.rbac.decorators import request_user_has_permission
-# from st2common.rbac.decorators import request_user_has_resource_db_permission
+from st2common.rbac.types import PermissionType
+from st2common.rbac import utils as rbac_utils
 from st2common.services import packs as packs_service
 from st2common.util.jsonify import json_encode
 from st2common.router import abort
@@ -81,8 +74,6 @@ ENTITIES = OrderedDict([
 
 class PackInstallController(ActionExecutionsControllerMixin):
 
-    # @request_user_has_permission(permission_type=PermissionType.PACK_INSTALL)
-    # @jsexpose(body_cls=PackInstallRequestAPI, status_code=http_client.ACCEPTED)
     def post(self, pack_install_request):
         parameters = {
             'packs': pack_install_request.packs,
@@ -106,9 +97,6 @@ class PackInstallController(ActionExecutionsControllerMixin):
 
 class PackUninstallController(ActionExecutionsControllerMixin):
 
-    # @request_user_has_permission(permission_type=PermissionType.PACK_UNINSTALL)
-    # @jsexpose(body_cls=PackInstallRequestAPI, arg_types=[str],
-    #            status_code=http_client.ACCEPTED)
     def post(self, pack_uninstall_request, ref_or_id=None):
         if ref_or_id:
             parameters = {
@@ -132,10 +120,8 @@ class PackUninstallController(ActionExecutionsControllerMixin):
         return resp
 
 
-class PackRegisterController():
+class PackRegisterController(object):
 
-    # @request_user_has_permission(permission_type=PermissionType.PACK_REGISTER)
-    # @jsexpose(body_cls=PackRegisterRequestAPI)
     def post(self, pack_register_request):
         if pack_register_request and hasattr(pack_register_request, 'types'):
             types = pack_register_request.types
@@ -189,10 +175,8 @@ class PackRegisterController():
         return result
 
 
-class PackSearchController():
+class PackSearchController(object):
 
-    # @request_user_has_permission(permission_type=PermissionType.PACK_SEARCH)
-    # @jsexpose(body_cls=PackSearchRequestAPI)
     def post(self, pack_search_request):
         if hasattr(pack_search_request, 'query'):
             packs = packs_service.search_pack_index(pack_search_request.query,
@@ -203,10 +187,8 @@ class PackSearchController():
             return PackAPI(**pack) if pack else None
 
 
-class IndexHealthController():
+class IndexHealthController(object):
 
-    # @request_user_has_permission(permission_type=PermissionType.PACK_VIEW_INDEX_HEALTH)
-    # @jsexpose()
     def get(self):
         """
         Check if all listed indexes are healthy: they should be reachable,
@@ -243,10 +225,12 @@ class BasePacksController(ResourceController):
     model = PackAPI
     access = Pack
 
-    def _get_one_by_ref_or_id(self, ref_or_id, exclude_fields=None):
-        # LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
-
+    def _get_one_by_ref_or_id(self, ref_or_id, requester_user, exclude_fields=None):
         instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
+
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=instance,
+                                                          permission_type=PermissionType.PACK_VIEW)
 
         if not instance:
             msg = 'Unable to identify resource with ref_or_id "%s".' % (ref_or_id)
@@ -255,8 +239,6 @@ class BasePacksController(ResourceController):
 
         from_model_kwargs = self._get_from_model_kwargs_for_request(request=request)
         result = self.model.from_model(instance, **from_model_kwargs)
-        # LOG.debug('GET %s with ref_or_id=%s, client_result=%s', pecan.request.path, ref_or_id,
-        #           result)
 
         return result
 
@@ -311,14 +293,10 @@ class PacksController(BasePacksController):
         super(PacksController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
 
-    # @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
-    # @jsexpose()
     def get_all(self, **kwargs):
         return super(PacksController, self)._get_all(**kwargs)
 
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
-    # @jsexpose(arg_types=[str])
-    def get_one(self, ref_or_id):
-        return self._get_one_by_ref_or_id(ref_or_id=ref_or_id)
+    def get_one(self, ref_or_id, requester_user):
+        return self._get_one_by_ref_or_id(ref_or_id=ref_or_id, requester_user=requester_user)
 
 packs_controller = PacksController()

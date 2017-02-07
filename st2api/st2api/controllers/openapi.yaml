@@ -10,7 +10,7 @@ paths:
   /actions:
     get:
       operationId: st2api.controllers.v1.actions:actions_controller.get_all
-      x-permissions: action_list
+      x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
       description: Returns a list of all actions.
       parameters:
         - name: exclude_attributes
@@ -55,7 +55,6 @@ paths:
             $ref: '#/definitions/Error'
     post:
       operationId: st2api.controllers.v1.actions:actions_controller.post
-      x-permissions: action_create
       description: |
         Create a new action.
       parameters:
@@ -64,6 +63,11 @@ paths:
           description: Action content
           schema:
             $ref: '#/definitions/ActionCreateRequest'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Single action being created
@@ -80,7 +84,6 @@ paths:
   /actions/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.actions:actions_controller.get_one
-      x-permissions: action_view
       description: |
         Get one action.
       parameters:
@@ -89,6 +92,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Action requested
@@ -104,7 +112,6 @@ paths:
             $ref: '#/definitions/Error'
     put:
       operationId: st2api.controllers.v1.actions:actions_controller.put
-      x-permissions: action_modify
       description: |
         Update an action.
       parameters:
@@ -118,6 +125,11 @@ paths:
           description: Action content
           schema:
             $ref: '#/definitions/ActionUpdateRequest'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Action updated
@@ -133,7 +145,6 @@ paths:
             $ref: '#/definitions/Error'
     delete:
       operationId: st2api.controllers.v1.actions:actions_controller.delete
-      x-permissions: action_delete
       description: |
         Delete an action.
       parameters:
@@ -142,6 +153,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '204':
           description: Action deleted
@@ -152,7 +168,6 @@ paths:
   /actions/views/parameters/{action_id}:
     get:
       operationId: st2api.controllers.v1.actionviews:parameters_view_controller.get_one
-      x-permissions: action_view
       description: |
         Get parameters for an action.
       parameters:
@@ -179,7 +194,7 @@ paths:
   /actions/views/overview:
     get:
       operationId: st2api.controllers.v1.actionviews:overview_controller.get_all
-      x-permissions: action_list
+      x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
       description: Returns a list of all the actions with runner parameters included.
       parameters:
         - name: exclude_attributes
@@ -223,7 +238,6 @@ paths:
   /actions/views/overview/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.actionviews:overview_controller.get_one
-      x-permissions: action_view
       description: |
         Get one action with runner parameters included.
       parameters:
@@ -248,7 +262,6 @@ paths:
   /actions/views/entry_point/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.actionviews:entry_point_controller.get_one
-      x-permissions: action_view
       description: |
         Get code of the action's entry_point.
       parameters:
@@ -275,7 +288,7 @@ paths:
   /actionalias:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_all
-      x-permissions: action_alias_list
+      x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_LIST }}
       description: |
           Get list of action-alias.
       parameters:
@@ -300,7 +313,6 @@ paths:
             $ref: '#/definitions/Error'
     post:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.post
-      x-permissions: action_alias_create
       description: |
         Create actionalias.
       parameters:
@@ -325,7 +337,6 @@ paths:
   /actionalias/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_one
-      x-permissions: action_alias_view
       description: |
         Get a specific actionalias based on ref or id.
       parameters:
@@ -349,7 +360,6 @@ paths:
             $ref: '#/definitions/Error'
     put:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.put
-      x-permissions: action_alias_modify
       description: Update action alias
       parameters:
         - name: ref_or_id
@@ -378,7 +388,6 @@ paths:
             $ref: '#/definitions/Error'
     delete:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.delete
-      x-permissions: action_alias_delete
       description: |
         Delete action alias based on ref_or_id.
       parameters:
@@ -397,7 +406,6 @@ paths:
   /actionalias/match:
     post:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.match
-      x-permissions: action_alias_match
       description: |
         Match actionalias based on format (representation or display).
       parameters:
@@ -422,7 +430,7 @@ paths:
   /executions:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_all
-      x-permissions: execution_list
+      x-permissions: {{ PERMISSION_TYPE.EXECUTION_LIST }}
       description: Returns a list of all executions.
       parameters:
         - name: exclude_attributes
@@ -535,7 +543,6 @@ paths:
             $ref: '#/definitions/Error'
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.post
-      x-permissions: action_execute
       description: |
         Create a new execution.
       parameters:
@@ -555,6 +562,7 @@ paths:
       x-parameters:
         - name: user
           in: context
+          x-as: requester_user
           description: User running the action
       responses:
         '200':
@@ -575,7 +583,6 @@ paths:
   /executions/{id}:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_one
-      x-permissions: execution_view
       description: |
         Get one execution.
       parameters:
@@ -584,6 +591,11 @@ paths:
           description: Entity id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Execution requested
@@ -602,7 +614,6 @@ paths:
             $ref: '#/definitions/Error'
     delete:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.delete
-      x-permissions: execution_stop
       description: |
         Cancel an execution.
       parameters:
@@ -618,6 +629,7 @@ paths:
       x-parameters:
         - name: user
           in: context
+          x-as: requester_user
           description: User running the action
       responses:
         '204':
@@ -629,7 +641,6 @@ paths:
   /executions/{id}/re_run:
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_rerun_controller.post
-      x-permissions: action_execute
       description: |
         Create a new execution.
       parameters:
@@ -663,6 +674,7 @@ paths:
       x-parameters:
         - name: user
           in: context
+          x-as: requester_user
           description: User running the action
       responses:
         '200':
@@ -682,8 +694,7 @@ paths:
             $ref: '#/definitions/Error'
   /executions/{id}/attribute/{attribute}:
     get:
-      operationId: st2api.controllers.v1.actionexecutions:action_execution_attribute_controller.get_one
-      x-permissions: execution_view
+      operationId: st2api.controllers.v1.actionexecutions:action_execution_attribute_controller.get
       description: |
         Get one execution.
       parameters:
@@ -697,6 +708,11 @@ paths:
           description: Attribute to fetch
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Execution attribute requested
@@ -712,7 +728,6 @@ paths:
   /executions/{id}/children:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_children_controller.get_one
-      x-permissions: execution_view
       description: |
         Get one execution.
       parameters:
@@ -730,6 +745,11 @@ paths:
           in: query
           description: Result format
           type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Execution attribute requested
@@ -749,7 +769,6 @@ paths:
   /executions/views/filters:
     get:
       operationId: st2api.controllers.v1.executionviews:filters_controller.get_all
-      x-permissions: execution_view
       description: |
         Get a list of distinct values for the execution filters.
       parameters:
@@ -778,7 +797,7 @@ paths:
   /keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
-      x-permissions: key_value_pair_list
+      x-permissions: {{ PERMISSION_TYPE.KEY_VALUE_PAIR_LIST }}
       description: Returns a list of all key value pairs.
       parameters:
         - name: prefix
@@ -794,9 +813,14 @@ paths:
           in: query
           description: Decrypt secrets and display plain text
           type: boolean
+        - name: user
+          in: query
+          description: Entity owner
+          type: string
       x-parameters:
         - name: user
           in: context
+          x-as: requester_user
           description: User running the action
       responses:
         '200':
@@ -815,7 +839,6 @@ paths:
   /keys/{name}:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_one
-      x-permissions: key_value_pair_view
       description: |
         Get a specific key vale pair based on key_name.
       parameters:
@@ -832,9 +855,14 @@ paths:
           in: query
           description: Decrypt secrets and display plain text.
           type: boolean
+        - name: user
+          in: query
+          description: Entity owner
+          type: string
       x-parameters:
         - name: user
           in: context
+          x-as: requester_user
           description: User running the action
       responses:
         '200':
@@ -851,7 +879,6 @@ paths:
             $ref: '#/definitions/Error'
     put:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.put
-      x-permissions: key_value_pair_set
       description: |
         Create a new key value pair or update an existing one.
       parameters:
@@ -866,6 +893,11 @@ paths:
           schema:
             $ref: '#/definitions/KeyValuePairRequest'
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Key set/updated.
@@ -880,34 +912,38 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     delete:
-        operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.delete
-        x-permissions: key_value_pair_delete
-        description: Delete a Key.
-        parameters:
-          - name: name
-            in: path
-            description: Key Name.
-            type: string
-            required: true
-          - name: scope
-            in: query
-            description: "Scope the item is under. Example: 'user'."
-            type: string
-        x-parameters:
-          - name: user
-            in: context
-            description: User running the action
-        responses:
-          '204':
-            description: Key deleted.
-          default:
-            description: Unexpected error
-            schema:
-              $ref: '#/definitions/Error'
+      operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.delete
+      description: Delete a Key.
+      parameters:
+        - name: name
+          in: path
+          description: Key Name.
+          type: string
+          required: true
+        - name: scope
+          in: query
+          description: "Scope the item is under. Example: 'user'."
+          type: string
+        - name: user
+          in: query
+          description: Entity owner
+          type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
+      responses:
+        '204':
+          description: Key deleted.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /packs:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.get_all
-      x-permissions: pack_list
+      x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
       description: Get list of installed packs.
       parameters:
         - name: name
@@ -935,7 +971,6 @@ paths:
   /packs/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.get_one
-      x-permissions: pack_view
       description: Get information about an installed pack.
       parameters:
         - name: ref_or_id
@@ -943,6 +978,11 @@ paths:
           description: Reference of the pack.
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Information about a pack.
@@ -960,7 +1000,7 @@ paths:
   /packs/install:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.install.post
-      x-permissions: pack_install
+      x-permissions: {{ PERMISSION_TYPE.PACK_INSTALL }}
       description: |
         Install new packs..
       parameters:
@@ -985,7 +1025,7 @@ paths:
   /packs/uninstall:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.uninstall.post
-      x-permissions: pack_uninstall
+      x-permissions: {{ PERMISSION_TYPE.PACK_UNINSTALL }}
       description: |
         Uninstall packs.
       parameters:
@@ -1010,7 +1050,7 @@ paths:
   /packs/register:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.register.post
-      x-permissions: pack_register
+      x-permissions: {{ PERMISSION_TYPE.PACK_REGISTER }}
       description: |
         Register pack(s): sync all file changes with DB.
       parameters:
@@ -1035,7 +1075,7 @@ paths:
   /packs/index/search:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.index.search.post
-      x-permissions: pack_search
+      x-permissions: {{ PERMISSION_TYPE.PACK_SEARCH }}
       description: |
         Search the index with a query or Get information about an available pack from the index.
       parameters:
@@ -1061,8 +1101,8 @@ paths:
   # TODO: No unit test for /packs/index/health
   /packs/index/health:
     get:
-      operationId: st2api.controllers.v1.packs:packs_controller.index.health
-      x-permissions: pack_view_index_health
+      operationId: st2api.controllers.v1.packs:packs_controller.index.get
+      x-permissions: {{ PERMISSION_TYPE.PACK_VIEW_INDEX_HEALTH }}
       description: To get the state of all indexes used by your StackStorm instance.
       responses:
         '200':
@@ -1078,10 +1118,76 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /packs/views/files/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.views.files.get_one
+      description: Get information about an installed pack.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Reference of the pack.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
+      responses:
+        '200':
+          description: Information about a pack.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PackView'
+          examples:
+            application/json:
+              ref: 'core.local'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /packs/views/file/{ref_or_id}/{file_path}:
+    get:
+      operationId: st2api.controllers.v1.packs:packs_controller.views.file.get_one
+      x-requirements:
+        file_path: .*
+      description: Get information about an installed pack.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: Reference of the pack.
+          type: string
+          required: true
+        - name: file_path
+          in: path
+          description: Path to the file.
+          type: string
+          required: true
+        - name: if-none-match
+          in: header
+          description: ETag to compare to.
+          type: string
+        - name: if-modified-since
+          in: header
+          description: Date of last known modification.
+          type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
+      responses:
+        '200':
+          description: Content of the file.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /configs:
     get:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_all
-      x-permissions: pack_list
+      x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
       description: Retrieve configs for all the packs.
       responses:
         '200':
@@ -1100,7 +1206,6 @@ paths:
   /configs/{pack_ref}:
     get:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_one
-      x-permissions: pack_view
       description: Retrieve config for a particular pack.
       parameters:
         - name: pack_ref
@@ -1124,7 +1229,6 @@ paths:
             $ref: '#/definitions/Error'
     put:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.put
-      x-permissions: pack_create
       description: Create a new config for the action.
       parameters:
         - name: pack_ref
@@ -1154,7 +1258,7 @@ paths:
   /config_schemas:
     get:
       operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_all
-      x-permissions: pack_list
+      x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
       description: Retrieve config schema for all the packs.
       responses:
         '200':
@@ -1173,7 +1277,6 @@ paths:
   /config_schemas/{pack_ref}:
     get:
       operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_one
-      x-permissions: pack_view
       description: Retrieve config schema for a particular pack.
       parameters:
         - name: pack_ref
@@ -1181,6 +1284,11 @@ paths:
           in: path
           description: Pack ref to retrieve config schema for the pack.
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Config schema for a particular pack.
@@ -1198,7 +1306,6 @@ paths:
   /policytypes:
     get:
       operationId: st2api.controllers.v1.policies:policy_type_controller.get_all
-      # x-permissions:
       description: Returns a list of all the policy types.
       parameters:
         - name: resource_type
@@ -1227,7 +1334,6 @@ paths:
   /policytypes/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.policies:policy_type_controller.get_one
-      # x-permissions:
       description: Returns a policy types based on id.
       parameters:
         - name: ref_or_id
@@ -1253,7 +1359,6 @@ paths:
   /policies:
     get:
       operationId: st2api.controllers.v1.policies:policy_controller.get_all
-      # x-permissions:
       description: |
         List of policies
       parameters:
@@ -1281,7 +1386,6 @@ paths:
             $ref: '#/definitions/Error'
     post:
       operationId: st2api.controllers.v1.policies:policy_controller.post
-      # x-permissions:
       description: |
         Create Policy
       parameters:
@@ -1308,7 +1412,6 @@ paths:
   /policies/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.policies:policy_controller.get_one
-      # x-permissions:
       description: |
         Get deatials of specific policy based on ref or id
       parameters:
@@ -1333,7 +1436,6 @@ paths:
             $ref: '#/definitions/Error'
     put:
       operationId: st2api.controllers.v1.policies:policy_controller.put
-      # x-permissions:
       description: |
         Update Policy
       parameters:
@@ -1364,7 +1466,6 @@ paths:
             $ref: '#/definitions/Error'
     delete:
       operationId: st2api.controllers.v1.policies:policy_controller.delete
-      # x-permissions:
       description: |
         Delete a policy.
       parameters:
@@ -1383,7 +1484,7 @@ paths:
   /rules:
     get:
       operationId: st2api.controllers.v1.rules:rule_controller.get_all
-      x-permissions: rule_list
+      x-permissions: {{ PERMISSION_TYPE.RULE_LIST }}
       description: Returns a list of all rules.
       parameters:
         - name: exclude_attributes
@@ -1440,7 +1541,6 @@ paths:
             $ref: '#/definitions/Error'
     post:
       operationId: st2api.controllers.v1.rules:rule_controller.post
-      x-permissions: rule_create
       description: |
         Create a new rule.
       parameters:
@@ -1449,6 +1549,11 @@ paths:
           description: Rule content
           schema:
             $ref: '#/definitions/Rule'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Single action being created
@@ -1465,9 +1570,8 @@ paths:
   /rules/{ref_or_id}:
     get:
       x-requirements:
-        ref_or_id: (?!views)
+        ref_or_id: (?!views).*
       operationId: st2api.controllers.v1.rules:rule_controller.get_one
-      x-permissions: rule_view
       description: |
         Get one rule.
       parameters:
@@ -1476,6 +1580,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Rule requested
@@ -1492,7 +1601,6 @@ paths:
   /rules/{rule_ref_or_id}:
     put:
       operationId: st2api.controllers.v1.rules:rule_controller.put
-      x-permissions: rule_modify
       description: |
         Update a rule.
       parameters:
@@ -1506,6 +1614,11 @@ paths:
           description: Rule content
           schema:
             $ref: '#/definitions/Rule'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Action updated
@@ -1521,7 +1634,6 @@ paths:
             $ref: '#/definitions/Error'
     delete:
       operationId: st2api.controllers.v1.rules:rule_controller.delete
-      x-permissions: rule_delete
       description: |
         Delete a rule.
       parameters:
@@ -1530,6 +1642,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '204':
           description: Rule deleted
@@ -1540,7 +1657,7 @@ paths:
   /rules/views:
     get:
       operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_all
-      x-permissions: rule_list
+      x-permissions: {{ PERMISSION_TYPE.RULE_LIST }}
       description: Returns a list of all rules.
       parameters:
         - name: exclude_attributes
@@ -1598,7 +1715,6 @@ paths:
   /rules/views/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_one
-      x-permissions: rule_view
       description: |
         Get one rule.
       parameters:
@@ -1623,7 +1739,7 @@ paths:
   /runnertypes:
     get:
       operationId: st2api.controllers.v1.runnertypes:runner_types_controller.get_all
-      x-permissions: runner_list
+      x-permissions: {{ PERMISSION_TYPE.RUNNER_LIST }}
       description: Returns a list of all runner types.
       parameters:
         - name: exclude_attributes
@@ -1681,7 +1797,6 @@ paths:
   /runnertypes/{name_or_id}:
     get:
       operationId: st2api.controllers.v1.runnertypes:runner_types_controller.get_one
-      x-permissions: runner_view
       description: |
         Get one runner type.
       parameters:
@@ -1690,6 +1805,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: RunnerType requested
@@ -1705,7 +1825,6 @@ paths:
             $ref: '#/definitions/Error'
     put:
       operationId: st2api.controllers.v1.runnertypes:runner_types_controller.put
-      x-permissions: runner_modify
       description: |
         Update a runner type.
       parameters:
@@ -1719,6 +1838,11 @@ paths:
           description: RunnerType content
           schema:
             $ref: '#/definitions/RunnerType'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: RunnerType updated
@@ -1735,7 +1859,7 @@ paths:
   /sensortypes:
     get:
       operationId: st2api.controllers.v1.sensors:sensor_type_controller.get_all
-      x-permissions: sensor_list
+      x-permissions: {{ PERMISSION_TYPE.SENSOR_LIST }}
       description: Returns a list of all sensor types.
       parameters:
         - name: exclude_attributes
@@ -1793,7 +1917,6 @@ paths:
   /sensortypes/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.sensors:sensor_type_controller.get_one
-      x-permissions: sensor_view
       description: |
         Get one sensor type.
       parameters:
@@ -1802,6 +1925,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: SensorType requested
@@ -1817,7 +1945,6 @@ paths:
             $ref: '#/definitions/Error'
     put:
       operationId: st2api.controllers.v1.sensors:sensor_type_controller.put
-      x-permissions: sensor_modify
       description: |
         Update a sensor type.
       parameters:
@@ -1831,6 +1958,11 @@ paths:
           description: SensorType content
           schema:
             $ref: '#/definitions/SensorType'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: SensorType updated
@@ -1847,7 +1979,7 @@ paths:
   /apikeys:
     get:
       operationId: st2api.controllers.v1.auth:api_key_controller.get_all
-      x-permissions: api_key_list
+      x-permissions: {{ PERMISSION_TYPE.API_KEY_LIST }}
       description: Returns a list of all actions.
       parameters:
         - name: show_secrets
@@ -1871,7 +2003,6 @@ paths:
             $ref: '#/definitions/Error'
     post:
       operationId: st2api.controllers.v1.auth:api_key_controller.post
-      x-permissions: api_key_create
       description: |
         Create a new action.
       parameters:
@@ -1900,7 +2031,6 @@ paths:
   /apikeys/{api_key_id_or_key}:
     get:
       operationId: st2api.controllers.v1.auth:api_key_controller.get_one
-      x-permissions: api_key_view
       description: |
         Get one action.
       parameters:
@@ -1928,7 +2058,6 @@ paths:
             $ref: '#/definitions/Error'
     put:
       operationId: st2api.controllers.v1.auth:api_key_controller.put
-      x-permissions: api_key_modify
       description: |
         Update an action.
       parameters:
@@ -1957,7 +2086,6 @@ paths:
             $ref: '#/definitions/Error'
     delete:
       operationId: st2api.controllers.v1.auth:api_key_controller.delete
-      x-permissions: api_key_delete
       description: |
         Delete an action.
       parameters:
@@ -2300,10 +2428,11 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /webhooks/{hook:.*?}:
+  /webhooks/{hook}:
     post:
       operationId: st2api.controllers.v1.webhooks:webhooks_controller.post
-      x-permissions: webhook_send
+      x-requirements:
+        hook: .*
       description: |
         Trigger a webhook.
       parameters:
@@ -2337,7 +2466,6 @@ paths:
   /webhooks/{name}:
     get:
       operationId: st2api.controllers.v1.actions:actions_controller.get_one
-      x-permissions: action_view
       description: |
         Get one action.
       parameters:
@@ -2364,6 +2492,7 @@ paths:
 
 definitions:
   Action:
+    x-api-model: st2common.models.api.action:ActionAPI
     type: object
     required:
       - name
@@ -2415,6 +2544,7 @@ definitions:
         additionalProperties: False
     # additionalProperties: false
   ActionCreateRequest:
+    x-api-model: st2common.models.api.action:ActionCreateAPI
     allOf:
       - type: object
         properties:
@@ -2425,6 +2555,7 @@ definitions:
       - $ref: '#/definitions/Action'
       - $ref: '#/definitions/DataFilesSubSchema'
   ActionUpdateRequest:
+    x-api-model: st2common.models.api.action:ActionUpdateAPI
     allOf:
       - $ref: '#/definitions/Action'
       - $ref: '#/definitions/DataFilesSubSchema'
@@ -2535,7 +2666,6 @@ definitions:
 #              - type: object
 #              - type: string
 #        additionalProperties: False
-        x-additional-check: st2api.controllers.resource:parameter_validation
       context:
         type: object
       result:
@@ -2776,6 +2906,7 @@ definitions:
   TriggerInstance:
     type: object
   Rule:
+    x-api-model: st2common.models.api.rule:RuleAPI
     type: object
   RunnerType:
     type: object
@@ -2808,6 +2939,9 @@ definitions:
       action:
         description: Reference to the action to be executed.
         type: string
+      action_is_workflow:
+        description: Flag indicating workflow action.
+        type: boolean
       parameters:
         description: Input parameters for the action.
         type: object

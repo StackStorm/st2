@@ -19,7 +19,6 @@ RBAC related utility functions.
 
 import six
 
-import pecan
 from oslo_config import cfg
 
 from st2common.exceptions.rbac import AccessDeniedError
@@ -197,20 +196,16 @@ def assert_user_has_rule_trigger_and_action_permission(user_db, rule_api):
     return True
 
 
-def assert_user_is_admin_if_user_query_param_is_provided(user_db, user, request=None):
+def assert_user_is_admin_if_user_query_param_is_provided(user_db, user):
     """
     Function which asserts that the request user is administator if "user" query parameter is
     provided and doesn't match the current user.
     """
-    if not request:
-        request = pecan.request
-
-    requester_user = get_user_db_from_request(request=request) or {}
     is_admin = user_is_admin(user_db=user_db)
 
-    if user != getattr(requester_user, 'name', cfg.CONF.system_user.user) and not is_admin:
+    if user != user_db.name and not is_admin:
         msg = '"user" attribute can only be provided by admins'
-        raise AccessDeniedError(message=msg, user_db=requester_user)
+        raise AccessDeniedError(message=msg, user_db=user_db)
 
 
 def user_is_admin(user_db):

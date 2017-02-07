@@ -24,6 +24,7 @@ import yaml
 from st2api import config as st2api_config
 from st2common import constants
 from st2common import log as logging
+from st2common.rbac.types import PermissionType
 from st2common.router import Router, ErrorHandlingMiddleware
 from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
@@ -63,6 +64,7 @@ def setup_app(config=None):
     arguments = {
         'DEFAULT_PACK_NAME': constants.pack.DEFAULT_PACK_NAME,
         'LIVEACTION_STATUSES': constants.action.LIVEACTION_STATUSES,
+        'PERMISSION_TYPE': PermissionType,
         'ISO8601_UTC_REGEX': isotime.ISO8601_UTC_REGEX
     }
 

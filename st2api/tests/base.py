@@ -15,7 +15,6 @@
 
 import mock
 from oslo_config import cfg
-import pecan
 
 from st2api import app
 import st2common.bootstrap.runnersregistrar as runners_registrar
@@ -25,6 +24,7 @@ from st2common.persistence.rbac import UserRoleAssignment
 from st2common.models.db.auth import UserDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.rbac.migrations import run_all as run_all_rbac_migrations
+from st2common.router import Router
 from st2tests.base import DbTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.api import TestApp
@@ -103,22 +103,12 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
         user_1_db = User.add_or_update(user_1_db)
         self.users['no_permissions'] = user_1_db
 
-    def tearDown(self):
-        super(APIControllerWithRBACTestCase, self).tearDown()
-
-        # Unpatch pecan.request.context (if patched)
-        if self.pecan_request_context_mock:
-            self.pecan_request_context_mock.stop()
-            del(type(pecan.request).context)
-
     def use_user(self, user_db):
         """
         Select a user which is to be used by the HTTP request following this call.
         """
         mock_context = {
-            'auth': {
-                'user': user_db
-            }
+            'user': user_db
         }
-        self.pecan_request_context_mock = mock.PropertyMock(return_value=mock_context)
-        type(pecan.request).context = self.pecan_request_context_mock
+        self.request_context_mock = mock.PropertyMock(return_value=mock_context)
+        Router.context = self.request_context_mock

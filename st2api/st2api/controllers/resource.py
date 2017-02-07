@@ -20,17 +20,16 @@ import copy
 
 from oslo_config import cfg
 from mongoengine import ValidationError
-import pecan
-from pecan import rest
 import six
 from six.moves import http_client
 from webob import Response
 
-from st2common.models.api.base import jsexpose
 from st2common import log as logging
 from st2common.models.system.common import InvalidResourceReferenceError
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.rbac import utils as rbac_utils
+from st2common.router import abort
 from st2common.util.jsonify import json_encode
 from st2common.util import schema as util_schema
 
@@ -79,7 +78,7 @@ def parameter_validation(validator, properties, instance, schema):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class ResourceController(rest.RestController):
+class ResourceController(object):
     model = abc.abstractproperty
     access = abc.abstractproperty
     supported_filters = abc.abstractproperty
@@ -120,11 +119,9 @@ class ResourceController(rest.RestController):
 
         self.get_one_db_method = self._get_by_name_or_id
 
-    @jsexpose()
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
-    @jsexpose(arg_types=[str])
     def get_one(self, id):
         return self._get_one_by_id(id=id)
 
@@ -196,7 +193,6 @@ class ResourceController(rest.RestController):
             'offset': offset,
             'limit': limit
         }
-        # LOG.info('GET all %s with filters=%s' % (pecan.request.path, filters), extra=extra)
 
         instances = self.access.query(exclude_fields=exclude_fields, **filters)
         if limit == 1:
@@ -219,65 +215,66 @@ class ResourceController(rest.RestController):
 
         return resp
 
-    def _get_one(self, id, exclude_fields=None):
+    def _get_one(self, id, exclude_fields=None, **kwargs):
         # Note: This is here for backward compatibility reasons
-        return self._get_one_by_id(id=id, exclude_fields=exclude_fields)
+        return self._get_one_by_id(id=id, exclude_fields=exclude_fields, **kwargs)
 
-    def _get_one_by_id(self, id, exclude_fields=None, from_model_kwargs=None, **kwargs):
+    def _get_one_by_id(self, id, exclude_fields=None, from_model_kwargs=None,
+                       requester_user=None, permission_type=None, **kwargs):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
-
-        # LOG.info('GET %s with id=%s', pecan.request.path, id)
 
         instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields)
 
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=instance,
+                                                          permission_type=permission_type)
+
         if not instance:
             msg = 'Unable to identify resource with id "%s".' % id
-            pecan.abort(http_client.NOT_FOUND, msg)
+            abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
         result = self.model.from_model(instance, **from_model_kwargs)
-        # LOG.debug('GET %s with id=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
 
-    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None, from_model_kwargs=None, **kwargs):
+    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None, from_model_kwargs=None,
+                               requester_user=None, permission_type=None, **kwargs):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
 
-        # LOG.info('GET %s with name_or_id=%s', pecan.request.path, name_or_id)
-
         instance = self._get_by_name_or_id(name_or_id=name_or_id, exclude_fields=exclude_fields)
+
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=instance,
+                                                          permission_type=permission_type)
 
         if not instance:
             msg = 'Unable to identify resource with name_or_id "%s".' % (name_or_id)
-            pecan.abort(http_client.NOT_FOUND, msg)
+            abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
         result = self.model.from_model(instance, **from_model_kwargs)
-        # LOG.debug('GET %s with name_or_id=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
 
     def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None, **kwargs):
-        # LOG.info('GET %s with pack_ref=%s', pecan.request.path, pack_ref)
-
         instance = self._get_by_pack_ref(pack_ref=pack_ref, exclude_fields=exclude_fields)
 
         if not instance:
             msg = 'Unable to identify resource with pack_ref "%s".' % (pack_ref)
-            pecan.abort(http_client.NOT_FOUND, msg)
+            abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
         result = self.model.from_model(instance, **from_model_kwargs)
-        # LOG.debug('GET %s with pack_ref=%s, client_result=%s', pecan.request.path, id, result)
 
         return result
 
@@ -373,23 +370,24 @@ class ContentPackResourceController(ResourceController):
         super(ContentPackResourceController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
 
-    # @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id, from_model_kwargs=None):
         return self._get_one(ref_or_id, from_model_kwargs=from_model_kwargs)
 
-    # @jsexpose()
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
-    def _get_one(self, ref_or_id, exclude_fields=None, from_model_kwargs=None, **kwargs):
-        # LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
-
+    def _get_one(self, ref_or_id, exclude_fields=None, from_model_kwargs=None,
+                 requester_user=None, permission_type=None, **kwargs):
         try:
             instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
         except Exception as e:
             LOG.exception(e.message)
-            pecan.abort(http_client.NOT_FOUND, e.message)
+            abort(http_client.NOT_FOUND, e.message)
             return
+
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=instance,
+                                                          permission_type=permission_type)
 
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
@@ -399,8 +397,6 @@ class ContentPackResourceController(ResourceController):
             name = getattr(result, 'name', None)
             result.ref = ResourceReference(pack=pack, name=name).ref
 
-        # LOG.debug('GET %s with ref_or_id=%s, client_result=%s',
-        #           pecan.request.path, ref_or_id, result)
 
         resp = Response(body=json_encode(result))
         resp.headers['Content-Type'] = 'application/json'

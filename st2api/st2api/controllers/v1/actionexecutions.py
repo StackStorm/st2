@@ -38,6 +38,7 @@ from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.action import LiveActionCreateAPI
 from st2common.models.api.base import cast_argument_value
 from st2common.models.api.execution import ActionExecutionAPI
+from st2common.models.db.auth import UserDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.router import abort
@@ -49,8 +50,6 @@ from st2common.util import action_db as action_utils
 from st2common.util import param as param_utils
 from st2common.util.jsonify import json_encode, try_loads
 from st2common.rbac.types import PermissionType
-from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
 from st2common.rbac import utils as rbac_utils
 from st2common.rbac.utils import assert_user_has_resource_db_permission
 from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
@@ -92,23 +91,25 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         """
         return {'mask_secrets': not kwargs.get('show_secrets', False)}
 
-    def _handle_schedule_execution(self, liveaction_api, user, **kwargs):
+    def _handle_schedule_execution(self, liveaction_api, requester_user=None, **kwargs):
         """
         :param liveaction: LiveActionAPI object.
         :type liveaction: :class:`LiveActionAPI`
         """
 
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
+
         # Assert the permissions
         action_ref = liveaction_api.action
         action_db = action_utils.get_action_by_ref(action_ref)
-        user = liveaction_api.user or user or cfg.CONF.system_user.user
-        user_db = rbac_utils.get_user_db_from_request(request=pecan.request)
+        user = liveaction_api.user or requester_user.name
 
-        assert_user_has_resource_db_permission(user_db=user_db, resource_db=action_db,
+        assert_user_has_resource_db_permission(user_db=requester_user, resource_db=action_db,
                                                permission_type=PermissionType.ACTION_EXECUTE)
 
         # Validate that the authenticated user is admin if user query param is provided
-        assert_user_is_admin_if_user_query_param_is_provided(user_db=user_db,
+        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
                                                              user=user)
 
         try:
@@ -219,22 +220,26 @@ class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, Resou
 
 
 class ActionExecutionChildrenController(BaseActionExecutionNestedController):
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_VIEW)
-    # @jsexpose(arg_types=[str, int, str])
-    def get_one(self, id, depth=-1, result_fmt=None, **kwargs):
+    def get_one(self, id, requester_user, depth=-1, result_fmt=None, **kwargs):
         """
         Retrieve children for the provided action execution.
 
         :rtype: ``list``
         """
 
+        instance = self._get_by_id(resource_id=id)
+
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=instance,
+                                                          permission_type=PermissionType.EXECUTION_VIEW)
+
         return self._get_children(id_=id, depth=depth, result_fmt=result_fmt, **kwargs)
 
 
 class ActionExecutionAttributeController(BaseActionExecutionNestedController):
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_VIEW)
-    # @jsexpose()
-    def get(self, id, attribute, **kwargs):
+    valid_exclude_attributes = ['action__pack', 'action__uid'] + ActionExecutionsControllerMixin.valid_exclude_attributes
+
+    def get(self, id, attribute, requester_user, **kwargs):
         """
         Retrieve a particular attribute for the provided action execution.
 
@@ -244,9 +249,14 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
 
         :rtype: ``dict``
         """
-        fields = [attribute]
+        fields = [attribute, 'action__pack', 'action__uid']
         fields = self._validate_exclude_fields(fields)
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
+
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_exec_db,
+                                                          permission_type=PermissionType.EXECUTION_VIEW)
+
         result = getattr(action_exec_db, attribute, None)
         return result
 
@@ -284,8 +294,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             return self
 
-    # @jsexpose(body_cls=ExecutionSpecificationAPI, status_code=http_client.CREATED)
-    def post(self, spec_api, id, no_merge=False, **kwargs):
+    def post(self, spec_api, id, requester_user=None, no_merge=False, **kwargs):
         """
         Re-run the provided action execution optionally specifying override parameters.
 
@@ -311,7 +320,9 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
             raise ValueError('List of tasks to reset does not match the tasks to rerun.')
 
         no_merge = cast_argument_value(value_type=bool, value=no_merge)
-        existing_execution = self._get_one(id=id, exclude_fields=self.exclude_fields)
+        existing_execution = self._get_one_by_id(id=id, exclude_fields=self.exclude_fields,
+                                                 requester_user=requester_user,
+                                                 permission_type=PermissionType.EXECUTION_VIEW)
 
         if spec_api.tasks and existing_execution.runner['name'] != 'mistral-v2':
             raise ValueError('Task option is only supported for Mistral workflows.')
@@ -350,7 +361,8 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
                                                  parameters=new_parameters,
                                                  user=spec_api.user)
 
-        return self._handle_schedule_execution(liveaction_api=new_liveaction_api, user=spec_api.user)
+        return self._handle_schedule_execution(liveaction_api=new_liveaction_api,
+                                               requester_user=requester_user)
 
 
 class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceController):
@@ -376,8 +388,6 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         'timestamp_lt': lambda value: isotime.parse(value=value)
     }
 
-    # @request_user_has_permission(permission_type=PermissionType.EXECUTION_LIST)
-    # @jsexpose()
     def get_all(self, exclude_attributes=None, **kw):
         """
         List all executions.
@@ -406,9 +416,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         return self._get_action_executions(exclude_fields=exclude_fields, **kw)
 
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_VIEW)
-    # @jsexpose(arg_types=[str])
-    def get_one(self, id, exclude_attributes=None, **kwargs):
+    def get_one(self, id, requester_user, exclude_attributes=None, **kwargs):
         """
         Retrieve a single execution.
 
@@ -425,15 +433,15 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
 
-        return self._get_one(id=id, exclude_fields=exclude_fields)
+        return self._get_one_by_id(id=id, exclude_fields=exclude_fields,
+                                   requester_user=requester_user,
+                                   permission_type=PermissionType.EXECUTION_VIEW)
 
-    # @jsexpose(body_cls=LiveActionCreateAPI, status_code=http_client.CREATED)
-    def post(self, liveaction_api, user, **kwargs):
-        return self._handle_schedule_execution(liveaction_api=liveaction_api, user=user, **kwargs)
+    def post(self, liveaction_api, requester_user=None, **kwargs):
+        return self._handle_schedule_execution(liveaction_api=liveaction_api,
+                                               requester_user=requester_user, **kwargs)
 
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.EXECUTION_STOP)
-    # @jsexpose(arg_types=[str])
-    def delete(self, id, user, **kwargs):
+    def delete(self, id, requester_user, **kwargs):
         """
         Stops a single execution.
 
@@ -441,7 +449,11 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             DELETE /executions/<id>
 
         """
-        execution_api = self._get_one(id=id)
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
+
+        execution_api = self._get_one_by_id(id=id, requester_user=requester_user,
+                                            permission_type=PermissionType.EXECUTION_STOP)
 
         if not execution_api:
             abort(http_client.NOT_FOUND, 'Execution with id %s not found.' % id)
@@ -469,7 +481,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         try:
             (liveaction_db, execution_db) = action_service.request_cancellation(
-                liveaction_db, user or cfg.CONF.system_user.user)
+                liveaction_db, requester_user.name or cfg.CONF.system_user.user)
         except:
             LOG.exception('Failed requesting cancellation for liveaction %s.', liveaction_db.id)
             abort(http_client.INTERNAL_SERVER_ERROR, 'Failed canceling execution.')

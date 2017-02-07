@@ -30,7 +30,9 @@ from six.moves import filter
 from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.models.db.auth import TokenDB
+from st2common.models.db.auth import UserDB
 from st2common.persistence.auth import Token
+from st2common.persistence.auth import User
 from st2common.persistence.trace import Trace
 from st2common.services import trace as trace_service
 from st2common.transport.publishers import PoolPublisher
@@ -676,6 +678,7 @@ class TestActionExecutionControllerAuthEnabled(FunctionalTest):
     @mock.patch.object(
         Token, 'get',
         mock.MagicMock(side_effect=mock_get_token))
+    @mock.patch.object(User, 'get_by_name', mock.MagicMock(side_effect=UserDB))
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def setUpClass(cls):

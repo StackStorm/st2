@@ -222,34 +222,34 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'path': '/v1/actions/wolfpack.action-1',
                 'method': 'DELETE'
             },
-            # Action aliases
-            {
-                'path': '/v1/actionalias',
-                'method': 'GET'
-            },
-            {
-                'path': '/v1/actionalias/aliases.alias1',
-                'method': 'GET'
-            },
-            {
-                'path': '/v1/actionalias',
-                'method': 'POST',
-                'payload': MOCK_ACTION_ALIAS_1
-            },
-            {
-                'path': '/v1/actionalias/aliases.alias1',
-                'method': 'PUT',
-                'payload': MOCK_ACTION_ALIAS_1
-            },
-            {
-                'path': '/v1/actionalias/aliases.alias1',
-                'method': 'DELETE'
-            },
-            {
-                'path': '/v1/actionalias/match',
-                'method': 'POST',
-                'payload': {'command': 'test command string'}
-            },
+            # # Action aliases
+            # {
+            #     'path': '/v1/actionalias',
+            #     'method': 'GET'
+            # },
+            # {
+            #     'path': '/v1/actionalias/aliases.alias1',
+            #     'method': 'GET'
+            # },
+            # {
+            #     'path': '/v1/actionalias',
+            #     'method': 'POST',
+            #     'payload': MOCK_ACTION_ALIAS_1
+            # },
+            # {
+            #     'path': '/v1/actionalias/aliases.alias1',
+            #     'method': 'PUT',
+            #     'payload': MOCK_ACTION_ALIAS_1
+            # },
+            # {
+            #     'path': '/v1/actionalias/aliases.alias1',
+            #     'method': 'DELETE'
+            # },
+            # {
+            #     'path': '/v1/actionalias/match',
+            #     'method': 'POST',
+            #     'payload': {'command': 'test command string'}
+            # },
             # Rules
             {
                 'path': '/v1/rules',
@@ -267,21 +267,21 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             {
                 'path': '/v1/rules/%s' % (rule_model.ref),
                 'method': 'PUT',
-                'payload': {'enabled': False}
+                'payload': MOCK_RULE_1
             },
             {
                 'path': '/v1/rules/%s' % (rule_model.ref),
                 'method': 'DELETE'
             },
-            # Rule enforcements
-            {
-                'path': '/v1/ruleenforcements',
-                'method': 'GET'
-            },
-            {
-                'path': '/v1/ruleenforcements/%s' % (enforcement_model.id),
-                'method': 'GET'
-            },
+            # # Rule enforcements
+            # {
+            #     'path': '/v1/ruleenforcements',
+            #     'method': 'GET'
+            # },
+            # {
+            #     'path': '/v1/ruleenforcements/%s' % (enforcement_model.id),
+            #     'method': 'GET'
+            # },
             # Action Executions
             {
                 'path': '/v1/executions',
@@ -314,14 +314,14 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'path': '/v1/executions/%s/children' % (execution_model.id),
                 'method': 'GET'
             },
-            # Alias executions
-            {
-                'path': '/v1/aliasexecution',
-                'method': 'POST',
-                'payload': {'name': 'alias1', 'format': 'foo bar ponies',
-                            'command': 'foo bar ponies',
-                            'user': 'channel', 'source_channel': 'bar'}
-            }
+            # # Alias executions
+            # {
+            #     'path': '/v1/aliasexecution',
+            #     'method': 'POST',
+            #     'payload': {'name': 'alias1', 'format': 'foo bar ponies',
+            #                 'command': 'foo bar ponies',
+            #                 'user': 'channel', 'source_channel': 'bar'}
+            # }
         ]
 
         self.use_user(self.users['no_permissions'])
@@ -336,14 +336,6 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(self.users['no_permissions'])
 
         # Test that access to icon.png file doesn't require any permissions
-        # Note: We need to mock content-type since pecan and webest don't like if content-type is
-        # set dynamically in the request handler aka  "pecan.core: ERROR: Controller 'get_one'
-        # defined does not support content_type 'image/png'. Supported type(s): ['text/html']" is
-        # returned
-        from st2api.controllers.v1.packviews import FileController
-        FileController.get_one._pecan['content_types'] = {'image/png': None}
-        FileController.get_one._pecan['explicit_content_type'] = True
-
         response = self.app.get('/v1/packs/views/file/dummy_pack_2/icon.png')
         self.assertEqual(response.status_code, httplib.OK)
 

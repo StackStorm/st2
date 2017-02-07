@@ -18,10 +18,8 @@ import mimetypes
 import os
 
 import six
-import pecan
-from pecan import abort, expose, request, response
-from pecan.rest import RestController
 from wsgiref.handlers import format_date_time
+from webob import Response
 
 from st2api.controllers.v1.packs import BasePacksController
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -32,8 +30,6 @@ from st2common.persistence.pack import Pack
 from st2common.content.utils import get_pack_file_abs_path
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
-from st2common.rbac.utils import assert_user_has_resource_db_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
 
@@ -108,9 +104,7 @@ class FilesController(BaseFileController):
         super(FilesController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
-    @jsexpose(arg_types=[str], status_code=http_client.OK)
-    def get_one(self, ref_or_id):
+    def get_one(self, ref_or_id, requester_user):
         """
             Outputs the content of all the files inside the pack.
 
@@ -118,6 +112,10 @@ class FilesController(BaseFileController):
                 GET /packs/views/files/<pack_ref_or_id>
         """
         pack_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=pack_db,
+                                                          permission_type=PermissionType.PACK_VIEW)
 
         if not pack_db:
             msg = 'Pack with ref_or_id "%s" does not exist' % (ref_or_id)
@@ -175,8 +173,7 @@ class FileController(BaseFileController):
     Controller which allows user to retrieve content of a specific file in a pack.
     """
 
-    @expose()
-    def get_one(self, ref_or_id, *file_path_components):
+    def get_one(self, ref_or_id, file_path, requester_user, **kwargs):
         """
             Outputs the content of a specific file in a pack.
 
@@ -189,18 +186,16 @@ class FileController(BaseFileController):
             msg = 'Pack with ref_or_id "%s" does not exist' % (ref_or_id)
             raise StackStormDBObjectNotFoundError(msg)
 
-        if not file_path_components:
+        if not file_path:
             raise ValueError('Missing file path')
 
-        file_path = os.path.join(*file_path_components)
         pack_ref = pack_db.ref
 
         # Note: Until list filtering is in place we don't require RBAC check for icon file
         if file_path not in WHITELISTED_FILE_PATHS:
-            user_db = rbac_utils.get_user_db_from_request(request=pecan.request)
-            assert_user_has_resource_db_permission(user_db=user_db,
-                                                   resource_db=pack_db,
-                                                   permission_type=PermissionType.PACK_VIEW)
+            rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                              resource_db=pack_db,
+                                                              permission_type=PermissionType.PACK_VIEW)
 
         normalized_file_path = get_pack_file_abs_path(pack_ref=pack_ref, file_path=file_path)
         if not normalized_file_path or not os.path.isfile(normalized_file_path):
@@ -209,26 +204,29 @@ class FileController(BaseFileController):
 
         file_size, file_mtime = self._get_file_stats(file_path=normalized_file_path)
 
-        if not self._is_file_changed(file_mtime):
-            self._add_cache_headers(file_mtime)
+        response = Response()
+
+        if not self._is_file_changed(file_mtime, **kwargs):
             response.status = http_client.NOT_MODIFIED
-            return response
+        else:
+            if file_size is not None and file_size > MAX_FILE_SIZE:
+                msg = ('File %s exceeds maximum allowed file size (%s bytes)' %
+                       (file_path, MAX_FILE_SIZE))
+                raise ValueError(msg)
 
-        if file_size is not None and file_size > MAX_FILE_SIZE:
-            msg = ('File %s exceeds maximum allowed file size (%s bytes)' %
-                   (file_path, MAX_FILE_SIZE))
-            raise ValueError(msg)
+            content_type = mimetypes.guess_type(normalized_file_path)[0] or 'application/octet-stream'
 
-        content_type = mimetypes.guess_type(normalized_file_path)[0] or 'application/octet-stream'
+            response.headers['Content-Type'] = content_type
+            response.body = self._get_file_content(file_path=normalized_file_path)
 
-        self._add_cache_headers(file_mtime)
-        response.headers['Content-Type'] = content_type
-        response.body = self._get_file_content(file_path=normalized_file_path)
+        response.headers['Last-Modified'] = format_date_time(file_mtime)
+        response.headers['ETag'] = repr(file_mtime)
+
         return response
 
-    def _is_file_changed(self, file_mtime):
-        if_none_match = request.headers.get('If-None-Match', None)
-        if_modified_since = request.headers.get('If-Modified-Since', None)
+    def _is_file_changed(self, file_mtime, **kwargs):
+        if_none_match = kwargs.get('if-none-match', None)
+        if_modified_since = kwargs.get('if-modified-since', None)
 
         # For if_none_match check against what would be the ETAG value
         if if_none_match:
@@ -241,12 +239,7 @@ class FileController(BaseFileController):
         # Neither header is provided therefore assume file is changed.
         return True
 
-    def _add_cache_headers(self, file_mtime):
-        # Add both Last-Modified and ETag headers as per recommendations in RFC2616
-        response.headers['Last-Modified'] = format_date_time(file_mtime)
-        response.headers['ETag'] = repr(file_mtime)
 
-
-class PackViewsController(RestController):
+class PackViewsController(object):
     files = FilesController()
     file = FileController()
