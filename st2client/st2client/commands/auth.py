@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from configparser import ConfigParser
+from six.moves.configparser import ConfigParser
 import getpass
 import json
 import logging
