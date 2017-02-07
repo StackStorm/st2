@@ -19,7 +19,7 @@ dependencies:
     - case $CIRCLE_NODE_INDEX in [1,2]) sudo service mongodb stop ; MONGODB=3.2.12 sudo -E .circle/install-and-run-mongodb.sh > /tmp/mongodb-install.log ;; [3,4]) sudo service mongodb stop ; MONGODB=3.4.2 sudo -E .circle/install-and-run-mongodb.sh > /tmp/mongodb-install.log ;; esac:
         background: true
     # Tail the logs so it's easier to see what is going on. Sadly when using "background: true" whole output is ignored.
-    - case $CIRCLE_NODE_INDEX in [1,2]) tail -30 /tmp/mongodb-install.log ;; [3,4]) tail -30 /tmp/mongodb-install.log ;; esac
+    - case $CIRCLE_NODE_INDEX in [1,2]) cat /tmp/mongodb-install.log ;; [3,4]) cat /tmp/mongodb-install.log ;; esac
     - sudo pip install codecov
   override:
     - make compile requirements
