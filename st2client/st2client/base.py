@@ -15,6 +15,7 @@
 
 import os
 import json
+import logging
 import time
 import calendar
 import traceback
@@ -56,7 +57,7 @@ class BaseCLIApp(object):
     Base class for StackStorm CLI apps.
     """
 
-    LOG = None  # logger instance to use
+    LOG = logging.getLogger(__name__)  # logger instance to use
     client = None  # st2client instance
 
     # A list of command classes for which automatic authentication should be skipped.

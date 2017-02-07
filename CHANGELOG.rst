@@ -52,6 +52,9 @@ in development
 * Let querier plugin decide whether to delete state object on error. Mistral querier will
   delete state object on workflow completion or when the workflow or task references no
   longer exists. (improvement)
+* Added support for `st2 login` and `st2 whoami` commands. These add some additional functionality
+  beyond the existing `st2 auth` command and actually works with the local configuration so that
+  users do not have to.
 
 2.1.1 - December 16, 2016
 -------------------------

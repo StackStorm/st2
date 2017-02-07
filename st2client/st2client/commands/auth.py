@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from configparser import ConfigParser
 import getpass
 import json
 import logging
 
+from st2client.base import BaseCLIApp
+from st2client import config_parser
 from st2client import models
 from st2client.commands import resource
 from st2client.commands.noop import NoopCommand
@@ -37,7 +40,7 @@ class TokenCreateCommand(resource.ResourceCommand):
 
         super(TokenCreateCommand, self).__init__(
             resource, kwargs.pop('name', 'create'),
-            'Authenticate user and aquire access token.',
+            'Authenticate user and acquire access token.',
             *args, **kwargs)
 
         self.parser.add_argument('username',
@@ -68,6 +71,124 @@ class TokenCreateCommand(resource.ResourceCommand):
         else:
             self.print_output(instance, table.PropertyValueTable,
                               attributes=self.display_attributes, json=args.json, yaml=args.yaml)
+
+
+class LoginCommand(resource.ResourceCommand):
+    display_attributes = ['user', 'token', 'expiry']
+
+    def __init__(self, resource, *args, **kwargs):
+
+        kwargs['has_token_opt'] = False
+
+        super(LoginCommand, self).__init__(
+            resource, kwargs.pop('name', 'create'),
+            'Authenticate user, acquire access token, and update CLI config directory',
+            *args, **kwargs)
+
+        self.parser.add_argument('username',
+                                 help='Name of the user to authenticate.')
+
+        self.parser.add_argument('-p', '--password', dest='password',
+                                 help='Password for the user. If password is not provided, '
+                                      'it will be prompted.')
+        self.parser.add_argument('-l', '--ttl', type=int, dest='ttl', default=None,
+                                 help='The life span of the token in seconds. '
+                                      'Max TTL configured by the admin supersedes this.')
+        self.parser.add_argument('-w', '--write-password', action='store_true', default=False,
+                                 dest='write_password',
+                                 help='Write the password in plain text to the config file '
+                                      '(default is to omit it')
+
+    def run(self, args, **kwargs):
+
+        if not args.password:
+            args.password = getpass.getpass()
+        instance = self.resource(ttl=args.ttl) if args.ttl else self.resource()
+
+        cli = BaseCLIApp()
+
+        # Determine path to config file
+        try:
+            config_file = cli._get_config_file_path(args)
+        except ValueError:
+            # config file not found in args or in env, defaulting
+            config_file = config_parser.ST2_CONFIG_PATH
+
+        # Retrieve token
+        manager = self.manager.create(instance, auth=(args.username, args.password), **kwargs)
+        cli._cache_auth_token(token_obj=manager)
+
+        # Update existing configuration with new credentials
+        config = ConfigParser()
+        config.read(config_file)
+
+        # Modify config (and optionally populate with password)
+        if 'credentials' not in config:
+            config.add_section('credentials')
+            config['credentials'] = {}
+        config['credentials']['username'] = args.username
+        if args.write_password:
+            config['credentials']['password'] = args.password
+        else:
+            # Remove any existing password from config
+            config['credentials'].pop('password', None)
+
+        with open(config_file, "w") as cfg_file_out:
+            config.write(cfg_file_out)
+
+        return manager
+
+    def run_and_print(self, args, **kwargs):
+        try:
+            self.run(args, **kwargs)
+            print("Logged in as %s" % (args.username))
+        except Exception as e:
+            print("Failed to log in as %s: %s" % (args.username, str(e)))
+            if self.app.client.debug:
+                raise
+
+
+class WhoamiCommand(resource.ResourceCommand):
+    display_attributes = ['user', 'token', 'expiry']
+
+    def __init__(self, resource, *args, **kwargs):
+
+        kwargs['has_token_opt'] = False
+
+        super(WhoamiCommand, self).__init__(
+            resource, kwargs.pop('name', 'create'),
+            'Display the currently authenticated/configured user',
+            *args, **kwargs)
+
+    def run(self, args, **kwargs):
+
+        cli = BaseCLIApp()
+
+        # Determine path to config file
+        try:
+            config_file = cli._get_config_file_path(args)
+        except ValueError:
+            # config file not found in args or in env, defaulting
+            config_file = config_parser.ST2_CONFIG_PATH
+
+        # Update existing configuration with new credentials
+        config = ConfigParser()
+        config.read(config_file)
+
+        return config['credentials']['username']
+
+    def run_and_print(self, args, **kwargs):
+        try:
+            username = self.run(args, **kwargs)
+            print("Currently logged in as %s" % username)
+        except KeyError:
+            print("No user is currently logged in")
+            if self.app.client.debug:
+                raise
+        except Exception:
+            print("Unable to retrieve currently logged-in user")
+            if self.app.client.debug:
+                raise
 
 
 class ApiKeyBranch(resource.ResourceBranch):
