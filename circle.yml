@@ -14,15 +14,15 @@ dependencies:
   pre:
     - sudo .circle/configure-services.sh
     - sudo .circle/add-itest-user.sh
-  # Let's install Mongo 3 manually because circle doesn't support mongo3 yet
-    - sudo .circle/install-mongo.sh
+    # We install and test with all the supported MongoDB versions
+    - case $CIRCLE_NODE_INDEX in [1,2]) MONGODB=3.2.12 sudo .circle/install-mongodb.sh ;; [3,4]) MONGODB=3.4.2 sudo .circle/install-mongodb.sh ;; esac
     - sudo pip install codecov
   override:
     - make compile requirements
 
 test:
   override:
-    - case $CIRCLE_NODE_INDEX in 0) make ci-checks ci-packs-tests ;; 1) make ci-unit ;; 2) make ci-integration ;; esac:
+    - case $CIRCLE_NODE_INDEX in 0) make ci-checks ci-packs-tests ;; 1) make ci-unit ;; 2) make ci-integration ;; 3) make ci-unit ;; 3) make ci-integration ;; esac:
         parallel: true
   post:
     - case $CIRCLE_NODE_INDEX in [1,2]) codecov ;; esac:
