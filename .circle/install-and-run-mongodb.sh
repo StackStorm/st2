@@ -13,9 +13,11 @@ fi
 DATA_DIR=/tmp/mongodbdata
 MONGODB_DIR=/tmp/mongodb
 
+mkdir -p ${DATA_DIR}
+mkdir -p ${MONGODB_DIR}
+
 wget http://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGODB}.tgz -O /tmp/mongodb.tgz
 tar -xvf /tmp/mongodb.tgz -C ${MONGODB_DIR} --strip=1
-mkdir -p ${DATA_DIR}
 echo "Starting MongoDB v${MONGODB}"
 ${MONGODB_DIR}/bin/mongod --nojournal --journalCommitInterval 500 \
     --syncdelay 0 --dbpath ${DATA_DIR} --bind_ip 127.0.0.1 &> /tmp/mongodb.log &
