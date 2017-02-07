@@ -2101,6 +2101,82 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /traces:
+    get:
+      operationId: st2api.controllers.v1.traces:traces_controller.get_all
+      description: Returns a list of all the traces.
+      parameters:
+        - name: limit
+          in: query
+          description: Number of traces to get
+          type: integer
+          # required: true
+          # default: 50
+        - name: trace_tag
+          in: query
+          description: Trace-tag to filter the list.
+          type: string
+        - name: execution
+          in: query
+          description: Execution to filter the list.
+          type: string
+        - name: rule
+          in: query
+          description: Rule to filter the list..
+          type: string
+        - name: trigger_instance
+          in: query
+          description: TraceInstance to filter the list.
+          type: string
+        - name: sort_asc
+          in: query
+          description: |
+              Sort in ascending order by start timestamp, asc/ascending (earliest first)
+          type: string
+        - name: sort_desc
+          in: query
+          description: |
+              Sort in descending order by start timestamp, desc/descending (latest first)
+          type: string
+      responses:
+        '200':
+          description: List of traces
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TracesList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /traces/{id}:
+    get:
+      operationId: st2api.controllers.v1.traces:traces_controller.get_one
+      description: Returns a list of all the traces.
+      parameters:
+        - name: id
+          in: path
+          description: entities id
+          type: string
+      responses:
+        '200':
+          description: Trace
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/TracesList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /triggertypes:
     get:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.get_all
@@ -2894,6 +2970,8 @@ definitions:
   PolicyList:
     type: object
   PolicyCreate:
+    type: object
+  TracesList:
     type: object
   Trigger:
     type: object

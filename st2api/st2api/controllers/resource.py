@@ -32,7 +32,7 @@ from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
 from st2common.util.jsonify import json_encode
 from st2common.util import schema as util_schema
-
+from st2common.router import abort
 LOG = logging.getLogger(__name__)
 
 RESERVED_QUERY_PARAMS = {
@@ -310,7 +310,8 @@ class ResourceController(object):
 
         if not resource_db:
             # Try name
-            resource_db = self._get_by_name(resource_name=name_or_id, exclude_fields=exclude_fields)
+            resource_db = self._get_by_name(resource_name=name_or_id,
+                                            exclude_fields=exclude_fields)
 
         if not resource_db:
             msg = 'Resource with a name or id "%s" not found' % (name_or_id)
