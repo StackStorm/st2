@@ -62,7 +62,7 @@ class TestTraces(FunctionalTest):
                          'Incorrect trace retrieved.')
 
     def test_query_by_trace_tag(self):
-        resp = self.app.get('/v1/traces/?trace_tag=test-trace-1')
+        resp = self.app.get('/v1/traces?trace_tag=test-trace-1')
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1, '/v1/traces?trace_tag=x did not return correct trace.')
 
@@ -71,7 +71,7 @@ class TestTraces(FunctionalTest):
 
     def test_query_by_action_execution(self):
         execution_id = self.trace3['action_executions'][0].object_id
-        resp = self.app.get('/v1/traces/?execution=%s' % execution_id)
+        resp = self.app.get('/v1/traces?execution=%s' % execution_id)
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1,
@@ -81,7 +81,7 @@ class TestTraces(FunctionalTest):
 
     def test_query_by_rule(self):
         rule_id = self.trace3['rules'][0].object_id
-        resp = self.app.get('/v1/traces/?rule=%s' % rule_id)
+        resp = self.app.get('/v1/traces?rule=%s' % rule_id)
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1, '/v1/traces?rule=x did not return correct trace.')
@@ -90,7 +90,7 @@ class TestTraces(FunctionalTest):
 
     def test_query_by_trigger_instance(self):
         trigger_instance_id = self.trace3['trigger_instances'][0].object_id
-        resp = self.app.get('/v1/traces/?trigger_instance=%s' % trigger_instance_id)
+        resp = self.app.get('/v1/traces?trigger_instance=%s' % trigger_instance_id)
 
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(len(resp.json), 1,

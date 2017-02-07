@@ -20,20 +20,20 @@ import copy
 
 from oslo_config import cfg
 from mongoengine import ValidationError
-import pecan
-from pecan import rest
+# import pecan
+# from pecan import rest
 import six
 from six.moves import http_client
 from webob import Response
 
-from st2common.models.api.base import jsexpose
+# from st2common.models.api.base import jsexpose
 from st2common import log as logging
 from st2common.models.system.common import InvalidResourceReferenceError
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.util.jsonify import json_encode
 from st2common.util import schema as util_schema
-
+from st2common.router import abort
 LOG = logging.getLogger(__name__)
 
 RESERVED_QUERY_PARAMS = {
@@ -79,7 +79,7 @@ def parameter_validation(validator, properties, instance, schema):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class ResourceController(rest.RestController):
+class ResourceController():  # rest.RestController):
     model = abc.abstractproperty
     access = abc.abstractproperty
     supported_filters = abc.abstractproperty
@@ -120,11 +120,11 @@ class ResourceController(rest.RestController):
 
         self.get_one_db_method = self._get_by_name_or_id
 
-    @jsexpose()
+    # @jsexpose()
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
-    @jsexpose(arg_types=[str])
+    # @jsexpose(arg_types=[str])
     def get_one(self, id):
         return self._get_one_by_id(id=id)
 
@@ -190,12 +190,12 @@ class ResourceController(rest.RestController):
             else:
                 filters['__'.join(v.split('.'))] = filter_value
 
-        extra = {
-            'filters': filters,
-            'sort': sort,
-            'offset': offset,
-            'limit': limit
-        }
+        # extra = {
+        #    'filters': filters,
+        #    'sort': sort,
+        #    'offset': offset,
+        #    'limit': limit
+        # }
         # LOG.info('GET all %s with filters=%s' % (pecan.request.path, filters), extra=extra)
 
         instances = self.access.query(exclude_fields=exclude_fields, **filters)
@@ -235,7 +235,7 @@ class ResourceController(rest.RestController):
 
         if not instance:
             msg = 'Unable to identify resource with id "%s".' % id
-            pecan.abort(http_client.NOT_FOUND, msg)
+            abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
@@ -244,7 +244,8 @@ class ResourceController(rest.RestController):
 
         return result
 
-    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None, from_model_kwargs=None, **kwargs):
+    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None, from_model_kwargs=None,
+                               **kwargs):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -256,7 +257,7 @@ class ResourceController(rest.RestController):
 
         if not instance:
             msg = 'Unable to identify resource with name_or_id "%s".' % (name_or_id)
-            pecan.abort(http_client.NOT_FOUND, msg)
+            abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
@@ -265,14 +266,15 @@ class ResourceController(rest.RestController):
 
         return result
 
-    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None, **kwargs):
+    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None,
+                             **kwargs):
         # LOG.info('GET %s with pack_ref=%s', pecan.request.path, pack_ref)
 
         instance = self._get_by_pack_ref(pack_ref=pack_ref, exclude_fields=exclude_fields)
 
         if not instance:
             msg = 'Unable to identify resource with pack_ref "%s".' % (pack_ref)
-            pecan.abort(http_client.NOT_FOUND, msg)
+            abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
@@ -313,7 +315,8 @@ class ResourceController(rest.RestController):
 
         if not resource_db:
             # Try name
-            resource_db = self._get_by_name(resource_name=name_or_id, exclude_fields=exclude_fields)
+            resource_db = self._get_by_name(resource_name=name_or_id,
+                                            exclude_fields=exclude_fields)
 
         if not resource_db:
             msg = 'Resource with a name or id "%s" not found' % (name_or_id)
@@ -388,7 +391,7 @@ class ContentPackResourceController(ResourceController):
             instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
         except Exception as e:
             LOG.exception(e.message)
-            pecan.abort(http_client.NOT_FOUND, e.message)
+            abort(http_client.NOT_FOUND, e.message)
             return
 
         from_model_kwargs = from_model_kwargs or {}
