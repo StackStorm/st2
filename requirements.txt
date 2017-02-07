@@ -2,7 +2,7 @@
 apscheduler==3.3.1
 argcomplete
 bcrypt
-eventlet<0.21,>=0.20.1
+eventlet==0.19.0
 git+https://github.com/Kami/entrypoints.git@dont_use_backports#egg=entrypoints
 git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper
 git+https://github.com/StackStorm/pecan.git@st2-patched#egg=pecan
@@ -20,7 +20,7 @@ mongoengine==0.10.6
 networkx==1.10
 oslo.config<1.13,>=1.12.1
 oslo.utils<3.1.0
-paramiko<2.1,>=2.0.2
+paramiko<2.2,>=2.1.1
 passlib==1.6.5
 prettytable
 prompt-toolkit==1.0.7
