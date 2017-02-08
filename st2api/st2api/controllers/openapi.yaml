@@ -367,7 +367,7 @@ paths:
           description: Name or ID of the action alias.
           type: string
           required: true
-        - name: file
+        - name: action_alias
           in: body
           description: JSON/YAML file containing the action alias to update.
           schema:
@@ -2101,6 +2101,138 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /ruleenforcements:
+    get:
+      operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.RULE_ENFORCEMENT_LIST }}
+      description: Returns a list of all the rule enforcements.
+      parameters:
+        - name: limit
+          in: query
+          description: List N most recent rule enforcements.
+          type: string
+          default: 50
+        - name: execution
+          in: query
+          description: Execution to filter the list.
+          type: string
+        - name: rule_ref
+          in: query
+          description: Rule ref to filter the list.
+          type: string
+        - name: rule_id
+          in: query
+          description: Rule id to filter the list..
+          type: string
+        - name: trigger_instance
+          in: query
+          description: Trace instance id to filter the list.
+          type: string
+        - name: enforced_at_gt
+          in: query
+          description: |
+              Only return enforcements with enforced_at greater than the one provided. Use time in the format.
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+        - name: enforced_at_lt
+          in: query
+          description: |
+              Only return enforcements with enforced_at lower than the one provided. Use time in the format.
+          type: string
+          pattern: {{ ISO8601_UTC_REGEX }}
+      responses:
+        '200':
+          description: List of rule enforcements
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RuleEnforcementsList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /ruleenforcements/{ref_or_id}:
+    get:
+      operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_one
+      x-permissions: {{ PERMISSION_TYPE.RULE_ENFORCEMENT_VIEW }}
+      description: Return a specific rule enforcement based on id.
+      parameters:
+        - name: ref_or_id
+          in: path
+          description: entities id
+          type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
+      responses:
+        '200':
+          description: Rule Enforcements based on ref or id
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/RuleEnforcementsList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /timers:
+    get:
+      operationId: st2api.controllers.v1.timers:timers_controller.get_all
+      description: Returns a list of all the timers.
+      parameters:
+        - name: timer_type
+          in: query
+          description: Type of timer
+          type: string
+      responses:
+        '200':
+          description: List of timers
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TimersList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /timers/{id}:
+    get:
+      operationId: st2api.controllers.v1.timers:timers_controller.get_one
+      description: Return a specific timer based on id.
+      parameters:
+        - name: id
+          in: path
+          description: entities id
+          type: string
+      responses:
+        '200':
+          description: Trace
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/TimersList'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /traces:
     get:
       operationId: st2api.controllers.v1.traces:traces_controller.get_all
@@ -2108,7 +2240,7 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of traces to get
+          description: Limit number of traces.
           type: integer
           # required: true
           # default: 50
@@ -2971,6 +3103,17 @@ definitions:
     type: object
   PolicyCreate:
     type: object
+  RunnerType:
+    type: object
+  Rule:
+    x-api-model: st2common.models.api.rule:RuleAPI
+    type: object
+  RuleEnforcementsList:
+    type: object
+  SensorType:
+    type: object
+  TimersList:
+    type: object
   TracesList:
     type: object
   Trigger:
@@ -2982,13 +3125,6 @@ definitions:
   TriggerTypeRequest:
     type: object
   TriggerInstance:
-    type: object
-  Rule:
-    x-api-model: st2common.models.api.rule:RuleAPI
-    type: object
-  RunnerType:
-    type: object
-  SensorType:
     type: object
   ApiKey:
     type: object

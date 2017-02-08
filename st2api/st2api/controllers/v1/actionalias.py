@@ -138,7 +138,7 @@ class ActionAliasController(resource.ContentPackResourceController):
 
     # @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_MODIFY)
     # @jsexpose(arg_types=[str], body_cls=ActionAliasAPI)
-    def put(self, ref_or_id, action_alias):
+    def put(self, action_alias, ref_or_id):
         """
             Update an action alias.
 
@@ -148,6 +148,9 @@ class ActionAliasController(resource.ContentPackResourceController):
         action_alias_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         LOG.debug('PUT /actionalias/ lookup with id=%s found object: %s', ref_or_id,
                   action_alias_db)
+
+        if not hasattr(action_alias, 'id'):
+            action_alias.id = None
 
         try:
             if action_alias.id is not None and action_alias.id is not '' and \

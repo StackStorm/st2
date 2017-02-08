@@ -91,13 +91,13 @@ class TestTimersController(FunctionalTest, DbTestCase):
         TestTimersController.MODELS = loader.save_fixtures_to_db(
             fixtures_pack=PACK, fixtures_dict=FIXTURES)['triggers']
 
-    def test_get_one_with_id(self):
+    def test_timerscontroller_get_one_with_id(self):
         model = TestTimersController.MODELS['interval1.yaml']
         get_resp = self._do_get_one(model.id)
         self.assertEqual(get_resp.status_int, 200)
         self.assertEqual(get_resp.json['parameters'], model['parameters'])
 
-    def test_get_one_with_ref(self):
+    def test_timerscontroller_get_one_with_ref(self):
         model = TestTimersController.MODELS['interval1.yaml']
         ref = ResourceReference.to_string_reference(pack=model['pack'], name=model['name'])
         get_resp = self._do_get_one(ref)
