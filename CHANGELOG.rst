@@ -49,6 +49,8 @@ in development
   put the workflow in a PAUSED state in mistral. (improvement)
 * Add support for evaluating jinja expressions in mistral workflow definition where yaql
   expressions are typically accepted. (improvement)
+* Fix ``--config-file`` st2 CLI argument not correctly expanding the provided path if the path 
+  contained a reference to the user home directory (``~``, e.g. ``~/.st2/config.ini``) (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------
