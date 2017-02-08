@@ -22,6 +22,7 @@ import uuid
 import mock
 from mock import call
 
+from mistralclient.api import base as mistralclient_base
 from mistralclient.api.v2 import executions
 from mistralclient.api.v2 import tasks
 from oslo_config import cfg
@@ -363,6 +364,17 @@ class MistralQuerierTest(DbTestCase):
 
     @mock.patch.object(
         executions.ExecutionManager, 'get',
+        mock.MagicMock(
+            side_effect=mistralclient_base.APIException(
+                error_code=404, error_message='Workflow not found.')))
+    def test_query_get_workflow_not_found(self):
+        (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_FAILED, status)
+        self.assertEqual('Workflow not found.', result)
+
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=MOCK_WF_EX))
     @mock.patch.object(
         tasks.TaskManager, 'list',
@@ -486,6 +498,23 @@ class MistralQuerierTest(DbTestCase):
         ]
 
         tasks.TaskManager.get.assert_has_calls(calls)
+
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
+        mock.MagicMock(return_value=MOCK_WF_EX))
+    @mock.patch.object(
+        tasks.TaskManager, 'list',
+        mock.MagicMock(return_value=MOCK_WF_EX_TASKS))
+    @mock.patch.object(
+        tasks.TaskManager, 'get',
+        mock.MagicMock(
+            side_effect=mistralclient_base.APIException(
+                error_code=404, error_message='Task not found.')))
+    def test_query_get_workflow_tasks_not_found(self):
+        (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_FAILED, status)
+        self.assertEqual('Task not found.', result)
 
     def test_query_missing_context(self):
         self.assertRaises(Exception, self.querier.query, uuid.uuid4().hex, {})

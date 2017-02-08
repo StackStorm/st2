@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ast
 import os
 import shutil
 import tempfile
@@ -121,8 +120,8 @@ class WiringTest(base.TestWorkflowExecution):
 
         task_results = execution.result.get('tasks', [])
         self.assertGreater(len(task_results), 0)
-        expected_state_info = {'error': 'Execution canceled by user.'}
-        self.assertDictEqual(ast.literal_eval(task_results[0]['state_info']), expected_state_info)
+        expected_state_info = '{error: Execution canceled by user.}'
+        self.assertEqual(task_results[0]['state_info'], expected_state_info)
 
     def test_basic_rerun(self):
         path = self.temp_dir_path

@@ -13,27 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models import core
-
-__all__ = [
-    'ActionAlias',
-    'ActionAliasMatch'
-]
+from st2common.exceptions import StackStormBaseException
 
 
-class ActionAlias(core.Resource):
-    _alias = 'Action-Alias'
-    _display_name = 'Action Alias'
-    _plural = 'ActionAliases'
-    _plural_display_name = 'Action Aliases'
-    _url_path = 'actionalias'
-    _repr_attributes = ['name', 'pack', 'action_ref']
-
-
-class ActionAliasMatch(core.Resource):
-    _alias = 'Action-Alias-Match'
-    _display_name = 'ActionAlias Match'
-    _plural = 'ActionAliasMatches'
-    _plural_display_name = 'Action Alias Matches'
-    _url_path = 'actionalias'
-    _repr_attributes = ['command']
+class ReferenceNotFoundError(StackStormBaseException):
+    pass
