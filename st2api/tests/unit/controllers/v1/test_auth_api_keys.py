@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import mock
-import pecan
 import random
 import string
 import unittest
@@ -188,17 +187,3 @@ class TestApiKeyController(FunctionalTest):
 
     def test_post_no_user_fail(self):
         self.app.post_json('/v1/apikeys', {}, expect_errors=True)
-
-    @unittest.skip
-    def test_post_no_user_success(self):
-        type(pecan.request).context = mock.PropertyMock(return_value=PECAN_CONTEXT)
-        try:
-            resp = self.app.post_json('/v1/apikeys', {})
-            self.assertEqual(resp.status_int, 201)
-            self.assertTrue(resp.json['key'], 'Key should be non-None.')
-            self.assertEqual(resp.json['user'], USERNAME, 'User should be from auth context.')
-
-            resp = self.app.delete('/v1/apikeys/%s' % resp.json['id'])
-            self.assertEqual(resp.status_int, 204)
-        finally:
-            type(pecan.request).context = {}

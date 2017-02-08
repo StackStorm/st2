@@ -57,13 +57,9 @@ class RuleEnforcementController(resource.ResourceController):
         'enforced_at_lt': lambda value: isotime.parse(value=value)
     }
 
-    # @request_user_has_permission(permission_type=PermissionType.RULE_ENFORCEMENT_LIST)
-    # @jsexpose()
     def get_all(self, **kwargs):
         return super(RuleEnforcementController, self)._get_all(**kwargs)
 
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
-    # @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id, requester_user):
         return super(RuleEnforcementController,
                      self)._get_one(ref_or_id, requester_user=requester_user,

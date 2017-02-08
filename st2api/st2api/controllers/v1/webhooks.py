@@ -98,12 +98,10 @@ class WebhooksController(object):
         self._trigger_watcher.start()
         self._register_webhook_trigger_types()
 
-    # @jsexpose()
     def get_all(self):
         # Return only the hooks known by this controller.
         return self._hooks.get_all()
 
-    # @jsexpose()
     def get_one(self, name):
         triggers = self._hooks.get_triggers_for_hook(name)
 
@@ -115,7 +113,6 @@ class WebhooksController(object):
         return triggers[0]
 
     # @request_user_has_webhook_permission(permission_type=PermissionType.WEBHOOK_SEND)
-    # @jsexpose(arg_types=[str], status_code=http_client.ACCEPTED)
     def post(self, hook, body, headers):
         body = vars(body)
 

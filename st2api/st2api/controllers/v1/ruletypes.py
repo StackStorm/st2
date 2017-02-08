@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from mongoengine import ValidationError
-from pecan import abort
 from pecan.rest import RestController
 import six
 
@@ -22,6 +21,7 @@ from st2common import log as logging
 from st2common.models.api.base import jsexpose
 from st2common.models.api.rule import RuleTypeAPI
 from st2common.persistence.rule import RuleType
+from st2common.router import abort
 
 http_client = six.moves.http_client
 

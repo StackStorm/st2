@@ -176,7 +176,7 @@ class Router(object):
         path = path_vars.pop('_api_path')
         method = path_vars.pop('_api_method')
         endpoint = self.spec['paths'][path][method]
-        context = self.context
+        context = copy.copy(self.context)
 
         # Handle security
         if 'security' in endpoint:
@@ -186,6 +186,7 @@ class Router(object):
 
         if self.auth and security:
             try:
+                auth_resp = None
                 security_definitions = self.spec.get('securityDefinitions', {})
                 for statement in security:
                     declaration, options = statement.copy().popitem()
@@ -200,12 +201,16 @@ class Router(object):
                             token = None
 
                         if token:
+                            if auth_resp:
+                                raise auth_exc.MultipleAuthSourcesError(
+                                    'Only one of Token or API key expected.')
+
                             auth_func = op_resolver(definition['x-operationId'])
                             auth_resp = auth_func(token)
 
                             context['user'] = User.get_by_name(auth_resp.user)
 
-                if not context['user']:
+                if 'user' not in context:
                     raise auth_exc.NoAuthSourceProvidedError('One of Token or API key required.')
             except (auth_exc.NoAuthSourceProvidedError,
                     auth_exc.MultipleAuthSourcesError) as e:
@@ -235,7 +240,6 @@ class Router(object):
 
             permission_type = endpoint.get('x-permissions', None)
             if permission_type:
-                # TODO Verify permission type for the provided resource type
                 resolver = resolvers.get_resolver_for_permission_type(permission_type)
                 has_permission = resolver.user_has_permission(user_db, permission_type)
 

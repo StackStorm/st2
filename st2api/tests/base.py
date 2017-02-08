@@ -64,8 +64,6 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
     Base test case class for testing API controllers with RBAC enabled.
     """
 
-    pecan_request_context_mock = None
-
     @classmethod
     def setUpClass(cls):
         super(APIControllerWithRBACTestCase, cls).setUpClass()

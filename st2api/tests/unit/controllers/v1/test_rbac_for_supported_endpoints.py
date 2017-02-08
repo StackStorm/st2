@@ -222,34 +222,34 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'path': '/v1/actions/wolfpack.action-1',
                 'method': 'DELETE'
             },
-            # # Action aliases
-            # {
-            #     'path': '/v1/actionalias',
-            #     'method': 'GET'
-            # },
-            # {
-            #     'path': '/v1/actionalias/aliases.alias1',
-            #     'method': 'GET'
-            # },
-            # {
-            #     'path': '/v1/actionalias',
-            #     'method': 'POST',
-            #     'payload': MOCK_ACTION_ALIAS_1
-            # },
-            # {
-            #     'path': '/v1/actionalias/aliases.alias1',
-            #     'method': 'PUT',
-            #     'payload': MOCK_ACTION_ALIAS_1
-            # },
-            # {
-            #     'path': '/v1/actionalias/aliases.alias1',
-            #     'method': 'DELETE'
-            # },
-            # {
-            #     'path': '/v1/actionalias/match',
-            #     'method': 'POST',
-            #     'payload': {'command': 'test command string'}
-            # },
+            # Action aliases
+            {
+                'path': '/v1/actionalias',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/actionalias/aliases.alias1',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/actionalias',
+                'method': 'POST',
+                'payload': MOCK_ACTION_ALIAS_1
+            },
+            {
+                'path': '/v1/actionalias/aliases.alias1',
+                'method': 'PUT',
+                'payload': MOCK_ACTION_ALIAS_1
+            },
+            {
+                'path': '/v1/actionalias/aliases.alias1',
+                'method': 'DELETE'
+            },
+            {
+                'path': '/v1/actionalias/match',
+                'method': 'POST',
+                'payload': {'command': 'test command string'}
+            },
             # Rules
             {
                 'path': '/v1/rules',
@@ -314,14 +314,37 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'path': '/v1/executions/%s/children' % (execution_model.id),
                 'method': 'GET'
             },
-            # # Alias executions
+            # Alias executions
+            {
+                'path': '/v1/aliasexecution',
+                'method': 'POST',
+                'payload': {'name': 'alias1', 'format': 'foo bar ponies',
+                            'command': 'foo bar ponies',
+                            'user': 'channel', 'source_channel': 'bar'}
+            # },
+            # # API Keys
             # {
-            #     'path': '/v1/aliasexecution',
+            #     'path': '/v1/apikeys',
+            #     'method': 'GET'
+            # },
+            # {
+            #     'path': '/v1/apikeys/%s' % (apikey_model.id),
+            #     'method': 'GET'
+            # },
+            # {
+            #     'path': '/v1/apikeys',
             #     'method': 'POST',
-            #     'payload': {'name': 'alias1', 'format': 'foo bar ponies',
-            #                 'command': 'foo bar ponies',
-            #                 'user': 'channel', 'source_channel': 'bar'}
-            # }
+            #     'payload': {}
+            # },
+            # {
+            #     'path': '/v1/apikeys/%s' % (apikey_model.id),
+            #     'method': 'PUT',
+            #     'payload': {}
+            # },
+            # {
+            #     'path': '/v1/apikeys/%s' % (apikey_model.id),
+            #     'method': 'DELETE'
+            }
         ]
 
         self.use_user(self.users['no_permissions'])

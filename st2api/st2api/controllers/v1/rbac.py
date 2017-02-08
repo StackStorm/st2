@@ -15,8 +15,6 @@
 
 import copy
 
-from pecan import rest
-
 from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.base import jsexpose
@@ -53,7 +51,7 @@ class RolesController(ResourceController):
         return self._get_one_by_name_or_id(name_or_id=name_or_id)
 
 
-class PermissionTypesController(rest.RestController):
+class PermissionTypesController(object):
     """
     Meta controller for listing all the available permission types.
     """
@@ -86,6 +84,6 @@ class PermissionTypesController(rest.RestController):
         return permission_types
 
 
-class RBACController(rest.RestController):
+class RBACController(object):
     roles = RolesController()
     permission_types = PermissionTypesController()

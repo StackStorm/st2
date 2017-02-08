@@ -15,16 +15,16 @@
 
 import jsonschema
 from jinja2.exceptions import UndefinedError
-from pecan import (abort, rest, request)
+from oslo_config import cfg
 import six
+from webob import Response
 
 from st2common import log as logging
-from st2common.models.api.base import jsexpose
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-from st2common.models.api.action import AliasExecutionAPI
 from st2common.models.api.action import ActionAliasAPI
 from st2common.models.api.auth import get_system_username
 from st2common.models.api.execution import ActionExecutionAPI
+from st2common.models.db.auth import UserDB
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.notification import NotificationSchema, NotificationSubSchema
 from st2common.models.utils import action_param_utils
@@ -33,12 +33,11 @@ from st2common.persistence.actionalias import ActionAlias
 from st2common.services import action as action_service
 from st2common.util import action_db as action_utils
 from st2common.util import reference
-from st2common.util.api import get_requester
 from st2common.util.jinja import render_values as render
 from st2common.rbac.types import PermissionType
-from st2common.rbac import utils as rbac_utils
 from st2common.rbac.utils import assert_user_has_resource_db_permission
-
+from st2common.router import abort
+from st2common.util.jsonify import json_encode
 
 http_client = six.moves.http_client
 
@@ -49,14 +48,17 @@ CAST_OVERRIDES = {
 }
 
 
-class ActionAliasExecutionController(rest.RestController):
+class ActionAliasExecutionController(object):
 
-    @jsexpose(body_cls=AliasExecutionAPI, status_code=http_client.CREATED)
-    def post(self, payload):
+    def post(self, payload, requester_user):
         action_alias_name = payload.name if payload else None
 
         if not action_alias_name:
             abort(http_client.BAD_REQUEST, 'Alias execution "name" is required')
+            return
+
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
 
         format_str = payload.format or ''
         command = payload.command or ''
@@ -85,14 +87,15 @@ class ActionAliasExecutionController(rest.RestController):
         context = {
             'action_alias_ref': reference.get_ref_from_model(action_alias_db),
             'api_user': payload.user,
-            'user': get_requester(),
+            'user': requester_user.name,
             'source_channel': payload.source_channel
         }
 
         execution = self._schedule_execution(action_alias_db=action_alias_db,
                                              params=execution_parameters,
                                              notify=notify,
-                                             context=context)
+                                             context=context,
+                                             requester_user=requester_user)
 
         result = {
             'execution': execution,
@@ -120,7 +123,10 @@ class ActionAliasExecutionController(rest.RestController):
                     'extra': 'Cannot render "extra" in field "ack" for alias. ' + e.message
                 })
 
-        return result
+        resp = Response(body=json_encode(result), status=http_client.CREATED)
+        resp.headers['Content-Type'] = 'application/json'
+
+        return resp
 
     def _tokenize_alias_execution(self, alias_execution):
         tokens = alias_execution.strip().split(' ', 1)
@@ -139,15 +145,14 @@ class ActionAliasExecutionController(rest.RestController):
         notify.on_complete = on_complete
         return notify
 
-    def _schedule_execution(self, action_alias_db, params, notify, context):
+    def _schedule_execution(self, action_alias_db, params, notify, context, requester_user):
         action_ref = action_alias_db.action_ref
         action_db = action_utils.get_action_by_ref(action_ref)
 
         if not action_db:
             raise StackStormDBObjectNotFoundError('Action with ref "%s" not found ' % (action_ref))
 
-        user_db = rbac_utils.get_user_db_from_request(request=request)
-        assert_user_has_resource_db_permission(user_db=user_db, resource_db=action_db,
+        assert_user_has_resource_db_permission(user_db=requester_user, resource_db=action_db,
                                                permission_type=PermissionType.ACTION_EXECUTE)
 
         try:
@@ -173,3 +178,5 @@ class ActionAliasExecutionController(rest.RestController):
         except Exception as e:
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
+
+action_alias_execution_controller = ActionAliasExecutionController()

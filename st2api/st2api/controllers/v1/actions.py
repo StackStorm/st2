@@ -17,7 +17,6 @@ import os
 import os.path
 
 import six
-from pecan import abort
 from mongoengine import ValidationError
 from webob import Response
 
@@ -36,6 +35,7 @@ from st2common.models.api.action import ActionAPI
 from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
+from st2common.router import abort
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.content.utils import get_pack_base_path
 from st2common.content.utils import get_pack_resource_file_abs_path

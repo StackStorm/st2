@@ -13,25 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
 import six
 
 from oslo_config import cfg
-from pecan import abort
 from mongoengine import ValidationError
 from webob import Response
 
-from st2api.controllers.base import BaseRestControllerMixin, SHOW_SECRETS_QUERY_PARAM
+from st2api.controllers.base import BaseRestControllerMixin
 from st2common import log as logging
 from st2common.models.api.auth import ApiKeyAPI, ApiKeyCreateResponseAPI
-from st2common.models.api.base import jsexpose
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.exceptions.auth import ApiKeyNotFoundError
 from st2common.persistence.auth import ApiKey
-from st2common.rbac.types import PermissionType
-from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_api_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
+from st2common.router import abort
 from st2common.util import auth as auth_util
 from st2common.util.jsonify import json_encode
 
@@ -62,8 +56,7 @@ class ApiKeyController(BaseRestControllerMixin):
         self.get_one_db_method = ApiKey.get_by_key_or_id
 
     # @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_VIEW)
-    # @jsexpose(arg_types=[str])
-    def get_one(self, api_key_id_or_key, **kw):
+    def get_one(self, api_key_id_or_key, requester_user, show_secrets=None):
         """
             List api keys.
 
@@ -79,31 +72,31 @@ class ApiKeyController(BaseRestControllerMixin):
             abort(http_client.NOT_FOUND, msg)
 
         try:
-            mask_secrets = self._get_mask_secrets(kw)
+            mask_secrets = self._get_mask_secrets(show_secrets=show_secrets,
+                                                  requester_user=requester_user)
             return ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
         except (ValidationError, ValueError) as e:
             LOG.exception('Failed to serialize API key.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
     # @request_user_has_permission(permission_type=PermissionType.API_KEY_LIST)
-    # @jsexpose(arg_types=[str])
-    def get_all(self, **kw):
+    def get_all(self, requester_user, show_secrets=None, **kw):
         """
             List all keys.
 
             Handles requests:
-                GET /keys/
+                GET /apikeys/
         """
-        mask_secrets, kw = self._get_mask_secrets_ex(**kw)
+        mask_secrets = self._get_mask_secrets(show_secrets=show_secrets,
+                                              requester_user=requester_user)
         api_key_dbs = ApiKey.get_all(**kw)
         api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
                     for api_key_db in api_key_dbs]
 
         return api_keys
 
-    # @jsexpose(body_cls=ApiKeyAPI, status_code=http_client.CREATED)
     # @request_user_has_resource_api_permission(permission_type=PermissionType.API_KEY_CREATE)
-    def post(self, api_key_api, user):
+    def post(self, api_key_api, requester_user):
         """
         Create a new entry.
         """
@@ -111,7 +104,7 @@ class ApiKeyController(BaseRestControllerMixin):
         api_key = None
         try:
             if not getattr(api_key_api, 'user', None):
-                api_key_api.user = user or cfg.CONF.system_user.user
+                api_key_api.user = requester_user or cfg.CONF.system_user.user
             # If key_hash is provided use that and do not create a new key. The assumption
             # is user already has the original api-key
             if not getattr(api_key_api, 'key_hash', None):
@@ -137,7 +130,6 @@ class ApiKeyController(BaseRestControllerMixin):
         return resp
 
     # @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_MODIFY)
-    # @jsexpose(arg_types=[str], body_cls=ApiKeyAPI)
     def put(self, api_key_api, api_key_id_or_key):
         api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
 
@@ -168,7 +160,6 @@ class ApiKeyController(BaseRestControllerMixin):
         return api_key_api
 
     # @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_DELETE)
-    # @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, api_key_id_or_key):
         """
             Delete the key value pair.
@@ -187,27 +178,5 @@ class ApiKeyController(BaseRestControllerMixin):
         LOG.audit('ApiKey deleted. ApiKey.id=%s' % (api_key_db.id), extra=extra)
 
         return Response(status=http_client.NO_CONTENT)
-
-    def _get_user(self):
-        """
-        Looks up user from the auth context in the request or will return system_user.
-        """
-        # lookup user from request context. AuthHook places context in the pecan request.
-        auth_context = pecan.request.context.get('auth', None)
-
-        if not auth_context:
-            return cfg.CONF.system_user.user
-
-        user_db = auth_context.get('user', None)
-        return user_db.name if user_db else cfg.CONF.system_user.user
-
-    def _get_mask_secrets_ex(self, **kw):
-        """
-        Allowing SHOW_SECRETS_QUERY_PARAM to remain in the parameters causes downstream
-        lookup failures there removing. This is a pretty hackinsh way to manage query params.
-        """
-        mask_secrets = self._get_mask_secrets(kw)
-        kw.pop(SHOW_SECRETS_QUERY_PARAM, None)
-        return mask_secrets, kw
 
 api_key_controller = ApiKeyController()

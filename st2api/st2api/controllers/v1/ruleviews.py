@@ -20,15 +20,11 @@ from mongoengine.queryset import Q
 from st2common import log as logging
 from st2api.controllers import resource
 from st2common.models.api.rule import RuleViewAPI
-from st2common.models.api.base import jsexpose
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import Action
 from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger
 from st2common.util.jsonify import json_encode
-from st2common.rbac.types import PermissionType
-from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
 
@@ -88,16 +84,12 @@ class RuleViewController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    # @request_user_has_permission(permission_type=PermissionType.RULE_LIST)
-    # @jsexpose()
     def get_all(self, **kwargs):
         rules = self._get_all(**kwargs)
         result = self._append_view_properties(rules.json)
         rules.body = json_encode(result)
         return rules
 
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_VIEW)
-    # @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         rule = self._get_one(ref_or_id)
         result = self._append_view_properties([rule.json])[0]

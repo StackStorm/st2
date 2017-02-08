@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# import pecan
 from webob import Response
 
 import six
@@ -24,13 +23,9 @@ from st2common import log as logging
 from st2common.exceptions.actionalias import ActionAliasAmbiguityException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.action import ActionAliasAPI
-# from st2common.models.api.action import ActionAliasMatchAPI
 from st2common.persistence.actionalias import ActionAlias
-# from st2common.models.api.base import jsexpose
-# from st2common.rbac.types import PermissionType
-# from st2common.rbac.decorators import request_user_has_permission
-# from st2common.rbac.decorators import request_user_has_resource_api_permission
-# from st2common.rbac.decorators import request_user_has_resource_db_permission
+from st2common.rbac.types import PermissionType
+from st2common.rbac import utils as rbac_utils
 
 from st2common.router import abort
 from st2common.util.actionalias_matching import match_command_to_alias
@@ -68,18 +63,14 @@ class ActionAliasController(resource.ContentPackResourceController):
             'representation': match[2]
         }
 
-    # @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_LIST)
-    # @jsexpose()
     def get_all(self, **kwargs):
         return super(ActionAliasController, self)._get_all(**kwargs)
 
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_ALIAS_VIEW)
-    # @jsexpose(arg_types=[str])
-    def get_one(self, ref_or_id):
-        return super(ActionAliasController, self)._get_one(ref_or_id)
+    def get_one(self, ref_or_id, requester_user):
+        return super(ActionAliasController, self)._get_one(ref_or_id,
+                                                           requester_user=requester_user,
+                                                           permission_type=PermissionType.ACTION_ALIAS_VIEW)
 
-    # @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_MATCH)
-    # @jsexpose(arg_types=[str], body_cls=ActionAliasMatchAPI, status_code=http_client.ACCEPTED)
     def match(self, action_alias_match_api, **kwargs):
         """
             Run a chatops command
@@ -90,7 +81,8 @@ class ActionAliasController(resource.ContentPackResourceController):
         command = action_alias_match_api.command
         try:
             # 1. Get aliases
-            aliases = super(ActionAliasController, self)._get_all(**kwargs)
+            aliases_resp = super(ActionAliasController, self)._get_all(**kwargs)
+            aliases = aliases_resp.json
             # 2. Match alias(es) to command
             matches = match_command_to_alias(command, aliases)
             if len(matches) > 1:
@@ -104,20 +96,22 @@ class ActionAliasController(resource.ContentPackResourceController):
                                                     matches=[],
                                                     command=command)
             return [self._match_tuple_to_dict(match) for match in matches]
-        except (ActionAliasAmbiguityException) as e:
+        except ActionAliasAmbiguityException as e:
             LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
-            abort(http_client.BAD_REQUEST, str(e))
-            return [self._match_tuple_to_dict(match) for match in e.matches]
+            return abort(http_client.BAD_REQUEST, str(e))
 
-    # @jsexpose(body_cls=ActionAliasAPI, status_code=http_client.CREATED)
-    # @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_ALIAS_CREATE)
-    def post(self, action_alias):
+    def post(self, action_alias, requester_user):
         """
             Create a new ActionAlias.
 
             Handles requests:
                 POST /actionalias/
         """
+
+        rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
+                                                           resource_api=action_alias,
+                                                           permission_type=PermissionType.ACTION_ALIAS_CREATE)
+
         try:
             action_alias_db = ActionAliasAPI.to_model(action_alias)
             LOG.debug('/actionalias/ POST verified ActionAliasAPI and formulated ActionAliasDB=%s',
@@ -136,9 +130,7 @@ class ActionAliasController(resource.ContentPackResourceController):
         resp.headers['Content-Type'] = 'application/json'
         return resp
 
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_MODIFY)
-    # @jsexpose(arg_types=[str], body_cls=ActionAliasAPI)
-    def put(self, action_alias, ref_or_id):
+    def put(self, action_alias, ref_or_id, requester_user):
         """
             Update an action alias.
 
@@ -148,6 +140,10 @@ class ActionAliasController(resource.ContentPackResourceController):
         action_alias_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         LOG.debug('PUT /actionalias/ lookup with id=%s found object: %s', ref_or_id,
                   action_alias_db)
+
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_alias_db,
+                                                          permission_type=PermissionType.ACTION_MODIFY)
 
         if not hasattr(action_alias, 'id'):
             action_alias.id = None
@@ -172,9 +168,7 @@ class ActionAliasController(resource.ContentPackResourceController):
 
         return action_alias_api
 
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_ALIAS_DELETE)
-    #  @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
-    def delete(self, ref_or_id):
+    def delete(self, ref_or_id, requester_user):
         """
             Delete an action alias.
 
@@ -184,6 +178,11 @@ class ActionAliasController(resource.ContentPackResourceController):
         action_alias_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         LOG.debug('DELETE /actionalias/ lookup with id=%s found object: %s', ref_or_id,
                   action_alias_db)
+
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_alias_db,
+                                                          permission_type=PermissionType.ACTION_ALIAS_DELETE)
+
         try:
             ActionAlias.delete(action_alias_db)
         except Exception as e:

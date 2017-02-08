@@ -13,7 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2api.controllers.v1.timers import TimersHolder
+import mock
+
+import st2common.services.triggers as trigger_service
+
+with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock()):
+    from st2api.controllers.v1.timers import TimersHolder
+
 from st2common.models.system.common import ResourceReference
 from st2tests.base import DbTestCase
 from st2tests.fixturesloader import FixturesLoader

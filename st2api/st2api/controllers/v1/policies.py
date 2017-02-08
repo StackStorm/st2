@@ -16,15 +16,12 @@
 import copy
 
 from mongoengine import ValidationError
-# import pecan
-# from pecan import abort
 from six.moves import http_client
 from webob import Response
 
 from st2api.controllers import resource
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
-# from st2common.models.api.base import jsexpose
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.models.db.policy import PolicyTypeReference
 from st2common.models.system.common import InvalidReferenceError
@@ -51,17 +48,13 @@ class PolicyTypeController(resource.ResourceController):
 
     include_reference = False
 
-    # @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return self._get_one(ref_or_id)
 
-    # @jsexpose()
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
     def _get_one(self, ref_or_id):
-        # LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
-
         instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         result = self.model.from_model(instance)
 
@@ -69,9 +62,6 @@ class PolicyTypeController(resource.ResourceController):
             resource_type = getattr(result, 'resource_type', None)
             name = getattr(result, 'name', None)
             result.ref = PolicyTypeReference(resource_type=resource_type, name=name).ref
-
-        # LOG.debug('GET %s with ref_or_id=%s, client_result=%s',
-        #           pecan.request.path, ref_or_id, result)
 
         return result
 
@@ -152,7 +142,6 @@ class PolicyController(resource.ContentPackResourceController):
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
-    # @jsexpose(body_cls=PolicyAPI, status_code=http_client.CREATED)
     def post(self, instance):
         """
             Create a new policy.
@@ -174,7 +163,6 @@ class PolicyController(resource.ContentPackResourceController):
         resp.headers['Content-Type'] = 'application/json'
         return resp
 
-    # @jsexpose(arg_types=[str], body_cls=PolicyAPI)
     def put(self, instance, ref_or_id):
         op = 'PUT /policies/%s/' % ref_or_id
 
@@ -208,7 +196,6 @@ class PolicyController(resource.ContentPackResourceController):
         resp.headers['Content-Type'] = 'application/json'
         return resp
 
-    # @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
     def delete(self, ref_or_id):
         """
             Delete a policy.

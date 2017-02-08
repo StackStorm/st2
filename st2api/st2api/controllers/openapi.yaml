@@ -321,6 +321,11 @@ paths:
           description: Action alias file.
           schema:
             $ref: '#/definitions/ActionAlias'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '201':
           description: Action alias created
@@ -345,6 +350,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Action alias requested
@@ -371,8 +381,13 @@ paths:
           in: body
           description: JSON/YAML file containing the action alias to update.
           schema:
-            $ref: '#/definitions/ActionAliasRequest'
+            $ref: '#/definitions/ActionAlias'
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Action alias updated.
@@ -396,6 +411,11 @@ paths:
           description: Name or ID of the action alias.
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '204':
           description: Action alias deleted
@@ -406,6 +426,7 @@ paths:
   /actionalias/match:
     post:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.match
+      x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_MATCH }}
       description: |
         Match actionalias based on format (representation or display).
       parameters:
@@ -419,6 +440,35 @@ paths:
           description: Action alias match pattern
           schema:
             $ref: '#/definitions/ActionAliasMatch'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /aliasexecution:
+    post:
+      operationId: st2api.controllers.v1.aliasexecution:action_alias_execution_controller.post
+      description: |
+        Create alias execution.
+      parameters:
+        - name: payload
+          in: body
+          description: Alias execution payload.
+          schema:
+            $ref: '#/definitions/AliasExecution'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
+      responses:
+        '201':
+          description: Action alias created
+          schema:
+            $ref: '#/definitions/AliasExecution'
           examples:
             application/json:
               ref: 'core.local'
@@ -1180,6 +1230,8 @@ paths:
       responses:
         '200':
           description: Content of the file.
+        '304':
+          description: File has not been modified.
         default:
           description: Unexpected error
           schema:
@@ -1986,6 +2038,11 @@ paths:
           in: query
           description: Show secrets in plain text
           type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: List of actions
@@ -2014,6 +2071,7 @@ paths:
       x-parameters:
         - name: user
           in: context
+          x-as: requester_user
           description: User running the action
       responses:
         '200':
@@ -2043,6 +2101,11 @@ paths:
           in: query
           description: Show secrets in plain text
           type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Action requested
@@ -2209,12 +2272,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /timers/{id}:
+  /timers/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.timers:timers_controller.get_one
       description: Return a specific timer based on id.
       parameters:
-        - name: id
+        - name: ref_or_id
           in: path
           description: entities id
           type: string
@@ -2773,6 +2836,7 @@ definitions:
       parameters:
         $ref: '#/definitions/ActionParametersSubSchema'
   ActionAlias:
+    x-api-model: st2common.models.api.action:ActionAliasAPI
     type: object
   ActionAliasRequest:
     type: object
@@ -2820,6 +2884,8 @@ definitions:
         description:
           description: Description of the Action Alias
           type: string
+  AliasExecution:
+    type: object
   Execution:
     title: ActionExecution
     description: Record of the execution of an action.

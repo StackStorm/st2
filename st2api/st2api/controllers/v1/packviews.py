@@ -24,12 +24,12 @@ from webob import Response
 from st2api.controllers.v1.packs import BasePacksController
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
-from st2common.models.api.base import jsexpose
 from st2common.models.api.pack import PackAPI
 from st2common.persistence.pack import Pack
 from st2common.content.utils import get_pack_file_abs_path
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
+from st2common.router import abort
 
 http_client = six.moves.http_client
 
@@ -61,7 +61,6 @@ class BaseFileController(BasePacksController):
     supported_filters = {}
     query_options = {}
 
-    @jsexpose()
     def get_all(self, **kwargs):
         return abort(404)
 

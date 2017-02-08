@@ -21,17 +21,12 @@ from oslo_config import cfg
 import yaml
 
 from st2common import log as logging
-# from st2common.models.api.base import jsexpose
 from st2api.controllers.resource import ResourceController
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.services import packs as packs_service
 from st2common.models.api.pack import ConfigAPI
-# from st2common.models.api.pack import ConfigUpdateRequestAPI
 from st2common.persistence.pack import Config
-# from st2common.rbac.types import PermissionType
-# from st2common.rbac.decorators import request_user_has_permission
-#  from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
 
@@ -55,7 +50,6 @@ class PackConfigsController(ResourceController):
         self.get_one_db_method = packs_service.get_pack_by_ref
 
     # @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
-    # @jsexpose()
     def get_all(self, **kwargs):
         """
         Retrieve configs for all the packs.
@@ -68,7 +62,6 @@ class PackConfigsController(ResourceController):
         return super(PackConfigsController, self)._get_all(**kwargs)
 
     # @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
-    # @jsexpose(arg_types=[str])
     def get_one(self, pack_ref):
         """
         Retrieve config for a particular pack.
@@ -80,7 +73,6 @@ class PackConfigsController(ResourceController):
         return self._get_one_by_pack_ref(pack_ref=pack_ref)
 
     # @request_user_has_permission(permission_type=PermissionType.PACK_CREATE)
-    # @jsexpose(body_cls=ConfigUpdateRequestAPI, arg_types=[str])
     def put(self, pack_uninstall_request, pack_ref):
         """
             Create a new config for the action.
