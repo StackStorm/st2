@@ -23,12 +23,16 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.auth import NoNicknameOriginProvidedError, AmbiguousUserError
 from st2common.exceptions.auth import NotServiceUserError
 from st2common.persistence.auth import User
-from st2common.router import abort as abort_request
+from st2common.router import abort
 from st2common.services.access import create_token
 from st2common.models.api.auth import TokenAPI
 from st2auth.backends import get_backend_instance
 
 LOG = logging.getLogger(__name__)
+
+
+def abort_request(status_code=http_client.UNAUTHORIZED, message='Invalid or missing credentials'):
+    return abort(status_code, message)
 
 
 class AuthHandlerBase(object):
@@ -155,7 +159,6 @@ class StandaloneAuthHandler(AuthHandlerBase):
             return
 
         username, password = split
-        result = self._auth_backend
 
         result = self._auth_backend.authenticate(username=username, password=password)
         if result is True:

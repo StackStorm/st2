@@ -363,7 +363,12 @@ class Router(object):
             LOG.debug('Route registered: %s %s', route.routepath, route.conditions)
 
     def match(self, req):
-        match = self.routes.match(req.path, req.environ)
+        path = req.path
+
+        if path.endswith('/'):
+            path = path[:-1]
+
+        match = self.routes.match(path, req.environ)
 
         if match is None:
             raise NotFoundException('No route matches "%s" path' % req.path)

@@ -55,7 +55,7 @@ def _run_server():
     worker_pool = eventlet.GreenPool(max_pool_size)
     sock = eventlet.listen((host, port))
 
-    wsgi.server(sock, app.setup_app(), custom_pool=worker_pool)
+    wsgi.server(sock, app.setup_app(), custom_pool=worker_pool, log_output=False)
     return 0
 
 
