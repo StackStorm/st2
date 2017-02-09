@@ -121,9 +121,10 @@ class StormBaseDB(StormFoundationDB):
 
 class EscapedDictField(me.DictField):
 
-    def to_mongo(self, value):
+    def to_mongo(self, value, use_db_field=True, fields=None):
         value = mongoescape.escape_chars(value)
-        return super(EscapedDictField, self).to_mongo(value)
+        return super(EscapedDictField, self).to_mongo(value=value, use_db_field=use_db_field,
+                                                      fields=fields)
 
     def to_python(self, value):
         value = super(EscapedDictField, self).to_python(value)
@@ -139,9 +140,10 @@ class EscapedDictField(me.DictField):
 
 class EscapedDynamicField(me.DynamicField):
 
-    def to_mongo(self, value):
+    def to_mongo(self, value, use_db_field=True, fields=None):
         value = mongoescape.escape_chars(value)
-        return super(EscapedDynamicField, self).to_mongo(value)
+        return super(EscapedDynamicField, self).to_mongo(value=value, use_db_field=use_db_field,
+                                                         fields=fields)
 
     def to_python(self, value):
         value = super(EscapedDynamicField, self).to_python(value)
@@ -201,8 +203,7 @@ class UIDFieldMixin(object):
             {
                 'fields': ['uid'],
                 'unique': True,
-                'sparse': True,
-                'types': False
+                'sparse': True
             }
         ]
         return indexes

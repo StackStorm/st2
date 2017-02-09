@@ -57,14 +57,16 @@ in development
   beyond the existing `st2 auth` command and actually works with the local configuration so that
   users do not have to.
 * Fix action alias update API endpoint. (bug fix)
+* Fix ``--config-file`` st2 CLI argument not correctly expanding the provided path if the path 
+  contained a reference to the user home directory (``~``, e.g. ``~/.st2/config.ini``) (bug fix)
+* Fix action alias update API endpoint. (bug fix)
 * ``{{user.}}`` and ``{{system.}}`` notations to access user and system
   scoped items from datastore are now unsupported. Use  ``{{st2kv.user.}}``
   and ``{{st2kv.system.}}`` instead. Please update all your content (actions, rules and
   workflows) to use the new notation. (improvement)
-
-* Fix ``--config-file`` st2 CLI argument not correctly expanding the provided path if the path 
-  contained a reference to the user home directory (``~``, e.g. ``~/.st2/config.ini``) (bug fix)
-* Fix action alias update API endpoint. (bug fix)
+* Update the dependencies and the code base so we now also support MongoDB 3.4. Officially
+  supported MongoDB versions are now MongoDB 3.2 and 3.4. Currently default version installed by
+  the installer script still is 3.2. (improvement)
 
 2.1.1 - December 16, 2016
 -------------------------
