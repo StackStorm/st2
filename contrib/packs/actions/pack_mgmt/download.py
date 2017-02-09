@@ -106,13 +106,13 @@ class DownloadGitRepoAction(Action):
 
         # Special case when a default repo branch is not "master"
         # No ref provided so we just use a default active branch
-        if not ref and repo.active_branch.object == repo.head.commit and repo.active_branch.name:
+        if (not ref or ref == active_branch.name) and repo.active_branch.object == repo.head.commit:
             gitref = repo.active_branch.object
-
-        # Try to match the reference to a branch name (i.e. "master")
-        gitref = DownloadGitRepoAction._get_gitref(repo, "origin/%s" % ref)
-        if gitref:
-            use_branch = True
+        else:
+            # Try to match the reference to a branch name (i.e. "master")
+            gitref = DownloadGitRepoAction._get_gitref(repo, "origin/%s" % ref)
+            if gitref:
+                use_branch = True
 
         # Try to match the reference to a commit hash, a tag, or "master"
         if not gitref:
