@@ -65,9 +65,8 @@ def render_template_with_system_context(value, context=None, prefix=None):
     :rtype: ``str``
     """
     context = context or {}
-    context[SYSTEM_SCOPE] = KeyValueLookup(prefix=prefix, scope=SYSTEM_SCOPE)
     context[DATASTORE_PARENT_SCOPE] = {
-        SYSTEM_SCOPE: KeyValueLookup(prefix=prefix, scope=SYSTEM_SCOPE)
+        SYSTEM_SCOPE: KeyValueLookup(prefix=prefix, scope=FULL_SYSTEM_SCOPE)
     }
 
     rendered = render_template(value=value, context=context)
@@ -93,8 +92,6 @@ def render_template_with_system_and_user_context(value, user, context=None, pref
     :rtype: ``str``
     """
     context = context or {}
-    context[SYSTEM_SCOPE] = KeyValueLookup(prefix=prefix, scope=SYSTEM_SCOPE)
-    context[USER_SCOPE] = UserKeyValueLookup(prefix=prefix, user=user, scope=USER_SCOPE)
     context[DATASTORE_PARENT_SCOPE] = {
         SYSTEM_SCOPE: KeyValueLookup(prefix=prefix, scope=FULL_SYSTEM_SCOPE),
         USER_SCOPE: UserKeyValueLookup(prefix=prefix, user=user, scope=FULL_USER_SCOPE)
