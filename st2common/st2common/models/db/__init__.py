@@ -118,6 +118,15 @@ def db_ensure_indexes():
 
         try:
             model_class.ensure_indexes()
+        except OperationFailure as e:
+            # Note we ignore "index with different options already exists" error.
+            # Right now we can't do anything about it, one approach would be to re-create that
+            # index, but this could potentially be very expensive .and blocking
+            msg = str(e)
+            if 'already exists with different options' in msg:
+                LOG.debug('Ignoring index already exists with different options error: %s' % (msg))
+            else:
+                raise e
         except Exception as e:
             tb_msg = traceback.format_exc()
             msg = 'Failed to ensure indexes for model "%s": %s' % (class_name, str(e))
