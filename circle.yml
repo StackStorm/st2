@@ -22,7 +22,7 @@ dependencies:
         background: true
     # We sleep a bit to wait for the background process to start and script to
     # finish
-    - case $CIRCLE_NODE_INDEX in [1,2]) sleep 10 ;; esac:
+    - case $CIRCLE_NODE_INDEX in [1,2]) sleep 10 ;; esac
     # Tail the logs so it's easier to see what is going on. Sadly when using "background: true"
     # whole output is ignored.
     - case $CIRCLE_NODE_INDEX in [1,2]) tail -50 /tmp/mongodb-install.log ;; [3,4]) tail -50 /tmp/mongodb-install.log ;; esac
