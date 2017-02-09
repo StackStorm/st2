@@ -56,9 +56,11 @@ in development
 * Add support for `st2 login` and `st2 whoami` commands. These add some additional functionality
   beyond the existing `st2 auth` command and actually works with the local configuration so that
   users do not have to.
+* Fix action alias update API endpoint. (bug fix)
 * Update the dependencies and the code base so we now also support MongoDB 3.4. Officially
   supported MongoDB versions are now MongoDB 3.2 and 3.4. Currently default version installed by
   the installer script still is 3.2. (improvement)
+* Fix action alias update API endpoint. (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------
