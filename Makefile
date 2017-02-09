@@ -215,9 +215,6 @@ requirements: virtualenv .sdist-requirements
 			$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
 	done
 
-	# Workaround for Travis caching issues (corrupted cache)
-	$(VIRTUALENV_DIR)/bin/pip install --no-cache-dir --no-binary :all: --upgrade --force-reinstall "greenlet>=0.4.10,<0.5"
-
 .PHONY: virtualenv
 virtualenv: $(VIRTUALENV_DIR)/bin/activate
 $(VIRTUALENV_DIR)/bin/activate:

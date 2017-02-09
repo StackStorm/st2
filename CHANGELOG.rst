@@ -56,8 +56,11 @@ in development
 * Add support for `st2 login` and `st2 whoami` commands. These add some additional functionality
   beyond the existing `st2 auth` command and actually works with the local configuration so that
   users do not have to.
+* Fix action alias update API endpoint. (bug fix)
+
 * Fix ``--config-file`` st2 CLI argument not correctly expanding the provided path if the path 
   contained a reference to the user home directory (``~``, e.g. ``~/.st2/config.ini``) (bug fix)
+* Fix action alias update API endpoint. (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------
