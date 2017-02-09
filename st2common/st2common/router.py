@@ -304,7 +304,7 @@ class LoggingMiddleware(object):
             'path': request.path,
             'remote_addr': request.remote_addr,
             'status': status_code[0],
-            'runtime': int((clock() - start_time) * 10**6),
+            'runtime': float("{0:.3f}".format((clock() - start_time) * 10**3)),
             'content_length': content_length[0] if content_length else len(b''.join(retval)),
             'request_id': request.headers.get(REQUEST_ID_HEADER, None)
         }
