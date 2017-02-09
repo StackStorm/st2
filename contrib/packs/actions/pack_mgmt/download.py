@@ -100,7 +100,14 @@ class DownloadGitRepoAction(Action):
         # because we want the user to work with the repo in the
         # future.
         repo = Repo.clone_from(repo_url, temp_dir)
+        active_branch = repo.active_branch
+
         use_branch = False
+
+        # Special case when a default repo branch is not "master"
+        # No ref provided so we just use a default active branch
+        if not ref and repo.active_branch.object == repo.head.commit and repo.active_branch.name:
+            gitref = repo.active_branch.object
 
         # Try to match the reference to a branch name (i.e. "master")
         gitref = DownloadGitRepoAction._get_gitref(repo, "origin/%s" % ref)
@@ -133,13 +140,14 @@ class DownloadGitRepoAction(Action):
         # since there's no direct way to check for this in git-python.
         branches = repo.git.branch('-a', '--contains', gitref.hexsha)
         branches = branches.replace('*', '').split()
-        if 'master' not in branches or use_branch:
+
+        if active_branch.name not in branches or use_branch:
             branch = "origin/%s" % ref if use_branch else branches[0]
             short_branch = ref if use_branch else branches[0].split('/')[-1]
             repo.git.checkout('-b', short_branch, branch)
             branch = repo.head.reference
         else:
-            branch = 'master'
+            branch = repo.active_branch.name
 
         repo.git.checkout(gitref.hexsha)
         repo.git.branch('-f', branch, gitref.hexsha)
