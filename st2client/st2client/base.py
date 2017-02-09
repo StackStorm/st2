@@ -174,7 +174,7 @@ class BaseCLIApp(object):
         if args.config_file:
             path = args.config_file
 
-        path = os.path.abspath(path)
+        path = os.path.abspath(os.path.expanduser(path))
         if path != ST2_CONFIG_PATH and not os.path.isfile(path):
             raise ValueError('Config "%s" not found' % (path))
 

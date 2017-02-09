@@ -16,7 +16,6 @@
 
 import mock
 
-from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
 from st2common.exceptions.param import ParamException
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB
@@ -512,28 +511,6 @@ class ParamsUtilsTest(DbTestCase):
             runner_param_info, action_param_info, params, action_context)
 
         self.assertEqual(r_action_params['cmd'], "echo 1.7.0")
-
-    def test_get_finalized_params_older_kv_scopes_backwards_compatibility(self):
-        KeyValuePair.add_or_update(KeyValuePairDB(name='cmd_to_run', value='echo MELANIA',
-                                                  scope=FULL_SYSTEM_SCOPE))
-        # k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='ivanka:cmd_to_run',
-        #                                                value='echo MA DAD IS GREAT',
-        #                                                scope=USER_SCOPE))
-        params = {
-            'sys_cmd': '{{system.cmd_to_run}}',
-            # 'user_cmd': '{{user.ivanka:cmd_to_run}}' Not supported yet.
-        }
-        runner_param_info = {'r1': {}}
-        action_param_info = {
-            'sys_cmd': {}
-        }
-        action_context = {}
-
-        r_runner_params, r_action_params = param_utils.get_finalized_params(
-            runner_param_info, action_param_info, params, action_context)
-
-        self.assertEqual(r_action_params['sys_cmd'], "echo MELANIA")
-        # self.assertEqual(r_action_params['user_cmd'], "echo MA DAD IS GREAT")
 
     def test_get_finalized_params_param_rendering_failure(self):
         params = {'cmd': '{{a2.foo}}', 'a2': 'test'}
