@@ -41,14 +41,21 @@ in development
 * Update ``st2auth`` service so it includes more context and throws a more user-friendly exception
   when retrieving an auth backend instance fails. This makes it easier to debug and spot various
   auth backend issues related to typos, misconfiguration and similar. (improvement)
+* Mistral fork is updated to match the master branch at OpenStack Mistral. (improvement)
 * Fix how mistral client and resource managers are being used in the mistral runner. Authentication
   has changed in the mistral client. Fix unit test accordingly. (bug fix)
-* Fixed issue where passing a single integer member for an array parameter for an action would
+* Fix issue where passing a single integer member for an array parameter for an action would
   cause a type mismatch in the API (bug fix)
 * Use the newly introduced CANCELLED state in mistral for workflow cancellation. Currently, st2
   put the workflow in a PAUSED state in mistral. (improvement)
 * Add support for evaluating jinja expressions in mistral workflow definition where yaql
   expressions are typically accepted. (improvement)
+* Let querier plugin decide whether to delete state object on error. Mistral querier will
+  delete state object on workflow completion or when the workflow or task references no
+  longer exists. (improvement)
+* Add support for `st2 login` and `st2 whoami` commands. These add some additional functionality
+  beyond the existing `st2 auth` command and actually works with the local configuration so that
+  users do not have to.
 * Update the dependencies and the code base so we now also support MongoDB 3.4. Officially
   supported MongoDB versions are now MongoDB 3.2 and 3.4. Currently default version installed by
   the installer script still is 3.2. (improvement)
