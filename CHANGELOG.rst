@@ -57,9 +57,10 @@ in development
   beyond the existing `st2 auth` command and actually works with the local configuration so that
   users do not have to.
 * Fix action alias update API endpoint. (bug fix)
-* Deprecate ``{{user.}}`` and ``{{system.}}`` notations to access user and system
-  scoped items from datastore. From now on, only ``{{st2kv.user.}}`` and
-  ``{{st2kv.system.}}`` notations alone are supported. (improvement)
+* ``{{user.}}`` and ``{{system.}}`` notations to access user and system
+  scoped items from datastore are now unsupported. Use  ``{{st2kv.user.}}``
+  and ``{{st2kv.system.}}`` instead. Please update all your content (actions, rules and
+  workflows) to use the new notation. (improvement)
 
 2.1.1 - December 16, 2016
 -------------------------
