@@ -15,29 +15,43 @@
 
 import copy
 import functools
-from collections import namedtuple
 import six
 import sys
+import time
 import traceback
+import uuid
 
 import jsonschema
+from mongoengine import ValidationError
 from oslo_config import cfg
 import routes
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 from swagger_spec_validator.validator20 import validate_spec
 from webob import exc, Request, Response
+from webob.headers import ResponseHeaders
 
+from st2common.constants.api import REQUEST_ID_HEADER
+from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
+from st2common.constants.auth import HEADER_API_KEY_ATTRIBUTE_NAME
 from st2common.exceptions import rbac as rbac_exc
 from st2common.exceptions import auth as auth_exc
-from st2common import hooks
+from st2common.exceptions import db as db_exceptions
+from st2common.exceptions import rbac as rbac_exceptions
+from st2common.exceptions.apivalidation import ValueValidationException
 from st2common import log as logging
 from st2common.persistence.auth import User
 from st2common.rbac import resolvers
+from st2common.util.debugging import is_enabled as is_debugging_enabled
 from st2common.util.jsonify import json_encode
 from st2common.util.http import parse_content_type_header
 
 
 LOG = logging.getLogger(__name__)
+
+try:
+    clock = time.perf_counter
+except AttributeError:
+    clock = time.time
 
 
 def op_resolver(op_id):
@@ -98,26 +112,215 @@ class ErrorHandlingMiddleware(object):
     def __call__(self, environ, start_response):
         try:
             try:
-                resp = self.app(environ, start_response)
+                return self.app(environ, start_response)
             except NotFoundException:
                 raise exc.HTTPNotFound()
         except Exception as e:
-            # Mostly hacking to avoid making changes to the hook
-            State = namedtuple('State', 'response')
-            Response = namedtuple('Response', 'status headers')
-
-            state = State(
-                response=Response(
-                    status=getattr(e, 'code', 500),
-                    headers={}
-                )
-            )
+            status = getattr(e, 'code', exc.HTTPInternalServerError.code)
 
             if hasattr(e, 'detail') and not getattr(e, 'comment'):
                 setattr(e, 'comment', getattr(e, 'detail'))
 
-            resp = hooks.JSONErrorResponseHook().on_error(state, e)(environ, start_response)
-        return resp
+            if hasattr(e, 'body') and isinstance(e.body, dict):
+                body = e.body
+            else:
+                body = {}
+
+            if isinstance(e, exc.HTTPException):
+                status_code = status
+                message = str(e)
+            elif isinstance(e, db_exceptions.StackStormDBObjectNotFoundError):
+                status_code = exc.HTTPNotFound.code
+                message = str(e)
+            elif isinstance(e, db_exceptions.StackStormDBObjectConflictError):
+                status_code = exc.HTTPConflict.code
+                message = str(e)
+                body['conflict-id'] = e.conflict_id
+            elif isinstance(e, rbac_exceptions.AccessDeniedError):
+                status_code = exc.HTTPForbidden.code
+                message = str(e)
+            elif isinstance(e, (ValueValidationException, ValueError, ValidationError)):
+                status_code = exc.HTTPBadRequest.code
+                message = getattr(e, 'message', str(e))
+            else:
+                status_code = exc.HTTPInternalServerError.code
+                message = 'Internal Server Error'
+
+            # Log the error
+            is_internal_server_error = status_code == exc.HTTPInternalServerError.code
+            error_msg = getattr(e, 'comment', str(e))
+            extra = {
+                'exception_class': e.__class__.__name__,
+                'exception_message': str(e),
+                'exception_data': e.__dict__
+            }
+
+            if is_internal_server_error:
+                LOG.exception('API call failed: %s', error_msg, extra=extra)
+                LOG.exception(traceback.format_exc())
+            else:
+                LOG.debug('API call failed: %s', error_msg, extra=extra)
+
+                if is_debugging_enabled():
+                    LOG.debug(traceback.format_exc())
+
+            body['faultstring'] = message
+
+            response_body = json_encode(body)
+            headers = {
+                'Content-Type': 'application/json',
+                'Content-Length': str(len(response_body))
+            }
+
+            resp = Response(response_body, status=status_code, headers=headers)
+
+            return resp(environ, start_response)
+
+
+class CorsMiddleware(object):
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        request = Request(environ)
+
+        def custom_start_response(status, headers, exc_info=None):
+            headers = ResponseHeaders(headers)
+
+            origin = request.headers.get('Origin')
+            origins = set(cfg.CONF.api.allow_origin)
+
+            # Build a list of the default allowed origins
+            public_api_url = cfg.CONF.auth.api_url
+
+            # Default gulp development server WebUI URL
+            origins.add('http://127.0.0.1:3000')
+
+            # By default WebUI simple http server listens on 8080
+            origins.add('http://localhost:8080')
+            origins.add('http://127.0.0.1:8080')
+
+            if public_api_url:
+                # Public API URL
+                origins.add(public_api_url)
+
+            if origin:
+                if '*' in origins:
+                    origin_allowed = '*'
+                else:
+                    # See http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
+                    origin_allowed = origin if origin in origins else 'null'
+            else:
+                origin_allowed = list(origins)[0]
+
+            methods_allowed = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+            request_headers_allowed = ['Content-Type', 'Authorization', HEADER_ATTRIBUTE_NAME,
+                                       HEADER_API_KEY_ATTRIBUTE_NAME, REQUEST_ID_HEADER]
+            response_headers_allowed = ['Content-Type', 'X-Limit', 'X-Total-Count',
+                                        REQUEST_ID_HEADER]
+
+            headers['Access-Control-Allow-Origin'] = origin_allowed
+            headers['Access-Control-Allow-Methods'] = ','.join(methods_allowed)
+            headers['Access-Control-Allow-Headers'] = ','.join(request_headers_allowed)
+            headers['Access-Control-Expose-Headers'] = ','.join(response_headers_allowed)
+
+            return start_response(status, headers._items, exc_info)
+
+        try:
+            return self.app(environ, custom_start_response)
+        except NotFoundException:
+            if request.method != 'options':
+                raise
+
+            return Response()(environ, custom_start_response)
+
+
+class RequestIDMiddleware(object):
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        request = Request(environ)
+
+        if not request.headers.get(REQUEST_ID_HEADER, None):
+            req_id = str(uuid.uuid4())
+            request.headers[REQUEST_ID_HEADER] = req_id
+
+        def custom_start_response(status, headers, exc_info=None):
+            headers = ResponseHeaders(headers)
+
+            req_id_header = request.headers.get(REQUEST_ID_HEADER, None)
+            if req_id_header:
+                headers[REQUEST_ID_HEADER] = req_id_header
+
+            return start_response(status, headers._items, exc_info)
+
+        return self.app(environ, custom_start_response)
+
+
+class LoggingMiddleware(object):
+    """
+    Logs all incoming requests and outgoing responses
+    """
+
+    def __init__(self, app, router):
+        self.app = app
+        self.router = router
+
+    def __call__(self, environ, start_response):
+        start_time = clock()
+        status_code = []
+        content_length = []
+
+        request = Request(environ)
+
+        # Log the incoming request
+        values = {
+            'method': request.method,
+            'path': request.path,
+            'remote_addr': request.remote_addr,
+            'query': request.GET.dict_of_lists(),
+            'request_id': request.headers.get(REQUEST_ID_HEADER, None)
+        }
+
+        LOG.info('%(request_id)s - %(method)s %(path)s with query=%(query)s' %
+                 values, extra=values)
+
+        def custom_start_response(status, headers, exc_info=None):
+            status_code.append(int(status.split(' ')[0]))
+
+            for name, value in headers:
+                if name.lower() == 'content-length':
+                    content_length.append(int(value))
+                    break
+
+            return start_response(status, headers, exc_info)
+
+        retval = self.app(environ, custom_start_response)
+
+        # Log the incoming request
+        values = {
+            'method': request.method,
+            'path': request.path,
+            'remote_addr': request.remote_addr,
+            'status': status_code[0],
+            'runtime': int((clock() - start_time) * 10**6),
+            'content_length': content_length[0] if content_length else len(b''.join(retval)),
+            'request_id': request.headers.get(REQUEST_ID_HEADER, None)
+        }
+
+        endpoint, path_vars = self.router.match(request)
+
+        if endpoint.get('x-log-result', True):
+            values['result'] = retval[0]
+            log_msg = '%(request_id)s - %(status)s %(content_length)s %(runtime)sms\n%(result)s'\
+                      % values
+        else:
+            log_msg = '%(request_id)s - %(status)s %(content_length)s %(runtime)sms' % values
+
+        LOG.info(log_msg, extra=values)
+
+        return retval
 
 
 class Router(object):
@@ -159,9 +362,7 @@ class Router(object):
         for route in self.routes.matchlist:
             LOG.debug('Route registered: %s %s', route.routepath, route.conditions)
 
-    def __call__(self, req):
-        """Invoke router as a view."""
-        LOG.info('%s %s', req.method, req.path)
+    def match(self, req):
         match = self.routes.match(req.path, req.environ)
 
         if match is None:
@@ -176,6 +377,13 @@ class Router(object):
         path = path_vars.pop('_api_path')
         method = path_vars.pop('_api_method')
         endpoint = self.spec['paths'][path][method]
+
+        return endpoint, path_vars
+
+    def __call__(self, req):
+        """Invoke router as a view."""
+        endpoint, path_vars = self.match(req)
+
         context = copy.copy(self.context)
 
         # Handle security

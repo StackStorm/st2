@@ -7,6 +7,28 @@ info:
 basePath: /v1
 
 paths:
+  /:
+    get:
+      operationId: st2api.controllers.root:root_controller.index
+      description: General API info.
+      responses:
+        '200':
+          description: General API info.
+          schema:
+            type: object
+            properties:
+              version:
+                type: string
+              docs_url:
+                type: string
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /actions:
     get:
       operationId: st2api.controllers.v1.actions:actions_controller.get_all
@@ -481,6 +503,7 @@ paths:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.EXECUTION_LIST }}
+      x-log-result: false
       description: Returns a list of all executions.
       parameters:
         - name: exclude_attributes
@@ -593,6 +616,7 @@ paths:
             $ref: '#/definitions/Error'
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.post
+      x-log-result: false
       description: |
         Create a new execution.
       parameters:
@@ -633,6 +657,7 @@ paths:
   /executions/{id}:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_one
+      x-log-result: false
       description: |
         Get one execution.
       parameters:
@@ -691,6 +716,7 @@ paths:
   /executions/{id}/re_run:
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_rerun_controller.post
+      x-log-result: false
       description: |
         Create a new execution.
       parameters:
@@ -745,6 +771,7 @@ paths:
   /executions/{id}/attribute/{attribute}:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_attribute_controller.get
+      x-log-result: false
       description: |
         Get one execution.
       parameters:
@@ -778,6 +805,7 @@ paths:
   /executions/{id}/children:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_children_controller.get_one
+      x-log-result: false
       description: |
         Get one execution.
       parameters:
@@ -1171,6 +1199,7 @@ paths:
   /packs/views/files/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.views.files.get_one
+      x-log-result: false
       description: Get information about an installed pack.
       parameters:
         - name: ref_or_id
@@ -1202,6 +1231,7 @@ paths:
       operationId: st2api.controllers.v1.packs:packs_controller.views.file.get_one
       x-requirements:
         file_path: .*
+      x-log-result: false
       description: Get information about an installed pack.
       parameters:
         - name: ref_or_id

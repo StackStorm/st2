@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import six
-from pecan.rest import RestController
 from oslo_config import cfg
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 
@@ -27,7 +26,7 @@ __all__ = [
 ]
 
 
-class BaseRestControllerMixin(RestController):
+class BaseRestControllerMixin(object):
     """
     Base REST controller class which contains various utility functions.
     """
