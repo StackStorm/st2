@@ -1533,6 +1533,121 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /rbac/permission_types:
+    get:
+      operationId: st2api.controllers.v1.rbac:permission_types_controller.get_all
+      description: Returns a list of all permission types.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
+      responses:
+        '200':
+          description: Dictionary of permission types by resource types.
+          schema:
+            type: object
+          examples:
+            application/json:
+              runner_type:
+                - runner_type_list
+                - runner_type_view
+                - runner_type_modify
+                - runner_type_all
+              pack:
+                - pack_list
+                - pack_view
+                - pack_create
+                - pack_modify
+                - pack_delete
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /rbac/permission_types/{resource_type}:
+    get:
+      operationId: st2api.controllers.v1.rbac:permission_types_controller.get_one
+      description: Returns a list of all permission types for particular resource type.
+      parameters:
+        - name: resource_type
+          in: path
+          description: Resource type.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
+      responses:
+        '200':
+          description: List of permission types.
+          schema:
+            type: array
+            items:
+              type: string
+          examples:
+            application/json:
+              - runner_type_list
+              - runner_type_view
+              - runner_type_modify
+              - runner_type_all
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /rbac/roles:
+    get:
+      operationId: st2api.controllers.v1.rbac:roles_controller.get_all
+      description: Returns a list of all roles.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
+      responses:
+        '200':
+          description: List of all roles.
+          schema:
+            type: array
+            items:
+              type: object
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /rbac/roles/{name_or_id}:
+    get:
+      operationId: st2api.controllers.v1.rbac:roles_controller.get_one
+      description: Get one role.
+      parameters:
+        - name: name_or_id
+          in: path
+          description: Entity name or id.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
+      responses:
+        '200':
+          description: List of roles.
+          schema:
+            type: object
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /rules:
     get:
       operationId: st2api.controllers.v1.rules:rule_controller.get_all
@@ -1780,6 +1895,48 @@ paths:
           description: Rule requested
           schema:
             $ref: '#/definitions/Rule'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /ruletypes:
+    get:
+      operationId: st2api.controllers.v1.ruletypes:rule_types_controller.get_all
+      description: Returns a list of all rule types.
+      responses:
+        '200':
+          description: List of rules
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RuleType'
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /ruletypes/{id}:
+    get:
+      operationId: st2api.controllers.v1.ruletypes:rule_types_controller.get_one
+      description: Get one rule type.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id.
+          type: string
+          required: true
+      responses:
+        '200':
+          description: RuleType requested
+          schema:
+            $ref: '#/definitions/RuleType'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -3173,6 +3330,8 @@ definitions:
     type: object
   Rule:
     x-api-model: st2common.models.api.rule:RuleAPI
+    type: object
+  RuleType:
     type: object
   RuleEnforcementsList:
     type: object

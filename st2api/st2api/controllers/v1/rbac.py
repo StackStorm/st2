@@ -15,13 +15,14 @@
 
 import copy
 
+from webob import exc
+
 from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.resource import ResourceController
-from st2common.models.api.base import jsexpose
 from st2common.models.api.rbac import RoleAPI
 from st2common.persistence.rbac import Role
 from st2common.rbac.types import RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP
-from st2common.rbac.decorators import request_user_is_admin
+from st2common.rbac import utils as rbac_utils
 
 __all__ = [
     'RolesController',
@@ -45,9 +46,9 @@ class RolesController(ResourceController):
         'sort': ['name']
     }
 
-    @request_user_is_admin()
-    @jsexpose(arg_types=[str])
-    def get_one(self, name_or_id):
+    def get_one(self, name_or_id, requester_user):
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
         return self._get_one_by_name_or_id(name_or_id=name_or_id)
 
 
@@ -56,34 +57,33 @@ class PermissionTypesController(object):
     Meta controller for listing all the available permission types.
     """
 
-    @request_user_is_admin()
-    @jsexpose()
-    def get_all(self):
+    def get_all(self, requester_user):
         """
             List all the available permission types.
 
             Handles requests:
                 GET /rbac/permission_types
         """
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
         result = copy.deepcopy(RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP)
         return result
 
-    @request_user_is_admin()
-    @jsexpose(arg_types=[str])
-    def get_one(self, resource_type):
+    def get_one(self, resource_type, requester_user):
         """
             List all the available permission types for a particular resource type.
 
             Handles requests:
                 GET /rbac/permission_types
         """
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
         permission_types = RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP.get(resource_type, None)
         if permission_types is None:
-            raise ValueError('Invalid resource type: %s' % (resource_type))
+            raise exc.HTTPNotFound('Invalid resource type: %s' % (resource_type))
 
         return permission_types
 
 
-class RBACController(object):
-    roles = RolesController()
-    permission_types = PermissionTypesController()
+roles_controller = RolesController()
+permission_types_controller = PermissionTypesController()

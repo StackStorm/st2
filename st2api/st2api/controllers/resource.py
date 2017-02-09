@@ -251,9 +251,10 @@ class ResourceController(object):
 
         instance = self._get_by_name_or_id(name_or_id=name_or_id, exclude_fields=exclude_fields)
 
-        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
-                                                          resource_db=instance,
-                                                          permission_type=permission_type)
+        if permission_type:
+            rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                              resource_db=instance,
+                                                              permission_type=permission_type)
 
         if not instance:
             msg = 'Unable to identify resource with name_or_id "%s".' % (name_or_id)
