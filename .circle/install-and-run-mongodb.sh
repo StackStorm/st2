@@ -21,13 +21,17 @@ tar -xvf /tmp/mongodb.tgz -C ${MONGODB_DIR} --strip=1
 echo "Starting MongoDB v${MONGODB_VERSION}"
 ${MONGODB_DIR}/bin/mongod --nojournal --journalCommitInterval 500 \
     --syncdelay 0 --dbpath ${DATA_DIR} --bind_ip 127.0.0.1 &> /tmp/mongodb.log &
-EXIT_CODE=$?
+MONGODB_PID=$!
+
+# Give process some time to start up
 sleep 5
 
-if [ ${EXIT_CODE} -ne 0 ]; then
+if ps -p ${MONGODB_PID} > /dev/null; then
+    echo "MongoDB successfuly started"
+    tail -30 /tmp/mongodb.log
+    exit 9
+else
     echo "Failed to start MongoDB"
     tail -30 /tmp/mongodb.log
     exit 1
 fi
-
-tail -30 /tmp/mongodb.log
