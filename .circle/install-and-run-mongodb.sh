@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
 
 # Script which installs versions of MongoDB specified using an environment variable
-
 if [ ! "${MONGODB_VERSION}" ]; then
-    echo "MONGODB_VERSION environment variable not set"
+    echo "MONGODB_VERSION environment variable not set."
     exit 2
 fi
 
-# Note: MongoDB 2.4 and 2.6 don't work with ramdisk since they don't work with
-# small files and require at least 3 GB of space
-# TODO: Use ramdisk
 DATA_DIR=/tmp/mongodbdata
 MONGODB_DIR=/tmp/mongodb
 
