@@ -313,13 +313,14 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             "master": "1.2.3",
             "master": "some-branch",
             "master": "default-branch",
+            "master": None,
             "default-branch": "1.2.3",
             "default-branch": "some-branch",
             "default-branch": "default-branch",
+            "default-branch": None
         }
 
         for default_branch, ref in edge_cases.items():
-
             self.repo_instance.git = mock.MagicMock(
                 branch=(lambda *args: default_branch),
                 checkout=(lambda *args: True)
@@ -327,6 +328,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
             # Set default branch
             self.repo_instance.active_branch.name = default_branch
+            self.repo_instance.active_branch.object = "aBcdef"
             self.repo_instance.head.commit = "aBcdef"
 
             # Fake gitref object
@@ -342,5 +344,11 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             self.repo_instance.active_branch.object = gitref
 
             action = self.get_action_instance()
-            result = action.run(packs=['test=%s' % ref], abs_repo_base=self.repo_base)
+
+            if ref:
+                packs=['test=%s' % (ref)]
+            else:
+                packs=['test']
+
+            result = action.run(packs=packs, abs_repo_base=self.repo_base)
             self.assertEqual(result, {'test': 'Success.'})
