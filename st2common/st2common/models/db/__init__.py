@@ -119,13 +119,14 @@ def db_ensure_indexes():
         try:
             model_class.ensure_indexes()
         except OperationFailure as e:
-            # Note: We ignore "index with different options already exists" error.
-            # Right now we can't do anything about it. Correct approach would be to re-create that
-            # index, but the operation is blocking and depending on the dataset and index size,
-            # this operation could be very expensive and take a long time.
+            # Special case for "uid" index. MongoDB 3.4 has dropped "_types" index option so we
+            # need to re-create the index to make it work and avoid "index with different options
+            # already exists" error.
+            # Note: This condition would only be encountered when upgrading existing StackStorm
+            # installation from MongoDB 3.2 to 3.4.
             msg = str(e)
-            if 'already exists with different options' in msg:
-                LOG.debug('Ignoring index already exists with different options error: %s' % (msg))
+            if 'already exists with different options' in msg and 'uid_1' in msg:
+                drop_obsolete_types_indexes(model_class=model_class)
             else:
                 raise e
         except Exception as e:
@@ -165,6 +166,32 @@ def cleanup_extra_indexes(model_class):
             LOG.warning('Attempt to cleanup index %s failed.', extra_index, exc_info=True)
 
     return removed_count
+
+
+def drop_obsolete_types_indexes(model_class):
+    """
+    Special class for droping offending "types" indexes for which support has
+    been removed in mongoengine and MongoDB 3.4.
+    For more info, see: http://docs.mongoengine.org/upgrade.html#inheritance
+    """
+    class_name = model_class.__name__
+
+    LOG.debug('Dropping obsolete types index for model "%s"' % (class_name))
+    collection = model_class._get_collection()
+    collection.update({}, {'$unset': {'_types': 1}}, multi=True)
+
+    info = collection.index_information()
+    indexes_to_drop = [key for key, value in info.iteritems()
+                       if '_types' in dict(value['key']) or 'types' in value]
+
+    LOG.debug('Will drop obsolete types indexes for model "%s": %s' % (class_name,
+                                                                       str(indexes_to_drop)))
+
+    for index in indexes_to_drop:
+        collection.drop_index(index)
+
+    LOG.debug('Recreating indexes for model "%s"' % (class_name))
+    model_class.ensure_indexes()
 
 
 def db_teardown():
