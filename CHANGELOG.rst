@@ -67,6 +67,8 @@ in development
 * Update the dependencies and the code base so we now also support MongoDB 3.4. Officially
   supported MongoDB versions are now MongoDB 3.2 and 3.4. Currently default version installed by
   the installer script still is 3.2. (improvement)
+* Fix a bug with ``packs.download`` action and as such as ``pack install`` command not working with
+  Git repositories which used a default branch which was not ``master``. (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------
