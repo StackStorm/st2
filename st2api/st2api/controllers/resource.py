@@ -22,17 +22,16 @@ from oslo_config import cfg
 from mongoengine import ValidationError
 import six
 from six.moves import http_client
-from webob import Response
 
 from st2common import log as logging
 from st2common.models.system.common import InvalidResourceReferenceError
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.rbac import utils as rbac_utils
-from st2common.router import abort
-from st2common.util.jsonify import json_encode
 from st2common.util import schema as util_schema
 from st2common.router import abort
+from st2common.router import Response
+
 LOG = logging.getLogger(__name__)
 
 RESERVED_QUERY_PARAMS = {
@@ -207,8 +206,7 @@ class ResourceController(object):
             item = self.model.from_model(instance, **from_model_kwargs)
             result.append(item)
 
-        resp = Response(body=json_encode(result))
-        resp.headers['Content-Type'] = 'application/json'
+        resp = Response(json=result)
         resp.headers['X-Total-Count'] = str(instances.count())
         if limit:
             resp.headers['X-Limit'] = str(limit)
@@ -399,11 +397,7 @@ class ContentPackResourceController(ResourceController):
             name = getattr(result, 'name', None)
             result.ref = ResourceReference(pack=pack, name=name).ref
 
-
-        resp = Response(body=json_encode(result))
-        resp.headers['Content-Type'] = 'application/json'
-
-        return resp
+        return Response(json=result)
 
     def _get_all(self, **kwargs):
         resp = super(ContentPackResourceController, self)._get_all(**kwargs)
@@ -414,7 +408,7 @@ class ContentPackResourceController(ResourceController):
                 pack = item.get('pack', None)
                 name = item.get('name', None)
                 item['ref'] = ResourceReference(pack=pack, name=name).ref
-            resp.body = json_encode(result)
+            resp.json = result
 
         return resp
 

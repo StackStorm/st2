@@ -22,7 +22,6 @@ import traceback
 import jsonschema
 from oslo_config import cfg
 from six.moves import http_client
-from webob import exc, Response
 
 from st2api.controllers.base import BaseRestControllerMixin
 from st2api.controllers.resource import ResourceController
@@ -42,13 +41,14 @@ from st2common.models.db.auth import UserDB
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution import ActionExecution
 from st2common.router import abort
+from st2common.router import Response
 from st2common.services import action as action_service
 from st2common.services import executions as execution_service
 from st2common.services import trace as trace_service
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
 from st2common.util import param as param_utils
-from st2common.util.jsonify import json_encode, try_loads
+from st2common.util.jsonify import try_loads
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.rbac.utils import assert_user_has_resource_db_permission
@@ -172,10 +172,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         from_model_kwargs = self._get_from_model_kwargs_for_request(**kwargs)
         execution_api = ActionExecutionAPI.from_model(actionexecution_db, from_model_kwargs)
 
-        resp = Response(body=json_encode(execution_api), status=http_client.CREATED)
-        resp.headers['Content-Type'] = 'application/json'
-
-        return resp
+        return Response(json=execution_api, status=http_client.CREATED)
 
     def _get_result_object(self, id):
         """

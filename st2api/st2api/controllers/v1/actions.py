@@ -18,7 +18,6 @@ import os.path
 
 import six
 from mongoengine import ValidationError
-from webob import Response
 
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
 #       that bubble up to this layer should be core Python exceptions or
@@ -36,12 +35,12 @@ from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
+from st2common.router import Response
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.content.utils import get_pack_base_path
 from st2common.content.utils import get_pack_resource_file_abs_path
 from st2common.content.utils import get_relative_path_to_pack
 from st2common.transport.reactor import TriggerDispatcher
-from st2common.util.jsonify import json_encode
 from st2common.util.system_info import get_host_info
 import st2common.validators.api.action as action_validator
 
@@ -137,10 +136,7 @@ class ActionsController(resource.ContentPackResourceController):
         LOG.audit('Action created. Action.id=%s' % (action_db.id), extra=extra)
         action_api = ActionAPI.from_model(action_db)
 
-        resp = Response(body=json_encode(action_api), status=http_client.CREATED)
-        resp.headers['Content-Type'] = 'application/json'
-
-        return resp
+        return Response(json=action_api, status=http_client.CREATED)
 
     def put(self, action, ref_or_id, requester_user=None):
         action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)

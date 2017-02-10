@@ -32,7 +32,6 @@ import st2common.services.triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.router import abort
-from st2common.util.jsonify import json_encode
 
 http_client = six.moves.http_client
 
@@ -146,10 +145,7 @@ class WebhooksController(object):
                 self._trigger_dispatcher.dispatch(trigger, payload=payload,
                     trace_context=trace_context)
 
-        resp = Response(body=json_encode(body), status=http_client.ACCEPTED)
-        resp.headers['Content-Type'] = 'application/json'
-
-        return resp
+        return Response(json=body, status=http_client.ACCEPTED)
 
     def _is_valid_hook(self, hook):
         # TODO: Validate hook payload with payload_schema.

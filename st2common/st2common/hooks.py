@@ -33,13 +33,13 @@ from st2common.exceptions import rbac as rbac_exceptions
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.util import auth as auth_utils
-from st2common.util.jsonify import json_encode
 from st2common.util.debugging import is_enabled as is_debugging_enabled
 from st2common.constants.api import REQUEST_ID_HEADER
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
 from st2common.constants.auth import QUERY_PARAM_ATTRIBUTE_NAME
 from st2common.constants.auth import HEADER_API_KEY_ATTRIBUTE_NAME
 from st2common.constants.auth import QUERY_PARAM_API_KEY_ATTRIBUTE_NAME
+from st2common.router import Response
 
 
 LOG = logging.getLogger(__name__)
@@ -109,7 +109,7 @@ class CorsHook(PecanHook):
 
     def on_error(self, state, e):
         if state.request.method == 'OPTIONS':
-            return webob.Response()
+            return Response()
 
 
 class AuthHook(PecanHook):
@@ -165,26 +165,19 @@ class AuthHook(PecanHook):
 
     @staticmethod
     def _abort_unauthorized(msg):
-        faultstring = 'Unauthorized - %s' % msg if msg else 'Unauthorized'
-        body = json_encode({
-            'faultstring': faultstring
-        })
-        headers = {}
-        headers['Content-Type'] = 'application/json'
-        status = httplib.UNAUTHORIZED
+        message = {
+            'faultstring': 'Unauthorized - %s' % msg if msg else 'Unauthorized'
+        }
 
-        return webob.Response(body=body, status=status, headers=headers)
+        return Response(json=message, status=httplib.UNAUTHORIZE)
 
     @staticmethod
     def _abort_other_errors():
-        body = json_encode({
+        message = {
             'faultstring': 'Internal Server Error'
-        })
-        headers = {}
-        headers['Content-Type'] = 'application/json'
-        status = httplib.INTERNAL_SERVER_ERROR
+        }
 
-        return webob.Response(body=body, status=status, headers=headers)
+        return Response(json=message, status=httplib.INTERNAL_SERVER_ERROR)
 
     @staticmethod
     def _validate_creds_and_get_user(request):
@@ -289,13 +282,9 @@ class JSONErrorResponseHook(PecanHook):
 
         body['faultstring'] = message
 
-        response_body = json_encode(body)
         headers = state.response.headers or {}
 
-        headers['Content-Type'] = 'application/json'
-        headers['Content-Length'] = str(len(response_body))
-
-        return webob.Response(response_body, status=status_code, headers=headers)
+        return Response(json=body, status=status_code, headers=headers)
 
 
 class LoggingHook(PecanHook):

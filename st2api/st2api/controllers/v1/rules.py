@@ -16,7 +16,7 @@
 import six
 import jsonschema
 from mongoengine import ValidationError
-from webob import Response, exc
+from webob import exc
 
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -30,8 +30,8 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.rbac.utils import assert_user_has_rule_trigger_and_action_permission
 from st2common.router import abort
+from st2common.router import Response
 from st2common.services.triggers import cleanup_trigger_db_for_rule, increment_trigger_ref_count
-from st2common.util.jsonify import json_encode
 
 http_client = six.moves.http_client
 
@@ -120,10 +120,7 @@ class RuleController(resource.ContentPackResourceController):
         LOG.audit('Rule created. Rule.id=%s' % (rule_db.id), extra=extra)
         rule_api = RuleAPI.from_model(rule_db)
 
-        resp = Response(body=json_encode(rule_api), status=exc.HTTPCreated.code)
-        resp.headers['Content-Type'] = 'application/json'
-
-        return resp
+        return Response(json=rule_api, status=exc.HTTPCreated.code)
 
     def put(self, rule, rule_ref_or_id, requester_user):
         rule_db = self._get_by_ref_or_id(rule_ref_or_id)

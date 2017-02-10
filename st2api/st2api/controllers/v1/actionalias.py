@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from webob import Response
-
 import six
 from mongoengine import ValidationError
 
@@ -28,8 +26,8 @@ from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 
 from st2common.router import abort
+from st2common.router import Response
 from st2common.util.actionalias_matching import match_command_to_alias
-from st2common.util.jsonify import json_encode
 
 
 http_client = six.moves.http_client
@@ -126,9 +124,7 @@ class ActionAliasController(resource.ContentPackResourceController):
         LOG.audit('Action alias created. ActionAlias.id=%s' % (action_alias_db.id), extra=extra)
         action_alias_api = ActionAliasAPI.from_model(action_alias_db)
 
-        resp = Response(body=json_encode(action_alias_api), status=http_client.CREATED)
-        resp.headers['Content-Type'] = 'application/json'
-        return resp
+        return Response(json=action_alias_api, status=http_client.CREATED)
 
     def put(self, action_alias, ref_or_id, requester_user):
         """

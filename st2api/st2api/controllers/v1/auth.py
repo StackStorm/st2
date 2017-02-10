@@ -17,7 +17,6 @@ import six
 
 from oslo_config import cfg
 from mongoengine import ValidationError
-from webob import Response
 
 from st2api.controllers.base import BaseRestControllerMixin
 from st2common import log as logging
@@ -26,8 +25,8 @@ from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.exceptions.auth import ApiKeyNotFoundError
 from st2common.persistence.auth import ApiKey
 from st2common.router import abort
+from st2common.router import Response
 from st2common.util import auth as auth_util
-from st2common.util.jsonify import json_encode
 
 http_client = six.moves.http_client
 
@@ -125,9 +124,7 @@ class ApiKeyController(BaseRestControllerMixin):
         # the user needs to see this value atleast once.
         api_key_create_response_api.key = api_key
 
-        resp = Response(body=json_encode(api_key_create_response_api), status=http_client.CREATED)
-        resp.headers['Content-Type'] = 'application/json'
-        return resp
+        return Response(json=api_key_create_response_api, status=http_client.CREATED)
 
     # @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_MODIFY)
     def put(self, api_key_api, api_key_id_or_key):

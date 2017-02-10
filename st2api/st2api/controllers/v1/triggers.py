@@ -17,7 +17,6 @@ import copy
 
 from mongoengine import ValidationError
 import six
-from webob import Response
 
 from st2api.controllers import resource
 from st2common import log as logging
@@ -25,12 +24,12 @@ from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInst
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2common.router import abort
+from st2common.router import Response
 from st2common.services import triggers as TriggerService
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import isotime
-from st2common.util.jsonify import json_encode
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 
 http_client = six.moves.http_client
@@ -82,10 +81,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
 
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
 
-        resp = Response(body=json_encode(triggertype_api), status=http_client.CREATED)
-        resp.headers['Content-Type'] = 'application/json'
-
-        return resp
+        return Response(json=triggertype_api, status=http_client.CREATED)
 
     def put(self, triggertype, triggertype_ref_or_id):
         triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
@@ -237,10 +233,7 @@ class TriggerController(object):
         LOG.audit('Trigger created. Trigger.id=%s' % (trigger_db.id), extra=extra)
         trigger_api = TriggerAPI.from_model(trigger_db)
 
-        resp = Response(body=json_encode(trigger_api), status=http_client.CREATED)
-        resp.headers['Content-Type'] = 'application/json'
-
-        return resp
+        return Response(json=trigger_api, status=http_client.CREATED)
 
     def put(self, trigger, trigger_id):
         trigger_db = TriggerController.__get_by_id(trigger_id)

@@ -25,7 +25,6 @@ from st2common.models.utils import action_param_utils
 from st2common.persistence.action import Action
 from st2common.persistence.runner import RunnerType
 from st2common.router import abort
-from st2common.util.jsonify import json_encode
 
 http_client = six.moves.http_client
 
@@ -106,7 +105,7 @@ class OverviewController(resource.ContentPackResourceController):
         resp = super(OverviewController, self)._get_one(ref_or_id)
         action_api = resp.json
         result = self._transform_action_api(action_api)
-        resp.body = json_encode(result)
+        resp.json = result
         return resp
 
     def get_all(self, **kwargs):
@@ -119,7 +118,7 @@ class OverviewController(resource.ContentPackResourceController):
         resp = super(OverviewController, self)._get_all(**kwargs)
         action_apis = resp.json
         result = map(self._transform_action_api, action_apis)
-        resp.body = json_encode(result)
+        resp.json = result
         return resp
 
     @staticmethod

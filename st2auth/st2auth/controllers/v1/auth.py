@@ -22,7 +22,6 @@ from webob import exc, Response
 from st2common.exceptions.auth import TokenNotFoundError, TokenExpiredError
 from st2common.exceptions.param import ParamException
 from st2common.util import auth as auth_utils
-from st2common.util.jsonify import json_encode
 from st2common import log as logging
 import st2auth.handlers as handlers
 
@@ -80,9 +79,7 @@ class TokenController(object):
 
 
 def process_successful_response(token):
-    resp = Response(json_encode(token),
-                    content_type='application/json',
-                    status=http_client.CREATED)
+    resp = Response(json=token, status=http_client.CREATED)
     resp.headers['X-API-URL'] = cfg.CONF.auth.api_url
     return resp
 

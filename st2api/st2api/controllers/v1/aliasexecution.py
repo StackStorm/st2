@@ -17,7 +17,6 @@ import jsonschema
 from jinja2.exceptions import UndefinedError
 from oslo_config import cfg
 import six
-from webob import Response
 
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -37,7 +36,7 @@ from st2common.util.jinja import render_values as render
 from st2common.rbac.types import PermissionType
 from st2common.rbac.utils import assert_user_has_resource_db_permission
 from st2common.router import abort
-from st2common.util.jsonify import json_encode
+from st2common.router import Response
 
 http_client = six.moves.http_client
 
@@ -123,10 +122,7 @@ class ActionAliasExecutionController(object):
                     'extra': 'Cannot render "extra" in field "ack" for alias. ' + e.message
                 })
 
-        resp = Response(body=json_encode(result), status=http_client.CREATED)
-        resp.headers['Content-Type'] = 'application/json'
-
-        return resp
+        return Response(json=result, status=http_client.CREATED)
 
     def _tokenize_alias_execution(self, alias_execution):
         tokens = alias_execution.strip().split(' ', 1)

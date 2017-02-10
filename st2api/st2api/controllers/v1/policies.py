@@ -17,7 +17,6 @@ import copy
 
 from mongoengine import ValidationError
 from six.moves import http_client
-from webob import Response
 
 from st2api.controllers import resource
 from st2common import log as logging
@@ -29,7 +28,7 @@ from st2common.persistence.policy import PolicyType, Policy
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.router import abort
-from st2common.util.jsonify import json_encode
+from st2common.router import Response
 
 LOG = logging.getLogger(__name__)
 
@@ -159,9 +158,8 @@ class PolicyController(resource.ContentPackResourceController):
         LOG.audit('Policy created. Policy.id=%s' % (db_model.id), extra={'policy_db': db_model})
 
         exec_result = self.model.from_model(db_model)
-        resp = Response(body=json_encode(exec_result), status=http_client.CREATED)
-        resp.headers['Content-Type'] = 'application/json'
-        return resp
+
+        return Response(json=exec_result, status=http_client.CREATED)
 
     def put(self, instance, ref_or_id):
         op = 'PUT /policies/%s/' % ref_or_id
@@ -192,9 +190,8 @@ class PolicyController(resource.ContentPackResourceController):
         LOG.audit('Policy updated. Policy.id=%s' % (db_model.id), extra={'policy_db': db_model})
 
         exec_result = self.model.from_model(db_model)
-        resp = Response(body=json_encode(exec_result), status=http_client.OK)
-        resp.headers['Content-Type'] = 'application/json'
-        return resp
+
+        return Response(json=exec_result, status=http_client.OK)
 
     def delete(self, ref_or_id):
         """

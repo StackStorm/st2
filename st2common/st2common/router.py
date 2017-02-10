@@ -27,7 +27,8 @@ from oslo_config import cfg
 import routes
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 from swagger_spec_validator.validator20 import validate_spec
-from webob import exc, Request, Response
+import webob
+from webob import exc, Request
 from webob.headers import ResponseHeaders
 
 from st2common.constants.api import REQUEST_ID_HEADER
@@ -103,6 +104,27 @@ CustomValidator = extend_with_default(extend_with_additional_check(jsonschema.Dr
 
 class NotFoundException(Exception):
     pass
+
+
+class Response(webob.Response):
+    def __init__(self, body=None, status=None, headerlist=None, app_iter=None, content_type=None,
+                 *args, **kwargs):
+        # Do some sanity checking, and turn json_body into an actual body
+        if app_iter is None and body is None and ('json_body' in kwargs or 'json' in kwargs):
+            if 'json_body' in kwargs:
+                json_body = kwargs.pop('json_body')
+            else:
+                json_body = kwargs.pop('json')
+            body = json_encode(json_body).encode('UTF-8')
+
+            if content_type is None:
+                content_type = 'application/json'
+
+        super(Response, self).__init__(body, status, headerlist, app_iter, content_type,
+                                       *args, **kwargs)
+
+    def _json_body__set(self, value):
+        self.body = json_encode(value).encode('UTF-8')
 
 
 class ErrorHandlingMiddleware(object):
@@ -365,7 +387,7 @@ class Router(object):
     def match(self, req):
         path = req.path
 
-        if path.endswith('/'):
+        if len(path) > 1 and path.endswith('/'):
             path = path[:-1]
 
         match = self.routes.match(path, req.environ)
@@ -536,7 +558,7 @@ class Router(object):
         # Handle response
         if resp is not None:
             if not hasattr(resp, '__call__'):
-                resp = Response(json_encode(resp), content_type='application/json')
+                resp = Response(json=resp)
         else:
             resp = Response()
 

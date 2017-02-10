@@ -18,7 +18,7 @@ import re
 from collections import defaultdict
 from collections import OrderedDict
 
-from webob import Response, request
+from webob import request
 import six
 
 import st2common
@@ -42,8 +42,8 @@ from st2common.persistence.pack import Pack
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.services import packs as packs_service
-from st2common.util.jsonify import json_encode
 from st2common.router import abort
+from st2common.router import Response
 
 from st2api.controllers.resource import ResourceController
 from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
@@ -89,10 +89,8 @@ class PackInstallController(ActionExecutionsControllerMixin):
         execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
 
         exec_id = PackAsyncAPI(execution_id=execution.id)
-        resp = Response(body=json_encode(exec_id), status=http_client.ACCEPTED)
-        resp.headers['Content-Type'] = 'application/json'
 
-        return resp
+        return Response(json=exec_id, status=http_client.ACCEPTED)
 
 
 class PackUninstallController(ActionExecutionsControllerMixin):
@@ -114,10 +112,8 @@ class PackUninstallController(ActionExecutionsControllerMixin):
         execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
 
         exec_id = PackAsyncAPI(execution_id=execution.id)
-        resp = Response(body=json_encode(exec_id), status=http_client.ACCEPTED)
-        resp.headers['Content-Type'] = 'application/json'
 
-        return resp
+        return Response(json=exec_id, status=http_client.ACCEPTED)
 
 
 class PackRegisterController(object):
