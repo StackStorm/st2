@@ -57,6 +57,16 @@ in development
   beyond the existing `st2 auth` command and actually works with the local configuration so that
   users do not have to.
 * Fix action alias update API endpoint. (bug fix)
+* Fix ``--config-file`` st2 CLI argument not correctly expanding the provided path if the path 
+  contained a reference to the user home directory (``~``, e.g. ``~/.st2/config.ini``) (bug fix)
+* Fix action alias update API endpoint. (bug fix)
+* ``{{user.}}`` and ``{{system.}}`` notations to access user and system
+  scoped items from datastore are now unsupported. Use  ``{{st2kv.user.}}``
+  and ``{{st2kv.system.}}`` instead. Please update all your content (actions, rules and
+  workflows) to use the new notation. (improvement)
+* Update the dependencies and the code base so we now also support MongoDB 3.4. Officially
+  supported MongoDB versions are now MongoDB 3.2 and 3.4. Currently default version installed by
+  the installer script still is 3.2. (improvement)
 
 2.1.1 - December 16, 2016
 -------------------------
@@ -134,7 +144,7 @@ in development
   seralize the array as JSON and then falling back to comma separated array.
 * Add new ``core.pause`` action. This action behaves like sleep and can be used inside the action
   chain or Mistral workflows where waiting / sleeping is desired before proceeding with a next
-  task. Contribution by Paul Mulvihill. (new feature) #2933. 
+  task. Contribution by Paul Mulvihill. (new feature) #2933.
 * When a policy cancels a request due to concurrency, it leaves end_timestamp set to None which
   the notifier expects to be a date. This causes an exception in "isotime.format()". A patch was
   released that catches this exception, and populates payload['end_timestamp'] with the equivalent
