@@ -110,7 +110,7 @@ class DownloadGitRepoAction(Action):
             gitref = repo.active_branch.object
         else:
             # Try to match the reference to a branch name (i.e. "master")
-            gitref = DownloadGitRepoAction._get_gitref(repo, "origin/%s" % ref)
+            gitref = DownloadGitRepoAction._get_gitref(repo, 'origin/%s' % ref)
             if gitref:
                 use_branch = True
 
@@ -120,7 +120,7 @@ class DownloadGitRepoAction(Action):
 
         # Try to match the reference to a "vX.Y.Z" tag
         if not gitref and re.match(PACK_VERSION_REGEX, ref):
-            gitref = DownloadGitRepoAction._get_gitref(repo, "v%s" % ref)
+            gitref = DownloadGitRepoAction._get_gitref(repo, 'v%s' % ref)
 
         # Giving up ¯\_(ツ)_/¯
         if not gitref:
@@ -142,7 +142,7 @@ class DownloadGitRepoAction(Action):
         branches = branches.replace('*', '').split()
 
         if active_branch.name not in branches or use_branch:
-            branch = "origin/%s" % ref if use_branch else branches[0]
+            branch = 'origin/%s' % ref if use_branch else branches[0]
             short_branch = ref if use_branch else branches[0].split('/')[-1]
             repo.git.checkout('-b', short_branch, branch)
             branch = repo.head.reference
@@ -289,11 +289,11 @@ class DownloadGitRepoAction(Action):
         if repo_url.startswith("file://"):
             return repo_url
         else:
-            if len(repo_url.split('/')) == 2 and "git@" not in repo_url:
-                url = "https://github.com/{}".format(repo_url)
+            if len(repo_url.split('/')) == 2 and 'git@' not in repo_url:
+                url = 'https://github.com/{}'.format(repo_url)
             else:
                 url = repo_url
-            return url if url.endswith('.git') else "{}.git".format(url)
+            return url if url.endswith('.git') else '{}.git'.format(url)
 
     @staticmethod
     def _get_pack_metadata(pack_dir):
