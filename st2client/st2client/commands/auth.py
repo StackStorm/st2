@@ -175,7 +175,7 @@ class WhoamiCommand(resource.ResourceCommand):
         config = ConfigParser()
         config.read(config_file)
 
-        return config['credentials']['username']
+        return config.get('credentials', 'username')
 
     def run_and_print(self, args, **kwargs):
         try:
