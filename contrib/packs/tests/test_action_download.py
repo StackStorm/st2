@@ -310,14 +310,14 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.repo_instance.commit.side_effect = side_effect
 
         edge_cases = {
-            "master": "1.2.3",
-            "master": "some-branch",
-            "master": "default-branch",
-            "master": None,
-            "default-branch": "1.2.3",
-            "default-branch": "some-branch",
-            "default-branch": "default-branch",
-            "default-branch": None
+            'master': '1.2.3',
+            'master': 'some-branch',
+            'master': 'default-branch',
+            'master': None,
+            'default-branch': '1.2.3',
+            'default-branch': 'some-branch',
+            'default-branch': 'default-branch',
+            'default-branch': None
         }
 
         for default_branch, ref in edge_cases.items():
@@ -328,11 +328,11 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
             # Set default branch
             self.repo_instance.active_branch.name = default_branch
-            self.repo_instance.active_branch.object = "aBcdef"
-            self.repo_instance.head.commit = "aBcdef"
+            self.repo_instance.active_branch.object = 'aBcdef'
+            self.repo_instance.head.commit = 'aBcdef'
 
             # Fake gitref object
-            gitref = mock.MagicMock(hexsha="abcDef")
+            gitref = mock.MagicMock(hexsha='abcDef')
 
             # Fool _get_gitref into working when its ref == our ref
             def fake_commit(arg_ref):
@@ -346,9 +346,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             action = self.get_action_instance()
 
             if ref:
-                packs=['test=%s' % (ref)]
+                packs = ['test=%s' % (ref)]
             else:
-                packs=['test']
+                packs = ['test']
 
             result = action.run(packs=packs, abs_repo_base=self.repo_base)
             self.assertEqual(result, {'test': 'Success.'})
