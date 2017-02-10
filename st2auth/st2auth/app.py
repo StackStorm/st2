@@ -59,5 +59,4 @@ def setup_app(config=None):
 
     app = ErrorHandlingMiddleware(app)
 
-    LOG.info('%s app created.' % __name__)
     return app

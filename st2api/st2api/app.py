@@ -81,5 +81,4 @@ def setup_app(config=None):
     static_root = os.path.join(BASE_DIR, 'public')
     app = StaticFileMiddleware(app=app, directory=static_root)
 
-    LOG.info('%s app created.' % __name__)
     return app

@@ -359,8 +359,8 @@ class Router(object):
                 if default:
                     m.connect(None, path, **connect_kw)
 
-        for route in self.routes.matchlist:
-            LOG.debug('Route registered: %s %s', route.routepath, route.conditions)
+        for route in sorted(self.routes.matchlist, key=lambda r: r.routepath):
+            LOG.debug('Route registered: %+6s %s', route.conditions['method'][0], route.routepath)
 
     def match(self, req):
         path = req.path
