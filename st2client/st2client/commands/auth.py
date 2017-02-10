@@ -123,17 +123,17 @@ class LoginCommand(resource.ResourceCommand):
         config.read(config_file)
 
         # Modify config (and optionally populate with password)
-        if 'credentials' not in config:
+        if not config.has_section('credentials'):
             config.add_section('credentials')
-            config['credentials'] = {}
-        config['credentials']['username'] = args.username
+
+        config.set('credentials', 'username', args.username)
         if args.write_password:
-            config['credentials']['password'] = args.password
+            config.set('credentials', 'password', args.password)
         else:
             # Remove any existing password from config
-            config['credentials'].pop('password', None)
+            config.remove_option('credentials', 'password')
 
-        with open(config_file, "w") as cfg_file_out:
+        with open(config_file, 'w') as cfg_file_out:
             config.write(cfg_file_out)
 
         return manager
