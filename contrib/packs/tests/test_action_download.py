@@ -216,7 +216,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.assertEqual(result, {'test': 'Success.'})
 
     @mock.patch.object(DownloadGitRepoAction, '_get_valid_versions_for_repo',
-                      mock.Mock(return_value=['1.0.0', '2.0.0']))
+                       mock.Mock(return_value=['1.0.0', '2.0.0']))
     def test_run_pack_download_invalid_version(self):
         self.repo_instance.commit.side_effect = lambda ref: None
 
@@ -289,3 +289,58 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
         url = DownloadGitRepoAction._eval_repo_url("file:///home/vagrant/stackstorm-test")
         self.assertEqual(url, "file:///home/vagrant/stackstorm-test")
+
+    def test_run_pack_download_edge_cases(self):
+        """
+        Edge cases to test:
+
+        default branch is master, ref is pack version
+        default branch is master, ref is branch name
+        default branch is master, ref is default branch name
+        default branch is not master, ref is pack version
+        default branch is not master, ref is branch name
+        default branch is not master, ref is default branch name
+        """
+
+        def side_effect(ref):
+            if ref[0] != 'v':
+                raise BadName()
+            return mock.MagicMock(hexsha='abcdeF')
+
+        self.repo_instance.commit.side_effect = side_effect
+
+        edge_cases = {
+            "master": "1.2.3",
+            "master": "some-branch",
+            "master": "default-branch",
+            "default-branch": "1.2.3",
+            "default-branch": "some-branch",
+            "default-branch": "default-branch",
+        }
+
+        for default_branch, ref in edge_cases.items():
+
+            self.repo_instance.git = mock.MagicMock(
+                branch=(lambda *args: default_branch),
+                checkout=(lambda *args: True)
+            )
+
+            # Set default branch
+            self.repo_instance.active_branch.name = default_branch
+            self.repo_instance.head.commit = "aBcdef"
+
+            # Fake gitref object
+            gitref = mock.MagicMock(hexsha="abcDef")
+
+            # Fool _get_gitref into working when its ref == our ref
+            def fake_commit(arg_ref):
+                if arg_ref == ref:
+                    return gitref
+                else:
+                    raise BadName()
+            self.repo_instance.commit = fake_commit
+            self.repo_instance.active_branch.object = gitref
+
+            action = self.get_action_instance()
+            result = action.run(packs=['test=%s' % ref], abs_repo_base=self.repo_base)
+            self.assertEqual(result, {'test': 'Success.'})
