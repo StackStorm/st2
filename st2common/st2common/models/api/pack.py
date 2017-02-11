@@ -210,7 +210,7 @@ class PackAPI(BaseAPI):
         email = pack.email
         contributors = getattr(pack, 'contributors', [])
         files = getattr(pack, 'files', [])
-        groups = getattr(pack, 'groups', {})
+        groups = getattr(pack, 'groups', [])
         dependencies = getattr(pack, 'dependencies', [])
         system = getattr(pack, 'system', {})
 
