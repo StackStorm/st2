@@ -43,6 +43,7 @@ VIRTUALENVS_DIR="/tmp/st2-pack-tests-virtualenvs"
 
 ST2_PIP_OPTIONS=${ST2_PIP_OPTIONS:-"-q"}
 CREATE_VIRTUALENV=true
+JUST_TESTS=false
 VERBOSE=false
 
 ####################
@@ -50,16 +51,22 @@ VERBOSE=false
 ####################
 
 function usage() {
-    echo "Usage: $0 [-x] -p <path to pack>" >&2
+    echo "Usage: $0 [-x -s] -p <path to pack>" >&2
+    echo "  -x : Do not create virtualenv, e.g. when running in existing one." >&2
+    echo "  -j : Just run tests (use previously installed dependencies" >&2
+    echo "       and virtualenv if any. For subsequent test runs." >&2
 }
 
-while getopts ":p:xv" o; do
+while getopts ":p:xjv" o; do
     case "${o}" in
         p)
             PACK_PATH=${OPTARG}
             ;;
         x)
             CREATE_VIRTUALENV=false
+            ;;
+        j)
+            JUST_TESTS=true
             ;;
         v)
             VERBOSE=true
@@ -130,19 +137,31 @@ if [ "${CREATE_VIRTUALENV}" = false ]; then
     echo "Activating virtualenv in ${VIRTUALENV_DIR}..."
     source ${VIRTUALENV_DIR}/bin/activate
 else
-    echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
-    mkdir -p ${VIRTUALENVS_DIR}
-    virtualenv --system-site-packages ${VIRTUALENV_DIR}
+    if [ "${JUST_TESTS}" = false ]; then
+        echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
+        mkdir -p ${VIRTUALENVS_DIR}
+        virtualenv --system-site-packages ${VIRTUALENV_DIR}
 
-    # Make sure virtualenv is using latest pip version
-    ${VIRTUALENV_DIR}/bin/pip install --upgrade pip
-
+        # Make sure virtualenv is using latest pip version
+        ${VIRTUALENV_DIR}/bin/pip install --upgrade pip
+    fi
     # Activate created virtualenv
     source ${VIRTUALENV_DIR}/bin/activate
+fi
 
-    # Ignore irritating urllib3 warnings while installing dependencies
-    export PYTHONWARNINGS="ignore:a true SSLContext object, ignore:an https request"
+# Note: If we are running outside of st2, we need to add all the st2 components
+# to PYTHONPATH
+if [ ${ST2_REPO_PATH} ]; then
+    ST2_REPO_PATH=${ST2_REPO_PATH:-/tmp/st2}
+    ST2_COMPONENTS=$(find ${ST2_REPO_PATH}/* -maxdepth 0 -name "st2*" -type d)
+    PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):${SENSORS_PATH}:${ACTIONS_PATH}:${ETC_PATH}"
+else
+    # ST2_REPO_PATH not provided, assume all the st2 component packages are
+    # already in PYTHONPATH
+    PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):${SENSORS_PATH}:${ACTIONS_PATH}:${ETC_PATH}"
+fi
 
+if [ "${JUST_TESTS}" = false ]; then
     # Install st2 dependencies
     if [ ${ST2_REPO_PATH} ]; then
         echo "Installing dependencies from st2 repository..."
@@ -168,21 +187,7 @@ else
         pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_TESTS_REQUIREMENTS_FILE}
     fi
 
-    unset PYTHONWARNINGS
 fi
-
-# Note: If we are running outside of st2, we need to add all the st2 components
-# to PYTHONPATH
-if [ ${ST2_REPO_PATH} ]; then
-    ST2_REPO_PATH=${ST2_REPO_PATH:-/tmp/st2}
-    ST2_COMPONENTS=$(find ${ST2_REPO_PATH}/* -maxdepth 0 -name "st2*" -type d)
-    PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):${SENSORS_PATH}:${ACTIONS_PATH}:${ETC_PATH}"
-else
-    # ST2_REPO_PATH not provided, assume all the st2 component packages are
-    # already in PYTHONPATH
-    PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):${SENSORS_PATH}:${ACTIONS_PATH}:${ETC_PATH}"
-fi
-
 # Set PYTHONPATH, make sure it contains st2 components in PATH
 export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
 
