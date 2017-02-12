@@ -4,9 +4,9 @@ greenlet>=0.4.12,<0.5
 # Note: Eventlet 0.20.0 removes select.poll() which we rely on
 eventlet==0.19.0
 gunicorn==19.6.0
-kombu==3.0.37
+kombu==4.0.2
 # Note: amqp is used by kombu
-amqp==1.4.9
+amqp==2.1.4
 oslo.config>=1.12.1,<1.13
 oslo.utils<3.1.0
 six==1.10.0
