@@ -4,9 +4,12 @@ notify:
 
 machine:
   services:
-    - mongodb
     - postgresql
     - rabbitmq-server
+  environment:
+    # We add /tmp/mongodb/bin/ directory to PATH so the correct and latest version of mongo shell
+    # binary is used.
+    PATH: /tmp/mongodb/bin/:${PATH}
 
 dependencies:
   cache_directories:
@@ -14,15 +17,19 @@ dependencies:
   pre:
     - sudo .circle/configure-services.sh
     - sudo .circle/add-itest-user.sh
-  # Let's install Mongo 3 manually because circle doesn't support mongo3 yet
-    - sudo .circle/install-mongo.sh
+    # We install and test with all the supported MongoDB versions
+    - case $CIRCLE_NODE_INDEX in [1,2]) sudo service mongodb stop ; MONGODB_VERSION=3.2.12 sudo -E .circle/install-and-run-mongodb.sh > /tmp/mongodb-install.log 2>&1 ;; [3,4]) sudo service mongodb stop ; MONGODB_VERSION=3.4.2 sudo -E .circle/install-and-run-mongodb.sh > /tmp/mongodb-install.log 2>&1 ;; esac:
+        background: true
+    # Tail the logs so it's easier to see what is going on. Sadly when using "background: true"
+    # whole output is ignored.
+    - case $CIRCLE_NODE_INDEX in [1,2]) tail -50 /tmp/mongodb-install.log ;; [3,4]) tail -50 /tmp/mongodb-install.log ;; esac
     - sudo pip install codecov
   override:
     - make compile requirements
 
 test:
   override:
-    - case $CIRCLE_NODE_INDEX in 0) make ci-checks ci-packs-tests ;; 1) make ci-unit ;; 2) make ci-integration ;; esac:
+    - case $CIRCLE_NODE_INDEX in 0) make ci-checks ci-packs-tests ;; 1) make ci-unit ;; 2) make ci-integration ;; 3) make ci-unit ;; 4) make ci-integration ;; esac:
         parallel: true
   post:
     - case $CIRCLE_NODE_INDEX in [1,2]) codecov ;; esac:
