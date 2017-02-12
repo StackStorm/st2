@@ -7,7 +7,7 @@ BINARIES := bin
 
 # All components are prefixed by st2
 COMPONENTS := $(wildcard st2*)
-COMPONENTS_RUNNERS += $(wildcard contrib/runners/*)
+COMPONENTS_RUNNERS := $(wildcard contrib/runners/*)
 
 COMPONENTS_WITH_RUNNERS := $(wildcard st2*)
 COMPONENTS_WITH_RUNNERS += $(wildcard contrib/runners/*)
