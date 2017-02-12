@@ -131,29 +131,7 @@ class ActionsRegistrar(ResourceRegistrar):
             action_api.validate()
         except jsonschema.ValidationError as e:
             # We throw a more user-friendly exception on invalid parameter name
-            msg = str(e)
-
-            is_invalid_parameter_name = 'Additional properties are not allowed' in msg
-            is_invalid_parameter_name &= 'in schema[\'properties\'][\'parameters\']' in msg
-            is_invalid_parameter_name |= 'does not match any of the regexes:' in msg
-
-            if is_invalid_parameter_name:
-                parameter_name = re.search('\'(.+?)\' was unexpected', msg)
-
-                if parameter_name:
-                    parameter_name = parameter_name.groups()[0]
-                else:
-                    parameter_name = re.search('\'(.+?)\' does not match any of the regexes:', msg)
-
-                    if parameter_name:
-                        parameter_name = parameter_name.groups()[0]
-                    else:
-                        parameter_name = 'unknown'
-
-                new_msg = ('Parameter name "%s" is invalid. Valid characters for parameter name '
-                           'are [a-zA-Z0-0_].' % (parameter_name))
-                new_msg += '\n\n' + msg
-                raise jsonschema.ValidationError(new_msg)
+            e = self._get_error_for_invalid_parameter_name(e=e)
             raise e
 
         action_validator.validate_action(action_api)
@@ -195,6 +173,37 @@ class ActionsRegistrar(ResourceRegistrar):
                 registered_count += 1
 
         return registered_count
+
+    def _get_error_for_invalid_parameter_name(self, e):
+        """
+        Return a more user-friendly exception for scenarios where action parameter name fails
+        validation (e.g. it contains invalid characters or similar).
+        """
+        msg = str(e)
+
+        is_invalid_parameter_name_error = 'Additional properties are not allowed' in msg
+        is_invalid_parameter_name_error &= 'in schema[\'properties\'][\'parameters\']' in msg
+
+        # New error notation introduced in jsonschema v2.6.0
+        is_invalid_parameter_name_error |= 'does not match any of the regexes:' in msg
+
+        if is_invalid_parameter_name_error:
+            parameter_name_1 = re.search('\'(.+?)\' was unexpected', msg)
+            parameter_name_2 = re.search('\'(.+?)\' does not match any of the regexes:', msg)
+
+            if parameter_name_1:
+                parameter_name = parameter_name_1.groups()[0]
+            elif parameter_name_2:
+                parameter_name = parameter_name_2.groups()[0]
+            else:
+                parameter_name = 'unknown'
+
+            new_msg = ('Parameter name "%s" is invalid. Valid characters for parameter name '
+                       'are [a-zA-Z0-0_].' % (parameter_name))
+            new_msg += '\n\n' + msg
+            return jsonschema.ValidationError(new_msg)
+
+        return e
 
 
 def register_actions(packs_base_paths=None, pack_dir=None, use_pack_cache=True,
