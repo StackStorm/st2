@@ -135,9 +135,21 @@ class ActionsRegistrar(ResourceRegistrar):
 
             is_invalid_parameter_name = 'Additional properties are not allowed' in msg
             is_invalid_parameter_name &= 'in schema[\'properties\'][\'parameters\']' in msg
+            is_invalid_parameter_name |= 'does not match any of the regexes:' in msg
 
             if is_invalid_parameter_name:
-                parameter_name = re.search('\'(.+?)\' was unexpected', msg).groups()[0]
+                parameter_name = re.search('\'(.+?)\' was unexpected', msg)
+
+                if parameter_name:
+                    parameter_name = parameter_name.groups()[0]
+                else:
+                    parameter_name = re.search('\'(.+?)\' does not match any of the regexes:', msg)
+
+                    if parameter_name:
+                        parameter_name = parameter_name.groups()[0]
+                    else:
+                        parameter_name = 'unknown'
+
                 new_msg = ('Parameter name "%s" is invalid. Valid characters for parameter name '
                            'are [a-zA-Z0-0_].' % (parameter_name))
                 new_msg += '\n\n' + msg
