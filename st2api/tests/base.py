@@ -101,6 +101,13 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
         user_1_db = User.add_or_update(user_1_db)
         self.users['no_permissions'] = user_1_db
 
+    def tearDown(self):
+        super(APIControllerWithRBACTestCase, self).tearDown()
+
+        if self.request_context_mock:
+            self.request_context_mock.stop()
+            del(Router.mock_context)
+
     def use_user(self, user_db):
         """
         Select a user which is to be used by the HTTP request following this call.
@@ -109,4 +116,4 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
             'user': user_db
         }
         self.request_context_mock = mock.PropertyMock(return_value=mock_context)
-        Router.context = self.request_context_mock
+        Router.mock_context = self.request_context_mock

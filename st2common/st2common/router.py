@@ -346,9 +346,6 @@ class LoggingMiddleware(object):
 
 
 class Router(object):
-    # For mocking during unit tests
-    context = {}
-
     def __init__(self, arguments=None, debug=False, auth=True):
         self.debug = debug
         self.auth = auth
@@ -411,7 +408,7 @@ class Router(object):
         """Invoke router as a view."""
         endpoint, path_vars = self.match(req)
 
-        context = copy.copy(self.context)
+        context = copy.copy(getattr(self, 'mock_context', {}))
 
         # Handle security
         if 'security' in endpoint:
