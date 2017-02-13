@@ -69,7 +69,7 @@ class TestLoginBase(base.BaseCLITestCase):
     """
 
     DOTST2_PATH = os.path.expanduser('~/.st2/')
-    CONFIG_FILE = '/tmp/logintest.cfg'
+    CONFIG_FILE = tempfile.mkstemp(suffix='st2.conf')
     CONFIG_CONTENTS = None
 
     def __init__(self, *args, **kwargs):
