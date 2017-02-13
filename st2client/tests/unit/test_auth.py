@@ -70,7 +70,11 @@ class TestLoginBase(base.BaseCLITestCase):
 
     DOTST2_PATH = os.path.expanduser('~/.st2/')
     CONFIG_FILE = tempfile.mkstemp(suffix='st2.conf')
-    CONFIG_CONTENTS = None
+    CONFIG_CONTENTS = """
+    [credentials]
+    username = olduser
+    password = Password1!
+    """
 
     def __init__(self, *args, **kwargs):
         super(TestLoginBase, self).__init__(*args, **kwargs)
@@ -88,17 +92,8 @@ class TestLoginBase(base.BaseCLITestCase):
             os.remove(self.CONFIG_FILE)
 
         with open(self.CONFIG_FILE, 'w') as cfg:
-            # If a test passes in it's own config, we write that instead
-            if self.CONFIG_CONTENTS:
-                for line in self.CONFIG_CONTENTS.split('\n'):
-                    cfg.write("%s\n" % line.strip())
-            else:
-
-                # Default config for most tests
-                cfg.write('[credentials]\n')
-                # Using 'olduser' so we can assert this has changed at the end
-                cfg.write('username = olduser\n')
-                cfg.write('password = Password1!\n')
+            for line in self.CONFIG_CONTENTS.split('\n'):
+                cfg.write('%s\n' % line.strip())
 
     def tearDown(self):
         super(TestLoginBase, self).tearDown()
