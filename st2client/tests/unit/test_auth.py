@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from mock import call
 import os
 import uuid
 import json
@@ -22,9 +21,10 @@ import tempfile
 import requests
 import argparse
 import logging
+from cStringIO import StringIO
+import sys
 
 from tests import base
-from st2client import config_parser
 from st2client import shell
 from st2client.models.core import add_auth_token_to_kwargs_from_env
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
@@ -41,10 +41,270 @@ RULE = {
 }
 
 
-class TestWhoami(base.BaseCLITestCase):
+class CaptureStdout(list):
+    """This is a bit of borrowed code to make it easier to read from stdout
+
+    It's meant to be used within a context manager.
+    """
+
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio    # free up some memory
+        sys.stdout = self._stdout
+
+
+class TestLoginBase(base.BaseCLITestCase):
+    '''A base class for testing related to 'st2 login' commands
+
+    This exists primarily to ensure that each specific test case is kept atomic,
+    since the tests create actual files on the filesystem - as well as to cut down
+    on duplicate code in each test class
+    '''
+
+    DOTST2_PATH = os.path.expanduser('~/.st2/')
 
     def __init__(self, *args, **kwargs):
-        super(TestWhoami, self).__init__(*args, **kwargs)
+        self.config_file = kwargs.pop('config_file', '~/.st2/config')
+        self.config_contents = kwargs.pop('config_contents', None)
+        super(TestLoginBase, self).__init__(*args, **kwargs)
+
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-t', '--token', dest='token')
+        self.parser.add_argument('--api-key', dest='api_key')
+        self.shell = shell.Shell()
+
+    def setUp(self):
+        super(TestLoginBase, self).setUp()
+
+        # Remove any existing config file
+        if os.path.isfile(self.config_file):
+            os.remove(self.config_file)
+
+        with open(self.config_file, 'w') as cfg:
+
+            # If a test passes in it's own config, we write that instead
+            if self.config_contents:
+                for line in self.config_contents.split('\n'):
+                    cfg.write("%s\n" % line.strip())
+            else:
+
+                # Default config for most tests
+                cfg.write('[credentials]\n')
+                # Using 'olduser' so we can assert this has changed at the end
+                cfg.write('username = olduser\n')
+                cfg.write('password = Password1!\n')
+
+    def tearDown(self):
+        super(TestLoginBase, self).tearDown()
+
+        # Clean up config file
+        os.remove(self.config_file)
+
+        # Clean up tokens
+        for file in [f for f in os.listdir(self.DOTST2_PATH) if 'token-' in f]:
+            os.remove(self.DOTST2_PATH + file)
+
+
+class TestLoginPasswordAndConfig(TestLoginBase):
+
+    CONFIG_FILE = '/tmp/logintest.cfg'
+
+    TOKEN = {
+        'user': 'st2admin',
+        'token': '44583f15945b4095afbf57058535ca64',
+        'expiry': '2017-02-12T00:53:09.632783Z',
+        'id': '589e607532ed3535707f10eb',
+        'metadata': {}
+    }
+
+    def __init__(self, *args, **kwargs):
+        super(TestLoginPasswordAndConfig, self).__init__(
+            config_file=self.CONFIG_FILE, *args, **kwargs
+        )
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, 'OK')))
+    def runTest(self):
+        '''Test 'st2 login' functionality by specifying a password and a configuration file
+        '''
+
+        expected_username = self.TOKEN['user']
+        args = ['--config', self.CONFIG_FILE, 'login', expected_username, '--password',
+                'Password1!']
+
+        self.shell.run(args)
+
+        with open(self.CONFIG_FILE, 'r') as config_file:
+
+            for line in config_file.readlines():
+
+                # Make sure certain values are not present
+                self.assertFalse('password' in line)
+                self.assertFalse('olduser' in line)
+
+                # Make sure configured username is what we expect
+                if 'username' in line:
+                    self.assertEquals(line.split(' ')[2][:-1], expected_username)
+
+            # validate token was created
+            self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))
+
+
+class TestLoginIntPwdAndConfig(TestLoginBase):
+
+    CONFIG_FILE = '/tmp/logintest.cfg'
+
+    TOKEN = {
+        'user': 'st2admin',
+        'token': '44583f15945b4095afbf57058535ca64',
+        'expiry': '2017-02-12T00:53:09.632783Z',
+        'id': '589e607532ed3535707f10eb',
+        'metadata': {}
+    }
+
+    def __init__(self, *args, **kwargs):
+        super(TestLoginIntPwdAndConfig, self).__init__(
+            config_file=self.CONFIG_FILE, *args, **kwargs
+        )
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, 'OK')))
+    @mock.patch('st2client.commands.auth.getpass')
+    def runTest(self, mock_gp):
+        '''Test 'st2 login' functionality with interactive password entry
+        '''
+
+        expected_username = self.TOKEN['user']
+        args = ['--config', self.CONFIG_FILE, 'login', expected_username]
+
+        mock_gp.getpass.return_value = 'Password1!'
+
+        self.shell.run(args)
+
+        with open(self.CONFIG_FILE, 'r') as config_file:
+
+            for line in config_file.readlines():
+
+                # Make sure certain values are not present
+                self.assertFalse('password' in line)
+                self.assertFalse('olduser' in line)
+
+                # Make sure configured username is what we expect
+                if 'username' in line:
+                    self.assertEquals(line.split(' ')[2][:-1], expected_username)
+
+            # validate token was created
+            self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))
+
+
+class TestLoginWritePwdOkay(TestLoginBase):
+
+    CONFIG_FILE = '/tmp/logintest.cfg'
+
+    TOKEN = {
+        'user': 'st2admin',
+        'token': '44583f15945b4095afbf57058535ca64',
+        'expiry': '2017-02-12T00:53:09.632783Z',
+        'id': '589e607532ed3535707f10eb',
+        'metadata': {}
+    }
+
+    def __init__(self, *args, **kwargs):
+        super(TestLoginWritePwdOkay, self).__init__(
+            config_file=self.CONFIG_FILE, *args, **kwargs
+        )
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, 'OK')))
+    @mock.patch('st2client.commands.auth.getpass')
+    def runTest(self, mock_gp):
+        '''Test 'st2 login' functionality with --write-password flag set
+        '''
+
+        expected_username = self.TOKEN['user']
+        args = ['--config', self.CONFIG_FILE, 'login', expected_username, '--password',
+                'Password1!', '--write-password']
+
+        self.shell.run(args)
+
+        with open(self.CONFIG_FILE, 'r') as config_file:
+
+            for line in config_file.readlines():
+
+                # Make sure certain values are not present
+                self.assertFalse('olduser' in line)
+
+                # Make sure configured username is what we expect
+                if 'username' in line:
+                    self.assertEquals(line.split(' ')[2][:-1], expected_username)
+
+            # validate token was created
+            self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))
+
+
+class TestLoginUncaughtException(TestLoginBase):
+
+    CONFIG_FILE = '/tmp/logintest.cfg'
+
+    TOKEN = {
+        'user': 'st2admin',
+        'token': '44583f15945b4095afbf57058535ca64',
+        'expiry': '2017-02-12T00:53:09.632783Z',
+        'id': '589e607532ed3535707f10eb',
+        'metadata': {}
+    }
+
+    def __init__(self, *args, **kwargs):
+        super(TestLoginUncaughtException, self).__init__(
+            config_file=self.CONFIG_FILE, *args, **kwargs
+        )
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, 'OK')))
+    @mock.patch('st2client.commands.auth.getpass')
+    def runTest(self, mock_gp):
+        '''Test 'st2 login' ability to detect unhandled exceptions
+        '''
+
+        expected_username = self.TOKEN['user']
+        args = ['--config', self.CONFIG_FILE, 'login', expected_username]
+
+        mock_gp.getpass = mock.MagicMock(side_effect=Exception)
+
+        self.shell.run(args)
+        with CaptureStdout() as output:
+            retcode = self.shell.run(args)
+
+        self.assertTrue("Failed to log in as %s" % expected_username in output[0])
+        self.assertEqual(retcode, 0)
+
+
+class TestWhoami(TestLoginBase):
+
+    CONFIG_FILE = '/tmp/logintest.cfg'
+
+    USERNAME = 'st2foouser'
+
+    def __init__(self, *args, **kwargs):
+
+        new_config = ("""
+        [credentials]
+        username = %s
+        password = Password1!
+        """ % self.USERNAME)
+
+        super(TestWhoami, self).__init__(
+            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
+        )
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('-t', '--token', dest='token')
         self.parser.add_argument('--api-key', dest='api_key')
@@ -53,97 +313,31 @@ class TestWhoami(base.BaseCLITestCase):
     @mock.patch.object(
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    @mock.patch("st2client.commands.auth.ConfigParser")
-    @mock.patch("st2client.commands.auth.open")
-    @mock.patch("st2client.commands.auth.BaseCLIApp")
-    @mock.patch("st2client.commands.auth.getpass")
-    def test_whoami(self, mock_gp, mock_cli, mock_open, mock_cfg):
-        """Test 'st2 whoami' functionality
-        """
+    def test_whoami(self):
+        '''Test 'st2 whoami' functionality
+        '''
 
-        # Mock config
-        config_file = config_parser.ST2_CONFIG_PATH
-        self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
-        mock_cli.return_value._get_config_file_path.return_value = config_file
+        with CaptureStdout() as output:
+            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
 
-        self.shell.run(['whoami'])
-
-        mock_cfg.return_value.__getitem__.assert_called_with('credentials')
-        mock_cfg.return_value.__getitem__('credentials').__getitem__.assert_called_with('username')
-
-    @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    @mock.patch("st2client.commands.auth.ConfigParser")
-    @mock.patch("st2client.commands.auth.open")
-    @mock.patch("st2client.commands.auth.BaseCLIApp")
-    @mock.patch("st2client.commands.auth.getpass")
-    def test_whoami_not_logged_in(self, mock_gp, mock_cli, mock_open, mock_cfg):
-        """Test 'st2 whoami' functionality with a missing username
-        """
-
-        # Mock config
-        config_file = config_parser.ST2_CONFIG_PATH
-        self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
-        mock_cli.return_value._get_config_file_path.return_value = config_file
-
-        # Trigger keyerror exception when trying to access username.
-        # We have to do it this way because ConfigParser acts like a
-        # dict but also has methods like read()
-        attrs = {'__getitem__.side_effect': KeyError}
-        mock_cfg.return_value.__getitem__.return_value.configure_mock(**attrs)
-
-        # assert that the config field lookup caused the CLI to return an error code
-        # we are also using "--debug" flag to ensure the exception is re-raised once caught
-        self.assertEqual(
-            self.shell.run(['--debug', 'whoami']),
-            1
-        )
-
-        # Some additional asserts to ensure things are being called correctly
-        mock_cfg.return_value.__getitem__.assert_called_with('credentials')
-        mock_cfg.return_value.__getitem__.return_value.__getitem__.assert_called_with('username')
-
-    @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    @mock.patch("st2client.commands.auth.ConfigParser")
-    @mock.patch("st2client.commands.auth.open")
-    @mock.patch("st2client.commands.auth.BaseCLIApp")
-    @mock.patch("st2client.commands.auth.getpass")
-    def test_whoami_missing_credentials_section(self, mock_gp, mock_cli, mock_open, mock_cfg):
-        """Test 'st2 whoami' functionality with a missing credentials section
-        """
-
-        # mocked config that is empty (no credentials section at all)
-        mock_cfg.return_value.read.return_value = {}
-
-        # Mock config
-        config_file = config_parser.ST2_CONFIG_PATH
-        self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
-        mock_cli.return_value._get_config_file_path.return_value = config_file
-
-        # Trigger keyerror exception when trying to access username.
-        # We have to do it this way because ConfigParser acts like a
-        # dict but also has methods like read()
-        attrs = {'__getitem__.side_effect': KeyError}
-        mock_cfg.return_value.configure_mock(**attrs)
-
-        # assert that the config field lookup caused the CLI to return an error code
-        # we are also using "--debug" flag to ensure the exception is re-raised once caught
-        self.assertEqual(
-            self.shell.run(['--debug', 'whoami']),
-            1
-        )
-
-        # An additional assert to ensure things are being called correctly
-        mock_cfg.return_value.__getitem__.assert_called_with('credentials')
+        self.assertEqual(retcode, 0)
+        self.assertTrue(self.USERNAME in output[0])
 
 
-class TestLogin(base.BaseCLITestCase):
+class TestWhoamiMissingUser(TestLoginBase):
+
+    CONFIG_FILE = '/tmp/logintest.cfg'
 
     def __init__(self, *args, **kwargs):
-        super(TestLogin, self).__init__(*args, **kwargs)
+
+        new_config = ("""
+        [credentials]
+        foo = bar
+        """)
+
+        super(TestWhoamiMissingUser, self).__init__(
+            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
+        )
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('-t', '--token', dest='token')
         self.parser.add_argument('--api-key', dest='api_key')
@@ -152,166 +346,88 @@ class TestLogin(base.BaseCLITestCase):
     @mock.patch.object(
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    @mock.patch("st2client.commands.auth.ConfigParser")
-    @mock.patch("st2client.commands.auth.open")
-    @mock.patch("st2client.commands.auth.BaseCLIApp")
-    @mock.patch("st2client.commands.auth.getpass")
-    def test_login_password_and_config(self, mock_gp, mock_cli, mock_open, mock_cfg):
-        """Test the 'st2 login' functionality by providing a password, and specifying a configuration file
-        """
+    def test_whoami(self):
+        '''Test 'st2 whoami' functionality with a missing username
+        '''
 
-        args = ['--config', '/tmp/st2config', 'login', 'st2admin', '--password', 'Password1!']
-        expected_username = 'st2admin'
+        with CaptureStdout() as output:
+            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
 
-        mock_gp.getpass.return_value = "Password1!"
+        self.assertEqual('Unable to retrieve currently logged-in user', output[0])
+        self.assertEqual(retcode, 0)
 
-        # Mock config
-        config_file = args[args.index('--config') + 1]
-        self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
-        mock_cli.return_value._get_config_file_path.return_value = config_file
 
-        self.shell.run(args)
+class TestWhoamiMissingCreds(TestLoginBase):
 
-        # Ensure getpass was only used if "--password" option was omitted
-        mock_gp.getpass.assert_not_called()
+    CONFIG_FILE = '/tmp/logintest.cfg'
 
-        # Ensure token was generated
-        mock_cli.return_value._cache_auth_token.assert_called_once()
+    def __init__(self, *args, **kwargs):
 
-        # Build list of expected calls for mock_cfg
-        config_calls = [call('username', expected_username)]
+        new_config = ("""
+        [nonsense]
+        foo = bar
+        """)
 
-        # Ensure that the password field was removed from the config
-        mock_cfg.return_value.__getitem__.return_value.pop.assert_called_once_with('password', None)
-
-        # Run common assertions for testing login functionality
-        self._login_common_assertions(mock_gp, mock_cli, mock_open, mock_cfg,
-                                      config_calls, config_file)
-
-    @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    @mock.patch("st2client.commands.auth.ConfigParser")
-    @mock.patch("st2client.commands.auth.open")
-    @mock.patch("st2client.commands.auth.BaseCLIApp")
-    @mock.patch("st2client.commands.auth.getpass")
-    def test_login_no_password(self, mock_gp, mock_cli, mock_open, mock_cfg):
-        """Test the 'st2 login' functionality without the "--password" arg
-        """
-
-        args = ['login', 'st2admin']
-        expected_username = 'st2admin'
-
-        mock_gp.getpass.return_value = "Password1!"
-
-        config_file = config_parser.ST2_CONFIG_PATH
-        mock_cli.return_value._get_config_file_path.return_value = config_file
-
-        self.shell.run(args)
-
-        # Ensure getpass was only used if "--password" option was omitted
-        mock_gp.getpass.assert_called_once()
-
-        # Ensure token was generated
-        mock_cli.return_value._cache_auth_token.assert_called_once()
-
-        config_calls = [call('username', expected_username)]
-
-        # Ensure that the password field was removed from the config
-        mock_cfg.return_value.__getitem__.return_value.pop.assert_called_once_with('password', None)
-
-        # Run common assertions for testing login functionality
-        self._login_common_assertions(mock_gp, mock_cli, mock_open, mock_cfg,
-                                      config_calls, config_file)
-
-    @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    @mock.patch("st2client.commands.auth.ConfigParser")
-    @mock.patch("st2client.commands.auth.open")
-    @mock.patch("st2client.commands.auth.BaseCLIApp")
-    @mock.patch("st2client.commands.auth.getpass")
-    def test_login_password_with_write(self, mock_gp, mock_cli, mock_open, mock_cfg):
-        """Test the 'st2 login' functionality by providing a password, and writing it to config file
-        """
-
-        args = ['login', 'st2admin', '--password', 'Password1!', '-w']
-        expected_username = 'st2admin'
-
-        mock_gp.getpass.return_value = "Password1!"
-
-        config_file = config_parser.ST2_CONFIG_PATH
-        mock_cli.return_value._get_config_file_path.return_value = config_file
-
-        self.shell.run(args)
-
-        # Ensure getpass was only used if "--password" option was omitted
-        mock_gp.getpass.assert_not_called()
-
-        # Ensure token was generated
-        mock_cli.return_value._cache_auth_token.assert_called_once()
-
-        # Build list of expected calls for mock_cfg
-        config_calls = [call('username', expected_username), call('password', 'Password1!')]
-
-        # Run common assertions for testing login functionality
-        self._login_common_assertions(mock_gp, mock_cli, mock_open, mock_cfg,
-                                      config_calls, config_file)
-
-    @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    @mock.patch("st2client.commands.auth.ConfigParser")
-    @mock.patch("st2client.commands.auth.open")
-    @mock.patch("st2client.commands.auth.BaseCLIApp")
-    @mock.patch("st2client.commands.auth.getpass")
-    def test_login_no_password_with_write_and_config(self, mock_gp, mock_cli, mock_open, mock_cfg):
-        """Test the 'st2 login' functionality by providing config file and writing password to it
-        """
-
-        args = ['--config', '/tmp/st2config', 'login', 'st2admin', '-w']
-        expected_username = 'st2admin'
-
-        mock_gp.getpass.return_value = "Password1!"
-
-        # Mock config
-        config_file = args[args.index('--config') + 1]
-        self.shell._get_config_file_path = mock.MagicMock(return_value="/tmp/st2config")
-        mock_cli.return_value._get_config_file_path.return_value = config_file
-
-        self.shell.run(args)
-
-        mock_gp.getpass.assert_called_once()
-
-        # Ensure token was generated
-        mock_cli.return_value._cache_auth_token.assert_called_once()
-
-        # Build list of expected calls for mock_cfg
-        config_calls = [call('username', expected_username), call('password', 'Password1!')]
-
-        # Run common assertions for testing login functionality
-        self._login_common_assertions(mock_gp, mock_cli, mock_open, mock_cfg,
-                                      config_calls, config_file)
-
-    def _login_common_assertions(self, mock_gp, mock_cli, mock_open, mock_cfg,
-                                 config_calls, config_file):
-        # Ensure file was written to with a context manager
-        mock_open.return_value.__enter__.assert_called_once()
-        mock_open.return_value.__exit__.assert_called_once()
-
-        # Make sure 'credentials' key in config was initialized properly
-        mock_cfg.return_value.__setitem__.assert_has_calls(
-            [call('credentials', {})], any_order=True
+        super(TestWhoamiMissingCreds, self).__init__(
+            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
         )
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-t', '--token', dest='token')
+        self.parser.add_argument('--api-key', dest='api_key')
+        self.shell = shell.Shell()
 
-        # Ensure configuration was performed properly
-        mock_open.assert_called_once_with(config_file, 'w')
-        mock_cfg.return_value.read.assert_called_once_with(config_file)
-        mock_cfg.return_value.add_section.assert_called_once_with('credentials')
-        mock_cfg.return_value.__getitem__.return_value.__setitem__.assert_has_calls(
-            config_calls,
-            any_order=True
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+    def test_whoami(self):
+        '''Test 'st2 whoami' functionality with a missing credentials section
+        '''
+
+        with CaptureStdout() as output:
+            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
+
+        self.assertEqual('Unable to retrieve currently logged-in user', output[0])
+        self.assertEqual(retcode, 0)
+
+
+class TestWhoamiUncaughtException(TestLoginBase):
+
+    CONFIG_FILE = '/tmp/logintest.cfg'
+
+    USERNAME = 'st2foouser'
+
+    def __init__(self, *args, **kwargs):
+
+        new_config = ("""
+        [credentials]
+        username = %s
+        password = Password1!
+        """ % self.USERNAME)
+
+        super(TestWhoamiUncaughtException, self).__init__(
+            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
         )
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-t', '--token', dest='token')
+        self.parser.add_argument('--api-key', dest='api_key')
+        self.shell = shell.Shell()
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+    @mock.patch('st2client.commands.auth.BaseCLIApp')
+    def test_whoami(self, mock_cli):
+        '''Test 'st2 whoami' ability to detect unhandled exceptions
+        '''
+
+        # Only mocking "BaseCLIApp" here in order to generate an exception for this specific test
+        mock_cli.return_value._get_config_file_path = mock.MagicMock(side_effect=Exception)
+
+        with CaptureStdout() as output:
+            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
+
+        self.assertEqual("Unable to retrieve currently logged-in user", output[0])
+        self.assertEqual(retcode, 0)
 
 
 class TestAuthToken(base.BaseCLITestCase):
