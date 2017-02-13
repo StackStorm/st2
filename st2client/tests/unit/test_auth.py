@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 import os
 import uuid
 import json
@@ -21,8 +22,8 @@ import tempfile
 import requests
 import argparse
 import logging
-from cStringIO import StringIO
-import sys
+
+from six import StringIO
 
 from tests import base
 from st2client import shell
