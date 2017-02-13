@@ -73,6 +73,7 @@ class PermissionType(Enum):
     ACTION_ALIAS_CREATE = 'action_alias_create'
     ACTION_ALIAS_MODIFY = 'action_alias_modify'
     ACTION_ALIAS_MATCH = 'action_alias_match'
+    ACTION_ALIAS_HELP = 'action_alias_help'
     ACTION_ALIAS_DELETE = 'action_alias_delete'
     ACTION_ALIAS_ALL = 'action_alias_all'
 
@@ -276,6 +277,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.ACTION_ALIAS_CREATE,
         PermissionType.ACTION_ALIAS_MODIFY,
         PermissionType.ACTION_ALIAS_MATCH,
+        PermissionType.ACTION_ALIAS_HELP,
         PermissionType.ACTION_ALIAS_DELETE,
         PermissionType.ACTION_ALIAS_ALL
     ],
@@ -361,7 +363,8 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
                                          ' "action_alias_view" permission.'),
     PermissionType.ACTION_ALIAS_MODIFY: ('Ability to modify (update) an existing action alias. '
                                          'Also implies "action_alias_view" permission.'),
-    PermissionType.ACTION_ALIAS_MATCH: ('Ability use action alias match API endpoint.'),
+    PermissionType.ACTION_ALIAS_MATCH: ('Ability to use action alias match API endpoint.'),
+    PermissionType.ACTION_ALIAS_HELP: ('Ability to use action alias help API endpoint.'),
     PermissionType.ACTION_ALIAS_DELETE: ('Ability to delete an existing action alias. Also '
                                          'imples "action_alias_view" permission.'),
     PermissionType.ACTION_ALIAS_ALL: ('Ability to perform all the supported operations on a '

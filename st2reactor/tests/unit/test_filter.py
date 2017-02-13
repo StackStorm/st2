@@ -158,7 +158,7 @@ class FilterTest(DbTestCase):
         # Using a variable in pattern, referencing an inexistent datastore value
         rule.criteria = {'trigger.p1': {
             'type': 'equals',
-            'pattern': '{{ system.inexistent_value }}'}
+            'pattern': '{{ st2kv.system.inexistent_value }}'}
         }
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertFalse(f.filter())
@@ -168,7 +168,12 @@ class FilterTest(DbTestCase):
         mock_result.test_value_1 = 'non matching'
         mock_KeyValueLookup.return_value = mock_result
 
-        rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': '{{ system.test_value_1 }}'}}
+        rule.criteria = {
+            'trigger.p1': {
+                'type': 'equals',
+                'pattern': '{{ st2kv.system.test_value_1 }}'
+            }
+        }
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertFalse(f.filter())
 
@@ -177,7 +182,12 @@ class FilterTest(DbTestCase):
         mock_result.test_value_2 = 'v1'
         mock_KeyValueLookup.return_value = mock_result
 
-        rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': '{{ system.test_value_2 }}'}}
+        rule.criteria = {
+            'trigger.p1': {
+                'type': 'equals',
+                'pattern': '{{ st2kv.system.test_value_2 }}'
+            }
+        }
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter())
 
@@ -186,7 +196,12 @@ class FilterTest(DbTestCase):
         mock_result.test_value_3 = 'YYY'
         mock_KeyValueLookup.return_value = mock_result
 
-        rule.criteria = {'trigger.p2': {'type': 'equals', 'pattern': '{{ system.test_value_3 }}'}}
+        rule.criteria = {
+            'trigger.p2': {
+                'type': 'equals',
+                'pattern': '{{ st2kv.system.test_value_3 }}'
+            }
+        }
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertFalse(f.filter())
 
@@ -195,9 +210,11 @@ class FilterTest(DbTestCase):
         mock_result.test_value_3 = 'YYY'
         mock_KeyValueLookup.return_value = mock_result
 
-        rule.criteria = {'trigger.p2': {
-            'type': 'equals',
-            'pattern': 'pre{{ system.test_value_3 }}post'}
+        rule.criteria = {
+            'trigger.p2': {
+                'type': 'equals',
+                'pattern': 'pre{{ st2kv.system.test_value_3 }}post'
+            }
         }
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter())

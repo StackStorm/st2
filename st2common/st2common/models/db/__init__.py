@@ -15,6 +15,7 @@
 
 import copy
 import importlib
+import traceback
 import ssl as ssl_lib
 
 import six
@@ -113,7 +114,14 @@ def db_ensure_indexes():
         class_name = model_class.__name__
 
         # Note: We need to ensure / create new indexes before removing extra ones
-        model_class.ensure_indexes()
+        try:
+            model_class.ensure_indexes()
+        except Exception as e:
+            tb_msg = traceback.format_exc()
+            msg = 'Failed to ensure indexes for model "%s": %s' % (class_name, str(e))
+            msg += '\n\n' + tb_msg
+            exc_cls = type(e)
+            raise exc_cls(msg)
 
         if model_class.__name__ in INDEX_CLEANUP_MODEL_NAMES_BLACKLIST:
             LOG.debug('Skipping index cleanup for blacklisted model "%s"...' % (class_name))

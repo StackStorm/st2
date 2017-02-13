@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ast
 import os
 import shutil
 import tempfile
@@ -53,9 +52,16 @@ class WiringTest(base.TestWorkflowExecution):
         self._assert_success(execution, num_tasks=1)
         self.assertIn('stdout', execution.result)
 
-    def test_complex_workbook(self):
+    def test_complex_workbook_with_yaql(self):
         execution = self._execute_workflow(
             'examples.mistral-workbook-complex', {'vm_name': 'demo1'})
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=8)
+        self.assertIn('vm_id', execution.result)
+
+    def test_complex_workbook_with_jinja(self):
+        execution = self._execute_workflow(
+            'examples.mistral-jinja-workbook-complex', {'vm_name': 'demo2'})
         execution = self._wait_for_completion(execution)
         self._assert_success(execution, num_tasks=8)
         self.assertIn('vm_id', execution.result)
@@ -114,8 +120,8 @@ class WiringTest(base.TestWorkflowExecution):
 
         task_results = execution.result.get('tasks', [])
         self.assertGreater(len(task_results), 0)
-        expected_state_info = {'error': 'Execution canceled by user.'}
-        self.assertDictEqual(ast.literal_eval(task_results[0]['state_info']), expected_state_info)
+        expected_state_info = '{error: Execution canceled by user.}'
+        self.assertEqual(task_results[0]['state_info'], expected_state_info)
 
     def test_basic_rerun(self):
         path = self.temp_dir_path

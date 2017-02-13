@@ -50,7 +50,7 @@ from st2client.commands import rule_enforcement
 from st2client.config import set_config
 from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_loggers
-from st2client.commands.auth import TokenCreateCommand
+from st2client.commands.auth import TokenCreateCommand, LoginCommand
 
 __all__ = [
     'Shell'
@@ -65,7 +65,8 @@ class Shell(BaseCLIApp):
     LOG = LOGGER
 
     SKIP_AUTH_CLASSES = [
-        TokenCreateCommand.__name__
+        TokenCreateCommand.__name__,
+        LoginCommand.__name__
     ]
 
     def __init__(self):
@@ -188,6 +189,9 @@ class Shell(BaseCLIApp):
             'for reuse in sensors, actions, and rules.',
             self, self.subparsers)
 
+        self.commands['login'] = auth.LoginCommand(
+            models.Token, self, self.subparsers, name='login')
+
         self.commands['pack'] = pack.PackBranch(
             'A group of related integration resources: '
             'actions, rules, and sensors.',
@@ -234,6 +238,9 @@ class Shell(BaseCLIApp):
         self.commands['webhook'] = webhook.WebhookBranch(
             'Webhooks.',
             self, self.subparsers)
+
+        self.commands['whoami'] = auth.WhoamiCommand(
+            models.Token, self, self.subparsers, name='whoami')
 
         self.commands['timer'] = timer.TimerBranch(
             'Timers.',

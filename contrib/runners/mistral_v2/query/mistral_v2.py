@@ -1,11 +1,13 @@
 import uuid
 
+from mistralclient.api import base as mistralclient_base
 from mistralclient.api import client as mistral
 from oslo_config import cfg
 import retrying
 
 from st2common.query.base import Querier
 from st2common.constants import action as action_constants
+from st2common.exceptions import resultstracker as exceptions
 from st2common import log as logging
 from st2common.services import action as action_service
 from st2common.util import jsonify
@@ -21,12 +23,18 @@ DONE_STATES = {
     'CANCELLED': action_constants.LIVEACTION_STATUS_CANCELED
 }
 
+ACTIVE_STATES = {
+    'RUNNING': action_constants.LIVEACTION_STATUS_RUNNING
+}
+
 
 def get_instance():
     return MistralResultsQuerier(str(uuid.uuid4()))
 
 
 class MistralResultsQuerier(Querier):
+    delete_state_object_on_error = False
+
     def __init__(self, id, *args, **kwargs):
         super(MistralResultsQuerier, self).__init__(*args, **kwargs)
         self._base_url = get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
@@ -62,6 +70,9 @@ class MistralResultsQuerier(Querier):
         try:
             result = self._get_workflow_result(mistral_exec_id)
             result['tasks'] = self._get_workflow_tasks(mistral_exec_id)
+        except exceptions.ReferenceNotFoundError as exc:
+            LOG.exception('[%s] Unable to find reference.', execution_id)
+            return (action_constants.LIVEACTION_STATUS_FAILED, exc.message)
         except Exception:
             LOG.exception('[%s] Unable to fetch mistral workflow result and tasks. %s',
                           execution_id, query_context)
@@ -83,7 +94,12 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: (``str``, ``dict``)
         """
-        execution = self._client.executions.get(exec_id)
+        try:
+            execution = self._client.executions.get(exec_id)
+        except mistralclient_base.APIException as mistral_exc:
+            if 'not found' in mistral_exc.message:
+                raise exceptions.ReferenceNotFoundError(mistral_exc.message)
+            raise mistral_exc
 
         result = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else {}
 
@@ -101,10 +117,15 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: ``list``
         """
-        wf_tasks = [
-            self._client.tasks.get(task.id)
-            for task in self._client.tasks.list(workflow_execution_id=exec_id)
-        ]
+        wf_tasks = []
+
+        try:
+            for task in self._client.tasks.list(workflow_execution_id=exec_id):
+                wf_tasks.append(self._client.tasks.get(task.id))
+        except mistralclient_base.APIException as mistral_exc:
+            if 'not found' in mistral_exc.message:
+                raise exceptions.ReferenceNotFoundError(mistral_exc.message)
+            raise mistral_exc
 
         return [self._format_task_result(task=wf_task.to_dict()) for wf_task in wf_tasks]
 
@@ -132,19 +153,23 @@ class MistralResultsQuerier(Querier):
         # Get the liveaction object to compare state.
         is_action_canceled = action_service.is_action_canceled_or_canceling(execution_id)
 
-        # Identify the list of tasks that are not in completed states.
-        active_tasks = [t for t in tasks if t['state'] not in DONE_STATES]
+        # Identify the list of tasks that are not still running.
+        active_tasks = [t for t in tasks if t['state'] in ACTIVE_STATES]
 
         # Keep the execution in running state if there are active tasks.
         # In certain use cases, Mistral sets the workflow state to
         # completion prior to task completion.
         if is_action_canceled and active_tasks:
             status = action_constants.LIVEACTION_STATUS_CANCELING
-        elif wf_state not in DONE_STATES:
-            status = action_constants.LIVEACTION_STATUS_RUNNING
+        elif is_action_canceled and not active_tasks and wf_state not in DONE_STATES:
+            status = action_constants.LIVEACTION_STATUS_CANCELING
+        elif not is_action_canceled and active_tasks and wf_state == 'CANCELLED':
+            status = action_constants.LIVEACTION_STATUS_CANCELING
         elif wf_state in DONE_STATES and active_tasks:
             status = action_constants.LIVEACTION_STATUS_RUNNING
-        else:
+        elif wf_state in DONE_STATES and not active_tasks:
             status = DONE_STATES[wf_state]
+        else:
+            status = action_constants.LIVEACTION_STATUS_RUNNING
 
         return status

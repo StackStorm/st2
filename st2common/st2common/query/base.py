@@ -39,6 +39,8 @@ __all__ = [
 
 @six.add_metaclass(abc.ABCMeta)
 class Querier(object):
+    delete_state_object_on_error = True
+
     def __init__(self, threads_pool_size=10, query_interval=1, empty_q_sleep_time=5,
                  no_workers_sleep_time=1, container_service=None):
         self._query_threads_pool_size = threads_pool_size
@@ -91,8 +93,9 @@ class Querier(object):
             (status, results) = self.query(execution_id, actual_query_context)
         except:
             LOG.exception('Failed querying results for liveaction_id %s.', execution_id)
-            self._delete_state_object(query_context)
-            LOG.debug('Remove state object %s.', query_context)
+            if self.delete_state_object_on_error:
+                self._delete_state_object(query_context)
+                LOG.debug('Removed state object %s.', query_context)
             return
 
         liveaction_db = None
@@ -100,19 +103,23 @@ class Querier(object):
             liveaction_db = self._update_action_results(execution_id, status, results)
         except Exception:
             LOG.exception('Failed updating action results for liveaction_id %s', execution_id)
-            self._delete_state_object(query_context)
+            if self.delete_state_object_on_error:
+                self._delete_state_object(query_context)
+                LOG.debug('Removed state object %s.', query_context)
             return
 
         if status in action_constants.LIVEACTION_COMPLETED_STATES:
             action_db = get_action_by_ref(liveaction_db.action)
-            if not action_db:
+
+            if action_db:
+                if status != action_constants.LIVEACTION_STATUS_CANCELED:
+                    self._invoke_post_run(liveaction_db, action_db)
+            else:
                 LOG.exception('Unable to invoke post run. Action %s '
                               'no longer exists.' % liveaction_db.action)
-                self._delete_state_object(query_context)
-                return
-            if status != action_constants.LIVEACTION_STATUS_CANCELED:
-                self._invoke_post_run(liveaction_db, action_db)
+
             self._delete_state_object(query_context)
+
             return
 
         self._query_contexts.put((time.time(), query_context))

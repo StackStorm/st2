@@ -426,11 +426,13 @@ class ActionAliasPermissionsResolver(ContentPackResourcePermissionsResolver):
 
     def user_has_permission(self, user_db, permission_type):
         assert permission_type in [PermissionType.ACTION_ALIAS_LIST,
-                                   PermissionType.ACTION_ALIAS_MATCH]
+                                   PermissionType.ACTION_ALIAS_MATCH,
+                                   PermissionType.ACTION_ALIAS_HELP]
 
         if permission_type == PermissionType.ACTION_ALIAS_LIST:
             return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
-        elif permission_type == PermissionType.ACTION_ALIAS_MATCH:
+        elif permission_type in [PermissionType.ACTION_ALIAS_MATCH,
+                                 PermissionType.ACTION_ALIAS_HELP]:
             return self._user_has_global_permission(user_db=user_db,
                                                     permission_type=permission_type)
         else:
