@@ -100,24 +100,17 @@ class ActionAliasController(resource.ContentPackResourceController):
             LOG.exception('Command "%s" matched (%s) patterns.', e.command, len(e.matches))
             return abort(http_client.BAD_REQUEST, str(e))
 
-    # @request_user_has_permission(permission_type=PermissionType.ACTION_ALIAS_HELP)
-    # @jsexpose(arg_types=[str, str, int], body_cls=ActionAliasHelpAPI,
-    # status_code=http_client.ACCEPTED)
-    def help(self, action_alias_help_api, **kwargs):
+    def help(self, filter, pack, limit, offset, **kwargs):
         """
             Get available help strings for action aliases.
 
             Handles requests:
-                POST /actionalias/help
+                GET /actionalias/help
         """
-        filter_ = action_alias_help_api.filter
-        pack = action_alias_help_api.pack
-        limit = action_alias_help_api.limit
-        offset = action_alias_help_api.offset
-
         try:
-            aliases = super(ActionAliasController, self)._get_all(**kwargs)
-            return generate_helpstring_result(aliases, filter_, pack, limit, offset)
+            aliases_resp = super(ActionAliasController, self)._get_all(**kwargs)
+            aliases = [ActionAliasAPI(**alias) for alias in aliases_resp.json]
+            return generate_helpstring_result(aliases, filter, pack, int(limit), int(offset))
         except (TypeError) as e:
             LOG.exception('Helpstring request contains an invalid data type: %s.', str(e))
             return abort(http_client.BAD_REQUEST, str(e))

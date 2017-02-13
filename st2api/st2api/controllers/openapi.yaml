@@ -364,6 +364,8 @@ paths:
   /actionalias/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_one
+      x-requirements:
+        ref_or_id: (?!match)(?!help).*
       description: |
         Get a specific actionalias based on ref or id.
       parameters:
@@ -462,6 +464,44 @@ paths:
           description: Action alias match pattern
           schema:
             $ref: '#/definitions/ActionAliasMatch'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /actionalias/help:
+    get:
+      operationId: st2api.controllers.v1.actionalias:action_alias_controller.help
+      x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_HELP }}
+      description: |
+        Get available help strings for action aliases.
+      parameters:
+        - name: pack
+          in: query
+          description: Entity pack
+          type: string
+        - name: filter
+          in: query
+          description: Regex filter
+          type: string
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
+      responses:
+        '200':
+          description: Action alias match pattern
+          schema:
+            $ref: '#/definitions/ActionAliasHelp'
           examples:
             application/json:
               ref: 'core.local'
@@ -3071,6 +3111,25 @@ definitions:
         description:
           description: Description of the Action Alias
           type: string
+  ActionAliasHelp:
+    type: object
+    properties:
+      avaliable:
+        description: Total number of matching help strings
+        type: integer
+      helpstrings:
+        description: List of matched helpstrings
+        type: array
+        items:
+          type: object
+          properties:
+            pack:
+              type: string
+            display:
+              type: string
+            description:
+              description: Description of the Action Alias
+              type: string
   AliasExecution:
     type: object
   Execution:
