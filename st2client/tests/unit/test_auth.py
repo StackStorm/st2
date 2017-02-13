@@ -110,148 +110,6 @@ class TestLoginBase(base.BaseCLITestCase):
             os.remove(self.DOTST2_PATH + file)
 
 
-class TestWhoami(TestLoginBase):
-
-    CONFIG_FILE = '/tmp/logintest.cfg'
-
-    USERNAME = 'st2foouser'
-
-    def __init__(self, *args, **kwargs):
-
-        new_config = ("""
-        [credentials]
-        username = %s
-        password = Password1!
-        """ % self.USERNAME)
-
-        super(TestWhoami, self).__init__(
-            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
-        )
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-t', '--token', dest='token')
-        self.parser.add_argument('--api-key', dest='api_key')
-        self.shell = shell.Shell()
-
-    @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    def test_whoami(self):
-        '''Test 'st2 whoami' functionality
-        '''
-
-        with CaptureStdout() as output:
-            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
-
-        self.assertEqual(retcode, 0)
-        self.assertTrue(self.USERNAME in output[0])
-
-
-class TestWhoamiMissingUser(TestLoginBase):
-
-    CONFIG_FILE = '/tmp/logintest.cfg'
-
-    def __init__(self, *args, **kwargs):
-
-        new_config = ("""
-        [credentials]
-        foo = bar
-        """)
-
-        super(TestWhoamiMissingUser, self).__init__(
-            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
-        )
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-t', '--token', dest='token')
-        self.parser.add_argument('--api-key', dest='api_key')
-        self.shell = shell.Shell()
-
-    @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    def test_whoami(self):
-        '''Test 'st2 whoami' functionality with a missing username
-        '''
-
-        with CaptureStdout() as output:
-            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
-
-        self.assertEqual('Unable to retrieve currently logged-in user', output[0])
-        self.assertEqual(retcode, 0)
-
-
-class TestWhoamiMissingCreds(TestLoginBase):
-
-    CONFIG_FILE = '/tmp/logintest.cfg'
-
-    def __init__(self, *args, **kwargs):
-
-        new_config = ("""
-        [nonsense]
-        foo = bar
-        """)
-
-        super(TestWhoamiMissingCreds, self).__init__(
-            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
-        )
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-t', '--token', dest='token')
-        self.parser.add_argument('--api-key', dest='api_key')
-        self.shell = shell.Shell()
-
-    @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    def test_whoami(self):
-        '''Test 'st2 whoami' functionality with a missing credentials section
-        '''
-
-        with CaptureStdout() as output:
-            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
-
-        self.assertEqual('Unable to retrieve currently logged-in user', output[0])
-        self.assertEqual(retcode, 0)
-
-
-class TestWhoamiUncaughtException(TestLoginBase):
-
-    CONFIG_FILE = '/tmp/logintest.cfg'
-
-    USERNAME = 'st2foouser'
-
-    def __init__(self, *args, **kwargs):
-
-        new_config = ("""
-        [credentials]
-        username = %s
-        password = Password1!
-        """ % self.USERNAME)
-
-        super(TestWhoamiUncaughtException, self).__init__(
-            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
-        )
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-t', '--token', dest='token')
-        self.parser.add_argument('--api-key', dest='api_key')
-        self.shell = shell.Shell()
-
-    @mock.patch.object(
-        requests, 'post',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    @mock.patch('st2client.commands.auth.BaseCLIApp')
-    def test_whoami(self, mock_cli):
-        '''Test 'st2 whoami' ability to detect unhandled exceptions
-        '''
-
-        # Only mocking "BaseCLIApp" here in order to generate an exception for this specific test
-        mock_cli.return_value._get_config_file_path = mock.MagicMock(side_effect=Exception)
-
-        with CaptureStdout() as output:
-            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
-
-        self.assertEqual("Unable to retrieve currently logged-in user", output[0])
-        self.assertEqual(retcode, 0)
-
-
 class TestLoginPasswordAndConfig(TestLoginBase):
 
     CONFIG_FILE = '/tmp/logintest.cfg'
@@ -427,6 +285,148 @@ class TestLoginUncaughtException(TestLoginBase):
             retcode = self.shell.run(args)
 
         self.assertTrue("Failed to log in as %s" % expected_username in output[0])
+        self.assertEqual(retcode, 0)
+
+
+class TestWhoami(TestLoginBase):
+
+    CONFIG_FILE = '/tmp/logintest.cfg'
+
+    USERNAME = 'st2foouser'
+
+    def __init__(self, *args, **kwargs):
+
+        new_config = ("""
+        [credentials]
+        username = %s
+        password = Password1!
+        """ % self.USERNAME)
+
+        super(TestWhoami, self).__init__(
+            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
+        )
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-t', '--token', dest='token')
+        self.parser.add_argument('--api-key', dest='api_key')
+        self.shell = shell.Shell()
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+    def test_whoami(self):
+        '''Test 'st2 whoami' functionality
+        '''
+
+        with CaptureStdout() as output:
+            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
+
+        self.assertEqual(retcode, 0)
+        self.assertTrue(self.USERNAME in output[0])
+
+
+class TestWhoamiMissingUser(TestLoginBase):
+
+    CONFIG_FILE = '/tmp/logintest.cfg'
+
+    def __init__(self, *args, **kwargs):
+
+        new_config = ("""
+        [credentials]
+        foo = bar
+        """)
+
+        super(TestWhoamiMissingUser, self).__init__(
+            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
+        )
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-t', '--token', dest='token')
+        self.parser.add_argument('--api-key', dest='api_key')
+        self.shell = shell.Shell()
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+    def test_whoami(self):
+        '''Test 'st2 whoami' functionality with a missing username
+        '''
+
+        with CaptureStdout() as output:
+            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
+
+        self.assertEqual('Unable to retrieve currently logged-in user', output[0])
+        self.assertEqual(retcode, 0)
+
+
+class TestWhoamiMissingCreds(TestLoginBase):
+
+    CONFIG_FILE = '/tmp/logintest.cfg'
+
+    def __init__(self, *args, **kwargs):
+
+        new_config = ("""
+        [nonsense]
+        foo = bar
+        """)
+
+        super(TestWhoamiMissingCreds, self).__init__(
+            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
+        )
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-t', '--token', dest='token')
+        self.parser.add_argument('--api-key', dest='api_key')
+        self.shell = shell.Shell()
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+    def test_whoami(self):
+        '''Test 'st2 whoami' functionality with a missing credentials section
+        '''
+
+        with CaptureStdout() as output:
+            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
+
+        self.assertEqual('Unable to retrieve currently logged-in user', output[0])
+        self.assertEqual(retcode, 0)
+
+
+class TestWhoamiUncaughtException(TestLoginBase):
+
+    CONFIG_FILE = '/tmp/logintest.cfg'
+
+    USERNAME = 'st2foouser'
+
+    def __init__(self, *args, **kwargs):
+
+        new_config = ("""
+        [credentials]
+        username = %s
+        password = Password1!
+        """ % self.USERNAME)
+
+        super(TestWhoamiUncaughtException, self).__init__(
+            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
+        )
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-t', '--token', dest='token')
+        self.parser.add_argument('--api-key', dest='api_key')
+        self.shell = shell.Shell()
+
+    @mock.patch.object(
+        requests, 'post',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
+    @mock.patch('st2client.commands.auth.BaseCLIApp')
+    def test_whoami(self, mock_cli):
+        '''Test 'st2 whoami' ability to detect unhandled exceptions
+        '''
+
+        # Only mocking "BaseCLIApp" here in order to generate an exception for this specific test
+        mock_cli.return_value._get_config_file_path = mock.MagicMock(side_effect=Exception)
+
+        with CaptureStdout() as output:
+            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
+
+        self.assertEqual("Unable to retrieve currently logged-in user", output[0])
         self.assertEqual(retcode, 0)
 
 
