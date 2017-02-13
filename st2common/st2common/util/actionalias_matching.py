@@ -37,7 +37,7 @@ def list_format_strings_from_aliases(aliases):
     '''
     patterns = []
     for alias in aliases:
-        for format_ in alias.get('formats', []):
+        for format_ in alias.formats:
             display, representations = normalise_alias_format_string(format_)
             if display and len(representations) == 0:
                 patterns.extend([(display, [])])

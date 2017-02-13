@@ -80,7 +80,7 @@ class ActionAliasController(resource.ContentPackResourceController):
         try:
             # 1. Get aliases
             aliases_resp = super(ActionAliasController, self)._get_all(**kwargs)
-            aliases = aliases_resp.json
+            aliases = [ActionAliasAPI(**alias) for alias in aliases_resp.json]
             # 2. Match alias(es) to command
             matches = match_command_to_alias(command, aliases)
             if len(matches) > 1:
