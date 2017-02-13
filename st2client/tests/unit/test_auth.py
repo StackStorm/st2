@@ -69,12 +69,11 @@ class TestLoginBase(base.BaseCLITestCase):
     """
 
     DOTST2_PATH = os.path.expanduser('~/.st2/')
+    CONFIG_FILE = '/tmp/logintest.cfg'
+    CONFIG_CONTENTS = None
 
-    def __init__(self, config_file='~/.st2/config', config_contents=None):
-        super(TestLoginBase, self).__init__()
-
-        self.config_file = config_file
-        self.config_contents = config_contents
+    def __init__(self, *args, **kwargs):
+        super(TestLoginBase, self).__init__(*args, **kwargs)
 
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('-t', '--token', dest='token')
@@ -85,13 +84,13 @@ class TestLoginBase(base.BaseCLITestCase):
         super(TestLoginBase, self).setUp()
 
         # Remove any existing config file
-        if os.path.isfile(self.config_file):
-            os.remove(self.config_file)
+        if os.path.isfile(self.CONFIG_FILE):
+            os.remove(self.CONFIG_FILE)
 
-        with open(self.config_file, 'w') as cfg:
+        with open(self.CONFIG_FILE, 'w') as cfg:
             # If a test passes in it's own config, we write that instead
-            if self.config_contents:
-                for line in self.config_contents.split('\n'):
+            if self.CONFIG_CONTENTS:
+                for line in self.CONFIG_CONTENTS.split('\n'):
                     cfg.write("%s\n" % line.strip())
             else:
 
@@ -105,7 +104,7 @@ class TestLoginBase(base.BaseCLITestCase):
         super(TestLoginBase, self).tearDown()
 
         # Clean up config file
-        os.remove(self.config_file)
+        os.remove(self.CONFIG_FILE)
 
         # Clean up tokens
         for file in [f for f in os.listdir(self.DOTST2_PATH) if 'token-' in f]:
@@ -124,10 +123,6 @@ class TestLoginPasswordAndConfig(TestLoginBase):
         'metadata': {}
     }
 
-    def __init__(self, *args, **kwargs):
-        super(TestLoginPasswordAndConfig, self).__init__(
-            config_file=self.CONFIG_FILE)
-
     @mock.patch.object(
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, 'OK')))
@@ -142,7 +137,6 @@ class TestLoginPasswordAndConfig(TestLoginBase):
         self.shell.run(args)
 
         with open(self.CONFIG_FILE, 'r') as config_file:
-
             for line in config_file.readlines():
 
                 # Make sure certain values are not present
@@ -168,10 +162,6 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
         'id': '589e607532ed3535707f10eb',
         'metadata': {}
     }
-
-    def __init__(self, *args, **kwargs):
-        super(TestLoginIntPwdAndConfig, self).__init__(
-            config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
@@ -216,10 +206,6 @@ class TestLoginWritePwdOkay(TestLoginBase):
         'metadata': {}
     }
 
-    def __init__(self, *args, **kwargs):
-        super(TestLoginWritePwdOkay, self).__init__(
-            config_file=self.CONFIG_FILE)
-
     @mock.patch.object(
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, 'OK')))
@@ -261,10 +247,6 @@ class TestLoginUncaughtException(TestLoginBase):
         'metadata': {}
     }
 
-    def __init__(self, *args, **kwargs):
-        super(TestLoginUncaughtException, self).__init__(
-            config_file=self.CONFIG_FILE)
-
     @mock.patch.object(
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, 'OK')))
@@ -292,15 +274,11 @@ class TestWhoami(TestLoginBase):
 
     USERNAME = 'st2foouser'
 
-    CONFIG_CONTENT = """
+    CONFIG_CONTENTS = """
     [credentials]
     username = %s
     password = Password1!
     """ % USERNAME
-
-    def __init__(self, *args, **kwargs):
-        super(TestWhoami, self).__init__(
-            config_contents=self.CONFIG_CONTENT, config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
@@ -320,14 +298,10 @@ class TestWhoamiMissingUser(TestLoginBase):
 
     CONFIG_FILE = '/tmp/logintest.cfg'
 
-    CONFIG_CONTENT = ("""
+    CONFIG_CONTENTS = ("""
     [credentials]
     foo = bar
     """)
-
-    def __init__(self, *args, **kwargs):
-        super(TestWhoamiMissingUser, self).__init__(
-            config_contents=self.CONFIG_CONTENT, config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
@@ -347,14 +321,10 @@ class TestWhoamiMissingCreds(TestLoginBase):
 
     CONFIG_FILE = '/tmp/logintest.cfg'
 
-    CONFIG_CONTENT = ("""
+    CONFIG_CONTENTS = ("""
     [nonsense]
     foo = bar
     """)
-
-    def __init__(self, *args, **kwargs):
-        super(TestWhoamiMissingCreds, self).__init__(
-            config_contents=self.CONFIG_CONTENT, config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
@@ -376,15 +346,11 @@ class TestWhoamiUncaughtException(TestLoginBase):
 
     USERNAME = 'st2foouser'
 
-    CONFIG_CONTENT = ("""
+    CONFIG_CONTENTS = ("""
     [credentials]
     username = %s
     password = Password1!
     """ % USERNAME)
-
-    def __init__(self, *args, **kwargs):
-        super(TestWhoamiUncaughtException, self).__init__(
-            config_contents=self.CONFIG_CONTENT, config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
