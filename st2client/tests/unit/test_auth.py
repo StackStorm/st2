@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import os
 import uuid
 import json
@@ -22,8 +21,6 @@ import tempfile
 import requests
 import argparse
 import logging
-
-from six import StringIO
 
 from tests import base
 from st2client import shell
@@ -42,23 +39,6 @@ RULE = {
 }
 
 
-class CaptureStdout(list):
-    """This is a bit of borrowed code to make it easier to read from stdout
-
-    It's meant to be used within a context manager.
-    """
-
-    def __enter__(self):
-        self._stdout = sys.stdout
-        sys.stdout = self._stringio = StringIO()
-        return self
-
-    def __exit__(self, *args):
-        self.extend(self._stringio.getvalue().splitlines())
-        del self._stringio    # free up some memory
-        sys.stdout = self._stdout
-
-
 class TestLoginBase(base.BaseCLITestCase):
     """
     A base class for testing related to 'st2 login' commands
@@ -67,6 +47,8 @@ class TestLoginBase(base.BaseCLITestCase):
     since the tests create actual files on the filesystem - as well as to cut down
     on duplicate code in each test class
     """
+
+    capture_output = True
 
     DOTST2_PATH = os.path.expanduser('~/.st2/')
     CONFIG_FILE = tempfile.mkstemp(suffix='st2.conf')
@@ -133,7 +115,6 @@ class TestLoginPasswordAndConfig(TestLoginBase):
 
         with open(self.CONFIG_FILE, 'r') as config_file:
             for line in config_file.readlines():
-
                 # Make sure certain values are not present
                 self.assertFalse('password' in line)
                 self.assertFalse('olduser' in line)
@@ -256,10 +237,9 @@ class TestLoginUncaughtException(TestLoginBase):
         mock_gp.getpass = mock.MagicMock(side_effect=Exception)
 
         self.shell.run(args)
-        with CaptureStdout() as output:
-            retcode = self.shell.run(args)
+        retcode = self.shell.run(args)
 
-        self.assertTrue("Failed to log in as %s" % expected_username in output[0])
+        self.assertTrue('Failed to log in as %s' % expected_username in self.stdout.getvalue())
         self.assertEqual(retcode, 0)
 
 
@@ -282,11 +262,10 @@ class TestWhoami(TestLoginBase):
         '''Test 'st2 whoami' functionality
         '''
 
-        with CaptureStdout() as output:
-            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
+        retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
 
         self.assertEqual(retcode, 0)
-        self.assertTrue(self.USERNAME in output[0])
+        self.assertTrue(self.USERNAME in self.stdout.getvalue())
 
 
 class TestWhoamiMissingUser(TestLoginBase):
@@ -305,10 +284,10 @@ class TestWhoamiMissingUser(TestLoginBase):
         '''Test 'st2 whoami' functionality with a missing username
         '''
 
-        with CaptureStdout() as output:
-            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
+        retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
 
-        self.assertEqual('Unable to retrieve currently logged-in user', output[0])
+        self.assertEqual('Unable to retrieve currently logged-in user',
+                         self.stdout.getvalue().strip())
         self.assertEqual(retcode, 0)
 
 
@@ -328,10 +307,9 @@ class TestWhoamiMissingCreds(TestLoginBase):
         '''Test 'st2 whoami' functionality with a missing credentials section
         '''
 
-        with CaptureStdout() as output:
-            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
-
-        self.assertEqual('Unable to retrieve currently logged-in user', output[0])
+        retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
+        self.assertEqual('Unable to retrieve currently logged-in user',
+                         self.stdout.getvalue().strip())
         self.assertEqual(retcode, 0)
 
 
@@ -358,10 +336,10 @@ class TestWhoamiUncaughtException(TestLoginBase):
         # Only mocking "BaseCLIApp" here in order to generate an exception for this specific test
         mock_cli.return_value._get_config_file_path = mock.MagicMock(side_effect=Exception)
 
-        with CaptureStdout() as output:
-            retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
+        retcode = self.shell.run(['--config', self.CONFIG_FILE, 'whoami'])
 
-        self.assertEqual("Unable to retrieve currently logged-in user", output[0])
+        self.assertEqual('Unable to retrieve currently logged-in user',
+                         self.stdout.getvalue().strip())
         self.assertEqual(retcode, 0)
 
 
