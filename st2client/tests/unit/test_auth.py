@@ -60,19 +60,21 @@ class CaptureStdout(list):
 
 
 class TestLoginBase(base.BaseCLITestCase):
-    '''A base class for testing related to 'st2 login' commands
+    """
+    A base class for testing related to 'st2 login' commands
 
     This exists primarily to ensure that each specific test case is kept atomic,
     since the tests create actual files on the filesystem - as well as to cut down
     on duplicate code in each test class
-    '''
+    """
 
     DOTST2_PATH = os.path.expanduser('~/.st2/')
 
-    def __init__(self, *args, **kwargs):
-        self.config_file = kwargs.pop('config_file', '~/.st2/config')
-        self.config_contents = kwargs.pop('config_contents', None)
-        super(TestLoginBase, self).__init__(*args, **kwargs)
+    def __init__(self, config_file='~/.st2/config', config_contents=None):
+        super(TestLoginBase, self).__init__()
+
+        self.config_file = config_file
+        self.config_contents = config_contents
 
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('-t', '--token', dest='token')
@@ -87,7 +89,6 @@ class TestLoginBase(base.BaseCLITestCase):
             os.remove(self.config_file)
 
         with open(self.config_file, 'w') as cfg:
-
             # If a test passes in it's own config, we write that instead
             if self.config_contents:
                 for line in self.config_contents.split('\n'):
@@ -125,8 +126,7 @@ class TestLoginPasswordAndConfig(TestLoginBase):
 
     def __init__(self, *args, **kwargs):
         super(TestLoginPasswordAndConfig, self).__init__(
-            config_file=self.CONFIG_FILE, *args, **kwargs
-        )
+            config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
@@ -171,8 +171,7 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
 
     def __init__(self, *args, **kwargs):
         super(TestLoginIntPwdAndConfig, self).__init__(
-            config_file=self.CONFIG_FILE, *args, **kwargs
-        )
+            config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
@@ -219,8 +218,7 @@ class TestLoginWritePwdOkay(TestLoginBase):
 
     def __init__(self, *args, **kwargs):
         super(TestLoginWritePwdOkay, self).__init__(
-            config_file=self.CONFIG_FILE, *args, **kwargs
-        )
+            config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
@@ -265,8 +263,7 @@ class TestLoginUncaughtException(TestLoginBase):
 
     def __init__(self, *args, **kwargs):
         super(TestLoginUncaughtException, self).__init__(
-            config_file=self.CONFIG_FILE, *args, **kwargs
-        )
+            config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
@@ -295,26 +292,20 @@ class TestWhoami(TestLoginBase):
 
     USERNAME = 'st2foouser'
 
+    CONFIG_CONTENT = """
+    [credentials]
+    username = %s
+    password = Password1!
+    """ % USERNAME
+
     def __init__(self, *args, **kwargs):
-
-        new_config = ("""
-        [credentials]
-        username = %s
-        password = Password1!
-        """ % self.USERNAME)
-
         super(TestWhoami, self).__init__(
-            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
-        )
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-t', '--token', dest='token')
-        self.parser.add_argument('--api-key', dest='api_key')
-        self.shell = shell.Shell()
+            config_contents=self.CONFIG_CONTENT, config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    def test_whoami(self):
+    def runTest(self):
         '''Test 'st2 whoami' functionality
         '''
 
@@ -329,25 +320,19 @@ class TestWhoamiMissingUser(TestLoginBase):
 
     CONFIG_FILE = '/tmp/logintest.cfg'
 
+    CONFIG_CONTENT = ("""
+    [credentials]
+    foo = bar
+    """)
+
     def __init__(self, *args, **kwargs):
-
-        new_config = ("""
-        [credentials]
-        foo = bar
-        """)
-
         super(TestWhoamiMissingUser, self).__init__(
-            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
-        )
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-t', '--token', dest='token')
-        self.parser.add_argument('--api-key', dest='api_key')
-        self.shell = shell.Shell()
+            config_contents=self.CONFIG_CONTENT, config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    def test_whoami(self):
+    def runTest(self):
         '''Test 'st2 whoami' functionality with a missing username
         '''
 
@@ -362,25 +347,19 @@ class TestWhoamiMissingCreds(TestLoginBase):
 
     CONFIG_FILE = '/tmp/logintest.cfg'
 
+    CONFIG_CONTENT = ("""
+    [nonsense]
+    foo = bar
+    """)
+
     def __init__(self, *args, **kwargs):
-
-        new_config = ("""
-        [nonsense]
-        foo = bar
-        """)
-
         super(TestWhoamiMissingCreds, self).__init__(
-            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
-        )
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-t', '--token', dest='token')
-        self.parser.add_argument('--api-key', dest='api_key')
-        self.shell = shell.Shell()
+            config_contents=self.CONFIG_CONTENT, config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
-    def test_whoami(self):
+    def runTest(self):
         '''Test 'st2 whoami' functionality with a missing credentials section
         '''
 
@@ -397,27 +376,21 @@ class TestWhoamiUncaughtException(TestLoginBase):
 
     USERNAME = 'st2foouser'
 
+    CONFIG_CONTENT = ("""
+    [credentials]
+    username = %s
+    password = Password1!
+    """ % USERNAME)
+
     def __init__(self, *args, **kwargs):
-
-        new_config = ("""
-        [credentials]
-        username = %s
-        password = Password1!
-        """ % self.USERNAME)
-
         super(TestWhoamiUncaughtException, self).__init__(
-            config_contents=new_config, config_file=self.CONFIG_FILE, *args, **kwargs
-        )
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-t', '--token', dest='token')
-        self.parser.add_argument('--api-key', dest='api_key')
-        self.shell = shell.Shell()
+            config_contents=self.CONFIG_CONTENT, config_file=self.CONFIG_FILE)
 
     @mock.patch.object(
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
     @mock.patch('st2client.commands.auth.BaseCLIApp')
-    def test_whoami(self, mock_cli):
+    def runTest(self, mock_cli):
         '''Test 'st2 whoami' ability to detect unhandled exceptions
         '''
 
