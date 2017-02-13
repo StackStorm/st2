@@ -360,8 +360,13 @@ class Router(object):
         info = spec.get('info', {})
         LOG.debug('Adding API: %s %s', info.get('title', 'untitled'), info.get('version', '0.0.0'))
 
-        self.spec_resolver = validate_spec(copy.deepcopy(spec))
-        self.spec = spec
+        if not self.spec:
+            self.spec = spec
+        else:
+            self.spec['paths'].update(spec['paths'])
+            self.spec['definitions'].update(spec['definitions'])
+
+        self.spec_resolver = validate_spec(copy.deepcopy(self.spec))
 
         for (path, methods) in six.iteritems(spec['paths']):
             for (method, endpoint) in six.iteritems(methods):
@@ -374,7 +379,7 @@ class Router(object):
                     connect_kw['requirements'] = endpoint['x-requirements']
 
                 m = self.routes.submapper(_api_path=path, _api_method=method, conditions=conditions)
-                m.connect(None, self.spec.get('basePath', '') + path, **connect_kw)
+                m.connect(None, spec.get('basePath', '') + path, **connect_kw)
                 if default:
                     m.connect(None, path, **connect_kw)
 
@@ -503,6 +508,8 @@ class Router(object):
                     try:
                         if content_type == 'application/json':
                             data = req.json
+                        elif content_type == 'text/plain':
+                            data = req.body
                         elif content_type in ['application/x-www-form-urlencoded',
                                               'multipart/form-data']:
                             data = urlparse.parse_qs(req.body)
@@ -518,21 +525,24 @@ class Router(object):
                         raise exc.HTTPBadRequest(detail=e.message,
                                                  comment=traceback.format_exc())
 
-                    class Body(object):
-                        def __init__(self, **entries):
-                            self.__dict__.update(entries)
-
-                    ref = schema.get('$ref', None)
-                    if ref:
-                        with self.spec_resolver.resolving(ref) as resolved:
-                            schema = resolved
-
-                    if 'x-api-model' in schema:
-                        Model = op_resolver(schema['x-api-model'])
+                    if content_type == 'text/plain':
+                        kw[argument_name] = data
                     else:
-                        Model = Body
+                        class Body(object):
+                            def __init__(self, **entries):
+                                self.__dict__.update(entries)
 
-                    kw[argument_name] = Model(**data)
+                        ref = schema.get('$ref', None)
+                        if ref:
+                            with self.spec_resolver.resolving(ref) as resolved:
+                                schema = resolved
+
+                        if 'x-api-model' in schema:
+                            Model = op_resolver(schema['x-api-model'])
+                        else:
+                            Model = Body
+
+                        kw[argument_name] = Model(**data)
                 else:
                     kw[argument_name] = None
             elif type == 'formData':

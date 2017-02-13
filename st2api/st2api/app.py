@@ -63,12 +63,19 @@ def setup_app(config=None):
         'ISO8601_UTC_REGEX': isotime.ISO8601_UTC_REGEX
     }
 
-    spec_template = pkg_resources.resource_string(__name__, 'controllers/openapi.yaml')
-    spec_string = jinja2.Template(spec_template).render(**arguments)
-    spec = yaml.load(spec_string)
-
     router = Router(debug=cfg.CONF.api.debug, auth=cfg.CONF.auth.enable)
-    router.add_spec(spec)
+
+    SPECS = {
+        'controllers/openapi.yaml': True,
+        'controllers/openapi_exp.yaml': False
+    }
+
+    for spec_file in SPECS:
+        spec_template = pkg_resources.resource_string(__name__, spec_file)
+        spec_string = jinja2.Template(spec_template).render(**arguments)
+        spec = yaml.load(spec_string)
+
+        router.add_spec(spec, default=SPECS[spec_file])
 
     app = router.as_wsgi
 

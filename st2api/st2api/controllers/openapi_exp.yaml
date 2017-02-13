@@ -1,0 +1,83 @@
+swagger: '2.0'
+
+info:
+  version: "1.0.0"
+  title: StackStorm st2api experimental API
+
+basePath: /exp
+
+paths:
+  /validation/mistral:
+    post:
+      operationId: st2api.controllers.exp.validation:mistral_validation_controller.post
+      description: |
+        Validate Mistral YAML definition.
+      parameters:
+        - name: def_yaml
+          in: body
+          description: Mistral definition
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of validation errors
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ValidationError'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+definitions:
+  ValidationError:
+    type: object
+    properties:
+      type:
+        type: string
+      path:
+        type: string
+      message:
+        type: string
+  Error:
+    type: object
+    properties:
+      faultstring:
+        type: string
+
+securityDefinitions:
+  X-Auth-Token:
+    description: Header representing user's short-lived access token.
+    type: apiKey
+    name: X-Auth-Token
+    in: header
+    x-operationId: st2common.util.auth:validate_token
+  St2-Api-Key:
+    description: Header representing service's long-lived API key.
+    type: apiKey
+    name: St2-Api-Key
+    in: header
+    x-operationId: st2common.util.auth:validate_api_key
+  x-auth-token:
+    description: Query parameter representing user's short-lived access token. Used as a backup authentication strategy for environments where it is impossible to provide a header.
+    type: apiKey
+    name: x-auth-token
+    in: query
+    x-operationId: st2common.util.auth:validate_token
+  st2-api-key:
+    description: Query parameter representing service's long-lived API key. Used as a backup authentication strategy for environments where it is impossible to provide a header.
+    type: apiKey
+    name: st2-api-key
+    in: query
+    x-operationId: st2common.util.auth:validate_api_key
+
+security:
+  - X-Auth-Token: []
+  - St2-Api-Key: []
+  - x-auth-token: []
+  - st2-api-key: []

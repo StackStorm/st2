@@ -17,10 +17,11 @@
 from six.moves import http_client
 from oslo_config import cfg
 
-from webob import exc, Response
+from webob import exc
 
 from st2common.exceptions.auth import TokenNotFoundError, TokenExpiredError
 from st2common.exceptions.param import ParamException
+from st2common.router import Response
 from st2common.util import auth as auth_utils
 from st2common import log as logging
 import st2auth.handlers as handlers
