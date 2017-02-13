@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from six.moves.configparser import ConfigParser
 import getpass
 import json
 import logging
+
+from six.moves.configparser import ConfigParser
 
 from st2client.base import BaseCLIApp
 from st2client import config_parser
@@ -123,17 +124,17 @@ class LoginCommand(resource.ResourceCommand):
         config.read(config_file)
 
         # Modify config (and optionally populate with password)
-        if 'credentials' not in config:
+        if not config.has_section('credentials'):
             config.add_section('credentials')
-            config['credentials'] = {}
-        config['credentials']['username'] = args.username
+
+        config.set('credentials', 'username', args.username)
         if args.write_password:
-            config['credentials']['password'] = args.password
+            config.set('credentials', 'password', args.password)
         else:
             # Remove any existing password from config
-            config['credentials'].pop('password', None)
+            config.remove_option('credentials', 'password')
 
-        with open(config_file, "w") as cfg_file_out:
+        with open(config_file, 'w') as cfg_file_out:
             config.write(cfg_file_out)
 
         return manager
@@ -175,7 +176,7 @@ class WhoamiCommand(resource.ResourceCommand):
         config = ConfigParser()
         config.read(config_file)
 
-        return config['credentials']['username']
+        return config.get('credentials', 'username')
 
     def run_and_print(self, args, **kwargs):
         try:

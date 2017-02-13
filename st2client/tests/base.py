@@ -89,6 +89,10 @@ class BaseCLITestCase(unittest2.TestCase):
         os.environ['ST2_CLI_SKIP_CONFIG'] = '1'
 
         if self.capture_output:
+            # Make sure we reset it for each test class instance
+            self.stdout = six.moves.StringIO()
+            self.stderr = six.moves.StringIO()
+
             sys.stdout = self.stdout
             sys.stderr = self.stderr
 
