@@ -107,6 +107,7 @@ def main(metadata_path, output_path, print_source=False):
 
     print('Graph saved at %s' % (output_path + '.png'))
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Action chain visualization')
     parser.add_argument('--metadata-path', action='store', required=True,

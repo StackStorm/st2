@@ -74,6 +74,8 @@ def register_opts():
         cfg.CONF.register_cli_opts(content_opts, group='register')
     except:
         sys.stderr.write('Failed registering opts.\n')
+
+
 register_opts()
 
 

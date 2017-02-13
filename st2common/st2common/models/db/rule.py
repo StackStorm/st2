@@ -98,6 +98,7 @@ class RuleDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
         self.ref = self.get_reference().ref
         self.uid = self.get_uid()
 
+
 rule_access = MongoDBAccess(RuleDB)
 rule_type_access = MongoDBAccess(RuleTypeDB)
 
