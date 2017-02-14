@@ -75,6 +75,7 @@ class PermissionGrantDB(stormbase.StormFoundationDB):
     resource_type = me.StringField(required=False)
     permission_types = me.ListField(field=me.StringField())
 
+
 # Specialized access objects
 role_access = MongoDBAccess(RoleDB)
 user_role_assignment_access = MongoDBAccess(UserRoleAssignmentDB)

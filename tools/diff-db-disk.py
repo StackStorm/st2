@@ -270,5 +270,6 @@ def main():
     # Disconnect from db.
     db_teardown()
 
+
 if __name__ == '__main__':
     main()

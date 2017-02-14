@@ -161,6 +161,7 @@ def _audit(logger, msg, *args, **kwargs):
     if logger.isEnabledFor(logging.AUDIT):
         logger._log(logging.AUDIT, msg, args, **kwargs)
 
+
 logging.Logger.audit = _audit
 
 

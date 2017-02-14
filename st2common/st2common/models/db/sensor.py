@@ -59,6 +59,7 @@ class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
         self.ref = self.get_reference().ref
         self.uid = self.get_uid()
 
+
 sensor_type_access = MongoDBAccess(SensorTypeDB)
 
 MODELS = [SensorTypeDB]
