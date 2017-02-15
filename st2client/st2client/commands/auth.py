@@ -150,7 +150,7 @@ class LoginCommand(resource.ResourceCommand):
         print('Logged in as %s' % (args.username))
 
         if not args.write_password:
-            # Note: Client can't depend and import from st2common so we need to hard-code this
+            # Note: Client can't depend and import from common so we need to hard-code this
             # default value
             token_expire_hours = 24
 
