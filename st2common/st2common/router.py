@@ -99,7 +99,27 @@ def extend_with_additional_check(validator_class):
         validator_class, {"x-additional-check": set_additional_check},
     )
 
-CustomValidator = extend_with_default(extend_with_additional_check(jsonschema.Draft4Validator))
+
+def extend_with_nullable(validator_class):
+    validate_type = validator_class.VALIDATORS["type"]
+
+    def set_type_draft4(validator, types, instance, schema):
+        is_nullable = schema.get("x-nullable", False)
+
+        if is_nullable and instance is None:
+            return
+
+        for error in validate_type(validator, types, instance, schema):
+            yield error
+
+    return jsonschema.validators.extend(
+        validator_class, {"type": set_type_draft4},
+    )
+
+CustomValidator = jsonschema.Draft4Validator
+CustomValidator = extend_with_nullable(CustomValidator)
+CustomValidator = extend_with_additional_check(CustomValidator)
+CustomValidator = extend_with_default(CustomValidator)
 
 
 class NotFoundException(Exception):

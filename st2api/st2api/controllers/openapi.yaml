@@ -3235,6 +3235,7 @@ definitions:
         properties:
           user:
             type: string
+            x-nullable: true
             description: User context under which action should run (admins only)
             default: ''
   ExecutionFilters:
@@ -3516,7 +3517,6 @@ definitions:
           on-failure: {$ref: '#/definitions/NotificationPropertySubSchema'}
           on-success: {$ref: '#/definitions/NotificationPropertySubSchema'}
         additionalProperties: False
-    additionalProperties: False
     required:
       - action
   Webhook:
