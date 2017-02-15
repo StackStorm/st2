@@ -51,7 +51,6 @@ class FunctionalTest(DbTestCase):
 
         cfg.CONF.set_override(name='enable', override=False, group='rbac')
 
-
         # TODO(manas) : register action types here for now. RunnerType registration can be moved
         # to posting to /runnertypes but that implies implementing POST.
         runners_registrar.register_runners()

@@ -99,9 +99,10 @@ class ActionsController(resource.ContentPackResourceController):
                 POST /actions/
         """
 
+        permission_type = PermissionType.ACTION_CREATE
         rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
                                                            resource_api=action,
-                                                           permission_type=PermissionType.ACTION_CREATE)
+                                                           permission_type=permission_type)
 
         try:
             # Perform validation
@@ -142,9 +143,10 @@ class ActionsController(resource.ContentPackResourceController):
         action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
         # Assert permissions
+        permission_type = PermissionType.ACTION_MODIFY
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_db,
-                                                          permission_type=PermissionType.ACTION_MODIFY)
+                                                          permission_type=permission_type)
 
         action_id = action_db.id
 
@@ -196,9 +198,10 @@ class ActionsController(resource.ContentPackResourceController):
         action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         action_id = action_db.id
 
+        permission_type = PermissionType.ACTION_DELETE
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_db,
-                                                          permission_type=PermissionType.ACTION_DELETE)
+                                                          permission_type=permission_type)
 
         try:
             validate_not_part_of_system_pack(action_db)

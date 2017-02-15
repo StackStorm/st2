@@ -49,17 +49,18 @@ class RunnerTypesController(ResourceController):
         return super(RunnerTypesController, self)._get_all(**kwargs)
 
     def get_one(self, name_or_id, requester_user):
-        return super(RunnerTypesController, self)._get_one_by_name_or_id(name_or_id,
-                                                                         requester_user=requester_user,
-                                                                         permission_type=PermissionType.RUNNER_VIEW)
+        return self._get_one_by_name_or_id(name_or_id,
+                                           requester_user=requester_user,
+                                           permission_type=PermissionType.RUNNER_VIEW)
 
     def put(self, runner_type_api, name_or_id, requester_user):
         # Note: We only allow "enabled" attribute of the runner to be changed
         runner_type_db = self._get_by_name_or_id(name_or_id=name_or_id)
 
+        permission_type = PermissionType.RUNNER_MODIFY
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=runner_type_db,
-                                                          permission_type=PermissionType.RUNNER_MODIFY)
+                                                          permission_type=permission_type)
 
         old_runner_type_db = runner_type_db
         LOG.debug('PUT /runnertypes/ lookup with id=%s found object: %s', name_or_id,

@@ -186,13 +186,6 @@ class ResourceController(object):
             else:
                 filters['__'.join(v.split('.'))] = filter_value
 
-        extra = {
-            'filters': filters,
-            'sort': sort,
-            'offset': offset,
-            'limit': limit
-        }
-
         instances = self.access.query(exclude_fields=exclude_fields, **filters)
         if limit == 1:
             # Perform the filtering on the DB side

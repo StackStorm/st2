@@ -2361,6 +2361,11 @@ paths:
           description: Action content
           schema:
             $ref: '#/definitions/ApiKeyRequest'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Action updated
@@ -2384,6 +2389,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '204':
           description: Action deleted
@@ -2448,7 +2458,6 @@ paths:
   /ruleenforcements/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_one
-      x-permissions: {{ PERMISSION_TYPE.RULE_ENFORCEMENT_VIEW }}
       description: Return a specific rule enforcement based on id.
       parameters:
         - name: ref_or_id

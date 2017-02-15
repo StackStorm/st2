@@ -270,7 +270,8 @@ class PackRemoveCommand(PackAsyncCommand):
 class PackRegisterCommand(PackResourceCommand):
     def __init__(self, resource, *args, **kwargs):
         super(PackRegisterCommand, self).__init__(resource, 'register',
-              'Register %s(s): sync all file changes with DB.' % resource.get_display_name().lower(),
+              'Register %s(s): sync all file changes with DB.' %
+                                                  resource.get_display_name().lower(),
               *args, **kwargs)
 
         self.parser.add_argument('packs',

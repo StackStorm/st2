@@ -83,9 +83,10 @@ class RuleController(resource.ContentPackResourceController):
                 POST /rules/
         """
 
+        permission_type = PermissionType.RULE_CREATE
         rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
                                                            resource_api=rule,
-                                                           permission_type=PermissionType.RULE_CREATE)
+                                                           permission_type=permission_type)
 
         try:
             rule_db = RuleAPI.to_model(rule)
@@ -125,9 +126,10 @@ class RuleController(resource.ContentPackResourceController):
     def put(self, rule, rule_ref_or_id, requester_user):
         rule_db = self._get_by_ref_or_id(rule_ref_or_id)
 
+        permission_type = PermissionType.RULE_MODIFY
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=rule,
-                                                          permission_type=PermissionType.RULE_MODIFY)
+                                                          permission_type=permission_type)
 
         LOG.debug('PUT /rules/ lookup with id=%s found object: %s', rule_ref_or_id, rule_db)
 
@@ -172,9 +174,10 @@ class RuleController(resource.ContentPackResourceController):
         """
         rule_db = self._get_by_ref_or_id(ref_or_id=rule_ref_or_id)
 
+        permission_type = PermissionType.RULE_DELETE
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=rule_db,
-                                                          permission_type=PermissionType.RULE_DELETE)
+                                                          permission_type=permission_type)
 
         LOG.debug('DELETE /rules/ lookup with id=%s found object: %s', rule_ref_or_id, rule_db)
         try:

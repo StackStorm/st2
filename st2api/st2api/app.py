@@ -25,7 +25,11 @@ from st2api import config as st2api_config
 from st2common import constants
 from st2common import log as logging
 from st2common.rbac.types import PermissionType
-from st2common.router import Router, ErrorHandlingMiddleware, CorsMiddleware, RequestIDMiddleware, LoggingMiddleware
+from st2common.router import Router
+from st2common.router import ErrorHandlingMiddleware
+from st2common.router import CorsMiddleware
+from st2common.router import RequestIDMiddleware
+from st2common.router import LoggingMiddleware
 from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup

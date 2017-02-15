@@ -13,11 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    import simplejson as json
-except ImportError:
-    import json
-
 import six
 import uuid
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error

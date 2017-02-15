@@ -49,9 +49,10 @@ class SensorTypeController(resource.ContentPackResourceController):
         return super(SensorTypeController, self)._get_all(**kwargs)
 
     def get_one(self, ref_or_id, requester_user):
+        permission_type = PermissionType.SENSOR_VIEW
         return super(SensorTypeController, self)._get_one(ref_or_id,
                                                           requester_user=requester_user,
-                                                          permission_type=PermissionType.SENSOR_VIEW)
+                                                          permission_type=permission_type)
 
     def put(self, sensor_type, ref_or_id, requester_user):
         # Note: Right now this function only supports updating of "enabled"
@@ -61,9 +62,10 @@ class SensorTypeController(resource.ContentPackResourceController):
 
         sensor_type_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
+        permission_type = PermissionType.SENSOR_MODIFY
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=sensor_type_db,
-                                                          permission_type=PermissionType.SENSOR_MODIFY)
+                                                          permission_type=permission_type)
 
         sensor_type_id = sensor_type_db.id
 

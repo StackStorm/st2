@@ -24,6 +24,8 @@ from st2common.models.api.auth import ApiKeyAPI, ApiKeyCreateResponseAPI
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.exceptions.auth import ApiKeyNotFoundError
 from st2common.persistence.auth import ApiKey
+from st2common.rbac.types import PermissionType
+from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
 from st2common.router import Response
 from st2common.util import auth as auth_util
@@ -37,6 +39,8 @@ __all__ = [
 ]
 
 
+# See st2common.rbac.resolvers.ApiKeyPermissionResolver#user_has_resource_db_permission for resaon
+# why RBAC is disabled for the controller
 class ApiKeyController(BaseRestControllerMixin):
     """
     Implements the REST endpoint for managing the key value store.
@@ -54,7 +58,6 @@ class ApiKeyController(BaseRestControllerMixin):
         super(ApiKeyController, self).__init__()
         self.get_one_db_method = ApiKey.get_by_key_or_id
 
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_VIEW)
     def get_one(self, api_key_id_or_key, requester_user, show_secrets=None):
         """
             List api keys.
@@ -70,6 +73,11 @@ class ApiKeyController(BaseRestControllerMixin):
             LOG.exception(msg)
             abort(http_client.NOT_FOUND, msg)
 
+        permission_type = PermissionType.API_KEY_VIEW
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=api_key_db,
+                                                          permission_type=permission_type)
+
         try:
             mask_secrets = self._get_mask_secrets(show_secrets=show_secrets,
                                                   requester_user=requester_user)
@@ -78,7 +86,6 @@ class ApiKeyController(BaseRestControllerMixin):
             LOG.exception('Failed to serialize API key.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    # @request_user_has_permission(permission_type=PermissionType.API_KEY_LIST)
     def get_all(self, requester_user, show_secrets=None, **kw):
         """
             List all keys.
@@ -94,11 +101,16 @@ class ApiKeyController(BaseRestControllerMixin):
 
         return api_keys
 
-    # @request_user_has_resource_api_permission(permission_type=PermissionType.API_KEY_CREATE)
     def post(self, api_key_api, requester_user):
         """
         Create a new entry.
         """
+
+        permission_type = PermissionType.API_KEY_CREATE
+        rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
+                                                           resource_api=api_key_api,
+                                                           permission_type=permission_type)
+
         api_key_db = None
         api_key = None
         try:
@@ -126,12 +138,13 @@ class ApiKeyController(BaseRestControllerMixin):
 
         return Response(json=api_key_create_response_api, status=http_client.CREATED)
 
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_MODIFY)
-    def put(self, api_key_api, api_key_id_or_key):
+    def put(self, api_key_api, api_key_id_or_key, requester_user):
         api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
 
-        LOG.debug('PUT /apikeys/ lookup with api_key_id_or_key=%s found object: %s',
-                  api_key_id_or_key, api_key_db)
+        permission_type = PermissionType.API_KEY_MODIFY
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=api_key_db,
+                                                          permission_type=permission_type)
 
         old_api_key_db = api_key_db
         api_key_db = ApiKeyAPI.to_model(api_key_api)
@@ -156,8 +169,7 @@ class ApiKeyController(BaseRestControllerMixin):
 
         return api_key_api
 
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.API_KEY_DELETE)
-    def delete(self, api_key_id_or_key):
+    def delete(self, api_key_id_or_key, requester_user):
         """
             Delete the key value pair.
 
@@ -166,8 +178,10 @@ class ApiKeyController(BaseRestControllerMixin):
         """
         api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
 
-        LOG.debug('DELETE /apikeys/ lookup with api_key_id_or_key=%s found object: %s',
-                  api_key_id_or_key, api_key_db)
+        permission_type = PermissionType.API_KEY_DELETE
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=api_key_db,
+                                                          permission_type=permission_type)
 
         ApiKey.delete(api_key_db)
 

@@ -226,15 +226,17 @@ class ActionExecutionChildrenController(BaseActionExecutionNestedController):
 
         instance = self._get_by_id(resource_id=id)
 
+        permission_type = PermissionType.EXECUTION_VIEW
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=instance,
-                                                          permission_type=PermissionType.EXECUTION_VIEW)
+                                                          permission_type=permission_type)
 
         return self._get_children(id_=id, depth=depth, result_fmt=result_fmt, **kwargs)
 
 
 class ActionExecutionAttributeController(BaseActionExecutionNestedController):
-    valid_exclude_attributes = ['action__pack', 'action__uid'] + ActionExecutionsControllerMixin.valid_exclude_attributes
+    valid_exclude_attributes = ['action__pack', 'action__uid'] + \
+        ActionExecutionsControllerMixin.valid_exclude_attributes
 
     def get(self, id, attribute, requester_user, **kwargs):
         """
@@ -250,9 +252,10 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         fields = self._validate_exclude_fields(fields)
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
 
+        permission_type = PermissionType.EXECUTION_VIEW
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_exec_db,
-                                                          permission_type=PermissionType.EXECUTION_VIEW)
+                                                          permission_type=permission_type)
 
         result = getattr(action_exec_db, attribute, None)
         return result

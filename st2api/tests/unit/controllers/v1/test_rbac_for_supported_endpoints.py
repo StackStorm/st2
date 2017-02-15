@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import OrderedDict
 import httplib
 
 import six
@@ -27,18 +28,19 @@ __all__ = [
 ]
 
 FIXTURES_PACK = 'generic'
-TEST_FIXTURES = {
-    'runners': ['testrunner1.yaml'],
-    'sensors': ['sensor1.yaml'],
-    'actions': ['action1.yaml', 'local.yaml'],
-    'aliases': ['alias1.yaml'],
-    'rules': ['rule1.yaml'],
-    'triggers': ['trigger1.yaml'],
-    'triggertypes': ['triggertype1.yaml'],
-    'executions': ['execution1.yaml'],
-    'liveactions': ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml'],
-    'enforcements': ['enforcement1.yaml']
-}
+TEST_FIXTURES = OrderedDict([
+    ('runners', ['testrunner1.yaml']),
+    ('sensors', ['sensor1.yaml']),
+    ('actions', ['action1.yaml', 'local.yaml']),
+    ('aliases', ['alias1.yaml']),
+    ('triggers', ['trigger1.yaml']),
+    ('rules', ['rule1.yaml']),
+    ('triggertypes', ['triggertype1.yaml']),
+    ('executions', ['execution1.yaml']),
+    ('liveactions', ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml']),
+    ('enforcements', ['enforcement1.yaml']),
+    ('apikeys', ['apikey1.yaml']),
+])
 
 MOCK_RUNNER_1 = {
     'name': 'test-runner-1',
@@ -273,15 +275,15 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'path': '/v1/rules/%s' % (rule_model.ref),
                 'method': 'DELETE'
             },
-            # # Rule enforcements
-            # {
-            #     'path': '/v1/ruleenforcements',
-            #     'method': 'GET'
-            # },
-            # {
-            #     'path': '/v1/ruleenforcements/%s' % (enforcement_model.id),
-            #     'method': 'GET'
-            # },
+            # Rule enforcements
+            {
+                'path': '/v1/ruleenforcements',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/ruleenforcements/%s' % (enforcement_model.id),
+                'method': 'GET'
+            },
             # Action Executions
             {
                 'path': '/v1/executions',
@@ -321,29 +323,6 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'payload': {'name': 'alias1', 'format': 'foo bar ponies',
                             'command': 'foo bar ponies',
                             'user': 'channel', 'source_channel': 'bar'}
-            # },
-            # # API Keys
-            # {
-            #     'path': '/v1/apikeys',
-            #     'method': 'GET'
-            # },
-            # {
-            #     'path': '/v1/apikeys/%s' % (apikey_model.id),
-            #     'method': 'GET'
-            # },
-            # {
-            #     'path': '/v1/apikeys',
-            #     'method': 'POST',
-            #     'payload': {}
-            # },
-            # {
-            #     'path': '/v1/apikeys/%s' % (apikey_model.id),
-            #     'method': 'PUT',
-            #     'payload': {}
-            # },
-            # {
-            #     'path': '/v1/apikeys/%s' % (apikey_model.id),
-            #     'method': 'DELETE'
             }
         ]
 

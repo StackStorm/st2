@@ -67,9 +67,10 @@ class ActionAliasController(resource.ContentPackResourceController):
         return super(ActionAliasController, self)._get_all(**kwargs)
 
     def get_one(self, ref_or_id, requester_user):
+        permission_type = PermissionType.ACTION_ALIAS_VIEW
         return super(ActionAliasController, self)._get_one(ref_or_id,
                                                            requester_user=requester_user,
-                                                           permission_type=PermissionType.ACTION_ALIAS_VIEW)
+                                                           permission_type=permission_type)
 
     def match(self, action_alias_match_api, **kwargs):
         """
@@ -123,9 +124,10 @@ class ActionAliasController(resource.ContentPackResourceController):
                 POST /actionalias/
         """
 
+        permission_type = PermissionType.ACTION_ALIAS_CREATE
         rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
                                                            resource_api=action_alias,
-                                                           permission_type=PermissionType.ACTION_ALIAS_CREATE)
+                                                           permission_type=permission_type)
 
         try:
             action_alias_db = ActionAliasAPI.to_model(action_alias)
@@ -154,9 +156,10 @@ class ActionAliasController(resource.ContentPackResourceController):
         LOG.debug('PUT /actionalias/ lookup with id=%s found object: %s', ref_or_id,
                   action_alias_db)
 
+        permission_type = PermissionType.ACTION_ALIAS_MODIFY
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_alias_db,
-                                                          permission_type=PermissionType.ACTION_MODIFY)
+                                                          permission_type=permission_type)
 
         if not hasattr(action_alias, 'id'):
             action_alias.id = None
@@ -192,9 +195,10 @@ class ActionAliasController(resource.ContentPackResourceController):
         LOG.debug('DELETE /actionalias/ lookup with id=%s found object: %s', ref_or_id,
                   action_alias_db)
 
+        permission_type = PermissionType.ACTION_ALIAS_DELETE
         rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                           resource_db=action_alias_db,
-                                                          permission_type=PermissionType.ACTION_ALIAS_DELETE)
+                                                          permission_type=permission_type)
 
         try:
             ActionAlias.delete(action_alias_db)

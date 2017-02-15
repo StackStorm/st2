@@ -65,15 +65,17 @@ class PolicyTypeController(resource.ResourceController):
         return result
 
     def _get_all(self, **kwargs):
-        result = super(PolicyTypeController, self)._get_all(**kwargs)
+        resp = super(PolicyTypeController, self)._get_all(**kwargs)
 
         if self.include_reference:
+            result = resp.json
             for item in result:
-                resource_type = getattr(item, 'resource_type', None)
-                name = getattr(item, 'name', None)
-                item.ref = PolicyTypeReference(resource_type=resource_type, name=name).ref
+                resource_type = item.get('resource_type', None)
+                name = item.get('name', None)
+                item['ref'] = PolicyTypeReference(resource_type=resource_type, name=name).ref
+            resp.json = result
 
-        return result
+        return resp
 
     def _get_by_ref_or_id(self, ref_or_id):
         if PolicyTypeReference.is_reference(ref_or_id):

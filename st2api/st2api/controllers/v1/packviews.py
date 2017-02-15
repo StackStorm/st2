@@ -191,10 +191,11 @@ class FileController(BaseFileController):
         pack_ref = pack_db.ref
 
         # Note: Until list filtering is in place we don't require RBAC check for icon file
+        permission_type = PermissionType.PACK_VIEW
         if file_path not in WHITELISTED_FILE_PATHS:
             rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
                                                               resource_db=pack_db,
-                                                              permission_type=PermissionType.PACK_VIEW)
+                                                              permission_type=permission_type)
 
         normalized_file_path = get_pack_file_abs_path(pack_ref=pack_ref, file_path=file_path)
         if not normalized_file_path or not os.path.isfile(normalized_file_path):
@@ -213,7 +214,8 @@ class FileController(BaseFileController):
                        (file_path, MAX_FILE_SIZE))
                 raise ValueError(msg)
 
-            content_type = mimetypes.guess_type(normalized_file_path)[0] or 'application/octet-stream'
+            content_type = mimetypes.guess_type(normalized_file_path)[0] or \
+                'application/octet-stream'
 
             response.headers['Content-Type'] = content_type
             response.body = self._get_file_content(file_path=normalized_file_path)

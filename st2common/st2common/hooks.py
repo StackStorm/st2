@@ -18,7 +18,6 @@ import re
 import traceback
 import uuid
 
-import webob
 import mongoengine
 from oslo_config import cfg
 from pecan.hooks import PecanHook
@@ -169,7 +168,7 @@ class AuthHook(PecanHook):
             'faultstring': 'Unauthorized - %s' % msg if msg else 'Unauthorized'
         }
 
-        return Response(json=message, status=httplib.UNAUTHORIZE)
+        return Response(json=message, status=httplib.UNAUTHORIZED)
 
     @staticmethod
     def _abort_other_errors():

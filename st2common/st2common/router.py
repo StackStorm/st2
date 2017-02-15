@@ -143,8 +143,8 @@ class ErrorHandlingMiddleware(object):
             if hasattr(e, 'detail') and not getattr(e, 'comment'):
                 setattr(e, 'comment', getattr(e, 'detail'))
 
-            if hasattr(e, 'body') and isinstance(e.body, dict):
-                body = e.body
+            if hasattr(e, 'body') and isinstance(getattr(e, 'body', None), dict):
+                body = getattr(e, 'body', None)
             else:
                 body = {}
 
@@ -157,7 +157,7 @@ class ErrorHandlingMiddleware(object):
             elif isinstance(e, db_exceptions.StackStormDBObjectConflictError):
                 status_code = exc.HTTPConflict.code
                 message = str(e)
-                body['conflict-id'] = e.conflict_id
+                body['conflict-id'] = getattr(e, 'conflict_id', None)
             elif isinstance(e, rbac_exceptions.AccessDeniedError):
                 status_code = exc.HTTPForbidden.code
                 message = str(e)
