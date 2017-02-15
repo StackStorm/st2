@@ -105,6 +105,7 @@ def format_parameters(value):
 
     return value
 
+
 # String for indenting etc.
 WF_PREFIX = '+ '
 NON_WF_PREFIX = '  '

@@ -138,7 +138,7 @@ class DownloadGitRepoAction(Action):
 
         # We're trying to figure out which branch the ref is actually on,
         # since there's no direct way to check for this in git-python.
-        branches = repo.git.branch('-a', '--contains', gitref.hexsha)
+        branches = repo.git.branch('-a', '--contains', gitref.hexsha)  # pylint: disable=no-member
         branches = branches.replace('*', '').split()
 
         if active_branch.name not in branches or use_branch:
@@ -149,8 +149,8 @@ class DownloadGitRepoAction(Action):
         else:
             branch = repo.active_branch.name
 
-        repo.git.checkout(gitref.hexsha)
-        repo.git.branch('-f', branch, gitref.hexsha)
+        repo.git.checkout(gitref.hexsha)  # pylint: disable=no-member
+        repo.git.branch('-f', branch, gitref.hexsha)  # pylint: disable=no-member
         repo.git.checkout(branch)
 
         return temp_dir

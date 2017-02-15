@@ -51,11 +51,11 @@ class DBModelUIDFieldTestCase(unittest2.TestCase):
         self.assertTrue(trigger_db.get_uid().startswith('trigger:tpack:tname:'))
 
         # Verify that same set of parameters always results in the same hash
-        parameters = {'a': 1, 'b': 2, 'c': [1, 2, 3], 'd': {'g': 1, 'h': 2}, 'b': u'unicode'}
+        parameters = {'a': 1, 'b': 'unicode', 'c': [1, 2, 3], 'd': {'g': 1, 'h': 2}}
         paramers_hash = json.dumps(parameters, sort_keys=True)
         paramers_hash = hashlib.md5(paramers_hash).hexdigest()
 
-        parameters = {'a': 1, 'b': 2, 'c': [1, 2, 3], 'b': u'unicode', 'd': {'g': 1, 'h': 2}}
+        parameters = {'a': 1, 'b': 'unicode', 'c': [1, 2, 3], 'd': {'g': 1, 'h': 2}}
         trigger_db = TriggerDB(name='tname', pack='tpack', parameters=parameters)
         self.assertEqual(trigger_db.get_uid(), 'trigger:tpack:tname:%s' % (paramers_hash))
 

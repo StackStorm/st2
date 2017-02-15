@@ -5,7 +5,7 @@ in development
 --------------
 
 * Fix ``/v1/packs/views/files/<pack ref or id>`` and
-  ``/v2/packs/views/files/<pack ref or id>/<file path>`` API endpoint so it
+  ``/v1/packs/views/file/<pack ref or id>/<file path>`` API endpoint so it
   works correctly for packs where pack name is not equal to the pack ref. (bug fix)
 
   Reported by skjbulcher #3128

@@ -52,4 +52,5 @@ class DumperMarkerDB(MarkerDB):
     """
     pass
 
+
 MODELS = [MarkerDB, DumperMarkerDB]
