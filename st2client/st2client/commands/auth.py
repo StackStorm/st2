@@ -163,6 +163,7 @@ class LoginCommand(resource.ResourceCommand):
                   'flag, but keep it mind this will cause it to store the password in plain-text '
                   'in the client config file.')
 
+
 class WhoamiCommand(resource.ResourceCommand):
     display_attributes = ['user', 'token', 'expiry']
 
