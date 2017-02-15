@@ -159,9 +159,9 @@ class LoginCommand(resource.ResourceCommand):
             print('Note: You didn\'t use --write-password option so the password hasn\'t been '
                   'stored in the client config and you will need to login again in %s hours when '
                   'the auth token expires.' % (token_expire_hours))
-            print('As an alternative you can run st2 login command with the "--write-password" '
+            print('As an alternative, you can run st2 login command with the "--write-password" '
                   'flag, but keep it mind this will cause it to store the password in plain-text '
-                  'in the client config file.')
+                  'in the client config file (~/.st2/config).')
 
 
 class WhoamiCommand(resource.ResourceCommand):
