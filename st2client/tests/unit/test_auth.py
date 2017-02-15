@@ -160,7 +160,7 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
         # TODO(mierdin): This tests that this particular command sends X-Auth-Token but you should
         # also test other commands after this token has been installed
         kwargs = {
-            'headers': {'X-Auth-Token': self.TOKEN['token'], 'content-type': 'application/json'},
+            'headers': {'content-type': 'application/json'},
             'auth': ('st2admin', 'Password1!')
         }
         requests.post.assert_called_with('http://127.0.0.1:9100/tokens', '{}', **kwargs)
