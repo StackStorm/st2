@@ -18,10 +18,5 @@ coverage:
         url:  "secret:8cqmX1vD14d+NVA6rkwI6rkG8oxaeF5U3WmH23ByQbxMQUqZU3wIVpFnktSoLnvucW2asoHjqpqVmUF29OJZKfEdldBdYS6WL68/JIJQi/Rk/+6NYypm9tD2dNSgiNciHmyjRBUZy2JjxFvxscQj/drg9cPAdGra1b/YLoq9UkQ="
         threshold: 1%
 
-comment:
-  layout: "header, diff, tree"
-  behavior: default
-  require_changes: false  # if true: only post the comment if coverage changes
-  branches: null
-  flags: null
-  paths: null
+# comments are useless, considering wrong coverage reports
+comment: no
