@@ -98,7 +98,7 @@ class LoginCommand(resource.ResourceCommand):
         self.parser.add_argument('-w', '--write-password', action='store_true', default=False,
                                  dest='write_password',
                                  help='Write the password in plain text to the config file '
-                                      '(default is to omit it')
+                                      '(default is to omit it)')
 
     def run(self, args, **kwargs):
 
