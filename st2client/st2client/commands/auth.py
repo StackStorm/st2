@@ -17,10 +17,8 @@ import getpass
 import json
 import logging
 
-from oslo_config import cfg
 from six.moves.configparser import ConfigParser
 
-from st2common.config import parse_args
 from st2client.base import BaseCLIApp
 from st2client import config_parser
 from st2client import models
@@ -152,8 +150,9 @@ class LoginCommand(resource.ResourceCommand):
         print('Logged in as %s' % (args.username))
 
         if not args.write_password:
-            parse_args(args=[])
-            token_expire_hours = (cfg.CONF.auth.token_ttl / 60 / 60)
+            # Note: Client can't depend and import from st2common so we need to hard-code this
+            # default value
+            token_expire_hours = 24
 
             print('')
             print('Note: You didn\'t use --write-password option so the password hasn\'t been '
