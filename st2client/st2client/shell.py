@@ -50,6 +50,9 @@ from st2client.commands import rule_enforcement
 from st2client.config import set_config
 from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_loggers
+from st2client.commands.auth import TokenCreateCommand
+from st2client.commands.auth import LoginCommand
+
 
 __all__ = [
     'Shell'
@@ -64,7 +67,8 @@ class Shell(BaseCLIApp):
     LOG = LOGGER
 
     SKIP_AUTH_CLASSES = [
-        TokenCreateCommand.__name__
+        TokenCreateCommand.__name__,
+        LoginCommand.__name__
     ]
 
     def __init__(self):
