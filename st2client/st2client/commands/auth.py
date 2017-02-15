@@ -17,8 +17,10 @@ import getpass
 import json
 import logging
 
+from oslo_config import cfg
 from six.moves.configparser import ConfigParser
 
+from st2common.config import parse_args
 from st2client.base import BaseCLIApp
 from st2client import config_parser
 from st2client import models
@@ -142,12 +144,24 @@ class LoginCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         try:
             self.run(args, **kwargs)
-            print("Logged in as %s" % (args.username))
         except Exception as e:
-            print("Failed to log in as %s: %s" % (args.username, str(e)))
+            print('Failed to log in as %s: %s' % (args.username, str(e)))
             if self.app.client.debug:
                 raise
 
+        print('Logged in as %s' % (args.username))
+
+        if not args.write_password:
+            parse_args(args=[])
+            token_expire_hours = (cfg.CONF.auth.token_ttl / 60 / 60)
+
+            print('')
+            print('Note: You didn\'t use --write-password option so the password hasn\'t been '
+                  'stored in the client config and you will need to login again in %s hours when '
+                  'the auth token expires.' % (token_expire_hours))
+            print('As an alternative you can run st2 login command with the "--write-password" '
+                  'flag, but keep it mind this will cause it to store the password in plain-text '
+                  'in the client config file.')
 
 class WhoamiCommand(resource.ResourceCommand):
     display_attributes = ['user', 'token', 'expiry']
