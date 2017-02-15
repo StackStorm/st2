@@ -92,7 +92,7 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = result.get("helpstrings").get("the80s")
+        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
         self.assertEqual(len(the80s), 10)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -108,27 +108,21 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "you_will_not_find_this_string")
         self.check_data_structure(result)
         self.check_available_count(result, 0)
-        self.assertEqual(result.get("helpstrings"), {})
+        self.assertEqual(result.get("helpstrings"), [])
 
     def test_filtering_match(self, mock):
         result = generate_helpstring_result(ALIASES, "you")
         self.check_data_structure(result)
         self.check_available_count(result, 4)
-        the80s = result.get("helpstrings").get("the80s")
+        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
         self.assertEqual(len(the80s), 4)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
-
-    def test_pack_bad_datatype(self, mock):
-        result = generate_helpstring_result(ALIASES, "", {})
-        self.check_data_structure(result)
-        self.check_available_count(result, 0)
-        self.assertEqual(result.get("helpstrings"), {})
 
     def test_pack_empty_string(self, mock):
         result = generate_helpstring_result(ALIASES, "", "")
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = result.get("helpstrings").get("the80s")
+        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
         self.assertEqual(len(the80s), 10)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -136,13 +130,13 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "you_will_not_find_this_string")
         self.check_data_structure(result)
         self.check_available_count(result, 0)
-        self.assertEqual(result.get("helpstrings"), {})
+        self.assertEqual(result.get("helpstrings"), [])
 
     def test_pack_match(self, mock):
         result = generate_helpstring_result(ALIASES, "", "the80s")
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = result.get("helpstrings").get("the80s")
+        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
         self.assertEqual(len(the80s), 10)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -158,7 +152,7 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "the80s", -3)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = result.get("helpstrings").get("the80s")
+        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
         self.assertEqual(len(the80s), 10)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -166,7 +160,7 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "the80s", 30)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = result.get("helpstrings").get("the80s")
+        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
         self.assertEqual(len(the80s), 10)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -174,7 +168,7 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "the80s", 3)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = result.get("helpstrings").get("the80s")
+        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
         self.assertEqual(len(the80s), 3)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -190,7 +184,7 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "the80s", 0, -1)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = result.get("helpstrings").get("the80s")
+        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
         self.assertEqual(len(the80s), 10)
         self.assertEqual(the80s[0].get("display"), "Come with me if you want to live")
 
@@ -198,12 +192,12 @@ class ActionAliasTestCase(unittest2.TestCase):
         result = generate_helpstring_result(ALIASES, "", "the80s", 0, 30)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        self.assertEqual(result.get("helpstrings"), {})
+        self.assertEqual(result.get("helpstrings"), [])
 
     def test_offset_in_bounds(self, mock):
         result = generate_helpstring_result(ALIASES, "", "the80s", 0, 6)
         self.check_data_structure(result)
         self.check_available_count(result, 10)
-        the80s = result.get("helpstrings").get("the80s")
+        the80s = [line for line in result.get("helpstrings") if line['pack'] == "the80s"]
         self.assertEqual(len(the80s), 4)
         self.assertEqual(the80s[0].get("display"), "He's just like his {{relation}}.")
