@@ -39,10 +39,10 @@ LOG = logging.getLogger(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def setup_app(config=None):
+def setup_app(config={}):
     LOG.info('Creating st2api: %s as OpenAPI app.', VERSION_STRING)
 
-    is_gunicorn = getattr(config, 'is_gunicorn', False)
+    is_gunicorn = config.get('is_gunicorn', False)
     if is_gunicorn:
         # Note: We need to perform monkey patching in the worker. If we do it in
         # the master process (gunicorn_config.py), it breaks tons of things
@@ -58,7 +58,7 @@ def setup_app(config=None):
                      register_signal_handlers=True,
                      register_internal_trigger_types=True,
                      run_migrations=True,
-                     config_args=config.config_args)
+                     config_args=config.get('config_args', None))
 
     arguments = {
         'DEFAULT_PACK_NAME': constants.pack.DEFAULT_PACK_NAME,

@@ -23,37 +23,41 @@ Note: This app doesn't need access to MongoDB, just RabbitMQ.
 """
 
 import os
+import pkg_resources
 
-import pecan
+import jinja2
 from oslo_config import cfg
+import yaml
 
 from st2stream import config as st2stream_config
-from st2common import hooks
+from st2common import constants
 from st2common import log as logging
+from st2common.rbac.types import PermissionType
+from st2common.router import Router
+from st2common.router import ErrorHandlingMiddleware
+from st2common.router import CorsMiddleware
+from st2common.router import RequestIDMiddleware
+from st2common.router import LoggingMiddleware
 from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
+from st2common.util import isotime
 
 LOG = logging.getLogger(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def _get_pecan_config():
-    config = {
-        'app': {
-            'root': 'st2stream.controllers.root.RootController',
-            'modules': ['st2auth'],
-            'debug': cfg.CONF.stream.debug,
-            'errors': {'__force_dict__': True},
-            'guess_content_type_from_ext': False
-        }
-    }
+class StreamingMiddleware(object):
+    def __init__(self, app):
+        self.app = app
 
-    return pecan.configuration.conf_from_dict(config)
+    def __call__(self, environ, start_response):
+        environ['eventlet.minimum_write_chunk_size'] = 0
+        return self.app(environ, start_response)
 
 
 def setup_app(config=None):
-    LOG.info('Creating st2stream: %s as Pecan app.', VERSION_STRING)
+    LOG.info('Creating st2stream: %s as OpenAPI app.', VERSION_STRING)
 
     is_gunicorn = getattr(config, 'is_gunicorn', False)
     if is_gunicorn:
@@ -73,28 +77,27 @@ def setup_app(config=None):
                      run_migrations=False,
                      config_args=config.config_args)
 
-    if not config:
-        # standalone HTTP server case
-        config = _get_pecan_config()
-    else:
-        # gunicorn case
-        if is_gunicorn:
-            config.app = _get_pecan_config().app
+    arguments = {
+        'DEFAULT_PACK_NAME': constants.pack.DEFAULT_PACK_NAME,
+        'LIVEACTION_STATUSES': constants.action.LIVEACTION_STATUSES,
+        'PERMISSION_TYPE': PermissionType,
+        'ISO8601_UTC_REGEX': isotime.ISO8601_UTC_REGEX
+    }
 
-    app_conf = dict(config.app)
+    router = Router(debug=cfg.CONF.stream.debug, auth=cfg.CONF.auth.enable)
 
-    active_hooks = [hooks.RequestIDHook(), hooks.JSONErrorResponseHook(),
-                    hooks.LoggingHook()]
+    spec_template = pkg_resources.resource_string(__name__, 'controllers/openapi.yaml')
+    spec_string = jinja2.Template(spec_template).render(**arguments)
+    spec = yaml.load(spec_string)
 
-    active_hooks.append(hooks.AuthHook())
-    active_hooks.append(hooks.CorsHook())
+    router.add_spec(spec)
 
-    app = pecan.make_app(app_conf.pop('root'),
-                         logging=getattr(config, 'logging', {}),
-                         hooks=active_hooks,
-                         **app_conf
-                         )
+    app = router.as_wsgi
 
-    LOG.info('%s app created.' % __name__)
+    app = StreamingMiddleware(app)
+    app = CorsMiddleware(app)
+    app = LoggingMiddleware(app, router)
+    app = ErrorHandlingMiddleware(app)
+    app = RequestIDMiddleware(app)
 
     return app

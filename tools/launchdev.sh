@@ -7,7 +7,6 @@ function usage() {
 subcommand=$1; shift
 runner_count=1
 use_gunicorn=true
-use_uwsgi_for_auth=false
 copy_examples=false
 load_content=true
 use_ipv6=false
@@ -19,9 +18,6 @@ while getopts ":r:gxcu6" o; do
             ;;
         g)
             use_gunicorn=false
-            ;;
-        u)
-            use_uwsgi_for_auth=true
             ;;
         x)
             copy_examples=true
@@ -165,7 +161,7 @@ function st2start(){
         echo '  using gunicorn to run st2-api...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-api ./virtualenv/bin/gunicorn \
-            st2api.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
+            st2api.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9101" --workers 1
     else
         screen -d -m -S st2-api ./virtualenv/bin/python \
             ./st2api/bin/st2api \
@@ -176,8 +172,8 @@ function st2start(){
     if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-stream'
         export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-stream ./virtualenv/bin/gunicorn_pecan \
-            ./st2stream/st2stream/gunicorn_config.py -k eventlet -b "$BINDING_ADDRESS:9102" --workers 1
+        screen -d -m -S st2-stream ./virtualenv/bin/gunicorn \
+            st2stream.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9102" --workers 1
     else
         screen -d -m -S st2-stream ./virtualenv/bin/python \
             ./st2stream/bin/st2stream \
@@ -223,21 +219,15 @@ function st2start(){
 
     # Run the auth API server
     echo 'Starting screen session st2-auth...'
-    if [ "${use_uwsgi_for_auth}" = true ]; then
-        echo '  using uwsgi for auth...'
-        export ST2_CONFIG_PATH=${ST2_CONF}
-        screen -d -m -S st2-auth ./virtualenv/bin/uwsgi \
-            --http "$BINDING_ADDRESS:9100" --wsgi-file ./st2auth/st2auth/wsgi.py --processes 1 --threads 10 \
-            --buffer-size=32768
-    elif [ "${use_gunicorn}" = true ]; then
+    if [ "${use_gunicorn}" = true ]; then
         echo '  using gunicorn to run st2-auth...'
         export ST2_CONFIG_PATH=${ST2_CONF}
         screen -d -m -S st2-auth ./virtualenv/bin/gunicorn \
             st2auth.wsgi:application -k eventlet -b "$BINDING_ADDRESS:9100" --workers 1
     else
         screen -d -m -S st2-auth ./virtualenv/bin/python \
-        ./st2auth/bin/st2auth \
-        --config-file $ST2_CONF
+            ./st2auth/bin/st2auth \
+            --config-file $ST2_CONF
     fi
 
     if [ -n "$ST2_EXPORTER" ]; then

@@ -19,6 +19,7 @@ import six
 import sys
 import time
 import traceback
+import types
 import uuid
 
 import jsonschema
@@ -340,6 +341,14 @@ class LoggingMiddleware(object):
 
         retval = self.app(environ, custom_start_response)
 
+        endpoint, path_vars = self.router.match(request)
+
+        log_result = endpoint.get('x-log-result', True)
+
+        if isinstance(retval, types.GeneratorType):
+            content_length = [float('inf')]
+            log_result = False
+
         # Log the incoming request
         values = {
             'method': request.method,
@@ -351,9 +360,7 @@ class LoggingMiddleware(object):
             'request_id': request.headers.get(REQUEST_ID_HEADER, None)
         }
 
-        endpoint, path_vars = self.router.match(request)
-
-        if endpoint.get('x-log-result', True):
+        if log_result:
             values['result'] = retval[0]
             log_msg = '%(request_id)s - %(status)s %(content_length)s %(runtime)sms\n%(result)s'\
                       % values

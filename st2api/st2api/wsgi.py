@@ -13,24 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-st2auth configuration / wsgi entry point file for gunicorn.
-"""
-
-# Note: We need this import otherwise pecan will try to import from local, not global cmd package
-from __future__ import absolute_import
-
 import os
 
-__all__ = [
-    'app'
-]
+from st2api import app
 
-bind = '127.0.0.1:9100'
-
-config_args = ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')]
-is_gunicorn = True
-
-app = {
-    'modules': ['st2auth']
+config = {
+    'is_gunicorn': True,
+    'config_args': ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')]
 }
+
+application = app.setup_app(config)
