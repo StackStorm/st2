@@ -67,6 +67,7 @@ class RunnerTypeDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
         super(RunnerTypeDB, self).__init__(*args, **values)
         self.uid = self.get_uid()
 
+
 # specialized access objects
 runnertype_access = MongoDBAccess(RunnerTypeDB)
 

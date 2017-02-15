@@ -185,6 +185,7 @@ def exists(value, criteria_pattern):
 def nexists(value, criteria_pattern):
     return value is None
 
+
 # operator match strings
 MATCH_WILDCARD = 'matchwildcard'
 MATCH_REGEX = 'matchregex'

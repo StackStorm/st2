@@ -67,5 +67,6 @@ def main():
     db_teardown()
     sys.exit(exit_code)
 
+
 if __name__ == '__main__':
     main()
