@@ -73,13 +73,11 @@ class DataTransformTest(DbTestCase):
             transformer = datatransform.get_transformer(PAYLOAD)
             mapping = {'ip5': '{{trigger.k2}}-static',
                        'ip6': '{{st2kv.system.k6}}-static',
-                       'ip7': '{{st2kv.system.k7}}-static',
-                       'ip8': '{{system.k8}}-static'}
+                       'ip7': '{{st2kv.system.k7}}-static'}
             result = transformer(mapping)
             expected = {'ip5': 'v2-static',
                         'ip6': 'v6-static',
-                        'ip7': 'v7-static',
-                        'ip8': 'v8-static'}
+                        'ip7': 'v7-static'}
             self.assertEqual(result, expected)
         finally:
             KeyValuePair.delete(k5)

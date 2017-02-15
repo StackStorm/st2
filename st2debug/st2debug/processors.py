@@ -15,7 +15,7 @@
 
 import os
 
-from ConfigParser import ConfigParser
+from six.moves.configparser import ConfigParser
 
 __all__ = [
     'process_st2_config',
