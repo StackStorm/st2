@@ -289,6 +289,7 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def create(self, instance, **kwargs):
+
         url = '/%s' % self.resource.get_url_path_name()
         response = self.client.post(url, instance.serialize(), **kwargs)
         if response.status_code != 200:

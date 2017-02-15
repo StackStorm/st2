@@ -65,8 +65,7 @@ class Shell(BaseCLIApp):
     LOG = LOGGER
 
     SKIP_AUTH_CLASSES = [
-        TokenCreateCommand.__name__,
-        LoginCommand.__name__
+        TokenCreateCommand.__name__
     ]
 
     def __init__(self):

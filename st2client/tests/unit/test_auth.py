@@ -61,6 +61,9 @@ class TestLoginBase(base.BaseCLITestCase):
     def __init__(self, *args, **kwargs):
         super(TestLoginBase, self).__init__(*args, **kwargs)
 
+        # We're overriding the default behavior for CLI test cases here
+        self.DEFAULT_SKIP_CONFIG = '0'
+
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('-t', '--token', dest='token')
         self.parser.add_argument('--api-key', dest='api_key')
@@ -153,6 +156,14 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
         mock_gp.getpass.return_value = 'Password1!'
 
         self.shell.run(args)
+
+        # TODO(mierdin): This tests that this particular command sends X-Auth-Token but you should
+        # also test other commands after this token has been installed
+        kwargs = {
+            'headers': {'X-Auth-Token': self.TOKEN['token'], 'content-type': 'application/json'},
+            'auth': ('st2admin', 'Password1!')
+        }
+        requests.post.assert_called_with('http://127.0.0.1:9100/tokens', '{}', **kwargs)
 
         with open(self.CONFIG_FILE, 'r') as config_file:
 
