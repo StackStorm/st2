@@ -124,7 +124,7 @@ class BaseCLIApp(object):
         password = credentials.get('password', None)
         cache_token = rc_config.get('cli', {}).get('cache_token', False)
 
-        if username and password:
+        if credentials:
             # Credentials are provided, try to authenticate agaist the API
             try:
                 token = self._get_auth_token(client=client, username=username, password=password,

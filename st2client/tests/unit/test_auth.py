@@ -61,6 +61,9 @@ class TestLoginBase(base.BaseCLITestCase):
     def __init__(self, *args, **kwargs):
         super(TestLoginBase, self).__init__(*args, **kwargs)
 
+        # We're overriding the default behavior for CLI test cases here
+        self.DEFAULT_SKIP_CONFIG = '0'
+
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('-t', '--token', dest='token')
         self.parser.add_argument('--api-key', dest='api_key')
@@ -142,6 +145,9 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
     @mock.patch.object(
         requests, 'post',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(TOKEN), 200, 'OK')))
+    @mock.patch.object(
+        requests, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 200, 'OK')))
     @mock.patch('st2client.commands.auth.getpass')
     def runTest(self, mock_gp):
         '''Test 'st2 login' functionality with interactive password entry
@@ -154,10 +160,14 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
 
         self.shell.run(args)
 
+        expected_kwargs = {
+            'headers': {'content-type': 'application/json'},
+            'auth': ('st2admin', 'Password1!')
+        }
+        requests.post.assert_called_with('http://127.0.0.1:9100/tokens', '{}', **expected_kwargs)
+
         with open(self.CONFIG_FILE, 'r') as config_file:
-
             for line in config_file.readlines():
-
                 # Make sure certain values are not present
                 self.assertFalse('password' in line)
                 self.assertFalse('olduser' in line)
@@ -168,6 +178,18 @@ class TestLoginIntPwdAndConfig(TestLoginBase):
 
             # validate token was created
             self.assertTrue(os.path.isfile('%stoken-%s' % (self.DOTST2_PATH, expected_username)))
+
+        # Validate token is sent on subsequent requests to st2 API
+        args = ['--config', self.CONFIG_FILE, 'pack', 'list']
+        self.shell.run(args)
+
+        expected_kwargs = {
+            'headers': {
+                'X-Auth-Token': self.TOKEN['token']
+            },
+            'params': {}
+        }
+        requests.get.assert_called_with('http://127.0.0.1:9101/v1/packs', **expected_kwargs)
 
 
 class TestLoginWritePwdOkay(TestLoginBase):
