@@ -15,6 +15,8 @@
 
 import unittest2
 
+import mock
+
 import action_chain_runner as acr
 from st2common.exceptions.action import ParameterRenderingFailedException
 from st2common.models.system.actionchain import Node
@@ -62,3 +64,31 @@ class ActionChainRunnerResolveParamsTests(unittest2.TestCase):
             self.fail('Should have thrown an instance of %s' % ParameterRenderingFailedException)
         except ParameterRenderingFailedException:
             pass
+
+    def test_render_params_with_config(self):
+        with mock.patch(
+            'action_chain_runner.ContentPackConfigLoader'
+        ) as config_loader:
+            config_loader().get_config.return_value = {
+                'amazing_config_value_fo_lyfe': 'no'
+            }
+
+            runner = acr.get_runner()
+            chain_context = {
+                'parent': {
+                    'execution_id': 'some_awesome_exec_id',
+                    'user': 'dad',
+                    'pack': 'mom'
+                },
+                'user': 'son',
+            }
+            task_params = {
+                'config_val': '{{pack_context.amazing_config_value_fo_lyfe}}'
+            }
+            action_node = Node(
+                name='test_action_context_params',
+                ref='core.local',
+                params=task_params
+            )
+            rendered_params = runner._resolve_params(action_node, {}, {}, {}, chain_context)
+            self.assertEqual(rendered_params['config_val'], 'no')

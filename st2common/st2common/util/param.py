@@ -41,7 +41,9 @@ __all__ = [
 
 
 def _get_config(pack, user):
+    LOG.debug('Attempting to get config')
     if pack and user:
+        LOG.debug('Pack and user found. Loading config.')
         config_loader = ContentPackConfigLoader(
             pack_name=pack,
             user=user
@@ -51,6 +53,8 @@ def _get_config(pack, user):
 
     else:
         config = {}
+
+    LOG.debug('Config: %s', config)
 
     return config
 
