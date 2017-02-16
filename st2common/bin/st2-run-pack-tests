@@ -151,6 +151,13 @@ else
     fi
 
     # Activate created virtualenv
+    if [ ! -d "${VIRTUALENV_DIR}" ]; then
+        echo "Virtual environment ${VIRTUALENV_DIR} doesn't exist"
+        echo "Run this script without the -j flag to create it or run it with -x flag to not use" \
+             " a pack specific virtual environment."
+        exit 2
+    fi
+
     source ${VIRTUALENV_DIR}/bin/activate
 fi
 
