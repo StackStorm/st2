@@ -22,6 +22,7 @@ from st2client.models import Config
 from st2client.models import Pack
 from st2client.models import LiveAction
 from st2client.commands import resource
+from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.commands.action import ActionRunCommandMixin
 from st2client.formatters import table
 from st2client.exceptions.operations import OperationFailureException
@@ -100,7 +101,7 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
         detail_arg_grp.add_argument('-d', '--detail', action='store_true',
                                     help='Display full detail of the execution in table format.')
 
-    @resource.add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         instance = self.run(args, **kwargs)
         if not instance:
@@ -167,7 +168,7 @@ class PackShowCommand(PackResourceCommand):
                                  help='Name of the %s to show.' %
                                  resource.get_display_name().lower())
 
-    @resource.add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.search(args, **kwargs)
 
@@ -191,7 +192,7 @@ class PackInstallCommand(PackAsyncCommand):
     def run(self, args, **kwargs):
         return self.manager.install(args.packs, force=args.force, **kwargs)
 
-    @resource.add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         instance = super(PackInstallCommand, self).run_and_print(args, **kwargs)
 
@@ -231,7 +232,7 @@ class PackRemoveCommand(PackAsyncCommand):
     def run(self, args, **kwargs):
         return self.manager.remove(args.packs, **kwargs)
 
-    @resource.add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         all_pack_instances = self.app.client.managers['Pack'].get_all()
 
@@ -283,7 +284,7 @@ class PackRegisterCommand(PackResourceCommand):
                                  nargs='+',
                                  help='Types of content to register.')
 
-    @resource.add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.register(args.packs, args.types, **kwargs)
 
@@ -302,7 +303,7 @@ class PackSearchCommand(resource.ResourceTableCommand):
         self.parser.add_argument('query',
                                  help='Search query.')
 
-    @resource.add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.search(args, **kwargs)
 
@@ -317,7 +318,7 @@ class PackConfigCommand(resource.ResourceCommand):
                                  help='Name of the %s(s) to configure.' %
                                       resource.get_display_name().lower())
 
-    @resource.add_auth_token_to_kwargs_from_cli
+    @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         schema = self.app.client.managers['ConfigSchema'].get_by_ref_or_id(args.name, **kwargs)
 
