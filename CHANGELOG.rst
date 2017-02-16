@@ -75,8 +75,8 @@ in development
   dependencies. This flag can be used when virtual environment for pack tests already exists and
   when you know dependencies are already installed and up to date. (new feature)
 * Fix a bug with ``--api-token`` / ``-t`` and other CLI option values not getting correctly
-  propagated to all the API calls issued in the ``st2 pack install`` and ``st2 pack remove``
-  commands. (bug fix)
+  propagated to all the API calls issued in the ``st2 pack install``, ``st2 pack remove`` and
+  ``st2 pack config`` commands. (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------
