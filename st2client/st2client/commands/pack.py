@@ -345,7 +345,8 @@ class PackConfigCommand(resource.ResourceCommand):
         if save_dialog.read() == 'n':
             raise OperationFailureException('Interrupted')
 
-        result = self.app.client.managers['Config'].update(Config(pack=args.name, values=config))
+        config_item = Config(pack=args.name, values=config)
+        result = self.app.client.managers['Config'].update(config_item, **kwargs)
 
         return result
 
