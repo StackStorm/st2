@@ -74,7 +74,7 @@ in development
   just try to run the tests and it won't set up the virtual environment and install the
   dependencies. This flag can be used when virtual environment for pack tests already exists and
   when you know dependencies are already installed and up to date. (new feature)
-* Adding ability to render config parameters inside actions. (new feature)
+* Adding ability to render config values inside actions parameters. (new feature)
 
 2.1.1 - December 16, 2016
 -------------------------
