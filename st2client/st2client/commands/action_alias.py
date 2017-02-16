@@ -153,4 +153,3 @@ class ActionAliasExecuteCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         execution = self.run(args, **kwargs)
         print("Started execution, id '%s'" % execution.execution['id'])
-        print(execution.message)
