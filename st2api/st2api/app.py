@@ -22,7 +22,8 @@ from pecan.middleware.static import StaticFileMiddleware
 import yaml
 
 from st2api import config as st2api_config
-from st2common import constants
+import st2common.constants.pack
+import st2common.constants.action
 from st2common import log as logging
 from st2common.rbac.types import PermissionType
 from st2common.router import Router
@@ -61,8 +62,8 @@ def setup_app(config={}):
                      config_args=config.get('config_args', None))
 
     arguments = {
-        'DEFAULT_PACK_NAME': constants.pack.DEFAULT_PACK_NAME,
-        'LIVEACTION_STATUSES': constants.action.LIVEACTION_STATUSES,
+        'DEFAULT_PACK_NAME': st2common.constants.pack.DEFAULT_PACK_NAME,
+        'LIVEACTION_STATUSES': st2common.constants.action.LIVEACTION_STATUSES,
         'PERMISSION_TYPE': PermissionType,
         'ISO8601_UTC_REGEX': isotime.ISO8601_UTC_REGEX
     }

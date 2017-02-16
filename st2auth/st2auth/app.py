@@ -28,10 +28,10 @@ from st2common.service_setup import setup as common_setup
 LOG = logging.getLogger(__name__)
 
 
-def setup_app(config=None):
+def setup_app(config={}):
     LOG.info('Creating st2auth: %s as OpenAPI app.', VERSION_STRING)
 
-    is_gunicorn = getattr(config, 'is_gunicorn', False)
+    is_gunicorn = config.get('is_gunicorn', False)
     if is_gunicorn:
         # Note: We need to perform monkey patching in the worker. If we do it in
         # the master process (gunicorn_config.py), it breaks tons of things
@@ -47,7 +47,7 @@ def setup_app(config=None):
                      register_signal_handlers=True,
                      register_internal_trigger_types=False,
                      run_migrations=False,
-                     config_args=config.config_args)
+                     config_args=config.get('config_args', None))
 
     spec_string = pkg_resources.resource_string(__name__, 'controllers/openapi.yaml')
     spec = yaml.load(spec_string)

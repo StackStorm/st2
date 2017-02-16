@@ -30,7 +30,8 @@ from oslo_config import cfg
 import yaml
 
 from st2stream import config as st2stream_config
-from st2common import constants
+import st2common.constants.pack
+import st2common.constants.action
 from st2common import log as logging
 from st2common.rbac.types import PermissionType
 from st2common.router import Router
@@ -56,10 +57,10 @@ class StreamingMiddleware(object):
         return self.app(environ, start_response)
 
 
-def setup_app(config=None):
+def setup_app(config={}):
     LOG.info('Creating st2stream: %s as OpenAPI app.', VERSION_STRING)
 
-    is_gunicorn = getattr(config, 'is_gunicorn', False)
+    is_gunicorn = config.get('is_gunicorn', False)
     if is_gunicorn:
         # Note: We need to perform monkey patching in the worker. If we do it in
         # the master process (gunicorn_config.py), it breaks tons of things
@@ -75,11 +76,11 @@ def setup_app(config=None):
                      register_signal_handlers=True,
                      register_internal_trigger_types=False,
                      run_migrations=False,
-                     config_args=config.config_args)
+                     config_args=config.get('config_args', None))
 
     arguments = {
-        'DEFAULT_PACK_NAME': constants.pack.DEFAULT_PACK_NAME,
-        'LIVEACTION_STATUSES': constants.action.LIVEACTION_STATUSES,
+        'DEFAULT_PACK_NAME': st2common.constants.pack.DEFAULT_PACK_NAME,
+        'LIVEACTION_STATUSES': st2common.constants.action.LIVEACTION_STATUSES,
         'PERMISSION_TYPE': PermissionType,
         'ISO8601_UTC_REGEX': isotime.ISO8601_UTC_REGEX
     }
