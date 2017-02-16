@@ -142,7 +142,7 @@ class PackAsyncCommand(ActionRunCommandMixin, resource.ResourceCommand):
             self._print_execution_details(execution=execution, args=args, **kwargs)
             sys.exit(1)
 
-        return self.app.client.managers['LiveAction'].get_by_id(parent_id)
+        return self.app.client.managers['LiveAction'].get_by_id(parent_id, **kwargs)
 
 
 class PackListCommand(resource.ResourceListCommand):
