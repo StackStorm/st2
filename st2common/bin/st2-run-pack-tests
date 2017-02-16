@@ -134,8 +134,12 @@ echo "Running tests for pack: ${PACK_NAME}"
 VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
 
 if [ "${CREATE_VIRTUALENV}" = false ]; then
-    echo "Activating virtualenv in ${VIRTUALENV_DIR}..."
-    source ${VIRTUALENV_DIR}/bin/activate
+    if [ -d "${VIRTUALENV_DIR}" ]; then
+        echo "Activating virtualenv in ${VIRTUALENV_DIR}..."
+        source ${VIRTUALENV_DIR}/bin/activate
+    else
+        echo "Not activating virtualenv since it doesn't exist"
+    fi
 else
     if [ "${JUST_TESTS}" = false ]; then
         echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
@@ -145,6 +149,7 @@ else
         # Make sure virtualenv is using latest pip version
         ${VIRTUALENV_DIR}/bin/pip install --upgrade pip
     fi
+
     # Activate created virtualenv
     source ${VIRTUALENV_DIR}/bin/activate
 fi
