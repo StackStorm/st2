@@ -43,6 +43,7 @@ VIRTUALENVS_DIR="/tmp/st2-pack-tests-virtualenvs"
 
 ST2_PIP_OPTIONS=${ST2_PIP_OPTIONS:-"-q"}
 CREATE_VIRTUALENV=true
+JUST_TESTS=false
 VERBOSE=false
 
 ####################
@@ -50,16 +51,22 @@ VERBOSE=false
 ####################
 
 function usage() {
-    echo "Usage: $0 [-x] -p <path to pack>" >&2
+    echo "Usage: $0 [-x -s] -p <path to pack>" >&2
+    echo "  -x : Do not create virtualenv, e.g. when running in existing one." >&2
+    echo "  -j : Just run tests (use previously installed dependencies" >&2
+    echo "       and virtualenv if any. For subsequent test runs." >&2
 }
 
-while getopts ":p:xv" o; do
+while getopts ":p:xjv" o; do
     case "${o}" in
         p)
             PACK_PATH=${OPTARG}
             ;;
         x)
             CREATE_VIRTUALENV=false
+            ;;
+        j)
+            JUST_TESTS=true
             ;;
         v)
             VERBOSE=true
@@ -126,15 +133,31 @@ echo "Running tests for pack: ${PACK_NAME}"
 # Create virtualenv
 VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
 
-if [ "${CREATE_VIRTUALENV}" = true ]; then
-    echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
-    mkdir -p ${VIRTUALENVS_DIR}
-    virtualenv --system-site-packages ${VIRTUALENV_DIR}
+if [ "${CREATE_VIRTUALENV}" = false ]; then
+    if [ -d "${VIRTUALENV_DIR}" ]; then
+        echo "Activating virtualenv in ${VIRTUALENV_DIR}..."
+        source ${VIRTUALENV_DIR}/bin/activate
+    else
+        echo "Not activating virtualenv since it doesn't exist"
+    fi
+else
+    if [ "${JUST_TESTS}" = false ]; then
+        echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
+        mkdir -p ${VIRTUALENVS_DIR}
+        virtualenv --system-site-packages ${VIRTUALENV_DIR}
 
-    # Make sure virtualenv is using latest pip version
-    ${VIRTUALENV_DIR}/bin/pip install --upgrade pip
+        # Make sure virtualenv is using latest pip version
+        ${VIRTUALENV_DIR}/bin/pip install --upgrade pip
+    fi
 
     # Activate created virtualenv
+    if [ ! -d "${VIRTUALENV_DIR}" ]; then
+        echo "Virtual environment ${VIRTUALENV_DIR} doesn't exist"
+        echo "Run this script without the -j flag to create it or run it with -x flag to not use" \
+             " a pack specific virtual environment."
+        exit 2
+    fi
+
     source ${VIRTUALENV_DIR}/bin/activate
 fi
 
@@ -150,31 +173,33 @@ else
     PACK_PYTHONPATH="$(join ":" ${ST2_COMPONENTS}):${SENSORS_PATH}:${ACTIONS_PATH}:${ETC_PATH}"
 fi
 
-# Install st2 dependencies
-if [ ${ST2_REPO_PATH} ]; then
-    echo "Installing dependencies from st2 repository..."
-    pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/requirements.txt
-    pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/test-requirements.txt
+if [ "${JUST_TESTS}" = false ]; then
+    # Install st2 dependencies
+    if [ ${ST2_REPO_PATH} ]; then
+        echo "Installing dependencies from st2 repository..."
+        pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/requirements.txt
+        pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/test-requirements.txt
+    fi
+
+    # Install global test dependencies
+    echo "Installing global pack test dependencies..."
+    for dependency in ${PACK_TEST_PYTHON_DEPENDENCIES[@]}; do
+        pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${dependency}"
+    done
+
+    # Install pack dependencies
+    if [ -f ${PACK_REQUIREMENTS_FILE} ]; then
+        echo "Installing pack-specific dependencies..."
+        pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_REQUIREMENTS_FILE}
+    fi
+
+    # Install pack test dependencies (if any)
+    if [ -f ${PACK_TESTS_REQUIREMENTS_FILE} ]; then
+        echo "Installing pack-specific test dependencies..."
+        pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_TESTS_REQUIREMENTS_FILE}
+    fi
+
 fi
-
-# Install global test dependencies
-echo "Installing global pack test dependencies..."
-for dependency in ${PACK_TEST_PYTHON_DEPENDENCIES[@]}; do
-    pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${dependency}"
-done
-
-# Install pack dependencies
-if [ -f ${PACK_REQUIREMENTS_FILE} ]; then
-    echo "Installing pack-specific dependencies..."
-    pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_REQUIREMENTS_FILE}
-fi
-
-# Install pack test dependencies (if any)
-if [ -f ${PACK_TESTS_REQUIREMENTS_FILE} ]; then
-    echo "Installing pack-specific test dependencies..."
-    pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} -r ${PACK_TESTS_REQUIREMENTS_FILE}
-fi
-
 # Set PYTHONPATH, make sure it contains st2 components in PATH
 export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
 
