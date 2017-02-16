@@ -58,7 +58,7 @@ in development
   beyond the existing `st2 auth` command and actually works with the local configuration so that
   users do not have to.
 * Fix action alias update API endpoint. (bug fix)
-* Fix ``--config-file`` st2 CLI argument not correctly expanding the provided path if the path 
+* Fix ``--config-file`` st2 CLI argument not correctly expanding the provided path if the path
   contained a reference to the user home directory (``~``, e.g. ``~/.st2/config.ini``) (bug fix)
 * Fix action alias update API endpoint. (bug fix)
 * ``{{user.}}`` and ``{{system.}}`` notations to access user and system
@@ -70,6 +70,10 @@ in development
   the installer script still is 3.2. (improvement)
 * Fix a bug with ``packs.download`` action and as such as ``pack install`` command not working with
   git repositories which used a default branch which was not ``master``. (bug fix)
+* Add new ``-j`` flag to the ``st2-run-pack-tests`` script. When this flag is specified script will
+  just try to run the tests and it won't set up the virtual environment and install the
+  dependencies. This flag can be used when virtual environment for pack tests already exists and
+  when you know dependencies are already installed and up to date. (new feature)
 
 2.1.1 - December 16, 2016
 -------------------------
