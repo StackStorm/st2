@@ -16,7 +16,6 @@
 
 import mock
 
-from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
 from st2common.exceptions.param import ParamException
 from st2common.models.system.common import ResourceReference
 from st2common.models.db.liveaction import LiveActionDB
@@ -343,18 +342,62 @@ class ParamsUtilsTest(DbTestCase):
             'r1': '{{r2}}',
             'r2': {'r2.1': 1},
             'a1': True,
-            'a2': '{{a1}}'
+            'a2': '{{a1}}',
+            'a3': {
+                'test': '{{a1}}',
+                'test1': '{{a4}}',
+                'test2': '{{a5}}',
+            },
+            'a4': 3,
+            'a5': ['1', '{{a1}}']
         }
         runner_param_info = {'r1': {'type': 'object'}, 'r2': {'type': 'object'}}
-        action_param_info = {'a1': {'type': 'boolean'}, 'a2': {'type': 'boolean'}}
+        action_param_info = {
+            'a1': {
+                'type': 'boolean',
+            },
+            'a2': {
+                'type': 'boolean',
+            },
+            'a3': {
+                'type': 'object',
+            },
+            'a4': {
+                'type': 'integer',
+            },
+            'a5': {
+                'type': 'array',
+            },
+        }
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, {})
-        self.assertEqual(r_runner_params, {'r1': {'r2.1': 1}, 'r2': {'r2.1': 1}})
-        self.assertEqual(r_action_params, {'a1': True, 'a2': True})
+        self.assertEqual(
+            r_runner_params, {'r1': {'r2.1': 1}, 'r2': {'r2.1': 1}})
+        self.assertEqual(
+            r_action_params,
+            {
+                'a1': True,
+                'a2': True,
+                'a3': {
+                    'test': True,
+                    'test1': 3,
+                    'test2': [
+                        '1',
+                        True
+                    ],
+                },
+                'a4': 3,
+                'a5': [
+                    '1',
+                    True
+                ],
+            }
+        )
 
     def test_get_finalized_params_with_list(self):
         # Note : In this test runner_params.r1 has a string value. However per runner_param_info the
         # type is an integer. The expected type is considered and cast is performed accordingly.
+        self.maxDiff = None
         params = {
             'r1': '{{r2}}',
             'r2': ['1', '2'],
@@ -362,7 +405,17 @@ class ParamsUtilsTest(DbTestCase):
             'a2': 'Test',
             'a3': 'Test2',
             'a4': '{{a1}}',
-            'a5': ['{{a2}}', '{{a3}}']
+            'a5': ['{{a2}}', '{{a3}}'],
+            'a6': [
+                ['{{r2}}', '{{a2}}'],
+                ['{{a3}}', '{{a1}}'],
+                [
+                    '{{a7}}',
+                    'This should be rendered as a string {{a1}}',
+                    '{{a1}} This, too, should be rendered as a string {{a1}}',
+                ]
+            ],
+            'a7': 5,
         }
         runner_param_info = {'r1': {'type': 'array'}, 'r2': {'type': 'array'}}
         action_param_info = {
@@ -370,7 +423,9 @@ class ParamsUtilsTest(DbTestCase):
             'a2': {'type': 'string'},
             'a3': {'type': 'string'},
             'a4': {'type': 'boolean'},
-            'a5': {'type': 'array'}
+            'a5': {'type': 'array'},
+            'a6': {'type': 'array'},
+            'a7': {'type': 'integer'},
         }
         r_runner_params, r_action_params = param_utils.get_finalized_params(
             runner_param_info, action_param_info, params, {})
@@ -382,7 +437,17 @@ class ParamsUtilsTest(DbTestCase):
                 'a2': 'Test',
                 'a3': 'Test2',
                 'a4': True,
-                'a5': ['Test', 'Test2']
+                'a5': ['Test', 'Test2'],
+                'a6': [
+                    [['1', '2'], 'Test'],
+                    ['Test2', True],
+                    [
+                        5,
+                        u'This should be rendered as a string True',
+                        u'True This, too, should be rendered as a string True'
+                    ]
+                ],
+                'a7': 5,
             }
         )
 
@@ -447,28 +512,6 @@ class ParamsUtilsTest(DbTestCase):
 
         self.assertEqual(r_action_params['cmd'], "echo 1.7.0")
 
-    def test_get_finalized_params_older_kv_scopes_backwards_compatibility(self):
-        KeyValuePair.add_or_update(KeyValuePairDB(name='cmd_to_run', value='echo MELANIA',
-                                                  scope=FULL_SYSTEM_SCOPE))
-        # k2 = KeyValuePair.add_or_update(KeyValuePairDB(name='ivanka:cmd_to_run',
-        #                                                value='echo MA DAD IS GREAT',
-        #                                                scope=USER_SCOPE))
-        params = {
-            'sys_cmd': '{{system.cmd_to_run}}',
-            # 'user_cmd': '{{user.ivanka:cmd_to_run}}' Not supported yet.
-        }
-        runner_param_info = {'r1': {}}
-        action_param_info = {
-            'sys_cmd': {}
-        }
-        action_context = {}
-
-        r_runner_params, r_action_params = param_utils.get_finalized_params(
-            runner_param_info, action_param_info, params, action_context)
-
-        self.assertEqual(r_action_params['sys_cmd'], "echo MELANIA")
-        # self.assertEqual(r_action_params['user_cmd'], "echo MA DAD IS GREAT")
-
     def test_get_finalized_params_param_rendering_failure(self):
         params = {'cmd': '{{a2.foo}}', 'a2': 'test'}
         action_param_info = {'cmd': {}, 'a2': {}}
@@ -504,7 +547,7 @@ class ParamsUtilsTest(DbTestCase):
 
         expected_params = {
             'host': 'lolcathost',
-            'port': '5555',
+            'port': 5555,
             'path': '/bar'
         }
         self.assertEqual(r_action_params['params'], expected_params)

@@ -30,6 +30,7 @@ if __name__ == '__main__':
 import sys
 import json
 import argparse
+import traceback
 
 from oslo_config import cfg
 
@@ -195,11 +196,20 @@ class PythonActionWrapper(object):
         sys.stdout.flush()
 
     def _get_action_instance(self):
-        actions_cls = action_loader.register_plugin(Action, self._file_path)
+        try:
+            actions_cls = action_loader.register_plugin(Action, self._file_path)
+        except Exception as e:
+            tb_msg = traceback.format_exc()
+            msg = ('Failed to load action class from file "%s" (action file most likely doesn\'t '
+                   'exist or contains invalid syntax): %s' % (self._file_path, str(e)))
+            msg += '\n\n' + tb_msg
+            exc_cls = type(e)
+            raise exc_cls(msg)
+
         action_cls = actions_cls[0] if actions_cls and len(actions_cls) > 0 else None
 
         if not action_cls:
-            raise Exception('File "%s" has no action or the file doesn\'t exist.' %
+            raise Exception('File "%s" has no action class or the file doesn\'t exist.' %
                             (self._file_path))
 
         self._class_name = action_cls.__class__.__name__

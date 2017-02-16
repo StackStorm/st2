@@ -22,6 +22,7 @@ import uuid
 import mock
 from mock import call
 
+from mistralclient.api import base as mistralclient_base
 from mistralclient.api.v2 import executions
 from mistralclient.api.v2 import tasks
 from oslo_config import cfg
@@ -48,6 +49,11 @@ MOCK_WF_TASKS_ERRORED = [
 MOCK_WF_TASKS_RUNNING = [
     {'name': 'task1', 'state': 'SUCCESS'},
     {'name': 'task2', 'state': 'RUNNING'}
+]
+
+MOCK_WF_TASKS_WAITING = [
+    {'name': 'task1', 'state': 'SUCCESS'},
+    {'name': 'task2', 'state': 'WAITING'}
 ]
 
 MOCK_WF_EX_DATA = {
@@ -173,7 +179,8 @@ class MistralQuerierTest(DbTestCase):
         mock.MagicMock(return_value=True))
     def test_determine_status_wf_canceled_tasks_completed(self):
         wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'PAUSED', MOCK_WF_TASKS_SUCCEEDED)
+        status = self.querier._determine_execution_status(
+            wf_id, 'CANCELLED', MOCK_WF_TASKS_SUCCEEDED)
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELED, status)
 
     @mock.patch.object(
@@ -181,7 +188,15 @@ class MistralQuerierTest(DbTestCase):
         mock.MagicMock(return_value=True))
     def test_determine_status_wf_canceled_tasks_running(self):
         wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'PAUSED', MOCK_WF_TASKS_RUNNING)
+        status = self.querier._determine_execution_status(wf_id, 'CANCELLED', MOCK_WF_TASKS_RUNNING)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
+
+    @mock.patch.object(
+        action_service, 'is_action_canceled_or_canceling',
+        mock.MagicMock(return_value=True))
+    def test_determine_status_wf_canceled_tasks_waiting(self):
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'CANCELLED', MOCK_WF_TASKS_WAITING)
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELED, status)
 
     @mock.patch.object(
@@ -190,7 +205,7 @@ class MistralQuerierTest(DbTestCase):
     def test_determine_status_wf_canceled_exec_running_tasks_completed(self):
         wf_id = uuid.uuid4().hex
         status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_SUCCEEDED)
-        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
@@ -198,23 +213,32 @@ class MistralQuerierTest(DbTestCase):
     def test_determine_status_wf_canceled_exec_running_tasks_running(self):
         wf_id = uuid.uuid4().hex
         status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_RUNNING)
-        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
+
+    @mock.patch.object(
+        action_service, 'is_action_canceled_or_canceling',
+        mock.MagicMock(return_value=True))
+    def test_determine_status_wf_canceled_exec_running_tasks_waiting(self):
+        wf_id = uuid.uuid4().hex
+        status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_WAITING)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=False))
     def test_determine_status_wf_running_exec_paused_tasks_completed(self):
         wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'PAUSED', MOCK_WF_TASKS_SUCCEEDED)
+        status = self.querier._determine_execution_status(
+            wf_id, 'PAUSED', MOCK_WF_TASKS_SUCCEEDED)
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=False))
-    def test_determine_status_wf_running_exec_paused_tasks_running(self):
+    def test_determine_status_wf_running_exec_cancelled_tasks_running(self):
         wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'PAUSED', MOCK_WF_TASKS_RUNNING)
-        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+        status = self.querier._determine_execution_status(wf_id, 'CANCELLED', MOCK_WF_TASKS_RUNNING)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
     @mock.patch.object(
         executions.ExecutionManager, 'get',
@@ -235,6 +259,11 @@ class MistralQuerierTest(DbTestCase):
     @mock.patch.object(
         tasks.TaskManager, 'list',
         mock.MagicMock(return_value=MOCK_WF_EX_TASKS))
+    @mock.patch.object(
+        tasks.TaskManager, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_WF_EX_TASKS[0],
+            MOCK_WF_EX_TASKS[1]]))
     def test_get_workflow_tasks(self):
         tasks = self.querier._get_workflow_tasks(uuid.uuid4().hex)
 
@@ -253,6 +282,11 @@ class MistralQuerierTest(DbTestCase):
     @mock.patch.object(
         tasks.TaskManager, 'list',
         mock.MagicMock(return_value=MOCK_WF_EX_TASKS))
+    @mock.patch.object(
+        tasks.TaskManager, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_WF_EX_TASKS[0],
+            MOCK_WF_EX_TASKS[1]]))
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=False))
@@ -284,6 +318,11 @@ class MistralQuerierTest(DbTestCase):
     @mock.patch.object(
         tasks.TaskManager, 'list',
         mock.MagicMock(return_value=MOCK_WF_EX_TASKS))
+    @mock.patch.object(
+        tasks.TaskManager, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_WF_EX_TASKS[0],
+            MOCK_WF_EX_TASKS[1]]))
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=False))
@@ -325,6 +364,17 @@ class MistralQuerierTest(DbTestCase):
 
     @mock.patch.object(
         executions.ExecutionManager, 'get',
+        mock.MagicMock(
+            side_effect=mistralclient_base.APIException(
+                error_code=404, error_message='Workflow not found.')))
+    def test_query_get_workflow_not_found(self):
+        (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_FAILED, status)
+        self.assertEqual('Workflow not found.', result)
+
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=MOCK_WF_EX))
     @mock.patch.object(
         tasks.TaskManager, 'list',
@@ -332,9 +382,14 @@ class MistralQuerierTest(DbTestCase):
             requests.exceptions.ConnectionError(),
             MOCK_WF_EX_TASKS]))
     @mock.patch.object(
+        tasks.TaskManager, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_WF_EX_TASKS[0],
+            MOCK_WF_EX_TASKS[1]]))
+    @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
         mock.MagicMock(return_value=False))
-    def test_query_get_workflow_tasks_retry(self):
+    def test_query_list_workflow_tasks_retry(self):
         (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
 
         expected = {
@@ -358,13 +413,59 @@ class MistralQuerierTest(DbTestCase):
         calls = [mock_call for i in range(0, 2)]
         tasks.TaskManager.list.assert_has_calls(calls)
 
+        calls = [call(MOCK_WF_EX_TASKS[0].id), call(MOCK_WF_EX_TASKS[1].id)]
+        tasks.TaskManager.get.assert_has_calls(calls)
+
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
+        mock.MagicMock(return_value=MOCK_WF_EX))
+    @mock.patch.object(
+        tasks.TaskManager, 'list',
+        mock.MagicMock(return_value=MOCK_WF_EX_TASKS))
+    @mock.patch.object(
+        tasks.TaskManager, 'get',
+        mock.MagicMock(side_effect=[
+            requests.exceptions.ConnectionError(),
+            MOCK_WF_EX_TASKS[0],
+            MOCK_WF_EX_TASKS[1]]))
+    @mock.patch.object(
+        action_service, 'is_action_canceled_or_canceling',
+        mock.MagicMock(return_value=False))
+    def test_query_get_workflow_tasks_retry(self):
+        (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
+
+        expected = {
+            'k1': 'v1',
+            'tasks': copy.deepcopy(MOCK_WF_EX_TASKS_DATA),
+            'extra': {
+                'state': MOCK_WF_EX.state,
+                'state_info': MOCK_WF_EX.state_info
+            }
+        }
+
+        for task in expected['tasks']:
+            task['input'] = json.loads(task['input'])
+            task['result'] = json.loads(task['result'])
+            task['published'] = json.loads(task['published'])
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_SUCCEEDED, status)
+        self.assertDictEqual(expected, result)
+
+        calls = [
+            call(MOCK_WF_EX_TASKS[0].id),
+            call(MOCK_WF_EX_TASKS[0].id),
+            call(MOCK_WF_EX_TASKS[1].id)
+        ]
+
+        tasks.TaskManager.get.assert_has_calls(calls)
+
     @mock.patch.object(
         executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=MOCK_WF_EX))
     @mock.patch.object(
         tasks.TaskManager, 'list',
         mock.MagicMock(side_effect=[requests.exceptions.ConnectionError()] * 4))
-    def test_query_get_workflow_tasks_retry_exhausted(self):
+    def test_query_list_workflow_tasks_retry_exhausted(self):
         self.assertRaises(
             requests.exceptions.ConnectionError,
             self.querier.query,
@@ -374,6 +475,46 @@ class MistralQuerierTest(DbTestCase):
         mock_call = call(workflow_execution_id=MOCK_QRY_CONTEXT['mistral']['execution_id'])
         calls = [mock_call for i in range(0, 2)]
         tasks.TaskManager.list.assert_has_calls(calls)
+
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
+        mock.MagicMock(return_value=MOCK_WF_EX))
+    @mock.patch.object(
+        tasks.TaskManager, 'list',
+        mock.MagicMock(return_value=MOCK_WF_EX_TASKS))
+    @mock.patch.object(
+        tasks.TaskManager, 'get',
+        mock.MagicMock(side_effect=[requests.exceptions.ConnectionError()] * 4))
+    def test_query_get_workflow_tasks_retry_exhausted(self):
+        self.assertRaises(
+            requests.exceptions.ConnectionError,
+            self.querier.query,
+            uuid.uuid4().hex,
+            MOCK_QRY_CONTEXT)
+
+        calls = [
+            call(MOCK_WF_EX_TASKS[0].id),
+            call(MOCK_WF_EX_TASKS[0].id)
+        ]
+
+        tasks.TaskManager.get.assert_has_calls(calls)
+
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
+        mock.MagicMock(return_value=MOCK_WF_EX))
+    @mock.patch.object(
+        tasks.TaskManager, 'list',
+        mock.MagicMock(return_value=MOCK_WF_EX_TASKS))
+    @mock.patch.object(
+        tasks.TaskManager, 'get',
+        mock.MagicMock(
+            side_effect=mistralclient_base.APIException(
+                error_code=404, error_message='Task not found.')))
+    def test_query_get_workflow_tasks_not_found(self):
+        (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_FAILED, status)
+        self.assertEqual('Task not found.', result)
 
     def test_query_missing_context(self):
         self.assertRaises(Exception, self.querier.query, uuid.uuid4().hex, {})

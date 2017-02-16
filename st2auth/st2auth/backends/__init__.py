@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import traceback
 import json
 
 from oslo_config import cfg
@@ -43,9 +44,14 @@ def get_available_backends():
 
 def get_backend_instance(name):
     """
+    Retrieve a class instance for the provided auth backend.
+
     :param name: Backend name.
     :type name: ``str``
     """
+
+    LOG.debug('Retrieving backend instance for backend "%s"' % (name))
+
     try:
         manager = DriverManager(namespace=BACKENDS_NAMESPACE, name=name,
                                 invoke_on_load=False)
@@ -60,10 +66,22 @@ def get_backend_instance(name):
         try:
             kwargs = json.loads(backend_kwargs)
         except ValueError as e:
-            raise ValueError('Failed to JSON parse backend settings: %s' % (str(e)))
+            raise ValueError('Failed to JSON parse backend settings for backend "%s": %s' %
+                             (name, str(e)))
     else:
         kwargs = {}
 
     cls = manager.driver
-    cls_instance = cls(**kwargs)
+
+    try:
+        cls_instance = cls(**kwargs)
+    except Exception as e:
+        tb_msg = traceback.format_exc()
+        class_name = cls.__name__
+        msg = ('Failed to instantiate auth backend "%s" (class %s) with backend settings '
+               '"%s": %s' % (name, class_name, str(kwargs), str(e)))
+        msg += '\n\n' + tb_msg
+        exc_cls = type(e)
+        raise exc_cls(msg)
+
     return cls_instance

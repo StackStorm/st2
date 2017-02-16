@@ -5,7 +5,7 @@ in development
 --------------
 
 * Fix ``/v1/packs/views/files/<pack ref or id>`` and
-  ``/v2/packs/views/files/<pack ref or id>/<file path>`` API endpoint so it
+  ``/v1/packs/views/file/<pack ref or id>/<file path>`` API endpoint so it
   works correctly for packs where pack name is not equal to the pack ref. (bug fix)
 
   Reported by skjbulcher #3128
@@ -15,6 +15,61 @@ in development
   a complex type (e.g. Python class instance) as a result. (bug fix)
 
   Reported by skjbulcher #3133
+* Introduce validation of trigger parameters when creating a rule for non-system (user-defined)
+  trigger types.
+
+  Validation is only performed if ``system.validate_trigger_parameters`` config option is enabled
+  (it's disabled by default) and if trigger object defines ``parameters_schema`` attribute.
+
+  Contribution by Hiroyasu OHYAMA. #3094
+* Introduce validation of trigger payload for non-system and user-defined triggers which is
+  performed when dispatching a trigger inside a sensor and when sending a trigger via custom
+  webhook.
+
+  Validation is only performed if ``system.validate_trigger_payload`` config option is enabled
+  (it's disabled by default) and if trigger object defines ``payload_schema`` attribute.
+
+  Contribution by Hiroyasu OHYAMA. #3094
+* Add support for complex rendering inside of array and object types. This allows the user to
+  nest Jinja variables in array and object types.
+* Fix cancellation specified in concurrency policies to cancel actions appropriately. Previously,
+  mistral workflow is orphaned and left in a running state. (bug fix)
+* If a retry policy is defined, action executions under the context of a workflow will not be
+  retried on timeout or failure. Previously, action execution will be retried but workflow is
+  terminated. (bug fix)
+* Update Python runner to throw a more user-friendly exception in case action metadata file
+  references a script file which doesn't exist or which contains invalid syntax. (improvement)
+* Update ``st2auth`` service so it includes more context and throws a more user-friendly exception
+  when retrieving an auth backend instance fails. This makes it easier to debug and spot various
+  auth backend issues related to typos, misconfiguration and similar. (improvement)
+* Mistral fork is updated to match the master branch at OpenStack Mistral. (improvement)
+* Fix how mistral client and resource managers are being used in the mistral runner. Authentication
+  has changed in the mistral client. Fix unit test accordingly. (bug fix)
+* Fix issue where passing a single integer member for an array parameter for an action would
+  cause a type mismatch in the API (bug fix)
+* Use the newly introduced CANCELLED state in mistral for workflow cancellation. Currently, st2
+  put the workflow in a PAUSED state in mistral. (improvement)
+* Add support for evaluating jinja expressions in mistral workflow definition where yaql
+  expressions are typically accepted. (improvement)
+* Let querier plugin decide whether to delete state object on error. Mistral querier will
+  delete state object on workflow completion or when the workflow or task references no
+  longer exists. (improvement)
+* Add support for `st2 login` and `st2 whoami` commands. These add some additional functionality
+  beyond the existing `st2 auth` command and actually works with the local configuration so that
+  users do not have to.
+* Fix action alias update API endpoint. (bug fix)
+* Fix ``--config-file`` st2 CLI argument not correctly expanding the provided path if the path 
+  contained a reference to the user home directory (``~``, e.g. ``~/.st2/config.ini``) (bug fix)
+* Fix action alias update API endpoint. (bug fix)
+* ``{{user.}}`` and ``{{system.}}`` notations to access user and system
+  scoped items from datastore are now unsupported. Use  ``{{st2kv.user.}}``
+  and ``{{st2kv.system.}}`` instead. Please update all your content (actions, rules and
+  workflows) to use the new notation. (improvement)
+* Update the dependencies and the code base so we now also support MongoDB 3.4. Officially
+  supported MongoDB versions are now MongoDB 3.2 and 3.4. Currently default version installed by
+  the installer script still is 3.2. (improvement)
+* Fix a bug with ``packs.download`` action and as such as ``pack install`` command not working with
+  git repositories which used a default branch which was not ``master``. (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------
@@ -40,8 +95,6 @@ in development
 * Update ``packs.load`` action to also register triggers by default. (improvement)
 * Update ``/v1/packs/register`` API endpoint so it registers resources in the correct order which
   is the same as order used in ``st2-register-content`` script. (bug fix)
-* Fix cancellation specified in concurrency policies to cancel actions appropriately. Previously, mistral
-  workflow is orphaned and left in a running state. (bug fix)
 
 2.1.0 - December 05, 2016
 -------------------------
@@ -94,7 +147,7 @@ in development
   seralize the array as JSON and then falling back to comma separated array.
 * Add new ``core.pause`` action. This action behaves like sleep and can be used inside the action
   chain or Mistral workflows where waiting / sleeping is desired before proceeding with a next
-  task. Contribution by Paul Mulvihill. (new feature) #2933. 
+  task. Contribution by Paul Mulvihill. (new feature) #2933.
 * When a policy cancels a request due to concurrency, it leaves end_timestamp set to None which
   the notifier expects to be a date. This causes an exception in "isotime.format()". A patch was
   released that catches this exception, and populates payload['end_timestamp'] with the equivalent

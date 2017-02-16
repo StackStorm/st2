@@ -28,7 +28,6 @@ class Jinja2BasedTransformer(object):
 
     def __call__(self, mapping):
         context = copy.copy(self._payload_context)
-        context[SYSTEM_SCOPE] = KeyValueLookup(scope=SYSTEM_SCOPE)
         context.update({
             DATASTORE_PARENT_SCOPE: {
                 SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)
@@ -42,7 +41,6 @@ class Jinja2BasedTransformer(object):
             return context
 
         context = context or {}
-        context[SYSTEM_SCOPE] = KeyValueLookup(scope=SYSTEM_SCOPE)
         context.update({
             DATASTORE_PARENT_SCOPE: {
                 SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)

@@ -193,7 +193,6 @@ class ChainHolder(object):
         if not vars:
             return {}
         context = {}
-        context.update({SYSTEM_SCOPE: KeyValueLookup(scope=SYSTEM_SCOPE)})
         context.update({
             DATASTORE_PARENT_SCOPE: {
                 SYSTEM_SCOPE: KeyValueLookup(scope=FULL_SYSTEM_SCOPE)

@@ -38,6 +38,10 @@ TEST_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                 'pythonactions/actions/test.py')
 PATHS_ACTION_PATH = os.path.join(tests_base.get_resources_path(), 'packs',
                                 'pythonactions/actions/python_paths.py')
+ACTION_1_PATH = os.path.join(tests_base.get_fixtures_path(),
+                             'packs/dummy_pack_9/actions/list_repos_doesnt_exist.py')
+ACTION_2_PATH = os.path.join(tests_base.get_fixtures_path(),
+                             'packs/dummy_pack_9/actions/invalid_syntax.py')
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
 # unrecognized args
@@ -424,6 +428,31 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         assertion_msg = 'Found python wrapper script path in subprocess path'
         self.assertTrue(wrapper_script_path not in process_sys_path, assertion_msg)
         self.assertTrue(wrapper_script_path not in process_pythonpath, assertion_msg)
+
+    def test_python_action_wrapper_action_script_file_doesnt_exist_friendly_error(self):
+        # File in a directory which is not a Python package
+        wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path='/tmp/doesnt.exist',
+                                      user='joe')
+
+        expected_msg = 'File "/tmp/doesnt.exist" has no action class or the file doesn\'t exist.'
+        self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
+
+        # File in a directory which is a Python package
+        wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=ACTION_1_PATH,
+                                      user='joe')
+
+        expected_msg = ('Failed to load action class from file ".*?list_repos_doesnt_exist.py" '
+                       '\(action file most likely doesn\'t exist or contains invalid syntax\): '
+                       '\[Errno 2\] No such file or directory')
+        self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
+
+    def test_python_action_wrapper_action_script_file_contains_invalid_syntax_friendly_error(self):
+        wrapper = PythonActionWrapper(pack='dummy_pack_5', file_path=ACTION_2_PATH,
+                                      user='joe')
+        expected_msg = ('Failed to load action class from file ".*?invalid_syntax.py" '
+                       '\(action file most likely doesn\'t exist or contains invalid syntax\): '
+                       'No module named invalid')
+        self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
 
     def _get_mock_action_obj(self):
         """

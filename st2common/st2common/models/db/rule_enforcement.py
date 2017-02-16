@@ -65,6 +65,7 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
         uid = [self.RESOURCE_TYPE, str(self.id)]
         return ':'.join(uid)
 
+
 rule_enforcement_access = MongoDBAccess(RuleEnforcementDB)
 
 MODELS = [RuleEnforcementDB]

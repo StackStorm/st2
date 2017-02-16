@@ -77,6 +77,8 @@ class BaseCLITestCase(unittest2.TestCase):
     stdout = six.moves.StringIO()
     stderr = six.moves.StringIO()
 
+    DEFAULT_SKIP_CONFIG = '1'
+
     def setUp(self):
         super(BaseCLITestCase, self).setUp()
 
@@ -86,9 +88,13 @@ class BaseCLITestCase(unittest2.TestCase):
             if var in os.environ:
                 del os.environ[var]
 
-        os.environ['ST2_CLI_SKIP_CONFIG'] = '1'
+        os.environ['ST2_CLI_SKIP_CONFIG'] = self.DEFAULT_SKIP_CONFIG
 
         if self.capture_output:
+            # Make sure we reset it for each test class instance
+            self.stdout = six.moves.StringIO()
+            self.stderr = six.moves.StringIO()
+
             sys.stdout = self.stdout
             sys.stderr = self.stderr
 

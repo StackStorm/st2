@@ -90,6 +90,23 @@ class TestActionAlias(FunctionalTest):
         get_resp = self.app.get('/v1/actionalias/%s' % post_resp.json['id'], expect_errors=True)
         self.assertEqual(get_resp.status_int, 404)
 
+    def test_update_existing_alias(self):
+        post_resp = self._do_post(vars(ActionAliasAPI.from_model(self.alias3)))
+        self.assertEqual(post_resp.status_int, 201)
+        self.assertEqual(post_resp.json['name'], self.alias3['name'])
+
+        data = vars(ActionAliasAPI.from_model(self.alias3))
+        data['name'] = 'updated-alias-name'
+
+        put_resp = self.app.put_json('/v1/actionalias/%s' % post_resp.json['id'], data)
+        self.assertEqual(put_resp.json['name'], data['name'])
+
+        get_resp = self.app.get('/v1/actionalias/%s' % post_resp.json['id'])
+        self.assertEqual(get_resp.json['name'], data['name'])
+
+        del_resp = self.__do_delete(post_resp.json['id'])
+        self.assertEqual(del_resp.status_int, 204)
+
     def test_post_dup_name(self):
         post_resp = self._do_post(vars(ActionAliasAPI.from_model(self.alias3)))
         self.assertEqual(post_resp.status_int, 201)
@@ -112,6 +129,19 @@ class TestActionAlias(FunctionalTest):
         self.assertEqual(str(resp.json['faultstring']),
                          "Command 'Lorem ipsum banana dolor sit pineapple amet.' "
                          "matched more than 1 pattern")
+
+    def test_help(self):
+        data = {}
+        resp = self.app.post_json("/v1/actionalias/help", data, expect_errors=False)
+        self.assertEqual(resp.status_int, 202)
+        self.assertEqual(resp.json.get('available'), 2)
+
+    def test_help_args(self):
+        data = {"filter": ".*", "pack": "aliases", "limit": 1, "offset": 0}
+        resp = self.app.post_json("/v1/actionalias/help", data, expect_errors=False)
+        self.assertEqual(resp.status_int, 202)
+        self.assertEqual(resp.json.get('available'), 2)
+        self.assertEqual(len(resp.json.get('helpstrings').get("aliases")), 1)
 
     def _do_post(self, actionalias, expect_errors=False):
         return self.app.post_json('/v1/actionalias', actionalias, expect_errors=expect_errors)

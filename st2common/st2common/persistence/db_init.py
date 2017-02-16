@@ -35,7 +35,7 @@ def _retry_if_connection_error(error):
     # Ideally, a special execption or atleast some exception code.
     # If this does become an issue look for "Cannot connect to database" at the
     # start of error msg.
-    is_connection_error = isinstance(error, mongoengine.connection.ConnectionError)
+    is_connection_error = isinstance(error, mongoengine.connection.MongoEngineConnectionError)
     if is_connection_error:
         LOG.warn('Retry on ConnectionError - %s', error)
     return is_connection_error

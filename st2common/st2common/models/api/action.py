@@ -41,7 +41,8 @@ __all__ = [
 
     'AliasExecutionAPI',
     'ActionAliasAPI',
-    'ActionAliasMatchAPI'
+    'ActionAliasMatchAPI',
+    'ActionAliasHelpAPI'
 ]
 
 
@@ -670,6 +671,54 @@ class ActionAliasMatchAPI(BaseAPI):
                 "type": "string",
                 "description": "Command string to try to match the aliases against.",
                 "required": True
+            }
+        },
+        "additionalProperties": False
+    }
+
+    @classmethod
+    def to_model(cls, aliasexecution):
+        raise NotImplementedError()
+
+    @classmethod
+    def from_model(cls, aliasexecution):
+        raise NotImplementedError()
+
+
+class ActionAliasHelpAPI(BaseAPI):
+    """
+    API model used to display action-alias help API endpoint.
+    """
+    model = None
+
+    schema = {
+        "title": "ActionAliasHelpAPI",
+        "description": "ActionAliasHelpAPI.",
+        "type": "object",
+        "properties": {
+            "filter": {
+                "type": "string",
+                "description": "Find help strings containing keyword.",
+                "required": False,
+                "default": ""
+            },
+            "pack": {
+                "type": "string",
+                "description": "List help strings for a specific pack.",
+                "required": False,
+                "default": ""
+            },
+            "offset": {
+                "type": "integer",
+                "description": "List help strings from the offset position.",
+                "required": False,
+                "default": 0
+            },
+            "limit": {
+                "type": "integer",
+                "description": "Limit the number of help strings returned.",
+                "required": False,
+                "default": 0
             }
         },
         "additionalProperties": False
