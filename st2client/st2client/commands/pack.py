@@ -234,7 +234,7 @@ class PackRemoveCommand(PackAsyncCommand):
 
     @add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
-        all_pack_instances = self.app.client.managers['Pack'].get_all()
+        all_pack_instances = self.app.client.managers['Pack'].get_all(**kwargs)
 
         super(PackRemoveCommand, self).run_and_print(args, **kwargs)
 
