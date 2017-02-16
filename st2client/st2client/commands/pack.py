@@ -188,10 +188,10 @@ class PackInstallCommand(PackAsyncCommand):
                                  default=False,
                                  help='Force pack installation.')
 
-    @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.install(args.packs, force=args.force, **kwargs)
 
+    @resource.add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         instance = super(PackInstallCommand, self).run_and_print(args, **kwargs)
 
@@ -228,10 +228,10 @@ class PackRemoveCommand(PackAsyncCommand):
                                  help='Name of the %s to remove.' %
                                  resource.get_plural_display_name().lower())
 
-    @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         return self.manager.remove(args.packs, **kwargs)
 
+    @resource.add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
         all_pack_instances = self.app.client.managers['Pack'].get_all()
 
@@ -240,7 +240,7 @@ class PackRemoveCommand(PackAsyncCommand):
         packs = args.packs
 
         if len(packs) == 1:
-            pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0])
+            pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0], **kwargs)
 
             if pack_instance:
                 raise OperationFailureException('Pack %s has not been removed properly', packs[0])
@@ -252,7 +252,7 @@ class PackRemoveCommand(PackAsyncCommand):
                               attributes=args.attr, json=args.json, yaml=args.yaml,
                               attribute_display_order=self.attribute_display_order)
         else:
-            remaining_pack_instances = self.app.client.managers['Pack'].get_all()
+            remaining_pack_instances = self.app.client.managers['Pack'].get_all(**kwargs)
             pack_instances = []
 
             for pack in all_pack_instances:
