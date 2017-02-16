@@ -199,12 +199,12 @@ class PackInstallCommand(PackAsyncCommand):
         packs = instance.result['tasks'][1]['result']['result']
 
         if len(packs) == 1:
-            pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0])
+            pack_instance = self.app.client.managers['Pack'].get_by_ref_or_id(packs[0], **kwargs)
             self.print_output(pack_instance, table.PropertyValueTable,
                               attributes=args.attr, json=args.json, yaml=args.yaml,
                               attribute_display_order=self.attribute_display_order)
         else:
-            all_pack_instances = self.app.client.managers['Pack'].get_all()
+            all_pack_instances = self.app.client.managers['Pack'].get_all(**kwargs)
             pack_instances = []
 
             for pack in all_pack_instances:
