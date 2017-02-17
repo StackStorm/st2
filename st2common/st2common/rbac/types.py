@@ -337,6 +337,7 @@ LIST_PERMISSION_TYPES = [permission_type for permission_type in ALL_PERMISSION_T
 GLOBAL_PERMISSION_TYPES = [
     PermissionType.PACK_INSTALL,
     PermissionType.PACK_UNINSTALL,
+    PermissionType.PACK_CREATE,
     PermissionType.PACK_REGISTER,
     PermissionType.PACK_SEARCH,
     PermissionType.PACK_VIEW_INDEX_HEALTH
