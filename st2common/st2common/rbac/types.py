@@ -228,6 +228,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.RUNNER_ALL,
     ],
     ResourceType.PACK: [
+        PermissionType.PACK_LIST,
         PermissionType.PACK_VIEW,
         PermissionType.PACK_CREATE,
         PermissionType.PACK_MODIFY,
