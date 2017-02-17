@@ -335,12 +335,17 @@ LIST_PERMISSION_TYPES = [permission_type for permission_type in ALL_PERMISSION_T
 
 # List of global permissions (ones which don't apply to a specific resource)
 GLOBAL_PERMISSION_TYPES = [
+    # Pack global permission types
     PermissionType.PACK_INSTALL,
     PermissionType.PACK_UNINSTALL,
     PermissionType.PACK_CREATE,
     PermissionType.PACK_REGISTER,
     PermissionType.PACK_SEARCH,
-    PermissionType.PACK_VIEW_INDEX_HEALTH
+    PermissionType.PACK_VIEW_INDEX_HEALTH,
+
+    # Action alias global permission types
+    PermissionType.ACTION_ALIAS_MATCH,
+    PermissionType.ACTION_ALIAS_HELP
 ] + LIST_PERMISSION_TYPES
 
 
