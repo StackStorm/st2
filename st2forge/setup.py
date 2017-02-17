@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # pip >= 6.1 in all the environments
 # from dist_utils import fetch_requirements
 # from dist_utils import apply_vagrant_workaround
-from st2client import __version__
+from st2forge import __version__
 
 ST2_COMPONENT = 'st2forge'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
