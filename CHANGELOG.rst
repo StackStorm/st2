@@ -77,6 +77,9 @@ in development
 * Fix a bug with ``--api-token`` / ``-t`` and other CLI option values not getting correctly
   propagated to all the API calls issued in the ``st2 pack install``, ``st2 pack remove`` and
   ``st2 pack config`` commands. (bug fix)
+* Fix a bug with not being able to apply some global permission types (permissions which are global
+  and not specific to a resource) such as pack install, pack remove, pack search, etc. to a role
+  using ``st2-apply-rbac-definitions``. (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------

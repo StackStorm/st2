@@ -17,6 +17,7 @@ from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
 from st2common.services.rbac import get_all_roles
 from st2common.rbac.types import PermissionType
+from st2common.rbac.types import GLOBAL_PERMISSION_TYPES
 from st2common.util.uid import parse_uid
 
 __all__ = [
@@ -146,9 +147,11 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                 # Right now we only support single permission type (list) which is global and
                 # doesn't apply to a resource
                 for permission_type in permission_types:
-                    if not permission_type.endswith('_list'):
-                        message = ('Invalid permission type "%s". Only "list" permission types '
-                                   'can be used without a resource id' % (permission_type))
+                    if permission_type not in GLOBAL_PERMISSION_TYPES:
+                        valid_global_permission_types = ', '.join(GLOBAL_PERMISSION_TYPES)
+                        message = ('Invalid permission type "%s". Valid global permission types '
+                                   'which can be used without a resource id are: %s' %
+                                   (permission_type, valid_global_permission_types))
                         raise ValueError(message)
 
             return cleaned
