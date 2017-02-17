@@ -29,7 +29,7 @@ from st2common.constants.action import LIVEACTION_STATUS_FAILED
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.action import LIVEACTION_FAILED_STATES
-from st2common.constants.pack import PACK_CONTEXT_KV_PREFIX
+from st2common.constants.pack import PACK_CONFIG_CONTEXT_KV_PREFIX
 from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE, SYSTEM_SCOPE, DATASTORE_PARENT_SCOPE
 from st2common.content.loader import MetaLoader
 from st2common.exceptions.action import (ParameterRenderingFailedException,
@@ -534,7 +534,7 @@ class ActionChainRunner(ActionRunner):
             }
         })
         context.update({ACTION_CONTEXT_KV_PREFIX: chain_context})
-        context.update({PACK_CONTEXT_KV_PREFIX: config})
+        context.update({PACK_CONFIG_CONTEXT_KV_PREFIX: config})
         try:
             rendered_params = jinja_utils.render_values(mapping=action_node.get_parameters(),
                                                         context=context)

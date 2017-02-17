@@ -565,7 +565,7 @@ class ParamsUtilsTest(DbTestCase):
             }
 
             params = {
-                'config_param': '{{pack_context.generic_config_param}}',
+                'config_param': '{{config_context.generic_config_param}}',
             }
             liveaction_db = self._get_liveaction_model(params, True)
 
@@ -597,7 +597,7 @@ class ParamsUtilsTest(DbTestCase):
             config_loader.assert_called_with(pack_name='pack', user='user')
             config_loader().get_config.assert_called_once()
 
-    def _get_liveaction_model(self, params, with_pack_context=False):
+    def _get_liveaction_model(self, params, with_config_context=False):
         status = 'initializing'
         start_timestamp = date_utils.get_datetime_utc_now()
         action_ref = ResourceReference(name=ParamsUtilsTest.action_db.name,
@@ -609,7 +609,7 @@ class ParamsUtilsTest(DbTestCase):
             'source_channel': 'reddit',
         }
 
-        if with_pack_context:
+        if with_config_context:
             liveaction_db.context.update(
                 {
                     'pack': 'generic',

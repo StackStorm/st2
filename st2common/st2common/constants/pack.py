@@ -33,7 +33,7 @@ __all__ = [
 ]
 
 # Prefix for render context w/ config
-PACK_CONTEXT_KV_PREFIX = 'pack_context'
+PACK_CONFIG_CONTEXT_KV_PREFIX = 'config_context'
 
 # A list of allowed characters for the pack name
 PACK_REF_WHITELIST_REGEX = r'^[a-z0-9_]+$'

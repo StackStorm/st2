@@ -83,7 +83,7 @@ class ActionChainRunnerResolveParamsTests(unittest2.TestCase):
                 'user': 'son',
             }
             task_params = {
-                'config_val': '{{pack_context.amazing_config_value_fo_lyfe}}'
+                'config_val': '{{config_context.amazing_config_value_fo_lyfe}}'
             }
             action_node = Node(
                 name='test_action_context_params',
