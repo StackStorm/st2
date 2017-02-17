@@ -76,6 +76,14 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertRaisesRegexp(ValueError, expected_msg,
                                 loader.load_role_definition_from_file, file_path=file_path)
 
+    def test_load_role_definition_with_all_global_permission_types(self):
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac/roles/role_seven.yaml')
+        role_definition_api = loader.load_role_definition_from_file(file_path=file_path)
+
+        self.assertEqual(role_definition_api.name, 'role_seven')
+
     def test_load_user_role_assignments_success(self):
         loader = RBACDefinitionsLoader()
 
