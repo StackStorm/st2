@@ -8,7 +8,7 @@ User=st2
 Group=st2
 Environment="DAEMON_ARGS=-k eventlet -b 127.0.0.1:9100 --workers 1 --threads 1 --graceful-timeout 10 --timeout 30"
 EnvironmentFile=-/etc/sysconfig/st2auth
-ExecStart=/opt/stackstorm/st2/bin/gunicorn_pecan /opt/stackstorm/st2/lib/python2.7/site-packages/st2auth/gunicorn_config.py $DAEMON_ARGS
+ExecStart=/opt/stackstorm/st2/bin/gunicorn st2auth.wsgi:application $DAEMON_ARGS
 TimeoutSec=60
 PrivateTmp=true
 Restart=on-failure
