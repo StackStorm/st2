@@ -86,9 +86,9 @@ class PackInstallController(ActionExecutionsControllerMixin):
                                                  parameters=parameters,
                                                  user=None)
 
-        execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
+        execution_resp = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
 
-        exec_id = PackAsyncAPI(execution_id=execution.id)
+        exec_id = PackAsyncAPI(execution_id=execution_resp.json['id'])
 
         return Response(json=exec_id, status=http_client.ACCEPTED)
 
@@ -109,9 +109,9 @@ class PackUninstallController(ActionExecutionsControllerMixin):
                                                  parameters=parameters,
                                                  user=None)
 
-        execution = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
+        execution_resp = self._handle_schedule_execution(liveaction_api=new_liveaction_api)
 
-        exec_id = PackAsyncAPI(execution_id=execution.id)
+        exec_id = PackAsyncAPI(execution_id=execution_resp.json['id'])
 
         return Response(json=exec_id, status=http_client.ACCEPTED)
 
