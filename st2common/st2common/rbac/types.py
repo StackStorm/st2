@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
+
 from st2common.util.enum import Enum
 from st2common.constants.types import ResourceType as SystemResourceType
 
@@ -22,7 +24,11 @@ __all__ = [
     'ResourceType',
 
     'RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP',
-    'PERMISION_TYPE_TO_DESCRIPTION_MAP'
+    'PERMISION_TYPE_TO_DESCRIPTION_MAP',
+
+    'ALL_PERMISSION_TYPES',
+    'GLOBAL_PERMISSION_TYPES',
+    'LIST_PERMISSION_TYPES'
 ]
 
 
@@ -320,6 +326,20 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.API_KEY_ALL
     ]
 }
+
+ALL_PERMISSION_TYPES = RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP.values()
+ALL_PERMISSION_TYPES = list(itertools.chain(*ALL_PERMISSION_TYPES))
+LIST_PERMISSION_TYPES = [permission_type for permission_type in ALL_PERMISSION_TYPES if
+                         permission_type.endswith('_list')]
+
+# List of global permissions (ones which don't apply to a specific resource)
+GLOBAL_PERMISSION_TYPES = [
+    PermissionType.PACK_INSTALL,
+    PermissionType.PACK_UNINSTALL,
+    PermissionType.PACK_REGISTER,
+    PermissionType.PACK_SEARCH,
+    PermissionType.PACK_VIEW_INDEX_HEALTH
+] + LIST_PERMISSION_TYPES
 
 
 # Maps a permission type to the corresponding description
