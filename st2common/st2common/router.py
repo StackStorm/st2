@@ -146,6 +146,7 @@ class Router(object):
         info = spec.get('info', {})
         LOG.debug('Adding API: %s %s', info.get('title', 'untitled'), info.get('version', '0.0.0'))
 
+        # Merge specs if necessary
         if not self.spec:
             self.spec = spec
         else:
@@ -196,7 +197,15 @@ class Router(object):
         return endpoint, path_vars
 
     def __call__(self, req):
-        """Invoke router as a view."""
+        """
+        The method is invoked on every request and shows the lifecycle of the request received from
+        the middleware.
+
+        Although some middleware may use parts of the API spec, it is safe to assume that if you're
+        looking for the particular spec property handler, it's most  likely a part of this method.
+
+        At the time of writing, the only property being utilized by middleware was `x-log-result`.
+        """
         endpoint, path_vars = self.match(req)
 
         context = copy.copy(getattr(self, 'mock_context', {}))
@@ -349,11 +358,11 @@ class Router(object):
         resp = func(**kw)
 
         # Handle response
-        if resp is not None:
-            if not hasattr(resp, '__call__'):
-                resp = Response(json=resp)
-        else:
+        if resp is None:
             resp = Response()
+
+        if not hasattr(resp, '__call__'):
+            resp = Response(json=resp)
 
         responses = endpoint.get('responses', {})
         response_spec = responses.get(str(resp.status_code), responses.get('default', None))
@@ -369,7 +378,9 @@ class Router(object):
         return resp
 
     def as_wsgi(self, environ, start_response):
-        """Invoke router as an wsgi application."""
+        """
+        Converts WSGI request to webob.Request and initiates the response returned by controller.
+        """
         req = Request(environ)
         resp = self(req)
         return resp(environ, start_response)

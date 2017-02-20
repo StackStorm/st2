@@ -14,30 +14,29 @@
 # limitations under the License.
 
 import os
-import pkg_resources
 
-import jinja2
 from oslo_config import cfg
 from pecan.middleware.static import StaticFileMiddleware
-import yaml
 
 from st2api import config as st2api_config
-import st2common.constants.pack
-import st2common.constants.action
 from st2common import log as logging
 from st2common.middleware.error_handling import ErrorHandlingMiddleware
 from st2common.middleware.cors import CorsMiddleware
 from st2common.middleware.request_id import RequestIDMiddleware
 from st2common.middleware.logging import LoggingMiddleware
-from st2common.rbac.types import PermissionType
 from st2common.router import Router
 from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
-from st2common.util import isotime
+from st2common.util import spec_loader
 
 LOG = logging.getLogger(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+SPECS = {
+    'controllers/openapi.yaml': True,
+    'controllers/openapi_exp.yaml': False
+}
 
 
 def setup_app(config={}):
@@ -61,25 +60,10 @@ def setup_app(config={}):
                      run_migrations=True,
                      config_args=config.get('config_args', None))
 
-    arguments = {
-        'DEFAULT_PACK_NAME': st2common.constants.pack.DEFAULT_PACK_NAME,
-        'LIVEACTION_STATUSES': st2common.constants.action.LIVEACTION_STATUSES,
-        'PERMISSION_TYPE': PermissionType,
-        'ISO8601_UTC_REGEX': isotime.ISO8601_UTC_REGEX
-    }
-
     router = Router(debug=cfg.CONF.api.debug, auth=cfg.CONF.auth.enable)
 
-    SPECS = {
-        'controllers/openapi.yaml': True,
-        'controllers/openapi_exp.yaml': False
-    }
-
     for spec_file in SPECS:
-        spec_template = pkg_resources.resource_string(__name__, spec_file)
-        spec_string = jinja2.Template(spec_template).render(**arguments)
-        spec = yaml.load(spec_string)
-
+        spec = spec_loader.load_spec(__name__, spec_file)
         router.add_spec(spec, default=SPECS[spec_file])
 
     app = router.as_wsgi
