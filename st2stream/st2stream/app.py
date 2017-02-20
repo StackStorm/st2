@@ -33,12 +33,12 @@ from st2stream import config as st2stream_config
 import st2common.constants.pack
 import st2common.constants.action
 from st2common import log as logging
+from st2common.middleware.error_handling import ErrorHandlingMiddleware
+from st2common.middleware.cors import CorsMiddleware
+from st2common.middleware.request_id import RequestIDMiddleware
+from st2common.middleware.logging import LoggingMiddleware
 from st2common.rbac.types import PermissionType
 from st2common.router import Router
-from st2common.router import ErrorHandlingMiddleware
-from st2common.router import CorsMiddleware
-from st2common.router import RequestIDMiddleware
-from st2common.router import LoggingMiddleware
 from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
