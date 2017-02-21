@@ -46,6 +46,8 @@ CREATE_VIRTUALENV=true
 JUST_TESTS=false
 VERBOSE=false
 
+VIRTUALENV_ACTIVATED=false
+
 STACKSTORM_VIRTUALENV_BIN="/opt/stackstorm/st2/bin"
 
 ####################
@@ -144,6 +146,7 @@ if [ "${CREATE_VIRTUALENV}" = false ]; then
     if [ -d "${VIRTUALENV_DIR}" ]; then
         echo "Activating virtualenv in ${VIRTUALENV_DIR}..."
         source ${VIRTUALENV_DIR}/bin/activate
+        VIRTUALENV_ACTIVATED=true
     else
         echo "Not activating virtualenv since it doesn't exist"
     fi
@@ -155,6 +158,7 @@ else
 
         # Activate the virtualenv
         source ${VIRTUALENV_DIR}/bin/activate
+        VIRTUALENV_ACTIVATED=true
 
         # Make sure virtualenv is using latest pip version
         ${VIRTUALENV_DIR}/bin/pip install --upgrade pip
@@ -169,6 +173,7 @@ else
 
     # Activate created virtualenv
     source ${VIRTUALENV_DIR}/bin/activate
+    VIRTUALENV_ACTIVATED=true
 fi
 
 # Note: If we are running outside of st2, we need to add all the st2 components
@@ -224,7 +229,7 @@ nosetests -s -v ${PACK_TESTS_PATH}
 TESTS_EXIT_CODE=$?
 
 # Clean up and unset the variables
-if [ "${CREATE_VIRTUALENV}" = true ]; then
+if [ ${VIRTUALENV_ACTIVATED} = true ]; then
     deactivate
 fi
 
