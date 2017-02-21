@@ -16,7 +16,6 @@
 import os
 
 from oslo_config import cfg
-from pecan.middleware.static import StaticFileMiddleware
 
 from st2api import config as st2api_config
 from st2common import log as logging
@@ -72,9 +71,5 @@ def setup_app(config={}):
     app = LoggingMiddleware(app, router)
     app = ErrorHandlingMiddleware(app)
     app = RequestIDMiddleware(app)
-
-    # Static middleware which servers common static assets such as logos
-    static_root = os.path.join(BASE_DIR, 'public')
-    app = StaticFileMiddleware(app=app, directory=static_root)
 
     return app
