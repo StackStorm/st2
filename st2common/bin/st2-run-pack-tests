@@ -46,15 +46,20 @@ CREATE_VIRTUALENV=true
 JUST_TESTS=false
 VERBOSE=false
 
+VIRTUALENV_ACTIVATED=false
+
+STACKSTORM_VIRTUALENV_BIN="/opt/stackstorm/st2/bin"
+
 ####################
 # Script beings here
 ####################
 
 function usage() {
-    echo "Usage: $0 [-x -s] -p <path to pack>" >&2
+    echo "Usage: $0 [-x] [-j] [-v] -p <path to pack>" >&2
     echo "  -x : Do not create virtualenv, e.g. when running in existing one." >&2
     echo "  -j : Just run tests (use previously installed dependencies" >&2
     echo "       and virtualenv if any. For subsequent test runs." >&2
+    echo "  -v : Verbose mode (log debug messages to stdout)." >&2
 }
 
 while getopts ":p:xjv" o; do
@@ -83,6 +88,21 @@ while getopts ":p:xjv" o; do
             ;;
     esac
 done
+
+function verbose_log() {
+    if [ ${VERBOSE} = true ]; then
+        echo $@
+    fi
+}
+
+function activate_virtualenv() {
+    # Activate virtualenv for running pack tests
+    if [ "${VIRTUALENV_ACTIVATED}" = false ]; then
+        echo "Activating virtualenv in ${VIRTUALENV_DIR}..."
+        source ${VIRTUALENV_DIR}/bin/activate
+        VIRTUALENV_ACTIVATED=true
+    fi
+}
 
 if [ ! ${PACK_PATH} ]; then
     # Missing required argument
@@ -130,13 +150,18 @@ PACK_TESTS_REQUIREMENTS_FILE="${PACK_PATH}/requirements-tests.txt"
 
 echo "Running tests for pack: ${PACK_NAME}"
 
-# Create virtualenv
+# Make sure /opt/stackstorm/bin is in PATH (for package installations)
+if [ -d "${STACKSTORM_VIRTUALENV_BIN}" ]; then
+    verbose_log "Adding ${STACKSTORM_VIRTUALENV_BIN} to \$PATH"
+    export PATH="${STACKSTORM_VIRTUALENV_BIN}:${PATH}"
+fi
+
+# Create virtualenv (if requested, otherwise just activate it)
 VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
 
 if [ "${CREATE_VIRTUALENV}" = false ]; then
     if [ -d "${VIRTUALENV_DIR}" ]; then
-        echo "Activating virtualenv in ${VIRTUALENV_DIR}..."
-        source ${VIRTUALENV_DIR}/bin/activate
+        activate_virtualenv
     else
         echo "Not activating virtualenv since it doesn't exist"
     fi
@@ -146,19 +171,22 @@ else
         mkdir -p ${VIRTUALENVS_DIR}
         virtualenv --system-site-packages ${VIRTUALENV_DIR}
 
+        # Activate the virtualenv
+        activate_virtualenv
+
         # Make sure virtualenv is using latest pip version
         ${VIRTUALENV_DIR}/bin/pip install --upgrade pip
     fi
 
-    # Activate created virtualenv
     if [ ! -d "${VIRTUALENV_DIR}" ]; then
         echo "Virtual environment ${VIRTUALENV_DIR} doesn't exist"
         echo "Run this script without the -j flag to create it or run it with -x flag to not use" \
-             " a pack specific virtual environment."
+             "a pack specific virtual environment."
         exit 2
     fi
 
-    source ${VIRTUALENV_DIR}/bin/activate
+    # Make sure the virtualenv is activated
+    activate_virtualenv
 fi
 
 # Note: If we are running outside of st2, we need to add all the st2 components
@@ -203,9 +231,11 @@ fi
 # Set PYTHONPATH, make sure it contains st2 components in PATH
 export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
 
+verbose_log "PYTHONPATH=${PYTHONPATH}"
+verbose_log "PATH=${PATH}"
+verbose_log "Virtualenv activated=${VIRTUALENV_ACTIVATED}"
+verbose_log "Installed Python dependencies:"
 if [ ${VERBOSE} = true ]; then
-    echo "PYTHONPATH=${PYTHONPATH}"
-    echo "Installed Python dependencies:"
     pip list
 fi
 
@@ -214,11 +244,13 @@ nosetests -s -v ${PACK_TESTS_PATH}
 TESTS_EXIT_CODE=$?
 
 # Clean up and unset the variables
-if [ "${CREATE_VIRTUALENV}" = true ]; then
+if [ ${VIRTUALENV_ACTIVATED} = true ]; then
+    verbose_log "Deactivating virtualenv ${VIRTUALENVS_DIR}"
     deactivate
 fi
 
 unset PYTHONPATH
+unset PATH
 
 # Exit
 exit ${TESTS_EXIT_CODE}
