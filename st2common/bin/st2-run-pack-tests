@@ -142,6 +142,7 @@ echo "Running tests for pack: ${PACK_NAME}"
 
 # Make sure /opt/stackstorm/bin is in PATH (for package installations)
 if [ -d "${STACKSTORM_VIRTUALENV_BIN}" ]; then
+    verbose_log "Adding ${STACKSTORM_VIRTUALENV_BIN} to \$PATH"
     export PATH="${STACKSTORM_VIRTUALENV_BIN}:${PATH}"
 fi
 
