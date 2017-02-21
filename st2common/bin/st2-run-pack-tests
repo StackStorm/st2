@@ -46,6 +46,8 @@ CREATE_VIRTUALENV=true
 JUST_TESTS=false
 VERBOSE=false
 
+STACKSTORM_VIRTUALENV_BIN="/opt/stackstorm/st2/bin"
+
 ####################
 # Script beings here
 ####################
@@ -130,6 +132,11 @@ PACK_TESTS_REQUIREMENTS_FILE="${PACK_PATH}/requirements-tests.txt"
 
 echo "Running tests for pack: ${PACK_NAME}"
 
+# Make sure /opt/stackstorm/bin is in PATH (for package installations)
+if [ -d "${STACKSTORM_VIRTUALENV_BIN}" ]; then
+    export PATH="${STACKSTORM_VIRTUALENV_BIN}:${PATH}"
+fi
+
 # Create virtualenv
 VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
 
@@ -146,11 +153,13 @@ else
         mkdir -p ${VIRTUALENVS_DIR}
         virtualenv --system-site-packages ${VIRTUALENV_DIR}
 
+        # Activate the virtualenv
+        source ${VIRTUALENV_DIR}/bin/activate
+
         # Make sure virtualenv is using latest pip version
         ${VIRTUALENV_DIR}/bin/pip install --upgrade pip
     fi
 
-    # Activate created virtualenv
     if [ ! -d "${VIRTUALENV_DIR}" ]; then
         echo "Virtual environment ${VIRTUALENV_DIR} doesn't exist"
         echo "Run this script without the -j flag to create it or run it with -x flag to not use" \
@@ -158,6 +167,7 @@ else
         exit 2
     fi
 
+    # Activate created virtualenv
     source ${VIRTUALENV_DIR}/bin/activate
 fi
 
@@ -219,6 +229,7 @@ if [ "${CREATE_VIRTUALENV}" = true ]; then
 fi
 
 unset PYTHONPATH
+unset PATH
 
 # Exit
 exit ${TESTS_EXIT_CODE}
