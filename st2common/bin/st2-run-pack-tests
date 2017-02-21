@@ -220,6 +220,8 @@ export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
 
 if [ ${VERBOSE} = true ]; then
     echo "PYTHONPATH=${PYTHONPATH}"
+    echo "PATH=${PATH}"
+    echo "Virtualenv activated=${VIRTUALENV_ACTIVATED}"
     echo "Installed Python dependencies:"
     pip list
 fi
