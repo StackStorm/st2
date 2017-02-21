@@ -55,10 +55,11 @@ STACKSTORM_VIRTUALENV_BIN="/opt/stackstorm/st2/bin"
 ####################
 
 function usage() {
-    echo "Usage: $0 [-x] [-j] -p <path to pack>" >&2
+    echo "Usage: $0 [-x] [-j] [-v] -p <path to pack>" >&2
     echo "  -x : Do not create virtualenv, e.g. when running in existing one." >&2
     echo "  -j : Just run tests (use previously installed dependencies" >&2
     echo "       and virtualenv if any. For subsequent test runs." >&2
+    echo "  -v : Verbose mode (log debug messages to stdout)." >&2
 }
 
 while getopts ":p:xjv" o; do
@@ -180,7 +181,7 @@ else
     if [ ! -d "${VIRTUALENV_DIR}" ]; then
         echo "Virtual environment ${VIRTUALENV_DIR} doesn't exist"
         echo "Run this script without the -j flag to create it or run it with -x flag to not use" \
-             " a pack specific virtual environment."
+             "a pack specific virtual environment."
         exit 2
     fi
 
