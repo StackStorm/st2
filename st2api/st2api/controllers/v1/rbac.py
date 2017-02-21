@@ -15,14 +15,13 @@
 
 import copy
 
-from webob import exc
-
 from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.rbac import RoleAPI
 from st2common.persistence.rbac import Role
 from st2common.rbac.types import RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP
 from st2common.rbac import utils as rbac_utils
+from st2common.router import exc
 
 __all__ = [
     'RolesController',

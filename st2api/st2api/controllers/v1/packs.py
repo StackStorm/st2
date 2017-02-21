@@ -18,7 +18,6 @@ import re
 from collections import defaultdict
 from collections import OrderedDict
 
-from webob import request
 import six
 
 import st2common
@@ -233,7 +232,7 @@ class BasePacksController(ResourceController):
             abort(http_client.NOT_FOUND, msg)
             return
 
-        from_model_kwargs = self._get_from_model_kwargs_for_request(request=request)
+        from_model_kwargs = self._get_from_model_kwargs_for_request()
         result = self.model.from_model(instance, **from_model_kwargs)
 
         return result

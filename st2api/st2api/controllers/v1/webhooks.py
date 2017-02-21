@@ -17,7 +17,6 @@ import six
 import uuid
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 urljoin = urlparse.urljoin
-from webob import Response
 
 from st2common import log as logging
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
@@ -27,6 +26,7 @@ import st2common.services.triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.router import abort
+from st2common.router import Response
 
 http_client = six.moves.http_client
 

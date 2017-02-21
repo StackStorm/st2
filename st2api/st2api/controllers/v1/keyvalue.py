@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from webob import Response
 from oslo_config import cfg
 
 import six
@@ -34,6 +33,7 @@ from st2common.util.keyvalue import get_datastore_full_scope
 from st2common.exceptions.rbac import AccessDeniedError
 from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
+from st2common.router import Response
 from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
 
 http_client = six.moves.http_client

@@ -20,3 +20,4 @@ pyyaml
 RandomWords
 gunicorn>=19.3.0,<19.4
 psutil
+webtest==2.0.25

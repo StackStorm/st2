@@ -19,7 +19,6 @@ import os
 
 import six
 from wsgiref.handlers import format_date_time
-from webob import Response
 
 from st2api.controllers.v1.packs import BasePacksController
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -30,6 +29,7 @@ from st2common.content.utils import get_pack_file_abs_path
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
+from st2common.router import Response
 
 http_client = six.moves.http_client
 

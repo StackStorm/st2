@@ -22,3 +22,4 @@ ipaddr
 git+https://github.com/Kami/entrypoints.git@dont_use_backports#egg=entrypoints
 routes
 swagger_spec_validator
+webob

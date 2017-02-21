@@ -16,7 +16,6 @@
 import six
 import jsonschema
 from mongoengine import ValidationError
-from webob import exc
 
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
@@ -29,6 +28,7 @@ from st2common.persistence.rule import Rule
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.rbac.utils import assert_user_has_rule_trigger_and_action_permission
+from st2common.router import exc
 from st2common.router import abort
 from st2common.router import Response
 from st2common.services.triggers import cleanup_trigger_db_for_rule, increment_trigger_ref_count
