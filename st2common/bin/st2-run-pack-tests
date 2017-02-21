@@ -88,6 +88,12 @@ while getopts ":p:xjv" o; do
     esac
 done
 
+function verbose_log() {
+    if [ ${VERBOSE} = true ]; then
+        echo $@
+    fi
+}
+
 if [ ! ${PACK_PATH} ]; then
     # Missing required argument
     usage
@@ -218,11 +224,11 @@ fi
 # Set PYTHONPATH, make sure it contains st2 components in PATH
 export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
 
+verbose_log "PYTHONPATH=${PYTHONPATH}"
+verbose_log "PATH=${PATH}"
+verbose_log "Virtualenv activated=${VIRTUALENV_ACTIVATED}"
+verbose_log "Installed Python dependencies:"
 if [ ${VERBOSE} = true ]; then
-    echo "PYTHONPATH=${PYTHONPATH}"
-    echo "PATH=${PATH}"
-    echo "Virtualenv activated=${VIRTUALENV_ACTIVATED}"
-    echo "Installed Python dependencies:"
     pip list
 fi
 
@@ -232,6 +238,7 @@ TESTS_EXIT_CODE=$?
 
 # Clean up and unset the variables
 if [ ${VIRTUALENV_ACTIVATED} = true ]; then
+    verbose_log "Deactivating virtualenv ${VIRTUALENVS_DIR}"
     deactivate
 fi
 
