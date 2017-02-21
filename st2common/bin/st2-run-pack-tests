@@ -55,7 +55,7 @@ STACKSTORM_VIRTUALENV_BIN="/opt/stackstorm/st2/bin"
 ####################
 
 function usage() {
-    echo "Usage: $0 [-x -s] -p <path to pack>" >&2
+    echo "Usage: $0 [-x] [-j] -p <path to pack>" >&2
     echo "  -x : Do not create virtualenv, e.g. when running in existing one." >&2
     echo "  -j : Just run tests (use previously installed dependencies" >&2
     echo "       and virtualenv if any. For subsequent test runs." >&2
