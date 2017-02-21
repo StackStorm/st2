@@ -94,6 +94,15 @@ function verbose_log() {
     fi
 }
 
+function activate_virtualenv() {
+    # Activate virtualenv for running pack tests
+    if [ "${VIRTUALENV_ACTIVATED}" = false ]; then
+        echo "Activating virtualenv in ${VIRTUALENV_DIR}..."
+        source ${VIRTUALENV_DIR}/bin/activate
+        VIRTUALENV_ACTIVATED=true
+    fi
+}
+
 if [ ! ${PACK_PATH} ]; then
     # Missing required argument
     usage
@@ -146,14 +155,12 @@ if [ -d "${STACKSTORM_VIRTUALENV_BIN}" ]; then
     export PATH="${STACKSTORM_VIRTUALENV_BIN}:${PATH}"
 fi
 
-# Create virtualenv
+# Create virtualenv (if requested, otherwise just activate it)
 VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
 
 if [ "${CREATE_VIRTUALENV}" = false ]; then
     if [ -d "${VIRTUALENV_DIR}" ]; then
-        echo "Activating virtualenv in ${VIRTUALENV_DIR}..."
-        source ${VIRTUALENV_DIR}/bin/activate
-        VIRTUALENV_ACTIVATED=true
+        activate_virtualenv
     else
         echo "Not activating virtualenv since it doesn't exist"
     fi
@@ -164,8 +171,7 @@ else
         virtualenv --system-site-packages ${VIRTUALENV_DIR}
 
         # Activate the virtualenv
-        source ${VIRTUALENV_DIR}/bin/activate
-        VIRTUALENV_ACTIVATED=true
+        activate_virtualenv
 
         # Make sure virtualenv is using latest pip version
         ${VIRTUALENV_DIR}/bin/pip install --upgrade pip
@@ -178,9 +184,8 @@ else
         exit 2
     fi
 
-    # Activate created virtualenv
-    source ${VIRTUALENV_DIR}/bin/activate
-    VIRTUALENV_ACTIVATED=true
+    # Make sure the virtualenv is activated
+    activate_virtualenv
 fi
 
 # Note: If we are running outside of st2, we need to add all the st2 components
