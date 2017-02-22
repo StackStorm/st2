@@ -144,7 +144,7 @@ function register_content() {
     REGISTER_FLAGS=${flags}
   fi
 
-  echo "Registering content...[flags = ${REGISTER_FLAGS}]"
+  echo "Registering content...[flags = --config-file ${STANCONF} ${REGISTER_FLAGS}]"
   st2-register-content --config-file ${STANCONF} ${REGISTER_FLAGS}
 }
 
