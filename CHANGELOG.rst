@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+2.2.0 - February 22, 2017
+-------------------------
+
 * Fix ``/v1/packs/views/files/<pack ref or id>`` and
   ``/v1/packs/views/file/<pack ref or id>/<file path>`` API endpoint so it
   works correctly for packs where pack name is not equal to the pack ref. (bug fix)
