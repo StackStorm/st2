@@ -40,7 +40,7 @@ ACTIONRUNNER_WORK_Q = liveaction.get_status_management_queue(
     'st2.actionrunner.work', routing_key=action_constants.LIVEACTION_STATUS_SCHEDULED)
 
 ACTIONRUNNER_CANCEL_Q = liveaction.get_status_management_queue(
-    'st2.actionrunner.canel', routing_key=action_constants.LIVEACTION_STATUS_CANCELING)
+    'st2.actionrunner.cancel', routing_key=action_constants.LIVEACTION_STATUS_CANCELING)
 
 
 class ActionExecutionDispatcher(MessageHandler):
