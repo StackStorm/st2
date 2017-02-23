@@ -4,6 +4,7 @@ Changelog
 in development
 --------------
 
+* Rename ST2 action runner cancel queue from ``st2.actionrunner.canel`` to ``st2.actionrunner.cancel``.
 
 2.2.0 - February 22, 2017
 -------------------------
