@@ -90,6 +90,23 @@ class TestActionAlias(FunctionalTest):
         get_resp = self.app.get('/v1/actionalias/%s' % post_resp.json['id'], expect_errors=True)
         self.assertEqual(get_resp.status_int, 404)
 
+    def test_update_existing_alias(self):
+        post_resp = self._do_post(vars(ActionAliasAPI.from_model(self.alias3)))
+        self.assertEqual(post_resp.status_int, 201)
+        self.assertEqual(post_resp.json['name'], self.alias3['name'])
+
+        data = vars(ActionAliasAPI.from_model(self.alias3))
+        data['name'] = 'updated-alias-name'
+
+        put_resp = self.app.put_json('/v1/actionalias/%s' % post_resp.json['id'], data)
+        self.assertEqual(put_resp.json['name'], data['name'])
+
+        get_resp = self.app.get('/v1/actionalias/%s' % post_resp.json['id'])
+        self.assertEqual(get_resp.json['name'], data['name'])
+
+        del_resp = self.__do_delete(post_resp.json['id'])
+        self.assertEqual(del_resp.status_int, 204)
+
     def test_post_dup_name(self):
         post_resp = self._do_post(vars(ActionAliasAPI.from_model(self.alias3)))
         self.assertEqual(post_resp.status_int, 201)

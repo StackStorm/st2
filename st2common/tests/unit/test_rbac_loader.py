@@ -71,10 +71,18 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
 
         # Only list permissions can be used without a resource_uid
         file_path = os.path.join(get_fixtures_base_path(), 'rbac_invalid/roles/role_four.yaml')
-        expected_msg = ('Invalid permission type "action_create". Only "list" permission types '
-                        'can be used without a resource id')
+        expected_msg = ('Invalid permission type "action_create". Valid global '
+                        'permission types which can be used without a resource id are:')
         self.assertRaisesRegexp(ValueError, expected_msg,
                                 loader.load_role_definition_from_file, file_path=file_path)
+
+    def test_load_role_definition_with_all_global_permission_types(self):
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac/roles/role_seven.yaml')
+        role_definition_api = loader.load_role_definition_from_file(file_path=file_path)
+
+        self.assertEqual(role_definition_api.name, 'role_seven')
 
     def test_load_user_role_assignments_success(self):
         loader = RBACDefinitionsLoader()

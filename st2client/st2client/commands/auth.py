@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from six.moves.configparser import ConfigParser
 import getpass
 import json
 import logging
+
+from six.moves.configparser import ConfigParser
 
 from st2client.base import BaseCLIApp
 from st2client import config_parser
@@ -97,7 +98,7 @@ class LoginCommand(resource.ResourceCommand):
         self.parser.add_argument('-w', '--write-password', action='store_true', default=False,
                                  dest='write_password',
                                  help='Write the password in plain text to the config file '
-                                      '(default is to omit it')
+                                      '(default is to omit it)')
 
     def run(self, args, **kwargs):
 
@@ -123,17 +124,17 @@ class LoginCommand(resource.ResourceCommand):
         config.read(config_file)
 
         # Modify config (and optionally populate with password)
-        if 'credentials' not in config:
+        if not config.has_section('credentials'):
             config.add_section('credentials')
-            config['credentials'] = {}
-        config['credentials']['username'] = args.username
+
+        config.set('credentials', 'username', args.username)
         if args.write_password:
-            config['credentials']['password'] = args.password
+            config.set('credentials', 'password', args.password)
         else:
             # Remove any existing password from config
-            config['credentials'].pop('password', None)
+            config.remove_option('credentials', 'password')
 
-        with open(config_file, "w") as cfg_file_out:
+        with open(config_file, 'w') as cfg_file_out:
             config.write(cfg_file_out)
 
         return manager
@@ -141,11 +142,27 @@ class LoginCommand(resource.ResourceCommand):
     def run_and_print(self, args, **kwargs):
         try:
             self.run(args, **kwargs)
-            print("Logged in as %s" % (args.username))
         except Exception as e:
-            print("Failed to log in as %s: %s" % (args.username, str(e)))
+            print('Failed to log in as %s: %s' % (args.username, str(e)))
             if self.app.client.debug:
                 raise
+
+            return
+
+        print('Logged in as %s' % (args.username))
+
+        if not args.write_password:
+            # Note: Client can't depend and import from common so we need to hard-code this
+            # default value
+            token_expire_hours = 24
+
+            print('')
+            print('Note: You didn\'t use --write-password option so the password hasn\'t been '
+                  'stored in the client config and you will need to login again in %s hours when '
+                  'the auth token expires.' % (token_expire_hours))
+            print('As an alternative, you can run st2 login command with the "--write-password" '
+                  'flag, but keep it mind this will cause it to store the password in plain-text '
+                  'in the client config file (~/.st2/config).')
 
 
 class WhoamiCommand(resource.ResourceCommand):
@@ -175,7 +192,7 @@ class WhoamiCommand(resource.ResourceCommand):
         config = ConfigParser()
         config.read(config_file)
 
-        return config['credentials']['username']
+        return config.get('credentials', 'username')
 
     def run_and_print(self, args, **kwargs):
         try:

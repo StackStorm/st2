@@ -100,12 +100,19 @@ class DownloadGitRepoAction(Action):
         # because we want the user to work with the repo in the
         # future.
         repo = Repo.clone_from(repo_url, temp_dir)
+        active_branch = repo.active_branch
+
         use_branch = False
 
-        # Try to match the reference to a branch name (i.e. "master")
-        gitref = DownloadGitRepoAction._get_gitref(repo, "origin/%s" % ref)
-        if gitref:
-            use_branch = True
+        # Special case when a default repo branch is not "master"
+        # No ref provided so we just use a default active branch
+        if (not ref or ref == active_branch.name) and repo.active_branch.object == repo.head.commit:
+            gitref = repo.active_branch.object
+        else:
+            # Try to match the reference to a branch name (i.e. "master")
+            gitref = DownloadGitRepoAction._get_gitref(repo, 'origin/%s' % ref)
+            if gitref:
+                use_branch = True
 
         # Try to match the reference to a commit hash, a tag, or "master"
         if not gitref:
@@ -113,7 +120,7 @@ class DownloadGitRepoAction(Action):
 
         # Try to match the reference to a "vX.Y.Z" tag
         if not gitref and re.match(PACK_VERSION_REGEX, ref):
-            gitref = DownloadGitRepoAction._get_gitref(repo, "v%s" % ref)
+            gitref = DownloadGitRepoAction._get_gitref(repo, 'v%s' % ref)
 
         # Giving up ¯\_(ツ)_/¯
         if not gitref:
@@ -131,18 +138,19 @@ class DownloadGitRepoAction(Action):
 
         # We're trying to figure out which branch the ref is actually on,
         # since there's no direct way to check for this in git-python.
-        branches = repo.git.branch('-a', '--contains', gitref.hexsha)
+        branches = repo.git.branch('-a', '--contains', gitref.hexsha)  # pylint: disable=no-member
         branches = branches.replace('*', '').split()
-        if 'master' not in branches or use_branch:
-            branch = "origin/%s" % ref if use_branch else branches[0]
+
+        if active_branch.name not in branches or use_branch:
+            branch = 'origin/%s' % ref if use_branch else branches[0]
             short_branch = ref if use_branch else branches[0].split('/')[-1]
             repo.git.checkout('-b', short_branch, branch)
             branch = repo.head.reference
         else:
-            branch = 'master'
+            branch = repo.active_branch.name
 
-        repo.git.checkout(gitref.hexsha)
-        repo.git.branch('-f', branch, gitref.hexsha)
+        repo.git.checkout(gitref.hexsha)  # pylint: disable=no-member
+        repo.git.branch('-f', branch, gitref.hexsha)  # pylint: disable=no-member
         repo.git.checkout(branch)
 
         return temp_dir
@@ -281,11 +289,11 @@ class DownloadGitRepoAction(Action):
         if repo_url.startswith("file://"):
             return repo_url
         else:
-            if len(repo_url.split('/')) == 2 and "git@" not in repo_url:
-                url = "https://github.com/{}".format(repo_url)
+            if len(repo_url.split('/')) == 2 and 'git@' not in repo_url:
+                url = 'https://github.com/{}'.format(repo_url)
             else:
                 url = repo_url
-            return url if url.endswith('.git') else "{}.git".format(url)
+            return url if url.endswith('.git') else '{}.git'.format(url)
 
     @staticmethod
     def _get_pack_metadata(pack_dir):
