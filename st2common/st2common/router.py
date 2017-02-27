@@ -15,6 +15,7 @@
 
 import copy
 import functools
+import re
 import six
 import sys
 import traceback
@@ -142,33 +143,31 @@ class Router(object):
         self.spec_resolver = None
         self.routes = routes.Mapper()
 
-    def add_spec(self, spec, default=True):
+    def add_spec(self, spec, transforms):
         info = spec.get('info', {})
         LOG.debug('Adding API: %s %s', info.get('title', 'untitled'), info.get('version', '0.0.0'))
 
-        # Merge specs if necessary
-        if not self.spec:
-            self.spec = spec
-        else:
-            self.spec['paths'].update(spec['paths'])
-            self.spec['definitions'].update(spec['definitions'])
-
+        self.spec = spec
         self.spec_resolver = validate_spec(copy.deepcopy(self.spec))
 
-        for (path, methods) in six.iteritems(spec['paths']):
-            for (method, endpoint) in six.iteritems(methods):
-                conditions = {
-                    'method': [method.upper()]
-                }
+        for filter in transforms:
+            for (path, methods) in six.iteritems(spec['paths']):
+                if not re.search(filter, path):
+                    continue
 
-                connect_kw = {}
-                if 'x-requirements' in endpoint:
-                    connect_kw['requirements'] = endpoint['x-requirements']
+                for (method, endpoint) in six.iteritems(methods):
+                    conditions = {
+                        'method': [method.upper()]
+                    }
 
-                m = self.routes.submapper(_api_path=path, _api_method=method, conditions=conditions)
-                m.connect(None, spec.get('basePath', '') + path, **connect_kw)
-                if default:
-                    m.connect(None, path, **connect_kw)
+                    connect_kw = {}
+                    if 'x-requirements' in endpoint:
+                        connect_kw['requirements'] = endpoint['x-requirements']
+
+                    m = self.routes.submapper(_api_path=path, _api_method=method,
+                                              conditions=conditions)
+                    for transform in transforms[filter]:
+                        m.connect(None, re.sub(filter, transform, path), **connect_kw)
 
         for route in sorted(self.routes.matchlist, key=lambda r: r.routepath):
             LOG.debug('Route registered: %+6s %s', route.conditions['method'][0], route.routepath)

@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
 from oslo_config import cfg
 
 from st2api import config as st2api_config
@@ -30,12 +28,6 @@ from st2common.service_setup import setup as common_setup
 from st2common.util import spec_loader
 
 LOG = logging.getLogger(__name__)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-SPECS = {
-    'controllers/openapi.yaml': True,
-    'controllers/openapi_exp.yaml': False
-}
 
 
 def setup_app(config={}):
@@ -61,9 +53,12 @@ def setup_app(config={}):
 
     router = Router(debug=cfg.CONF.api.debug, auth=cfg.CONF.auth.enable)
 
-    for spec_file in SPECS:
-        spec = spec_loader.load_spec(__name__, spec_file)
-        router.add_spec(spec, default=SPECS[spec_file])
+    spec = spec_loader.load_spec('st2common', 'openapi.yaml')
+    transforms = {
+        '^/api/v1/': ['/', '/v1/'],
+        '^/api/exp/': ['/exp/']
+    }
+    router.add_spec(spec, transforms=transforms)
 
     app = router.as_wsgi
 

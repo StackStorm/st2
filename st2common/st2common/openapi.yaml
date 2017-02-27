@@ -2,12 +2,10 @@ swagger: '2.0'
 
 info:
   version: "1.0.0"
-  title: StackStorm st2api API
-
-basePath: /v1
+  title: StackStorm API
 
 paths:
-  /:
+  /api/v1/:
     get:
       operationId: st2api.controllers.root:root_controller.index
       description: General API info.
@@ -29,7 +27,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /actions:
+  /api/v1/actions:
     get:
       operationId: st2api.controllers.v1.actions:actions_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
@@ -103,7 +101,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /actions/{ref_or_id}:
+  /api/v1/actions/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.actions:actions_controller.get_one
       description: |
@@ -187,7 +185,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /actions/views/parameters/{action_id}:
+  /api/v1/actions/views/parameters/{action_id}:
     get:
       operationId: st2api.controllers.v1.actionviews:parameters_view_controller.get_one
       description: |
@@ -213,7 +211,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /actions/views/overview:
+  /api/v1/actions/views/overview:
     get:
       operationId: st2api.controllers.v1.actionviews:overview_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
@@ -257,7 +255,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /actions/views/overview/{ref_or_id}:
+  /api/v1/actions/views/overview/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.actionviews:overview_controller.get_one
       description: |
@@ -281,7 +279,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /actions/views/entry_point/{ref_or_id}:
+  /api/v1/actions/views/entry_point/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.actionviews:entry_point_controller.get_one
       description: |
@@ -307,7 +305,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /actionalias:
+  /api/v1/actionalias:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_LIST }}
@@ -361,7 +359,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /actionalias/{ref_or_id}:
+  /api/v1/actionalias/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_one
       x-requirements:
@@ -447,7 +445,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /actionalias/match:
+  /api/v1/actionalias/match:
     post:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.match
       x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_MATCH }}
@@ -472,7 +470,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /actionalias/help:
+  /api/v1/actionalias/help:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.help
       x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_HELP }}
@@ -510,7 +508,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /aliasexecution:
+  /api/v1/aliasexecution:
     post:
       operationId: st2api.controllers.v1.aliasexecution:action_alias_execution_controller.post
       description: |
@@ -539,7 +537,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /executions:
+  /api/v1/executions:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.EXECUTION_LIST }}
@@ -694,7 +692,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /executions/{id}:
+  /api/v1/executions/{id}:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_one
       x-log-result: false
@@ -753,7 +751,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /executions/{id}/re_run:
+  /api/v1/executions/{id}/re_run:
     post:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_rerun_controller.post
       x-log-result: false
@@ -808,7 +806,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /executions/{id}/attribute/{attribute}:
+  /api/v1/executions/{id}/attribute/{attribute}:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_attribute_controller.get
       x-log-result: false
@@ -842,7 +840,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /executions/{id}/children:
+  /api/v1/executions/{id}/children:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_execution_children_controller.get_one
       x-log-result: false
@@ -884,7 +882,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /executions/views/filters:
+  /api/v1/executions/views/filters:
     get:
       operationId: st2api.controllers.v1.executionviews:filters_controller.get_all
       description: |
@@ -912,7 +910,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /keys:
+  /api/v1/keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.KEY_VALUE_PAIR_LIST }}
@@ -954,7 +952,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /keys/{name}:
+  /api/v1/keys/{name}:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_one
       description: |
@@ -1058,7 +1056,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /packs:
+  /api/v1/packs:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
@@ -1086,7 +1084,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /packs/{ref_or_id}:
+  /api/v1/packs/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.get_one
       description: Get information about an installed pack.
@@ -1115,7 +1113,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /packs/install:
+  /api/v1/packs/install:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.install.post
       x-permissions: {{ PERMISSION_TYPE.PACK_INSTALL }}
@@ -1140,7 +1138,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /packs/uninstall:
+  /api/v1/packs/uninstall:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.uninstall.post
       x-permissions: {{ PERMISSION_TYPE.PACK_UNINSTALL }}
@@ -1165,7 +1163,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /packs/register:
+  /api/v1/packs/register:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.register.post
       x-permissions: {{ PERMISSION_TYPE.PACK_REGISTER }}
@@ -1190,7 +1188,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /packs/index/search:
+  /api/v1/packs/index/search:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.index.search.post
       x-permissions: {{ PERMISSION_TYPE.PACK_SEARCH }}
@@ -1217,7 +1215,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   # TODO: No unit test for /packs/index/health
-  /packs/index/health:
+  /api/v1/packs/index/health:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.index.get
       x-permissions: {{ PERMISSION_TYPE.PACK_VIEW_INDEX_HEALTH }}
@@ -1236,7 +1234,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /packs/views/files/{ref_or_id}:
+  /api/v1/packs/views/files/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.views.files.get_one
       x-log-result: false
@@ -1266,7 +1264,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /packs/views/file/{ref_or_id}/{file_path}:
+  /api/v1/packs/views/file/{ref_or_id}/{file_path}:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.views.file.get_one
       x-requirements:
@@ -1306,7 +1304,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /configs:
+  /api/v1/configs:
     get:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
@@ -1325,7 +1323,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /configs/{pack_ref}:
+  /api/v1/configs/{pack_ref}:
     get:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_one
       description: Retrieve config for a particular pack.
@@ -1377,7 +1375,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /config_schemas:
+  /api/v1/config_schemas:
     get:
       operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
@@ -1396,7 +1394,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /config_schemas/{pack_ref}:
+  /api/v1/config_schemas/{pack_ref}:
     get:
       operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_one
       description: Retrieve config schema for a particular pack.
@@ -1425,7 +1423,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /policytypes:
+  /api/v1/policytypes:
     get:
       operationId: st2api.controllers.v1.policies:policy_type_controller.get_all
       description: Returns a list of all the policy types.
@@ -1453,7 +1451,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /policytypes/{ref_or_id}:
+  /api/v1/policytypes/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.policies:policy_type_controller.get_one
       description: Returns a policy types based on id.
@@ -1478,7 +1476,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /policies:
+  /api/v1/policies:
     get:
       operationId: st2api.controllers.v1.policies:policy_controller.get_all
       description: |
@@ -1531,7 +1529,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /policies/{ref_or_id}:
+  /api/v1/policies/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.policies:policy_controller.get_one
       description: |
@@ -1603,7 +1601,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /rbac/permission_types:
+  /api/v1/rbac/permission_types:
     get:
       operationId: st2api.controllers.v1.rbac:permission_types_controller.get_all
       description: Returns a list of all permission types.
@@ -1634,7 +1632,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /rbac/permission_types/{resource_type}:
+  /api/v1/rbac/permission_types/{resource_type}:
     get:
       operationId: st2api.controllers.v1.rbac:permission_types_controller.get_one
       description: Returns a list of all permission types for particular resource type.
@@ -1666,7 +1664,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /rbac/roles:
+  /api/v1/rbac/roles:
     get:
       operationId: st2api.controllers.v1.rbac:roles_controller.get_all
       description: Returns a list of all roles.
@@ -1690,7 +1688,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /rbac/roles/{name_or_id}:
+  /api/v1/rbac/roles/{name_or_id}:
     get:
       operationId: st2api.controllers.v1.rbac:roles_controller.get_one
       description: Get one role.
@@ -1718,7 +1716,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /rules:
+  /api/v1/rules:
     get:
       operationId: st2api.controllers.v1.rules:rule_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.RULE_LIST }}
@@ -1804,7 +1802,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /rules/{ref_or_id}:
+  /api/v1/rules/{ref_or_id}:
     get:
       x-requirements:
         ref_or_id: (?!views).*
@@ -1835,7 +1833,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /rules/{rule_ref_or_id}:
+  /api/v1/rules/{rule_ref_or_id}:
     put:
       operationId: st2api.controllers.v1.rules:rule_controller.put
       description: |
@@ -1891,7 +1889,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /rules/views:
+  /api/v1/rules/views:
     get:
       operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.RULE_LIST }}
@@ -1949,7 +1947,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /rules/views/{ref_or_id}:
+  /api/v1/rules/views/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_one
       description: |
@@ -1973,7 +1971,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /ruletypes:
+  /api/v1/ruletypes:
     get:
       operationId: st2api.controllers.v1.ruletypes:rule_types_controller.get_all
       description: Returns a list of all rule types.
@@ -1992,7 +1990,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /ruletypes/{id}:
+  /api/v1/ruletypes/{id}:
     get:
       operationId: st2api.controllers.v1.ruletypes:rule_types_controller.get_one
       description: Get one rule type.
@@ -2015,7 +2013,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /runnertypes:
+  /api/v1/runnertypes:
     get:
       operationId: st2api.controllers.v1.runnertypes:runner_types_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.RUNNER_LIST }}
@@ -2073,7 +2071,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /runnertypes/{name_or_id}:
+  /api/v1/runnertypes/{name_or_id}:
     get:
       operationId: st2api.controllers.v1.runnertypes:runner_types_controller.get_one
       description: |
@@ -2135,7 +2133,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /sensortypes:
+  /api/v1/sensortypes:
     get:
       operationId: st2api.controllers.v1.sensors:sensor_type_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.SENSOR_LIST }}
@@ -2193,7 +2191,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /sensortypes/{ref_or_id}:
+  /api/v1/sensortypes/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.sensors:sensor_type_controller.get_one
       description: |
@@ -2255,7 +2253,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /apikeys:
+  /api/v1/apikeys:
     get:
       operationId: st2api.controllers.v1.auth:api_key_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.API_KEY_LIST }}
@@ -2313,7 +2311,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /apikeys/{api_key_id_or_key}:
+  /api/v1/apikeys/{api_key_id_or_key}:
     get:
       operationId: st2api.controllers.v1.auth:api_key_controller.get_one
       description: |
@@ -2401,7 +2399,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /ruleenforcements:
+  /api/v1/ruleenforcements:
     get:
       operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.RULE_ENFORCEMENT_LIST }}
@@ -2455,7 +2453,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /ruleenforcements/{ref_or_id}:
+  /api/v1/ruleenforcements/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_one
       description: Return a specific rule enforcement based on id.
@@ -2484,7 +2482,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /timers:
+  /api/v1/timers:
     get:
       operationId: st2api.controllers.v1.timers:timers_controller.get_all
       description: Returns a list of all the timers.
@@ -2508,7 +2506,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /timers/{ref_or_id}:
+  /api/v1/timers/{ref_or_id}:
     get:
       operationId: st2api.controllers.v1.timers:timers_controller.get_one
       description: Return a specific timer based on id.
@@ -2532,7 +2530,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /traces:
+  /api/v1/traces:
     get:
       operationId: st2api.controllers.v1.traces:traces_controller.get_all
       description: Returns a list of all the traces.
@@ -2584,7 +2582,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /traces/{id}:
+  /api/v1/traces/{id}:
     get:
       operationId: st2api.controllers.v1.traces:traces_controller.get_one
       description: Returns a list of all the traces.
@@ -2608,7 +2606,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /triggertypes:
+  /api/v1/triggertypes:
     get:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.get_all
       description: Returns a list of all trigger types.
@@ -2650,7 +2648,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /triggertypes/{triggertype_ref_or_id}:
+  /api/v1/triggertypes/{triggertype_ref_or_id}:
     get:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.get_one
       description: |
@@ -2719,7 +2717,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /triggers:
+  /api/v1/triggers:
     get:
       operationId: st2api.controllers.v1.triggers:trigger_controller.get_all
       description: Returns a list of all triggers.
@@ -2761,7 +2759,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /triggers/{trigger_id}:
+  /api/v1/triggers/{trigger_id}:
     get:
       operationId: st2api.controllers.v1.triggers:trigger_controller.get_one
       description: |
@@ -2830,7 +2828,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /triggerinstances:
+  /api/v1/triggerinstances:
     get:
       operationId: st2api.controllers.v1.triggers:triggerinstance_controller.get_all
       description: Returns a list of all trigger instances.
@@ -2868,7 +2866,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /triggerinstances/{instance_id}:
+  /api/v1/triggerinstances/{instance_id}:
     get:
       operationId: st2api.controllers.v1.triggers:triggerinstance_controller.get_one
       description: |
@@ -2892,7 +2890,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /triggerinstances/{trigger_instance_id}/re_emit:
+  /api/v1/triggerinstances/{trigger_instance_id}/re_emit:
     post:
       operationId: st2api.controllers.v1.triggers:triggerinstance_resend_controller.post
       description: |
@@ -2916,7 +2914,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /webhooks:
+  /api/v1/webhooks:
     get:
       operationId: st2api.controllers.v1.webhooks:webhooks_controller.get_all
       description: Returns a list of all webhooks.
@@ -2935,7 +2933,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /webhooks/{hook}:
+  /api/v1/webhooks/{hook}:
     post:
       operationId: st2api.controllers.v1.webhooks:webhooks_controller.post
       x-requirements:
@@ -2970,7 +2968,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /webhooks/{name}:
+  /api/v1/webhooks/{name}:
     get:
       operationId: st2api.controllers.v1.actions:actions_controller.get_one
       description: |
@@ -2995,6 +2993,129 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 
+  /api/exp/validation/mistral:
+    post:
+      operationId: st2api.controllers.exp.validation:mistral_validation_controller.post
+      description: |
+        Validate Mistral YAML definition.
+      parameters:
+        - name: def_yaml
+          in: body
+          description: Mistral definition
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of validation errors
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ValidationError'
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /auth/v1/tokens:
+    post:
+      operationId: st2auth.controllers.v1.auth:token_controller.post
+      description: |
+        Authenticates a user with `Authorization` header and returns a `token`
+        object.
+      parameters:
+        - name: authorization
+          in: header
+          description: base64 encoded string containing login and password
+          type: string
+        - name: x-forwarded-for
+          in: header
+          description: set externally to indicate real source of the request
+          type: string
+        - name: request
+          in: body
+          description: Lifespan of the token
+          schema:
+            $ref: '#/definitions/TokenRequest'
+      x-parameters:
+        - name: remote_addr
+          in: environ
+          description: source of the request
+          type: string
+        - name: remote_user
+          in: environ
+          description: set externally to indicate user identity in case of proxy auth
+          type: string
+      responses:
+        '201':
+          description: New token has been created
+          schema:
+            $ref: '#/definitions/Token'
+          headers:
+            x-api-url:
+              type: string
+          examples:
+            application/json:
+              user: st2admin
+              token: '5e86421776f946e98faea36c29e5a7c7'
+              expiry: '2016-05-28T12:39:28.650231Z'
+              id: '574840001878c10d0b6e8fbf'
+              metadata: {}
+        '401':
+          description: Invalid or missing credentials has been provided
+          schema:
+            $ref: '#/definitions/Error'
+          examples:
+            application/json:
+              faultstring: Invalid or missing credentials
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+      security: []
+  /auth/v1/tokens/validate:
+    post:
+      operationId: st2auth.controllers.v1.auth:token_validation_controller.post
+      description: |
+        Validates a token provided in the request body.
+      parameters:
+        - name: request
+          in: body
+          description: Token to validate
+          schema:
+            $ref: '#/definitions/TokenValidationRequest'
+      responses:
+        '200':
+          description: Validation results
+          schema:
+            $ref: '#/definitions/TokenValidationResult'
+          examples:
+            application/json:
+              valid: false
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /stream/v1/stream:
+    get:
+      operationId: st2stream.controllers.v1.stream:stream_controller.get_all
+      description: |
+        Event stream endpoint.
+      responses:
+        '200':
+          description: EventSource compatible stream of events
+          examples:
+            application/json:
+              ref: 'core.local'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 
 
 definitions:
@@ -3571,6 +3692,50 @@ definitions:
         items:
           type: string
     additionalProperties: false
+  TokenRequest:
+    type: object
+    properties:
+      ttl:
+        type:
+          - integer
+          - 'null'
+        minimum: 1
+  Token:
+    type: object
+    properties:
+      expiry:
+        type: string
+        format: datetime
+      id:
+        type: string
+        format: uuid
+      metadata:
+        type: object
+      token:
+        type: string
+      user:
+        type: string
+  TokenValidationRequest:
+    type: object
+    properties:
+      token:
+        type:
+          - string
+          - 'null'
+  TokenValidationResult:
+    type: object
+    properties:
+      valid:
+        type: boolean
+  ValidationError:
+    type: object
+    properties:
+      type:
+        type: string
+      path:
+        type: string
+      message:
+        type: string
   Error:
     type: object
     properties:

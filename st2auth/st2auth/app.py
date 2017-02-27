@@ -29,8 +29,6 @@ from st2common.util import spec_loader
 
 LOG = logging.getLogger(__name__)
 
-SPEC = 'controllers/openapi.yaml'
-
 
 def setup_app(config={}):
     LOG.info('Creating st2auth: %s as OpenAPI app.', VERSION_STRING)
@@ -55,8 +53,11 @@ def setup_app(config={}):
 
     router = Router(debug=cfg.CONF.auth.debug)
 
-    spec = spec_loader.load_spec(__name__, SPEC)
-    router.add_spec(spec)
+    spec = spec_loader.load_spec('st2common', 'openapi.yaml')
+    transforms = {
+        '^/auth/v1/': ['/', '/v1/']
+    }
+    router.add_spec(spec, transforms=transforms)
 
     app = router.as_wsgi
 

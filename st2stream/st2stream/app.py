@@ -22,8 +22,6 @@ clients which are connected to the stream HTTP endpoint (fan out approach).
 Note: This app doesn't need access to MongoDB, just RabbitMQ.
 """
 
-import os
-
 from oslo_config import cfg
 
 from st2stream import config as st2stream_config
@@ -39,9 +37,6 @@ from st2common.service_setup import setup as common_setup
 from st2common.util import spec_loader
 
 LOG = logging.getLogger(__name__)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-SPEC = 'controllers/openapi.yaml'
 
 
 class StreamingMiddleware(object):
@@ -76,8 +71,11 @@ def setup_app(config={}):
 
     router = Router(debug=cfg.CONF.stream.debug, auth=cfg.CONF.auth.enable)
 
-    spec = spec_loader.load_spec(__name__, SPEC)
-    router.add_spec(spec)
+    spec = spec_loader.load_spec('st2common', 'openapi.yaml')
+    transforms = {
+        '^/stream/v1/': ['/', '/v1/']
+    }
+    router.add_spec(spec, transforms=transforms)
 
     app = router.as_wsgi
 
