@@ -4,6 +4,9 @@ Changelog
 in development
 --------------
 
+* Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
+  directory name doesn't match the pack name (this might be the case with new pack management
+  during development where local git repository directory name doesn't match pack name) (bug fix)
 
 2.2.0 - February 22, 2017
 -------------------------
