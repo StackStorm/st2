@@ -1,12 +1,8 @@
 Changelog
 =========
 
-In development
+in development
 --------------
-
-
-2.2.1 - February 27, 2017
--------------------------
 
 
 2.2.0 - February 22, 2017
