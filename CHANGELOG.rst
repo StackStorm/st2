@@ -5,7 +5,7 @@ in development
 --------------
 
 
-2.2.0 - February 22, 2017
+2.2.0 - February 27, 2017
 -------------------------
 
 * Fix ``/v1/packs/views/files/<pack ref or id>`` and
