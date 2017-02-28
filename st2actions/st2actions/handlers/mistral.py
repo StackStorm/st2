@@ -40,7 +40,7 @@ STATUS_MAP = {
     action_constants.LIVEACTION_STATUS_TIMED_OUT: 'ERROR',
     action_constants.LIVEACTION_STATUS_ABANDONED: 'ERROR',
     action_constants.LIVEACTION_STATUS_CANCELING: 'RUNNING',
-    action_constants.LIVEACTION_STATUS_CANCELED: 'ERROR'
+    action_constants.LIVEACTION_STATUS_CANCELED: 'CANCELLED'
 }
 
 

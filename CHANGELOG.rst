@@ -3,6 +3,11 @@ Changelog
 
 in development
 --------------
+* Fix Mistral workflow status when task is canceled. Currently, when a task is canceled, the
+  workflow status is set to error. The workflow status should be set to canceled. Also, when
+  a canceled action execution completes, the action execution will be updated from canceled
+  to its new status. This should not be the case because the action execution has already been
+  canceled. (bug fix)
 
 
 2.2.0 - February 22, 2017
