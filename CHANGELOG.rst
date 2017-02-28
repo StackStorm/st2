@@ -4,6 +4,11 @@ Changelog
 in development
 --------------
 
+* Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
+  directory name doesn't match the pack name (this might be the case with new pack management
+  during development where local git repository directory name doesn't match pack name) (bug fix)
+* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
+  correctly fails on failure by default.
 
 2.2.0 - February 27, 2017
 -------------------------
@@ -84,8 +89,6 @@ in development
 * Fix a bug with not being able to apply some global permission types (permissions which are global
   and not specific to a resource) such as pack install, pack remove, pack search, etc. to a role
   using ``st2-apply-rbac-definitions``. (bug fix)
-* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
-  correctly fails on failure by default.
 
 2.1.1 - December 16, 2016
 -------------------------
