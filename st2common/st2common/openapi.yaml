@@ -3384,6 +3384,7 @@ definitions:
       user:
         description: User for user scoped items (admin only).
         type: string
+        x-nullable: true
   PacksList:
     type: object
     properties:
