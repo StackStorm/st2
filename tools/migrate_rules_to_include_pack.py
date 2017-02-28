@@ -57,6 +57,7 @@ class Migration(object):
             'indexes': stormbase.TagsMixin.get_indices()
         }
 
+
 # specialized access objects
 rule_access_with_pack = MongoDBAccess(Migration.RuleDB)
 
@@ -81,6 +82,7 @@ class RuleDB(stormbase.StormBaseDB, stormbase.TagsMixin):
     meta = {
         'indexes': stormbase.TagsMixin.get_indices()
     }
+
 
 rule_access_without_pack = MongoDBAccess(RuleDB)
 

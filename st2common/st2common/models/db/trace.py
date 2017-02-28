@@ -84,6 +84,7 @@ class TraceDB(stormbase.StormFoundationDB):
         ]
     }
 
+
 # specialized access objects
 trace_access = MongoDBAccess(TraceDB)
 

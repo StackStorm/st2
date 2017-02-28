@@ -4,8 +4,15 @@ Changelog
 in development
 --------------
 
+* Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
+  directory name doesn't match the pack name (this might be the case with new pack management
+  during development where local git repository directory name doesn't match pack name) (bug fix)
+
+2.2.0 - February 27, 2017
+-------------------------
+
 * Fix ``/v1/packs/views/files/<pack ref or id>`` and
-  ``/v2/packs/views/files/<pack ref or id>/<file path>`` API endpoint so it
+  ``/v1/packs/views/file/<pack ref or id>/<file path>`` API endpoint so it
   works correctly for packs where pack name is not equal to the pack ref. (bug fix)
 
   Reported by skjbulcher #3128
@@ -58,7 +65,7 @@ in development
   beyond the existing `st2 auth` command and actually works with the local configuration so that
   users do not have to.
 * Fix action alias update API endpoint. (bug fix)
-* Fix ``--config-file`` st2 CLI argument not correctly expanding the provided path if the path 
+* Fix ``--config-file`` st2 CLI argument not correctly expanding the provided path if the path
   contained a reference to the user home directory (``~``, e.g. ``~/.st2/config.ini``) (bug fix)
 * Fix action alias update API endpoint. (bug fix)
 * ``{{user.}}`` and ``{{system.}}`` notations to access user and system
@@ -70,6 +77,16 @@ in development
   the installer script still is 3.2. (improvement)
 * Fix a bug with ``packs.download`` action and as such as ``pack install`` command not working with
   git repositories which used a default branch which was not ``master``. (bug fix)
+* Add new ``-j`` flag to the ``st2-run-pack-tests`` script. When this flag is specified script will
+  just try to run the tests and it won't set up the virtual environment and install the
+  dependencies. This flag can be used when virtual environment for pack tests already exists and
+  when you know dependencies are already installed and up to date. (new feature)
+* Fix a bug with ``--api-token`` / ``-t`` and other CLI option values not getting correctly
+  propagated to all the API calls issued in the ``st2 pack install``, ``st2 pack remove`` and
+  ``st2 pack config`` commands. (bug fix)
+* Fix a bug with not being able to apply some global permission types (permissions which are global
+  and not specific to a resource) such as pack install, pack remove, pack search, etc. to a role
+  using ``st2-apply-rbac-definitions``. (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------

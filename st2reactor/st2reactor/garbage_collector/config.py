@@ -63,4 +63,5 @@ def _register_garbage_collector_opts():
     ]
     CONF.register_opts(ttl_opts, group='garbagecollector')
 
+
 register_opts()
