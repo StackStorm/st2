@@ -96,4 +96,5 @@ class SensorTypeController(resource.ContentPackResourceController):
 
         return sensor_type_api
 
+
 sensor_type_controller = SensorTypeController()

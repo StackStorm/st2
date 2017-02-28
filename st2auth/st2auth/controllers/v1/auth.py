@@ -84,5 +84,6 @@ def process_successful_response(token):
     resp.headers['X-API-URL'] = cfg.CONF.auth.api_url
     return resp
 
+
 token_controller = TokenController()
 token_validation_controller = TokenValidationController()

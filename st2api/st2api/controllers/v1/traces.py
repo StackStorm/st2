@@ -48,4 +48,5 @@ class TracesController(ResourceController):
 
         return self._get_all(**kwargs)
 
+
 traces_controller = TracesController()

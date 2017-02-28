@@ -101,6 +101,7 @@ def extend_with_nullable(validator_class):
         validator_class, {"type": set_type_draft4},
     )
 
+
 CustomValidator = jsonschema.Draft4Validator
 CustomValidator = extend_with_nullable(CustomValidator)
 CustomValidator = extend_with_additional_check(CustomValidator)

@@ -30,4 +30,5 @@ class RootController(object):
         data['docs_url'] = docs_url
         return data
 
+
 root_controller = RootController()

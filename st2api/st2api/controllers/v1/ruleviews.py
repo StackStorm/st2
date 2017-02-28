@@ -180,4 +180,5 @@ class RuleViewController(resource.ContentPackResourceController):
             return model_persistence._get_impl().model.objects(q)
         return []
 
+
 rule_view_controller = RuleViewController()

@@ -61,4 +61,5 @@ class PackConfigSchemasController(ResourceController):
 
         return self._get_one_by_pack_ref(pack_ref=pack_ref)
 
+
 pack_config_schema_controller = PackConfigSchemasController()

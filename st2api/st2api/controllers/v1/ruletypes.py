@@ -72,4 +72,5 @@ class RuleTypesController(object):
                          for runnertype_db in ruletype_dbs]
         return ruletype_apis
 
+
 rule_types_controller = RuleTypesController()

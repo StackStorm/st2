@@ -310,4 +310,5 @@ class ActionsController(resource.ContentPackResourceController):
             }
             self._trigger_dispatcher.dispatch(trigger=trigger, payload=payload)
 
+
 actions_controller = ActionsController()

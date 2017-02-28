@@ -167,6 +167,7 @@ class ActionViewsController(object):
     overview = OverviewController()
     entry_point = EntryPointController()
 
+
 parameters_view_controller = ParametersViewController()
 overview_controller = OverviewController()
 entry_point_controller = EntryPointController()

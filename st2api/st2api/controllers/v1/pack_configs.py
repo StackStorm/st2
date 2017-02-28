@@ -98,4 +98,5 @@ class PackConfigsController(ResourceController):
 
         return config_api
 
+
 pack_configs_controller = PackConfigsController()

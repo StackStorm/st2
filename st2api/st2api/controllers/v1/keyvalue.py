@@ -300,4 +300,5 @@ class KeyValuePairController(ResourceController):
             msg = 'Scope %s is not in allowed scopes list: %s.' % (scope, ALLOWED_SCOPES)
             raise ValueError(msg)
 
+
 key_value_pair_controller = KeyValuePairController()

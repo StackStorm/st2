@@ -135,4 +135,5 @@ class TimersController(resource.ContentPackResourceController):
         sanitized = TriggerAPI.from_model(trigger).to_dict()
         return sanitized
 
+
 timers_controller = TimersController()

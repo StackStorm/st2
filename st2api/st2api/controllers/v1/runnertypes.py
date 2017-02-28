@@ -83,4 +83,5 @@ class RunnerTypesController(ResourceController):
         runner_type_api = RunnerTypeAPI.from_model(runner_type_db)
         return runner_type_api
 
+
 runner_types_controller = RunnerTypesController()

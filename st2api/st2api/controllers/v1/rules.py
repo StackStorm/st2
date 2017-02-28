@@ -196,4 +196,5 @@ class RuleController(resource.ContentPackResourceController):
 
         return Response(status=http_client.NO_CONTENT)
 
+
 rule_controller = RuleController()
