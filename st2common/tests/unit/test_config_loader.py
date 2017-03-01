@@ -15,17 +15,18 @@
 
 from st2common.persistence.pack import Config
 from st2common.models.db.pack import ConfigDB
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.services.config import set_datastore_value_for_config_key
 from st2common.util.config_loader import ContentPackConfigLoader
 
-from st2tests.base import DbTestCase
+from st2tests.base import CleanDbTestCase
 
 __all__ = [
     'ContentPackConfigLoaderTestCase'
 ]
 
 
-class ContentPackConfigLoaderTestCase(DbTestCase):
+class ContentPackConfigLoaderTestCase(CleanDbTestCase):
     register_packs = True
     register_pack_configs = True
 
@@ -91,6 +92,21 @@ class ContentPackConfigLoaderTestCase(DbTestCase):
         loader = ContentPackConfigLoader(pack_name='dummy_pack_1')
         config = loader.get_config()
         self.assertEqual(config['region'], 'us-west-1')
+
+    def test_default_values_from_schema_are_used_when_no_config_exists(self):
+        pack_name = 'dummy_pack_5'
+        config_db = Config.get_by_pack(pack_name)
+
+        # Delete the existing config loaded in setUp
+        config_db = Config.get_by_pack(pack_name)
+        config_db.delete()
+
+        # Verify config has been deleted from the database
+        self.assertRaises(StackStormDBObjectNotFoundError, Config.get_by_pack, pack_name)
+
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+        self.assertEqual(config['region'], 'default-region-value')
 
     def test_get_config_nested_schema_default_values_from_config_schema_are_used(self):
         # Special case for more complex config schemas with attributes ntesting.
