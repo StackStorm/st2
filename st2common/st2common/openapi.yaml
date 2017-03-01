@@ -933,6 +933,14 @@ paths:
           in: query
           description: Entity owner
           type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: string
       x-parameters:
         - name: user
           in: context
@@ -3476,7 +3484,8 @@ definitions:
           $ref: '#/definitions/PacksContentRegisterType'
   PacksContentRegisterType:
           type: string
-          enum: ['runner',
+          enum: ['all',
+                  'runner',
                   'action',
                   'actions',
                   'trigger',
