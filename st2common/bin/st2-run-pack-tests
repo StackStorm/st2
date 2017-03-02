@@ -230,21 +230,35 @@ if [ "${JUST_TESTS}" = false ]; then
 
 fi
 
-STACKSTORM_VIRTUALENV_PYTHON_BINARY="${STACKSTORM_VIRTUALENV_BIN}/python"
+# Set PYTHONPATH, make sure it contains st2 components in PYTHONPATH
+TESTS_PYTHON_PATH=()
 
-# Set PYTHONPATH, make sure it contains st2 components in PATH
+# 1. Add PYTHONPATH from StackStorm packages virtualenv (only applies when running on server when
+# StackStorm is installed using packages)
 if [ -f "${STACKSTORM_VIRTUALENV_PYTHON_BINARY}" ]; then
     ST2_PYTHONPATH=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sys;print ':'.join([x for x in sys.path if x.strip()])")
     verbose_log "Adding entries from StackStorm virtualenv to PYTHONPATH: ${ST2_PYTHONPATH}"
-    export PYTHONPATH="${ST2_PYTHONPATH}:${PYTHONPATH}:${PACK_PYTHONPATH}"
-else
-    export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
+
+    TESTS_PYTHON_PATH+=("${ST2_PYTHONPATH}")
 fi
+
+# 2. Add pack actions, sensors and tests directories to PYTHONPATH
+TESTS_PYTHON_PATH+=("${PACK_PYTHONPATH}")
+
+# 3. Add any exist PYTHONPATH at the end
+if [ ! -z "${PYTHONPATH}" ]; then
+    TESTS_PYTHON_PATH+=("${PYTHONPATH}")
+fi
+
+TESTS_PYTHON_PATH="$(join ":" ${TESTS_PYTHON_PATH[@]})"
+
+export PYTHONPATH="${TESTS_PYTHON_PATH}"
 
 verbose_log "PYTHONPATH=${PYTHONPATH}"
 verbose_log "PATH=${PATH}"
 verbose_log "Virtualenv activated=${VIRTUALENV_ACTIVATED}"
 verbose_log "Installed Python dependencies:"
+
 if [ ${VERBOSE} = true ]; then
     pip list
 fi
