@@ -14,24 +14,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 import os.path
 
 from setuptools import setup, find_packages
 
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
-from st2tests import __version__
 
 ST2_COMPONENT = 'st2tests'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REQUIREMENTS_FILE = os.path.join(BASE_DIR, 'requirements.txt')
+INIT_FILE = os.path.join(BASE_DIR, 'st2tests/__init__.py')
+
 
 install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
+
+# Note: we can't directly import __version__ from __init__ because of aliased imports in init
+# which would result in setup.py requiring eventlet and other dependencies to run.
+
+
+def get_version_string():
+    with open(INIT_FILE, 'r') as fp:
+        content = fp.read()
+        version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                                  content, re.M)
+        if version_match:
+            return version_match.group(1)
+
+        raise RuntimeError('Unable to find version string.')
+
 
 apply_vagrant_workaround()
 setup(
     name=ST2_COMPONENT,
-    version=__version__,
+    version=get_version_string(),
     description='{}'.format(ST2_COMPONENT),
     author='StackStorm',
     author_email='info@stackstorm.com',
