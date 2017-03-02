@@ -30,9 +30,10 @@ INIT_FILE = os.path.join(BASE_DIR, 'st2tests/__init__.py')
 
 install_reqs, dep_links = fetch_requirements(REQUIREMENTS_FILE)
 
-# Note: we can't directly import __version__ from __init__ because of aliased
-# imports in init which would result in setup.py requiring eventlet and other
-# dependencies to run
+# Note: we can't directly import __version__ from __init__ because of aliased imports in init
+# which would result in setup.py requiring eventlet and other dependencies to run.
+
+
 def get_version_string():
     with open(INIT_FILE, 'r') as fp:
         content = fp.read()
@@ -42,6 +43,7 @@ def get_version_string():
             return version_match.group(1)
 
         raise RuntimeError('Unable to find version string.')
+
 
 apply_vagrant_workaround()
 setup(
