@@ -249,7 +249,9 @@ if [ ${VERBOSE} = true ]; then
 fi
 
 echo "Running tests..."
-nosetests -s -v ${PACK_TESTS_PATH}
+# Note: We run nosetests with "--exe" option so it also runs test files which are executable
+# (pack install command automatically makes all the files, including test files executable)
+nosetests -s -v --exe ${PACK_TESTS_PATH}
 TESTS_EXIT_CODE=$?
 
 # Clean up and unset the variables
