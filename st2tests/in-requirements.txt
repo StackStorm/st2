@@ -1,3 +1,5 @@
 # Remeber to list implicit packages here, otherwise version won't be fixated!
 mock
-nosetests
+unittest2
+nose
+rednose
