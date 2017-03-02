@@ -234,7 +234,8 @@ STACKSTORM_VIRTUALENV_PYTHON_BINARY="${STACKSTORM_VIRTUALENV_BIN}/python"
 
 # Set PYTHONPATH, make sure it contains st2 components in PATH
 if [ -f "${STACKSTORM_VIRTUALENV_PYTHON_BINARY}" ]; then
-    ST2_PYTHONPATH=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sys;print ':'.join(sys.path)")
+    ST2_PYTHONPATH=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sys;print ':'.join([x for x in sys.path if x.strip()])")
+    verbose_log "Adding entries from StackStorm virtualenv to PYTHONPATH: ${ST2_PYTHONPATH}"
     export PYTHONPATH="${ST2_PYTHONPATH}:${PYTHONPATH}:${PACK_PYTHONPATH}"
 else
     export PYTHONPATH="${PYTHONPATH}:${PACK_PYTHONPATH}"
