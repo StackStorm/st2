@@ -9,6 +9,11 @@ in development
   during development where local git repository directory name doesn't match pack name) (bug fix)
 * Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
   correctly fails on failure by default.
+* Fix a bug with default values from pack config schema not being passed via config to Python
+  runner actions and sensors if pack didn't contain a config file in ``/opt/stackstorm/configs``
+  directory. (bug fix)
+
+  Reported by Jon Middleton.
 
 2.2.0 - February 27, 2017
 -------------------------
