@@ -284,17 +284,25 @@ class Router(object):
         for param in endpoint.get('parameters', []) + endpoint.get('x-parameters', []):
             name = param['name']
             argument_name = param.get('x-as', None) or name
-            type = param['in']
-            required = param.get('required', False)
+            source = param['in']
             default = param.get('default', None)
 
-            if type == 'query':
+            # Collecting params from different sources
+            if source == 'query':
                 kw[argument_name] = req.GET.get(name, default)
-            elif type == 'path':
+            elif source == 'path':
                 kw[argument_name] = path_vars[name]
-            elif type == 'header':
+            elif source == 'header':
                 kw[argument_name] = req.headers.get(name, default)
-            elif type == 'body':
+            elif source == 'formData':
+                kw[argument_name] = req.POST.get(name, default)
+            elif source == 'environ':
+                kw[argument_name] = req.environ.get(name.upper(), default)
+            elif source == 'context':
+                kw[argument_name] = context.get(name, default)
+            elif source == 'request':
+                kw[argument_name] = getattr(req, name)
+            elif source == 'body':
                 if req.body:
                     content_type = req.headers.get('Content-Type', 'application/json')
                     content_type = parse_content_type_header(content_type=content_type)[0]
@@ -340,18 +348,41 @@ class Router(object):
                         kw[argument_name] = Model(**data)
                 else:
                     kw[argument_name] = None
-            elif type == 'formData':
-                kw[argument_name] = req.POST.get(name, default)
-            elif type == 'environ':
-                kw[argument_name] = req.environ.get(name.upper(), default)
-            elif type == 'context':
-                kw[argument_name] = context.get(name, default)
-            elif type == 'request':
-                kw[argument_name] = getattr(req, name)
 
-            if required and not kw[argument_name]:
+            # Making sure all required params are present
+            required = param.get('required', False)
+            if required and kw[argument_name] is None:
                 detail = 'Required parameter "%s" is missing' % name
                 raise exc.HTTPBadRequest(detail=detail)
+
+            # Validating and casting param types
+            type = param.get('type', None)
+            if kw[argument_name] is not None:
+                if type == 'boolean':
+                    positive = ('true', '1', 'yes', 'y')
+                    negative = ('false', '0', 'no', 'n')
+
+                    if str(kw[argument_name]).lower() not in positive + negative:
+                        detail = 'Parameter "%s" is not of type boolean' % argument_name
+                        raise exc.HTTPBadRequest(detail=detail)
+
+                    kw[argument_name] = str(kw[argument_name]).lower() in positive
+                elif type == 'integer':
+                    regex = r'^-?[0-9]+$'
+
+                    if not re.search(regex, str(kw[argument_name])):
+                        detail = 'Parameter "%s" is not of type integer' % argument_name
+                        raise exc.HTTPBadRequest(detail=detail)
+
+                    kw[argument_name] = int(kw[argument_name])
+                elif type == 'number':
+                    regex = r'^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$'
+
+                    if not re.search(regex, str(kw[argument_name])):
+                        detail = 'Parameter "%s" is not of type float' % argument_name
+                        raise exc.HTTPBadRequest(detail=detail)
+
+                    kw[argument_name] = float(kw[argument_name])
 
         # Call the controller
         func = op_resolver(endpoint['operationId'])
