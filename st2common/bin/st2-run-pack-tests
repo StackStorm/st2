@@ -57,7 +57,7 @@ STACKSTORM_VIRTUALENV_PYTHON_BINARY="${STACKSTORM_VIRTUALENV_BIN}/python"
 
 function usage() {
     echo "Usage: $0 [-x] [-j] [-v] -p <path to pack>" >&2
-    echo "  -x : Do not create virtualenv, e.g. when running in existing one." >&2
+    echo "  -x : Do not create virtualenv for test for tests, e.g. when running in existing one." >&2
     echo "  -j : Just run tests (use previously installed dependencies" >&2
     echo "       and virtualenv if any. For subsequent test runs." >&2
     echo "  -v : Verbose mode (log debug messages to stdout)." >&2
@@ -160,13 +160,7 @@ fi
 # Create virtualenv (if requested, otherwise just activate it)
 VIRTUALENV_DIR="${VIRTUALENVS_DIR}/${PACK_NAME}"
 
-if [ "${CREATE_VIRTUALENV}" = false ]; then
-    if [ -d "${VIRTUALENV_DIR}" ]; then
-        activate_virtualenv
-    else
-        echo "Not activating virtualenv since it doesn't exist"
-    fi
-else
+if [ "${CREATE_VIRTUALENV}" = true ]; then
     if [ "${JUST_TESTS}" = false ]; then
         echo "Creating virtualenv in ${VIRTUALENV_DIR}..."
         mkdir -p ${VIRTUALENVS_DIR}
