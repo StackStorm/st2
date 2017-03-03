@@ -3,3 +3,4 @@ mock
 unittest2
 nose
 rednose
+psutil
