@@ -14,6 +14,8 @@ in development
   directory. (bug fix)
 
   Reported by Jon Middleton.
+* Make various improvements and changes to ``st2-run-pack-tests`` script so it works out of the box
+  on servers where StackStorm has been installed using packages. (improvement)
 
 2.2.0 - February 27, 2017
 -------------------------
