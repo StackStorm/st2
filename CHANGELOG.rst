@@ -16,6 +16,7 @@ in development
   Reported by Jon Middleton.
 * Make various improvements and changes to ``st2-run-pack-tests`` script so it works out of the box
   on servers where StackStorm has been installed using packages. (improvement)
+* Removed support for medium-strength ciphers from default nginx configuration (#3244)
 
 2.2.0 - February 22, 2017
 -------------------------
