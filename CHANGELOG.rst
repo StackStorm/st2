@@ -4,7 +4,6 @@ Changelog
 in development
 --------------
 
-* Removed support for medium-strength ciphers from default nginx configuration (#3244)
 * Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
   directory name doesn't match the pack name (this might be the case with new pack management
   during development where local git repository directory name doesn't match pack name) (bug fix)
@@ -17,6 +16,7 @@ in development
   Reported by Jon Middleton.
 * Make various improvements and changes to ``st2-run-pack-tests`` script so it works out of the box
   on servers where StackStorm has been installed using packages. (improvement)
+* Removed support for medium-strength ciphers from default nginx configuration (#3244)
 
 2.2.0 - February 27, 2017
 -------------------------
