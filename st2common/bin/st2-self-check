@@ -20,15 +20,20 @@ function usage() {
   echo ""
   echo "Options:"
   echo "  -w  Run Windows tests"
+  echo "  -b Which branch of st2tests to use (defaults to master)"
   echo ""
   >&2
 }
 
 RUN_WINDOWS_TESTS=false
+ST2_TESTS_BRANCH="master"
 
-while getopts "w" o
+while getopts "b:w" o
 do
     case "${o}" in
+        b)
+            ST2_TESTS_BRANCH=${OPTARG}
+            ;;
         w)
             RUN_WINDOWS_TESTS=true
             ;;
@@ -75,7 +80,7 @@ fi
 
 pushd ~
 echo "Cloning st2tests in `pwd`."
-git clone --depth 1 https://github.com/StackStorm/st2tests.git
+git clone --depth 1 --branch ${ST2_TESTS_BRANCH} https://github.com/StackStorm/st2tests.git
 
 echo "Copying asserts, fixtures, tests and examples packs."
 cp -R st2tests/packs/* /opt/stackstorm/packs/
