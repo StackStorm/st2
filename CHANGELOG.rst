@@ -127,18 +127,19 @@ in development
 
 * Pack management changes:
 
-  - Add new ``stackstorm_version`` and ``system`` fields to the pack.yaml metadata file. Value of the
-    first field can contain a specific StackStorm version with which the pack is designed to work
-    with (e.g. ``>=1.6.0,<2.2.0`` or ``>2.0.0``). This field is checked when installing / registering
-    a pack and installation is aborted if pack doesn't support the currently running StackStorm version.
-    Second field can contain an object with optional system / OS level dependencies.
-    (new feature)
+  - Add new ``stackstorm_version`` and ``system`` fields to the pack.yaml metadata file. Value of
+    the first field can contain a specific StackStorm version with which the pack is designed to
+    work with (e.g. ``>=1.6.0,<2.2.0`` or ``>2.0.0``). This field is checked when installing /
+    registering a pack and installation is aborted if pack doesn't support the currently running
+    StackStorm version. Second field can contain an object with optional system / OS level
+    dependencies. (new feature)
   - Add new ``contributors`` field to the pack metadata file. This field can contain a list of
     people who have contributed to the pack. The format is ``Name <email>``, e.g.
     ``Tomaz Muraus <tomaz@stackstorm.com>`` (new feature)
-  - Add support for default values and dynamic config values for nested config objects. (new feature, improvement)
-  - Add new ``st2-validate-pack-config`` tool for validating config file against a particular config
-    schema file. (new-feature)
+  - Add support for default values and dynamic config values for nested config objects.
+    (new feature, improvement)
+  - Add new ``st2-validate-pack-config`` tool for validating config file against a particular
+    config schema file. (new-feature)
   - Improved pack validation - now when the packs are registered we check that:
 
     + ``version`` attribute in the pack metadata file matches valid semver format (e.g
@@ -147,15 +148,16 @@ in development
     + Only valid word characters (``a-z``, ``0-9`` and ``_``) used for action parameter
       names. Previously, due to bug in the code, any character was allowed.
 
-    If validation fails, pack registration will fail. If you have an existing action or pack definition which
-    uses invalid characters, pack registration will fail. **You must update your packs**.
-  - For consistency with new pack name validation changes, sample ``hello-st2`` pack has been renamed
-    to ``hello_st2``.
+    If validation fails, pack registration will fail. If you have an existing action or pack
+    definition which uses invalid characters, pack registration will fail. **You must update
+    your packs**.
+  - For consistency with new pack name validation changes, sample ``hello-st2`` pack has been
+    renamed to ``hello_st2``.
   - Fix ``packs.uninstall`` action so it also deletes ``configs`` and ``policies`` which belong to
     the pack which is being uninstalled. (bug fix)
-  - Update ``packs.install`` action (``pack install`` command) to only load resources from the packs
-    which are being installed. Also update it and remove "restart sensor container" step from the
-    install workflow. This step hasn't been needed for a while now because sensor container
+  - Update ``packs.install`` action (``pack install`` command) to only load resources from the
+    packs which are being installed. Also update it and remove "restart sensor container" step from
+    the install workflow. This step hasn't been needed for a while now because sensor container
     dynamically reads a list of available sensors from the database and starts the sub processes.
     (improvement)
   - Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
