@@ -32,3 +32,5 @@ virtualenv==15.1.0
 sseclient==0.0.12
 python-editor==1.0.1
 prompt-toolkit==1.0.7
+tooz>=1.50.0,<1.51.0
+zake==0.2.2
