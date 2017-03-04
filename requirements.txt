@@ -39,4 +39,4 @@ semver==2.7.2
 six==1.10.0
 sseclient==0.0.12
 stevedore<1.8,>=1.7.0
-tooz==1.20.0
+tooz
