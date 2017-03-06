@@ -21,6 +21,8 @@ in development
 * Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
   StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
   tooz for coordination. (improvement)
+* Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
+  ``st2-self-check`` script. (improvement)
 
 2.2.0 - February 27, 2017
 -------------------------
