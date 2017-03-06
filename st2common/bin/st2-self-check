@@ -79,7 +79,7 @@ elif [ -e "${ST2_CLI_CONFIG_FILE}" ]; then
 fi
 
 pushd ~
-echo "Cloning st2tests in `pwd`."
+echo "Cloning st2tests (branch=${ST2_TESTS_BRANCH}) in `pwd`."
 git clone --depth 1 --branch ${ST2_TESTS_BRANCH} https://github.com/StackStorm/st2tests.git
 
 echo "Copying asserts, fixtures, tests and examples packs."
