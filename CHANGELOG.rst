@@ -17,6 +17,10 @@ in development
 * Make various improvements and changes to ``st2-run-pack-tests`` script so it works out of the box
   on servers where StackStorm has been installed using packages. (improvement)
 * Removed support for medium-strength ciphers from default nginx configuration (#3244)
+* Fix concurrency related unit tests to support upgrade of the tooz library. (bug fix)
+* Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
+  StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
+  tooz for coordination. (improvement)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
 
