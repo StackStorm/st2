@@ -148,7 +148,7 @@ class StandaloneAuthHandler(AuthHandlerBase):
             abort_request()
             return
 
-        split = auth_value.split(':')
+        split = auth_value.split(':', 1)
         if len(split) != 2:
             LOG.audit('Invalid authorization header', extra=extra)
             abort_request()
