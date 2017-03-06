@@ -81,6 +81,12 @@ fi
 pushd ~
 echo "Cloning st2tests (branch=${ST2_TESTS_BRANCH}) in `pwd`."
 git clone --depth 1 --branch ${ST2_TESTS_BRANCH} https://github.com/StackStorm/st2tests.git
+EXIT_CODE=$?
+
+if [ ${EXIT_CODE} -ne 0 ]; then
+    echo "Failed to clone st2tests repo"
+    exit 1
+fi
 
 echo "Copying asserts, fixtures, tests and examples packs."
 cp -R st2tests/packs/* /opt/stackstorm/packs/
