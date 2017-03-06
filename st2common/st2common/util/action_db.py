@@ -20,7 +20,7 @@ from mongoengine import ValidationError
 import six
 
 from st2common import log as logging
-from st2common.constants.action import LIVEACTION_STATUSES
+from st2common.constants.action import LIVEACTION_STATUSES, LIVEACTION_STATUS_CANCELED
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.persistence.action import Action
 from st2common.persistence.liveaction import LiveAction
@@ -191,6 +191,12 @@ def update_liveaction_status(status=None, result=None, context=None, end_timesta
     extra = {'liveaction_db': liveaction_db}
     LOG.debug('Updating ActionExection: "%s" with status="%s"', liveaction_db.id, status,
               extra=extra)
+
+    # If liveaction is already canceled, then do not allow status to be updated.
+    if liveaction_db.status == LIVEACTION_STATUS_CANCELED and status != LIVEACTION_STATUS_CANCELED:
+        LOG.info('Unable to update ActionExecution "%s" with status="%s". '
+                 'ActionExecution is already canceled.', liveaction_db.id, status, extra=extra)
+        return liveaction_db
 
     old_status = liveaction_db.status
     liveaction_db.status = status

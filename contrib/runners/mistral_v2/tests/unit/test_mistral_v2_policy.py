@@ -189,7 +189,7 @@ class MistralRunnerPolicyTest(DbTestCase):
             action_executions.ActionExecutionManager.update.assert_called_once_with(
                 '12345',
                 output='{"error": "Execution canceled by user."}',
-                state='ERROR'
+                state='CANCELLED'
             )
 
             liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
@@ -256,7 +256,7 @@ class MistralRunnerPolicyTest(DbTestCase):
             action_executions.ActionExecutionManager.update.assert_called_once_with(
                 '12345',
                 output='{"error": "Execution canceled by user."}',
-                state='ERROR'
+                state='CANCELLED'
             )
 
             liveaction2 = LiveAction.get_by_id(str(liveaction2.id))
