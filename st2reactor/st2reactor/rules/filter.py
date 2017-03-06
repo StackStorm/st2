@@ -109,7 +109,10 @@ class RuleFilter(object):
 
         # Render the pattern (it can contain a jinja expressions)
         try:
-            criteria_pattern = self._render_criteria_pattern(criteria_pattern=criteria_pattern)
+            criteria_pattern = self._render_criteria_pattern(
+                criteria_pattern=criteria_pattern,
+                criteria_context=payload_lookup.context
+            )
         except Exception:
             LOG.exception('Failed to render pattern value "%s" for key "%s"' %
                           (criteria_pattern, criterion_k), extra=self._base_logger_context)
@@ -138,7 +141,7 @@ class RuleFilter(object):
 
         return result, payload_value, criteria_pattern
 
-    def _render_criteria_pattern(self, criteria_pattern):
+    def _render_criteria_pattern(self, criteria_pattern, criteria_context):
         # Note: Here we want to use strict comparison to None to make sure that
         # other falsy values such as integer 0 are handled correctly.
         if criteria_pattern is None:
@@ -149,7 +152,10 @@ class RuleFilter(object):
             # makes no sense
             return criteria_pattern
 
-        criteria_pattern = render_template_with_system_context(value=criteria_pattern)
+        criteria_pattern = render_template_with_system_context(
+            value=criteria_pattern,
+            context=criteria_context
+        )
         return criteria_pattern
 
 
@@ -188,16 +194,16 @@ class SecondPassRuleFilter(RuleFilter):
 class PayloadLookup(object):
 
     def __init__(self, payload):
-        self._context = {
+        self.context = {
             TRIGGER_PAYLOAD_PREFIX: payload
         }
 
         for system_scope in SYSTEM_SCOPES:
-            self._context[system_scope] = KeyValueLookup(scope=system_scope)
+            self.context[system_scope] = KeyValueLookup(scope=system_scope)
 
     def get_value(self, lookup_key):
         expr = parse(lookup_key)
-        matches = [match.value for match in expr.find(self._context)]
+        matches = [match.value for match in expr.find(self.context)]
         if not matches:
             return None
         return matches
