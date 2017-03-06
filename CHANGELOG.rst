@@ -19,6 +19,12 @@ in development
 * Removed support for medium-strength ciphers from default nginx configuration (#3244)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
+* Fix a bug with authentication middleware not working correctly when supplying credentials in an
+  Authorization header using basic auth format when password contained a colon (``:``).
+
+  Note: Usernames with colon are still not supported. (bug fix)
+
+  Contributed by Carlos.
 
 2.2.0 - February 22, 2017
 -------------------------
