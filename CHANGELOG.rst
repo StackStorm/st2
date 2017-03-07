@@ -23,6 +23,10 @@ in development
   tooz for coordination. (improvement)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
+* Make sure remote command and script runner correctly close SSH connections after the action
+  execution has completed. (bug fix)
+
+  Reported by Nagy Krisztián.
 
 2.2.0 - February 27, 2017
 -------------------------
