@@ -21,9 +21,11 @@ from mongoengine import ValidationError
 from st2api.controllers.base import BaseRestControllerMixin
 from st2common import log as logging
 from st2common.models.api.auth import ApiKeyAPI, ApiKeyCreateResponseAPI
+from st2common.models.db.auth import UserDB
 from st2common.constants.secrets import MASKED_ATTRIBUTE_VALUE
 from st2common.exceptions.auth import ApiKeyNotFoundError
-from st2common.persistence.auth import ApiKey
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.persistence.auth import ApiKey, User
 from st2common.rbac.types import PermissionType
 from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
@@ -115,7 +117,17 @@ class ApiKeyController(BaseRestControllerMixin):
         api_key = None
         try:
             if not getattr(api_key_api, 'user', None):
-                api_key_api.user = requester_user or cfg.CONF.system_user.user
+                api_key_api.user = requester_user.name or cfg.CONF.system_user.user
+
+            try:
+                User.get_by_name(api_key_api.user)
+            except StackStormDBObjectNotFoundError:
+                user_db = UserDB(name=api_key_api.user)
+                User.add_or_update(user_db)
+
+                extra = {'username': api_key_api.user, 'user': user_db}
+                LOG.audit('Registered new user "%s".' % (api_key_api.user), extra=extra)
+
             # If key_hash is provided use that and do not create a new key. The assumption
             # is user already has the original api-key
             if not getattr(api_key_api, 'key_hash', None):
@@ -148,6 +160,15 @@ class ApiKeyController(BaseRestControllerMixin):
 
         old_api_key_db = api_key_db
         api_key_db = ApiKeyAPI.to_model(api_key_api)
+
+        try:
+            User.get_by_name(api_key_api.user)
+        except StackStormDBObjectNotFoundError:
+            user_db = UserDB(name=api_key_api.user)
+            User.add_or_update(user_db)
+
+            extra = {'username': api_key_api.user, 'user': user_db}
+            LOG.audit('Registered new user "%s".' % (api_key_api.user), extra=extra)
 
         # Passing in key_hash as MASKED_ATTRIBUTE_VALUE is expected since we do not
         # leak it out therefore it is expected we get the same value back. Interpret
