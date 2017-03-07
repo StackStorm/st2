@@ -7,6 +7,32 @@ in development
 
 2.2.0 - February 22, 2017
 -------------------------
+* Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
+  directory name doesn't match the pack name (this might be the case with new pack management
+  during development where local git repository directory name doesn't match pack name) (bug fix)
+* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
+  correctly fails on failure by default.
+* Fix a bug with default values from pack config schema not being passed via config to Python
+  runner actions and sensors if pack didn't contain a config file in ``/opt/stackstorm/configs``
+  directory. (bug fix)
+
+  Reported by Jon Middleton.
+* Make various improvements and changes to ``st2-run-pack-tests`` script so it works out of the box
+  on servers where StackStorm has been installed using packages. (improvement)
+* Removed support for medium-strength ciphers from default nginx configuration (#3244)
+* Fix concurrency related unit tests to support upgrade of the tooz library. (bug fix)
+* Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
+  StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
+  tooz for coordination. (improvement)
+* Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
+  ``st2-self-check`` script. (improvement)
+* Make sure remote command and script runner correctly close SSH connections after the action
+  execution has completed. (bug fix)
+
+  Reported by Nagy Krisztián.
+
+2.2.0 - February 27, 2017
+-------------------------
 
 * Fix ``/v1/packs/views/files/<pack ref or id>`` and
   ``/v1/packs/views/file/<pack ref or id>/<file path>`` API endpoint so it
