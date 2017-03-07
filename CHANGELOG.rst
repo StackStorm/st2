@@ -34,6 +34,8 @@ in development
   Note: Usernames with colon are still not supported. (bug fix)
 
   Contributed by Carlos.
+* Refactor the action execution asynchronous callback functionality into the runner plugin
+  architecture. (improvement)
 
 2.2.0 - February 27, 2017
 -------------------------
