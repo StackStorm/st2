@@ -3,17 +3,28 @@ Changelog
 
 in development
 --------------
+
+Major Changes:
+~~~~~~~~~~~~~~
+
+* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
+  correctly fails on failure by default.
+* Removed support for medium-strength ciphers from default nginx configuration (#3244)
+* Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
+  StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
+  tooz for coordination. (improvement)
+
+Minor Changes:
+~~~~~~~~~~~~~~
+
 * Fix Mistral workflow status when task is canceled. Currently, when a task is canceled, the
   workflow status is set to error. The workflow status should be set to canceled. Also, when
   a canceled action execution completes, the action execution will be updated from canceled
   to its new status. This should not be the case because the action execution has already been
   canceled. (bug fix)
-
 * Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
   directory name doesn't match the pack name (this might be the case with new pack management
   during development where local git repository directory name doesn't match pack name) (bug fix)
-* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
-  correctly fails on failure by default.
 * Fix a bug with default values from pack config schema not being passed via config to Python
   runner actions and sensors if pack didn't contain a config file in ``/opt/stackstorm/configs``
   directory. (bug fix)
@@ -21,28 +32,29 @@ in development
   Reported by Jon Middleton.
 * Make various improvements and changes to ``st2-run-pack-tests`` script so it works out of the box
   on servers where StackStorm has been installed using packages. (improvement)
-* Removed support for medium-strength ciphers from default nginx configuration (#3244)
 * Fix concurrency related unit tests to support upgrade of the tooz library. (bug fix)
-* Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
-  StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
-  tooz for coordination. (improvement)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
 
 2.2.0 - February 27, 2017
 -------------------------
 
-* Fix ``/v1/packs/views/files/<pack ref or id>`` and
-  ``/v1/packs/views/file/<pack ref or id>/<file path>`` API endpoint so it
-  works correctly for packs where pack name is not equal to the pack ref. (bug fix)
+Major Changes:
+~~~~~~~~~~~~~~
 
-  Reported by skjbulcher #3128
-* Improve binary file detection and fix "pack files" API controller so it works correctly for
-  new-style packs which are also git repositories. (bug fix)
+* Mistral fork is updated to match the master branch at OpenStack Mistral. (improvement)
+* Use the newly introduced CANCELLED state in mistral for workflow cancellation. Currently, st2
+  put the workflow in a PAUSED state in mistral. (improvement)
+* Add support for evaluating jinja expressions in mistral workflow definition where yaql
+  expressions are typically accepted. (improvement)
 * Fix returning a tuple from the Python runner so it also works correctly, even if action returns
   a complex type (e.g. Python class instance) as a result. (bug fix)
 
   Reported by skjbulcher #3133
+
+* Update the dependencies and the code base so we now also support MongoDB 3.4. Officially
+  supported MongoDB versions are now MongoDB 3.2 and 3.4. Currently default version installed by
+  the installer script still is 3.2. (improvement)
 * Introduce validation of trigger parameters when creating a rule for non-system (user-defined)
   trigger types.
 
@@ -58,6 +70,26 @@ in development
   (it's disabled by default) and if trigger object defines ``payload_schema`` attribute.
 
   Contribution by Hiroyasu OHYAMA. #3094
+* Add support for `st2 login` and `st2 whoami` commands. These add some additional functionality
+  beyond the existing `st2 auth` command and actually works with the local configuration so that
+  users do not have to.
+* Fix a bug with ``packs.download`` action and as such as ``pack install`` command not working with
+  git repositories which used a default branch which was not ``master``. (bug fix)
+* Fix a bug with not being able to apply some global permission types (permissions which are global
+  and not specific to a resource) such as pack install, pack remove, pack search, etc. to a role
+  using ``st2-apply-rbac-definitions``. (bug fix)
+
+
+Minor Changes:
+~~~~~~~~~~~~~~
+
+* Fix ``/v1/packs/views/files/<pack ref or id>`` and
+  ``/v1/packs/views/file/<pack ref or id>/<file path>`` API endpoint so it
+  works correctly for packs where pack name is not equal to the pack ref. (bug fix)
+
+  Reported by skjbulcher #3128
+* Improve binary file detection and fix "pack files" API controller so it works correctly for
+  new-style packs which are also git repositories. (bug fix)
 * Add support for complex rendering inside of array and object types. This allows the user to
   nest Jinja variables in array and object types.
 * Fix cancellation specified in concurrency policies to cancel actions appropriately. Previously,
@@ -70,34 +102,16 @@ in development
 * Update ``st2auth`` service so it includes more context and throws a more user-friendly exception
   when retrieving an auth backend instance fails. This makes it easier to debug and spot various
   auth backend issues related to typos, misconfiguration and similar. (improvement)
-* Mistral fork is updated to match the master branch at OpenStack Mistral. (improvement)
 * Fix how mistral client and resource managers are being used in the mistral runner. Authentication
   has changed in the mistral client. Fix unit test accordingly. (bug fix)
 * Fix issue where passing a single integer member for an array parameter for an action would
   cause a type mismatch in the API (bug fix)
-* Use the newly introduced CANCELLED state in mistral for workflow cancellation. Currently, st2
-  put the workflow in a PAUSED state in mistral. (improvement)
-* Add support for evaluating jinja expressions in mistral workflow definition where yaql
-  expressions are typically accepted. (improvement)
 * Let querier plugin decide whether to delete state object on error. Mistral querier will
   delete state object on workflow completion or when the workflow or task references no
   longer exists. (improvement)
-* Add support for `st2 login` and `st2 whoami` commands. These add some additional functionality
-  beyond the existing `st2 auth` command and actually works with the local configuration so that
-  users do not have to.
-* Fix action alias update API endpoint. (bug fix)
 * Fix ``--config-file`` st2 CLI argument not correctly expanding the provided path if the path
   contained a reference to the user home directory (``~``, e.g. ``~/.st2/config.ini``) (bug fix)
 * Fix action alias update API endpoint. (bug fix)
-* ``{{user.}}`` and ``{{system.}}`` notations to access user and system
-  scoped items from datastore are now unsupported. Use  ``{{st2kv.user.}}``
-  and ``{{st2kv.system.}}`` instead. Please update all your content (actions, rules and
-  workflows) to use the new notation. (improvement)
-* Update the dependencies and the code base so we now also support MongoDB 3.4. Officially
-  supported MongoDB versions are now MongoDB 3.2 and 3.4. Currently default version installed by
-  the installer script still is 3.2. (improvement)
-* Fix a bug with ``packs.download`` action and as such as ``pack install`` command not working with
-  git repositories which used a default branch which was not ``master``. (bug fix)
 * Add new ``-j`` flag to the ``st2-run-pack-tests`` script. When this flag is specified script will
   just try to run the tests and it won't set up the virtual environment and install the
   dependencies. This flag can be used when virtual environment for pack tests already exists and
@@ -105,9 +119,15 @@ in development
 * Fix a bug with ``--api-token`` / ``-t`` and other CLI option values not getting correctly
   propagated to all the API calls issued in the ``st2 pack install``, ``st2 pack remove`` and
   ``st2 pack config`` commands. (bug fix)
-* Fix a bug with not being able to apply some global permission types (permissions which are global
-  and not specific to a resource) such as pack install, pack remove, pack search, etc. to a role
-  using ``st2-apply-rbac-definitions``. (bug fix)
+
+Deprecations:
+~~~~~~~~~~~~~
+
+* ``{{user.}}`` and ``{{system.}}`` notations to access user and system
+  scoped items from datastore are now unsupported. Use  ``{{st2kv.user.}}``
+  and ``{{st2kv.system.}}`` instead. Please update all your content (actions, rules and
+  workflows) to use the new notation. (improvement)
+
 
 2.1.1 - December 16, 2016
 -------------------------
