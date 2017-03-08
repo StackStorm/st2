@@ -25,7 +25,7 @@ __all__ = [
 
 
 class AuthBackendCapability(Enum):
-    # This auth backend can authenticate a user
+    # This auth backend can authenticate a user.
     CAN_AUTHENTICATE_USER = 'can_authenticate_user'
 
     # Auth backend can provide additional information about a particular user.
