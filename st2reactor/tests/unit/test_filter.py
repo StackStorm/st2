@@ -118,6 +118,11 @@ class FilterTest(DbTestCase):
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), 'equals check should have passed.')
 
+        rule = MOCK_RULE_1
+        rule.criteria = {'trigger.bool': {'type': 'equals', 'pattern': '{{ trigger.bool }}'}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'equals check should have passed.')
+
     def test_equals_int_value(self):
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.int': {'type': 'equals', 'pattern': 1}}

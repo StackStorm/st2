@@ -81,7 +81,10 @@ class RuleFilter(object):
         for criterion_k in criteria.keys():
             criterion_v = criteria[criterion_k]
             is_rule_applicable, payload_value, criterion_pattern = self._check_criterion(
-                criterion_k, criterion_v, payload_lookup)
+                criterion_k,
+                criterion_v,
+                payload_lookup
+            )
             if not is_rule_applicable:
                 if self.extra_info:
                     criteria_extra_info = '\n'.join([
@@ -104,7 +107,7 @@ class RuleFilter(object):
     def _check_criterion(self, criterion_k, criterion_v, payload_lookup):
         if 'type' not in criterion_v:
             # Comparison operator type not specified, can't perform a comparison
-            return False
+            return (False, None, None)
 
         criteria_operator = criterion_v['type']
         criteria_pattern = criterion_v.get('pattern', None)
@@ -118,7 +121,7 @@ class RuleFilter(object):
         except Exception:
             LOG.exception('Failed to render pattern value "%s" for key "%s"' %
                           (criteria_pattern, criterion_k), extra=self._base_logger_context)
-            return False
+            return (False, None, None)
 
         try:
             matches = payload_lookup.get_value(criterion_k)
@@ -130,7 +133,7 @@ class RuleFilter(object):
         except:
             LOG.exception('Failed transforming criteria key %s', criterion_k,
                           extra=self._base_logger_context)
-            return False
+            return (False, None, None)
 
         op_func = criteria_operators.get_operator(criteria_operator)
 
@@ -139,7 +142,7 @@ class RuleFilter(object):
         except:
             LOG.exception('There might be a problem with the criteria in rule %s.', self.rule,
                           extra=self._base_logger_context)
-            return False
+            return (False, None, None)
 
         return result, payload_value, criteria_pattern
 
@@ -162,10 +165,12 @@ class RuleFilter(object):
 
         to_complex = False
 
-        if len(re.findall(r'{{[A-z0-9_.-]+}}', criteria_pattern)) > 0:
+        # Check if jinja variable is in criteria_pattern and if so lets ensure
+        # the proper type is applied to it using to_complex jinja filter
+        if len(re.findall(r'^{{\s*[A-z0-9_.-]+\s*}}$', criteria_pattern)) > 0:
             LOG.debug("Rendering Complex")
             criteria_pattern = re.sub(
-                r'{{([A-z0-9_.-]+)}}', r'{{\1 | to_complex}}',
+                r'^{{\s*([A-z0-9_.-]+)\s*}}$', r'{{\1 | to_complex}}',
                 criteria_pattern
             )
 
