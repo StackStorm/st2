@@ -23,6 +23,9 @@ in development
   tooz for coordination. (improvement)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
+* Allow use of webhook payload in value context.
+
+  Reported by Samuel Cantero
 
 2.2.0 - February 27, 2017
 -------------------------
