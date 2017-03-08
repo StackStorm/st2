@@ -14,6 +14,8 @@
 # limitations under the License.
 
 import six
+import json
+import re
 from jsonpath_rw import parse
 
 from st2common import log as logging
@@ -152,10 +154,36 @@ class RuleFilter(object):
             # makes no sense
             return criteria_pattern
 
+        LOG.debug(
+            'Rendering criteria pattern (%s) with context: %s',
+            criteria_pattern,
+            criteria_context
+        )
+
+        to_complex = False
+
+        if len(re.findall(r'{{[A-z0-9_.-]+}}', criteria_pattern)) > 0:
+            LOG.debug("Rendering Complex")
+            criteria_pattern = re.sub(
+                r'{{([A-z0-9_.-]+)}}', r'{{\1 | to_complex}}',
+                criteria_pattern
+            )
+
+            to_complex = True
+
         criteria_pattern = render_template_with_system_context(
             value=criteria_pattern,
             context=criteria_context
         )
+
+        LOG.debug(
+            'Rendered criteria pattern: %s',
+            criteria_pattern
+        )
+
+        if to_complex:
+            return json.loads(criteria_pattern)
+
         return criteria_pattern
 
 

@@ -89,11 +89,21 @@ class FilterTest(DbTestCase):
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': 'v1'}}
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
-        self.assertTrue(f.filter(), 'regex check should have failed.')
+        self.assertTrue(f.filter(), 'equals check should have passed.')
+
+        rule = MOCK_RULE_1
+        rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': '{{trigger.p1}}'}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'equals check should have passed.')
 
     def test_equals_operator_fail_criteria(self):
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': 'v'}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertFalse(f.filter(), 'equals check should have failed.')
+
+        rule = MOCK_RULE_1
+        rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': '{{trigger.p2}}'}}
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertFalse(f.filter(), 'equals check should have failed.')
 
@@ -103,15 +113,30 @@ class FilterTest(DbTestCase):
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), 'equals check should have passed.')
 
+        rule = MOCK_RULE_1
+        rule.criteria = {'trigger.bool': {'type': 'equals', 'pattern': '{{trigger.bool}}'}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'equals check should have passed.')
+
     def test_equals_int_value(self):
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.int': {'type': 'equals', 'pattern': 1}}
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), 'equals check should have passed.')
 
+        rule = MOCK_RULE_1
+        rule.criteria = {'trigger.int': {'type': 'equals', 'pattern': '{{trigger.int}}'}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'equals check should have passed.')
+
     def test_equals_float_value(self):
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.float': {'type': 'equals', 'pattern': 0.8}}
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'equals check should have passed.')
+
+        rule = MOCK_RULE_1
+        rule.criteria = {'trigger.float': {'type': 'equals', 'pattern': '{{trigger.float}}'}}
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), 'equals check should have passed.')
 
