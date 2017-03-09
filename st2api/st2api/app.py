@@ -56,6 +56,7 @@ def setup_app(config={}):
     spec = spec_loader.load_spec('st2common', 'openapi.yaml')
     transforms = {
         '^/api/v1/': ['/', '/v1/'],
+        '^/api/v1/executions': ['/actionexecutions', '/v1/actionexecutions'],
         '^/api/exp/': ['/exp/']
     }
     router.add_spec(spec, transforms=transforms)
