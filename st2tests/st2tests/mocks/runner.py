@@ -64,4 +64,5 @@ class MockActionRunner(ActionRunner):
         return (status, json.dumps(result), context)
 
     def post_run(self, status, result):
+        super(MockActionRunner, self).post_run(status=status, result=result)
         self.post_run_called = True
