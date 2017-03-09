@@ -30,6 +30,10 @@ function join { local IFS="$1"; shift; echo "$*"; }
 ###########
 
 # A list of dependencies which are installed and available to every pack tests
+# Note: Those only need to be installed when running this script standalone
+# outside of StackStorm package installation.
+# When using StackStorm package installation, those dependencies are already
+# available (they are installed by st2tests package).
 PACK_TEST_PYTHON_DEPENDENCIES=(
     'mock>=1.3.0,<2.0'
     'unittest2>=1.1.0,<2.0'
@@ -202,13 +206,13 @@ if [ "${JUST_TESTS}" = false ]; then
         echo "Installing dependencies from st2 repository..."
         pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/requirements.txt
         pip install --cache-dir ${HOME}/.pip-cache -q -r ${ST2_REPO_PATH}/test-requirements.txt
-    fi
 
-    # Install global test dependencies
-    echo "Installing global pack test dependencies..."
-    for dependency in ${PACK_TEST_PYTHON_DEPENDENCIES[@]}; do
-        pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${dependency}"
-    done
+        # Install global test dependencies
+        echo "Installing global pack test dependencies..."
+        for dependency in ${PACK_TEST_PYTHON_DEPENDENCIES[@]}; do
+            pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${dependency}"
+        done
+    fi
 
     # Install pack dependencies
     if [ -f ${PACK_REQUIREMENTS_FILE} ]; then
