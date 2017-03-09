@@ -116,12 +116,11 @@ class WiringTest(base.TestWorkflowExecution):
 
         self.st2client.liveactions.delete(task_executions[0])
         execution = self._wait_for_completion(execution, expect_tasks_completed=True)
-        self._assert_failure(execution)
+        self._assert_canceled(execution, are_tasks_completed=True)
 
         task_results = execution.result.get('tasks', [])
         self.assertGreater(len(task_results), 0)
-        expected_state_info = '{error: Execution canceled by user.}'
-        self.assertEqual(task_results[0]['state_info'], expected_state_info)
+        self.assertEqual(task_results[0]['state'], 'CANCELLED')
 
     def test_basic_rerun(self):
         path = self.temp_dir_path

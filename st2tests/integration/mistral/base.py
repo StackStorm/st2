@@ -55,7 +55,7 @@ class TestWorkflowExecution(unittest2.TestCase):
 
         if expect_tasks_completed:
             tasks = execution.result['tasks']
-            self.assertTrue(all([t['state'] in ['SUCCESS', 'ERROR'] for t in tasks]))
+            self.assertTrue(all([t['state'] in ['SUCCESS', 'ERROR', 'CANCELLED'] for t in tasks]))
 
         return execution
 
@@ -77,6 +77,6 @@ class TestWorkflowExecution(unittest2.TestCase):
         tasks = execution.result.get('tasks', [])
 
         if are_tasks_completed:
-            self.assertTrue(all([t['state'] in ['SUCCESS', 'ERROR'] for t in tasks]))
+            self.assertTrue(all([t['state'] in ['SUCCESS', 'ERROR', 'CANCELLED'] for t in tasks]))
         else:
             self.assertTrue(any([t['state'] == 'RUNNING' for t in tasks]))

@@ -3,6 +3,11 @@ Changelog
 
 in development
 --------------
+* Fix Mistral workflow status when task is canceled. Currently, when a task is canceled, the
+  workflow status is set to error. The workflow status should be set to canceled. Also, when
+  a canceled action execution completes, the action execution will be updated from canceled
+  to its new status. This should not be the case because the action execution has already been
+  canceled. (bug fix)
 
 * Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
   directory name doesn't match the pack name (this might be the case with new pack management
