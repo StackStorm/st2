@@ -28,6 +28,10 @@ in development
   tooz for coordination. (improvement)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
+* Introduce new ``CAPABILITIES`` constant on auth backend classes. With this constant, auth
+  backends can advertise functionality they support (e.g. authenticate a user, retrieve information
+  about a particular user, retrieve a list of groups a particular user is a member of).
+  (new feature)
 
 2.2.0 - February 27, 2017
 -------------------------
