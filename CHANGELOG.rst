@@ -4,19 +4,22 @@ Changelog
 in development
 --------------
 
-Major Changes:
-~~~~~~~~~~~~~~
+Added:
+~~~~~~
 
-* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
-  correctly fails on failure by default.
-* Removed support for medium-strength ciphers from default nginx configuration (#3244)
 * Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
   StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
   tooz for coordination. (improvement)
+* Make various improvements and changes to ``st2-run-pack-tests`` script so it works out of the box
+  on servers where StackStorm has been installed using packages. (improvement)
+* Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
+  ``st2-self-check`` script. (improvement)
 
-Minor Changes:
-~~~~~~~~~~~~~~
+Fixed:
+~~~~~~
 
+* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
+  correctly fails on failure by default.
 * Fix Mistral workflow status when task is canceled. Currently, when a task is canceled, the
   workflow status is set to error. The workflow status should be set to canceled. Also, when
   a canceled action execution completes, the action execution will be updated from canceled
@@ -30,28 +33,23 @@ Minor Changes:
   directory. (bug fix)
 
   Reported by Jon Middleton.
-* Make various improvements and changes to ``st2-run-pack-tests`` script so it works out of the box
-  on servers where StackStorm has been installed using packages. (improvement)
 * Fix concurrency related unit tests to support upgrade of the tooz library. (bug fix)
-* Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
-  ``st2-self-check`` script. (improvement)
+
+Security:
+~~~~~~~~~
+
+* Removed support for medium-strength ciphers from default nginx configuration (#3244)
 
 2.2.0 - February 27, 2017
 -------------------------
 
-Major Changes:
-~~~~~~~~~~~~~~
+Added:
+~~~~~~
 
-* Mistral fork is updated to match the master branch at OpenStack Mistral. (improvement)
 * Use the newly introduced CANCELLED state in mistral for workflow cancellation. Currently, st2
   put the workflow in a PAUSED state in mistral. (improvement)
-* Add support for evaluating jinja expressions in mistral workflow definition where yaql
+* Add support for evaluating Jinja expressions in mistral workflow definition where yaql
   expressions are typically accepted. (improvement)
-* Fix returning a tuple from the Python runner so it also works correctly, even if action returns
-  a complex type (e.g. Python class instance) as a result. (bug fix)
-
-  Reported by skjbulcher #3133
-
 * Update the dependencies and the code base so we now also support MongoDB 3.4. Officially
   supported MongoDB versions are now MongoDB 3.2 and 3.4. Currently default version installed by
   the installer script still is 3.2. (improvement)
@@ -73,15 +71,46 @@ Major Changes:
 * Add support for `st2 login` and `st2 whoami` commands. These add some additional functionality
   beyond the existing `st2 auth` command and actually works with the local configuration so that
   users do not have to.
+* Add support for complex rendering inside of array and object types. This allows the user to
+  nest Jinja variables in array and object types.
+* Add new ``-j`` flag to the ``st2-run-pack-tests`` script. When this flag is specified script will
+  just try to run the tests and it won't set up the virtual environment and install the
+  dependencies. This flag can be used when virtual environment for pack tests already exists and
+  when you know dependencies are already installed and up to date. (new feature)
+
+Changed:
+~~~~~~~~
+
+* Mistral fork is updated to match the master branch at OpenStack Mistral. (improvement)
+* Update Python runner to throw a more user-friendly exception in case action metadata file
+  references a script file which doesn't exist or which contains invalid syntax. (improvement)
+* Update ``st2auth`` service so it includes more context and throws a more user-friendly exception
+  when retrieving an auth backend instance fails. This makes it easier to debug and spot various
+  auth backend issues related to typos, misconfiguration and similar. (improvement)
+* Let querier plugin decide whether to delete state object on error. Mistral querier will
+  delete state object on workflow completion or when the workflow or task references no
+  longer exists. (improvement)`
+
+Removed:
+~~~~~~~~
+
+* ``{{user.}}`` and ``{{system.}}`` notations to access user and system
+  scoped items from datastore are now unsupported. Use  ``{{st2kv.user.}}``
+  and ``{{st2kv.system.}}`` instead. Please update all your content (actions, rules and
+  workflows) to use the new notation. (improvement)
+
+Fixed:
+~~~~~~
+
+* Fix returning a tuple from the Python runner so it also works correctly, even if action returns
+  a complex type (e.g. Python class instance) as a result. (bug fix)
+
+  Reported by skjbulcher #3133
 * Fix a bug with ``packs.download`` action and as such as ``pack install`` command not working with
   git repositories which used a default branch which was not ``master``. (bug fix)
 * Fix a bug with not being able to apply some global permission types (permissions which are global
   and not specific to a resource) such as pack install, pack remove, pack search, etc. to a role
   using ``st2-apply-rbac-definitions``. (bug fix)
-
-
-Minor Changes:
-~~~~~~~~~~~~~~
 
 * Fix ``/v1/packs/views/files/<pack ref or id>`` and
   ``/v1/packs/views/file/<pack ref or id>/<file path>`` API endpoint so it
@@ -90,74 +119,66 @@ Minor Changes:
   Reported by skjbulcher #3128
 * Improve binary file detection and fix "pack files" API controller so it works correctly for
   new-style packs which are also git repositories. (bug fix)
-* Add support for complex rendering inside of array and object types. This allows the user to
-  nest Jinja variables in array and object types.
 * Fix cancellation specified in concurrency policies to cancel actions appropriately. Previously,
   mistral workflow is orphaned and left in a running state. (bug fix)
 * If a retry policy is defined, action executions under the context of a workflow will not be
   retried on timeout or failure. Previously, action execution will be retried but workflow is
   terminated. (bug fix)
-* Update Python runner to throw a more user-friendly exception in case action metadata file
-  references a script file which doesn't exist or which contains invalid syntax. (improvement)
-* Update ``st2auth`` service so it includes more context and throws a more user-friendly exception
-  when retrieving an auth backend instance fails. This makes it easier to debug and spot various
-  auth backend issues related to typos, misconfiguration and similar. (improvement)
 * Fix how mistral client and resource managers are being used in the mistral runner. Authentication
   has changed in the mistral client. Fix unit test accordingly. (bug fix)
 * Fix issue where passing a single integer member for an array parameter for an action would
   cause a type mismatch in the API (bug fix)
-* Let querier plugin decide whether to delete state object on error. Mistral querier will
-  delete state object on workflow completion or when the workflow or task references no
-  longer exists. (improvement)
 * Fix ``--config-file`` st2 CLI argument not correctly expanding the provided path if the path
   contained a reference to the user home directory (``~``, e.g. ``~/.st2/config.ini``) (bug fix)
 * Fix action alias update API endpoint. (bug fix)
-* Add new ``-j`` flag to the ``st2-run-pack-tests`` script. When this flag is specified script will
-  just try to run the tests and it won't set up the virtual environment and install the
-  dependencies. This flag can be used when virtual environment for pack tests already exists and
-  when you know dependencies are already installed and up to date. (new feature)
 * Fix a bug with ``--api-token`` / ``-t`` and other CLI option values not getting correctly
   propagated to all the API calls issued in the ``st2 pack install``, ``st2 pack remove`` and
   ``st2 pack config`` commands. (bug fix)
-
-Deprecations:
-~~~~~~~~~~~~~
-
-* ``{{user.}}`` and ``{{system.}}`` notations to access user and system
-  scoped items from datastore are now unsupported. Use  ``{{st2kv.user.}}``
-  and ``{{st2kv.system.}}`` instead. Please update all your content (actions, rules and
-  workflows) to use the new notation. (improvement)
 
 
 2.1.1 - December 16, 2016
 -------------------------
 
+Added:
+~~~~~~
+
+* ``core.http`` action now also supports HTTP basic auth and digest authentication by passing
+  ``username`` and ``password`` parameter to the action. (new feature)
 * After running ``st2 pack install`` CLI command display which packs have been installed.
   (improvement)
+
+Changed:
+~~~~~~~~
+
 * Update ``/v1/packs/register`` API endpoint so it throws on failure (e.g. invalid pack or resource
   metadata). This way the default behavior is consistent with default
   ``st2ctl reload --register-all`` behavior.
-
   If user doesn't want the API endpoint to fail on failure, they can pass
   ``"fail_on_failure": false`` attribute in the request payload. (improvement)
 * Throw a more user-friendly exception when registering packs (``st2ctl reload``) if pack ref /
   name is invalid. (improvement)
-* ``core.http`` action now also supports HTTP basic auth and digest authentication by passing
-  ``username`` and ``password`` parameter to the action. (new feature)
+* Update ``packs.load`` action to also register triggers by default. (improvement)
+
+Fixed:
+~~~~~~
+
 * Fix ``GET /v1/packs/<pack ref or id>`` API endpoint - make sure pack object is correctly returned
   when pack ref doesn't match pack name. Previously, 404 not found was thrown. (bug fix)
 * Update local action runner so it supports and works with non-ascii (unicode) parameter keys and
   values. (bug fix)
 
   Contribution by Hiroyasu OHYAMA. #3116
-* Update ``packs.load`` action to also register triggers by default. (improvement)
 * Update ``/v1/packs/register`` API endpoint so it registers resources in the correct order which
   is the same as order used in ``st2-register-content`` script. (bug fix)
+
 
 2.1.0 - December 05, 2016
 -------------------------
 
-* Pack management changes:
+Added:
+~~~~~~
+
+* New pack management:
 
   - Add new ``stackstorm_version`` and ``system`` fields to the pack.yaml metadata file. Value of
     the first field can contain a specific StackStorm version with which the pack is designed to
@@ -172,29 +193,6 @@ Deprecations:
     (new feature, improvement)
   - Add new ``st2-validate-pack-config`` tool for validating config file against a particular
     config schema file. (new-feature)
-  - Improved pack validation - now when the packs are registered we check that:
-
-    + ``version`` attribute in the pack metadata file matches valid semver format (e.g
-      ``0.1.0``, ``2.0.0``, etc.)
-    + ``email`` attribute (if specified) contains a valid email address. (improvement)
-    + Only valid word characters (``a-z``, ``0-9`` and ``_``) used for action parameter
-      names. Previously, due to bug in the code, any character was allowed.
-
-    If validation fails, pack registration will fail. If you have an existing action or pack
-    definition which uses invalid characters, pack registration will fail. **You must update
-    your packs**.
-  - For consistency with new pack name validation changes, sample ``hello-st2`` pack has been
-    renamed to ``hello_st2``.
-  - Fix ``packs.uninstall`` action so it also deletes ``configs`` and ``policies`` which belong to
-    the pack which is being uninstalled. (bug fix)
-  - Update ``packs.install`` action (``pack install`` command) to only load resources from the
-    packs which are being installed. Also update it and remove "restart sensor container" step from
-    the install workflow. This step hasn't been needed for a while now because sensor container
-    dynamically reads a list of available sensors from the database and starts the sub processes.
-    (improvement)
-  - Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
-    management approach. Now pack directories are actual checkouts of the corresponding pack git
-    repositories so this file is not needed anymore.
 
 * Add new ``POST /v1/actionalias/match`` API endpoint which allows users to perform ChatOps action
   alias matching server-side. This makes it easier to build and maintain StackStorm ChatOps
@@ -208,11 +206,38 @@ Deprecations:
 * Add new ``core.pause`` action. This action behaves like sleep and can be used inside the action
   chain or Mistral workflows where waiting / sleeping is desired before proceeding with a next
   task. Contribution by Paul Mulvihill. (new feature) #2933.
-* When a policy cancels a request due to concurrency, it leaves end_timestamp set to None which
-  the notifier expects to be a date. This causes an exception in "isotime.format()". A patch was
-  released that catches this exception, and populates payload['end_timestamp'] with the equivalent
-  of "datetime.now()" when the exception occurs.
-* Adding check for datastore Client expired tokens used in sensor container
+* Allow user to supply multiple resource ids using ``?id`` query parameter when filtering
+  "get all" API endpoint result set (e.g. `?id=1,2,3,4`). This allows for a better client and
+  servers performance when user is polling and interested in multiple resources such as polling on
+  multiple action executions. (improvement)
+* Add support for ssh config file for ParamikoSSHrunner. Now ``ssh_config_file_path`` can be set
+  in st2 config and can be used to access remote hosts when ``use_ssh_config`` is set to
+  ``True``. However, to access remote hosts, action parameters like username and
+  password/private_key, if provided with action, will have precedence over the config file
+  entry for the host. #2941 #3032 #3058 [Eric Edgar] (improvement)
+
+
+Changed:
+~~~~~~~~
+
+* Improved pack validation - now when the packs are registered we check that:
+  
+  - ``version`` attribute in the pack metadata file matches valid semver format (e.g
+      ``0.1.0``, ``2.0.0``, etc.)
+  - ``email`` attribute (if specified) contains a valid email address. (improvement)
+  - Only valid word characters (``a-z``, ``0-9`` and ``_``) used for action parameter
+      names. Previously, due to bug in the code, any character was allowed.
+
+  If validation fails, pack registration will fail. If you have an existing action or pack
+  definition which uses invalid characters, pack registration will fail. **You must update
+  your packs**.
+* For consistency with new pack name validation changes, sample ``hello-st2`` pack has been
+    renamed to ``hello_st2``.
+* Update ``packs.install`` action (``pack install`` command) to only load resources from the
+  packs which are being installed. Also update it and remove "restart sensor container" step from
+  the install workflow. This step hasn't been needed for a while now because sensor container
+  dynamically reads a list of available sensors from the database and starts the sub processes.
+  (improvement)
 * Improve API exception handling and make sure 400 status code is returned instead of 500 on
   mongoengine field validation error. (improvement)
 * Throw a more user-friendly exception if rendering a dynamic configuration value inside the config
@@ -225,73 +250,110 @@ Deprecations:
   (improvement)
 * Improve performance of ``GET /executions/views/filters`` by creating additional indexes on
   executions collection
-* Allow user to supply multiple resource ids using ``?id`` query parameter when filtering
-  "get all" API endpoint result set (e.g. `?id=1,2,3,4`). This allows for a better client and
-  servers performance when user is polling and interested in multiple resources such as polling on
-  multiple action executions. (improvement)
 * Upgrade various internal Python library dependencies to the latest stable versions (gunicorn,
   kombu, six, appscheduler, passlib, python-gnupg, semver, paramiko, python-keyczar, virtualenv).
-* Add support for ssh config file for ParamikoSSHrunner. Now ``ssh_config_file_path`` can be set
-  in st2 config and can be used to access remote hosts when ``use_ssh_config`` is set to
-  ``True``. However, to access remote hosts, action paramters like username and
-  password/private_key, if provided with action, will have precedence over the config file
-  entry for the host. #2941 #3032 #3058 [Eric Edgar] (improvement)
+
+Removed:
+~~~~~~~~
+
+* Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
+  management approach. Now pack directories are actual checkouts of the corresponding pack git
+  repositories so this file is not needed anymore.
+
+Fixed:
+~~~~~~
+
+* Fix ``packs.uninstall`` action so it also deletes ``configs`` and ``policies`` which belong to
+    the pack which is being uninstalled. (bug fix)
+* When a policy cancels a request due to concurrency, it leaves end_timestamp set to None which
+  the notifier expects to be a date. This causes an exception in "isotime.format()". A patch was
+  released that catches this exception, and populates payload['end_timestamp'] with the equivalent
+  of "datetime.now()" when the exception occurs.
+* Adding check for datastore Client expired tokens used in sensor container
 * Fix python action runner actions and make sure that modules from ``st2common/st2common/runners``
   directory don't pollute ``PYTHONPATH`` for python runner actions. (bug fix)
 
 2.0.1 - September 30, 2016
 --------------------------
 
-* Fix ``st2 execution get`` command so now ``--attr`` argument correctly works with child
-  properties of the ``result`` and ``trigger_instance`` dictionary (e.g. ``--attr
-  result.stdout result.stderr``). (bug fix)
-* Update traces list API endpoint and ``st2 trace list`` so the traces are sorted by
-  ``start_timestamp`` in descending order by default. This way it's consistent with executions
-  list and ``-n`` CLI parameter works as expected. (improvement)
+Added:
+~~~~~~
+
 * Allow users to specify sort order when listing traces using the API endpoint by specifying
   ``?sort_desc=True|False`` query parameters and by passing ``--sort=asc|desc`` parameter to
   the ``st2 trace list`` CLI command. (improvement)
-* Fix a bug with action default parameter values not supporting Jinja template
-  notation for parameters of type ``object``. (bug fix, improvement)
-* Fix ``--user`` / ``-u`` argument in the ``st2 key delete`` CLI command.
 * Retry connecting to RabbitMQ on services start-up if connecting fails because
   of an intermediate network error or similar. (improvements)
 * Allow jinja expressions ``{{st2kv.system.foo}}`` and ``{{st2kv.user.foo}}`` to access
   datastore items from workflows, actions and rules. This is in addition to supporting
-  expressions ``{{system.foo}}`` and ``{{user.foo}}``. In subsequent releases, the expressions
-  ``{{system.}}`` and ``{{user.}}`` will be deprecated. It is recommended to switch to using
+  expressions ``{{system.foo}}`` and ``{{user.foo}}``. 
+
+Changed:
+~~~~~~~~
+
+* Update traces list API endpoint and ``st2 trace list`` so the traces are sorted by
+  ``start_timestamp`` in descending order by default. This way it's consistent with executions
+  list and ``-n`` CLI parameter works as expected. (improvement)
+
+Deprecated:
+~~~~~~~~~~~
+
+* In subsequent releases, the expressions ``{{system.}}`` and ``{{user.}}`` for accessing
+  datastore items will be deprecated. It is recommended to switch to using
   ``{{st2kv.system.}}`` and ``{{st2kv.user.}}`` for your content. (improvement)
+
+Fixed:
+~~~~~~
+
+* Fix ``st2 execution get`` command so now ``--attr`` argument correctly works with child
+  properties of the ``result`` and ``trigger_instance`` dictionary (e.g. ``--attr
+  result.stdout result.stderr``). (bug fix)
+* Fix a bug with action default parameter values not supporting Jinja template
+  notation for parameters of type ``object``. (bug fix, improvement)
+* Fix ``--user`` / ``-u`` argument in the ``st2 key delete`` CLI command.
+
 
 2.0.0 - August 31, 2016
 -----------------------
 
+Added:
+~~~~~~
+
 * Implement custom Jinja filter functions ``to_json_string``, ``to_yaml_string``,
   ``to_human_time_from_seconds`` that can be used in actions and workflows. (improvement)
-* Refactor Jinja filter functions into appropriate modules. (improvement)
 * Default chatops message to include time taken to complete an execution. This uses
   ``to_human_time_from_seconds`` function. (improvement)
-* Fix a bug when jinja templates with filters (for example,
-  ``st2 run core.local cmd='echo {{"1.6.0" | version_bump_minor}}'``) in parameters wasn't rendered
-  correctly when executing actions. (bug-fix)
 * Allow user to cancel multiple executions using a single invocation of ``st2 execution cancel``
   command by passing multiple ids to the command -
   ``st2 execution cancel <id 1> <id 2> <id n>`` (improvement)
 * We now execute --register-rules as part of st2ctl reload. PR raised by Vaishali:
   https://github.com/StackStorm/st2/issues/2861#issuecomment-239275641
-* Bump default timeout for ``packs.load`` command from ``60`` to ``100`` seconds. (improvement)
-* Change Python runner action and sensor Python module loading so the module is still loaded even if
-  the module name clashes with another module which is already in ``PYTHONPATH``
-  (improvement)
-* Fix validation of the action parameter ``type`` attribute provided in the YAML metadata.
-  Previously we allowed any string value, now only valid types (object, string, number,
-  integer, array, null) are allowed. (bug fix)
-* Upgrade pip and virtualenv libraries used by StackStorm pack virtual environments to the latest
-  versions (8.1.2 and 15.0.3).
+* Update ``packs.uninstall`` command to print a warning message if any rules in the system
+  reference a trigger from a pack which is being uninstalled. (improvement)
 * Allow user to list and view rules using the API even if a rule in the database references a
   non-existent trigger. This shouldn't happen during normal usage of StackStorm, but it makes it
   easier for the user to clean up in case database ends up in a inconsistent state. (improvement)
-* Update ``packs.uninstall`` command to print a warning message if any rules in the system
-  reference a trigger from a pack which is being uninstalled. (improvement)
+
+Changed:
+~~~~~~~~
+
+* Refactor Jinja filter functions into appropriate modules. (improvement)
+* Bump default timeout for ``packs.load`` command from ``60`` to ``100`` seconds. (improvement)
+* Upgrade pip and virtualenv libraries used by StackStorm pack virtual environments to the latest
+  versions (8.1.2 and 15.0.3).
+* Change Python runner action and sensor Python module loading so the module is still loaded even if
+  the module name clashes with another module which is already in ``PYTHONPATH``
+  (improvement)
+
+Fixed:
+~~~~~~
+
+* Fix a bug when jinja templates with filters (for example,
+  ``st2 run core.local cmd='echo {{"1.6.0" | version_bump_minor}}'``) in parameters wasn't rendered
+  correctly when executing actions. (bug-fix)
+* Fix validation of the action parameter ``type`` attribute provided in the YAML metadata.
+  Previously we allowed any string value, now only valid types (object, string, number,
+  integer, array, null) are allowed. (bug fix)
 * Fix disabling and enabling of a sensor through an API and CLI. (bug-fix)
 * Fix HTTP runner so it works correctly when body is provided with newer versions of requests
   library (>= 2.11.0). (bug-fix) #2880
