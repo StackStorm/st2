@@ -28,6 +28,12 @@ in development
   canceled. (bug fix)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
+* Fix a bug with authentication middleware not working correctly when supplying credentials in an
+  Authorization header using basic auth format when password contained a colon (``:``).
+
+  Note: Usernames with colon are still not supported. (bug fix)
+
+  Contributed by Carlos.
 * Introduce new ``CAPABILITIES`` constant on auth backend classes. With this constant, auth
   backends can advertise functionality they support (e.g. authenticate a user, retrieve information
   about a particular user, retrieve a list of groups a particular user is a member of).
