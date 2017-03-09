@@ -223,16 +223,16 @@ Changed:
 * Improved pack validation - now when the packs are registered we check that:
   
   - ``version`` attribute in the pack metadata file matches valid semver format (e.g
-      ``0.1.0``, ``2.0.0``, etc.)
+    ``0.1.0``, ``2.0.0``, etc.)
   - ``email`` attribute (if specified) contains a valid email address. (improvement)
   - Only valid word characters (``a-z``, ``0-9`` and ``_``) used for action parameter
-      names. Previously, due to bug in the code, any character was allowed.
+    names. Previously, due to bug in the code, any character was allowed.
 
   If validation fails, pack registration will fail. If you have an existing action or pack
   definition which uses invalid characters, pack registration will fail. **You must update
   your packs**.
 * For consistency with new pack name validation changes, sample ``hello-st2`` pack has been
-    renamed to ``hello_st2``.
+  renamed to ``hello_st2``.
 * Update ``packs.install`` action (``pack install`` command) to only load resources from the
   packs which are being installed. Also update it and remove "restart sensor container" step from
   the install workflow. This step hasn't been needed for a while now because sensor container
