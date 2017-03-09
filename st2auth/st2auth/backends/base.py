@@ -49,7 +49,7 @@ class BaseAuthenticationBackend(object):
         """
         raise NotImplementedError('get_user() not implemented for this backend')
 
-    def get_groups(self, username):
+    def get_user_groups(self, username):
         """
         Retrieve a list of groups a particular user is a member of.
 
