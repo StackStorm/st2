@@ -1,6 +1,11 @@
 Changelog
 =========
 
+
+
+
+
+
 in development
 --------------
 
@@ -14,6 +19,13 @@ Added:
   on servers where StackStorm has been installed using packages. (improvement)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
+
+Changed:
+~~~~~~~~
+
+* Refactor the action execution asynchronous callback functionality into the runner plugin
+  architecture. (improvement)
+
 
 Fixed:
 ~~~~~~
@@ -34,6 +46,12 @@ Fixed:
 
   Reported by Jon Middleton.
 * Fix concurrency related unit tests to support upgrade of the tooz library. (bug fix)
+* Fix a bug with authentication middleware not working correctly when supplying credentials
+  in an Authorization header using basic auth format when password contained a colon (:).
+
+  Note: Usernames with colon are still not supported. (bug fix)
+
+  Contributed by Carlos.
 
 Security:
 ~~~~~~~~~
