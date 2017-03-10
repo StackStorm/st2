@@ -34,6 +34,15 @@ in development
   Note: Usernames with colon are still not supported. (bug fix)
 
   Contributed by Carlos.
+* Refactor the action execution asynchronous callback functionality into the runner plugin
+  architecture. (improvement)
+* Update ``st2-run-pack-tests`` script so it doesn't try to install global pack test dependencies
+  (mock, unittest2, nose) when running in an environment where those dependencies are already
+  available.
+* Make sure remote command and script runner correctly close SSH connections after the action
+  execution has completed. (bug fix)
+
+  Reported by Nagy Krisztián.
 * Introduce new ``CAPABILITIES`` constant on auth backend classes. With this constant, auth
   backends can advertise functionality they support (e.g. authenticate a user, retrieve information
   about a particular user, retrieve a list of groups a particular user is a member of).
