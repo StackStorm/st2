@@ -34,6 +34,8 @@ in development
   Note: Usernames with colon are still not supported. (bug fix)
 
   Contributed by Carlos.
+* Refactor the action execution asynchronous callback functionality into the runner plugin
+  architecture. (improvement)
 * Make sure remote command and script runner correctly close SSH connections after the action
   execution has completed. (bug fix)
 
