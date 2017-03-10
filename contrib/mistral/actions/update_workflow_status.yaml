@@ -1,0 +1,18 @@
+name: update_workflow_status
+runner_type: run-python
+description: Update workflow status and result.
+enabled: true
+entry_point: update_workflow_status.py
+parameters:
+    action_exec_id:
+        type: string
+        description: Action execution ID
+        required: true
+    status:
+        type: string
+        description: Status of the workflow execution
+        required: true
+    result:
+        type: object
+        description: Result from the workflow execution
+        required: true

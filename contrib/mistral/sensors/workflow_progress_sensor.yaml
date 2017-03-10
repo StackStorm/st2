@@ -1,0 +1,10 @@
+---
+class_name: WorkflowStatusPoller
+entry_point: workflow_progress_sensor.py
+description: Sensor that polls for workflow status and result from Mistral.
+trigger_types:
+    -
+        name: workflow.status.update
+        description: Trigger on change in workflow progress
+        payload_schema:
+            type: object

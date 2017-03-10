@@ -1,0 +1,14 @@
+name: workflow_status_updated
+pack: mistral
+description: Update workflow status.
+enabled: true
+
+trigger:
+    type: mistral.workflow.status.update
+
+action:
+    ref: mistral.update_workflow_status
+    parameters:
+        action_exec_id: "{{trigger.id}}"
+        status: "{{trigger.status}}"
+        result: "{{trigger.result}}"
