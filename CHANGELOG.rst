@@ -20,11 +20,14 @@ in development
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
 * Fix a bug with authentication middleware not working correctly when supplying credentials in an
+  Authorization header using basic auth format when password contained a colon (``:``).
 
   Note: Usernames with colon are still not supported. (bug fix)
 
   Contributed by Carlos.
-  Authorization header using basic auth format when password contained a colon (``:``).
+* Update ``st2-run-pack-tests`` script so it doesn't try to install global pack test dependencies
+  (mock, unittest2, nose) when running in an environment where those dependencies are already
+  available.
 * Make sure remote command and script runner correctly close SSH connections after the action
   execution has completed. (bug fix)
 
