@@ -26,6 +26,20 @@ in development
   tooz for coordination. (improvement)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
+<<<<<<< HEAD
+=======
+* Fix a bug with authentication middleware not working correctly when supplying credentials in an
+  Authorization header using basic auth format when password contained a colon (``:``).
+
+  Note: Usernames with colon are still not supported. (bug fix)
+
+  Contributed by Carlos.
+* Refactor the action execution asynchronous callback functionality into the runner plugin
+  architecture. (improvement)
+* Update ``st2-run-pack-tests`` script so it doesn't try to install global pack test dependencies
+  (mock, unittest2, nose) when running in an environment where those dependencies are already
+  available.
+>>>>>>> 43bfb40... Update changelog.
 * Make sure remote command and script runner correctly close SSH connections after the action
   execution has completed. (bug fix)
 
