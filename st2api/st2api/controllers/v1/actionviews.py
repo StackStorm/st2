@@ -103,7 +103,7 @@ class OverviewController(resource.ContentPackResourceController):
                 GET /actions/views/overview/1
         """
         resp = super(OverviewController, self)._get_one(ref_or_id)
-        action_api = resp.json
+        action_api = ActionAPI(**resp.json)
         result = self._transform_action_api(action_api)
         resp.json = result
         return resp
@@ -116,15 +116,17 @@ class OverviewController(resource.ContentPackResourceController):
                 GET /actions/views/overview
         """
         resp = super(OverviewController, self)._get_all(**kwargs)
-        action_apis = resp.json
-        result = map(self._transform_action_api, action_apis)
+        result = []
+        for item in resp.json:
+            action_api = ActionAPI(**item)
+            result.append(self._transform_action_api(action_api))
         resp.json = result
         return resp
 
     @staticmethod
     def _transform_action_api(action_api):
-        action_id = action_api['id']
-        action_api['parameters'] = ParametersViewController._get_one(action_id).get('parameters')
+        action_id = action_api.id
+        action_api.parameters = ParametersViewController._get_one(action_id).get('parameters')
         return action_api
 
 

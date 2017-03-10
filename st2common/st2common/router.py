@@ -129,8 +129,16 @@ class Response(webob.Response):
         super(Response, self).__init__(body, status, headerlist, app_iter, content_type,
                                        *args, **kwargs)
 
+    def _json_body__get(self):
+        return super(Response, self)._json_body__get()
+
     def _json_body__set(self, value):
         self.body = json_encode(value).encode('UTF-8')
+
+    def _json_body__del(self):
+        return super(Response, self)._json_body__del()
+
+    json = json_body = property(_json_body__get, _json_body__set, _json_body__del)
 
 
 class Router(object):
