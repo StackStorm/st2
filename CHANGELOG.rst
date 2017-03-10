@@ -3,11 +3,6 @@ Changelog
 
 in development
 --------------
-* Fix Mistral workflow status when task is canceled. Currently, when a task is canceled, the
-  workflow status is set to error. The workflow status should be set to canceled. Also, when
-  a canceled action execution completes, the action execution will be updated from canceled
-  to its new status. This should not be the case because the action execution has already been
-  canceled. (bug fix)
 
 * Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
   directory name doesn't match the pack name (this might be the case with new pack management
@@ -26,6 +21,11 @@ in development
 * Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
   StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
   tooz for coordination. (improvement)
+* Fix Mistral workflow status when task is canceled. Currently, when a task is canceled, the
+  workflow status is set to error. The workflow status should be set to canceled. Also, when
+  a canceled action execution completes, the action execution will be updated from canceled
+  to its new status. This should not be the case because the action execution has already been
+  canceled. (bug fix)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
 * Fix a bug with authentication middleware not working correctly when supplying credentials in an
@@ -43,6 +43,10 @@ in development
   execution has completed. (bug fix)
 
   Reported by Nagy Krisztián.
+* Introduce new ``CAPABILITIES`` constant on auth backend classes. With this constant, auth
+  backends can advertise functionality they support (e.g. authenticate a user, retrieve information
+  about a particular user, retrieve a list of groups a particular user is a member of).
+  (new feature)
 
 2.2.0 - February 27, 2017
 -------------------------
