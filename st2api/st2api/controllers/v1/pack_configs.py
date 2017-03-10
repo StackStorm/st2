@@ -83,7 +83,7 @@ class PackConfigsController(ResourceController):
     @jsexpose(body_cls=ConfigUpdateRequestAPI, arg_types=[str])
     def put(self, pack_uninstall_request, pack_ref):
         """
-            Create a new config for the action.
+            Create a new config for a pack.
 
             Handles requests:
                 POST /configs/<pack_ref>
