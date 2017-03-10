@@ -36,6 +36,9 @@ in development
   Contributed by Carlos.
 * Refactor the action execution asynchronous callback functionality into the runner plugin
   architecture. (improvement)
+* Update ``st2-run-pack-tests`` script so it doesn't try to install global pack test dependencies
+  (mock, unittest2, nose) when running in an environment where those dependencies are already
+  available.
 * Make sure remote command and script runner correctly close SSH connections after the action
   execution has completed. (bug fix)
 
