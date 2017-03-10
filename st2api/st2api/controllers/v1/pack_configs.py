@@ -79,7 +79,7 @@ class PackConfigsController(ResourceController):
         # TODO: Make sure secret values are masked
         return self._get_one_by_pack_ref(pack_ref=pack_ref)
 
-    @request_user_has_permission(permission_type=PermissionType.PACK_CREATE)
+    @request_user_has_permission(permission_type=PermissionType.PACK_CONFIG)
     @jsexpose(body_cls=ConfigUpdateRequestAPI, arg_types=[str])
     def put(self, pack_uninstall_request, pack_ref):
         """
