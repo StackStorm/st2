@@ -47,7 +47,7 @@ in development
   backends can advertise functionality they support (e.g. authenticate a user, retrieve information
   about a particular user, retrieve a list of groups a particular user is a member of).
   (new feature)
-* Allow use of webhook payload in value context.
+* Add webhook payload to the Jinja render context when rendering Jinja variable inside rule criteria section
 
   Reported by Samuel Cantero
 
