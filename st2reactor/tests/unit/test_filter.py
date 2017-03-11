@@ -35,7 +35,10 @@ MOCK_TRIGGER_INSTANCE = TriggerInstanceDB(trigger=MOCK_TRIGGER.get_reference().r
                                               'p2': 'preYYYpost',
                                               'bool': True,
                                               'int': 1,
-                                              'float': 0.8})
+                                              'float': 0.8,
+                                              'list': ['v1', True, 1]
+                                          }
+                                        )
 
 MOCK_ACTION = ActionDB(id=bson.ObjectId(), pack='wolfpack', name='action-test-1.name')
 
@@ -96,6 +99,33 @@ class FilterTest(DbTestCase):
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertTrue(f.filter(), 'equals check should have passed.')
 
+        rule = MOCK_RULE_1
+        rule.criteria = {
+            'trigger.p1': {
+                'type': 'equals',
+                'pattern': "{{'%s' % trigger.p1 if trigger.int}}"
+            }
+        }
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'equals check should have passed.')
+
+        # Test our filter works if proper JSON is returned from user pattern
+        rule = MOCK_RULE_1
+        rule.criteria = {
+            'trigger.list': {
+                'type': 'equals',
+                'pattern': """
+                    [
+                        {% for item in trigger.list %}
+                        {{item}}{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ]
+                """
+            }
+        }
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'equals check should have passed.')
+
     def test_equals_operator_fail_criteria(self):
         rule = MOCK_RULE_1
         rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': 'v'}}
@@ -106,6 +136,22 @@ class FilterTest(DbTestCase):
         rule.criteria = {'trigger.p1': {'type': 'equals', 'pattern': '{{trigger.p2}}'}}
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
         self.assertFalse(f.filter(), 'equals check should have failed.')
+
+        rule = MOCK_RULE_1
+        rule.criteria = {
+            'trigger.list': {
+                'type': 'equals',
+                'pattern': """
+                    [
+                        {% for item in trigger.list %}
+                        {{item}}
+                        {% endfor %}
+                    ]
+                """
+            }
+        }
+        f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
+        self.assertTrue(f.filter(), 'equals check should have failed.')
 
     def test_equals_bool_value(self):
         rule = MOCK_RULE_1

@@ -20,7 +20,7 @@ from jsonpath_rw import parse
 
 from st2common import log as logging
 import st2common.operators as criteria_operators
-from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX, RULE_TYPE_BACKSTOP
+from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX, RULE_TYPE_BACKSTOP, MATCH_CRITERIA
 from st2common.constants.keyvalue import SYSTEM_SCOPES
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util.templating import render_template_with_system_context
@@ -167,29 +167,35 @@ class RuleFilter(object):
 
         # Check if jinja variable is in criteria_pattern and if so lets ensure
         # the proper type is applied to it using to_complex jinja filter
-        if len(re.findall(r'^{{\s*[A-z0-9_.-]+\s*}}$', criteria_pattern)) > 0:
+        if len(re.findall(MATCH_CRITERIA, criteria_pattern)) > 0:
             LOG.debug("Rendering Complex")
-            criteria_pattern = re.sub(
-                r'^{{\s*([A-z0-9_.-]+)\s*}}$', r'{{\1 | to_complex}}',
+            complex_criteria_pattern = re.sub(
+                MATCH_CRITERIA, r'\1\2 | to_complex\3',
                 criteria_pattern
             )
 
-            to_complex = True
+            try:
+                criteria_rendered = render_template_with_system_context(
+                    value=complex_criteria_pattern,
+                    context=criteria_context
+                )
+                criteria_rendered = json.loads(criteria_rendered)
+                to_complex = True
+            except ValueError, error:
+                LOG.debug('Criteria pattern not valid JSON: %s', error)
 
-        criteria_pattern = render_template_with_system_context(
-            value=criteria_pattern,
-            context=criteria_context
-        )
+        if not to_complex:
+            criteria_rendered = render_template_with_system_context(
+                value=criteria_pattern,
+                context=criteria_context
+            )
 
         LOG.debug(
             'Rendered criteria pattern: %s',
-            criteria_pattern
+            criteria_rendered
         )
 
-        if to_complex:
-            return json.loads(criteria_pattern)
-
-        return criteria_pattern
+        return criteria_rendered
 
 
 class SecondPassRuleFilter(RuleFilter):
