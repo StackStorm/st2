@@ -93,6 +93,84 @@ class RunnerContainerTest(DbTestCase):
         expected_msg = 'Runner "test-runner-1" has been disabled by the administrator'
         self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
 
+    def test_post_run_is_always_called_after_run(self):
+        # 1. post_run should be called on success, failure, etc.
+        runner_container = get_runner_container()
+        params = {
+            'actionstr': 'bar',
+            'mock_status': action_constants.LIVEACTION_STATUS_SUCCEEDED
+        }
+        liveaction_db = self._get_failingaction_exec_db_model(params)
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
+
+        global global_runner
+        global_runner = None
+        original_get_runner = runner_container._get_runner
+
+        def mock_get_runner(*args, **kwargs):
+            global global_runner
+            runner = original_get_runner(*args, **kwargs)
+            global_runner = runner
+            return runner
+        runner_container._get_runner = mock_get_runner
+
+        # Note: We can't assert here that post_run hasn't been called yet because runner instance
+        # is only instantiated later inside dispatch method
+        runner_container.dispatch(liveaction_db)
+        self.assertTrue(global_runner.post_run_called)
+
+        # 2. Verify post_run is called if run() throws
+        runner_container = get_runner_container()
+        params = {
+            'actionstr': 'bar',
+            'raise': True
+        }
+        liveaction_db = self._get_failingaction_exec_db_model(params)
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
+
+        global_runner = None
+        original_get_runner = runner_container._get_runner
+
+        def mock_get_runner(*args, **kwargs):
+            global global_runner
+            runner = original_get_runner(*args, **kwargs)
+            global_runner = runner
+            return runner
+        runner_container._get_runner = mock_get_runner
+
+        # Note: We can't assert here that post_run hasn't been called yet because runner instance
+        # is only instantiated later inside dispatch method
+        runner_container.dispatch(liveaction_db)
+        self.assertTrue(global_runner.post_run_called)
+
+        # 2. Verify post_run is also called if _delete_auth_token throws
+        runner_container = get_runner_container()
+        runner_container._delete_auth_token = mock.Mock(side_effect=ValueError('throw'))
+        params = {
+            'actionstr': 'bar',
+            'mock_status': action_constants.LIVEACTION_STATUS_SUCCEEDED
+        }
+        liveaction_db = self._get_failingaction_exec_db_model(params)
+        liveaction_db = LiveAction.add_or_update(liveaction_db)
+        executions.create_execution_object(liveaction_db)
+
+        global_runner = None
+        original_get_runner = runner_container._get_runner
+
+        def mock_get_runner(*args, **kwargs):
+            global global_runner
+            runner = original_get_runner(*args, **kwargs)
+            global_runner = runner
+            return runner
+        runner_container._get_runner = mock_get_runner
+
+        # Note: We can't assert here that post_run hasn't been called yet because runner instance
+        # is only instantiated later inside dispatch method
+        runner_container.dispatch(liveaction_db)
+        self.assertTrue(global_runner.post_run_called)
+
     def test_get_runner_module_fail(self):
         runnertype_db = RunnerTypeDB(name='dummy', runner_module='absent.module')
         runner = None

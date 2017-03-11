@@ -21,8 +21,32 @@ in development
 * Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
   StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
   tooz for coordination. (improvement)
+* Fix Mistral workflow status when task is canceled. Currently, when a task is canceled, the
+  workflow status is set to error. The workflow status should be set to canceled. Also, when
+  a canceled action execution completes, the action execution will be updated from canceled
+  to its new status. This should not be the case because the action execution has already been
+  canceled. (bug fix)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
+* Fix a bug with authentication middleware not working correctly when supplying credentials in an
+  Authorization header using basic auth format when password contained a colon (``:``).
+
+  Note: Usernames with colon are still not supported. (bug fix)
+
+  Contributed by Carlos.
+* Refactor the action execution asynchronous callback functionality into the runner plugin
+  architecture. (improvement)
+* Update ``st2-run-pack-tests`` script so it doesn't try to install global pack test dependencies
+  (mock, unittest2, nose) when running in an environment where those dependencies are already
+  available.
+* Make sure remote command and script runner correctly close SSH connections after the action
+  execution has completed. (bug fix)
+
+  Reported by Nagy Krisztián.
+* Introduce new ``CAPABILITIES`` constant on auth backend classes. With this constant, auth
+  backends can advertise functionality they support (e.g. authenticate a user, retrieve information
+  about a particular user, retrieve a list of groups a particular user is a member of).
+  (new feature)
 * Allow use of webhook payload in value context.
 
   Reported by Samuel Cantero
