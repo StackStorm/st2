@@ -1,8 +1,8 @@
 Changelog
 =========
 
-in development
---------------
+2.2.1 - TBD 2017
+----------------
 
 * Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
   correctly fails on failure by default.
