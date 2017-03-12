@@ -4,11 +4,11 @@ Changelog
 in development
 --------------
 
+* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
+  correctly fails on failure by default.
 * Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
   directory name doesn't match the pack name (this might be the case with new pack management
   during development where local git repository directory name doesn't match pack name) (bug fix)
-* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
-  correctly fails on failure by default.
 * Fix a bug with default values from pack config schema not being passed via config to Python
   runner actions and sensors if pack didn't contain a config file in ``/opt/stackstorm/configs``
   directory. (bug fix)
@@ -47,6 +47,10 @@ in development
   backends can advertise functionality they support (e.g. authenticate a user, retrieve information
   about a particular user, retrieve a list of groups a particular user is a member of).
   (new feature)
+* Fix a bug with pack configs API endpoint (``PUT /v1/configs/``) not working when RBAC was
+  enabled. (bug fix)
+
+  Reported by efenian.
 
 2.2.0 - February 27, 2017
 -------------------------
@@ -127,8 +131,6 @@ in development
 * Fix a bug with not being able to apply some global permission types (permissions which are global
   and not specific to a resource) such as pack install, pack remove, pack search, etc. to a role
   using ``st2-apply-rbac-definitions``. (bug fix)
-* Fix a bug with pack configs API endpoint (``PUT /v1/configs/``) not working when RBAC was
-  enabled. (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------
