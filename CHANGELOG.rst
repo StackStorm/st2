@@ -41,6 +41,8 @@ Changelog
 * Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
   StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
   tooz for coordination. (improvement)
+* Various security related improvements in the enterprise LDAP auth backend. (improvement,
+  bug fix)
 
 2.2.0 - February 27, 2017
 -------------------------
