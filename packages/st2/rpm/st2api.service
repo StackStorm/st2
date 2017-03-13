@@ -1,6 +1,7 @@
 [Unit]
 Description=StackStorm service st2api
-After=network.target
+After=network.target st2api.socket
+Requires=st2api.socket
 
 [Service]
 Type=simple

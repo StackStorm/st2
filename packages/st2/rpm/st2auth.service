@@ -1,6 +1,7 @@
 [Unit]
 Description=StackStorm service st2auth
-After=network.target
+After=network.target st2auth.socket
+Requires=st2auth.socket
 
 [Service]
 Type=simple
