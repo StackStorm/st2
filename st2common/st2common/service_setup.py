@@ -118,6 +118,8 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
         run_all_rbac_migrations()
 
     # Additional pre-runtime checks for API and auth API servies
+    # TODO: Refactor and instead doing this check here, delegate to some function provided by each
+    # component
     if service in ['auth', 'api']:
         # Verify auth is enabled. RBAC without makes no sense.
         if cfg.CONF.rbac.enable and not cfg.CONF.auth.enable:
