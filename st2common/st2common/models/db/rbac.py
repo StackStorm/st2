@@ -85,9 +85,13 @@ class PermissionGrantDB(stormbase.StormFoundationDB):
 class AuthBackendGroupToRoleMapDB(stormbase.StormFoundationDB):
     """
     An entity which represents mapping from remote auth backend group to StackStorm roles.
+
+    Attribute:
+        group: Name of the remote auth backend group.
+        role: A reference to the local RBAC role name.
     """
-    group_name = me.StringField(required=True, unique=True)
-    role_names = me.ListField(field=me.StringField())
+    group = me.StringField(required=True, unique=True)
+    roles = me.ListField(field=me.StringField())
 
 
 # Specialized access objects

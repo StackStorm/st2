@@ -23,6 +23,7 @@ from st2common.persistence.auth import User
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import PermissionGrant
+from st2common.persistence.rbac import AuthBackendGroupToRoleMap
 from st2common.services import rbac as rbac_services
 from st2common.util.uid import parse_uid
 
@@ -50,14 +51,16 @@ class RBACDefinitionsDBSyncer(object):
     the same dataset, the end result / outcome will be the same.
     """
 
-    def sync(self, role_definition_apis, role_assignment_apis):
+    def sync(self, role_definition_apis, role_assignment_apis, group_to_role_map_apis):
         """
-        Synchronize all the role definitions and user role assignments.
+        Synchronize all the role definitions, user role assignments and remote group to local roles
+        maps.
         """
         result = {}
 
         result['roles'] = self.sync_roles(role_definition_apis)
         result['role_assignments'] = self.sync_users_role_assignments(role_assignment_apis)
+        result['group_to_role_maps'] = self.sync_group_to_role_maps(group_to_role_map_apis)
 
         return result
 
@@ -206,6 +209,26 @@ class RBACDefinitionsDBSyncer(object):
 
         LOG.info('User role assignments synchronized')
         return results
+
+    def sync_group_to_role_maps(self, group_to_role_map_apis):
+        LOG.info('Synchronizing group to role maps...')
+
+        # Retrieve all the mappings currently in the db
+        group_to_role_map_dbs = rbac_services.get_all_group_to_role_maps()
+
+        # 1. Delete all the existing mappings in the db
+        group_to_role_map_to_delete = []
+        for group_to_role_map_db in group_to_role_map_dbs:
+            group_to_role_map_to_delete.append(group_to_role_map_db.id)
+
+        AuthBackendGroupToRoleMap.query(id__in=group_to_role_map_to_delete).delete()
+
+        # 2. Insert all mappings read from disk
+        for group_to_role_map_api in group_to_role_map_apis:
+            rbac_services.create_group_to_role_map(group=group_to_role_map_api.group,
+                                                   roles=group_to_role_map_api.roles)
+
+        LOG.info('Group to role map definitions synchronized.')
 
     def _sync_user_role_assignments(self, user_db, role_assignment_dbs, role_assignment_api):
         """

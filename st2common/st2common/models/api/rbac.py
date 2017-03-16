@@ -24,7 +24,9 @@ __all__ = [
     'RoleAPI',
 
     'RoleDefinitionFileFormatAPI',
-    'UserRoleAssignmentFileFormatAPI'
+    'UserRoleAssignmentFileFormatAPI',
+
+    'AuthGroupToRoleMapAssignmentFileFormatAPI'
 ]
 
 
@@ -209,3 +211,28 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
                     raise ValueError('Role "%s" doesn\'t exist in the database' % (role))
 
         return cleaned
+
+
+class AuthGroupToRoleMapAssignmentFileFormatAPI(BaseAPI):
+    schema = {
+        'type': 'object',
+        'properties': {
+            'group': {
+                'type': 'string',
+                'description': 'Name of the group as returned by auth backend.',
+                'required': True,
+                'default': None
+            },
+            'roles': {
+                'type': 'array',
+                'description': ('StackStorm roles which are assigned to each user which belongs '
+                                'to that group.'),
+                'uniqueItems': True,
+                'items': {
+                    'type': 'string'
+                },
+                'required': True
+            }
+        },
+        'additionalProperties': False
+    }
