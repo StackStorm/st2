@@ -31,6 +31,8 @@ from st2common.util.debugging import enable_debugging
 from st2common.models.utils.profiling import enable_profiling
 from st2common import triggers
 from st2common.rbac.migrations import run_all as run_all_rbac_migrations
+from st2auth.backends import get_backend_instance as get_auth_backend_instance
+from st2auth.backends.constants import AuthBackendCapability
 
 # Note: This is here for backward compatibility.
 # Function has been moved in a standalone module to avoid expensive in-direct
@@ -115,10 +117,23 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     if run_migrations:
         run_all_rbac_migrations()
 
-    if cfg.CONF.rbac.enable and not cfg.CONF.auth.enable:
-        msg = ('Authentication is not enabled. RBAC only works when authentication is enabled.'
-               'You can either enable authentication or disable RBAC.')
-        raise Exception(msg)
+    # Additional pre-runtime checks for API and auth API servies
+    if service in ['auth', 'api']:
+        # Verify auth is enabled. RBAC without makes no sense.
+        if cfg.CONF.rbac.enable and not cfg.CONF.auth.enable:
+            msg = ('Authentication is not enabled. RBAC only works when authentication is enabled.'
+                   'You can either enable authentication or disable RBAC.')
+            raise Exception(msg)
+
+        # Verify that auth backend used by the user exposes group information
+        if cfg.CONF.rbac.enable and cfg.CONF.rbac.sync_remote_groups:
+            auth_backend = get_auth_backend_instance(name=cfg.CONF.auth.backend)
+            capabilies = getattr(auth_backend, 'CAPABILITIES', ())
+            if AuthBackendCapability.HAS_GROUP_INFORMATION not in capabilies:
+                msg = ('Configured auth backend doesn\'t expose user group information. Disable '
+                       'remote group synchronization or use a different backend which exposes '
+                       'user group membership information.')
+                raise ValueError(msg)
 
 
 def teardown():
