@@ -158,17 +158,24 @@ class StandaloneAuthHandler(AuthHandlerBase):
         result = self._auth_backend
 
         result = self._auth_backend.authenticate(username=username, password=password)
+
         if result is True:
             ttl = getattr(request, 'ttl', None)
             username = self._get_username_for_request(username, request)
             try:
-                token = self._create_token_for_user(
-                    username=username, ttl=ttl)
-                return token
+                token = self._create_token_for_user(username=username, ttl=ttl)
             except TTLTooLargeException as e:
                 abort_request(status_code=http_client.BAD_REQUEST,
                               message=e.message)
                 return
+
+            # If remote group sync is enabled, sync the remote groups with local StackStorm roles
+            if cfg.CONF.rbac.sync_remote_groups:
+                user_groups = self._auth_backend.get_user_groups(username=username)
+                # TODO: Sync user remote role assignments
+
+            return token
+
 
         LOG.audit('Invalid credentials provided', extra=extra)
         abort_request()
