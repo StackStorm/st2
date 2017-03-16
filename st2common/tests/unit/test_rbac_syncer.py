@@ -258,6 +258,15 @@ class RBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         self.assertEqual(role_dbs[1], self.roles['role_2'])
         self.assertEqual(role_dbs[2], self.roles['role_3'])
 
+        # Do sync with no roles - verify all roles except remote one are removed.
+        api = UserRoleAssignmentFileFormatAPI(username=user_db.name,
+                                              roles=[])
+        syncer.sync_users_role_assignments(role_assignment_apis=[api])
+
+        role_dbs = get_roles_for_user(user_db=user_db)
+        self.assertEqual(len(role_dbs), 1)
+        self.assertEqual(role_dbs[0], self.roles['role_3'])
+
     def assertRoleDBObjectExists(self, role_db):
         result = Role.get_by_id(str(role_db.id))
         self.assertTrue(result)
