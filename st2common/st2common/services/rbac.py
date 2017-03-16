@@ -71,30 +71,45 @@ def get_system_roles():
     return result
 
 
-def get_roles_for_user(user_db):
+def get_roles_for_user(user_db, include_remote=True):
     """
     Retrieve all the roles assigned to the provided user.
 
     :param user_db: User to retrieve the roles for.
     :type user_db: :class:`UserDB`
 
+    :param include_remote: True to also include remote role assignments.
+    :type include_remote: ``bool``
+
     :rtype: ``list`` of :class:`RoleDB`
     """
-    role_names = UserRoleAssignment.query(user=user_db.name).only('role').scalar('role')
+    if include_remote:
+        queryset = UserRoleAssignment.query(user=user_db.name)
+    else:
+        queryset = UserRoleAssignment.query(user=user_db.name, is_remote=False)
+
+    role_names = queryset.only('role').scalar('role')
     result = Role.query(name__in=role_names)
     return result
 
 
-def get_role_assignments_for_user(user_db):
+def get_role_assignments_for_user(user_db, include_remote=True):
     """
     Retrieve all the UserRoleAssignmentDB objects for a particular user.
 
     :param user_db: User to retrieve the role assignments for.
     :type user_db: :class:`UserDB`
 
+    :param include_remote: True to also include remote role assignments.
+    :type include_remote: ``bool``
+
     :rtype: ``list`` of :class:`UserRoleAssignmentDB`
     """
-    result = UserRoleAssignment.query(user=user_db.name)
+    if include_remote:
+        result = UserRoleAssignment.query(user=user_db.name)
+    else:
+        result = UserRoleAssignment.query(user=user_db.name, is_remote=False)
+
     return result
 
 
@@ -132,7 +147,7 @@ def delete_role(name):
     return result
 
 
-def assign_role_to_user(role_db, user_db, description=None):
+def assign_role_to_user(role_db, user_db, description=None, is_remote=False):
     """
     Assign role to a user.
 
@@ -144,9 +159,13 @@ def assign_role_to_user(role_db, user_db, description=None):
 
     :param description: Optional assingment description.
     :type description: ``str``
+
+    :param include_remote: True if this a remote assignment.
+    :type include_remote: ``bool``
     """
     role_assignment_db = UserRoleAssignmentDB(user=user_db.name, role=role_db.name,
-                                              description=description)
+                                              description=description,
+                                              is_remote=is_remote)
     role_assignment_db = UserRoleAssignment.add_or_update(role_assignment_db)
     return role_assignment_db
 

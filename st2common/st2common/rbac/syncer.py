@@ -196,7 +196,8 @@ class RBACDefinitionsDBSyncer(object):
                 LOG.debug(('User "%s" doesn\'t exist in the DB, creating assignment anyway' %
                           (username)))
 
-            role_assignment_dbs = rbac_services.get_role_assignments_for_user(user_db=user_db)
+            role_assignment_dbs = rbac_services.get_role_assignments_for_user(user_db=user_db,
+                                                                             include_remote=False)
 
             result = self._sync_user_role_assignments(user_db=user_db,
                                                       role_assignment_dbs=role_assignment_dbs,
