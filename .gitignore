@@ -49,3 +49,9 @@ nosetests.xml
 
 # st2 specific
 contrib/runners/*/dist_utils.py
+
+# RobotFramework Reports
+log.html
+output.xml
+report.html
+**/st2tests_repo

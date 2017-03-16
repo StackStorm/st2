@@ -365,6 +365,22 @@ packs-tests: requirements .packs-tests
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -x -p FILENAME
 
+
+REPOSRC := https://github.com/StackStorm/st2tests.git
+LOCALREPO := st2tests_repo
+TESTDIR := docs mistral chatopsCI
+.PHONY: robot-tests
+robot-tests: requirements
+	@echo
+	@echo "==================== Robot tests ===================="
+	@echo
+	@pushd st2tests && if [ ! -d $(LOCALREPO) ]; then  git clone $(REPOSRC) $(LOCALREPO); else cd $(LOCALREPO); git pull $(REPOSRC); fi
+
+	for dir in $(TESTDIR); do \
+		echo "Running tests in directory $$dir..." ; \
+		. $(VIRTUALENV_DIR)/bin/activate; pushd st2tests/$(LOCALREPO)/robotfm_tests/$$dir/;  pybot *.rst; popd; \
+    done
+
 .PHONY: cli
 cli:
 	@echo

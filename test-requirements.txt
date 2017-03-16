@@ -20,3 +20,7 @@ pyyaml
 RandomWords
 gunicorn>=19.3.0,<19.4
 psutil
+
+# Robot Framework Tests
+robotframework
+docutils
