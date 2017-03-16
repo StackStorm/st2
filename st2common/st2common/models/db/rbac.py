@@ -59,6 +59,11 @@ class UserRoleAssignmentDB(stormbase.StormFoundationDB):
     user = me.StringField(required=True)
     role = me.StringField(required=True, unique_with='user')
     description = me.StringField()
+    # True if this is assigned created on authentication based on the remote groups provided by
+    # the auth backends.
+    # Remote assignments are special in a way that they are not manipulated with when running
+    # st2-apply-rbac-auth-definitions tool.
+    is_remote = me.BooleanField(default=False)
 
 
 class PermissionGrantDB(stormbase.StormFoundationDB):
