@@ -173,7 +173,7 @@ class RBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         syncer.sync_users_role_assignments(role_assignment_apis=[api])
 
         role_dbs = get_roles_for_user(user_db=self.users['user_2'])
-        self.assertTrue(len(role_dbs), 2)
+        self.assertEqual(len(role_dbs), 2)
         self.assertEqual(role_dbs[0], self.roles['role_1'])
         self.assertEqual(role_dbs[1], self.roles['role_2'])
 
@@ -192,7 +192,7 @@ class RBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         syncer.sync_users_role_assignments(role_assignment_apis=[api])
 
         role_dbs = get_roles_for_user(user_db=self.users['user_2'])
-        self.assertTrue(len(role_dbs), 2)
+        self.assertEqual(len(role_dbs), 2)
         self.assertEqual(role_dbs[0], self.roles['role_1'])
         self.assertEqual(role_dbs[1], self.roles['role_2'])
 
@@ -202,7 +202,7 @@ class RBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         syncer.sync_users_role_assignments(role_assignment_apis=[api])
 
         role_dbs = get_roles_for_user(user_db=self.users['user_2'])
-        self.assertTrue(len(role_dbs), 1)
+        self.assertEqual(len(role_dbs), 1)
         self.assertEqual(role_dbs[0], self.roles['role_2'])
 
     def test_sync_assignments_user_doesnt_exist_in_db(self):
@@ -222,7 +222,7 @@ class RBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         syncer.sync_users_role_assignments(role_assignment_apis=[api])
 
         role_dbs = get_roles_for_user(user_db=user_db)
-        self.assertTrue(len(role_dbs), 2)
+        self.assertEqual(len(role_dbs), 2)
         self.assertEqual(role_dbs[0], self.roles['role_1'])
         self.assertEqual(role_dbs[1], self.roles['role_2'])
 
