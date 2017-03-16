@@ -22,6 +22,7 @@ from st2common.models.api.rbac import RoleDefinitionFileFormatAPI
 from st2common.models.api.rbac import UserRoleAssignmentFileFormatAPI
 from st2common.services.rbac import get_roles_for_user
 from st2common.services.rbac import create_role
+from st2common.services.rbac import assign_role_to_user
 from st2common.rbac.syncer import RBACDefinitionsDBSyncer
 
 __all__ = [
@@ -225,6 +226,38 @@ class RBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         self.assertEqual(role_dbs[0], self.roles['role_1'])
         self.assertEqual(role_dbs[1], self.roles['role_2'])
 
+    def test_sync_remote_assignments_are_not_manipulated(self):
+        # Verify remote assignments are not manipulated.
+        syncer = RBACDefinitionsDBSyncer()
+
+        self._insert_mock_roles()
+
+        # Initial state, no roles
+        user_db = UserDB(name='doesntexistwhaha')
+        role_dbs = get_roles_for_user(user_db=user_db)
+        self.assertItemsEqual(role_dbs, [])
+
+        # Create mock remote role assignment
+        role_db = self.roles['role_3']
+        role_assignment_db = assign_role_to_user(role_db=role_db, user_db=user_db, is_remote=True)
+        self.assertTrue(role_assignment_db.is_remote)
+
+        # Verify assignment has been created
+        role_dbs = get_roles_for_user(user_db=user_db)
+        self.assertItemsEqual(role_dbs, [self.roles['role_3']])
+
+        # Do the sync with two roles defined - verify remote role assignment hasn't been
+        # manipulated with.
+        api = UserRoleAssignmentFileFormatAPI(username=user_db.name,
+                                              roles=['role_1', 'role_2'])
+        syncer.sync_users_role_assignments(role_assignment_apis=[api])
+
+        role_dbs = get_roles_for_user(user_db=user_db)
+        self.assertEqual(len(role_dbs), 3)
+        self.assertEqual(role_dbs[0], self.roles['role_1'])
+        self.assertEqual(role_dbs[1], self.roles['role_2'])
+        self.assertEqual(role_dbs[2], self.roles['role_3'])
+
     def assertRoleDBObjectExists(self, role_db):
         result = Role.get_by_id(str(role_db.id))
         self.assertTrue(result)
@@ -239,8 +272,10 @@ class RBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         # Create some mock roles
         role_1_db = create_role(name='role_1')
         role_2_db = create_role(name='role_2')
+        role_3_db = create_role(name='role_3')
 
         self.roles['role_1'] = role_1_db
         self.roles['role_2'] = role_2_db
+        self.roles['role_3'] = role_3_db
 
         return self.roles
