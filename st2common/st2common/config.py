@@ -47,6 +47,9 @@ def do_register_cli_opts(opt, ignore_errors=False):
 def register_opts(ignore_errors=False):
     rbac_opts = [
         cfg.BoolOpt('enable', default=False, help='Enable RBAC.'),
+        cfg.BoolOpt('sync_remote_groups', default=False,
+                    help=('True to synchronize remote roles returned by the auth backed for each '
+                          'StackStorm user with local StackStorm roles.'))
     ]
     do_register_opts(rbac_opts, 'rbac', ignore_errors)
 
