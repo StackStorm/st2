@@ -47,6 +47,8 @@ in development
   backends can advertise functionality they support (e.g. authenticate a user, retrieve information
   about a particular user, retrieve a list of groups a particular user is a member of).
   (new feature)
+* Linux file watch sensor is now disabled by default. To enable it, set ``enabled: true`` in
+  ``/opt/stackstorm/packs/linux/sensors/file_watch_sensor.yaml``
 
 2.2.0 - February 27, 2017
 -------------------------
