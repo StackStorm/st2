@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+
 import mock
 from oslo_config import cfg
 import webob.exc
@@ -34,7 +36,8 @@ class MockAuthBackend(BaseAuthenticationBackend):
         pass
 
     def authenticate(self, username, password):
-        return username == 'auser' and password == 'apassword'
+        return ((username == 'auser' and password == 'apassword') or
+                (username == 'username' and password == 'password:password'))
 
     def get_user(self, username):
         return username
@@ -187,3 +190,13 @@ class HandlerTestCase(FunctionalTest):
             h.handle_auth(
                 request, headers={}, remote_addr=None,
                 remote_user=None, authorization=('basic', DUMMY_CREDS))
+
+    def test_password_contains_colon(self):
+        h = handlers.StandaloneAuthHandler()
+        request = MockRequest(60)
+
+        authorization = ('Basic', base64.b64encode('username:password:password'))
+        token = h.handle_auth(
+            request, headers={}, remote_addr=None,
+            remote_user=None, authorization=authorization)
+        self.assertEqual(token.user, 'username')

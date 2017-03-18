@@ -185,6 +185,22 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'path': '/v1/packs/views/file/dummy_pack_1/pack.yaml',
                 'method': 'GET'
             },
+            # Pack configs
+            {
+                'path': '/v1/configs/',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/configs/dummy_pack_1',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/configs/dummy_pack_1',
+                'method': 'PUT',
+                'payload': {
+                    'foo': 'bar'
+                }
+            },
             # Sensors
             {
                 'path': '/v1/sensortypes',

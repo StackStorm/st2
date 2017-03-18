@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import eventlet
 import traceback
 
 from st2actions import worker
@@ -54,6 +55,39 @@ class MockLiveActionPublisher(object):
         try:
             if isinstance(payload, LiveActionDB):
                 notifier.get_notifier().process(payload)
+        except Exception:
+            traceback.print_exc()
+            print(payload)
+
+
+class MockLiveActionPublisherNonBlocking(object):
+
+    @classmethod
+    def publish_create(cls, payload):
+        try:
+            if isinstance(payload, LiveActionDB):
+                eventlet.spawn(scheduler.get_scheduler().process, payload)
+        except Exception:
+            traceback.print_exc()
+            print(payload)
+
+    @classmethod
+    def publish_state(cls, payload, state):
+        try:
+            if isinstance(payload, LiveActionDB):
+                if state == action_constants.LIVEACTION_STATUS_REQUESTED:
+                    eventlet.spawn(scheduler.get_scheduler().process, payload)
+                else:
+                    eventlet.spawn(worker.get_worker().process, payload)
+        except Exception:
+            traceback.print_exc()
+            print(payload)
+
+    @classmethod
+    def publish_update(cls, payload):
+        try:
+            if isinstance(payload, LiveActionDB):
+                eventlet.spawn(notifier.get_notifier().process, payload)
         except Exception:
             traceback.print_exc()
             print(payload)
