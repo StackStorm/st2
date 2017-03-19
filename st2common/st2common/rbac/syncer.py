@@ -310,14 +310,17 @@ class RBACRemoteGroupToRoleSyncer(object):
 
         :return: A list of mappings which have been created.
         """
-        LOG.info('Synchronizing remote role assignments for user "%s"' % (str(user_db)))
+        extra = {'user_db': user_db, 'groups': groups}
+        LOG.info('Synchronizing remote role assignments for user "%s"' % (str(user_db)),
+                 extra=extra)
 
         # 1. Retrieve group to role mappings for the provided groups
         mapping_dbs = AuthBackendGroupToRoleMap.query(group__in=groups)
 
         if not mapping_dbs:
             # No mapping found, return early
-            LOG.debug('No group to role mappings found for user "%s"' % (str(user_db)))
+            LOG.debug('No group to role mappings found for user "%s"' % (str(user_db)),
+                      extra=extra)
             return []
 
         # 2. Remove all the existing remote role assignments
@@ -343,8 +346,8 @@ class RBACRemoteGroupToRoleSyncer(object):
             role_db = rbac_services.get_role_by_name(name=mapping_db.role)
 
             if not role_db:
-                LOG.info('Role with name "%s" from mapping "%s" not found, skipping assignments.'
-                         % (mapping_db.role, str(mapping_db)))
+                LOG.info('Role with name "%s" for mapping "%s" not found, skipping assignment.' %
+                         (mapping_db.role, str(mapping_db)), extra=extra)
                 continue
 
             description = ('Automatic role assignments based on the remote user group membership '
@@ -359,6 +362,6 @@ class RBACRemoteGroupToRoleSyncer(object):
         LOG.debug('Removed role assignments: %r' % (removed_role_names))
 
         LOG.debug('Created %s new remote role assignments for user "%s"' %
-                  (len(created_assignments_dbs), str(user_db)))
+                  (len(created_assignments_dbs), str(user_db)), extra=extra)
 
         return created_assignments_dbs
