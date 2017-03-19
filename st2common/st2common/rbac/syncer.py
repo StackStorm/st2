@@ -31,7 +31,8 @@ from st2common.util.uid import parse_uid
 LOG = logging.getLogger(__name__)
 
 __all__ = [
-    'RBACDefinitionsDBSyncer'
+    'RBACDefinitionsDBSyncer',
+    'RBACRemoteGroupToRoleSyncer'
 ]
 
 
@@ -291,3 +292,73 @@ class RBACDefinitionsDBSyncer(object):
                                                                 user_db.name))
 
         return (created_role_assignment_dbs, role_assignment_dbs_to_delete)
+
+
+class RBACRemoteGroupToRoleSyncer(object):
+    """
+    Class which writes remote user role assignments based on the user group memberhip information
+    provided by the auth backend and based on the group to role mapping definitions on disk.
+    """
+
+    def sync(self, user_db, groups):
+        """
+        :param user_db: User to sync the assignments for.
+        :type user: :class:`UserDB`
+
+        :param groups: A list of remote groups user is a member of.
+        :type groups: ``list`` of ``str``
+
+        :return: A list of mappings which have been created.
+        """
+        LOG.info('Synchronizing remote role assignments for user "%s"' % (str(user_db)))
+
+        # 1. Retrieve group to role mappings for the provided groups
+        mapping_dbs = AuthBackendGroupToRoleMap.query(group__in=groups)
+
+        if not mapping_dbs:
+            # No mapping found, return early
+            LOG.debug('No group to role mappings found for user "%s"' % (str(user_db)))
+            return []
+
+        # 2. Remove all the existing remote role assignments
+        remote_assignment_dbs = UserRoleAssignment.query(user=user_db.name, is_remote=True)
+
+        existing_role_names = [assignment_db.role for assignment_db in remote_assignment_dbs]
+        current_role_names = [mapping_db.role for mapping_db in mapping_dbs]
+
+        # A list of new role assignments which should be added to the database
+        new_role_names = current_role_names.difference(existing_role_names)
+
+        # A list of role assignments which need to be updated in the database
+        updated_role_names = existing_role_names.intersection(current_role_names)
+
+        # A list of role assignments which should be removed from the database
+        removed_role_names = (existing_role_names - new_role_names)
+
+        remote_assignment_dbs.delete()
+
+        # 3. Create role assignments for all the current groups
+        created_assignments_dbs = []
+        for mapping_db in mapping_dbs:
+            role_db = rbac_services.get_role_by_name(name=mapping_db.role)
+
+            if not role_db:
+                LOG.info('Role with name "%s" from mapping "%s" not found, skipping assignments.'
+                         % (mapping_db.role, str(mapping_db)))
+                continue
+
+            description = ('Automatic role assignments based on the remote user group membership '
+                           '(%s)' % (str(mapping_db)))
+            assignment_db = rbac_services.assign_role_to_user(role_db=role_db, user_db=user_db,
+                                                              description=description,
+                                                              is_remote=True)
+            created_assignments_dbs.append(assignment_db)
+
+        LOG.debug('New role assignments: %r' % (new_role_names))
+        LOG.debug('Updated role assignments: %r' % (updated_role_names))
+        LOG.debug('Removed role assignments: %r' % (removed_role_names))
+
+        LOG.debug('Created %s new remote role assignments for user "%s"' %
+                  (len(created_assignments_dbs), str(user_db)))
+
+        return created_assignments_dbs
