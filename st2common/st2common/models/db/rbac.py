@@ -89,9 +89,11 @@ class AuthBackendGroupToRoleMapDB(stormbase.StormFoundationDB):
     Attribute:
         group: Name of the remote auth backend group.
         role: A reference to the local RBAC role name.
+        description: Optional description for this mapping.
     """
     group = me.StringField(required=True, unique=True)
     roles = me.ListField(field=me.StringField())
+    description = me.StringField()
 
 
 # Specialized access objects

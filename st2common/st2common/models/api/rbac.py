@@ -232,7 +232,32 @@ class AuthGroupToRoleMapAssignmentFileFormatAPI(BaseAPI):
                     'type': 'string'
                 },
                 'required': True
-            }
+            },
+            'description': {
+                'type': 'string',
+                'description': 'Mapping description',
+                'required': False,
+                'default': None
+            },
         },
         'additionalProperties': False
     }
+
+    def validate(self, validate_role_exists=False):
+        # TODO: Throw if role doesnt exist, refactor in a common bvase class
+        # reuse above
+        # Parent JSON schema validation
+        cleaned = super(UserRoleAssignmentFileFormatAPI, self).validate()
+
+        # Custom validation
+        if validate_role_exists:
+            # Validate that the referenced roles exist in the db
+            role_dbs = get_all_roles()
+            role_names = [role_db.name for role_db in role_dbs]
+            roles = self.roles
+
+            for role in roles:
+                if role not in role_names:
+                    raise ValueError('Role "%s" doesn\'t exist in the database' % (role))
+
+        return cleaned

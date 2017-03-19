@@ -227,7 +227,8 @@ class RBACDefinitionsDBSyncer(object):
         # 2. Insert all mappings read from disk
         for group_to_role_map_api in group_to_role_map_apis:
             rbac_services.create_group_to_role_map(group=group_to_role_map_api.group,
-                                                   roles=group_to_role_map_api.roles)
+                                                   roles=group_to_role_map_api.roles,
+                                                   description=group_to_role_map_api.description)
 
         LOG.info('Group to role map definitions synchronized.')
 

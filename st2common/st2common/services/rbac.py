@@ -294,9 +294,10 @@ def get_all_group_to_role_maps():
     return result
 
 
-def create_group_to_role_map(group, roles):
+def create_group_to_role_map(group, roles, description=None):
     group_to_role_map_db = AuthBackendGroupToRoleMapDB(group=group,
-                                                       roles=roles)
+                                                       roles=roles,
+                                                       description=description)
 
     group_to_role_map_db = AuthBackendGroupToRoleMap.add_or_update(group_to_role_map_db)
     return group_to_role_map_db
