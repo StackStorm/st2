@@ -309,6 +309,7 @@ class RBACRemoteGroupToRoleSyncer(object):
         :type groups: ``list`` of ``str``
 
         :return: A list of mappings which have been created.
+        :rtype: ``list`` of :class:`UserRoleAssignmentDB`
         """
         extra = {'user_db': user_db, 'groups': groups}
         LOG.info('Synchronizing remote role assignments for user "%s"' % (str(user_db)),
@@ -343,19 +344,24 @@ class RBACRemoteGroupToRoleSyncer(object):
         # 3. Create role assignments for all the current groups
         created_assignments_dbs = []
         for mapping_db in mapping_dbs:
-            role_db = rbac_services.get_role_by_name(name=mapping_db.role)
+            extra['mapping_db'] = mapping_db
 
-            if not role_db:
-                LOG.info('Role with name "%s" for mapping "%s" not found, skipping assignment.' %
-                         (mapping_db.role, str(mapping_db)), extra=extra)
-                continue
+            for role_name in mapping_db.roles:
+                role_db = rbac_services.get_role_by_name(name=mapping_db.role)
 
-            description = ('Automatic role assignments based on the remote user group membership '
-                           '(%s)' % (str(mapping_db)))
-            assignment_db = rbac_services.assign_role_to_user(role_db=role_db, user_db=user_db,
-                                                              description=description,
-                                                              is_remote=True)
-            created_assignments_dbs.append(assignment_db)
+                if not role_db:
+                    # Gracefully skip assignment for role which doesn't exist in the db
+                    LOG.info('Role with name "%s" for mapping "%s" not found, skipping assignment.'
+                             % (role_name, str(mapping_db)), extra=extra)
+                    continue
+
+                description = ('Automatic role assignment based on the remote user membership in '
+                               'group "%s"' % (mapping_db.group))
+                assignment_db = rbac_services.assign_role_to_user(role_db=role_db, user_db=user_db,
+                                                                  description=description,
+                                                                  is_remote=True)
+                assert assignment_db.is_remote is True
+                created_assignments_dbs.append(assignment_db)
 
         LOG.debug('New role assignments: %r' % (new_role_names))
         LOG.debug('Updated role assignments: %r' % (updated_role_names))
