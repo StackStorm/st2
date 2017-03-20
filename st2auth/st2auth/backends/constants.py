@@ -13,12 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2tests.base import EventletTestCase
-from st2tests.base import DbTestCase
-from st2tests.base import DbModelTestCase
+"""
+Auth backend related constants.
+"""
+
+from st2common.util.enum import Enum
 
 __all__ = [
-    'EventletTestCase',
-    'DbTestCase',
-    'DbModelTestCase'
+    'AuthBackendCapability'
 ]
+
+
+class AuthBackendCapability(Enum):
+    # This auth backend can authenticate a user.
+    CAN_AUTHENTICATE_USER = 'can_authenticate_user'
+
+    # Auth backend can provide additional information about a particular user.
+    HAS_USER_INFORMATION = 'has_user_info'
+
+    # Auth backend can provide a group membership information for a particular user.
+    HAS_GROUP_INFORMATION = 'has_groups_info'

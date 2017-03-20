@@ -13,12 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2tests.base import EventletTestCase
-from st2tests.base import DbTestCase
-from st2tests.base import DbModelTestCase
+import abc
+import six
+
+from st2common import log as logging
+
 
 __all__ = [
-    'EventletTestCase',
-    'DbTestCase',
-    'DbModelTestCase'
+    'AsyncActionExecutionCallbackHandler',
 ]
+
+
+LOG = logging.getLogger(__name__)
+
+
+@six.add_metaclass(abc.ABCMeta)
+class AsyncActionExecutionCallbackHandler(object):
+
+    @staticmethod
+    @abc.abstractmethod
+    def callback(url, context, status, result):
+        raise NotImplementedError()

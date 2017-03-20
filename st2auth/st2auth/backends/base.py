@@ -17,6 +17,8 @@ import abc
 
 import six
 
+from st2auth.backends.constants import AuthBackendCapability
+
 __all__ = [
     'BaseAuthenticationBackend'
 ]
@@ -28,10 +30,31 @@ class BaseAuthenticationBackend(object):
     Base authentication class.
     """
 
+    # Capabilities offered by the auth backend
+    CAPABILITIES = (
+        AuthBackendCapability.CAN_AUTHENTICATE_USER
+    )
+
     @abc.abstractmethod
     def authenticate(self, username, password):
         pass
 
-    @abc.abstractmethod
     def get_user(self, username):
-        pass
+        """
+        Retrieve information (user account) for a particular user.
+
+        Note: Not all the auth backends may implement this.
+
+        :rtype: ``dict``
+        """
+        raise NotImplementedError('get_user() not implemented for this backend')
+
+    def get_user_groups(self, username):
+        """
+        Retrieve a list of groups a particular user is a member of.
+
+        Note: Not all the auth backends may implement this.
+
+        :rtype: ``list`` of ``str``
+        """
+        raise NotImplementedError('get_groups() not implemented for this backend')

@@ -21,9 +21,9 @@ import retrying
 from oslo_config import cfg
 from mistralclient.api import client as mistral
 
-from st2actions import handlers
 from st2common.constants import action as action_constants
 from st2common import log as logging
+from st2common.callback import base as callback
 from st2common.util.workflow import mistral as utils
 
 
@@ -40,11 +40,11 @@ STATUS_MAP = {
     action_constants.LIVEACTION_STATUS_TIMED_OUT: 'ERROR',
     action_constants.LIVEACTION_STATUS_ABANDONED: 'ERROR',
     action_constants.LIVEACTION_STATUS_CANCELING: 'RUNNING',
-    action_constants.LIVEACTION_STATUS_CANCELED: 'ERROR'
+    action_constants.LIVEACTION_STATUS_CANCELED: 'CANCELLED'
 }
 
 
-def get_handler():
+def get_instance():
     return MistralCallbackHandler
 
 
@@ -57,7 +57,7 @@ def get_action_execution_id_from_url(url):
     return match.group(2)
 
 
-class MistralCallbackHandler(handlers.ActionExecutionCallbackHandler):
+class MistralCallbackHandler(callback.AsyncActionExecutionCallbackHandler):
 
     @classmethod
     @retrying.retry(

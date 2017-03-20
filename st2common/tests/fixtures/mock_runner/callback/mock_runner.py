@@ -13,12 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2tests.base import EventletTestCase
-from st2tests.base import DbTestCase
-from st2tests.base import DbModelTestCase
+from st2common import log as logging
+from st2common.callback import base as callback
 
-__all__ = [
-    'EventletTestCase',
-    'DbTestCase',
-    'DbModelTestCase'
-]
+
+LOG = logging.getLogger(__name__)
+
+
+def get_instance():
+    return MockRunnerCallbackHandler
+
+
+class MockRunnerCallbackHandler(callback.AsyncActionExecutionCallbackHandler):
+
+    @classmethod
+    def callback(cls, url, context, status, result):
+        pass

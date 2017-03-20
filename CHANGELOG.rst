@@ -7,6 +7,48 @@ in development
 * Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
   directory name doesn't match the pack name (this might be the case with new pack management
   during development where local git repository directory name doesn't match pack name) (bug fix)
+* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
+  correctly fails on failure by default.
+* Fix a bug with default values from pack config schema not being passed via config to Python
+  runner actions and sensors if pack didn't contain a config file in ``/opt/stackstorm/configs``
+  directory. (bug fix)
+
+  Reported by Jon Middleton.
+* Make various improvements and changes to ``st2-run-pack-tests`` script so it works out of the box
+  on servers where StackStorm has been installed using packages. (improvement)
+* Removed support for medium-strength ciphers from default nginx configuration (#3244)
+* Fix concurrency related unit tests to support upgrade of the tooz library. (bug fix)
+* Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
+  StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
+  tooz for coordination. (improvement)
+* Fix Mistral workflow status when task is canceled. Currently, when a task is canceled, the
+  workflow status is set to error. The workflow status should be set to canceled. Also, when
+  a canceled action execution completes, the action execution will be updated from canceled
+  to its new status. This should not be the case because the action execution has already been
+  canceled. (bug fix)
+* Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
+  ``st2-self-check`` script. (improvement)
+* Fix a bug with authentication middleware not working correctly when supplying credentials in an
+  Authorization header using basic auth format when password contained a colon (``:``).
+
+  Note: Usernames with colon are still not supported. (bug fix)
+
+  Contributed by Carlos.
+* Refactor the action execution asynchronous callback functionality into the runner plugin
+  architecture. (improvement)
+* Update ``st2-run-pack-tests`` script so it doesn't try to install global pack test dependencies
+  (mock, unittest2, nose) when running in an environment where those dependencies are already
+  available.
+* Make sure remote command and script runner correctly close SSH connections after the action
+  execution has completed. (bug fix)
+
+  Reported by Nagy Krisztián.
+* Introduce new ``CAPABILITIES`` constant on auth backend classes. With this constant, auth
+  backends can advertise functionality they support (e.g. authenticate a user, retrieve information
+  about a particular user, retrieve a list of groups a particular user is a member of).
+  (new feature)
+* Linux file watch sensor is now disabled by default. To enable it, set ``enabled: true`` in
+  ``/opt/stackstorm/packs/linux/sensors/file_watch_sensor.yaml``
 
 2.2.0 - February 27, 2017
 -------------------------
@@ -87,6 +129,8 @@ in development
 * Fix a bug with not being able to apply some global permission types (permissions which are global
   and not specific to a resource) such as pack install, pack remove, pack search, etc. to a role
   using ``st2-apply-rbac-definitions``. (bug fix)
+* Fix a bug with pack configs API endpoint (``PUT /v1/configs/``) not working when RBAC was
+  enabled. (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------
@@ -118,18 +162,19 @@ in development
 
 * Pack management changes:
 
-  - Add new ``stackstorm_version`` and ``system`` fields to the pack.yaml metadata file. Value of the
-    first field can contain a specific StackStorm version with which the pack is designed to work
-    with (e.g. ``>=1.6.0,<2.2.0`` or ``>2.0.0``). This field is checked when installing / registering
-    a pack and installation is aborted if pack doesn't support the currently running StackStorm version.
-    Second field can contain an object with optional system / OS level dependencies.
-    (new feature)
+  - Add new ``stackstorm_version`` and ``system`` fields to the pack.yaml metadata file. Value of
+    the first field can contain a specific StackStorm version with which the pack is designed to
+    work with (e.g. ``>=1.6.0,<2.2.0`` or ``>2.0.0``). This field is checked when installing /
+    registering a pack and installation is aborted if pack doesn't support the currently running
+    StackStorm version. Second field can contain an object with optional system / OS level
+    dependencies. (new feature)
   - Add new ``contributors`` field to the pack metadata file. This field can contain a list of
     people who have contributed to the pack. The format is ``Name <email>``, e.g.
     ``Tomaz Muraus <tomaz@stackstorm.com>`` (new feature)
-  - Add support for default values and dynamic config values for nested config objects. (new feature, improvement)
-  - Add new ``st2-validate-pack-config`` tool for validating config file against a particular config
-    schema file. (new-feature)
+  - Add support for default values and dynamic config values for nested config objects.
+    (new feature, improvement)
+  - Add new ``st2-validate-pack-config`` tool for validating config file against a particular
+    config schema file. (new-feature)
   - Improved pack validation - now when the packs are registered we check that:
 
     + ``version`` attribute in the pack metadata file matches valid semver format (e.g
@@ -138,15 +183,16 @@ in development
     + Only valid word characters (``a-z``, ``0-9`` and ``_``) used for action parameter
       names. Previously, due to bug in the code, any character was allowed.
 
-    If validation fails, pack registration will fail. If you have an existing action or pack definition which
-    uses invalid characters, pack registration will fail. **You must update your packs**.
-  - For consistency with new pack name validation changes, sample ``hello-st2`` pack has been renamed
-    to ``hello_st2``.
+    If validation fails, pack registration will fail. If you have an existing action or pack
+    definition which uses invalid characters, pack registration will fail. **You must update
+    your packs**.
+  - For consistency with new pack name validation changes, sample ``hello-st2`` pack has been
+    renamed to ``hello_st2``.
   - Fix ``packs.uninstall`` action so it also deletes ``configs`` and ``policies`` which belong to
     the pack which is being uninstalled. (bug fix)
-  - Update ``packs.install`` action (``pack install`` command) to only load resources from the packs
-    which are being installed. Also update it and remove "restart sensor container" step from the
-    install workflow. This step hasn't been needed for a while now because sensor container
+  - Update ``packs.install`` action (``pack install`` command) to only load resources from the
+    packs which are being installed. Also update it and remove "restart sensor container" step from
+    the install workflow. This step hasn't been needed for a while now because sensor container
     dynamically reads a list of available sensors from the database and starts the sub processes.
     (improvement)
   - Remove ``packs.info`` action because ``.gitinfo`` file has been deprecated with the new pack
