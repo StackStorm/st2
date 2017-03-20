@@ -15,7 +15,7 @@
 
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
-from st2common.services.rbac import get_all_roles
+from st2common.services.rbac import validate_roles_exists
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import GLOBAL_PERMISSION_TYPES
 from st2common.util.uid import parse_uid
@@ -202,13 +202,7 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
         # Custom validation
         if validate_role_exists:
             # Validate that the referenced roles exist in the db
-            role_dbs = get_all_roles()
-            role_names = [role_db.name for role_db in role_dbs]
-            roles = self.roles
-
-            for role in roles:
-                if role not in role_names:
-                    raise ValueError('Role "%s" doesn\'t exist in the database' % (role))
+            validate_roles_exists(role_names=self.roles)
 
         return cleaned
 
@@ -244,20 +238,12 @@ class AuthGroupToRoleMapAssignmentFileFormatAPI(BaseAPI):
     }
 
     def validate(self, validate_role_exists=False):
-        # TODO: Throw if role doesnt exist, refactor in a common bvase class
-        # reuse above
         # Parent JSON schema validation
         cleaned = super(UserRoleAssignmentFileFormatAPI, self).validate()
 
         # Custom validation
         if validate_role_exists:
             # Validate that the referenced roles exist in the db
-            role_dbs = get_all_roles()
-            role_names = [role_db.name for role_db in role_dbs]
-            roles = self.roles
-
-            for role in roles:
-                if role not in role_names:
-                    raise ValueError('Role "%s" doesn\'t exist in the database' % (role))
+            validate_roles_exists(role_names=self.roles)
 
         return cleaned

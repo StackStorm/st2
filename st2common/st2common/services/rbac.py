@@ -45,7 +45,9 @@ __all__ = [
     'remove_permission_grant_for_resource_db',
 
     'get_all_group_to_role_maps',
-    'create_group_to_role_map'
+    'create_group_to_role_map',
+
+    'validate_roles_exists'
 ]
 
 
@@ -301,6 +303,21 @@ def create_group_to_role_map(group, roles, description=None):
 
     group_to_role_map_db = AuthBackendGroupToRoleMap.add_or_update(group_to_role_map_db)
     return group_to_role_map_db
+
+
+def validate_roles_exists(role_names):
+    """
+    Verify that the roles with the provided names exists in the system.
+
+    :param role_name: Name of the role.
+    :type role_name: ``str``
+    """
+    role_dbs = get_all_roles()
+    existing_role_names = [role_db.name for role_db in role_dbs]
+
+    for role_name in role_names:
+        if role_name not in existing_role_names:
+            raise ValueError('Role "%s" doesn\'t exist in the database' % (role_name))
 
 
 def _validate_resource_type(resource_db):
