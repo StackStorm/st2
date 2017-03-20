@@ -26,6 +26,8 @@ from st2common.persistence.auth import User
 from st2common.util.pecan_util import abort_request
 from st2common.services.access import create_token
 from st2common.models.api.auth import TokenAPI
+from st2common.models.db.auth import UserDB
+from st2common.rbac.syncer import RBACRemoteGroupToRoleSyncer
 from st2auth.backends import get_backend_instance
 
 LOG = logging.getLogger(__name__)
@@ -171,11 +173,24 @@ class StandaloneAuthHandler(AuthHandlerBase):
 
             # If remote group sync is enabled, sync the remote groups with local StackStorm roles
             if cfg.CONF.rbac.sync_remote_groups:
-                user_groups = self._auth_backend.get_user_groups(username=username)
                 # TODO: Sync user remote role assignments
+                user_groups = self._auth_backend.get_user_groups(username=username)
 
+                if not user_groups:
+                    # No groups, return early
+                    return token
+
+                user_db = UserDB(name=username)
+                syncer = RBACRemoteGroupToRoleSyncer(user_db=user_db, groups=user_groups)
+
+                try:
+                    syncer.sync()
+                except Exception as e:
+                    # Note: Failed sync is not fatal
+                    LOG.exception('Failed to sync remote groups')
+
+                return token
             return token
-
 
         LOG.audit('Invalid credentials provided', extra=extra)
         abort_request()
