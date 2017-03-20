@@ -22,7 +22,10 @@ from st2common import log as logging
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
 from st2common.models.api.trace import TraceContext
 from st2common.models.api.trigger import TriggerAPI
+from st2common.models.db.webhook import WebhookDB
 import st2common.services.triggers as trigger_service
+from st2common.rbac.types import PermissionType
+from st2common.rbac import utils as rbac_utils
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.router import abort
@@ -107,8 +110,13 @@ class WebhooksController(object):
         return triggers[0]
 
     # @request_user_has_webhook_permission(permission_type=PermissionType.WEBHOOK_SEND)
-    def post(self, hook, body, headers):
+    def post(self, hook, body, headers, requester_user):
         body = vars(body)
+
+        permission_type = PermissionType.WEBHOOK_SEND
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=WebhookDB(name=hook),
+                                                          permission_type=permission_type)
 
         headers = self._get_headers_as_dict(headers)
         # If webhook contains a trace-tag use that else create create a unique trace-tag.

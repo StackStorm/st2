@@ -1341,6 +1341,11 @@ paths:
           in: path
           description: Pack ref to retrieve config for the pack.
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Config for a particular pack.
@@ -1357,6 +1362,7 @@ paths:
             $ref: '#/definitions/Error'
     put:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.put
+      x-permissions: {{ PERMISSION_TYPE.PACK_CONFIG }}
       description: Create a new config for the action.
       parameters:
         - name: pack_ref
@@ -2963,6 +2969,10 @@ paths:
         - name: headers
           in: request
           description: List of headers attached to the request.
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '201':
           description: Single action being created

@@ -24,6 +24,10 @@ from st2common import log as logging
 from st2api.controllers.resource import ResourceController
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.exceptions.apivalidation import ValueValidationException
+from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.rbac.types import PermissionType
+from st2common.rbac import utils as rbac_utils
+from st2common.router import abort
 from st2common.services import packs as packs_service
 from st2common.models.api.pack import ConfigAPI
 from st2common.persistence.pack import Config
@@ -49,7 +53,6 @@ class PackConfigsController(ResourceController):
         # this case, RBAC is checked on the parent PackDB object
         self.get_one_db_method = packs_service.get_pack_by_ref
 
-    # @request_user_has_permission(permission_type=PermissionType.PACK_LIST)
     def get_all(self, **kwargs):
         """
         Retrieve configs for all the packs.
@@ -61,8 +64,7 @@ class PackConfigsController(ResourceController):
 
         return super(PackConfigsController, self)._get_all(**kwargs)
 
-    # @request_user_has_resource_db_permission(permission_type=PermissionType.PACK_VIEW)
-    def get_one(self, pack_ref):
+    def get_one(self, pack_ref, requester_user):
         """
         Retrieve config for a particular pack.
 
@@ -70,9 +72,18 @@ class PackConfigsController(ResourceController):
             GET /configs/<pack_ref>
         """
         # TODO: Make sure secret values are masked
+        try:
+            instance = packs_service.get_pack_by_ref(pack_ref=pack_ref)
+        except StackStormDBObjectNotFoundError:
+            msg = 'Unable to identify resource with pack_ref "%s".' % (pack_ref)
+            abort(http_client.NOT_FOUND, msg)
+
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=instance,
+                                                          permission_type=PermissionType.PACK_VIEW)
+
         return self._get_one_by_pack_ref(pack_ref=pack_ref)
 
-    # @request_user_has_permission(permission_type=PermissionType.PACK_CONFIG)
     def put(self, pack_uninstall_request, pack_ref):
         """
             Create a new config for a pack.

@@ -339,6 +339,17 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'payload': {'name': 'alias1', 'format': 'foo bar ponies',
                             'command': 'foo bar ponies',
                             'user': 'channel', 'source_channel': 'bar'}
+            },
+            # Webhook
+            {
+                'path': '/v1/webhooks/st2',
+                'method': 'POST',
+                'payload': {
+                    'trigger': 'some',
+                    'payload': {
+                        'some': 'thing'
+                    }
+                }
             }
         ]
 
