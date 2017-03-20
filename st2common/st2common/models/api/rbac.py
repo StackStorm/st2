@@ -159,6 +159,24 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
             return cleaned
 
 
+class BaseRoleAssigmentAPI(BaseAPI):
+    """
+    Base class for various derived role assignment classes which includes commmon functionality
+    such as validation.
+    """
+
+    def validate(self, validate_role_exists=False):
+        # Parent JSON schema validation
+        cleaned = super(BaseRoleAssigmentAPI, self).validate()
+
+        # Custom validation
+        if validate_role_exists:
+            # Validate that the referenced roles exist in the db
+            validate_roles_exists(role_names=self.roles)  # pylint: disable=no-member
+
+        return cleaned
+
+
 class UserRoleAssignmentFileFormatAPI(BaseAPI):
     schema = {
         'type': 'object',
@@ -196,14 +214,7 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
     }
 
     def validate(self, validate_role_exists=False):
-        # Parent JSON schema validation
         cleaned = super(UserRoleAssignmentFileFormatAPI, self).validate()
-
-        # Custom validation
-        if validate_role_exists:
-            # Validate that the referenced roles exist in the db
-            validate_roles_exists(role_names=self.roles)
-
         return cleaned
 
 
@@ -238,12 +249,5 @@ class AuthGroupToRoleMapAssignmentFileFormatAPI(BaseAPI):
     }
 
     def validate(self, validate_role_exists=False):
-        # Parent JSON schema validation
-        cleaned = super(UserRoleAssignmentFileFormatAPI, self).validate()
-
-        # Custom validation
-        if validate_role_exists:
-            # Validate that the referenced roles exist in the db
-            validate_roles_exists(role_names=self.roles)
-
+        cleaned = super(AuthGroupToRoleMapAssignmentFileFormatAPI, self).validate()
         return cleaned
