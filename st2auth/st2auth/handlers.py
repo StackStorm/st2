@@ -181,10 +181,10 @@ class StandaloneAuthHandler(AuthHandlerBase):
                     return token
 
                 user_db = UserDB(name=username)
-                syncer = RBACRemoteGroupToRoleSyncer(user_db=user_db, groups=user_groups)
+                syncer = RBACRemoteGroupToRoleSyncer()
 
                 try:
-                    syncer.sync()
+                    syncer.sync(user_db=user_db, groups=user_groups)
                 except Exception as e:
                     # Note: Failed sync is not fatal
                     LOG.exception('Failed to sync remote groups')
