@@ -48,7 +48,7 @@ class RBACDefinitionsLoader(object):
 
         self._role_definitions_path = os.path.join(rbac_definitions_path, 'roles/')
         self._role_assignments_path = os.path.join(rbac_definitions_path, 'assignments/')
-        self._role_maps_path = os.path.join(rbac_definitions_path, 'maps/')
+        self._role_maps_path = os.path.join(rbac_definitions_path, 'mappings/')
         self._meta_loader = MetaLoader()
 
     def load(self):
