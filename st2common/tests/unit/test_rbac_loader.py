@@ -200,10 +200,35 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertFalse(assignment_api.enabled)
 
     def test_load_group_to_role_mappings_empty_file(self):
-        pass
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(), 'rbac_invalid/mappings/empty.yaml')
+        file_paths = [file_path]
+
+        loader._get_group_to_role_maps_file_paths = mock.Mock()
+        loader._get_group_to_role_maps_file_paths.return_value = file_paths
+
+        expected_msg = 'Group to role map assignment file .+? is empty and invalid'
+        self.assertRaisesRegexp(ValueError, expected_msg, loader.load_group_to_role_maps)
 
     def test_load_group_to_role_mappings_missing_mandatory_attribute(self):
-        pass
+        loader = RBACDefinitionsLoader()
+
+        file_path = os.path.join(get_fixtures_base_path(),
+                                 'rbac_invalid/mappings/mapping_one_missing_roles.yaml')
+
+        expected_msg = '\'roles\' is a required property'
+        self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
+                                loader.load_group_to_role_map_assignment_from_file,
+                                file_path=file_path)
+
+        file_path = os.path.join(get_fixtures_base_path(),
+                                 'rbac_invalid/mappings/mapping_two_missing_group.yaml')
+
+        expected_msg = '\'group\' is a required property'
+        self.assertRaisesRegexp(jsonschema.ValidationError, expected_msg,
+                                loader.load_group_to_role_map_assignment_from_file,
+                                file_path=file_path)
 
     def test_load_group_to_role_mappings_success(self):
         loader = RBACDefinitionsLoader()
