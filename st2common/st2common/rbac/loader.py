@@ -154,7 +154,7 @@ class RBACDefinitionsLoader(object):
             raise ValueError(msg)
 
         role_definition_api = RoleDefinitionFileFormatAPI(**content)
-        role_definition_api.validate()
+        role_definition_api = role_definition_api.validate()
 
         return role_definition_api
 
@@ -175,7 +175,7 @@ class RBACDefinitionsLoader(object):
             raise ValueError(msg)
 
         user_role_assignment_api = UserRoleAssignmentFileFormatAPI(**content)
-        user_role_assignment_api.validate()
+        user_role_assignment_api = user_role_assignment_api.validate()
 
         return user_role_assignment_api
 
@@ -187,7 +187,7 @@ class RBACDefinitionsLoader(object):
             raise ValueError(msg)
 
         group_to_role_map_api = AuthGroupToRoleMapAssignmentFileFormatAPI(**content)
-        group_to_role_map_api.validate()
+        group_to_role_map_api = group_to_role_map_api.validate()
 
         return group_to_role_map_api
 
