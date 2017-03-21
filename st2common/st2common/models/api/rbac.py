@@ -225,8 +225,7 @@ class AuthGroupToRoleMapAssignmentFileFormatAPI(BaseAPI):
             'group': {
                 'type': 'string',
                 'description': 'Name of the group as returned by auth backend.',
-                'required': True,
-                'default': None
+                'required': True
             },
             'roles': {
                 'type': 'array',
