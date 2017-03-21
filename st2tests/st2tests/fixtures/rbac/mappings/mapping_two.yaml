@@ -1,0 +1,7 @@
+---
+  group: "CN=stormers,OU=groups,DC=stackstorm,DC=net"
+  description: "Grant 3 roles to stormers group members"
+  roles:
+    - "role_one"
+    - "role_two"
+    - "role_three"
