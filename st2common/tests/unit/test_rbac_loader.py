@@ -50,7 +50,7 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertTrue('rule_view' in role_definition_api.permission_grants[1]['permission_types'])
         self.assertEqual(role_definition_api.permission_grants[2]['permission_types'],
                          ['action_execute'])
-        self.assertTrue('resource_uid' not in role_definition_api.permission_grants[3])
+        self.assertEqual(role_definition_api.permission_grants[3]['resource_uid'], None)
         self.assertEqual(role_definition_api.permission_grants[3]['permission_types'],
                          ['action_list', 'rule_list'])
 
