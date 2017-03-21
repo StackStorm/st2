@@ -156,7 +156,7 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                                    (permission_type, valid_global_permission_types))
                         raise ValueError(message)
 
-            return cleaned
+        return cleaned
 
 
 class BaseRoleAssigmentAPI(BaseAPI):
