@@ -17,6 +17,7 @@ import pecan
 from oslo_config import cfg
 
 from st2auth import config as st2auth_config
+from st2auth.cmd.api import validate_auth_backend_is_correctly_configured
 from st2common import hooks
 from st2common import log as logging
 from st2common.util.monkey_patch import monkey_patch
@@ -60,6 +61,8 @@ def setup_app(config=None):
                      register_internal_trigger_types=False,
                      run_migrations=False,
                      config_args=config.config_args)
+
+        validate_auth_backend_is_correctly_configured()
 
     if not config:
         # standalone HTTP server case
