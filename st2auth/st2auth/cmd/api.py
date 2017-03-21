@@ -24,12 +24,12 @@ from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.util.monkey_patch import monkey_patch
-from st2common.constants.auth import VALID_MODES
-from st2auth.backends import get_backend_instance as get_auth_backend_instance
-from st2auth.backends.constants import AuthBackendCapability
 from st2auth import config
 config.register_opts()
+
 from st2auth import app
+from st2auth.validation import validate_auth_backend_is_correctly_configured
+
 
 __all__ = [
     'main'
@@ -38,22 +38,6 @@ __all__ = [
 monkey_patch()
 
 LOG = logging.getLogger(__name__)
-
-
-def validate_auth_backend_is_correctly_configured():
-    # 1. Verify correct mode is specified
-    if cfg.CONF.auth.mode not in VALID_MODES:
-        raise ValueError('Valid modes are: %s' % (','.join(VALID_MODES)))
-
-    # 2. Verify that auth backend used by the user exposes group information
-    if cfg.CONF.rbac.enable and cfg.CONF.rbac.sync_remote_groups:
-        auth_backend = get_auth_backend_instance(name=cfg.CONF.auth.backend)
-        capabilies = getattr(auth_backend, 'CAPABILITIES', ())
-        if AuthBackendCapability.HAS_GROUP_INFORMATION not in capabilies:
-            msg = ('Configured auth backend doesn\'t expose user group information. Disable '
-                   'remote group synchronization or use a different backend which exposes '
-                   'user group membership information.')
-            raise ValueError(msg)
 
 
 def _setup():
