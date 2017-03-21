@@ -1,7 +1,6 @@
 import uuid
 
 from mistralclient.api import base as mistralclient_base
-from mistralclient.api import client as mistral
 from oslo_config import cfg
 import retrying
 
@@ -95,7 +94,12 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: (``str``, ``dict``)
         """
-        execution = client.executions.get(exec_id)
+        try:
+            execution = client.executions.get(exec_id)
+        except mistralclient_base.APIException as mistral_exc:
+            if 'not found' in mistral_exc.message:
+                raise exceptions.ReferenceNotFoundError(mistral_exc.message)
+            raise mistral_exc
 
         result = jsonify.try_loads(execution.output) if execution.state in DONE_STATES else {}
 
@@ -113,10 +117,15 @@ class MistralResultsQuerier(Querier):
         :type exec_id: ``str``
         :rtype: ``list``
         """
-        wf_tasks = [
-            client.tasks.get(task.id)
-            for task in client.tasks.list(workflow_execution_id=exec_id)
-        ]
+        wf_tasks = []
+
+        try:
+            for task in client.tasks.list(workflow_execution_id=exec_id):
+                wf_tasks.append(client.tasks.get(task.id))
+        except mistralclient_base.APIException as mistral_exc:
+            if 'not found' in mistral_exc.message:
+                raise exceptions.ReferenceNotFoundError(mistral_exc.message)
+            raise mistral_exc
 
         return [self._format_task_result(task=wf_task.to_dict()) for wf_task in wf_tasks]
 

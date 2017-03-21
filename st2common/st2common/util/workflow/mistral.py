@@ -283,6 +283,7 @@ def get_client(base_url, auth_token=None):
             mistral_url=base_url,
             auth_type='st2',
             auth_token=auth_token,
+            api_key=cfg.CONF.mistral.st2_api_key,
             cacert=cfg.CONF.mistral.cacert,
             insecure=cfg.CONF.mistral.insecure,
         )

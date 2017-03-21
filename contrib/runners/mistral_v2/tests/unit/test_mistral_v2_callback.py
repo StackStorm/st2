@@ -124,7 +124,7 @@ class MistralRunnerCallbackTest(DbTestCase):
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_text(self):
-        self.callback_calss.callback('http://127.0.0.1:8989/v2/action_executions/12345',
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345',
                                      {'parent': {'execution_id': uuid.uuid4().hex}},
                                      action_constants.LIVEACTION_STATUS_SUCCEEDED,
                                      '<html></html>')
