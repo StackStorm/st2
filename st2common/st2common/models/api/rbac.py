@@ -227,6 +227,19 @@ class AuthGroupToRoleMapAssignmentFileFormatAPI(BaseAPI):
                 'description': 'Name of the group as returned by auth backend.',
                 'required': True
             },
+            'description': {
+                'type': 'string',
+                'description': 'Mapping description',
+                'required': False,
+                'default': None
+            },
+            'enabled': {
+                'type': 'boolean',
+                'description': ('Flag indicating if this mapping is enabled. Note: Disabled '
+                                'assignments are simply ignored when loading definitions from '
+                                ' disk.'),
+                'default': True
+            },
             'roles': {
                 'type': 'array',
                 'description': ('StackStorm roles which are assigned to each user which belongs '
@@ -237,12 +250,7 @@ class AuthGroupToRoleMapAssignmentFileFormatAPI(BaseAPI):
                 },
                 'required': True
             },
-            'description': {
-                'type': 'string',
-                'description': 'Mapping description',
-                'required': False,
-                'default': None
-            },
+
         },
         'additionalProperties': False
     }

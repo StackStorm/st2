@@ -132,6 +132,11 @@ class RBACDefinitionsLoader(object):
             group_to_role_map_api = self.load_group_to_role_map_assignment_from_file(
                 file_path=file_path)
 
+            enabled = getattr(group_to_role_map_api, 'enabled', True)
+            if not enabled:
+                LOG.debug('Skipping disabled mapping "%s"' % (str(group_to_role_map_api)))
+                continue
+
             group_name = group_to_role_map_api.group
             result[group_name] = group_to_role_map_api
 
