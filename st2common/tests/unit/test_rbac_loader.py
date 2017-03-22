@@ -239,6 +239,7 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertEqual(role_mapping_api.group, 'some ldap group')
         self.assertEqual(role_mapping_api.roles, ['pack_admin'])
         self.assertEqual(role_mapping_api.description, None)
+        self.assertTrue(role_mapping_api.enabled)
 
         file_path = os.path.join(get_fixtures_base_path(), 'rbac/mappings/mapping_two.yaml')
         role_mapping_api = loader.load_group_to_role_map_assignment_from_file(file_path=file_path)
@@ -246,3 +247,4 @@ class RBACDefinitionsLoaderTestCase(unittest2.TestCase):
         self.assertEqual(role_mapping_api.group, 'CN=stormers,OU=groups,DC=stackstorm,DC=net')
         self.assertEqual(role_mapping_api.roles, ['role_one', 'role_two', 'role_three'])
         self.assertEqual(role_mapping_api.description, 'Grant 3 roles to stormers group members')
+        self.assertFalse(role_mapping_api.enabled)
