@@ -19,8 +19,6 @@ import mock
 from oslo_config import cfg
 import webob.exc
 
-from tests.base import FunctionalTest
-
 from st2tests.base import CleanDbTestCase
 import st2auth.handlers as handlers
 from st2auth.backends.base import BaseAuthenticationBackend
@@ -245,40 +243,89 @@ class HandlerTestCase(CleanDbTestCase):
             remote_user=None, authorization=authorization)
         self.assertEqual(token.user, 'username')
 
-    def test_group_to_role_sync_is_performed_on_successful_auth(self):
+    def test_group_to_role_sync_is_performed_on_successful_auth_no_groups_returned(self):
         # Enable group sync
         cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
         cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
 
+        user_db = self.users['user_1']
         h = handlers.StandaloneAuthHandler()
         request = {}
 
-        # No groups configured should return early
-        h._auth_backend.groups = []
-
-        token = h.handle_auth(
-            request, headers={}, remote_addr=None,
-            remote_user=None, authorization=('basic', DUMMY_CREDS))
-        self.assertEqual(token.user, 'auser')
-
-        # Single group configured but no group mapping in the database
-        user_db = self.users['user_1']
-        h._auth_backend.groups = [
-            'CN=stormers,OU=groups,DC=stackstorm,DC=net'
-        ]
-
-        # Single mapping, new remote assignment should be created
-        create_group_to_role_map(group='CN=stormers,OU=groups,DC=stackstorm,DC=net',
-                                 roles=['mock_role_3', 'mock_role_4'])
         # Verify initial state
         role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
         self.assertEqual(len(role_dbs), 2)
         self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
         self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
 
-        token = h.handle_auth(
-            request, headers={}, remote_addr=None,
-            remote_user=None, authorization=('basic', DUMMY_CREDS))
+        # No groups configured should return early
+        h._auth_backend.groups = []
+
+        token = h.handle_auth(request, headers={}, remote_addr=None, remote_user=None,
+                              authorization=('basic', DUMMY_CREDS))
+        self.assertEqual(token.user, 'auser')
+
+        # Verify nothing has changed
+        role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+        self.assertEqual(len(role_dbs), 2)
+        self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
+        self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
+
+    def test_group_to_role_sync_is_performed_on_successful_auth_single_group_no_mappings(self):
+        # Enable group sync
+        cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
+        cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
+
+        user_db = self.users['user_1']
+        h = handlers.StandaloneAuthHandler()
+        request = {}
+
+        # Verify initial state
+        role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+        self.assertEqual(len(role_dbs), 2)
+        self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
+        self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
+
+        # Single group configured but no group mapping in the database
+        h._auth_backend.groups = [
+            'CN=stormers,OU=groups,DC=stackstorm,DC=net'
+        ]
+
+        token = h.handle_auth(request, headers={}, remote_addr=None, remote_user=None,
+                              authorization=('basic', DUMMY_CREDS))
+        self.assertEqual(token.user, 'auser')
+
+        # Verify nothing has changed
+        role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+        self.assertEqual(len(role_dbs), 2)
+        self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
+        self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
+
+    def test_group_to_role_sync_is_performed_on_successful_auth_with_groups_and_mappings(self):
+        # Enable group sync
+        cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
+        cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
+
+        user_db = self.users['user_1']
+        h = handlers.StandaloneAuthHandler()
+        request = {}
+
+        # Single mapping, new remote assignment should be created
+        create_group_to_role_map(group='CN=stormers,OU=groups,DC=stackstorm,DC=net',
+                                 roles=['mock_role_3', 'mock_role_4'])
+
+        # Verify initial state
+        role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+        self.assertEqual(len(role_dbs), 2)
+        self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
+        self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
+
+        h._auth_backend.groups = [
+            'CN=stormers,OU=groups,DC=stackstorm,DC=net'
+        ]
+
+        token = h.handle_auth(request, headers={}, remote_addr=None, remote_user=None,
+                              authorization=('basic', DUMMY_CREDS))
         self.assertEqual(token.user, 'auser')
 
         # Verify a new role assignments based on the group mapping has been created
@@ -288,5 +335,3 @@ class HandlerTestCase(CleanDbTestCase):
         self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
         self.assertEqual(role_dbs[2], self.roles['mock_role_3'])
         self.assertEqual(role_dbs[3], self.roles['mock_role_4'])
-
-
