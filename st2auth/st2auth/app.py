@@ -34,8 +34,6 @@ LOG = logging.getLogger(__name__)
 def setup_app(config={}):
     LOG.info('Creating st2auth: %s as OpenAPI app.', VERSION_STRING)
 
-    validate_auth_backend_is_correctly_configured()
-
     is_gunicorn = config.get('is_gunicorn', False)
     if is_gunicorn:
         # Note: We need to perform monkey patching in the worker. If we do it in
@@ -53,6 +51,8 @@ def setup_app(config={}):
                      register_internal_trigger_types=False,
                      run_migrations=False,
                      config_args=config.get('config_args', None))
+
+    validate_auth_backend_is_correctly_configured()
 
     router = Router(debug=cfg.CONF.auth.debug)
 
