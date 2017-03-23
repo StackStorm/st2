@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
-from pecan import abort
+from oslo_config import cfg
+
 import six
 from mongoengine import ValidationError
 
@@ -25,16 +25,16 @@ from st2common.constants.keyvalue import FULL_USER_SCOPE, USER_SCOPE, ALLOWED_SC
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.exceptions.keyvalue import CryptoKeyNotSetupException, InvalidScopeException
 from st2common.models.api.keyvalue import KeyValuePairAPI
-from st2common.models.api.keyvalue import KeyValuePairSetAPI
-from st2common.models.api.base import jsexpose
+from st2common.models.db.auth import UserDB
 from st2common.persistence.keyvalue import KeyValuePair
 from st2common.services import coordination
 from st2common.services.keyvalues import get_key_reference
-from st2common.util.api import get_requester
 from st2common.util.keyvalue import get_datastore_full_scope
 from st2common.exceptions.rbac import AccessDeniedError
-from st2common.rbac.utils import request_user_is_admin
-from st2common.rbac.utils import assert_request_user_is_admin_if_user_query_param_is_provided
+from st2common.rbac import utils as rbac_utils
+from st2common.router import abort
+from st2common.router import Response
+from st2common.rbac.utils import assert_user_is_admin_if_user_query_param_is_provided
 
 http_client = six.moves.http_client
 
@@ -62,8 +62,7 @@ class KeyValuePairController(ResourceController):
         self._coordinator = coordination.get_coordinator()
         self.get_one_db_method = self._get_by_name
 
-    @jsexpose(arg_types=[str, str, str, bool])
-    def get_one(self, name, scope=FULL_SYSTEM_SCOPE, user=None, decrypt=False):
+    def get_one(self, name, scope=FULL_SYSTEM_SCOPE, user=None, requester_user=None, decrypt=False):
         """
             List key by name.
 
@@ -77,18 +76,23 @@ class KeyValuePairController(ResourceController):
             # Providing a user implies a user scope
             scope = FULL_USER_SCOPE
 
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
+
         scope = get_datastore_full_scope(scope)
         self._validate_scope(scope=scope)
-        requester_user = get_requester()
-        user = user or requester_user
-        is_admin = request_user_is_admin(request=pecan.request)
+
+        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
 
         # User needs to be either admin or requesting item for itself
-        self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin)
+        self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin,
+                                               requester_user=requester_user)
+
+        user = user or requester_user.name
 
         # Validate that the authenticated user is admin if user query param is provided
-        assert_request_user_is_admin_if_user_query_param_is_provided(request=pecan.request,
-                                                                     user=user)
+        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                             user=user)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         from_model_kwargs = {'mask_secrets': not decrypt}
@@ -100,8 +104,8 @@ class KeyValuePairController(ResourceController):
 
         return kvp_api
 
-    @jsexpose(arg_types=[str, str, str, bool])
-    def get_all(self, prefix=None, scope=FULL_SYSTEM_SCOPE, user=None, decrypt=False, **kwargs):
+    def get_all(self, prefix=None, scope=FULL_SYSTEM_SCOPE, user=None, requester_user=None,
+                decrypt=False, **kwargs):
         """
             List all keys.
 
@@ -115,22 +119,26 @@ class KeyValuePairController(ResourceController):
             # Providing a user implies a user scope
             scope = FULL_USER_SCOPE
 
-        scope = get_datastore_full_scope(scope)
-        requester_user = get_requester()
-        user = user or requester_user
-        is_all_scope = (scope == ALL_SCOPE)
-        is_admin = request_user_is_admin(request=pecan.request)
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
 
+        scope = get_datastore_full_scope(scope)
+        is_all_scope = (scope == ALL_SCOPE)
+
+        is_admin = rbac_utils.user_is_admin(user_db=requester_user)
         if is_all_scope and not is_admin:
             msg = '"all" scope requires administrator access'
             raise AccessDeniedError(message=msg, user_db=requester_user)
 
         # User needs to be either admin or requesting items for themselves
-        self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin)
+        self._validate_decrypt_query_parameter(decrypt=decrypt, scope=scope, is_admin=is_admin,
+                                               requester_user=requester_user)
+
+        user = user or requester_user.name
 
         # Validate that the authenticated user is admin if user query param is provided
-        assert_request_user_is_admin_if_user_query_param_is_provided(request=pecan.request,
-                                                                     user=user)
+        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                             user=user)
 
         from_model_kwargs = {'mask_secrets': not decrypt}
         kwargs['prefix'] = prefix
@@ -143,7 +151,7 @@ class KeyValuePairController(ResourceController):
             # Make sure we only returned values scoped to current user
             if kwargs['prefix']:
                 kwargs['prefix'] = get_key_reference(name=kwargs['prefix'], scope=scope,
-                                                     user=requester_user)
+                                                     user=user)
             else:
                 kwargs['prefix'] = get_key_reference(name='', scope=scope,
                                                      user=user)
@@ -152,24 +160,25 @@ class KeyValuePairController(ResourceController):
                                                                 **kwargs)
         return kvp_apis
 
-    @jsexpose(arg_types=[str, str, str], body_cls=KeyValuePairSetAPI)
-    def put(self, kvp, name, scope=FULL_SYSTEM_SCOPE):
+    def put(self, kvp, name, requester_user=None, scope=FULL_SYSTEM_SCOPE):
         """
         Create a new entry or update an existing one.
         """
         if not scope:
             scope = FULL_SYSTEM_SCOPE
-        requester_user = get_requester()
+
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
 
         scope = getattr(kvp, 'scope', scope)
         scope = get_datastore_full_scope(scope)
         self._validate_scope(scope=scope)
 
-        user = getattr(kvp, 'user', requester_user) or requester_user
+        user = getattr(kvp, 'user', requester_user.name) or requester_user.name
 
         # Validate that the authenticated user is admin if user query param is provided
-        assert_request_user_is_admin_if_user_query_param_is_provided(request=pecan.request,
-                                                                     user=user)
+        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                             user=user)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
@@ -214,8 +223,7 @@ class KeyValuePairController(ResourceController):
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
         return kvp_api
 
-    @jsexpose(arg_types=[str, str, str], status_code=http_client.NO_CONTENT)
-    def delete(self, name, scope=FULL_SYSTEM_SCOPE, user=None):
+    def delete(self, name, scope=FULL_SYSTEM_SCOPE, requester_user=None, user=None):
         """
             Delete the key value pair.
 
@@ -225,15 +233,17 @@ class KeyValuePairController(ResourceController):
         if not scope:
             scope = FULL_SYSTEM_SCOPE
 
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
+
         scope = get_datastore_full_scope(scope)
         self._validate_scope(scope=scope)
 
-        requester_user = get_requester()
-        user = user or requester_user
+        user = user or requester_user.name
 
         # Validate that the authenticated user is admin if user query param is provided
-        assert_request_user_is_admin_if_user_query_param_is_provided(request=pecan.request,
-                                                                     user=user)
+        assert_user_is_admin_if_user_query_param_is_provided(user_db=requester_user,
+                                                             user=user)
 
         key_ref = get_key_reference(scope=scope, name=name, user=user)
         lock_name = self._get_lock_name_for_key(name=key_ref, scope=scope)
@@ -263,6 +273,8 @@ class KeyValuePairController(ResourceController):
         extra = {'kvp_db': kvp_db}
         LOG.audit('KeyValuePair deleted. KeyValuePair.id=%s' % (kvp_db.id), extra=extra)
 
+        return Response(status=http_client.NO_CONTENT)
+
     def _get_lock_name_for_key(self, name, scope=FULL_SYSTEM_SCOPE):
         """
         Retrieve a coordination lock name for the provided datastore item name.
@@ -273,13 +285,11 @@ class KeyValuePairController(ResourceController):
         lock_name = 'kvp-crud-%s.%s' % (scope, name)
         return lock_name
 
-    def _validate_decrypt_query_parameter(self, decrypt, scope, is_admin):
+    def _validate_decrypt_query_parameter(self, decrypt, scope, is_admin, requester_user):
         """
         Validate that the provider user is either admin or requesting to decrypt value for
         themselves.
         """
-        requester_user = get_requester()
-
         is_user_scope = (scope == USER_SCOPE or scope == FULL_USER_SCOPE)
         if decrypt and (not is_user_scope and not is_admin):
             msg = 'Decrypt option requires administrator access'
@@ -289,3 +299,6 @@ class KeyValuePairController(ResourceController):
         if scope not in ALLOWED_SCOPES:
             msg = 'Scope %s is not in allowed scopes list: %s.' % (scope, ALLOWED_SCOPES)
             raise ValueError(msg)
+
+
+key_value_pair_controller = KeyValuePairController()

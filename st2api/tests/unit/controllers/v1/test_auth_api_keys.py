@@ -13,11 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
-import pecan
 import random
 import string
-import unittest
 
 from oslo_config import cfg
 
@@ -110,7 +107,7 @@ class TestApiKeyController(FunctionalTest):
 
     def test_get_show_secrets(self):
 
-        resp = self.app.get('/v1/apikeys/?show_secrets=True')
+        resp = self.app.get('/v1/apikeys?show_secrets=True')
         self.assertEqual(resp.status_int, 200)
         for key in resp.json:
             self.assertNotEqual(key['key_hash'], MASKED_ATTRIBUTE_VALUE)
@@ -120,14 +117,14 @@ class TestApiKeyController(FunctionalTest):
         api_key = {
             'user': 'herge'
         }
-        resp1 = self.app.post_json('/v1/apikeys/', api_key)
+        resp1 = self.app.post_json('/v1/apikeys', api_key)
         self.assertEqual(resp1.status_int, 201)
         self.assertTrue(resp1.json['key'], 'Key should be non-None.')
         self.assertNotEqual(resp1.json['key'], MASKED_ATTRIBUTE_VALUE,
                             'Key should not be masked.')
 
         # should lead to creation of another key
-        resp2 = self.app.post_json('/v1/apikeys/', api_key)
+        resp2 = self.app.post_json('/v1/apikeys', api_key)
         self.assertEqual(resp2.status_int, 201)
         self.assertTrue(resp2.json['key'], 'Key should be non-None.')
         self.assertNotEqual(resp2.json['key'], MASKED_ATTRIBUTE_VALUE, 'Key should not be masked.')
@@ -144,7 +141,7 @@ class TestApiKeyController(FunctionalTest):
             'user': 'herge',
             'key_hash': 'ABCDE'
         }
-        resp1 = self.app.post_json('/v1/apikeys/', api_key)
+        resp1 = self.app.post_json('/v1/apikeys', api_key)
         self.assertEqual(resp1.status_int, 201)
         self.assertEqual(resp1.json['key'], None, 'Key should be None.')
 
@@ -187,18 +184,4 @@ class TestApiKeyController(FunctionalTest):
         self.assertTrue(put_resp.json['faultstring'])
 
     def test_post_no_user_fail(self):
-        self.app.post_json('/v1/apikeys/', {}, expect_errors=True)
-
-    @unittest.skip
-    def test_post_no_user_success(self):
-        type(pecan.request).context = mock.PropertyMock(return_value=PECAN_CONTEXT)
-        try:
-            resp = self.app.post_json('/v1/apikeys/', {})
-            self.assertEqual(resp.status_int, 201)
-            self.assertTrue(resp.json['key'], 'Key should be non-None.')
-            self.assertEqual(resp.json['user'], USERNAME, 'User should be from auth context.')
-
-            resp = self.app.delete('/v1/apikeys/%s' % resp.json['id'])
-            self.assertEqual(resp.status_int, 204)
-        finally:
-            type(pecan.request).context = {}
+        self.app.post_json('/v1/apikeys', {}, expect_errors=True)

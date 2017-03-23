@@ -75,7 +75,7 @@ def _run_server():
     LOG.info('(PID=%s) ST2 Auth API is serving on %s://%s:%s.', os.getpid(),
              'https' if use_ssl else 'http', host, port)
 
-    wsgi.server(socket, app.setup_app())
+    wsgi.server(socket, app.setup_app(), log=LOG, log_output=False)
     return 0
 
 

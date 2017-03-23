@@ -41,6 +41,7 @@ HOSTNAME = socket.gethostname()
 GELF_SPEC_VERSION = '1.1'
 
 COMMON_ATTRIBUTE_NAMES = [
+    'name',
     'process',
     'processName',
     'module',

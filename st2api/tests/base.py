@@ -14,11 +14,9 @@
 # limitations under the License.
 
 import mock
-import pecan
-from pecan.testing import load_test_app
 from oslo_config import cfg
 
-
+from st2api import app
 import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2common.rbac.types import SystemRole
 from st2common.persistence.auth import User
@@ -26,8 +24,10 @@ from st2common.persistence.rbac import UserRoleAssignment
 from st2common.models.db.auth import UserDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.rbac.migrations import run_all as run_all_rbac_migrations
+from st2common.router import Router
 from st2tests.base import DbTestCase
 from st2tests.base import CleanDbTestCase
+from st2tests.api import TestApp
 import st2tests.config as tests_config
 
 
@@ -51,32 +51,17 @@ class FunctionalTest(DbTestCase):
 
         cfg.CONF.set_override(name='enable', override=False, group='rbac')
 
-        opts = cfg.CONF.api_pecan
-        cfg_dict = {
-            'app': {
-                'root': opts.root,
-                'template_path': opts.template_path,
-                'modules': opts.modules,
-                'debug': opts.debug,
-                'auth_enable': opts.auth_enable,
-                'errors': {'__force_dict__': True},
-                'guess_content_type_from_ext': False
-            }
-        }
-
         # TODO(manas) : register action types here for now. RunnerType registration can be moved
         # to posting to /runnertypes but that implies implementing POST.
         runners_registrar.register_runners()
 
-        cls.app = load_test_app(config=cfg_dict)
+        cls.app = TestApp(app.setup_app())
 
 
 class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
     """
     Base test case class for testing API controllers with RBAC enabled.
     """
-
-    pecan_request_context_mock = None
 
     @classmethod
     def setUpClass(cls):
@@ -118,19 +103,16 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
     def tearDown(self):
         super(APIControllerWithRBACTestCase, self).tearDown()
 
-        # Unpatch pecan.request.context (if patched)
-        if self.pecan_request_context_mock:
-            self.pecan_request_context_mock.stop()
-            del(type(pecan.request).context)
+        if self.request_context_mock:
+            self.request_context_mock.stop()
+            del(Router.mock_context)
 
     def use_user(self, user_db):
         """
         Select a user which is to be used by the HTTP request following this call.
         """
         mock_context = {
-            'auth': {
-                'user': user_db
-            }
+            'user': user_db
         }
-        self.pecan_request_context_mock = mock.PropertyMock(return_value=mock_context)
-        type(pecan.request).context = self.pecan_request_context_mock
+        self.request_context_mock = mock.PropertyMock(return_value=mock_context)
+        Router.mock_context = self.request_context_mock

@@ -16,21 +16,19 @@
 import copy
 
 from mongoengine import ValidationError
-import pecan
-from pecan import abort
 from six.moves import http_client
 
 from st2api.controllers import resource
 from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.models.api.base import jsexpose
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.models.db.policy import PolicyTypeReference
 from st2common.models.system.common import InvalidReferenceError
 from st2common.persistence.policy import PolicyType, Policy
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
-
+from st2common.router import abort
+from st2common.router import Response
 
 LOG = logging.getLogger(__name__)
 
@@ -49,17 +47,13 @@ class PolicyTypeController(resource.ResourceController):
 
     include_reference = False
 
-    @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         return self._get_one(ref_or_id)
 
-    @jsexpose()
     def get_all(self, **kwargs):
         return self._get_all(**kwargs)
 
     def _get_one(self, ref_or_id):
-        LOG.info('GET %s with ref_or_id=%s', pecan.request.path, ref_or_id)
-
         instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         result = self.model.from_model(instance)
 
@@ -68,21 +62,20 @@ class PolicyTypeController(resource.ResourceController):
             name = getattr(result, 'name', None)
             result.ref = PolicyTypeReference(resource_type=resource_type, name=name).ref
 
-        LOG.debug('GET %s with ref_or_id=%s, client_result=%s',
-                  pecan.request.path, ref_or_id, result)
-
         return result
 
     def _get_all(self, **kwargs):
-        result = super(PolicyTypeController, self)._get_all(**kwargs)
+        resp = super(PolicyTypeController, self)._get_all(**kwargs)
 
         if self.include_reference:
+            result = resp.json
             for item in result:
-                resource_type = getattr(item, 'resource_type', None)
-                name = getattr(item, 'name', None)
-                item.ref = PolicyTypeReference(resource_type=resource_type, name=name).ref
+                resource_type = item.get('resource_type', None)
+                name = item.get('name', None)
+                item['ref'] = PolicyTypeReference(resource_type=resource_type, name=name).ref
+            resp.json = result
 
-        return result
+        return resp
 
     def _get_by_ref_or_id(self, ref_or_id):
         if PolicyTypeReference.is_reference(ref_or_id):
@@ -144,7 +137,12 @@ class PolicyController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
-    @jsexpose(body_cls=PolicyAPI, status_code=http_client.CREATED)
+    def get_one(self, ref_or_id):
+        return self._get_one(ref_or_id)
+
+    def get_all(self, **kwargs):
+        return self._get_all(**kwargs)
+
     def post(self, instance):
         """
             Create a new policy.
@@ -161,9 +159,10 @@ class PolicyController(resource.ContentPackResourceController):
         LOG.debug('%s created object: %s', op, db_model)
         LOG.audit('Policy created. Policy.id=%s' % (db_model.id), extra={'policy_db': db_model})
 
-        return self.model.from_model(db_model)
+        exec_result = self.model.from_model(db_model)
 
-    @jsexpose(arg_types=[str], body_cls=PolicyAPI)
+        return Response(json=exec_result, status=http_client.CREATED)
+
     def put(self, instance, ref_or_id):
         op = 'PUT /policies/%s/' % ref_or_id
 
@@ -192,9 +191,10 @@ class PolicyController(resource.ContentPackResourceController):
         LOG.debug('%s updated object: %s', op, db_model)
         LOG.audit('Policy updated. Policy.id=%s' % (db_model.id), extra={'policy_db': db_model})
 
-        return self.model.from_model(db_model)
+        exec_result = self.model.from_model(db_model)
 
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
+        return Response(json=exec_result, status=http_client.OK)
+
     def delete(self, ref_or_id):
         """
             Delete a policy.
@@ -224,4 +224,9 @@ class PolicyController(resource.ContentPackResourceController):
         LOG.debug('%s deleted object: %s', op, db_model)
         LOG.audit('Policy deleted. Policy.id=%s' % (db_model.id), extra={'policy_db': db_model})
 
-        return None
+        # return None
+        return Response(status=http_client.NO_CONTENT)
+
+
+policy_type_controller = PolicyTypeController()
+policy_controller = PolicyController()

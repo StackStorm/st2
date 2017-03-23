@@ -116,6 +116,7 @@ def _register_api_opts():
     _register_opts(pecan_opts, group='api_pecan')
 
     api_opts = [
+        cfg.BoolOpt('debug', default=True),
         cfg.IntOpt('max_page_size', default=100,
                    help=('Maximum limit (page size) argument which can be specified by the user '
                          'in a query string. If a larger value is provided, it will default to  '

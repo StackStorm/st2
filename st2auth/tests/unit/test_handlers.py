@@ -17,7 +17,6 @@ import base64
 
 import mock
 from oslo_config import cfg
-import webob.exc
 
 from st2tests.base import CleanDbTestCase
 import st2auth.handlers as handlers
@@ -29,6 +28,7 @@ from st2common.services.rbac import create_role
 from st2common.services.rbac import assign_role_to_user
 from st2common.services.rbac import create_group_to_role_map
 from st2common.rbac.syncer import RBACRemoteGroupToRoleSyncer
+from st2common.router import exc
 
 
 # auser:apassword in b64
@@ -117,7 +117,7 @@ class HandlerTestCase(CleanDbTestCase):
         h = handlers.StandaloneAuthHandler()
         request = {}
 
-        with self.assertRaises(webob.exc.HTTPUnauthorized):
+        with self.assertRaises(exc.HTTPUnauthorized):
             h.handle_auth(
                 request, headers={}, remote_addr=None,
                 remote_user=None, authorization=('complex', DUMMY_CREDS))
@@ -126,7 +126,7 @@ class HandlerTestCase(CleanDbTestCase):
         h = handlers.StandaloneAuthHandler()
         request = {}
 
-        with self.assertRaises(webob.exc.HTTPUnauthorized):
+        with self.assertRaises(exc.HTTPUnauthorized):
             h.handle_auth(
                 request, headers={}, remote_addr=None,
                 remote_user=None, authorization=None)
@@ -135,7 +135,7 @@ class HandlerTestCase(CleanDbTestCase):
         h = handlers.StandaloneAuthHandler()
         request = {}
 
-        with self.assertRaises(webob.exc.HTTPUnauthorized):
+        with self.assertRaises(exc.HTTPUnauthorized):
             h.handle_auth(
                 request, headers={}, remote_addr=None,
                 remote_user=None, authorization=('basic', 'gobblegobble'))
@@ -169,7 +169,7 @@ class HandlerTestCase(CleanDbTestCase):
         request = MockRequest(60)
         request.user = 'anotheruser'
 
-        with self.assertRaises(webob.exc.HTTPBadRequest):
+        with self.assertRaises(exc.HTTPBadRequest):
             h.handle_auth(
                 request, headers={}, remote_addr=None,
                 remote_user=None, authorization=('basic', DUMMY_CREDS))
@@ -192,7 +192,7 @@ class HandlerTestCase(CleanDbTestCase):
         request = MockRequest(60)
         request.user = 'anotheruser'
 
-        with self.assertRaises(webob.exc.HTTPBadRequest):
+        with self.assertRaises(exc.HTTPBadRequest):
             h.handle_auth(
                 request, headers={}, remote_addr=None,
                 remote_user=None, authorization=('basic', DUMMY_CREDS))
@@ -202,7 +202,7 @@ class HandlerTestCase(CleanDbTestCase):
         request = MockRequest(60)
         request.impersonate_user = 'anotheruser'
 
-        with self.assertRaises(webob.exc.HTTPBadRequest):
+        with self.assertRaises(exc.HTTPBadRequest):
             h.handle_auth(
                 request, headers={}, remote_addr=None,
                 remote_user=None, authorization=('basic', DUMMY_CREDS))
@@ -229,7 +229,7 @@ class HandlerTestCase(CleanDbTestCase):
         request = MockRequest(60)
         request.impersonate_user = '@anotheruser'
 
-        with self.assertRaises(webob.exc.HTTPBadRequest):
+        with self.assertRaises(exc.HTTPBadRequest):
             h.handle_auth(
                 request, headers={}, remote_addr=None,
                 remote_user=None, authorization=('basic', DUMMY_CREDS))

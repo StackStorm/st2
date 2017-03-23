@@ -13,24 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-st2auth configuration / wsgi entry point file for gunicorn.
-"""
+import webtest
 
-# Note: We need this import otherwise pecan will try to import from local, not global cmd package
-from __future__ import absolute_import
 
-import os
+class ResponseValidationError(ValueError):
+    pass
 
-__all__ = [
-    'app'
-]
 
-bind = '127.0.0.1:9100'
+class TestApp(webtest.TestApp):
+    def do_request(self, *args, **kwargs):
+        res = super(TestApp, self).do_request(*args, **kwargs)
 
-config_args = ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')]
-is_gunicorn = True
+        if res.headers.get('Warning', None):
+            raise ResponseValidationError('Endpoint produced invalid response. Make sure the '
+                                          'response matches OpenAPI scheme for the endpoint.')
 
-app = {
-    'modules': ['st2auth']
-}
+        return res
