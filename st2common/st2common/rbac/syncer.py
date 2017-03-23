@@ -255,7 +255,7 @@ class RBACDefinitionsDBSyncer(object):
         # A list of new assignments which should be added to the database
         new_role_names = api_role_names.difference(db_role_names)
 
-        # A list of assgignments which need to be updated in the database
+        # A list of assignments which need to be updated in the database
         updated_role_names = db_role_names.intersection(api_role_names)
 
         # A list of assignments which should be removed from the database
@@ -323,12 +323,13 @@ class RBACRemoteGroupToRoleSyncer(object):
             # No mapping found, return early
             LOG.debug('No group to role mappings found for user "%s"' % (str(user_db)),
                       extra=extra)
-            return []
+            return ([], [])
 
         # 2. Remove all the existing remote role assignments
         remote_assignment_dbs = UserRoleAssignment.query(user=user_db.name, is_remote=True)
 
-        existing_role_names = set([assignment_db.role for assignment_db in remote_assignment_dbs])
+        existing_role_names = [assignment_db.role for assignment_db in remote_assignment_dbs]
+        existing_role_names = set(existing_role_names)
         current_role_names = set([])
 
         for mapping_db in mapping_dbs:
@@ -344,7 +345,18 @@ class RBACRemoteGroupToRoleSyncer(object):
         # A list of role assignments which should be removed from the database
         removed_role_names = (existing_role_names - new_role_names)
 
-        remote_assignment_dbs.delete()
+        LOG.debug('New role assignments: %r' % (new_role_names))
+        LOG.debug('Updated role assignments: %r' % (updated_role_names))
+        LOG.debug('Removed role assignments: %r' % (removed_role_names))
+
+        # Build a list of role assignments to delete
+        role_names_to_delete = updated_role_names.union(removed_role_names)
+        role_assignment_dbs_to_delete = [role_assignment_db for role_assignment_db
+                                         in remote_assignment_dbs
+                                         if role_assignment_db.role in role_names_to_delete]
+
+        UserRoleAssignment.query(user=user_db.name, role__in=role_names_to_delete,
+                                 is_remote=True).delete()
 
         # 3. Create role assignments for all the current groups
         created_assignments_dbs = []
@@ -368,11 +380,7 @@ class RBACRemoteGroupToRoleSyncer(object):
                 assert assignment_db.is_remote is True
                 created_assignments_dbs.append(assignment_db)
 
-        LOG.debug('New role assignments: %r' % (new_role_names))
-        LOG.debug('Updated role assignments: %r' % (updated_role_names))
-        LOG.debug('Removed role assignments: %r' % (removed_role_names))
-
         LOG.debug('Created %s new remote role assignments for user "%s"' %
                   (len(created_assignments_dbs), str(user_db)), extra=extra)
 
-        return created_assignments_dbs
+        return (created_assignments_dbs, role_assignment_dbs_to_delete)
