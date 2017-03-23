@@ -173,8 +173,12 @@ class StandaloneAuthHandler(AuthHandlerBase):
 
             # If remote group sync is enabled, sync the remote groups with local StackStorm roles
             if cfg.CONF.rbac.sync_remote_groups:
-                # TODO: Sync user remote role assignments
-                user_groups = self._auth_backend.get_user_groups(username=username)
+                try:
+                    user_groups = self._auth_backend.get_user_groups(username=username)
+                except NotImplementedError:
+                    LOG.debug('Configured auth backend doesn\'t expose group information, '
+                              'skipping sync...')
+                    return token
 
                 if not user_groups:
                     # No groups, return early
