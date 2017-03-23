@@ -13,11 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pecan.rest import RestController
 import six
 
 from st2common import log as logging
-from st2common.models.api.base import jsexpose
 from st2common.persistence.execution import ActionExecution
 
 LOG = logging.getLogger(__name__)
@@ -53,8 +51,7 @@ def csv(s):
     return s.split(',')
 
 
-class FiltersController(RestController):
-    @jsexpose(arg_types=[csv])
+class FiltersController(object):
     def get_all(self, types=None):
         """
             List all distinct filters.
@@ -74,5 +71,8 @@ class FiltersController(RestController):
         return filters
 
 
-class ExecutionViewsController(RestController):
+class ExecutionViewsController(object):
     filters = FiltersController()
+
+
+filters_controller = FiltersController()

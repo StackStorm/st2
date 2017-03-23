@@ -114,8 +114,6 @@ def db_ensure_indexes():
         class_name = model_class.__name__
 
         # Note: We need to ensure / create new indexes before removing extra ones
-        LOG.debug('Ensuring indexes for model "%s"...' % (model_class.__name__))
-
         try:
             model_class.ensure_indexes()
         except OperationFailure as e:
@@ -140,9 +138,12 @@ def db_ensure_indexes():
             LOG.debug('Skipping index cleanup for blacklisted model "%s"...' % (class_name))
             continue
 
-        LOG.debug('Removing extra indexes for model "%s"...' % (class_name))
         removed_count = cleanup_extra_indexes(model_class=model_class)
-        LOG.debug('Removed "%s" extra indexes for model "%s"' % (removed_count, class_name))
+        if removed_count:
+            LOG.debug('Removed "%s" extra indexes for model "%s"' % (removed_count, class_name))
+
+    LOG.debug('Indexes are ensured for models: %s' %
+              ', '.join(sorted((model_class.__name__ for model_class in model_classes))))
 
 
 def cleanup_extra_indexes(model_class):

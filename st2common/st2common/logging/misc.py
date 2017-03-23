@@ -26,6 +26,12 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
+# Because some loggers are just waste of attention span
+SPECIAL_LOGGERS = {
+    'amqp': logging.INFO,
+    'swagger_spec_validator.ref_validators': logging.INFO
+}
+
 
 def reopen_log_files(handlers):
     """
@@ -85,7 +91,10 @@ def set_log_level_for_all_loggers(level=logging.DEBUG):
         if not isinstance(logger, logging.Logger):
             continue
 
-        set_log_level_for_all_handlers(logger=logger)
+        if logger.name in SPECIAL_LOGGERS:
+            set_log_level_for_all_handlers(logger=logger, level=SPECIAL_LOGGERS.get(logger.name))
+        else:
+            set_log_level_for_all_handlers(logger=logger, level=level)
 
 
 def get_logger_name_for_module(module):

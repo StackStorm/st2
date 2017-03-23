@@ -13,13 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pecan
 import six
-from pecan import Response
-from pecan.rest import RestController
 
 from st2common import log as logging
-from st2common.models.api.base import jsexpose
+from st2common.router import Response
 from st2common.util.jsonify import json_encode
 from st2stream.listener import get_listener
 
@@ -42,17 +39,16 @@ def format(gen):
             yield six.binary_type(message % (event, json_encode(body, indent=None)))
 
 
-class StreamController(RestController):
-    @jsexpose(content_type='text/event-stream')
+class StreamController(object):
     def get_all(self):
         def make_response():
             res = Response(content_type='text/event-stream',
                            app_iter=format(get_listener().generator()))
             return res
 
-        # Prohibit buffering response by eventlet
-        pecan.request.environ['eventlet.minimum_write_chunk_size'] = 0
-
         stream = make_response()
 
         return stream
+
+
+stream_controller = StreamController()

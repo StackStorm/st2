@@ -14,15 +14,12 @@
 # limitations under the License.
 
 import mock
-import pecan
 
 from st2stream.controllers.v1 import stream
 from st2stream import listener
 from base import FunctionalTest
 
 
-@mock.patch.object(pecan, 'request', type('request', (object,), {'environ': {}}))
-@mock.patch.object(pecan, 'response', mock.MagicMock())
 class TestStreamController(FunctionalTest):
 
     @mock.patch.object(stream, 'format', mock.Mock())

@@ -13,13 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
-
-import pecan
-import jsonschema
-import mongoengine
 from oslo_config import cfg
-from webob import exc as webob_exc
 
 from st2common import log as logging
 from st2common.constants.api import DEFAULT_API_VERSION
@@ -28,11 +22,7 @@ from st2common.util.url import get_url_without_trailing_slash
 __all__ = [
     'get_base_public_api_url',
     'get_full_public_api_url',
-    'get_mistral_api_url',
-
-    'get_requester',
-    'get_exception_for_type_error',
-    'get_exception_for_uncaught_api_error'
+    'get_mistral_api_url'
 ]
 
 LOG = logging.getLogger(__name__)
@@ -80,82 +70,3 @@ def get_mistral_api_url(api_version=DEFAULT_API_VERSION):
         api_url = get_full_public_api_url(api_version=api_version)
 
     return api_url
-
-
-def get_requester():
-    """
-    Retrieve username of the authed user (note - if auth is disabled, user will not be
-    set so we fall back to the system user name)
-
-    :rtype: ``str``
-    """
-    auth_context = pecan.request.context.get('auth', None)
-    user_db = auth_context.get('user', None) if auth_context else None
-
-    if not user_db:
-        LOG.warn('auth is disabled, falling back to system_user')
-        username = cfg.CONF.system_user.user
-    else:
-        username = user_db.name
-
-    return username
-
-
-def get_exception_for_type_error(func, exc):
-    """
-    Method which translates TypeError thrown by the controller method and intercepted inside
-    jsexpose decorator and returns a better exception for it.
-
-    :param func: Controller function / method.
-    :type func: ``callable``
-
-    :param exc: Exception intercepted by jsexpose.
-    :type exc: :class:`Exception`
-    """
-    message = str(exc)
-    func_name = func.__name__
-
-    # Note: Those checks are hacky, but it's better than having no checks and silently
-    # accepting invalid requests
-    invalid_num_args_pattern = ('%s\(\) takes %s \d+ arguments? \(\d+ given\)' %
-                                (func_name, '(exactly|at most|at least)'))
-    unexpected_keyword_arg_pattern = ('%s\(\) got an unexpected keyword argument \'(.*?)\'' %
-                                      (func_name))
-
-    if (re.search(invalid_num_args_pattern, message)):
-        # Invalid number of arguments passed to the function meaning invalid path was
-        # requested
-        result = webob_exc.HTTPNotFound()
-    elif re.search(unexpected_keyword_arg_pattern, message):
-        # User passed in an unsupported query parameter
-        match = re.match(unexpected_keyword_arg_pattern, message)
-
-        if match:
-            groups = match.groups()
-            query_param_name = groups[0]
-
-            msg = 'Unsupported query parameter: %s' % (query_param_name)
-        else:
-            msg = 'Unknown error, please contact the administrator.'
-        result = webob_exc.HTTPBadRequest(detail=msg)
-    else:
-        result = exc
-
-    return result
-
-
-def get_exception_for_uncaught_api_error(func, exc):
-    """
-    Utility function which tries to map an uncaught exception throwed inside an
-    API to a more user-friendly exception which is returned instead of returning
-    internal server error.
-    """
-
-    if isinstance(exc, mongoengine.ValidationError):
-        result = webob_exc.HTTPBadRequest(detail=exc.message)
-        return result
-    elif isinstance(exc, jsonschema.ValidationError):
-        result = webob_exc.HTTPBadRequest(detail=exc.message)
-        return result
-
-    return exc

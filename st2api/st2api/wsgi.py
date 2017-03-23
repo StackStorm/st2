@@ -13,25 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common import log as logging
-from st2common.controllers import BaseRootController
-import st2auth.controllers.v1.root as v1_root
+import os
 
-__all__ = [
-    'RootController'
-]
+from st2api import app
 
-LOG = logging.getLogger(__name__)
+config = {
+    'is_gunicorn': True,
+    'config_args': ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')]
+}
 
-
-class RootController(BaseRootController):
-
-    logger = LOG
-
-    def __init__(self):
-        v1_controller = v1_root.RootController()
-        self.default_controller = v1_controller
-
-        self.controllers = {
-            'v1': v1_controller,
-        }
+application = app.setup_app(config)

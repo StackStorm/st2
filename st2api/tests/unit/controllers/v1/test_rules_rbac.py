@@ -53,7 +53,7 @@ class RuleControllerRBACTestCase(APIControllerWithRBACTestCase):
     def setUp(self):
         super(RuleControllerRBACTestCase, self).setUp()
         self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
-                                                fixtures_dict=TEST_FIXTURES)
+                                                 fixtures_dict=TEST_FIXTURES)
 
         file_name = 'rule_with_webhook_trigger.yaml'
         RuleControllerRBACTestCase.RULE_1 = self.fixtures_loader.load_fixtures(

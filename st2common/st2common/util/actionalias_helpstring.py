@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 
-def generate_helpstring_result(aliases, filter_="", pack="", limit=0, offset=0):
+def generate_helpstring_result(aliases, filter=None, pack=None, limit=0, offset=0):
     """
     List help strings from a collection of alias objects.
 
@@ -40,22 +40,22 @@ def generate_helpstring_result(aliases, filter_="", pack="", limit=0, offset=0):
     :return: A list of aliases help strings.
     :rtype: ``list`` of ``list``
     """
-    matches = {}
+    matches = []
     count = 0
     if not (isinstance(limit, int) and isinstance(offset, int)):
-        raise TypeError
+        raise TypeError('limit or offset argument is not an integer')
     for alias in aliases:
         # Skip disable aliases.
         if not alias.enabled:
             continue
         # Skip packs which don't explicitly match the requested pack.
-        if pack != alias.pack and pack != "":
+        if pack and pack != alias.pack:
             continue
         for format_ in alias.formats:
             display, _ = normalise_alias_format_string(format_)
             if display:
                 # Skip help strings not containing keyword.
-                if not re.search(filter_, display, flags=re.IGNORECASE):
+                if not re.search(filter or '', display, flags=re.IGNORECASE):
                     continue
                 # Skip over help strings not within the requested offset/limit range.
                 if (offset == 0 and limit > 0) and count >= limit:
@@ -67,9 +67,9 @@ def generate_helpstring_result(aliases, filter_="", pack="", limit=0, offset=0):
                 elif (offset > 0 and limit > 0) and (count < offset or count >= offset + limit):
                         count += 1
                         continue
-                if alias.pack not in matches:
-                    matches[alias.pack] = []
-                matches[alias.pack].append({
+
+                matches.append({
+                    "pack": alias.pack,
                     "display": display,
                     "description": alias.description
                 })
