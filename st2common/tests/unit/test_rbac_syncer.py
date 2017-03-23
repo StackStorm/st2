@@ -339,6 +339,7 @@ class RBACRemoteGroupToRoleSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
         self.assertEqual(len(role_dbs), 2)
         self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
+        self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
 
         # No groups - should result in no new remote assignments but existing local assignments
         # shouldn't be manipulated
@@ -374,10 +375,48 @@ class RBACRemoteGroupToRoleSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         self.assertEqual(len(role_dbs), 2)
         self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
 
-        groups = ['CN=stormers,OU=groups,DC=stackstorm,DC=net']
+        groups = [
+            'CN=stormers,OU=groups,DC=stackstorm,DC=net',
+            'CN=testers,OU=groups,DC=stackstorm,DC=net'
+        ]
         result = syncer.sync(user_db=self.users['user_1'], groups=groups)
 
         # User should have two new roles assigned now
+        role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+        self.assertEqual(len(role_dbs), 4)
+        self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
+        self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
+        self.assertEqual(role_dbs[2], self.roles['mock_role_3'])
+        self.assertEqual(role_dbs[3], self.roles['mock_role_4'])
+
+    def test_sync_success_existing_remote_assignments(self):
+        syncer = RBACRemoteGroupToRoleSyncer()
+        user_db = self.users['user_1']
+
+        # Create mock mapping which maps CN=stormers,OU=groups,DC=stackstorm,DC=net
+        # to "mock_role_3" and "mock_role_4"
+        create_group_to_role_map(group='CN=stormers,OU=groups,DC=stackstorm,DC=net',
+                                 roles=['mock_role_3', 'mock_role_4'])
+
+        # Assign existing remote mock_role_5 to the user
+        role_db = self.roles['mock_role_5']
+        assign_role_to_user(role_db=role_db, user_db=user_db, is_remote=True)
+
+        # Verify initial state
+        role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+        self.assertEqual(len(role_dbs), 3)
+        self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
+        self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
+        self.assertEqual(role_dbs[2], self.roles['mock_role_5'])
+
+        groups = [
+            'CN=stormers,OU=groups,DC=stackstorm,DC=net',
+            'CN=testers,OU=groups,DC=stackstorm,DC=net'
+        ]
+        result = syncer.sync(user_db=self.users['user_1'], groups=groups)
+
+        # User should have two new roles assigned now, but the existing "mock_role_5" remote role 
+        # removed since it wasn't specified in any mapping
         role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
         self.assertEqual(len(role_dbs), 4)
         self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
