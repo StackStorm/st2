@@ -328,8 +328,12 @@ class RBACRemoteGroupToRoleSyncer(object):
         # 2. Remove all the existing remote role assignments
         remote_assignment_dbs = UserRoleAssignment.query(user=user_db.name, is_remote=True)
 
-        existing_role_names = [assignment_db.role for assignment_db in remote_assignment_dbs]
-        current_role_names = [mapping_db.role for mapping_db in mapping_dbs]
+        existing_role_names = set([assignment_db.role for assignment_db in remote_assignment_dbs])
+        current_role_names = set([])
+
+        for mapping_db in mapping_dbs:
+            for role in mapping_db.roles:
+                current_role_names.add(role)
 
         # A list of new role assignments which should be added to the database
         new_role_names = current_role_names.difference(existing_role_names)
@@ -348,7 +352,7 @@ class RBACRemoteGroupToRoleSyncer(object):
             extra['mapping_db'] = mapping_db
 
             for role_name in mapping_db.roles:
-                role_db = rbac_services.get_role_by_name(name=mapping_db.role)
+                role_db = rbac_services.get_role_by_name(name=role_name)
 
                 if not role_db:
                     # Gracefully skip assignment for role which doesn't exist in the db
