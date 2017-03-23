@@ -298,7 +298,7 @@ class RBACDefinitionsDBSyncer(object):
 
 class RBACRemoteGroupToRoleSyncer(object):
     """
-    Class which writes remote user role assignments based on the user group memberhip information
+    Class which writes remote user role assignments based on the user group membership information
     provided by the auth backend and based on the group to role mapping definitions on disk.
     """
 
