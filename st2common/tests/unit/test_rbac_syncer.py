@@ -383,7 +383,9 @@ class RBACRemoteGroupToRoleSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
 
         groups = [
             'CN=stormers,OU=groups,DC=stackstorm,DC=net',
-            'CN=testers,OU=groups,DC=stackstorm,DC=net'
+            'CN=testers,OU=groups,DC=stackstorm,DC=net',
+            # We repeat the same group to validate that repated groups are correctly de-duplicated
+            'CN=stormers,OU=groups,DC=stackstorm,DC=net',
         ]
         result = syncer.sync(user_db=self.users['user_1'], groups=groups)
         created_role_assignment_dbs = result[0]
@@ -442,3 +444,31 @@ class RBACRemoteGroupToRoleSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
         self.assertEqual(role_dbs[2], self.roles['mock_role_3'])
         self.assertEqual(role_dbs[3], self.roles['mock_role_4'])
+
+    def test_sync_no_mappings_exist_for_the_provided_groups(self):
+        syncer = RBACRemoteGroupToRoleSyncer()
+        user_db = self.users['user_1']
+
+        # Create mock mapping which maps CN=stormers,OU=groups,DC=stackstorm,DC=net
+        # to "mock_role_3" and "mock_role_4"
+        create_group_to_role_map(group='CN=stormers,OU=groups,DC=stackstorm,DC=net',
+                                 roles=['mock_role_3', 'mock_role_4'])
+
+        # Verify initial state
+        role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+        self.assertEqual(len(role_dbs), 2)
+        self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
+        self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
+
+        groups = [
+            'CN=testers1,OU=groups,DC=stackstorm,DC=net',
+            'CN=testers2,OU=groups,DC=stackstorm,DC=net'
+        ]
+
+        # No mappings exist for the groups user is a member of so no new assignments should be
+        # created
+        result = syncer.sync(user_db=self.users['user_1'], groups=groups)
+        created_role_assignment_dbs = result[0]
+        removed_role_assignment_dbs = result[1]
+        self.assertEqual(created_role_assignment_dbs, [])
+        self.assertEqual(removed_role_assignment_dbs, [])

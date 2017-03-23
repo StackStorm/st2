@@ -313,6 +313,8 @@ class RBACRemoteGroupToRoleSyncer(object):
         :return: A list of mappings which have been created.
         :rtype: ``list`` of :class:`UserRoleAssignmentDB`
         """
+        groups = list(set(groups))
+
         extra = {'user_db': user_db, 'groups': groups}
         LOG.info('Synchronizing remote role assignments for user "%s"' % (str(user_db)),
                  extra=extra)
