@@ -271,7 +271,8 @@ class RBACDefinitionsDBSyncer(object):
                                          in role_assignment_dbs
                                          if role_assignment_db.role in role_names_to_delete]
 
-        UserRoleAssignment.query(user=user_db.name, role__in=role_names_to_delete).delete()
+        UserRoleAssignment.query(user=user_db.name, role__in=role_names_to_delete,
+                                 is_remote=False).delete()
         LOG.debug('Removed %s assignments for user "%s"' %
                 (len(role_assignment_dbs_to_delete), user_db.name))
 
