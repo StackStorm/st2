@@ -23,7 +23,7 @@ from st2common.persistence.auth import User
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import PermissionGrant
-from st2common.persistence.rbac import AuthBackendGroupToRoleMap
+from st2common.persistence.rbac import GroupToRoleMapping
 from st2common.services import rbac as rbac_services
 from st2common.util.uid import parse_uid
 
@@ -222,7 +222,7 @@ class RBACDefinitionsDBSyncer(object):
         for group_to_role_map_db in group_to_role_map_dbs:
             group_to_role_map_to_delete.append(group_to_role_map_db.id)
 
-        AuthBackendGroupToRoleMap.query(id__in=group_to_role_map_to_delete).delete()
+        GroupToRoleMapping.query(id__in=group_to_role_map_to_delete).delete()
 
         # 2. Insert all mappings read from disk
         for group_to_role_map_api in group_to_role_map_apis:
@@ -320,7 +320,7 @@ class RBACRemoteGroupToRoleSyncer(object):
                  extra=extra)
 
         # 1. Retrieve group to role mappings for the provided groups
-        mapping_dbs = AuthBackendGroupToRoleMap.query(group__in=groups)
+        mapping_dbs = GroupToRoleMapping.query(group__in=groups)
 
         if not mapping_dbs:
             # No mapping found, return early

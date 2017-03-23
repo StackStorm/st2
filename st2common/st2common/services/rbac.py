@@ -19,11 +19,11 @@ from st2common.rbac.types import SystemRole
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
 from st2common.persistence.rbac import PermissionGrant
-from st2common.persistence.rbac import AuthBackendGroupToRoleMap
+from st2common.persistence.rbac import GroupToRoleMapping
 from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.models.db.rbac import PermissionGrantDB
-from st2common.models.db.rbac import AuthBackendGroupToRoleMapDB
+from st2common.models.db.rbac import GroupToRoleMappingDB
 
 
 __all__ = [
@@ -292,16 +292,16 @@ def remove_permission_grant_for_resource_db(role_db, resource_db, permission_typ
 
 
 def get_all_group_to_role_maps():
-    result = AuthBackendGroupToRoleMap.get_all()
+    result = GroupToRoleMapping.get_all()
     return result
 
 
 def create_group_to_role_map(group, roles, description=None):
-    group_to_role_map_db = AuthBackendGroupToRoleMapDB(group=group,
-                                                       roles=roles,
-                                                       description=description)
+    group_to_role_map_db = GroupToRoleMappingDB(group=group,
+                                                roles=roles,
+                                                description=description)
 
-    group_to_role_map_db = AuthBackendGroupToRoleMap.add_or_update(group_to_role_map_db)
+    group_to_role_map_db = GroupToRoleMapping.add_or_update(group_to_role_map_db)
     return group_to_role_map_db
 
 

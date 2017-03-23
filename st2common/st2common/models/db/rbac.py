@@ -23,7 +23,7 @@ __all__ = [
     'RoleDB',
     'UserRoleAssignmentDB',
     'PermissionGrantDB',
-    'AuthBackendGroupToRoleMapDB',
+    'GroupToRoleMappingDB',
 
     'role_access',
     'user_role_assignment_access',
@@ -82,13 +82,13 @@ class PermissionGrantDB(stormbase.StormFoundationDB):
     permission_types = me.ListField(field=me.StringField())
 
 
-class AuthBackendGroupToRoleMapDB(stormbase.StormFoundationDB):
+class GroupToRoleMappingDB(stormbase.StormFoundationDB):
     """
-    An entity which represents mapping from remote auth backend group to StackStorm roles.
+    An entity which represents mapping from a remote auth backend group to StackStorm roles.
 
     Attribute:
         group: Name of the remote auth backend group.
-        role: A reference to the local RBAC role name.
+        roles: A reference to the local RBAC role names.
         description: Optional description for this mapping.
     """
     group = me.StringField(required=True, unique=True)
@@ -100,6 +100,6 @@ class AuthBackendGroupToRoleMapDB(stormbase.StormFoundationDB):
 role_access = MongoDBAccess(RoleDB)
 user_role_assignment_access = MongoDBAccess(UserRoleAssignmentDB)
 permission_grant_access = MongoDBAccess(PermissionGrantDB)
-auth_backend_group_to_role_map_access = MongoDBAccess(AuthBackendGroupToRoleMapDB)
+group_to_role_mapping_access = MongoDBAccess(GroupToRoleMappingDB)
 
-MODELS = [RoleDB, UserRoleAssignmentDB, PermissionGrantDB, AuthBackendGroupToRoleMapDB]
+MODELS = [RoleDB, UserRoleAssignmentDB, PermissionGrantDB, GroupToRoleMappingDB]
