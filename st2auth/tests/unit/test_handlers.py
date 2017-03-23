@@ -28,6 +28,7 @@ from st2common.services.rbac import get_roles_for_user
 from st2common.services.rbac import create_role
 from st2common.services.rbac import assign_role_to_user
 from st2common.services.rbac import create_group_to_role_map
+from st2common.rbac.syncer import RBACRemoteGroupToRoleSyncer
 
 
 # auser:apassword in b64
@@ -335,3 +336,22 @@ class HandlerTestCase(CleanDbTestCase):
         self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
         self.assertEqual(role_dbs[2], self.roles['mock_role_3'])
         self.assertEqual(role_dbs[3], self.roles['mock_role_4'])
+
+    @mock.patch.object(RBACRemoteGroupToRoleSyncer, 'sync',
+                      mock.Mock(side_effect=Exception('throw')))
+    def test_group_to_role_sync_error_non_fatal_on_succesful_auth(self):
+        # Enable group sync
+        cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
+        cfg.CONF.set_override(group='rbac', name='sync_remote_groups', override=True)
+
+        h = handlers.StandaloneAuthHandler()
+        request = {}
+
+        h._auth_backend.groups = [
+            'CN=stormers,OU=groups,DC=stackstorm,DC=net'
+        ]
+
+        # sync() method called upon successful authentication throwing should not be fatal
+        token = h.handle_auth(request, headers={}, remote_addr=None, remote_user=None,
+                              authorization=('basic', DUMMY_CREDS))
+        self.assertEqual(token.user, 'auser')
