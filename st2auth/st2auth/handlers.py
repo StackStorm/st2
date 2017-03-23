@@ -176,13 +176,19 @@ class StandaloneAuthHandler(AuthHandlerBase):
                 try:
                     user_groups = self._auth_backend.get_user_groups(username=username)
                 except NotImplementedError:
-                    LOG.debug('Configured auth backend doesn\'t expose group information, '
-                              'skipping sync...')
+                    LOG.debug('Configured auth backend doesn\'t expose user group membership '
+                              'information, skipping sync...')
                     return token
 
                 if not user_groups:
                     # No groups, return early
                     return token
+
+                extra['username'] = username
+                extra['user_groups'] = user_groups
+
+                LOG.debug('Found "%s" groups for user "%s"' % (len(user_groups), username),
+                          extra=extra)
 
                 user_db = UserDB(name=username)
                 syncer = RBACRemoteGroupToRoleSyncer()
@@ -191,7 +197,11 @@ class StandaloneAuthHandler(AuthHandlerBase):
                     syncer.sync(user_db=user_db, groups=user_groups)
                 except Exception as e:
                     # Note: Failed sync is not fatal
-                    LOG.exception('Failed to sync remote groups')
+                    LOG.exception('Failed to synchronize remote groups for user "%s"' % (username),
+                                  extra=extra)
+                else:
+                    LOG.debug('Successfuly synchronized groups for user "%s"' % (username),
+                              extra=extra)
 
                 return token
             return token
