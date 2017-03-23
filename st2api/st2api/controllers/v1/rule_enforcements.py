@@ -60,10 +60,10 @@ class RuleEnforcementController(resource.ResourceController):
     def get_all(self, **kwargs):
         return super(RuleEnforcementController, self)._get_all(**kwargs)
 
-    def get_one(self, ref_or_id, requester_user):
+    def get_one(self, id, requester_user):
         return super(RuleEnforcementController,
-                     self)._get_one(ref_or_id, requester_user=requester_user,
-                                    permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
+                     self)._get_one_by_id(id, requester_user=requester_user,
+                                          permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
 
 
 rule_enforcements_controller = RuleEnforcementController()

@@ -669,6 +669,7 @@ paths:
           type: boolean
         - name: st2-context
           in: header
+          x-as: context_string
           description: Additional execution context
           type: string
       x-parameters:
@@ -2467,14 +2468,14 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/v1/ruleenforcements/{ref_or_id}:
+  /api/v1/ruleenforcements/{id}:
     get:
       operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_one
       description: Return a specific rule enforcement based on id.
       parameters:
-        - name: ref_or_id
+        - name: id
           in: path
-          description: entities id
+          description: Entity id
           type: string
       x-parameters:
         - name: user

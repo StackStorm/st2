@@ -326,7 +326,7 @@ class TriggerInstanceResendController(TriggerInstanceControllerMixin, resource.R
             POST /triggerinstance/<id>/re_send
         """
         # Note: We only really need parameters here
-        existing_trigger_instance = self._get_one(id=trigger_instance_id)
+        existing_trigger_instance = self._get_one_by_id(id=trigger_instance_id)
 
         new_payload = copy.deepcopy(existing_trigger_instance.payload)
         new_payload['__context'] = {
@@ -375,7 +375,7 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
             Handle:
                 GET /triggerinstances/1
         """
-        return self._get_one(instance_id)
+        return self._get_one_by_id(instance_id)
 
     def get_all(self, **kw):
         """

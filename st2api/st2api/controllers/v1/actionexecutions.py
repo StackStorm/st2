@@ -85,13 +85,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         'trigger_instance'
     ]
 
-    def _get_from_model_kwargs_for_request(self, **kwargs):
-        """
-        Set mask_secrets=False if the user is an admin and provided ?show_secrets=True query param.
-        """
-        return {'mask_secrets': not kwargs.get('show_secrets', False)}
-
-    def _handle_schedule_execution(self, liveaction_api, requester_user=None, **kwargs):
+    def _handle_schedule_execution(self, liveaction_api, requester_user=None, context_string=None,
+                                   show_secrets=False):
         """
         :param liveaction: LiveActionAPI object.
         :type liveaction: :class:`LiveActionAPI`
@@ -113,7 +108,10 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                                                              user=user)
 
         try:
-            return self._schedule_execution(liveaction=liveaction_api, user=user, **kwargs)
+            return self._schedule_execution(liveaction=liveaction_api,
+                                            user=user,
+                                            context_string=context_string,
+                                            show_secrets=show_secrets)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))
@@ -128,7 +126,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def _schedule_execution(self, liveaction, user=None, **kwargs):
+    def _schedule_execution(self, liveaction, user=None, context_string=None, show_secrets=False):
         # Initialize execution context if it does not exist.
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
@@ -137,7 +135,6 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         LOG.debug('User is: %s' % liveaction.context['user'])
 
         # Retrieve other st2 context from request header.
-        context_string = kwargs.get('st2-context', None)
         if context_string:
             context = try_loads(context_string)
             if not isinstance(context, dict):
@@ -169,8 +166,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
 
         _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
-        from_model_kwargs = self._get_from_model_kwargs_for_request(**kwargs)
-        execution_api = ActionExecutionAPI.from_model(actionexecution_db, from_model_kwargs)
+        execution_api = ActionExecutionAPI.from_model(actionexecution_db,
+                                                      mask_secrets=(not show_secrets))
 
         return Response(json=execution_api, status=http_client.CREATED)
 
@@ -187,17 +184,16 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
         return action_exec_db.result
 
-    def _get_children(self, id_, depth=-1, result_fmt=None, **kwargs):
+    def _get_children(self, id_, depth=-1, result_fmt=None, show_secrets=False):
         # make sure depth is int. Url encoding will make it a string and needs to
         # be converted back in that case.
         depth = int(depth)
-        from_model_kwargs = self._get_from_model_kwargs_for_request(**kwargs)
         LOG.debug('retrieving children for id: %s with depth: %s', id_, depth)
         descendants = execution_service.get_descendants(actionexecution_id=id_,
                                                         descendant_depth=depth,
                                                         result_fmt=result_fmt)
 
-        return [self.model.from_model(descendant, from_model_kwargs) for
+        return [self.model.from_model(descendant, mask_secrets=(not show_secrets)) for
                 descendant in descendants]
 
 
@@ -217,7 +213,7 @@ class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, Resou
 
 
 class ActionExecutionChildrenController(BaseActionExecutionNestedController):
-    def get_one(self, id, requester_user, depth=-1, result_fmt=None, **kwargs):
+    def get_one(self, id, requester_user, depth=-1, result_fmt=None, show_secrets=False):
         """
         Retrieve children for the provided action execution.
 
@@ -231,14 +227,15 @@ class ActionExecutionChildrenController(BaseActionExecutionNestedController):
                                                           resource_db=instance,
                                                           permission_type=permission_type)
 
-        return self._get_children(id_=id, depth=depth, result_fmt=result_fmt, **kwargs)
+        return self._get_children(id_=id, depth=depth, result_fmt=result_fmt,
+                                  show_secrets=show_secrets)
 
 
 class ActionExecutionAttributeController(BaseActionExecutionNestedController):
     valid_exclude_attributes = ['action__pack', 'action__uid'] + \
         ActionExecutionsControllerMixin.valid_exclude_attributes
 
-    def get(self, id, attribute, requester_user, **kwargs):
+    def get(self, id, attribute, requester_user):
         """
         Retrieve a particular attribute for the provided action execution.
 
@@ -294,7 +291,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             return self
 
-    def post(self, spec_api, id, requester_user=None, no_merge=False, **kwargs):
+    def post(self, spec_api, id, requester_user=None, no_merge=False, show_secrets=False):
         """
         Re-run the provided action execution optionally specifying override parameters.
 
@@ -362,7 +359,8 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
                                                  user=spec_api.user)
 
         return self._handle_schedule_execution(liveaction_api=new_liveaction_api,
-                                               requester_user=requester_user)
+                                               requester_user=requester_user,
+                                               show_secrets=show_secrets)
 
 
 class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceController):
@@ -388,7 +386,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         'timestamp_lt': lambda value: isotime.parse(value=value)
     }
 
-    def get_all(self, exclude_attributes=None, **kw):
+    def get_all(self, exclude_attributes=None, sort=None, offset=0, limit=None, **raw_filters):
         """
         List all executions.
 
@@ -407,16 +405,20 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
-        if kw.get('timestamp_lt', None) or kw.get('sort_desc', None):
+        query_options = None
+        if raw_filters.get('timestamp_lt', None) or raw_filters.get('sort_desc', None):
             query_options = {'sort': ['-start_timestamp', 'action.ref']}
-            kw['query_options'] = query_options
-        elif kw.get('timestamp_gt', None) or kw.get('sort_asc', None):
+        elif raw_filters.get('timestamp_gt', None) or raw_filters.get('sort_asc', None):
             query_options = {'sort': ['+start_timestamp', 'action.ref']}
-            kw['query_options'] = query_options
 
-        return self._get_action_executions(exclude_fields=exclude_fields, **kw)
+        return self._get_action_executions(exclude_fields=exclude_fields,
+                                           sort=sort,
+                                           offset=offset,
+                                           limit=limit,
+                                           query_options=query_options,
+                                           **raw_filters)
 
-    def get_one(self, id, requester_user, exclude_attributes=None, **kwargs):
+    def get_one(self, id, requester_user, exclude_attributes=None):
         """
         Retrieve a single execution.
 
@@ -437,11 +439,13 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                                    requester_user=requester_user,
                                    permission_type=PermissionType.EXECUTION_VIEW)
 
-    def post(self, liveaction_api, requester_user=None, **kwargs):
+    def post(self, liveaction_api, requester_user=None, context_string=None, show_secrets=False):
         return self._handle_schedule_execution(liveaction_api=liveaction_api,
-                                               requester_user=requester_user, **kwargs)
+                                               requester_user=requester_user,
+                                               context_string=context_string,
+                                               show_secrets=show_secrets)
 
-    def delete(self, id, requester_user, **kwargs):
+    def delete(self, id, requester_user, show_secrets=False):
         """
         Stops a single execution.
 
@@ -486,21 +490,27 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             LOG.exception('Failed requesting cancellation for liveaction %s.', liveaction_db.id)
             abort(http_client.INTERNAL_SERVER_ERROR, 'Failed canceling execution.')
 
-        from_model_kwargs = self._get_from_model_kwargs_for_request(**kwargs)
+        return ActionExecutionAPI.from_model(execution_db, mask_secrets=(not show_secrets))
 
-        return ActionExecutionAPI.from_model(execution_db, from_model_kwargs)
-
-    def _get_action_executions(self, exclude_fields=None, **kw):
+    def _get_action_executions(self, exclude_fields=None, sort=None, offset=0, limit=None,
+                               query_options=None, **raw_filters):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
 
-        kw['limit'] = int(kw.get('limit', self.default_limit))
+        if limit is None:
+            limit = self.default_limit
 
-        LOG.debug('Retrieving all action executions with filters=%s', kw)
+        limit = int(limit)
+
+        LOG.debug('Retrieving all action executions with filters=%s', raw_filters)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
-                                                                **kw)
+                                                                sort=sort,
+                                                                offset=offset,
+                                                                limit=limit,
+                                                                query_options=query_options,
+                                                                **raw_filters)
 
 
 action_executions_controller = ActionExecutionsController()

@@ -232,8 +232,7 @@ class BasePacksController(ResourceController):
             abort(http_client.NOT_FOUND, msg)
             return
 
-        from_model_kwargs = self._get_from_model_kwargs_for_request()
-        result = self.model.from_model(instance, **from_model_kwargs)
+        result = self.model.from_model(instance, **self.from_model_kwargs)
 
         return result
 
