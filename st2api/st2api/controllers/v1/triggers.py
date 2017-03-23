@@ -377,21 +377,24 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
         """
         return self._get_one_by_id(instance_id)
 
-    def get_all(self, **kw):
+    def get_all(self, limit=None, **kw):
         """
             List all triggerinstances.
 
             Handles requests:
                 GET /triggerinstances/
         """
-        trigger_instances = self._get_trigger_instances(**kw)
+        trigger_instances = self._get_trigger_instances(limit=limit, **kw)
         return trigger_instances
 
-    def _get_trigger_instances(self, **kw):
-        kw['limit'] = int(kw.get('limit') or self.default_limit)
+    def _get_trigger_instances(self, limit=None, **kw):
+        if limit is None:
+            limit = self.default_limit
+
+        limit = int(limit)
 
         LOG.debug('Retrieving all trigger instances with filters=%s', kw)
-        return super(TriggerInstanceController, self)._get_all(**kw)
+        return super(TriggerInstanceController, self)._get_all(limit=limit, **kw)
 
 
 triggertype_controller = TriggerTypeController()

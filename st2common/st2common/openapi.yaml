@@ -1293,10 +1293,12 @@ paths:
           required: true
         - name: if-none-match
           in: header
+          x-as: if_none_match
           description: ETag to compare to.
           type: string
         - name: if-modified-since
           in: header
+          x-as: if_modified_since
           description: Date of last known modification.
           type: string
       x-parameters:

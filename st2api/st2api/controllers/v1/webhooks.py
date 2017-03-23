@@ -109,7 +109,6 @@ class WebhooksController(object):
         # For demonstration purpose return 1st
         return triggers[0]
 
-    # @request_user_has_webhook_permission(permission_type=PermissionType.WEBHOOK_SEND)
     def post(self, hook, body, headers, requester_user):
         body = vars(body)
 

@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-
 from mongoengine import ValidationError
 from six.moves import http_client
 
@@ -23,7 +21,6 @@ from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.models.db.policy import PolicyTypeReference
-from st2common.models.system.common import InvalidReferenceError
 from st2common.persistence.policy import PolicyType, Policy
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -105,22 +102,6 @@ class PolicyTypeController(resource.ResourceController):
 
         resource_db = self.access.query(name=ref.name, resource_type=ref.resource_type).first()
         return resource_db
-
-    def _get_filters(self, **kwargs):
-        filters = copy.deepcopy(kwargs)
-        ref = filters.get('ref', None)
-
-        if ref:
-            try:
-                ref_obj = PolicyTypeReference.from_string_reference(ref=ref)
-            except InvalidReferenceError:
-                raise
-
-            filters['name'] = ref_obj.name
-            filters['resource_type'] = ref_obj.resource_type
-            del filters['ref']
-
-        return filters
 
 
 class PolicyController(resource.ContentPackResourceController):
