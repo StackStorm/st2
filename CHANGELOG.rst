@@ -49,6 +49,12 @@ in development
   (new feature)
 * Linux file watch sensor is now disabled by default. To enable it, set ``enabled: true`` in
   ``/opt/stackstorm/packs/linux/sensors/file_watch_sensor.yaml``
+* Add support for automatic RBAC role assignment based on the remote auth backend groups user is a
+  member of (e.g. LDAP groups) and mappings defined in ``/opt/stackstorm/rbac/mappings`` directory.
+
+  Note: This functionality is currently implemented for enterprise LDAP auth backend and only
+  available in enterprise edition.
+  (new feature)
 
 2.2.0 - February 27, 2017
 -------------------------
