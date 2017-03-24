@@ -37,6 +37,10 @@ Changelog
   enabled. (bug fix)
 
   Reported by efenian.
+* Fix concurrency related unit tests to support upgrade of the tooz library. (bug fix)
+* Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
+  StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
+  tooz for coordination. (improvement)
 * Various security related improvements in the enterprise LDAP auth backend. (improvement,
   bug fix)
 
