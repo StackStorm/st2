@@ -157,7 +157,7 @@ function register_content() {
     REGISTER_FLAGS=${flags}
   fi
 
-  echo "Registering content...[flags = ${REGISTER_FLAGS}]"
+  echo "Registering content...[flags = --config-file ${STANCONF} ${REGISTER_FLAGS}]"
   st2-register-content --config-file ${STANCONF} ${REGISTER_FLAGS}
 }
 
@@ -221,7 +221,11 @@ case ${1} in
     ;;
   reload)
     register_content ${@:2}
+    exit_code=$?
     getpids
+    # Note: We want to preserve st2-register-content "fail on failure" behavior
+    # and propagate the correct exit code and exit with non zero on failure
+    exit ${exit_code}
     ;;
   clean)
     must_be_root

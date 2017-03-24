@@ -63,11 +63,13 @@ def register_opts():
                                                               'all the Python runner actions.')),
 
         # General options
+        # Note: This value should default to False since we want fail on failure behavior by
+        # default.
         cfg.BoolOpt('no-fail-on-failure', default=False,
                     help=('Don\'t exit with non-zero if some resource registration fails.')),
         # Note: Fail on failure is now a default behavior. This flag is only left here for backward
         # compatibility reasons, but it's not actually used.
-        cfg.BoolOpt('fail-on-failure', default=False,
+        cfg.BoolOpt('fail-on-failure', default=True,
                     help=('Exit with non-zero if some resource registration fails.'))
     ]
     try:
