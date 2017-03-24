@@ -42,7 +42,7 @@ Changelog
   StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
   tooz for coordination. (improvement)
 * Various security related improvements in the enterprise LDAP auth backend. (improvement,
-  bug fix)
+  bug fix) 
 
 2.2.0 - February 27, 2017
 -------------------------
