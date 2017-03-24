@@ -118,19 +118,22 @@ class ResourceController(object):
 
         self.get_one_db_method = self._get_by_name_or_id
 
-    def get_all(self, **kwargs):
-        return self._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
 
     def get_one(self, id):
         return self._get_one_by_id(id=id)
 
     def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
-                 from_model_kwargs=None, **raw_filters):
+                 from_model_kwargs=None, raw_filters=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
-        raw_filters = copy.deepcopy(raw_filters)
+        raw_filters = copy.deepcopy(raw_filters) or {}
 
         exclude_fields = exclude_fields or []
         query_options = query_options if query_options else self.query_options
@@ -356,8 +359,11 @@ class ContentPackResourceController(ResourceController):
     def get_one(self, ref_or_id, from_model_kwargs=None):
         return self._get_one(ref_or_id, from_model_kwargs=from_model_kwargs)
 
-    def get_all(self, **kwargs):
-        return self._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
 
     def _get_one(self, ref_or_id, exclude_fields=None, from_model_kwargs=None,
                  requester_user=None, permission_type=None, **kwargs):
@@ -382,8 +388,16 @@ class ContentPackResourceController(ResourceController):
 
         return Response(json=result)
 
-    def _get_all(self, **kwargs):
-        resp = super(ContentPackResourceController, self)._get_all(**kwargs)
+    def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
+                 from_model_kwargs=None, raw_filters=None):
+        resp = super(ContentPackResourceController,
+                     self)._get_all(exclude_fields=exclude_fields,
+                                    sort=sort,
+                                    offset=offset,
+                                    limit=limit,
+                                    query_options=query_options,
+                                    from_model_kwargs=from_model_kwargs,
+                                    raw_filters=raw_filters)
 
         if self.include_reference:
             result = resp.json

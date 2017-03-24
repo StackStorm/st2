@@ -204,14 +204,14 @@ class TriggerController(object):
         trigger_api = TriggerAPI.from_model(trigger_db)
         return trigger_api
 
-    def get_all(self, **kw):
+    def get_all(self):
         """
             List all triggers.
 
             Handles requests:
                 GET /triggers/
         """
-        trigger_dbs = Trigger.get_all(**kw)
+        trigger_dbs = Trigger.get_all()
         trigger_apis = [TriggerAPI.from_model(trigger_db) for trigger_db in trigger_dbs]
         return trigger_apis
 
@@ -377,24 +377,30 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
         """
         return self._get_one_by_id(instance_id)
 
-    def get_all(self, limit=None, **kw):
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
         """
             List all triggerinstances.
 
             Handles requests:
                 GET /triggerinstances/
         """
-        trigger_instances = self._get_trigger_instances(limit=limit, **kw)
+        trigger_instances = self._get_trigger_instances(sort=sort,
+                                                        offset=offset,
+                                                        limit=limit,
+                                                        raw_filters=raw_filters)
         return trigger_instances
 
-    def _get_trigger_instances(self, limit=None, **kw):
+    def _get_trigger_instances(self, sort=None, offset=0, limit=None, raw_filters=None):
         if limit is None:
             limit = self.default_limit
 
         limit = int(limit)
 
-        LOG.debug('Retrieving all trigger instances with filters=%s', kw)
-        return super(TriggerInstanceController, self)._get_all(limit=limit, **kw)
+        LOG.debug('Retrieving all trigger instances with filters=%s', raw_filters)
+        return super(TriggerInstanceController, self)._get_all(sort=sort,
+                                                               offset=offset,
+                                                               limit=limit,
+                                                               raw_filters=raw_filters)
 
 
 triggertype_controller = TriggerTypeController()

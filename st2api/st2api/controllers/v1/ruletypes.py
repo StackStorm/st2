@@ -60,14 +60,14 @@ class RuleTypesController(object):
         ruletype_api = RuleTypeAPI.from_model(ruletype_db)
         return ruletype_api
 
-    def get_all(self, **kw):
+    def get_all(self):
         """
             List all RuleType objects.
 
             Handles requests:
                 GET /ruletypes/
         """
-        ruletype_dbs = RuleType.get_all(**kw)
+        ruletype_dbs = RuleType.get_all()
         ruletype_apis = [RuleTypeAPI.from_model(runnertype_db)
                          for runnertype_db in ruletype_dbs]
         return ruletype_apis

@@ -61,7 +61,7 @@ class BaseFileController(BasePacksController):
     supported_filters = {}
     query_options = {}
 
-    def get_all(self, **kwargs):
+    def get_all(self):
         return abort(404)
 
     def _get_file_size(self, file_path):

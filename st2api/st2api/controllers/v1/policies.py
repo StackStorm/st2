@@ -47,8 +47,11 @@ class PolicyTypeController(resource.ResourceController):
     def get_one(self, ref_or_id):
         return self._get_one(ref_or_id)
 
-    def get_all(self, **kwargs):
-        return self._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
 
     def _get_one(self, ref_or_id):
         instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
@@ -61,8 +64,16 @@ class PolicyTypeController(resource.ResourceController):
 
         return result
 
-    def _get_all(self, **kwargs):
-        resp = super(PolicyTypeController, self)._get_all(**kwargs)
+    def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
+                 from_model_kwargs=None, raw_filters=None):
+
+        resp = super(PolicyTypeController, self)._get_all(exclude_fields=exclude_fields,
+                                                          sort=sort,
+                                                          offset=offset,
+                                                          limit=limit,
+                                                          query_options=query_options,
+                                                          from_model_kwargs=from_model_kwargs,
+                                                          raw_filters=raw_filters)
 
         if self.include_reference:
             result = resp.json
@@ -121,8 +132,11 @@ class PolicyController(resource.ContentPackResourceController):
     def get_one(self, ref_or_id):
         return self._get_one(ref_or_id)
 
-    def get_all(self, **kwargs):
-        return self._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
 
     def post(self, instance):
         """

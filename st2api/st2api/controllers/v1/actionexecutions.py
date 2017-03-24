@@ -416,7 +416,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                                            offset=offset,
                                            limit=limit,
                                            query_options=query_options,
-                                           **raw_filters)
+                                           raw_filters=raw_filters)
 
     def get_one(self, id, requester_user, exclude_attributes=None):
         """
@@ -493,7 +493,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         return ActionExecutionAPI.from_model(execution_db, mask_secrets=(not show_secrets))
 
     def _get_action_executions(self, exclude_fields=None, sort=None, offset=0, limit=None,
-                               query_options=None, **raw_filters):
+                               query_options=None, raw_filters=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -510,7 +510,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                                                                 offset=offset,
                                                                 limit=limit,
                                                                 query_options=query_options,
-                                                                **raw_filters)
+                                                                raw_filters=raw_filters)
 
 
 action_executions_controller = ActionExecutionsController()
