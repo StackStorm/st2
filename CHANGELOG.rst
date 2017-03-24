@@ -1,17 +1,15 @@
 Changelog
 =========
 
-in development
---------------
+2.2.1 - TBD 2017
+----------------
 
-
-2.2.0 - February 22, 2017
--------------------------
+* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
+  correctly fails on failure by default.
+* Removed support for medium-strength ciphers from default nginx configuration (#3244)
 * Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
   directory name doesn't match the pack name (this might be the case with new pack management
   during development where local git repository directory name doesn't match pack name) (bug fix)
-* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
-  correctly fails on failure by default.
 * Fix a bug with default values from pack config schema not being passed via config to Python
   runner actions and sensors if pack didn't contain a config file in ``/opt/stackstorm/configs``
   directory. (bug fix)
@@ -20,30 +18,25 @@ in development
 * Make various improvements and changes to ``st2-run-pack-tests`` script so it works out of the box
   on servers where StackStorm has been installed using packages. (improvement)
 * Removed support for medium-strength ciphers from default nginx configuration (#3244)
-* Fix concurrency related unit tests to support upgrade of the tooz library. (bug fix)
-* Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
-  StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
-  tooz for coordination. (improvement)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
-<<<<<<< HEAD
-=======
 * Fix a bug with authentication middleware not working correctly when supplying credentials in an
   Authorization header using basic auth format when password contained a colon (``:``).
 
   Note: Usernames with colon are still not supported. (bug fix)
 
   Contributed by Carlos.
-* Refactor the action execution asynchronous callback functionality into the runner plugin
-  architecture. (improvement)
 * Update ``st2-run-pack-tests`` script so it doesn't try to install global pack test dependencies
   (mock, unittest2, nose) when running in an environment where those dependencies are already
   available.
->>>>>>> 43bfb40... Update changelog.
 * Make sure remote command and script runner correctly close SSH connections after the action
   execution has completed. (bug fix)
 
   Reported by Nagy Krisztián.
+* Fix a bug with pack configs API endpoint (``PUT /v1/configs/``) not working when RBAC was
+  enabled. (bug fix)
+
+  Reported by efenian.
 
 2.2.0 - February 27, 2017
 -------------------------
