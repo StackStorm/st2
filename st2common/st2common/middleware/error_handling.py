@@ -81,7 +81,6 @@ class ErrorHandlingMiddleware(object):
 
             if is_internal_server_error:
                 LOG.exception('API call failed: %s', error_msg, extra=extra)
-                LOG.exception(traceback.format_exc())
             else:
                 LOG.debug('API call failed: %s', error_msg, extra=extra)
 
