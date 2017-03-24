@@ -20,6 +20,7 @@ import six
 from oslo_config import cfg
 
 from st2common import log as logging
+from st2common.models.db.pack import ConfigDB
 from st2common.persistence.pack import ConfigSchema
 from st2common.persistence.pack import Config
 from st2common.content import utils as content_utils
@@ -72,8 +73,10 @@ class ContentPackConfigLoader(object):
         try:
             config_db = Config.get_by_pack(value=self.pack_name)
         except StackStormDBObjectNotFoundError:
-            # Corresponding pack config doesn't exist, return early
-            return result
+            # Corresponding pack config doesn't exist. We set config_db to an empty config so
+            # that the default values from config schema are still correctly applied even if
+            # pack doesn't contain a config.
+            config_db = ConfigDB(pack=self.pack_name, values={})
 
         try:
             config_schema_db = ConfigSchema.get_by_pack(value=self.pack_name)
