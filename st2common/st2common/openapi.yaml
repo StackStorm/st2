@@ -669,6 +669,7 @@ paths:
           type: boolean
         - name: st2-context
           in: header
+          x-as: context_string
           description: Additional execution context
           type: string
       x-parameters:
@@ -933,6 +934,20 @@ paths:
           in: query
           description: Entity owner
           type: string
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
         - name: id
           in: query
           description: Entity id filter
@@ -1070,13 +1085,33 @@ paths:
       x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
       description: Get list of installed packs.
       parameters:
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
         - name: name
           in: query
-          description: Name of a pack
+          description: Entity name filter
           type: string
         - name: ref
           in: query
-          description: ref for a pack
+          description: Entity ref filter
           type: string
       responses:
         '200':
@@ -1292,10 +1327,12 @@ paths:
           required: true
         - name: if-none-match
           in: header
+          x-as: if_none_match
           description: ETag to compare to.
           type: string
         - name: if-modified-since
           in: header
+          x-as: if_modified_since
           description: Date of last known modification.
           type: string
       x-parameters:
@@ -1317,6 +1354,33 @@ paths:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
       description: Retrieve configs for all the packs.
+      parameters:
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
       responses:
         '200':
           description: Get packs config.
@@ -1394,6 +1458,33 @@ paths:
       operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
       description: Retrieve config schema for all the packs.
+      parameters:
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
       responses:
         '200':
           description: Get packs config schema.
@@ -1446,10 +1537,32 @@ paths:
           in: query
           description: Policy type resource type
           type: string
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
         - name: name
           in: query
-          description: Policy type name
-          type: string
+          description: Entity name filter
+          type: array
+          items:
+            type: string
       responses:
         '200':
           description: List of policy types
@@ -2042,8 +2155,18 @@ paths:
           required: false
         - name: limit
           in: query
-          description: Number of entities to get
+          description: Number of actions to get
           type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
         - name: id
           in: query
           description: Entity id filter
@@ -2053,23 +2176,9 @@ paths:
         - name: name
           in: query
           description: Entity name filter
-          type: string
-        - name: pack
-          in: query
-          description: Entity pack name filter
-          type: string
-        - name: action
-          in: query
-          description: Action ref filter
-          type: string
-        - name: trigger
-          in: query
-          description: Trigger filter
-          type: string
-        - name: enabled
-          in: query
-          description: Enabled filter
-          type: string
+          type: array
+          items:
+            type: string
       responses:
         '200':
           description: List of rules
@@ -2424,6 +2533,27 @@ paths:
           description: List N most recent rule enforcements.
           type: string
           default: 50
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
         - name: execution
           in: query
           description: Execution to filter the list.
@@ -2467,14 +2597,14 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/v1/ruleenforcements/{ref_or_id}:
+  /api/v1/ruleenforcements/{id}:
     get:
       operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_one
       description: Return a specific rule enforcement based on id.
       parameters:
-        - name: ref_or_id
+        - name: id
           in: path
-          description: entities id
+          description: Entity id
           type: string
       x-parameters:
         - name: user
@@ -2551,10 +2681,30 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Limit number of traces.
+          description: Number of actions to get
           type: integer
-          # required: true
-          # default: 50
+          default: 100
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
         - name: trace_tag
           in: query
           description: Trace-tag to filter the list.
@@ -2851,6 +3001,28 @@ paths:
           in: query
           description: Number of actions to get
           type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
         - name: trigger
           in: query
           description: Trigger filter

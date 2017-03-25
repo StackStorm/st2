@@ -105,7 +105,7 @@ class KeyValuePairController(ResourceController):
         return kvp_api
 
     def get_all(self, prefix=None, scope=FULL_SYSTEM_SCOPE, user=None, requester_user=None,
-                decrypt=False, **kwargs):
+                decrypt=False, sort=None, offset=0, limit=None, **raw_filters):
         """
             List all keys.
 
@@ -141,23 +141,25 @@ class KeyValuePairController(ResourceController):
                                                              user=user)
 
         from_model_kwargs = {'mask_secrets': not decrypt}
-        kwargs['prefix'] = prefix
 
         if scope and scope not in ALL_SCOPE:
             self._validate_scope(scope=scope)
-            kwargs['scope'] = scope
+            raw_filters['scope'] = scope
 
         if scope == USER_SCOPE or scope == FULL_USER_SCOPE:
             # Make sure we only returned values scoped to current user
-            if kwargs['prefix']:
-                kwargs['prefix'] = get_key_reference(name=kwargs['prefix'], scope=scope,
-                                                     user=user)
+            if prefix:
+                prefix = get_key_reference(name=prefix, scope=scope, user=user)
             else:
-                kwargs['prefix'] = get_key_reference(name='', scope=scope,
-                                                     user=user)
+                prefix = get_key_reference(name='', scope=scope, user=user)
+
+        raw_filters['prefix'] = prefix
 
         kvp_apis = super(KeyValuePairController, self)._get_all(from_model_kwargs=from_model_kwargs,
-                                                                **kwargs)
+                                                                sort=sort,
+                                                                offset=offset,
+                                                                limit=limit,
+                                                                raw_filters=raw_filters)
         return kvp_apis
 
     def put(self, kvp, name, requester_user=None, scope=FULL_SYSTEM_SCOPE):
