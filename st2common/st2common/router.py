@@ -178,6 +178,9 @@ class Router(object):
                     for transform in transforms[filter]:
                         m.connect(None, re.sub(filter, transform, path), **connect_kw)
 
+                    module_name = endpoint['operationId'].split(':', 1)[0]
+                    __import__(module_name)
+
         for route in sorted(self.routes.matchlist, key=lambda r: r.routepath):
             LOG.debug('Route registered: %+6s %s', route.conditions['method'][0], route.routepath)
 
