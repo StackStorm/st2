@@ -295,7 +295,7 @@ class ConfigAPI(BaseAPI):
 
         # Note: We are doing optional validation so for now, we do allow additional properties
         instance = self.values or {}
-        schema = config_schema_db.attributes
+        schema = config_schema_db.attributes or {}
 
         configs_path = os.path.join(cfg.CONF.system.base_path, 'configs/')
         config_path = os.path.join(configs_path, '%s.yaml' % (self.pack))
