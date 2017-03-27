@@ -48,8 +48,9 @@ def register_opts(ignore_errors=False):
     rbac_opts = [
         cfg.BoolOpt('enable', default=False, help='Enable RBAC.'),
         cfg.BoolOpt('sync_remote_groups', default=False,
-                    help=('True to synchronize remote roles returned by the auth backed for each '
-                          'StackStorm user with local StackStorm roles.'))
+                    help=('True to synchronize remote groups returned by the auth backed for each '
+                          'StackStorm user with local StackStorm roles based on the group to role '
+                          'mapping definition files.'))
     ]
     do_register_opts(rbac_opts, 'rbac', ignore_errors)
 
