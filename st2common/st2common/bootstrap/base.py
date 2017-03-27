@@ -187,6 +187,7 @@ class ResourceRegistrar(object):
         content['attributes'] = values
 
         config_schema_api = ConfigSchemaAPI(**content)
+        config_schema_api = config_schema_api.validate()
         config_schema_db = ConfigSchemaAPI.to_model(config_schema_api)
 
         try:
