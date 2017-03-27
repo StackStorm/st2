@@ -63,6 +63,8 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
     Base test case class for testing API controllers with RBAC enabled.
     """
 
+    enable_auth = True
+
     @classmethod
     def setUpClass(cls):
         super(APIControllerWithRBACTestCase, cls).setUpClass()

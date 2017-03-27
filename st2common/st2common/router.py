@@ -278,17 +278,17 @@ class Router(object):
                 LOG.exception('API key is disabled.')
                 return abort_unauthorized(str(e))
 
-        if cfg.CONF.rbac.enable:
-            user_db = context['user']
+            if cfg.CONF.rbac.enable:
+                user_db = context['user']
 
-            permission_type = endpoint.get('x-permissions', None)
-            if permission_type:
-                resolver = resolvers.get_resolver_for_permission_type(permission_type)
-                has_permission = resolver.user_has_permission(user_db, permission_type)
+                permission_type = endpoint.get('x-permissions', None)
+                if permission_type:
+                    resolver = resolvers.get_resolver_for_permission_type(permission_type)
+                    has_permission = resolver.user_has_permission(user_db, permission_type)
 
-                if not has_permission:
-                    raise rbac_exc.ResourceTypeAccessDeniedError(user_db,
-                                                                 permission_type)
+                    if not has_permission:
+                        raise rbac_exc.ResourceTypeAccessDeniedError(user_db,
+                                                                     permission_type)
 
         # Collect parameters
         kw = {}
