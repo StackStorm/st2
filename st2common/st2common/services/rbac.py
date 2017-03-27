@@ -296,10 +296,11 @@ def get_all_group_to_role_maps():
     return result
 
 
-def create_group_to_role_map(group, roles, description=None):
+def create_group_to_role_map(group, roles, description=None, enabled=True):
     group_to_role_map_db = GroupToRoleMappingDB(group=group,
                                                 roles=roles,
-                                                description=description)
+                                                description=description,
+                                                enabled=enabled)
 
     group_to_role_map_db = GroupToRoleMapping.add_or_update(group_to_role_map_db)
     return group_to_role_map_db

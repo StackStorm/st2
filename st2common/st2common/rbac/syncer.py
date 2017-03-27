@@ -228,7 +228,8 @@ class RBACDefinitionsDBSyncer(object):
         for group_to_role_map_api in group_to_role_map_apis:
             rbac_services.create_group_to_role_map(group=group_to_role_map_api.group,
                                                    roles=group_to_role_map_api.roles,
-                                                   description=group_to_role_map_api.description)
+                                                   description=group_to_role_map_api.description,
+                                                   enabled=group_to_role_map_api.enabled)
 
         LOG.info('Group to role map definitions synchronized.')
 

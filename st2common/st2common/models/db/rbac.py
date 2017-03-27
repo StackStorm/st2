@@ -94,6 +94,8 @@ class GroupToRoleMappingDB(stormbase.StormFoundationDB):
     group = me.StringField(required=True, unique=True)
     roles = me.ListField(field=me.StringField())
     description = me.StringField()
+    enabled = me.BooleanField(required=True, default=True,
+                             help_text='A flag indicating whether the mapping is enabled.')
 
 
 # Specialized access objects
