@@ -321,9 +321,13 @@ class RBACRemoteGroupToRoleSyncer(object):
                  extra=extra)
 
         # 1. Retrieve group to role mappings for the provided groups
-        mapping_dbs = GroupToRoleMapping.query(group__in=groups)
+        all_mapping_dbs = GroupToRoleMapping.query(group__in=groups)
+        enabled_mapping_dbs = [mapping_db for mapping_db in all_mapping_dbs if
+                               mapping_db.enabled]
+        disabled_mapping_dbs = [mapping_db for mapping_db in all_mapping_dbs if
+                                not mapping_db.enabled]
 
-        if not mapping_dbs:
+        if not all_mapping_dbs:
             # No mapping found, return early
             LOG.debug('No group to role mappings found for user "%s"' % (str(user_db)),
                       extra=extra)
@@ -336,7 +340,7 @@ class RBACRemoteGroupToRoleSyncer(object):
         existing_role_names = set(existing_role_names)
         current_role_names = set([])
 
-        for mapping_db in mapping_dbs:
+        for mapping_db in all_mapping_dbs:
             for role in mapping_db.roles:
                 current_role_names.add(role)
 
@@ -348,6 +352,11 @@ class RBACRemoteGroupToRoleSyncer(object):
 
         # A list of role assignments which should be removed from the database
         removed_role_names = (existing_role_names - new_role_names)
+
+        # Also remove any assignments for mappings which are disabled in the database
+        for mapping_db in disabled_mapping_dbs:
+            for role in mapping_db.roles:
+                removed_role_names.add(role)
 
         LOG.debug('New role assignments: %r' % (new_role_names))
         LOG.debug('Updated role assignments: %r' % (updated_role_names))
@@ -364,7 +373,7 @@ class RBACRemoteGroupToRoleSyncer(object):
 
         # 3. Create role assignments for all the current groups
         created_assignments_dbs = []
-        for mapping_db in mapping_dbs:
+        for mapping_db in enabled_mapping_dbs:
             extra['mapping_db'] = mapping_db
 
             for role_name in mapping_db.roles:
