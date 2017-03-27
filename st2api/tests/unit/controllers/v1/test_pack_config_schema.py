@@ -25,8 +25,6 @@ __all__ = [
 
 PACKS_PATH = get_fixtures_packs_base_path()
 CONFIG_SCHEMA_COUNT = len(glob.glob('%s/*/config.schema.yaml' % (PACKS_PATH)))
-# Note: We subtract invalid schemas which are not registered
-CONFIG_SCHEMA_COUNT = (CONFIG_SCHEMA_COUNT - 3)
 assert CONFIG_SCHEMA_COUNT > 1
 
 
