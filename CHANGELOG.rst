@@ -43,6 +43,8 @@ Changelog
   tooz for coordination. (improvement)
 * Various security related improvements in the enterprise LDAP auth backend. (improvement,
   bug fix)
+* Fix a bug with config schema validation not being performed upon registration which could cause
+  bad or empty config schema to end up in the system. (bug fix)
 
 2.2.0 - February 27, 2017
 -------------------------
