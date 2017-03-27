@@ -49,6 +49,8 @@ in development
   (new feature)
 * Linux file watch sensor is now disabled by default. To enable it, set ``enabled: true`` in
   ``/opt/stackstorm/packs/linux/sensors/file_watch_sensor.yaml``
+* Fix a bug with config schema validation not being performed upon registration which could cause
+  bad or empty config schema to end up in the system. (bug fix)
 
 2.2.0 - February 27, 2017
 -------------------------
