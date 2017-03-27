@@ -41,6 +41,8 @@ PACK_PATH_11 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dumm
 PACK_PATH_12 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_12')
 PACK_PATH_13 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_13')
 PACK_PATH_14 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_14')
+PACK_PATH_17 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_17')
+PACK_PATH_18 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_18')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -199,3 +201,23 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         expected_msg = "'wrongstackstormversion' does not match"
         self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_10)
+
+    def test_register_pack_empty_and_invalid_config_schema(self):
+        registrar = ResourceRegistrar(use_pack_cache=False, fail_on_failure=True)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_17': PACK_PATH_17}
+        packs_base_paths = content_utils.get_packs_base_paths()
+
+        expected_msg = 'Config schema ".*?dummy_pack_17/config.schema.yaml" is empty and invalid.'
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar.register_packs,
+                                base_dirs=packs_base_paths)
+
+    def test_register_pack_invalid_config_schema_invalid_attribute(self):
+        registrar = ResourceRegistrar(use_pack_cache=False, fail_on_failure=True)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_18': PACK_PATH_18}
+        packs_base_paths = content_utils.get_packs_base_paths()
+
+        expected_msg = 'Additional properties are not allowed \(\'invalid\' was unexpected\)'
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar.register_packs,
+                                base_dirs=packs_base_paths)
