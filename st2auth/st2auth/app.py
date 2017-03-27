@@ -52,6 +52,7 @@ def setup_app(config={}):
                      run_migrations=False,
                      config_args=config.get('config_args', None))
 
+    # Additional pre-run time checks
     validate_auth_backend_is_correctly_configured()
 
     router = Router(debug=cfg.CONF.auth.debug)

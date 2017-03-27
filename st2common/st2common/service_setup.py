@@ -115,13 +115,6 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     if run_migrations:
         run_all_rbac_migrations()
 
-    # Additional pre-runtime checks for API and auth API servies
-    # Verify auth is enabled. RBAC without makes no sense.
-    if cfg.CONF.rbac.enable and not cfg.CONF.auth.enable:
-        msg = ('Authentication is not enabled. RBAC only works when authentication is enabled.'
-               'You can either enable authentication or disable RBAC.')
-        raise Exception(msg)
-
 
 def teardown():
     """
