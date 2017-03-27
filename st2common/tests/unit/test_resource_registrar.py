@@ -24,27 +24,25 @@ from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 
 from st2tests.base import CleanDbTestCase
-from st2tests import fixturesloader
+from st2tests.fixturesloader import get_fixtures_base_path
 
 
 __all__ = [
     'ResourceRegistrarTestCase'
 ]
 
-PACK_PATH_1 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_1')
-PACK_PATH_6 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_6')
-PACK_PATH_7 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_7')
-PACK_PATH_8 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_8')
-PACK_PATH_9 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_9')
-PACK_PATH_10 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_10')
-PACK_PATH_11 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_11')
-PACK_PATH_12 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_12')
-PACK_PATH_13 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_13')
-PACK_PATH_14 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_14')
-PACK_PATH_17 = os.path.join(fixturesloader.get_fixtures_packs_base_path(),
-                            '../packs_invalid/dummy_pack_17')
-PACK_PATH_18 = os.path.join(fixturesloader.get_fixtures_packs_base_path(),
-                            '../packs_invalid/dummy_pack_18')
+PACK_PATH_1 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_1')
+PACK_PATH_6 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_6')
+PACK_PATH_7 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_7')
+PACK_PATH_8 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_8')
+PACK_PATH_9 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_9')
+PACK_PATH_10 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_10')
+PACK_PATH_11 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_11')
+PACK_PATH_12 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_12')
+PACK_PATH_13 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_13')
+PACK_PATH_14 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_14')
+PACK_PATH_17 = os.path.join(get_fixtures_base_path(), 'packs_invalid/dummy_pack_17')
+PACK_PATH_18 = os.path.join(get_fixtures_base_path(), 'packs_invalid/dummy_pack_18')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
