@@ -176,6 +176,8 @@ class StandaloneAuthHandler(AuthHandlerBase):
 
             # If remote group sync is enabled, sync the remote groups with local StackStorm roles
             if cfg.CONF.rbac.sync_remote_groups:
+                LOG.debug('Retrieving auth backend groups for user "%s"' % (username),
+                          extra=extra)
                 try:
                     user_groups = self._auth_backend.get_user_groups(username=username)
                 except NotImplementedError:
