@@ -474,7 +474,7 @@ class RBACRemoteGroupToRoleSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         self.assertEqual(created_role_assignment_dbs, [])
         self.assertEqual(removed_role_assignment_dbs, [])
 
-    def test_sync_success_one_mapping_is_disabled_on_second_run(self):
+    def test_sync_success_one_mapping_is_disabled_on_second_sync_run(self):
         syncer = RBACRemoteGroupToRoleSyncer()
         user_db = self.users['user_1']
 
