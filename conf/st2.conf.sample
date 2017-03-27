@@ -30,6 +30,8 @@ max_page_size = 100
 mask_secrets = True
 # StackStorm API server host
 host = 0.0.0.0
+# None
+debug = False
 # StackStorm API server port
 port = 9101
 
@@ -65,7 +67,7 @@ key = /etc/apache2/ssl/mycert.key
 use_ssl = False
 # Port on which the service should listen on.
 port = 9100
-# Authentication backend to use in a standalone mode. Available backends: flat_file.
+# Authentication backend to use in a standalone mode. Available backends: flat_file, ldap.
 backend = flat_file
 
 [cloudslang]
@@ -75,10 +77,14 @@ home_dir = /opt/cslang
 [content]
 # A URL pointing to the pack index. StackStorm Exchange is used by default. Use a comma-separated list for multiple indexes if you want to get other packs discovered with "st2 pack search".
 index_url = https://index.stackstorm.org/v1/index.json # comma separated list allowed here.
-# Path to the directory which contains system packs.
-system_packs_base_path = /opt/stackstorm/packs
+# Path to the directory which contains system runners.
+system_runners_base_path = /opt/stackstorm/runners
+# Paths which will be searched for runners.
+runners_base_paths = None
 # User group that can write to packs directory.
 pack_group = st2packs
+# Path to the directory which contains system packs.
+system_packs_base_path = /opt/stackstorm/packs
 # Paths which will be searched for integration packs.
 packs_base_paths = None
 
@@ -136,7 +142,7 @@ collection_interval = 600
 
 [keyvalue]
 # Location of the symmetric encryption key for encrypting values in kvstore. This key should be in JSON and should've been generated using keyczar.
-encryption_key_path =
+encryption_key_path = 
 # Allow encryption of values in key value stored qualified as "secret".
 enable_encryption = True
 
@@ -223,7 +229,7 @@ max_parallel_actions = 50
 remote_dir = /tmp
 # Use the .ssh/config file. Useful to override ports etc.
 use_ssh_config = False
-# Path to the ssh config file. Useful to override the default path
+# Path to the ssh config file.
 ssh_config_file_path = ~/.ssh/config
 # How partial success of actions run on multiple nodes should be treated.
 allow_partial_failure = False
@@ -253,6 +259,10 @@ facility = local7
 [system]
 # Enable debug mode.
 debug = False
+# True to validate parameters for non-system trigger types when creatinga rule. By default, only parameters for system triggers are validated
+validate_trigger_parameters = False
+# True to validate payload for non-system trigger types when dispatchinga trigger inside the sensor. By default, only payload for system triggers is validated.
+validate_trigger_payload = False
 # Base path to all st2 artifacts.
 base_path = /opt/stackstorm
 
@@ -271,3 +281,4 @@ local_timezone = America/Los_Angeles
 [webui]
 # Base https URL to access st2 Web UI. This is used to constructhistory URLs that are sent out when chatops is used to kick off executions.
 webui_base_url = https://localhost
+
