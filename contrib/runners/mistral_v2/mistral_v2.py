@@ -19,17 +19,15 @@ import uuid
 import retrying
 import six
 import yaml
-from mistralclient.api import client as mistral
 from oslo_config import cfg
 
 from st2common.runners.base import AsyncActionRunner
 from st2common.constants.action import LIVEACTION_STATUS_RUNNING
 from st2common import log as logging
 from st2common.models.api.notification import NotificationsHelper
+from st2common.util import api as api_utils
+from st2common.util import url as url_utils
 from st2common.util.workflow import mistral as utils
-from st2common.util.url import get_url_without_trailing_slash
-from st2common.util.api import get_full_public_api_url
-from st2common.util.api import get_mistral_api_url
 
 
 LOG = logging.getLogger(__name__)
@@ -41,21 +39,13 @@ def get_runner():
 
 class MistralRunner(AsyncActionRunner):
 
-    url = get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
-
     def __init__(self, runner_id):
         super(MistralRunner, self).__init__(runner_id=runner_id)
         self._on_behalf_user = cfg.CONF.system_user.user
         self._notify = None
         self._skip_notify_tasks = []
-        self._client = mistral.client(
-            mistral_url=self.url,
-            username=cfg.CONF.mistral.keystone_username,
-            api_key=cfg.CONF.mistral.keystone_password,
-            project_name=cfg.CONF.mistral.keystone_project_name,
-            auth_url=cfg.CONF.mistral.keystone_auth_url,
-            cacert=cfg.CONF.mistral.cacert,
-            insecure=cfg.CONF.mistral.insecure)
+        self._base_url = url_utils.get_url_without_trailing_slash(cfg.CONF.mistral.v2_base_url)
+        self._client = None
 
     @staticmethod
     def get_workflow_definition(entry_point):
@@ -68,6 +58,15 @@ class MistralRunner(AsyncActionRunner):
         if getattr(self, 'liveaction', None):
             self._notify = getattr(self.liveaction, 'notify', None)
         self._skip_notify_tasks = self.runner_parameters.get('skip_notify', [])
+
+    def _get_client(self, ctx=None):
+        auth_token = (
+            ctx['auth_token']
+            if ctx and 'auth_token' in ctx and ctx.get('auth_token')
+            else getattr(self.auth_token, 'token', None)
+        )
+
+        return utils.get_client(self._base_url, auth_token=auth_token)
 
     @staticmethod
     def _check_name(action_ref, is_workbook, def_dict):
@@ -147,12 +146,12 @@ class MistralRunner(AsyncActionRunner):
 
     def _construct_workflow_execution_options(self):
         # This URL is used by Mistral to talk back to the API
-        api_url = get_mistral_api_url()
+        api_url = api_utils.get_mistral_api_url()
         endpoint = api_url + '/actionexecutions'
 
         # This URL is available in the context and can be used by the users inside a workflow,
         # similar to "ST2_ACTION_API_URL" environment variable available to actions
-        public_api_url = get_full_public_api_url()
+        public_api_url = api_utils.get_full_public_api_url()
 
         # Build context with additional information
         parent_context = {
@@ -220,6 +219,9 @@ class MistralRunner(AsyncActionRunner):
         return result
 
     def start(self, action_parameters):
+        if not self._client:
+            self._client = self._get_client()
+
         # Test connection
         self._client.workflows.list()
 
@@ -310,6 +312,9 @@ class MistralRunner(AsyncActionRunner):
         if not mistral_ctx.get('execution_id'):
             raise Exception('Unable to rerun because mistral execution_id is missing.')
 
+        if not self._client:
+            self._client = self._get_client(mistral_ctx)
+
         execution = self._client.executions.get(mistral_ctx.get('execution_id'))
 
         # pylint: disable=no-member
@@ -366,12 +371,14 @@ class MistralRunner(AsyncActionRunner):
         if not mistral_ctx.get('execution_id'):
             raise Exception('Unable to cancel because mistral execution_id is missing.')
 
+        if not self._client:
+            self._client = self._get_client(mistral_ctx)
+
         # There is no cancellation state in Mistral. Pause the workflow so
         # actions that are still executing can gracefully reach completion.
         self._client.executions.update(mistral_ctx.get('execution_id'), 'CANCELLED')
 
-    @staticmethod
-    def _build_mistral_context(parent, current):
+    def _build_mistral_context(self, parent, current):
         """
         Mistral workflow might be kicked off in st2 by a parent Mistral
         workflow. In that case, we need to make sure that the existing
@@ -399,5 +406,7 @@ class MistralRunner(AsyncActionRunner):
                 context['mistral']['parent'] = actual_parent
             else:
                 context['mistral'] = current
+
+        context['mistral']['auth_token'] = getattr(self.auth_token, 'token', None)
 
         return context

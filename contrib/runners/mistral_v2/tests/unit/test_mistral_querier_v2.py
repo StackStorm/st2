@@ -33,6 +33,7 @@ tests_config.parse_args()
 from st2common.constants import action as action_constants
 from st2common.services import action as action_service
 from st2common.util import loader
+from st2common.util.workflow import mistral as utils
 from st2tests import DbTestCase
 
 
@@ -102,7 +103,8 @@ MOCK_WF_EX_TASKS = [
 
 MOCK_QRY_CONTEXT = {
     'mistral': {
-        'execution_id': uuid.uuid4().hex
+        'execution_id': uuid.uuid4().hex,
+        'auth_token': uuid.uuid4().hex
     }
 }
 
@@ -125,6 +127,10 @@ class MistralQuerierTest(DbTestCase):
     def setUp(self):
         super(MistralQuerierTest, self).setUp()
         self.querier = self.query_module.get_instance()
+        self.mistral_client = utils.get_client(
+            self.querier._base_url,
+            auth_token=MOCK_QRY_CONTEXT['mistral']['auth_token']
+        )
 
     @mock.patch.object(
         action_service, 'is_action_canceled_or_canceling',
@@ -244,7 +250,7 @@ class MistralQuerierTest(DbTestCase):
         executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=MOCK_WF_EX))
     def test_get_workflow_result(self):
-        result = self.querier._get_workflow_result(uuid.uuid4().hex)
+        result = self.querier._get_workflow_result(self.mistral_client, uuid.uuid4().hex)
 
         expected = {
             'k1': 'v1',
@@ -265,7 +271,7 @@ class MistralQuerierTest(DbTestCase):
             MOCK_WF_EX_TASKS[0],
             MOCK_WF_EX_TASKS[1]]))
     def test_get_workflow_tasks(self):
-        tasks = self.querier._get_workflow_tasks(uuid.uuid4().hex)
+        tasks = self.querier._get_workflow_tasks(self.mistral_client, uuid.uuid4().hex)
 
         expected = copy.deepcopy(MOCK_WF_EX_TASKS_DATA)
         for task in expected:

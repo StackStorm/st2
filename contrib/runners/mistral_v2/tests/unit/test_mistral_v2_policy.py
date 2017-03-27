@@ -34,11 +34,14 @@ from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import policiesregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
+from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
+from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.policy import Policy
 from st2common.runners import base as runners
 from st2common.services import action as action_service
+from st2common.services import trace as trace_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.util import loader
@@ -69,7 +72,21 @@ WF1 = workflows.Workflow(None, {'name': WF1_NAME, 'definition': WF1_YAML})
 MISTRAL_EXECUTION = {'id': str(uuid.uuid4()), 'state': 'RUNNING', 'workflow_name': WF1_NAME}
 WF1_EXEC = copy.deepcopy(MISTRAL_EXECUTION)
 
+MOCK_ACTION_EXEC_DB = ActionExecutionDB(
+    action={'ref': 'mock.workflow'},
+    runner={'ref': 'mock.runner'},
+    liveaction={'id': uuid.uuid4().hex},
+    status=action_constants.LIVEACTION_STATUS_RUNNING,
+    context={'mistral': {'auth_token': uuid.uuid4().hex}}
+)
 
+
+@mock.patch.object(
+    trace_service, 'get_trace_db_by_live_action',
+    mock.MagicMock(return_value=(None, None)))
+@mock.patch.object(
+    ActionExecution, 'get_by_id',
+    mock.MagicMock(return_value=MOCK_ACTION_EXEC_DB))
 @mock.patch.object(
     CUDPublisher,
     'publish_update',
@@ -184,7 +201,19 @@ class MistralRunnerPolicyTest(DbTestCase):
 
             params = {'friend': 'grande animalerie'}
 
-            liveaction2 = LiveActionDB(action=WF1_NAME, parameters=params, callback=callback)
+            context = {
+                'parent': {
+                    'execution_id': uuid.uuid4().hex
+                }
+            }
+
+            liveaction2 = LiveActionDB(
+                action=WF1_NAME,
+                parameters=params,
+                callback=callback,
+                context=context
+            )
+
             liveaction2, execution2 = action_service.request(liveaction2)
 
             action_executions.ActionExecutionManager.update.assert_called_once_with(
@@ -251,7 +280,19 @@ class MistralRunnerPolicyTest(DbTestCase):
                 'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
 
-            liveaction2 = LiveActionDB(action=WF1_NAME, parameters=params, callback=callback)
+            context = {
+                'parent': {
+                    'execution_id': uuid.uuid4().hex
+                }
+            }
+
+            liveaction2 = LiveActionDB(
+                action=WF1_NAME,
+                parameters=params,
+                callback=callback,
+                context=context
+            )
+
             liveaction2, execution2 = action_service.request(liveaction2)
 
             action_executions.ActionExecutionManager.update.assert_called_once_with(

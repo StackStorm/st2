@@ -43,6 +43,7 @@ from st2common.transport.publishers import CUDPublisher
 from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.util import loader
+from st2mistral.auth import client as st2mistral
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
@@ -149,6 +150,12 @@ class MistralAuthTest(DbTestCase):
         cfg.CONF.set_default('keystone_auth_url', None, group='mistral')
 
     @mock.patch.object(
+        st2mistral.St2AuthHandler, 'authenticate',
+        mock.MagicMock(return_value={}))
+    @mock.patch.object(
+        keystone.KeystoneAuthHandler, 'authenticate',
+        mock.MagicMock(return_value={}))
+    @mock.patch.object(
         workflows.WorkflowManager, 'list',
         mock.MagicMock(return_value=[]))
     @mock.patch.object(
@@ -163,7 +170,10 @@ class MistralAuthTest(DbTestCase):
     @mock.patch.object(
         access_service, 'create_token',
         mock.MagicMock(return_value=TOKEN_DB))
-    def test_launch_workflow_with_st2_auth(self):
+    def test_launch_workflow_with_st2_auth_token(self):
+        cfg.CONF.set_override('auth_type', 'st2', group='mistral')
+        cfg.CONF.set_override('st2_api_key', None, group='mistral')
+
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ACTION_CONTEXT)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
@@ -198,6 +208,94 @@ class MistralAuthTest(DbTestCase):
             }
         }
 
+        self.assertFalse(keystone.KeystoneAuthHandler.authenticate.called)
+
+        auth_req = {
+            'mistral_url': cfg.CONF.mistral.v2_base_url,
+            'auth_token': TOKEN_DB.token,
+            'api_key': None,
+            'insecure': False,
+            'cacert': None
+        }
+
+        st2mistral.St2AuthHandler.authenticate.assert_called_with(auth_req)
+
+        executions.ExecutionManager.create.assert_called_with(
+            WF1_NAME, workflow_input=workflow_input, env=env)
+
+    @mock.patch.object(
+        st2mistral.St2AuthHandler, 'authenticate',
+        mock.MagicMock(return_value={}))
+    @mock.patch.object(
+        keystone.KeystoneAuthHandler, 'authenticate',
+        mock.MagicMock(return_value={}))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'list',
+        mock.MagicMock(return_value=[]))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'get',
+        mock.MagicMock(return_value=WF1))
+    @mock.patch.object(
+        workflows.WorkflowManager, 'create',
+        mock.MagicMock(return_value=[WF1]))
+    @mock.patch.object(
+        executions.ExecutionManager, 'create',
+        mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
+    @mock.patch.object(
+        access_service, 'create_token',
+        mock.MagicMock(return_value=TOKEN_DB))
+    def test_launch_workflow_with_st2_api_key(self):
+        st2_api_key = uuid.uuid4().hex
+
+        cfg.CONF.set_override('auth_type', 'st2', group='mistral')
+        cfg.CONF.set_override('st2_api_key', st2_api_key, group='mistral')
+
+        liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS, context=ACTION_CONTEXT)
+        liveaction, execution = action_service.request(liveaction)
+        liveaction = LiveAction.get_by_id(str(liveaction.id))
+        self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        mistral_context = liveaction.context.get('mistral', None)
+        self.assertIsNotNone(mistral_context)
+        self.assertEqual(mistral_context['execution_id'], WF1_EXEC.get('id'))
+        self.assertEqual(mistral_context['workflow_name'], WF1_EXEC.get('workflow_name'))
+
+        workflow_input = copy.deepcopy(ACTION_PARAMS)
+        workflow_input.update({'count': '3'})
+
+        env = {
+            'st2_execution_id': str(execution.id),
+            'st2_liveaction_id': str(liveaction.id),
+            'st2_action_api_url': 'http://0.0.0.0:9101/v1',
+            '__actions': {
+                'st2.action': {
+                    'st2_context': {
+                        'auth_token': TOKEN_DB.token,
+                        'api_url': 'http://0.0.0.0:9101/v1',
+                        'endpoint': 'http://0.0.0.0:9101/v1/actionexecutions',
+                        'parent': {
+                            'user': liveaction.context['user'],
+                            'execution_id': str(execution.id)
+                        },
+                        'notify': {},
+                        'skip_notify_tasks': []
+                    }
+                }
+            }
+        }
+
+        self.assertFalse(keystone.KeystoneAuthHandler.authenticate.called)
+
+        auth_req = {
+            'mistral_url': cfg.CONF.mistral.v2_base_url,
+            'auth_token': TOKEN_DB.token,
+            'api_key': cfg.CONF.mistral.st2_api_key,
+            'insecure': False,
+            'cacert': None
+        }
+
+        st2mistral.St2AuthHandler.authenticate.assert_called_with(auth_req)
+
         executions.ExecutionManager.create.assert_called_with(
             WF1_NAME, workflow_input=workflow_input, env=env)
 
@@ -216,7 +314,8 @@ class MistralAuthTest(DbTestCase):
     @mock.patch.object(
         executions.ExecutionManager, 'create',
         mock.MagicMock(return_value=executions.Execution(None, WF1_EXEC)))
-    def test_launch_workflow_with_mistral_auth(self):
+    def test_launch_workflow_with_keystone_auth(self):
+        cfg.CONF.set_override('auth_type', 'keystone', group='mistral')
         cfg.CONF.set_default('keystone_username', 'foo', group='mistral')
         cfg.CONF.set_default('keystone_password', 'bar', group='mistral')
         cfg.CONF.set_default('keystone_project_name', 'admin', group='mistral')
@@ -225,6 +324,7 @@ class MistralAuthTest(DbTestCase):
         liveaction = LiveActionDB(action=WF1_NAME, parameters=ACTION_PARAMS)
         liveaction, execution = action_service.request(liveaction)
         liveaction = LiveAction.get_by_id(str(liveaction.id))
+
         self.assertEqual(liveaction.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         mistral_context = liveaction.context.get('mistral', None)
