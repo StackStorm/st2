@@ -181,8 +181,12 @@ class ResourceRegistrar(object):
             # Note: Config schema is optional
             return None
 
-        content = {}
         values = self._meta_loader.load(config_schema_path)
+
+        if not values:
+            raise ValueError('Config schema "%s" is empty and invalid.' % (config_schema_path))
+
+        content = {}
         content['pack'] = pack_name
         content['attributes'] = values
 
