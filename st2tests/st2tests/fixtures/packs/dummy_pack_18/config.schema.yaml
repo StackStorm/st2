@@ -1,7 +1,0 @@
----
-  api_key:
-    description: "API key"
-    type: "string"
-    secret: true
-    required: true
-    invalid: "value"

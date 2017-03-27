@@ -299,7 +299,7 @@ class PacksControllerTestCase(FunctionalTest):
         # Fail on failure is enabled by default
         resp = self.app.post_json('/v1/packs/register', expect_errors=True)
 
-        expected_msg = 'Failed to register pack "dummy_pack_18":'
+        expected_msg = 'Failed to register pack "dummy_pack_10":'
         self.assertEqual(resp.status_int, 400)
         self.assertTrue(expected_msg in resp.json['faultstring'])
 

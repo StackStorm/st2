@@ -8,7 +8,7 @@
     secret: true
     required: true
   regions:
-    type: "list"
+    type: "array"
     required: true
   private_key_path:
     type: "string"
