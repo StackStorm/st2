@@ -41,8 +41,10 @@ PACK_PATH_11 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dumm
 PACK_PATH_12 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_12')
 PACK_PATH_13 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_13')
 PACK_PATH_14 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_14')
-PACK_PATH_17 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_17')
-PACK_PATH_18 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_18')
+PACK_PATH_17 = os.path.join(fixturesloader.get_fixtures_packs_base_path(),
+                            '../packs_invalid/dummy_pack_17')
+PACK_PATH_18 = os.path.join(fixturesloader.get_fixtures_packs_base_path(),
+                            '../packs_invalid/dummy_pack_18')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
