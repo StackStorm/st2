@@ -24,7 +24,6 @@ import six
 from six.moves import http_client
 
 from st2common import log as logging
-from st2common.models.system.common import InvalidResourceReferenceError
 from st2common.models.system.common import ResourceReference
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.rbac import utils as rbac_utils
@@ -119,19 +118,22 @@ class ResourceController(object):
 
         self.get_one_db_method = self._get_by_name_or_id
 
-    def get_all(self, **kwargs):
-        return self._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
 
     def get_one(self, id):
         return self._get_one_by_id(id=id)
 
     def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
-                 from_model_kwargs=None, **kwargs):
+                 from_model_kwargs=None, raw_filters=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
         """
-        kwargs = copy.deepcopy(kwargs)
+        raw_filters = copy.deepcopy(raw_filters) or {}
 
         exclude_fields = exclude_fields or []
         query_options = query_options if query_options else self.query_options
@@ -159,7 +161,7 @@ class ResourceController(object):
             db_sort_values.append(sort_value)
 
         default_sort_values = copy.copy(query_options.get('sort'))
-        kwargs['sort'] = db_sort_values if db_sort_values else default_sort_values
+        raw_filters['sort'] = db_sort_values if db_sort_values else default_sort_values
 
         # TODO: To protect us from DoS, we need to make max_limit mandatory
         offset = int(offset)
@@ -173,7 +175,7 @@ class ResourceController(object):
 
         filters = {}
         for k, v in six.iteritems(self.supported_filters):
-            filter_value = kwargs.get(k, None)
+            filter_value = raw_filters.get(k, None)
 
             if not filter_value:
                 continue
@@ -193,7 +195,7 @@ class ResourceController(object):
             instances = instances.limit(limit)
 
         from_model_kwargs = from_model_kwargs or {}
-        from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
+        from_model_kwargs.update(self.from_model_kwargs)
 
         result = []
         for instance in instances[offset:eop]:
@@ -229,7 +231,7 @@ class ResourceController(object):
             abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = from_model_kwargs or {}
-        from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
+        from_model_kwargs.update(self.from_model_kwargs)
         result = self.model.from_model(instance, **from_model_kwargs)
 
         return result
@@ -253,7 +255,7 @@ class ResourceController(object):
             abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = from_model_kwargs or {}
-        from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
+        from_model_kwargs.update(self.from_model_kwargs)
         result = self.model.from_model(instance, **from_model_kwargs)
 
         return result
@@ -266,7 +268,7 @@ class ResourceController(object):
             abort(http_client.NOT_FOUND, msg)
 
         from_model_kwargs = from_model_kwargs or {}
-        from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
+        from_model_kwargs.update(self.from_model_kwargs)
         result = self.model.from_model(instance, **from_model_kwargs)
 
         return result
@@ -311,16 +313,6 @@ class ResourceController(object):
             raise StackStormDBObjectNotFoundError(msg)
 
         return resource_db
-
-    def _get_from_model_kwargs_for_request(self, **kwargs):
-        """
-        Retrieve kwargs which are passed to "LiveActionAPI.model" method.
-
-        :param request: Pecan request object.
-
-        :rtype: ``dict``
-        """
-        return self.from_model_kwargs
 
     def _get_one_by_scope_and_name(self, scope, name, from_model_kwargs=None):
         """
@@ -367,8 +359,11 @@ class ContentPackResourceController(ResourceController):
     def get_one(self, ref_or_id, from_model_kwargs=None):
         return self._get_one(ref_or_id, from_model_kwargs=from_model_kwargs)
 
-    def get_all(self, **kwargs):
-        return self._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
 
     def _get_one(self, ref_or_id, exclude_fields=None, from_model_kwargs=None,
                  requester_user=None, permission_type=None, **kwargs):
@@ -384,7 +379,7 @@ class ContentPackResourceController(ResourceController):
                                                           permission_type=permission_type)
 
         from_model_kwargs = from_model_kwargs or {}
-        from_model_kwargs.update(self._get_from_model_kwargs_for_request(**kwargs))
+        from_model_kwargs.update(self.from_model_kwargs)
         result = self.model.from_model(instance, **from_model_kwargs)
         if result and self.include_reference:
             pack = getattr(result, 'pack', None)
@@ -393,8 +388,16 @@ class ContentPackResourceController(ResourceController):
 
         return Response(json=result)
 
-    def _get_all(self, **kwargs):
-        resp = super(ContentPackResourceController, self)._get_all(**kwargs)
+    def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
+                 from_model_kwargs=None, raw_filters=None):
+        resp = super(ContentPackResourceController,
+                     self)._get_all(exclude_fields=exclude_fields,
+                                    sort=sort,
+                                    offset=offset,
+                                    limit=limit,
+                                    query_options=query_options,
+                                    from_model_kwargs=from_model_kwargs,
+                                    raw_filters=raw_filters)
 
         if self.include_reference:
             result = resp.json
@@ -440,19 +443,3 @@ class ContentPackResourceController(ResourceController):
         resource_db = self.access.query(name=ref.name, pack=ref.pack,
                                         exclude_fields=exclude_fields).first()
         return resource_db
-
-    def _get_filters(self, **kwargs):
-        filters = copy.deepcopy(kwargs)
-        ref = filters.get('ref', None)
-
-        if ref:
-            try:
-                ref_obj = ResourceReference.from_string_reference(ref=ref)
-            except InvalidResourceReferenceError:
-                raise
-
-            filters['name'] = ref_obj.name
-            filters['pack'] = ref_obj.pack
-            del filters['ref']
-
-        return filters

@@ -63,8 +63,11 @@ class ActionAliasController(resource.ContentPackResourceController):
             'representation': match[2]
         }
 
-    def get_all(self, **kwargs):
-        return super(ActionAliasController, self)._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return super(ActionAliasController, self)._get_all(sort=sort,
+                                                           offset=offset,
+                                                           limit=limit,
+                                                           raw_filters=raw_filters)
 
     def get_one(self, ref_or_id, requester_user):
         permission_type = PermissionType.ACTION_ALIAS_VIEW
@@ -72,7 +75,7 @@ class ActionAliasController(resource.ContentPackResourceController):
                                                            requester_user=requester_user,
                                                            permission_type=permission_type)
 
-    def match(self, action_alias_match_api, **kwargs):
+    def match(self, action_alias_match_api):
         """
             Run a chatops command
 
@@ -82,7 +85,7 @@ class ActionAliasController(resource.ContentPackResourceController):
         command = action_alias_match_api.command
         try:
             # 1. Get aliases
-            aliases_resp = super(ActionAliasController, self)._get_all(**kwargs)
+            aliases_resp = super(ActionAliasController, self)._get_all()
             aliases = [ActionAliasAPI(**alias) for alias in aliases_resp.json]
             # 2. Match alias(es) to command
             matches = match_command_to_alias(command, aliases)

@@ -108,14 +108,17 @@ class OverviewController(resource.ContentPackResourceController):
         resp.json = result
         return resp
 
-    def get_all(self, **kwargs):
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
         """
             List all actions.
 
             Handles requests:
                 GET /actions/views/overview
         """
-        resp = super(OverviewController, self)._get_all(**kwargs)
+        resp = super(OverviewController, self)._get_all(sort=sort,
+                                                        offset=offset,
+                                                        limit=limit,
+                                                        raw_filters=raw_filters)
         result = []
         for item in resp.json:
             action_api = ActionAPI(**item)
@@ -136,7 +139,7 @@ class EntryPointController(resource.ContentPackResourceController):
 
     supported_filters = {}
 
-    def get_all(self, **kwargs):
+    def get_all(self):
         return abort(404)
 
     def get_one(self, ref_or_id):

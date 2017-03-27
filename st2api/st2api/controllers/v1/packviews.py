@@ -61,7 +61,7 @@ class BaseFileController(BasePacksController):
     supported_filters = {}
     query_options = {}
 
-    def get_all(self, **kwargs):
+    def get_all(self):
         return abort(404)
 
     def _get_file_size(self, file_path):
@@ -172,7 +172,8 @@ class FileController(BaseFileController):
     Controller which allows user to retrieve content of a specific file in a pack.
     """
 
-    def get_one(self, ref_or_id, file_path, requester_user, **kwargs):
+    def get_one(self, ref_or_id, file_path, requester_user, if_none_match=None,
+                if_modified_since=None):
         """
             Outputs the content of a specific file in a pack.
 
@@ -206,7 +207,9 @@ class FileController(BaseFileController):
 
         response = Response()
 
-        if not self._is_file_changed(file_mtime, **kwargs):
+        if not self._is_file_changed(file_mtime,
+                                     if_none_match=if_none_match,
+                                     if_modified_since=if_modified_since):
             response.status = http_client.NOT_MODIFIED
         else:
             if file_size is not None and file_size > MAX_FILE_SIZE:
@@ -225,10 +228,7 @@ class FileController(BaseFileController):
 
         return response
 
-    def _is_file_changed(self, file_mtime, **kwargs):
-        if_none_match = kwargs.get('if-none-match', None)
-        if_modified_since = kwargs.get('if-modified-since', None)
-
+    def _is_file_changed(self, file_mtime, if_none_match=None, if_modified_since=None):
         # For if_none_match check against what would be the ETAG value
         if if_none_match:
             return repr(file_mtime) != if_none_match

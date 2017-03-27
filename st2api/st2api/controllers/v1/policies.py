@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-
 from mongoengine import ValidationError
 from six.moves import http_client
 
@@ -23,7 +21,6 @@ from st2common import log as logging
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.models.api.policy import PolicyTypeAPI, PolicyAPI
 from st2common.models.db.policy import PolicyTypeReference
-from st2common.models.system.common import InvalidReferenceError
 from st2common.persistence.policy import PolicyType, Policy
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
@@ -50,8 +47,11 @@ class PolicyTypeController(resource.ResourceController):
     def get_one(self, ref_or_id):
         return self._get_one(ref_or_id)
 
-    def get_all(self, **kwargs):
-        return self._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
 
     def _get_one(self, ref_or_id):
         instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
@@ -64,8 +64,16 @@ class PolicyTypeController(resource.ResourceController):
 
         return result
 
-    def _get_all(self, **kwargs):
-        resp = super(PolicyTypeController, self)._get_all(**kwargs)
+    def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
+                 from_model_kwargs=None, raw_filters=None):
+
+        resp = super(PolicyTypeController, self)._get_all(exclude_fields=exclude_fields,
+                                                          sort=sort,
+                                                          offset=offset,
+                                                          limit=limit,
+                                                          query_options=query_options,
+                                                          from_model_kwargs=from_model_kwargs,
+                                                          raw_filters=raw_filters)
 
         if self.include_reference:
             result = resp.json
@@ -106,22 +114,6 @@ class PolicyTypeController(resource.ResourceController):
         resource_db = self.access.query(name=ref.name, resource_type=ref.resource_type).first()
         return resource_db
 
-    def _get_filters(self, **kwargs):
-        filters = copy.deepcopy(kwargs)
-        ref = filters.get('ref', None)
-
-        if ref:
-            try:
-                ref_obj = PolicyTypeReference.from_string_reference(ref=ref)
-            except InvalidReferenceError:
-                raise
-
-            filters['name'] = ref_obj.name
-            filters['resource_type'] = ref_obj.resource_type
-            del filters['ref']
-
-        return filters
-
 
 class PolicyController(resource.ContentPackResourceController):
     model = PolicyAPI
@@ -140,8 +132,11 @@ class PolicyController(resource.ContentPackResourceController):
     def get_one(self, ref_or_id):
         return self._get_one(ref_or_id)
 
-    def get_all(self, **kwargs):
-        return self._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
 
     def post(self, instance):
         """

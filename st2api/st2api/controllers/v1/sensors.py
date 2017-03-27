@@ -45,8 +45,11 @@ class SensorTypeController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    def get_all(self, **kwargs):
-        return super(SensorTypeController, self)._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return super(SensorTypeController, self)._get_all(sort=sort,
+                                                          offset=offset,
+                                                          limit=limit,
+                                                          raw_filters=raw_filters)
 
     def get_one(self, ref_or_id, requester_user):
         permission_type = PermissionType.SENSOR_VIEW

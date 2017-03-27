@@ -77,7 +77,7 @@ class DatastoreService(object):
         :param scope: Scope under which item is saved. Defaults to system scope.
         :type: local: ``str``
 
-        :param encrypt: Return the decrypted value. Defaults to False.
+        :param decrypt: Return the decrypted value. Defaults to False.
         :type: local: ``bool``
 
         :rtype: ``str`` or ``None``
@@ -128,7 +128,7 @@ class DatastoreService(object):
         :param scope: Scope under which to place the item. Defaults to system scope.
         :type: local: ``str``
 
-        :param encrypt: Encrypyt the value when saving. Defaults to False.
+        :param encrypt: Encrypt the value when saving. Defaults to False.
         :type: local: ``bool``
 
         :return: ``True`` on success, ``False`` otherwise.

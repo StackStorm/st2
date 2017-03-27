@@ -88,7 +88,7 @@ class ApiKeyController(BaseRestControllerMixin):
             LOG.exception('Failed to serialize API key.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def get_all(self, requester_user, show_secrets=None, **kw):
+    def get_all(self, requester_user, show_secrets=None):
         """
             List all keys.
 
@@ -97,7 +97,7 @@ class ApiKeyController(BaseRestControllerMixin):
         """
         mask_secrets = self._get_mask_secrets(show_secrets=show_secrets,
                                               requester_user=requester_user)
-        api_key_dbs = ApiKey.get_all(**kw)
+        api_key_dbs = ApiKey.get_all()
         api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
                     for api_key_db in api_key_dbs]
 

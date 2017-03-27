@@ -36,17 +36,20 @@ class TracesController(ResourceController):
         'sort': ['-start_timestamp', 'trace_tag']
     }
 
-    def get_all(self, **kwargs):
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
         # Use a custom sort order when filtering on a timestamp so we return a correct result as
         # expected by the user
-        if 'sort_desc' in kwargs:
+        query_options = None
+        if 'sort_desc' in raw_filters:
             query_options = {'sort': ['-start_timestamp', 'action.ref']}
-            kwargs['query_options'] = query_options
-        elif 'sort_asc' in kwargs:
+        elif 'sort_asc' in raw_filters:
             query_options = {'sort': ['+start_timestamp', 'action.ref']}
-            kwargs['query_options'] = query_options
 
-        return self._get_all(**kwargs)
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             query_options=query_options,
+                             raw_filters=raw_filters)
 
 
 traces_controller = TracesController()
