@@ -51,16 +51,25 @@ class UserDB(stormbase.StormFoundationDB):
 
 
 class TokenDB(stormbase.StormFoundationDB):
+    """
+    An entity representing an access token.
+
+    Attribute:
+        user: Reference to the user this token belongs to (username).
+        token: Random access token.
+        expiry: Date when this token expires.
+        service: True if this is a service (system) token.
+    """
+
     user = me.StringField(required=True)
     token = me.StringField(required=True, unique=True)
     expiry = me.DateTimeField(required=True)
     metadata = me.DictField(required=False,
                             help_text='Arbitrary metadata associated with this token')
+    service = me.StringField(required=True, default=False)
 
 
 class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
-    """
-    """
     RESOURCE_TYPE = ResourceType.API_KEY
     UID_FIELDS = ['key_hash']
 
