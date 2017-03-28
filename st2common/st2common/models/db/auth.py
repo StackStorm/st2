@@ -66,7 +66,7 @@ class TokenDB(stormbase.StormFoundationDB):
     expiry = me.DateTimeField(required=True)
     metadata = me.DictField(required=False,
                             help_text='Arbitrary metadata associated with this token')
-    service = me.StringField(required=True, default=False)
+    service = me.BooleanField(required=True, default=False)
 
 
 class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
