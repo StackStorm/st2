@@ -291,7 +291,7 @@ class ProcessSensorContainer(object):
 
         # Include full api URL and API token specific to that sensor
         ttl = (24 * 60 * 60)
-        temporary_token = create_token(username='sensors_container', ttl=ttl)
+        temporary_token = create_token(username='sensors_container', ttl=ttl, service=True)
 
         env[API_URL_ENV_VARIABLE_NAME] = get_full_public_api_url()
         env[AUTH_TOKEN_ENV_VARIABLE_NAME] = temporary_token.token
