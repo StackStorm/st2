@@ -272,7 +272,7 @@ class RunnerContainer(object):
             return None
 
         metadata = {
-            'service': 'actions_container'
+            'service': 'actions_container',
             'action_name': action_db.name,
             'live_action_id': str(liveaction_db.id)
 
