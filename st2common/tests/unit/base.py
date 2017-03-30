@@ -35,6 +35,7 @@ class BaseDBModelCRUDTestCase(object):
     persistance_class = None
     model_class_kwargs = {}
     update_attribute_name = None
+    skip_check_attribute_names = []
 
     def test_crud_operations(self):
         # 1. Test create
@@ -45,6 +46,9 @@ class BaseDBModelCRUDTestCase(object):
         self.assertEqual(saved_db.id, retrieved_db.id)
 
         for attribute_name, attribute_value in self.model_class_kwargs.items():
+            if attribute_name in self.skip_check_attribute_names:
+                continue
+
             self.assertEqual(getattr(saved_db, attribute_name), attribute_value)
             self.assertEqual(getattr(retrieved_db, attribute_name), attribute_value)
 
