@@ -51,6 +51,9 @@ class UserDB(stormbase.StormFoundationDB):
 
 
 class TokenDB(stormbase.StormFoundationDB):
+    """
+    An entity representing temporary authentication token scoped to the user.
+    """
     user = me.StringField(required=True)
     token = me.StringField(required=True, unique=True)
     expiry = me.DateTimeField(required=True)
@@ -60,6 +63,9 @@ class TokenDB(stormbase.StormFoundationDB):
 
 class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     """
+    An entity representing API key objects.
+
+    Each API key object is scoped to the user and inherits permissions from that user.
     """
     RESOURCE_TYPE = ResourceType.API_KEY
     UID_FIELDS = ['key_hash']
