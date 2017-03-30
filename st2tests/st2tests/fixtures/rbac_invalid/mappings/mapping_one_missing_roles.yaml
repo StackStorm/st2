@@ -1,0 +1,3 @@
+---
+  # Mapping which is missing mandatory "roles" attribute
+  group: "some group"

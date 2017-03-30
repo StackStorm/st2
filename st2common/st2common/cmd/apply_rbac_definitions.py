@@ -46,10 +46,12 @@ def apply_definitions():
 
     role_definition_apis = result['roles'].values()
     role_assignment_apis = result['role_assignments'].values()
+    group_to_role_map_apis = result['group_to_role_maps'].values()
 
     syncer = RBACDefinitionsDBSyncer()
     result = syncer.sync(role_definition_apis=role_definition_apis,
-                         role_assignment_apis=role_assignment_apis)
+                         role_assignment_apis=role_assignment_apis,
+                         group_to_role_map_apis=group_to_role_map_apis)
 
     return result
 

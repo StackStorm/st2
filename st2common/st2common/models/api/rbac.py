@@ -15,7 +15,7 @@
 
 from st2common.models.api.base import BaseAPI
 from st2common.models.db.pack import PackDB
-from st2common.services.rbac import get_all_roles
+from st2common.services.rbac import validate_roles_exists
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import GLOBAL_PERMISSION_TYPES
 from st2common.util.uid import parse_uid
@@ -24,7 +24,9 @@ __all__ = [
     'RoleAPI',
 
     'RoleDefinitionFileFormatAPI',
-    'UserRoleAssignmentFileFormatAPI'
+    'UserRoleAssignmentFileFormatAPI',
+
+    'AuthGroupToRoleMapAssignmentFileFormatAPI'
 ]
 
 
@@ -154,7 +156,25 @@ class RoleDefinitionFileFormatAPI(BaseAPI):
                                    (permission_type, valid_global_permission_types))
                         raise ValueError(message)
 
-            return cleaned
+        return cleaned
+
+
+class BaseRoleAssigmentAPI(BaseAPI):
+    """
+    Base class for various derived role assignment classes which includes commmon functionality
+    such as validation.
+    """
+
+    def validate(self, validate_role_exists=False):
+        # Parent JSON schema validation
+        cleaned = super(BaseRoleAssigmentAPI, self).validate()
+
+        # Custom validation
+        if validate_role_exists:
+            # Validate that the referenced roles exist in the db
+            validate_roles_exists(role_names=self.roles)  # pylint: disable=no-member
+
+        return cleaned
 
 
 class UserRoleAssignmentFileFormatAPI(BaseAPI):
@@ -194,18 +214,47 @@ class UserRoleAssignmentFileFormatAPI(BaseAPI):
     }
 
     def validate(self, validate_role_exists=False):
-        # Parent JSON schema validation
         cleaned = super(UserRoleAssignmentFileFormatAPI, self).validate()
+        return cleaned
 
-        # Custom validation
-        if validate_role_exists:
-            # Validate that the referenced roles exist in the db
-            role_dbs = get_all_roles()
-            role_names = [role_db.name for role_db in role_dbs]
-            roles = self.roles
 
-            for role in roles:
-                if role not in role_names:
-                    raise ValueError('Role "%s" doesn\'t exist in the database' % (role))
+class AuthGroupToRoleMapAssignmentFileFormatAPI(BaseAPI):
+    schema = {
+        'type': 'object',
+        'properties': {
+            'group': {
+                'type': 'string',
+                'description': 'Name of the group as returned by auth backend.',
+                'required': True
+            },
+            'description': {
+                'type': 'string',
+                'description': 'Mapping description',
+                'required': False,
+                'default': None
+            },
+            'enabled': {
+                'type': 'boolean',
+                'description': ('Flag indicating if this mapping is enabled. Note: Disabled '
+                                'assignments are simply ignored when loading definitions from '
+                                ' disk.'),
+                'default': True
+            },
+            'roles': {
+                'type': 'array',
+                'description': ('StackStorm roles which are assigned to each user which belongs '
+                                'to that group.'),
+                'uniqueItems': True,
+                'items': {
+                    'type': 'string'
+                },
+                'required': True
+            },
 
+        },
+        'additionalProperties': False
+    }
+
+    def validate(self, validate_role_exists=False):
+        cleaned = super(AuthGroupToRoleMapAssignmentFileFormatAPI, self).validate()
         return cleaned
