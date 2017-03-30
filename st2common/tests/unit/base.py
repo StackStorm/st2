@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
+
 import mongoengine
 
 from st2common.models import db
@@ -47,13 +49,14 @@ class BaseDBModelCRUDTestCase(object):
             self.assertEqual(getattr(retrieved_db, attribute_name), attribute_value)
 
         # 2. Test update
-        setattr(model_db, self.update_attribute_name, 'updated')
+        updated_attribute_value = 'updated-%s' % (str(time.time()))
+        setattr(model_db, self.update_attribute_name, updated_attribute_value)
         saved_db = self.persistance_class.add_or_update(model_db)
-        self.assertEqual(getattr(saved_db, self.update_attribute_name), 'updated')
+        self.assertEqual(getattr(saved_db, self.update_attribute_name), updated_attribute_value)
 
         retrieved_db = self.persistance_class.get_by_id(saved_db.id)
         self.assertEqual(saved_db.id, retrieved_db.id)
-        self.assertEqual(getattr(retrieved_db, self.update_attribute_name), 'updated')
+        self.assertEqual(getattr(retrieved_db, self.update_attribute_name), updated_attribute_value)
 
         # 3. Test delete
         self.persistance_class.delete(model_db)
