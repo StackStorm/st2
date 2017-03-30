@@ -89,9 +89,9 @@ if [ ${EXIT_CODE} -ne 0 ]; then
 fi
 
 echo "Copying asserts, fixtures, tests and examples packs."
-cp -R st2tests/packs/* /opt/stackstorm/packs/
-cp -Rf /usr/share/doc/st2/examples /opt/stackstorm/packs/
-
+chown -R root:st2packs st2tests/packs/
+cp -R --preserve st2tests/packs/* /opt/stackstorm/packs/
+cp -Rf --preserve /usr/share/doc/st2/examples /opt/stackstorm/packs/
 
 echo "Installing asserts, fixtures, tests and examples packs."
 st2 run packs.setup_virtualenv packs=examples,tests,asserts,fixtures,webui
