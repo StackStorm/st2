@@ -3212,6 +3212,7 @@ paths:
 
   /auth/v1/tokens:
     post:
+      x-log-result: false
       operationId: st2auth.controllers.v1.auth:token_controller.post
       description: |
         Authenticates a user with `Authorization` header and returns a `token`

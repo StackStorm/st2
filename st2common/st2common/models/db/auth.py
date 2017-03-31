@@ -31,6 +31,15 @@ __all__ = [
 
 
 class UserDB(stormbase.StormFoundationDB):
+    """
+    An entity representing system user.
+    
+    Attribute:
+        name: Username. Also used as a primary key and foreign key when referencing users
+              in other models.
+        is_service: True if this is a service account.
+        nicknames: Nickname + origin pairs for ChatOps auth.
+    """
     name = me.StringField(required=True, unique=True)
     is_service = me.BooleanField(required=True, default=False)
     nicknames = me.DictField(required=False,
@@ -60,7 +69,6 @@ class TokenDB(stormbase.StormFoundationDB):
         expiry: Date when this token expires.
         service: True if this is a service (system) token.
     """
-
     user = me.StringField(required=True)
     token = me.StringField(required=True, unique=True)
     expiry = me.DateTimeField(required=True)
@@ -70,6 +78,12 @@ class TokenDB(stormbase.StormFoundationDB):
 
 
 class ApiKeyDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
+    """
+    An entity representing an API key object.
+
+    Each API key object is scoped to the user and inherits permissions from that user.
+    """
+
     RESOURCE_TYPE = ResourceType.API_KEY
     UID_FIELDS = ['key_hash']
 

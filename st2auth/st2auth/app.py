@@ -15,7 +15,6 @@
 
 from oslo_config import cfg
 
-from st2auth import config as st2auth_config
 from st2common import log as logging
 from st2common.middleware.error_handling import ErrorHandlingMiddleware
 from st2common.middleware.cors import CorsMiddleware
@@ -26,6 +25,8 @@ from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
 from st2common.util import spec_loader
+from st2auth import config as st2auth_config
+from st2auth.validation import validate_auth_backend_is_correctly_configured
 
 LOG = logging.getLogger(__name__)
 
@@ -50,6 +51,9 @@ def setup_app(config={}):
                      register_internal_trigger_types=False,
                      run_migrations=False,
                      config_args=config.get('config_args', None))
+
+    # Additional pre-run time checks
+    validate_auth_backend_is_correctly_configured()
 
     router = Router(debug=cfg.CONF.auth.debug)
 

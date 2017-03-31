@@ -26,6 +26,7 @@ from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
 from st2common.util import spec_loader
+from st2api.validation import validate_rbac_is_correctly_configured
 
 LOG = logging.getLogger(__name__)
 
@@ -50,6 +51,9 @@ def setup_app(config={}):
                      register_internal_trigger_types=True,
                      run_migrations=True,
                      config_args=config.get('config_args', None))
+
+    # Additional pre-run time checks
+    validate_rbac_is_correctly_configured()
 
     router = Router(debug=cfg.CONF.api.debug, auth=cfg.CONF.auth.enable)
 

@@ -26,6 +26,7 @@ from st2common import log as logging
 from st2common.content.loader import MetaLoader
 from st2common.models.api.rbac import RoleDefinitionFileFormatAPI
 from st2common.models.api.rbac import UserRoleAssignmentFileFormatAPI
+from st2common.models.api.rbac import AuthGroupToRoleMapAssignmentFileFormatAPI
 from st2common.util.misc import compare_path_file_name
 
 LOG = logging.getLogger(__name__)
@@ -47,6 +48,7 @@ class RBACDefinitionsLoader(object):
 
         self._role_definitions_path = os.path.join(rbac_definitions_path, 'roles/')
         self._role_assignments_path = os.path.join(rbac_definitions_path, 'assignments/')
+        self._role_maps_path = os.path.join(rbac_definitions_path, 'mappings/')
         self._meta_loader = MetaLoader()
 
     def load(self):
@@ -57,6 +59,7 @@ class RBACDefinitionsLoader(object):
         result = {}
         result['roles'] = self.load_role_definitions()
         result['role_assignments'] = self.load_user_role_assignments()
+        result['group_to_role_maps'] = self.load_group_to_role_maps()
 
         return result
 
@@ -114,6 +117,26 @@ class RBACDefinitionsLoader(object):
 
         return result
 
+    def load_group_to_role_maps(self):
+        """
+        Load all the remote group to local role mappings.
+
+        :rtype: ``dict``
+        """
+        LOG.info('Loading group to role map definitions from "%s"' % (self._role_maps_path))
+        file_paths = self._get_group_to_role_maps_file_paths()
+
+        result = {}
+        for file_path in file_paths:
+            LOG.debug('Loading group to role mapping from: %s' % (file_path))
+            group_to_role_map_api = self.load_group_to_role_map_assignment_from_file(
+                file_path=file_path)
+
+            group_name = group_to_role_map_api.group
+            result[group_name] = group_to_role_map_api
+
+        return result
+
     def load_role_definition_from_file(self, file_path):
         """
         Load role definition from file.
@@ -131,7 +154,7 @@ class RBACDefinitionsLoader(object):
             raise ValueError(msg)
 
         role_definition_api = RoleDefinitionFileFormatAPI(**content)
-        role_definition_api.validate()
+        role_definition_api = role_definition_api.validate()
 
         return role_definition_api
 
@@ -152,9 +175,21 @@ class RBACDefinitionsLoader(object):
             raise ValueError(msg)
 
         user_role_assignment_api = UserRoleAssignmentFileFormatAPI(**content)
-        user_role_assignment_api.validate()
+        user_role_assignment_api = user_role_assignment_api.validate()
 
         return user_role_assignment_api
+
+    def load_group_to_role_map_assignment_from_file(self, file_path):
+        content = self._meta_loader.load(file_path)
+
+        if not content:
+            msg = ('Group to role map assignment file "%s" is empty and invalid' % (file_path))
+            raise ValueError(msg)
+
+        group_to_role_map_api = AuthGroupToRoleMapAssignmentFileFormatAPI(**content)
+        group_to_role_map_api = group_to_role_map_api.validate()
+
+        return group_to_role_map_api
 
     def _get_role_definitions_file_paths(self):
         """
@@ -178,6 +213,17 @@ class RBACDefinitionsLoader(object):
         :rtype: ``list``
         """
         glob_str = self._role_assignments_path + '*.yaml'
+        file_paths = glob.glob(glob_str)
+        file_paths = sorted(file_paths, cmp=compare_path_file_name)
+        return file_paths
+
+    def _get_group_to_role_maps_file_paths(self):
+        """
+        Retrieve a list of path for remote group to local role mapping assignment files.
+
+        :rtype: ``list``
+        """
+        glob_str = self._role_maps_path + '*.yaml'
         file_paths = glob.glob(glob_str)
         file_paths = sorted(file_paths, cmp=compare_path_file_name)
         return file_paths

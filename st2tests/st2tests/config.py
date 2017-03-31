@@ -162,6 +162,8 @@ def _register_auth_opts():
         cfg.IntOpt('port', default=9100),
         cfg.BoolOpt('use_ssl', default=False),
         cfg.StrOpt('mode', default='proxy'),
+        cfg.StrOpt('backend', default='flat_file'),
+        cfg.StrOpt('backend_kwargs', default=None),
         cfg.StrOpt('logging', default='conf/logging.conf'),
         cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.'),
         cfg.BoolOpt('debug', default=True)
