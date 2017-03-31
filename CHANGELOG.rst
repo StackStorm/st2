@@ -57,6 +57,14 @@ in development
   Note: This functionality is currently implemented for enterprise LDAP auth backend and only
   available in enterprise edition.
   (new feature)
+* Update the code so user can specify arbitrary default TTL for access tokens in ``st2.conf`` and
+  all the StackStorm services which rely on access tokens still work.
+
+  Previously, the lowest TTL user could specify for all the services to still work was 24 hours.
+  This has been fixed and the default TTL specified in the config now only affects user access
+  tokens and services use special service access tokens with no max TTL limit. (bug fix)
+
+  Reported by Jiang Wei. #3314 #3315
 
 2.2.0 - February 27, 2017
 -------------------------
