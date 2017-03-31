@@ -72,7 +72,8 @@ class RunnerContainer(object):
     def _do_run(self, runner, runnertype_db, action_db, liveaction_db):
         # Create a temporary auth token which will be available
         # for the duration of the action execution.
-        runner.auth_token = self._create_auth_token(runner.context)
+        runner.auth_token = self._create_auth_token(context=runner.context, action_db=action_db,
+                                                    liveaction_db=liveaction_db)
 
         updated_liveaction_db = None
         try:
@@ -262,13 +263,22 @@ class RunnerContainer(object):
 
         return runner
 
-    def _create_auth_token(self, context):
+    def _create_auth_token(self, context, action_db, liveaction_db):
         if not context:
             return None
+
         user = context.get('user', None)
         if not user:
             return None
-        return access.create_token(user)
+
+        metadata = {
+            'service': 'actions_container',
+            'action_name': action_db.name,
+            'live_action_id': str(liveaction_db.id)
+
+        }
+        token_db = access.create_token(username=user, metadata=metadata, service=True)
+        return token_db
 
     def _delete_auth_token(self, auth_token):
         if auth_token:
