@@ -33,10 +33,10 @@ __all__ = [
 class UserDB(stormbase.StormFoundationDB):
     """
     An entity representing system user.
-    
+
     Attribute:
-        name: Username. Also used as a primary key and foreign key when referencing users
-              in other models.
+        name: Username. Also used as a primary key and foreign key when referencing users in other
+              models.
         is_service: True if this is a service account.
         nicknames: Nickname + origin pairs for ChatOps auth.
     """
