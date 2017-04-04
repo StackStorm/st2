@@ -28,7 +28,7 @@ in development
   Reported by Jiang Wei. #3314 #3315
 
 2.2.1 - April 3, 2017
-----------------
+---------------------
 
 * Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
   correctly fails on failure by default.
