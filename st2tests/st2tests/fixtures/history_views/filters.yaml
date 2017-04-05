@@ -3,7 +3,7 @@ default:
   action:
   - executions.local
   - executions.chain
-  - None
+  - null
   rule:
   - st2.person.joe
   runner:
@@ -15,7 +15,7 @@ default:
   - 46f67652-20cd-4bab-94e2-4615baa846d0
   trigger_type:
   - st2.webhook
-  - None
+  - null
   user:
   - system
 specific:

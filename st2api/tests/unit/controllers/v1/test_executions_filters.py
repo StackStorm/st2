@@ -338,6 +338,14 @@ class TestActionExecutionFilters(FunctionalTest):
         self.assertIsInstance(response.json, dict)
         self.assertEqual(len(response.json), len(history_views.ARTIFACTS['filters']['default']))
         for key, value in six.iteritems(history_views.ARTIFACTS['filters']['default']):
+            filter_values = response.json[key]
+
+            # Verify empty (None / null) filters are excluded
+            self.assertTrue(None not in filter_values)
+
+            if None in value:
+                value = [item for item in value if item is not None]
+
             self.assertEqual(set(response.json[key]), set(value))
 
     def test_filters_view_specific_types(self):
