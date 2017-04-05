@@ -1245,9 +1245,13 @@ paths:
         '200':
           description: Pack search results.
           schema:
-            type: array
-            items:
-              - $ref: '#/definitions/PacksList'
+            type:
+              - array
+              - object
+            # Ideally, we should return array every time and when we request a pack, it should be an
+            # array of a single element. Currently it's not the case though so we have to fallback
+            # to broader kind of scheme. Fixing this would require breaking changes to this endpoint.
+            # $ref: '#/definitions/PacksList'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -1411,9 +1415,7 @@ paths:
         '200':
           description: Config for a particular pack.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PackConfigView'
+            $ref: '#/definitions/PackConfigView'
           examples:
             application/json:
               ref: 'core.local'
@@ -1440,9 +1442,7 @@ paths:
         '200':
           description: Config for a particular pack.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PackConfigCreate'
+            $ref: '#/definitions/PackConfigCreate'
           examples:
             application/json:
               ref: 'core.local'
@@ -2522,7 +2522,7 @@ paths:
         - name: limit
           in: query
           description: List N most recent rule enforcements.
-          type: string
+          type: integer
           default: 50
         - name: offset
           in: query
@@ -3690,24 +3690,22 @@ definitions:
       indexes:
         description: Index details.
         type: object
-        items:
-          type: object
-          properties:
-            count:
-              description: Number of index.
-              type: integer
-            errors:
-              description: Errors.
-              type: object
-            invalid:
-              description: Invalid.
-              type: integer
-            status:
-              description: Status of the index.
-              type: array
-            valid:
-              description: Valid.
-              type: integer
+        properties:
+          count:
+            description: Number of index.
+            type: integer
+          errors:
+            description: Errors.
+            type: object
+          invalid:
+            description: Invalid.
+            type: integer
+          status:
+            description: Status of the index.
+            type: array
+          valid:
+            description: Valid.
+            type: integer
       packs:
         description: Number of packs in the index.
         type: object

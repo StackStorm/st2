@@ -35,5 +35,5 @@ prompt-toolkit==1.0.7
 tooz>=1.50.0,<1.51.0
 zake==0.2.2
 routes==2.3.1
-swagger_spec_validator==2.1.0
+flex==6.5.0
 webob==1.6.0
