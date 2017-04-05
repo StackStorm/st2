@@ -66,8 +66,8 @@ class FiltersController(object):
 
         for name, field in six.iteritems(SUPPORTED_FILTERS):
             if name not in IGNORE_FILTERS and (not types or name in types):
-                filters[name] = ActionExecution.distinct(field=field)
-
+                query = {field.replace('.', '__'): {"$ne": None}} 
+                filters[name] = ActionExecution.distinct(field=field, **query)
         return filters
 
 
