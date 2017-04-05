@@ -26,6 +26,10 @@ in development
   tokens and services use special service access tokens with no max TTL limit. (bug fix)
 
   Reported by Jiang Wei. #3314 #3315
+* Fix ``/executions/views/filters`` API endpoint to exclude empty (None / null) filter values.
+  (bug fix)
+
+  Contributed by Cody A. Ray. #3193
 
 2.2.1 - April 3, 2017
 ---------------------
