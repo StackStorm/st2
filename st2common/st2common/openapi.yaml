@@ -10,9 +10,8 @@ info:
 
     This document provides an overview of how to use the API. Use the menu on the left to look up details of specific API endpoints. For more information about how StackStorm works, and how to use it, check out the main [StackStorm documentation](https://docs.stackstorm.com).
 
-    ## A Quick Note
-
-    This API is intended for software developers, and those are who are comfortable working with RESTful APIs, and writing some code. You do not need to use this API to work with StackStorm, or to use and write integration packs for StackStorm. 
+    > #### A Quick Note
+    > This API is intended for software developers, and those are who are comfortable working with RESTful APIs, and writing some code. You do not need to use this API to work with StackStorm, or to use and write integration packs for StackStorm. 
 
     ## Accessing the API
 
