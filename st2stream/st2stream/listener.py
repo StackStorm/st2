@@ -64,13 +64,12 @@ class Listener(ConsumerMixin):
 
     def processor(self, model=None):
         def process(body, message):
-            from_model_kwargs = {'mask_secrets': cfg.CONF.api.mask_secrets}
             meta = message.delivery_info
             event_name = '%s__%s' % (meta.get('exchange'), meta.get('routing_key'))
 
             try:
                 if model:
-                    body = model.from_model(body, **from_model_kwargs)
+                    body = model.from_model(body, mask_secrets=cfg.CONF.api.mask_secrets)
 
                 self.emit(event_name, body)
             finally:
