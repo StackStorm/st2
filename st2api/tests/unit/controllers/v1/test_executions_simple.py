@@ -36,6 +36,7 @@ from st2common.persistence.auth import User
 from st2common.persistence.trace import Trace
 from st2common.services import trace as trace_service
 from st2common.transport.publishers import PoolPublisher
+from st2tests.api import SUPER_SECRET_PARAMETER
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
 
@@ -60,6 +61,10 @@ ACTION_1 = {
             'type': 'number',
             'default': 123,
             'immutable': True
+        },
+        'd': {
+            'type': 'string',
+            'secret': True
         }
     }
 }
@@ -123,7 +128,8 @@ LIVE_ACTION_1 = {
     'action': 'sixpack.st2.dummy.action1',
     'parameters': {
         'hosts': 'localhost',
-        'cmd': 'uname -a'
+        'cmd': 'uname -a',
+        'd': SUPER_SECRET_PARAMETER
     }
 }
 
