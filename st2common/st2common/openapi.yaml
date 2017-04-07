@@ -18,13 +18,11 @@ info:
 
     Usually the API is available at `https://<ST2_IP>/api`. The default implementation is to use Nginx as a front-end, passing `/api`/ requests through to the `st2api` service, which by default listens on port `9101`. On a [reference single-system deployment](https://docs.stackstorm.com/install/index.html), all processes run on the same system. If you have a [multi-system deployment](https://docs.stackstorm.com/reference/ha.html), the components may be running on multiple systems, and may be load-balanced.
 
-
     ## Authentication
 
     To authenticate against the StackStorm API, either an authentication token or an API key (but not both) should be provided in the HTTP request headers. The headers are named `X-Auth-Token` and `St2-Api-Key` respectively.
 
     An authentication token is a time-limited access token, granted once a user authenticates, typically using a username and password. This is suitable for short-term, interactive sessions. [API Keys](https://docs.stackstorm.com/authentication.html#api-keys) do not expire, and are therefore better suited for use with integrating other applications. 
-
 
     ### Authentication Tokens
 
@@ -33,7 +31,7 @@ info:
     ```
     curl -X POST -u yourusername:'yourpassword' https://myhost.example.com/auth/v1/tokens
     ```
-
+    
     You can then use the token like this:
 
     ```
@@ -55,7 +53,7 @@ info:
 
     Note the use of the option `-m` flag to provide key metadata. This is good practice, because it helps to identify what the key is used for. This is useful if you need to later revoke or disable keys.
 
-    Keys can also be created using the `[apikeys](api/v1/apikeys/)` API.
+    Keys can also be created using the [apikeys](api/v1/apikeys/) API.
 
     Using the API key:
 
@@ -66,7 +64,6 @@ info:
     # Key as query parameter
     curl https://myhost.example.com/api/v1/actions?st2-api-key=<API-KEY-VALUE>
     ```
-
 
     ## HTTP Methods
 
@@ -160,7 +157,7 @@ info:
 
     ## Support
 
-    Join our [Slack Community](https://stackstorm.com/community-signup) to get help from the engineering team and fellow users. You can also create issues against the main [StackStorm GitHub repo](https://github.com/StackStorm/st2/issues), or the [st2apidocs repo](https://github.com/StackStorm/st2apidocs) for documentation-specific issue.
+    Join our [Slack Community](https://stackstorm.com/community-signup) to get help from the engineering team and fellow users. You can also create issues against the main [StackStorm GitHub repo](https://github.com/StackStorm/st2/issues), or the [st2apidocs repo](https://github.com/StackStorm/st2apidocs) for documentation-specific issues.
 
     We also recommend reviewing the main [StackStorm documentation](https://docs.stackstorm.com/).
 
