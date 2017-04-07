@@ -23,6 +23,10 @@ class ResponseValidationError(ValueError):
     pass
 
 
+class ResponseLeakError(ValueError):
+    pass
+
+
 class TestApp(webtest.TestApp):
     def do_request(self, *args, **kwargs):
         res = super(TestApp, self).do_request(*args, **kwargs)
@@ -31,8 +35,8 @@ class TestApp(webtest.TestApp):
             raise ResponseValidationError('Endpoint produced invalid response. Make sure the '
                                           'response matches OpenAPI scheme for the endpoint.')
 
-        if SUPER_SECRET_PARAMETER in res.body:
-            raise ResponseValidationError('Endpoint response contains secret parameter. '
-                                          'Find the leak.')
+        if not kwargs.get('expect_errors', None) and SUPER_SECRET_PARAMETER in res.body:
+            raise ResponseLeakError('Endpoint response contains secret parameter. '
+                                    'Find the leak.')
 
         return res
