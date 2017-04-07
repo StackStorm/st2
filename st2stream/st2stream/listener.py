@@ -85,6 +85,7 @@ class Listener(ConsumerMixin):
 
     def generator(self):
         queue = eventlet.Queue()
+        queue.put('')
         self.queues.append(queue)
         try:
             while not self._stopped:
