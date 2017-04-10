@@ -26,6 +26,9 @@ in development
   tokens and services use special service access tokens with no max TTL limit. (bug fix)
 
   Reported by Jiang Wei. #3314 #3315
+* Issue #1236 - The ``destination_server`` field has been removed from the
+  ``linux.scp`` action. Going forward simply specify the server as part of the
+  ``source`` and/or ``destination`` arguments.
 
 2.2.1 - April 3, 2017
 ---------------------

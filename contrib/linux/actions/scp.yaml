@@ -7,11 +7,11 @@
     parameters:
         source:
             type: 'string'
-            description: 'List of files/directories to to be copied'
+            description: 'List of files/directories to be copied. This can be either a local path (example: "/path/to/file") or remote path (example: "server.fqdn:/path/to/file"). Paths can also be relative (examples: "folder/a.txt" or "server.fqdn:folder/a.txt") or absolute (Examples: "/etc/hosts" or "server.fqdn:/etc/hosts"). Lists of multiple files/directories should be separated by a spaces (example: "file1.txt file2.txt otherserver.domain.com:file3.txt")'
             required: true
         destination:
             type: 'string'
-            description: 'Destination of files/directories'
+            description: 'Destination of files/directories. This can be either a local path (example: "/path/to/file") or remote path (example: "server.fqdn:/path/to/file"). Paths can also be relative (examples: "folder/a.txt" or "server.fqdn:folder/a.txt") or absolute (Examples: "/etc/hosts" or "server.fqdn:/etc/hosts").'
             required: true
         recursive:
             type: 'boolean'
