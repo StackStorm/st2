@@ -42,6 +42,17 @@ SUPPORTED_FILTERS = {
     'user': 'context.user'
 }
 
+# A list of fields for which null (None) is a valid value which we include in the list of valid
+# filters.
+FILTERS_WITH_VALID_NULL_VALUES = [
+    'parent',
+    'rule',
+    'trigger',
+    'trigger_type',
+    'trigger_instance',
+    'user'
+]
+
 # List of filters that are too broad to distinct by them and are very likely to represent 1 to 1
 # relation between filter and particular history record.
 IGNORE_FILTERS = ['parent', 'timestamp', 'liveaction', 'trigger_instance']
@@ -66,7 +77,11 @@ class FiltersController(object):
 
         for name, field in six.iteritems(SUPPORTED_FILTERS):
             if name not in IGNORE_FILTERS and (not types or name in types):
-                query = {field.replace('.', '__'): {'$ne': None}}
+                if name not in FILTERS_WITH_VALID_NULL_VALUES:
+                    query = {field.replace('.', '__'): {'$ne': None}}
+                else:
+                    query = {}
+
                 filters[name] = ActionExecution.distinct(field=field, **query)
         return filters
 

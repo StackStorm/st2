@@ -3,9 +3,12 @@ default:
   action:
   - executions.local
   - executions.chain
+  # null is not a valid value for action
   - null
   rule:
   - st2.person.joe
+  # null is a valid value for rule
+  - null
   runner:
   - run-local
   - action-chain
