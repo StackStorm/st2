@@ -1395,6 +1395,15 @@ paths:
           type: array
           items:
             type: string
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Get packs config.
@@ -1419,6 +1428,10 @@ paths:
           in: path
           description: Pack ref to retrieve config for the pack.
           required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -1451,6 +1464,15 @@ paths:
           description: Pack config content
           schema:
             $ref: '#/definitions/PackConfigContent'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Config for a particular pack.

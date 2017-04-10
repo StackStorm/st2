@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import mongoengine as me
 
 from st2common.models.db import MongoDBAccess
@@ -20,6 +21,8 @@ from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
 from st2common.constants.pack import PACK_VERSION_REGEX
 from st2common.constants.pack import ST2_VERSION_REGEX
+from st2common.util.secrets import get_secret_parameters
+from st2common.util.secrets import mask_secret_parameters
 
 __all__ = [
     'PackDB',
@@ -82,6 +85,25 @@ class ConfigDB(stormbase.StormFoundationDB):
         help_text='Name of the content pack this config belongs to.')
     values = stormbase.EscapedDynamicField(
         help_text='Config values.')
+
+    def mask_secrets(self, value):
+        """
+        Process the model dictionary and mask secret values.
+
+        :type value: ``dict``
+        :param value: Document dictionary.
+
+        :rtype: ``dict``
+        """
+        result = copy.deepcopy(value)
+
+        config_schema = config_schema_access.get_by_pack(result['pack'])
+
+        secret_parameters = get_secret_parameters(parameters=config_schema.attributes)
+        result['values'] = mask_secret_parameters(parameters=result['values'],
+                                                  secret_parameters=secret_parameters)
+
+        return result
 
 
 # specialized access objects
