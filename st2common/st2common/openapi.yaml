@@ -519,6 +519,10 @@ paths:
           description: Alias execution payload.
           schema:
             $ref: '#/definitions/AliasExecution'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -634,6 +638,15 @@ paths:
           description: Start timestamp greater than filter
           type: string
           pattern: {{ ISO8601_UTC_REGEX }}
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: List of executions
@@ -705,6 +718,10 @@ paths:
           description: Entity id
           type: string
           required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -1382,6 +1399,15 @@ paths:
           type: array
           items:
             type: string
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Get packs config.
@@ -1406,6 +1432,10 @@ paths:
           in: path
           description: Pack ref to retrieve config for the pack.
           required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -1438,6 +1468,15 @@ paths:
           description: Pack config content
           schema:
             $ref: '#/definitions/PackConfigContent'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Config for a particular pack.
