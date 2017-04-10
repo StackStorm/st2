@@ -16,7 +16,8 @@
 import webtest
 
 
-SUPER_SECRET_PARAMETER = "SUPER_SECRET_PARAMETER_THAT_SHOULD_NEVER_APPEAR_IN_RESPONSES_OR_LOGS"
+SUPER_SECRET_PARAMETER = 'SUPER_SECRET_PARAMETER_THAT_SHOULD_NEVER_APPEAR_IN_RESPONSES_OR_LOGS'
+ANOTHER_SUPER_SECRET_PARAMETER = 'ANOTHER_SUPER_SECRET_PARAMETER_TO_TEST_OVERRIDING'
 
 
 class ResponseValidationError(ValueError):
@@ -35,8 +36,9 @@ class TestApp(webtest.TestApp):
             raise ResponseValidationError('Endpoint produced invalid response. Make sure the '
                                           'response matches OpenAPI scheme for the endpoint.')
 
-        if not kwargs.get('expect_errors', None) and SUPER_SECRET_PARAMETER in res.body:
-            raise ResponseLeakError('Endpoint response contains secret parameter. '
-                                    'Find the leak.')
+        if not kwargs.get('expect_errors', None):
+            if SUPER_SECRET_PARAMETER in res.body or ANOTHER_SUPER_SECRET_PARAMETER in res.body:
+                raise ResponseLeakError('Endpoint response contains secret parameter. '
+                                        'Find the leak.')
 
         return res
