@@ -1146,9 +1146,7 @@ paths:
         '200':
           description: Information about a pack.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PackView'
+            $ref: '#/definitions/PackView'
           examples:
             application/json:
               ref: 'core.local'
@@ -1247,8 +1245,13 @@ paths:
         '200':
           description: Pack search results.
           schema:
-            items:
-              - $ref: '#/definitions/PacksList'
+            type:
+              - array
+              - object
+            # Ideally, we should return array every time and when we request a pack, it should be an
+            # array of a single element. Currently it's not the case though so we have to fallback
+            # to broader kind of scheme. Fixing this would require breaking changes to this endpoint.
+            # $ref: '#/definitions/PacksList'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -1267,9 +1270,7 @@ paths:
         '200':
           description: Index health.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PackIndex'
+            $ref: '#/definitions/PackIndex'
           examples:
             application/json:
               ref: 'core.local'
@@ -1414,9 +1415,7 @@ paths:
         '200':
           description: Config for a particular pack.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PackConfigView'
+            $ref: '#/definitions/PackConfigView'
           examples:
             application/json:
               ref: 'core.local'
@@ -1443,9 +1442,7 @@ paths:
         '200':
           description: Config for a particular pack.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PackConfigCreate'
+            $ref: '#/definitions/PackConfigCreate'
           examples:
             application/json:
               ref: 'core.local'
@@ -1518,9 +1515,7 @@ paths:
         '200':
           description: Config schema for a particular pack.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PackConfigView'
+            $ref: '#/definitions/PackConfigView'
           examples:
             application/json:
               ref: 'core.local'
@@ -1592,9 +1587,7 @@ paths:
         '200':
           description: Specific policy type.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PolicyTypeList'
+            $ref: '#/definitions/PolicyTypeList'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -1621,6 +1614,7 @@ paths:
         '200':
           description: Policy created successfully.
           schema:
+            type: array
             items:
               - $ref: '#/definitions/PolicyList'
           examples:
@@ -1646,8 +1640,7 @@ paths:
         '200':
           description: Policy created successfully.
           schema:
-            items:
-              - $ref: '#/definitions/PolicyList'
+            $ref: '#/definitions/PolicyList'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -1671,8 +1664,7 @@ paths:
         '200':
           description: Policy found.
           schema:
-            items:
-              - $ref: '#/definitions/PolicyList'
+            $ref: '#/definitions/PolicyList'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -1701,8 +1693,7 @@ paths:
         '200':
           description: Policy updated successfully.
           schema:
-            items:
-              - $ref: '#/definitions/PolicyList'
+            $ref: '#/definitions/PolicyList'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -2531,7 +2522,7 @@ paths:
         - name: limit
           in: query
           description: List N most recent rule enforcements.
-          type: string
+          type: integer
           default: 50
         - name: offset
           in: query
@@ -2606,6 +2597,7 @@ paths:
           in: path
           description: Entity id
           type: string
+          required: true
       x-parameters:
         - name: user
           in: context
@@ -2615,9 +2607,7 @@ paths:
         '200':
           description: Rule Enforcements based on ref or id
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/RuleEnforcementsList'
+            $ref: '#/definitions/RuleEnforcementsList'
           examples:
             application/json:
               ref: 'core.local'
@@ -2659,13 +2649,12 @@ paths:
           in: path
           description: entities id
           type: string
+          required: true
       responses:
         '200':
           description: Trace
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/TimersList'
+            $ref: '#/definitions/TimersList'
           examples:
             application/json:
               ref: 'core.local'
@@ -2755,13 +2744,12 @@ paths:
           in: path
           description: entities id
           type: string
+          required: true
       responses:
         '200':
           description: Trace
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/TracesList'
+            $ref: '#/definitions/TracesList'
           examples:
             application/json:
               ref: 'core.local'
@@ -3702,24 +3690,22 @@ definitions:
       indexes:
         description: Index details.
         type: object
-        items:
-          type: object
-          properties:
-            count:
-              description: Number of index.
-              type: integer
-            errors:
-              description: Errors.
-              type: object
-            invalid:
-              description: Invalid.
-              type: integer
-            status:
-              description: Status of the index.
-              type: array
-            valid:
-              description: Valid.
-              type: integer
+        properties:
+          count:
+            description: Number of index.
+            type: integer
+          errors:
+            description: Errors.
+            type: object
+          invalid:
+            description: Invalid.
+            type: integer
+          status:
+            description: Status of the index.
+            type: array
+          valid:
+            description: Valid.
+            type: integer
       packs:
         description: Number of packs in the index.
         type: object

@@ -20,11 +20,11 @@ import six
 import sys
 import traceback
 
+from flex.core import validate
 import jsonschema
 from oslo_config import cfg
 import routes
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
-from swagger_spec_validator.validator20 import validate_spec
 import webob
 from webob import exc, Request
 
@@ -157,7 +157,9 @@ class Router(object):
         LOG.debug('Adding API: %s %s', info.get('title', 'untitled'), info.get('version', '0.0.0'))
 
         self.spec = spec
-        self.spec_resolver = validate_spec(copy.deepcopy(self.spec))
+        self.spec_resolver = jsonschema.RefResolver('', self.spec)
+
+        validate(copy.deepcopy(self.spec))
 
         for filter in transforms:
             for (path, methods) in six.iteritems(spec['paths']):
