@@ -26,6 +26,8 @@ in development
   tokens and services use special service access tokens with no max TTL limit. (bug fix)
 
   Reported by Jiang Wei. #3314 #3315
+* Allow user to specify a custom list of attribute names which are masked in the log messages by
+  setting ``log.mask_secrets_blacklist`` config option. (improvement)
 * Issue #1236 - The ``destination_server`` field has been removed from the
   ``linux.scp`` action. Going forward simply specify the server as part of the
   ``source`` and/or ``destination`` arguments.
