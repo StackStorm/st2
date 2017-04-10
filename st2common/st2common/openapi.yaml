@@ -519,6 +519,10 @@ paths:
           description: Alias execution payload.
           schema:
             $ref: '#/definitions/AliasExecution'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
