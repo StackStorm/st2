@@ -19,7 +19,7 @@ from webob.headers import ResponseHeaders
 from st2common.constants.api import REQUEST_ID_HEADER
 from st2common.constants.auth import HEADER_ATTRIBUTE_NAME
 from st2common.constants.auth import HEADER_API_KEY_ATTRIBUTE_NAME
-from st2common.router import Request, Response, NotFoundException
+from st2common.router import Request, Response
 
 
 class CorsMiddleware(object):
@@ -71,10 +71,7 @@ class CorsMiddleware(object):
 
             return start_response(status, headers._items, exc_info)
 
-        try:
-            return self.app(environ, custom_start_response)
-        except NotFoundException:
-            if request.method != 'options':
-                raise
-
+        if request.method == 'OPTIONS':
             return Response()(environ, custom_start_response)
+        else:
+            return self.app(environ, custom_start_response)
