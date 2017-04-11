@@ -22,6 +22,7 @@ import tempfile
 import logging as logbase
 
 import mock
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.logging.formatters import ConsoleLogFormatter
@@ -183,6 +184,32 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
         expected = ("test message 1 (blacklisted_1='********',blacklisted_2='********',"
                     "blacklisted_3={'key3': 'val3', 'key1': 'val1', 'blacklisted_1': '********'},"
                     "foo1='bar')")
+        self.assertEqual(message, expected)
+
+    @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
+                MOCK_MASKED_ATTRIBUTES_BLACKLIST)
+    def test_format_custom_blacklist_attributes_are_masked(self):
+        cfg.CONF.set_override(group='log', name='mask_secrets_blacklist',
+                              override=['blacklisted_4', 'blacklisted_5'])
+        formatter = ConsoleLogFormatter()
+
+        mock_message = 'test message 1'
+
+        record = MockRecord()
+        record.msg = mock_message
+
+        # Add "extra" attributes
+        record._blacklisted_1 = 'test value 1'
+        record._blacklisted_2 = 'test value 2'
+        record._blacklisted_3 = {'key1': 'val1', 'blacklisted_1': 'val2', 'key3': 'val3'}
+        record._blacklisted_4 = 'fowa'
+        record._blacklisted_5 = 'fiva'
+        record._foo1 = 'bar'
+
+        message = formatter.format(record=record)
+        expected = ("test message 1 (foo1='bar',blacklisted_1='********',blacklisted_2='********',"
+                    "blacklisted_3={'key3': 'val3', 'key1': 'val1', 'blacklisted_1': '********'},"
+                    "blacklisted_4='********',blacklisted_5='********')")
         self.assertEqual(message, expected)
 
     @mock.patch('st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST',
