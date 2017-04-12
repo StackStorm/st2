@@ -79,7 +79,7 @@ info:
 
     ## SSL
 
-    By default, StackStorm generates a self-signed certificate. If you are testing this with `curl`, you may need to disable certificate validation with `curl -k`. We **strongly** recommend you configure valid, signed certificates for StackStorm.
+    The default StackStorm installation creates a self-signed certificate. If you are testing this with `curl`, you may need to disable certificate validation with `curl -k`. We **strongly** recommend you configure valid, signed certificates for StackStorm.
 
     ## JSON
 
