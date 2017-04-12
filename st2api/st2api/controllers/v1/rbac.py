@@ -48,7 +48,12 @@ class RolesController(ResourceController):
     def get_one(self, name_or_id, requester_user):
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
-        return self._get_one_by_name_or_id(name_or_id=name_or_id)
+        return self._get_one_by_name_or_id(name_or_id=name_or_id, permission_type=None)
+
+    def get_all(self, requester_user):
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
+        return self._get_all()
 
 
 class PermissionTypesController(object):
