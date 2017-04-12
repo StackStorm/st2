@@ -16,30 +16,30 @@ info:
 
     ## Accessing the API
 
-    Usually the API is available at `https://<ST2_IP>/api`. The default implementation is to use Nginx as a front-end, passing `/api`/ requests through to the `st2api` service, which by default listens on port `9101`. On a [reference single-system deployment](https://docs.stackstorm.com/install/index.html), all processes run on the same system. If you have a [multi-system deployment](https://docs.stackstorm.com/reference/ha.html), the components may be running on multiple systems, and may be load-balanced.
+    Usually the API is available at `https://$ST2_HOSTNAME/api`. The default implementation is to use Nginx as a front-end, passing `/api` requests through to the `st2api` service, which by default listens on port `9101`. On a [reference single-system deployment](https://docs.stackstorm.com/install/index.html), all processes run on the same system. If you have a [multi-system deployment](https://docs.stackstorm.com/reference/ha.html), the components may be running on multiple systems, and may be load-balanced.
 
     ## Authentication
 
-    To authenticate against the StackStorm API, either an authentication token or an API key (but not both) should be provided in the HTTP request headers. The headers are named `X-Auth-Token` and `St2-Api-Key` respectively.
+    To authenticate against the StackStorm API, either an authentication token or an API key (but not both) should be provided in the HTTP request headers. The headers are named `X-Auth-Token` and `St2-Api-Key` respectively. In situation when it is impossble to provide a header to the response, query parameters `x-auth-token` and `st2-api-key` could be used instead, but would require you to weight in on security implications.
 
     An authentication token is a time-limited access token, granted once a user authenticates, typically using a username and password. This is suitable for short-term, interactive sessions. [API Keys](https://docs.stackstorm.com/authentication.html#api-keys) do not expire, and are therefore better suited for use with integrating other applications. 
 
     ### Authentication Tokens
 
-    If you are using authentication tokens, you need to first obtain a token using the `/auth` endpoint, and then use the token for future requests against the `/api/` endpoint. To obain a token:
+    If you are using authentication tokens, you need to first obtain a token using the `/auth` endpoint, and then use the token for future requests against the `/api` endpoint. To obain a token:
 
     ```
-    curl -X POST -u yourusername:'yourpassword' https://myhost.example.com/auth/v1/tokens
+    curl -X POST -u 'yourusername:yourpassword' https://$ST2_HOSTNAME/auth/v1/tokens
     ```
     
     You can then use the token like this:
 
     ```
     # Token as header
-    curl -H "X-Auth-Token: 4d76e023841a4a91a9c66aa4541156fe" https://myhost.example.com/api/v1/actions
+    curl -H "X-Auth-Token: 4d76e023841a4a91a9c66aa4541156fe" https://$ST2_HOSTNAME/api/v1/actions
 
     # Token as query parameter
-    curl "https://myhost.example.com/api/v1/actions?x-auth-token=4d76e023841a4a91a9c66aa4541156fe"
+    curl "https://$ST2_HOSTNAME/api/v1/actions?x-auth-token=4d76e023841a4a91a9c66aa4541156fe"
     ```
 
     ### API Keys
@@ -48,7 +48,6 @@ info:
 
     ```
     st2 apikey create -k -m '{"used_by": "my integration"}'
-    <API_KEY_VALUE>
     ```
 
     Note the use of the option `-m` flag to provide key metadata. This is good practice, because it helps to identify what the key is used for. This is useful if you need to later revoke or disable keys.
@@ -59,10 +58,10 @@ info:
 
     ```
     # Key as header
-    curl -H "St2-Api-Key: <API-KEY-VALUE>" https://myhost.example.com/api/v1/actions
+    curl -H "St2-Api-Key: <API-KEY-VALUE>" https://$ST2_HOSTNAME/api/v1/actions
 
     # Key as query parameter
-    curl https://myhost.example.com/api/v1/actions?st2-api-key=<API-KEY-VALUE>
+    curl https://$ST2_HOSTNAME/api/v1/actions?st2-api-key=<API-KEY-VALUE>
     ```
 
     ## HTTP Methods
@@ -73,6 +72,10 @@ info:
     * **POST:** Use to create new resources. For example, make a POST request to create a new rule, or execute an action. 
     * **PUT:** Use to create or update a resource, e.g. to update an existing Key-Value pair.
     * **DELETE:** Remove a resource, e.g. delete an API key.
+    
+    There is also an implicit support of **OPTIONS** method that will return a set of CORS-related headers.
+    
+    Methods **HEAD** and **PATCH** are not supported in API v1, but might be considered in future iterations. 
 
     ## SSL
 
@@ -89,21 +92,50 @@ info:
     Obtaining an authentication token:
 
     ```
-    curl -X POST -k -u st2admin:'Ch@ngeMe' https://myhost.example.com/auth/v1/tokens
+    $ curl -X POST -k -u st2admin:'Ch@ngeMe' https://$ST2_HOSTNAME/auth/v1/tokens
     {"user": "st2admin", "token": "866218ad67e141e4aaddbbb92964e67e", "expiry": "2017-04-06T01:15:06.602758Z", "id": "58e4451ac4da5f1e040fb859", "metadata": {}}
     ```
 
     List rules for the ChatOps pack:
 
     ```
-    curl -k -X GET -H 'X-Auth-Token: b99d3f74a16e471992f2a10935637916' 'https://myhost.example.com/api/v1/rules?limit=50&pack=chatops'
+    $ curl -k -X GET -H 'X-Auth-Token: b99d3f74a16e471992f2a10935637916' 'https://$ST2_HOSTNAME/api/v1/rules?limit=50&pack=chatops'
     [{"description": "Notification rule to send results of action executions to stream for chatops", "tags": [], "type": {"ref": "standard", "parameters": {}}, "enabled": true, "name": "notify", "trigger": {"ref": "core.st2.generic.notifytrigger", "type": "core.st2.generic.notifytrigger", "parameters": {}}, "criteria": {"trigger.route": {"pattern": "hubot", "type": "equals"}}, "action": {"ref": "chatops.post_result", "parameters": {"user": "{{trigger.data.user}}", "execution_id": "{{trigger.execution_id}}", "channel": "{{trigger.data.source_channel}}"}}, "pack": "chatops", "ref": "chatops.notify", "id": "58b7089ac4da5f6aa779b85a", "uid": "rule:chatops:notify"}]
     ```
 
     Load a new rule:
 
     ```
-    curl -X POST -H  'content-type: application/json' -H  'X-Auth-Token: b99d3f74a16e471992f2a10935637916' -H  'Content-Length: 329' --data-binary '{"description": "Sample rule using an Interval Timer.", "enabled": false, "trigger": {"type": "core.st2.IntervalTimer", "parameters": {"unit": "seconds", "delta": 5}}, "criteria": {}, "action": {"ref": "core.local", "parameters": {"cmd": "echo \"{{trigger.executed_at}}\""}}, "pack": "examples", "name": "sample_rule_with_timer"}' https://myhost.example.com/api/v1/rules
+    $ curl -X POST -H 'content-type: application/json' -H 'X-Auth-Token: b99d3f74a16e471992f2a10935637916' --data-binary '{"description": "Sample rule using an Interval Timer.", "enabled": false, "trigger": {"type": "core.st2.IntervalTimer", "parameters": {"unit": "seconds", "delta": 5}}, "criteria": {}, "action": {"ref": "core.local", "parameters": {"cmd": "echo \"{{trigger.executed_at}}\""}}, "pack": "examples", "name": "sample_rule_with_timer"}' https://$ST2_HOSTNAME/api/v1/rules
+    {
+        "description": "Sample rule using an Interval Timer.",
+        "tags": [],
+        "type": {
+            "ref": "standard",
+            "parameters": {}
+        },
+        "enabled": false,
+        "name": "sample_rule_with_timer",
+        "trigger": {
+            "ref": "core.cab3cb5f-f0c5-466b-b27c-dc481fc19fac",
+            "type": "core.st2.IntervalTimer",
+            "parameters": {
+                "unit": "seconds",
+                "delta": 5
+            }
+        },
+        "criteria": {},
+        "action": {
+            "ref": "core.local",
+            "parameters": {
+                "cmd": "echo \"{{trigger.executed_at}}\""
+            }
+        },
+        "pack": "examples",
+        "ref": "examples.sample_rule_with_timer",
+        "id": "58eddb871878c12be65c9fdd",
+        "uid": "rule:examples:sample_rule_with_timer"
+    }
     ```
 
     ### Further examples
@@ -151,6 +183,7 @@ info:
     {
         "conflict-id": "58e43d58c4da5f35c286a81f",
         "faultstring": "Tried to save duplicate unique keys (E11000 duplicate key error collection: st2.rule_d_b index: uid_1 dup key: { : \"rule:examples:sample_rule_with_timer\" })"
+    }
     ```
 
     `4xx` codes indicate a bad request, whereas `5xx` errors indicate a server-side problem with StackStorm. 
