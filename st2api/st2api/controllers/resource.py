@@ -222,9 +222,10 @@ class ResourceController(object):
 
         instance = self._get_by_id(resource_id=id, exclude_fields=exclude_fields)
 
-        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
-                                                          resource_db=instance,
-                                                          permission_type=permission_type)
+        if permission_type:
+            rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                              resource_db=instance,
+                                                              permission_type=permission_type)
 
         if not instance:
             msg = 'Unable to identify resource with id "%s".' % id
@@ -260,7 +261,8 @@ class ResourceController(object):
 
         return result
 
-    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None, **kwargs):
+    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None,
+                             **kwargs):
         instance = self._get_by_pack_ref(pack_ref=pack_ref, exclude_fields=exclude_fields)
 
         if not instance:
@@ -374,9 +376,10 @@ class ContentPackResourceController(ResourceController):
             abort(http_client.NOT_FOUND, e.message)
             return
 
-        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
-                                                          resource_db=instance,
-                                                          permission_type=permission_type)
+        if permission_type:
+            rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                              resource_db=instance,
+                                                              permission_type=permission_type)
 
         from_model_kwargs = from_model_kwargs or {}
         from_model_kwargs.update(self.from_model_kwargs)
