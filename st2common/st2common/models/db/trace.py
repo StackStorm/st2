@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import hashlib
+
 import mongoengine as me
 
 from st2common.models.db import stormbase
@@ -43,7 +45,7 @@ class TraceComponentDB(me.EmbeddedDocument):
             self.object_id, self.updated_at)
 
 
-class TraceDB(stormbase.StormFoundationDB):
+class TraceDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     """
     Trace is a collection of all TriggerInstances, Rules and ActionExecutions
     that represent an activity which begins with the introduction of a
@@ -62,7 +64,6 @@ class TraceDB(stormbase.StormFoundationDB):
     """
 
     RESOURCE_TYPE = ResourceType.TRACE
-    UID_FIELDS = ['id']
 
     trace_tag = me.StringField(required=True,
                                help_text='A user specified reference to the trace.')
@@ -88,6 +89,26 @@ class TraceDB(stormbase.StormFoundationDB):
             {'fields': ['-start_timestamp', 'trace_tag']},
         ]
     }
+
+    def __init__(self, *args, **values):
+        super(TraceDB, self).__init__(*args, **values)
+        self.uid = self.get_uid()
+
+    def get_uid(self):
+        parts = []
+        parts.append(self.RESOURCE_TYPE)
+
+        componenets_hash = hashlib.md5()
+        componenets_hash.update(str(self.trace_tag))
+        componenets_hash.update(str(self.trigger_instances))
+        componenets_hash.update(str(self.rules))
+        componenets_hash.update(str(self.action_executions))
+        componenets_hash.update(str(self.start_timestamp))
+
+        parts.append(componenets_hash.hexdigest())
+
+        uid = self.UID_SEPARATOR.join(parts)
+        return uid
 
 
 # specialized access objects
