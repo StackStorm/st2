@@ -774,54 +774,39 @@ class ApiKeyPermissionResolver(PermissionsResolver):
         return True
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
-        # Desired impl is as under. Permission grants as of now are to
-        # a role while for this to work right the permission grant would have to
-        # be to a specific user. The user ofcourse has to belong to a role
-        # that can create API keys however ALL permissions for specific API Key
-        # should only be granted if the user created the key or has system role.
-        # Until we introduce an ability to support per user this is disabled.
+        log_context = {
+            'user_db': user_db,
+            'resource_db': resource_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user resource permissions', extra=log_context)
 
-        # log_context = {
-        #     'user_db': user_db,
-        #     'resource_db': resource_db,
-        #     'permission_type': permission_type,
-        #     'resolver': self.__class__.__name__
-        # }
-        # self._log('Checking user resource permissions', extra=log_context)
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
 
-        # # First check the system role permissions
-        # has_system_role_permission = self._user_has_system_role_permission(
-        #     user_db=user_db, permission_type=permission_type)
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
 
-        # if has_system_role_permission:
-        #     self._log('Found a matching grant via system role', extra=log_context)
-        #     return True
+        # Check custom roles
+        api_key_uid = resource_db.get_uid()
 
-        # # Check custom roles
-        # api_key_uid = resource_db.get_uid()
+        # Check direct grants on the webhook
+        resource_types = [ResourceType.API_KEY]
+        permission_types = [PermissionType.API_KEY_ALL, permission_type]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=api_key_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
 
-        # if permission_type == PermissionType.API_KEY_VIEW:
-        #     # Note: "create", and "delete" do not grant/imply "view" permission
-        #     permission_types = [
-        #         PermissionType.API_KEY_ALL,
-        #         permission_type
-        #     ]
-        # else:
-        #     permission_types = [PermissionType.ACTION_ALL, permission_type]
+        if len(permission_grants) >= 1:
+            self._log('Found a grant on the api key', extra=log_context)
+            return True
 
-        # # Check direct grants on the specified resource
-        # resource_types = [ResourceType.API_KEY]
-        # permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-        #                                                        resource_uid=api_key_uid,
-        #                                                        resource_types=resource_types,
-        #                                                        permission_types=permission_types)
-        # if len(permission_grants) >= 1:
-        #     self._log('Found a direct grant on the api_key', extra=log_context)
-        #     return True
-
-        # self._log('No matching grants found', extra=log_context)
-        # return False
-        return True
+        self._log('No matching grants found', extra=log_context)
+        return False
 
 
 class TracePermissionsResolver(PermissionsResolver):
@@ -864,7 +849,7 @@ class TracePermissionsResolver(PermissionsResolver):
                                                                permission_types=permission_types)
 
         if len(permission_grants) >= 1:
-            self._log('Found a grant on the webhook', extra=log_context)
+            self._log('Found a grant on the trace', extra=log_context)
             return True
 
         self._log('No matching grants found', extra=log_context)
