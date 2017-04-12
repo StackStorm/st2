@@ -4,6 +4,7 @@ info:
   version: "1.0.0"
   title: StackStorm API
   description: |
+    {% raw %}
     ## Welcome
 
     Welcome to the StackStorm API Reference documentation! You can use the StackStorm API to integrate StackStorm with 3rd-party systems and custom applications. Example integrations include writing your own self-service user portal, or integrating with other orchestration systems. 
@@ -159,6 +160,7 @@ info:
     Join our [Slack Community](https://stackstorm.com/community-signup) to get help from the engineering team and fellow users. You can also create issues against the main [StackStorm GitHub repo](https://github.com/StackStorm/st2/issues), or the [st2apidocs repo](https://github.com/StackStorm/st2apidocs) for documentation-specific issues.
 
     We also recommend reviewing the main [StackStorm documentation](https://docs.stackstorm.com/).
+    {% endraw %}
 
 paths:
   /api/v1/:
