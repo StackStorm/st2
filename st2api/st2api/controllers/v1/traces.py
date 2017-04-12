@@ -52,8 +52,10 @@ class TracesController(ResourceController):
                              query_options=query_options,
                              raw_filters=raw_filters)
 
-    def get_one(self, id):
-        return self._get_one_by_id(id, permission_type=PermissionType.TRACE_VIEW)
+    def get_one(self, id, requester_user):
+        return self._get_one_by_id(id,
+                                   requester_user=requester_user,
+                                   permission_type=PermissionType.TRACE_VIEW)
 
 
 traces_controller = TracesController()
