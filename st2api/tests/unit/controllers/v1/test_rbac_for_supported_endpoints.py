@@ -40,6 +40,7 @@ TEST_FIXTURES = OrderedDict([
     ('liveactions', ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml']),
     ('enforcements', ['enforcement1.yaml']),
     ('apikeys', ['apikey1.yaml']),
+    ('traces', ['trace_for_test_enforce.yaml'])
 ])
 
 MOCK_RUNNER_1 = {
@@ -119,6 +120,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         rule_model = self.models['rules']['rule1.yaml']
         enforcement_model = self.models['enforcements']['enforcement1.yaml']
         execution_model = self.models['executions']['execution1.yaml']
+        trace_model = self.models['traces']['trace_for_test_enforce.yaml']
 
         supported_endpoints = [
             # Runners
@@ -350,7 +352,16 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                         'some': 'thing'
                     }
                 }
-            }
+            },
+            # Traces
+            {
+                'path': '/v1/traces/',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/traces/%s' % (trace_model.id),
+                'method': 'GET'
+            },
         ]
 
         self.use_user(self.users['no_permissions'])
