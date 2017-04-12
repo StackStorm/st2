@@ -27,6 +27,13 @@ class CorsMiddleware(object):
         self.app = app
 
     def __call__(self, environ, start_response):
+        # The middleware sets a number of headers that helps prevent a range of attacks in browser
+        # environment. It also handles OPTIONS requests used by browser as pre-flight check before
+        # the potentially insecure request is made. An absence of this headers on the response will
+        # prevent the error from ever reaching the JS layer of client-side code making it impossible
+        # to process the response or provide a human-friendly error message. Order is not important
+        # as long at this condition is met and headers not get overridden by another middleware
+        # higher up the call stack.
         request = Request(environ)
 
         def custom_start_response(status, headers, exc_info=None):

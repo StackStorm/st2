@@ -44,6 +44,9 @@ class StreamingMiddleware(object):
         self.app = app
 
     def __call__(self, environ, start_response):
+        # Forces eventlet to respond immediately upon receiving a new chunk from endpoint rather
+        # than buffering it until the sufficient chunk size is reached. The order for this
+        # middleware is not important since it acts as pass-through.
         environ['eventlet.minimum_write_chunk_size'] = 0
         return self.app(environ, start_response)
 
@@ -79,6 +82,7 @@ def setup_app(config={}):
 
     app = router.as_wsgi
 
+    # Order is important. Check middleware for detailed explanation.
     app = StreamingMiddleware(app)
     app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)
