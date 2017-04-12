@@ -55,8 +55,14 @@ class TriggerTypeController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    def get_one(self, triggertype_ref_or_id, **kwargs):
-        return super(TriggerTypeController, self).get_one(triggertype_ref_or_id, **kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
+
+    def get_one(self, triggertype_ref_or_id):
+        return self._get_one(triggertype_ref_or_id, permission_type=None)
 
     def post(self, triggertype):
         """

@@ -344,17 +344,8 @@ class ContentPackResourceController(ResourceController):
         super(ContentPackResourceController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
 
-    def get_one(self, ref_or_id, from_model_kwargs=None):
-        return self._get_one(ref_or_id, from_model_kwargs=from_model_kwargs)
-
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
-        return self._get_all(sort=sort,
-                             offset=offset,
-                             limit=limit,
-                             raw_filters=raw_filters)
-
-    def _get_one(self, ref_or_id, exclude_fields=None, from_model_kwargs=None,
-                 requester_user=None, permission_type=None, **kwargs):
+    def _get_one(self, ref_or_id, permission_type, exclude_fields=None, from_model_kwargs=None,
+                 requester_user=None):
         try:
             instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
         except Exception as e:

@@ -63,7 +63,7 @@ class TimersController(resource.ContentPackResourceController):
         'sort': ['type']
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self._timers = TimersHolder()
         self._trigger_types = TIMER_TRIGGER_TYPES.keys()
         queue_suffix = self.__class__.__name__
@@ -85,6 +85,9 @@ class TimersController(resource.ContentPackResourceController):
         t_all = self._timers.get_all(timer_type=timer_type)
         LOG.debug('Got timers: %s', t_all)
         return t_all
+
+    def get_one(self, ref_or_id):
+        return self._get_one(ref_or_id, permission_type=None)
 
     def add_trigger(self, trigger):
         # Note: Permission checking for creating and deleting a timer is done during rule
