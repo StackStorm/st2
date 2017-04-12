@@ -118,15 +118,6 @@ class ResourceController(object):
 
         self.get_one_db_method = self._get_by_name_or_id
 
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
-        return self._get_all(sort=sort,
-                             offset=offset,
-                             limit=limit,
-                             raw_filters=raw_filters)
-
-    def get_one(self, id):
-        return self._get_one_by_id(id=id)
-
     def _get_all(self, exclude_fields=None, sort=None, offset=0, limit=None, query_options=None,
                  from_model_kwargs=None, raw_filters=None):
         """
@@ -209,12 +200,8 @@ class ResourceController(object):
 
         return resp
 
-    def _get_one(self, id, exclude_fields=None, **kwargs):
-        # Note: This is here for backward compatibility reasons
-        return self._get_one_by_id(id=id, exclude_fields=exclude_fields, **kwargs)
-
-    def _get_one_by_id(self, id, exclude_fields=None, from_model_kwargs=None,
-                       requester_user=None, permission_type=None, **kwargs):
+    def _get_one_by_id(self, id, permission_type, exclude_fields=None, from_model_kwargs=None,
+                       requester_user=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -237,8 +224,8 @@ class ResourceController(object):
 
         return result
 
-    def _get_one_by_name_or_id(self, name_or_id, exclude_fields=None, from_model_kwargs=None,
-                               requester_user=None, permission_type=None, **kwargs):
+    def _get_one_by_name_or_id(self, name_or_id, permission_type, exclude_fields=None,
+                               from_model_kwargs=None, requester_user=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -261,8 +248,7 @@ class ResourceController(object):
 
         return result
 
-    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None,
-                             **kwargs):
+    def _get_one_by_pack_ref(self, pack_ref, exclude_fields=None, from_model_kwargs=None):
         instance = self._get_by_pack_ref(pack_ref=pack_ref, exclude_fields=exclude_fields)
 
         if not instance:
