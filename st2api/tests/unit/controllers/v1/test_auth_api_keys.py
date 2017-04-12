@@ -27,7 +27,8 @@ from tests import FunctionalTest
 FIXTURES_PACK = 'generic'
 
 TEST_MODELS = {
-    'apikeys': ['apikey1.yaml', 'apikey2.yaml', 'apikey3.yaml']
+    'apikeys': ['apikey1.yaml', 'apikey2.yaml', 'apikey3.yaml', 'apikey_disabled.yaml',
+                'apikey_malformed.yaml']
 }
 
 
@@ -62,16 +63,19 @@ class TestApiKeyController(FunctionalTest):
         cls.apikey1 = models['apikeys']['apikey1.yaml']
         cls.apikey2 = models['apikeys']['apikey2.yaml']
         cls.apikey3 = models['apikeys']['apikey3.yaml']
+        cls.apikey4 = models['apikeys']['apikey_disabled.yaml']
+        cls.apikey5 = models['apikeys']['apikey_malformed.yaml']
 
     def test_get_all(self):
         resp = self.app.get('/v1/apikeys')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 3, '/v1/apikeys did not return all apikeys.')
+        self.assertEqual(len(resp.json), 5, '/v1/apikeys did not return all apikeys.')
 
         retrieved_ids = [apikey['id'] for apikey in resp.json]
 
         self.assertEqual(retrieved_ids,
-                         [str(self.apikey1.id), str(self.apikey2.id), str(self.apikey3.id)],
+                         [str(self.apikey1.id), str(self.apikey2.id), str(self.apikey3.id),
+                          str(self.apikey4.id), str(self.apikey5.id)],
                          'Incorrect api keys retrieved.')
 
     def test_get_one_by_id(self):
@@ -107,7 +111,7 @@ class TestApiKeyController(FunctionalTest):
 
     def test_get_show_secrets(self):
 
-        resp = self.app.get('/v1/apikeys?show_secrets=True')
+        resp = self.app.get('/v1/apikeys?show_secrets=True', expect_errors=True)
         self.assertEqual(resp.status_int, 200)
         for key in resp.json:
             self.assertNotEqual(key['key_hash'], MASKED_ATTRIBUTE_VALUE)

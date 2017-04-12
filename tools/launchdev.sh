@@ -135,6 +135,7 @@ function st2start(){
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $PACKS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $RUNNERS_BASE_DIR
     sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $VIRTUALENVS_DIR
+    sudo chown -R ${CURRENT_USER}:${CURRENT_USER_GROUP} $CONFIG_BASE_DIR
     cp -Rp ./contrib/core/ $PACKS_BASE_DIR
     cp -Rp ./contrib/packs/ $PACKS_BASE_DIR
     cp -Rp ./contrib/runners/* $RUNNERS_BASE_DIR

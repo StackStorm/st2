@@ -109,6 +109,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
 
         try:
             return self._schedule_execution(liveaction=liveaction_api,
+                                            requester_user=requester_user,
                                             user=user,
                                             context_string=context_string,
                                             show_secrets=show_secrets)
@@ -126,7 +127,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def _schedule_execution(self, liveaction, user=None, context_string=None, show_secrets=False):
+    def _schedule_execution(self, liveaction, requester_user=None, user=None, context_string=None,
+                            show_secrets=False):
         # Initialize execution context if it does not exist.
         if not hasattr(liveaction, 'context'):
             liveaction.context = dict()
@@ -166,8 +168,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         liveaction_db = LiveAction.add_or_update(liveaction_db, publish=False)
 
         _, actionexecution_db = action_service.publish_request(liveaction_db, actionexecution_db)
-        execution_api = ActionExecutionAPI.from_model(actionexecution_db,
-                                                      mask_secrets=(not show_secrets))
+        mask_secrets = self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+        execution_api = ActionExecutionAPI.from_model(actionexecution_db, mask_secrets=mask_secrets)
 
         return Response(json=execution_api, status=http_client.CREATED)
 
@@ -184,7 +186,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
         return action_exec_db.result
 
-    def _get_children(self, id_, depth=-1, result_fmt=None, show_secrets=False):
+    def _get_children(self, id_, requester_user=None, depth=-1, result_fmt=None,
+                      show_secrets=False):
         # make sure depth is int. Url encoding will make it a string and needs to
         # be converted back in that case.
         depth = int(depth)
@@ -193,7 +196,8 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
                                                         descendant_depth=depth,
                                                         result_fmt=result_fmt)
 
-        return [self.model.from_model(descendant, mask_secrets=(not show_secrets)) for
+        mask_secrets = self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+        return [self.model.from_model(descendant, mask_secrets=mask_secrets) for
                 descendant in descendants]
 
 
@@ -213,7 +217,7 @@ class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, Resou
 
 
 class ActionExecutionChildrenController(BaseActionExecutionNestedController):
-    def get_one(self, id, requester_user, depth=-1, result_fmt=None, show_secrets=False):
+    def get_one(self, id, requester_user=None, depth=-1, result_fmt=None, show_secrets=False):
         """
         Retrieve children for the provided action execution.
 
@@ -228,7 +232,7 @@ class ActionExecutionChildrenController(BaseActionExecutionNestedController):
                                                           permission_type=permission_type)
 
         return self._get_children(id_=id, depth=depth, result_fmt=result_fmt,
-                                  show_secrets=show_secrets)
+                                  requester_user=requester_user, show_secrets=show_secrets)
 
 
 class ActionExecutionAttributeController(BaseActionExecutionNestedController):
@@ -386,7 +390,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         'timestamp_lt': lambda value: isotime.parse(value=value)
     }
 
-    def get_all(self, exclude_attributes=None, sort=None, offset=0, limit=None, **raw_filters):
+    def get_all(self, exclude_attributes=None, sort=None, offset=0, limit=None,
+                requester_user=None, show_secrets=False, **raw_filters):
         """
         List all executions.
 
@@ -411,14 +416,18 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         elif raw_filters.get('timestamp_gt', None) or raw_filters.get('sort_asc', None):
             query_options = {'sort': ['+start_timestamp', 'action.ref']}
 
+        from_model_kwargs = {
+            'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+        }
         return self._get_action_executions(exclude_fields=exclude_fields,
+                                           from_model_kwargs=from_model_kwargs,
                                            sort=sort,
                                            offset=offset,
                                            limit=limit,
                                            query_options=query_options,
                                            raw_filters=raw_filters)
 
-    def get_one(self, id, requester_user, exclude_attributes=None):
+    def get_one(self, id, requester_user, exclude_attributes=None, show_secrets=False):
         """
         Retrieve a single execution.
 
@@ -435,8 +444,12 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         exclude_fields = self._validate_exclude_fields(exclude_fields=exclude_fields)
 
+        from_model_kwargs = {
+            'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+        }
         return self._get_one_by_id(id=id, exclude_fields=exclude_fields,
                                    requester_user=requester_user,
+                                   from_model_kwargs=from_model_kwargs,
                                    permission_type=PermissionType.EXECUTION_VIEW)
 
     def post(self, liveaction_api, requester_user=None, context_string=None, show_secrets=False):
@@ -456,7 +469,11 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         if not requester_user:
             requester_user = UserDB(cfg.CONF.system_user.user)
 
+        from_model_kwargs = {
+            'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+        }
         execution_api = self._get_one_by_id(id=id, requester_user=requester_user,
+                                            from_model_kwargs=from_model_kwargs,
                                             permission_type=PermissionType.EXECUTION_STOP)
 
         if not execution_api:
@@ -490,10 +507,11 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
             LOG.exception('Failed requesting cancellation for liveaction %s.', liveaction_db.id)
             abort(http_client.INTERNAL_SERVER_ERROR, 'Failed canceling execution.')
 
-        return ActionExecutionAPI.from_model(execution_db, mask_secrets=(not show_secrets))
+        return ActionExecutionAPI.from_model(execution_db,
+                                             mask_secrets=from_model_kwargs['mask_secrets'])
 
     def _get_action_executions(self, exclude_fields=None, sort=None, offset=0, limit=None,
-                               query_options=None, raw_filters=None):
+                               query_options=None, raw_filters=None, from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -506,6 +524,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
 
         LOG.debug('Retrieving all action executions with filters=%s', raw_filters)
         return super(ActionExecutionsController, self)._get_all(exclude_fields=exclude_fields,
+                                                                from_model_kwargs=from_model_kwargs,
                                                                 sort=sort,
                                                                 offset=offset,
                                                                 limit=limit,

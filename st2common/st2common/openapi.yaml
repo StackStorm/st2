@@ -710,6 +710,10 @@ paths:
           description: Alias execution payload.
           schema:
             $ref: '#/definitions/AliasExecution'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -825,6 +829,15 @@ paths:
           description: Start timestamp greater than filter
           type: string
           pattern: {{ ISO8601_UTC_REGEX }}
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: List of executions
@@ -896,6 +909,10 @@ paths:
           description: Entity id
           type: string
           required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -1337,9 +1354,7 @@ paths:
         '200':
           description: Information about a pack.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PackView'
+            $ref: '#/definitions/PackView'
           examples:
             application/json:
               ref: 'core.local'
@@ -1438,8 +1453,13 @@ paths:
         '200':
           description: Pack search results.
           schema:
-            items:
-              - $ref: '#/definitions/PacksList'
+            type:
+              - array
+              - object
+            # Ideally, we should return array every time and when we request a pack, it should be an
+            # array of a single element. Currently it's not the case though so we have to fallback
+            # to broader kind of scheme. Fixing this would require breaking changes to this endpoint.
+            # $ref: '#/definitions/PacksList'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -1458,9 +1478,7 @@ paths:
         '200':
           description: Index health.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PackIndex'
+            $ref: '#/definitions/PackIndex'
           examples:
             application/json:
               ref: 'core.local'
@@ -1572,6 +1590,15 @@ paths:
           type: array
           items:
             type: string
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Get packs config.
@@ -1596,6 +1623,10 @@ paths:
           in: path
           description: Pack ref to retrieve config for the pack.
           required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -1605,9 +1636,7 @@ paths:
         '200':
           description: Config for a particular pack.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PackConfigView'
+            $ref: '#/definitions/PackConfigView'
           examples:
             application/json:
               ref: 'core.local'
@@ -1630,13 +1659,20 @@ paths:
           description: Pack config content
           schema:
             $ref: '#/definitions/PackConfigContent'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Config for a particular pack.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PackConfigCreate'
+            $ref: '#/definitions/PackConfigCreate'
           examples:
             application/json:
               ref: 'core.local'
@@ -1709,9 +1745,7 @@ paths:
         '200':
           description: Config schema for a particular pack.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PackConfigView'
+            $ref: '#/definitions/PackConfigView'
           examples:
             application/json:
               ref: 'core.local'
@@ -1783,9 +1817,7 @@ paths:
         '200':
           description: Specific policy type.
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/PolicyTypeList'
+            $ref: '#/definitions/PolicyTypeList'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -1812,6 +1844,7 @@ paths:
         '200':
           description: Policy created successfully.
           schema:
+            type: array
             items:
               - $ref: '#/definitions/PolicyList'
           examples:
@@ -1837,8 +1870,7 @@ paths:
         '200':
           description: Policy created successfully.
           schema:
-            items:
-              - $ref: '#/definitions/PolicyList'
+            $ref: '#/definitions/PolicyList'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -1862,8 +1894,7 @@ paths:
         '200':
           description: Policy found.
           schema:
-            items:
-              - $ref: '#/definitions/PolicyList'
+            $ref: '#/definitions/PolicyList'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -1892,8 +1923,7 @@ paths:
         '200':
           description: Policy updated successfully.
           schema:
-            items:
-              - $ref: '#/definitions/PolicyList'
+            $ref: '#/definitions/PolicyList'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -2722,7 +2752,7 @@ paths:
         - name: limit
           in: query
           description: List N most recent rule enforcements.
-          type: string
+          type: integer
           default: 50
         - name: offset
           in: query
@@ -2797,6 +2827,7 @@ paths:
           in: path
           description: Entity id
           type: string
+          required: true
       x-parameters:
         - name: user
           in: context
@@ -2806,9 +2837,7 @@ paths:
         '200':
           description: Rule Enforcements based on ref or id
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/RuleEnforcementsList'
+            $ref: '#/definitions/RuleEnforcementsList'
           examples:
             application/json:
               ref: 'core.local'
@@ -2850,13 +2879,12 @@ paths:
           in: path
           description: entities id
           type: string
+          required: true
       responses:
         '200':
           description: Trace
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/TimersList'
+            $ref: '#/definitions/TimersList'
           examples:
             application/json:
               ref: 'core.local'
@@ -2946,13 +2974,12 @@ paths:
           in: path
           description: entities id
           type: string
+          required: true
       responses:
         '200':
           description: Trace
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/TracesList'
+            $ref: '#/definitions/TracesList'
           examples:
             application/json:
               ref: 'core.local'
@@ -2965,6 +2992,33 @@ paths:
     get:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.get_all
       description: Returns a list of all trigger types.
+      parameters:
+        - name: limit
+          in: query
+          description: Number of actions to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
+        - name: sort
+          in: query
+          description: Comma-separated list of fields to sort by
+          type: string
+        - name: id
+          in: query
+          description: Entity id filter
+          type: array
+          items:
+            type: string
+        - name: name
+          in: query
+          description: Entity name filter
+          type: array
+          items:
+            type: string
       responses:
         '200':
           description: List of trigger types
@@ -3893,24 +3947,22 @@ definitions:
       indexes:
         description: Index details.
         type: object
-        items:
-          type: object
-          properties:
-            count:
-              description: Number of index.
-              type: integer
-            errors:
-              description: Errors.
-              type: object
-            invalid:
-              description: Invalid.
-              type: integer
-            status:
-              description: Status of the index.
-              type: array
-            valid:
-              description: Valid.
-              type: integer
+        properties:
+          count:
+            description: Number of index.
+            type: integer
+          errors:
+            description: Errors.
+            type: object
+          invalid:
+            description: Invalid.
+            type: integer
+          status:
+            description: Status of the index.
+            type: array
+          valid:
+            description: Valid.
+            type: integer
       packs:
         description: Number of packs in the index.
         type: object

@@ -177,7 +177,9 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt('redirect_stderr', default=False,
                     help='Controls if stderr should be redirected to the logs.'),
         cfg.BoolOpt('mask_secrets', default=True,
-                    help='True to mask secrets in the log files.')
+                    help='True to mask secrets in the log files.'),
+        cfg.ListOpt('mask_secrets_blacklist', default=[],
+                    help='Blacklist of additional attribute names to mask in the log messages.')
     ]
     do_register_opts(log_opts, 'log', ignore_errors)
 

@@ -24,6 +24,7 @@ from st2common.models.api.action import ActionAPI
 from st2common.models.utils import action_param_utils
 from st2common.persistence.action import Action
 from st2common.persistence.runner import RunnerType
+from st2common.rbac.types import PermissionType
 from st2common.router import abort
 
 http_client = six.moves.http_client
@@ -102,7 +103,8 @@ class OverviewController(resource.ContentPackResourceController):
             Handle:
                 GET /actions/views/overview/1
         """
-        resp = super(OverviewController, self)._get_one(ref_or_id)
+        resp = super(OverviewController, self)._get_one(ref_or_id,
+                                                        permission_type=PermissionType.ACTION_VIEW)
         action_api = ActionAPI(**resp.json)
         result = self._transform_action_api(action_api)
         resp.json = result
