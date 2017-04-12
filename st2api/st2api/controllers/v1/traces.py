@@ -51,5 +51,8 @@ class TracesController(ResourceController):
                              query_options=query_options,
                              raw_filters=raw_filters)
 
+    def get_one(self, id):
+        return self._get_one_by_id(id, permission_type=None)
+
 
 traces_controller = TracesController()
