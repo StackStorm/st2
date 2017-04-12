@@ -2705,6 +2705,7 @@ paths:
   /api/v1/traces:
     get:
       operationId: st2api.controllers.v1.traces:traces_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.TRACE_LIST }}
       description: Returns a list of all the traces.
       parameters:
         - name: limit

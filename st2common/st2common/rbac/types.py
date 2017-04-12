@@ -119,6 +119,10 @@ class PermissionType(Enum):
     API_KEY_DELETE = 'api_key_delete'
     API_KEY_ALL = 'api_key_all'
 
+    TRACE_LIST = 'trace_list'
+    TRACE_VIEW = 'trace_view'
+    TRACE_ALL = 'trace_all'
+
     @classmethod
     def get_valid_permissions_for_resource_type(cls, resource_type):
         """
@@ -210,6 +214,7 @@ class ResourceType(Enum):
     KEY_VALUE_PAIR = SystemResourceType.KEY_VALUE_PAIR
     WEBHOOK = SystemResourceType.WEBHOOK
     API_KEY = SystemResourceType.API_KEY
+    TRACE = SystemResourceType.TRACE
 
 
 class SystemRole(Enum):
@@ -328,6 +333,10 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.API_KEY_MODIFY,
         PermissionType.API_KEY_DELETE,
         PermissionType.API_KEY_ALL
+    ],
+    ResourceType.TRACE: [
+        PermissionType.TRACE_LIST,
+        PermissionType.TRACE_VIEW
     ]
 }
 
@@ -450,4 +459,8 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.KEY_VALUE_VIEW: ('Ability to view Key-Value Pairs.'),
     PermissionType.KEY_VALUE_SET: ('Ability to set a Key-Value Pair.'),
     PermissionType.KEY_VALUE_DELETE: ('Ability to delete an existing Key-Value Pair.'),
+
+    PermissionType.TRACE_LIST: ('Ability to list (view all) traces.'),
+    PermissionType.TRACE_VIEW: ('Ability to view a trace.'),
+    PermissionType.TRACE_ALL: ('Ability to perform all the supported operations on traces.')
 }

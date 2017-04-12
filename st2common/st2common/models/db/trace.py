@@ -18,6 +18,7 @@ import mongoengine as me
 from st2common.models.db import stormbase
 from st2common.fields import ComplexDateTimeField
 from st2common.util import date as date_utils
+from st2common.constants.types import ResourceType
 
 from st2common.models.db import MongoDBAccess
 
@@ -59,6 +60,10 @@ class TraceDB(stormbase.StormFoundationDB):
 
     :param action_executions: ActionExecutions associated with this trace.
     """
+
+    RESOURCE_TYPE = ResourceType.TRACE
+    UID_FIELDS = ['id']
+
     trace_tag = me.StringField(required=True,
                                help_text='A user specified reference to the trace.')
     trigger_instances = me.ListField(field=me.EmbeddedDocumentField(TraceComponentDB),
