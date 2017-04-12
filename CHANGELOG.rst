@@ -28,6 +28,7 @@ in development
   Reported by Jiang Wei. #3314 #3315
 * Allow user to specify a custom list of attribute names which are masked in the log messages by
   setting ``log.mask_secrets_blacklist`` config option. (improvement)
+* Implement RBAC for traces API endpoints. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
