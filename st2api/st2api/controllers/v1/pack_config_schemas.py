@@ -60,7 +60,7 @@ class PackConfigSchemasController(ResourceController):
         Handles requests:
             GET /config_schema/<pack_ref>
         """
-        packs_controller.get_one(ref_or_id=pack_ref, requester_user=requester_user)
+        packs_controller._get_one_by_ref_or_id(ref_or_id=pack_ref, requester_user=requester_user)
 
         return self._get_one_by_pack_ref(pack_ref=pack_ref)
 
