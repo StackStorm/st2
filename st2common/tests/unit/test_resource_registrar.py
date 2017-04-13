@@ -221,3 +221,13 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         expected_msg = 'Additional properties are not allowed \(\'invalid\' was unexpected\)'
         self.assertRaisesRegexp(ValueError, expected_msg, registrar.register_packs,
                                 base_dirs=packs_base_paths)
+
+    def test_register_pack_config_schema_in_order(self):
+        # register config schema to the datastore
+        register = ResourceRegistrar(use_pack_cache=False)
+        schema_db = register._register_pack_config_schema_db(pack_name='Dummy Pack 8 Invalid Name',
+                                                             pack_dir=PACK_PATH_8)
+
+        # check that the config schema is stored in the defined order
+        self.assertEqual(schema_db.attributes.keys(),
+                         ['api_key', 'api_secret', 'regions', 'private_key_path', 'region'])

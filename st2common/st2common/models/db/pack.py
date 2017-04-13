@@ -16,6 +16,7 @@
 import copy
 import mongoengine as me
 
+from collections import OrderedDict
 from st2common.models.db import MongoDBAccess
 from st2common.models.db import stormbase
 from st2common.constants.types import ResourceType
@@ -72,6 +73,7 @@ class ConfigSchemaDB(stormbase.StormFoundationDB):
         unique=True,
         help_text='Name of the content pack this schema belongs to.')
     attributes = stormbase.EscapedDynamicField(
+        container_class=OrderedDict,
         help_text='The specification for config schema attributes.')
 
 
