@@ -359,6 +359,9 @@ GLOBAL_PERMISSION_TYPES = [
     # Action alias global permission types
     PermissionType.ACTION_ALIAS_MATCH,
     PermissionType.ACTION_ALIAS_HELP
+
+    # API key global permission types
+    PermissionType.API_KEY_CREATE
 ] + LIST_PERMISSION_TYPES
 
 GLOBAL_PACK_PERMISSION_TYPES = [permission_type for permission_type in GLOBAL_PERMISSION_TYPES if

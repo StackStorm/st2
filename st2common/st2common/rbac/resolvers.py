@@ -770,8 +770,7 @@ class ApiKeyPermissionResolver(PermissionsResolver):
 
     def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
         assert permission_type in [PermissionType.API_KEY_CREATE]
-        # TODO:
-        return True
+        return self._user_has_global_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
