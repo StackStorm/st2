@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from st2common.persistence.pack import Config
+from st2common.persistence.pack import ConfigSchema
 from st2common.models.db.pack import ConfigDB
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.services.config import set_datastore_value_for_config_key
@@ -273,3 +274,9 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
                         ' for pack ".*?" config: \'st2kvXX\' is undefined')
         self.assertRaisesRegexp(Exception, expected_msg, loader.get_config)
         config_db.delete()
+
+    def test_load_config_schema_in_order(self):
+        config_schema_db = ConfigSchema.get(pack='dummy_pack_5')
+
+        self.assertEqual(config_schema_db.attributes.keys(),
+                         ['api_key', 'api_secret', 'regions', 'private_key_path', 'region'])

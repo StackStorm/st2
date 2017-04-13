@@ -63,7 +63,7 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin,
         self.uid = self.get_uid()
 
 
-class ConfigSchemaDB(stormbase.StormFoundationDB):
+class ConfigSchemaDB(stormbase.StormFoundationDBInOrder):
     """
     System entity representing a config schema for a particular pack.
     """
