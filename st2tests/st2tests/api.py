@@ -29,8 +29,8 @@ class ResponseLeakError(ValueError):
 
 
 class TestApp(webtest.TestApp):
-    def do_request(self, *args, **kwargs):
-        res = super(TestApp, self).do_request(*args, **kwargs)
+    def do_request(self, req, **kwargs):
+        res = super(TestApp, self).do_request(req, **kwargs)
 
         if res.headers.get('Warning', None):
             raise ResponseValidationError('Endpoint produced invalid response. Make sure the '
@@ -40,5 +40,13 @@ class TestApp(webtest.TestApp):
             if SUPER_SECRET_PARAMETER in res.body or ANOTHER_SUPER_SECRET_PARAMETER in res.body:
                 raise ResponseLeakError('Endpoint response contains secret parameter. '
                                         'Find the leak.')
+
+        if 'Access-Control-Allow-Origin' not in res.headers:
+            raise ResponseValidationError('Response missing a required CORS header')
+
+        if req.environ['REQUEST_METHOD'] != 'OPTIONS':
+            # The request will then also be checked with do_request() method making sure OPTIONS
+            # response also has proper headers set.
+            self.options(req.environ['PATH_INFO'])
 
         return res
