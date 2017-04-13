@@ -49,8 +49,7 @@ FILTERS_WITH_VALID_NULL_VALUES = [
     'rule',
     'trigger',
     'trigger_type',
-    'trigger_instance',
-    'user'
+    'trigger_instance'
 ]
 
 # List of filters that are too broad to distinct by them and are very likely to represent 1 to 1

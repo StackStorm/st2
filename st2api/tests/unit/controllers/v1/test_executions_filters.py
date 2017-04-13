@@ -30,6 +30,7 @@ from st2tests.fixtures import history_views
 from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2api.controllers.v1.actionexecutions import ActionExecutionsController
+from st2api.controllers.v1.executionviews import FILTERS_WITH_VALID_NULL_VALUES
 from st2common.persistence.execution import ActionExecution
 from st2common.models.api.execution import ActionExecutionAPI
 
@@ -341,12 +342,14 @@ class TestActionExecutionFilters(FunctionalTest):
             filter_values = response.json[key]
 
             # Verify empty (None / null) filters are excluded
-            self.assertTrue(None not in filter_values)
+            if key not in FILTERS_WITH_VALID_NULL_VALUES:
+                self.assertTrue(None not in filter_values)
 
-            if None in value:
+            if None in value or None in filter_values:
+                filter_values = [item for item in filter_values if item is not None]
                 value = [item for item in value if item is not None]
 
-            self.assertEqual(set(response.json[key]), set(value))
+            self.assertEqual(set(filter_values), set(value))
 
     def test_filters_view_specific_types(self):
         response = self.app.get('/v1/executions/views/filters?types=action,user,nonexistent')
