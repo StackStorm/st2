@@ -358,7 +358,7 @@ GLOBAL_PERMISSION_TYPES = [
 
     # Action alias global permission types
     PermissionType.ACTION_ALIAS_MATCH,
-    PermissionType.ACTION_ALIAS_HELP
+    PermissionType.ACTION_ALIAS_HELP,
 
     # API key global permission types
     PermissionType.API_KEY_CREATE
