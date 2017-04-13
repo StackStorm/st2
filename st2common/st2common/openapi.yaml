@@ -2445,7 +2445,7 @@ paths:
           in: body
           description: Action content
           schema:
-            $ref: '#/definitions/ApiKeyRequest'
+            $ref: '#/definitions/ApiKey'
       x-parameters:
         - name: user
           in: context
@@ -2511,7 +2511,7 @@ paths:
           in: body
           description: Action content
           schema:
-            $ref: '#/definitions/ApiKeyRequest'
+            $ref: '#/definitions/ApiKey'
       x-parameters:
         - name: user
           in: context
@@ -3822,10 +3822,6 @@ definitions:
     type: object
   TriggerInstance:
     type: object
-  ApiKey:
-    type: object
-  ApiKeyRequest:
-    type: object
   LiveAction:
     title: liveaction
     description: An execution of an action.
@@ -3978,6 +3974,28 @@ definitions:
     properties:
       valid:
         type: boolean
+  ApiKey:
+    x-api-model: st2common.models.api.auth:ApiKeyAPI
+    type: object
+    properties:
+      id:
+        type: string
+        description: The unique identifier for the API key.
+      uid:
+        type: string
+      user:
+        type: string
+      key_hash:
+        type: string
+      metadata:
+        type: object
+      created_at:
+        type: string
+        pattern: {{ ISO8601_UTC_REGEX }}
+      enabled:
+        type: boolean
+        default: True
+
   ValidationError:
     type: object
     properties:
