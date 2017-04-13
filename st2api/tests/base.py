@@ -105,7 +105,7 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
     def tearDown(self):
         super(APIControllerWithRBACTestCase, self).tearDown()
 
-        if self.request_context_mock:
+        if getattr(self, 'request_context_mock', None):
             self.request_context_mock.stop()
             del(Router.mock_context)
 
