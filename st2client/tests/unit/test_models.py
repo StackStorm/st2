@@ -225,3 +225,12 @@ class TestResourceManager(unittest2.TestCase):
         mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
         instance = mgr.get_by_name('abc')
         self.assertRaises(Exception, mgr.delete, instance)
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES[2], sort_keys=True),
+                                                      200, 'OK')))
+    def test_resource_get_in_order(self):
+        mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+        resource = mgr.get_by_id('789')
+        self.assertEqual(resource.attributes.keys(), ['a1', 'a2', 'a3', 'a4', 'a5'])
