@@ -1,7 +1,7 @@
 Changelog
 =========
 
-in development
+In development
 --------------
 
 * Refactor the action execution asynchronous callback functionality into the runner plugin
