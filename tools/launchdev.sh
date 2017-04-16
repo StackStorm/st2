@@ -146,7 +146,7 @@ function st2start(){
     fi
 
     # activate virtualenv to set PYTHONPATH
-    source ./virtualenv/bin/activate
+    source $ST2_REPO/virtualenv/bin/activate
 
     # Kill existing st2 screens
     screen -wipe
