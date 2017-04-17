@@ -116,6 +116,7 @@ def _register_api_opts():
     _register_opts(pecan_opts, group='api_pecan')
 
     api_opts = [
+        cfg.BoolOpt('debug', default=True),
         cfg.IntOpt('max_page_size', default=100,
                    help=('Maximum limit (page size) argument which can be specified by the user '
                          'in a query string. If a larger value is provided, it will default to  '
@@ -161,6 +162,8 @@ def _register_auth_opts():
         cfg.IntOpt('port', default=9100),
         cfg.BoolOpt('use_ssl', default=False),
         cfg.StrOpt('mode', default='proxy'),
+        cfg.StrOpt('backend', default='flat_file'),
+        cfg.StrOpt('backend_kwargs', default=None),
         cfg.StrOpt('logging', default='conf/logging.conf'),
         cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.'),
         cfg.BoolOpt('debug', default=True)

@@ -13,19 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pecan import abort
 from six import iteritems
 from six.moves import http_client
 
 from st2api.controllers import resource
 from st2common import log as logging
 from st2common.constants.triggers import TIMER_TRIGGER_TYPES
-from st2common.models.api.base import jsexpose
 from st2common.models.api.trigger import TriggerAPI
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import Trigger
 import st2common.services.triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
+from st2common.router import abort
+
 
 LOG = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class TimersController(resource.ContentPackResourceController):
         'sort': ['type']
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self._timers = TimersHolder()
         self._trigger_types = TIMER_TRIGGER_TYPES.keys()
         queue_suffix = self.__class__.__name__
@@ -77,7 +77,6 @@ class TimersController(resource.ContentPackResourceController):
         self._register_timer_trigger_types()
         self._allowed_timer_types = TIMER_TRIGGER_TYPES.keys()
 
-    @jsexpose()
     def get_all(self, timer_type=None):
         if timer_type and timer_type not in self._allowed_timer_types:
             msg = 'Timer type %s not in supported types - %s.' % self._allowed_timer_types
@@ -86,6 +85,9 @@ class TimersController(resource.ContentPackResourceController):
         t_all = self._timers.get_all(timer_type=timer_type)
         LOG.debug('Got timers: %s', t_all)
         return t_all
+
+    def get_one(self, ref_or_id):
+        return self._get_one(ref_or_id, permission_type=None)
 
     def add_trigger(self, trigger):
         # Note: Permission checking for creating and deleting a timer is done during rule
@@ -135,3 +137,6 @@ class TimersController(resource.ContentPackResourceController):
     def _sanitize_trigger(self, trigger):
         sanitized = TriggerAPI.from_model(trigger).to_dict()
         return sanitized
+
+
+timers_controller = TimersController()

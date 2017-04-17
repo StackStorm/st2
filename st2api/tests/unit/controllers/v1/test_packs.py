@@ -15,9 +15,9 @@
 
 import mock
 
-from st2common.models.api.execution import ActionExecutionAPI
 from st2common.models.db.pack import PackDB
 from st2common.persistence.pack import Pack
+from st2common.router import Response
 from st2common.services import packs as pack_service
 from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
 from st2api.controllers.v1.packs import ENTITIES
@@ -89,7 +89,7 @@ class PacksControllerTestCase(FunctionalTest):
 
     @mock.patch.object(ActionExecutionsControllerMixin, '_handle_schedule_execution')
     def test_install(self, _handle_schedule_execution):
-        _handle_schedule_execution.return_value = ActionExecutionAPI(id='123')
+        _handle_schedule_execution.return_value = Response(json={'id': '123'})
         payload = {'packs': ['some']}
 
         resp = self.app.post_json('/v1/packs/install', payload)
@@ -99,7 +99,7 @@ class PacksControllerTestCase(FunctionalTest):
 
     @mock.patch.object(ActionExecutionsControllerMixin, '_handle_schedule_execution')
     def test_install_with_force_parameter(self, _handle_schedule_execution):
-        _handle_schedule_execution.return_value = ActionExecutionAPI(id='123')
+        _handle_schedule_execution.return_value = Response(json={'id': '123'})
         payload = {'packs': ['some'], 'force': True}
 
         resp = self.app.post_json('/v1/packs/install', payload)
@@ -109,7 +109,7 @@ class PacksControllerTestCase(FunctionalTest):
 
     @mock.patch.object(ActionExecutionsControllerMixin, '_handle_schedule_execution')
     def test_uninstall(self, _handle_schedule_execution):
-        _handle_schedule_execution.return_value = ActionExecutionAPI(id='123')
+        _handle_schedule_execution.return_value = Response(json={'id': '123'})
         payload = {'packs': ['some']}
 
         resp = self.app.post_json('/v1/packs/uninstall', payload)

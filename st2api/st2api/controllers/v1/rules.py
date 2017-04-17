@@ -15,8 +15,6 @@
 
 import six
 import jsonschema
-import pecan
-from pecan import abort
 from mongoengine import ValidationError
 
 from st2common import log as logging
@@ -26,13 +24,13 @@ from st2api.controllers import resource
 from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.v1.ruleviews import RuleViewController
 from st2common.models.api.rule import RuleAPI
-from st2common.models.api.base import jsexpose
 from st2common.persistence.rule import Rule
 from st2common.rbac.types import PermissionType
-from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_api_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
-from st2common.rbac.utils import assert_request_user_has_rule_trigger_and_action_permission
+from st2common.rbac import utils as rbac_utils
+from st2common.rbac.utils import assert_user_has_rule_trigger_and_action_permission
+from st2common.router import exc
+from st2common.router import abort
+from st2common.router import Response
 from st2common.services.triggers import cleanup_trigger_db_for_rule, increment_trigger_ref_count
 
 http_client = six.moves.http_client
@@ -67,27 +65,33 @@ class RuleController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @request_user_has_permission(permission_type=PermissionType.RULE_LIST)
-    @jsexpose()
-    def get_all(self, **kwargs):
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
         from_model_kwargs = {'ignore_missing_trigger': True}
-        return super(RuleController, self)._get_all(from_model_kwargs=from_model_kwargs, **kwargs)
+        return super(RuleController, self)._get_all(from_model_kwargs=from_model_kwargs,
+                                                    sort=sort,
+                                                    offset=offset,
+                                                    limit=limit,
+                                                    raw_filters=raw_filters)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_VIEW)
-    @jsexpose(arg_types=[str])
-    def get_one(self, ref_or_id):
+    def get_one(self, ref_or_id, requester_user):
         from_model_kwargs = {'ignore_missing_trigger': True}
-        return super(RuleController, self)._get_one(ref_or_id, from_model_kwargs=from_model_kwargs)
+        return super(RuleController, self)._get_one(ref_or_id, from_model_kwargs=from_model_kwargs,
+                                                    requester_user=requester_user,
+                                                    permission_type=PermissionType.RULE_VIEW)
 
-    @jsexpose(body_cls=RuleAPI, status_code=http_client.CREATED)
-    @request_user_has_resource_api_permission(permission_type=PermissionType.RULE_CREATE)
-    def post(self, rule):
+    def post(self, rule, requester_user):
         """
             Create a new rule.
 
             Handles requests:
                 POST /rules/
         """
+
+        permission_type = PermissionType.RULE_CREATE
+        rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
+                                                           resource_api=rule,
+                                                           permission_type=permission_type)
+
         try:
             rule_db = RuleAPI.to_model(rule)
             LOG.debug('/rules/ POST verified RuleAPI and formulated RuleDB=%s', rule_db)
@@ -95,8 +99,8 @@ class RuleController(resource.ContentPackResourceController):
             # Check referenced trigger and action permissions
             # Note: This needs to happen after "to_model" call since to_model performs some
             # validation (trigger exists, etc.)
-            assert_request_user_has_rule_trigger_and_action_permission(request=pecan.request,
-                                                                       rule_api=rule)
+            assert_user_has_rule_trigger_and_action_permission(user_db=requester_user,
+                                                               rule_api=rule)
 
             rule_db = Rule.add_or_update(rule_db)
             # After the rule has been added modify the ref_count. This way a failure to add
@@ -121,12 +125,16 @@ class RuleController(resource.ContentPackResourceController):
         LOG.audit('Rule created. Rule.id=%s' % (rule_db.id), extra=extra)
         rule_api = RuleAPI.from_model(rule_db)
 
-        return rule_api
+        return Response(json=rule_api, status=exc.HTTPCreated.code)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_MODIFY)
-    @jsexpose(arg_types=[str], body_cls=RuleAPI)
-    def put(self, rule, rule_ref_or_id):
+    def put(self, rule, rule_ref_or_id, requester_user):
         rule_db = self._get_by_ref_or_id(rule_ref_or_id)
+
+        permission_type = PermissionType.RULE_MODIFY
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=rule,
+                                                          permission_type=permission_type)
+
         LOG.debug('PUT /rules/ lookup with id=%s found object: %s', rule_ref_or_id, rule_db)
 
         try:
@@ -139,8 +147,8 @@ class RuleController(resource.ContentPackResourceController):
             # Check referenced trigger and action permissions
             # Note: This needs to happen after "to_model" call since to_model performs some
             # validation (trigger exists, etc.)
-            assert_request_user_has_rule_trigger_and_action_permission(request=pecan.request,
-                                                                       rule_api=rule)
+            assert_user_has_rule_trigger_and_action_permission(user_db=requester_user,
+                                                               rule_api=rule)
 
             rule_db.id = rule_ref_or_id
             rule_db = Rule.add_or_update(rule_db)
@@ -161,9 +169,7 @@ class RuleController(resource.ContentPackResourceController):
 
         return rule_api
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_DELETE)
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
-    def delete(self, rule_ref_or_id):
+    def delete(self, rule_ref_or_id, requester_user):
         """
             Delete a rule.
 
@@ -171,6 +177,12 @@ class RuleController(resource.ContentPackResourceController):
                 DELETE /rules/1
         """
         rule_db = self._get_by_ref_or_id(ref_or_id=rule_ref_or_id)
+
+        permission_type = PermissionType.RULE_DELETE
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=rule_db,
+                                                          permission_type=permission_type)
+
         LOG.debug('DELETE /rules/ lookup with id=%s found object: %s', rule_ref_or_id, rule_db)
         try:
             Rule.delete(rule_db)
@@ -185,3 +197,8 @@ class RuleController(resource.ContentPackResourceController):
 
         extra = {'rule_db': rule_db}
         LOG.audit('Rule deleted. Rule.id=%s.' % (rule_db.id), extra=extra)
+
+        return Response(status=http_client.NO_CONTENT)
+
+
+rule_controller = RuleController()

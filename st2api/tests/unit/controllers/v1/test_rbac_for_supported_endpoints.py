@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import OrderedDict
 import httplib
 
 import six
@@ -27,18 +28,19 @@ __all__ = [
 ]
 
 FIXTURES_PACK = 'generic'
-TEST_FIXTURES = {
-    'runners': ['testrunner1.yaml'],
-    'sensors': ['sensor1.yaml'],
-    'actions': ['action1.yaml', 'local.yaml'],
-    'aliases': ['alias1.yaml'],
-    'rules': ['rule1.yaml'],
-    'triggers': ['trigger1.yaml'],
-    'triggertypes': ['triggertype1.yaml'],
-    'executions': ['execution1.yaml'],
-    'liveactions': ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml'],
-    'enforcements': ['enforcement1.yaml']
-}
+TEST_FIXTURES = OrderedDict([
+    ('runners', ['testrunner1.yaml']),
+    ('sensors', ['sensor1.yaml']),
+    ('actions', ['action1.yaml', 'local.yaml']),
+    ('aliases', ['alias1.yaml']),
+    ('triggers', ['trigger1.yaml']),
+    ('rules', ['rule1.yaml']),
+    ('triggertypes', ['triggertype1.yaml']),
+    ('executions', ['execution1.yaml']),
+    ('liveactions', ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml']),
+    ('enforcements', ['enforcement1.yaml']),
+    ('apikeys', ['apikey1.yaml']),
+])
 
 MOCK_RUNNER_1 = {
     'name': 'test-runner-1',
@@ -185,6 +187,22 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'path': '/v1/packs/views/file/dummy_pack_1/pack.yaml',
                 'method': 'GET'
             },
+            # Pack configs
+            {
+                'path': '/v1/configs/',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/configs/dummy_pack_1',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/configs/dummy_pack_1',
+                'method': 'PUT',
+                'payload': {
+                    'foo': 'bar'
+                }
+            },
             # Sensors
             {
                 'path': '/v1/sensortypes',
@@ -267,7 +285,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             {
                 'path': '/v1/rules/%s' % (rule_model.ref),
                 'method': 'PUT',
-                'payload': {'enabled': False}
+                'payload': MOCK_RULE_1
             },
             {
                 'path': '/v1/rules/%s' % (rule_model.ref),
@@ -321,6 +339,17 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                 'payload': {'name': 'alias1', 'format': 'foo bar ponies',
                             'command': 'foo bar ponies',
                             'user': 'channel', 'source_channel': 'bar'}
+            },
+            # Webhook
+            {
+                'path': '/v1/webhooks/st2',
+                'method': 'POST',
+                'payload': {
+                    'trigger': 'some',
+                    'payload': {
+                        'some': 'thing'
+                    }
+                }
             }
         ]
 
@@ -336,14 +365,6 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(self.users['no_permissions'])
 
         # Test that access to icon.png file doesn't require any permissions
-        # Note: We need to mock content-type since pecan and webest don't like if content-type is
-        # set dynamically in the request handler aka  "pecan.core: ERROR: Controller 'get_one'
-        # defined does not support content_type 'image/png'. Supported type(s): ['text/html']" is
-        # returned
-        from st2api.controllers.v1.packviews import FileController
-        FileController.get_one._pecan['content_types'] = {'image/png': None}
-        FileController.get_one._pecan['explicit_content_type'] = True
-
         response = self.app.get('/v1/packs/views/file/dummy_pack_2/icon.png')
         self.assertEqual(response.status_code, httplib.OK)
 

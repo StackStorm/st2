@@ -21,6 +21,7 @@ from st2common.content import utils as content_utils
 from st2common.bootstrap.configsregistrar import ConfigsRegistrar
 from st2common.persistence.pack import Pack
 from st2common.persistence.pack import Config
+from st2tests.api import SUPER_SECRET_PARAMETER
 
 from st2tests.base import CleanDbTestCase
 from st2tests import fixturesloader
@@ -58,7 +59,7 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
 
         config_db = config_dbs[0]
         self.assertEqual(config_db.values['api_key'], '{{st2kv.user.api_key}}')
-        self.assertEqual(config_db.values['api_secret'], '{{st2kv.user.api_secret}}')
+        self.assertEqual(config_db.values['api_secret'], SUPER_SECRET_PARAMETER)
         self.assertEqual(config_db.values['region'], 'us-west-1')
 
     def test_register_all_configs_invalid_config_no_config_schema(self):

@@ -13,24 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-st2api configuration / wsgi entry point file for gunicorn.
-"""
-
-# Note: We need this import otherwise pecan will try to import from local, not global cmd package
-from __future__ import absolute_import
-
-import os
+from oslo_config import cfg
 
 __all__ = [
-    'app'
+    'validate_rbac_is_correctly_configured'
 ]
 
-bind = '127.0.0.1:9101'
 
-config_args = ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')]
-is_gunicorn = True
+def validate_rbac_is_correctly_configured():
+    if cfg.CONF.rbac.enable and not cfg.CONF.auth.enable:
+        msg = ('Authentication is not enabled. RBAC only works when authentication is enabled. '
+               'You can either enable authentication or disable RBAC.')
+        raise ValueError(msg)
 
-app = {
-    'modules': ['st2api']
-}
+    return True

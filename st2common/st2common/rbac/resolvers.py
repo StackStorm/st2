@@ -29,6 +29,7 @@ from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPE
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.rbac.types import SystemRole
+from st2common.rbac.types import GLOBAL_PACK_PERMISSION_TYPES
 from st2common.services.rbac import get_roles_for_user
 from st2common.services.rbac import get_all_permission_grants_for_user
 
@@ -94,34 +95,6 @@ class PermissionsResolver(object):
         """
         assert PermissionType.get_permission_name(permission_type) == 'list'
         return self._user_has_global_permission(user_db=user_db, permission_type=permission_type)
-
-        log_context = {
-            'user_db': user_db,
-            'permission_type': permission_type,
-            'resolver': self.__class__.__name__
-        }
-        self._log('Checking user permissions', extra=log_context)
-
-        # First check the system role permissions
-        has_system_role_permission = self._user_has_system_role_permission(
-            user_db=user_db, permission_type=permission_type)
-
-        if has_system_role_permission:
-            self._log('Found a matching grant via system role', extra=log_context)
-            return True
-
-        # Check custom roles
-        permission_types = [permission_type]
-
-        # Check direct grants
-        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
-                                                               permission_types=permission_types)
-        if len(permission_grants) >= 1:
-            self._log('Found a direct grant', extra=log_context)
-            return True
-
-        self._log('No matching grants found', extra=log_context)
-        return False
 
     def _user_has_global_permission(self, user_db, permission_type):
         """
@@ -336,10 +309,7 @@ class PackPermissionsResolver(PermissionsResolver):
     resource_type = ResourceType.PACK
 
     def user_has_permission(self, user_db, permission_type):
-        assert permission_type in [PermissionType.PACK_LIST, PermissionType.PACK_INSTALL,
-                                   PermissionType.PACK_UNINSTALL, PermissionType.PACK_REGISTER,
-                                   PermissionType.PACK_SEARCH,
-                                   PermissionType.PACK_VIEW_INDEX_HEALTH]
+        assert permission_type in GLOBAL_PACK_PERMISSION_TYPES
 
         if permission_type == PermissionType.PACK_LIST:
             return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)

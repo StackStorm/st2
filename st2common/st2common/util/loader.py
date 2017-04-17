@@ -175,9 +175,7 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
 
 def register_runner(module_name):
     base_path = cfg.CONF.system.base_path
-    module_path = os.path.join(
-        "%s/runners/%s/%s.py" % (base_path, module_name, module_name)
-    )
+    module_path = os.path.join(base_path, 'runners', module_name, module_name + '.py')
 
     if module_name not in RUNNER_MODULES_CACHE:
         LOG.info('Loading runner module from "%s".', module_path)
@@ -190,9 +188,7 @@ def register_runner(module_name):
 
 def register_query_module(module_name):
     base_path = cfg.CONF.system.base_path
-    module_path = os.path.join(
-        "%s/runners/%s/query/%s.py" % (base_path, module_name, module_name)
-    )
+    module_path = os.path.join(base_path, 'runners', module_name, 'query', module_name + '.py')
 
     if module_name not in QUERIER_MODULES_CACHE:
         LOG.info('Loading query module from "%s".', module_path)
@@ -205,9 +201,7 @@ def register_query_module(module_name):
 
 def register_callback_module(module_name):
     base_path = cfg.CONF.system.base_path
-    module_path = os.path.join(
-        "%s/runners/%s/callback/%s.py" % (base_path, module_name, module_name)
-    )
+    module_path = os.path.join(base_path, 'runners', module_name, 'callback', module_name + '.py')
 
     if module_name not in CALLBACK_MODULES_CACHE:
         LOG.info('Loading callback module from "%s".', module_path)

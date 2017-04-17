@@ -14,8 +14,6 @@
 # limitations under the License.
 
 from mongoengine import ValidationError
-from pecan import abort
-from pecan.rest import RestController
 import six
 
 from st2api.controllers import resource
@@ -23,10 +21,11 @@ from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common import log as logging
 from st2common.content import utils
 from st2common.models.api.action import ActionAPI
-from st2common.models.api.base import jsexpose
 from st2common.models.utils import action_param_utils
 from st2common.persistence.action import Action
 from st2common.persistence.runner import RunnerType
+from st2common.rbac.types import PermissionType
+from st2common.router import abort
 
 http_client = six.moves.http_client
 
@@ -63,9 +62,8 @@ class LookupUtils(object):
             abort(http_client.NOT_FOUND, msg)
 
 
-class ParametersViewController(RestController):
+class ParametersViewController(object):
 
-    @jsexpose(arg_types=[str], status_code=http_client.OK)
     def get_one(self, action_id):
         return self._get_one(action_id)
 
@@ -98,7 +96,6 @@ class OverviewController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    @jsexpose(arg_types=[str])
     def get_one(self, ref_or_id):
         """
             List action by id.
@@ -106,19 +103,30 @@ class OverviewController(resource.ContentPackResourceController):
             Handle:
                 GET /actions/views/overview/1
         """
-        action_api = super(OverviewController, self)._get_one(ref_or_id)
-        return self._transform_action_api(action_api)
+        resp = super(OverviewController, self)._get_one(ref_or_id,
+                                                        permission_type=PermissionType.ACTION_VIEW)
+        action_api = ActionAPI(**resp.json)
+        result = self._transform_action_api(action_api)
+        resp.json = result
+        return resp
 
-    @jsexpose(arg_types=[str])
-    def get_all(self, **kwargs):
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
         """
             List all actions.
 
             Handles requests:
                 GET /actions/views/overview
         """
-        action_apis = super(OverviewController, self)._get_all(**kwargs)
-        return map(self._transform_action_api, action_apis)
+        resp = super(OverviewController, self)._get_all(sort=sort,
+                                                        offset=offset,
+                                                        limit=limit,
+                                                        raw_filters=raw_filters)
+        result = []
+        for item in resp.json:
+            action_api = ActionAPI(**item)
+            result.append(self._transform_action_api(action_api))
+        resp.json = result
+        return resp
 
     @staticmethod
     def _transform_action_api(action_api):
@@ -133,11 +141,9 @@ class EntryPointController(resource.ContentPackResourceController):
 
     supported_filters = {}
 
-    @jsexpose()
-    def get_all(self, **kwargs):
+    def get_all(self):
         return abort(404)
 
-    @jsexpose(arg_types=[str], content_type='text/plain', status_code=http_client.OK)
     def get_one(self, ref_or_id):
         """
             Outputs the file associated with action entry_point
@@ -163,7 +169,12 @@ class EntryPointController(resource.ContentPackResourceController):
         return content
 
 
-class ActionViewsController(RestController):
+class ActionViewsController(object):
     parameters = ParametersViewController()
     overview = OverviewController()
     entry_point = EntryPointController()
+
+
+parameters_view_controller = ParametersViewController()
+overview_controller = OverviewController()
+entry_point_controller = EntryPointController()

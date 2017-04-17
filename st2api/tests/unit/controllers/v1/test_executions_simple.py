@@ -30,10 +30,14 @@ from six.moves import filter
 from st2common.util import isotime
 from st2common.util import date as date_utils
 from st2common.models.db.auth import TokenDB
+from st2common.models.db.auth import UserDB
 from st2common.persistence.auth import Token
+from st2common.persistence.auth import User
 from st2common.persistence.trace import Trace
 from st2common.services import trace as trace_service
 from st2common.transport.publishers import PoolPublisher
+from st2tests.api import SUPER_SECRET_PARAMETER
+from st2tests.api import ANOTHER_SUPER_SECRET_PARAMETER
 from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
 
@@ -58,6 +62,10 @@ ACTION_1 = {
             'type': 'number',
             'default': 123,
             'immutable': True
+        },
+        'd': {
+            'type': 'string',
+            'secret': True
         }
     }
 }
@@ -121,7 +129,8 @@ LIVE_ACTION_1 = {
     'action': 'sixpack.st2.dummy.action1',
     'parameters': {
         'hosts': 'localhost',
-        'cmd': 'uname -a'
+        'cmd': 'uname -a',
+        'd': SUPER_SECRET_PARAMETER
     }
 }
 
@@ -633,6 +642,35 @@ class TestActionExecutionController(FunctionalTest):
         self.assertIn('tasks to reset does not match the tasks to rerun',
                       re_run_resp.json['faultstring'])
 
+    def test_re_run_secret_parameter(self):
+        # Create a new execution
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+        execution_id = self._get_actionexecution_id(post_resp)
+
+        # Re-run created execution (no parameters overrides)
+        data = {}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' %
+                (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+
+        execution_id = self._get_actionexecution_id(re_run_resp)
+        re_run_result = self._do_get_one(execution_id,
+                                         params={'show_secrets': True},
+                                         expect_errors=True)
+        self.assertEqual(re_run_result.json['parameters'], LIVE_ACTION_1['parameters'])
+
+        # Re-run created execution (with parameters overrides)
+        data = {'parameters': {'a': 'val1', 'd': ANOTHER_SUPER_SECRET_PARAMETER}}
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
+        self.assertEqual(re_run_resp.status_int, 201)
+
+        execution_id = self._get_actionexecution_id(re_run_resp)
+        re_run_result = self._do_get_one(execution_id,
+                                         params={'show_secrets': True},
+                                         expect_errors=True)
+        self.assertEqual(re_run_result.json['parameters']['d'], data['parameters']['d'])
+
     @staticmethod
     def _get_actionexecution_id(resp):
         return resp.json['id']
@@ -676,6 +714,7 @@ class TestActionExecutionControllerAuthEnabled(FunctionalTest):
     @mock.patch.object(
         Token, 'get',
         mock.MagicMock(side_effect=mock_get_token))
+    @mock.patch.object(User, 'get_by_name', mock.MagicMock(side_effect=UserDB))
     @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
         return_value=True))
     def setUpClass(cls):

@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.7
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,24 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-st2auth configuration / wsgi entry point file for gunicorn.
-"""
+import pkg_resources
 
-# Note: We need this import otherwise pecan will try to import from local, not global cmd package
-from __future__ import absolute_import
+import jinja2
 
-import os
+from st2common.util.spec_loader import ARGUMENTS
 
-__all__ = [
-    'app'
-]
 
-bind = '127.0.0.1:9100'
-
-config_args = ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')]
-is_gunicorn = True
-
-app = {
-    'modules': ['st2auth']
-}
+if __name__ == '__main__':
+    spec_template = pkg_resources.resource_string('st2common', 'openapi.yaml')
+    spec_string = jinja2.Template(spec_template).render(**ARGUMENTS)
+    print(spec_string)

@@ -4,11 +4,44 @@ Changelog
 in development
 --------------
 
+* Refactor the action execution asynchronous callback functionality into the runner plugin
+  architecture. (improvement)
+* Introduce new ``CAPABILITIES`` constant on auth backend classes. With this constant, auth
+  backends can advertise functionality they support (e.g. authenticate a user, retrieve information
+  about a particular user, retrieve a list of groups a particular user is a member of).
+  (new feature)
+* Linux file watch sensor is now disabled by default. To enable it, set ``enabled: true`` in
+  ``/opt/stackstorm/packs/linux/sensors/file_watch_sensor.yaml``
+* Add support for automatic RBAC role assignment based on the remote auth backend groups user is a
+  member of (e.g. LDAP groups) and mappings defined in ``/opt/stackstorm/rbac/mappings`` directory.
+
+  Note: This functionality is currently implemented for enterprise LDAP auth backend and only
+  available in enterprise edition.
+  (new feature)
+* Update the code so user can specify arbitrary default TTL for access tokens in ``st2.conf`` and
+  all the StackStorm services which rely on access tokens still work.
+
+  Previously, the lowest TTL user could specify for all the services to still work was 24 hours.
+  This has been fixed and the default TTL specified in the config now only affects user access
+  tokens and services use special service access tokens with no max TTL limit. (bug fix)
+
+  Reported by Jiang Wei. #3314 #3315
+* Allow user to specify a custom list of attribute names which are masked in the log messages by
+  setting ``log.mask_secrets_blacklist`` config option. (improvement)
+* Update ``/executions/views/filters`` API endpoint so it excludes null / None from filter values
+  for fields where ``null`` is not a valid field value. (improvement)
+
+  Contributed by Cody A. Ray. #3193
+
+2.2.1 - April 3, 2017
+---------------------
+
+* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
+  correctly fails on failure by default.
+* Removed support for medium-strength ciphers from default nginx configuration (#3244)
 * Fix base action alias test class (``BaseActionAliasTestCase``) so it also works if the local pack
   directory name doesn't match the pack name (this might be the case with new pack management
   during development where local git repository directory name doesn't match pack name) (bug fix)
-* Fix ``st2ctl reload`` command so it preserves exit code from `st2-register-content` script and
-  correctly fails on failure by default.
 * Fix a bug with default values from pack config schema not being passed via config to Python
   runner actions and sensors if pack didn't contain a config file in ``/opt/stackstorm/configs``
   directory. (bug fix)
@@ -17,15 +50,6 @@ in development
 * Make various improvements and changes to ``st2-run-pack-tests`` script so it works out of the box
   on servers where StackStorm has been installed using packages. (improvement)
 * Removed support for medium-strength ciphers from default nginx configuration (#3244)
-* Fix concurrency related unit tests to support upgrade of the tooz library. (bug fix)
-* Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
-  StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
-  tooz for coordination. (improvement)
-* Fix Mistral workflow status when task is canceled. Currently, when a task is canceled, the
-  workflow status is set to error. The workflow status should be set to canceled. Also, when
-  a canceled action execution completes, the action execution will be updated from canceled
-  to its new status. This should not be the case because the action execution has already been
-  canceled. (bug fix)
 * Allow user to specify which branch of ``st2tests`` repository to use by passing ``-b`` option to
   ``st2-self-check`` script. (improvement)
 * Fix a bug with authentication middleware not working correctly when supplying credentials in an
@@ -34,8 +58,6 @@ in development
   Note: Usernames with colon are still not supported. (bug fix)
 
   Contributed by Carlos.
-* Refactor the action execution asynchronous callback functionality into the runner plugin
-  architecture. (improvement)
 * Update ``st2-run-pack-tests`` script so it doesn't try to install global pack test dependencies
   (mock, unittest2, nose) when running in an environment where those dependencies are already
   available.
@@ -43,13 +65,18 @@ in development
   execution has completed. (bug fix)
 
   Reported by Nagy Krisztián.
-* Introduce new ``CAPABILITIES`` constant on auth backend classes. With this constant, auth
-  backends can advertise functionality they support (e.g. authenticate a user, retrieve information
-  about a particular user, retrieve a list of groups a particular user is a member of).
-  (new feature)
-* Add webhook payload to the Jinja render context when rendering Jinja variable inside rule criteria section
+* Fix a bug with pack configs API endpoint (``PUT /v1/configs/``) not working when RBAC was
+  enabled. (bug fix)
 
-  Reported by Samuel Cantero
+  Reported by efenian.
+* Fix concurrency related unit tests to support upgrade of the tooz library. (bug fix)
+* Update ``tooz`` library to the latest version (v1.15.0). Using the latest version means
+  StackStorm now also supports using ``consul``, ``etcd`` and other new backends supported by
+  tooz for coordination. (improvement)
+* Various security related improvements in the enterprise LDAP auth backend. (improvement,
+  bug fix)
+* Fix a bug with config schema validation not being performed upon registration which could cause
+  bad or empty config schema to end up in the system. (bug fix)
 
 2.2.0 - February 27, 2017
 -------------------------
@@ -130,6 +157,8 @@ in development
 * Fix a bug with not being able to apply some global permission types (permissions which are global
   and not specific to a resource) such as pack install, pack remove, pack search, etc. to a role
   using ``st2-apply-rbac-definitions``. (bug fix)
+* Fix a bug with pack configs API endpoint (``PUT /v1/configs/``) not working when RBAC was
+  enabled. (bug fix)
 
 2.1.1 - December 16, 2016
 -------------------------

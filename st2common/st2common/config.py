@@ -47,6 +47,10 @@ def do_register_cli_opts(opt, ignore_errors=False):
 def register_opts(ignore_errors=False):
     rbac_opts = [
         cfg.BoolOpt('enable', default=False, help='Enable RBAC.'),
+        cfg.BoolOpt('sync_remote_groups', default=False,
+                    help=('True to synchronize remote groups returned by the auth backed for each '
+                          'StackStorm user with local StackStorm roles based on the group to role '
+                          'mapping definition files.'))
     ]
     do_register_opts(rbac_opts, 'rbac', ignore_errors)
 
@@ -173,7 +177,9 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt('redirect_stderr', default=False,
                     help='Controls if stderr should be redirected to the logs.'),
         cfg.BoolOpt('mask_secrets', default=True,
-                    help='True to mask secrets in the log files.')
+                    help='True to mask secrets in the log files.'),
+        cfg.ListOpt('mask_secrets_blacklist', default=[],
+                    help='Blacklist of additional attribute names to mask in the log messages.')
     ]
     do_register_opts(log_opts, 'log', ignore_errors)
 

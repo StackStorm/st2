@@ -13,15 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 
-import pecan
-from six.moves import http_client
+from st2stream import app
 
-__all__ = [
-    'abort_request',
-]
+config = {
+    'is_gunicorn': True,
+    'config_args': ['--config-file', os.environ.get('ST2_CONFIG_PATH', '/etc/st2/st2.conf')]
+}
 
-
-def abort_request(status_code=http_client.UNAUTHORIZED,
-                  message='Invalid or missing credentials'):
-    pecan.abort(status_code, message)
+application = app.setup_app(config)

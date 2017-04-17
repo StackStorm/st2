@@ -23,6 +23,7 @@ __all__ = [
     'RoleDB',
     'UserRoleAssignmentDB',
     'PermissionGrantDB',
+    'GroupToRoleMappingDB',
 
     'role_access',
     'user_role_assignment_access',
@@ -59,6 +60,11 @@ class UserRoleAssignmentDB(stormbase.StormFoundationDB):
     user = me.StringField(required=True)
     role = me.StringField(required=True, unique_with='user')
     description = me.StringField()
+    # True if this is assigned created on authentication based on the remote groups provided by
+    # the auth backends.
+    # Remote assignments are special in a way that they are not manipulated with when running
+    # st2-apply-rbac-auth-definitions tool.
+    is_remote = me.BooleanField(default=False)
 
 
 class PermissionGrantDB(stormbase.StormFoundationDB):
@@ -76,9 +82,26 @@ class PermissionGrantDB(stormbase.StormFoundationDB):
     permission_types = me.ListField(field=me.StringField())
 
 
+class GroupToRoleMappingDB(stormbase.StormFoundationDB):
+    """
+    An entity which represents mapping from a remote auth backend group to StackStorm roles.
+
+    Attribute:
+        group: Name of the remote auth backend group.
+        roles: A reference to the local RBAC role names.
+        description: Optional description for this mapping.
+    """
+    group = me.StringField(required=True, unique=True)
+    roles = me.ListField(field=me.StringField())
+    description = me.StringField()
+    enabled = me.BooleanField(required=True, default=True,
+                              help_text='A flag indicating whether the mapping is enabled.')
+
+
 # Specialized access objects
 role_access = MongoDBAccess(RoleDB)
 user_role_assignment_access = MongoDBAccess(UserRoleAssignmentDB)
 permission_grant_access = MongoDBAccess(PermissionGrantDB)
+group_to_role_mapping_access = MongoDBAccess(GroupToRoleMappingDB)
 
-MODELS = [RoleDB, UserRoleAssignmentDB, PermissionGrantDB]
+MODELS = [RoleDB, UserRoleAssignmentDB, PermissionGrantDB, GroupToRoleMappingDB]

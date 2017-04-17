@@ -13,17 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2api.controllers.exp.actionalias import ActionAliasController
-from st2api.controllers.exp.aliasexecution import ActionAliasExecutionController
-from st2api.controllers.exp.validation import ValidationController
+import pkg_resources
+
+import jinja2
+import yaml
+
+import st2common.constants.pack
+import st2common.constants.action
+from st2common.rbac.types import PermissionType
+from st2common.util import isotime
 
 
-class RootController(object):
+ARGUMENTS = {
+    'DEFAULT_PACK_NAME': st2common.constants.pack.DEFAULT_PACK_NAME,
+    'LIVEACTION_STATUSES': st2common.constants.action.LIVEACTION_STATUSES,
+    'PERMISSION_TYPE': PermissionType,
+    'ISO8601_UTC_REGEX': isotime.ISO8601_UTC_REGEX
+}
 
-    # Here for backward compatibility reasons
-    # Deprecated. Use /v1/ instead.
-    actionalias = ActionAliasController()
-    aliasexecution = ActionAliasExecutionController()
 
-    # Experimental
-    validation = ValidationController()
+def load_spec(module_name, spec_file):
+    spec_template = pkg_resources.resource_string(module_name, spec_file)
+    spec_string = jinja2.Template(spec_template).render(**ARGUMENTS)
+    spec = yaml.load(spec_string)
+    return spec
