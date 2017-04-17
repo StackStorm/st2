@@ -6,7 +6,23 @@
   enabled: true
   entry_point: ""
   parameters:
+    host:
+      description: "Host to execute the command on."
+      type: "string"
+      required: true
+    username:
+      description: "Username used to log-in."
+      type: "string"
+      required: true
+    password:
+      description: "Password used to log in. "
+      type: "string"
+      required: true
     cmd:
       description: "Arbitrary Windows command to be executed on the remote host."
       type: "string"
       required: true
+    timeout:
+      default: 60
+      description: "Action timeout in seconds. Action will get killed if it doesn't finish in timeout seconds."
+      type: integer
