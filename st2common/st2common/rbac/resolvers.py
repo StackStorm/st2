@@ -855,6 +855,53 @@ class TracePermissionsResolver(PermissionsResolver):
         return False
 
 
+class TimerPermissionsResolver(PermissionsResolver):
+    """
+    Permission resolver for "timer" (special type of trigger) resource type.
+    """
+
+    resource_type = ResourceType.TRACE
+
+    def user_has_permission(self, user_db, permission_type):
+        assert permission_type in [PermissionType.TIMER_LIST]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        log_context = {
+            'user_db': user_db,
+            'resource_db': resource_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user resource permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        timer_uid = resource_db.get_uid()
+
+        # Check direct grants on the webhook
+        resource_types = [ResourceType.TIMER]
+        permission_types = [PermissionType.TIMER_ALL, permission_type]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=timer_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+
+        if len(permission_grants) >= 1:
+            self._log('Found a grant on the timer', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
+
 def get_resolver_for_resource_type(resource_type):
     """
     Return resolver instance for the provided resource type.
@@ -885,6 +932,8 @@ def get_resolver_for_resource_type(resource_type):
         resolver_cls = RuleEnforcementPermissionsResolver
     elif resource_type == ResourceType.TRACE:
         resolver_cls = TracePermissionsResolver
+    elif resource_type == ResourceType.TIMER:
+        resolver_cls = TimerPermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
 
