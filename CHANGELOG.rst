@@ -30,7 +30,8 @@ in development
   setting ``log.mask_secrets_blacklist`` config option. (improvement)
 * Implement RBAC for traces API endpoints. (improvement)
 * Implement RBAC for ``API_KEY_CREATE`` permission type. (improvement)
-* Implement RBAC for timers API endpoints. (improvement)
+* Implement RBAC for timers API endpoints. Note: timers are just a type of triggers so they utilize
+  ``TRIGGER_*`` RBAC permission constants (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
