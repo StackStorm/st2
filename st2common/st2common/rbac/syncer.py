@@ -188,9 +188,7 @@ class RBACDefinitionsDBSyncer(object):
 
         username_to_user_db_map = dict([(user_db.name, user_db) for user_db in user_dbs])
         username_to_role_assignment_api_map = dict([(role_assignment_api.username,
-                                                     role_assignment_api) for
-                                                     role_assignment_api in
-                                                     role_assignment_apis])
+            role_assignment_api) for role_assignment_api in role_assignment_apis])
 
         # Note: We process assignments for all the users (ones specified in the assignment files
         # and ones which are in the databse)
