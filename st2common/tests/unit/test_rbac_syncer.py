@@ -53,6 +53,10 @@ class BaseRBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         user_2_db = User.add_or_update(user_2_db)
         self.users['user_2'] = user_2_db
 
+        user_2_db = UserDB(name='user_3')
+        user_2_db = User.add_or_update(user_2_db)
+        self.users['user_3'] = user_2_db
+
 
 class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
     def test_sync_roles_no_definitions(self):
@@ -275,6 +279,32 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         role_dbs = get_roles_for_user(user_db=user_db)
         self.assertEqual(len(role_dbs), 1)
         self.assertEqual(role_dbs[0], self.roles['role_3'])
+
+    def test_sync_role_assignments_no_assignment_file_on_disk(self):
+        syncer = RBACDefinitionsDBSyncer()
+
+        self._insert_mock_roles()
+
+        # Initial state, no roles
+        user_db = self.users['user_3']
+        role_dbs = get_roles_for_user(user_db=user_db)
+        self.assertItemsEqual(role_dbs, [])
+
+        # Do the sync with two roles defined
+        api = UserRoleAssignmentFileFormatAPI(username=user_db.name,
+                                              roles=['role_1', 'role_2'])
+        syncer.sync_users_role_assignments(role_assignment_apis=[api])
+
+        role_dbs = get_roles_for_user(user_db=user_db)
+        self.assertEqual(len(role_dbs), 2)
+        self.assertEqual(role_dbs[0], self.roles['role_1'])
+        self.assertEqual(role_dbs[1], self.roles['role_2'])
+
+        # Do the sync with no roles - existing assignments should be removed from the databse
+        syncer.sync_users_role_assignments(role_assignment_apis=[])
+
+        role_dbs = get_roles_for_user(user_db=user_db)
+        self.assertEqual(len(role_dbs), 0)
 
     def assertRoleDBObjectExists(self, role_db):
         result = Role.get_by_id(str(role_db.id))
