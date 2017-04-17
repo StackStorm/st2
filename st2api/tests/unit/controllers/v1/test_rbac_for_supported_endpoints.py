@@ -33,7 +33,7 @@ TEST_FIXTURES = OrderedDict([
     ('sensors', ['sensor1.yaml']),
     ('actions', ['action1.yaml', 'local.yaml']),
     ('aliases', ['alias1.yaml']),
-    ('triggers', ['trigger1.yaml']),
+    ('triggers', ['trigger1.yaml', 'cron1.yaml']),
     ('rules', ['rule1.yaml']),
     ('triggertypes', ['triggertype1.yaml']),
     ('executions', ['execution1.yaml']),
@@ -121,6 +121,7 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         enforcement_model = self.models['enforcements']['enforcement1.yaml']
         execution_model = self.models['executions']['execution1.yaml']
         trace_model = self.models['traces']['trace_for_test_enforce.yaml']
+        timer_model = self.models['triggers']['cron1.yaml']
 
         supported_endpoints = [
             # Runners
@@ -355,13 +356,22 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             },
             # Traces
             {
-                'path': '/v1/traces/',
+                'path': '/v1/traces',
                 'method': 'GET'
             },
             {
                 'path': '/v1/traces/%s' % (trace_model.id),
                 'method': 'GET'
             },
+            # Timers
+            {
+                'path': '/v1/timers',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/timers/%s' % (timer_model.id),
+                'method': 'GET'
+            }
         ]
 
         self.use_user(self.users['no_permissions'])
