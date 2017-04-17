@@ -3,8 +3,12 @@ default:
   action:
   - executions.local
   - executions.chain
+  # null is not a valid value for action
+  - null
   rule:
   - st2.person.joe
+  # null is a valid value for rule
+  - null
   runner:
   - run-local
   - action-chain
@@ -14,6 +18,7 @@ default:
   - 46f67652-20cd-4bab-94e2-4615baa846d0
   trigger_type:
   - st2.webhook
+  - null
   user:
   - system
 specific:

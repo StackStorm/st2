@@ -67,9 +67,10 @@ def setup_app(config={}):
 
     app = router.as_wsgi
 
+    # Order is important. Check middleware for detailed explanation.
+    app = ErrorHandlingMiddleware(app)
     app = CorsMiddleware(app)
     app = LoggingMiddleware(app, router)
-    app = ErrorHandlingMiddleware(app)
     app = RequestIDMiddleware(app)
 
     return app

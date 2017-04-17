@@ -26,6 +26,12 @@ class RequestIDMiddleware(object):
         self.app = app
 
     def __call__(self, environ, start_response):
+        # The middleware adds unique `X-Request-ID` header on the requests that don't have it and
+        # modifies the responses to have the same exact header as their request. The middleware
+        # helps us better track relation between request and response in places where it might not
+        # be immediately obvious (like logs for example). In general, you want to place this header
+        # as soon as possible to ensure it's present by the time it's needed. Certainly before
+        # LoggingMiddleware which relies on this header.
         request = Request(environ)
 
         if not request.headers.get(REQUEST_ID_HEADER, None):
