@@ -2658,6 +2658,7 @@ paths:
   /api/v1/timers:
     get:
       operationId: st2api.controllers.v1.timers:timers_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.TIMER_LIST }}
       description: Returns a list of all the timers.
       parameters:
         - name: timer_type
@@ -2689,6 +2690,11 @@ paths:
           description: entities id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation
       responses:
         '200':
           description: Trace

@@ -123,6 +123,10 @@ class PermissionType(Enum):
     TRACE_VIEW = 'trace_view'
     TRACE_ALL = 'trace_all'
 
+    TIMER_LIST = 'timer_list'
+    TIMER_VIEW = 'timer_view'
+    TIMER_ALL = 'timer_all'
+
     @classmethod
     def get_valid_permissions_for_resource_type(cls, resource_type):
         """
@@ -215,6 +219,7 @@ class ResourceType(Enum):
     WEBHOOK = SystemResourceType.WEBHOOK
     API_KEY = SystemResourceType.API_KEY
     TRACE = SystemResourceType.TRACE
+    TIMER = SystemResourceType.TIMER
 
 
 class SystemRole(Enum):
@@ -337,6 +342,10 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
     ResourceType.TRACE: [
         PermissionType.TRACE_LIST,
         PermissionType.TRACE_VIEW
+    ],
+    ResourceType.TRACE: [
+        PermissionType.TIMER_LIST,
+        PermissionType.TIMER_VIEW
     ]
 }
 
@@ -465,5 +474,9 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
 
     PermissionType.TRACE_LIST: ('Ability to list (view all) traces.'),
     PermissionType.TRACE_VIEW: ('Ability to view a trace.'),
-    PermissionType.TRACE_ALL: ('Ability to perform all the supported operations on traces.')
+    PermissionType.TRACE_ALL: ('Ability to perform all the supported operations on traces.'),
+
+    PermissionType.TIMER_LIST: ('Ability to list (view all) timers.'),
+    PermissionType.TIMER_VIEW: ('Ability to view a timer.'),
+    PermissionType.TIMER_ALL: ('Ability to perform all the supported operations on timers.'),
 }
