@@ -191,7 +191,9 @@ class RBACDefinitionsDBSyncer(object):
             role_assignment_api) for role_assignment_api in role_assignment_apis])
 
         # Note: We process assignments for all the users (ones specified in the assignment files
-        # and ones which are in the databse)
+        # and ones which are in the databse). We want to make sure assignments are correctly
+        # deleted from the databse for users which existing in the databse, but have no assignment
+        # file on disk.
         all_usernames = (username_to_user_db_map.keys() +
                          username_to_role_assignment_api_map.keys())
         all_usernames = list(set(all_usernames))
