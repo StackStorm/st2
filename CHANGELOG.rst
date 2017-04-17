@@ -28,6 +28,10 @@ in development
   Reported by Jiang Wei. #3314 #3315
 * Allow user to specify a custom list of attribute names which are masked in the log messages by
   setting ``log.mask_secrets_blacklist`` config option. (improvement)
+* Update ``/executions/views/filters`` API endpoint so it excludes null / None from filter values
+  for fields where ``null`` is not a valid field value. (improvement)
+
+  Contributed by Cody A. Ray. #3193
 
 2.2.1 - April 3, 2017
 ---------------------
