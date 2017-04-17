@@ -53,9 +53,9 @@ class BaseRBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         user_2_db = User.add_or_update(user_2_db)
         self.users['user_2'] = user_2_db
 
-        user_2_db = UserDB(name='user_3')
-        user_2_db = User.add_or_update(user_2_db)
-        self.users['user_3'] = user_2_db
+        user_3_db = UserDB(name='user_3')
+        user_3_db = User.add_or_update(user_3_db)
+        self.users['user_3'] = user_3_db
 
 
 class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
