@@ -7,3 +7,4 @@ jsonschema
 kombu
 oslo.config
 six
+werkzeug
