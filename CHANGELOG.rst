@@ -32,6 +32,8 @@ in development
   for fields where ``null`` is not a valid field value. (improvement)
 
   Contributed by Cody A. Ray. #3193
+* Add webhook payload to the Jinja render context when rendering Jinja variable inside rule criteria section
+
 
 2.2.1 - April 3, 2017
 ---------------------
