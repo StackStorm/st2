@@ -202,4 +202,3 @@ class ApiKeyControllerRBACTestCase(APIControllerWithRBACTestCase):
         # User not provide
         resp = self.app.post_json('/v1/apikeys', {'user': 'joe22'})
         self.assertEqual(resp.status_code, httplib.CREATED)
-
