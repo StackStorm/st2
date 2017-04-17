@@ -51,62 +51,62 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
                                                                fixtures_dict=TEST_FIXTURES)
 
         file_name = 'cron1.yaml'
-        TimerControllerRBACTestCase.TIMER_1 = self.fixtures_loader.load_fixtures(
+        TimerControllerRBACTestCase.TRIGGER_1 = self.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'triggers': [file_name]})['triggers'][file_name]
 
         file_name = 'date1.yaml'
-        TimerControllerRBACTestCase.TIMER_2 = self.fixtures_loader.load_fixtures(
+        TimerControllerRBACTestCase.TRIGGER_2 = self.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'triggers': [file_name]})['triggers'][file_name]
 
         file_name = 'interval1.yaml'
-        TimerControllerRBACTestCase.TIMER_3 = self.fixtures_loader.load_fixtures(
+        TimerControllerRBACTestCase.TRIGGER_3 = self.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'triggers': [file_name]})['triggers'][file_name]
 
         # Insert mock users, roles and assignments
 
         # Users
-        user_1_db = UserDB(name='timer_list')
+        user_1_db = UserDB(name='trigger_list')
         user_1_db = User.add_or_update(user_1_db)
-        self.users['timer_list'] = user_1_db
+        self.users['trigger_list'] = user_1_db
 
-        user_2_db = UserDB(name='timer_view')
+        user_2_db = UserDB(name='trigger_view')
         user_2_db = User.add_or_update(user_2_db)
-        self.users['timer_view'] = user_2_db
+        self.users['trigger_view'] = user_2_db
 
         # Roles
-        # timer_list
+        # trigger_list
         grant_db = PermissionGrantDB(resource_uid=None,
-                                     resource_type=ResourceType.TIMER,
-                                     permission_types=[PermissionType.TIMER_LIST])
+                                     resource_type=ResourceType.TRIGGER,
+                                     permission_types=[PermissionType.TRIGGER_LIST])
         grant_db = PermissionGrant.add_or_update(grant_db)
         permission_grants = [str(grant_db.id)]
-        role_1_db = RoleDB(name='timer_list', permission_grants=permission_grants)
+        role_1_db = RoleDB(name='trigger_list', permission_grants=permission_grants)
         role_1_db = Role.add_or_update(role_1_db)
-        self.roles['timer_list'] = role_1_db
+        self.roles['trigger_list'] = role_1_db
 
-        # timer_view on timer 1
-        timer_uid = self.models['triggers']['cron1.yaml'].get_uid()
-        grant_db = PermissionGrantDB(resource_uid=timer_uid,
-                                     resource_type=ResourceType.TIMER,
-                                     permission_types=[PermissionType.TIMER_VIEW])
+        # trigger_view on timer 1
+        trigger_uid = self.models['triggers']['cron1.yaml'].get_uid()
+        grant_db = PermissionGrantDB(resource_uid=trigger_uid,
+                                     resource_type=ResourceType.TRIGGER,
+                                     permission_types=[PermissionType.TRIGGER_VIEW])
         grant_db = PermissionGrant.add_or_update(grant_db)
         permission_grants = [str(grant_db.id)]
-        role_1_db = RoleDB(name='timer_view', permission_grants=permission_grants)
+        role_1_db = RoleDB(name='trigger_view', permission_grants=permission_grants)
         role_1_db = Role.add_or_update(role_1_db)
-        self.roles['timer_view'] = role_1_db
+        self.roles['trigger_view'] = role_1_db
 
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
-            user=self.users['timer_list'].name,
-            role=self.roles['timer_list'].name)
+            user=self.users['trigger_list'].name,
+            role=self.roles['trigger_list'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
         role_assignment_db = UserRoleAssignmentDB(
-            user=self.users['timer_view'].name,
-            role=self.roles['timer_view'].name)
+            user=self.users['trigger_view'].name,
+            role=self.roles['trigger_view'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_all_no_permissions(self):
@@ -114,7 +114,7 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(user_db)
 
         resp = self.app.get('/v1/timers', expect_errors=True)
-        expected_msg = ('User "no_permissions" doesn\'t have required permission "timer_list"')
+        expected_msg = ('User "no_permissions" doesn\'t have required permission "trigger_list"')
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
@@ -122,43 +122,43 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
         user_db = self.users['no_permissions']
         self.use_user(user_db)
 
-        timer_id = self.models['triggers']['cron1.yaml'].id
-        timer_uid = self.models['triggers']['cron1.yaml'].get_uid()
-        resp = self.app.get('/v1/timers/%s' % (timer_id), expect_errors=True)
-        expected_msg = ('User "no_permissions" doesn\'t have required permission "timer_view"'
-                        ' on resource "%s"' % (timer_uid))
+        trigger_id = self.models['triggers']['cron1.yaml'].id
+        trigger_uid = self.models['triggers']['cron1.yaml'].get_uid()
+        resp = self.app.get('/v1/timers/%s' % (trigger_id), expect_errors=True)
+        expected_msg = ('User "no_permissions" doesn\'t have required permission "trigger_view"'
+                        ' on resource "%s"' % (trigger_uid))
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_all_permission_success_get_one_no_permission_failure(self):
-        user_db = self.users['timer_list']
+        user_db = self.users['trigger_list']
         self.use_user(user_db)
 
-        # timer_list permission, but no timer_view permission
+        # trigger_list permission, but no trigger_view permission
         resp = self.app.get('/v1/timers')
         self.assertEqual(resp.status_code, httplib.OK)
         self.assertEqual(len(resp.json), 5)
 
-        timer_id = self.models['triggers']['cron1.yaml'].id
-        timer_uid = self.models['triggers']['cron1.yaml'].get_uid()
-        resp = self.app.get('/v1/timers/%s' % (timer_id), expect_errors=True)
-        expected_msg = ('User "timer_list" doesn\'t have required permission "timer_view"'
-                        ' on resource "%s"' % (timer_uid))
+        trigger_id = self.models['triggers']['cron1.yaml'].id
+        trigger_uid = self.models['triggers']['cron1.yaml'].get_uid()
+        resp = self.app.get('/v1/timers/%s' % (trigger_id), expect_errors=True)
+        expected_msg = ('User "trigger_list" doesn\'t have required permission "trigger_view"'
+                        ' on resource "%s"' % (trigger_uid))
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_one_permission_success_get_all_no_permission_failure(self):
-        user_db = self.users['timer_view']
+        user_db = self.users['trigger_view']
         self.use_user(user_db)
 
-        # timer_view permission, but no timer_list permission
-        timer_id = self.models['triggers']['cron1.yaml'].id
-        timer_uid = self.models['triggers']['cron1.yaml'].get_uid()
-        resp = self.app.get('/v1/timers/%s' % (timer_id))
+        # trigger_view permission, but no trigger_list permission
+        trigger_id = self.models['triggers']['cron1.yaml'].id
+        trigger_uid = self.models['triggers']['cron1.yaml'].get_uid()
+        resp = self.app.get('/v1/timers/%s' % (trigger_id))
         self.assertEqual(resp.status_code, httplib.OK)
-        self.assertEqual(resp.json['uid'], timer_uid)
+        self.assertEqual(resp.json['uid'], trigger_uid)
 
         resp = self.app.get('/v1/timers', expect_errors=True)
-        expected_msg = ('User "timer_view" doesn\'t have required permission "timer_list"')
+        expected_msg = ('User "trigger_view" doesn\'t have required permission "trigger_list"')
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)

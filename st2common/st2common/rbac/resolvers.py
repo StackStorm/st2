@@ -47,6 +47,7 @@ __all__ = [
     'ExecutionPermissionsResolver',
     'WebhookPermissionsResolver',
     'TracePermissionsResolver',
+    'TriggerPermissionsResolver',
 
     'get_resolver_for_resource_type',
     'get_resolver_for_permission_type'
@@ -855,15 +856,15 @@ class TracePermissionsResolver(PermissionsResolver):
         return False
 
 
-class TimerPermissionsResolver(PermissionsResolver):
+class TriggerPermissionsResolver(PermissionsResolver):
     """
-    Permission resolver for "timer" (special type of trigger) resource type.
+    Permission resolver for trigger and timers (timers are just a special type of triggers).
     """
 
     resource_type = ResourceType.TRACE
 
     def user_has_permission(self, user_db, permission_type):
-        assert permission_type in [PermissionType.TIMER_LIST]
+        assert permission_type in [PermissionType.TRIGGER_LIST]
         return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
@@ -887,8 +888,8 @@ class TimerPermissionsResolver(PermissionsResolver):
         timer_uid = resource_db.get_uid()
 
         # Check direct grants on the webhook
-        resource_types = [ResourceType.TIMER]
-        permission_types = [PermissionType.TIMER_ALL, permission_type]
+        resource_types = [ResourceType.TRIGGER]
+        permission_types = [PermissionType.TRIGGER_ALL, permission_type]
         permission_grants = get_all_permission_grants_for_user(user_db=user_db,
                                                                resource_uid=timer_uid,
                                                                resource_types=resource_types,
@@ -932,8 +933,8 @@ def get_resolver_for_resource_type(resource_type):
         resolver_cls = RuleEnforcementPermissionsResolver
     elif resource_type == ResourceType.TRACE:
         resolver_cls = TracePermissionsResolver
-    elif resource_type == ResourceType.TIMER:
-        resolver_cls = TimerPermissionsResolver
+    elif resource_type == ResourceType.TRIGGER:
+        resolver_cls = TriggerPermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
 
