@@ -62,7 +62,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
                              raw_filters=raw_filters)
 
     def get_one(self, triggertype_ref_or_id):
-        return self._get_one(triggertype_ref_or_id, permission_type=None)
+        return self._get_one(triggertype_ref_or_id, permission_type=None, requester_user=None)
 
     def post(self, triggertype):
         """
@@ -333,7 +333,8 @@ class TriggerInstanceResendController(TriggerInstanceControllerMixin, resource.R
         """
         # Note: We only really need parameters here
         existing_trigger_instance = self._get_one_by_id(id=trigger_instance_id,
-                                                        permission_type=None)
+                                                        permission_type=None,
+                                                        requester_user=None)
 
         new_payload = copy.deepcopy(existing_trigger_instance.payload)
         new_payload['__context'] = {
@@ -382,7 +383,7 @@ class TriggerInstanceController(TriggerInstanceControllerMixin, resource.Resourc
             Handle:
                 GET /triggerinstances/1
         """
-        return self._get_one_by_id(instance_id, permission_type=None)
+        return self._get_one_by_id(instance_id, permission_type=None, requester_user=None)
 
     def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
         """

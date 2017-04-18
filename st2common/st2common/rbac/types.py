@@ -125,7 +125,7 @@ class PermissionType(Enum):
     TRACE_VIEW = 'trace_view'
     TRACE_ALL = 'trace_all'
 
-    # Note: Trigger permissions types are also used for triggers API endpoint since trigger is just
+    # Note: Trigger permissions types are also used for Timer API endpoint since timer is just
     # a special type of a trigger
     TRIGGER_LIST = 'trigger_list'
     TRIGGER_VIEW = 'trigger_view'

@@ -62,7 +62,7 @@ class KeyValuePairController(ResourceController):
         self._coordinator = coordination.get_coordinator()
         self.get_one_db_method = self._get_by_name
 
-    def get_one(self, name, scope=FULL_SYSTEM_SCOPE, user=None, requester_user=None, decrypt=False):
+    def get_one(self, name, requester_user, scope=FULL_SYSTEM_SCOPE, user=None, decrypt=False):
         """
             List key by name.
 
@@ -104,7 +104,7 @@ class KeyValuePairController(ResourceController):
 
         return kvp_api
 
-    def get_all(self, prefix=None, scope=FULL_SYSTEM_SCOPE, user=None, requester_user=None,
+    def get_all(self, requester_user, prefix=None, scope=FULL_SYSTEM_SCOPE, user=None,
                 decrypt=False, sort=None, offset=0, limit=None, **raw_filters):
         """
             List all keys.
@@ -162,7 +162,7 @@ class KeyValuePairController(ResourceController):
                                                                 raw_filters=raw_filters)
         return kvp_apis
 
-    def put(self, kvp, name, requester_user=None, scope=FULL_SYSTEM_SCOPE):
+    def put(self, kvp, name, requester_user, scope=FULL_SYSTEM_SCOPE):
         """
         Create a new entry or update an existing one.
         """
@@ -225,7 +225,7 @@ class KeyValuePairController(ResourceController):
         kvp_api = KeyValuePairAPI.from_model(kvp_db)
         return kvp_api
 
-    def delete(self, name, scope=FULL_SYSTEM_SCOPE, requester_user=None, user=None):
+    def delete(self, name, requester_user, scope=FULL_SYSTEM_SCOPE, user=None):
         """
             Delete the key value pair.
 
