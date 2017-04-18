@@ -719,8 +719,8 @@ class WebhookPermissionsResolver(PermissionsResolver):
     resource_type = ResourceType.WEBHOOK
 
     def user_has_permission(self, user_db, permission_type):
-        # TODO
-        return True
+        assert permission_type in [PermissionType.WEBHOOK_LIST]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
         log_context = {
