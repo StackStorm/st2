@@ -3436,12 +3436,12 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Action requested
           schema:
-            $ref: '#/definitions/Action'
+            $ref: '#/definitions/Webhook'
           examples:
             application/json:
               ref: 'core.local'
