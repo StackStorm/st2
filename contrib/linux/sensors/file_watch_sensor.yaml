@@ -1,23 +1,24 @@
 ---
   class_name: "FileWatchSensor"
-  enabled: false
+  enabled: true
   entry_point: "file_watch_sensor.py"
   description: "Sensor which monitors files for new lines"
   trigger_types:
     -
       name: "file_watch.file_path"
+      pack: "linux"
       description: "Trigger which represents a file path to be monitored"
       parameters_schema:
         type: "object"
         properties:
-          file_path:
+          file_path:  # User ``st2`` should have permissions to be able to read this file.
             description: "Path to the file to monitor"
             type: "string"
-        required:
-          - "file_path"
+            required: true
         additionalProperties: false
     -
       name: "file_watch.line"
+      pack: "linux"
       description: "Trigger which indicates a new line has been detected"
       payload_schema:
         type: "object"
