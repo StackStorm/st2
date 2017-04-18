@@ -107,6 +107,8 @@ class PermissionType(Enum):
     KEY_VALUE_SET = 'key_value_pair_set'
     KEY_VALUE_DELETE = 'key_value_pair_delete'
 
+    WEBHOOK_LIST = 'webhook_list'
+    WEBHOOK_VIEW = 'webhook_view'
     WEBHOOK_CREATE = 'webhook_create'
     WEBHOOK_SEND = 'webhook_send'
     WEBHOOK_DELETE = 'webhook_delete'
@@ -328,6 +330,8 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.KEY_VALUE_DELETE
     ],
     ResourceType.WEBHOOK: [
+        PermissionType.WEBHOOK_LIST,
+        PermissionType.WEBHOOK_VIEW,
         PermissionType.WEBHOOK_CREATE,
         PermissionType.WEBHOOK_SEND,
         PermissionType.WEBHOOK_DELETE,
@@ -456,6 +460,8 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.RUNNER_ALL: ('Ability to perform all the supported operations on a particular '
                                 'runner.'),
 
+    PermissionType.WEBHOOK_LIST: 'Ability to list (view all) webhooks.',
+    PermissionType.WEBHOOK_VIEW: ('Ability to view a webhook.'),
     PermissionType.WEBHOOK_CREATE: ('Ability to create a new webhook.'),
     PermissionType.WEBHOOK_SEND: ('Ability to send / POST data to an existing webhook.'),
     PermissionType.WEBHOOK_DELETE: ('Ability to delete an existing webhook.'),
@@ -463,7 +469,7 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
                                  'webhook.'),
 
     PermissionType.API_KEY_LIST: 'Ability to list (view all) API keys.',
-    PermissionType.API_KEY_VIEW: ('Ability to view API Keys.'),
+    PermissionType.API_KEY_VIEW: ('Ability to view an API Key.'),
     PermissionType.API_KEY_CREATE: ('Ability to create a new API Key.'),
     PermissionType.API_KEY_MODIFY: ('Ability to modify (update) an existing API key. Also implies '
                                     '"api_key_view" permission.'),

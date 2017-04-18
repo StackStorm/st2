@@ -3360,6 +3360,7 @@ paths:
   /api/v1/webhooks:
     get:
       operationId: st2api.controllers.v1.webhooks:webhooks_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.WEBHOOK_LIST }}
       description: Returns a list of all webhooks.
       responses:
         '200':
