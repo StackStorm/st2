@@ -28,17 +28,18 @@ from st2tests import DbTestCase
 
 MOCK_TRIGGER = TriggerDB(pack='dummy_pack_1', name='trigger-test.name', type='system.test')
 
-MOCK_TRIGGER_INSTANCE = TriggerInstanceDB(trigger=MOCK_TRIGGER.get_reference().ref,
-                                          occurrence_time=date_utils.get_datetime_utc_now(),
-                                          payload={
-                                              'p1': 'v1',
-                                              'p2': 'preYYYpost',
-                                              'bool': True,
-                                              'int': 1,
-                                              'float': 0.8,
-                                              'list': ['v1', True, 1]
-                                          }
-                                        )
+MOCK_TRIGGER_INSTANCE = TriggerInstanceDB(
+    trigger=MOCK_TRIGGER.get_reference().ref,
+    occurrence_time=date_utils.get_datetime_utc_now(),
+    payload={
+        'p1': 'v1',
+        'p2': 'preYYYpost',
+        'bool': True,
+        'int': 1,
+        'float': 0.8,
+        'list': ['v1', True, 1]
+    }
+)
 
 MOCK_ACTION = ActionDB(id=bson.ObjectId(), pack='wolfpack', name='action-test-1.name')
 
