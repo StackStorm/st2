@@ -22,9 +22,15 @@ from st2common.constants.triggers import TIMER_TRIGGER_TYPES
 from st2common.models.api.trigger import TriggerAPI
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import Trigger
+from st2common.rbac.types import PermissionType
 import st2common.services.triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.router import abort
+
+__all__ = [
+    'TimersController',
+    'TimersHolder'
+]
 
 
 LOG = logging.getLogger(__name__)
@@ -86,8 +92,10 @@ class TimersController(resource.ContentPackResourceController):
         LOG.debug('Got timers: %s', t_all)
         return t_all
 
-    def get_one(self, ref_or_id):
-        return self._get_one(ref_or_id, permission_type=None)
+    def get_one(self, ref_or_id, requester_user):
+        return self._get_one(ref_or_id,
+                             requester_user=requester_user,
+                             permission_type=PermissionType.TRIGGER_VIEW)
 
     def add_trigger(self, trigger):
         # Note: Permission checking for creating and deleting a timer is done during rule

@@ -54,7 +54,7 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
         # this case, RBAC is checked on the parent PackDB object
         self.get_one_db_method = packs_service.get_pack_by_ref
 
-    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, show_secrets=False,
+    def get_all(self, requester_user, sort=None, offset=0, limit=None, show_secrets=False,
                 **raw_filters):
         """
         Retrieve configs for all the packs.
@@ -71,7 +71,7 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
                                                            from_model_kwargs=from_model_kwargs,
                                                            raw_filters=raw_filters)
 
-    def get_one(self, pack_ref, requester_user=None, show_secrets=False):
+    def get_one(self, pack_ref, requester_user, show_secrets=False):
         """
         Retrieve config for a particular pack.
 
@@ -93,7 +93,7 @@ class PackConfigsController(ResourceController, BaseRestControllerMixin):
 
         return self._get_one_by_pack_ref(pack_ref=pack_ref, from_model_kwargs=from_model_kwargs)
 
-    def put(self, pack_uninstall_request, pack_ref, requester_user=None, show_secrets=False):
+    def put(self, pack_uninstall_request, pack_ref, requester_user, show_secrets=False):
         """
             Create a new config for a pack.
 

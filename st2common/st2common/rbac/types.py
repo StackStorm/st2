@@ -107,6 +107,8 @@ class PermissionType(Enum):
     KEY_VALUE_SET = 'key_value_pair_set'
     KEY_VALUE_DELETE = 'key_value_pair_delete'
 
+    WEBHOOK_LIST = 'webhook_list'
+    WEBHOOK_VIEW = 'webhook_view'
     WEBHOOK_CREATE = 'webhook_create'
     WEBHOOK_SEND = 'webhook_send'
     WEBHOOK_DELETE = 'webhook_delete'
@@ -118,6 +120,16 @@ class PermissionType(Enum):
     API_KEY_MODIFY = 'api_key_modify'
     API_KEY_DELETE = 'api_key_delete'
     API_KEY_ALL = 'api_key_all'
+
+    TRACE_LIST = 'trace_list'
+    TRACE_VIEW = 'trace_view'
+    TRACE_ALL = 'trace_all'
+
+    # Note: Trigger permissions types are also used for Timer API endpoint since timer is just
+    # a special type of a trigger
+    TRIGGER_LIST = 'trigger_list'
+    TRIGGER_VIEW = 'trigger_view'
+    TRIGGER_ALL = 'trigger_all'
 
     @classmethod
     def get_valid_permissions_for_resource_type(cls, resource_type):
@@ -210,6 +222,8 @@ class ResourceType(Enum):
     KEY_VALUE_PAIR = SystemResourceType.KEY_VALUE_PAIR
     WEBHOOK = SystemResourceType.WEBHOOK
     API_KEY = SystemResourceType.API_KEY
+    TRACE = SystemResourceType.TRACE
+    TRIGGER = SystemResourceType.TRIGGER
 
 
 class SystemRole(Enum):
@@ -316,6 +330,8 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.KEY_VALUE_DELETE
     ],
     ResourceType.WEBHOOK: [
+        PermissionType.WEBHOOK_LIST,
+        PermissionType.WEBHOOK_VIEW,
         PermissionType.WEBHOOK_CREATE,
         PermissionType.WEBHOOK_SEND,
         PermissionType.WEBHOOK_DELETE,
@@ -328,6 +344,14 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.API_KEY_MODIFY,
         PermissionType.API_KEY_DELETE,
         PermissionType.API_KEY_ALL
+    ],
+    ResourceType.TRACE: [
+        PermissionType.TRACE_LIST,
+        PermissionType.TRACE_VIEW
+    ],
+    ResourceType.TRIGGER: [
+        PermissionType.TRIGGER_LIST,
+        PermissionType.TRIGGER_VIEW
     ]
 }
 
@@ -349,7 +373,10 @@ GLOBAL_PERMISSION_TYPES = [
 
     # Action alias global permission types
     PermissionType.ACTION_ALIAS_MATCH,
-    PermissionType.ACTION_ALIAS_HELP
+    PermissionType.ACTION_ALIAS_HELP,
+
+    # API key global permission types
+    PermissionType.API_KEY_CREATE
 ] + LIST_PERMISSION_TYPES
 
 GLOBAL_PACK_PERMISSION_TYPES = [permission_type for permission_type in GLOBAL_PERMISSION_TYPES if
@@ -433,6 +460,8 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.RUNNER_ALL: ('Ability to perform all the supported operations on a particular '
                                 'runner.'),
 
+    PermissionType.WEBHOOK_LIST: 'Ability to list (view all) webhooks.',
+    PermissionType.WEBHOOK_VIEW: ('Ability to view a webhook.'),
     PermissionType.WEBHOOK_CREATE: ('Ability to create a new webhook.'),
     PermissionType.WEBHOOK_SEND: ('Ability to send / POST data to an existing webhook.'),
     PermissionType.WEBHOOK_DELETE: ('Ability to delete an existing webhook.'),
@@ -440,7 +469,7 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
                                  'webhook.'),
 
     PermissionType.API_KEY_LIST: 'Ability to list (view all) API keys.',
-    PermissionType.API_KEY_VIEW: ('Ability to view API Keys.'),
+    PermissionType.API_KEY_VIEW: ('Ability to view an API Key.'),
     PermissionType.API_KEY_CREATE: ('Ability to create a new API Key.'),
     PermissionType.API_KEY_MODIFY: ('Ability to modify (update) an existing API key. Also implies '
                                     '"api_key_view" permission.'),
@@ -450,4 +479,12 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.KEY_VALUE_VIEW: ('Ability to view Key-Value Pairs.'),
     PermissionType.KEY_VALUE_SET: ('Ability to set a Key-Value Pair.'),
     PermissionType.KEY_VALUE_DELETE: ('Ability to delete an existing Key-Value Pair.'),
+
+    PermissionType.TRACE_LIST: ('Ability to list (view all) traces.'),
+    PermissionType.TRACE_VIEW: ('Ability to view a trace.'),
+    PermissionType.TRACE_ALL: ('Ability to perform all the supported operations on traces.'),
+
+    PermissionType.TRIGGER_LIST: ('Ability to list (view all) triggers.'),
+    PermissionType.TRIGGER_VIEW: ('Ability to view a trigger.'),
+    PermissionType.TRIGGER_ALL: ('Ability to perform all the supported operations on triggers.'),
 }
