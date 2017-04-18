@@ -39,6 +39,7 @@ in development
 * Implement RBAC for ``API_KEY_CREATE`` permission type. (improvement)
 * Implement RBAC for timers API endpoints. Note: timers are just a type of triggers so they utilize
   ``TRIGGER_*`` RBAC permission constants (improvement)
+* Implement RBAC for webhooks get all and get one API endpoint. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
