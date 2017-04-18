@@ -32,6 +32,9 @@ in development
   for fields where ``null`` is not a valid field value. (improvement)
 
   Contributed by Cody A. Ray. #3193
+* Make sure all the role assignments for a particular user are correctly deleted from the database
+  after deleting an assignment file from ``/opt/stackstorm/rbac/assignments`` directory and running
+  ``st2-apply-rbac-definitions`` tool. (bug fix)
 * Implement RBAC for traces API endpoints. (improvement)
 * Implement RBAC for ``API_KEY_CREATE`` permission type. (improvement)
 * Implement RBAC for timers API endpoints. Note: timers are just a type of triggers so they utilize
