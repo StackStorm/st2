@@ -31,7 +31,7 @@ info:
     ```
     curl -X POST -u 'yourusername:yourpassword' https://$ST2_HOSTNAME/auth/v1/tokens
     ```
-    
+
     You can then use the token like this:
 
     ```
@@ -72,9 +72,9 @@ info:
     * **POST:** Use to create new resources. For example, make a POST request to create a new rule, or execute an action. 
     * **PUT:** Use to create or update a resource, e.g. to update an existing Key-Value pair.
     * **DELETE:** Remove a resource, e.g. delete an API key.
-    
+
     There is also an implicit support of **OPTIONS** method that will return a set of CORS-related headers.
-    
+
     Methods **HEAD** and **PATCH** are not supported in API v1, but might be considered in future iterations. 
 
     ## SSL
@@ -278,7 +278,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Single action being created
@@ -307,7 +307,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Action requested
@@ -340,7 +340,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Action updated
@@ -368,7 +368,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '204':
           description: Action deleted
@@ -501,7 +501,7 @@ paths:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_all
       x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_LIST }}
       description: |
-          Get list of action-alias.
+          Get list of action-aliases.
       parameters:
         - name: pack
           in: query
@@ -509,7 +509,7 @@ paths:
           type: string
       responses:
         '200':
-          description: List of action alias.
+          description: List of action aliases.
           schema:
             type: array
             items:
@@ -536,7 +536,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '201':
           description: Action alias created
@@ -567,7 +567,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Action alias requested
@@ -600,7 +600,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Action alias updated.
@@ -628,7 +628,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '204':
           description: Action alias deleted
@@ -641,7 +641,7 @@ paths:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.match
       x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_MATCH }}
       description: |
-        Match actionalias based on format (representation or display).
+        Match action alias based on format (representation or display).
       parameters:
         - name: action_alias_match_api
           in: body
@@ -718,7 +718,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '201':
           description: Action alias created
@@ -837,7 +837,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: List of executions
@@ -880,7 +880,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Execution being created
@@ -917,7 +917,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Execution requested
@@ -952,7 +952,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '204':
           description: Execution cancelled
@@ -998,7 +998,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Single action being created
@@ -1036,7 +1036,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Execution attribute requested
@@ -1074,7 +1074,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Execution attribute requested
@@ -1168,7 +1168,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: List of key value pairs
@@ -1210,7 +1210,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Key value pair requested.
@@ -1244,7 +1244,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Key set/updated.
@@ -1279,7 +1279,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '204':
           description: Key deleted.
@@ -1349,7 +1349,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Information about a pack.
@@ -1501,7 +1501,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Information about a pack.
@@ -1548,7 +1548,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Content of the file.
@@ -1598,7 +1598,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Get packs config.
@@ -1631,7 +1631,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Config for a particular pack.
@@ -1667,7 +1667,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Config for a particular pack.
@@ -1740,7 +1740,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Config schema for a particular pack.
@@ -1957,7 +1957,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Dictionary of permission types by resource types.
@@ -1994,7 +1994,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: List of permission types.
@@ -2020,7 +2020,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: List of all roles.
@@ -2050,7 +2050,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: List of roles.
@@ -2136,7 +2136,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Single action being created
@@ -2167,7 +2167,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Rule requested
@@ -2201,7 +2201,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Action updated
@@ -2229,7 +2229,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '204':
           description: Rule deleted
@@ -2430,7 +2430,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: RunnerType requested
@@ -2463,7 +2463,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: RunnerType updated
@@ -2550,7 +2550,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: SensorType requested
@@ -2583,7 +2583,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: SensorType updated
@@ -2611,7 +2611,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: List of actions
@@ -2641,7 +2641,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Single action being created
@@ -2674,7 +2674,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Action requested
@@ -2707,7 +2707,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Action updated
@@ -2735,7 +2735,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '204':
           description: Action deleted
@@ -2832,7 +2832,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '200':
           description: Rule Enforcements based on ref or id
@@ -3407,7 +3407,7 @@ paths:
         - name: user
           in: context
           x-as: requester_user
-          description: User running the action
+          description: User performing the operation.
       responses:
         '201':
           description: Single action being created
