@@ -399,7 +399,13 @@ class Router(object):
 
         # Call the controller
         func = op_resolver(endpoint['operationId'])
-        resp = func(**kw)
+
+        try:
+            resp = func(**kw)
+        except Exception as e:
+            LOG.exception('Failed to call controller function "%s" for operation "%s": %s' %
+                          (func.__name__, endpoint['operationId'], str(e)))
+            raise e
 
         # Handle response
         if resp is None:
