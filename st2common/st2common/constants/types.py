@@ -45,4 +45,7 @@ class ResourceType(Enum):
 
     WEBHOOK = 'webhook'
     API_KEY = 'api_key'
+    TRACE = 'trace'
+    TIMER = 'timer'
+
     UNKNOWN = 'unknown'

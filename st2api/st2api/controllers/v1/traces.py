@@ -16,6 +16,7 @@
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.trace import TraceAPI
 from st2common.persistence.trace import Trace
+from st2common.rbac.types import PermissionType
 
 __all__ = [
     'TracesController'
@@ -51,8 +52,10 @@ class TracesController(ResourceController):
                              query_options=query_options,
                              raw_filters=raw_filters)
 
-    def get_one(self, id):
-        return self._get_one_by_id(id, permission_type=None)
+    def get_one(self, id, requester_user):
+        return self._get_one_by_id(id,
+                                   requester_user=requester_user,
+                                   permission_type=PermissionType.TRACE_VIEW)
 
 
 traces_controller = TracesController()

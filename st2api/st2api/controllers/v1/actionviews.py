@@ -96,7 +96,7 @@ class OverviewController(resource.ContentPackResourceController):
 
     include_reference = True
 
-    def get_one(self, ref_or_id):
+    def get_one(self, ref_or_id, requester_user):
         """
             List action by id.
 
@@ -104,6 +104,7 @@ class OverviewController(resource.ContentPackResourceController):
                 GET /actions/views/overview/1
         """
         resp = super(OverviewController, self)._get_one(ref_or_id,
+                                                        requester_user=requester_user,
                                                         permission_type=PermissionType.ACTION_VIEW)
         action_api = ActionAPI(**resp.json)
         result = self._transform_action_api(action_api)

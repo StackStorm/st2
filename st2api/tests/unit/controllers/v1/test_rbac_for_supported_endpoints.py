@@ -13,13 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import OrderedDict
 import httplib
+from collections import OrderedDict
 
 import six
+import mock
+
+from st2common.services import triggers as trigger_service
+with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock()):
+    from st2api.controllers.v1.webhooks import HooksHolder
 
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
+from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER
 
 http_client = six.moves.http_client
 
@@ -33,13 +39,14 @@ TEST_FIXTURES = OrderedDict([
     ('sensors', ['sensor1.yaml']),
     ('actions', ['action1.yaml', 'local.yaml']),
     ('aliases', ['alias1.yaml']),
-    ('triggers', ['trigger1.yaml']),
+    ('triggers', ['trigger1.yaml', 'cron1.yaml']),
     ('rules', ['rule1.yaml']),
     ('triggertypes', ['triggertype1.yaml']),
     ('executions', ['execution1.yaml']),
     ('liveactions', ['liveaction1.yaml', 'parentliveaction.yaml', 'childliveaction.yaml']),
     ('enforcements', ['enforcement1.yaml']),
     ('apikeys', ['apikey1.yaml']),
+    ('traces', ['trace_for_test_enforce.yaml'])
 ])
 
 MOCK_RUNNER_1 = {
@@ -113,12 +120,16 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         self.models = self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                                fixtures_dict=TEST_FIXTURES)
 
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[vars(DUMMY_TRIGGER)]))
     def test_api_endpoints_behind_rbac_wall(self):
         #  alias_model = self.models['aliases']['alias1.yaml']
         sensor_model = self.models['sensors']['sensor1.yaml']
         rule_model = self.models['rules']['rule1.yaml']
         enforcement_model = self.models['enforcements']['enforcement1.yaml']
         execution_model = self.models['executions']['execution1.yaml']
+        trace_model = self.models['traces']['trace_for_test_enforce.yaml']
+        timer_model = self.models['triggers']['cron1.yaml']
 
         supported_endpoints = [
             # Runners
@@ -350,6 +361,33 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
                         'some': 'thing'
                     }
                 }
+            },
+            # Traces
+            {
+                'path': '/v1/traces',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/traces/%s' % (trace_model.id),
+                'method': 'GET'
+            },
+            # Timers
+            {
+                'path': '/v1/timers',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/timers/%s' % (timer_model.id),
+                'method': 'GET'
+            },
+            # Webhooks
+            {
+                'path': '/v1/webhooks',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/webhooks/git',
+                'method': 'GET'
             }
         ]
 

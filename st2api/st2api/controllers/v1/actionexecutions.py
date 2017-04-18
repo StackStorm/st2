@@ -85,7 +85,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         'trigger_instance'
     ]
 
-    def _handle_schedule_execution(self, liveaction_api, requester_user=None, context_string=None,
+    def _handle_schedule_execution(self, liveaction_api, requester_user, context_string=None,
                                    show_secrets=False):
         """
         :param liveaction: LiveActionAPI object.
@@ -127,7 +127,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             LOG.exception('Unable to execute action. Unexpected error encountered.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
-    def _schedule_execution(self, liveaction, requester_user=None, user=None, context_string=None,
+    def _schedule_execution(self, liveaction, requester_user, user=None, context_string=None,
                             show_secrets=False):
         # Initialize execution context if it does not exist.
         if not hasattr(liveaction, 'context'):
@@ -186,7 +186,7 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         action_exec_db = self.access.impl.model.objects.filter(id=id).only(*fields).get()
         return action_exec_db.result
 
-    def _get_children(self, id_, requester_user=None, depth=-1, result_fmt=None,
+    def _get_children(self, id_, requester_user, depth=-1, result_fmt=None,
                       show_secrets=False):
         # make sure depth is int. Url encoding will make it a string and needs to
         # be converted back in that case.
@@ -217,7 +217,7 @@ class BaseActionExecutionNestedController(ActionExecutionsControllerMixin, Resou
 
 
 class ActionExecutionChildrenController(BaseActionExecutionNestedController):
-    def get_one(self, id, requester_user=None, depth=-1, result_fmt=None, show_secrets=False):
+    def get_one(self, id, requester_user, depth=-1, result_fmt=None, show_secrets=False):
         """
         Retrieve children for the provided action execution.
 
@@ -295,7 +295,7 @@ class ActionExecutionReRunController(ActionExecutionsControllerMixin, ResourceCo
 
             return self
 
-    def post(self, spec_api, id, requester_user=None, no_merge=False, show_secrets=False):
+    def post(self, spec_api, id, requester_user, no_merge=False, show_secrets=False):
         """
         Re-run the provided action execution optionally specifying override parameters.
 
@@ -390,8 +390,8 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
         'timestamp_lt': lambda value: isotime.parse(value=value)
     }
 
-    def get_all(self, exclude_attributes=None, sort=None, offset=0, limit=None,
-                requester_user=None, show_secrets=False, **raw_filters):
+    def get_all(self, requester_user, exclude_attributes=None, sort=None, offset=0, limit=None,
+                show_secrets=False, **raw_filters):
         """
         List all executions.
 
@@ -452,7 +452,7 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                                    from_model_kwargs=from_model_kwargs,
                                    permission_type=PermissionType.EXECUTION_VIEW)
 
-    def post(self, liveaction_api, requester_user=None, context_string=None, show_secrets=False):
+    def post(self, liveaction_api, requester_user, context_string=None, show_secrets=False):
         return self._handle_schedule_execution(liveaction_api=liveaction_api,
                                                requester_user=requester_user,
                                                context_string=context_string,

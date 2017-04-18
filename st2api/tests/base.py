@@ -105,7 +105,7 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
     def tearDown(self):
         super(APIControllerWithRBACTestCase, self).tearDown()
 
-        if self.request_context_mock:
+        if getattr(self, 'request_context_mock', None):
             self.request_context_mock.stop()
             del(Router.mock_context)
 
@@ -113,6 +113,9 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
         """
         Select a user which is to be used by the HTTP request following this call.
         """
+        if not user_db:
+            raise ValueError('"user_db" is mandatory')
+
         mock_context = {
             'user': user_db
         }
