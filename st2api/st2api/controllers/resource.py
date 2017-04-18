@@ -200,8 +200,8 @@ class ResourceController(object):
 
         return resp
 
-    def _get_one_by_id(self, id, permission_type, exclude_fields=None, from_model_kwargs=None,
-                       requester_user=None):
+    def _get_one_by_id(self, id, requester_user, permission_type, exclude_fields=None,
+                       from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -224,8 +224,8 @@ class ResourceController(object):
 
         return result
 
-    def _get_one_by_name_or_id(self, name_or_id, permission_type, exclude_fields=None,
-                               from_model_kwargs=None, requester_user=None):
+    def _get_one_by_name_or_id(self, name_or_id, requester_user, permission_type,
+                               exclude_fields=None, from_model_kwargs=None):
         """
         :param exclude_fields: A list of object fields to exclude.
         :type exclude_fields: ``list``
@@ -344,8 +344,8 @@ class ContentPackResourceController(ResourceController):
         super(ContentPackResourceController, self).__init__()
         self.get_one_db_method = self._get_by_ref_or_id
 
-    def _get_one(self, ref_or_id, permission_type, exclude_fields=None, from_model_kwargs=None,
-                 requester_user=None):
+    def _get_one(self, ref_or_id, requester_user, permission_type, exclude_fields=None,
+                 from_model_kwargs=None):
         try:
             instance = self._get_by_ref_or_id(ref_or_id=ref_or_id, exclude_fields=exclude_fields)
         except Exception as e:

@@ -95,7 +95,7 @@ class ActionsController(resource.ContentPackResourceController):
         return super(ActionsController, self)._get_one(ref_or_id, requester_user=requester_user,
                                                        permission_type=PermissionType.ACTION_VIEW)
 
-    def post(self, action, requester_user=None):
+    def post(self, action, requester_user):
         """
             Create a new action.
 
@@ -143,7 +143,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         return Response(json=action_api, status=http_client.CREATED)
 
-    def put(self, action, ref_or_id, requester_user=None):
+    def put(self, action, ref_or_id, requester_user):
         action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
         # Assert permissions
@@ -190,7 +190,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         return action_api
 
-    def delete(self, ref_or_id, requester_user=None):
+    def delete(self, ref_or_id, requester_user):
         """
             Delete an action.
 

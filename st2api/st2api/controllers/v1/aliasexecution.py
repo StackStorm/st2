@@ -50,7 +50,7 @@ CAST_OVERRIDES = {
 
 class ActionAliasExecutionController(BaseRestControllerMixin):
 
-    def post(self, payload, requester_user=None, show_secrets=False):
+    def post(self, payload, requester_user, show_secrets=False):
         action_alias_name = payload.name if payload else None
 
         if not action_alias_name:

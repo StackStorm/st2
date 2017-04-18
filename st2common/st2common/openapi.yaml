@@ -457,6 +457,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Action requested
@@ -2306,6 +2311,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User running the action
       responses:
         '200':
           description: Rule requested
