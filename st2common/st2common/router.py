@@ -398,7 +398,12 @@ class Router(object):
                     kw[argument_name] = float(kw[argument_name])
 
         # Call the controller
-        func = op_resolver(endpoint['operationId'])
+        try:
+            func = op_resolver(endpoint['operationId'])
+        except Exception as e:
+            LOG.exception('Failed to load controller for operation "%s": %s' %
+                          (endpoint['operationId'], str(e)))
+            raise e
 
         try:
             resp = func(**kw)
