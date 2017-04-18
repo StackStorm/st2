@@ -18,7 +18,6 @@ import httplib
 import six
 import mock
 
-
 from st2common.services import triggers as trigger_service
 with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock()):
     from st2api.controllers.v1.webhooks import HooksHolder

@@ -13,13 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import OrderedDict
 import httplib
+from collections import OrderedDict
 
 import six
+import mock
+
+from st2common.services import triggers as trigger_service
+with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock()):
+    from st2api.controllers.v1.webhooks import HooksHolder
 
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
+from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER
 
 http_client = six.moves.http_client
 
@@ -114,6 +120,8 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         self.models = self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                                fixtures_dict=TEST_FIXTURES)
 
+    @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
+        return_value=[vars(DUMMY_TRIGGER)]))
     def test_api_endpoints_behind_rbac_wall(self):
         #  alias_model = self.models['aliases']['alias1.yaml']
         sensor_model = self.models['sensors']['sensor1.yaml']
@@ -370,6 +378,15 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             },
             {
                 'path': '/v1/timers/%s' % (timer_model.id),
+                'method': 'GET'
+            },
+            # Webhooks
+            {
+                'path': '/v1/webhooks',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/webhooks/git',
                 'method': 'GET'
             }
         ]
