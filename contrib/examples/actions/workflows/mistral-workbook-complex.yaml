@@ -22,7 +22,7 @@ workflows:
                     ip: "10.1.23.99"
                     status_message: "DNS for <% $.vm_name %> is registered."
                 on-success:
-                    - configure_vm
+                    - create_vm
                     - notify
             create_vm:
                 wait-before: 1
