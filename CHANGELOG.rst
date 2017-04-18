@@ -40,6 +40,7 @@ in development
 * Implement RBAC for timers API endpoints. Note: timers are just a type of triggers so they utilize
   ``TRIGGER_*`` RBAC permission constants (improvement)
 * Implement RBAC for webhooks get all and get one API endpoint. (improvement)
+* Add webhook payload to the Jinja render context when rendering Jinja variable inside rule criteria section
 
 2.2.1 - April 3, 2017
 ---------------------

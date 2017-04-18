@@ -14,11 +14,13 @@
 # limitations under the License.
 
 import six
+import json
+import re
 from jsonpath_rw import parse
 
 from st2common import log as logging
 import st2common.operators as criteria_operators
-from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX, RULE_TYPE_BACKSTOP
+from st2common.constants.rules import TRIGGER_PAYLOAD_PREFIX, RULE_TYPE_BACKSTOP, MATCH_CRITERIA
 from st2common.constants.keyvalue import SYSTEM_SCOPES
 from st2common.services.keyvalues import KeyValueLookup
 from st2common.util.templating import render_template_with_system_context
@@ -79,7 +81,10 @@ class RuleFilter(object):
         for criterion_k in criteria.keys():
             criterion_v = criteria[criterion_k]
             is_rule_applicable, payload_value, criterion_pattern = self._check_criterion(
-                criterion_k, criterion_v, payload_lookup)
+                criterion_k,
+                criterion_v,
+                payload_lookup
+            )
             if not is_rule_applicable:
                 if self.extra_info:
                     criteria_extra_info = '\n'.join([
@@ -102,18 +107,21 @@ class RuleFilter(object):
     def _check_criterion(self, criterion_k, criterion_v, payload_lookup):
         if 'type' not in criterion_v:
             # Comparison operator type not specified, can't perform a comparison
-            return False
+            return (False, None, None)
 
         criteria_operator = criterion_v['type']
         criteria_pattern = criterion_v.get('pattern', None)
 
         # Render the pattern (it can contain a jinja expressions)
         try:
-            criteria_pattern = self._render_criteria_pattern(criteria_pattern=criteria_pattern)
+            criteria_pattern = self._render_criteria_pattern(
+                criteria_pattern=criteria_pattern,
+                criteria_context=payload_lookup.context
+            )
         except Exception:
             LOG.exception('Failed to render pattern value "%s" for key "%s"' %
                           (criteria_pattern, criterion_k), extra=self._base_logger_context)
-            return False
+            return (False, None, None)
 
         try:
             matches = payload_lookup.get_value(criterion_k)
@@ -125,7 +133,7 @@ class RuleFilter(object):
         except:
             LOG.exception('Failed transforming criteria key %s', criterion_k,
                           extra=self._base_logger_context)
-            return False
+            return (False, None, None)
 
         op_func = criteria_operators.get_operator(criteria_operator)
 
@@ -134,11 +142,11 @@ class RuleFilter(object):
         except:
             LOG.exception('There might be a problem with the criteria in rule %s.', self.rule,
                           extra=self._base_logger_context)
-            return False
+            return (False, None, None)
 
         return result, payload_value, criteria_pattern
 
-    def _render_criteria_pattern(self, criteria_pattern):
+    def _render_criteria_pattern(self, criteria_pattern, criteria_context):
         # Note: Here we want to use strict comparison to None to make sure that
         # other falsy values such as integer 0 are handled correctly.
         if criteria_pattern is None:
@@ -149,8 +157,45 @@ class RuleFilter(object):
             # makes no sense
             return criteria_pattern
 
-        criteria_pattern = render_template_with_system_context(value=criteria_pattern)
-        return criteria_pattern
+        LOG.debug(
+            'Rendering criteria pattern (%s) with context: %s',
+            criteria_pattern,
+            criteria_context
+        )
+
+        to_complex = False
+
+        # Check if jinja variable is in criteria_pattern and if so lets ensure
+        # the proper type is applied to it using to_complex jinja filter
+        if len(re.findall(MATCH_CRITERIA, criteria_pattern)) > 0:
+            LOG.debug("Rendering Complex")
+            complex_criteria_pattern = re.sub(
+                MATCH_CRITERIA, r'\1\2 | to_complex\3',
+                criteria_pattern
+            )
+
+            try:
+                criteria_rendered = render_template_with_system_context(
+                    value=complex_criteria_pattern,
+                    context=criteria_context
+                )
+                criteria_rendered = json.loads(criteria_rendered)
+                to_complex = True
+            except ValueError, error:
+                LOG.debug('Criteria pattern not valid JSON: %s', error)
+
+        if not to_complex:
+            criteria_rendered = render_template_with_system_context(
+                value=criteria_pattern,
+                context=criteria_context
+            )
+
+        LOG.debug(
+            'Rendered criteria pattern: %s',
+            criteria_rendered
+        )
+
+        return criteria_rendered
 
 
 class SecondPassRuleFilter(RuleFilter):
@@ -188,16 +233,16 @@ class SecondPassRuleFilter(RuleFilter):
 class PayloadLookup(object):
 
     def __init__(self, payload):
-        self._context = {
+        self.context = {
             TRIGGER_PAYLOAD_PREFIX: payload
         }
 
         for system_scope in SYSTEM_SCOPES:
-            self._context[system_scope] = KeyValueLookup(scope=system_scope)
+            self.context[system_scope] = KeyValueLookup(scope=system_scope)
 
     def get_value(self, lookup_key):
         expr = parse(lookup_key)
-        matches = [match.value for match in expr.find(self._context)]
+        matches = [match.value for match in expr.find(self.context)]
         if not matches:
             return None
         return matches
