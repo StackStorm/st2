@@ -95,8 +95,12 @@ class WebhooksController(object):
         self._trigger_watcher.start()
         self._register_webhook_trigger_types()
 
-    def get_all(self):
+    def get_all(self, requester_user):
         # Return only the hooks known by this controller.
+        permission_type = PermissionType.WEBHOOK_LIST
+        rbac_utils.assert_user_has_permission(user_db=requester_user,
+                                              permission_type=permission_type)
+
         return self._hooks.get_all()
 
     def get_one(self, name, requester_user):
