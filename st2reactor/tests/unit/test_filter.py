@@ -152,7 +152,7 @@ class FilterTest(DbTestCase):
             }
         }
         f = RuleFilter(MOCK_TRIGGER_INSTANCE, MOCK_TRIGGER, rule)
-        self.assertTrue(f.filter(), 'equals check should have failed.')
+        self.assertFalse(f.filter(), 'equals check should have failed.')
 
     def test_equals_bool_value(self):
         rule = MOCK_RULE_1
