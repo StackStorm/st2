@@ -38,6 +38,8 @@ class ResourceType(Enum):
     TRIGGER_INSTANCE = 'trigger_instance'
     RULE = 'rule'
     RULE_ENFORCEMENT = 'rule_enforcement'
+    POLICY_TYPE = 'policy_type'
+    POLICY = 'policy'
 
     # Other resources
     EXECUTION = 'execution'
