@@ -46,8 +46,8 @@ class PolicyTypeController(resource.ResourceController):
 
     include_reference = False
 
-    def get_one(self, ref_or_id):
-        return self._get_one(ref_or_id)
+    def get_one(self, ref_or_id, requester_user):
+        return self._get_one(ref_or_id, requester_user=requester_user)
 
     def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
         return self._get_all(sort=sort,
@@ -55,8 +55,14 @@ class PolicyTypeController(resource.ResourceController):
                              limit=limit,
                              raw_filters=raw_filters)
 
-    def _get_one(self, ref_or_id):
+    def _get_one(self, ref_or_id, requester_user):
         instance = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+
+        permission_type = PermissionType.POLICY_TYPE_VIEW
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=instance,
+                                                          permission_type=permission_type)
+
         result = self.model.from_model(instance)
 
         if result and self.include_reference:
