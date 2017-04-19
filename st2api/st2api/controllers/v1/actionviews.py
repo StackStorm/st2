@@ -25,7 +25,14 @@ from st2common.models.utils import action_param_utils
 from st2common.persistence.action import Action
 from st2common.persistence.runner import RunnerType
 from st2common.rbac.types import PermissionType
+from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
+
+__all__ = [
+    'OverviewController',
+    'ParametersViewController',
+    'EntryPointController'
+]
 
 http_client = six.moves.http_client
 
@@ -64,11 +71,11 @@ class LookupUtils(object):
 
 class ParametersViewController(object):
 
-    def get_one(self, action_id):
-        return self._get_one(action_id)
+    def get_one(self, action_id, requester_user):
+        return self._get_one(action_id, requester_user=requester_user)
 
     @staticmethod
-    def _get_one(action_id):
+    def _get_one(action_id, requester_user):
         """
             List merged action & runner parameters by action id.
 
@@ -77,8 +84,13 @@ class ParametersViewController(object):
         """
         action_db = LookupUtils._get_action_by_id(action_id)
         LOG.info('Found action: %s, runner: %s', action_db, action_db.runner_type['name'])
-        runner_db = LookupUtils._get_runner_by_name(action_db.runner_type['name'])
 
+        permission_type = PermissionType.ACTION_VIEW
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_db,
+                                                          permission_type=permission_type)
+
+        runner_db = LookupUtils._get_runner_by_name(action_db.runner_type['name'])
         all_params = action_param_utils.get_params_view(
             action_db=action_db, runner_db=runner_db, merged_only=True)
 
@@ -145,15 +157,20 @@ class EntryPointController(resource.ContentPackResourceController):
     def get_all(self):
         return abort(404)
 
-    def get_one(self, ref_or_id):
+    def get_one(self, ref_or_id, requester_user):
         """
             Outputs the file associated with action entry_point
 
             Handles requests:
                 GET /actions/views/entry_point/1
         """
-        LOG.info('GET /actions/views/overview with ref_or_id=%s', ref_or_id)
+        LOG.info('GET /actions/views/entry_point with ref_or_id=%s', ref_or_id)
         action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+
+        permission_type = PermissionType.ACTION_VIEW
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_db,
+                                                          permission_type=permission_type)
 
         pack = getattr(action_db, 'pack', None)
         entry_point = getattr(action_db, 'entry_point', None)

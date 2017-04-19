@@ -387,6 +387,11 @@ paths:
           description: Entity id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: An object containing action parameters
@@ -486,6 +491,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: Entry point code
@@ -1099,6 +1109,7 @@ paths:
   /api/v1/executions/views/filters:
     get:
       operationId: st2api.controllers.v1.executionviews:filters_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.EXECUTION_VIEWS_FILTERS_LIST }}
       description: |
         Get a list of distinct values for the execution filters.
       parameters:
