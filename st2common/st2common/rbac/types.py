@@ -228,6 +228,8 @@ class ResourceType(Enum):
     ACTION_ALIAS = SystemResourceType.ACTION_ALIAS
     RULE = SystemResourceType.RULE
     RULE_ENFORCEMENT = SystemResourceType.RULE_ENFORCEMENT
+    POLICY_TYPE = SystemResourceType.POLICY_TYPE
+    POLICY = SystemResourceType.POLICY
 
     EXECUTION = SystemResourceType.EXECUTION
     KEY_VALUE_PAIR = SystemResourceType.KEY_VALUE_PAIR
