@@ -144,7 +144,9 @@ class PolicyController(resource.ContentPackResourceController):
                              raw_filters=raw_filters)
 
     def get_one(self, ref_or_id, requester_user):
-        return self._get_one(ref_or_id, permission_type=None, requester_user=requester_user)
+        permission_type = PermissionType.POLICY_VIEW
+        return self._get_one(ref_or_id, permission_type=permission_type,
+                             requester_user=requester_user)
 
     def post(self, instance, requester_user):
         """
