@@ -911,7 +911,7 @@ class PolicyTypePermissionsResolver(PermissionsResolver):
     resource_type = ResourceType.POLICY_TYPE
 
     def user_has_permission(self, user_db, permission_type):
-        assert permission_type in [PermissionType.POLICY_TYPE]
+        assert permission_type in [PermissionType.POLICY_TYPE_LIST]
         return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
@@ -955,7 +955,7 @@ class PolicyPermissionsResolver(ContentPackResourcePermissionsResolver):
     Permission resolver for "policy" resource type.
     """
 
-    resource_type = ResourceType.Policy
+    resource_type = ResourceType.POLICY
     view_grant_permission_types = [
         PermissionType.POLICY_ALL,
         PermissionType.POLICY_CREATE,

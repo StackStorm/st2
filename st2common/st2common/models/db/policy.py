@@ -133,6 +133,7 @@ class PolicyTypeDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
 
     def __init__(self, *args, **kwargs):
         super(PolicyTypeDB, self).__init__(*args, **kwargs)
+        self.uid = self.get_uid()
         self.ref = PolicyTypeReference.to_string_reference(resource_type=self.resource_type,
                                                            name=self.name)
 
@@ -183,6 +184,7 @@ class PolicyDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMixin,
 
     def __init__(self, *args, **kwargs):
         super(PolicyDB, self).__init__(*args, **kwargs)
+        self.uid = self.get_uid()
         self.ref = common_models.ResourceReference.to_string_reference(pack=self.pack,
                                                                        name=self.name)
 
