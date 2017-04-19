@@ -131,6 +131,17 @@ class PermissionType(Enum):
     TRIGGER_VIEW = 'trigger_view'
     TRIGGER_ALL = 'trigger_all'
 
+    POLICY_TYPE_LIST = 'policy_type_list'
+    POLICY_TYPE_VIEW = 'policy_type_view'
+    POLICY_TYPE_ALL = 'policy_type_all'
+
+    POLICY_LIST = 'policy_list'
+    POLICY_VIEW = 'policy_view'
+    POLICY_CREATE = 'policy_create'
+    POLICY_MODIFY = 'policy_modify'
+    POLICY_DELETE = 'policy_delete'
+    POLICY_ALL = 'policy_all'
+
     @classmethod
     def get_valid_permissions_for_resource_type(cls, resource_type):
         """
@@ -347,11 +358,26 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
     ],
     ResourceType.TRACE: [
         PermissionType.TRACE_LIST,
-        PermissionType.TRACE_VIEW
+        PermissionType.TRACE_VIEW,
+        PermissionType.TRACE_ALL
     ],
     ResourceType.TRIGGER: [
         PermissionType.TRIGGER_LIST,
-        PermissionType.TRIGGER_VIEW
+        PermissionType.TRIGGER_VIEW,
+        PermissionType.TRIGGER_ALL
+    ],
+    ResourceType.POLICY_TYPE: [
+        PermissionType.POLICY_TYPE_LIST,
+        PermissionType.POLICY_TYPE_VIEW,
+        PermissionType.POLICY_TYPE_ALL,
+    ],
+    ResourceType.POLICY: [
+        PermissionType.POLICY_LIST,
+        PermissionType.POLICY_VIEW,
+        PermissionType.POLICY_CREATE,
+        PermissionType.POLICY_MODIFY,
+        PermissionType.POLICY_DELETE,
+        PermissionType.POLICY_ALL,
     ]
 }
 
@@ -376,7 +402,10 @@ GLOBAL_PERMISSION_TYPES = [
     PermissionType.ACTION_ALIAS_HELP,
 
     # API key global permission types
-    PermissionType.API_KEY_CREATE
+    PermissionType.API_KEY_CREATE,
+
+    # Policy global permission types
+    PermissionType.POLICY_CREATE
 ] + LIST_PERMISSION_TYPES
 
 GLOBAL_PACK_PERMISSION_TYPES = [permission_type for permission_type in GLOBAL_PERMISSION_TYPES if
