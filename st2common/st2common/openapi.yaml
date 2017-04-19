@@ -4036,6 +4036,7 @@ definitions:
   PolicyList:
     type: object
   PolicyCreate:
+    x-api-model: st2common.models.api.policy:PolicyAPI
     type: object
   RunnerType:
     type: object
