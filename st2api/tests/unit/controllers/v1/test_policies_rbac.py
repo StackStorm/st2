@@ -189,12 +189,12 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
                                                                fixtures_dict=TEST_FIXTURES)
 
         file_name = 'policy_1.yaml'
-        PolicyTypeControllerRBACTestCase.POLICY_1 = self.fixtures_loader.load_fixtures(
+        PolicyControllerRBACTestCase.POLICY_1 = self.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'policies': [file_name]})['policies'][file_name]
 
         file_name = 'policy_2.yaml'
-        PolicyTypeControllerRBACTestCase.POLICY_TYPE_2 = self.fixtures_loader.load_fixtures(
+        PolicyControllerRBACTestCase.POLICY_TYPE_2 = self.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'policies': [file_name]})['policies'][file_name]
 
@@ -343,5 +343,42 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         resp = self.app.get('/v1/policies/%s' % (policy_id), expect_errors=True)
         expected_msg = ('User "policy_view_policy8_parent_pack" doesn\'t have required permission'
                         ' "policy_view" on resource "%s"' % (policy_uid))
+        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], expected_msg)
+
+    def test_policy_create_no_permissions(self):
+        user_db = self.users['no_permissions']
+        self.use_user(user_db)
+
+        policy_uid = self.models['policies']['policy_1.yaml'].get_uid()
+        data = self.POLICY_1
+        resp = self.app.post_json('/v1/policies', data, expect_errors=True)
+        expected_msg = ('User "no_permissions" doesn\'t have required permission "policy_create" '
+                        'on resource "%s"' % (policy_uid))
+        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], expected_msg)
+
+    def test_policy_update_no_permissions(self):
+        user_db = self.users['no_permissions']
+        self.use_user(user_db)
+
+        policy_id = self.models['policies']['policy_1.yaml'].id
+        policy_uid = self.models['policies']['policy_1.yaml'].get_uid()
+        data = self.POLICY_1
+        resp = self.app.put_json('/v1/policies/%s' % (policy_id), data, expect_errors=True)
+        expected_msg = ('User "no_permissions" doesn\'t have required permission "policy_modify"'
+                        ' on resource "%s"' % (policy_uid))
+        self.assertEqual(resp.status_code, httplib.FORBIDDEN)
+        self.assertEqual(resp.json['faultstring'], expected_msg)
+
+    def test_policy_delete_no_permissions(self):
+        user_db = self.users['no_permissions']
+        self.use_user(user_db)
+
+        policy_id = self.models['policies']['policy_1.yaml'].id
+        policy_uid = self.models['policies']['policy_1.yaml'].get_uid()
+        resp = self.app.delete('/v1/policies/%s' % (policy_id), expect_errors=True)
+        expected_msg = ('User "no_permissions" doesn\'t have required permission "policy_delete"'
+                        ' on resource "%s"' % (policy_uid))
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
