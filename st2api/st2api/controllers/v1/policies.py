@@ -24,6 +24,8 @@ from st2common.models.db.policy import PolicyTypeReference
 from st2common.persistence.policy import PolicyType, Policy
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
+from st2common.rbac.types import PermissionType
+from st2common.rbac import utils as rbac_utils
 from st2common.router import abort
 from st2common.router import Response
 
@@ -129,21 +131,26 @@ class PolicyController(resource.ContentPackResourceController):
         'sort': ['pack', 'name']
     }
 
-    def get_one(self, ref_or_id):
-        return self._get_one(ref_or_id, permission_type=None, requester_user=None)
-
     def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
         return self._get_all(sort=sort,
                              offset=offset,
                              limit=limit,
                              raw_filters=raw_filters)
 
-    def post(self, instance):
+    def get_one(self, ref_or_id, requester_user):
+        return self._get_one(ref_or_id, permission_type=None, requester_user=requester_user)
+
+    def post(self, instance, requester_user):
         """
             Create a new policy.
             Handles requests:
                 POST /policies/
         """
+        permission_type = PermissionType.POLICY_CREATE
+        rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
+                                                           resource_api=instance,
+                                                           permission_type=permission_type)
+
         op = 'POST /policies/'
 
         db_model = self.model.to_model(instance)
@@ -158,11 +165,17 @@ class PolicyController(resource.ContentPackResourceController):
 
         return Response(json=exec_result, status=http_client.CREATED)
 
-    def put(self, instance, ref_or_id):
+    def put(self, instance, ref_or_id, requester_user):
         op = 'PUT /policies/%s/' % ref_or_id
 
         db_model = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         LOG.debug('%s found object: %s', op, db_model)
+
+        permission_type = PermissionType.POLICY_MODIFY
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=db_model,
+                                                          permission_type=permission_type)
+
         db_model_id = db_model.id
 
         try:
@@ -190,7 +203,7 @@ class PolicyController(resource.ContentPackResourceController):
 
         return Response(json=exec_result, status=http_client.OK)
 
-    def delete(self, ref_or_id):
+    def delete(self, ref_or_id, requester_user):
         """
             Delete a policy.
             Handles requests:
@@ -202,6 +215,11 @@ class PolicyController(resource.ContentPackResourceController):
 
         db_model = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         LOG.debug('%s found object: %s', op, db_model)
+
+        permission_type = PermissionType.POLICY_DELETE
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=db_model,
+                                                          permission_type=permission_type)
 
         try:
             validate_not_part_of_system_pack(db_model)

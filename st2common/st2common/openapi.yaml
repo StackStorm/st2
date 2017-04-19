@@ -1761,6 +1761,7 @@ paths:
   /api/v1/policytypes:
     get:
       operationId: st2api.controllers.v1.policies:policy_type_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.POLICY_TYPE_LIST }}
       description: Returns a list of all the policy types.
       parameters:
         - name: resource_type
@@ -1834,6 +1835,7 @@ paths:
   /api/v1/policies:
     get:
       operationId: st2api.controllers.v1.policies:policy_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.POLICY_LIST }}
       description: |
         List of policies
       parameters:
@@ -1871,6 +1873,11 @@ paths:
           schema:
             $ref: '#/definitions/PolicyCreate'
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: Policy created successfully.
@@ -1895,6 +1902,11 @@ paths:
           description: Entity reference or id.
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: Policy found.
@@ -1924,6 +1936,11 @@ paths:
           schema:
             $ref: '#/definitions/PolicyCreate'
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: Policy updated successfully.
@@ -1947,6 +1964,11 @@ paths:
           description: Entity reference or id.
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '204':
           description: Policy deleted
