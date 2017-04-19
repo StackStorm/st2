@@ -35,12 +35,16 @@ in development
 * Make sure all the role assignments for a particular user are correctly deleted from the database
   after deleting an assignment file from ``/opt/stackstorm/rbac/assignments`` directory and running
   ``st2-apply-rbac-definitions`` tool. (bug fix)
+* Add webhook payload to the Jinja render context when rendering Jinja variable inside rule
+  criteria section.
 * Implement RBAC for traces API endpoints. (improvement)
 * Implement RBAC for ``API_KEY_CREATE`` permission type. (improvement)
 * Implement RBAC for timers API endpoints. Note: timers are just a type of triggers so they utilize
   ``TRIGGER_*`` RBAC permission constants (improvement)
 * Implement RBAC for webhooks get all and get one API endpoint. (improvement)
-* Add webhook payload to the Jinja render context when rendering Jinja variable inside rule criteria section
+* Implement RBAC for policy types and policies get all and get one API endpoint. (improvement)
+* Require ``ACTION_VIEW`` permission type to be able to access entry_point and parameters actions
+  view controller. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
