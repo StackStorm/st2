@@ -38,6 +38,8 @@ class ResourceType(Enum):
     TRIGGER_INSTANCE = 'trigger_instance'
     RULE = 'rule'
     RULE_ENFORCEMENT = 'rule_enforcement'
+
+    # Note: Policy type is a global resource and policy belong to a pack
     POLICY_TYPE = 'policy_type'
     POLICY = 'policy'
 
