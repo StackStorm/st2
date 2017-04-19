@@ -903,6 +903,87 @@ class TriggerPermissionsResolver(PermissionsResolver):
         return False
 
 
+class PolicyTypePermissionsResolver(PermissionsResolver):
+    """
+    Permission resolver for "policy type" resource.
+    """
+
+    resource_type = ResourceType.POLICY_TYPE
+
+    def user_has_permission(self, user_db, permission_type):
+        assert permission_type in [PermissionType.POLICY_TYPE]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        log_context = {
+            'user_db': user_db,
+            'resource_db': resource_db,
+            'permission_type': permission_type,
+            'resolver': self.__class__.__name__
+        }
+        self._log('Checking user resource permissions', extra=log_context)
+
+        # First check the system role permissions
+        has_system_role_permission = self._user_has_system_role_permission(
+            user_db=user_db, permission_type=permission_type)
+
+        if has_system_role_permission:
+            self._log('Found a matching grant via system role', extra=log_context)
+            return True
+
+        # Check custom roles
+        policy_type_uid = resource_db.get_uid()
+
+        # Check direct grants on the webhook
+        resource_types = [ResourceType.POLICY_TYPE]
+        permission_types = [PermissionType.POLICY_TYPE_ALL, permission_type]
+        permission_grants = get_all_permission_grants_for_user(user_db=user_db,
+                                                               resource_uid=policy_type_uid,
+                                                               resource_types=resource_types,
+                                                               permission_types=permission_types)
+
+        if len(permission_grants) >= 1:
+            self._log('Found a grant on the policy type', extra=log_context)
+            return True
+
+        self._log('No matching grants found', extra=log_context)
+        return False
+
+
+class PolicyPermissionsResolver(ContentPackResourcePermissionsResolver):
+    """
+    Permission resolver for "policy" resource type.
+    """
+
+    resource_type = ResourceType.Policy
+    view_grant_permission_types = [
+        PermissionType.POLICY_ALL,
+        PermissionType.POLICY_CREATE,
+        PermissionType.POLICY_MODIFY,
+        PermissionType.POLICY_DELETE
+    ]
+
+    def user_has_permission(self, user_db, permission_type):
+        assert permission_type in [PermissionType.POLICY_LIST]
+        return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
+
+    def user_has_resource_api_permission(self, user_db, resource_api, permission_type):
+        assert permission_type in [PermissionType.POLICY_CREATE]
+
+        policy_uid = resource_api.get_uid()
+        pack_uid = resource_api.get_pack_uid()
+        return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
+                                                  resource_uid=policy_uid,
+                                                  permission_type=permission_type)
+
+    def user_has_resource_db_permission(self, user_db, resource_db, permission_type):
+        policy_uid = resource_db.get_uid()
+        pack_uid = resource_db.get_pack_uid()
+        return self._user_has_resource_permission(user_db=user_db, pack_uid=pack_uid,
+                                                  resource_uid=policy_uid,
+                                                  permission_type=permission_type)
+
+
 def get_resolver_for_resource_type(resource_type):
     """
     Return resolver instance for the provided resource type.
@@ -935,6 +1016,10 @@ def get_resolver_for_resource_type(resource_type):
         resolver_cls = TracePermissionsResolver
     elif resource_type == ResourceType.TRIGGER:
         resolver_cls = TriggerPermissionsResolver
+    elif resource_type == ResourceType.POLICY_TYPE:
+        resolver_cls = PolicyTypePermissionsResolver
+    elif resource_type == ResourceType.POLICY:
+        resolver_cls = PolicyPermissionsResolver
     else:
         raise ValueError('Unsupported resource: %s' % (resource_type))
 
