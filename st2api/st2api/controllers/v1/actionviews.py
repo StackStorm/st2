@@ -119,11 +119,11 @@ class OverviewController(resource.ContentPackResourceController):
                                                         requester_user=requester_user,
                                                         permission_type=PermissionType.ACTION_VIEW)
         action_api = ActionAPI(**resp.json)
-        result = self._transform_action_api(action_api)
+        result = self._transform_action_api(action_api=action_api, requester_user=requester_user)
         resp.json = result
         return resp
 
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+    def get_all(self, sort=None, offset=0, limit=None, requester_user=None, **raw_filters):
         """
             List all actions.
 
@@ -137,14 +137,17 @@ class OverviewController(resource.ContentPackResourceController):
         result = []
         for item in resp.json:
             action_api = ActionAPI(**item)
-            result.append(self._transform_action_api(action_api))
+            result.append(self._transform_action_api(action_api=action_api,
+                                                     requester_user=requester_user))
         resp.json = result
         return resp
 
     @staticmethod
-    def _transform_action_api(action_api):
+    def _transform_action_api(action_api, requester_user):
         action_id = action_api.id
-        action_api.parameters = ParametersViewController._get_one(action_id).get('parameters')
+        result = ParametersViewController._get_one(action_id=action_id,
+                                                   requester_user=requester_user)
+        action_api.parameters = result.get('parameters', {})
         return action_api
 
 

@@ -436,6 +436,11 @@ paths:
           in: query
           description: Action pack name filter
           type: string
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: List of actions
