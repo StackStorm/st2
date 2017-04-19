@@ -29,8 +29,6 @@ __all__ = [
     'main'
 ]
 
-cfg.CONF.register_cli_opt(cfg.BoolOpt('verbose', short='v', default=False))
-
 
 def setup(argv):
     common_setup(config=config, setup_db=True, register_mq_exchanges=True)
