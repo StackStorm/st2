@@ -113,7 +113,7 @@ class PolicyTypeDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
         module: The python module that implements the policy for this type.
         parameters: The specification for parameters for the policy type.
     """
-    ResourceType = ResourceType.POLICY_TYPE
+    RESOURCE_TYPE = ResourceType.POLICY_TYPE
     UID_FIELDS = ['resource_type', 'name']
 
     ref = me.StringField(required=True)
