@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import httplib
 
 import six
@@ -194,7 +195,12 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
             fixtures_dict={'policies': [file_name]})['policies'][file_name]
 
         file_name = 'policy_2.yaml'
-        PolicyControllerRBACTestCase.POLICY_TYPE_2 = self.fixtures_loader.load_fixtures(
+        PolicyControllerRBACTestCase.POLICY_2 = self.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'policies': [file_name]})['policies'][file_name]
+
+        file_name = 'policy_8.yaml'
+        PolicyControllerRBACTestCase.POLICY_8 = self.fixtures_loader.load_fixtures(
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'policies': [file_name]})['policies'][file_name]
 
@@ -212,6 +218,18 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         user_3_db = UserDB(name='policy_view_policy8_parent_pack')
         user_3_db = User.add_or_update(user_3_db)
         self.users['policy_view_policy8_parent_pack'] = user_3_db
+
+        user_4_db = UserDB(name='policy_create_policy8_parent_pack')
+        user_4_db = User.add_or_update(user_4_db)
+        self.users['policy_create_policy8_parent_pack'] = user_4_db
+
+        user_5_db = UserDB(name='policy_update_direct_policy2')
+        user_5_db = User.add_or_update(user_5_db)
+        self.users['policy_update_direct_policy2'] = user_5_db
+
+        user_6_db = UserDB(name='policy_delete_policy8_parent_pack')
+        user_6_db = User.add_or_update(user_6_db)
+        self.users['policy_delete_policy8_parent_pack'] = user_6_db
 
         # Roles
         # policy_list
@@ -247,6 +265,41 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         role_1_db = Role.add_or_update(role_1_db)
         self.roles['policy_view_policy8_parent_pack'] = role_1_db
 
+        # policy_create on a parent pack of policy 8
+        policy_pack_uid = self.models['policies']['policy_8.yaml'].get_pack_uid()
+        grant_db = PermissionGrantDB(resource_uid=policy_pack_uid,
+                                     resource_type=ResourceType.PACK,
+                                     permission_types=[PermissionType.POLICY_CREATE])
+        grant_db = PermissionGrant.add_or_update(grant_db)
+        permission_grants = [str(grant_db.id)]
+        role_1_db = RoleDB(name='policy_create_policy8_parent_pack',
+                           permission_grants=permission_grants)
+        role_1_db = Role.add_or_update(role_1_db)
+        self.roles['policy_create_policy8_parent_pack'] = role_1_db
+
+        # policy_view directly on policy1
+        policy_uid = self.models['policies']['policy_2.yaml'].get_uid()
+        grant_db = PermissionGrantDB(resource_uid=policy_uid,
+                                     resource_type=ResourceType.POLICY,
+                                     permission_types=[PermissionType.POLICY_MODIFY])
+        grant_db = PermissionGrant.add_or_update(grant_db)
+        permission_grants = [str(grant_db.id)]
+        role_1_db = RoleDB(name='policy_update_direct_policy2', permission_grants=permission_grants)
+        role_1_db = Role.add_or_update(role_1_db)
+        self.roles['policy_update_direct_policy2'] = role_1_db
+
+        # policy_delete on a parent pack of policy 8
+        policy_pack_uid = self.models['policies']['policy_8.yaml'].get_pack_uid()
+        grant_db = PermissionGrantDB(resource_uid=policy_pack_uid,
+                                     resource_type=ResourceType.PACK,
+                                     permission_types=[PermissionType.POLICY_DELETE])
+        grant_db = PermissionGrant.add_or_update(grant_db)
+        permission_grants = [str(grant_db.id)]
+        role_1_db = RoleDB(name='policy_delete_policy8_parent_pack',
+                           permission_grants=permission_grants)
+        role_1_db = Role.add_or_update(role_1_db)
+        self.roles['policy_delete_policy8_parent_pack'] = role_1_db
+
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['policy_list'].name,
@@ -261,6 +314,21 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         role_assignment_db = UserRoleAssignmentDB(
             user=self.users['policy_view_policy8_parent_pack'].name,
             role=self.roles['policy_view_policy8_parent_pack'].name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+        role_assignment_db = UserRoleAssignmentDB(
+            user=self.users['policy_create_policy8_parent_pack'].name,
+            role=self.roles['policy_create_policy8_parent_pack'].name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+        role_assignment_db = UserRoleAssignmentDB(
+            user=self.users['policy_update_direct_policy2'].name,
+            role=self.roles['policy_update_direct_policy2'].name)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
+        role_assignment_db = UserRoleAssignmentDB(
+            user=self.users['policy_delete_policy8_parent_pack'].name,
+            role=self.roles['policy_delete_policy8_parent_pack'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_all_no_permissions(self):
@@ -358,6 +426,16 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
+    def test_policy_create_success(self):
+        user_db = self.users['policy_create_policy8_parent_pack']
+        self.use_user(user_db)
+
+        data = copy.deepcopy(self.POLICY_8)
+        data['name'] = 'foo-bar-8'
+        data['resource_ref'] = 'foo-bar-8'
+        resp = self.app.post_json('/v1/policies', data)
+        self.assertEqual(resp.status_code, httplib.CREATED)
+
     def test_policy_update_no_permissions(self):
         user_db = self.users['no_permissions']
         self.use_user(user_db)
@@ -370,6 +448,26 @@ class PolicyControllerRBACTestCase(APIControllerWithRBACTestCase):
                         ' on resource "%s"' % (policy_uid))
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
+
+    def test_policy_update_success(self):
+        user_db = self.users['policy_update_direct_policy2']
+        self.use_user(user_db)
+
+        policy_id = self.models['policies']['policy_2.yaml'].id
+        data = self.POLICY_2
+        data['id'] = str(policy_id)
+        data['name'] = 'new-name'
+        resp = self.app.put_json('/v1/policies/%s' % (policy_id), data)
+        self.assertEqual(resp.status_code, httplib.OK)
+        self.assertEqual(resp.json['name'], data['name'])
+
+    def test_policy_delete_success(self):
+        user_db = self.users['policy_delete_policy8_parent_pack']
+        self.use_user(user_db)
+
+        policy_id = self.models['policies']['policy_8.yaml'].id
+        resp = self.app.delete('/v1/policies/%s' % (policy_id), expect_errors=True)
+        self.assertEqual(resp.status_code, httplib.NO_CONTENT)
 
     def test_policy_delete_no_permissions(self):
         user_db = self.users['no_permissions']
