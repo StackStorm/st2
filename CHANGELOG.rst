@@ -45,6 +45,9 @@ in development
 * Implement RBAC for policy types and policies get all and get one API endpoint. (improvement)
 * Require ``ACTION_VIEW`` permission type to be able to access entry_point and parameters actions
   view controller. (improvement)
+* Update ``/v1/rbac/permission_types`` and ``/v1/rbac/permission_types/<resource type>`` API
+  endpoint to return a dictionary which also includes a description for each available
+  permission type. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
