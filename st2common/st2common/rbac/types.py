@@ -163,14 +163,16 @@ class PermissionType(Enum):
 
         :rtype: ``str``
         """
-        split = permission_type.split('_')
-        assert len(split) >= 2
-
-        # Special case for PACK_VIEW_INDEX_HEALTH
+        # Special case for:
+        # * PACK_VIEW_INDEX_HEALTH
+        # * EXECUTION_VIEWS_FILTERS_LIST
         if permission_type == PermissionType.PACK_VIEW_INDEX_HEALTH:
-            return split[0]
+            return ResourceType.PACK
         elif permission_type == PermissionType.EXECUTION_VIEWS_FILTERS_LIST:
             return ResourceType.EXECUTION
+
+        split = permission_type.split('_')
+        assert len(split) >= 2
 
         return '_'.join(split[:-1])
 
