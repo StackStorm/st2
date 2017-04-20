@@ -106,6 +106,8 @@ class TestRbacController(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/rbac/permission_types')
         self.assertEqual(resp.status_int, 200)
+        self.assertTrue(ResourceType.ACTION in resp.json)
+        self.assertTrue(PermissionType.ACTION_LIST in resp.json[ResourceType.ACTION])
         self.assertTrue(len(list(resp.json)) > 0,
                         '/v1/rbac/permission_types did not return correct permission types.')
 
