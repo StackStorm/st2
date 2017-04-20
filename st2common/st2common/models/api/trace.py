@@ -15,6 +15,7 @@
 
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
+from st2common.models.api.base import APIUIDMixin
 from st2common.models.db.trace import TraceDB, TraceComponentDB
 
 
@@ -55,7 +56,7 @@ TraceComponentAPISchema = {
 }
 
 
-class TraceAPI(BaseAPI):
+class TraceAPI(BaseAPI, APIUIDMixin):
     model = TraceDB
     schema = {
         'title': 'Trace',

@@ -18,6 +18,7 @@ from jinja2.exceptions import UndefinedError
 from oslo_config import cfg
 import six
 
+from st2api.controllers.base import BaseRestControllerMixin
 from st2common import log as logging
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.api.action import ActionAliasAPI
@@ -47,9 +48,9 @@ CAST_OVERRIDES = {
 }
 
 
-class ActionAliasExecutionController(object):
+class ActionAliasExecutionController(BaseRestControllerMixin):
 
-    def post(self, payload, requester_user):
+    def post(self, payload, requester_user, show_secrets=False):
         action_alias_name = payload.name if payload else None
 
         if not action_alias_name:
@@ -94,6 +95,7 @@ class ActionAliasExecutionController(object):
                                              params=execution_parameters,
                                              notify=notify,
                                              context=context,
+                                             show_secrets=show_secrets,
                                              requester_user=requester_user)
 
         result = {
@@ -141,7 +143,8 @@ class ActionAliasExecutionController(object):
         notify.on_complete = on_complete
         return notify
 
-    def _schedule_execution(self, action_alias_db, params, notify, context, requester_user):
+    def _schedule_execution(self, action_alias_db, params, notify, context, requester_user,
+                            show_secrets):
         action_ref = action_alias_db.action_ref
         action_db = action_utils.get_action_by_ref(action_ref)
 
@@ -164,7 +167,8 @@ class ActionAliasExecutionController(object):
             liveaction = LiveActionDB(action=action_alias_db.action_ref, context=context,
                                       parameters=params, notify=notify)
             _, action_execution_db = action_service.request(liveaction)
-            return ActionExecutionAPI.from_model(action_execution_db)
+            mask_secrets = self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+            return ActionExecutionAPI.from_model(action_execution_db, mask_secrets=mask_secrets)
         except ValueError as e:
             LOG.exception('Unable to execute action.')
             abort(http_client.BAD_REQUEST, str(e))

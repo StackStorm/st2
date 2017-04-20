@@ -26,6 +26,20 @@ in development
   tokens and services use special service access tokens with no max TTL limit. (bug fix)
 
   Reported by Jiang Wei. #3314 #3315
+* Allow user to specify a custom list of attribute names which are masked in the log messages by
+  setting ``log.mask_secrets_blacklist`` config option. (improvement)
+* Update ``/executions/views/filters`` API endpoint so it excludes null / None from filter values
+  for fields where ``null`` is not a valid field value. (improvement)
+
+  Contributed by Cody A. Ray. #3193
+* Make sure all the role assignments for a particular user are correctly deleted from the database
+  after deleting an assignment file from ``/opt/stackstorm/rbac/assignments`` directory and running
+  ``st2-apply-rbac-definitions`` tool. (bug fix)
+* Implement RBAC for traces API endpoints. (improvement)
+* Implement RBAC for ``API_KEY_CREATE`` permission type. (improvement)
+* Implement RBAC for timers API endpoints. Note: timers are just a type of triggers so they utilize
+  ``TRIGGER_*`` RBAC permission constants (improvement)
+* Implement RBAC for webhooks get all and get one API endpoint. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------

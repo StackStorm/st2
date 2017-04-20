@@ -185,11 +185,22 @@ class RBACDefinitionsDBSyncer(object):
         LOG.info('Synchronizing users role assignments...')
 
         user_dbs = User.get_all()
+
         username_to_user_db_map = dict([(user_db.name, user_db) for user_db in user_dbs])
+        username_to_role_assignment_api_map = dict([(role_assignment_api.username,
+            role_assignment_api) for role_assignment_api in role_assignment_apis])
+
+        # Note: We process assignments for all the users (ones specified in the assignment files
+        # and ones which are in the databse). We want to make sure assignments are correctly
+        # deleted from the databse for users which existing in the databse, but have no assignment
+        # file on disk.
+        all_usernames = (username_to_user_db_map.keys() +
+                         username_to_role_assignment_api_map.keys())
+        all_usernames = list(set(all_usernames))
 
         results = {}
-        for role_assignment_api in role_assignment_apis:
-            username = role_assignment_api.username
+        for username in all_usernames:
+            role_assignment_api = username_to_role_assignment_api_map.get(username, None)
             user_db = username_to_user_db_map.get(username, None)
 
             if not user_db:

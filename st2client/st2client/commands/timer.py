@@ -30,7 +30,7 @@ class TimerBranch(resource.ResourceBranch):
 
 
 class TimerListCommand(resource.ResourceListCommand):
-    display_attributes = ['id', 'pack', 'name', 'type', 'parameters']
+    display_attributes = ['id', 'uid', 'pack', 'name', 'type', 'parameters']
 
     def __init__(self, resource, *args, **kwargs):
         super(TimerListCommand, self).__init__(resource, *args, **kwargs)

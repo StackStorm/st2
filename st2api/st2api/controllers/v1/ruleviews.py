@@ -24,6 +24,7 @@ from st2common.models.system.common import ResourceReference
 from st2common.persistence.action import Action
 from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger
+from st2common.rbac.types import PermissionType
 
 http_client = six.moves.http_client
 
@@ -92,8 +93,9 @@ class RuleViewController(resource.ContentPackResourceController):
         rules.json = result
         return rules
 
-    def get_one(self, ref_or_id):
-        rule = self._get_one(ref_or_id)
+    def get_one(self, ref_or_id, requester_user):
+        rule = self._get_one(ref_or_id, permission_type=PermissionType.RULE_VIEW,
+                             requester_user=requester_user)
         result = self._append_view_properties([rule.json])[0]
         rule.json = result
         return rule

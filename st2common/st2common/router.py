@@ -20,11 +20,11 @@ import six
 import sys
 import traceback
 
+from flex.core import validate
 import jsonschema
 from oslo_config import cfg
 import routes
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
-from swagger_spec_validator.validator20 import validate_spec
 import webob
 from webob import exc, Request
 
@@ -157,7 +157,9 @@ class Router(object):
         LOG.debug('Adding API: %s %s', info.get('title', 'untitled'), info.get('version', '0.0.0'))
 
         self.spec = spec
-        self.spec_resolver = validate_spec(copy.deepcopy(self.spec))
+        self.spec_resolver = jsonschema.RefResolver('', self.spec)
+
+        validate(copy.deepcopy(self.spec))
 
         for filter in transforms:
             for (path, methods) in six.iteritems(spec['paths']):
@@ -396,8 +398,19 @@ class Router(object):
                     kw[argument_name] = float(kw[argument_name])
 
         # Call the controller
-        func = op_resolver(endpoint['operationId'])
-        resp = func(**kw)
+        try:
+            func = op_resolver(endpoint['operationId'])
+        except Exception as e:
+            LOG.exception('Failed to load controller for operation "%s": %s' %
+                          (endpoint['operationId'], str(e)))
+            raise e
+
+        try:
+            resp = func(**kw)
+        except Exception as e:
+            LOG.exception('Failed to call controller function "%s" for operation "%s": %s' %
+                          (func.__name__, endpoint['operationId'], str(e)))
+            raise e
 
         # Handle response
         if resp is None:

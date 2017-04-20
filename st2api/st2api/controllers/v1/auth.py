@@ -71,7 +71,7 @@ class ApiKeyController(BaseRestControllerMixin):
         try:
             api_key_db = ApiKey.get_by_key_or_id(api_key_id_or_key)
         except ApiKeyNotFoundError:
-            msg = 'ApiKey matching %s for reference and id not found.', api_key_id_or_key
+            msg = ('ApiKey matching %s for reference and id not found.' % (api_key_id_or_key))
             LOG.exception(msg)
             abort(http_client.NOT_FOUND, msg)
 

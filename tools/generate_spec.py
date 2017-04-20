@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.7
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,39 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2common.util.enum import Enum
+import pkg_resources
 
-__all__ = [
-    'ResourceType'
-]
+import jinja2
+
+from st2common.util.spec_loader import ARGUMENTS
 
 
-class ResourceType(Enum):
-    """
-    Enum representing a valid resource type in a system.
-    """
-
-    # System resources
-    RUNNER_TYPE = 'runner_type'
-
-    # Pack resources
-    PACK = 'pack'
-    ACTION = 'action'
-    ACTION_ALIAS = 'action_alias'
-    SENSOR_TYPE = 'sensor_type'
-    TRIGGER_TYPE = 'trigger_type'
-    TRIGGER = 'trigger'
-    TRIGGER_INSTANCE = 'trigger_instance'
-    RULE = 'rule'
-    RULE_ENFORCEMENT = 'rule_enforcement'
-
-    # Other resources
-    EXECUTION = 'execution'
-    KEY_VALUE_PAIR = 'key_value_pair'
-
-    WEBHOOK = 'webhook'
-    API_KEY = 'api_key'
-    TRACE = 'trace'
-    TIMER = 'timer'
-
-    UNKNOWN = 'unknown'
+if __name__ == '__main__':
+    spec_template = pkg_resources.resource_string('st2common', 'openapi.yaml')
+    spec_string = jinja2.Template(spec_template).render(**ARGUMENTS)
+    print(spec_string)

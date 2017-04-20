@@ -22,9 +22,15 @@ from st2common.constants.triggers import TIMER_TRIGGER_TYPES
 from st2common.models.api.trigger import TriggerAPI
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import Trigger
+from st2common.rbac.types import PermissionType
 import st2common.services.triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.router import abort
+
+__all__ = [
+    'TimersController',
+    'TimersHolder'
+]
 
 
 LOG = logging.getLogger(__name__)
@@ -63,7 +69,7 @@ class TimersController(resource.ContentPackResourceController):
         'sort': ['type']
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self._timers = TimersHolder()
         self._trigger_types = TIMER_TRIGGER_TYPES.keys()
         queue_suffix = self.__class__.__name__
@@ -85,6 +91,11 @@ class TimersController(resource.ContentPackResourceController):
         t_all = self._timers.get_all(timer_type=timer_type)
         LOG.debug('Got timers: %s', t_all)
         return t_all
+
+    def get_one(self, ref_or_id, requester_user):
+        return self._get_one(ref_or_id,
+                             requester_user=requester_user,
+                             permission_type=PermissionType.TRIGGER_VIEW)
 
     def add_trigger(self, trigger):
         # Note: Permission checking for creating and deleting a timer is done during rule
