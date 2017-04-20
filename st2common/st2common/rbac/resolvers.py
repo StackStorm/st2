@@ -646,7 +646,8 @@ class ExecutionPermissionsResolver(PermissionsResolver):
     resource_type = ResourceType.EXECUTION
 
     def user_has_permission(self, user_db, permission_type):
-        assert permission_type in [PermissionType.EXECUTION_LIST]
+        assert permission_type in [PermissionType.EXECUTION_LIST,
+                                   PermissionType.EXECUTION_VIEWS_FILTERS_LIST]
         return self._user_has_list_permission(user_db=user_db, permission_type=permission_type)
 
     def user_has_resource_db_permission(self, user_db, resource_db, permission_type):

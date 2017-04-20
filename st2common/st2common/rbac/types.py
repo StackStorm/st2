@@ -94,7 +94,7 @@ class PermissionType(Enum):
     EXECUTION_RE_RUN = 'execution_rerun'
     EXECUTION_STOP = 'execution_stop'
     EXECUTION_ALL = 'execution_all'
-    EXECUTION_VIEW_FILTERS_LIST = 'execution_view_filters_list'
+    EXECUTION_VIEWS_FILTERS_LIST = 'execution_view_filters_list'
 
     RULE_LIST = 'rule_list'
     RULE_VIEW = 'rule_view'
@@ -169,6 +169,8 @@ class PermissionType(Enum):
         # Special case for PACK_VIEW_INDEX_HEALTH
         if permission_type == PermissionType.PACK_VIEW_INDEX_HEALTH:
             return split[0]
+        elif permission_type == PermissionType.EXECUTION_VIEWS_FILTERS_LIST:
+            return ResourceType.EXECUTION
 
         return '_'.join(split[:-1])
 
@@ -340,6 +342,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.EXECUTION_RE_RUN,
         PermissionType.EXECUTION_STOP,
         PermissionType.EXECUTION_ALL,
+        PermissionType.EXECUTION_VIEWS_FILTERS_LIST,
     ],
     ResourceType.KEY_VALUE_PAIR: [
         PermissionType.KEY_VALUE_VIEW,
@@ -414,7 +417,7 @@ GLOBAL_PERMISSION_TYPES = [
     PermissionType.POLICY_CREATE,
 
     # Execution
-    PermissionType.EXECUTION_VIEW_FILTERS_LIST
+    PermissionType.EXECUTION_VIEWS_FILTERS_LIST
 ] + LIST_PERMISSION_TYPES
 
 GLOBAL_PACK_PERMISSION_TYPES = [permission_type for permission_type in GLOBAL_PERMISSION_TYPES if
@@ -476,7 +479,8 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.EXECUTION_STOP: 'Ability to stop (cancel) a running execution.',
     PermissionType.EXECUTION_ALL: ('Ability to perform all the supported operations on a '
                                    'particular execution.'),
-    PermissionType.EXECUTION_VIEW_FILTERS_LIST: ('Ability vew all the distinct execution filters'),
+    PermissionType.EXECUTION_VIEWS_FILTERS_LIST: ('Ability vew all the distinct execution '
+                                                  'filters.'),
 
     PermissionType.RULE_LIST: 'Ability to list (view all) rules.',
     PermissionType.RULE_VIEW: 'Ability to view a rule.',
