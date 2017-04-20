@@ -518,4 +518,17 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.TRIGGER_LIST: ('Ability to list (view all) triggers.'),
     PermissionType.TRIGGER_VIEW: ('Ability to view a trigger.'),
     PermissionType.TRIGGER_ALL: ('Ability to perform all the supported operations on triggers.'),
+
+    PermissionType.POLICY_TYPE_LIST: ('Ability to list (view all) policy types.'),
+    PermissionType.POLICY_TYPE_VIEW: ('Ability to view a policy types.'),
+    PermissionType.POLICY_TYPE_ALL: ('Ability to perform all the supported operations on policy'
+                                     ' types.'),
+
+    PermissionType.POLICY_LIST: 'Ability to list (view all) policies.',
+    PermissionType.POLICY_VIEW: ('Ability to view a policy.'),
+    PermissionType.POLICY_CREATE: ('Ability to create a new policy.'),
+    PermissionType.POLICY_MODIFY: ('Ability to modify an existing policy.'),
+    PermissionType.POLICY_DELETE: ('Ability to delete an existing policy.'),
+    PermissionType.POLICY_ALL: ('Ability to perform all the supported operations on a particular '
+                                'policy.')
 }
