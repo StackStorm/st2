@@ -2011,19 +2011,6 @@ paths:
           description: Dictionary of permission types by resource types.
           schema:
             type: object
-          examples:
-            application/json:
-              runner_type:
-                - runner_type_list
-                - runner_type_view
-                - runner_type_modify
-                - runner_type_all
-              pack:
-                - pack_list
-                - pack_view
-                - pack_create
-                - pack_modify
-                - pack_delete
         default:
           description: Unexpected error
           schema:
@@ -2047,15 +2034,7 @@ paths:
         '200':
           description: List of permission types.
           schema:
-            type: array
-            items:
-              type: string
-          examples:
-            application/json:
-              - runner_type_list
-              - runner_type_view
-              - runner_type_modify
-              - runner_type_all
+            type: object
         default:
           description: Unexpected error
           schema:

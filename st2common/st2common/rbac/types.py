@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
 import itertools
 
 from st2common.util.enum import Enum
@@ -29,7 +30,9 @@ __all__ = [
     'ALL_PERMISSION_TYPES',
     'GLOBAL_PERMISSION_TYPES',
     'GLOBAL_PACK_PERMISSION_TYPES',
-    'LIST_PERMISSION_TYPES'
+    'LIST_PERMISSION_TYPES',
+
+    'get_resource_permission_types_with_descriptions'
 ]
 
 
@@ -532,3 +535,20 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.POLICY_ALL: ('Ability to perform all the supported operations on a particular '
                                 'policy.')
 }
+
+
+def get_resource_permission_types_with_descriptions():
+    """
+    Return available permission types for each resource types with corresponding descriptions.
+
+    :rtype: ``dict`
+    """
+    result = {}
+
+    for resource_type, permission_types in six.iteritems(RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP):
+        result[resource_type] = {}
+        for permission_type in permission_types:
+            result[resource_type][permission_type] = \
+                PERMISION_TYPE_TO_DESCRIPTION_MAP[permission_type]
+
+    return result

@@ -13,14 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
-
 from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.rbac import RoleAPI
 from st2common.persistence.rbac import Role
-from st2common.rbac.types import RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP
-from st2common.rbac.types import PERMISION_TYPE_TO_DESCRIPTION_MAP
+from st2common.rbac.types import get_resource_permission_types_with_descriptions
 from st2common.rbac import utils as rbac_utils
 from st2common.router import exc
 
@@ -73,14 +70,7 @@ class PermissionTypesController(object):
         """
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
-        result = {}
-
-        for resource_type, permission_types in six.iteritems(RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP):
-            result[resource_type] = {}
-            for permission_type in permission_types:
-                result[resource_type][permission_type] = \
-                    PERMISION_TYPE_TO_DESCRIPTION_MAP[permission_type]
-
+        result = get_resource_permission_types_with_descriptions()
         return result
 
     def get_one(self, resource_type, requester_user):
@@ -92,11 +82,15 @@ class PermissionTypesController(object):
         """
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
-        permission_types = RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP.get(resource_type, None)
+        all_permission_types = get_resource_permission_types_with_descriptions()
+        permission_types = all_permission_types.get(resource_type, None)
+
         if permission_types is None:
             raise exc.HTTPNotFound('Invalid resource type: %s' % (resource_type))
 
-        return permission_types
+        result = {}
+        result[resource_type] = permission_types
+        return result
 
 
 roles_controller = RolesController()
