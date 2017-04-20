@@ -13,13 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
+import six
 
 from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.rbac import RoleAPI
 from st2common.persistence.rbac import Role
 from st2common.rbac.types import RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP
+from st2common.rbac.types import PERMISION_TYPE_TO_DESCRIPTION_MAP
 from st2common.rbac import utils as rbac_utils
 from st2common.router import exc
 
@@ -72,7 +73,14 @@ class PermissionTypesController(object):
         """
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
-        result = copy.deepcopy(RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP)
+        result = {}
+
+        for resource_type, permission_types in six.iteritems(RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP):
+            result[resource_type] = {}
+            for permission_type in permission_types:
+                result[resource_type][permission_type] = \
+                    PERMISION_TYPE_TO_DESCRIPTION_MAP[permission_type]
+
         return result
 
     def get_one(self, resource_type, requester_user):
