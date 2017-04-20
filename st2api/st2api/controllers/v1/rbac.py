@@ -88,9 +88,7 @@ class PermissionTypesController(object):
         if permission_types is None:
             raise exc.HTTPNotFound('Invalid resource type: %s' % (resource_type))
 
-        result = {}
-        result[resource_type] = permission_types
-        return result
+        return permission_types
 
 
 roles_controller = RolesController()
