@@ -80,7 +80,7 @@ class PermissionTypesController(object):
             List all the available permission types for a particular resource type.
 
             Handles requests:
-                GET /rbac/permission_types
+                GET /rbac/permission_types/<resource type>
         """
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
