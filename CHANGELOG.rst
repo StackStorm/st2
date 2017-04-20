@@ -48,6 +48,8 @@ in development
 * Update ``/v1/rbac/permission_types`` and ``/v1/rbac/permission_types/<resource type>`` API
   endpoint to return a dictionary which also includes a description for each available
   permission type. (improvement)
+* Require ``EXECUTION_VIEWS_FILTERS_LIST`` RBAC permission type to be able to access
+  ``/executions/views/filters`` API endpoint. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
