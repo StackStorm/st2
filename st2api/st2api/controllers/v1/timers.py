@@ -22,8 +22,10 @@ from st2common.constants.triggers import TIMER_TRIGGER_TYPES
 from st2common.models.api.trigger import TriggerAPI
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import Trigger
+from st2common.models.db.timer import TimerDB
 from st2common.rbac.types import PermissionType
-import st2common.services.triggers as trigger_service
+from st2common.rbac import utils as rbac_utils
+from st2common.services import triggers as trigger_service
 from st2common.services.triggerwatcher import TriggerWatcher
 from st2common.router import abort
 
@@ -93,9 +95,21 @@ class TimersController(resource.ContentPackResourceController):
         return t_all
 
     def get_one(self, ref_or_id, requester_user):
-        return self._get_one(ref_or_id,
-                             requester_user=requester_user,
-                             permission_type=PermissionType.TIMER_VIEW)
+        try:
+            trigger_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
+        except Exception as e:
+            LOG.exception(e.message)
+            abort(http_client.NOT_FOUND, e.message)
+            return
+
+        permission_type = PermissionType.TIMER_VIEW
+        resource_db = TimerDB(pack=trigger_db.pack, name=trigger_db.name)
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=resource_db,
+                                                          permission_type=permission_type)
+
+        result = self.model.from_model(trigger_db)
+        return result
 
     def add_trigger(self, trigger):
         # Note: Permission checking for creating and deleting a timer is done during rule

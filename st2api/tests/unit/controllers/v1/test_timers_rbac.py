@@ -124,11 +124,12 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
         user_db = self.users['no_permissions']
         self.use_user(user_db)
 
-        trigger_id = self.models['triggers']['cron1.yaml'].id
-        trigger_uid = self.models['triggers']['cron1.yaml'].get_uid()
+        trigger_db = self.models['triggers']['cron1.yaml']
+        trigger_id = trigger_db.id
+        timer_uid = TimerDB(name=trigger_db.name, pack=trigger_db.pack).get_uid()
         resp = self.app.get('/v1/timers/%s' % (trigger_id), expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission "timer_view"'
-                        ' on resource "%s"' % (trigger_uid))
+                        ' on resource "%s"' % (timer_uid))
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
@@ -141,11 +142,12 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(resp.status_code, httplib.OK)
         self.assertEqual(len(resp.json), 5)
 
-        trigger_id = self.models['triggers']['cron1.yaml'].id
-        trigger_uid = self.models['triggers']['cron1.yaml'].get_uid()
+        trigger_db = self.models['triggers']['cron1.yaml']
+        trigger_id = trigger_db.id
+        timer_uid = TimerDB(name=trigger_db.name, pack=trigger_db.pack).get_uid()
         resp = self.app.get('/v1/timers/%s' % (trigger_id), expect_errors=True)
         expected_msg = ('User "timer_list" doesn\'t have required permission "timer_view"'
-                        ' on resource "%s"' % (trigger_uid))
+                        ' on resource "%s"' % (timer_uid))
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
@@ -154,8 +156,9 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.use_user(user_db)
 
         # timer_view permission, but no timer_list permission
-        trigger_id = self.models['triggers']['cron1.yaml'].id
-        trigger_uid = self.models['triggers']['cron1.yaml'].get_uid()
+        trigger_db = self.models['triggers']['cron1.yaml']
+        trigger_id = trigger_db.id
+        trigger_uid = trigger_db.get_uid()
         resp = self.app.get('/v1/timers/%s' % (trigger_id))
         self.assertEqual(resp.status_code, httplib.OK)
         self.assertEqual(resp.json['uid'], trigger_uid)
