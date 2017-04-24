@@ -14,15 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
-import pkg_resources
-
-import jinja2
-
-from st2common.util.spec_loader import ARGUMENTS
-
+import sys
+from st2common.cmd.validate_api_spec import main
 
 if __name__ == '__main__':
-    spec_template = pkg_resources.resource_string('st2common', 'openapi.yaml.j2')
-    spec_string = jinja2.Template(spec_template).render(**ARGUMENTS)
-    print(spec_string)
+    sys.exit(main())
