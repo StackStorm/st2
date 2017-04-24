@@ -41,6 +41,7 @@ in development
   ``TRIGGER_*`` RBAC permission constants (improvement)
 * Implement RBAC for webhooks get all and get one API endpoint. (improvement)
 * Add webhook payload to the Jinja render context when rendering Jinja variable inside rule criteria section
+* Cancel actions that are Mistral workflow when the parent workflow is cancelled. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
