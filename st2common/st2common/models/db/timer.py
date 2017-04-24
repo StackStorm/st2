@@ -32,6 +32,7 @@ class TimerDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
     UID_FIELDS = ['pack', 'name']
 
     name = me.StringField(required=True)
+    pack = me.StringField(required=True, unique_with='name')
     type = me.StringField()
     parameters = me.DictField()
 
