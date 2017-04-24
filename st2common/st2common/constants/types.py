@@ -48,6 +48,7 @@ class ResourceType(Enum):
     KEY_VALUE_PAIR = 'key_value_pair'
 
     WEBHOOK = 'webhook'
+    TIMER = 'timer'
     API_KEY = 'api_key'
     TRACE = 'trace'
     TIMER = 'timer'

@@ -118,6 +118,10 @@ class PermissionType(Enum):
     WEBHOOK_DELETE = 'webhook_delete'
     WEBHOOK_ALL = 'webhook_all'
 
+    TIMER_LIST = 'timer_list'
+    TIMER_VIEW = 'timer_view'
+    TIMER_ALL = 'timer_all'
+
     API_KEY_LIST = 'api_key_list'
     API_KEY_VIEW = 'api_key_view'
     API_KEY_CREATE = 'api_key_create'
@@ -242,6 +246,7 @@ class ResourceType(Enum):
     EXECUTION = SystemResourceType.EXECUTION
     KEY_VALUE_PAIR = SystemResourceType.KEY_VALUE_PAIR
     WEBHOOK = SystemResourceType.WEBHOOK
+    TIMER = SystemResourceType.TIMER
     API_KEY = SystemResourceType.API_KEY
     TRACE = SystemResourceType.TRACE
     TRIGGER = SystemResourceType.TRIGGER
@@ -358,6 +363,11 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.WEBHOOK_SEND,
         PermissionType.WEBHOOK_DELETE,
         PermissionType.WEBHOOK_ALL
+    ],
+    ResourceType.TIMER: [
+        PermissionType.TIMER_LIST,
+        PermissionType.TIMER_VIEW,
+        PermissionType.TIMER_ALL
     ],
     ResourceType.API_KEY: [
         PermissionType.API_KEY_LIST,
@@ -512,6 +522,10 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.WEBHOOK_DELETE: ('Ability to delete an existing webhook.'),
     PermissionType.WEBHOOK_ALL: ('Ability to perform all the supported operations on a particular '
                                  'webhook.'),
+
+    PermissionType.TIMER_LIST: 'Ability to list (view all) timers.',
+    PermissionType.TIMER_VIEW: ('Ability to view a timer.'),
+    PermissionType.TIMER_ALL: ('Ability to perform all the supported operations on timers'),
 
     PermissionType.API_KEY_LIST: 'Ability to list (view all) API keys.',
     PermissionType.API_KEY_VIEW: ('Ability to view an API Key.'),

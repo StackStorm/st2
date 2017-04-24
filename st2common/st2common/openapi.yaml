@@ -2881,7 +2881,7 @@ paths:
   /api/v1/timers:
     get:
       operationId: st2api.controllers.v1.timers:timers_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.TRIGGER_LIST }}
+      x-permissions: {{ PERMISSION_TYPE.TIMER_LIST }}
       description: Returns a list of all the timers.
       parameters:
         - name: timer_type

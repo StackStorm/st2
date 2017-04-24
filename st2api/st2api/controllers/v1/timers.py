@@ -95,7 +95,7 @@ class TimersController(resource.ContentPackResourceController):
     def get_one(self, ref_or_id, requester_user):
         return self._get_one(ref_or_id,
                              requester_user=requester_user,
-                             permission_type=PermissionType.TRIGGER_VIEW)
+                             permission_type=PermissionType.TIMER_VIEW)
 
     def add_trigger(self, trigger):
         # Note: Permission checking for creating and deleting a timer is done during rule
