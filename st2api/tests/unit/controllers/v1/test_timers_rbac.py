@@ -92,8 +92,8 @@ class TimerControllerRBACTestCase(APIControllerWithRBACTestCase):
         trigger_db = self.models['triggers']['cron1.yaml']
         timer_uid = TimerDB(name=trigger_db.name, pack=trigger_db.pack).get_uid()
         grant_db = PermissionGrantDB(resource_uid=timer_uid,
-                                     resource_type=ResourceType.TRIGGER,
-                                     permission_types=[PermissionType.TRIGGER_VIEW])
+                                     resource_type=ResourceType.TIMER,
+                                     permission_types=[PermissionType.TIMER_VIEW])
         grant_db = PermissionGrant.add_or_update(grant_db)
         permission_grants = [str(grant_db.id)]
         role_1_db = RoleDB(name='timer_view', permission_grants=permission_grants)
