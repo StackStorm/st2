@@ -684,6 +684,8 @@ class ExecutionPermissionsResolver(PermissionsResolver):
             action_permission_type = PermissionType.ACTION_EXECUTE
         elif permission_type == PermissionType.EXECUTION_ALL:
             action_permission_type = PermissionType.ACTION_ALL
+        elif permission_type == PermissionType.EXECUTION_VIEWS_FILTERS_LIST:
+            action_permission_type = PermissionType.EXECUTION_VIEWS_FILTERS_LIST
         else:
             raise ValueError('Invalid permission type: %s' % (permission_type))
 
