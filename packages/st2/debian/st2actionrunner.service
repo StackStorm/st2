@@ -7,6 +7,7 @@ Type=oneshot
 EnvironmentFile=-/etc/default/st2actionrunner
 ExecStart=/bin/bash /opt/stackstorm/st2/bin/runners.sh start
 ExecStop=/bin/bash /opt/stackstorm/st2/bin/runners.sh stop
+PrivateTmp=true
 RemainAfterExit=true
 
 [Install]

@@ -1,6 +1,7 @@
 [Unit]
 Description=StackStorm service st2actionrunner
 After=network.target
+JoinsNamespaceOf=st2actionrunner.service
 
 [Service]
 Type=simple
