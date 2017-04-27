@@ -53,7 +53,6 @@ class FileWatchSensor(Sensor):
             self._logger.error('Received trigger type without "file_path" field.')
             return
 
-        file_path = trigger['parameters']['file_path']
         self._tail.remove_file(filename=file_path)
 
         self._logger.info('Removed file "%s"' % (file_path))
