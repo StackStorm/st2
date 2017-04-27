@@ -33,10 +33,12 @@ class FileWatchSensor(Sensor):
                 pass
 
     def add_trigger(self, trigger):
-        if trigger['type'] not in ['linux.file_watch.file_path']:
+        file_path = trigger['parameters'].get('file_path', None)
+
+        if not file_path:
+            self._logger.error('Received trigger type without "file_path" field.')
             return
 
-        file_path = trigger['parameters']['file_path']
         self._tail.add_file(filename=file_path)
 
         self._logger.info('Added file "%s"' % (file_path))
