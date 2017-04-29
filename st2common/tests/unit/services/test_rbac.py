@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pymongo import MongoClient
+
 from st2tests.base import CleanDbTestCase
 from st2common.services import rbac as rbac_services
 from st2common.rbac.types import PermissionType
@@ -49,6 +51,10 @@ class RBACServicesTestCase(CleanDbTestCase):
         user_3_db = User.add_or_update(user_3_db)
         self.users['no_roles'] = user_3_db
 
+        user_5_db = UserDB(name='user_5')
+        user_5_db = User.add_or_update(user_5_db)
+        self.users['user_5'] = user_5_db
+
         user_4_db = UserDB(name='custom_role')
         user_4_db = User.add_or_update(user_4_db)
         self.users['1_custom_role'] = user_4_db
@@ -70,6 +76,39 @@ class RBACServicesTestCase(CleanDbTestCase):
         rule_1_db = Rule.add_or_update(rule_1_db)
 
         self.resources['rule_1'] = rule_1_db
+
+    def test_get_role_assignments_for_user(self):
+        # Test a case where a document doesn't exist is_remote field and when it
+        # does
+        # Note: User use pymongo to insert mock data because we want to insert a
+        # raw document and skip mongoengine to leave is_remote field unpopulated
+
+        client = MongoClient()
+        db = client['st2-test']
+        db.user_role_assignment_d_b.insert_one({'user': 'user_5', 'role': 'role_1'})
+        db.user_role_assignment_d_b.insert_one({'user': 'user_5', 'role': 'role_2'})
+        db.user_role_assignment_d_b.insert_one({'user': 'user_5', 'role': 'role_3',
+                                               'is_remote': False})
+        db.user_role_assignment_d_b.insert_one({'user': 'user_5', 'role': 'role_4',
+                                               'is_remote': True})
+
+        user_db = self.users['user_5']
+        role_assignment_dbs = rbac_services.get_role_assignments_for_user(user_db=user_db,
+                                                                          include_remote=False)
+        self.assertEqual(len(role_assignment_dbs), 3)
+        self.assertEqual(role_assignment_dbs[0].role, 'role_1')
+        self.assertEqual(role_assignment_dbs[1].role, 'role_2')
+        self.assertEqual(role_assignment_dbs[2].role, 'role_3')
+        self.assertEqual(role_assignment_dbs[0].is_remote, False)
+        self.assertEqual(role_assignment_dbs[1].is_remote, False)
+        self.assertEqual(role_assignment_dbs[2].is_remote, False)
+
+        user_db = self.users['user_5']
+        role_assignment_dbs = rbac_services.get_role_assignments_for_user(user_db=user_db,
+                                                                          include_remote=True)
+        self.assertEqual(len(role_assignment_dbs), 4)
+        self.assertEqual(role_assignment_dbs[3].role, 'role_4')
+        self.assertEqual(role_assignment_dbs[3].is_remote, True)
 
     def test_get_all_roles(self):
         role_dbs = rbac_services.get_all_roles()
