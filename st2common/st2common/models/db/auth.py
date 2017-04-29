@@ -45,13 +45,16 @@ class UserDB(stormbase.StormFoundationDB):
     nicknames = me.DictField(required=False,
                              help_text='"Nickname + origin" pairs for ChatOps auth')
 
-    def get_roles(self):
+    def get_roles(self, include_remote=True):
         """
         Retrieve roles assigned to that user.
 
+        :param include_remote: True to also include remote role assignments.
+        :type include_remote: ``bool``
+
         :rtype: ``list`` of :class:`RoleDB`
         """
-        result = get_roles_for_user(user_db=self)
+        result = get_roles_for_user(user_db=self, include_remote=include_remote)
         return result
 
     def get_permission_assignments(self):
