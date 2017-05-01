@@ -41,6 +41,9 @@ in development
   ``TRIGGER_*`` RBAC permission constants (improvement)
 * Implement RBAC for webhooks get all and get one API endpoint. (improvement)
 * Add webhook payload to the Jinja render context when rendering Jinja variable inside rule criteria section
+* Switch file_watch_sensor in Linux pack to use trigger type with parameters. Now you can add a
+  rule with `file_path` and sensor will pick up the `file_path` from the rule. A sample rule
+  is provided in contrib/examples/rules/sample_rule_file_watch.yaml. (improvement)
 * Cancel actions that are Mistral workflow when the parent workflow is cancelled. (improvement)
 
 2.2.1 - April 3, 2017
