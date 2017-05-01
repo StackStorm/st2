@@ -192,7 +192,7 @@ class SensorWrapper(object):
                                                trigger_types=self._trigger_types,
                                                queue_suffix='sensorwrapper_%s_%s' %
                                                (self._pack, self._class_name),
-                                               exclusive=True)
+                                               exclusive=True, notify_disabled=True)
 
         # 4. Set up logging
         self._logger = logging.getLogger('SensorWrapper.%s.%s' %
