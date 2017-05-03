@@ -202,7 +202,7 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         syncer.sync_users_role_assignments(role_assignment_apis=[])
         role_assignment_dbs = get_role_assignments_for_user(user_db=self.users['user_5'])
         self.assertEqual(len(role_assignment_dbs), 1)
-        self.assertEqual(role_assignment_dbs[0].name, 'role_4')
+        self.assertEqual(role_assignment_dbs[0].role, 'role_4')
         self.assertEqual(role_assignment_dbs[0].is_remote, True)
 
     def test_sync_user_assignments_multiple_custom_roles_assignments(self):
