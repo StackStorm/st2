@@ -20,8 +20,6 @@ in st2common/models/api/.
 """
 
 import os
-import pprint
-import sys
 
 from oslo_config import cfg
 from prance import ResolvingParser
@@ -57,17 +55,24 @@ def setup():
 
 def _validate_definitions(spec):
     defs = spec.get('definitions', None)
+    error = False
+    verbose = cfg.CONF.verbose
 
     for (model, definition) in defs.iteritems():
         api_model = definition.get('x-api-model', None)
 
         if not api_model:
             msg = (
-                'API model field "x-api-model" not defined for definition %s.' % model +
-                ' Supplied definition is %s.' % definition
+                'API model field "x-api-model" not defined for definition "%s".' % model
             )
 
-            raise Exception(msg)
+            if verbose:
+                LOG.info('Supplied definition for model %s: \n\n%s.', model, definition)
+
+            error = True
+            LOG.error(msg)
+
+    return error
 
 
 def validate_spec():
@@ -92,20 +97,23 @@ def validate_spec():
 
     parser = ResolvingParser(spec_file)
     spec = parser.specification
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(spec)
-    _validate_definitions(spec)
+
+    return _validate_definitions(spec)
 
 
 def teartown():
     common_teardown()
 
+
 def main():
+    setup()
+
     try:
-        setup()
-        validate_spec()
-    except Exception, e:
+        ret = validate_spec()
+    except Exception as e:
         LOG.error(e.message)
-        return 1
+        ret = 1
     finally:
         teartown()
+
+    return ret
