@@ -42,7 +42,6 @@ class SensorServiceTestCase(unittest2.TestCase):
         self.validate_trigger_payload = cfg.CONF.system.validate_trigger_payload
 
     def tearDown(self):
-
         # Replace original configured value for payload validation
         cfg.CONF.system.validate_trigger_payload = self.validate_trigger_payload
 
@@ -68,8 +67,8 @@ class SensorServiceTestCase(unittest2.TestCase):
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
                 mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
-    def test_dispatch_failure_with_default_config(self):
-        """Tests for default configuration values
+    def test_dispatch_success_with_default_config_and_invalid_payload(self):
+        """Tests that an invalid payload still results in dispatch success with default config
 
         The previous config defition used StrOpt instead of BoolOpt for
         cfg.CONF.system.validate_trigger_payload. This meant that even though the intention
