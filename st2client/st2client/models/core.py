@@ -16,6 +16,7 @@
 import os
 import json
 import logging
+from collections import OrderedDict
 from functools import wraps
 
 import six
@@ -122,9 +123,9 @@ class Resource(object):
                     if not k.startswith('_'))
 
     @classmethod
-    def deserialize(cls, doc):
+    def deserialize(cls, doc, **kwargs):
         if type(doc) is not dict:
-            doc = json.loads(doc)
+            doc = json.loads(doc, **kwargs)
         return cls(**doc)
 
     def __str__(self):
@@ -202,7 +203,7 @@ class ResourceManager(object):
             return None
         if response.status_code != 200:
             self.handle_error(response)
-        return self.resource.deserialize(response.json())
+        return self.resource.deserialize(response.text, object_pairs_hook=OrderedDict)
 
     @add_auth_token_to_kwargs_from_env
     def get_property(self, id_, property_name, self_deserialize=True, **kwargs):

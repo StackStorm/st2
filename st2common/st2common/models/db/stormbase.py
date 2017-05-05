@@ -19,6 +19,7 @@ import datetime
 import bson
 import six
 import mongoengine as me
+from collections import OrderedDict
 from oslo_config import cfg
 
 from st2common.util import mongoescape
@@ -105,6 +106,24 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
             serializable_dict = self.mask_secrets(value=serializable_dict)
 
         return serializable_dict
+
+
+class StormFoundationDBInOrder(StormFoundationDB):
+    """
+    This override a feature of 'Document' class in the mongoengine to store the data of
+    collection in OrderedDict instead of 'dict'.
+    """
+
+    # The __metaclass__ attribute is removed by 2to3 when running with Python3
+    # my_metaclass is defined so that metaclass can be queried in Python 2 & 3
+    my_metaclass = me.base.TopLevelDocumentMetaclass
+    __metaclass__ = me.base.TopLevelDocumentMetaclass
+
+    # Override the method of the me.Document class for loading data in order
+    @classmethod
+    def _get_collection(cls):
+        collection = super(StormFoundationDBInOrder, cls)._get_collection()
+        return collection.with_options(codec_options=bson.CodecOptions(document_class=OrderedDict))
 
 
 class StormBaseDB(StormFoundationDB):

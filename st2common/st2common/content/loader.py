@@ -16,7 +16,10 @@
 import os
 import re
 
+from collections import OrderedDict
+from yaml import SafeLoader
 from yaml.parser import ParserError
+from yaml.resolver import BaseResolver
 import six
 
 from st2common import log as logging
@@ -306,7 +309,17 @@ class MetaLoader(object):
             raise Exception('Unsupported meta type %s, file %s. Allowed: %s' %
                             (file_ext, file_path, ALLOWED_EXTS))
 
+        # save yaml_constructor setting of DEFAULT_MAPPING_TAG
+        original_constructor = SafeLoader.yaml_constructors[BaseResolver.DEFAULT_MAPPING_TAG]
+
+        # add constructor to transform YAML to OrderedDict object to guarantee the order
+        SafeLoader.add_constructor(BaseResolver.DEFAULT_MAPPING_TAG,
+                                   lambda l, n: OrderedDict(l.construct_pairs(n)))
+
         result = self._load(PARSER_FUNCS[file_ext], file_path)
+
+        # put the original constructor setting back in place
+        SafeLoader.yaml_constructors[BaseResolver.DEFAULT_MAPPING_TAG] = original_constructor
 
         if expected_type and not isinstance(result, expected_type):
             actual_type = type(result).__name__
