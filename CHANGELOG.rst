@@ -45,6 +45,7 @@ in development
   rule with `file_path` and sensor will pick up the `file_path` from the rule. A sample rule
   is provided in contrib/examples/rules/sample_rule_file_watch.yaml. (improvement)
 * Cancel actions that are Mistral workflow when the parent workflow is cancelled. (improvement)
+* Fix ``system=True`` filter in the ``/v1/rbac/roles`` API endpoint so it works correctly. (bug fix)
 
 2.2.1 - April 3, 2017
 ---------------------
