@@ -18,13 +18,16 @@ import copy
 from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.rbac import RoleAPI
+from st2common.models.api.rbac import UserRoleAssignmentAPI
 from st2common.persistence.rbac import Role
+from st2common.persistence.rbac import UserRoleAssignment
 from st2common.rbac.types import RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP
 from st2common.rbac import utils as rbac_utils
 from st2common.router import exc
 
 __all__ = [
     'RolesController',
+    'RoleAssignmentsController',
     'PermissionTypesController'
 ]
 
@@ -56,6 +59,25 @@ class RolesController(ResourceController):
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
         return self._get_all()
+
+
+class RoleAssignmentsController(ResourceController):
+    """
+    Meta controller for listing role assignments.
+    """
+    model = UserRoleAssignmentAPI
+    access = UserRoleAssignment
+    supported_filters = {
+        'user': 'user',
+        'role': 'role'
+    }
+
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        # TODO: RBAC permissions check
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
 
 
 class PermissionTypesController(object):
@@ -92,4 +114,5 @@ class PermissionTypesController(object):
 
 
 roles_controller = RolesController()
+role_assignments_controller = RoleAssignmentsController()
 permission_types_controller = PermissionTypesController()
