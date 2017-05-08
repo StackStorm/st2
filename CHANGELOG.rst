@@ -52,6 +52,8 @@ in development
 * Add CLI commands for listing RBAC user role assignments:
     * ``st2 role-assignment list [--role=<role name>] [--user=<username>]``
     * ``st2 role-assignment get <role assignment id>``
+* Update ``/v1/rbac/roles`` API endpoint so it includes corresponding permission grant objects.
+  Previously it only included permission grant ids. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
