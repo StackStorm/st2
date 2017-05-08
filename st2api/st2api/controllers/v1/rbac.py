@@ -79,6 +79,11 @@ class RoleAssignmentsController(ResourceController):
                              limit=limit,
                              raw_filters=raw_filters)
 
+    def get_one(self, id, requester_user):
+        return self._get_one_by_id(id,
+                                   requester_user=requester_user,
+                                   permission_type=None)
+
 
 class PermissionTypesController(object):
     """

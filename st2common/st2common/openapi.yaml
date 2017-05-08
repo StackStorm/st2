@@ -2102,12 +2102,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/v1/rbac/role_assignments/{name_or_id}:
+  /api/v1/rbac/role_assignments/{id}:
     get:
       operationId: st2api.controllers.v1.rbac:role_assignments_controller.get_one
       description: Get one role.
       parameters:
-        - name: name_or_id
+        - name: id
           in: path
           description: Role assignment id.
           type: string
