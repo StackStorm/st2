@@ -37,6 +37,7 @@ __all__ = [
 
     'assert_user_is_admin',
     'assert_user_is_system_admin',
+    'assert_user_is_admin_or_operating_on_own_resource',
     'assert_user_has_permission',
     'assert_user_has_resource_db_permission',
 
@@ -78,6 +79,22 @@ def assert_user_is_system_admin(user_db):
 
     if not is_system_admin:
         raise AccessDeniedError(message='System Administrator access required',
+                                user_db=user_db)
+
+
+def assert_user_is_admin_or_operating_on_own_resource(user_db, user=None):
+    """
+    Assert that the currently logged in user is an administrator or operating on a resource which
+    belongs to that user.
+    """
+    if not cfg.CONF.rbac.enable:
+        return True
+
+    is_admin = user_is_admin(user_db=user_db)
+    is_self = user is not None and (user_db.name == user)
+
+    if not is_admin and not is_self:
+        raise AccessDeniedError(message='Administrator or self access required',
                                 user_db=user_db)
 
 

@@ -69,17 +69,26 @@ class RoleAssignmentsController(ResourceController):
         'role': 'role'
     }
 
-    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
-        # TODO: RBAC permissions check
+    def get_all(self, requester_user, sort=None, offset=0, limit=None, **raw_filters):
+        user = raw_filters.get('user', None)
+        rbac_utils.assert_user_is_admin_or_operating_on_own_resource(user_db=requester_user,
+                                                                     user=user)
+
         return self._get_all(sort=sort,
                              offset=offset,
                              limit=limit,
                              raw_filters=raw_filters)
 
     def get_one(self, id, requester_user):
-        return self._get_one_by_id(id,
+        result = self._get_one_by_id(id,
                                    requester_user=requester_user,
                                    permission_type=None)
+        user = getattr(result, 'user', None)
+
+        rbac_utils.assert_user_is_admin_or_operating_on_own_resource(user_db=requester_user,
+                                                                     user=user)
+
+        return result
 
 
 class PermissionTypesController(object):
