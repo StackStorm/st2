@@ -32,7 +32,7 @@ virtualenv==15.1.0
 sseclient==0.0.12
 python-editor==1.0.1
 prompt-toolkit==1.0.7
-tooz>=1.50.0,<1.51.0
+tooz>=1.55.0,<1.56.0
 zake==0.2.2
 routes==2.3.1
 flex==6.5.0
