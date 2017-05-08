@@ -26,9 +26,9 @@ from st2common.models.db.rbac import PermissionGrantDB
 from tests.base import APIControllerWithRBACTestCase
 
 
-class TestRbacController(APIControllerWithRBACTestCase):
+class RBACControllerTestCase(APIControllerWithRBACTestCase):
     def setUp(self):
-        super(TestRbacController, self).setUp()
+        super(RBACControllerTestCase, self).setUp()
 
         permissions = [PermissionType.RULE_CREATE,
                        PermissionType.RULE_VIEW,
@@ -72,7 +72,7 @@ class TestRbacController(APIControllerWithRBACTestCase):
         get_resp = self.app.get('/v1/rbac/roles/%s' % role_id)
         retrieved_id = get_resp.json['id']
         self.assertEqual(get_resp.status_int, 200)
-        self.assertEqual(retrieved_id, role_id, '/v1/ruletypes returned incorrect ruletype.')
+        self.assertEqual(retrieved_id, role_id, '/v1/rbac/role returned incorrect role.')
 
     def test_role_get_all(self):
         self.use_user(self.users['admin'])
@@ -87,6 +87,54 @@ class TestRbacController(APIControllerWithRBACTestCase):
 
         resp = self.app.get('/v1/rbac/roles/1', expect_errors=True)
         self.assertEqual(resp.status_int, 404)
+
+    def test_role_assignments_get_all(self):
+        self.use_user(self.users['admin'])
+
+        resp = self.app.get('/v1/rbac/role_assignments')
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(list(resp.json) > 0,
+                        '/v1/rbac/role_assignments did not return correct assignments.')
+        self.assertEqual(resp.json[0]['role'], 'system_admin')
+        self.assertEqual(resp.json[0]['user'], 'system_admin')
+        self.assertEqual(resp.json[0]['is_remote'], False)
+
+    def test_role_assignments_get_all_with_user_and_role_filter(self):
+        # ?user filter
+        self.use_user(self.users['admin'])
+
+        resp = self.app.get('/v1/rbac/role_assignments?user=doesnt-exist')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 0)
+
+        resp = self.app.get('/v1/rbac/role_assignments?user=system_admin')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['role'], 'system_admin')
+        self.assertEqual(resp.json[0]['user'], 'system_admin')
+
+        # ?role filter
+        resp = self.app.get('/v1/rbac/role_assignments?role=doesnt-exist')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 0)
+
+        resp = self.app.get('/v1/rbac/role_assignments?role=observer')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['role'], 'observer')
+        self.assertEqual(resp.json[0]['user'], 'observer')
+
+    def test_role_assignment_get_one(self):
+        self.use_user(self.users['admin'])
+
+        resp = self.app.get('/v1/rbac/role_assignments')
+        assignment_id = resp.json[0]['id']
+
+        resp = self.app.get('/v1/rbac/role_assignments/%s' % (assignment_id))
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.json['id'], assignment_id)
+        self.assertEqual(resp.json['role'], 'system_admin')
+        self.assertEqual(resp.json['user'], 'system_admin')
 
     def test_permission_type_get_one(self):
         self.use_user(self.users['admin'])
