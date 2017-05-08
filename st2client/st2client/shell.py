@@ -47,7 +47,7 @@ from st2client.commands import timer
 from st2client.commands import webhook
 from st2client.commands import rule
 from st2client.commands import rule_enforcement
-from st2client.commands import role_assignment
+from st2client.commands import rbac
 from st2client.config import set_config
 from st2client.exceptions.operations import OperationFailureException
 from st2client.utils.logging import LogLevelFilter, set_log_level_for_all_loggers
@@ -256,10 +256,12 @@ class Shell(BaseCLIApp):
             self, self.subparsers)
 
         # RBAC
-        self.commands['role-assignment'] = role_assignment.RoleAssignmentBranch(
+        self.commands['role'] = rbac.RoleBranch(
+            'RBAC roles.',
+            self, self.subparsers)
+        self.commands['role-assignment'] = rbac.RoleAssignmentBranch(
             'RBAC role assignments.',
             self, self.subparsers)
-
 
     def run(self, argv):
         debug = False
