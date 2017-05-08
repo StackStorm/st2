@@ -44,7 +44,7 @@ semver==2.7.2
 six==1.10.0
 sseclient==0.0.12
 stevedore<1.8,>=1.7.0
-tooz<1.51.0,>=1.50.0
+tooz<1.56.0,>=1.55.0
 unittest2
 webob==1.6.0
 zake==0.2.2
