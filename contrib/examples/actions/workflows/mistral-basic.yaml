@@ -5,11 +5,12 @@ examples.mistral-basic:
     type: direct
     input:
         - cmd
+        - timeout
     output:
         stdout: <% $.stdout %>
     tasks:
         task1:
-            action: core.local cmd=<% $.cmd %>
+            action: core.local cmd=<% $.cmd %> timeout=<% $.timeout %>
             publish:
                 stdout: <% task(task1).result.stdout %>
                 stderr: <% task(task1).result.stderr %>

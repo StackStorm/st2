@@ -23,9 +23,12 @@ from mistralclient.api import client as mistral
 from oslo_config import cfg
 
 from st2common.runners.base import AsyncActionRunner
-from st2common.constants.action import LIVEACTION_STATUS_RUNNING
+from st2common.constants import action as action_constants
 from st2common import log as logging
 from st2common.models.api.notification import NotificationsHelper
+from st2common.persistence.execution import ActionExecution
+from st2common.persistence.liveaction import LiveAction
+from st2common.services import action as action_service
 from st2common.util.workflow import mistral as utils
 from st2common.util.url import get_url_without_trailing_slash
 from st2common.util.api import get_full_public_api_url
@@ -259,7 +262,7 @@ class MistralRunner(AsyncActionRunner):
                                                        workflow_input=inputs,
                                                        **options)
 
-        status = LIVEACTION_STATUS_RUNNING
+        status = action_constants.LIVEACTION_STATUS_RUNNING
         partial_results = {'tasks': []}
 
         # pylint: disable=no-member
@@ -340,7 +343,7 @@ class MistralRunner(AsyncActionRunner):
                 env=options.get('env', None)
             )
 
-        status = LIVEACTION_STATUS_RUNNING
+        status = action_constants.LIVEACTION_STATUS_RUNNING
         partial_results = {'tasks': []}
 
         # pylint: disable=no-member
@@ -366,9 +369,19 @@ class MistralRunner(AsyncActionRunner):
         if not mistral_ctx.get('execution_id'):
             raise Exception('Unable to cancel because mistral execution_id is missing.')
 
-        # There is no cancellation state in Mistral. Pause the workflow so
-        # actions that are still executing can gracefully reach completion.
+        # Cancels the main workflow execution. Any non-workflow tasks that are still
+        # running will be allowed to complete gracefully.
         self._client.executions.update(mistral_ctx.get('execution_id'), 'CANCELLED')
+
+        # Identify the list of action executions that are workflows and still running.
+        for child_exec_id in self.execution.children:
+            child_exec = ActionExecution.get(id=child_exec_id)
+            if (child_exec.runner['name'] == self.runner_type_db.name and
+                    child_exec.status in action_constants.LIVEACTION_CANCELABLE_STATES):
+                action_service.request_cancellation(
+                    LiveAction.get(id=child_exec.liveaction['id']),
+                    self.context.get('user', None)
+                )
 
     @staticmethod
     def _build_mistral_context(parent, current):

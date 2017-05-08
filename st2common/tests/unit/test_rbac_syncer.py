@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pymongo import MongoClient
+
 from st2tests.base import CleanDbTestCase
 from st2common.persistence.auth import User
 from st2common.persistence.rbac import Role
@@ -22,6 +24,7 @@ from st2common.models.db.auth import UserDB
 from st2common.models.api.rbac import RoleDefinitionFileFormatAPI
 from st2common.models.api.rbac import UserRoleAssignmentFileFormatAPI
 from st2common.services.rbac import get_roles_for_user
+from st2common.services.rbac import get_role_assignments_for_user
 from st2common.services.rbac import create_role
 from st2common.services.rbac import assign_role_to_user
 from st2common.services.rbac import create_group_to_role_map
@@ -56,6 +59,33 @@ class BaseRBACDefinitionsDBSyncerTestCase(CleanDbTestCase):
         user_3_db = UserDB(name='user_3')
         user_3_db = User.add_or_update(user_3_db)
         self.users['user_3'] = user_3_db
+
+        user_5_db = UserDB(name='user_5')
+        user_5_db = User.add_or_update(user_5_db)
+        self.users['user_5'] = user_5_db
+
+    def _insert_mock_roles(self):
+        # Create some mock roles
+        role_1_db = create_role(name='role_1')
+        role_2_db = create_role(name='role_2')
+        role_3_db = create_role(name='role_3')
+
+        self.roles['role_1'] = role_1_db
+        self.roles['role_2'] = role_2_db
+        self.roles['role_3'] = role_3_db
+
+        # Note: User use pymongo to insert mock data because we want to insert a
+        # raw document and skip mongoengine to leave is_remote field unpopulated
+        client = MongoClient()
+        db = client['st2-test']
+        db.user_role_assignment_d_b.insert_one({'user': 'user_5', 'role': 'role_1'})
+        db.user_role_assignment_d_b.insert_one({'user': 'user_5', 'role': 'role_2'})
+        db.user_role_assignment_d_b.insert_one({'user': 'user_5', 'role': 'role_3',
+                                               'is_remote': False})
+        db.user_role_assignment_d_b.insert_one({'user': 'user_5', 'role': 'role_4',
+                                               'is_remote': True})
+
+        return self.roles
 
 
 class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
@@ -170,6 +200,24 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
 
         role_dbs = get_roles_for_user(user_db=self.users['user_1'])
         self.assertItemsEqual(role_dbs, [self.roles['role_1']])
+
+    def test_sync_user_assignments_assignments_without_is_remote_are_deleted(self):
+        # Test case which verifies roles without "is_remote" field (pre v2.3) are removed from the
+        # database
+        syncer = RBACDefinitionsDBSyncer()
+
+        self._insert_mock_roles()
+
+        # Initial state, 4 roles
+        role_assignment_dbs = get_role_assignments_for_user(user_db=self.users['user_5'])
+        self.assertEqual(len(role_assignment_dbs), 4)
+
+        # All 3 non remote roles should have been deleted
+        syncer.sync_users_role_assignments(role_assignment_apis=[])
+        role_assignment_dbs = get_role_assignments_for_user(user_db=self.users['user_5'])
+        self.assertEqual(len(role_assignment_dbs), 1)
+        self.assertEqual(role_assignment_dbs[0].role, 'role_4')
+        self.assertEqual(role_assignment_dbs[0].is_remote, True)
 
     def test_sync_user_assignments_multiple_custom_roles_assignments(self):
         syncer = RBACDefinitionsDBSyncer()
@@ -315,18 +363,6 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         result = PermissionGrant.get_by_id(str(permission_grant_id))
         self.assertTrue(result)
         self.assertEqual(permission_grant_id, str(result.id))
-
-    def _insert_mock_roles(self):
-        # Create some mock roles
-        role_1_db = create_role(name='role_1')
-        role_2_db = create_role(name='role_2')
-        role_3_db = create_role(name='role_3')
-
-        self.roles['role_1'] = role_1_db
-        self.roles['role_2'] = role_2_db
-        self.roles['role_3'] = role_3_db
-
-        return self.roles
 
 
 class RBACRemoteGroupToRoleSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
