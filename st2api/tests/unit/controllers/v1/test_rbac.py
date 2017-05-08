@@ -82,6 +82,17 @@ class RBACControllerTestCase(APIControllerWithRBACTestCase):
         self.assertTrue(list(resp.json) > 0,
                         '/v1/rbac/roles did not return correct roles.')
 
+    def test_roles_get_all_system_flter(self):
+        self.use_user(self.users['admin'])
+
+        resp = self.app.get('/v1/rbac/roles?system=1')
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(list(resp.json) > 0,
+                        '/v1/rbac/roles did not return correct roles.')
+
+        for role in resp.json:
+            self.assertTrue(role['system'])
+
     def test_role_get_one_fail_doesnt_exist(self):
         self.use_user(self.users['admin'])
 
