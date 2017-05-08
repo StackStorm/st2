@@ -14,7 +14,8 @@
 # limitations under the License.
 
 from st2common.models.api.base import BaseAPI
-from st2common.models.db.pack import PackDB
+from st2common.models.db.rbac import RoleDB
+from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.services.rbac import validate_roles_exists
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import GLOBAL_PERMISSION_TYPES
@@ -22,6 +23,7 @@ from st2common.util.uid import parse_uid
 
 __all__ = [
     'RoleAPI',
+    'UserRoleAssignmentAPI',
 
     'RoleDefinitionFileFormatAPI',
     'UserRoleAssignmentFileFormatAPI',
@@ -31,7 +33,7 @@ __all__ = [
 
 
 class RoleAPI(BaseAPI):
-    model = PackDB
+    model = RoleDB
     schema = {
         'type': 'object',
         'properties': {
@@ -65,6 +67,34 @@ class RoleAPI(BaseAPI):
                                      model.permission_grants]
 
         return cls(**role)
+
+
+class UserRoleAssignmentAPI(BaseAPI):
+    model = UserRoleAssignmentDB
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'default': None
+            },
+            'user': {
+                'type': 'string',
+                'required': True
+            },
+            'role': {
+                'type': 'string',
+                'required': True
+            },
+            'description': {
+                'type': 'string'
+            },
+            'is_remote': {
+                'type': 'boolean'
+            }
+        },
+        'additionalProperties': False
+    }
 
 
 class RoleDefinitionFileFormatAPI(BaseAPI):
