@@ -2021,6 +2021,11 @@ paths:
     get:
       operationId: st2api.controllers.v1.rbac:roles_controller.get_all
       description: Returns a list of all roles.
+      parameters:
+        - name: system
+          in: query
+          description: True to only return system roles.
+          type: boolean
       x-parameters:
         - name: user
           in: context

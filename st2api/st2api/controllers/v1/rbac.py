@@ -15,7 +15,6 @@
 
 import copy
 
-from st2api.controllers.controller_transforms import transform_to_bool
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.rbac import RoleAPI
 from st2common.models.api.rbac import UserRoleAssignmentAPI
@@ -40,10 +39,6 @@ class RolesController(ResourceController):
         'system': 'system'
     }
 
-    filter_transform_functions = {
-        'system': transform_to_bool
-    }
-
     query_options = {
         'sort': ['name']
     }
@@ -55,10 +50,12 @@ class RolesController(ResourceController):
                                            permission_type=None,
                                            requester_user=requester_user)
 
-    def get_all(self, requester_user):
+    def get_all(self, requester_user, sort=None, offset=0, limit=None, **raw_filters):
         rbac_utils.assert_user_is_admin(user_db=requester_user)
-
-        return self._get_all()
+        return self._get_all(sort=sort,
+                             offset=offset,
+                             limit=limit,
+                             raw_filters=raw_filters)
 
 
 class RoleAssignmentsController(ResourceController):
