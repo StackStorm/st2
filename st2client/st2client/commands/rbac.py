@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.exceptions.operations import OperationFailureException
 from st2client.formatters import table
 from st2client.commands import resource
 from st2client.models.rbac import Role
