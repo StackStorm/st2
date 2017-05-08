@@ -46,6 +46,12 @@ in development
   is provided in contrib/examples/rules/sample_rule_file_watch.yaml. (improvement)
 * Cancel actions that are Mistral workflow when the parent workflow is cancelled. (improvement)
 * Fix ``system=True`` filter in the ``/v1/rbac/roles`` API endpoint so it works correctly. (bug fix)
+* Add CLI commands for listing RBAC roles:
+    * ``st2 role list [--system]``
+    * ``st2 role get <role id or name>``
+* Add CLI commands for listing RBAC user role assignments:
+    * ``st2 role-assignment list [--role=<role name>] [--user=<username>]``
+    * ``st2 role-assignment get <role assignment id>``
 
 2.2.1 - April 3, 2017
 ---------------------
