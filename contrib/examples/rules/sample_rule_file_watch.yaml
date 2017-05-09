@@ -6,7 +6,7 @@ enabled: false
 
 trigger:
   parameters:
-    file_path: /var/log/dmesg
+    file_path: /tmp/st2_test
   type: linux.file_watch.file_path
 
 criteria: {}
