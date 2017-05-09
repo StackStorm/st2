@@ -112,6 +112,11 @@ class TestRuleController(FunctionalTest):
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
+        file_name = 'rule_invalid_trigger_parameter_type_default_cfg.yaml'
+        TestRuleController.RULE_11 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
     @classmethod
     def tearDownClass(cls):
         # Replace original configured value for trigger parameter validation
@@ -238,7 +243,7 @@ class TestRuleController(FunctionalTest):
         """Test validation does NOT take place with the default configuration.
         """
 
-        post_resp = self.__do_post(TestRuleController.RULE_9)
+        post_resp = self.__do_post(TestRuleController.RULE_11)
         self.assertEqual(post_resp.status_int, http_client.CREATED)
 
     def test_post_invalid_custom_trigger_parameter_trigger_param_validation_disabled(self):
