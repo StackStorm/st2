@@ -11,8 +11,6 @@ class FileWatchSensor(Sensor):
                                               config=config)
         self._trigger_ref = 'linux.file_watch.file_path'
         self._logger = self._sensor_service.get_logger(__name__)
-
-        self._file_paths = []  # stores a list of file paths we are monitoring
         self._tail = None
 
     def setup(self):
