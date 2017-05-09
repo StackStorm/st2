@@ -5,9 +5,10 @@
   description: "Sensor which monitors files for new lines"
   trigger_types:
     -
-      name: "file_watch.file_path"
+      name: "file_watch.line"
       pack: "linux"
-      description: "Trigger which represents a file path to be monitored"
+      description: "Trigger which indicates a new line has been detected"
+      # This sensor can be supplied a path to a file to tail via a rule.
       parameters_schema:
         type: "object"
         properties:
@@ -16,10 +17,7 @@
             type: "string"
             required: true
         additionalProperties: false
-    -
-      name: "file_watch.line"
-      pack: "linux"
-      description: "Trigger which indicates a new line has been detected"
+      # This is the schema of the trigger payload the sensor generates
       payload_schema:
         type: "object"
         properties:

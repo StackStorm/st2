@@ -7,7 +7,7 @@ enabled: false
 trigger:
   parameters:
     file_path: /var/log/dmesg
-  type: linux.file_watch.file_path
+  type: linux.file_watch.line
 
 criteria: {}
 
