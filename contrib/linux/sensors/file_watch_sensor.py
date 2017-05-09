@@ -62,4 +62,5 @@ class FileWatchSensor(Sensor):
             'file_name': os.path.basename(file_path),
             'line': line
         }
-        self._sensor_service.dispatch(trigger=trigger, payload=payload)
+        self._logger.info('Sending payload %s for trigger %s to sensor_service.', payload, trigger)
+        self.sensor_service.dispatch(trigger=trigger, payload=payload)
