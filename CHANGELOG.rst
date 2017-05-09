@@ -45,8 +45,11 @@ in development
   rule with `file_path` and sensor will pick up the `file_path` from the rule. A sample rule
   is provided in contrib/examples/rules/sample_rule_file_watch.yaml. (improvement)
 * Cancel actions that are Mistral workflow when the parent workflow is cancelled. (improvement)
-* Fixed bug where trigger parameters and payloads were being validated regardless of the relevant settings
-  in the configuration.
+* Update st2rulesengine to exit non-0 on failure (bug fix) #3394 [Andrew Regan]
+* Upgrade various internal Python library dependencies to the latest stable versions (pyyaml,
+  requests, appscheduler, gitpython, paramiko, mongoengine, tooz).
+* Fix a bug where trigger parameters and payloads were being validated regardless of the relevant settings
+  in the configuration (``system.validate_trigger_payload``, ``system.validate_trigger_parameters``). (bug fix)
 
 2.2.1 - April 3, 2017
 ---------------------

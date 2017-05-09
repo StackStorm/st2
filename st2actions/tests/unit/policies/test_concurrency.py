@@ -248,7 +248,7 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         # Since states are being processed asynchronously, wait for the
         # liveactions to go into scheduled states.
         for i in range(0, 100):
-            eventlet.sleep(1)
+            eventlet.sleep(2)
             scheduled = [item for item in LiveAction.get_all() if item.status in SCHEDULED_STATES]
             if len(scheduled) == policy_db.parameters['threshold']:
                 break
@@ -272,7 +272,7 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         # Since states are being processed asynchronously, wait for the
         # liveaction to go into delayed state.
         for i in range(0, 100):
-            eventlet.sleep(1)
+            eventlet.sleep(2)
             liveaction = LiveAction.get_by_id(str(liveaction.id))
             if liveaction.status == action_constants.LIVEACTION_STATUS_DELAYED:
                 break
@@ -291,7 +291,7 @@ class ConcurrencyPolicyTest(EventletTestCase, DbTestCase):
         # Since states are being processed asynchronously, wait for the
         # liveaction to go into scheduled state.
         for i in range(0, 100):
-            eventlet.sleep(1)
+            eventlet.sleep(2)
             liveaction = LiveAction.get_by_id(str(liveaction.id))
             if liveaction.status in SCHEDULED_STATES:
                 break
