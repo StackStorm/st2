@@ -9,7 +9,7 @@ class FileWatchSensor(Sensor):
     def __init__(self, sensor_service, config=None):
         super(FileWatchSensor, self).__init__(sensor_service=sensor_service,
                                               config=config)
-        self._trigger_ref = 'linux.file_watch.file_path'
+        self._trigger_ref = 'linux.file_watch.line'
         self._logger = self._sensor_service.get_logger(__name__)
         self._tail = None
 
@@ -62,4 +62,4 @@ class FileWatchSensor(Sensor):
             'file_name': os.path.basename(file_path),
             'line': line
         }
-        self.sensor_service.dispatch(trigger=trigger, payload=payload)
+        self._sensor_service.dispatch(trigger=trigger, payload=payload)

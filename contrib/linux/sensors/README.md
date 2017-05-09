@@ -1,4 +1,4 @@
-## DEPRECARTION NOTICE
+## NOTICE
 
 File watch sensor has been updated to use trigger with parameters supplied via a rule approach. Tailing a file path supplied via a config file is now deprecated. 
 
@@ -14,7 +14,7 @@ enabled: false
 trigger:
   parameters:
     file_path: /tmp/st2_test
-  type: linux.file_watch.file_path
+  type: linux.file_watch.line
 
 criteria: {}
 
@@ -25,5 +25,5 @@ action:
 
 ```
 
-The new trigger emitted will have the trigger ref ``linux.file_watch.file_path``. 
-Trigger ``linux.file_watch.line`` is no longer emitted.
+Trigger ``linux.file_watch.line`` still emits the same payload as it used to. 
+Just the way to provide the file_path to tail has changed.
