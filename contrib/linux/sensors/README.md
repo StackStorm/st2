@@ -25,4 +25,5 @@ action:
 
 ```
 
-The new trigger emitted will have the trigger ref ``linux.file_watch.file_path``. Trigger ``linux.file_watch.line`` is no longer emitted.
+The new trigger emitted will have the trigger ref ``linux.file_watch.file_path``. 
+Trigger ``linux.file_watch.line`` is no longer emitted.
