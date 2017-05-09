@@ -5,7 +5,7 @@
   description: "Sensor which monitors files for new lines"
   trigger_types:
     -
-      name: "file_watch.line"
+      name: "file_watch.file_path"
       pack: "linux"
       description: "Trigger which indicates a new line has been detected"
       # This sensor can be supplied a path to a file to tail via a rule.
