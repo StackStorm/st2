@@ -416,6 +416,10 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             {
                 'path': '/v1/rbac/permission_types',
                 'method': 'GET'
+            },
+            {
+                'path': '/v1/rbac/permission_types/action',
+                'method': 'GET'
             }
         ]
 
