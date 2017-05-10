@@ -61,6 +61,12 @@ class RBACControllerTestCase(APIControllerWithRBACTestCase):
                 role=role_db.name)
             UserRoleAssignment.add_or_update(role_assignment_db)
 
+        role_assignment_db = UserRoleAssignmentDB(
+            user='user_two',
+            role='role_two',
+            is_remote=True)
+        UserRoleAssignment.add_or_update(role_assignment_db)
+
     def test_role_get_one(self):
         self.use_user(self.users['admin'])
 
@@ -110,7 +116,7 @@ class RBACControllerTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(resp.json[0]['user'], 'system_admin')
         self.assertEqual(resp.json[0]['is_remote'], False)
 
-    def test_role_assignments_get_all_with_user_and_role_filter(self):
+    def test_role_assignments_get_all_with_user_role_and_remote_filter(self):
         # ?user filter
         self.use_user(self.users['admin'])
 
@@ -134,6 +140,14 @@ class RBACControllerTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['role'], 'observer')
         self.assertEqual(resp.json[0]['user'], 'observer')
+
+        # ?remote filter
+        resp = self.app.get('/v1/rbac/role_assignments?remote=true')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1)
+
+        for role in resp.json:
+            self.assertTrue(role['is_remote'])
 
     def test_role_assignment_get_one(self):
         self.use_user(self.users['admin'])
