@@ -17,7 +17,7 @@ jsonschema<2.6,>=2.5.0
 kombu==3.0.37
 lockfile<0.11,>=0.10.2
 mock
-mongoengine==0.13.0
+mongoengine==0.11.0
 networkx==1.10
 nose
 oslo.config<1.13,>=1.12.1
