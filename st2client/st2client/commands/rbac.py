@@ -118,6 +118,8 @@ class RoleAssignmentListCommand(resource.ResourceCommand):
         # Filter options
         self.group.add_argument('-r', '--role', help='Role to filter on.')
         self.group.add_argument('-u', '--user', help='User to filter on.')
+        self.group.add_argument('--remote', action='store_true',
+                                help='Only display remote role assignments.')
 
         # Display options
         self.parser.add_argument('-a', '--attr', nargs='+',
@@ -137,7 +139,10 @@ class RoleAssignmentListCommand(resource.ResourceCommand):
         if args.user:
             kwargs['user'] = args.user
 
-        if args.role or args.user:
+        if args.remote:
+            kwargs['remote'] = args.remote
+
+        if args.role or args.user or args.remote:
             result = self.manager.query(**kwargs)
         else:
             result = self.manager.get_all(**kwargs)

@@ -2092,6 +2092,10 @@ paths:
           in: query
           description: Role to filter on.
           type: string
+        - name: remote
+          in: query
+          description: Only include remote role assignments.
+          type: boolean
       responses:
         '200':
           description: List of all role assignments.

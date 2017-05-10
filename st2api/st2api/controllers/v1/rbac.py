@@ -66,7 +66,8 @@ class RoleAssignmentsController(ResourceController):
     access = UserRoleAssignment
     supported_filters = {
         'user': 'user',
-        'role': 'role'
+        'role': 'role',
+        'remote': 'is_remote'
     }
 
     def get_all(self, requester_user, sort=None, offset=0, limit=None, **raw_filters):
