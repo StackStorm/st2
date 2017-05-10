@@ -49,6 +49,8 @@ in development
 * Upgrade various internal Python library dependencies to the latest stable versions (pyyaml,
   requests, appscheduler, gitpython, paramiko, mongoengine, tooz).
 * Fix ``system=True`` filter in the ``/v1/rbac/roles`` API endpoint so it works correctly. (bug fix)
+* Add new ``/v1/rbac/role_assignments`` API endpoint for retrieving user role assignment
+  information. (new feature)
 * Add CLI commands for listing RBAC roles:
     * ``st2 role list [--system]``
     * ``st2 role get <role id or name>``
