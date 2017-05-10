@@ -134,6 +134,12 @@ class PackAPI(BaseAPI):
                 'items': {'type': 'string'},
                 'default': []
             },
+            'groups': {
+                'type': 'array',
+                'description': 'Groups of actions inside the pack. Reserved for future use.',
+                'items': {'type': 'object'},
+                'default': []
+            },
             'system': {
                 'type': 'object',
                 'description': 'Specification for the system components and packages '
@@ -204,12 +210,13 @@ class PackAPI(BaseAPI):
         email = pack.email
         contributors = getattr(pack, 'contributors', [])
         files = getattr(pack, 'files', [])
+        groups = getattr(pack, 'groups', [])
         dependencies = getattr(pack, 'dependencies', [])
         system = getattr(pack, 'system', {})
 
         model = cls.model(ref=ref, name=name, description=description, keywords=keywords,
                           version=version, author=author, email=email, contributors=contributors,
-                          files=files, dependencies=dependencies, system=system,
+                          files=files, dependencies=dependencies, system=system, groups=groups,
                           stackstorm_version=stackstorm_version)
         return model
 

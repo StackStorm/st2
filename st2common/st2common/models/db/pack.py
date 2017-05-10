@@ -50,6 +50,7 @@ class PackDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin,
     email = me.EmailField()
     contributors = me.ListField(field=me.StringField())
     files = me.ListField(field=me.StringField())
+    groups = me.ListField(field=me.DictField())
     dependencies = me.ListField(field=me.StringField())
     system = me.DictField()
 
