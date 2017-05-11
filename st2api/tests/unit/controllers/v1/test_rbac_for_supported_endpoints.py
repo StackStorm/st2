@@ -22,6 +22,8 @@ import mock
 from st2common.services import triggers as trigger_service
 with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock()):
     from st2api.controllers.v1.webhooks import HooksHolder
+from st2common.persistence.rbac import UserRoleAssignment
+from st2common.models.db.rbac import UserRoleAssignmentDB
 
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
@@ -119,6 +121,9 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
         # Insert mock objects - those objects are used to test get one, edit and delete operations
         self.models = self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
                                                                fixtures_dict=TEST_FIXTURES)
+
+        self.role_assignment_db_model = UserRoleAssignmentDB(user='user', role='role')
+        UserRoleAssignment.add_or_update(self.role_assignment_db_model)
 
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
         return_value=[vars(DUMMY_TRIGGER)]))
@@ -387,6 +392,33 @@ class APIControllersRBACTestCase(APIControllerWithRBACTestCase):
             },
             {
                 'path': '/v1/webhooks/git',
+                'method': 'GET'
+            },
+            # RBAC - roles
+            {
+                'path': '/v1/rbac/roles',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/rbac/roles/admin',
+                'method': 'GET'
+            },
+            # RBAC - user role assignments
+            {
+                'path': '/v1/rbac/role_assignments',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/rbac/role_assignments/%s' % (self.role_assignment_db_model['id']),
+                'method': 'GET'
+            },
+            # RBAC - permission types
+            {
+                'path': '/v1/rbac/permission_types',
+                'method': 'GET'
+            },
+            {
+                'path': '/v1/rbac/permission_types/action',
                 'method': 'GET'
             }
         ]

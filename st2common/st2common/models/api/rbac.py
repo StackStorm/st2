@@ -14,7 +14,9 @@
 # limitations under the License.
 
 from st2common.models.api.base import BaseAPI
-from st2common.models.db.pack import PackDB
+from st2common.models.db.rbac import RoleDB
+from st2common.models.db.rbac import UserRoleAssignmentDB
+from st2common.models.db.rbac import PermissionGrantDB
 from st2common.services.rbac import validate_roles_exists
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import GLOBAL_PERMISSION_TYPES
@@ -22,6 +24,7 @@ from st2common.util.uid import parse_uid
 
 __all__ = [
     'RoleAPI',
+    'UserRoleAssignmentAPI',
 
     'RoleDefinitionFileFormatAPI',
     'UserRoleAssignmentFileFormatAPI',
@@ -31,7 +34,7 @@ __all__ = [
 
 
 class RoleAPI(BaseAPI):
-    model = PackDB
+    model = RoleDB
     schema = {
         'type': 'object',
         'properties': {
@@ -46,10 +49,16 @@ class RoleAPI(BaseAPI):
             'description': {
                 'type': 'string'
             },
-            'permission_grants': {
+            'permission_grant_ids': {
                 'type': 'array',
                 'items': {
                     'type': 'string'
+                }
+            },
+            'permission_grant_objects': {
+                'type': 'array',
+                'items': {
+                    'type': 'object'
                 }
             }
         },
@@ -57,14 +66,79 @@ class RoleAPI(BaseAPI):
     }
 
     @classmethod
-    def from_model(cls, model, mask_secrets=False):
+    def from_model(cls, model, mask_secrets=False, retrieve_permission_grant_objects=True):
         role = cls._from_model(model, mask_secrets=mask_secrets)
 
         # Convert ObjectIDs to strings
-        role['permission_grants'] = [str(permission_grant) for permission_grant in
-                                     model.permission_grants]
+        role['permission_grant_ids'] = [str(permission_grant) for permission_grant in
+                                        model.permission_grants]
+
+        # Retrieve and include corresponding permission grant objects
+        if retrieve_permission_grant_objects:
+            from st2common.persistence.rbac import PermissionGrant
+            permission_grant_dbs = PermissionGrant.query(id__in=role['permission_grants'])
+
+            permission_grant_apis = []
+            for permission_grant_db in permission_grant_dbs:
+                permission_grant_api = PermissionGrantAPI.from_model(permission_grant_db)
+                permission_grant_apis.append(permission_grant_api)
+
+            role['permission_grant_objects'] = permission_grant_apis
 
         return cls(**role)
+
+
+class UserRoleAssignmentAPI(BaseAPI):
+    model = UserRoleAssignmentDB
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'default': None
+            },
+            'user': {
+                'type': 'string',
+                'required': True
+            },
+            'role': {
+                'type': 'string',
+                'required': True
+            },
+            'description': {
+                'type': 'string'
+            },
+            'is_remote': {
+                'type': 'boolean'
+            }
+        },
+        'additionalProperties': False
+    }
+
+
+class PermissionGrantAPI(BaseAPI):
+    model = PermissionGrantDB
+    schema = {
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'default': None
+            },
+            'resource_uid': {
+                'type': 'string',
+                'required': True
+            },
+            'resource_type': {
+                'type': 'string',
+                'required': True
+            },
+            'permission_types': {
+                'type': 'array'
+            }
+        },
+        'additionalProperties': False
+    }
 
 
 class RoleDefinitionFileFormatAPI(BaseAPI):

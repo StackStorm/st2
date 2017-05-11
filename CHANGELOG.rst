@@ -50,6 +50,17 @@ in development
   requests, appscheduler, gitpython, paramiko, mongoengine, tooz).
 * Fix a bug where trigger parameters and payloads were being validated regardless of the relevant settings
   in the configuration (``system.validate_trigger_payload``, ``system.validate_trigger_parameters``). (bug fix)
+* Fix ``system=True`` filter in the ``/v1/rbac/roles`` API endpoint so it works correctly. (bug fix)
+* Add new ``/v1/rbac/role_assignments`` API endpoint for retrieving user role assignment
+  information. (new feature)
+* Add CLI commands for listing RBAC roles:
+    * ``st2 role list [--system]``
+    * ``st2 role get <role id or name>``
+* Add CLI commands for listing RBAC user role assignments:
+    * ``st2 role-assignment list [--role=<role name>] [--user=<username>]``
+    * ``st2 role-assignment get <role assignment id>``
+* Update ``/v1/rbac/roles`` API endpoint so it includes corresponding permission grant objects.
+  Previously it only included permission grant ids. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------

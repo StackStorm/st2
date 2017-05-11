@@ -2021,6 +2021,11 @@ paths:
     get:
       operationId: st2api.controllers.v1.rbac:roles_controller.get_all
       description: Returns a list of all roles.
+      parameters:
+        - name: system
+          in: query
+          description: True to only return system roles.
+          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -2069,6 +2074,72 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  /api/v1/rbac/role_assignments:
+    get:
+      operationId: st2api.controllers.v1.rbac:role_assignments_controller.get_all
+      description: Returns a list of all the role assignments.
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      parameters:
+        - name: user
+          in: query
+          description: User to filter on and return role assignments for.
+          type: string
+        - name: role
+          in: query
+          description: Role to filter on.
+          type: string
+        - name: remote
+          in: query
+          description: Only include remote role assignments.
+          type: boolean
+      responses:
+        '200':
+          description: List of all role assignments.
+          schema:
+            type: array
+            items:
+              type: object
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /api/v1/rbac/role_assignments/{id}:
+    get:
+      operationId: st2api.controllers.v1.rbac:role_assignments_controller.get_one
+      description: Get one role.
+      parameters:
+        - name: id
+          in: path
+          description: Role assignment id.
+          type: string
+          required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Role assignment object.
+          schema:
+            type: object
+          examples:
+            application/json:
+              ref: 'core.webhook'
+              # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
   /api/v1/rules:
     get:
       operationId: st2api.controllers.v1.rules:rule_controller.get_all
