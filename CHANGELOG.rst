@@ -48,6 +48,8 @@ in development
 * Update st2rulesengine to exit non-0 on failure (bug fix) #3394 [Andrew Regan]
 * Upgrade various internal Python library dependencies to the latest stable versions (pyyaml,
   requests, appscheduler, gitpython, paramiko, mongoengine, tooz).
+* Fix a bug where trigger parameters and payloads were being validated regardless of the relevant settings
+  in the configuration (``system.validate_trigger_payload``, ``system.validate_trigger_parameters``). (bug fix)
 * Fix ``system=True`` filter in the ``/v1/rbac/roles`` API endpoint so it works correctly. (bug fix)
 * Add new ``/v1/rbac/role_assignments`` API endpoint for retrieving user role assignment
   information. (new feature)
