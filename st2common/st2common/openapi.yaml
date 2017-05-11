@@ -3112,6 +3112,10 @@ paths:
           type: array
           items:
             type: string
+        - name: pack
+          in: query
+          description: Pack name filter
+          type: string
       responses:
         '200':
           description: List of trigger types
