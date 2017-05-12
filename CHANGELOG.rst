@@ -49,6 +49,27 @@ in development
   permission type. (improvement)
 * Require ``EXECUTION_VIEWS_FILTERS_LIST`` RBAC permission type to be able to access
   ``/executions/views/filters`` API endpoint. (improvement)
+* Add webhook payload to the Jinja render context when rendering Jinja variable inside rule criteria section
+* Switch file_watch_sensor in Linux pack to use trigger type with parameters. Now you can add a
+  rule with `file_path` and sensor will pick up the `file_path` from the rule. A sample rule
+  is provided in contrib/examples/rules/sample_rule_file_watch.yaml. (improvement)
+* Cancel actions that are Mistral workflow when the parent workflow is cancelled. (improvement)
+* Update st2rulesengine to exit non-0 on failure (bug fix) #3394 [Andrew Regan]
+* Upgrade various internal Python library dependencies to the latest stable versions (pyyaml,
+  requests, appscheduler, gitpython, paramiko, mongoengine, tooz).
+* Fix a bug where trigger parameters and payloads were being validated regardless of the relevant settings
+  in the configuration (``system.validate_trigger_payload``, ``system.validate_trigger_parameters``). (bug fix)
+* Fix ``system=True`` filter in the ``/v1/rbac/roles`` API endpoint so it works correctly. (bug fix)
+* Add new ``/v1/rbac/role_assignments`` API endpoint for retrieving user role assignment
+  information. (new feature)
+* Add CLI commands for listing RBAC roles:
+    * ``st2 role list [--system]``
+    * ``st2 role get <role id or name>``
+* Add CLI commands for listing RBAC user role assignments:
+    * ``st2 role-assignment list [--role=<role name>] [--user=<username>]``
+    * ``st2 role-assignment get <role assignment id>``
+* Update ``/v1/rbac/roles`` API endpoint so it includes corresponding permission grant objects.
+  Previously it only included permission grant ids. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------

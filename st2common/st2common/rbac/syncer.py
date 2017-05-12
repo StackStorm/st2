@@ -17,8 +17,11 @@
 Module for syncing RBAC definitions in the database with the ones from the filesystem.
 """
 
+from mongoengine.queryset.visitor import Q
+
 from st2common import log as logging
 from st2common.models.db.auth import UserDB
+from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.persistence.auth import User
 from st2common.persistence.rbac import Role
 from st2common.persistence.rbac import UserRoleAssignment
@@ -283,8 +286,9 @@ class RBACDefinitionsDBSyncer(object):
                                          in role_assignment_dbs
                                          if role_assignment_db.role in role_names_to_delete]
 
-        UserRoleAssignment.query(user=user_db.name, role__in=role_names_to_delete,
-                                 is_remote=False).delete()
+        queryset_filter = (Q(user=user_db.name) & Q(role__in=role_names_to_delete) &
+                           (Q(is_remote=False) | Q(is_remote__exists=False)))
+        UserRoleAssignmentDB.objects(queryset_filter).delete()
         LOG.debug('Removed %s assignments for user "%s"' %
                 (len(role_assignment_dbs_to_delete), user_db.name))
 

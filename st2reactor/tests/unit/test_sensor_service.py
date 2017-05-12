@@ -36,8 +36,14 @@ class SensorServiceTestCase(unittest2.TestCase):
         self.sensor_service._dispatcher.dispatch = mock.MagicMock(side_effect=side_effect)
         self._dispatched_count = 0
 
-        # reset default configuration value
-        cfg.CONF.system.validate_trigger_payload = False
+        # Previously, cfg.CONF.system.validate_trigger_payload was set to False explicitly
+        # here. Instead, we store original value so that the default is used, and if unit
+        # test modifies this, we can set it to what it was (preserve test atomicity)
+        self.validate_trigger_payload = cfg.CONF.system.validate_trigger_payload
+
+    def tearDown(self):
+        # Replace original configured value for payload validation
+        cfg.CONF.system.validate_trigger_payload = self.validate_trigger_payload
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',
                 mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
@@ -57,6 +63,37 @@ class SensorServiceTestCase(unittest2.TestCase):
         self.sensor_service.dispatch('trigger-name', payload)
 
         # This assumed that the target tirgger dispatched
+        self.assertEqual(self._dispatched_count, 1)
+
+    @mock.patch('st2common.services.triggers.get_trigger_type_db',
+                mock.MagicMock(return_value=TriggerTypeMock(TEST_SCHEMA)))
+    def test_dispatch_success_with_default_config_and_invalid_payload(self):
+        """Tests that an invalid payload still results in dispatch success with default config
+
+        The previous config defition used StrOpt instead of BoolOpt for
+        cfg.CONF.system.validate_trigger_payload. This meant that even though the intention
+        was to bypass validation, the fact that this option was a string, meant it always
+        resulted in True during conditionals.the
+
+        However, the other unit tests directly modified
+        cfg.CONF.system.validate_trigger_payload before running, which
+        obscured this bug during testing.
+
+        This test (as well as resetting cfg.CONF.system.validate_trigger_payload
+        to it's original value during tearDown) will test validation does
+        NOT take place with the default configuration.
+        """
+
+        # define a invalid payload (the type of 'age' is incorrect)
+        payload = {
+            'name': 'John Doe',
+            'age': '25',
+        }
+
+        self.sensor_service.dispatch('trigger-name', payload)
+
+        # The default config is to disable validation. So, we want to make sure
+        # the dispatch actually went through.
         self.assertEqual(self._dispatched_count, 1)
 
     @mock.patch('st2common.services.triggers.get_trigger_type_db',

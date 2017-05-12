@@ -1,6 +1,7 @@
 ---
 description: Run a local linux command
 enabled: true
+runner_type: mistral-v2
 entry_point: workflows/mistral-basic.yaml
 name: mistral-basic
 pack: examples
@@ -8,4 +9,6 @@ parameters:
   cmd:
     required: true
     type: string
-runner_type: mistral-v2
+  timeout:
+    type: integer
+    default: 60

@@ -13,17 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from st2client.models.core import *         # noqa
-from st2client.models.auth import *       # noqa
-from st2client.models.action import *       # noqa
-from st2client.models.action_alias import *  # noqa
-from st2client.models.aliasexecution import *  # noqa
-from st2client.models.config import *  # noqa
-from st2client.models.keyvalue import *    # noqa
-from st2client.models.pack import *          # noqa
-from st2client.models.policy import *       # noqa
-from st2client.models.reactor import *      # noqa
-from st2client.models.trace import *      # noqa
-from st2client.models.webhook import *      # noqa
-from st2client.models.timer import *      # noqa
-from st2client.models.rbac import *      # noqa
+from st2client.models import core
+
+__all__ = [
+    'Role',
+    'UserRoleAssignment'
+]
+
+
+class Role(core.Resource):
+    _alias = 'role'
+    _display_name = 'Role'
+    _plural = 'Roles'
+    _plural_display_name = 'Roles'
+    _repr_attributes = ['id', 'name', 'system']
+    _url_path = 'rbac/roles'
+
+
+class UserRoleAssignment(core.Resource):
+    _alias = 'role-assignment'
+    _display_name = 'Role Assignment'
+    _plural = 'RoleAssignments'
+    _plural_display_name = 'Role Assignments'
+    _repr_attributes = ['id', 'role', 'user', 'is_remote']
+    _url_path = 'rbac/role_assignments'
