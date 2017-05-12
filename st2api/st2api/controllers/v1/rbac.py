@@ -20,7 +20,6 @@ from st2common.models.api.rbac import UserRoleAssignmentAPI
 from st2common.persistence.rbac import Role
 from st2common.rbac.types import get_resource_permission_types_with_descriptions
 from st2common.persistence.rbac import UserRoleAssignment
-from st2common.rbac.types import RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP
 from st2common.rbac import utils as rbac_utils
 from st2common.router import exc
 
