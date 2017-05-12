@@ -28,9 +28,42 @@ in development
   Reported by Jiang Wei. #3314 #3315
 * Allow user to specify a custom list of attribute names which are masked in the log messages by
   setting ``log.mask_secrets_blacklist`` config option. (improvement)
-* Issue #1236 - The ``destination_server`` field has been removed from the
-  ``linux.scp`` action. Going forward simply specify the server as part of the
-  ``source`` and/or ``destination`` arguments.
+* Update ``/executions/views/filters`` API endpoint so it excludes null / None from filter values
+  for fields where ``null`` is not a valid field value. (improvement)
+
+  Contributed by Cody A. Ray. #3193
+* Make sure all the role assignments for a particular user are correctly deleted from the database
+  after deleting an assignment file from ``/opt/stackstorm/rbac/assignments`` directory and running
+  ``st2-apply-rbac-definitions`` tool. (bug fix)
+* Implement RBAC for traces API endpoints. (improvement)
+* Implement RBAC for ``API_KEY_CREATE`` permission type. (improvement)
+* Implement RBAC for timers API endpoints. Note: timers are just a type of triggers so they utilize
+  ``TRIGGER_*`` RBAC permission constants (improvement)
+* Implement RBAC for webhooks get all and get one API endpoint. (improvement)
+* Add webhook payload to the Jinja render context when rendering Jinja variable inside rule criteria section
+* Switch file_watch_sensor in Linux pack to use trigger type with parameters. Now you can add a
+  rule with `file_path` and sensor will pick up the `file_path` from the rule. A sample rule
+  is provided in contrib/examples/rules/sample_rule_file_watch.yaml. (improvement)
+* Cancel actions that are Mistral workflow when the parent workflow is cancelled. (improvement)
+* Update st2rulesengine to exit non-0 on failure (bug fix) #3394 [Andrew Regan]
+* Upgrade various internal Python library dependencies to the latest stable versions (pyyaml,
+  requests, appscheduler, gitpython, paramiko, mongoengine, tooz).
+* Fix a bug where trigger parameters and payloads were being validated regardless of the relevant settings
+  in the configuration (``system.validate_trigger_payload``, ``system.validate_trigger_parameters``). (bug fix)
+* Fix ``system=True`` filter in the ``/v1/rbac/roles`` API endpoint so it works correctly. (bug fix)
+* Add new ``/v1/rbac/role_assignments`` API endpoint for retrieving user role assignment
+  information. (new feature)
+* Add CLI commands for listing RBAC roles:
+    * ``st2 role list [--system]``
+    * ``st2 role get <role id or name>``
+* Add CLI commands for listing RBAC user role assignments:
+    * ``st2 role-assignment list [--role=<role name>] [--user=<username>]``
+    * ``st2 role-assignment get <role assignment id>``
+* Update ``/v1/rbac/roles`` API endpoint so it includes corresponding permission grant objects.
+  Previously it only included permission grant ids. (improvement)
+* The ``destination_server`` parameter has been removed from the ``linux.scp`` action. Going forward simply
+  specify the server as part of the ``source`` and / or ``destination`` arguments. (improvement)
+   #3335 [Nick Maludy]
 
 2.2.1 - April 3, 2017
 ---------------------

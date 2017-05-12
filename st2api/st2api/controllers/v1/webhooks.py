@@ -99,12 +99,17 @@ class WebhooksController(object):
         # Return only the hooks known by this controller.
         return self._hooks.get_all()
 
-    def get_one(self, name):
+    def get_one(self, name, requester_user):
         triggers = self._hooks.get_triggers_for_hook(name)
 
         if not triggers:
             abort(http_client.NOT_FOUND)
             return
+
+        permission_type = PermissionType.WEBHOOK_VIEW
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=WebhookDB(name=name),
+                                                          permission_type=permission_type)
 
         # For demonstration purpose return 1st
         return triggers[0]

@@ -34,6 +34,13 @@ class ErrorHandlingMiddleware(object):
         self.app = app
 
     def __call__(self, environ, start_response):
+        # The middleware intercepts and handles all the errors happening down the call stack by
+        # converting them to valid HTTP responses with semantically meaningful status codes and
+        # predefined response structure (`{"faultstring": "..."}`). The earlier in the call stack is
+        # going to be run, the less unhandled errors could slip to the wsgi layer. Keep in mind that
+        # the middleware doesn't receive the headers that has been set down the call stack which
+        # means that things like CorsMiddleware and RequestIDMiddleware should be highier up the
+        # call stack to also apply to error responses.
         try:
             try:
                 return self.app(environ, start_response)

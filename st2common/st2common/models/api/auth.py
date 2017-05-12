@@ -18,6 +18,7 @@ import six
 from oslo_config import cfg
 from st2common.util import isotime
 from st2common.models.api.base import BaseAPI
+from st2common.models.api.base import APIUIDMixin
 from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
 from st2common import log as logging
 
@@ -96,7 +97,7 @@ class TokenAPI(BaseAPI):
         return model
 
 
-class ApiKeyAPI(BaseAPI):
+class ApiKeyAPI(BaseAPI, APIUIDMixin):
     model = ApiKeyDB
     schema = {
         "title": "ApiKey",

@@ -18,7 +18,7 @@ import types
 
 from st2common.constants.api import REQUEST_ID_HEADER
 from st2common import log as logging
-from st2common.router import Request
+from st2common.router import Request, NotFoundException
 
 LOG = logging.getLogger(__name__)
 
@@ -68,7 +68,10 @@ class LoggingMiddleware(object):
 
         retval = self.app(environ, custom_start_response)
 
-        endpoint, path_vars = self.router.match(request)
+        try:
+            endpoint, path_vars = self.router.match(request)
+        except NotFoundException:
+            endpoint = {}
 
         log_result = endpoint.get('x-log-result', True)
 

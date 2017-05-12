@@ -17,8 +17,6 @@
 A script which applies RBAC definitions and role assignments stored on disk.
 """
 
-from oslo_config import cfg
-
 from st2common import config
 from st2common.script_setup import setup as common_setup
 from st2common.script_setup import teardown as common_teardown
@@ -28,8 +26,6 @@ from st2common.rbac.syncer import RBACDefinitionsDBSyncer
 __all__ = [
     'main'
 ]
-
-cfg.CONF.register_cli_opt(cfg.BoolOpt('verbose', short='v', default=False))
 
 
 def setup(argv):

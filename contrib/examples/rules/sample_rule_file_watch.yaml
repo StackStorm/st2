@@ -1,0 +1,17 @@
+---
+name: sample_rule_file_watch
+pack: "examples"
+description: Sample rule custom trigger type - add a file to be watched by file_watch_sensor in linux pack.
+enabled: false
+
+trigger:
+  parameters:
+    file_path: /var/log/dmesg
+  type: linux.file_watch.file_path
+
+criteria: {}
+
+action:
+  parameters:
+    cmd: echo "{{trigger}}"
+  ref: core.local

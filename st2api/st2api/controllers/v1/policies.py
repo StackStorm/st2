@@ -130,7 +130,7 @@ class PolicyController(resource.ContentPackResourceController):
     }
 
     def get_one(self, ref_or_id):
-        return self._get_one(ref_or_id)
+        return self._get_one(ref_or_id, permission_type=None, requester_user=None)
 
     def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
         return self._get_all(sort=sort,
