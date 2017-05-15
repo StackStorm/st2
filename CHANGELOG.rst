@@ -62,6 +62,8 @@ in development
 * Update ``/v1/rbac/roles`` API endpoint so it includes corresponding permission grant objects.
   Previously it only included permission grant ids. (improvement)
 * Fix a bug where keyvalue objects weren't properly cast to numeric types. (bug fix)
+* When RBAC is enabled and action is scheduled (ran) through the API, include ``rbac`` dictionary
+  with ``user`` and ``roles`` ``action_context`` attribute. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
