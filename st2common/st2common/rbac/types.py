@@ -481,7 +481,7 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.ACTION_ALIAS_MATCH: ('Ability to use action alias match API endpoint.'),
     PermissionType.ACTION_ALIAS_HELP: ('Ability to use action alias help API endpoint.'),
     PermissionType.ACTION_ALIAS_DELETE: ('Ability to delete an existing action alias. Also '
-                                         'imples "action_alias_view" permission.'),
+                                         'implies "action_alias_view" permission.'),
     PermissionType.ACTION_ALIAS_ALL: ('Ability to perform all the supported operations on a '
                                       'particular action alias.'),
 
@@ -491,7 +491,7 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.EXECUTION_STOP: 'Ability to stop (cancel) a running execution.',
     PermissionType.EXECUTION_ALL: ('Ability to perform all the supported operations on a '
                                    'particular execution.'),
-    PermissionType.EXECUTION_VIEWS_FILTERS_LIST: ('Ability vew all the distinct execution '
+    PermissionType.EXECUTION_VIEWS_FILTERS_LIST: ('Ability view all the distinct execution '
                                                   'filters.'),
 
     PermissionType.RULE_LIST: 'Ability to list (view all) rules.',
