@@ -34,8 +34,10 @@ from st2common.models.db.auth import UserDB
 from st2common.persistence.auth import Token
 from st2common.persistence.auth import User
 from st2common.persistence.trace import Trace
+from st2common.models.db.rbac import RoleDB
 from st2common.models.db.rbac import UserRoleAssignmentDB
 from st2common.persistence.rbac import UserRoleAssignment
+from st2common.persistence.rbac import Role
 from st2common.services import trace as trace_service
 from st2common.transport.publishers import PoolPublisher
 from tests.base import APIControllerWithRBACTestCase
@@ -223,6 +225,12 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
         user_1_db = User.add_or_update(user_1_db)
         self.users['multiple_roles'] = user_1_db
 
+        # Roles
+        roles = ['role_1', 'role_2', 'role_3']
+        for role in roles:
+            role_db = RoleDB(name=role)
+            Role.add_or_update(role_db)
+
         # Role assignments
         user_db = self.users['multiple_roles']
         role_assignment_db = UserRoleAssignmentDB(
@@ -230,21 +238,11 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
             role='admin')
         UserRoleAssignment.add_or_update(role_assignment_db)
 
-        user_db = self.users['multiple_roles']
-        role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role='role_1')
-        UserRoleAssignment.add_or_update(role_assignment_db)
-
-        role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role='role_2')
-        UserRoleAssignment.add_or_update(role_assignment_db)
-
-        role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role='role_3')
-        UserRoleAssignment.add_or_update(role_assignment_db)
+        for role in roles:
+            role_assignment_db = UserRoleAssignmentDB(
+                user=user_db.name,
+                role=role)
+            UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_post_rbac_info_in_context_success(self):
         # When RBAC is enabled, additional RBAC related info should be included in action_context
@@ -278,6 +276,8 @@ class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCas
 
         resp = self._do_post(data)
         self.assertEqual(resp.status_int, 201)
+
+        print resp.json['context']
 
         expected_context = {
             'user': 'multiple_roles',
