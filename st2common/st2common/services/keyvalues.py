@@ -82,6 +82,12 @@ class KeyValueLookup(object):
     def __str__(self):
         return self._value_cache[self._key_prefix]
 
+    def __int__(self):
+        return int(float(self))
+
+    def __float__(self):
+        return float(str(self))
+
     def __getitem__(self, key):
         return self._get(key)
 
