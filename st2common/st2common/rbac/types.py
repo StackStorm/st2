@@ -61,7 +61,7 @@ class PermissionType(Enum):
     PACK_REGISTER = 'pack_register'
     PACK_CONFIG = 'pack_config'
     PACK_SEARCH = 'pack_search'
-    PACK_VIEW_INDEX_HEALTH = 'pack_view_index_health'
+    PACK_VIEWS_INDEX_HEALTH = 'pack_views_index_health'
 
     PACK_ALL = 'pack_all'
 
@@ -94,7 +94,7 @@ class PermissionType(Enum):
     EXECUTION_RE_RUN = 'execution_rerun'
     EXECUTION_STOP = 'execution_stop'
     EXECUTION_ALL = 'execution_all'
-    EXECUTION_VIEWS_FILTERS_LIST = 'execution_view_filters_list'
+    EXECUTION_VIEWS_FILTERS_LIST = 'execution_views_filters_list'
 
     RULE_LIST = 'rule_list'
     RULE_VIEW = 'rule_view'
@@ -168,9 +168,9 @@ class PermissionType(Enum):
         :rtype: ``str``
         """
         # Special case for:
-        # * PACK_VIEW_INDEX_HEALTH
+        # * PACK_VIEWS_INDEX_HEALTH
         # * EXECUTION_VIEWS_FILTERS_LIST
-        if permission_type == PermissionType.PACK_VIEW_INDEX_HEALTH:
+        if permission_type == PermissionType.PACK_VIEWS_INDEX_HEALTH:
             return ResourceType.PACK
         elif permission_type == PermissionType.EXECUTION_VIEWS_FILTERS_LIST:
             return ResourceType.EXECUTION
@@ -190,8 +190,8 @@ class PermissionType(Enum):
         split = permission_type.split('_')
         assert len(split) >= 2
 
-        # Special case for PACK_VIEW_INDEX_HEALTH
-        if permission_type == PermissionType.PACK_VIEW_INDEX_HEALTH:
+        # Special case for PACK_VIEWS_INDEX_HEALTH
+        if permission_type == PermissionType.PACK_VIEWS_INDEX_HEALTH:
             split = permission_type.split('_', 1)
             return split[1]
 
@@ -280,7 +280,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.PACK_REGISTER,
         PermissionType.PACK_CONFIG,
         PermissionType.PACK_SEARCH,
-        PermissionType.PACK_VIEW_INDEX_HEALTH,
+        PermissionType.PACK_VIEWS_INDEX_HEALTH,
         PermissionType.PACK_ALL,
 
         PermissionType.SENSOR_VIEW,
@@ -416,7 +416,7 @@ GLOBAL_PERMISSION_TYPES = [
     PermissionType.PACK_REGISTER,
     PermissionType.PACK_CONFIG,
     PermissionType.PACK_SEARCH,
-    PermissionType.PACK_VIEW_INDEX_HEALTH,
+    PermissionType.PACK_VIEWS_INDEX_HEALTH,
 
     # Action alias global permission types
     PermissionType.ACTION_ALIAS_MATCH,
@@ -448,7 +448,7 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.PACK_REGISTER: 'Ability to register packs and corresponding resources.',
     PermissionType.PACK_CONFIG: 'Ability to configure a pack.',
     PermissionType.PACK_SEARCH: 'Ability to query registry and search packs.',
-    PermissionType.PACK_VIEW_INDEX_HEALTH: 'Ability to query health of pack registries.',
+    PermissionType.PACK_VIEWS_INDEX_HEALTH: 'Ability to query health of pack registries.',
     PermissionType.PACK_ALL: ('Ability to perform all the supported operations on a particular '
                               'pack.'),
 

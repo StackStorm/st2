@@ -1493,7 +1493,7 @@ paths:
   /api/v1/packs/index/health:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.index.get
-      x-permissions: {{ PERMISSION_TYPE.PACK_VIEW_INDEX_HEALTH }}
+      x-permissions: {{ PERMISSION_TYPE.PACK_VIEWS_INDEX_HEALTH }}
       description: To get the state of all indexes used by your StackStorm instance.
       responses:
         '200':
