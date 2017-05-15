@@ -61,6 +61,7 @@ in development
     * ``st2 role-assignment get <role assignment id>``
 * Update ``/v1/rbac/roles`` API endpoint so it includes corresponding permission grant objects.
   Previously it only included permission grant ids. (improvement)
+* Fix a bug where keyvalue objects weren't properly cast to numeric types. (bug fix)
 
 2.2.1 - April 3, 2017
 ---------------------
