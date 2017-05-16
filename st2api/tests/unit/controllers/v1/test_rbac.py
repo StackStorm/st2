@@ -164,21 +164,20 @@ class RBACControllerTestCase(APIControllerWithRBACTestCase):
     def test_permission_type_get_one(self):
         self.use_user(self.users['admin'])
 
-        list_resp = self.app.get('/v1/rbac/permission_types')
-        self.assertEqual(list_resp.status_int, 200)
-        self.assertTrue(len(list(list_resp.json)) > 0,
-                        '/v1/rbac/permission_types did not return correct permission types.')
-        resource_type = list(list_resp.json)[0]
+        resource_type = ResourceType.RULE
         get_resp = self.app.get('/v1/rbac/permission_types/%s' % resource_type)
         self.assertEqual(get_resp.status_int, 200)
         self.assertTrue(len(get_resp.json) > 0,
                         '/v1/rbac/permission_types did not return correct permission types.')
+        self.assertTrue(PermissionType.RULE_ALL in get_resp.json)
 
     def test_permission_type_get_all(self):
         self.use_user(self.users['admin'])
 
         resp = self.app.get('/v1/rbac/permission_types')
         self.assertEqual(resp.status_int, 200)
+        self.assertTrue(ResourceType.ACTION in resp.json)
+        self.assertTrue(PermissionType.ACTION_LIST in resp.json[ResourceType.ACTION])
         self.assertTrue(len(list(resp.json)) > 0,
                         '/v1/rbac/permission_types did not return correct permission types.')
 
