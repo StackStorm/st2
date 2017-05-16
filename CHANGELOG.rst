@@ -71,6 +71,8 @@ in development
 * Update ``/v1/rbac/roles`` API endpoint so it includes corresponding permission grant objects.
   Previously it only included permission grant ids. (improvement)
 * Fix a bug where keyvalue objects weren't properly cast to numeric types. (bug fix)
+* Update ``st2-apply-rbac-definitions`` so it also removes assignments for users which don't exist
+  in the database. (improvement, bug fix)
 
 2.2.1 - April 3, 2017
 ---------------------
