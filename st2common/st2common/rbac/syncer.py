@@ -187,6 +187,8 @@ class RBACDefinitionsDBSyncer(object):
         :return: Dictionary with created and removed role assignments for each user.
         :rtype: ``dict``
         """
+        assert isinstance(role_assignment_apis, (list, tuple))
+
         LOG.info('Synchronizing users role assignments...')
 
         # Note: We exclude remote assignments because sync tool is not supposed to manipulate
@@ -214,7 +216,6 @@ class RBACDefinitionsDBSyncer(object):
         all_usernames = list(set(all_usernames))
 
         results = {}
-
         for username in all_usernames:
             role_assignment_api = username_to_role_assignment_api_map.get(username, None)
             user_db = username_to_user_db_map.get(username, None)
@@ -229,13 +230,15 @@ class RBACDefinitionsDBSyncer(object):
 
             role_assignment_dbs = username_to_role_assignment_dbs_map.get(username, [])
 
-            # Additional safety assert to ensure we don't manipulate remote assignments
+            # Additional safety assert to ensure we don't accidentally manipulate remote
+            # assignments
             for role_assignment_db in role_assignment_dbs:
                 assert role_assignment_db.is_remote is False
 
             result = self._sync_user_role_assignments(user_db=user_db,
                                                       role_assignment_dbs=role_assignment_dbs,
                                                       role_assignment_api=role_assignment_api)
+
             results[username] = result
 
         LOG.info('User role assignments synchronized')

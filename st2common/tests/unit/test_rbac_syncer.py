@@ -272,7 +272,7 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
 
         self._insert_mock_roles()
 
-        username = 'doesntexistwhaha'
+        username = 'doesntexistwhaha_3'
 
         # Initial state, no roles
         user_db = UserDB(name=username)
@@ -297,7 +297,7 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
 
         self._insert_mock_roles()
 
-        username = 'doesntexistwhaha'
+        username = 'doesntexistwhaha_1'
 
         # Initial state, no roles
         user_db = UserDB(name=username)
@@ -320,6 +320,34 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
 
         role_dbs = get_roles_for_user(user_db=user_db)
         self.assertEqual(len(role_dbs), 0)
+
+        username = 'doesntexistwhaha_2'
+
+        # Initial state, no roles
+        user_db = UserDB(name=username)
+        self.assertEqual(len(User.query(name=username)), 0)
+        role_dbs = get_roles_for_user(user_db=user_db)
+        self.assertItemsEqual(role_dbs, [])
+
+        # Do the sync with three roles defined
+        api = UserRoleAssignmentFileFormatAPI(username=user_db.name,
+                                              roles=['role_1', 'role_2', 'role_3'])
+        syncer.sync_users_role_assignments(role_assignment_apis=[api])
+
+        role_dbs = get_roles_for_user(user_db=user_db)
+        self.assertEqual(len(role_dbs), 3)
+        self.assertEqual(role_dbs[0], self.roles['role_1'])
+        self.assertEqual(role_dbs[1], self.roles['role_2'])
+        self.assertEqual(role_dbs[2], self.roles['role_3'])
+
+        # Sync with one role on disk - two roles should be removed
+        api = UserRoleAssignmentFileFormatAPI(username=user_db.name,
+                                              roles=['role_3'])
+        syncer.sync_users_role_assignments(role_assignment_apis=[api])
+
+        role_dbs = get_roles_for_user(user_db=user_db)
+        self.assertEqual(len(role_dbs), 1)
+        self.assertEqual(role_dbs[0], self.roles['role_3'])
 
     def test_sync_remote_assignments_are_not_manipulated(self):
         # Verify remote assignments are not manipulated.
