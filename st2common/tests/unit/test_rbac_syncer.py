@@ -272,8 +272,11 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
 
         self._insert_mock_roles()
 
+        username = 'doesntexistwhaha'
+
         # Initial state, no roles
-        user_db = UserDB(name='doesntexistwhaha')
+        user_db = UserDB(name=username)
+        self.assertEqual(len(User.query(name=username)), 0)
         role_dbs = get_roles_for_user(user_db=user_db)
         self.assertItemsEqual(role_dbs, [])
 
@@ -294,8 +297,11 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
 
         self._insert_mock_roles()
 
+        username = 'doesntexistwhaha'
+
         # Initial state, no roles
-        user_db = UserDB(name='doesntexistwhaha')
+        user_db = UserDB(name=username)
+        self.assertEqual(len(User.query(name=username)), 0)
         role_dbs = get_roles_for_user(user_db=user_db)
         self.assertItemsEqual(role_dbs, [])
 
