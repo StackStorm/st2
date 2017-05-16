@@ -264,6 +264,17 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(mistral_opts, group='mistral', ignore_errors=ignore_errors)
 
+    # Results Tracker query module options
+    # Note that these are currently used only by mistral query module.
+    query_opts = [
+        cfg.IntOpt('thread_pool_size', default=10,
+                   help='Number of threads to use to query external workflow systems.'),
+        cfg.IntOpt('query_interval', default=20,
+                   help='Time interval between subsequent queries for a context ' +
+                        'to external workflow system.')
+    ]
+    do_register_opts(query_opts, group='results_tracker', ignore_errors=ignore_errors)
+
     # Common CLI options
     debug = cfg.BoolOpt('debug', default=False,
         help='Enable debug mode. By default this will set all log levels to DEBUG.')
