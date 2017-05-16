@@ -310,7 +310,7 @@ class RBACDefinitionsDBSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         self.assertEqual(role_dbs[1], self.roles['role_2'])
 
         # Sync with no roles on disk - existing roles should be removed
-        syncer.sync_users_role_assignments(role_assignment_apis=[api])
+        syncer.sync_users_role_assignments(role_assignment_apis=[])
 
         role_dbs = get_roles_for_user(user_db=user_db)
         self.assertEqual(len(role_dbs), 0)
