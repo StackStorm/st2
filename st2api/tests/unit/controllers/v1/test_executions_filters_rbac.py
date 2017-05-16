@@ -43,9 +43,9 @@ class ExecutionViewsFiltersControllerRBACTestCase(APIControllerWithRBACTestCase)
         # Insert mock users, roles and assignments
 
         # Users
-        user_1_db = UserDB(name='execution_view_filters_list')
+        user_1_db = UserDB(name='executions_views_filters_list')
         user_1_db = User.add_or_update(user_1_db)
-        self.users['execution_view_filters_list'] = user_1_db
+        self.users['executions_views_filters_list'] = user_1_db
 
         # Roles
         # trace_list
@@ -55,14 +55,15 @@ class ExecutionViewsFiltersControllerRBACTestCase(APIControllerWithRBACTestCase)
                                      permission_types=permission_types)
         grant_db = PermissionGrant.add_or_update(grant_db)
         permission_grants = [str(grant_db.id)]
-        role_1_db = RoleDB(name='execution_view_filters_list', permission_grants=permission_grants)
+        role_1_db = RoleDB(name='executions_views_filters_list',
+                           permission_grants=permission_grants)
         role_1_db = Role.add_or_update(role_1_db)
-        self.roles['execution_view_filters_list'] = role_1_db
+        self.roles['executions_views_filters_list'] = role_1_db
 
         # Role assignments
         role_assignment_db = UserRoleAssignmentDB(
-            user=self.users['execution_view_filters_list'].name,
-            role=self.roles['execution_view_filters_list'].name)
+            user=self.users['executions_views_filters_list'].name,
+            role=self.roles['executions_views_filters_list'].name)
         UserRoleAssignment.add_or_update(role_assignment_db)
 
     def test_get_view_filters_no_permissions(self):
@@ -71,12 +72,12 @@ class ExecutionViewsFiltersControllerRBACTestCase(APIControllerWithRBACTestCase)
 
         resp = self.app.get('/v1/executions/views/filters', expect_errors=True)
         expected_msg = ('User "no_permissions" doesn\'t have required permission '
-                        '"execution_view_filters_list"')
+                        '"executions_views_filters_list"')
         self.assertEqual(resp.status_code, httplib.FORBIDDEN)
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     def test_get_view_filters_success(self):
-        user_db = self.users['execution_view_filters_list']
+        user_db = self.users['executions_views_filters_list']
         self.use_user(user_db)
 
         resp = self.app.get('/v1/executions/views/filters')
