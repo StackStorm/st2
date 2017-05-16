@@ -166,8 +166,12 @@ def install_requirements(virtualenv_path, requirements_file_path):
     exit_code, stdout, stderr = run_command(cmd=cmd, env=env)
 
     if exit_code != 0:
-        raise Exception('Failed to install requirements from "%s": %s (stderr: %s)' %
-                        (requirements_file_path, stdout, stderr))
+        def safetystring(s):
+            return s.decode('ascii', errors='ignore')
+        raise Exception(
+            'Failed to install requirements from "%s": %s (stderr: %s)' % (
+                requirements_file_path,
+                safetystring(stdout), safetystring(stderr)))
 
     return True
 
