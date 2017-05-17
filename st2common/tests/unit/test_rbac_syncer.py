@@ -603,3 +603,65 @@ class RBACRemoteGroupToRoleSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
         self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
         self.assertEqual(role_dbs[2], self.roles['mock_role_3'])
+
+    def test_no_mappings_in_db_old_mappings_are_deleted(self):
+        # Test case which verifies that existing / old mappings are deleted from db if no mappings
+        # exist on disk for a particular set of groups.
+        syncer = RBACRemoteGroupToRoleSyncer()
+        user_db = self.users['user_1']
+
+        # Create mock mapping which maps CN=stormers,OU=groups,DC=stackstorm,DC=net
+        # to "mock_role_3" and CN=testers,OU=groups,DC=stackstorm,DC=net to "mock_role_4"
+        create_group_to_role_map(group='CN=stormers,OU=groups,DC=stackstorm,DC=net',
+                                 roles=['mock_role_3'],
+                                 enabled=True)
+        create_group_to_role_map(group='CN=testers,OU=groups,DC=stackstorm,DC=net',
+                                 roles=['mock_role_4'],
+                                 enabled=True)
+
+        # Verify initial state
+        role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+        self.assertEqual(len(role_dbs), 2)
+        self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
+        self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
+
+        groups = [
+            'CN=stormers,OU=groups,DC=stackstorm,DC=net',
+            'CN=testers,OU=groups,DC=stackstorm,DC=net'
+        ]
+
+        # Two new remote assignments should have been created
+        # No mappings exist for the groups user is a member of so no new assignments should be
+        # created
+        result = syncer.sync(user_db=self.users['user_1'], groups=groups)
+        created_role_assignment_dbs = result[0]
+        removed_role_assignment_dbs = result[1]
+        self.assertEqual(len(created_role_assignment_dbs), 2)
+        self.assertEqual(created_role_assignment_dbs[0].role, 'mock_role_3')
+        self.assertEqual(created_role_assignment_dbs[1].role, 'mock_role_4')
+        self.assertEqual(removed_role_assignment_dbs, [])
+
+        # Verify post sync run state - two new assignments should have been created
+        role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+        self.assertEqual(len(role_dbs), 4)
+        self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
+        self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
+        self.assertEqual(role_dbs[2], self.roles['mock_role_3'])
+        self.assertEqual(role_dbs[3], self.roles['mock_role_4'])
+
+        # Delete all existing mappings, make sure all old assignments are deleted on sync
+        GroupToRoleMapping.query(group__in=groups).delete()
+        self.assertEqual(len(GroupToRoleMapping.query(group__in=groups)), 0)
+
+        result = syncer.sync(user_db=self.users['user_1'], groups=groups)
+        created_role_assignment_dbs = result[0]
+        removed_role_assignment_dbs = result[1]
+
+        self.assertEqual(created_role_assignment_dbs, [])
+        self.assertEqual(len(removed_role_assignment_dbs), 2)
+        self.assertEqual(removed_role_assignment_dbs[0].role, 'mock_role_3')
+        self.assertEqual(removed_role_assignment_dbs[1].role, 'mock_role_4')
+
+        # Verify post sync run state - two old assignments should have been deleted
+        role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
+        self.assertEqual(len(role_dbs), 2)
