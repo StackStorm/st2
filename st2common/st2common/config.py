@@ -257,6 +257,9 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('keystone_auth_url', default=None, help='Auth endpoint for Keystone.'),
         cfg.StrOpt('cacert', default=None, help='Optional certificate to validate endpoint.'),
         cfg.BoolOpt('insecure', default=False, help='Allow insecure communication with Mistral.'),
+        cfg.IntOpt('jitter_interval', default=1,
+                   help='Jitter interval to smooth out HTTP requests ' +
+                        'to mistral tasks and executions API.'),
 
         cfg.StrOpt('api_url', default=None, help=('URL Mistral uses to talk back to the API.'
             'If not provided it defaults to public API URL. Note: This needs to be a base '

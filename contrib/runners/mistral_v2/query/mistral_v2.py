@@ -1,8 +1,10 @@
+import random
 import uuid
 
 from mistralclient.api import base as mistralclient_base
 from mistralclient.api import client as mistral
 from oslo_config import cfg
+import eventlet
 import retrying
 
 from st2common.query.base import Querier
@@ -46,6 +48,7 @@ class MistralResultsQuerier(Querier):
             auth_url=cfg.CONF.mistral.keystone_auth_url,
             cacert=cfg.CONF.mistral.cacert,
             insecure=cfg.CONF.mistral.insecure)
+        self._jitter = cfg.CONF.mistral.jitter_interval
 
     @retrying.retry(
         retry_on_exception=utils.retry_on_exceptions,
@@ -95,6 +98,8 @@ class MistralResultsQuerier(Querier):
         :rtype: (``str``, ``dict``)
         """
         try:
+            jitter = random.uniform(0, self._jitter)
+            eventlet.sleep(jitter)
             execution = self._client.executions.get(exec_id)
         except mistralclient_base.APIException as mistral_exc:
             if 'not found' in mistral_exc.message:
@@ -121,7 +126,11 @@ class MistralResultsQuerier(Querier):
 
         try:
             for task in self._client.tasks.list(workflow_execution_id=exec_id):
-                wf_tasks.append(self._client.tasks.get(task.id))
+                task_result = self._client.tasks.get(task.id)
+                wf_tasks.append(task_result)
+                # Lets not blast requests but just space it out for better CPU profile
+                jitter = random.uniform(0, self._jitter)
+                eventlet.sleep(jitter)
         except mistralclient_base.APIException as mistral_exc:
             if 'not found' in mistral_exc.message:
                 raise exceptions.ReferenceNotFoundError(mistral_exc.message)
