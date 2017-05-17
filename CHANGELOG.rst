@@ -71,6 +71,9 @@ in development
 * Update ``/v1/rbac/roles`` API endpoint so it includes corresponding permission grant objects.
   Previously it only included permission grant ids. (improvement)
 * Fix a bug where keyvalue objects weren't properly cast to numeric types. (bug fix)
+* Ignore unicode related encoding errors which could occur in some circumstances when
+  ``packs.setup_virtualenv`` fails due to a missing dependency or similar. (improvement, bug fix)
+  #3337 [Sean Reifschneider]
 
 2.2.1 - April 3, 2017
 ---------------------
