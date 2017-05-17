@@ -664,6 +664,9 @@ class RBACRemoteGroupToRoleSyncerTestCase(BaseRBACDefinitionsDBSyncerTestCase):
         self.assertEqual(removed_role_assignment_dbs[0].role, 'mock_remote_role_3')
         self.assertEqual(removed_role_assignment_dbs[1].role, 'mock_remote_role_4')
 
-        # Verify post sync run state - two old assignments should have been deleted
+        # Verify post sync run state - two old remote assignments should have been deleted, but
+        # local assignments shouldn't have been touched
         role_dbs = get_roles_for_user(user_db=user_db, include_remote=True)
         self.assertEqual(len(role_dbs), 2)
+        self.assertEqual(role_dbs[0], self.roles['mock_local_role_1'])
+        self.assertEqual(role_dbs[1], self.roles['mock_local_role_2'])
