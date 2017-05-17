@@ -1,0 +1,6 @@
+---
+name: uuid
+runner_type: "python-script"
+description: Generate a new random UUID (type uuid4)
+enabled: true
+entry_point: generate_uuid.py
