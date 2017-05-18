@@ -51,15 +51,49 @@ class TestResourceManager(unittest2.TestCase):
         expected = json.loads(json.dumps(base.RESOURCES))
         self.assertListEqual(actual, expected)
 
-    @mock.patch.object(
-        httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES), 200, 'OK')))
     def test_resource_get_all_with_limit(self):
-        mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
-        resources = mgr.get_all(limit=50)
-        actual = [resource.serialize() for resource in resources]
-        expected = json.loads(json.dumps(base.RESOURCES))
-        self.assertListEqual(actual, expected)
+        with mock.patch.object(httpclient.HTTPClient,
+                               'get',
+                               mock.MagicMock(
+                                   return_value=base.FakeResponse(json.dumps(base.RESOURCES),
+                                                                  200,
+                                                                  'OK'))) as mock_client:
+            mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+            resources = mgr.get_all(limit=50)
+            actual = [resource.serialize() for resource in resources]
+            expected = json.loads(json.dumps(base.RESOURCES))
+            self.assertListEqual(actual, expected)
+            self.assertTrue(
+                mock_client.call_args == mock.call(params={'limit': 50}, url='/fakeresources'))
+
+    def test_resource_get_all_with_limit_zero(self):
+        with mock.patch.object(httpclient.HTTPClient,
+                               'get',
+                               mock.MagicMock(
+                                   return_value=base.FakeResponse(json.dumps(base.RESOURCES),
+                                                                  200,
+                                                                  'OK'))) as mock_client:
+            mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+            resources = mgr.get_all(limit=0)
+            actual = [resource.serialize() for resource in resources]
+            expected = json.loads(json.dumps(base.RESOURCES))
+            self.assertListEqual(actual, expected)
+            self.assertTrue(
+                mock_client.call_args == mock.call(params={'limit': 0}, url='/fakeresources'))
+
+    def test_resource_get_all_with_limit_negative(self):
+        with mock.patch.object(httpclient.HTTPClient,
+                               'get',
+                               mock.MagicMock(
+                                   return_value=base.FakeResponse(json.dumps(base.RESOURCES),
+                                                                  200,
+                                                                  'OK'))) as mock_client:
+            mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+            resources = mgr.get_all(limit=-1)
+            actual = [resource.serialize() for resource in resources]
+            expected = json.loads(json.dumps(base.RESOURCES))
+            self.assertListEqual(actual, expected)
+            self.assertTrue(mock_client.call_args == mock.call(params={}, url='/fakeresources'))
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
@@ -103,15 +137,49 @@ class TestResourceManager(unittest2.TestCase):
         expected = json.loads(json.dumps([base.RESOURCES[0]]))
         self.assertEqual(actual, expected)
 
-    @mock.patch.object(
-        httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([base.RESOURCES[0]]), 200, 'OK')))
     def test_resource_query_with_limit(self):
-        mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
-        resources = mgr.query(name='abc', limit=50)
-        actual = [resource.serialize() for resource in resources]
-        expected = json.loads(json.dumps([base.RESOURCES[0]]))
-        self.assertEqual(actual, expected)
+        with mock.patch.object(httpclient.HTTPClient,
+                               'get',
+                               mock.MagicMock(
+                                   return_value=base.FakeResponse(json.dumps(base.RESOURCES),
+                                                                  200,
+                                                                  'OK'))) as mock_client:
+            mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+            resources = mgr.query(name='abc', limit=50)
+            actual = [resource.serialize() for resource in resources]
+            expected = json.loads(json.dumps(base.RESOURCES))
+            self.assertEqual(actual, expected)
+            self.assertTrue(
+                mock_client.call_args == mock.call('/fakeresources/?limit=50&name=abc'))
+
+    def test_resource_query_with_limit_zero(self):
+        with mock.patch.object(httpclient.HTTPClient,
+                               'get',
+                               mock.MagicMock(
+                                   return_value=base.FakeResponse(json.dumps(base.RESOURCES),
+                                                                  200,
+                                                                  'OK'))) as mock_client:
+            mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+            resources = mgr.query(name='abc', limit=0)
+            actual = [resource.serialize() for resource in resources]
+            expected = json.loads(json.dumps(base.RESOURCES))
+            self.assertEqual(actual, expected)
+            self.assertTrue(
+                mock_client.call_args == mock.call('/fakeresources/?limit=0&name=abc'))
+
+    def test_resource_query_with_negative_limit(self):
+        with mock.patch.object(httpclient.HTTPClient,
+                               'get',
+                               mock.MagicMock(
+                                   return_value=base.FakeResponse(json.dumps(base.RESOURCES),
+                                                                  200,
+                                                                  'OK'))) as mock_client:
+            mgr = models.ResourceManager(base.FakeResource, base.FAKE_ENDPOINT)
+            resources = mgr.query(name='abc', limit=-1)
+            actual = [resource.serialize() for resource in resources]
+            expected = json.loads(json.dumps(base.RESOURCES))
+            self.assertEqual(actual, expected)
+            self.assertTrue(mock_client.call_args == mock.call('/fakeresources/?name=abc'))
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
