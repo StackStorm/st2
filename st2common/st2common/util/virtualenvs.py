@@ -28,7 +28,7 @@ from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.constants.pack import BASE_PACK_REQUIREMENTS
 from st2common.util.shell import run_command
 from st2common.util.shell import quote_unix
-from st2common.util.compact import to_ascii
+from st2common.util.compat import to_ascii
 from st2common.content.utils import get_packs_base_paths
 from st2common.content.utils import get_pack_directory
 
