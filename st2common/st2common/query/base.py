@@ -20,13 +20,12 @@ import six
 import time
 
 from st2actions.container.service import RunnerContainerService
-from st2common.runners.base import get_runner
 from st2common import log as logging
 from st2common.constants import action as action_constants
 from st2common.persistence.executionstate import ActionExecutionState
 from st2common.persistence.liveaction import LiveAction
+from st2common.runners import utils as runners_utils
 from st2common.services import executions
-from st2common.util.action_db import (get_action_by_ref, get_runnertype_by_name)
 from st2common.util import date as date_utils
 
 LOG = logging.getLogger(__name__)
@@ -109,14 +108,8 @@ class Querier(object):
             return
 
         if status in action_constants.LIVEACTION_COMPLETED_STATES:
-            action_db = get_action_by_ref(liveaction_db.action)
-
-            if action_db:
-                if status != action_constants.LIVEACTION_STATUS_CANCELED:
-                    self._invoke_post_run(liveaction_db, action_db)
-            else:
-                LOG.exception('Unable to invoke post run. Action %s '
-                              'no longer exists.' % liveaction_db.action)
+            if status != action_constants.LIVEACTION_STATUS_CANCELED:
+                runners_utils.invoke_post_run(liveaction_db)
 
             self._delete_state_object(query_context)
 
@@ -145,29 +138,6 @@ class Querier(object):
         LiveAction.publish_update(updated_liveaction)
 
         return updated_liveaction
-
-    def _invoke_post_run(self, actionexec_db, action_db):
-        LOG.info('Invoking post run for action execution %s. Action=%s; Runner=%s',
-                 actionexec_db.id, action_db.name, action_db.runner_type['name'])
-
-        # Get an instance of the action runner.
-        runnertype_db = get_runnertype_by_name(action_db.runner_type['name'])
-        runner = get_runner(runnertype_db.runner_module)
-
-        # Configure the action runner.
-        runner.container_service = RunnerContainerService()
-        runner.action = action_db
-        runner.action_name = action_db.name
-        runner.action_execution_id = str(actionexec_db.id)
-        runner.entry_point = RunnerContainerService.get_entry_point_abs_path(
-            pack=action_db.pack, entry_point=action_db.entry_point)
-        runner.context = getattr(actionexec_db, 'context', dict())
-        runner.callback = getattr(actionexec_db, 'callback', dict())
-        runner.libs_dir_path = RunnerContainerService.get_action_libs_abs_path(
-            pack=action_db.pack, entry_point=action_db.entry_point)
-
-        # Invoke the post_run method.
-        runner.post_run(actionexec_db.status, actionexec_db.result)
 
     def _delete_state_object(self, query_context):
         state_db = ActionExecutionState.get_by_id(query_context.id)
