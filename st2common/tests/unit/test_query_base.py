@@ -20,7 +20,6 @@ from unittest2 import TestCase
 import mock
 
 
-from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
 from st2common.query.base import Querier
 from st2tests.config import parse_args
 parse_args()
