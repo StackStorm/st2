@@ -12,4 +12,4 @@ class MatchAction(Action):
         self.client = Client(api_url=api_url, token=token)
 
     def run(self, text):
-        return self.client.managers['ActionAlias'].match(text)
+        return self.client.managers['ActionAlias'].match(str(text))
