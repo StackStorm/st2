@@ -135,7 +135,12 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             v = json.dumps(v)
             reverse_json_dumps = True
         else:
-            v = to_unicode(v)
+            # Special case for text type to handle unicode
+            if isinstance(v, six.string_types):
+                v = to_unicode(v)
+            else:
+                # Other types (e.g. boolean, etc.)
+                v = str(v)
 
         try:
             LOG.info('Rendering string %s. Super context=%s', v, super_context)
