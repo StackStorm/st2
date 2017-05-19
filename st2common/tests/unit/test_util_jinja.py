@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -33,4 +34,28 @@ class JinjaUtilsRenderTestCase(unittest2.TestCase):
             context={'a': 'v1', 'b': 'v2'},
             allow_undefined=True)
         expected = {'k2': 'v2', 'k1': 'v1', 'k3': ''}
+        self.assertEqual(actual, expected)
+
+    def test_render_values_ascii_and_unicode_values(self):
+        mapping = {
+            u'k_ascii': '{{a}}',
+            u'k_unicode': '{{b}}',
+            u'k_ascii_unicode': '{{c}}'}
+        context = {
+            'a': u'some ascii value',
+            'b': u'٩(̾●̮̮̃̾•̃̾)۶ ٩(̾●̮̮̃̾•̃̾)۶ ćšž',
+            'c': u'some ascii some ٩(̾●̮̮̃̾•̃̾)۶ ٩(̾●̮̮̃̾•̃̾)۶ '
+        }
+
+        expected = {
+            'k_ascii': u'some ascii value',
+            'k_unicode': u'٩(̾●̮̮̃̾•̃̾)۶ ٩(̾●̮̮̃̾•̃̾)۶ ćšž',
+            'k_ascii_unicode': u'some ascii some ٩(̾●̮̮̃̾•̃̾)۶ ٩(̾●̮̮̃̾•̃̾)۶ '
+        }
+
+        actual = jinja_utils.render_values(
+            mapping=mapping,
+            context=context,
+            allow_undefined=True)
+
         self.assertEqual(actual, expected)

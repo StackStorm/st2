@@ -134,7 +134,8 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             v = json.dumps(v)
             reverse_json_dumps = True
         else:
-            v = str(v)
+            from st2common.util.compat import to_unicode
+            v = to_unicode(v)
 
         try:
             LOG.info('Rendering string %s. Super context=%s', v, super_context)
