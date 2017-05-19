@@ -31,7 +31,7 @@ class WiringTest(base.TestWorkflowExecution):
 
         # Create temporary directory used by the tests
         _, self.temp_dir_path = tempfile.mkstemp()
-        os.chmod(self.temp_dir_path, 0666)   # nosec
+        os.chmod(self.temp_dir_path, 0755)   # nosec
 
     def tearDown(self):
         if self.temp_dir_path and os.path.exists(self.temp_dir_path):
