@@ -17,6 +17,7 @@ import json
 import six
 
 from st2common import log as logging
+from st2common.util.compat import to_unicode
 
 
 __all__ = [
@@ -134,7 +135,6 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             v = json.dumps(v)
             reverse_json_dumps = True
         else:
-            from st2common.util.compat import to_unicode
             v = to_unicode(v)
 
         try:
