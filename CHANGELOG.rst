@@ -73,6 +73,8 @@ in development
 * Fix a bug where keyvalue objects weren't properly cast to numeric types. (bug fix)
 * When action worker is being shutdown and action executions are being abandoned, invoke post run
   on the action executions to ensure operations such as callback is performed. (bug fix)
+* Fix action chain runner workflows so variables (vars) and parameter values
+  support non-ascii (unicode) characters. (bug fix)
 
 2.2.1 - April 3, 2017
 ---------------------
