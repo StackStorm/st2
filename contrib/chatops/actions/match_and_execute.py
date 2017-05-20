@@ -1,7 +1,8 @@
 import os
 
 from st2common.runners.base_action import Action
-from st2client.models.action_alias import ActionAliasMatch, ActionAliasExecution
+from st2client.models.action_alias import ActionAliasMatch
+from st2client.models.aliasexecution import ActionAliasExecution
 
 from st2client.client import Client
 

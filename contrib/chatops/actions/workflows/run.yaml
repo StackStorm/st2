@@ -9,7 +9,7 @@ chain:
       text: "{{text}}"
     publish:
       execution_id: "{{format_execution_result.result}}"
-    on-success: "post_message"
+    on-success: "post_result"
   -
     name: "post_result"
     ref: "chatops.post_result"
