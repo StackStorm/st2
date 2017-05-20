@@ -1,0 +1,22 @@
+---
+chain:
+  -
+    name: "match_and_execute"
+    ref: "chatops.match_and_execute"
+    parameters:
+      user: "{{user}}"
+      source_channel: "{{channel}}"
+      text: "{{text}}"
+    publish:
+      execution_id: "{{format_execution_result.result}}"
+    on-success: "post_message"
+  -
+    name: "post_result"
+    ref: "chatops.post_result"
+    parameters:
+      user: "{{user}}"
+      channel: "{{channel}}"
+      whisper: "{{whisper}}"
+      message: "{{message}}"
+      extra: "{{extra}}"
+      execution_id: "{{execution_id}}"

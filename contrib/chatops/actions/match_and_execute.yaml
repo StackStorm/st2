@@ -1,10 +1,10 @@
 ---
-name: "execute"
+name: "match_and_execute"
 pack: chatops
 runner_type: "run-python"
 description: "Execute a chatops string to an action alias"
 enabled: true
-entry_point: "execute.py"
+entry_point: "match_and_execute.py"
 parameters:
   text:
     type: "string"
