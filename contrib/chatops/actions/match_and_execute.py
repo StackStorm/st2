@@ -29,7 +29,7 @@ class ExecuteActionAliasAction(Action):
         execution.notification_route = None
         execution.user = user
 
-        action_exec_mgr = self.app.client.managers['ActionAliasExecution']
+        action_exec_mgr = self.client.managers['ActionAliasExecution']
 
         execution = action_exec_mgr.create(execution)
         return execution.execution['id']

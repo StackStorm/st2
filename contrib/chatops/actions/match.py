@@ -23,8 +23,8 @@ class MatchAction(Action):
 
 
 def _format_match(match):
-        return {
-            'name': match.name,
-            'pack': match.pack,
-            'action_ref': match.action_ref
-        }
+    return {
+        'name': match.name,
+        'pack': match.pack,
+        'action_ref': match.action_ref
+    }
