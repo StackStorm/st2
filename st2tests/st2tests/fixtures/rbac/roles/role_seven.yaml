@@ -11,6 +11,6 @@
                - "pack_uninstall"
                - "pack_register"
                - "pack_search"
-               - "pack_view_index_health"
+               - "pack_views_index_health"
                - "action_alias_match"
                - "action_alias_help"

@@ -35,11 +35,20 @@ in development
 * Make sure all the role assignments for a particular user are correctly deleted from the database
   after deleting an assignment file from ``/opt/stackstorm/rbac/assignments`` directory and running
   ``st2-apply-rbac-definitions`` tool. (bug fix)
+* Add webhook payload to the Jinja render context when rendering Jinja variable inside rule
+  criteria section.
 * Implement RBAC for traces API endpoints. (improvement)
 * Implement RBAC for ``API_KEY_CREATE`` permission type. (improvement)
-* Implement RBAC for timers API endpoints. Note: timers are just a type of triggers so they utilize
-  ``TRIGGER_*`` RBAC permission constants (improvement)
+* Implement RBAC for timers API endpoints. (improvement)
 * Implement RBAC for webhooks get all and get one API endpoint. (improvement)
+* Implement RBAC for policy types and policies get all and get one API endpoint. (improvement)
+* Require ``ACTION_VIEW`` permission type to be able to access entry_point and parameters actions
+  view controller. (improvement)
+* Update ``/v1/rbac/permission_types`` and ``/v1/rbac/permission_types/<resource type>`` API
+  endpoint to return a dictionary which also includes a description for each available
+  permission type. (improvement)
+* Require ``EXECUTION_VIEWS_FILTERS_LIST`` RBAC permission type to be able to access
+  ``/executions/views/filters`` API endpoint. (improvement)
 * Add webhook payload to the Jinja render context when rendering Jinja variable inside rule criteria section
 * Switch file_watch_sensor in Linux pack to use trigger type with parameters. Now you can add a
   rule with `file_path` and sensor will pick up the `file_path` from the rule. A sample rule
@@ -62,6 +71,10 @@ in development
 * Update ``/v1/rbac/roles`` API endpoint so it includes corresponding permission grant objects.
   Previously it only included permission grant ids. (improvement)
 * Fix a bug where keyvalue objects weren't properly cast to numeric types. (bug fix)
+* When action worker is being shutdown and action executions are being abandoned, invoke post run
+  on the action executions to ensure operations such as callback is performed. (bug fix)
+* Fix action chain runner workflows so variables (vars) and parameter values
+  support non-ascii (unicode) characters. (bug fix)
 * When RBAC is enabled and action is scheduled (ran) through the API, include ``rbac`` dictionary
   with ``user`` and ``roles`` ``action_context`` attribute. (improvement)
 

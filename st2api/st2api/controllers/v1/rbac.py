@@ -13,14 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 
 from st2api.controllers.resource import ResourceController
 from st2common.models.api.rbac import RoleAPI
 from st2common.models.api.rbac import UserRoleAssignmentAPI
 from st2common.persistence.rbac import Role
+from st2common.rbac.types import get_resource_permission_types_with_descriptions
 from st2common.persistence.rbac import UserRoleAssignment
-from st2common.rbac.types import RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP
 from st2common.rbac import utils as rbac_utils
 from st2common.router import exc
 
@@ -106,7 +105,7 @@ class PermissionTypesController(object):
         """
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
-        result = copy.deepcopy(RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP)
+        result = get_resource_permission_types_with_descriptions()
         return result
 
     def get_one(self, resource_type, requester_user):
@@ -114,11 +113,13 @@ class PermissionTypesController(object):
             List all the available permission types for a particular resource type.
 
             Handles requests:
-                GET /rbac/permission_types
+                GET /rbac/permission_types/<resource type>
         """
         rbac_utils.assert_user_is_admin(user_db=requester_user)
 
-        permission_types = RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP.get(resource_type, None)
+        all_permission_types = get_resource_permission_types_with_descriptions()
+        permission_types = all_permission_types.get(resource_type, None)
+
         if permission_types is None:
             raise exc.HTTPNotFound('Invalid resource type: %s' % (resource_type))
 
