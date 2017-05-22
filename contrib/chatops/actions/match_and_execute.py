@@ -1,9 +1,13 @@
 import os
+import time
 
 from st2common.runners.base_action import Action
 from st2client.models.action_alias import ActionAliasMatch
 from st2client.models.aliasexecution import ActionAliasExecution
-
+from st2client.commands.action import (LIVEACTION_STATUS_REQUESTED,
+                                       LIVEACTION_STATUS_SCHEDULED,
+                                       LIVEACTION_STATUS_RUNNING,
+                                       LIVEACTION_STATUS_CANCELING)
 from st2client.client import Client
 
 
@@ -32,4 +36,18 @@ class ExecuteActionAliasAction(Action):
         action_exec_mgr = self.client.managers['ActionAliasExecution']
 
         execution = action_exec_mgr.create(execution)
+        self._wait_execution_to_finish(execution.execution['id'])
         return execution.execution['id']
+
+    def _wait_execution_to_finish(self, execution_id):
+        pending_statuses = [
+            LIVEACTION_STATUS_REQUESTED,
+            LIVEACTION_STATUS_SCHEDULED,
+            LIVEACTION_STATUS_RUNNING,
+            LIVEACTION_STATUS_CANCELING
+        ]
+        action_exec_mgr = self.client.managers['LiveAction']
+        execution = action_exec_mgr.get_by_id(execution_id)
+        while execution.status in pending_statuses:
+            time.sleep(1)
+            execution = action_exec_mgr.get_by_id(execution_id)
