@@ -71,6 +71,12 @@ in development
 * Update ``/v1/rbac/roles`` API endpoint so it includes corresponding permission grant objects.
   Previously it only included permission grant ids. (improvement)
 * Fix a bug where keyvalue objects weren't properly cast to numeric types. (bug fix)
+* When action worker is being shutdown and action executions are being abandoned, invoke post run
+  on the action executions to ensure operations such as callback is performed. (bug fix)
+* Fix action chain runner workflows so variables (vars) and parameter values
+  support non-ascii (unicode) characters. (bug fix)
+* When RBAC is enabled and action is scheduled (ran) through the API, include ``rbac`` dictionary
+  with ``user`` and ``roles`` ``action_context`` attribute. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
