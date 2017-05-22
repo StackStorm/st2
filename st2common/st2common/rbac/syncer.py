@@ -343,10 +343,7 @@ class RBACRemoteGroupToRoleSyncer(object):
                                 not mapping_db.enabled]
 
         if not all_mapping_dbs:
-            # No mapping found, return early
-            LOG.debug('No group to role mappings found for user "%s"' % (str(user_db)),
-                      extra=extra)
-            return ([], [])
+            LOG.debug('No group to role mappings found for user "%s"' % (str(user_db)), extra=extra)
 
         # 2. Remove all the existing remote role assignments
         remote_assignment_dbs = UserRoleAssignment.query(user=user_db.name, is_remote=True)
