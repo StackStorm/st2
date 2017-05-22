@@ -75,6 +75,8 @@ in development
   on the action executions to ensure operations such as callback is performed. (bug fix)
 * Fix action chain runner workflows so variables (vars) and parameter values
   support non-ascii (unicode) characters. (bug fix)
+* When RBAC is enabled and action is scheduled (ran) through the API, include ``rbac`` dictionary
+  with ``user`` and ``roles`` ``action_context`` attribute. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
