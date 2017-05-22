@@ -19,6 +19,8 @@ import Queue
 import six
 import time
 
+from oslo_config import cfg
+
 from st2actions.container.service import RunnerContainerService
 from st2common import log as logging
 from st2common.constants import action as action_constants
@@ -40,14 +42,14 @@ __all__ = [
 class Querier(object):
     delete_state_object_on_error = True
 
-    def __init__(self, threads_pool_size=10, query_interval=1, empty_q_sleep_time=5,
+    def __init__(self, empty_q_sleep_time=5,
                  no_workers_sleep_time=1, container_service=None):
-        self._query_threads_pool_size = threads_pool_size
+        self._query_thread_pool_size = cfg.CONF.results_tracker.thread_pool_size
+        self._query_interval = cfg.CONF.results_tracker.query_interval
         self._query_contexts = Queue.Queue()
-        self._thread_pool = eventlet.GreenPool(self._query_threads_pool_size)
+        self._thread_pool = eventlet.GreenPool(self._query_thread_pool_size)
         self._empty_q_sleep_time = empty_q_sleep_time
         self._no_workers_sleep_time = no_workers_sleep_time
-        self._query_interval = query_interval
         if not container_service:
             container_service = RunnerContainerService()
         self.container_service = container_service
@@ -61,6 +63,7 @@ class Querier(object):
             while self._thread_pool.free() <= 0:
                 eventlet.greenthread.sleep(self._no_workers_sleep_time)
             self._fire_queries()
+            eventlet.sleep(self._query_interval)
 
     def add_queries(self, query_contexts=None):
         if query_contexts is None:
@@ -75,13 +78,20 @@ class Querier(object):
     def _fire_queries(self):
         if self._thread_pool.free() <= 0:
             return
+
+        now = time.time()
+        reschedule_queries = []
+
         while not self._query_contexts.empty() and self._thread_pool.free() > 0:
             (last_query_time, query_context) = self._query_contexts.get_nowait()
-            if time.time() - last_query_time < self._query_interval:
-                self._query_contexts.put((last_query_time, query_context))
+            if now - last_query_time < self._query_interval:
+                reschedule_queries.append((last_query_time, query_context))
                 continue
             else:
                 self._thread_pool.spawn(self._query_and_save_results, query_context)
+
+        for query in reschedule_queries:
+            self._query_contexts.put((query[0], query[1]))
 
     def _query_and_save_results(self, query_context):
         execution_id = query_context.execution_id
