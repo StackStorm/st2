@@ -1,4 +1,5 @@
 import random
+import time
 import uuid
 
 from mistralclient.api import base as mistralclient_base
@@ -11,7 +12,7 @@ from st2common.query.base import Querier
 from st2common.constants import action as action_constants
 from st2common.exceptions import resultstracker as exceptions
 from st2common import log as logging
-from st2common.services import action as action_service
+from st2common.util import action_db as action_utils
 from st2common.util import jsonify
 from st2common.util.url import get_url_without_trailing_slash
 from st2common.util.workflow import mistral as utils
@@ -28,6 +29,11 @@ DONE_STATES = {
 ACTIVE_STATES = {
     'RUNNING': action_constants.LIVEACTION_STATUS_RUNNING
 }
+
+CANCELED_STATES = [
+    action_constants.LIVEACTION_STATUS_CANCELED,
+    action_constants.LIVEACTION_STATUS_CANCELING
+]
 
 
 def get_instance():
@@ -55,24 +61,43 @@ class MistralResultsQuerier(Querier):
         wait_exponential_multiplier=cfg.CONF.mistral.retry_exp_msec,
         wait_exponential_max=cfg.CONF.mistral.retry_exp_max_msec,
         stop_max_delay=cfg.CONF.mistral.retry_stop_max_msec)
-    def query(self, execution_id, query_context):
+    def query(self, execution_id, query_context, last_query_time=None):
         """
         Queries mistral for workflow results using v2 APIs.
         :param execution_id: st2 execution_id (context to be used for logging/audit)
         :type execution_id: ``str``
         :param query_context: context for the query to be made to mistral. This contains mistral
                               execution id.
-        :type query_context: ``objext``
+        :type query_context: ``object``
+        :param last_query_time: Timestamp of last query.
+        :type last_query_time: ``float``
         :rtype: (``str``, ``object``)
         """
+        dt_last_query_time = (
+            time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(last_query_time))
+            if last_query_time else None
+        )
+
+        liveaction_db = action_utils.get_liveaction_by_id(execution_id)
+
         mistral_exec_id = query_context.get('mistral', {}).get('execution_id', None)
         if not mistral_exec_id:
             raise Exception('[%s] Missing mistral workflow execution ID in query context. %s',
                             execution_id, query_context)
 
         try:
-            result = self._get_workflow_result(mistral_exec_id)
-            result['tasks'] = self._get_workflow_tasks(mistral_exec_id)
+            wf_result = self._get_workflow_result(mistral_exec_id)
+
+            wf_tasks_result = self._get_workflow_tasks(
+                mistral_exec_id,
+                last_query_time=dt_last_query_time
+            )
+
+            result = self._format_query_result(
+                liveaction_db.result,
+                wf_result,
+                wf_tasks_result
+            )
         except exceptions.ReferenceNotFoundError as exc:
             LOG.exception('[%s] Unable to find reference.', execution_id)
             return (action_constants.LIVEACTION_STATUS_FAILED, exc.message)
@@ -82,7 +107,10 @@ class MistralResultsQuerier(Querier):
             raise
 
         status = self._determine_execution_status(
-            execution_id, result['extra']['state'], result['tasks'])
+            liveaction_db,
+            result['extra']['state'],
+            result['tasks']
+        )
 
         LOG.debug('[%s] mistral workflow execution status: %s' % (execution_id, status))
         LOG.debug('[%s] mistral workflow execution result: %s' % (execution_id, result))
@@ -115,19 +143,28 @@ class MistralResultsQuerier(Querier):
 
         return result
 
-    def _get_workflow_tasks(self, exec_id):
+    def _get_workflow_tasks(self, exec_id, last_query_time=None):
         """
         Returns the list of tasks for a workflow execution.
         :param exec_id: Mistral execution ID
         :type exec_id: ``str``
+        :param last_query_time: Timestamp to filter tasks
+        :type last_query_time: ``str``
         :rtype: ``list``
         """
-        wf_tasks = []
+        result = []
 
         try:
-            for task in self._client.tasks.list(workflow_execution_id=exec_id):
-                task_result = self._client.tasks.get(task.id)
-                wf_tasks.append(task_result)
+            query_filters = {}
+
+            if last_query_time:
+                query_filters['updated_at'] = 'gte:%s' % last_query_time
+
+            wf_tasks = self._client.tasks.list(workflow_execution_id=exec_id, **query_filters)
+
+            for wf_task in wf_tasks:
+                result.append(self._client.tasks.get(wf_task.id))
+
                 # Lets not blast requests but just space it out for better CPU profile
                 jitter = random.uniform(0, self._jitter)
                 eventlet.sleep(jitter)
@@ -136,7 +173,7 @@ class MistralResultsQuerier(Querier):
                 raise exceptions.ReferenceNotFoundError(mistral_exc.message)
             raise mistral_exc
 
-        return [self._format_task_result(task=wf_task.to_dict()) for wf_task in wf_tasks]
+        return [self._format_task_result(task=entry.to_dict()) for entry in result]
 
     def _format_task_result(self, task):
         """
@@ -158,9 +195,23 @@ class MistralResultsQuerier(Querier):
 
         return result
 
-    def _determine_execution_status(self, execution_id, wf_state, tasks):
-        # Get the liveaction object to compare state.
-        is_action_canceled = action_service.is_action_canceled_or_canceling(execution_id)
+    def _format_query_result(self, current_result, new_wf_result, new_wf_tasks_result):
+        result = new_wf_result
+
+        new_wf_task_ids = [entry['id'] for entry in new_wf_tasks_result]
+
+        old_wf_tasks_result_to_keep = [
+            entry for entry in current_result.get('tasks', [])
+            if entry['id'] not in new_wf_task_ids
+        ]
+
+        result['tasks'] = old_wf_tasks_result_to_keep + new_wf_tasks_result
+
+        return result
+
+    def _determine_execution_status(self, liveaction_db, wf_state, tasks):
+        # Determine if liveaction is canceled or being canceled.
+        is_action_canceled = liveaction_db.status in CANCELED_STATES
 
         # Identify the list of tasks that are not still running.
         active_tasks = [t for t in tasks if t['state'] in ACTIVE_STATES]

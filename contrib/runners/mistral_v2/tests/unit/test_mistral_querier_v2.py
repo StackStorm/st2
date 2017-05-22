@@ -17,6 +17,7 @@ import copy
 import datetime
 import json
 import requests
+import time
 import uuid
 
 import mock
@@ -31,7 +32,9 @@ import st2tests.config as tests_config
 tests_config.parse_args()
 
 from st2common.constants import action as action_constants
-from st2common.services import action as action_service
+from st2common.exceptions import db as db_exc
+from st2common.models.db.liveaction import LiveActionDB
+from st2common.util import action_db as action_utils
 from st2common.util import loader
 from st2tests import DbTestCase
 
@@ -106,6 +109,40 @@ MOCK_QRY_CONTEXT = {
     }
 }
 
+MOCK_LIVEACTION_RESULT = {
+    'tasks': [
+        {
+            'id': MOCK_WF_EX_TASKS_DATA[0]['id'],
+            'name': MOCK_WF_EX_TASKS_DATA[0]['name'],
+            'workflow_execution_id': MOCK_WF_EX_TASKS_DATA[0]['workflow_execution_id'],
+            'workflow_name': MOCK_WF_EX_TASKS_DATA[0]['workflow_name'],
+            'created_at': MOCK_WF_EX_TASKS_DATA[0]['created_at'],
+            'updated_at': MOCK_WF_EX_TASKS_DATA[0]['updated_at'],
+            'state': MOCK_WF_EX_TASKS_DATA[0]['state'],
+            'state_info': MOCK_WF_EX_TASKS_DATA[0]['state_info'],
+            'input': json.loads(MOCK_WF_EX_TASKS_DATA[0]['input']),
+            'result': json.loads(MOCK_WF_EX_TASKS_DATA[0]['result']),
+            'published': json.loads(MOCK_WF_EX_TASKS_DATA[0]['published'])
+        }
+    ]
+}
+
+MOCK_LIVEACTION_RUNNING = LiveActionDB(
+    action='mock.workflow',
+    status=action_constants.LIVEACTION_STATUS_RUNNING
+)
+
+MOCK_LIVEACTION_RUNNING_WITH_STREAMING_RESULT = LiveActionDB(
+    action='mock.workflow',
+    status=action_constants.LIVEACTION_STATUS_RUNNING,
+    result=MOCK_LIVEACTION_RESULT
+)
+
+MOCK_LIVEACTION_CANCELING = LiveActionDB(
+    action='mock.workflow',
+    status=action_constants.LIVEACTION_STATUS_CANCELING
+)
+
 
 class MistralQuerierTest(DbTestCase):
 
@@ -126,118 +163,130 @@ class MistralQuerierTest(DbTestCase):
         super(MistralQuerierTest, self).setUp()
         self.querier = self.query_module.get_instance()
 
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=False))
     def test_determine_status_wf_running_tasks_running(self):
-        wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_RUNNING)
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RUNNING,
+            'RUNNING',
+            MOCK_WF_TASKS_RUNNING
+        )
+
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=False))
     def test_determine_status_wf_running_tasks_completed(self):
-        wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_SUCCEEDED)
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RUNNING,
+            'RUNNING',
+            MOCK_WF_TASKS_SUCCEEDED
+        )
+
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=False))
     def test_determine_status_wf_succeeded_tasks_completed(self):
-        wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'SUCCESS', MOCK_WF_TASKS_SUCCEEDED)
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RUNNING,
+            'SUCCESS',
+            MOCK_WF_TASKS_SUCCEEDED
+        )
+
         self.assertEqual(action_constants.LIVEACTION_STATUS_SUCCEEDED, status)
 
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=False))
     def test_determine_status_wf_succeeded_tasks_running(self):
-        wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'SUCCESS', MOCK_WF_TASKS_RUNNING)
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RUNNING,
+            'SUCCESS',
+            MOCK_WF_TASKS_RUNNING
+        )
+
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=False))
     def test_determine_status_wf_errored_tasks_completed(self):
-        wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'ERROR', MOCK_WF_TASKS_SUCCEEDED)
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RUNNING,
+            'ERROR',
+            MOCK_WF_TASKS_SUCCEEDED
+        )
+
         self.assertEqual(action_constants.LIVEACTION_STATUS_FAILED, status)
 
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=False))
     def test_determine_status_wf_errored_tasks_running(self):
-        wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'ERROR', MOCK_WF_TASKS_RUNNING)
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RUNNING,
+            'ERROR',
+            MOCK_WF_TASKS_RUNNING
+        )
+
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=True))
     def test_determine_status_wf_canceled_tasks_completed(self):
-        wf_id = uuid.uuid4().hex
         status = self.querier._determine_execution_status(
-            wf_id, 'CANCELLED', MOCK_WF_TASKS_SUCCEEDED)
+            MOCK_LIVEACTION_CANCELING,
+            'CANCELLED',
+            MOCK_WF_TASKS_SUCCEEDED
+        )
+
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELED, status)
 
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=True))
     def test_determine_status_wf_canceled_tasks_running(self):
-        wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'CANCELLED', MOCK_WF_TASKS_RUNNING)
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_CANCELING,
+            'CANCELLED',
+            MOCK_WF_TASKS_RUNNING
+        )
+
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=True))
     def test_determine_status_wf_canceled_tasks_waiting(self):
-        wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'CANCELLED', MOCK_WF_TASKS_WAITING)
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_CANCELING,
+            'CANCELLED',
+            MOCK_WF_TASKS_WAITING
+        )
+
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELED, status)
 
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=True))
     def test_determine_status_wf_canceled_exec_running_tasks_completed(self):
-        wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_SUCCEEDED)
-        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
-
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=True))
-    def test_determine_status_wf_canceled_exec_running_tasks_running(self):
-        wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_RUNNING)
-        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
-
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=True))
-    def test_determine_status_wf_canceled_exec_running_tasks_waiting(self):
-        wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'RUNNING', MOCK_WF_TASKS_WAITING)
-        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
-
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=False))
-    def test_determine_status_wf_running_exec_paused_tasks_completed(self):
-        wf_id = uuid.uuid4().hex
         status = self.querier._determine_execution_status(
-            wf_id, 'PAUSED', MOCK_WF_TASKS_SUCCEEDED)
+            MOCK_LIVEACTION_CANCELING,
+            'RUNNING',
+            MOCK_WF_TASKS_SUCCEEDED
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
+
+    def test_determine_status_wf_canceled_exec_running_tasks_running(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_CANCELING,
+            'RUNNING',
+            MOCK_WF_TASKS_RUNNING
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
+
+    def test_determine_status_wf_canceled_exec_running_tasks_waiting(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_CANCELING,
+            'RUNNING',
+            MOCK_WF_TASKS_WAITING
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
+
+    def test_determine_status_wf_running_exec_paused_tasks_completed(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RUNNING,
+            'PAUSED',
+            MOCK_WF_TASKS_SUCCEEDED
+        )
+
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=False))
     def test_determine_status_wf_running_exec_cancelled_tasks_running(self):
-        wf_id = uuid.uuid4().hex
-        status = self.querier._determine_execution_status(wf_id, 'CANCELLED', MOCK_WF_TASKS_RUNNING)
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RUNNING,
+            'CANCELLED',
+            MOCK_WF_TASKS_RUNNING
+        )
+
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
     @mock.patch.object(
@@ -277,6 +326,9 @@ class MistralQuerierTest(DbTestCase):
             self.assertDictEqual(expected[i], tasks[i])
 
     @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(return_value=MOCK_LIVEACTION_RUNNING))
+    @mock.patch.object(
         executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=MOCK_WF_EX))
     @mock.patch.object(
@@ -287,9 +339,6 @@ class MistralQuerierTest(DbTestCase):
         mock.MagicMock(side_effect=[
             MOCK_WF_EX_TASKS[0],
             MOCK_WF_EX_TASKS[1]]))
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=False))
     def test_query(self):
         (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
 
@@ -311,6 +360,58 @@ class MistralQuerierTest(DbTestCase):
         self.assertDictEqual(expected, result)
 
     @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(return_value=MOCK_LIVEACTION_RUNNING_WITH_STREAMING_RESULT))
+    @mock.patch.object(
+        executions.ExecutionManager, 'get',
+        mock.MagicMock(return_value=MOCK_WF_EX))
+    @mock.patch.object(
+        tasks.TaskManager, 'list',
+        mock.MagicMock(return_value=[MOCK_WF_EX_TASKS[1]]))
+    @mock.patch.object(
+        tasks.TaskManager, 'get',
+        mock.MagicMock(return_value=MOCK_WF_EX_TASKS[1]))
+    def test_query_with_last_query_time(self):
+        last_query_time = time.time() - 3
+
+        (status, result) = self.querier.query(
+            uuid.uuid4().hex,
+            MOCK_QRY_CONTEXT,
+            last_query_time=last_query_time
+        )
+
+        expected = {
+            'k1': 'v1',
+            'tasks': copy.deepcopy(MOCK_WF_EX_TASKS_DATA),
+            'extra': {
+                'state': MOCK_WF_EX.state,
+                'state_info': MOCK_WF_EX.state_info
+            }
+        }
+
+        for task in expected['tasks']:
+            task['input'] = json.loads(task['input'])
+            task['result'] = json.loads(task['result'])
+            task['published'] = json.loads(task['published'])
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_SUCCEEDED, status)
+        self.assertDictEqual(expected, result)
+
+    @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(side_effect=db_exc.StackStormDBObjectNotFoundError()))
+    def test_query_liveaction_not_found(self):
+        self.assertRaises(
+            db_exc.StackStormDBObjectNotFoundError,
+            self.querier.query,
+            uuid.uuid4().hex,
+            MOCK_QRY_CONTEXT
+        )
+
+    @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(return_value=MOCK_LIVEACTION_RUNNING))
+    @mock.patch.object(
         executions.ExecutionManager, 'get',
         mock.MagicMock(side_effect=[
             requests.exceptions.ConnectionError(),
@@ -323,9 +424,6 @@ class MistralQuerierTest(DbTestCase):
         mock.MagicMock(side_effect=[
             MOCK_WF_EX_TASKS[0],
             MOCK_WF_EX_TASKS[1]]))
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=False))
     def test_query_get_workflow_retry(self):
         (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
 
@@ -350,6 +448,9 @@ class MistralQuerierTest(DbTestCase):
         executions.ExecutionManager.get.assert_has_calls(calls)
 
     @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(return_value=MOCK_LIVEACTION_RUNNING))
+    @mock.patch.object(
         executions.ExecutionManager, 'get',
         mock.MagicMock(side_effect=[requests.exceptions.ConnectionError()] * 4))
     def test_query_get_workflow_retry_exhausted(self):
@@ -363,6 +464,9 @@ class MistralQuerierTest(DbTestCase):
         executions.ExecutionManager.get.assert_has_calls(calls)
 
     @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(return_value=MOCK_LIVEACTION_RUNNING))
+    @mock.patch.object(
         executions.ExecutionManager, 'get',
         mock.MagicMock(
             side_effect=mistralclient_base.APIException(
@@ -373,6 +477,9 @@ class MistralQuerierTest(DbTestCase):
         self.assertEqual(action_constants.LIVEACTION_STATUS_FAILED, status)
         self.assertEqual('Workflow not found.', result)
 
+    @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(return_value=MOCK_LIVEACTION_RUNNING))
     @mock.patch.object(
         executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=MOCK_WF_EX))
@@ -386,9 +493,6 @@ class MistralQuerierTest(DbTestCase):
         mock.MagicMock(side_effect=[
             MOCK_WF_EX_TASKS[0],
             MOCK_WF_EX_TASKS[1]]))
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=False))
     def test_query_list_workflow_tasks_retry(self):
         (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
 
@@ -417,6 +521,9 @@ class MistralQuerierTest(DbTestCase):
         tasks.TaskManager.get.assert_has_calls(calls)
 
     @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(return_value=MOCK_LIVEACTION_RUNNING))
+    @mock.patch.object(
         executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=MOCK_WF_EX))
     @mock.patch.object(
@@ -428,9 +535,6 @@ class MistralQuerierTest(DbTestCase):
             requests.exceptions.ConnectionError(),
             MOCK_WF_EX_TASKS[0],
             MOCK_WF_EX_TASKS[1]]))
-    @mock.patch.object(
-        action_service, 'is_action_canceled_or_canceling',
-        mock.MagicMock(return_value=False))
     def test_query_get_workflow_tasks_retry(self):
         (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
 
@@ -460,6 +564,9 @@ class MistralQuerierTest(DbTestCase):
         tasks.TaskManager.get.assert_has_calls(calls)
 
     @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(return_value=MOCK_LIVEACTION_RUNNING))
+    @mock.patch.object(
         executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=MOCK_WF_EX))
     @mock.patch.object(
@@ -476,6 +583,9 @@ class MistralQuerierTest(DbTestCase):
         calls = [mock_call for i in range(0, 2)]
         tasks.TaskManager.list.assert_has_calls(calls)
 
+    @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(return_value=MOCK_LIVEACTION_RUNNING))
     @mock.patch.object(
         executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=MOCK_WF_EX))
@@ -499,6 +609,9 @@ class MistralQuerierTest(DbTestCase):
 
         tasks.TaskManager.get.assert_has_calls(calls)
 
+    @mock.patch.object(
+        action_utils, 'get_liveaction_by_id',
+        mock.MagicMock(return_value=MOCK_LIVEACTION_RUNNING))
     @mock.patch.object(
         executions.ExecutionManager, 'get',
         mock.MagicMock(return_value=MOCK_WF_EX))
