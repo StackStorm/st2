@@ -13,6 +13,6 @@ class ParseGithubRepos(Action):
         repo_url = "https://github.com" + repo_half_url
         output[repo_name] = repo_url
     except Exception as e:
-      return (False, "Could not parse data: {}".format(e.message))
+        raise Exception("Could not parse data: {}".format(e.message))
 
     return (True, output)
