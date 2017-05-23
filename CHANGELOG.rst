@@ -89,8 +89,8 @@ in development
   #3337 [Sean Reifschneider]
 * Update ``st2-apply-rbac-definitions`` so it also removes assignments for users which don't exist
   in the database. (improvement, bug fix)
-* Add new ``examples.forloop_get_github_page`` action chain workflow to the examples pack which
-  demonstrates how to iterate over multiple pages inside a workflow. #3328
+* Add new ``examples.forloop_chain`` action-chain workflow to the examples pack which demonstrates
+  how to iterate over multiple pages inside a workflow. #3328
   [Carles Figuerola]
 
 2.2.1 - April 3, 2017
