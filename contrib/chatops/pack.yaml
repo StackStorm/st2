@@ -3,4 +3,6 @@ name: chatops
 description: Chatops integration pack
 version: 0.3.0
 author: Kirill Enykeev
+contributors:
+  - Anthony Shaw <anthonyshaw@apache.org>
 email: enykeev@stackstorm.com
