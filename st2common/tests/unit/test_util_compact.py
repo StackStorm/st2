@@ -14,35 +14,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
+import unittest2
+
+from st2common.util.compat import to_ascii
 
 __all__ = [
-    'to_unicode',
-    'to_ascii'
+    'CompatUtilsTestCase'
 ]
 
 
-def to_unicode(value):
-    """
-    Ensure that the provided text value is represented as unicode.
+class CompatUtilsTestCase(unittest2.TestCase):
+    def test_to_ascii(self):
+        expected_values = [
+            ('already ascii', 'already ascii'),
+            (u'foo', 'foo'),
+            ('٩(̾●̮̮̃̾•̃̾)۶', '()'),
+            ('\xd9\xa9', '')
+        ]
 
-    :param value: Value to convert.
-    :type value: ``str`` or ``unicode``
-
-    :rtype: ``unicode``
-    """
-    if not isinstance(value, six.string_types):
-        raise ValueError('Value "%s" must be a string.' % (value))
-
-    if not isinstance(value, six.text_type):
-        value = six.u(value)
-
-    return value
-
-
-def to_ascii(value):
-    """
-    Function which encodes the provided bytes / string to ASCII encoding ignoring any errors
-    which could come up when trying to encode a non-ascii value.
-    """
-    return value.decode('ascii', errors='ignore')
+        for input_value, expected_value in expected_values:
+            result = to_ascii(input_value)
+            self.assertEqual(result, expected_value)

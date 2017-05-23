@@ -84,6 +84,9 @@ in development
   value. You can now set ``query_interval`` in ``[results_tracker]`` section in ``/etc/st2/st2.conf``.
   With this, the default query interval is set to 20s as opposed to 0.1s which was rather aggressive
   and could cause CPU churn when there is a large number of outstanding workflows. (improvement)
+* Ignore unicode related encoding errors which could occur in some circumstances when
+  ``packs.setup_virtualenv`` fails due to a missing dependency or similar. (improvement, bug fix)
+  #3337 [Sean Reifschneider]
 * Update ``st2-apply-rbac-definitions`` so it also removes assignments for users which don't exist
   in the database. (improvement, bug fix)
 

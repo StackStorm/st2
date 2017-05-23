@@ -27,9 +27,10 @@ from st2common import log as logging
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.constants.pack import BASE_PACK_REQUIREMENTS
 from st2common.util.shell import run_command
+from st2common.util.shell import quote_unix
+from st2common.util.compat import to_ascii
 from st2common.content.utils import get_packs_base_paths
 from st2common.content.utils import get_pack_directory
-from st2common.util.shell import quote_unix
 
 __all__ = [
     'setup_pack_virtualenv'
@@ -166,6 +167,9 @@ def install_requirements(virtualenv_path, requirements_file_path):
     exit_code, stdout, stderr = run_command(cmd=cmd, env=env)
 
     if exit_code != 0:
+        stdout = to_ascii(stdout)
+        stderr = to_ascii(stderr)
+
         raise Exception('Failed to install requirements from "%s": %s (stderr: %s)' %
                         (requirements_file_path, stdout, stderr))
 
