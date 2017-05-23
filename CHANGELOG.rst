@@ -87,6 +87,11 @@ in development
 * Ignore unicode related encoding errors which could occur in some circumstances when
   ``packs.setup_virtualenv`` fails due to a missing dependency or similar. (improvement, bug fix)
   #3337 [Sean Reifschneider]
+* Add the following new actions to ``chatops`` pack:
+  * ``chatops.match``
+  * ``chatops.match_and_execute``
+  * ``chatops.run``
+  #3425 [Anthony Shaw]
 
 2.2.1 - April 3, 2017
 ---------------------
