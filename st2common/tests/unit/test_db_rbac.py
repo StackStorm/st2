@@ -29,7 +29,8 @@ from tests.unit.base import BaseDBModelCRUDTestCase
 __all__ = [
     'RoleDBModelCRUDTestCase',
     'UserRoleAssignmentDBModelCRUDTestCase',
-    'PermissionGrantDBModelCRUDTestCase'
+    'PermissionGrantDBModelCRUDTestCase',
+    'GroupToRoleMappingDBModelCRUDTestCase'
 ]
 
 

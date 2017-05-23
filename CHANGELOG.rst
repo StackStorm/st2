@@ -87,6 +87,8 @@ in development
 * Ignore unicode related encoding errors which could occur in some circumstances when
   ``packs.setup_virtualenv`` fails due to a missing dependency or similar. (improvement, bug fix)
   #3337 [Sean Reifschneider]
+* Update ``st2-apply-rbac-definitions`` so it also removes assignments for users which don't exist
+  in the database. (improvement, bug fix)
 
 2.2.1 - April 3, 2017
 ---------------------
