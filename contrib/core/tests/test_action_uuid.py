@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,15 +15,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import uuid
-from st2actions.runners.pythonrunner import Action
+from st2tests.base import BaseActionTestCase
+
+from generate_uuid import GenerateUUID
 
 
-class GenerateUUID(Action):
-    def run(self, uuid_type):
-        if uuid_type == 'uuid1':
-            return str(uuid.uuid1())
-        elif uuid_type == 'uuid4':
-            return str(uuid.uuid4())
-        else:
-            return False, "Unknown uuid_type. Only uuid1 and uuid4 are supported"
+class GenerateUUIDActionTestCase(BaseActionTestCase):
+    action_cls = GenerateUUID
+
+    def test_run(self):
+        action = self.get_action_instance()
+
+        # accepts uuid1 as a type
+        result = action.run(uuid_type='uuid1')
+        self.assertTrue(result)
+
+        # accepts uuid4 as a type
+        result = action.run(uuid_type='uuid4')
+        self.assertTrue(result)
+
+        # fails on incorrect type
+        result = action.run(uuid_type='foobar')
+        self.assertFalse(result)
