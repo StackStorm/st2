@@ -89,6 +89,11 @@ in development
   #3337 [Sean Reifschneider]
 * Update ``st2-apply-rbac-definitions`` so it also removes assignments for users which don't exist
   in the database. (improvement, bug fix)
+* Add the following new actions to ``chatops`` pack:
+  * ``chatops.match``
+  * ``chatops.match_and_execute``
+  * ``chatops.run``
+  #3425 [Anthony Shaw]
 
 2.2.1 - April 3, 2017
 ---------------------
