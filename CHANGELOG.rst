@@ -94,6 +94,9 @@ in development
   * ``chatops.match_and_execute``
   * ``chatops.run``
   #3425 [Anthony Shaw]
+* Add new ``examples.forloop_chain`` action-chain workflow to the examples pack which demonstrates
+  how to iterate over multiple pages inside a workflow. #3328
+  [Carles Figuerola]
 
 2.2.1 - April 3, 2017
 ---------------------
