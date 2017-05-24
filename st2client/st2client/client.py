@@ -70,7 +70,7 @@ class Client(object):
         else:
             self.endpoints['stream'] = os.environ.get(
                 'ST2_STREAM_URL',
-                '%s:%s/%s' % (
+                '%s:%s/%s/stream' % (
                     self.endpoints['base'],
                     DEFAULT_STREAM_PORT,
                     api_version
