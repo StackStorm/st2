@@ -24,4 +24,4 @@ class GenerateUUID(Action):
         elif uuid_type == 'uuid4':
             return str(uuid.uuid4())
         else:
-            return False, "Unknown uuid_type. Only uuid1 and uuid4 are supported"
+            raise ValueError("Unknown uuid_type. Only uuid1 and uuid4 are supported")

@@ -9,3 +9,6 @@ parameters:
     type: string
     default: uuid4
     description: UUID type (uuid1 or uuid4). Defaults to uuid4
+    enum:
+      - uuid1
+      - uuid4

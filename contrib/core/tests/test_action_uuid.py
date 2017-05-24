@@ -35,5 +35,5 @@ class GenerateUUIDActionTestCase(BaseActionTestCase):
         self.assertTrue(result)
 
         # fails on incorrect type
-        result = action.run(uuid_type='foobar')
-        self.assertFalse(result)
+        with self.assertRaises(ValueError):
+            result = action.run(uuid_type='foobar')
