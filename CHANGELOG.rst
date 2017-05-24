@@ -97,6 +97,7 @@ in development
 * Add new ``examples.forloop_chain`` action-chain workflow to the examples pack which demonstrates
   how to iterate over multiple pages inside a workflow. #3328
   [Carles Figuerola]
+* Add new ``core.uuid`` action for generating type 1 and type 4 UUIDs. [John Anderson] #3414
 
 2.2.1 - April 3, 2017
 ---------------------
