@@ -68,12 +68,12 @@ class ExceptionHandlingTest(base.TestWorkflowExecution):
 
     def test_bad_with_items(self):
         execution = self._execute_workflow('examples.mistral-error-bad-with-items', {})
-        execution = self._wait_for_completion(execution)
+        execution = self._wait_for_completion(execution, expect_tasks=False)
         self._assert_failure(execution, expect_tasks_failure=False)
         self.assertIn('Wrong input format', execution.result['extra']['state_info'])
 
     def test_bad_with_items_yaql(self):
         execution = self._execute_workflow('examples.mistral-error-bad-with-items-yaql', {})
-        execution = self._wait_for_completion(execution)
+        execution = self._wait_for_completion(execution, expect_tasks=False)
         self._assert_failure(execution, expect_tasks_failure=False)
         self.assertIn('Can not evaluate YAQL expression', execution.result['extra']['state_info'])

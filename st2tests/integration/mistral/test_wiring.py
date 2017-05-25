@@ -114,7 +114,7 @@ class WiringTest(base.TestWorkflowExecution):
     def test_cancellation_cascade_subworkflow_action(self):
         execution = self._execute_workflow(
             'examples.mistral-test-cancel-subworkflow-action',
-            {'sleep': 10}
+            {'sleep': 30}
         )
 
         execution = self._wait_for_state(execution, ['running'])
