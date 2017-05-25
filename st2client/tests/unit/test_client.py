@@ -28,7 +28,13 @@ LOG = logging.getLogger(__name__)
 class TestClientEndpoints(unittest2.TestCase):
 
     def tearDown(self):
-        for var in ['ST2_BASE_URL', 'ST2_API_URL', 'ST2_STREAM_URL','ST2_DATASTORE_URL']:
+        for var in [
+            'ST2_BASE_URL',
+            'ST2_API_URL',
+            'ST2_STREAM_URL',
+            'ST2_DATASTORE_URL',
+            'ST2_AUTH_TOKEN'
+        ]:
             if var in os.environ:
                 del os.environ[var]
 
