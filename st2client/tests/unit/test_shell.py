@@ -302,6 +302,16 @@ class CLITokenCachingTestCase(unittest2.TestCase):
         self._p1.stop()
         self._p2.stop()
 
+        for var in [
+            'ST2_BASE_URL',
+            'ST2_API_URL',
+            'ST2_STREAM_URL',
+            'ST2_DATASTORE_URL',
+            'ST2_AUTH_TOKEN'
+        ]:
+            if var in os.environ:
+                del os.environ[var]
+
     def _write_mock_config(self):
         with open(self._mock_config_path, 'w') as fp:
             fp.write(MOCK_CONFIG)
