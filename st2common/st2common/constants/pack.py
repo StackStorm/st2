@@ -37,9 +37,6 @@ PACK_REF_WHITELIST_REGEX = r'^[a-z0-9_]+$'
 # Check for a valid semver string
 PACK_VERSION_REGEX = r'^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[\da-z\-]+(?:\.[\da-z\-]+)*)?(?:\+[\da-z\-]+(?:\.[\da-z\-]+)*)?$'  # noqa
 
-# If True, non semver valid pack versions will be normalized on register (e.g. 0.2 -> 0.2.0)
-NORMALIZE_PACK_VERSION = True
-
 # Special characters which can't be used in pack names
 PACK_RESERVED_CHARACTERS = [
     '.'

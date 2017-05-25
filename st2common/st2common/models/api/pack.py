@@ -32,7 +32,6 @@ from st2common.models.db.pack import ConfigSchemaDB
 from st2common.models.db.pack import ConfigDB
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.util.pack import validate_config_against_schema
-from st2common.util.pack import normalize_pack_version
 
 __all__ = [
     'PackAPI',
@@ -143,8 +142,6 @@ class PackAPI(BaseAPI):
     }
 
     def __init__(self, **values):
-        name = values.get('name', None)
-
         # Note: If some version values are not explicitly surrounded by quotes they are recognized
         # as numbers so we cast them to string
         if values.get('version', None):
