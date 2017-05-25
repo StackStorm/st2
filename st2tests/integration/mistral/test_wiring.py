@@ -102,7 +102,13 @@ class WiringTest(base.TestWorkflowExecution):
         execution = self._execute_workflow('examples.mistral-test-cancel', {'sleep': 10})
         execution = self._wait_for_state(execution, ['running'])
         self.st2client.liveactions.delete(execution)
-        execution = self._wait_for_completion(execution, expect_tasks_completed=False)
+
+        execution = self._wait_for_completion(
+            execution,
+            expect_tasks=False,
+            expect_tasks_completed=False
+        )
+
         self._assert_canceled(execution, are_tasks_completed=False)
 
     def test_cancellation_cascade_subworkflow_action(self):
@@ -113,15 +119,23 @@ class WiringTest(base.TestWorkflowExecution):
 
         execution = self._wait_for_state(execution, ['running'])
         self.st2client.liveactions.delete(execution)
-        execution = self._wait_for_completion(execution, expect_tasks_completed=False)
+
+        execution = self._wait_for_completion(
+            execution,
+            expect_tasks=False,
+            expect_tasks_completed=False
+        )
+
         self.assertEqual(execution.status, 'canceled')
 
         task_executions = [e for e in self.st2client.liveactions.get_all()
                            if e.context.get('parent', {}).get('execution_id') == execution.id]
 
         subworkflow_execution = self.st2client.liveactions.get_by_id(task_executions[0].id)
+
         subworkflow_execution = self._wait_for_completion(
             subworkflow_execution,
+            expect_tasks=False,
             expect_tasks_completed=False
         )
 
