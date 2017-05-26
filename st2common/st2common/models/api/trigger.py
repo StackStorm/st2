@@ -116,6 +116,10 @@ class TriggerAPI(BaseAPI):
             'parameters': {
                 'type': 'object'
             },
+            'enabled': {
+                'type': 'boolean',
+                'default': False
+            },
             'description': {
                 'type': 'string'
             }

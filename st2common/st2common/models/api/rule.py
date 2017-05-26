@@ -239,7 +239,8 @@ class RuleAPI(BaseAPI, APIUIDMixin):
 
         # Create a trigger for the provided rule
         trigger_db = TriggerService.create_trigger_db_from_rule(rule)
-        kwargs['trigger'] = reference.get_str_resource_ref_from_model(trigger_db)
+        if trigger_db:
+            kwargs['trigger'] = reference.get_str_resource_ref_from_model(trigger_db)
 
         kwargs['pack'] = getattr(rule, 'pack', DEFAULT_PACK_NAME)
         kwargs['ref'] = ResourceReference.to_string_reference(pack=kwargs['pack'],

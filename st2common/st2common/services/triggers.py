@@ -190,6 +190,7 @@ def _get_trigger_dict_given_rule(rule):
     trigger_dict['pack'] = trigger_dict.get('pack', triggertype_ref.pack)
     trigger_dict['type'] = triggertype_ref.ref
     trigger_dict['parameters'] = rule.trigger.get('parameters', {})
+    trigger_dict['enabled'] = getattr(rule, 'enabled', True)
 
     return trigger_dict
 

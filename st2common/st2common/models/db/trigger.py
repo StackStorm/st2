@@ -77,6 +77,8 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
 
     name = me.StringField(required=True)
     pack = me.StringField(required=True, unique_with='name')
+    enabled = me.BooleanField(required=True, default=True,
+                              help_text=u'Flag indicating whether the trigger is enabled.')
     type = me.StringField()
     parameters = me.DictField()
     ref_count = me.IntField(default=0)

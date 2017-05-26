@@ -32,7 +32,8 @@ class TriggerWatcher(ConsumerMixin):
     sleep_interval = 0  # sleep to co-operatively yield after processing each message
 
     def __init__(self, create_handler, update_handler, delete_handler,
-                 trigger_types=None, queue_suffix=None, exclusive=False):
+                 trigger_types=None, queue_suffix=None, exclusive=False,
+                 notify_disabled=True):
         """
         :param create_handler: Function which is called on TriggerDB create event.
         :type create_handler: ``callable``
@@ -59,6 +60,7 @@ class TriggerWatcher(ConsumerMixin):
         self._delete_handler = delete_handler
         self._trigger_types = trigger_types
         self._trigger_watch_q = self._get_queue(queue_suffix, exclusive=exclusive)
+        self._notify_disabled = notify_disabled
 
         self.connection = None
         self._load_thread = None
@@ -93,6 +95,12 @@ class TriggerWatcher(ConsumerMixin):
             if self._trigger_types and trigger_type not in self._trigger_types:
                 LOG.debug('Skipping message %s since\'t trigger_type doesn\'t match (type=%s)',
                           message, trigger_type)
+                return
+
+            enabled = getattr(body, 'enabled', True)
+            if not enabled and not self._notify_disabled:
+                LOG.debug('Skipping message as trigger is disabled and notifications' +
+                          ' for disabled triggers are turned off.')
                 return
 
             try:
