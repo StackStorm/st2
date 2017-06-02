@@ -488,7 +488,11 @@ class ActionRunCommandMixin(object):
             # Also support simple key1=val1,key2=val2 syntax
             if value.startswith('{'):
                 # Assume it's JSON
-                result = value = json.loads(value)
+                result = None
+                try:
+                    result = value = json.loads(value)
+                except:
+                    result = value = ast.literal_eval(value)
             else:
                 pairs = value.split(',')
 
