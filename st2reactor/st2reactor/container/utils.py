@@ -40,6 +40,13 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
     # TODO: This is nasty, this should take a unique reference and not a dict
     if isinstance(trigger, six.string_types):
         trigger_db = TriggerService.get_trigger_db_by_ref(trigger)
+        if not trigger_db:
+            LOG.debug('No trigger in db for %s', trigger)
+            if raise_on_no_trigger:
+                raise StackStormDBObjectNotFoundError('Trigger not found for %s', trigger)
+            return None
+        else:
+            trigger_ptr = {'ref': trigger_db.get_reference().ref}
     else:
         # If id / uid is available we try to look up Trigger by id. This way we can avoid bug in
         # pymongo / mongoengine related to "parameters" dictionary lookups
@@ -49,10 +56,10 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
         # TODO: Remove parameters dictionary look up when we can confirm each trigger dictionary
         # passed to this method always contains id or uid
         if trigger_id:
-            LOG.debug('Looking up TriggerDB by id: %s', trigger_id)
+            LOG.info('Looking up TriggerDB by id: %s', trigger_id)
             trigger_db = TriggerService.get_trigger_db_by_id(id=trigger_id)
         elif trigger_uid:
-            LOG.debug('Looking up TriggerDB by uid: %s', trigger_uid)
+            LOG.info('Looking up TriggerDB by uid: %s', trigger_uid)
             trigger_db = TriggerService.get_trigger_db_by_uid(uid=trigger_uid)
         else:
             # Last resort - look it up by parameters
@@ -64,16 +71,20 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
             trigger_db = TriggerService.get_trigger_db_given_type_and_params(type=trigger_type,
                                                                              parameters=parameters)
 
-    if trigger_db is None:
-        LOG.debug('No trigger in db for %s', trigger)
-        if raise_on_no_trigger:
-            raise StackStormDBObjectNotFoundError('Trigger not found for %s', trigger)
-        return None
-
-    trigger_ref = trigger_db.get_reference().ref
+        if not trigger_db:
+            LOG.debug('No trigger in db for %s', trigger)
+            if raise_on_no_trigger:
+                raise StackStormDBObjectNotFoundError('Trigger not found for %s', trigger)
+            return None
+        else:
+            trigger_ptr = {
+                'ref': trigger_db.get_reference().ref,
+                'type': trigger_db.type,
+                'parameters': trigger_db.parameters
+            }
 
     trigger_instance = TriggerInstanceDB()
-    trigger_instance.trigger = trigger_ref
+    trigger_instance.trigger = trigger_ptr
     trigger_instance.payload = payload
     trigger_instance.occurrence_time = occurrence_time
     trigger_instance.status = TRIGGER_INSTANCE_PENDING

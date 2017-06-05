@@ -108,7 +108,7 @@ class TriggerInstanceDB(stormbase.StormFoundationDB):
         payload (dict): payload specific to the occurrence.
         occurrence_time (datetime): time of occurrence of the trigger.
     """
-    trigger = me.StringField()
+    trigger = me.DictField()
     payload = stormbase.EscapedDictField()
     occurrence_time = me.DateTimeField()
     status = me.StringField(
