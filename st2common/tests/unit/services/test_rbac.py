@@ -148,6 +148,16 @@ class RBACServicesTestCase(CleanDbTestCase):
         role_dbs = user_db.get_roles(include_remote=False)
         self.assertEqual(len(role_dbs), 3)
 
+    def test_get_all_role_assignments(self):
+        role_assignment_dbs = rbac_services.get_all_role_assignments(include_remote=True)
+        self.assertEqual(len(role_assignment_dbs), 5)
+
+        role_assignment_dbs = rbac_services.get_all_role_assignments(include_remote=False)
+        self.assertEqual(len(role_assignment_dbs), 4)
+
+        for role_assignment_db in role_assignment_dbs:
+            self.assertFalse(role_assignment_db.is_remote)
+
     def test_create_role_with_system_role_name(self):
         # Roles with names which match system role names can't be created
         expected_msg = '"observer" role name is blacklisted'

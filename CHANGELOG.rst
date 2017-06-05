@@ -35,16 +35,68 @@ in development
 * Make sure all the role assignments for a particular user are correctly deleted from the database
   after deleting an assignment file from ``/opt/stackstorm/rbac/assignments`` directory and running
   ``st2-apply-rbac-definitions`` tool. (bug fix)
+* Add webhook payload to the Jinja render context when rendering Jinja variable inside rule
+  criteria section.
 * Implement RBAC for traces API endpoints. (improvement)
 * Implement RBAC for ``API_KEY_CREATE`` permission type. (improvement)
-* Implement RBAC for timers API endpoints. Note: timers are just a type of triggers so they utilize
-  ``TRIGGER_*`` RBAC permission constants (improvement)
+* Implement RBAC for timers API endpoints. (improvement)
 * Implement RBAC for webhooks get all and get one API endpoint. (improvement)
+* Implement RBAC for policy types and policies get all and get one API endpoint. (improvement)
+* Require ``ACTION_VIEW`` permission type to be able to access entry_point and parameters actions
+  view controller. (improvement)
+* Update ``/v1/rbac/permission_types`` and ``/v1/rbac/permission_types/<resource type>`` API
+  endpoint to return a dictionary which also includes a description for each available
+  permission type. (improvement)
+* Require ``EXECUTION_VIEWS_FILTERS_LIST`` RBAC permission type to be able to access
+  ``/executions/views/filters`` API endpoint. (improvement)
 * Add webhook payload to the Jinja render context when rendering Jinja variable inside rule criteria section
 * Switch file_watch_sensor in Linux pack to use trigger type with parameters. Now you can add a
   rule with `file_path` and sensor will pick up the `file_path` from the rule. A sample rule
   is provided in contrib/examples/rules/sample_rule_file_watch.yaml. (improvement)
 * Cancel actions that are Mistral workflow when the parent workflow is cancelled. (improvement)
+* Update st2rulesengine to exit non-0 on failure (bug fix) #3394 [Andrew Regan]
+* Upgrade various internal Python library dependencies to the latest stable versions (pyyaml,
+  requests, appscheduler, gitpython, paramiko, mongoengine, tooz).
+* Fix a bug where trigger parameters and payloads were being validated regardless of the relevant settings
+  in the configuration (``system.validate_trigger_payload``, ``system.validate_trigger_parameters``). (bug fix)
+* Fix ``system=True`` filter in the ``/v1/rbac/roles`` API endpoint so it works correctly. (bug fix)
+* Add new ``/v1/rbac/role_assignments`` API endpoint for retrieving user role assignment
+  information. (new feature)
+* Add CLI commands for listing RBAC roles:
+    * ``st2 role list [--system]``
+    * ``st2 role get <role id or name>``
+* Add CLI commands for listing RBAC user role assignments:
+    * ``st2 role-assignment list [--role=<role name>] [--user=<username>]``
+    * ``st2 role-assignment get <role assignment id>``
+* Update ``/v1/rbac/roles`` API endpoint so it includes corresponding permission grant objects.
+  Previously it only included permission grant ids. (improvement)
+* Fix a bug where keyvalue objects weren't properly cast to numeric types. (bug fix)
+* When action worker is being shutdown and action executions are being abandoned, invoke post run
+  on the action executions to ensure operations such as callback is performed. (bug fix)
+* Fix action chain runner workflows so variables (vars) and parameter values
+  support non-ascii (unicode) characters. (bug fix)
+* When RBAC is enabled and action is scheduled (ran) through the API, include ``rbac`` dictionary
+  with ``user`` and ``roles`` ``action_context`` attribute. (improvement)
+* Fix a bug in query base module when outstanding queries to mistral or other workflow engines 
+  could cause a tight loop without cooperative yield leading to 100% CPU usage by st2resultstracker
+  process. (bug-fix)
+* Make the query interval to third party workflow systems (including mistral) a configurable
+  value. You can now set ``query_interval`` in ``[results_tracker]`` section in ``/etc/st2/st2.conf``.
+  With this, the default query interval is set to 20s as opposed to 0.1s which was rather aggressive
+  and could cause CPU churn when there is a large number of outstanding workflows. (improvement)
+* Ignore unicode related encoding errors which could occur in some circumstances when
+  ``packs.setup_virtualenv`` fails due to a missing dependency or similar. (improvement, bug fix)
+  #3337 [Sean Reifschneider]
+* Update ``st2-apply-rbac-definitions`` so it also removes assignments for users which don't exist
+  in the database. (improvement, bug fix)
+* Add the following new actions to ``chatops`` pack:
+  * ``chatops.match``
+  * ``chatops.match_and_execute``
+  * ``chatops.run``
+  #3425 [Anthony Shaw]
+* Add new ``examples.forloop_chain`` action-chain workflow to the examples pack which demonstrates
+  how to iterate over multiple pages inside a workflow. #3328
+  [Carles Figuerola]
 
 2.2.1 - April 3, 2017
 ---------------------

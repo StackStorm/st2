@@ -17,6 +17,7 @@ import json
 import six
 
 from st2common import log as logging
+from st2common.util.compat import to_unicode
 
 
 __all__ = [
@@ -134,7 +135,12 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             v = json.dumps(v)
             reverse_json_dumps = True
         else:
-            v = str(v)
+            # Special case for text type to handle unicode
+            if isinstance(v, six.string_types):
+                v = to_unicode(v)
+            else:
+                # Other types (e.g. boolean, etc.)
+                v = str(v)
 
         try:
             LOG.info('Rendering string %s. Super context=%s', v, super_context)

@@ -17,6 +17,8 @@
 Module for syncing RBAC definitions in the database with the ones from the filesystem.
 """
 
+from collections import defaultdict
+
 from mongoengine.queryset.visitor import Q
 
 from st2common import log as logging
@@ -185,20 +187,32 @@ class RBACDefinitionsDBSyncer(object):
         :return: Dictionary with created and removed role assignments for each user.
         :rtype: ``dict``
         """
+        assert isinstance(role_assignment_apis, (list, tuple))
+
         LOG.info('Synchronizing users role assignments...')
+
+        # Note: We exclude remote assignments because sync tool is not supposed to manipulate
+        # remote assignments
+        role_assignment_dbs = rbac_services.get_all_role_assignments(include_remote=False)
 
         user_dbs = User.get_all()
 
         username_to_user_db_map = dict([(user_db.name, user_db) for user_db in user_dbs])
         username_to_role_assignment_api_map = dict([(role_assignment_api.username,
             role_assignment_api) for role_assignment_api in role_assignment_apis])
+        username_to_role_assignment_dbs_map = defaultdict(list)
+
+        for role_assignment_db in role_assignment_dbs:
+            username = role_assignment_db.user
+            username_to_role_assignment_dbs_map[username].append(role_assignment_db)
 
         # Note: We process assignments for all the users (ones specified in the assignment files
-        # and ones which are in the databse). We want to make sure assignments are correctly
-        # deleted from the databse for users which existing in the databse, but have no assignment
-        # file on disk.
+        # and ones which are in the database). We want to make sure assignments are correctly
+        # deleted from the database for users which existing in the database, but have no
+        # assignment file on disk and for assignments for users which don't exist in the database.
         all_usernames = (username_to_user_db_map.keys() +
-                         username_to_role_assignment_api_map.keys())
+                         username_to_role_assignment_api_map.keys() +
+                         username_to_role_assignment_dbs_map.keys())
         all_usernames = list(set(all_usernames))
 
         results = {}
@@ -214,12 +228,17 @@ class RBACDefinitionsDBSyncer(object):
                 LOG.debug(('User "%s" doesn\'t exist in the DB, creating assignment anyway' %
                           (username)))
 
-            role_assignment_dbs = rbac_services.get_role_assignments_for_user(user_db=user_db,
-                                                                             include_remote=False)
+            role_assignment_dbs = username_to_role_assignment_dbs_map.get(username, [])
+
+            # Additional safety assert to ensure we don't accidentally manipulate remote
+            # assignments
+            for role_assignment_db in role_assignment_dbs:
+                assert role_assignment_db.is_remote is False
 
             result = self._sync_user_role_assignments(user_db=user_db,
                                                       role_assignment_dbs=role_assignment_dbs,
                                                       role_assignment_api=role_assignment_api)
+
             results[username] = result
 
         LOG.info('User role assignments synchronized')
@@ -343,10 +362,7 @@ class RBACRemoteGroupToRoleSyncer(object):
                                 not mapping_db.enabled]
 
         if not all_mapping_dbs:
-            # No mapping found, return early
-            LOG.debug('No group to role mappings found for user "%s"' % (str(user_db)),
-                      extra=extra)
-            return ([], [])
+            LOG.debug('No group to role mappings found for user "%s"' % (str(user_db)), extra=extra)
 
         # 2. Remove all the existing remote role assignments
         remote_assignment_dbs = UserRoleAssignment.query(user=user_db.name, is_remote=True)

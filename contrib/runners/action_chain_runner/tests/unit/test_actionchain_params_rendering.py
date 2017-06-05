@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -62,3 +63,29 @@ class ActionChainRunnerResolveParamsTests(unittest2.TestCase):
             self.fail('Should have thrown an instance of %s' % ParameterRenderingFailedException)
         except ParameterRenderingFailedException:
             pass
+
+    def test_init_params_vars_with_unicode_value(self):
+        chain_spec = {
+            'vars': {
+                'unicode_var': u'٩(̾●̮̮̃̾•̃̾)۶ ٩(̾●̮̮̃̾•̃̾)۶ ćšž',
+                'unicode_var_param': u'{{ param }}'
+            },
+            'chain': [
+                {
+                    'name': 'c1',
+                    'ref': 'core.local',
+                    'parameters': {
+                        'cmd': 'echo {{ unicode_var }}'
+                    }
+                }
+            ]
+        }
+
+        chain_holder = acr.ChainHolder(chainspec=chain_spec, chainname='foo')
+        chain_holder.init_vars(action_parameters={'param': u'٩(̾●̮̮̃̾•̃̾)۶'})
+
+        expected = {
+            'unicode_var': u'٩(̾●̮̮̃̾•̃̾)۶ ٩(̾●̮̮̃̾•̃̾)۶ ćšž',
+            'unicode_var_param': u'٩(̾●̮̮̃̾•̃̾)۶'
+        }
+        self.assertEqual(chain_holder.vars, expected)
