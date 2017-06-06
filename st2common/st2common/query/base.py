@@ -88,18 +88,27 @@ class Querier(object):
                 reschedule_queries.append((last_query_time, query_context))
                 continue
             else:
-                self._thread_pool.spawn(self._query_and_save_results, query_context)
+                self._thread_pool.spawn(
+                    self._query_and_save_results,
+                    query_context,
+                    last_query_time
+                )
 
         for query in reschedule_queries:
             self._query_contexts.put((query[0], query[1]))
 
-    def _query_and_save_results(self, query_context):
+    def _query_and_save_results(self, query_context, last_query_time=None):
+        this_query_time = time.time()
         execution_id = query_context.execution_id
         actual_query_context = query_context.query_context
 
         LOG.debug('Querying external service for results. Context: %s' % actual_query_context)
         try:
-            (status, results) = self.query(execution_id, actual_query_context)
+            (status, results) = self.query(
+                execution_id,
+                actual_query_context,
+                last_query_time=last_query_time
+            )
         except:
             LOG.exception('Failed querying results for liveaction_id %s.', execution_id)
             if self.delete_state_object_on_error:
@@ -125,7 +134,7 @@ class Querier(object):
 
             return
 
-        self._query_contexts.put((time.time(), query_context))
+        self._query_contexts.put((this_query_time, query_context))
 
     def _update_action_results(self, execution_id, status, results):
         liveaction_db = LiveAction.get_by_id(execution_id)
@@ -158,7 +167,7 @@ class Querier(object):
             except:
                 LOG.exception('Failed clearing state object: %s', state_db)
 
-    def query(self, execution_id, query_context):
+    def query(self, execution_id, query_context, last_query_time=None):
         """
         This is the method individual queriers must implement.
         This method should return a tuple of (status, results).
