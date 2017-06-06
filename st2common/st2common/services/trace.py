@@ -348,7 +348,7 @@ def get_trace_component_for_trigger_instance(trigger_instance_db):
     trace_component = {}
     trace_component = {
         'id': str(trigger_instance_db.id),
-        'ref': trigger_instance_db.trigger
+        'ref': trigger_instance_db.trigger.get('ref', '')
     }
     caused_by = {}
     # Special handling for ACTION_SENSOR_TRIGGER and NOTIFY_TRIGGER where we
@@ -380,4 +380,5 @@ def _to_trace_component_db(component):
     ref = component.get('ref', '') if isinstance(component, dict) else ''
     caused_by = component.get('caused_by', {}) if isinstance(component, dict) else {}
 
+    LOG.info('Ref in component %s is %s', component, ref)
     return TraceComponentDB(object_id=object_id, ref=ref, caused_by=caused_by)

@@ -116,8 +116,9 @@ def create_execution_object(liveaction, publish=True):
         trigger_instance_id = liveaction.context.get('trigger_instance', {})
         trigger_instance_id = trigger_instance_id.get('id', None)
         trigger_instance = TriggerInstance.get_by_id(trigger_instance_id)
+        trigger_ref = trigger_instance.trigger.get('ref', None)
         trigger = reference.get_model_by_resource_ref(db_api=Trigger,
-                                                      ref=trigger_instance.trigger)
+                                                      ref=trigger_ref)
         trigger_type = reference.get_model_by_resource_ref(db_api=TriggerType,
                                                            ref=trigger.type)
         trigger_instance = reference.get_model_from_ref(
