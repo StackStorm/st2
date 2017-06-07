@@ -49,10 +49,10 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
         # TODO: Remove parameters dictionary look up when we can confirm each trigger dictionary
         # passed to this method always contains id or uid
         if trigger_id:
-            LOG.info('Looking up TriggerDB by id: %s', trigger_id)
+            LOG.debug('Looking up TriggerDB by id: %s', trigger_id)
             trigger_db = TriggerService.get_trigger_db_by_id(id=trigger_id)
         elif trigger_uid:
-            LOG.info('Looking up TriggerDB by uid: %s', trigger_uid)
+            LOG.debug('Looking up TriggerDB by uid: %s', trigger_uid)
             trigger_db = TriggerService.get_trigger_db_by_uid(uid=trigger_uid)
         else:
             # Last resort - look it up by parameters
