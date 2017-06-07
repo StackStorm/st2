@@ -16,8 +16,8 @@
       description: "Name of the pack in Exchange or a git repo URL."
     register:
       type: "string"
-      default: "actions,aliases,sensors,triggers"
-      description: "Possible options are all, triggers, sensors, actions, rules, aliases."
+      default: "all"
+      description: "Possible options are all, sensors, actions, rules, aliases, runners, triggers, rule_types, policiy_types, policies, configs."
     env:
       type: "object"
       description: "Optional environment variables."
