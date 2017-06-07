@@ -37,9 +37,12 @@ class FileWatchSensor(Sensor):
             self._logger.error('Received trigger type without "file_path" field.')
             return
 
-        self._tail.add_file(filename=file_path)
-        self._trigger = trigger
+        self._trigger = trigger.get('ref', None)
 
+        if not self._trigger:
+            raise Exception('Trigger %s did not contain a ref.' % trigger)
+
+        self._tail.add_file(filename=file_path)
         self._logger.info('Added file "%s"' % (file_path))
 
     def update_trigger(self, trigger):

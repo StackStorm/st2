@@ -46,8 +46,9 @@ class TriggerTypeDB(stormbase.StormBaseDB,
     RESOURCE_TYPE = ResourceType.TRIGGER_TYPE
     UID_FIELDS = ['pack', 'name']
 
-    name = me.StringField(required=True)
+    name = me.StringField(required=False)
     pack = me.StringField(required=True, unique_with='name')
+    ref = me.StringField(required=True)
     payload_schema = me.DictField()
     parameters_schema = me.DictField(default={})
 
@@ -75,6 +76,7 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
     RESOURCE_TYPE = ResourceType.TRIGGER
     UID_FIELDS = ['pack', 'name']
 
+    ref = me.StringField(required=False)
     name = me.StringField(required=True)
     pack = me.StringField(required=True, unique_with='name')
     type = me.StringField()
