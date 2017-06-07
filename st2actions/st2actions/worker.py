@@ -145,7 +145,11 @@ class ActionExecutionDispatcher(MessageHandler):
             executions.update_execution(liveaction_db)
             raise
         finally:
-            self._running_liveactions.remove(liveaction_db.id)
+            # In the case of worker shutdown, the items are removed from _running_liveactions.
+            # As the subprocesses for action executions are terminated, this finally block
+            # will be executed. Set remove will result in KeyError if item no longer exists.
+            # Use set discard to not raise the KeyError.
+            self._running_liveactions.discard(liveaction_db.id)
 
         return result
 
