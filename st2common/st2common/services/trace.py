@@ -380,5 +380,4 @@ def _to_trace_component_db(component):
     ref = component.get('ref', '') if isinstance(component, dict) else ''
     caused_by = component.get('caused_by', {}) if isinstance(component, dict) else {}
 
-    LOG.info('Ref in component %s is %s', component, ref)
     return TraceComponentDB(object_id=object_id, ref=ref, caused_by=caused_by)
