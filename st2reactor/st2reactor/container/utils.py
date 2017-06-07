@@ -40,13 +40,6 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
     # TODO: This is nasty, this should take a unique reference and not a dict
     if isinstance(trigger, six.string_types):
         trigger_db = TriggerService.get_trigger_db_by_ref(trigger)
-        if not trigger_db:
-            LOG.debug('No trigger in db for %s', trigger)
-            if raise_on_no_trigger:
-                raise StackStormDBObjectNotFoundError('Trigger not found for %s', trigger)
-            return None
-        else:
-            trigger_ptr = {'ref': trigger_db.get_reference().ref}
     else:
         # If id / uid is available we try to look up Trigger by id. This way we can avoid bug in
         # pymongo / mongoengine related to "parameters" dictionary lookups
@@ -71,20 +64,16 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
             trigger_db = TriggerService.get_trigger_db_given_type_and_params(type=trigger_type,
                                                                              parameters=parameters)
 
-        if not trigger_db:
-            LOG.debug('No trigger in db for %s', trigger)
-            if raise_on_no_trigger:
-                raise StackStormDBObjectNotFoundError('Trigger not found for %s', trigger)
-            return None
-        else:
-            trigger_ptr = {
-                'ref': trigger_db.get_reference().ref,
-                'type': trigger_db.type,
-                'parameters': trigger_db.parameters
-            }
+    if not trigger_db:
+        LOG.debug('No trigger in db for %s', trigger)
+        if raise_on_no_trigger:
+            raise StackStormDBObjectNotFoundError('Trigger not found for %s', trigger)
+        return None
+
+    trigger_ref = trigger_db.get_reference().ref
 
     trigger_instance = TriggerInstanceDB()
-    trigger_instance.trigger = trigger_ptr
+    trigger_instance.trigger = trigger_ref
     trigger_instance.payload = payload
     trigger_instance.occurrence_time = occurrence_time
     trigger_instance.status = TRIGGER_INSTANCE_PENDING

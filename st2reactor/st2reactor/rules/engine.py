@@ -40,30 +40,16 @@ class RulesEngine(object):
     def get_matching_rules_for_trigger(self, trigger_instance):
         trigger = trigger_instance.trigger
 
-        trigger_type_with_params = False
-
-        if trigger.get('type', None) and trigger.get('parameters', None):
-            trigger_type_with_params = True
-
-        if trigger_type_with_params:
-            trigger_type = trigger['type']
-            trigger_params = trigger['parameters']
-            trigger_db = get_trigger_db_given_type_and_params(
-                type=trigger_type,
-                parameters=trigger_params
-            )
-            if trigger_db:
-                rules = get_rules_given_trigger(trigger=trigger)
-        else:
-            trigger_db = get_trigger_db_by_ref(trigger_instance.trigger.get('ref'))
-            if trigger_db:
-                rules = get_rules_given_trigger(trigger=trigger)
+        trigger_db = get_trigger_db_by_ref(trigger_instance.trigger)
 
         if not trigger_db:
             LOG.error('No matching trigger found in db for trigger instance %s.', trigger_instance)
             return None
 
-        LOG.info('Found %d rules defined for trigger %s', len(rules), trigger['ref'])
+        rules = get_rules_given_trigger(trigger=trigger)
+
+        LOG.info('Found %d rules defined for trigger %s', len(rules),
+                 trigger_db.get_reference().ref)
 
         if len(rules) < 1:
             return rules
