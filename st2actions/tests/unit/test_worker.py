@@ -98,7 +98,7 @@ class WorkerTestCase(DbTestCase):
         # over a separate thread, run the shutdown sequence on the main thread, and then let
         # the local runner to exit gracefully and allow _run_action to finish execution.
         with tempfile.NamedTemporaryFile() as fp:
-            params = {'cmd': 'while [ -e \'%s\' ]; do sleep 1; done' % fp.name}
+            params = {'cmd': 'while [ -e \'%s\' ]; do sleep 0.1; done' % fp.name}
             liveaction_db = self._get_liveaction_model(WorkerTestCase.local_action_db, params)
             liveaction_db = LiveAction.add_or_update(liveaction_db)
             executions.create_execution_object(liveaction_db)
@@ -106,7 +106,7 @@ class WorkerTestCase(DbTestCase):
 
             # Wait for the worker to add the liveaction to _running_liveactions.
             while len(action_worker._running_liveactions) <= 0:
-                eventlet.sleep(1)
+                eventlet.sleep(0.1)
 
             self.assertEqual(len(action_worker._running_liveactions), 1)
 
