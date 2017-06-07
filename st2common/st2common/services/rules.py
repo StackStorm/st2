@@ -55,5 +55,5 @@ def get_rules_with_trigger_ref(trigger_ref=None, enabled=True):
     if not trigger_ref:
         return None
 
-    LOG.info('Querying rules with trigger %s', trigger_ref)
+    LOG.debug('Querying rules with trigger %s', trigger_ref)
     return Rule.query(trigger=trigger_ref, enabled=enabled)
