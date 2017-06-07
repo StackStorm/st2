@@ -46,9 +46,9 @@ class TriggerTypeDB(stormbase.StormBaseDB,
     RESOURCE_TYPE = ResourceType.TRIGGER_TYPE
     UID_FIELDS = ['pack', 'name']
 
-    name = me.StringField(required=False)
+    ref = me.StringField(required=False)
+    name = me.StringField(required=True)
     pack = me.StringField(required=True, unique_with='name')
-    ref = me.StringField(required=True)
     payload_schema = me.DictField()
     parameters_schema = me.DictField(default={})
 
