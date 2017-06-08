@@ -15,7 +15,6 @@
 
 from st2common import log as logging
 from st2common.services.rules import get_rules_given_trigger
-from st2common.services.triggers import get_trigger_db_given_type_and_params
 from st2common.services.triggers import get_trigger_db_by_ref
 from st2reactor.rules.enforcer import RuleEnforcer
 from st2reactor.rules.matcher import RulesMatcher
