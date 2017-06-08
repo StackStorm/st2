@@ -119,6 +119,52 @@ def get_pack_by_ref(pack_ref):
     return pack_db
 
 
+def _pack_db_to_dict(pack_db):
+    """Convert a pack_db instance to a dict compatible with pack search
+
+    This is to handle rare cases when a pack is not index-searchable, so we have
+    to retrieve metadata about the pack from the DB
+    """
+
+    return {
+        "description": pack_db.description,
+        "author": pack_db.author,
+        "content": {
+            "actions": {"count": len(pack_db.files)},
+            "aliases": {"count": len(pack_db.files)}  # TODO(mierdin): finish this
+        },
+        "version": pack_db.version,
+        "repo_url": "https://github.com/StackStorm/st2",
+        "ref": pack_db.ref,
+        "email": pack_db.email,
+        "name": pack_db.name
+    }
+
+    # PackDB(author="st2-dev",
+    # contributors=[],
+    # dependencies=[],
+    # description="st2 content pack containing basic actions.",
+    # email="info@stackstorm.com",
+    # files=[],
+    # id=59381fa132ed3513d3931126,
+    # keywords=[],
+    # name="core",
+    # ref="core",
+    # stackstorm_version=None,
+    # system={},
+    # uid="pack:core",
+    # version="0.3.1")
+
+    # {u'description': u'StackStorm pack management',
+    # u'author': u'StackStorm, Inc.',
+    # u'content': {u'actions': {u'count': 15}, u'aliases': {u'count': 6}},
+    # u'version': u'0.2.1',
+    # u'repo_url': u'https://github.com/StackStorm-Exchange/stackstorm-st2',
+    # u'ref': u'st2',
+    # u'email': u'info@stackstorm.com',
+    # u'name': u'st2'}
+
+
 def fetch_pack_index(index_url=None, logger=None, allow_empty=False):
     """
     Fetch the pack indexes (either from the config or provided as an argument)
