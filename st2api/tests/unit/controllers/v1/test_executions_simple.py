@@ -13,43 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import bson
 import copy
-import datetime
 import mock
-import six
-import uuid
+
 try:
     import simplejson as json
 except ImportError:
     import json
+
 import st2common.validators.api.action as action_validator
 
 from six.moves import filter
 from st2common.util import isotime
-from st2common.util import date as date_utils
-from st2common.models.db.auth import TokenDB
-from st2common.models.db.auth import UserDB
-from st2common.persistence.auth import Token
-from st2common.persistence.auth import User
 from st2common.persistence.trace import Trace
-from st2common.models.db.rbac import RoleDB
-from st2common.models.db.rbac import UserRoleAssignmentDB
-from st2common.persistence.rbac import UserRoleAssignment
-from st2common.persistence.rbac import Role
 from st2common.services import trace as trace_service
 from st2common.transport.publishers import PoolPublisher
-from tests.base import APIControllerWithRBACTestCase
+from tests.base import BaseActionExecutionControllerTestCase
 from st2tests.api import SUPER_SECRET_PARAMETER
 from st2tests.api import ANOTHER_SUPER_SECRET_PARAMETER
-from st2tests.fixturesloader import FixturesLoader
 from tests import FunctionalTest
-
-__all__ = [
-    'ActionExecutionControllerTestCase',
-    'ActionExecutionRBACControllerTestCase'
-]
 
 
 ACTION_1 = {
@@ -171,37 +153,6 @@ TEST_FIXTURES = {
     'runners': ['testrunner1.yaml'],
     'actions': ['action1.yaml', 'local.yaml']
 }
-
-
-class FakeResponse(object):
-
-    def __init__(self, text, status_code, reason):
-        self.text = text
-        self.status_code = status_code
-        self.reason = reason
-
-    def json(self):
-        return json.loads(self.text)
-
-    def raise_for_status(self):
-        raise Exception(self.reason)
-
-
-class BaseActionExecutionControllerTestCase(object):
-
-    @staticmethod
-    def _get_actionexecution_id(resp):
-        return resp.json['id']
-
-    def _do_get_one(self, actionexecution_id, *args, **kwargs):
-        return self.app.get('/v1/executions/%s' % actionexecution_id, *args, **kwargs)
-
-    def _do_post(self, liveaction, *args, **kwargs):
-        return self.app.post_json('/v1/executions', liveaction, *args, **kwargs)
-
-    def _do_delete(self, actionexecution_id, expect_errors=False):
-        return self.app.delete('/v1/executions/%s' % actionexecution_id,
-                               expect_errors=expect_errors)
 
 
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
@@ -703,224 +654,3 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
                                          params={'show_secrets': True},
                                          expect_errors=True)
         self.assertEqual(re_run_result.json['parameters']['d'], data['parameters']['d'])
-
-
-# ActionExecutionControllerTestCaseAuthEnabled test section
-
-NOW = date_utils.get_datetime_utc_now()
-EXPIRY = NOW + datetime.timedelta(seconds=300)
-SYS_TOKEN = TokenDB(id=bson.ObjectId(), user='system', token=uuid.uuid4().hex, expiry=EXPIRY)
-USR_TOKEN = TokenDB(id=bson.ObjectId(), user='tokenuser', token=uuid.uuid4().hex, expiry=EXPIRY)
-
-FIXTURES_PACK = 'generic'
-FIXTURES = {
-    'users': ['system_user.yaml', 'token_user.yaml']
-}
-
-
-def mock_get_token(*args, **kwargs):
-    if args[0] == SYS_TOKEN.token:
-        return SYS_TOKEN
-    return USR_TOKEN
-
-
-@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class ActionExecutionControllerTestCaseAuthEnabled(FunctionalTest):
-
-    enable_auth = True
-
-    @classmethod
-    @mock.patch.object(
-        Token, 'get',
-        mock.MagicMock(side_effect=mock_get_token))
-    @mock.patch.object(User, 'get_by_name', mock.MagicMock(side_effect=UserDB))
-    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
-        return_value=True))
-    def setUpClass(cls):
-        super(ActionExecutionControllerTestCaseAuthEnabled, cls).setUpClass()
-        cls.action = copy.deepcopy(ACTION_1)
-        headers = {'content-type': 'application/json', 'X-Auth-Token': str(SYS_TOKEN.token)}
-        post_resp = cls.app.post_json('/v1/actions', cls.action, headers=headers)
-        cls.action['id'] = post_resp.json['id']
-
-        FixturesLoader().save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
-                                             fixtures_dict=FIXTURES)
-
-    @classmethod
-    @mock.patch.object(
-        Token, 'get',
-        mock.MagicMock(side_effect=mock_get_token))
-    def tearDownClass(cls):
-        headers = {'content-type': 'application/json', 'X-Auth-Token': str(SYS_TOKEN.token)}
-        cls.app.delete('/v1/actions/%s' % cls.action['id'], headers=headers)
-        super(ActionExecutionControllerTestCaseAuthEnabled, cls).tearDownClass()
-
-    def _do_post(self, liveaction, *args, **kwargs):
-        return self.app.post_json('/v1/executions', liveaction, *args, **kwargs)
-
-    @mock.patch.object(
-        Token, 'get',
-        mock.MagicMock(side_effect=mock_get_token))
-    def test_post_with_st2_context_in_headers(self):
-        headers = {'content-type': 'application/json', 'X-Auth-Token': str(USR_TOKEN.token)}
-        resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
-        self.assertEqual(resp.status_int, 201)
-        token_user = resp.json['context']['user']
-        self.assertEqual(token_user, 'tokenuser')
-        context = {'parent': {'execution_id': str(resp.json['id']), 'user': token_user}}
-        headers = {'content-type': 'application/json',
-                   'X-Auth-Token': str(SYS_TOKEN.token),
-                   'st2-context': json.dumps(context)}
-        resp = self._do_post(copy.deepcopy(LIVE_ACTION_1), headers=headers)
-        self.assertEqual(resp.status_int, 201)
-        self.assertEqual(resp.json['context']['user'], 'tokenuser')
-        self.assertEqual(resp.json['context']['parent'], context['parent'])
-
-
-# descendants test section
-
-DESCENDANTS_PACK = 'descendants'
-
-DESCENDANTS_FIXTURES = {
-    'executions': ['root_execution.yaml', 'child1_level1.yaml', 'child2_level1.yaml',
-                   'child1_level2.yaml', 'child2_level2.yaml', 'child3_level2.yaml',
-                   'child1_level3.yaml', 'child2_level3.yaml', 'child3_level3.yaml']
-}
-
-
-class ActionExecutionControllerTestCaseDescendantsTest(FunctionalTest):
-
-    @classmethod
-    def setUpClass(cls):
-        super(ActionExecutionControllerTestCaseDescendantsTest, cls).setUpClass()
-        cls.MODELS = FixturesLoader().save_fixtures_to_db(fixtures_pack=DESCENDANTS_PACK,
-                                                          fixtures_dict=DESCENDANTS_FIXTURES)
-
-    def test_get_all_descendants(self):
-        root_execution = self.MODELS['executions']['root_execution.yaml']
-        resp = self.app.get('/v1/executions/%s/children' % str(root_execution.id))
-        self.assertEqual(resp.status_int, 200)
-
-        all_descendants_ids = [descendant['id'] for descendant in resp.json]
-        all_descendants_ids.sort()
-
-        # everything except the root_execution
-        expected_ids = [str(v.id) for _, v in six.iteritems(self.MODELS['executions'])
-                        if v.id != root_execution.id]
-        expected_ids.sort()
-
-        self.assertListEqual(all_descendants_ids, expected_ids)
-
-    def test_get_all_descendants_depth_neg_1(self):
-        root_execution = self.MODELS['executions']['root_execution.yaml']
-        resp = self.app.get('/v1/executions/%s/children?depth=-1' % str(root_execution.id))
-        self.assertEqual(resp.status_int, 200)
-
-        all_descendants_ids = [descendant['id'] for descendant in resp.json]
-        all_descendants_ids.sort()
-
-        # everything except the root_execution
-        expected_ids = [str(v.id) for _, v in six.iteritems(self.MODELS['executions'])
-                        if v.id != root_execution.id]
-        expected_ids.sort()
-
-        self.assertListEqual(all_descendants_ids, expected_ids)
-
-    def test_get_1_level_descendants(self):
-        root_execution = self.MODELS['executions']['root_execution.yaml']
-        resp = self.app.get('/v1/executions/%s/children?depth=1' % str(root_execution.id))
-        self.assertEqual(resp.status_int, 200)
-
-        all_descendants_ids = [descendant['id'] for descendant in resp.json]
-        all_descendants_ids.sort()
-
-        # All children of root_execution
-        expected_ids = [str(v.id) for _, v in six.iteritems(self.MODELS['executions'])
-                        if v.parent == str(root_execution.id)]
-        expected_ids.sort()
-
-        self.assertListEqual(all_descendants_ids, expected_ids)
-
-
-@mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
-class ActionExecutionRBACControllerTestCase(BaseActionExecutionControllerTestCase,
-                                            APIControllerWithRBACTestCase):
-
-    fixtures_loader = FixturesLoader()
-
-    @mock.patch.object(action_validator, 'validate_action', mock.MagicMock(
-        return_value=True))
-    def setUp(self):
-        super(ActionExecutionRBACControllerTestCase, self).setUp()
-
-        self.fixtures_loader.save_fixtures_to_db(fixtures_pack=FIXTURES_PACK,
-                                                 fixtures_dict=TEST_FIXTURES)
-
-        # Insert mock users, roles and assignments
-
-        # Users
-        user_1_db = UserDB(name='multiple_roles')
-        user_1_db = User.add_or_update(user_1_db)
-        self.users['multiple_roles'] = user_1_db
-
-        # Roles
-        roles = ['role_1', 'role_2', 'role_3']
-        for role in roles:
-            role_db = RoleDB(name=role)
-            Role.add_or_update(role_db)
-
-        # Role assignments
-        user_db = self.users['multiple_roles']
-        role_assignment_db = UserRoleAssignmentDB(
-            user=user_db.name,
-            role='admin')
-        UserRoleAssignment.add_or_update(role_assignment_db)
-
-        for role in roles:
-            role_assignment_db = UserRoleAssignmentDB(
-                user=user_db.name,
-                role=role)
-            UserRoleAssignment.add_or_update(role_assignment_db)
-
-    def test_post_rbac_info_in_context_success(self):
-        # When RBAC is enabled, additional RBAC related info should be included in action_context
-        data = {
-            'action': 'wolfpack.action-1',
-            'parameters': {
-                'actionstr': 'foo'
-            }
-        }
-
-        # User with one role assignment
-        user_db = self.users['admin']
-        self.use_user(user_db)
-
-        resp = self._do_post(data)
-        self.assertEqual(resp.status_int, 201)
-
-        expected_context = {
-            'user': 'admin',
-            'rbac': {
-                'user': 'admin',
-                'roles': ['admin']
-            }
-        }
-
-        self.assertEqual(resp.json['context'], expected_context)
-
-        # User with multiple role assignments
-        user_db = self.users['multiple_roles']
-        self.use_user(user_db)
-
-        resp = self._do_post(data)
-        self.assertEqual(resp.status_int, 201)
-
-        expected_context = {
-            'user': 'multiple_roles',
-            'rbac': {
-                'user': 'multiple_roles',
-                'roles': ['admin', 'role_1', 'role_2', 'role_3']
-            }
-        }
-
-        self.assertEqual(resp.json['context'], expected_context)
