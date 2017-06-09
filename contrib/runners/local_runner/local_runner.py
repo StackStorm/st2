@@ -20,17 +20,16 @@ import uuid
 from oslo_config import cfg
 from eventlet.green import subprocess
 
+from st2common.constants import action as action_constants
+from st2common.constants import exit_codes as exit_code_constants
+from st2common.constants import runners as runner_constants
 from st2common import log as logging
 from st2common.runners.base import ActionRunner
 from st2common.runners.base import ShellRunnerMixin
 from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
-from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
-from st2common.constants.action import LIVEACTION_STATUS_FAILED
-from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
-from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2common.util.misc import strip_shell_chars
-from st2common.util.green.shell import run_command
+from st2common.util.green import shell
 from st2common.util.shell import kill_process
 import st2common.util.jsonify as jsonify
 
@@ -51,6 +50,13 @@ RUNNER_CWD = 'cwd'
 RUNNER_ENV = 'env'
 RUNNER_KWARG_OP = 'kwarg_op'
 RUNNER_TIMEOUT = 'timeout'
+
+PROC_EXIT_CODE_TO_LIVEACTION_STATUS_MAP = {
+    str(exit_code_constants.SUCCESS_EXIT_CODE): action_constants.LIVEACTION_STATUS_SUCCEEDED,
+    str(exit_code_constants.FAILURE_EXIT_CODE): action_constants.LIVEACTION_STATUS_FAILED,
+    str(-1 * exit_code_constants.SIGKILL_EXIT_CODE): action_constants.LIVEACTION_STATUS_TIMED_OUT,
+    str(-1 * exit_code_constants.SIGTERM_EXIT_CODE): action_constants.LIVEACTION_STATUS_ABANDONED
+}
 
 
 def get_runner():
@@ -80,8 +86,8 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         self._env = self.runner_parameters.get(RUNNER_ENV, {})
         self._env = self._env or {}
         self._kwarg_op = self.runner_parameters.get(RUNNER_KWARG_OP, DEFAULT_KWARG_OP)
-        self._timeout = self.runner_parameters.get(RUNNER_TIMEOUT,
-                                                   LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT)
+        self._timeout = self.runner_parameters.get(
+            RUNNER_TIMEOUT, runner_constants.LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT)
 
     def run(self, action_parameters):
         env_vars = self._env
@@ -141,23 +147,23 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         # Ideally os.killpg should have done the trick but for some reason that failed.
         # Note: pkill will set the returncode to 143 so we don't need to explicitly set
         # it to some non-zero value.
-        exit_code, stdout, stderr, timed_out = run_command(cmd=args, stdin=None,
-                                                           stdout=subprocess.PIPE,
-                                                           stderr=subprocess.PIPE,
-                                                           shell=True,
-                                                           cwd=self._cwd,
-                                                           env=env,
-                                                           timeout=self._timeout,
-                                                           preexec_func=os.setsid,
-                                                           kill_func=kill_process)
+        exit_code, stdout, stderr, timed_out = shell.run_command(cmd=args, stdin=None,
+                                                                 stdout=subprocess.PIPE,
+                                                                 stderr=subprocess.PIPE,
+                                                                 shell=True,
+                                                                 cwd=self._cwd,
+                                                                 env=env,
+                                                                 timeout=self._timeout,
+                                                                 preexec_func=os.setsid,
+                                                                 kill_func=kill_process)
 
         error = None
 
         if timed_out:
             error = 'Action failed to complete in %s seconds' % (self._timeout)
-            exit_code = -9
+            exit_code = -1 * exit_code_constants.SIGKILL_EXIT_CODE
 
-        succeeded = (exit_code == 0)
+        succeeded = (exit_code == exit_code_constants.SUCCESS_EXIT_CODE)
 
         result = {
             'failed': not succeeded,
@@ -170,11 +176,9 @@ class LocalShellRunner(ActionRunner, ShellRunnerMixin):
         if error:
             result['error'] = error
 
-        if exit_code == 0:
-            status = LIVEACTION_STATUS_SUCCEEDED
-        elif timed_out:
-            status = LIVEACTION_STATUS_TIMED_OUT
-        else:
-            status = LIVEACTION_STATUS_FAILED
+        status = PROC_EXIT_CODE_TO_LIVEACTION_STATUS_MAP.get(
+            str(exit_code),
+            action_constants.LIVEACTION_STATUS_FAILED
+        )
 
         return (status, jsonify.json_loads(result, LocalShellRunner.KEYS_TO_TRANSFORM), None)
