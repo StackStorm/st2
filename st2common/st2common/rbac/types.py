@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
 import itertools
 
 from st2common.util.enum import Enum
@@ -29,7 +30,9 @@ __all__ = [
     'ALL_PERMISSION_TYPES',
     'GLOBAL_PERMISSION_TYPES',
     'GLOBAL_PACK_PERMISSION_TYPES',
-    'LIST_PERMISSION_TYPES'
+    'LIST_PERMISSION_TYPES',
+
+    'get_resource_permission_types_with_descriptions'
 ]
 
 
@@ -58,7 +61,7 @@ class PermissionType(Enum):
     PACK_REGISTER = 'pack_register'
     PACK_CONFIG = 'pack_config'
     PACK_SEARCH = 'pack_search'
-    PACK_VIEW_INDEX_HEALTH = 'pack_view_index_health'
+    PACK_VIEWS_INDEX_HEALTH = 'pack_views_index_health'
 
     PACK_ALL = 'pack_all'
 
@@ -91,6 +94,7 @@ class PermissionType(Enum):
     EXECUTION_RE_RUN = 'execution_rerun'
     EXECUTION_STOP = 'execution_stop'
     EXECUTION_ALL = 'execution_all'
+    EXECUTION_VIEWS_FILTERS_LIST = 'execution_views_filters_list'
 
     RULE_LIST = 'rule_list'
     RULE_VIEW = 'rule_view'
@@ -114,6 +118,10 @@ class PermissionType(Enum):
     WEBHOOK_DELETE = 'webhook_delete'
     WEBHOOK_ALL = 'webhook_all'
 
+    TIMER_LIST = 'timer_list'
+    TIMER_VIEW = 'timer_view'
+    TIMER_ALL = 'timer_all'
+
     API_KEY_LIST = 'api_key_list'
     API_KEY_VIEW = 'api_key_view'
     API_KEY_CREATE = 'api_key_create'
@@ -130,6 +138,17 @@ class PermissionType(Enum):
     TRIGGER_LIST = 'trigger_list'
     TRIGGER_VIEW = 'trigger_view'
     TRIGGER_ALL = 'trigger_all'
+
+    POLICY_TYPE_LIST = 'policy_type_list'
+    POLICY_TYPE_VIEW = 'policy_type_view'
+    POLICY_TYPE_ALL = 'policy_type_all'
+
+    POLICY_LIST = 'policy_list'
+    POLICY_VIEW = 'policy_view'
+    POLICY_CREATE = 'policy_create'
+    POLICY_MODIFY = 'policy_modify'
+    POLICY_DELETE = 'policy_delete'
+    POLICY_ALL = 'policy_all'
 
     @classmethod
     def get_valid_permissions_for_resource_type(cls, resource_type):
@@ -148,12 +167,16 @@ class PermissionType(Enum):
 
         :rtype: ``str``
         """
+        # Special case for:
+        # * PACK_VIEWS_INDEX_HEALTH
+        # * EXECUTION_VIEWS_FILTERS_LIST
+        if permission_type == PermissionType.PACK_VIEWS_INDEX_HEALTH:
+            return ResourceType.PACK
+        elif permission_type == PermissionType.EXECUTION_VIEWS_FILTERS_LIST:
+            return ResourceType.EXECUTION
+
         split = permission_type.split('_')
         assert len(split) >= 2
-
-        # Special case for PACK_VIEW_INDEX_HEALTH
-        if permission_type == PermissionType.PACK_VIEW_INDEX_HEALTH:
-            return split[0]
 
         return '_'.join(split[:-1])
 
@@ -167,8 +190,8 @@ class PermissionType(Enum):
         split = permission_type.split('_')
         assert len(split) >= 2
 
-        # Special case for PACK_VIEW_INDEX_HEALTH
-        if permission_type == PermissionType.PACK_VIEW_INDEX_HEALTH:
+        # Special case for PACK_VIEWS_INDEX_HEALTH
+        if permission_type == PermissionType.PACK_VIEWS_INDEX_HEALTH:
             split = permission_type.split('_', 1)
             return split[1]
 
@@ -217,10 +240,13 @@ class ResourceType(Enum):
     ACTION_ALIAS = SystemResourceType.ACTION_ALIAS
     RULE = SystemResourceType.RULE
     RULE_ENFORCEMENT = SystemResourceType.RULE_ENFORCEMENT
+    POLICY_TYPE = SystemResourceType.POLICY_TYPE
+    POLICY = SystemResourceType.POLICY
 
     EXECUTION = SystemResourceType.EXECUTION
     KEY_VALUE_PAIR = SystemResourceType.KEY_VALUE_PAIR
     WEBHOOK = SystemResourceType.WEBHOOK
+    TIMER = SystemResourceType.TIMER
     API_KEY = SystemResourceType.API_KEY
     TRACE = SystemResourceType.TRACE
     TRIGGER = SystemResourceType.TRIGGER
@@ -254,7 +280,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.PACK_REGISTER,
         PermissionType.PACK_CONFIG,
         PermissionType.PACK_SEARCH,
-        PermissionType.PACK_VIEW_INDEX_HEALTH,
+        PermissionType.PACK_VIEWS_INDEX_HEALTH,
         PermissionType.PACK_ALL,
 
         PermissionType.SENSOR_VIEW,
@@ -323,6 +349,7 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.EXECUTION_RE_RUN,
         PermissionType.EXECUTION_STOP,
         PermissionType.EXECUTION_ALL,
+        PermissionType.EXECUTION_VIEWS_FILTERS_LIST,
     ],
     ResourceType.KEY_VALUE_PAIR: [
         PermissionType.KEY_VALUE_VIEW,
@@ -337,6 +364,11 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
         PermissionType.WEBHOOK_DELETE,
         PermissionType.WEBHOOK_ALL
     ],
+    ResourceType.TIMER: [
+        PermissionType.TIMER_LIST,
+        PermissionType.TIMER_VIEW,
+        PermissionType.TIMER_ALL
+    ],
     ResourceType.API_KEY: [
         PermissionType.API_KEY_LIST,
         PermissionType.API_KEY_VIEW,
@@ -347,11 +379,26 @@ RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP = {
     ],
     ResourceType.TRACE: [
         PermissionType.TRACE_LIST,
-        PermissionType.TRACE_VIEW
+        PermissionType.TRACE_VIEW,
+        PermissionType.TRACE_ALL
     ],
     ResourceType.TRIGGER: [
         PermissionType.TRIGGER_LIST,
-        PermissionType.TRIGGER_VIEW
+        PermissionType.TRIGGER_VIEW,
+        PermissionType.TRIGGER_ALL
+    ],
+    ResourceType.POLICY_TYPE: [
+        PermissionType.POLICY_TYPE_LIST,
+        PermissionType.POLICY_TYPE_VIEW,
+        PermissionType.POLICY_TYPE_ALL,
+    ],
+    ResourceType.POLICY: [
+        PermissionType.POLICY_LIST,
+        PermissionType.POLICY_VIEW,
+        PermissionType.POLICY_CREATE,
+        PermissionType.POLICY_MODIFY,
+        PermissionType.POLICY_DELETE,
+        PermissionType.POLICY_ALL,
     ]
 }
 
@@ -369,14 +416,20 @@ GLOBAL_PERMISSION_TYPES = [
     PermissionType.PACK_REGISTER,
     PermissionType.PACK_CONFIG,
     PermissionType.PACK_SEARCH,
-    PermissionType.PACK_VIEW_INDEX_HEALTH,
+    PermissionType.PACK_VIEWS_INDEX_HEALTH,
 
     # Action alias global permission types
     PermissionType.ACTION_ALIAS_MATCH,
     PermissionType.ACTION_ALIAS_HELP,
 
     # API key global permission types
-    PermissionType.API_KEY_CREATE
+    PermissionType.API_KEY_CREATE,
+
+    # Policy global permission types
+    PermissionType.POLICY_CREATE,
+
+    # Execution
+    PermissionType.EXECUTION_VIEWS_FILTERS_LIST
 ] + LIST_PERMISSION_TYPES
 
 GLOBAL_PACK_PERMISSION_TYPES = [permission_type for permission_type in GLOBAL_PERMISSION_TYPES if
@@ -395,7 +448,7 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.PACK_REGISTER: 'Ability to register packs and corresponding resources.',
     PermissionType.PACK_CONFIG: 'Ability to configure a pack.',
     PermissionType.PACK_SEARCH: 'Ability to query registry and search packs.',
-    PermissionType.PACK_VIEW_INDEX_HEALTH: 'Ability to query health of pack registries.',
+    PermissionType.PACK_VIEWS_INDEX_HEALTH: 'Ability to query health of pack registries.',
     PermissionType.PACK_ALL: ('Ability to perform all the supported operations on a particular '
                               'pack.'),
 
@@ -428,7 +481,7 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.ACTION_ALIAS_MATCH: ('Ability to use action alias match API endpoint.'),
     PermissionType.ACTION_ALIAS_HELP: ('Ability to use action alias help API endpoint.'),
     PermissionType.ACTION_ALIAS_DELETE: ('Ability to delete an existing action alias. Also '
-                                         'imples "action_alias_view" permission.'),
+                                         'implies "action_alias_view" permission.'),
     PermissionType.ACTION_ALIAS_ALL: ('Ability to perform all the supported operations on a '
                                       'particular action alias.'),
 
@@ -438,6 +491,8 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.EXECUTION_STOP: 'Ability to stop (cancel) a running execution.',
     PermissionType.EXECUTION_ALL: ('Ability to perform all the supported operations on a '
                                    'particular execution.'),
+    PermissionType.EXECUTION_VIEWS_FILTERS_LIST: ('Ability view all the distinct execution '
+                                                  'filters.'),
 
     PermissionType.RULE_LIST: 'Ability to list (view all) rules.',
     PermissionType.RULE_VIEW: 'Ability to view a rule.',
@@ -468,6 +523,10 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.WEBHOOK_ALL: ('Ability to perform all the supported operations on a particular '
                                  'webhook.'),
 
+    PermissionType.TIMER_LIST: 'Ability to list (view all) timers.',
+    PermissionType.TIMER_VIEW: ('Ability to view a timer.'),
+    PermissionType.TIMER_ALL: ('Ability to perform all the supported operations on timers'),
+
     PermissionType.API_KEY_LIST: 'Ability to list (view all) API keys.',
     PermissionType.API_KEY_VIEW: ('Ability to view an API Key.'),
     PermissionType.API_KEY_CREATE: ('Ability to create a new API Key.'),
@@ -487,4 +546,34 @@ PERMISION_TYPE_TO_DESCRIPTION_MAP = {
     PermissionType.TRIGGER_LIST: ('Ability to list (view all) triggers.'),
     PermissionType.TRIGGER_VIEW: ('Ability to view a trigger.'),
     PermissionType.TRIGGER_ALL: ('Ability to perform all the supported operations on triggers.'),
+
+    PermissionType.POLICY_TYPE_LIST: ('Ability to list (view all) policy types.'),
+    PermissionType.POLICY_TYPE_VIEW: ('Ability to view a policy types.'),
+    PermissionType.POLICY_TYPE_ALL: ('Ability to perform all the supported operations on policy'
+                                     ' types.'),
+
+    PermissionType.POLICY_LIST: 'Ability to list (view all) policies.',
+    PermissionType.POLICY_VIEW: ('Ability to view a policy.'),
+    PermissionType.POLICY_CREATE: ('Ability to create a new policy.'),
+    PermissionType.POLICY_MODIFY: ('Ability to modify an existing policy.'),
+    PermissionType.POLICY_DELETE: ('Ability to delete an existing policy.'),
+    PermissionType.POLICY_ALL: ('Ability to perform all the supported operations on a particular '
+                                'policy.')
 }
+
+
+def get_resource_permission_types_with_descriptions():
+    """
+    Return available permission types for each resource types with corresponding descriptions.
+
+    :rtype: ``dict`
+    """
+    result = {}
+
+    for resource_type, permission_types in six.iteritems(RESOURCE_TYPE_TO_PERMISSION_TYPES_MAP):
+        result[resource_type] = {}
+        for permission_type in permission_types:
+            result[resource_type][permission_type] = \
+                PERMISION_TYPE_TO_DESCRIPTION_MAP[permission_type]
+
+    return result

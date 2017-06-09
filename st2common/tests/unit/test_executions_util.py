@@ -24,6 +24,7 @@ from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.runner import RunnerType
 from st2common.persistence.execution import ActionExecution
 from st2common.transport.publishers import PoolPublisher
+from st2common.runners import utils as runners_utils
 import st2common.services.executions as executions_util
 import st2common.util.action_db as action_utils
 import st2common.util.date as date_utils
@@ -150,22 +151,30 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
         self.assertLess(execution.log[1]['timestamp'], post_update_timestamp)
 
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
+    @mock.patch.object(runners_utils, 'invoke_post_run', mock.MagicMock(return_value=None))
     def test_abandon_executions(self):
         liveaction_db = self.MODELS['liveactions']['liveaction1.yaml']
         executions_util.create_execution_object(liveaction_db)
         execution_db = executions_util.abandon_execution_if_incomplete(
             liveaction_id=str(liveaction_db.id))
+
         self.assertEquals(execution_db.status, 'abandoned')
 
+        runners_utils.invoke_post_run.assert_called_once()
+
     @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
+    @mock.patch.object(runners_utils, 'invoke_post_run', mock.MagicMock(return_value=None))
     def test_abandon_executions_on_complete(self):
         liveaction_db = self.MODELS['liveactions']['successful_liveaction.yaml']
         executions_util.create_execution_object(liveaction_db)
         expected_msg = 'LiveAction %s already in a completed state %s\.' % \
                        (str(liveaction_db.id), liveaction_db.status)
+
         self.assertRaisesRegexp(ValueError, expected_msg,
                                 executions_util.abandon_execution_if_incomplete,
                                 liveaction_id=str(liveaction_db.id))
+
+        runners_utils.invoke_post_run.assert_not_called()
 
     def _get_action_execution(self, **kwargs):
         return ActionExecution.get(**kwargs)

@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from mongoengine.queryset.visitor import Q
+
 from st2common.rbac.types import PermissionType
 from st2common.rbac.types import ResourceType
 from st2common.rbac.types import SystemRole
@@ -30,6 +32,7 @@ __all__ = [
     'get_all_roles',
     'get_system_roles',
     'get_roles_for_user',
+    'get_all_role_assignments',
     'get_role_assignments_for_user',
     'get_role_by_name',
 
@@ -93,10 +96,34 @@ def get_roles_for_user(user_db, include_remote=True):
     if include_remote:
         queryset = UserRoleAssignment.query(user=user_db.name)
     else:
-        queryset = UserRoleAssignment.query(user=user_db.name, is_remote=False)
+        # when upgrading from pre v2.3.0 when this field didn't exist yet
+        # Note: We also include None for pre v2.3 when this field didn't exist yet
+        queryset_filter = (Q(user=user_db.name) &
+                           (Q(is_remote=False) | Q(is_remote__exists=False)))
+        queryset = UserRoleAssignmentDB.objects(queryset_filter)
 
     role_names = queryset.only('role').scalar('role')
     result = Role.query(name__in=role_names)
+    return result
+
+
+def get_all_role_assignments(include_remote=True):
+    """
+    Retrieve all the UserRoleAssignmentDB objects.
+
+    :param include_remote: True to also include remote role assignments.
+    :type include_remote: ``bool``
+
+    :rtype: ``list`` of :class:`UserRoleAssignmentDB`
+    """
+    if include_remote:
+        result = UserRoleAssignment.query()
+    else:
+        # Note: We also include documents with no "is_remote" field so it also works correctly
+        # when upgrading from pre v2.3.0 when this field didn't exist yet
+        queryset_filter = (Q(is_remote=False) | Q(is_remote__exists=False))
+        result = UserRoleAssignmentDB.objects(queryset_filter)
+
     return result
 
 
@@ -115,7 +142,11 @@ def get_role_assignments_for_user(user_db, include_remote=True):
     if include_remote:
         result = UserRoleAssignment.query(user=user_db.name)
     else:
-        result = UserRoleAssignment.query(user=user_db.name, is_remote=False)
+        # Note: We also include documents with no "is_remote" field so it also works correctly
+        # when upgrading from pre v2.3.0 when this field didn't exist yet
+        queryset_filter = (Q(user=user_db.name) &
+                           (Q(is_remote=False) | Q(is_remote__exists=False)))
+        result = UserRoleAssignmentDB.objects(queryset_filter)
 
     return result
 

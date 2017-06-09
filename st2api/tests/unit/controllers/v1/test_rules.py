@@ -42,14 +42,18 @@ FIXTURES_PACK = 'generic'
 @mock.patch.object(PoolPublisher, 'publish', mock.MagicMock())
 class TestRuleController(FunctionalTest):
 
+    VALIDATE_TRIGGER_PAYLOAD = None
+
     fixtures_loader = FixturesLoader()
 
     @classmethod
     def setUpClass(cls):
         super(TestRuleController, cls).setUpClass()
 
-        # reset default configuration value
-        cfg.CONF.system.validate_trigger_parameters = False
+        # Previously, cfg.CONF.system.validate_trigger_payload was set to False explicitly
+        # here. Instead, we store original value so that the default is used, and if unit
+        # test modifies this, we can set it to what it was (preserve test atomicity)
+        cls.VALIDATE_TRIGGER_PAYLOAD = cfg.CONF.system.validate_trigger_parameters
 
         models = TestRuleController.fixtures_loader.save_fixtures_to_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
@@ -108,8 +112,21 @@ class TestRuleController(FunctionalTest):
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
+        file_name = 'rule_invalid_trigger_parameter_type_default_cfg.yaml'
+        TestRuleController.RULE_11 = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
+        file_name = 'rule space.yaml'
+        TestRuleController.RULE_SPACE = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
     @classmethod
     def tearDownClass(cls):
+        # Replace original configured value for trigger parameter validation
+        cfg.CONF.system.validate_trigger_payload = cls.VALIDATE_TRIGGER_PAYLOAD
+
         TestRuleController.fixtures_loader.delete_fixtures_from_db(
             fixtures_pack=FIXTURES_PACK, fixtures_dict=TEST_FIXTURES)
         super(TestRuleController, cls).setUpClass()
@@ -156,6 +173,16 @@ class TestRuleController(FunctionalTest):
 
     def test_get_one_by_ref(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)
+        rule_name = post_resp.json['name']
+        rule_pack = post_resp.json['pack']
+        ref = ResourceReference.to_string_reference(name=rule_name, pack=rule_pack)
+        rule_id = post_resp.json['id']
+        get_resp = self.__do_get_one(ref)
+        self.assertEqual(get_resp.json['name'], rule_name)
+        self.assertEqual(get_resp.status_int, http_client.OK)
+        self.__do_delete(rule_id)
+
+        post_resp = self.__do_post(TestRuleController.RULE_SPACE)
         rule_name = post_resp.json['name']
         rule_pack = post_resp.json['pack']
         ref = ResourceReference.to_string_reference(name=rule_name, pack=rule_pack)
@@ -226,6 +253,13 @@ class TestRuleController(FunctionalTest):
         self.assertTrue("Failed validating u'type' in schema[u'properties'][u'param1']:" in
                         post_resp.json['faultstring'])
         self.assertTrue('12345 is not of type u\'string\'' in post_resp.json['faultstring'])
+
+    def test_post_invalid_custom_trigger_param_trigger_param_validation_disabled_default_cfg(self):
+        """Test validation does NOT take place with the default configuration.
+        """
+
+        post_resp = self.__do_post(TestRuleController.RULE_11)
+        self.assertEqual(post_resp.status_int, http_client.CREATED)
 
     def test_post_invalid_custom_trigger_parameter_trigger_param_validation_disabled(self):
         # Invalid custom trigger parameter (invalid type) and non-system trigger parameter
