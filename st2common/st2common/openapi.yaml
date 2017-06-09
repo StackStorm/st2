@@ -954,6 +954,39 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.put
+      description: |
+        Update status and result for an execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: liveaction_api
+          in: body
+          description: Execution update request
+          schema:
+            $ref: '#/definitions/ExecutionUpdateRequest'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution that was updated
+          schema:
+            $ref: '#/definitions/Execution'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
     delete:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.delete
       description: |
@@ -3920,6 +3953,16 @@ definitions:
             x-nullable: true
             description: User context under which action should run (admins only)
             default: ''
+  ExecutionUpdateRequest:
+    type: object
+    properties:
+      status:
+        description: The current status of the action execution.
+        type: string
+        enum: {{ LIVEACTION_STATUSES }}
+      result:
+        type: object
+    additionalProperties: False
   ExecutionFilters:
     type: object
   KeyValuePair:

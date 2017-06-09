@@ -25,6 +25,7 @@ import st2common.validators.api.action as action_validator
 
 from six.moves import filter
 from st2common.util import isotime
+from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.trace import Trace
 from st2common.services import trace as trace_service
 from st2common.transport.publishers import PoolPublisher
@@ -654,3 +655,76 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
                                          params={'show_secrets': True},
                                          expect_errors=True)
         self.assertEqual(re_run_result.json['parameters']['d'], data['parameters']['d'])
+
+    def test_put_status_and_result(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+
+        execution_id = self._get_actionexecution_id(post_resp)
+        updates = {'status': 'succeeded', 'result': {'stdout': 'foobar'}}
+        put_resp = self._do_put(execution_id, updates)
+        self.assertEqual(put_resp.status_int, 200)
+        self.assertEqual(put_resp.json['status'], 'succeeded')
+        self.assertDictEqual(put_resp.json['result'], {'stdout': 'foobar'})
+
+        get_resp = self._do_get_one(execution_id)
+        self.assertEqual(get_resp.status_int, 200)
+        self.assertEqual(get_resp.json['status'], 'succeeded')
+        self.assertDictEqual(get_resp.json['result'], {'stdout': 'foobar'})
+
+    def test_put_bad_state(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+
+        execution_id = self._get_actionexecution_id(post_resp)
+        updates = {'status': 'married'}
+        put_resp = self._do_put(execution_id, updates, expect_errors=True)
+        self.assertEqual(put_resp.status_int, 400)
+        self.assertIn('\'married\' is not one of', put_resp.json['faultstring'])
+
+    def test_put_bad_result(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+
+        execution_id = self._get_actionexecution_id(post_resp)
+        updates = {'result': 'foobar'}
+        put_resp = self._do_put(execution_id, updates, expect_errors=True)
+        self.assertEqual(put_resp.status_int, 400)
+        self.assertIn('is not of type \'object\'', put_resp.json['faultstring'])
+
+    def test_put_bad_property(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+
+        execution_id = self._get_actionexecution_id(post_resp)
+        updates = {'status': 'abandoned', 'foo': 'bar'}
+        put_resp = self._do_put(execution_id, updates, expect_errors=True)
+        self.assertEqual(put_resp.status_int, 400)
+        self.assertIn('Additional properties are not allowed', put_resp.json['faultstring'])
+
+    def test_put_status_to_completed_execution(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+
+        execution_id = self._get_actionexecution_id(post_resp)
+        updates = {'status': 'succeeded', 'result': {'stdout': 'foobar'}}
+        put_resp = self._do_put(execution_id, updates)
+        self.assertEqual(put_resp.status_int, 200)
+        self.assertEqual(put_resp.json['status'], 'succeeded')
+        self.assertDictEqual(put_resp.json['result'], {'stdout': 'foobar'})
+
+        updates = {'status': 'abandoned'}
+        put_resp = self._do_put(execution_id, updates, expect_errors=True)
+        self.assertEqual(put_resp.status_int, 400)
+
+    @mock.patch.object(
+        LiveAction, 'get_by_id',
+        mock.MagicMock(return_value=None))
+    def test_put_execution_missing_liveaction(self):
+        post_resp = self._do_post(LIVE_ACTION_1)
+        self.assertEqual(post_resp.status_int, 201)
+
+        execution_id = self._get_actionexecution_id(post_resp)
+        updates = {'status': 'succeeded', 'result': {'stdout': 'foobar'}}
+        put_resp = self._do_put(execution_id, updates, expect_errors=True)
+        self.assertEqual(put_resp.status_int, 500)

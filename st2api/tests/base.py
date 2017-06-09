@@ -157,3 +157,6 @@ class BaseActionExecutionControllerTestCase(object):
     def _do_delete(self, actionexecution_id, expect_errors=False):
         return self.app.delete('/v1/executions/%s' % actionexecution_id,
                                expect_errors=expect_errors)
+
+    def _do_put(self, actionexecution_id, updates, *args, **kwargs):
+        return self.app.put_json('/v1/executions/%s' % actionexecution_id, updates, *args, **kwargs)
