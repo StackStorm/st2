@@ -99,6 +99,7 @@ in development
   [Carles Figuerola]
 * Fix a bug where action runner throws KeyError on abandoning action executions
   during process shutdown. (bug fix)
+* Fix URL parsing bug where percent encoded URLs aren't decoded properly
 
 2.2.1 - April 3, 2017
 ---------------------
