@@ -25,6 +25,7 @@ with mock.patch.object(trigger_service, 'create_trigger_type_db', mock.MagicMock
     from st2api.controllers.v1.webhooks import WebhooksController, HooksHolder
 
 from st2common.constants.triggers import WEBHOOK_TRIGGER_TYPES
+from st2common.models.api.trigger import TriggerAPI
 from st2common.models.db.trigger import TriggerDB
 from st2common.transport.reactor import TriggerInstancePublisher
 
@@ -44,6 +45,7 @@ ST2_WEBHOOK = {
 
 DUMMY_TRIGGER = TriggerDB(name='pr-merged', pack='git')
 DUMMY_TRIGGER.type = WEBHOOK_TRIGGER_TYPES.keys()[0]
+DUMMY_TRIGGER_API = TriggerAPI.from_model(DUMMY_TRIGGER)
 
 
 class TestWebhooksController(FunctionalTest):
