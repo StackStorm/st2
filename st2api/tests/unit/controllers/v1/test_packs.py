@@ -166,6 +166,18 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertEqual(resp.status_int, 200)
         self.assertEqual(resp.json, [PACK_INDEX['test']])
 
+        test_scenarios = [
+            {
+                'input': {'query': '-dev'},
+                'expected_code': 200,
+                'expected_result': []
+            }
+        ]
+        for scenario in test_scenarios:
+            resp = self.app.post_json('/v1/packs/index/search', scenario['input'])
+            self.assertEqual(resp.status_int, scenario['expected_code'])
+            self.assertEqual(resp.json, scenario['expected_result'])
+
     @mock.patch.object(pack_service, 'fetch_pack_index',
                        mock.MagicMock(return_value=(PACK_INDEX, {})))
     def test_show(self):
