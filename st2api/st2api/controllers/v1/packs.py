@@ -70,15 +70,6 @@ ENTITIES = OrderedDict([
     ('config', (ConfigsRegistrar, 'configs'))
 ])
 
-# Temporary measure to bypass index searching for packs that come pre-installed
-# Should be removed once these packs are moved to the index and treated just like other packs
-PREINSTALLED_PACKS = [
-    "core",
-    "default",
-    "examples",
-    "packs"
-]
-
 
 class PackInstallController(ActionExecutionsControllerMixin):
 
@@ -189,14 +180,7 @@ class PackSearchController(object):
                                                     case_sensitive=False)
             return [PackAPI(**pack) for pack in packs]
         else:
-            # Temporary measure to bypass index searching for packs that come pre-installed.
-            # Should be removed once these packs are moved to the index and treated just
-            # like other packs
-            if pack_search_request.pack in PREINSTALLED_PACKS:
-                pack_db = packs_service.get_pack_by_ref(pack_search_request.pack)
-                pack = packs_service._pack_db_to_dict(pack_db)
-            else:
-                pack = packs_service.get_pack_from_index(pack_search_request.pack)
+            pack = packs_service.get_pack_from_index(pack_search_request.pack)
             return PackAPI(**pack) if pack else []
 
 
