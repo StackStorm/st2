@@ -91,13 +91,16 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         self.assertFalse(os.path.exists(pack_virtualenv_dir))
 
         # Create virtualenv
-        setup_pack_virtualenv(pack_name=pack_name, update=False)
+        setup_pack_virtualenv(pack_name=pack_name, update=False,
+                              include_setuptools=False, include_wheel=False)
 
         # Verify that virtualenv has been created
         self.assertVirtulenvExists(pack_virtualenv_dir)
 
         # Update it
-        setup_pack_virtualenv(pack_name=pack_name, update=True)
+        setup_pack_virtualenv(pack_name=pack_name, update=True,
+                              include_setuptools=False, include_wheel=False)
+
 
         # Verify virtrualenv is still there
         self.assertVirtulenvExists(pack_virtualenv_dir)
@@ -111,7 +114,8 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
 
         # Try to create virtualenv, assert that it fails
         try:
-            setup_pack_virtualenv(pack_name=pack_name, update=False)
+            setup_pack_virtualenv(pack_name=pack_name, update=False,
+                                  include_setuptools=False, include_wheel=False)
         except Exception as e:
             self.assertTrue('Failed to install requirements from' in str(e))
             self.assertTrue('No matching distribution found for someinvalidname' in str(e))
