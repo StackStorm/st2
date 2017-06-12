@@ -64,7 +64,7 @@ def create_trigger_instance(trigger, payload, occurrence_time, raise_on_no_trigg
             trigger_db = TriggerService.get_trigger_db_given_type_and_params(type=trigger_type,
                                                                              parameters=parameters)
 
-    if trigger_db is None:
+    if not trigger_db:
         LOG.debug('No trigger in db for %s', trigger)
         if raise_on_no_trigger:
             raise StackStormDBObjectNotFoundError('Trigger not found for %s', trigger)

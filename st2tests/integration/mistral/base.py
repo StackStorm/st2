@@ -78,5 +78,3 @@ class TestWorkflowExecution(unittest2.TestCase):
 
         if are_tasks_completed:
             self.assertTrue(all([t['state'] in ['SUCCESS', 'ERROR', 'CANCELLED'] for t in tasks]))
-        else:
-            self.assertTrue(any([t['state'] == 'RUNNING' for t in tasks]))
