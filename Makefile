@@ -107,6 +107,16 @@ configgen:
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
 
+.PHONY: lint-api-spec
+pylint: requirements .lint-api-spec
+
+.PHONY: .lint-api-spec
+.lint-api-spec:
+	@echo
+	@echo "================== Lint API spec ===================="
+	@echo
+	st2common/bin/st2-validate-api-spec --generate
+
 .PHONY: flake8
 flake8: requirements .flake8
 

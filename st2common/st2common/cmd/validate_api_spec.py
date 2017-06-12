@@ -1,0 +1,119 @@
+# Licensed to the StackStorm, Inc ('StackStorm') under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+A script that validates each entry defined in OpenAPI-Spec for st2 APIs
+(in st2common/openapi.yaml) has a corresponding API model class defined
+in st2common/models/api/.
+"""
+
+import os
+
+from oslo_config import cfg
+from prance import ResolvingParser
+
+from st2common import config
+from st2common import log as logging
+from st2common.util import spec_loader
+from st2common.script_setup import setup as common_setup
+from st2common.script_setup import teardown as common_teardown
+
+
+__all__ = [
+    'main'
+]
+
+
+cfg.CONF.register_cli_opt(
+    cfg.StrOpt('spec-file', short='f', required=False,
+               default='st2common/st2common/openapi.yaml')
+)
+
+cfg.CONF.register_cli_opt(
+    cfg.BoolOpt('generate', short='-c', required=False,
+                default=False)
+)
+
+LOG = logging.getLogger(__name__)
+
+
+def setup():
+    common_setup(config=config, setup_db=False, register_mq_exchanges=False)
+
+
+def _validate_definitions(spec):
+    defs = spec.get('definitions', None)
+    error = False
+    verbose = cfg.CONF.verbose
+
+    for (model, definition) in defs.iteritems():
+        api_model = definition.get('x-api-model', None)
+
+        if not api_model:
+            msg = (
+                'API model field "x-api-model" not defined for definition "%s".' % model
+            )
+
+            if verbose:
+                LOG.info('Supplied definition for model %s: \n\n%s.', model, definition)
+
+            error = True
+            LOG.error(msg)
+
+    return error
+
+
+def validate_spec():
+    spec_file = cfg.CONF.spec_file
+    generate_spec = cfg.CONF.generate
+
+    if not os.path.exists(spec_file) and not generate_spec:
+        msg = ('No spec file found in location %s. ' % spec_file +
+               'Provide a valid spec file or ' +
+               'pass --generate-api-spec to genrate a spec.')
+        raise Exception(msg)
+
+    if generate_spec:
+        if not spec_file:
+            raise Exception('Supply a path to write to spec file to.')
+
+        spec_string = spec_loader.generate_spec('st2common', 'openapi.yaml.j2')
+
+        with open(spec_file, 'w') as f:
+            f.write(spec_string)
+            f.flush()
+
+    parser = ResolvingParser(spec_file)
+    spec = parser.specification
+
+    return _validate_definitions(spec)
+
+
+def teartown():
+    common_teardown()
+
+
+def main():
+    setup()
+
+    try:
+        ret = validate_spec()
+    except Exception as e:
+        LOG.error(e.message)
+        ret = 1
+    finally:
+        teartown()
+
+    return ret

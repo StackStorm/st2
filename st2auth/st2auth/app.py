@@ -57,7 +57,7 @@ def setup_app(config={}):
 
     router = Router(debug=cfg.CONF.auth.debug)
 
-    spec = spec_loader.load_spec('st2common', 'openapi.yaml')
+    spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
     transforms = {
         '^/auth/v1/': ['/', '/v1/']
     }
