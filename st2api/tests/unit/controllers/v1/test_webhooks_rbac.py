@@ -36,7 +36,7 @@ from st2common.models.db.webhook import WebhookDB
 from st2tests.fixturesloader import FixturesLoader
 from tests.base import APIControllerWithRBACTestCase
 
-from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER
+from tests.unit.controllers.v1.test_webhooks import DUMMY_TRIGGER, DUMMY_TRIGGER_API
 
 http_client = six.moves.http_client
 
@@ -107,7 +107,7 @@ class WebhookControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[vars(DUMMY_TRIGGER)]))
+        return_value=[DUMMY_TRIGGER_API]))
     def test_get_one_no_permissions(self):
         user_db = self.users['no_permissions']
         self.use_user(user_db)
@@ -124,9 +124,9 @@ class WebhookControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     @mock.patch.object(HooksHolder, 'get_all', mock.MagicMock(
-        return_value=[vars(DUMMY_TRIGGER)]))
+        return_value=[DUMMY_TRIGGER_API]))
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[vars(DUMMY_TRIGGER)]))
+        return_value=[DUMMY_TRIGGER_API]))
     def test_get_all_permission_success_get_one_no_permission_failure(self):
         user_db = self.users['webhook_list']
         self.use_user(user_db)
@@ -148,9 +148,9 @@ class WebhookControllerRBACTestCase(APIControllerWithRBACTestCase):
         self.assertEqual(resp.json['faultstring'], expected_msg)
 
     @mock.patch.object(HooksHolder, 'get_all', mock.MagicMock(
-        return_value=[vars(DUMMY_TRIGGER)]))
+        return_value=[DUMMY_TRIGGER_API]))
     @mock.patch.object(HooksHolder, 'get_triggers_for_hook', mock.MagicMock(
-        return_value=[vars(DUMMY_TRIGGER)]))
+        return_value=[DUMMY_TRIGGER_API]))
     def test_get_one_permission_success_get_all_no_permission_failure(self):
         user_db = self.users['webhook_view']
         self.use_user(user_db)

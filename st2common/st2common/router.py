@@ -27,6 +27,7 @@ import routes
 from six.moves.urllib import parse as urlparse  # pylint: disable=import-error
 import webob
 from webob import exc, Request
+from webob.compat import url_unquote
 
 from st2common.exceptions import rbac as rbac_exc
 from st2common.exceptions import auth as auth_exc
@@ -187,7 +188,8 @@ class Router(object):
             LOG.debug('Route registered: %+6s %s', route.conditions['method'][0], route.routepath)
 
     def match(self, req):
-        path = req.path
+        path = url_unquote(req.path)
+        LOG.debug("Match path: %s", path)
 
         if len(path) > 1 and path.endswith('/'):
             path = path[:-1]
@@ -219,7 +221,10 @@ class Router(object):
 
         At the time of writing, the only property being utilized by middleware was `x-log-result`.
         """
+        LOG.debug("Recieved call with WebOb: %s", req)
         endpoint, path_vars = self.match(req)
+        LOG.debug("Parsed endpoint: %s", endpoint)
+        LOG.debug("Parsed path_vars: %s", path_vars)
 
         context = copy.copy(getattr(self, 'mock_context', {}))
 
@@ -369,9 +374,9 @@ class Router(object):
                 raise exc.HTTPBadRequest(detail=detail)
 
             # Validating and casting param types
-            type = param.get('type', None)
+            param_type = param.get('type', None)
             if kw[argument_name] is not None:
-                if type == 'boolean':
+                if param_type == 'boolean':
                     positive = ('true', '1', 'yes', 'y')
                     negative = ('false', '0', 'no', 'n')
 
@@ -380,7 +385,7 @@ class Router(object):
                         raise exc.HTTPBadRequest(detail=detail)
 
                     kw[argument_name] = str(kw[argument_name]).lower() in positive
-                elif type == 'integer':
+                elif param_type == 'integer':
                     regex = r'^-?[0-9]+$'
 
                     if not re.search(regex, str(kw[argument_name])):
@@ -388,7 +393,7 @@ class Router(object):
                         raise exc.HTTPBadRequest(detail=detail)
 
                     kw[argument_name] = int(kw[argument_name])
-                elif type == 'number':
+                elif param_type == 'number':
                     regex = r'^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$'
 
                     if not re.search(regex, str(kw[argument_name])):
