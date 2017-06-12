@@ -37,5 +37,5 @@
             immutable: true
             default: 'scp {{args}} -i {{keyfile}} {{source}} {% if dest_server %}{{dest_server}}:{{destination}}{% else %}{{destination}}{% endif %}'
         args:
-            description: 'Command line arguments passed to cp'
+            description: 'Command line arguments passed to scp'
             default: '-o stricthostkeychecking=no -v{% if recursive == true %} -r{% endif %}{% if force == true %} -f{% endif %}'
