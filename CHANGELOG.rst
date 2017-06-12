@@ -97,6 +97,8 @@ in development
 * Add new ``examples.forloop_chain`` action-chain workflow to the examples pack which demonstrates
   how to iterate over multiple pages inside a workflow. #3328
   [Carles Figuerola]
+* Let ``st2 pack install`` register all available content in pack by default to be consistent with
+  ``st2 pack register``. (improvement) #3452
 
 2.2.1 - April 3, 2017
 ---------------------
