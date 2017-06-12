@@ -117,6 +117,11 @@ class TestRuleController(FunctionalTest):
             fixtures_pack=FIXTURES_PACK,
             fixtures_dict={'rules': [file_name]})['rules'][file_name]
 
+        file_name = 'rule space.yaml'
+        TestRuleController.RULE_SPACE = TestRuleController.fixtures_loader.load_fixtures(
+            fixtures_pack=FIXTURES_PACK,
+            fixtures_dict={'rules': [file_name]})['rules'][file_name]
+
     @classmethod
     def tearDownClass(cls):
         # Replace original configured value for trigger parameter validation
@@ -168,6 +173,16 @@ class TestRuleController(FunctionalTest):
 
     def test_get_one_by_ref(self):
         post_resp = self.__do_post(TestRuleController.RULE_1)
+        rule_name = post_resp.json['name']
+        rule_pack = post_resp.json['pack']
+        ref = ResourceReference.to_string_reference(name=rule_name, pack=rule_pack)
+        rule_id = post_resp.json['id']
+        get_resp = self.__do_get_one(ref)
+        self.assertEqual(get_resp.json['name'], rule_name)
+        self.assertEqual(get_resp.status_int, http_client.OK)
+        self.__do_delete(rule_id)
+
+        post_resp = self.__do_post(TestRuleController.RULE_SPACE)
         rule_name = post_resp.json['name']
         rule_pack = post_resp.json['pack']
         ref = ResourceReference.to_string_reference(name=rule_name, pack=rule_pack)

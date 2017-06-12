@@ -99,6 +99,13 @@ in development
   [Carles Figuerola]
 * Fix a bug where action runner throws KeyError on abandoning action executions
   during process shutdown. (bug fix)
+* Fix URL parsing bug where percent encoded URLs aren't decoded properly (bug fix)
+* Add new ``core.uuid`` action for generating type 1 and type 4 UUIDs. [John Anderson] #3414
+* Drop support for invalid semver versions strings (e.g. ``2.0``) in pack.yaml pack metadata. Only
+  full semver version strings are supported, e.g. ``2.1.1``. This was originally deprecated in
+  v2.1.0.
+* Let ``st2 pack install`` register all available content in pack by default to be consistent with
+  ``st2 pack register``. (improvement) #3452
 * The API endpoint for searching or showing packs has been updated to return an empty list
   instead of ``None`` when the pack was not found in the index. (bug fix)
 

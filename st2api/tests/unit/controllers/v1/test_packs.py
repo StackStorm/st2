@@ -236,6 +236,23 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertTrue(resp.json['sensors'] >= 1)
         self.assertTrue(resp.json['configs'] >= 1)
 
+        # Register 'all' resource types should try include any possible content for the pack
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1'],
+                                                         'fail_on_failure': False,
+                                                         'types': ['all']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue('runners' in resp.json)
+        self.assertTrue('actions' in resp.json)
+        self.assertTrue('triggers' in resp.json)
+        self.assertTrue('sensors' in resp.json)
+        self.assertTrue('rules' in resp.json)
+        self.assertTrue('rule_types' in resp.json)
+        self.assertTrue('aliases' in resp.json)
+        self.assertTrue('policy_types' in resp.json)
+        self.assertTrue('policies' in resp.json)
+        self.assertTrue('configs' in resp.json)
+
         # Registering single resource type should also cause dependent resources
         # to be registered
         # * actions -> runners

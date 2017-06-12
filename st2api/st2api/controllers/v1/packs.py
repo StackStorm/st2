@@ -118,13 +118,16 @@ class PackUninstallController(ActionExecutionsControllerMixin):
 
 
 class PackRegisterController(object):
+    CONTENT_TYPES = ['runner', 'action', 'trigger', 'sensor', 'rule',
+                     'rule_type', 'alias', 'policy_type', 'policy', 'config']
 
     def post(self, pack_register_request):
         if pack_register_request and hasattr(pack_register_request, 'types'):
             types = pack_register_request.types
+            if 'all' in types:
+                types = PackRegisterController.CONTENT_TYPES
         else:
-            types = ['runner', 'action', 'trigger', 'sensor', 'rule',
-                     'rule_type', 'alias', 'policy_type', 'policy', 'config']
+            types = PackRegisterController.CONTENT_TYPES
 
         if pack_register_request and hasattr(pack_register_request, 'packs'):
             packs = list(set(pack_register_request.packs))
