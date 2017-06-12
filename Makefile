@@ -108,7 +108,7 @@ configgen:
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
 
 .PHONY: lint-api-spec
-pylint: requirements .lint-api-spec
+lint-api-spec: requirements .lint-api-spec
 
 .PHONY: .lint-api-spec
 .lint-api-spec:
