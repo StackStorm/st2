@@ -100,6 +100,7 @@ in development
 * Fix a bug where action runner throws KeyError on abandoning action executions
   during process shutdown. (bug fix)
 * Fix URL parsing bug where percent encoded URLs aren't decoded properly (bug fix)
+* Add new ``core.uuid`` action for generating type 1 and type 4 UUIDs. [John Anderson] #3414
 
 2.2.1 - April 3, 2017
 ---------------------
