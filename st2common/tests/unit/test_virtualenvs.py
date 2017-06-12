@@ -91,15 +91,13 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         self.assertFalse(os.path.exists(pack_virtualenv_dir))
 
         # Create virtualenv
-        setup_pack_virtualenv(pack_name=pack_name, update=False,
-                              include_pip=False, include_setuptools=False, include_wheel=False)
+        setup_pack_virtualenv(pack_name=pack_name, update=False)
 
         # Verify that virtualenv has been created
         self.assertVirtulenvExists(pack_virtualenv_dir)
 
         # Update it
-        setup_pack_virtualenv(pack_name=pack_name, update=True,
-                              include_pip=False, include_setuptools=False, include_wheel=False)
+        setup_pack_virtualenv(pack_name=pack_name, update=True)
 
         # Verify virtrualenv is still there
         self.assertVirtulenvExists(pack_virtualenv_dir)
