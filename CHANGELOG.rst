@@ -101,6 +101,9 @@ in development
   during process shutdown. (bug fix)
 * Fix URL parsing bug where percent encoded URLs aren't decoded properly (bug fix)
 * Add new ``core.uuid`` action for generating type 1 and type 4 UUIDs. [John Anderson] #3414
+* Drop support for invalid semver versions strings (e.g. ``2.0``) in pack.yaml pack metadata. Only
+  full semver version strings are supported, e.g. ``2.1.1``. This was originally deprecated in
+  v2.1.0.
 
 2.2.1 - April 3, 2017
 ---------------------
