@@ -58,13 +58,12 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None):
         raise ValueError('Invalid pack name "%s"' % (pack_name))
 
     base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path, 'virtualenvs/')
-
-    logger.debug('Setting up virtualenv for pack "%s"' % (pack_name))
-
     virtualenv_path = os.path.join(base_virtualenvs_path, quote_unix(pack_name))
 
     # Ensure pack directory exists in one of the search paths
     pack_path = get_pack_directory(pack_name=pack_name)
+
+    logger.debug('Setting up virtualenv for pack "%s" (%s)' % (pack_name, pack_path))
 
     if not pack_path:
         packs_base_paths = get_packs_base_paths()
