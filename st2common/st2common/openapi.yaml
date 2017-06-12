@@ -387,11 +387,6 @@ paths:
           description: Entity id
           type: string
           required: true
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
       responses:
         '200':
           description: An object containing action parameters
@@ -436,11 +431,6 @@ paths:
           in: query
           description: Action pack name filter
           type: string
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
       responses:
         '200':
           description: List of actions
@@ -496,11 +486,6 @@ paths:
           description: Entity reference or id
           type: string
           required: true
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
       responses:
         '200':
           description: Entry point code
@@ -1114,7 +1099,6 @@ paths:
   /api/v1/executions/views/filters:
     get:
       operationId: st2api.controllers.v1.executionviews:filters_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.EXECUTION_VIEWS_FILTERS_LIST }}
       description: |
         Get a list of distinct values for the execution filters.
       parameters:
@@ -1493,7 +1477,7 @@ paths:
   /api/v1/packs/index/health:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.index.get
-      x-permissions: {{ PERMISSION_TYPE.PACK_VIEWS_INDEX_HEALTH }}
+      x-permissions: 
       description: To get the state of all indexes used by your StackStorm instance.
       responses:
         '200':
@@ -1777,7 +1761,6 @@ paths:
   /api/v1/policytypes:
     get:
       operationId: st2api.controllers.v1.policies:policy_type_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.POLICY_TYPE_LIST }}
       description: Returns a list of all the policy types.
       parameters:
         - name: resource_type
@@ -1835,11 +1818,6 @@ paths:
           description: Entity reference or id.
           type: string
           required: true
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
       responses:
         '200':
           description: Specific policy type.
@@ -1856,7 +1834,6 @@ paths:
   /api/v1/policies:
     get:
       operationId: st2api.controllers.v1.policies:policy_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.POLICY_LIST }}
       description: |
         List of policies
       parameters:
@@ -1894,11 +1871,6 @@ paths:
           schema:
             $ref: '#/definitions/PolicyCreate'
           required: true
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
       responses:
         '200':
           description: Policy created successfully.
@@ -1923,11 +1895,6 @@ paths:
           description: Entity reference or id.
           type: string
           required: true
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
       responses:
         '200':
           description: Policy found.
@@ -1957,11 +1924,6 @@ paths:
           schema:
             $ref: '#/definitions/PolicyCreate'
           required: true
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
       responses:
         '200':
           description: Policy updated successfully.
@@ -1985,11 +1947,6 @@ paths:
           description: Entity reference or id.
           type: string
           required: true
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
       responses:
         '204':
           description: Policy deleted
@@ -2011,6 +1968,19 @@ paths:
           description: Dictionary of permission types by resource types.
           schema:
             type: object
+          examples:
+            application/json:
+              runner_type:
+                - runner_type_list
+                - runner_type_view
+                - runner_type_modify
+                - runner_type_all
+              pack:
+                - pack_list
+                - pack_view
+                - pack_create
+                - pack_modify
+                - pack_delete
         default:
           description: Unexpected error
           schema:
@@ -2034,7 +2004,15 @@ paths:
         '200':
           description: List of permission types.
           schema:
-            type: object
+            type: array
+            items:
+              type: string
+          examples:
+            application/json:
+              - runner_type_list
+              - runner_type_view
+              - runner_type_modify
+              - runner_type_all
         default:
           description: Unexpected error
           schema:
@@ -2043,11 +2021,6 @@ paths:
     get:
       operationId: st2api.controllers.v1.rbac:roles_controller.get_all
       description: Returns a list of all roles.
-      parameters:
-        - name: system
-          in: query
-          description: True to only return system roles.
-          type: boolean
       x-parameters:
         - name: user
           in: context
@@ -2096,72 +2069,6 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /api/v1/rbac/role_assignments:
-    get:
-      operationId: st2api.controllers.v1.rbac:role_assignments_controller.get_all
-      description: Returns a list of all the role assignments.
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
-      parameters:
-        - name: user
-          in: query
-          description: User to filter on and return role assignments for.
-          type: string
-        - name: role
-          in: query
-          description: Role to filter on.
-          type: string
-        - name: remote
-          in: query
-          description: Only include remote role assignments.
-          type: boolean
-      responses:
-        '200':
-          description: List of all role assignments.
-          schema:
-            type: array
-            items:
-              type: object
-          examples:
-            application/json:
-              ref: 'core.webhook'
-              # and stuff
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  /api/v1/rbac/role_assignments/{id}:
-    get:
-      operationId: st2api.controllers.v1.rbac:role_assignments_controller.get_one
-      description: Get one role.
-      parameters:
-        - name: id
-          in: path
-          description: Role assignment id.
-          type: string
-          required: true
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
-      responses:
-        '200':
-          description: Role assignment object.
-          schema:
-            type: object
-          examples:
-            application/json:
-              ref: 'core.webhook'
-              # and stuff
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-
   /api/v1/rules:
     get:
       operationId: st2api.controllers.v1.rules:rule_controller.get_all
@@ -2952,11 +2859,7 @@ paths:
   /api/v1/timers:
     get:
       operationId: st2api.controllers.v1.timers:timers_controller.get_all
-<<<<<<< HEAD
       x-permissions: trigger_list
-=======
-      x-permissions: {{ PERMISSION_TYPE.TIMER_LIST }}
->>>>>>> master
       description: Returns a list of all the timers.
       parameters:
         - name: timer_type
@@ -3138,10 +3041,6 @@ paths:
           type: array
           items:
             type: string
-        - name: pack
-          in: query
-          description: Pack name filter
-          type: string
       responses:
         '200':
           description: List of trigger types
@@ -4110,7 +4009,6 @@ definitions:
   PolicyList:
     type: object
   PolicyCreate:
-    x-api-model: st2common.models.api.policy:PolicyAPI
     type: object
   RunnerType:
     type: object
