@@ -99,6 +99,8 @@ in development
   [Carles Figuerola]
 * Fix a bug where action runner throws KeyError on abandoning action executions
   during process shutdown. (bug fix)
+* The API endpoint for searching or showing packs has been updated to return an empty list
+  instead of ``None`` when the pack was not found in the index. (bug fix)
 
 2.2.1 - April 3, 2017
 ---------------------
