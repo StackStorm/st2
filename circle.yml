@@ -10,6 +10,8 @@ machine:
     # We add /tmp/mongodb/bin/ directory to PATH so the correct and latest version of mongo shell
     # binary is used.
     PATH: /tmp/mongodb/bin/:${PATH}
+    # Enable nose timing info so per test case test timing is printed at the end
+    NOSE_TIME: "1"
 
 dependencies:
   cache_directories:
