@@ -97,6 +97,9 @@ in development
 * Add new ``examples.forloop_chain`` action-chain workflow to the examples pack which demonstrates
   how to iterate over multiple pages inside a workflow. #3328
   [Carles Figuerola]
+* Fix a bug where action runner throws KeyError on abandoning action executions
+  during process shutdown. (bug fix)
+* Fix URL parsing bug where percent encoded URLs aren't decoded properly (bug fix)
 * Drop support for non-valid semver version strings (e.g. ``2.0``) in pack.yaml pack metadata
   file. Now only full semver version strings are support (e.g. ``2.0.0``). This functionality has
   been deprecated for a while and scheduled to be removed in v2.2.0.
