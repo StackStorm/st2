@@ -296,7 +296,7 @@ unit-tests: requirements .unit-tests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests$ (NOSE_OPTS) -s -v --with-coverage \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 			--cover-inclusive --cover-html \
 			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/unit || exit 1; \
 	done
