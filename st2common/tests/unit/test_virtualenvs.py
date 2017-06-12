@@ -16,13 +16,20 @@
 import os
 import tempfile
 
+import mock
 from oslo_config import cfg
 
 from st2tests import config
 from st2tests.base import CleanFilesTestCase
 from st2common.util.virtualenvs import setup_pack_virtualenv
 
+__all__ = [
+    'VirtualenvUtilsTestCase'
+]
 
+
+# Note: We set base requirements to an empty list to speed up the tests
+@mock.patch('st2common.util.virtualenvs.BASE_PACK_REQUIREMENTS', [])
 class VirtualenvUtilsTestCase(CleanFilesTestCase):
     def setUp(self):
         super(VirtualenvUtilsTestCase, self).setUp()
