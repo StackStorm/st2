@@ -104,6 +104,8 @@ in development
 * Drop support for invalid semver versions strings (e.g. ``2.0``) in pack.yaml pack metadata. Only
   full semver version strings are supported, e.g. ``2.1.1``. This was originally deprecated in
   v2.1.0.
+* Let ``st2 pack install`` register all available content in pack by default to be consistent with
+  ``st2 pack register``. (improvement) #3452
 
 2.2.1 - April 3, 2017
 ---------------------
