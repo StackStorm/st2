@@ -33,9 +33,12 @@
             type: 'string'
             description: 'SSH key to connect with'
             default: '/home/stanley/.ssh/stanley_rsa'
+        verbose:
+            type: 'boolean'
+            default: true
         cmd:
             immutable: true
             default: 'scp {{args}} -i {{keyfile}} {{source}} {% if dest_server %}{{dest_server}}:{{destination}}{% else %}{{destination}}{% endif %}'
         args:
             description: 'Command line arguments passed to scp'
-            default: '-o stricthostkeychecking=no -v{% if recursive == true %} -r{% endif %}{% if force == true %} -f{% endif %}'
+            default: '-o stricthostkeychecking=no{% if verbose %} -v{% endif %}{% if recursive == true %} -r{% endif %}{% if force == true %} -f{% endif %}'
