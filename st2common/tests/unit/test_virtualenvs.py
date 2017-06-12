@@ -101,7 +101,6 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         setup_pack_virtualenv(pack_name=pack_name, update=True,
                               include_setuptools=False, include_wheel=False)
 
-
         # Verify virtrualenv is still there
         self.assertVirtulenvExists(pack_virtualenv_dir)
 
