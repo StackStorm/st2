@@ -138,7 +138,7 @@ bandit: requirements .bandit
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check
+.lint: .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -413,13 +413,18 @@ debs:
 	#done
 
 
-
-
 .PHONY: ci
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common-circular-dependencies-check
+ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check
+
+.PHONY: .rst-check
+.rst-check:
+	@echo
+	@echo "==================== rst-check ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; rstcheck CHANGELOG.rst
 
 .PHONY: ci-unit
 ci-unit: compile .unit-tests-coverage-html
