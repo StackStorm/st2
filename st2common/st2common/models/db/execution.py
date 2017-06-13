@@ -82,6 +82,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
             {'fields': ['runner.name']},
             {'fields': ['trigger.name']},
             {'fields': ['trigger_type.name']},
+            {'fields': ['trigger_instance.id']},
             {'fields': ['context.user']},
             {'fields': ['-start_timestamp', 'action.ref', 'status']}
         ]
