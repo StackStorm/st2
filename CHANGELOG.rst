@@ -111,6 +111,10 @@ in development
 * The ``dest_server`` parameter has been removed from the ``linux.scp`` action. Going forward simply
   specify the server as part of the ``source`` and / or ``destination`` arguments. (improvement)
    #3335 #3463 [Nick Maludy]
+* Use a default value for a config item from config schema even if that config item is not required
+  (``required: false``). (improvement)
+
+  Reported by nmlaudy. #3468 #3469
 
 2.2.1 - April 3, 2017
 ---------------------
