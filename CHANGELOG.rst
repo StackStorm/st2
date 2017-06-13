@@ -106,6 +106,8 @@ in development
   v2.1.0.
 * Let ``st2 pack install`` register all available content in pack by default to be consistent with
   ``st2 pack register``. (improvement) #3452
+* The API endpoint for searching or showing packs has been updated to return an empty list
+  instead of ``None`` when the pack was not found in the index. (bug fix)
 
 2.2.1 - April 3, 2017
 ---------------------
