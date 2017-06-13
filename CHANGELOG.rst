@@ -110,7 +110,7 @@ in development
   instead of ``None`` when the pack was not found in the index. (bug fix)
 * The ``dest_server`` parameter has been removed from the ``linux.scp`` action. Going forward simply
   specify the server as part of the ``source`` and / or ``destination`` arguments. (improvement)
-   #3335 #3463 [Nick Maludy]
+  #3335 #3463 [Nick Maludy]
 * Add missing database indexes which should speed up various queries on production deployments with
   large datasets. (improvement)
 * Use a default value for a config item from config schema even if that config item is not required
