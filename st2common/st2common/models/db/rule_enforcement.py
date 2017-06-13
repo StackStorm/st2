@@ -41,7 +41,10 @@ class RuleReferenceSpecDB(me.EmbeddedDocument):
         return ''.join(result)
 
 
-class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
+class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
+                        stormbase.UIDFieldMixin):
+    UID_FIELDS = ['id']
+
     trigger_instance_id = me.StringField(required=True)
     execution_id = me.StringField(required=False)
     failure_reason = me.StringField(required=False)
@@ -58,7 +61,7 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
             {'fields': ['rule.ref']},
             {'fields': ['enforced_at']},
             {'fields': ['-enforced_at', 'rule.ref']},
-        ] + stormbase.TagsMixin.get_indices()
+        ] + stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()
     }
 
 
