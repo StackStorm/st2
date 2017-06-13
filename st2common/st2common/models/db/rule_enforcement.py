@@ -59,6 +59,7 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
             {'fields': ['rule.id']},
             {'fields': ['rule.ref']},
             {'fields': ['enforced_at']},
+            {'fields': ['-enforced_at']},
             {'fields': ['-enforced_at', 'rule.ref']},
         ] + stormbase.TagsMixin.get_indices()
     }

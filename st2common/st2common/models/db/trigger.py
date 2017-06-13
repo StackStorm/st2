@@ -85,6 +85,7 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
 
     meta = {
         'indexes': [
+            {'fields': ['name']},
             {'fields': ['type']},
             {'fields': ['parameters']},
         ] + stormbase.UIDFieldMixin.get_indexes()
