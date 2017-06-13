@@ -80,6 +80,8 @@ class ActionDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
     meta = {
         'indexes': [
             {'fields': ['name']},
+            {'fields': ['pack']},
+            {'fields': ['ref']},
         ] + stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()
     }
 
