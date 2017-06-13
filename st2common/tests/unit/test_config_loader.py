@@ -94,8 +94,8 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         config = loader.get_config()
         self.assertEqual(config['region'], 'us-west-1')
 
-        # Value is provided in the config
-        # Attribute has required: false
+        # Config item attribute has required: false
+        # Value is provided in the config - it should be used as provided
         pack_name = 'dummy_pack_5'
 
         loader = ContentPackConfigLoader(pack_name=pack_name)
@@ -106,12 +106,11 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         del config_db['values']['non_required_with_default_value']
         Config.add_or_update(config_db)
 
-        # When config doesn't contain a value for that item default value should still be use and
-        # set
+        # No value in the config - default value should be used
         config_db = Config.get_by_pack(pack_name)
         config_db.delete()
 
-        # When there is no config, default value should still be used and set
+        # No config exists for that pack - default value should be used
         loader = ContentPackConfigLoader(pack_name=pack_name)
         config = loader.get_config()
         self.assertEqual(config['non_required_with_default_value'], 'some default value')
