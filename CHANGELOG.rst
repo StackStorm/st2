@@ -108,6 +108,9 @@ in development
   ``st2 pack register``. (improvement) #3452
 * The API endpoint for searching or showing packs has been updated to return an empty list
   instead of ``None`` when the pack was not found in the index. (bug fix)
+* The ``dest_server`` parameter has been removed from the ``linux.scp`` action. Going forward simply
+  specify the server as part of the ``source`` and / or ``destination`` arguments. (improvement)
+   #3335 #3463 [Nick Maludy]
 
 2.2.1 - April 3, 2017
 ---------------------
