@@ -74,6 +74,15 @@ class FakeModelDB(stormbase.StormBaseDB):
     category = mongoengine.StringField()
     timestamp = mongoengine.DateTimeField()
 
+    meta = {
+        'indexes': [
+            {'fields': ['index']},
+            {'fields': ['category']},
+            {'fields': ['timestamp']},
+            {'fields': ['context.user']},
+        ]
+    }
+
 
 class FakeModel(Access):
     impl = db.MongoDBAccess(FakeModelDB)

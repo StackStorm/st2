@@ -111,6 +111,8 @@ in development
 * The ``dest_server`` parameter has been removed from the ``linux.scp`` action. Going forward simply
   specify the server as part of the ``source`` and / or ``destination`` arguments. (improvement)
    #3335 #3463 [Nick Maludy]
+* Add missing database indexes which should speed up various queries on production deployments with
+  large datasets. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
