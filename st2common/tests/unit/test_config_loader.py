@@ -75,7 +75,8 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
             'api_secret': 'some_api_secret',
             'regions': ['us-west-1'],
             'region': 'default-region-value',
-            'private_key_path': 'some_private_key'
+            'private_key_path': 'some_private_key',
+            'non_required_with_default_value': 'config value'
         }
 
         self.assertEqual(config, expected_config)
@@ -92,6 +93,28 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         loader = ContentPackConfigLoader(pack_name='dummy_pack_1')
         config = loader.get_config()
         self.assertEqual(config['region'], 'us-west-1')
+
+        # Value is provided in the config
+        # Attribute has required: false
+        pack_name = 'dummy_pack_5'
+
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+        self.assertEqual(config['non_required_with_default_value'], 'config value')
+
+        config_db = Config.get_by_pack(pack_name)
+        del config_db['values']['non_required_with_default_value']
+        Config.add_or_update(config_db)
+
+        # When config doesn't contain a value for that item default value should still be use and
+        # set
+        config_db = Config.get_by_pack(pack_name)
+        config_db.delete()
+
+        # When there is no config, default value should still be used and set
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+        self.assertEqual(config['non_required_with_default_value'], 'some default value')
 
     def test_default_values_from_schema_are_used_when_no_config_exists(self):
         pack_name = 'dummy_pack_5'

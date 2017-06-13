@@ -154,11 +154,10 @@ class ContentPackConfigLoader(object):
         """
         for schema_item_key, schema_item in six.iteritems(schema):
             default_value = schema_item.get('default', None)
-            is_required = schema_item.get('required', False)
             is_object = schema_item.get('type', None) == 'object'
             has_properties = schema_item.get('properties', None)
 
-            if is_required and default_value and not config.get(schema_item_key, None):
+            if default_value and not config.get(schema_item_key, None):
                 config[schema_item_key] = default_value
 
             # Inspect nested object properties
