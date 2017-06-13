@@ -117,6 +117,13 @@ lint-api-spec: requirements .lint-api-spec
 	@echo
 	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --generate
 
+.PHONY: circle-lint-api-spec
+circle-lint-api-spec:
+	@echo
+	@echo "================== Lint API spec ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --generate || echo "Open API spec lint failed."
+
 .PHONY: flake8
 flake8: requirements .flake8
 
@@ -430,7 +437,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common-circular-dependencies-check
+ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec
 
 .PHONY: ci-unit
 ci-unit: compile .unit-tests-coverage-html
