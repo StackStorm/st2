@@ -41,8 +41,7 @@ class RuleReferenceSpecDB(me.EmbeddedDocument):
         return ''.join(result)
 
 
-class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
-                        stormbase.UIDFieldMixin):
+class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin):
     UID_FIELDS = ['id']
 
     trigger_instance_id = me.StringField(required=True)
@@ -61,8 +60,15 @@ class RuleEnforcementDB(stormbase.StormFoundationDB, stormbase.TagsMixin,
             {'fields': ['rule.ref']},
             {'fields': ['enforced_at']},
             {'fields': ['-enforced_at', 'rule.ref']},
-        ] + stormbase.TagsMixin.get_indices() + stormbase.UIDFieldMixin.get_indexes()
+        ] + stormbase.TagsMixin.get_indices()
     }
+
+    # NOTE: Note the following method is exposed so loggers in rbac resolvers can log objects
+    # with a consistent get_uid interface.
+    def get_uid(self):
+        # TODO Construct uid from non id field:
+        uid = [self.RESOURCE_TYPE, str(self.id)]
+        return ':'.join(uid)
 
 
 rule_enforcement_access = MongoDBAccess(RuleEnforcementDB)
