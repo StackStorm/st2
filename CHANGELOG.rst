@@ -100,6 +100,23 @@ in development
 * Fix a bug where action runner throws KeyError on abandoning action executions
   during process shutdown. (bug fix)
 * Fix URL parsing bug where percent encoded URLs aren't decoded properly (bug fix)
+* Add new ``core.uuid`` action for generating type 1 and type 4 UUIDs. [John Anderson] #3414
+* Drop support for invalid semver versions strings (e.g. ``2.0``) in pack.yaml pack metadata. Only
+  full semver version strings are supported, e.g. ``2.1.1``. This was originally deprecated in
+  v2.1.0.
+* Let ``st2 pack install`` register all available content in pack by default to be consistent with
+  ``st2 pack register``. (improvement) #3452
+* The API endpoint for searching or showing packs has been updated to return an empty list
+  instead of ``None`` when the pack was not found in the index. (bug fix)
+* The ``dest_server`` parameter has been removed from the ``linux.scp`` action. Going forward simply
+  specify the server as part of the ``source`` and / or ``destination`` arguments. (improvement)
+  #3335 #3463 [Nick Maludy]
+* Add missing database indexes which should speed up various queries on production deployments with
+  large datasets. (improvement)
+* Use a default value for a config item from config schema even if that config item is not required
+  (``required: false``). (improvement)
+
+  Reported by nmlaudy. #3468 #3469
 
 2.2.1 - April 3, 2017
 ---------------------
@@ -894,21 +911,6 @@ in development
 * Make sure sensor processes correctly pick up parent ``--debug`` flag. This makes debugging a lot
   easier since user simply needs to start sensor container with ``--debug`` flag and all the sensor
   logs with level debug or higher will be routed to the container log. (improvement)
-
-0.13.2 - September 09, 2015
----------------------------
-
-* ``private_key`` supplied for remote_actions is now used to auth correctly.
-  ``private_key`` argument should be the contents of private key file (of user specified in username argument). (bug-fix)
-* Last newline character ('\n') is now stripped from ``stdout`` and ``stderr`` fields in
-  local and remote command/shell runners. (improvement)
-* Fix sensor container service so the ``config`` argument is correctly passed to the sensor
-  instances in the system packs. Previously, this argument didn't get passed correctly to
-  the FileWatchSensor from the system linux pack. (bug-fix)
-* Make sure sensor processes correctly pick up parent ``--debug`` flag. This makes
-  debugging a lot easier since user simply needs to start sensor container with ``--debug``
-  flag and all the sensor logs with level debug or higher will be routed to the container
-  log. (improvement)
 
 0.13.1 - August 28, 2015
 ------------------------
