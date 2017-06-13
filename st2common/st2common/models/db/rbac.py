@@ -47,6 +47,13 @@ class RoleDB(stormbase.StormFoundationDB):
     system = me.BooleanField(default=False)
     permission_grants = me.ListField(field=me.StringField())
 
+    meta = {
+        'indexes': [
+            {'fields': ['name']},
+            {'fields': ['permission_grants']},
+        ]
+    }
+
 
 class UserRoleAssignmentDB(stormbase.StormFoundationDB):
     """
@@ -66,6 +73,13 @@ class UserRoleAssignmentDB(stormbase.StormFoundationDB):
     # st2-apply-rbac-auth-definitions tool.
     is_remote = me.BooleanField(default=False)
 
+    meta = {
+        'indexes': [
+            {'fields': ['user']},
+            {'fields': ['role']},
+        ]
+    }
+
 
 class PermissionGrantDB(stormbase.StormFoundationDB):
     """
@@ -80,6 +94,12 @@ class PermissionGrantDB(stormbase.StormFoundationDB):
     resource_uid = me.StringField(required=False)
     resource_type = me.StringField(required=False)
     permission_types = me.ListField(field=me.StringField())
+
+    meta = {
+        'indexes': [
+            {'fields': ['resource_uid']},
+        ]
+    }
 
 
 class GroupToRoleMappingDB(stormbase.StormFoundationDB):
