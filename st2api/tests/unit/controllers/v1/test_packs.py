@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import mock
 
+from st2common.content.loader import ContentPackLoader
 from st2common.models.db.pack import PackDB
 from st2common.persistence.pack import Pack
 from st2common.router import Response
@@ -22,6 +25,12 @@ from st2common.services import packs as pack_service
 from st2api.controllers.v1.actionexecutions import ActionExecutionsControllerMixin
 from st2api.controllers.v1.packs import ENTITIES
 from tests import FunctionalTest
+
+from st2tests.fixturesloader import get_fixtures_base_path
+
+__all__ = [
+    'PacksControllerTestCase'
+]
 
 PACK_INDEX = {
     "test": {
@@ -207,9 +216,27 @@ class PacksControllerTestCase(FunctionalTest):
         ]
         self.assertEqual(resource_types, expected_order)
 
-    def test_packs_register_endpoint(self):
+    @mock.patch.object(ContentPackLoader, 'get_packs')
+    def test_packs_register_endpoint(self, mock_get_packs):
         # Register resources from all packs - make sure the count values are correctly added
         # together
+
+        # Note: We only register a couple of packs and not all on disk to speed
+        # things up. Registering all the packs takes a long time.
+        fixtures_base_path = get_fixtures_base_path()
+        packs_base_path = os.path.join(fixtures_base_path, 'packs')
+        pack_names = [
+            'dummy_pack_1',
+            'dummy_pack_2',
+            'dummy_pack_3',
+            'dummy_pack_10',
+        ]
+        mock_return_value = {}
+        for pack_name in pack_names:
+            mock_return_value[pack_name] = os.path.join(packs_base_path, pack_name)
+
+        mock_get_packs.return_value = mock_return_value
+
         resp = self.app.post_json('/v1/packs/register', {'fail_on_failure': False})
 
         self.assertEqual(resp.status_int, 200)
@@ -225,7 +252,7 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertTrue('configs' in resp.json)
 
         self.assertTrue(resp.json['actions'] >= 3)
-        self.assertTrue(resp.json['configs'] >= 3)
+        self.assertTrue(resp.json['configs'] >= 1)
 
         # Register resources from a specific pack
         resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1'],
