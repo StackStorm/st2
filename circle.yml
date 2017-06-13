@@ -20,7 +20,7 @@ dependencies:
     - sudo .circle/configure-services.sh
     - sudo .circle/add-itest-user.sh
     # We install and test with all the supported MongoDB versions
-    - case $CIRCLE_NODE_INDEX in [1,2]) sudo service mongodb stop ; MONGODB_VERSION=3.2.12 sudo -E .circle/install-and-run-mongodb.sh > /tmp/mongodb-install.log 2>&1 ;; [3,4]) sudo service mongodb stop ; MONGODB_VERSION=3.4.2 sudo -E .circle/install-and-run-mongodb.sh > /tmp/mongodb-install.log 2>&1 ;; esac:
+    - case $CIRCLE_NODE_INDEX in [1,2]) sudo service mongodb stop ; MONGODB_VERSION=3.2.13 sudo -E .circle/install-and-run-mongodb.sh > /tmp/mongodb-install.log 2>&1 ;; [3,4]) sudo service mongodb stop ; MONGODB_VERSION=3.4.4 sudo -E .circle/install-and-run-mongodb.sh > /tmp/mongodb-install.log 2>&1 ;; esac:
         background: true
     # We sleep a bit to wait for the background process to start and script to
     # finish
