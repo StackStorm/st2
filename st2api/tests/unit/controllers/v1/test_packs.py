@@ -129,51 +129,63 @@ class PacksControllerTestCase(FunctionalTest):
     @mock.patch.object(pack_service, 'fetch_pack_index',
                        mock.MagicMock(return_value=(PACK_INDEX, {})))
     def test_search(self):
-        resp = self.app.post_json('/v1/packs/index/search', {'query': 'test'})
 
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, [PACK_INDEX['test'], PACK_INDEX['test2']])
-
-        resp = self.app.post_json('/v1/packs/index/search', {'query': 'stanley'})
-
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, [PACK_INDEX['test2']])
-
-        resp = self.app.post_json('/v1/packs/index/search', {'query': 'special'})
-
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, [PACK_INDEX['test2']])
-
-        # Search should be case insensitive by default
-        resp = self.app.post_json('/v1/packs/index/search', {'query': 'TEST'})
-
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, [PACK_INDEX['test'], PACK_INDEX['test2']])
-
-        resp = self.app.post_json('/v1/packs/index/search', {'query': 'SPECIAL'})
-
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, [PACK_INDEX['test2']])
-
-        resp = self.app.post_json('/v1/packs/index/search', {'query': 'sPeCiAL'})
-
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, [PACK_INDEX['test2']])
-
-        resp = self.app.post_json('/v1/packs/index/search', {'query': 'st2-dev'})
-
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, [PACK_INDEX['test']])
-
-        resp = self.app.post_json('/v1/packs/index/search', {'query': 'ST2-dev'})
-
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, [PACK_INDEX['test']])
-
-        resp = self.app.post_json('/v1/packs/index/search', {'query': '-dev'})
-
-        self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json, [PACK_INDEX['test']])
+        test_scenarios = [
+            {
+                'input': {'query': 'test'},
+                'expected_code': 200,
+                'expected_result': [PACK_INDEX['test'], PACK_INDEX['test2']]
+            },
+            {
+                'input': {'query': 'stanley'},
+                'expected_code': 200,
+                'expected_result': [PACK_INDEX['test2']]
+            },
+            {
+                'input': {'query': 'special'},
+                'expected_code': 200,
+                'expected_result': [PACK_INDEX['test2']]
+            },
+            {
+                'input': {'query': 'TEST'},  # Search should be case insensitive by default
+                'expected_code': 200,
+                'expected_result': [PACK_INDEX['test'], PACK_INDEX['test2']]
+            },
+            {
+                'input': {'query': 'SPECIAL'},
+                'expected_code': 200,
+                'expected_result': [PACK_INDEX['test2']]
+            },
+            {
+                'input': {'query': 'sPeCiAL'},
+                'expected_code': 200,
+                'expected_result': [PACK_INDEX['test2']]
+            },
+            {
+                'input': {'query': 'st2-dev'},
+                'expected_code': 200,
+                'expected_result': [PACK_INDEX['test']]
+            },
+            {
+                'input': {'query': 'ST2-dev'},
+                'expected_code': 200,
+                'expected_result': [PACK_INDEX['test']]
+            },
+            {
+                'input': {'query': '-dev'},
+                'expected_code': 200,
+                'expected_result': [PACK_INDEX['test']]
+            },
+            {
+                'input': {'query': 'core'},
+                'expected_code': 200,
+                'expected_result': []
+            }
+        ]
+        for scenario in test_scenarios:
+            resp = self.app.post_json('/v1/packs/index/search', scenario['input'])
+            self.assertEqual(resp.status_int, scenario['expected_code'])
+            self.assertEqual(resp.json, scenario['expected_result'])
 
     @mock.patch.object(pack_service, 'fetch_pack_index',
                        mock.MagicMock(return_value=(PACK_INDEX, {})))
@@ -250,6 +262,23 @@ class PacksControllerTestCase(FunctionalTest):
         self.assertTrue(resp.json['actions'] >= 1)
         self.assertTrue(resp.json['sensors'] >= 1)
         self.assertTrue(resp.json['configs'] >= 1)
+
+        # Register 'all' resource types should try include any possible content for the pack
+        resp = self.app.post_json('/v1/packs/register', {'packs': ['dummy_pack_1'],
+                                                         'fail_on_failure': False,
+                                                         'types': ['all']})
+
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue('runners' in resp.json)
+        self.assertTrue('actions' in resp.json)
+        self.assertTrue('triggers' in resp.json)
+        self.assertTrue('sensors' in resp.json)
+        self.assertTrue('rules' in resp.json)
+        self.assertTrue('rule_types' in resp.json)
+        self.assertTrue('aliases' in resp.json)
+        self.assertTrue('policy_types' in resp.json)
+        self.assertTrue('policies' in resp.json)
+        self.assertTrue('configs' in resp.json)
 
         # Registering single resource type should also cause dependent resources
         # to be registered
