@@ -77,7 +77,7 @@ in development
   support non-ascii (unicode) characters. (bug fix)
 * When RBAC is enabled and action is scheduled (ran) through the API, include ``rbac`` dictionary
   with ``user`` and ``roles`` ``action_context`` attribute. (improvement)
-* Fix a bug in query base module when outstanding queries to mistral or other workflow engines 
+* Fix a bug in query base module when outstanding queries to mistral or other workflow engines
   could cause a tight loop without cooperative yield leading to 100% CPU usage by st2resultstracker
   process. (bug-fix)
 * Make the query interval to third party workflow systems (including mistral) a configurable
@@ -117,6 +117,8 @@ in development
   (``required: false``). (improvement)
 
   Reported by nmlaudy. #3468 #3469
+* Enforce validation on ``position`` parameter for action parameters. If position values are not
+  sequential or not unique, action registration will now fail. (bug-fix)
 
 2.2.1 - April 3, 2017
 ---------------------
