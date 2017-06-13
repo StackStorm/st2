@@ -24,7 +24,7 @@ oslo.config<1.13,>=1.12.1
 oslo.utils<3.1.0
 paramiko<2.2,>=2.1.2
 passlib==1.6.5
-prance
+prance==0.5.1
 prettytable
 prompt-toolkit==1.0.7
 psutil

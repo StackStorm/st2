@@ -115,7 +115,7 @@ lint-api-spec: requirements .lint-api-spec
 	@echo
 	@echo "================== Lint API spec ===================="
 	@echo
-	st2common/bin/st2-validate-api-spec --generate
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --generate
 
 .PHONY: flake8
 flake8: requirements .flake8
