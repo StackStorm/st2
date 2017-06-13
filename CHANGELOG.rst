@@ -118,7 +118,7 @@ in development
 
   Reported by nmlaudy. #3468 #3469
 * Removing empty pack config.yaml so warning isn't thrown by default now that deprecation warning
-  is in place. (fix)
+  is in place. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
