@@ -212,7 +212,6 @@ requirements: virtualenv .sdist-requirements
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
-
 	# Make sure we use latest version of pip
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=8.1.2,<8.2"
 	$(VIRTUALENV_DIR)/bin/pip install virtualenv  # Required for packs.install in dev envs.
@@ -297,7 +296,7 @@ unit-tests: requirements .unit-tests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 			--cover-inclusive --cover-html \
 			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/unit || exit 1; \
 	done
@@ -316,7 +315,7 @@ itests: requirements .itests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -sv $$component/tests/integration || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/integration || exit 1; \
 	done
 
 .PHONY: .itests-coverage-html
@@ -330,7 +329,7 @@ itests: requirements .itests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 			--cover-inclusive --cover-html \
 			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/integration || exit 1; \
 	done
@@ -344,7 +343,7 @@ mistral-itests: requirements .mistral-itests
 	@echo "==================== MISTRAL integration tests ===================="
 	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration/mistral || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/mistral || exit 1;
 
 .PHONY: .mistral-itests-coverage-html
 .mistral-itests-coverage-html:
@@ -352,7 +351,7 @@ mistral-itests: requirements .mistral-itests
 	@echo "==================== MISTRAL integration tests with coverage (HTML reports) ===================="
 	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v --with-coverage \
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 		--cover-inclusive --cover-html st2tests/integration/mistral || exit 1;
 
 .PHONY: packs-tests
