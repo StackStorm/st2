@@ -184,7 +184,7 @@ class PackSearchController(object):
             return [PackAPI(**pack) for pack in packs]
         else:
             pack = packs_service.get_pack_from_index(pack_search_request.pack)
-            return PackAPI(**pack) if pack else None
+            return PackAPI(**pack) if pack else []
 
 
 class IndexHealthController(object):

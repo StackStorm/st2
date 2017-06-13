@@ -105,6 +105,9 @@ in development
   full semver version strings are supported, e.g. ``2.1.1``. This was originally deprecated in
   v2.1.0.
 * Let ``st2 pack install`` register all available content in pack by default to be consistent with
+  ``st2 pack register``. (improvement) #3452
+* The API endpoint for searching or showing packs has been updated to return an empty list
+  instead of ``None`` when the pack was not found in the index. (bug fix)
 * The ``dest_server`` parameter has been removed from the ``linux.scp`` action. Going forward simply
   specify the server as part of the ``source`` and / or ``destination`` arguments. (improvement)
    #3335 #3463 [Nick Maludy]
