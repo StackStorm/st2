@@ -17,3 +17,7 @@
     type: "string"
     required: true
     default: "default-region-value"
+  non_required_with_default_value:
+    type: "string"
+    required: false
+    default: "some default value"

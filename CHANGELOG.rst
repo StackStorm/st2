@@ -113,6 +113,10 @@ in development
    #3335 #3463 [Nick Maludy]
 * Add missing database indexes which should speed up various queries on production deployments with
   large datasets. (improvement)
+* Use a default value for a config item from config schema even if that config item is not required
+  (``required: false``). (improvement)
+
+  Reported by nmlaudy. #3468 #3469
 
 2.2.1 - April 3, 2017
 ---------------------
