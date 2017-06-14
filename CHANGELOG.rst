@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+2.3.0 - June 14, 2017
+---------------------
+
 * Refactor the action execution asynchronous callback functionality into the runner plugin
   architecture. (improvement)
 * Introduce new ``CAPABILITIES`` constant on auth backend classes. With this constant, auth
