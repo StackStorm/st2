@@ -47,3 +47,16 @@ def regex_search(value, pattern='', ignorecase=False):
         value = str(value)
     flags = _get_regex_flags(ignorecase)
     return bool(re.search(pattern, value, flags))
+
+
+def regex_substring(value, pattern='', ignorecase=False, group_index=0):
+    if not isinstance(value, six.string_types):
+        value = str(value)
+    flags = _get_regex_flags(ignorecase)
+    try:
+        result = re.search(pattern, value, flags).groups()[group_index]
+    except (AttributeError, IndexError):
+        # AttributeError - no match, so re.search(pattern, value, flags) returned None
+        # IndexError - no grouping characters in regex pattern
+        result = ""
+    return result

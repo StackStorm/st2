@@ -68,3 +68,24 @@ class JinjaUtilsRegexFilterTestCase(unittest2.TestCase):
         actual = env.from_string(template).render({'k1': 'v0.10.1'})
         expected = 'True'
         self.assertEqual(actual, expected)
+
+    def test_filters_regex_substring(self):
+        env = jinja_utils.get_jinja_environment()
+
+        # Normal (match)
+        template = '{{k1 | regex_substring("(127.0.0.1)")}}'
+        actual = env.from_string(template).render({'k1': 'hello this is 127.0.0.1, your home'})
+        expected = '127.0.0.1'
+        self.assertEqual(actual, expected)
+
+        # No match
+        template = '{{k1 | regex_substring("(127.0.0.1)")}}'
+        actual = env.from_string(template).render({'k1': 'hello this is 127.0.0.2, your home'})
+        expected = ''
+        self.assertEqual(actual, expected)
+
+        # No grouping in regex pattern
+        template = '{{k1 | regex_substring("127.0.0.1")}}'
+        actual = env.from_string(template).render({'k1': 'hello this is 127.0.0.1, your home'})
+        expected = ''
+        self.assertEqual(actual, expected)
