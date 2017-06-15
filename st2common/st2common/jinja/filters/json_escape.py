@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
+import json
 
 __all__ = [
     'json_escape'
@@ -21,29 +21,4 @@ __all__ = [
 
 
 def json_escape(value, indent=4, allow_unicode=True):
-    """
-    Backspace is replaced with \b
-    Form feed is replaced with \f
-    Newline is replaced with \n
-    Carriage return is replaced with \r
-    Tab is replaced with \t
-    Double quote is replaced with \"
-    Backslash is replaced with \\
-    """
-
-    replace_dict = collections.OrderedDict([
-        ("\\", r"\\\\"),  # backslash (MUST go 1st so it doesn't escape \ inserted by another match)
-        ('\"', r'\\"'),  # double quote
-        ("\b", r"\\b"),  # backspace
-        ("\t", r"\\t"),  # tab
-        ("\n", r"\\n"),  # newline
-
-        # These don't work yet, and I hate them because they are stupid.
-        # ("\f", r"\\f"),  # form feed (this doesn't work and I hate it)
-        # ("\r", r"\\r"),  # carriage return
-    ])
-    value = str(value)
-    for old, new in replace_dict.items():
-        value = value.replace(old, new)
-
-    return value
+    return json.dumps(value)
