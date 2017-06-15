@@ -395,7 +395,9 @@ class ActionRunCommandMixin(object):
             task_result = self._get_task_result(task=tasks[-1])
 
             if task_result:
-                options['attributes'].insert(status_index + 1, 'result')
+                instance.result_task = tasks[-1].get('name', 'unknown')
+                options['attributes'].insert(status_index + 1, 'result_task')
+                options['attributes'].insert(status_index + 2, 'result')
                 instance.result = task_result
 
         # print root task
