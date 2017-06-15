@@ -4,6 +4,9 @@ Changelog
 in development
 --------------
 
+* Update ``st2 run`` / ``st2 execution run`` command to display result of workflow actions when
+  they finish. In the workflow case, result of the last task (action) of the workflow is used.
+  (improvement)
 
 2.3.0 - June 14, 2017
 ---------------------
