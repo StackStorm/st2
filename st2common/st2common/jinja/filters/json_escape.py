@@ -32,35 +32,18 @@ def json_escape(value, indent=4, allow_unicode=True):
     """
 
     replace_dict = collections.OrderedDict([
-        ("\\", r"\\"),  # backslash (MUST go 1st so it doesn't escape \ inserted by another match)
-        ('\"', r'\"'),  # double quote
-        ("\b", r"\b"),  # backspace
-        ("\f", r"\f"),  # form feed
-        ("\n", r"\n"),  # newline
-        ("\r", r"\r"),  # carriage return
-        ("\t", r"\t"),  # tab
-    ])
+        ("\\", r"\\\\"),  # backslash (MUST go 1st so it doesn't escape \ inserted by another match)
+        ('\"', r'\\"'),  # double quote
+        ("\b", r"\\b"),  # backspace
+        ("\t", r"\\t"),  # tab
+        ("\n", r"\\n"),  # newline
 
+        # These don't work yet, and I hate them because they are stupid.
+        # ("\f", r"\\f"),  # form feed (this doesn't work and I hate it)
+        # ("\r", r"\\r"),  # carriage return
+    ])
     value = str(value)
     for old, new in replace_dict.items():
-        print "Replacing %s with %s" % (old, new)
         value = value.replace(old, new)
 
     return value
-
-# print json_escape("""
-
-#       escape these double "" quotes
-#       How about \ these \ slashes?
-#       Some backspaces \b there
-
-# """)
-
-# print repr(json_escape("""
-
-#       escape these double "" quotes
-#       How about \ these \ slashes?
-#       Some backspaces \b there
-
-# """))
-
