@@ -20,6 +20,8 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
 from st2common.persistence.base import Access
 from st2common.util import hash as hash_utils
+from oslo_config import cfg
+# from st2common.router import Response
 
 
 class User(Access):
@@ -84,20 +86,41 @@ class Token(Access):
 class ApiKey(Access):
     impl = MongoDBAccess(ApiKeyDB)
 
+    # Maximum value of limit which can be specified by user
+    @property
+    def max_limit(self):
+        return cfg.CONF.api.max_page_size
+
+    # Default number of items returned per page if no limit is explicitly provided
+    default_limit = 100
+
     @classmethod
     def _get_impl(cls):
         return cls.impl
 
     @classmethod
-    def get(cls, value):
+    def get(cls, value, limit=None, offset=0):
         # DB does not contain key but the key_hash.
         value_hash = hash_utils.hash(value)
-        result = cls.query(key_hash=value_hash).first()
 
-        if not result:
+        # TODO: To protect us from DoS, we need to make max_limit mandatory
+        offset = int(offset)
+
+        if limit and int(limit) > cls.max_limit:
+            # TODO: We should throw here, I don't like this.
+            msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, cls.max_limit)
+            raise ValueError(msg)
+
+        instances = cls.query(key_hash=value_hash).first()
+
+        if not instances:
             raise ApiKeyNotFoundError('ApiKey with key_hash=%s not found.' % value_hash)
 
-        return result
+        if limit == 1:
+            # Perform the filtering on the DB side
+            instances = instances.limit(limit)
+
+        return instances
 
     @classmethod
     def get_by_key_or_id(cls, value):

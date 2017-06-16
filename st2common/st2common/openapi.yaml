@@ -7,12 +7,12 @@ info:
     {% raw %}
     ## Welcome
 
-    Welcome to the StackStorm API Reference documentation! You can use the StackStorm API to integrate StackStorm with 3rd-party systems and custom applications. Example integrations include writing your own self-service user portal, or integrating with other orchestration systems. 
+    Welcome to the StackStorm API Reference documentation! You can use the StackStorm API to integrate StackStorm with 3rd-party systems and custom applications. Example integrations include writing your own self-service user portal, or integrating with other orchestration systems.
 
     This document provides an overview of how to use the API. Use the menu on the left to look up details of specific API endpoints. For more information about how StackStorm works, and how to use it, check out the main [StackStorm documentation](https://docs.stackstorm.com).
 
     > ### A Quick Note
-    > This API is intended for software developers, and those are who are comfortable working with RESTful APIs, and writing some code. You do not need to use this API to work with StackStorm, or to use and write integration packs for StackStorm. 
+    > This API is intended for software developers, and those are who are comfortable working with RESTful APIs, and writing some code. You do not need to use this API to work with StackStorm, or to use and write integration packs for StackStorm.
 
     ## Accessing the API
 
@@ -22,7 +22,7 @@ info:
 
     To authenticate against the StackStorm API, either an authentication token or an API key (but not both) should be provided in the HTTP request headers. The headers are named `X-Auth-Token` and `St2-Api-Key` respectively. In situation when it is impossble to provide a header to the response, query parameters `x-auth-token` and `st2-api-key` could be used instead, but would require you to weight in on security implications.
 
-    An authentication token is a time-limited access token, granted once a user authenticates, typically using a username and password. This is suitable for short-term, interactive sessions. [API Keys](https://docs.stackstorm.com/authentication.html#api-keys) do not expire, and are therefore better suited for use with integrating other applications. 
+    An authentication token is a time-limited access token, granted once a user authenticates, typically using a username and password. This is suitable for short-term, interactive sessions. [API Keys](https://docs.stackstorm.com/authentication.html#api-keys) do not expire, and are therefore better suited for use with integrating other applications.
 
     ### Authentication Tokens
 
@@ -69,13 +69,13 @@ info:
     The StackStorm API supports these HTTP methods:
 
     * **GET:** Use to retrieve data, e.g. current status of an execution. GET requests will not update or change data.
-    * **POST:** Use to create new resources. For example, make a POST request to create a new rule, or execute an action. 
+    * **POST:** Use to create new resources. For example, make a POST request to create a new rule, or execute an action.
     * **PUT:** Use to create or update a resource, e.g. to update an existing Key-Value pair.
     * **DELETE:** Remove a resource, e.g. delete an API key.
 
     There is also an implicit support of **OPTIONS** method that will return a set of CORS-related headers.
 
-    Methods **HEAD** and **PATCH** are not supported in API v1, but might be considered in future iterations. 
+    Methods **HEAD** and **PATCH** are not supported in API v1, but might be considered in future iterations.
 
     ## SSL
 
@@ -186,7 +186,7 @@ info:
     }
     ```
 
-    `4xx` codes indicate a bad request, whereas `5xx` errors indicate a server-side problem with StackStorm. 
+    `4xx` codes indicate a bad request, whereas `5xx` errors indicate a server-side problem with StackStorm.
 
     ## Support
 
@@ -2710,6 +2710,16 @@ paths:
           in: query
           description: Show secrets in plain text
           type: boolean
+        - name: limit
+          in: query
+          description: List N most recent apikeys.
+          type: integer
+          default: 50
+        - name: offset
+          in: query
+          description: Number of apikeys offset
+          type: integer
+          default: 0
       x-parameters:
         - name: user
           in: context
