@@ -20,5 +20,5 @@ __all__ = [
 ]
 
 
-def json_escape(value, indent=4, allow_unicode=True):
+def json_escape(value):
     return json.dumps(value)
