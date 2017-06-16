@@ -73,19 +73,31 @@ class JinjaUtilsRegexFilterTestCase(unittest2.TestCase):
         env = jinja_utils.get_jinja_environment()
 
         # Normal (match)
-        template = '{{k1 | regex_substring("(127.0.0.1)")}}'
-        actual = env.from_string(template).render({'k1': 'hello this is 127.0.0.1, your home'})
-        expected = '127.0.0.1'
+        template = '{{input_str | regex_substring("([0-9]{3} \w+ (?:Ave|St|Dr))")}}'
+        actual = env.from_string(template).render(
+            {'input_str': 'My address is 123 Somewhere Ave. See you soon!'}
+        )
+        expected = '123 Somewhere Ave'
         self.assertEqual(actual, expected)
+
+        # Selecting second match explicitly
+        template = '{{input_str | regex_substring("([0-9]{3} \w+ (?:Ave|St|Dr))", 1)}}'
+        actual = env.from_string(template).render(
+            {'input_str': 'Your address is 567 Elsewhere Dr. My address is 123 Somewhere Ave.'}
+        )
+        expected = '123 Somewhere Ave'
+        self.assertEqual(actual, expected)
+
+        # Selecting second match explicitly, but doesn't exist
+        template = '{{input_str | regex_substring("([0-9]{3} \w+ (?:Ave|St|Dr))", 1)}}'
+        with self.assertRaises(IndexError):
+            actual = env.from_string(template).render(
+                {'input_str': 'Your address is 567 Elsewhere Dr.'}
+            )
 
         # No match
-        template = '{{k1 | regex_substring("(127.0.0.1)")}}'
-        actual = env.from_string(template).render({'k1': 'hello this is 127.0.0.2, your home'})
-        expected = ''
-        self.assertEqual(actual, expected)
-
-        # No grouping in regex pattern
-        template = '{{k1 | regex_substring("127.0.0.1")}}'
-        actual = env.from_string(template).render({'k1': 'hello this is 127.0.0.1, your home'})
-        expected = ''
-        self.assertEqual(actual, expected)
+        template = '{{input_str | regex_substring("([0-3]{3} \w+ (?:Ave|St|Dr))")}}'
+        with self.assertRaises(IndexError):
+            actual = env.from_string(template).render(
+                {'input_str': 'My address is 986 Somewhere Ave. See you soon!'}
+            )
