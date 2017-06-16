@@ -4,7 +4,9 @@ Changelog
 in development
 --------------
 
-* Add json_ecsape Jinja filter for escaping JSON strings
+* Add json_ecsape Jinja filter for escaping JSON strings (improvement)
+
+  Contributed by mierdin. #3480
 
 
 2.3.0 - June 19, 2017
