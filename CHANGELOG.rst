@@ -4,6 +4,9 @@ Changelog
 in development
 --------------
 
+* Add regex_substring Jinja filter for searching for a pattern in a provided string and returning
+  the result
+
 
 2.3.0 - June 19, 2017
 ---------------------
