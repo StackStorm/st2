@@ -1,11 +1,7 @@
 Changelog
 =========
 
-in development
---------------
-
-
-2.3.0 - June 14, 2017
+2.3.0 - June 19, 2017
 ---------------------
 
 * Refactor the action execution asynchronous callback functionality into the runner plugin
