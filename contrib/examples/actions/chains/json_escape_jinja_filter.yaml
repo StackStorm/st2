@@ -1,0 +1,11 @@
+---
+vars:
+    escape_str: 'Random text from another action output """ which will break JSON and needs escaping'
+
+chain:
+  -
+     name: "action1"
+     ref: "core.local"
+     parameters:
+        cmd: |
+          echo -E '[{"title":{{ escape_str | json_escape }}, "color": "#37C200"}]'
