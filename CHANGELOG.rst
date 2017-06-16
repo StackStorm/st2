@@ -7,6 +7,8 @@ Changelog
 Added
 ~~~~~
 
+* Add regex_substring Jinja filter for searching for a pattern in a provided string and returning
+  the result
 * Fix st2client to display unicode characters in pack content description. (bug-fix)
 
 2.3.1 - July 07, 2017
