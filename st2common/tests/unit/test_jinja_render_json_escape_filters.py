@@ -25,47 +25,47 @@ class JinjaUtilsJsonEscapeTestCase(unittest2.TestCase):
         env = jinja_utils.get_jinja_environment()
         template = '{{ test_str | json_escape }}'
         actual = env.from_string(template).render({'test_str': 'foo """ bar'})
-        expected = '"foo \\"\\"\\" bar"'
+        expected = 'foo \\"\\"\\" bar'
         self.assertEqual(actual, expected)
 
     def test_backslashes(self):
         env = jinja_utils.get_jinja_environment()
         template = '{{ test_str | json_escape }}'
         actual = env.from_string(template).render({'test_str': 'foo \ bar'})
-        expected = '"foo \\\\ bar"'
+        expected = 'foo \\\\ bar'
         self.assertEqual(actual, expected)
 
     def test_backspace(self):
         env = jinja_utils.get_jinja_environment()
         template = '{{ test_str | json_escape }}'
         actual = env.from_string(template).render({'test_str': 'foo \b bar'})
-        expected = '"foo \\b bar"'
+        expected = 'foo \\b bar'
         self.assertEqual(actual, expected)
 
     def test_formfeed(self):
         env = jinja_utils.get_jinja_environment()
         template = '{{ test_str | json_escape }}'
         actual = env.from_string(template).render({'test_str': 'foo \f bar'})
-        expected = '"foo \\f bar"'
+        expected = 'foo \\f bar'
         self.assertEqual(actual, expected)
 
     def test_newline(self):
         env = jinja_utils.get_jinja_environment()
         template = '{{ test_str | json_escape }}'
         actual = env.from_string(template).render({'test_str': 'foo \n bar'})
-        expected = '"foo \\n bar"'
+        expected = 'foo \\n bar'
         self.assertEqual(actual, expected)
 
     def test_carriagereturn(self):
         env = jinja_utils.get_jinja_environment()
         template = '{{ test_str | json_escape }}'
         actual = env.from_string(template).render({'test_str': 'foo \r bar'})
-        expected = '"foo \\r bar"'
+        expected = 'foo \\r bar'
         self.assertEqual(actual, expected)
 
     def test_tab(self):
         env = jinja_utils.get_jinja_environment()
         template = '{{ test_str | json_escape }}'
         actual = env.from_string(template).render({'test_str': 'foo \t bar'})
-        expected = '"foo \\t bar"'
+        expected = 'foo \\t bar'
         self.assertEqual(actual, expected)

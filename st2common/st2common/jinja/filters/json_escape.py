@@ -21,4 +21,16 @@ __all__ = [
 
 
 def json_escape(value):
-    return json.dumps(value)
+    """ Adds escape sequences to problematic characters in the string
+
+    This filter simply passes the value to json.dumps
+    as a convenient way of escaping characters in it
+
+    However, before returning, we want to strip the double
+    quotes at the ends of the string, since we're not looking
+    for a valid JSON value at the end, just conveniently using
+    this function to do the escaping. The value could be any
+    arbitrary value
+    """
+
+    return json.dumps(value).strip('"')
