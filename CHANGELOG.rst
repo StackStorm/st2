@@ -4,6 +4,15 @@ Changelog
 in development
 --------------
 
+* Update ``st2 run`` / ``st2 execution run`` command to display result of workflow actions when
+  they finish. In the workflow case, result of the last task (action) of the workflow is used.
+  (improvement)
+* Enforce validation on ``position`` parameter for action parameters. If position values are not
+  sequential or not unique, action registration will now fail. (bug-fix)
+
+2.3.0 - June 19, 2017
+---------------------
+
 * Refactor the action execution asynchronous callback functionality into the runner plugin
   architecture. (improvement)
 * Introduce new ``CAPABILITIES`` constant on auth backend classes. With this constant, auth
@@ -117,8 +126,8 @@ in development
   (``required: false``). (improvement)
 
   Reported by nmlaudy. #3468 #3469
-* Enforce validation on ``position`` parameter for action parameters. If position values are not
-  sequential or not unique, action registration will now fail. (bug-fix)
+* Removing empty config.yaml for packs pack so warning isn't thrown by default now that deprecation
+  warning is in place. (improvement)
 
 2.2.1 - April 3, 2017
 ---------------------
