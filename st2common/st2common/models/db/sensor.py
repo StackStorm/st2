@@ -51,9 +51,7 @@ class SensorTypeDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
                               help_text=u'Flag indicating whether the sensor is enabled.')
 
     meta = {
-        'indexes': [
-            {'fields': ['enabled']},
-        ] + stormbase.UIDFieldMixin.get_indexes()
+        'indexes': stormbase.UIDFieldMixin.get_indexes()
     }
 
     def __init__(self, *args, **values):

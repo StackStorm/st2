@@ -182,13 +182,6 @@ class PolicyDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMixin,
     parameters = me.DictField(
         help_text='The specification of input parameters for the policy.')
 
-    meta = {
-        'indexes': [
-            {'fields': ['name']},
-            {'fields': ['resource_ref']},
-        ]
-    }
-
     def __init__(self, *args, **kwargs):
         super(PolicyDB, self).__init__(*args, **kwargs)
         self.uid = self.get_uid()

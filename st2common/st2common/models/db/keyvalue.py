@@ -43,7 +43,6 @@ class KeyValuePairDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
 
     meta = {
         'indexes': [
-            {'fields': ['name']},
             {
                 'fields': ['expire_timestamp'],
                 'expireAfterSeconds': 0
