@@ -182,19 +182,22 @@ class PythonRunner(ActionRunner):
         except Exception as e:
             # Failed to de-serialize the result, probably it contains non-simple type or similar
             LOG.warning('Failed to de-serialize result "%s": %s' % (str(action_result), str(e)))
-            pass
 
-        if action_result and isinstance(action_result, dict):
-            result = action_result.get('result', None)
-            status = action_result.get('status', None)
+        if action_result:
+            if isinstance(action_result, dict):
+                result = action_result.get('result', None)
+                status = action_result.get('status', None)
+            else:
+                # Failed to de-serialize action result aka result is a string
+                match = re.search("'result': (.*?)$", action_result or '').groups()
+
+                if match:
+                    action_result = match[0]
+
+                result = action_result
+                status = None
         else:
-            # Failed to de-serialize return result as is aka as a string
-            match = re.search("'result': (.*?)$", action_result).groups()
-
-            if match:
-                action_result = match[0]
-
-            result = action_result
+            result = 'None'
             status = None
 
         output = {
