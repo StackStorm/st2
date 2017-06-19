@@ -4,6 +4,9 @@ Changelog
 in development
 --------------
 
+* Update ``st2 run`` / ``st2 execution run`` command to display result of workflow actions when
+  they finish. In the workflow case, result of the last task (action) of the workflow is used.
+  (improvement)
 * Update Python runner so it mimics behavior from StackStorm pre 1.6 and returns action result as
   is (serialized as string) in case we are unable to serialize action result because it contains
   non-simple types (e.g. class instances) which can't be serialized.
