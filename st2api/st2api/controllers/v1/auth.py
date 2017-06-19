@@ -88,6 +88,10 @@ class ApiKeyController(BaseRestControllerMixin):
             LOG.exception('Failed to serialize API key.')
             abort(http_client.INTERNAL_SERVER_ERROR, str(e))
 
+    @property
+    def max_limit(self):
+        return cfg.CONF.api.max_page_size
+
     def get_all(self, requester_user, show_secrets=None, limit=None, offset=0):
         """
             List all keys.
@@ -97,9 +101,19 @@ class ApiKeyController(BaseRestControllerMixin):
         """
         mask_secrets = self._get_mask_secrets(show_secrets=show_secrets,
                                               requester_user=requester_user)
+
+        if limit and int(limit) > self.max_limit:
+            msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, self.max_limit)
+            raise ValueError(msg)
+
         api_key_dbs = ApiKey.get_all(limit=limit, offset=offset)
-        api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
-                    for api_key_db in api_key_dbs]
+
+        try:
+            api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
+                        for api_key_db in api_key_dbs]
+        except OverflowError:
+            msg = 'Offset "%s" specified is more than 8-byte ints' % (offset)
+            raise ValueError(msg)
 
         resp = Response(json=api_keys)
         resp.headers['X-Total-Count'] = str(api_key_dbs.count())

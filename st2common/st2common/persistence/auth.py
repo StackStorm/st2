@@ -99,28 +99,15 @@ class ApiKey(Access):
         return cls.impl
 
     @classmethod
-    def get(cls, value, limit=None, offset=0):
+    def get(cls, value):
         # DB does not contain key but the key_hash.
         value_hash = hash_utils.hash(value)
+        result = cls.query(key_hash=value_hash).first()
 
-        # TODO: To protect us from DoS, we need to make max_limit mandatory
-        offset = int(offset)
-
-        if limit and int(limit) > cls.max_limit:
-            # TODO: We should throw here, I don't like this.
-            msg = 'Limit "%s" specified, maximum value is "%s"' % (limit, cls.max_limit)
-            raise ValueError(msg)
-
-        instances = cls.query(key_hash=value_hash).first()
-
-        if not instances:
+        if not result:
             raise ApiKeyNotFoundError('ApiKey with key_hash=%s not found.' % value_hash)
 
-        if limit == 1:
-            # Perform the filtering on the DB side
-            instances = instances.limit(limit)
-
-        return instances
+        return result
 
     @classmethod
     def get_by_key_or_id(cls, value):
