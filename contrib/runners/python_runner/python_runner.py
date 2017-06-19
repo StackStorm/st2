@@ -189,10 +189,10 @@ class PythonRunner(ActionRunner):
                 status = action_result.get('status', None)
             else:
                 # Failed to de-serialize action result aka result is a string
-                match = re.search("'result': (.*?)$", action_result or '').groups()
+                match = re.search("'result': (.*?)$", action_result or '')
 
                 if match:
-                    action_result = match[0]
+                    action_result = match.groups()[0]
 
                 result = action_result
                 status = None
