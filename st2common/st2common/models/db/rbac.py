@@ -51,7 +51,6 @@ class RoleDB(stormbase.StormFoundationDB):
         'indexes': [
             {'fields': ['name']},
             {'fields': ['system']},
-            {'fields': ['permission_grants']},
         ]
     }
 
