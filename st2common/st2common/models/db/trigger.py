@@ -83,14 +83,6 @@ class TriggerDB(stormbase.StormBaseDB, stormbase.ContentPackResourceMixin,
     parameters = me.DictField()
     ref_count = me.IntField(default=0)
 
-    meta = {
-        'indexes': [
-            {'fields': ['name']},
-            {'fields': ['type']},
-            {'fields': ['parameters']},
-        ] + stormbase.UIDFieldMixin.get_indexes()
-    }
-
     def __init__(self, *args, **values):
         super(TriggerDB, self).__init__(*args, **values)
         self.ref = self.get_reference().ref

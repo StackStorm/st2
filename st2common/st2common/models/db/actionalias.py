@@ -73,9 +73,7 @@ class ActionAliasDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMi
     )
 
     meta = {
-        'indexes': [
-            {'fields': ['name']},
-        ] + stormbase.UIDFieldMixin.get_indexes()
+        'indexes': stormbase.UIDFieldMixin.get_indexes()
     }
 
     def __init__(self, *args, **values):
