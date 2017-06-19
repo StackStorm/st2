@@ -72,11 +72,46 @@ class TestApiKeyController(FunctionalTest):
         self.assertEqual(len(resp.json), 5, '/v1/apikeys did not return all apikeys.')
 
         retrieved_ids = [apikey['id'] for apikey in resp.json]
-
         self.assertEqual(retrieved_ids,
                          [str(self.apikey1.id), str(self.apikey2.id), str(self.apikey3.id),
                           str(self.apikey4.id), str(self.apikey5.id)],
                          'Incorrect api keys retrieved.')
+
+    def test_get_all_with_pagnination_with_offset_and_limit(self):
+        resp = self.app.get('/v1/apikeys?offset=2&limit=1')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1)
+
+        retrieved_ids = [apikey['id'] for apikey in resp.json]
+        self.assertEqual(retrieved_ids, [str(self.apikey3.id)])
+
+    def test_get_all_with_pagnination_with_only_offset(self):
+        resp = self.app.get('/v1/apikeys?offset=3')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 2)
+
+        retrieved_ids = [apikey['id'] for apikey in resp.json]
+        self.assertEqual(retrieved_ids, [str(self.apikey4.id), str(self.apikey5.id)])
+
+    def test_get_all_with_pagnination_with_only_limit(self):
+        resp = self.app.get('/v1/apikeys?limit=2')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 2)
+
+        retrieved_ids = [apikey['id'] for apikey in resp.json]
+        self.assertEqual(retrieved_ids, [str(self.apikey1.id), str(self.apikey2.id)])
+
+    def test_get_all_invalid_limit_too_large(self):
+        resp = self.app.get('/v1/apikeys?offset=2&limit=1000', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         'Limit "1000" specified, maximum value is "100"')
+
+    def test_get_all_invalid_offset_too_large(self):
+        resp = self.app.get('/v1/apikeys?offset=2147483648&limit=1', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         'Offset "2147483648" specified is more than 8-byte ints')
 
     def test_get_one_by_id(self):
         resp = self.app.get('/v1/apikeys/%s' % self.apikey1.id)
