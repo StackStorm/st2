@@ -4,6 +4,14 @@ Changelog
 in development
 --------------
 
+* Update Python runner so it mimics behavior from StackStorm pre 1.6 and returns action result as
+  is (serialized as string) in case we are unable to serialize action result because it contains
+  non-simple types (e.g. class instances) which can't be serialized.
+
+  In v1.6 we introduced a change when in such instances, we simply returned ``None`` as result
+  and didn't log anything which was confusing. (improvement)
+
+  Reported by Anthony Shaw.
 
 2.3.0 - June 19, 2017
 ---------------------
