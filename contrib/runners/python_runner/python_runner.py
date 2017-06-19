@@ -178,8 +178,10 @@ class PythonRunner(ActionRunner):
         # Parse the serialized action result object
         try:
             action_result = json.loads(action_result)
-        except:
-            pass
+        except Exception as e:
+            # Failed to de-serialize the result, probably it contains non-simple type or similar
+            # TODO: Should we throw instead?
+            LOG.warning('Failed to de-serialize result "%s": %s' % (str(action_result), str(e)))
 
         if action_result and isinstance(action_result, dict):
             result = action_result.get('result', None)
