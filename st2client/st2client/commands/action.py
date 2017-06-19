@@ -356,14 +356,15 @@ class ActionRunCommandMixin(object):
             # No child error, there might be a global error, include result in the output
             options['attributes'].append('result')
 
+        status_index = options['attributes'].index('status')
+
+        if isinstance(instance.result, dict):
+            tasks = instance.result.get('tasks', [])
+        else:
+            tasks = []
+
         # On failure we also want to include error message and traceback at the top level
         if instance.status == 'failed':
-            status_index = options['attributes'].index('status')
-            if isinstance(instance.result, dict):
-                tasks = instance.result.get('tasks', [])
-            else:
-                tasks = []
-
             top_level_error, top_level_traceback = self._get_top_level_error(live_action=instance)
 
             if len(tasks) >= 1:
@@ -387,6 +388,17 @@ class ActionRunCommandMixin(object):
                 options['attributes'].insert(status_index + 1, 'error')
                 options['attributes'].insert(status_index + 2, 'traceback')
                 options['attributes'].insert(status_index + 3, 'failed_on')
+
+        # Include result on the top-level object so user doesn't need to issue another command to
+        # see the result
+        if len(tasks) >= 1:
+            task_result = self._get_task_result(task=tasks[-1])
+
+            if task_result:
+                instance.result_task = tasks[-1].get('name', 'unknown')
+                options['attributes'].insert(status_index + 1, 'result_task')
+                options['attributes'].insert(status_index + 2, 'result')
+                instance.result = task_result
 
         # print root task
         self.print_output(instance, formatter, **options)
@@ -459,6 +471,12 @@ class ActionRunCommandMixin(object):
             traceback = None
 
         return error, traceback
+
+    def _get_task_result(self, task):
+        if not task:
+            return None
+
+        return task['result']
 
     def _get_action_parameters_from_args(self, action, runner, args):
         """
