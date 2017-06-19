@@ -8,7 +8,7 @@ in development
   they finish. In the workflow case, result of the last task (action) of the workflow is used.
   (improvement)
 
-2.3.0 - June 14, 2017
+2.3.0 - June 19, 2017
 ---------------------
 
 * Refactor the action execution asynchronous callback functionality into the runner plugin
