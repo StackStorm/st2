@@ -20,8 +20,6 @@ from st2common.models.db import MongoDBAccess
 from st2common.models.db.auth import UserDB, TokenDB, ApiKeyDB
 from st2common.persistence.base import Access
 from st2common.util import hash as hash_utils
-from oslo_config import cfg
-# from st2common.router import Response
 
 
 class User(Access):
@@ -85,14 +83,6 @@ class Token(Access):
 
 class ApiKey(Access):
     impl = MongoDBAccess(ApiKeyDB)
-
-    # Maximum value of limit which can be specified by user
-    @property
-    def max_limit(self):
-        return cfg.CONF.api.max_page_size
-
-    # Default number of items returned per page if no limit is explicitly provided
-    default_limit = 100
 
     @classmethod
     def _get_impl(cls):
