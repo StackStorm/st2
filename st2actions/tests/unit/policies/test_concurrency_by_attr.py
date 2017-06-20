@@ -28,6 +28,7 @@ from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
+from st2tests.mocks.execution import MockExecutionPublisher, MockExecutionPublisherNonBlocking
 from st2tests.mocks.liveaction import MockLiveActionPublisher, MockLiveActionPublisherNonBlocking
 from st2tests.mocks import runner
 
@@ -59,7 +60,7 @@ SCHEDULED_STATES = [
             mock.MagicMock(return_value=runner))
 @mock.patch.object(
     CUDPublisher, 'publish_update',
-    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_update))
+    mock.MagicMock(side_effect=MockExecutionPublisher.publish_update))
 @mock.patch.object(
     CUDPublisher, 'publish_create',
     mock.MagicMock(return_value=None))
@@ -196,7 +197,7 @@ class ConcurrencyByAttributePolicyTest(EventletTestCase, DbTestCase):
     # running in the same process.
     @mock.patch.object(
         LiveActionPublisher, 'publish_update',
-        mock.MagicMock(side_effect=MockLiveActionPublisherNonBlocking.publish_update))
+        mock.MagicMock(side_effect=MockExecutionPublisherNonBlocking.publish_update))
     def test_over_threshold_cancel_executions(self):
         policy_db = Policy.get_by_ref('wolfpack.action-2.concurrency.attr.cancel')
         self.assertEqual(policy_db.parameters['action'], 'cancel')

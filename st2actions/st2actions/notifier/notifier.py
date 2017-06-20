@@ -33,7 +33,7 @@ from st2common import policies
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.services import trace as trace_service
-from st2common.transport import consumers, execution, liveaction, publishers
+from st2common.transport import consumers, execution, publishers
 from st2common.transport import utils as transport_utils
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import isotime

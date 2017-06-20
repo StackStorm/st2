@@ -31,6 +31,7 @@ from st2common.models.db.notification import NotificationSchema
 from st2common.models.db.notification import NotificationSubSchema
 from st2common.models.db.runner import RunnerTypeDB
 from st2common.persistence.action import Action
+from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.policy import Policy
 from st2common.models.system.common import ResourceReference
 from st2common.util import date as date_utils
@@ -93,11 +94,10 @@ class NotifierTestCase(unittest2.TestCase):
         return_value={'runner_type': {'name': 'run-local-cmd'}}))
     @mock.patch.object(Policy, 'query', mock.MagicMock(
         return_value=[]))
-    @mock.patch.object(Notifier, '_get_execution_for_liveaction', mock.MagicMock(
-        return_value=MOCK_EXECUTION))
     @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(return_value={}))
     def test_notify_triggers(self):
         liveaction = LiveActionDB(action='core.local')
+        liveaction.id = bson.ObjectId()
         liveaction.description = ''
         liveaction.status = 'succeeded'
         liveaction.parameters = {}
@@ -107,10 +107,14 @@ class NotifierTestCase(unittest2.TestCase):
                                                on_failure=on_failure)
         liveaction.start_timestamp = date_utils.get_datetime_utc_now()
         liveaction.end_timestamp = liveaction.start_timestamp + datetime.timedelta(seconds=50)
+        LiveAction.add_or_update(liveaction)
+
+        execution = MOCK_EXECUTION
+        execution.liveaction = liveaction
 
         dispatcher = NotifierTestCase.MockDispatcher(self)
         notifier = Notifier(connection=None, queues=[], trigger_dispatcher=dispatcher)
-        notifier.process(liveaction)
+        notifier.process(execution)
 
     @mock.patch('st2common.util.action_db.get_action_by_ref', mock.MagicMock(
         return_value=ActionDB(pack='core', name='local', runner_type={'name': 'run-local-cmd'},
@@ -121,11 +125,10 @@ class NotifierTestCase(unittest2.TestCase):
         return_value={'runner_type': {'name': 'run-local-cmd'}}))
     @mock.patch.object(Policy, 'query', mock.MagicMock(
         return_value=[]))
-    @mock.patch.object(Notifier, '_get_execution_for_liveaction', mock.MagicMock(
-        return_value=MOCK_EXECUTION))
     @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(return_value={}))
     def test_notify_triggers_end_timestamp_none(self):
         liveaction = LiveActionDB(action='core.local')
+        liveaction.id = bson.ObjectId()
         liveaction.description = ''
         liveaction.status = 'succeeded'
         liveaction.parameters = {}
@@ -140,10 +143,14 @@ class NotifierTestCase(unittest2.TestCase):
         # The assertions within "MockDispatcher.dispatch" will validate that the underlying code
         # handles this properly, so all we need to do is keep the call to "notifier.process" below
         liveaction.end_timestamp = None
+        LiveAction.add_or_update(liveaction)
+
+        execution = MOCK_EXECUTION
+        execution.liveaction = liveaction
 
         dispatcher = NotifierTestCase.MockDispatcher(self)
         notifier = Notifier(connection=None, queues=[], trigger_dispatcher=dispatcher)
-        notifier.process(liveaction)
+        notifier.process(execution)
 
     @mock.patch('st2common.util.action_db.get_action_by_ref', mock.MagicMock(
         return_value=ActionDB(pack='core', name='local', runner_type={'name': 'run-local-cmd'})))
@@ -153,14 +160,13 @@ class NotifierTestCase(unittest2.TestCase):
         return_value={'runner_type': {'name': 'run-local-cmd'}}))
     @mock.patch.object(Policy, 'query', mock.MagicMock(
         return_value=[]))
-    @mock.patch.object(Notifier, '_get_execution_for_liveaction', mock.MagicMock(
-        return_value=MOCK_EXECUTION))
     @mock.patch.object(Notifier, '_post_generic_trigger', mock.MagicMock(
         return_value=True))
     @mock.patch.object(Notifier, '_get_trace_context', mock.MagicMock(return_value={}))
     @mock.patch('st2common.transport.reactor.TriggerDispatcher.dispatch')
     def test_notify_triggers_jinja_patterns(self, dispatch):
         liveaction = LiveActionDB(action='core.local')
+        liveaction.id = bson.ObjectId()
         liveaction.description = ''
         liveaction.status = 'succeeded'
         liveaction.parameters = {'cmd': 'mamma mia', 'runner_foo': 'foo'}
@@ -170,8 +176,13 @@ class NotifierTestCase(unittest2.TestCase):
         liveaction.start_timestamp = date_utils.get_datetime_utc_now()
         liveaction.end_timestamp = liveaction.start_timestamp + datetime.timedelta(seconds=50)
 
+        LiveAction.add_or_update(liveaction)
+
+        execution = MOCK_EXECUTION
+        execution.liveaction = liveaction
+
         notifier = Notifier(connection=None, queues=[])
-        notifier.process(liveaction)
+        notifier.process(execution)
         exp = {'status': 'succeeded',
                'start_timestamp': isotime.format(liveaction.start_timestamp),
                'route': 'notify.default', 'runner_ref': 'run-local-cmd',
@@ -182,4 +193,4 @@ class NotifierTestCase(unittest2.TestCase):
                'end_timestamp': isotime.format(liveaction.end_timestamp)}
         dispatch.assert_called_once_with('core.st2.generic.notifytrigger', payload=exp,
                                          trace_context={})
-        notifier.process(liveaction)
+        notifier.process(execution)

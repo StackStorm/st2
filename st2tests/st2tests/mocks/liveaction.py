@@ -50,15 +50,6 @@ class MockLiveActionPublisher(object):
             traceback.print_exc()
             print(payload)
 
-    @classmethod
-    def publish_update(cls, payload):
-        try:
-            if isinstance(payload, LiveActionDB):
-                notifier.get_notifier().process(payload)
-        except Exception:
-            traceback.print_exc()
-            print(payload)
-
 
 class MockLiveActionPublisherNonBlocking(object):
 
@@ -79,15 +70,6 @@ class MockLiveActionPublisherNonBlocking(object):
                     eventlet.spawn(scheduler.get_scheduler().process, payload)
                 else:
                     eventlet.spawn(worker.get_worker().process, payload)
-        except Exception:
-            traceback.print_exc()
-            print(payload)
-
-    @classmethod
-    def publish_update(cls, payload):
-        try:
-            if isinstance(payload, LiveActionDB):
-                eventlet.spawn(notifier.get_notifier().process, payload)
         except Exception:
             traceback.print_exc()
             print(payload)
