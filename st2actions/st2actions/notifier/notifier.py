@@ -25,14 +25,15 @@ from st2common.constants.action import LIVEACTION_FAILED_STATES
 from st2common.constants.action import LIVEACTION_COMPLETED_STATES
 from st2common.constants.triggers import INTERNAL_TRIGGER_TYPES
 from st2common.models.api.trace import TraceContext
-from st2common.models.db.liveaction import LiveActionDB
+from st2common.models.db.execution import ActionExecutionDB
 from st2common.persistence.action import Action
+from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.policy import Policy
 from st2common import policies
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.execution import ActionExecution
 from st2common.services import trace as trace_service
-from st2common.transport import consumers, liveaction, publishers
+from st2common.transport import consumers, execution, liveaction, publishers
 from st2common.transport import utils as transport_utils
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util import isotime
@@ -50,8 +51,8 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-ACTIONUPDATE_WORK_Q = liveaction.get_queue('st2.notifiers.work',
-                                           routing_key=publishers.UPDATE_RK)
+ACTIONUPDATE_WORK_Q = execution.get_queue('st2.notifiers.work',
+                                          routing_key=publishers.UPDATE_RK)
 
 ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
 # XXX: Fix this nasty positional dependency.
@@ -60,7 +61,7 @@ NOTIFY_TRIGGER_TYPE = INTERNAL_TRIGGER_TYPES['action'][1]
 
 
 class Notifier(consumers.MessageHandler):
-    message_type = LiveActionDB
+    message_type = ActionExecutionDB
 
     def __init__(self, connection, queues, trigger_dispatcher=None):
         super(Notifier, self).__init__(connection, queues)
@@ -74,29 +75,24 @@ class Notifier(consumers.MessageHandler):
             pack=ACTION_TRIGGER_TYPE['pack'],
             name=ACTION_TRIGGER_TYPE['name'])
 
-    def process(self, liveaction):
-        live_action_id = str(liveaction.id)
-        extra = {'live_action_db': liveaction}
-        LOG.debug('Processing liveaction %s', live_action_id, extra=extra)
+    def process(self, execution):
+        execution_id = str(execution.id)
+        extra = {'execution': execution}
+        LOG.debug('Processing execution %s', execution_id, extra=extra)
 
-        if liveaction.status not in LIVEACTION_COMPLETED_STATES:
-            LOG.debug('Skipping processing of liveaction %s since it\'s not in a completed state' %
-                      (live_action_id), extra=extra)
+        if execution.status not in LIVEACTION_COMPLETED_STATES:
+            LOG.debug('Skipping processing of execution %s since it\'s not in a completed state' %
+                      (execution_id), extra=extra)
             return
 
-        execution = self._get_execution_for_liveaction(liveaction)
+        liveaction_id = execution.liveaction['id']
+        liveaction_db = LiveAction.get_by_id(liveaction_id)
+        self._apply_post_run_policies(liveaction_db=liveaction_db)
 
-        if not execution:
-            LOG.exception('Execution object corresponding to LiveAction %s not found.',
-                          live_action_id, extra=extra)
-            return None
+        if liveaction_db.notify is not None:
+            self._post_notify_triggers(liveaction=liveaction_db, execution=execution)
 
-        self._apply_post_run_policies(liveaction_db=liveaction)
-
-        if liveaction.notify is not None:
-            self._post_notify_triggers(liveaction=liveaction, execution=execution)
-
-        self._post_generic_trigger(liveaction=liveaction, execution=execution)
+        self._post_generic_trigger(liveaction=liveaction_db, execution=execution)
 
     def _get_execution_for_liveaction(self, liveaction):
         execution = ActionExecution.get(liveaction__id=str(liveaction.id))
