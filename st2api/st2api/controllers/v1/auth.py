@@ -112,7 +112,7 @@ class ApiKeyController(BaseRestControllerMixin):
             api_keys = [ApiKeyAPI.from_model(api_key_db, mask_secrets=mask_secrets)
                         for api_key_db in api_key_dbs]
         except OverflowError:
-            msg = 'Offset "%s" specified is more than 8-byte ints' % (offset)
+            msg = 'Offset "%s" specified is more than 32 bit int' % (offset)
             raise ValueError(msg)
 
         resp = Response(json=api_keys)
