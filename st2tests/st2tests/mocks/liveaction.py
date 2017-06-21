@@ -18,7 +18,6 @@ import traceback
 
 from st2actions import worker
 from st2actions import scheduler
-from st2actions.notifier import notifier
 from st2common.constants import action as action_constants
 from st2common.models.db.liveaction import LiveActionDB
 
