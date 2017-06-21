@@ -17,7 +17,6 @@ import datetime
 
 import bson
 import mock
-import unittest2
 
 import st2tests.config as tests_config
 tests_config.parse_args()

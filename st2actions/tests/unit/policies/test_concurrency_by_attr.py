@@ -29,7 +29,7 @@ from st2common.transport.publishers import CUDPublisher
 from st2tests import DbTestCase, EventletTestCase
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.mocks.execution import MockExecutionPublisher, MockExecutionPublisherNonBlocking
-from st2tests.mocks.liveaction import MockLiveActionPublisher, MockLiveActionPublisherNonBlocking
+from st2tests.mocks.liveaction import MockLiveActionPublisherNonBlocking
 from st2tests.mocks import runner
 
 PACK = 'generic'
