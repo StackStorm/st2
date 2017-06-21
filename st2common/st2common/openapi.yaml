@@ -235,6 +235,11 @@ paths:
           in: query
           description: Number of actions to get
           type: integer
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
         - name: id
           in: query
           description: Action id filter
@@ -424,6 +429,11 @@ paths:
           in: query
           description: Number of actions to get
           type: integer
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
         - name: id
           in: query
           description: Action id filter
@@ -698,12 +708,12 @@ paths:
           type: string
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of action alias to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of action alias offset
           type: integer
           default: 0
       responses:
@@ -768,12 +778,12 @@ paths:
           required: false
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of executions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of executions offset
           type: integer
           default: 0
         - name: sort
@@ -1198,12 +1208,12 @@ paths:
           type: string
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of keys to get from datastore
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of keys offset
           type: integer
           default: 0
         - name: sort
@@ -1349,12 +1359,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of packs to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of packs offset
           type: integer
           default: 0
         - name: sort
@@ -1620,12 +1630,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of configs to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of configs offset
           type: integer
           default: 0
         - name: sort
@@ -1742,12 +1752,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of config_schemas to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of config_schemas offset
           type: integer
           default: 0
         - name: sort
@@ -1819,12 +1829,12 @@ paths:
           type: string
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of policytypes to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of policytypes offset
           type: integer
           default: 0
         - name: sort
@@ -2212,6 +2222,11 @@ paths:
           in: query
           description: Number of entities to get
           type: integer
+        - name: offset
+          in: query
+          description: Number of policytypes offset
+          type: integer
+          default: 0
         - name: id
           in: query
           description: Entity id filter
@@ -2385,6 +2400,11 @@ paths:
           in: query
           description: Number of entities to get
           type: integer
+        - name: offset
+          in: query
+          description: Number of policytypes offset
+          type: integer
+          default: 0
         - name: id
           in: query
           description: Entity id filter
@@ -2512,12 +2532,12 @@ paths:
           required: false
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of runnertypes to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of runnertypes offset
           type: integer
           default: 0
         - name: sort
@@ -2630,6 +2650,11 @@ paths:
           in: query
           description: Number of entities to get
           type: integer
+        - name: offset
+          in: query
+          description: Number of policytypes offset
+          type: integer
+          default: 0
         - name: id
           in: query
           description: Entity id filter
@@ -2902,7 +2927,7 @@ paths:
           default: 50
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of ruleenforcements offset
           type: integer
           default: 0
         - name: sort
@@ -3053,12 +3078,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of traces to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of traces offset
           type: integer
           default: 0
         - name: sort
@@ -3153,12 +3178,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of triggertypes to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of triggertypes offset
           type: integer
           default: 0
         - name: sort
@@ -3406,12 +3431,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of triggerinstances to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of triggerinstances offset
           type: integer
           default: 0
         - name: sort
