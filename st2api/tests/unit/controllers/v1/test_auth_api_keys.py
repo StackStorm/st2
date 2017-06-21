@@ -69,6 +69,8 @@ class TestApiKeyController(FunctionalTest):
     def test_get_all(self):
         resp = self.app.get('/v1/apikeys')
         self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.headers['X-Total-Count'], "5")
+        self.assertEqual(resp.headers['X-Limit'], "50")
         self.assertEqual(len(resp.json), 5, '/v1/apikeys did not return all apikeys.')
 
         retrieved_ids = [apikey['id'] for apikey in resp.json]
@@ -80,6 +82,8 @@ class TestApiKeyController(FunctionalTest):
     def test_get_all_with_pagnination_with_offset_and_limit(self):
         resp = self.app.get('/v1/apikeys?offset=2&limit=1')
         self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.headers['X-Total-Count'], "5")
+        self.assertEqual(resp.headers['X-Limit'], "1")
         self.assertEqual(len(resp.json), 1)
 
         retrieved_ids = [apikey['id'] for apikey in resp.json]
@@ -88,6 +92,8 @@ class TestApiKeyController(FunctionalTest):
     def test_get_all_with_pagnination_with_only_offset(self):
         resp = self.app.get('/v1/apikeys?offset=3')
         self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.headers['X-Total-Count'], "5")
+        self.assertEqual(resp.headers['X-Limit'], "50")
         self.assertEqual(len(resp.json), 2)
 
         retrieved_ids = [apikey['id'] for apikey in resp.json]
@@ -96,6 +102,8 @@ class TestApiKeyController(FunctionalTest):
     def test_get_all_with_pagnination_with_only_limit(self):
         resp = self.app.get('/v1/apikeys?limit=2')
         self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.headers['X-Total-Count'], "5")
+        self.assertEqual(resp.headers['X-Limit'], "2")
         self.assertEqual(len(resp.json), 2)
 
         retrieved_ids = [apikey['id'] for apikey in resp.json]
