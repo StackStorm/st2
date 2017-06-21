@@ -51,7 +51,7 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
-ACTIONUPDATE_WORK_Q = execution.get_queue('st2.notifiers.work',
+ACTIONUPDATE_WORK_Q = execution.get_queue('st2.notifiers.execution.work',
                                           routing_key=publishers.UPDATE_RK)
 
 ACTION_SENSOR_ENABLED = cfg.CONF.action_sensor.enable
