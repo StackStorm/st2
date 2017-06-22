@@ -277,6 +277,8 @@ def register_opts(ignore_errors=False):
                         'to external workflow system.')
     ]
     do_register_opts(query_opts, group='resultstracker', ignore_errors=ignore_errors)
+    # XXX: This is required for us to support deprecated config group results_tracker
+    do_register_opts(query_opts, group='results_tracker', ignore_errors=ignore_errors)
 
     # Common CLI options
     debug = cfg.BoolOpt('debug', default=False,
