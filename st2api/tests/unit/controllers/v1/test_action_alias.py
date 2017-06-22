@@ -55,6 +55,9 @@ class TestActionAlias(FunctionalTest):
                                                      fixtures_dict=TEST_LOAD_MODELS)
         cls.alias3 = loaded_models['aliases']['alias3.yaml']
 
+        FixturesLoader().save_fixtures_to_db(fixtures_pack=GENERIC_FIXTURES_PACK,
+                                             fixtures_dict={'aliases': ['alias7.yaml']})
+
         loaded_models = FixturesLoader().load_models(fixtures_pack=GENERIC_FIXTURES_PACK,
                                                      fixtures_dict=TEST_LOAD_MODELS_GENERIC)
         cls.alias3_generic = loaded_models['aliases']['alias3.yaml']
@@ -62,12 +65,40 @@ class TestActionAlias(FunctionalTest):
     def test_get_all(self):
         resp = self.app.get('/v1/actionalias')
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(len(resp.json), 2, '/v1/actionalias did not return all aliases.')
+        self.assertEqual(len(resp.json), 3, '/v1/actionalias did not return all aliases.')
 
         retrieved_names = [alias['name'] for alias in resp.json]
 
-        self.assertEqual(retrieved_names, [self.alias1.name, self.alias2.name],
+        self.assertEqual(retrieved_names, [self.alias1.name, self.alias2.name, 'alias7'],
                          'Incorrect aliases retrieved.')
+
+    def test_get_all_query_param_filters(self):
+        resp = self.app.get('/v1/actionalias?pack=doesntexist')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 0)
+
+        resp = self.app.get('/v1/actionalias?pack=aliases')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 2)
+
+        for alias_api in resp.json:
+            self.assertEqual(alias_api['pack'], 'aliases')
+
+        resp = self.app.get('/v1/actionalias?pack=generic')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1)
+
+        for alias_api in resp.json:
+            self.assertEqual(alias_api['pack'], 'generic')
+
+        resp = self.app.get('/v1/actionalias?name=doesntexist')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 0)
+
+        resp = self.app.get('/v1/actionalias?name=alias2')
+        self.assertEqual(resp.status_int, 200)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['name'], 'alias2')
 
     def test_get_one(self):
         resp = self.app.get('/v1/actionalias/%s' % self.alias1.id)
@@ -133,7 +164,7 @@ class TestActionAlias(FunctionalTest):
     def test_help(self):
         resp = self.app.get("/v1/actionalias/help")
         self.assertEqual(resp.status_int, 200)
-        self.assertEqual(resp.json.get('available'), 2)
+        self.assertEqual(resp.json.get('available'), 4)
 
     def test_help_args(self):
         resp = self.app.get("/v1/actionalias/help?filter=.*&pack=aliases&limit=1&offset=0")
