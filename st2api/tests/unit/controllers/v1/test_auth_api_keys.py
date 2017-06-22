@@ -119,7 +119,7 @@ class TestApiKeyController(FunctionalTest):
         resp = self.app.get('/v1/apikeys?offset=2147483648&limit=1', expect_errors=True)
         self.assertEqual(resp.status_int, 400)
         self.assertEqual(resp.json['faultstring'],
-                         'Offset "2147483648" specified is more than 8-byte ints')
+                         'Offset "2147483648" specified is more than 32 bit int')
 
     def test_get_one_by_id(self):
         resp = self.app.get('/v1/apikeys/%s' % self.apikey1.id)
