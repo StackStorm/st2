@@ -276,7 +276,7 @@ def register_opts(ignore_errors=False):
                    help='Time interval between subsequent queries for a context ' +
                         'to external workflow system.')
     ]
-    do_register_opts(query_opts, group='results_tracker', ignore_errors=ignore_errors)
+    do_register_opts(query_opts, group='resultstracker', ignore_errors=ignore_errors)
 
     # Common CLI options
     debug = cfg.BoolOpt('debug', default=False,
