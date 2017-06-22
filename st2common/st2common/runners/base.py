@@ -102,6 +102,12 @@ class ActionRunner(object):
     def run(self, action_parameters):
         raise NotImplementedError()
 
+    def pause(self):
+        raise NotImplementedError()
+
+    def resume(self):
+        raise NotImplementedError()
+
     def cancel(self):
         pass
 

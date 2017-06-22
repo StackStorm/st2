@@ -351,3 +351,34 @@ class WiringTest(base.TestWorkflowExecution):
     def test_invoke_from_action_chain(self):
         execution = self._execute_workflow('examples.invoke-mistral-with-jinja', {'cmd': 'date'})
         execution = self._wait_for_state(execution, ['succeeded'])
+
+    def test_pause_resume(self):
+        # A temp file is created during test setup. Ensure the temp file exists.
+        path = self.temp_dir_path
+        self.assertTrue(os.path.exists(path))
+
+        # Launch the workflow. The workflow will wait for the temp file to be deleted.
+        params = {'tempfile': path, 'message': 'foobar'}
+        execution = self._execute_workflow('examples.mistral-test-pause-resume', params)
+        execution = self._wait_for_task(execution, 'task1', 'RUNNING')
+
+        # Pause the workflow before the temp file is created. The workflow will be paused
+        # but task1 will still be running to allow for graceful exit.
+        execution = self.st2client.liveactions.pause(execution.id)
+
+        # Expecting the execution to be pausing, waiting for task1 to be completed.
+        execution = self._wait_for_state(execution, ['pausing'])
+
+        # Delete the temporary file.
+        os.remove(path)
+        self.assertFalse(os.path.exists(path))
+
+        # Wait for the execution to be paused.
+        execution = self._wait_for_state(execution, ['paused'])
+
+        # Resume the execution.
+        execution = self.st2client.liveactions.resume(execution.id)
+
+        # Wait for completion.
+        execution = self._wait_for_completion(execution)
+        self._assert_success(execution, num_tasks=2)

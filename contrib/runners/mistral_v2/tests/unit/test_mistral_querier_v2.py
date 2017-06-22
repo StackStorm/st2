@@ -143,6 +143,16 @@ MOCK_LIVEACTION_CANCELING = LiveActionDB(
     status=action_constants.LIVEACTION_STATUS_CANCELING
 )
 
+MOCK_LIVEACTION_PAUSING = LiveActionDB(
+    action='mock.workflow',
+    status=action_constants.LIVEACTION_STATUS_PAUSING
+)
+
+MOCK_LIVEACTION_RESUMING = LiveActionDB(
+    action='mock.workflow',
+    status=action_constants.LIVEACTION_STATUS_RESUMING
+)
+
 
 class MistralQuerierTest(DbTestCase):
 
@@ -271,6 +281,42 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
+    def test_determine_status_wf_running_exec_cancelled_tasks_running(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RUNNING,
+            'CANCELLED',
+            MOCK_WF_TASKS_RUNNING
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
+
+    def test_determine_status_wf_pausing_exec_paused_tasks_completed(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_PAUSING,
+            'PAUSED',
+            MOCK_WF_TASKS_SUCCEEDED
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSED, status)
+
+    def test_determine_status_wf_pausing_exec_paused_tasks_running(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_PAUSING,
+            'PAUSED',
+            MOCK_WF_TASKS_RUNNING
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSING, status)
+
+    def test_determine_status_wf_pausing_exec_running_tasks_running(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_PAUSING,
+            'RUNNING',
+            MOCK_WF_TASKS_RUNNING
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSING, status)
+
     def test_determine_status_wf_running_exec_paused_tasks_completed(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RUNNING,
@@ -278,11 +324,56 @@ class MistralQuerierTest(DbTestCase):
             MOCK_WF_TASKS_SUCCEEDED
         )
 
-        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+        self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSED, status)
 
-    def test_determine_status_wf_running_exec_cancelled_tasks_running(self):
+    def test_determine_status_wf_running_exec_paused_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RUNNING,
+            'PAUSED',
+            MOCK_WF_TASKS_RUNNING
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSING, status)
+
+    def test_determine_status_wf_resuming_exec_paused_tasks_completed(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RESUMING,
+            'PAUSED',
+            MOCK_WF_TASKS_SUCCEEDED
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_RESUMING, status)
+
+    def test_determine_status_wf_resuming_exec_running_tasks_completed(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RESUMING,
+            'RUNNING',
+            MOCK_WF_TASKS_SUCCEEDED
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+
+    def test_determine_status_wf_resuming_exec_running_tasks_running(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RESUMING,
+            'RUNNING',
+            MOCK_WF_TASKS_RUNNING
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+
+    def test_determine_status_wf_resuming_exec_paused_tasks_running(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RESUMING,
+            'PAUSED',
+            MOCK_WF_TASKS_RUNNING
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSING, status)
+
+    def test_determine_status_wf_resuming_exec_canceled_tasks_running(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RESUMING,
             'CANCELLED',
             MOCK_WF_TASKS_RUNNING
         )

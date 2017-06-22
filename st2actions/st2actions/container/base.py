@@ -65,12 +65,21 @@ class RunnerContainer(object):
         LOG.debug('Runner instance for RunnerType "%s" is: %s', runnertype_db.name, runner)
 
         # Process the request.
-        if liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING:
-            liveaction_db = self._do_cancel(runner=runner, runnertype_db=runnertype_db,
-                                            action_db=action_db, liveaction_db=liveaction_db)
-        else:
-            liveaction_db = self._do_run(runner=runner, runnertype_db=runnertype_db,
-                                         action_db=action_db, liveaction_db=liveaction_db)
+        funcs = {
+            action_constants.LIVEACTION_STATUS_REQUESTED: self._do_run,
+            action_constants.LIVEACTION_STATUS_SCHEDULED: self._do_run,
+            action_constants.LIVEACTION_STATUS_RUNNING: self._do_run,
+            action_constants.LIVEACTION_STATUS_CANCELING: self._do_cancel,
+            action_constants.LIVEACTION_STATUS_PAUSING: self._do_pause,
+            action_constants.LIVEACTION_STATUS_RESUMING: self._do_resume
+        }
+
+        liveaction_db = funcs[liveaction_db.status](
+            runner=runner,
+            runnertype_db=runnertype_db,
+            action_db=action_db,
+            liveaction_db=liveaction_db
+        )
 
         return liveaction_db.result
 
@@ -188,6 +197,93 @@ class RunnerContainer(object):
             self._clean_up_auth_token(runner=runner, status=status)
 
         return liveaction_db
+
+    def _do_pause(self, runner, runnertype_db, action_db, liveaction_db):
+        try:
+            extra = {'runner': runner}
+            LOG.debug('Performing pause for runner: %s', (runner.runner_id), extra=extra)
+
+            runner.pause()
+
+            liveaction_db = get_liveaction_by_id(liveaction_db.id)
+
+            runner.container_service = None
+        except:
+            _, ex, tb = sys.exc_info()
+            # include the error message and traceback to try and provide some hints.
+            result = {'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
+            LOG.exception('Failed to pause action %s.' % (liveaction_db.id), extra=result)
+        finally:
+            # Always clean-up the auth_token
+            status = liveaction_db.status
+            self._clean_up_auth_token(runner=runner, status=status)
+
+        return liveaction_db
+
+    def _do_resume(self, runner, runnertype_db, action_db, liveaction_db):
+        updated_liveaction_db = None
+
+        try:
+            extra = {'runner': runner}
+            LOG.debug('Performing resume for runner: %s', (runner.runner_id), extra=extra)
+
+            (status, result, context) = runner.resume()
+
+            try:
+                result = json.loads(result)
+            except:
+                pass
+
+            action_completed = status in action_constants.LIVEACTION_COMPLETED_STATES
+
+            if isinstance(runner, AsyncActionRunner) and not action_completed:
+                self._setup_async_query(liveaction_db.id, runnertype_db, context)
+        except:
+            LOG.exception('Failed to run action.')
+            _, ex, tb = sys.exc_info()
+            # mark execution as failed.
+            status = action_constants.LIVEACTION_STATUS_FAILED
+            # include the error message and traceback to try and provide some hints.
+            result = {'error': str(ex), 'traceback': ''.join(traceback.format_tb(tb, 20))}
+            context = None
+        finally:
+            # Log action completion
+            extra = {'result': result, 'status': status}
+            LOG.debug('Action "%s" completed.' % (action_db.name), extra=extra)
+
+            try:
+                LOG.debug('Setting status: %s for liveaction: %s', status, liveaction_db.id)
+                updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
+                                                                    result, context)
+            except Exception as e:
+                msg = 'Cannot update LiveAction object for id: %s, status: %s, result: %s.' % (
+                    liveaction_db.id, status, result)
+                LOG.exception(msg)
+                raise e
+
+            try:
+                executions.update_execution(updated_liveaction_db)
+                extra = {'liveaction_db': updated_liveaction_db}
+                LOG.debug('Updated liveaction after run', extra=extra)
+            except Exception as e:
+                msg = 'Cannot update ActionExecution object for id: %s, status: %s, result: %s.' % (
+                    updated_liveaction_db.id, status, result)
+                LOG.exception(msg)
+                raise e
+
+            # Always clean-up the auth_token
+            # Note: self._clean_up_auth_token should never throw to ensure post_run is always
+            # called.
+            self._clean_up_auth_token(runner=runner, status=status)
+
+        LOG.debug('Performing post_run for runner: %s', runner.runner_id)
+        runner.post_run(status=status, result=result)
+        runner.container_service = None
+
+        LOG.debug('Runner do_run result', extra={'result': updated_liveaction_db.result})
+        LOG.audit('Liveaction completed', extra={'liveaction_db': updated_liveaction_db})
+
+        return updated_liveaction_db
 
     def _clean_up_auth_token(self, runner, status):
         """

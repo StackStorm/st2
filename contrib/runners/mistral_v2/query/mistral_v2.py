@@ -23,7 +23,8 @@ LOG = logging.getLogger(__name__)
 DONE_STATES = {
     'ERROR': action_constants.LIVEACTION_STATUS_FAILED,
     'SUCCESS': action_constants.LIVEACTION_STATUS_SUCCEEDED,
-    'CANCELLED': action_constants.LIVEACTION_STATUS_CANCELED
+    'CANCELLED': action_constants.LIVEACTION_STATUS_CANCELED,
+    'PAUSED': action_constants.LIVEACTION_STATUS_PAUSED
 }
 
 ACTIVE_STATES = {
@@ -33,6 +34,15 @@ ACTIVE_STATES = {
 CANCELED_STATES = [
     action_constants.LIVEACTION_STATUS_CANCELED,
     action_constants.LIVEACTION_STATUS_CANCELING
+]
+
+PAUSED_STATES = [
+    action_constants.LIVEACTION_STATUS_PAUSED,
+    action_constants.LIVEACTION_STATUS_PAUSING
+]
+
+RESUMING_STATES = [
+    action_constants.LIVEACTION_STATUS_RESUMING
 ]
 
 
@@ -78,6 +88,7 @@ class MistralResultsQuerier(Querier):
             if last_query_time else None
         )
 
+        # Retrieve liveaction_db to append new result to existing result.
         liveaction_db = action_utils.get_liveaction_by_id(execution_id)
 
         mistral_exec_id = query_context.get('mistral', {}).get('execution_id', None)
@@ -105,6 +116,10 @@ class MistralResultsQuerier(Querier):
             LOG.exception('[%s] Unable to fetch mistral workflow result and tasks. %s',
                           execution_id, query_context)
             raise
+
+        # Retrieve liveaction_db again in case state has changed
+        # while the querier get results from mistral API above.
+        liveaction_db = action_utils.get_liveaction_by_id(execution_id)
 
         status = self._determine_execution_status(
             liveaction_db,
@@ -155,12 +170,14 @@ class MistralResultsQuerier(Querier):
         result = []
 
         try:
-            query_filters = {}
+            wf_tasks = self._client.tasks.list(workflow_execution_id=exec_id)
 
             if last_query_time:
-                query_filters['updated_at'] = 'gte:%s' % last_query_time
-
-            wf_tasks = self._client.tasks.list(workflow_execution_id=exec_id, **query_filters)
+                wf_tasks = [
+                    t for t in wf_tasks
+                    if ((t.created_at is not None and t.created_at >= last_query_time) or
+                        (t.updated_at is not None and t.updated_at >= last_query_time))
+                ]
 
             for wf_task in wf_tasks:
                 result.append(self._client.tasks.get(wf_task.id))
@@ -210,8 +227,10 @@ class MistralResultsQuerier(Querier):
         return result
 
     def _determine_execution_status(self, liveaction_db, wf_state, tasks):
-        # Determine if liveaction is canceled or being canceled.
+        # Determine if liveaction is being canceled, paused, or resumed.
         is_action_canceled = liveaction_db.status in CANCELED_STATES
+        is_action_paused = liveaction_db.status in PAUSED_STATES
+        is_action_resuming = liveaction_db.status in RESUMING_STATES
 
         # Identify the list of tasks that are not still running.
         active_tasks = [t for t in tasks if t['state'] in ACTIVE_STATES]
@@ -225,6 +244,14 @@ class MistralResultsQuerier(Querier):
             status = action_constants.LIVEACTION_STATUS_CANCELING
         elif not is_action_canceled and active_tasks and wf_state == 'CANCELLED':
             status = action_constants.LIVEACTION_STATUS_CANCELING
+        elif is_action_paused and active_tasks:
+            status = action_constants.LIVEACTION_STATUS_PAUSING
+        elif is_action_paused and not active_tasks and wf_state not in DONE_STATES:
+            status = action_constants.LIVEACTION_STATUS_PAUSING
+        elif not is_action_paused and active_tasks and wf_state == 'PAUSED':
+            status = action_constants.LIVEACTION_STATUS_PAUSING
+        elif is_action_resuming and wf_state == 'PAUSED':
+            status = action_constants.LIVEACTION_STATUS_RESUMING
         elif wf_state in DONE_STATES and active_tasks:
             status = action_constants.LIVEACTION_STATUS_RUNNING
         elif wf_state in DONE_STATES and not active_tasks:
