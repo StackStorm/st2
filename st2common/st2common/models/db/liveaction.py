@@ -75,7 +75,6 @@ class LiveActionDB(stormbase.StormFoundationDB):
             {'fields': ['end_timestamp']},
             {'fields': ['action']},
             {'fields': ['status']},
-            {'fields': ['context']},
             {'fields': ['context.trigger_instance.id']},
         ]
     }

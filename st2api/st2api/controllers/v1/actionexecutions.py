@@ -29,7 +29,7 @@ from st2api.controllers.v1.executionviews import ExecutionViewsController
 from st2api.controllers.v1.executionviews import SUPPORTED_FILTERS
 from st2common import log as logging
 from st2common.constants.action import LIVEACTION_STATUS_CANCELED, LIVEACTION_STATUS_FAILED
-from st2common.constants.action import LIVEACTION_CANCELABLE_STATES
+from st2common.constants.action import LIVEACTION_CANCELABLE_STATES, LIVEACTION_COMPLETED_STATES
 from st2common.exceptions.param import ParamException
 from st2common.exceptions.apivalidation import ValueValidationException
 from st2common.exceptions.trace import TraceNotFoundException
@@ -468,6 +468,58 @@ class ActionExecutionsController(ActionExecutionsControllerMixin, ResourceContro
                                                requester_user=requester_user,
                                                context_string=context_string,
                                                show_secrets=show_secrets)
+
+    def put(self, id, liveaction_api, requester_user, show_secrets=False):
+        """
+        Updates a single execution.
+
+        Handles requests:
+            PUT /executions/<id>
+
+        """
+        if not requester_user:
+            requester_user = UserDB(cfg.CONF.system_user.user)
+
+        from_model_kwargs = {
+            'mask_secrets': self._get_mask_secrets(requester_user, show_secrets=show_secrets)
+        }
+
+        execution_api = self._get_one_by_id(id=id, requester_user=requester_user,
+                                            from_model_kwargs=from_model_kwargs,
+                                            permission_type=PermissionType.EXECUTION_STOP)
+
+        if not execution_api:
+            abort(http_client.NOT_FOUND, 'Execution with id %s not found.' % id)
+
+        liveaction_id = execution_api.liveaction['id']
+        if not liveaction_id:
+            abort(http_client.INTERNAL_SERVER_ERROR,
+                  'Execution object missing link to liveaction %s.' % liveaction_id)
+
+        try:
+            liveaction_db = LiveAction.get_by_id(liveaction_id)
+        except:
+            abort(http_client.INTERNAL_SERVER_ERROR,
+                  'Execution object missing link to liveaction %s.' % liveaction_id)
+
+        if liveaction_db.status in LIVEACTION_COMPLETED_STATES:
+            abort(http_client.BAD_REQUEST, 'Execution is already in completed state.')
+
+        try:
+            liveaction_db = action_service.update_status(
+                liveaction_db,
+                liveaction_api.status,
+                result=getattr(liveaction_api, 'result', None)
+            )
+        except Exception as e:
+            LOG.exception('Failed updating liveaction %s. %s', liveaction_db.id, str(e))
+            abort(http_client.INTERNAL_SERVER_ERROR, 'Failed updating execution.')
+
+        execution_api = self._get_one_by_id(id=id, requester_user=requester_user,
+                                            from_model_kwargs=from_model_kwargs,
+                                            permission_type=PermissionType.EXECUTION_STOP)
+
+        return execution_api
 
     def delete(self, id, requester_user, show_secrets=False):
         """
