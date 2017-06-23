@@ -292,7 +292,7 @@ if [ "${ENABLE_COVERAGE}" = true ]; then
   verbose_log "Enabling nosetests coverage"
 
   # base options to enable test coverage printouts
-  NOSE_OPTS+=(--with-coverage --cover-html)
+  NOSE_OPTS+=(--with-coverage)
 
   # Now, by default nosetests prints out test coverage for every module found
   # in the $PYTHONPATH... as you can imagine this is not ideal and may contain
