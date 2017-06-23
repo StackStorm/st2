@@ -93,7 +93,6 @@ while getopts ":p:xjvct" o; do
             VERBOSE=true
             ;;
         c)
-            echo "ENABLED COVERAGE"
             ENABLE_COVERAGE=true
             ;;
         t)
