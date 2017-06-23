@@ -37,11 +37,13 @@ PACK_TEST_PYTHON_DEPENDENCIES_NAMES=(
     'mock'
     'unittest2'
     'nose'
+    'coverage'
 )
 PACK_TEST_PYTHON_DEPENDENCIES_VERSIONS=(
     '>=2.0,<2.1'
     '>=1.1.0,<2.0'
     '>=1.3.7'
+    ''
 )
 
 VIRTUALENVS_DIR="/tmp/st2-pack-tests-virtualenvs"
@@ -54,6 +56,8 @@ ST2_PIP_OPTIONS=${ST2_PIP_OPTIONS:-"-q"}
 CREATE_VIRTUALENV=true
 JUST_TESTS=false
 VERBOSE=false
+ENABLE_COVERAGE=false
+ENABLE_TIMING=false
 
 VIRTUALENV_ACTIVATED=false
 
@@ -65,14 +69,16 @@ STACKSTORM_VIRTUALENV_PYTHON_BINARY="${STACKSTORM_VIRTUALENV_BIN}/python"
 ####################
 
 function usage() {
-    echo "Usage: $0 [-x] [-j] [-v] -p <path to pack>" >&2
-    echo "  -x : Do not create virtualenv for test for tests, e.g. when running in existing one." >&2
-    echo "  -j : Just run tests (use previously installed dependencies" >&2
+    echo "Usage: $0  [-c] [-j] [-t] [-v] [-x] -p <path to pack>" >&2
+    echo "  -c : Run tests with code coverage reporting enabled" >&2
+    echo "  -j : Just run tests. Use previously installed dependencies" >&2
     echo "       and virtualenv if any. For subsequent test runs." >&2
+    echo "  -t : Run tests with timing enabled" >&2
     echo "  -v : Verbose mode (log debug messages to stdout)." >&2
+    echo "  -x : Do not create virtualenv for test for tests, e.g. when running in existing one." >&2
 }
 
-while getopts ":p:xjv" o; do
+while getopts ":p:xjvct" o; do
     case "${o}" in
         p)
             PACK_PATH=${OPTARG}
@@ -85,6 +91,13 @@ while getopts ":p:xjv" o; do
             ;;
         v)
             VERBOSE=true
+            ;;
+        c)
+            echo "ENABLED COVERAGE"
+            ENABLE_COVERAGE=true
+            ;;
+        t)
+            ENABLE_TIMING=true
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -273,7 +286,66 @@ fi
 echo "Running tests..."
 # Note: We run nosetests with "--exe" option so it also runs test files which are executable
 # (pack install command automatically makes all the files, including test files executable)
-nosetests -s -v --exe ${PACK_TESTS_PATH}
+NOSE_OPTS=(-s -v --exe --rednose --immediate)
+
+# Should we pass in arguments to enable test coverage
+if [ "${ENABLE_COVERAGE}" = true ]; then
+  verbose_log "Enabling nosetests coverage"
+
+  # base options to enable test coverage printouts
+  NOSE_OPTS+=(--with-coverage --cover-html)
+
+  # Now, by default nosetests prints out test coverage for every module found
+  # in the $PYTHONPATH... as you can imagine this is not ideal and may contain
+  # a LOT of files. To only print out the modules that we care about we need to
+  # specify them on the cdmline using --cover-package=package.name
+
+  # There are two directories that way contain python files
+  PACK_PYTHON_DIRS=("${PACK_PATH}/actions/" "${PACK_PATH}/sensors/")
+
+  # There are two scenarios for python files in the PACK_PYTHON_DIRS
+  # 1) there are xxx.py files in the root of the directory (ex: actions/example.py)
+  # 2) there are sub directories that contain __init__.py files that signify
+  #    to python that they're a module (ex: actions/lib/__init.py). All files
+  #    within this sub directory will be checked for coverage if we
+  #    specify the option for the base module (ex: --cover-package=lib)
+
+  # for each of the directories in the pack that may contain python files
+  for pack_python_dir in ${PACK_PYTHON_DIRS}; do
+
+    # find all *.py files in the root of the $pack_python_dir
+    for py_absolute in $(find $pack_python_dir  -mindepth 1 -maxdepth 1 -name "*.py"); do
+      # remove the $pack_python_dir directory from the beginning of $py_absolute
+      py_relative=${py_absolute#$pack_python_dir}
+      # convert '/'s to '.'s and remove the '.py' at the end
+      py_package=$(echo "$py_relative" | sed 's/\//./g' | sed 's/\.py//g')
+      # append the name of this package to the nose options
+      verbose_log "Enabling nosetests coverage for python package: $py_package"
+      NOSE_OPTS+=(--cover-package=$py_package)
+    done
+
+    # find all __init__.py files in sub directories of $pack_python_dir
+    for init_absolute in $(find $pack_python_dir  -mindepth 2 -name "__init__.py"); do
+      # remove the $pack_python_dir directory from the beginning of $py_absolute
+      init_relative=${init_absolute#$pack_python_dir}
+      # remove the filename from $init_relative so we're just left with the
+      # directory path (this is the name of the package :) ) and then
+      # convert '/'s to '.'s
+      init_package=$(dirname $init_relative | sed 's/\//./g')
+      # append the name of this package to the nose options
+      verbose_log "Enabling nosetests coverage for python package: $init_package"
+      NOSE_OPTS+=(--cover-package=$init_package)
+    done
+  done # end for each $PACK_PYTHON_DIR
+fi # end enable test coverage
+
+# Should we pass in arguments to enable test timing
+if [ "${ENABLE_TIMING}" = true ]; then
+  verbose_log "Enabling nosetests timings"
+  NOSE_OPTS+=(--with-timer)
+fi
+
+nosetests ${NOSE_OPTS[@]} ${PACK_TESTS_PATH}
 TESTS_EXIT_CODE=$?
 
 # Clean up and unset the variables
