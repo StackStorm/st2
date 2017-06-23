@@ -21,7 +21,7 @@ from st2client.utils.strutil import unescape
 
 
 class StrUtilTestCase(unittest2.TestCase):
-# See https://mail.python.org/pipermail/python-list/2006-January/411909.html
+    # See https://mail.python.org/pipermail/python-list/2006-January/411909.html
 
     def test_unicode_string(self):
         in_str = '\u8c03\u7528CMS\u63a5\u53e3\u5220\u9664\u865a\u62df\u76ee\u5f55'
