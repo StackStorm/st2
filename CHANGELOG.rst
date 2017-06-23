@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+* Added test coverage and test timing capabilities to ``st2-run-pack-tests``.
+  The ``-c`` option enables test coverage and the ``-t`` option enables test timings.
+  These capabilities have also been enabled in the ci pipeline for packs in the exchange.
+  (Nick Maludy)
 * Update ``st2 run`` / ``st2 execution run`` command to display result of workflow actions when
   they finish. In the workflow case, result of the last task (action) of the workflow is used.
   (improvement) #3481
@@ -93,7 +97,7 @@ in development
   support non-ascii (unicode) characters. (bug fix)
 * When RBAC is enabled and action is scheduled (ran) through the API, include ``rbac`` dictionary
   with ``user`` and ``roles`` ``action_context`` attribute. (improvement)
-* Fix a bug in query base module when outstanding queries to mistral or other workflow engines 
+* Fix a bug in query base module when outstanding queries to mistral or other workflow engines
   could cause a tight loop without cooperative yield leading to 100% CPU usage by st2resultstracker
   process. (bug-fix)
 * Make the query interval to third party workflow systems (including mistral) a configurable
