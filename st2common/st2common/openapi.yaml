@@ -535,6 +535,10 @@ paths:
       description: |
           Get list of action-aliases.
       parameters:
+        - name: name
+          in: query
+          description: Entity name filter
+          type: string
         - name: pack
           in: query
           description: Only return resources belonging to the provided pack
