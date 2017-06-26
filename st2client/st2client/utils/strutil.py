@@ -15,5 +15,5 @@
 
 
 def unescape(s):
-    return (s.replace('\\r\\n', '\\n').encode('utf-8').decode('string_escape').decode('utf-8')
+    return (s.replace('\r\n', '\n')
             if isinstance(s, basestring) else s)
