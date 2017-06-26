@@ -235,11 +235,6 @@ paths:
           in: query
           description: Number of actions to get
           type: integer
-        - name: offset
-          in: query
-          description: Number of actions offset
-          type: integer
-          default: 0
         - name: id
           in: query
           description: Action id filter
@@ -429,11 +424,6 @@ paths:
           in: query
           description: Number of actions to get
           type: integer
-        - name: offset
-          in: query
-          description: Number of actions offset
-          type: integer
-          default: 0
         - name: id
           in: query
           description: Action id filter
@@ -533,10 +523,6 @@ paths:
       description: |
           Get list of action-aliases.
       parameters:
-        - name: name
-          in: query
-          description: Entity name filter
-          type: string
         - name: pack
           in: query
           description: Only return resources belonging to the provided pack
@@ -712,12 +698,12 @@ paths:
           type: string
         - name: limit
           in: query
-          description: Number of action alias to get
+          description: Number of actions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of action alias offset
+          description: Number of actions offset
           type: integer
           default: 0
       responses:
@@ -782,12 +768,12 @@ paths:
           required: false
         - name: limit
           in: query
-          description: Number of executions to get
+          description: Number of actions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of executions offset
+          description: Number of actions offset
           type: integer
           default: 0
         - name: sort
@@ -964,39 +950,6 @@ paths:
               action:
                 type: object
               # and stuff
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-    put:
-      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.put
-      description: |
-        Update status and result for an execution.
-      parameters:
-        - name: id
-          in: path
-          description: Entity id
-          type: string
-          required: true
-        - name: liveaction_api
-          in: body
-          description: Execution update request
-          schema:
-            $ref: '#/definitions/ExecutionUpdateRequest'
-        - name: show_secrets
-          in: query
-          description: Show secrets in plain text
-          type: boolean
-      x-parameters:
-        - name: user
-          in: context
-          x-as: requester_user
-          description: User performing the operation.
-      responses:
-        '200':
-          description: Execution that was updated
-          schema:
-            $ref: '#/definitions/Execution'
         default:
           description: Unexpected error
           schema:
@@ -1212,12 +1165,12 @@ paths:
           type: string
         - name: limit
           in: query
-          description: Number of keys to get from datastore
+          description: Number of actions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of keys offset
+          description: Number of actions offset
           type: integer
           default: 0
         - name: sort
@@ -1363,12 +1316,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of packs to get
+          description: Number of actions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of packs offset
+          description: Number of actions offset
           type: integer
           default: 0
         - name: sort
@@ -1634,12 +1587,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of configs to get
+          description: Number of actions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of configs offset
+          description: Number of actions offset
           type: integer
           default: 0
         - name: sort
@@ -1756,12 +1709,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of config_schemas to get
+          description: Number of actions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of config_schemas offset
+          description: Number of actions offset
           type: integer
           default: 0
         - name: sort
@@ -1833,12 +1786,12 @@ paths:
           type: string
         - name: limit
           in: query
-          description: Number of policytypes to get
+          description: Number of actions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of policytypes offset
+          description: Number of actions offset
           type: integer
           default: 0
         - name: sort
@@ -2226,11 +2179,6 @@ paths:
           in: query
           description: Number of entities to get
           type: integer
-        - name: offset
-          in: query
-          description: Number of policytypes offset
-          type: integer
-          default: 0
         - name: id
           in: query
           description: Entity id filter
@@ -2404,11 +2352,6 @@ paths:
           in: query
           description: Number of entities to get
           type: integer
-        - name: offset
-          in: query
-          description: Number of policytypes offset
-          type: integer
-          default: 0
         - name: id
           in: query
           description: Entity id filter
@@ -2536,12 +2479,12 @@ paths:
           required: false
         - name: limit
           in: query
-          description: Number of runnertypes to get
+          description: Number of actions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of runnertypes offset
+          description: Number of actions offset
           type: integer
           default: 0
         - name: sort
@@ -2654,11 +2597,6 @@ paths:
           in: query
           description: Number of entities to get
           type: integer
-        - name: offset
-          in: query
-          description: Number of policytypes offset
-          type: integer
-          default: 0
         - name: id
           in: query
           description: Entity id filter
@@ -2772,16 +2710,6 @@ paths:
           in: query
           description: Show secrets in plain text
           type: boolean
-        - name: limit
-          in: query
-          description: List N most recent apikeys.
-          type: integer
-          default: 50
-        - name: offset
-          in: query
-          description: Number of apikeys offset
-          type: integer
-          default: 0
       x-parameters:
         - name: user
           in: context
@@ -2931,7 +2859,7 @@ paths:
           default: 50
         - name: offset
           in: query
-          description: Number of ruleenforcements offset
+          description: Number of actions offset
           type: integer
           default: 0
         - name: sort
@@ -3082,12 +3010,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of traces to get
+          description: Number of actions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of traces offset
+          description: Number of actions offset
           type: integer
           default: 0
         - name: sort
@@ -3182,12 +3110,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of triggertypes to get
+          description: Number of actions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of triggertypes offset
+          description: Number of actions offset
           type: integer
           default: 0
         - name: sort
@@ -3435,12 +3363,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of triggerinstances to get
+          description: Number of actions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of triggerinstances offset
+          description: Number of actions offset
           type: integer
           default: 0
         - name: sort
@@ -3992,16 +3920,6 @@ definitions:
             x-nullable: true
             description: User context under which action should run (admins only)
             default: ''
-  ExecutionUpdateRequest:
-    type: object
-    properties:
-      status:
-        description: The current status of the action execution.
-        type: string
-        enum: {{ LIVEACTION_STATUSES }}
-      result:
-        type: object
-    additionalProperties: False
   ExecutionFilters:
     type: object
   KeyValuePair:
