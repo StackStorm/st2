@@ -15,11 +15,13 @@ in development
   and didn't log anything which was confusing. (improvement) #3489
 
   Reported by Anthony Shaw.
-* Fix ``?name`` query param filter in ``/v1/actionalias`` API endpoint. (bug fix) #3503
+* Fix ``?name`` query parameter filter in ``/v1/actionalias`` API endpoint. (bug fix) #3503
 * Add missing pagination support to ``/v1/apikeys`` API endpoint. (improvement) #3486
-* Update action-chain runner so a default value of ``display_published`` runner parameter is
-  ``True``. This way it's consistent with Mistral runner behavior and variables published inside
-  action-chain workflow and stored and displayed by default. #3518
+* Update action-chain runner so a default value for ``display_published`` runner parameter is
+  ``True``. This way it's consistent with Mistral runner behavior and intermediate variables
+  published inside action-chain workflow are stored and displayed by default. #3518 #3519
+
+  Reported by Jacob Floyd.
 
 2.3.0 - June 19, 2017
 ---------------------
