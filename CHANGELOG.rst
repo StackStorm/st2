@@ -16,6 +16,7 @@ in development
 
   Reported by Anthony Shaw.
 * Fix ``?name`` query param filter in ``/v1/actionalias`` API endpoint. (bug fix) #3503
+* Add missing pagination support to ``/v1/apikeys`` API endpoint. (improvement) #3486
 
 2.3.0 - June 19, 2017
 ---------------------
