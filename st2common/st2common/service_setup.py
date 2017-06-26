@@ -20,6 +20,7 @@ This module contains common service setup and teardown code.
 from __future__ import absolute_import
 
 import os
+import traceback
 
 from oslo_config import cfg
 
@@ -88,8 +89,18 @@ def setup(service, config, setup_db=True, register_mq_exchanges=True,
     logging_config_path = os.path.abspath(logging_config_path)
 
     LOG.debug('Using logging config: %s', logging_config_path)
-    logging.setup(logging_config_path, redirect_stderr=cfg.CONF.log.redirect_stderr,
-                  excludes=cfg.CONF.log.excludes)
+
+    try:
+        logging.setup(logging_config_path, redirect_stderr=cfg.CONF.log.redirect_stderr,
+                      excludes=cfg.CONF.log.excludes)
+    except KeyError as e:
+        tb_msg = traceback.format_exc()
+        if 'log.setLevel' in tb_msg:
+            msg = 'Invalid log level selected. Log level names need to be all uppercase.'
+            msg += '\n\n' + tb_msg
+            raise KeyError(msg)
+        else:
+            raise e
 
     if cfg.CONF.debug or cfg.CONF.system.debug:
         enable_debugging()
