@@ -29,13 +29,13 @@ class StrUtilTestCase(unittest2.TestCase):
         self.assertEqual(out_str, in_str)
 
     def test_carriage_return_in_string(self):
-        in_str = 'Windows editors introduce\\r\\nlike a noob in 2017.'
+        in_str = 'Windows editors introduce\r\nlike a noob in 2017.'
         out_str = unescape(in_str)
         exp_str = 'Windows editors introduce\nlike a noob in 2017.'
         self.assertEqual(out_str, exp_str)
 
     def test_unicode_with_line_feed_like_chars(self):
         in_str = u'€\\n€'
-        out_str = unescape(in_str)
+        out_str = unescape(in_str).encode('utf-8').decode('string_escape').decode('utf-8')
         exp_str = u'€\n€'
         self.assertEqual(out_str, exp_str)
