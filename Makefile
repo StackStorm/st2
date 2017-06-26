@@ -79,7 +79,9 @@ configgen:
 
 .PHONY: .generate-openapi-spec
 .generate-openapi-spec:
-	. virtualenv/bin/activate; tools/generate_spec.py > st2common/st2common/openapi.yaml
+	echo "# NOTE: This file is auto-generated. Please edit st2common/st2common/openapi.yaml.j2"  > st2common/st2common/openapi.yaml
+	echo "# and then run make .generate-openapi-spec make target" >> st2common/st2common/openapi.yaml
+	. virtualenv/bin/activate; tools/generate_spec.py >> st2common/st2common/openapi.yaml
 
 .PHONY: .pylint
 .pylint:
