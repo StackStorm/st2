@@ -17,6 +17,13 @@ in development
   Reported by Anthony Shaw.
 * Fix ``?name`` query param filter in ``/v1/actionalias`` API endpoint. (bug fix) #3503
 * Add missing pagination support to ``/v1/apikeys`` API endpoint. (improvement) #3486
+* Notifier now consumes ``ActionExecution`` queue as opposed to ``LiveAction`` queue. With this
+  change, the jinja templates used in notify messages that refer to keys in ``ActionExecution``
+  resolves reliably. Previously, there was a race condition in which a ``LiveAction`` would have
+  been updated but ``ActionExecution`` was not and therefore, the jinja templates weren't reliably
+  resolved. (bug-fix) #3487 #3496
+
+  Reported by Chris Katzmann, Nick Maludy.
 
 2.3.0 - June 19, 2017
 ---------------------
@@ -94,7 +101,7 @@ in development
   support non-ascii (unicode) characters. (bug fix)
 * When RBAC is enabled and action is scheduled (ran) through the API, include ``rbac`` dictionary
   with ``user`` and ``roles`` ``action_context`` attribute. (improvement)
-* Fix a bug in query base module when outstanding queries to mistral or other workflow engines 
+* Fix a bug in query base module when outstanding queries to mistral or other workflow engines
   could cause a tight loop without cooperative yield leading to 100% CPU usage by st2resultstracker
   process. (bug-fix)
 * Make the query interval to third party workflow systems (including mistral) a configurable
