@@ -189,8 +189,15 @@ def setup(config_file, redirect_stderr=True, excludes=None, disable_existing_log
         if redirect_stderr:
             _redirect_stderr()
     except Exception as exc:
+        exc_cls = type(exc)
+        tb_msg = traceback.format_exc()
+
         # revert stderr redirection since there is no logger in place.
         sys.stderr = sys.__stderr__
+
         # No logger yet therefore write to stderr
         sys.stderr.write('ERROR: %s' % traceback.format_exc())
-        raise Exception(six.text_type(exc))
+
+        msg = str(exc)
+        msg += '\n\n' + tb_msg
+        raise exc_cls(six.text_type(msg))
