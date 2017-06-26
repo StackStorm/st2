@@ -15,11 +15,13 @@ in development
   and didn't log anything which was confusing. (improvement) #3489
 
   Reported by Anthony Shaw.
+* Fix ``?name`` query param filter in ``/v1/actionalias`` API endpoint. (bug fix) #3503
+* Add missing pagination support to ``/v1/apikeys`` API endpoint. (improvement) #3486
 * Notifier now consumes ``ActionExecution`` queue as opposed to ``LiveAction`` queue. With this
   change, the jinja templates used in notify messages that refer to keys in ``ActionExecution``
   resolves reliably. Previously, there was a race condition in which a ``LiveAction`` would have
   been updated but ``ActionExecution`` was not and therefore, the jinja templates weren't reliably
-  resolved. (bug-fix) #3487
+  resolved. (bug-fix) #3487 #3496
 
   Reported by Chris Katzmann, Nick Maludy.
 
