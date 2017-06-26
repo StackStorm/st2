@@ -15,6 +15,7 @@ in development
   and didn't log anything which was confusing. (improvement) #3489
 
   Reported by Anthony Shaw.
+* Add missing pagination support to ``/v1/apikeys`` API endpoint. (improvement) #3486
 
 2.3.0 - June 19, 2017
 ---------------------
