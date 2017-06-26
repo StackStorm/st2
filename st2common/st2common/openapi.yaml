@@ -1,3 +1,5 @@
+# NOTE: This file is auto-generated. Please edit st2common/st2common/openapi.yaml.j2
+# and then run make .generate-openapi-spec make target
 swagger: '2.0'
 
 info:
@@ -235,6 +237,11 @@ paths:
           in: query
           description: Number of actions to get
           type: integer
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
         - name: id
           in: query
           description: Action id filter
@@ -424,6 +431,11 @@ paths:
           in: query
           description: Number of actions to get
           type: integer
+        - name: offset
+          in: query
+          description: Number of actions offset
+          type: integer
+          default: 0
         - name: id
           in: query
           description: Action id filter
@@ -698,12 +710,12 @@ paths:
           type: string
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of actions alias to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of actions alias offset
           type: integer
           default: 0
       responses:
@@ -768,12 +780,12 @@ paths:
           required: false
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of executions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of executions offset
           type: integer
           default: 0
         - name: sort
@@ -950,6 +962,39 @@ paths:
               action:
                 type: object
               # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.put
+      description: |
+        Update status and result for an execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: liveaction_api
+          in: body
+          description: Execution update request
+          schema:
+            $ref: '#/definitions/ExecutionUpdateRequest'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution that was updated
+          schema:
+            $ref: '#/definitions/Execution'
         default:
           description: Unexpected error
           schema:
@@ -1165,12 +1210,12 @@ paths:
           type: string
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of keys to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of keys offset
           type: integer
           default: 0
         - name: sort
@@ -1316,12 +1361,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of packs to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of packs offset
           type: integer
           default: 0
         - name: sort
@@ -1587,12 +1632,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of configs to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of configs offset
           type: integer
           default: 0
         - name: sort
@@ -1709,12 +1754,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of config schemas to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of config schemas offset
           type: integer
           default: 0
         - name: sort
@@ -1786,12 +1831,12 @@ paths:
           type: string
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of policy types to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of policy types offset
           type: integer
           default: 0
         - name: sort
@@ -1868,6 +1913,16 @@ paths:
           in: query
           description: Policies name
           type: string
+        - name: limit
+          in: query
+          description: Number of policies to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of policies types offset
+          type: integer
+          default: 0
       responses:
         '200':
           description: Policy created successfully.
@@ -2479,12 +2534,12 @@ paths:
           required: false
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of runner types to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of runner types offset
           type: integer
           default: 0
         - name: sort
@@ -2710,6 +2765,16 @@ paths:
           in: query
           description: Show secrets in plain text
           type: boolean
+        - name: limit
+          in: query
+          description: Number of API keys to get
+          type: integer
+          default: 50
+        - name: offset
+          in: query
+          description: Number of API keys to offset
+          type: integer
+          default: 0
       x-parameters:
         - name: user
           in: context
@@ -2859,7 +2924,7 @@ paths:
           default: 50
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of rule enforcements to offset
           type: integer
           default: 0
         - name: sort
@@ -3010,12 +3075,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of traces to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of traces to offset
           type: integer
           default: 0
         - name: sort
@@ -3110,12 +3175,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of trigger types to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of trigger types to offset
           type: integer
           default: 0
         - name: sort
@@ -3363,12 +3428,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of trigger instances to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of trigger instances offset
           type: integer
           default: 0
         - name: sort
@@ -3920,6 +3985,16 @@ definitions:
             x-nullable: true
             description: User context under which action should run (admins only)
             default: ''
+  ExecutionUpdateRequest:
+    type: object
+    properties:
+      status:
+        description: The current status of the action execution.
+        type: string
+        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
+      result:
+        type: object
+    additionalProperties: False
   ExecutionFilters:
     type: object
   KeyValuePair:
