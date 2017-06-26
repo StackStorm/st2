@@ -107,6 +107,23 @@ configgen:
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
 
+.PHONY: lint-api-spec
+lint-api-spec: requirements .lint-api-spec
+
+.PHONY: .lint-api-spec
+.lint-api-spec:
+	@echo
+	@echo "================== Lint API spec ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --generate
+
+.PHONY: circle-lint-api-spec
+circle-lint-api-spec:
+	@echo
+	@echo "================== Lint API spec ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --generate || echo "Open API spec lint failed."
+
 .PHONY: flake8
 flake8: requirements .flake8
 
@@ -417,7 +434,7 @@ debs:
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check
+ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check
 
 .PHONY: .rst-check
 .rst-check:
