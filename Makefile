@@ -79,6 +79,9 @@ configgen:
 
 .PHONY: .generate-openapi-spec
 .generate-openapi-spec:
+	@echo
+	@echo "================== Generate openapi.yaml file ===================="
+	@echo
 	echo "# NOTE: This file is auto-generated. Please edit st2common/st2common/openapi.yaml.j2"  > st2common/st2common/openapi.yaml
 	echo "# and then run make .generate-openapi-spec make target" >> st2common/st2common/openapi.yaml
 	. virtualenv/bin/activate; tools/generate_spec.py >> st2common/st2common/openapi.yaml
@@ -161,7 +164,7 @@ bandit: requirements .bandit
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check
+.lint: .generate-openapi-spec .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -283,10 +286,10 @@ $(VIRTUALENV_DIR)/bin/activate:
 tests: pytests
 
 .PHONY: pytests
-pytests: compile requirements .generate-openapi-spec .flake8 .pylint .pytests-coverage
+pytests: compile requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: compile .unit-tests .itests clean
+.pytests: compile .generate-openapi-spec .unit-tests .itests clean
 
 .PHONY: .pytests-coverage
 .pytests-coverage: .unit-tests-coverage-html .itests-coverage-html clean
