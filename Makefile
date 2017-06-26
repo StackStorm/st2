@@ -77,6 +77,10 @@ configgen:
 	echo "" >> conf/st2.conf.sample
 	. $(VIRTUALENV_DIR)/bin/activate; python ./tools/config_gen.py >> conf/st2.conf.sample;
 
+.PHONY: .generate-openapi-spec
+.generate-openapi-spec:
+	. virtualenv/bin/activate; tools/generate_spec.py > st2common/st2common/openapi.yaml
+
 .PHONY: .pylint
 .pylint:
 	@echo
@@ -277,7 +281,7 @@ $(VIRTUALENV_DIR)/bin/activate:
 tests: pytests
 
 .PHONY: pytests
-pytests: compile requirements .flake8 .pylint .pytests-coverage
+pytests: compile requirements .generate-openapi-spec .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
 .pytests: compile .unit-tests .itests clean
