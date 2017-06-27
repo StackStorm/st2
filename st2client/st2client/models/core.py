@@ -364,7 +364,7 @@ class LiveActionResourceManager(ResourceManager):
             raise ValueError('List of tasks to reset does not match the tasks to rerun.')
 
         data = {
-            'parameters': parameters,
+            'parameters': parameters or {},
             'tasks': tasks,
             'reset': list(set(tasks) - set(no_reset))
         }

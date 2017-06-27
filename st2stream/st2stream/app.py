@@ -22,40 +22,39 @@ clients which are connected to the stream HTTP endpoint (fan out approach).
 Note: This app doesn't need access to MongoDB, just RabbitMQ.
 """
 
-import os
-
-import pecan
 from oslo_config import cfg
 
 from st2stream import config as st2stream_config
-from st2common import hooks
 from st2common import log as logging
+from st2common.middleware.error_handling import ErrorHandlingMiddleware
+from st2common.middleware.cors import CorsMiddleware
+from st2common.middleware.request_id import RequestIDMiddleware
+from st2common.middleware.logging import LoggingMiddleware
+from st2common.router import Router
 from st2common.util.monkey_patch import monkey_patch
 from st2common.constants.system import VERSION_STRING
 from st2common.service_setup import setup as common_setup
+from st2common.util import spec_loader
 
 LOG = logging.getLogger(__name__)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def _get_pecan_config():
-    config = {
-        'app': {
-            'root': 'st2stream.controllers.root.RootController',
-            'modules': ['st2auth'],
-            'debug': cfg.CONF.stream.debug,
-            'errors': {'__force_dict__': True},
-            'guess_content_type_from_ext': False
-        }
-    }
+class StreamingMiddleware(object):
+    def __init__(self, app):
+        self.app = app
 
-    return pecan.configuration.conf_from_dict(config)
+    def __call__(self, environ, start_response):
+        # Forces eventlet to respond immediately upon receiving a new chunk from endpoint rather
+        # than buffering it until the sufficient chunk size is reached. The order for this
+        # middleware is not important since it acts as pass-through.
+        environ['eventlet.minimum_write_chunk_size'] = 0
+        return self.app(environ, start_response)
 
 
-def setup_app(config=None):
-    LOG.info('Creating st2stream: %s as Pecan app.', VERSION_STRING)
+def setup_app(config={}):
+    LOG.info('Creating st2stream: %s as OpenAPI app.', VERSION_STRING)
 
-    is_gunicorn = getattr(config, 'is_gunicorn', False)
+    is_gunicorn = config.get('is_gunicorn', False)
     if is_gunicorn:
         # Note: We need to perform monkey patching in the worker. If we do it in
         # the master process (gunicorn_config.py), it breaks tons of things
@@ -71,30 +70,23 @@ def setup_app(config=None):
                      register_signal_handlers=True,
                      register_internal_trigger_types=False,
                      run_migrations=False,
-                     config_args=config.config_args)
+                     config_args=config.get('config_args', None))
 
-    if not config:
-        # standalone HTTP server case
-        config = _get_pecan_config()
-    else:
-        # gunicorn case
-        if is_gunicorn:
-            config.app = _get_pecan_config().app
+    router = Router(debug=cfg.CONF.stream.debug, auth=cfg.CONF.auth.enable)
 
-    app_conf = dict(config.app)
+    spec = spec_loader.load_spec('st2common', 'openapi.yaml.j2')
+    transforms = {
+        '^/stream/v1/': ['/', '/v1/']
+    }
+    router.add_spec(spec, transforms=transforms)
 
-    active_hooks = [hooks.RequestIDHook(), hooks.JSONErrorResponseHook(),
-                    hooks.LoggingHook()]
+    app = router.as_wsgi
 
-    active_hooks.append(hooks.AuthHook())
-    active_hooks.append(hooks.CorsHook())
-
-    app = pecan.make_app(app_conf.pop('root'),
-                         logging=getattr(config, 'logging', {}),
-                         hooks=active_hooks,
-                         **app_conf
-                         )
-
-    LOG.info('%s app created.' % __name__)
+    # Order is important. Check middleware for detailed explanation.
+    app = StreamingMiddleware(app)
+    app = ErrorHandlingMiddleware(app)
+    app = CorsMiddleware(app)
+    app = LoggingMiddleware(app, router)
+    app = RequestIDMiddleware(app)
 
     return app

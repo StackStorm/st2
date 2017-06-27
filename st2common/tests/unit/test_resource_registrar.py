@@ -24,23 +24,24 @@ from st2common.persistence.pack import Pack
 from st2common.persistence.pack import ConfigSchema
 
 from st2tests.base import CleanDbTestCase
-from st2tests import fixturesloader
+from st2tests.fixturesloader import get_fixtures_base_path
 
 
 __all__ = [
     'ResourceRegistrarTestCase'
 ]
 
-PACK_PATH_1 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_1')
-PACK_PATH_6 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_6')
-PACK_PATH_7 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_7')
-PACK_PATH_8 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_8')
-PACK_PATH_9 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_9')
-PACK_PATH_10 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_10')
-PACK_PATH_11 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_11')
-PACK_PATH_12 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_12')
-PACK_PATH_13 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_13')
-PACK_PATH_14 = os.path.join(fixturesloader.get_fixtures_packs_base_path(), 'dummy_pack_14')
+PACK_PATH_1 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_1')
+PACK_PATH_6 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_6')
+PACK_PATH_7 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_7')
+PACK_PATH_8 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_8')
+PACK_PATH_9 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_9')
+PACK_PATH_10 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_10')
+PACK_PATH_12 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_12')
+PACK_PATH_13 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_13')
+PACK_PATH_14 = os.path.join(get_fixtures_base_path(), 'packs/dummy_pack_14')
+PACK_PATH_17 = os.path.join(get_fixtures_base_path(), 'packs_invalid/dummy_pack_17')
+PACK_PATH_18 = os.path.join(get_fixtures_base_path(), 'packs_invalid/dummy_pack_18')
 
 
 class ResourceRegistrarTestCase(CleanDbTestCase):
@@ -144,35 +145,6 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         self.assertRaisesRegexp(ValueError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_14)
 
-    @mock.patch('st2common.models.api.pack.NORMALIZE_PACK_VERSION', False)
-    def test_register_pack_invalid_semver_version_friendly_error_message(self):
-        registrar = ResourceRegistrar(use_pack_cache=False)
-
-        expected_msg = ('Pack version "0.1.2.3.4" doesn\'t follow a valid semver format. Valid '
-                        'versions and formats include: 0.1.0, 0.2.1, 1.1.0, etc.')
-        self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
-                                pack_name=None, pack_dir=PACK_PATH_12)
-
-        expected_msg = ('Pack version "0.2" doesn\'t follow a valid semver format. Valid '
-                        'versions and formats include: 0.1.0, 0.2.1, 1.1.0, etc.')
-        self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
-                                pack_name=None, pack_dir=PACK_PATH_11)
-
-    def test_register_pack_old_style_non_semver_version_is_normalized_to_valid_version(self):
-        # Verify DB is empty
-        pack_dbs = Pack.get_all()
-        self.assertEqual(len(pack_dbs), 0)
-
-        registrar = ResourceRegistrar(use_pack_cache=False)
-        registrar._pack_loader.get_packs = mock.Mock()
-        registrar._pack_loader.get_packs.return_value = {'dummy_pack_11': PACK_PATH_11}
-        packs_base_paths = content_utils.get_packs_base_paths()
-        registrar.register_packs(base_dirs=packs_base_paths)
-
-        # Non-semver valid version 0.2 should be normalize to 0.2.0
-        pack_db = Pack.get_by_name('dummy_pack_11')
-        self.assertEqual(pack_db.version, '0.2.0')
-
     def test_register_pack_pack_stackstorm_version_and_future_parameters(self):
         # Verify DB is empty
         pack_dbs = Pack.get_all()
@@ -199,3 +171,23 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         expected_msg = "'wrongstackstormversion' does not match"
         self.assertRaisesRegexp(ValidationError, expected_msg, registrar._register_pack_db,
                                 pack_name=None, pack_dir=PACK_PATH_10)
+
+    def test_register_pack_empty_and_invalid_config_schema(self):
+        registrar = ResourceRegistrar(use_pack_cache=False, fail_on_failure=True)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_17': PACK_PATH_17}
+        packs_base_paths = content_utils.get_packs_base_paths()
+
+        expected_msg = 'Config schema ".*?dummy_pack_17/config.schema.yaml" is empty and invalid.'
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar.register_packs,
+                                base_dirs=packs_base_paths)
+
+    def test_register_pack_invalid_config_schema_invalid_attribute(self):
+        registrar = ResourceRegistrar(use_pack_cache=False, fail_on_failure=True)
+        registrar._pack_loader.get_packs = mock.Mock()
+        registrar._pack_loader.get_packs.return_value = {'dummy_pack_18': PACK_PATH_18}
+        packs_base_paths = content_utils.get_packs_base_paths()
+
+        expected_msg = 'Additional properties are not allowed \(\'invalid\' was unexpected\)'
+        self.assertRaisesRegexp(ValueError, expected_msg, registrar.register_packs,
+                                base_dirs=packs_base_paths)

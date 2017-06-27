@@ -5,13 +5,13 @@ astroid==1.4.9
 pylint==1.6.5
 pylint-plugin-utils>=0.2.3,<0.3
 bandit>=1.0.1,<1.1
-ipython
+ipython<6.0.0
 mock==2.0.0
 nose>=1.3.7
 tabulate
 unittest2
-sphinx
-git+https://github.com/StackStorm/sphinx-autobuild.git@develop
+sphinx>=1.5.3,<1.6
+sphinx-autobuild
 # nosetests enhancements
 rednose
 nose-timer
@@ -20,3 +20,5 @@ pyyaml
 RandomWords
 gunicorn>=19.3.0,<19.4
 psutil
+webtest==2.0.25
+rstcheck>=3.1.0,<3.2

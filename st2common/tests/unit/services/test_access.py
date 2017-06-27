@@ -23,6 +23,7 @@ from st2common.util import date as date_utils
 from st2common.exceptions.auth import TokenNotFoundError
 from st2common.persistence.auth import Token
 from st2common.services import access
+from st2common.exceptions.auth import TTLTooLargeException
 import st2tests.config as tests_config
 
 
@@ -82,3 +83,19 @@ class AccessServiceTest(DbTestCase):
         self.assertTrue(token.token is not None)
         self.assertEqual(token.user, USERNAME)
         self.assertLess(isotime.parse(token.expiry), expected_expiry)
+
+    def test_create_token_service_token_can_use_arbitrary_ttl(self):
+        ttl = (10000 * 24 * 24)
+
+        # Service token should support arbitrary TTL
+        token = access.create_token(USERNAME, ttl=ttl, service=True)
+        expected_expiry = date_utils.get_datetime_utc_now() + datetime.timedelta(seconds=ttl)
+        expected_expiry = date_utils.add_utc_tz(expected_expiry)
+
+        self.assertTrue(token is not None)
+        self.assertEqual(token.user, USERNAME)
+        self.assertLess(isotime.parse(token.expiry), expected_expiry)
+
+        # Non service token should throw on TTL which is too large
+        self.assertRaises(TTLTooLargeException, access.create_token, USERNAME, ttl=ttl,
+                          service=False)

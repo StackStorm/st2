@@ -24,8 +24,6 @@ from oslo_config import cfg
 import st2tests.config as tests_config
 tests_config.parse_args()
 
-from st2actions.handlers.mistral import MistralCallbackHandler
-from st2actions.handlers.mistral import STATUS_MAP as mistral_status_map
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as action_constants
@@ -35,11 +33,13 @@ from st2common.runners import base as runners
 from st2common.services import action as action_service
 from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
+from st2common.util import loader
 from st2tests import DbTestCase
 from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 
 
+MISTRAL_RUNNER_NAME = 'mistral_v2'
 TEST_PACK = 'mistral_tests'
 TEST_PACK_PATH = fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
 
@@ -88,54 +88,59 @@ class MistralRunnerCallbackTest(DbTestCase):
         for pack in PACKS:
             actions_registrar.register_from_pack(pack)
 
+        # Get an instance of the callback module and reference to mistral status map
+        cls.callback_module = loader.register_callback_module(MISTRAL_RUNNER_NAME)
+        cls.callback_class = cls.callback_module.get_instance()
+        cls.status_map = cls.callback_module.STATUS_MAP
+
     @classmethod
     def get_runner_class(cls, runner_name):
         return runners.get_runner(runner_name).__class__
 
     def test_callback_handler_status_map(self):
         # Ensure all StackStorm status are mapped otherwise leads to zombie workflow.
-        self.assertListEqual(sorted(mistral_status_map.keys()),
+        self.assertListEqual(sorted(self.status_map.keys()),
                              sorted(action_constants.LIVEACTION_STATUSES))
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_text(self):
-        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
-                                        action_constants.LIVEACTION_STATUS_SUCCEEDED,
-                                        '<html></html>')
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     '<html></html>')
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_dict(self):
-        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
-                                        action_constants.LIVEACTION_STATUS_SUCCEEDED, {'a': 1})
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, {'a': 1})
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_json_str(self):
-        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
-                                        action_constants.LIVEACTION_STATUS_SUCCEEDED, '{"a": 1}')
-        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
-                                        action_constants.LIVEACTION_STATUS_SUCCEEDED, "{'a': 1}")
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, '{"a": 1}')
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED, "{'a': 1}")
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_list(self):
-        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
-                                        action_constants.LIVEACTION_STATUS_SUCCEEDED,
-                                        ["a", "b", "c"])
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     ["a", "b", "c"])
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
         mock.MagicMock(return_value=None))
     def test_callback_handler_with_result_as_list_str(self):
-        MistralCallbackHandler.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
-                                        action_constants.LIVEACTION_STATUS_SUCCEEDED,
-                                        '["a", "b", "c"]')
+        self.callback_class.callback('http://127.0.0.1:8989/v2/action_executions/12345', {},
+                                     action_constants.LIVEACTION_STATUS_SUCCEEDED,
+                                     '["a", "b", "c"]')
 
     @mock.patch.object(
         action_executions.ActionExecutionManager, 'update',
@@ -146,13 +151,13 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = LiveActionDB(
             action='core.local', parameters={'cmd': 'uname -a'},
             callback={
-                'source': 'mistral',
+                'source': MISTRAL_RUNNER_NAME,
                 'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
         )
 
         for status in action_constants.LIVEACTION_COMPLETED_STATES:
-            expected_mistral_status = mistral_status_map[status]
+            expected_mistral_status = self.status_map[status]
             local_runner_cls.run = mock.Mock(return_value=(status, NON_EMPTY_RESULT, None))
             liveaction, execution = action_service.request(liveaction)
             liveaction = LiveAction.get_by_id(str(liveaction.id))
@@ -171,7 +176,7 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = LiveActionDB(
             action='core.local', parameters={'cmd': 'uname -a'},
             callback={
-                'source': 'mistral',
+                'source': MISTRAL_RUNNER_NAME,
                 'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
         )
@@ -194,7 +199,7 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = LiveActionDB(
             action='core.local', parameters={'cmd': 'uname -a'},
             callback={
-                'source': 'mistral',
+                'source': MISTRAL_RUNNER_NAME,
                 'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
         )
@@ -222,7 +227,7 @@ class MistralRunnerCallbackTest(DbTestCase):
         liveaction = LiveActionDB(
             action='core.local', parameters={'cmd': 'uname -a'},
             callback={
-                'source': 'mistral',
+                'source': MISTRAL_RUNNER_NAME,
                 'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
         )

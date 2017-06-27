@@ -24,6 +24,8 @@ from st2common.models.db.action import ActionDB
 from st2common.models.db.rule import RuleDB
 from st2common.models.db.trigger import TriggerTypeDB
 from st2common.models.db.trigger import TriggerDB
+from st2common.models.db.policy import PolicyTypeDB
+from st2common.models.db.policy import PolicyDB
 
 __all__ = [
     'DBModelUIDFieldTestCase'
@@ -70,3 +72,9 @@ class DBModelUIDFieldTestCase(unittest2.TestCase):
         parameters = OrderedDict({'c': [1, 2, 3], 'b': u'unicode', 'd': {'h': 2, 'g': 1}, 'a': 1})
         trigger_db = TriggerDB(name='tname', pack='tpack', parameters=parameters)
         self.assertEqual(trigger_db.get_uid(), 'trigger:tpack:tname:%s' % (paramers_hash))
+
+        policy_type_db = PolicyTypeDB(resource_type='action', name='concurrency')
+        self.assertEqual(policy_type_db.get_uid(), 'policy_type:action:concurrency')
+
+        policy_db = PolicyDB(pack='dummy', name='policy1')
+        self.assertEqual(policy_db.get_uid(), 'policy:dummy:policy1')

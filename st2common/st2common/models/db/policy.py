@@ -19,6 +19,7 @@ from st2common import log as logging
 from st2common.constants import pack as pack_constants
 from st2common.models.db import stormbase
 from st2common.models.system import common as common_models
+from st2common.constants.types import ResourceType
 
 
 __all__ = ['PolicyTypeReference',
@@ -99,7 +100,7 @@ class PolicyTypeReference(object):
                 (self.__class__.__name__, self.resource_type, self.name, self.ref))
 
 
-class PolicyTypeDB(stormbase.StormBaseDB):
+class PolicyTypeDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
     """
     The representation of an PolicyType in the system.
 
@@ -112,6 +113,9 @@ class PolicyTypeDB(stormbase.StormBaseDB):
         module: The python module that implements the policy for this type.
         parameters: The specification for parameters for the policy type.
     """
+    RESOURCE_TYPE = ResourceType.POLICY_TYPE
+    UID_FIELDS = ['resource_type', 'name']
+
     ref = me.StringField(required=True)
     resource_type = me.StringField(
         required=True,
@@ -129,6 +133,7 @@ class PolicyTypeDB(stormbase.StormBaseDB):
 
     def __init__(self, *args, **kwargs):
         super(PolicyTypeDB, self).__init__(*args, **kwargs)
+        self.uid = self.get_uid()
         self.ref = PolicyTypeReference.to_string_reference(resource_type=self.resource_type,
                                                            name=self.name)
 
@@ -141,7 +146,8 @@ class PolicyTypeDB(stormbase.StormBaseDB):
         return PolicyTypeReference(resource_type=self.resource_type, name=self.name)
 
 
-class PolicyDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMixin):
+class PolicyDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMixin,
+               stormbase.UIDFieldMixin):
     """
     The representation for a policy in the system.
 
@@ -151,6 +157,9 @@ class PolicyDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMixin):
         policy_type: The type of policy.
         parameters: The specification of input parameters for the policy.
     """
+    RESOURCE_TYPE = ResourceType.POLICY
+    UID_FIELDS = ['pack', 'name']
+
     name = me.StringField(required=True)
     ref = me.StringField(required=True)
     pack = me.StringField(
@@ -173,8 +182,16 @@ class PolicyDB(stormbase.StormFoundationDB, stormbase.ContentPackResourceMixin):
     parameters = me.DictField(
         help_text='The specification of input parameters for the policy.')
 
+    meta = {
+        'indexes': [
+            {'fields': ['name']},
+            {'fields': ['resource_ref']},
+        ]
+    }
+
     def __init__(self, *args, **kwargs):
         super(PolicyDB, self).__init__(*args, **kwargs)
+        self.uid = self.get_uid()
         self.ref = common_models.ResourceReference.to_string_reference(pack=self.pack,
                                                                        name=self.name)
 

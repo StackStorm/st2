@@ -14,19 +14,16 @@
 # limitations under the License.
 
 
-import pecan
-from pecan import rest
 from six.moves import http_client
 from oslo_config import cfg
 
+
 from st2common.exceptions.auth import TokenNotFoundError, TokenExpiredError
 from st2common.exceptions.param import ParamException
-from st2common.models.api.base import jsexpose
-
-
+from st2common.router import exc
+from st2common.router import Response
 from st2common.util import auth as auth_utils
 from st2common import log as logging
-from st2common.models.api.auth import TokenAPI
 import st2auth.handlers as handlers
 
 
@@ -38,13 +35,12 @@ HANDLER_MAPPINGS = {
 LOG = logging.getLogger(__name__)
 
 
-class TokenValidationController(rest.RestController):
-    @jsexpose(body_cls=TokenAPI, status_code=http_client.OK)
-    def post(self, request, **kwargs):
+class TokenValidationController(object):
+    def post(self, request):
         token = getattr(request, 'token', None)
 
         if not token:
-            pecan.abort(http_client.BAD_REQUEST, 'Token is not provided.')
+            raise exc.HTTPBadRequest('Token is not provided.')
 
         try:
             return {'valid': auth_utils.validate_token(token) is not None}
@@ -53,32 +49,41 @@ class TokenValidationController(rest.RestController):
         except Exception:
             msg = 'Unexpected error occurred while verifying token.'
             LOG.exception(msg)
-            pecan.abort(http_client.INTERNAL_SERVER_ERROR, msg)
+            raise exc.HTTPInternalServerError(msg)
 
 
-class TokenController(rest.RestController):
+class TokenController(object):
     validate = TokenValidationController()
 
-    def __init__(self, *args, **kwargs):
-        super(TokenController, self).__init__(*args, **kwargs)
-
+    def __init__(self):
         try:
             self.handler = HANDLER_MAPPINGS[cfg.CONF.auth.mode]()
         except KeyError:
             raise ParamException("%s is not a valid auth mode" %
                                  cfg.CONF.auth.mode)
 
-    @jsexpose(body_cls=TokenAPI, status_code=http_client.CREATED)
     def post(self, request, **kwargs):
-        token = self.handler.handle_auth(request=request, headers=pecan.request.headers,
-                                         remote_addr=pecan.request.remote_addr,
-                                         remote_user=pecan.request.remote_user,
-                                         authorization=pecan.request.authorization,
+        headers = {}
+        if 'x-forwarded-for' in kwargs:
+            headers['x-forwarded-for'] = kwargs.pop('x-forwarded-for')
+
+        authorization = kwargs.pop('authorization', None)
+        if authorization:
+            authorization = tuple(authorization.split(' '))
+
+        token = self.handler.handle_auth(request=request, headers=headers,
+                                         remote_addr=kwargs.pop('remote_addr', None),
+                                         remote_user=kwargs.pop('remote_user', None),
+                                         authorization=authorization,
                                          **kwargs)
         return process_successful_response(token=token)
 
 
 def process_successful_response(token):
-    api_url = cfg.CONF.auth.api_url
-    pecan.response.headers['X-API-URL'] = api_url
-    return token
+    resp = Response(json=token, status=http_client.CREATED)
+    resp.headers['X-API-URL'] = cfg.CONF.auth.api_url
+    return resp
+
+
+token_controller = TokenController()
+token_validation_controller = TokenValidationController()

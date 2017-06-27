@@ -13,11 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pecan.rest import RestController
 import six
 
 from st2common import log as logging
-from st2common.models.api.base import jsexpose
 from st2common.persistence.execution import ActionExecution
 
 LOG = logging.getLogger(__name__)
@@ -44,6 +42,16 @@ SUPPORTED_FILTERS = {
     'user': 'context.user'
 }
 
+# A list of fields for which null (None) is a valid value which we include in the list of valid
+# filters.
+FILTERS_WITH_VALID_NULL_VALUES = [
+    'parent',
+    'rule',
+    'trigger',
+    'trigger_type',
+    'trigger_instance'
+]
+
 # List of filters that are too broad to distinct by them and are very likely to represent 1 to 1
 # relation between filter and particular history record.
 IGNORE_FILTERS = ['parent', 'timestamp', 'liveaction', 'trigger_instance']
@@ -53,8 +61,7 @@ def csv(s):
     return s.split(',')
 
 
-class FiltersController(RestController):
-    @jsexpose(arg_types=[csv])
+class FiltersController(object):
     def get_all(self, types=None):
         """
             List all distinct filters.
@@ -69,10 +76,17 @@ class FiltersController(RestController):
 
         for name, field in six.iteritems(SUPPORTED_FILTERS):
             if name not in IGNORE_FILTERS and (not types or name in types):
-                filters[name] = ActionExecution.distinct(field=field)
+                if name not in FILTERS_WITH_VALID_NULL_VALUES:
+                    query = {field.replace('.', '__'): {'$ne': None}}
+                else:
+                    query = {}
 
+                filters[name] = ActionExecution.distinct(field=field, **query)
         return filters
 
 
-class ExecutionViewsController(RestController):
+class ExecutionViewsController(object):
     filters = FiltersController()
+
+
+filters_controller = FiltersController()

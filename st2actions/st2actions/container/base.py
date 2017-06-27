@@ -72,7 +72,8 @@ class RunnerContainer(object):
     def _do_run(self, runner, runnertype_db, action_db, liveaction_db):
         # Create a temporary auth token which will be available
         # for the duration of the action execution.
-        runner.auth_token = self._create_auth_token(runner.context)
+        runner.auth_token = self._create_auth_token(context=runner.context, action_db=action_db,
+                                                    liveaction_db=liveaction_db)
 
         updated_liveaction_db = None
         try:
@@ -119,22 +120,29 @@ class RunnerContainer(object):
             extra = {'result': result, 'status': status}
             LOG.debug('Action "%s" completed.' % (action_db.name), extra=extra)
 
-            # Always clean-up the auth_token
             try:
                 LOG.debug('Setting status: %s for liveaction: %s', status, liveaction_db.id)
                 updated_liveaction_db = self._update_live_action_db(liveaction_db.id, status,
                                                                     result, context)
-            except:
-                error = 'Cannot update LiveAction object for id: %s, status: %s, result: %s.' % (
+            except Exception as e:
+                msg = 'Cannot update LiveAction object for id: %s, status: %s, result: %s.' % (
                     liveaction_db.id, status, result)
-                LOG.exception(error)
-                raise
+                LOG.exception(msg)
+                raise e
 
-            executions.update_execution(updated_liveaction_db)
-            extra = {'liveaction_db': updated_liveaction_db}
-            LOG.debug('Updated liveaction after run', extra=extra)
+            try:
+                executions.update_execution(updated_liveaction_db)
+                extra = {'liveaction_db': updated_liveaction_db}
+                LOG.debug('Updated liveaction after run', extra=extra)
+            except Exception as e:
+                msg = 'Cannot update ActionExecution object for id: %s, status: %s, result: %s.' % (
+                    updated_liveaction_db.id, status, result)
+                LOG.exception(msg)
+                raise e
 
             # Always clean-up the auth_token
+            # Note: self._clean_up_auth_token should never throw to ensure post_run is always
+            # called.
             self._clean_up_auth_token(runner=runner, status=status)
 
         LOG.debug('Performing post_run for runner: %s', runner.runner_id)
@@ -179,6 +187,9 @@ class RunnerContainer(object):
     def _clean_up_auth_token(self, runner, status):
         """
         Clean up the temporary auth token for the current action.
+
+        Note: This method should never throw since it's called inside finally block which assumes
+        it doesn't throw.
         """
         # Deletion of the runner generated auth token is delayed until the token expires.
         # Async actions such as Mistral workflows uses the auth token to launch other
@@ -252,13 +263,22 @@ class RunnerContainer(object):
 
         return runner
 
-    def _create_auth_token(self, context):
+    def _create_auth_token(self, context, action_db, liveaction_db):
         if not context:
             return None
+
         user = context.get('user', None)
         if not user:
             return None
-        return access.create_token(user)
+
+        metadata = {
+            'service': 'actions_container',
+            'action_name': action_db.name,
+            'live_action_id': str(liveaction_db.id)
+
+        }
+        token_db = access.create_token(username=user, metadata=metadata, service=True)
+        return token_db
 
     def _delete_auth_token(self, auth_token):
         if auth_token:

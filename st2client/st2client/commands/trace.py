@@ -104,7 +104,7 @@ class SingleTraceDisplayMixin(object):
 
 
 class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
-    display_attributes = ['id', 'trace_tag', 'start_timestamp']
+    display_attributes = ['id', 'uid', 'trace_tag', 'start_timestamp']
 
     attribute_transform_functions = {
         'start_timestamp': format_isodate_for_user_timezone

@@ -16,14 +16,12 @@
 import six
 
 from st2common import log as logging
-from st2api.controllers import resource
-from st2common.models.api.base import jsexpose
 from st2common.models.api.rule_enforcement import RuleEnforcementAPI
 from st2common.persistence.rule_enforcement import RuleEnforcement
-from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
-from st2common.rbac.types import PermissionType
 from st2common.util import isotime
+from st2common.rbac.types import PermissionType
+
+from st2api.controllers import resource
 
 
 http_client = six.moves.http_client
@@ -59,12 +57,16 @@ class RuleEnforcementController(resource.ResourceController):
         'enforced_at_lt': lambda value: isotime.parse(value=value)
     }
 
-    @request_user_has_permission(permission_type=PermissionType.RULE_ENFORCEMENT_LIST)
-    @jsexpose()
-    def get_all(self, **kwargs):
-        return super(RuleEnforcementController, self)._get_all(**kwargs)
+    def get_all(self, sort=None, offset=0, limit=None, **raw_filters):
+        return super(RuleEnforcementController, self)._get_all(sort=sort,
+                                                               offset=offset,
+                                                               limit=limit,
+                                                               raw_filters=raw_filters)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
-    @jsexpose(arg_types=[str])
-    def get_one(self, ref_or_id):
-        return super(RuleEnforcementController, self)._get_one(ref_or_id)
+    def get_one(self, id, requester_user):
+        return super(RuleEnforcementController,
+                     self)._get_one_by_id(id, requester_user=requester_user,
+                                          permission_type=PermissionType.RULE_ENFORCEMENT_VIEW)
+
+
+rule_enforcements_controller = RuleEnforcementController()

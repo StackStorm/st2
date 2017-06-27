@@ -47,6 +47,7 @@ from st2tests import fixturesloader
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 
 
+MISTRAL_RUNNER_NAME = 'mistral_v2'
 TEST_PACK = 'mistral_tests'
 TEST_PACK_PATH = fixturesloader.get_fixtures_packs_base_path() + '/' + TEST_PACK
 
@@ -177,7 +178,7 @@ class MistralRunnerPolicyTest(DbTestCase):
             # Launch another instance of the workflow with mistral callback defined
             # to indicate that this is executed under a workflow.
             callback = {
-                'source': 'mistral',
+                'source': MISTRAL_RUNNER_NAME,
                 'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
 
@@ -246,7 +247,7 @@ class MistralRunnerPolicyTest(DbTestCase):
             # Launch another instance of the workflow with mistral callback defined
             # to indicate that this is executed under a workflow.
             callback = {
-                'source': 'mistral',
+                'source': MISTRAL_RUNNER_NAME,
                 'url': 'http://127.0.0.1:8989/v2/action_executions/12345'
             }
 

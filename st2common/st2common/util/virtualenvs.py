@@ -27,9 +27,10 @@ from st2common import log as logging
 from st2common.constants.pack import PACK_REF_WHITELIST_REGEX
 from st2common.constants.pack import BASE_PACK_REQUIREMENTS
 from st2common.util.shell import run_command
+from st2common.util.shell import quote_unix
+from st2common.util.compat import to_ascii
 from st2common.content.utils import get_packs_base_paths
 from st2common.content.utils import get_pack_directory
-from st2common.util.shell import quote_unix
 
 __all__ = [
     'setup_pack_virtualenv'
@@ -38,7 +39,9 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-def setup_pack_virtualenv(pack_name, update=False, logger=None):
+def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True,
+                          include_setuptools=True, include_wheel=True):
+
     """
     Setup virtual environment for the provided pack.
 
@@ -57,13 +60,12 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None):
         raise ValueError('Invalid pack name "%s"' % (pack_name))
 
     base_virtualenvs_path = os.path.join(cfg.CONF.system.base_path, 'virtualenvs/')
-
-    logger.debug('Setting up virtualenv for pack "%s"' % (pack_name))
-
     virtualenv_path = os.path.join(base_virtualenvs_path, quote_unix(pack_name))
 
     # Ensure pack directory exists in one of the search paths
     pack_path = get_pack_directory(pack_name=pack_name)
+
+    logger.debug('Setting up virtualenv for pack "%s" (%s)' % (pack_name, pack_path))
 
     if not pack_path:
         packs_base_paths = get_packs_base_paths()
@@ -78,7 +80,8 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None):
 
         # 1. Create virtual environment
         logger.debug('Creating virtualenv for pack "%s" in "%s"' % (pack_name, virtualenv_path))
-        create_virtualenv(virtualenv_path=virtualenv_path, logger=logger)
+        create_virtualenv(virtualenv_path=virtualenv_path, logger=logger, include_pip=include_pip,
+                          include_setuptools=include_setuptools, include_wheel=include_wheel)
 
     # 2. Install base requirements which are common to all the packs
     logger.debug('Installing base requirements')
@@ -102,7 +105,20 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None):
                  (pack_name, action, virtualenv_path))
 
 
-def create_virtualenv(virtualenv_path, logger=None):
+def create_virtualenv(virtualenv_path, logger=None, include_pip=True, include_setuptools=True,
+                      include_wheel=True):
+    """
+    :param include_pip: Include pip binary and package in the newely created virtual environment.
+    :type include_pip: ``bool``
+
+    :param include_setuptools: Include setuptools binary and package in the newely created virtual
+                               environment.
+    :type include_setuptools: ``bool``
+
+    :param include_wheel: Include wheel in the newely created virtual environment.
+    :type include_wheel : ``bool``
+    """
+
     logger = logger or LOG
 
     python_binary = cfg.CONF.actionrunner.python_binary
@@ -120,6 +136,16 @@ def create_virtualenv(virtualenv_path, logger=None):
 
     cmd = [virtualenv_binary, '-p', python_binary]
     cmd.extend(virtualenv_opts)
+
+    if not include_pip:
+        cmd.append('--no-pip')
+
+    if not include_setuptools:
+        cmd.append('--no-setuptools')
+
+    if not include_wheel:
+        cmd.append('--no-wheel')
+
     cmd.extend([virtualenv_path])
     logger.debug('Running command "%s" to create virtualenv.', ' '.join(cmd))
 
@@ -166,6 +192,9 @@ def install_requirements(virtualenv_path, requirements_file_path):
     exit_code, stdout, stderr = run_command(cmd=cmd, env=env)
 
     if exit_code != 0:
+        stdout = to_ascii(stdout)
+        stderr = to_ascii(stderr)
+
         raise Exception('Failed to install requirements from "%s": %s (stderr: %s)' %
                         (requirements_file_path, stdout, stderr))
 

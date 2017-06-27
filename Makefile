@@ -107,6 +107,23 @@ configgen:
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc --load-plugins=pylint_plugins.api_models tools/*.py || exit 1;
 	. $(VIRTUALENV_DIR)/bin/activate; pylint -E --rcfile=./lint-configs/python/.pylintrc pylint_plugins/*.py || exit 1;
 
+.PHONY: lint-api-spec
+lint-api-spec: requirements .lint-api-spec
+
+.PHONY: .lint-api-spec
+.lint-api-spec:
+	@echo
+	@echo "================== Lint API spec ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --generate
+
+.PHONY: circle-lint-api-spec
+circle-lint-api-spec:
+	@echo
+	@echo "================== Lint API spec ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --generate || echo "Open API spec lint failed."
+
 .PHONY: flake8
 flake8: requirements .flake8
 
@@ -138,7 +155,7 @@ bandit: requirements .bandit
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check
+.lint: .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -163,7 +180,7 @@ compile:
 .st2common-circular-dependencies-check:
 	@echo "Checking st2common for circular dependencies"
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2reactor ; test $$? -eq 1
-	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py ! -wholename "*runners/base.py" ! -name python_action_wrapper.py ! -wholename "*/query/base.py" \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
+	find ${ROOT_DIR}/st2common/st2common/ \( -name \*.py ! -name runnersregistrar\.py ! -wholename "*runners/base.py" ! -name python_action_wrapper.py ! -wholename "*/query/base.py" ! -wholename "*/runners/utils.py" \) -type f -print0 | xargs -0 cat | grep st2actions ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2api ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2auth ; test $$? -eq 1
 	find ${ROOT_DIR}/st2common/st2common/ -name \*.py -type f -print0 | xargs -0 cat | grep st2debug; test $$? -eq 1
@@ -212,7 +229,6 @@ requirements: virtualenv .sdist-requirements
 	@echo
 	@echo "==================== requirements ===================="
 	@echo
-
 	# Make sure we use latest version of pip
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip>=8.1.2,<8.2"
 	$(VIRTUALENV_DIR)/bin/pip install virtualenv  # Required for packs.install in dev envs.
@@ -297,7 +313,7 @@ unit-tests: requirements .unit-tests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 			--cover-inclusive --cover-html \
 			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/unit || exit 1; \
 	done
@@ -316,7 +332,7 @@ itests: requirements .itests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -sv $$component/tests/integration || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/integration || exit 1; \
 	done
 
 .PHONY: .itests-coverage-html
@@ -330,7 +346,7 @@ itests: requirements .itests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests -sv --with-coverage \
+		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 			--cover-inclusive --cover-html \
 			--cover-package=$(COMPONENTS_TEST_COMMA) $$component/tests/integration || exit 1; \
 	done
@@ -344,7 +360,7 @@ mistral-itests: requirements .mistral-itests
 	@echo "==================== MISTRAL integration tests ===================="
 	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v st2tests/integration/mistral || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/mistral || exit 1;
 
 .PHONY: .mistral-itests-coverage-html
 .mistral-itests-coverage-html:
@@ -352,7 +368,7 @@ mistral-itests: requirements .mistral-itests
 	@echo "==================== MISTRAL integration tests with coverage (HTML reports) ===================="
 	@echo "The tests assume both st2 and mistral are running on 127.0.0.1."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests -s -v --with-coverage \
+	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
 		--cover-inclusive --cover-html st2tests/integration/mistral || exit 1;
 
 .PHONY: packs-tests
@@ -414,13 +430,18 @@ debs:
 	#done
 
 
-
-
 .PHONY: ci
 ci: ci-checks ci-unit ci-integration ci-mistral ci-packs-tests
 
 .PHONY: ci-checks
-ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common-circular-dependencies-check
+ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common-circular-dependencies-check circle-lint-api-spec .rst-check
+
+.PHONY: .rst-check
+.rst-check:
+	@echo
+	@echo "==================== rst-check ===================="
+	@echo
+	. $(VIRTUALENV_DIR)/bin/activate; rstcheck CHANGELOG.rst
 
 .PHONY: ci-unit
 ci-unit: compile .unit-tests-coverage-html

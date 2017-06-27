@@ -17,7 +17,6 @@ import os
 import os.path
 
 import six
-from pecan import abort
 from mongoengine import ValidationError
 
 # TODO: Encapsulate mongoengine errors in our persistence layer. Exceptions
@@ -30,12 +29,13 @@ from st2common import log as logging
 from st2common.constants.triggers import ACTION_FILE_WRITTEN_TRIGGER
 from st2common.exceptions.action import InvalidActionParameterException
 from st2common.exceptions.apivalidation import ValueValidationException
-from st2common.models.api.base import jsexpose
 from st2common.persistence.action import Action
 from st2common.models.api.action import ActionAPI
-from st2common.models.api.action import ActionCreateAPI
-from st2common.models.api.action import ActionUpdateAPI
 from st2common.persistence.pack import Pack
+from st2common.rbac.types import PermissionType
+from st2common.rbac import utils as rbac_utils
+from st2common.router import abort
+from st2common.router import Response
 from st2common.validators.api.misc import validate_not_part_of_system_pack
 from st2common.content.utils import get_pack_base_path
 from st2common.content.utils import get_pack_resource_file_abs_path
@@ -43,10 +43,6 @@ from st2common.content.utils import get_relative_path_to_pack
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.system_info import get_host_info
 import st2common.validators.api.action as action_validator
-from st2common.rbac.types import PermissionType
-from st2common.rbac.decorators import request_user_has_permission
-from st2common.rbac.decorators import request_user_has_resource_api_permission
-from st2common.rbac.decorators import request_user_has_resource_db_permission
 
 http_client = six.moves.http_client
 
@@ -82,31 +78,35 @@ class ActionsController(resource.ContentPackResourceController):
         super(ActionsController, self).__init__(*args, **kwargs)
         self._trigger_dispatcher = TriggerDispatcher(LOG)
 
-    @request_user_has_permission(permission_type=PermissionType.ACTION_LIST)
-    @jsexpose()
-    def get_all(self, exclude_attributes=None, **kwargs):
+    def get_all(self, exclude_attributes=None, sort=None, offset=0, limit=None, **raw_filters):
         if exclude_attributes:
             exclude_fields = exclude_attributes.split(',')
         else:
             exclude_fields = None
 
         exclude_fields = self._validate_exclude_fields(exclude_fields)
-        return super(ActionsController, self)._get_all(exclude_fields=exclude_fields, **kwargs)
+        return super(ActionsController, self)._get_all(exclude_fields=exclude_fields,
+                                                       sort=sort,
+                                                       offset=offset,
+                                                       limit=limit,
+                                                       raw_filters=raw_filters)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_VIEW)
-    @jsexpose(arg_types=[str])
-    def get_one(self, ref_or_id):
-        return super(ActionsController, self)._get_one(ref_or_id)
+    def get_one(self, ref_or_id, requester_user):
+        return super(ActionsController, self)._get_one(ref_or_id, requester_user=requester_user,
+                                                       permission_type=PermissionType.ACTION_VIEW)
 
-    @jsexpose(body_cls=ActionCreateAPI, status_code=http_client.CREATED)
-    @request_user_has_resource_api_permission(permission_type=PermissionType.ACTION_CREATE)
-    def post(self, action):
+    def post(self, action, requester_user):
         """
             Create a new action.
 
             Handles requests:
                 POST /actions/
         """
+
+        permission_type = PermissionType.ACTION_CREATE
+        rbac_utils.assert_user_has_resource_api_permission(user_db=requester_user,
+                                                           resource_api=action,
+                                                           permission_type=permission_type)
 
         try:
             # Perform validation
@@ -141,14 +141,17 @@ class ActionsController(resource.ContentPackResourceController):
         LOG.audit('Action created. Action.id=%s' % (action_db.id), extra=extra)
         action_api = ActionAPI.from_model(action_db)
 
-        return action_api
+        return Response(json=action_api, status=http_client.CREATED)
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_MODIFY)
-    @jsexpose(arg_types=[str], body_cls=ActionUpdateAPI)
-    def put(self, action, action_ref_or_id):
-        action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
+    def put(self, action, ref_or_id, requester_user):
+        action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
 
         # Assert permissions
+        permission_type = PermissionType.ACTION_MODIFY
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_db,
+                                                          permission_type=permission_type)
+
         action_id = action_db.id
 
         if not getattr(action, 'pack', None):
@@ -177,7 +180,7 @@ class ActionsController(resource.ContentPackResourceController):
             return
 
         # Dispatch an internal trigger for each written data file. This way user
-        # automate comitting this files to git using StackStorm rule
+        # automate committing this files to git using StackStorm rule
         if written_data_files:
             self._dispatch_trigger_for_written_data_files(action_db=action_db,
                                                           written_data_files=written_data_files)
@@ -187,9 +190,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         return action_api
 
-    @request_user_has_resource_db_permission(permission_type=PermissionType.ACTION_DELETE)
-    @jsexpose(arg_types=[str], status_code=http_client.NO_CONTENT)
-    def delete(self, action_ref_or_id):
+    def delete(self, ref_or_id, requester_user):
         """
             Delete an action.
 
@@ -198,8 +199,13 @@ class ActionsController(resource.ContentPackResourceController):
                 DELETE /actions/1
                 DELETE /actions/mypack.myaction
         """
-        action_db = self._get_by_ref_or_id(ref_or_id=action_ref_or_id)
+        action_db = self._get_by_ref_or_id(ref_or_id=ref_or_id)
         action_id = action_db.id
+
+        permission_type = PermissionType.ACTION_DELETE
+        rbac_utils.assert_user_has_resource_db_permission(user_db=requester_user,
+                                                          resource_db=action_db,
+                                                          permission_type=permission_type)
 
         try:
             validate_not_part_of_system_pack(action_db)
@@ -207,7 +213,7 @@ class ActionsController(resource.ContentPackResourceController):
             abort(http_client.BAD_REQUEST, str(e))
 
         LOG.debug('DELETE /actions/ lookup with ref_or_id=%s found object: %s',
-                  action_ref_or_id, action_db)
+                  ref_or_id, action_db)
 
         try:
             Action.delete(action_db)
@@ -219,7 +225,7 @@ class ActionsController(resource.ContentPackResourceController):
 
         extra = {'action_db': action_db}
         LOG.audit('Action deleted. Action.id=%s' % (action_db.id), extra=extra)
-        return None
+        return Response(status=http_client.NO_CONTENT)
 
     def _handle_data_files(self, pack_ref, data_files):
         """
@@ -307,3 +313,6 @@ class ActionsController(resource.ContentPackResourceController):
                 'host_info': host_info
             }
             self._trigger_dispatcher.dispatch(trigger=trigger, payload=payload)
+
+
+actions_controller = ActionsController()

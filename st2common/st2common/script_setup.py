@@ -69,6 +69,9 @@ def setup(config, setup_db=True, register_mq_exchanges=True):
     # Parse args to setup config
     config.parse_args()
 
+    if cfg.CONF.debug:
+        cfg.CONF.verbose = True
+
     # Set up logging
     log_level = stdlib_logging.DEBUG
     stdlib_logging.basicConfig(format='%(asctime)s %(levelname)s [-] %(message)s', level=log_level)
