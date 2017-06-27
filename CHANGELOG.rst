@@ -61,15 +61,19 @@ Added:
 * Add new ``/v1/rbac/role_assignments`` API endpoint for retrieving user role assignment
   information. (new feature)
 * Add CLI commands for listing RBAC roles:
+
   * ``st2 role list [--system]``
   * ``st2 role get <role id or name>``
 * Add CLI commands for listing RBAC user role assignments:
+
   * ``st2 role-assignment list [--role=<role name>] [--user=<username>]``
   * ``st2 role-assignment get <role assignment id>``
 * Add the following new actions to ``chatops`` pack:
+
   * ``chatops.match``
   * ``chatops.match_and_execute``
   * ``chatops.run``
+
   #3425 [Anthony Shaw]
 * Add new ``examples.forloop_chain`` action-chain workflow to the examples pack which demonstrates
   how to iterate over multiple pages inside a workflow. #3328
@@ -756,6 +760,7 @@ Added:
 * Display number of seconds elapsed for all the child tasks of a workflow action when using
   ``st2 execution get`` CLI command. (improvement)
 * Various improvements in the ``linux.wait_for_ssh`` action:
+
   * Support for password based authentication.
   * Support for non-RSA SSH keys.
   * Support for providing a non-default (22) SSH server port.
