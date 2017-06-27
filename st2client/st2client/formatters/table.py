@@ -143,7 +143,7 @@ class MultiColumnTable(formatters.Formatter):
                 else:
                     value = cls._get_simple_field_value(entry, field_name)
                     transform_function = attribute_transform_functions.get(field_name,
-                                                                          lambda value: value)
+                                                                           lambda value: value)
                     value = transform_function(value=value)
                     value = strutil.unescape(value)
                     values.append(value)
@@ -248,3 +248,13 @@ class PropertyValueTable(formatters.Formatter):
         if isinstance(r_val, list) or isinstance(r_val, dict):
             return r_val if len(r_val) > 0 else ''
         return r_val
+
+
+class SingleRowTable(object):
+
+    @staticmethod
+    def note_box(message):
+        note = PrettyTable([""])
+        note.header = False
+        note.add_row([message])
+        print note
