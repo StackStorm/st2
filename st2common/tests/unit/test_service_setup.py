@@ -52,8 +52,22 @@ datefmt=
 
 
 class ServiceSetupTestCase(CleanFilesTestCase):
-    def test_invalid_log_level_friendly_error_message(self):
+    def test_no_logging_config_found(self):
+        def mock_get_logging_config_path():
+            return ''
 
+        config.get_logging_config_path = mock_get_logging_config_path
+
+        expected_msg = "No section: .*"
+        self.assertRaisesRegexp(Exception, expected_msg,
+                                service_setup.setup, service='api',
+                                config=config,
+                                setup_db=False, register_mq_exchanges=False,
+                                register_signal_handlers=False,
+                                register_internal_trigger_types=False,
+                                run_migrations=False)
+
+    def test_invalid_log_level_friendly_error_message(self):
         _, mock_logging_config_path = tempfile.mkstemp()
         self.to_delete_files.append(mock_logging_config_path)
 
@@ -66,7 +80,8 @@ class ServiceSetupTestCase(CleanFilesTestCase):
         config.get_logging_config_path = mock_get_logging_config_path
 
         expected_msg = 'Invalid log level selected. Log level names need to be all uppercase'
-        self.assertRaisesRegexp(KeyError, expected_msg, service_setup.setup, service='api',
+        self.assertRaisesRegexp(KeyError, expected_msg,
+                                service_setup.setup, service='api',
                                 config=config,
                                 setup_db=False, register_mq_exchanges=False,
                                 register_signal_handlers=False,
