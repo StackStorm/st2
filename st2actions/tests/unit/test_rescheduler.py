@@ -33,6 +33,7 @@ from st2common.transport.liveaction import LiveActionPublisher
 from st2common.transport.publishers import CUDPublisher
 from st2common.util import date as date_utils
 from st2tests import DbTestCase, fixturesloader
+from st2tests.mocks.execution import MockExecutionPublisher
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 from st2tests.mocks.runner import MockActionRunner
 
@@ -58,7 +59,7 @@ RUN_RESULT = (action_constants.LIVEACTION_STATUS_SUCCEEDED, NON_EMPTY_RESULT, No
     mock.MagicMock(return_value=RUN_RESULT))
 @mock.patch.object(
     CUDPublisher, 'publish_update',
-    mock.MagicMock(side_effect=MockLiveActionPublisher.publish_update))
+    mock.MagicMock(side_effect=MockExecutionPublisher.publish_update))
 @mock.patch.object(
     LiveActionPublisher, 'publish_state',
     mock.MagicMock(side_effect=MockLiveActionPublisher.publish_state))
