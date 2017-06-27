@@ -94,8 +94,10 @@ class RuleListCommand(resource.ResourceTableCommand):
                               attributes=args.attr, widths=args.width)
 
             if args.last >= self.default_rule_limit and args.last >= 0:
-                table.SingleRowTable.note_box("Note: Only first %s results will show up. Use "
-                                              "-n/--last flag for more results." % args.last)
+                if not args.action and not args.trigger:
+                    table.SingleRowTable.note_box("Note: Only first %s results are displayed. Use "
+                                                  "-n/--last flag for more results, if any." %
+                                                  args.last)
 
 
 class RuleGetCommand(resource.ContentPackResourceGetCommand):
