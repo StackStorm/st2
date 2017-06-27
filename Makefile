@@ -84,7 +84,7 @@ configgen:
 	@echo
 	echo "# NOTE: This file is auto-generated. Please edit st2common/st2common/openapi.yaml.j2"  > st2common/st2common/openapi.yaml
 	echo "# and then run make .generate-openapi-spec make target" >> st2common/st2common/openapi.yaml
-	. virtualenv/bin/activate; st2common/bin/st2-validate-api-spec --generate >> st2common/st2common/openapi.yaml
+	. virtualenv/bin/activate; st2common/bin/st2-generate-api-spec >> st2common/st2common/openapi.yaml
 
 .PHONY: .pylint
 .pylint:

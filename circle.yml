@@ -37,7 +37,7 @@ test:
     - case $CIRCLE_NODE_INDEX in 0) make ci-checks ci-packs-tests ;; 1) make ci-unit ;; 2) make ci-integration ;; 3) make ci-unit ;; 4) make ci-integration ;; esac:
         parallel: true
   post:
-    - case $CIRCLE_NODE_INDEX in 0) . virtualenv/bin/activate; st2common/bin/st2-validate-api-spec --generate > $CIRCLE_ARTIFACTS/openapi.yaml ;; [1,2]) codecov ;; esac:
+    - case $CIRCLE_NODE_INDEX in 0) . virtualenv/bin/activate; st2common/bin/st2-generate-api-spec > $CIRCLE_ARTIFACTS/openapi.yaml ;; [1,2]) codecov ;; esac:
         parallel: true
 
 experimental:
