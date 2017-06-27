@@ -125,8 +125,9 @@ generate-api-spec: requirements .generate-api-spec
 	@echo
 	@echo "================== Generate openapi.yaml file ===================="
 	@echo
-	echo "# NOTE: This file is auto-generated. Please edit st2common/st2common/openapi.yaml.j2"  > st2common/st2common/openapi.yaml
-	echo "# and then run make .generate-api-spec make target to generate the final spec file" >> st2common/st2common/openapi.yaml
+	echo "# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY" > st2common/st2common/openapi.yaml
+	echo "# Edit st2common/st2common/openapi.yaml.j2 and then run" >> st2common/st2common/openapi.yaml
+	echo "# make .generate-api-spec make target to generate the final spec file" >> st2common/st2common/openapi.yaml
 	. virtualenv/bin/activate; st2common/bin/st2-generate-api-spec >> st2common/st2common/openapi.yaml
 
 .PHONY: circle-lint-api-spec
