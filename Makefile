@@ -115,14 +115,27 @@ lint-api-spec: requirements .lint-api-spec
 	@echo
 	@echo "================== Lint API spec ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --generate
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec
+
+.PHONY: generate-api-spec
+generate-api-spec: requirements .generate-api-spec
+
+.PHONY: .generate-api-spec
+.generate-api-spec:
+	@echo
+	@echo "================== Generate openapi.yaml file ===================="
+	@echo
+	echo "# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY" > st2common/st2common/openapi.yaml
+	echo "# Edit st2common/st2common/openapi.yaml.j2 and then run" >> st2common/st2common/openapi.yaml
+	echo "# make .generate-api-spec make target to generate the final spec file" >> st2common/st2common/openapi.yaml
+	. virtualenv/bin/activate; st2common/bin/st2-generate-api-spec >> st2common/st2common/openapi.yaml
 
 .PHONY: circle-lint-api-spec
 circle-lint-api-spec:
 	@echo
 	@echo "================== Lint API spec ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec --generate || echo "Open API spec lint failed."
+	. $(VIRTUALENV_DIR)/bin/activate; st2common/bin/st2-validate-api-spec || echo "Open API spec lint failed."
 
 .PHONY: flake8
 flake8: requirements .flake8
@@ -155,7 +168,7 @@ bandit: requirements .bandit
 lint: requirements .lint
 
 .PHONY: .lint
-.lint: .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check
+.lint: .generate-api-spec .flake8 .pylint .bandit .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check
 
 .PHONY: clean
 clean: .cleanpycs
@@ -280,7 +293,7 @@ tests: pytests
 pytests: compile requirements .flake8 .pylint .pytests-coverage
 
 .PHONY: .pytests
-.pytests: compile .unit-tests .itests clean
+.pytests: compile .generate-api-spec .unit-tests .itests clean
 
 .PHONY: .pytests-coverage
 .pytests-coverage: .unit-tests-coverage-html .itests-coverage-html clean
