@@ -45,17 +45,25 @@ class Querier(object):
     def __init__(self, empty_q_sleep_time=5,
                  no_workers_sleep_time=1, container_service=None):
 
-        query_interval = cfg.CONF.resultstracker.query_interval
-        thread_pool_size = cfg.CONF.resultstracker.thread_pool_size
-
         # Let's check to see if deprecated config group ``results_tracker`` is being used.
         try:
             query_interval = cfg.CONF.results_tracker.query_interval
+            LOG.warning('You are using deprecated config group ``results_tracker``.' +
+                        '\nPlease use ``resultstracker`` group instead.')
+        except:
+            pass
+
+        try:
             thread_pool_size = cfg.CONF.results_tracker.thread_pool_size
             LOG.warning('You are using deprecated config group ``results_tracker``.' +
                         '\nPlease use ``resultstracker`` group instead.')
         except:
             pass
+
+        if not query_interval:
+            query_interval = cfg.CONF.resultstracker.query_interval
+        if not thread_pool_size:
+            thread_pool_size = cfg.CONF.resultstracker.thread_pool_size
 
         self._query_thread_pool_size = thread_pool_size
         self._query_interval = query_interval
