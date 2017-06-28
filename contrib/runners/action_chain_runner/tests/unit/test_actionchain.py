@@ -96,6 +96,8 @@ CHAIN_WITH_SYSTEM_VARS = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_system_vars.yaml')
 CHAIN_WITH_PUBLISH = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_with_publish.yaml')
+CHAIN_WITH_PUBLISH_2 = FixturesLoader().get_fixture_file_path_abs(
+    FIXTURES_PACK, 'actionchains', 'chain_with_publish_2.yaml')
 CHAIN_WITH_PUBLISH_PARAM_RENDERING_FAILURE = FixturesLoader().get_fixture_file_path_abs(
     FIXTURES_PACK, 'actionchains', 'chain_publish_params_rendering_failure.yaml')
 CHAIN_WITH_INVALID_ACTION = FixturesLoader().get_fixture_file_path_abs(
@@ -757,6 +759,63 @@ class TestActionChainRunner(DbTestCase):
         action_parameters = {}
         status, output, _ = chain_runner.run(action_parameters=action_parameters)
         self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+
+    @mock.patch.object(action_db_util, 'get_action_by_ref',
+                       mock.MagicMock(return_value=ACTION_2))
+    @mock.patch.object(action_service, 'request',
+                       return_value=(DummyActionExecution(result={'raw_out': 'published'}), None))
+    def test_display_published_is_true_by_default(self, _):
+        expected_published_values = {
+            't1_publish_param_1': 'foo1',
+            't1_publish_param_2': 'foo2',
+            't1_publish_param_3': 'foo3',
+            't2_publish_param_1': 'foo4',
+            't2_publish_param_2': 'foo5',
+            't2_publish_param_3': 'foo6',
+            'publish_last_wins': 'bar_last',
+        }
+
+        # 1. display_published is True by default
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_PUBLISH_2
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.runner_parameters = {}
+        chain_runner.pre_run()
+
+        action_parameters = {}
+        _, result, _ = chain_runner.run(action_parameters=action_parameters)
+
+        # Assert that the variables are correctly published
+        self.assertEqual(result['published'], expected_published_values)
+
+        # 2. display_published is True by default so end result should be the same
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_PUBLISH_2
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.runner_parameters = {'display_published': True}
+        chain_runner.pre_run()
+
+        action_parameters = {}
+        _, result, _ = chain_runner.run(action_parameters=action_parameters)
+
+        # Assert that the variables are correctly published
+        self.assertEqual(result['published'], expected_published_values)
+
+        # 3. display_published is disabled
+        chain_runner = acr.get_runner()
+        chain_runner.entry_point = CHAIN_WITH_PUBLISH_2
+        chain_runner.action = ACTION_2
+        chain_runner.container_service = RunnerContainerService()
+        chain_runner.runner_parameters = {'display_published': False}
+        chain_runner.pre_run()
+
+        action_parameters = {}
+        _, result, _ = chain_runner.run(action_parameters=action_parameters)
+
+        self.assertTrue('published' not in result)
+        self.assertEqual(result.get('published', {}), {})
 
     @classmethod
     def tearDownClass(cls):

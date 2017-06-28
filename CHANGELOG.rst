@@ -15,7 +15,7 @@ in development
   and didn't log anything which was confusing. (improvement) #3489
 
   Reported by Anthony Shaw.
-* Fix ``?name`` query param filter in ``/v1/actionalias`` API endpoint. (bug fix) #3503
+* Fix ``?name`` query parameter filter in ``/v1/actionalias`` API endpoint. (bug fix) #3503
 * Add missing pagination support to ``/v1/apikeys`` API endpoint. (improvement) #3486
 * Notifier now consumes ``ActionExecution`` queue as opposed to ``LiveAction`` queue. With this
   change, the jinja templates used in notify messages that refer to keys in ``ActionExecution``
@@ -24,6 +24,15 @@ in development
   resolved. (bug-fix) #3487 #3496
 
   Reported by Chris Katzmann, Nick Maludy.
+* Update action-chain runner so a default value for ``display_published`` runner parameter is
+  ``True``. This way it's consistent with Mistral runner behavior and intermediate variables
+  published inside action-chain workflow are stored and displayed by default. #3518 #3519
+
+  Reported by Jacob Floyd.
+* Add suppor for ``passphrase`` parameter to ``remote-shell-script`` runner and as such, support
+  for password protected SSH key files. (improvement)
+
+  Reported by Sibiraja L, Nick Maludy.
 
 2.3.0 - June 19, 2017
 ---------------------
