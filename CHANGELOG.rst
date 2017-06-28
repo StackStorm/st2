@@ -4,6 +4,14 @@ Changelog
 in development
 --------------
 
+Added
+~~~~~
+
+* Add support for ``passphrase`` parameter to ``remote-shell-script`` runner and as such, support
+  for password protected SSH key files. (improvement)
+
+  Reported by Sibiraja L, Nick Maludy.
+
 Changed
 ~~~~~~~
 
@@ -19,6 +27,11 @@ Changed
 
   Reported by Anthony Shaw.
 * Add missing pagination support to ``/v1/apikeys`` API endpoint. (improvement) #3486
+* Update action-chain runner so a default value for ``display_published`` runner parameter is
+  ``True``. This way it's consistent with Mistral runner behavior and intermediate variables
+  published inside action-chain workflow are stored and displayed by default. #3518 #3519
+
+  Reported by Jacob Floyd.
 
 Fixed
 ~~~~~
