@@ -441,7 +441,7 @@ ci-checks: compile pylint flake8 bandit .st2client-dependencies-check .st2common
 	@echo
 	@echo "==================== rst-check ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; rstcheck CHANGELOG.rst
+	. $(VIRTUALENV_DIR)/bin/activate; rstcheck --report-warning CHANGELOG.rst
 
 .PHONY: ci-unit
 ci-unit: compile .unit-tests-coverage-html
