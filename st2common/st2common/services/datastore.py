@@ -214,9 +214,9 @@ class DatastoreService(object):
 
         if not self._client or token_expire:
             self._logger.audit('Creating new Client object.')
-            ttl = cfg.CONF.auth.token_ttl
+            ttl = cfg.CONF.auth.service_token_ttl
             self._token_expire = get_datetime_utc_now() + timedelta(seconds=ttl)
-            temporary_token = create_token(username=self._api_username, ttl=ttl)
+            temporary_token = create_token(username=self._api_username, ttl=ttl, service=True)
             api_url = get_full_public_api_url()
             self._client = Client(api_url=api_url, token=temporary_token.token)
 
