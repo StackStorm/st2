@@ -29,6 +29,10 @@ in development
   published inside action-chain workflow are stored and displayed by default. #3518 #3519
 
   Reported by Jacob Floyd.
+* Add suppor for ``passphrase`` parameter to ``remote-shell-script`` runner and as such, support
+  for password protected SSH key files. (improvement)
+
+  Reported by Sibiraja L, Nick Maludy.
 
 2.3.0 - June 19, 2017
 ---------------------
