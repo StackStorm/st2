@@ -274,11 +274,14 @@ class ResourceManager(object):
             self.handle_error(response)
         items = response.json()
         instances = [self.resource.deserialize(item) for item in items]
-        return instances
+        if 'X-Total-Count' in response.headers:
+            return (instances, response.headers['X-Total-Count'])
+        else:
+            return (instances, None)
 
     @add_auth_token_to_kwargs_from_env
     def get_by_name(self, name, **kwargs):
-        instances = self.query(name=name, **kwargs)
+        instances, _ = self.query(name=name, **kwargs)
         if not instances:
             return None
         else:

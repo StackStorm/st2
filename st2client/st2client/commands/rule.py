@@ -44,10 +44,10 @@ class RuleListCommand(resource.ResourceTableCommand):
                                               'Get the list of the 50 most recent %s.' %
                                               resource.get_plural_display_name().lower(),
                                               *args, **kwargs)
-        self.default_rule_limit = 50
+        self.default_limit = 50
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
-                                 default=self.default_rule_limit,
+                                 default=self.default_limit,
                                  help=('List N most recent %s. Default is 50.' %
                                        resource.get_plural_display_name().lower()))
         self.parser.add_argument('--iftt', action='store_true',
@@ -81,10 +81,12 @@ class RuleListCommand(resource.ResourceTableCommand):
         if args.iftt:
             # switch attr to display the trigger and action
             args.attr = self.display_attributes_iftt
-        return self.manager.query(limit=args.last, **kwargs)
+
+        result, count = self.manager.query(limit=args.last, **kwargs)
+        return (result, count)
 
     def run_and_print(self, args, **kwargs):
-        instances = self.run(args, **kwargs)
+        instances, count = self.run(args, **kwargs)
         if args.json or args.yaml:
             self.print_output(instances, table.MultiColumnTable,
                               attributes=args.attr, widths=args.width,
@@ -93,11 +95,9 @@ class RuleListCommand(resource.ResourceTableCommand):
             self.print_output(instances, table.MultiColumnTable,
                               attributes=args.attr, widths=args.width)
 
-            if args.last >= self.default_rule_limit and args.last >= 0:
-                if not args.action and not args.trigger:
-                    table.SingleRowTable.note_box("Note: Only first %s results are displayed. Use "
-                                                  "-n/--last flag for more results, if any." %
-                                                  args.last)
+            if args.last >= self.default_limit and int(count) > args.last:
+                table.SingleRowTable.note_box("Note: Only first %s results are displayed. Use -n/"
+                                              "--last flag for more results." % args.last)
 
 
 class RuleGetCommand(resource.ContentPackResourceGetCommand):

@@ -991,9 +991,10 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
+        self.default_limit = 50
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
-                                 default=50,
+                                 default=self.default_limit,
                                  help=('List N most recent %s.' %
                                        resource.get_plural_display_name().lower()))
         self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
@@ -1062,20 +1063,31 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         exclude_attributes = ','.join(exclude_attributes)
         kwargs['exclude_attributes'] = exclude_attributes
 
-        return self.manager.query(limit=args.last, **kwargs)
+        result, count = self.manager.query(limit=args.last, **kwargs)
+        return (result, count)
 
     def run_and_print(self, args, **kwargs):
-        instances = format_wf_instances(self.run(args, **kwargs))
 
-        if not args.json and not args.yaml:
+        result, count = self.run(args, **kwargs)
+        instances = format_wf_instances(result)
+
+        if args.json or args.yaml:
+            self.print_output(reversed(instances), table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              json=args.json,
+                              yaml=args.yaml,
+                              attribute_transform_functions=self.attribute_transform_functions)
+
+        else:
             # Include elapsed time for running executions
             instances = format_execution_statuses(instances)
+            self.print_output(reversed(instances), table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              attribute_transform_functions=self.attribute_transform_functions)
 
-        self.print_output(reversed(instances), table.MultiColumnTable,
-                          attributes=args.attr, widths=args.width,
-                          json=args.json,
-                          yaml=args.yaml,
-                          attribute_transform_functions=self.attribute_transform_functions)
+            if args.last >= self.default_limit and int(count) > args.last:
+                table.SingleRowTable.note_box("Note: Only first %s results are displayed. Use -n/"
+                                              "--last flag for more results." % args.last)
 
 
 class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadCommand):
