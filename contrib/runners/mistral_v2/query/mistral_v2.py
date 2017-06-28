@@ -12,6 +12,7 @@ from st2common.query.base import Querier
 from st2common.constants import action as action_constants
 from st2common.exceptions import resultstracker as exceptions
 from st2common import log as logging
+from st2common.persistence.execution import ActionExecution
 from st2common.util import action_db as action_utils
 from st2common.util import jsonify
 from st2common.util.url import get_url_without_trailing_slash
@@ -226,14 +227,37 @@ class MistralResultsQuerier(Querier):
 
         return result
 
+    def _has_active_tasks(self, liveaction_db, mistral_tasks):
+        # Identify if there are any active tasks in Mistral.
+        active_mistral_tasks = len([t for t in mistral_tasks if t['state'] in ACTIVE_STATES]) > 0
+
+        active_st2_tasks = False
+        execution = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+
+        for child_exec_id in execution.children:
+            child_exec = ActionExecution.get(id=child_exec_id)
+
+            if (child_exec.status not in action_constants.LIVEACTION_COMPLETED_STATES and
+                    child_exec.status != action_constants.LIVEACTION_STATUS_PAUSED):
+                active_st2_tasks = True
+                break
+
+        if active_mistral_tasks:
+            LOG.info('There are active mistral tasks for %s.', str(liveaction_db.id))
+
+        if active_st2_tasks:
+            LOG.info('There are active st2 tasks for %s.', str(liveaction_db.id))
+
+        return active_mistral_tasks or active_st2_tasks
+
     def _determine_execution_status(self, liveaction_db, wf_state, tasks):
         # Determine if liveaction is being canceled, paused, or resumed.
         is_action_canceled = liveaction_db.status in CANCELED_STATES
         is_action_paused = liveaction_db.status in PAUSED_STATES
         is_action_resuming = liveaction_db.status in RESUMING_STATES
 
-        # Identify the list of tasks that are not still running.
-        active_tasks = [t for t in tasks if t['state'] in ACTIVE_STATES]
+        # Identify the list of tasks that are still running or pausing.
+        active_tasks = self._has_active_tasks(liveaction_db, tasks)
 
         # Keep the execution in running state if there are active tasks.
         # In certain use cases, Mistral sets the workflow state to

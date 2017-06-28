@@ -193,25 +193,28 @@ class MistralRunnerCancelTest(DbTestCase):
 
         # Mock the children of the parent execution to make this
         # test case has subworkflow execution.
-        ActionExecutionDB.children = mock.PropertyMock(return_value=[execution2.id])
+        with mock.patch.object(
+                ActionExecutionDB, 'children',
+                new_callable=mock.PropertyMock) as action_ex_children_mock:
+            action_ex_children_mock.return_value = [execution2.id]
 
-        mistral_context = liveaction1.context.get('mistral', None)
-        self.assertIsNotNone(mistral_context)
-        self.assertEqual(mistral_context['execution_id'], WF2_EXEC.get('id'))
-        self.assertEqual(mistral_context['workflow_name'], WF2_EXEC.get('workflow_name'))
+            mistral_context = liveaction1.context.get('mistral', None)
+            self.assertIsNotNone(mistral_context)
+            self.assertEqual(mistral_context['execution_id'], WF2_EXEC.get('id'))
+            self.assertEqual(mistral_context['workflow_name'], WF2_EXEC.get('workflow_name'))
 
-        requester = cfg.CONF.system_user.user
-        liveaction1, execution1 = action_service.request_cancellation(liveaction1, requester)
+            requester = cfg.CONF.system_user.user
+            liveaction1, execution1 = action_service.request_cancellation(liveaction1, requester)
 
-        self.assertTrue(executions.ExecutionManager.update.called)
-        self.assertEqual(executions.ExecutionManager.update.call_count, 2)
+            self.assertTrue(executions.ExecutionManager.update.called)
+            self.assertEqual(executions.ExecutionManager.update.call_count, 2)
 
-        calls = [
-            mock.call(WF2_EXEC.get('id'), 'CANCELLED'),
-            mock.call(WF1_EXEC.get('id'), 'CANCELLED')
-        ]
+            calls = [
+                mock.call(WF2_EXEC.get('id'), 'CANCELLED'),
+                mock.call(WF1_EXEC.get('id'), 'CANCELLED')
+            ]
 
-        executions.ExecutionManager.update.assert_has_calls(calls, any_order=False)
+            executions.ExecutionManager.update.assert_has_calls(calls, any_order=False)
 
     @mock.patch.object(
         workflows.WorkflowManager, 'list',

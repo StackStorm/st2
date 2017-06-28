@@ -385,6 +385,22 @@ class MistralRunner(AsyncActionRunner):
         # running will be allowed to complete gracefully.
         self._client.executions.update(mistral_ctx.get('execution_id'), 'PAUSED')
 
+        # If workflow is executed under another parent workflow, pause the corresponding
+        # action execution for the task in the parent workflow.
+        if 'parent' in getattr(self, 'context', {}):
+            mistral_action_ex_id = mistral_ctx.get('action_execution_id')
+            self._client.action_executions.update(mistral_action_ex_id, 'PAUSED')
+
+        # Identify the list of action executions that are workflows and cascade pause.
+        for child_exec_id in self.execution.children:
+            child_exec = ActionExecution.get(id=child_exec_id)
+            if (child_exec.runner['name'] in action_constants.WORKFLOW_RUNNER_TYPES and
+                    child_exec.status == action_constants.LIVEACTION_STATUS_RUNNING):
+                action_service.request_pause(
+                    LiveAction.get(id=child_exec.liveaction['id']),
+                    self.context.get('user', None)
+                )
+
     @retrying.retry(
         retry_on_exception=utils.retry_on_exceptions,
         wait_exponential_multiplier=cfg.CONF.mistral.retry_exp_msec,
@@ -396,9 +412,25 @@ class MistralRunner(AsyncActionRunner):
         if not mistral_ctx.get('execution_id'):
             raise Exception('Unable to resume because mistral execution_id is missing.')
 
+        # If workflow is executed under another parent workflow, resume the corresponding
+        # action execution for the task in the parent workflow.
+        if 'parent' in getattr(self, 'context', {}):
+            mistral_action_ex_id = mistral_ctx.get('action_execution_id')
+            self._client.action_executions.update(mistral_action_ex_id, 'RUNNING')
+
         # Pause the main workflow execution. Any non-workflow tasks that are still
         # running will be allowed to complete gracefully.
         self._client.executions.update(mistral_ctx.get('execution_id'), 'RUNNING')
+
+        # Identify the list of action executions that are workflows and cascade resume.
+        for child_exec_id in self.execution.children:
+            child_exec = ActionExecution.get(id=child_exec_id)
+            if (child_exec.runner['name'] in action_constants.WORKFLOW_RUNNER_TYPES and
+                    child_exec.status == action_constants.LIVEACTION_STATUS_PAUSED):
+                action_service.request_resume(
+                    LiveAction.get(id=child_exec.liveaction['id']),
+                    self.context.get('user', None)
+                )
 
         return (
             action_constants.LIVEACTION_STATUS_RUNNING,

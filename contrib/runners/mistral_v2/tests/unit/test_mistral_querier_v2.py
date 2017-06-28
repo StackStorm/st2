@@ -33,7 +33,9 @@ tests_config.parse_args()
 
 from st2common.constants import action as action_constants
 from st2common.exceptions import db as db_exc
+from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.liveaction import LiveActionDB
+from st2common.persistence.execution import ActionExecution
 from st2common.util import action_db as action_utils
 from st2common.util import loader
 from st2tests import DbTestCase
@@ -57,6 +59,11 @@ MOCK_WF_TASKS_RUNNING = [
 MOCK_WF_TASKS_WAITING = [
     {'name': 'task1', 'state': 'SUCCESS'},
     {'name': 'task2', 'state': 'WAITING'}
+]
+
+MOCK_WF_TASKS_PAUSED = [
+    {'name': 'task1', 'state': 'SUCCESS'},
+    {'name': 'task2', 'state': 'PAUSED'}
 ]
 
 MOCK_WF_EX_DATA = {
@@ -127,9 +134,49 @@ MOCK_LIVEACTION_RESULT = {
     ]
 }
 
+MOCK_CHILD_ACTIONEXECUTION_RUNNING = ActionExecutionDB(
+    action={'ref': 'mock.task'},
+    runner={'name': 'local_runner'},
+    liveaction={'id': uuid.uuid4().hex},
+    status=action_constants.LIVEACTION_STATUS_RUNNING,
+    children=[]
+)
+
+MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED = ActionExecutionDB(
+    action={'ref': 'mock.task'},
+    runner={'name': 'local_runner'},
+    liveaction={'id': uuid.uuid4().hex},
+    status=action_constants.LIVEACTION_STATUS_SUCCEEDED,
+    children=[]
+)
+
+MOCK_CHILD_ACTIONEXECUTION_PAUSED = ActionExecutionDB(
+    action={'ref': 'mock.task'},
+    runner={'name': 'mistral_v2'},
+    liveaction={'id': uuid.uuid4().hex},
+    status=action_constants.LIVEACTION_STATUS_PAUSED,
+    children=[]
+)
+
 MOCK_LIVEACTION_RUNNING = LiveActionDB(
     action='mock.workflow',
     status=action_constants.LIVEACTION_STATUS_RUNNING
+)
+
+MOCK_ACTIONEXECUTION_RUNNING_CHILD_RUNNING = ActionExecutionDB(
+    action={'ref': 'mock.workflow'},
+    runner={'name': 'mistral_v2'},
+    liveaction={'id': MOCK_LIVEACTION_RUNNING.id},
+    status=action_constants.LIVEACTION_STATUS_RUNNING,
+    children=[MOCK_CHILD_ACTIONEXECUTION_RUNNING.id]
+)
+
+MOCK_ACTIONEXECUTION_RUNNING_CHILD_SUCCEEDED = ActionExecutionDB(
+    action={'ref': 'mock.workflow'},
+    runner={'name': 'mistral_v2'},
+    liveaction={'id': MOCK_LIVEACTION_RUNNING.id},
+    status=action_constants.LIVEACTION_STATUS_RUNNING,
+    children=[MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED.id]
 )
 
 MOCK_LIVEACTION_RUNNING_WITH_STREAMING_RESULT = LiveActionDB(
@@ -143,14 +190,78 @@ MOCK_LIVEACTION_CANCELING = LiveActionDB(
     status=action_constants.LIVEACTION_STATUS_CANCELING
 )
 
+MOCK_ACTIONEXECUTION_CANCELING_CHILD_RUNNING = ActionExecutionDB(
+    action={'ref': 'mock.workflow'},
+    runner={'name': 'mistral_v2'},
+    liveaction={'id': MOCK_LIVEACTION_CANCELING.id},
+    status=action_constants.LIVEACTION_STATUS_CANCELING,
+    children=[MOCK_CHILD_ACTIONEXECUTION_RUNNING.id]
+)
+
+MOCK_ACTIONEXECUTION_CANCELING_CHILD_SUCCEEDED = ActionExecutionDB(
+    action={'ref': 'mock.workflow'},
+    runner={'name': 'mistral_v2'},
+    liveaction={'id': MOCK_LIVEACTION_CANCELING.id},
+    status=action_constants.LIVEACTION_STATUS_CANCELING,
+    children=[MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED.id]
+)
+
+MOCK_ACTIONEXECUTION_CANCELING_CHILD_PAUSED = ActionExecutionDB(
+    action={'ref': 'mock.workflow'},
+    runner={'name': 'mistral_v2'},
+    liveaction={'id': MOCK_LIVEACTION_CANCELING.id},
+    status=action_constants.LIVEACTION_STATUS_CANCELING,
+    children=[MOCK_CHILD_ACTIONEXECUTION_PAUSED.id]
+)
+
 MOCK_LIVEACTION_PAUSING = LiveActionDB(
     action='mock.workflow',
     status=action_constants.LIVEACTION_STATUS_PAUSING
 )
 
+MOCK_ACTIONEXECUTION_PAUSING = ActionExecutionDB(
+    action={'ref': 'mock.workflow'},
+    runner={'name': 'mistral_v2'},
+    liveaction={'id': MOCK_LIVEACTION_PAUSING.id},
+    status=action_constants.LIVEACTION_STATUS_PAUSING,
+    children=[]
+)
+
+MOCK_ACTIONEXECUTION_PAUSING_CHILD_RUNNING = ActionExecutionDB(
+    action={'ref': 'mock.workflow'},
+    runner={'name': 'mistral_v2'},
+    liveaction={'id': MOCK_LIVEACTION_PAUSING.id},
+    status=action_constants.LIVEACTION_STATUS_PAUSING,
+    children=[MOCK_CHILD_ACTIONEXECUTION_RUNNING.id]
+)
+
+MOCK_ACTIONEXECUTION_PAUSING_CHILD_PAUSED = ActionExecutionDB(
+    action={'ref': 'mock.workflow'},
+    runner={'name': 'mistral_v2'},
+    liveaction={'id': MOCK_LIVEACTION_PAUSING.id},
+    status=action_constants.LIVEACTION_STATUS_PAUSING,
+    children=[MOCK_CHILD_ACTIONEXECUTION_PAUSED.id]
+)
+
 MOCK_LIVEACTION_RESUMING = LiveActionDB(
     action='mock.workflow',
     status=action_constants.LIVEACTION_STATUS_RESUMING
+)
+
+MOCK_ACTIONEXECUTION_RESUMING_CHILD_RUNNING = ActionExecutionDB(
+    action={'ref': 'mock.workflow'},
+    runner={'name': 'mistral_v2'},
+    liveaction={'id': MOCK_LIVEACTION_RESUMING.id},
+    status=action_constants.LIVEACTION_STATUS_RESUMING,
+    children=[MOCK_CHILD_ACTIONEXECUTION_RUNNING.id]
+)
+
+MOCK_ACTIONEXECUTION_RESUMING_CHILD_SUCCEEDED = ActionExecutionDB(
+    action={'ref': 'mock.workflow'},
+    runner={'name': 'mistral_v2'},
+    liveaction={'id': MOCK_LIVEACTION_RESUMING.id},
+    status=action_constants.LIVEACTION_STATUS_RESUMING,
+    children=[MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED.id]
 )
 
 
@@ -173,7 +284,12 @@ class MistralQuerierTest(DbTestCase):
         super(MistralQuerierTest, self).setUp()
         self.querier = self.query_module.get_instance()
 
-    def test_determine_status_wf_running_tasks_running(self):
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
+    def test_determine_status_wf_running_exec_running_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RUNNING,
             'RUNNING',
@@ -182,7 +298,12 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
-    def test_determine_status_wf_running_tasks_completed(self):
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
+    def test_determine_status_wf_running_exec_running_tasks_completed(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RUNNING,
             'RUNNING',
@@ -191,7 +312,12 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
-    def test_determine_status_wf_succeeded_tasks_completed(self):
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
+    def test_determine_status_wf_running_exec_succeeded_tasks_completed(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RUNNING,
             'SUCCESS',
@@ -200,7 +326,12 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_SUCCEEDED, status)
 
-    def test_determine_status_wf_succeeded_tasks_running(self):
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
+    def test_determine_status_wf_running_exec_succeeded_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RUNNING,
             'SUCCESS',
@@ -209,7 +340,26 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
-    def test_determine_status_wf_errored_tasks_completed(self):
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
+    def test_determine_status_wf_running_exec_succeeded_tasks_completed_child_running(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_RUNNING,
+            'SUCCESS',
+            MOCK_WF_TASKS_SUCCEEDED
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
+
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
+    def test_determine_status_wf_running_exec_failed_tasks_completed(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RUNNING,
             'ERROR',
@@ -218,7 +368,12 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_FAILED, status)
 
-    def test_determine_status_wf_errored_tasks_running(self):
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
+    def test_determine_status_wf_running_exec_failed_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RUNNING,
             'ERROR',
@@ -227,7 +382,12 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
-    def test_determine_status_wf_canceled_tasks_completed(self):
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_CANCELING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
+    def test_determine_status_wf_canceling_exec_canceled_tasks_completed(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_CANCELING,
             'CANCELLED',
@@ -236,7 +396,12 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELED, status)
 
-    def test_determine_status_wf_canceled_tasks_running(self):
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_CANCELING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
+    def test_determine_status_wf_canceling_exec_canceled_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_CANCELING,
             'CANCELLED',
@@ -245,7 +410,12 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
-    def test_determine_status_wf_canceled_tasks_waiting(self):
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_CANCELING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
+    def test_determine_status_wf_canceling_exec_canceled_tasks_waiting(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_CANCELING,
             'CANCELLED',
@@ -254,7 +424,26 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELED, status)
 
-    def test_determine_status_wf_canceled_exec_running_tasks_completed(self):
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_CANCELING_CHILD_PAUSED,
+            MOCK_CHILD_ACTIONEXECUTION_PAUSED]))
+    def test_determine_status_wf_canceling_exec_canceled_tasks_paused(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_CANCELING,
+            'CANCELLED',
+            MOCK_WF_TASKS_PAUSED
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELED, status)
+
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_CANCELING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
+    def test_determine_status_wf_canceling_exec_running_tasks_completed(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_CANCELING,
             'RUNNING',
@@ -263,7 +452,12 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
-    def test_determine_status_wf_canceled_exec_running_tasks_running(self):
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_CANCELING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
+    def test_determine_status_wf_canceling_exec_running_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_CANCELING,
             'RUNNING',
@@ -272,7 +466,12 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
-    def test_determine_status_wf_canceled_exec_running_tasks_waiting(self):
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_CANCELING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
+    def test_determine_status_wf_canceling_exec_running_tasks_waiting(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_CANCELING,
             'RUNNING',
@@ -281,6 +480,11 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
     def test_determine_status_wf_running_exec_cancelled_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RUNNING,
@@ -290,6 +494,11 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_CANCELING, status)
 
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_PAUSING_CHILD_PAUSED,
+            MOCK_CHILD_ACTIONEXECUTION_PAUSED]))
     def test_determine_status_wf_pausing_exec_paused_tasks_completed(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_PAUSING,
@@ -299,6 +508,25 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSED, status)
 
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_PAUSING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
+    def test_determine_status_wf_pausing_exec_paused_tasks_completed_child_running(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_PAUSING,
+            'PAUSED',
+            MOCK_WF_TASKS_SUCCEEDED
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSING, status)
+
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_PAUSING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
     def test_determine_status_wf_pausing_exec_paused_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_PAUSING,
@@ -308,6 +536,25 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSING, status)
 
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_PAUSING_CHILD_PAUSED,
+            MOCK_CHILD_ACTIONEXECUTION_PAUSED]))
+    def test_determine_status_wf_pausing_exec_paused_tasks_paused(self):
+        status = self.querier._determine_execution_status(
+            MOCK_LIVEACTION_PAUSING,
+            'PAUSED',
+            MOCK_WF_TASKS_PAUSED
+        )
+
+        self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSED, status)
+
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_PAUSING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
     def test_determine_status_wf_pausing_exec_running_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_PAUSING,
@@ -317,6 +564,11 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSING, status)
 
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
     def test_determine_status_wf_running_exec_paused_tasks_completed(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RUNNING,
@@ -326,6 +578,11 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSED, status)
 
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
     def test_determine_status_wf_running_exec_paused_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RUNNING,
@@ -335,6 +592,11 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSING, status)
 
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RESUMING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
     def test_determine_status_wf_resuming_exec_paused_tasks_completed(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RESUMING,
@@ -344,6 +606,11 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_RESUMING, status)
 
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RESUMING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
     def test_determine_status_wf_resuming_exec_running_tasks_completed(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RESUMING,
@@ -353,6 +620,11 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RESUMING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
     def test_determine_status_wf_resuming_exec_running_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RESUMING,
@@ -362,6 +634,11 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_RUNNING, status)
 
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RESUMING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
     def test_determine_status_wf_resuming_exec_paused_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RESUMING,
@@ -371,6 +648,11 @@ class MistralQuerierTest(DbTestCase):
 
         self.assertEqual(action_constants.LIVEACTION_STATUS_PAUSING, status)
 
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RESUMING_CHILD_RUNNING,
+            MOCK_CHILD_ACTIONEXECUTION_RUNNING]))
     def test_determine_status_wf_resuming_exec_canceled_tasks_running(self):
         status = self.querier._determine_execution_status(
             MOCK_LIVEACTION_RESUMING,
@@ -430,6 +712,11 @@ class MistralQuerierTest(DbTestCase):
         mock.MagicMock(side_effect=[
             MOCK_WF_EX_TASKS[0],
             MOCK_WF_EX_TASKS[1]]))
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
     def test_query(self):
         (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
 
@@ -462,6 +749,11 @@ class MistralQuerierTest(DbTestCase):
     @mock.patch.object(
         tasks.TaskManager, 'get',
         mock.MagicMock(return_value=MOCK_WF_EX_TASKS[1]))
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
     def test_query_with_last_query_time(self):
         last_query_time = time.time() - 3
 
@@ -515,6 +807,11 @@ class MistralQuerierTest(DbTestCase):
         mock.MagicMock(side_effect=[
             MOCK_WF_EX_TASKS[0],
             MOCK_WF_EX_TASKS[1]]))
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
     def test_query_get_workflow_retry(self):
         (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
 
@@ -584,6 +881,11 @@ class MistralQuerierTest(DbTestCase):
         mock.MagicMock(side_effect=[
             MOCK_WF_EX_TASKS[0],
             MOCK_WF_EX_TASKS[1]]))
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
     def test_query_list_workflow_tasks_retry(self):
         (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
 
@@ -626,6 +928,11 @@ class MistralQuerierTest(DbTestCase):
             requests.exceptions.ConnectionError(),
             MOCK_WF_EX_TASKS[0],
             MOCK_WF_EX_TASKS[1]]))
+    @mock.patch.object(
+        ActionExecution, 'get',
+        mock.MagicMock(side_effect=[
+            MOCK_ACTIONEXECUTION_RUNNING_CHILD_SUCCEEDED,
+            MOCK_CHILD_ACTIONEXECUTION_SUCCEEDED]))
     def test_query_get_workflow_tasks_retry(self):
         (status, result) = self.querier.query(uuid.uuid4().hex, MOCK_QRY_CONTEXT)
 
