@@ -143,7 +143,7 @@ class ParamikoSSHRunnerTestCase(unittest2.TestCase):
         }
         mock_client.assert_called_with(**expected_kwargs)
 
-        # Private key provided as path to the private key file + passpharse
+        # Private key provided as path to the private key file + passphrase
         runner = Runner('id')
         runner.context = {}
         runner_parameters = {
