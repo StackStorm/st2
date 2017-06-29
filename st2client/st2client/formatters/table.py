@@ -258,4 +258,4 @@ class SingleRowTable(object):
         note = PrettyTable([""])
         note.header = False
         note.add_row([message])
-        return sys.stderr.write(str(note))
+        return sys.stderr.write(str(note) + "\n")
