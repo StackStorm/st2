@@ -142,6 +142,8 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(config['key_with_default_falsy_value_3'], {})
         self.assertEqual(config['key_with_default_falsy_value_4'], '')
         self.assertEqual(config['key_with_default_falsy_value_5'], 0)
+        self.assertEqual(config['key_with_default_falsy_value_6']['key_1'], False)
+        self.assertEqual(config['key_with_default_falsy_value_6']['key_2'], 0)
 
         # 2. Default values are overwrriten with config values which are also falsey
         values = {
@@ -150,6 +152,9 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
             'key_with_default_falsy_value_3': False,
             'key_with_default_falsy_value_4': None,
             'key_with_default_falsy_value_5': {},
+            'key_with_default_falsy_value_6': {
+                'key_2': False
+            }
         }
         config_db = ConfigDB(pack=pack_name, values=values)
         config_db = Config.add_or_update(config_db)
@@ -162,6 +167,8 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(config['key_with_default_falsy_value_3'], False)
         self.assertEqual(config['key_with_default_falsy_value_4'], None)
         self.assertEqual(config['key_with_default_falsy_value_5'], {})
+        self.assertEqual(config['key_with_default_falsy_value_6']['key_1'], False)
+        self.assertEqual(config['key_with_default_falsy_value_6']['key_2'], False)
 
     def test_get_config_nested_schema_default_values_from_config_schema_are_used(self):
         # Special case for more complex config schemas with attributes ntesting.

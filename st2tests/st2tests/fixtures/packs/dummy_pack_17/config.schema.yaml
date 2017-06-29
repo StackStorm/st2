@@ -37,3 +37,15 @@
     type: "number"
     required: True
     default: 0
+  key_with_default_falsy_value_6:
+    type: "object"
+    required: True
+    properties:
+      key_1:
+        type: "boolean"
+        required: true
+        default: False
+      key_2:
+        type: "integer"
+        required: true
+        default: 0
