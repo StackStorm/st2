@@ -224,7 +224,7 @@ class Shell(BaseCLIApp):
             self, self.subparsers, read_only=True, has_disable=True)
 
         self.commands['sensor'] = sensor.SensorBranch(
-            'An adapter which allows you to integrate StackStorm with external system ',
+            'An adapter which allows you to integrate StackStorm with external system.',
             self, self.subparsers)
 
         self.commands['trace'] = trace.TraceBranch(
