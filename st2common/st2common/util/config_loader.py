@@ -157,13 +157,11 @@ class ContentPackConfigLoader(object):
             is_object = schema_item.get('type', None) == 'object'
             has_properties = schema_item.get('properties', None)
 
-            if default_value and not config.get(schema_item_key, None):
-                config[schema_item_key] = default_value
+            config.setdefault(schema_item_key, default_value)
 
             # Inspect nested object properties
             if is_object and has_properties:
-                if not config.get(schema_item_key, None):
-                    config[schema_item_key] = {}
+                config.setdefault(schema_item_key, {})
 
                 self._assign_default_values(schema=schema_item['properties'],
                                             config=config[schema_item_key])
