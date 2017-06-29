@@ -130,7 +130,7 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         config = loader.get_config()
         self.assertEqual(config['region'], 'default-region-value')
 
-    def test_default_values_are_used_when_default_values_are_falsy(self):
+    def test_default_values_are_used_when_default_values_are_falsey(self):
         pack_name = 'dummy_pack_17'
 
         loader = ContentPackConfigLoader(pack_name=pack_name)
@@ -142,6 +142,26 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(config['key_with_default_falsy_value_3'], {})
         self.assertEqual(config['key_with_default_falsy_value_4'], '')
         self.assertEqual(config['key_with_default_falsy_value_5'], 0)
+
+        # 2. Default values are overwrriten with config values which are also falsey
+        values = {
+            'key_with_default_falsy_value_1': 0,
+            'key_with_default_falsy_value_2': '',
+            'key_with_default_falsy_value_3': False,
+            'key_with_default_falsy_value_4': None,
+            'key_with_default_falsy_value_5': {},
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+
+        self.assertEqual(config['key_with_default_falsy_value_1'], 0)
+        self.assertEqual(config['key_with_default_falsy_value_2'], '')
+        self.assertEqual(config['key_with_default_falsy_value_3'], False)
+        self.assertEqual(config['key_with_default_falsy_value_4'], None)
+        self.assertEqual(config['key_with_default_falsy_value_5'], {})
 
     def test_get_config_nested_schema_default_values_from_config_schema_are_used(self):
         # Special case for more complex config schemas with attributes ntesting.
