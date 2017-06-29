@@ -44,6 +44,9 @@ Fixed
   resolved. (bug-fix) #3487 #3496
 
   Reported by Chris Katzmann, Nick Maludy.
+* Deprecate ``results_tracker`` config group and move configuration variables to ``resultstracker``
+  group instead. If you have ``results_tracker`` config group in the config, it is recommended
+  to switch to ``resultstracker`` instead. (bug-fix) #3500
 * Update config loader so it correctly handles config schema default values which are falsey
   (``False``, ``None``, ``0``, etc.) (bug-fix) #3504 #3531
 
