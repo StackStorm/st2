@@ -44,7 +44,10 @@ Fixed
   resolved. (bug-fix) #3487 #3496
 
   Reported by Chris Katzmann, Nick Maludy.
+* Update config loader so it correctly handles config schema default values which are falsey
+  (``False``, ``None``, ``0``, etc.) (bug-fix) #3504 #3531
 
+  Reported by Simas Čepaitis.
 
 2.3.0 - June 19, 2017
 ---------------------
