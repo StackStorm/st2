@@ -44,6 +44,9 @@ Fixed
   resolved. (bug-fix) #3487 #3496
 
   Reported by Chris Katzmann, Nick Maludy.
+* Deprecate ``results_tracker`` config group and move configuration variables to ``resultstracker``
+  group instead. If you have ``results_tracker`` config group in the config, it is recommended
+  to switch to ``resultstracker`` instead. (bug-fix) #3500
 
 
 2.3.0 - June 19, 2017
