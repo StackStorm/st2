@@ -274,6 +274,7 @@ class ResourceManager(object):
             self.handle_error(response)
         items = response.json()
         instances = [self.resource.deserialize(item) for item in items]
+
         if 'X-Total-Count' in response.headers:
             return (instances, response.headers['X-Total-Count'])
         else:
@@ -281,14 +282,18 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def get_by_name(self, name, **kwargs):
-        instances, _ = self.query(name=name, **kwargs)
-        if not instances:
-            return None
-        else:
-            if len(instances) > 1:
-                raise Exception('More than one %s named "%s" are found.' %
-                                (self.resource.__name__.lower(), name))
+        results = self.query(name=name, **kwargs)
+        if results:
+            instances, _ = results
+            if not instances:
+                return None
+            else:
+                if len(instances) > 1:
+                    raise Exception('More than one %s named "%s" are found.' %
+                                    (self.resource.__name__.lower(), name))
             return instances[0]
+        else:
+            return None
 
     @add_auth_token_to_kwargs_from_env
     def create(self, instance, **kwargs):

@@ -16,6 +16,7 @@
 import json
 import math
 import logging
+import sys
 
 from prettytable import PrettyTable
 from six.moves import zip
@@ -257,4 +258,4 @@ class SingleRowTable(object):
         note = PrettyTable([""])
         note.header = False
         note.add_row([message])
-        print note
+        return sys.stderr.write(str(note))
