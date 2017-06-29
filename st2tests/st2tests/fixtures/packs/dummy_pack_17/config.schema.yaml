@@ -29,3 +29,11 @@
     type: "object"
     required: True
     default: {}
+  key_with_default_falsy_value_4:
+    type: "string"
+    required: True
+    default: ""
+  key_with_default_falsy_value_5:
+    type: "number"
+    required: True
+    default: 0

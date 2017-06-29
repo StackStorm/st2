@@ -140,6 +140,8 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         self.assertEqual(config['key_with_default_falsy_value_1'], False)
         self.assertEqual(config['key_with_default_falsy_value_2'], None)
         self.assertEqual(config['key_with_default_falsy_value_3'], {})
+        self.assertEqual(config['key_with_default_falsy_value_4'], '')
+        self.assertEqual(config['key_with_default_falsy_value_5'], 0)
 
     def test_get_config_nested_schema_default_values_from_config_schema_are_used(self):
         # Special case for more complex config schemas with attributes ntesting.
