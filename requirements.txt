@@ -22,7 +22,7 @@ networkx==1.11
 nose
 oslo.config<1.13,>=1.12.1
 oslo.utils<3.1.0
-paramiko<2.2,>=2.1.2
+paramiko==2.2.1
 passlib==1.7.1
 prance==0.6.1
 prettytable
