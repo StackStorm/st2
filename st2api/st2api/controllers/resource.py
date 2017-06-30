@@ -156,6 +156,8 @@ class ResourceController(object):
 
         # TODO: To protect us from DoS, we need to make max_limit mandatory
         offset = int(offset)
+        if offset >= 2**31:
+            raise ValueError('Offset "%s" specified is more than 32-bit int' % (offset))
 
         if limit and int(limit) > self.max_limit:
             # TODO: We should throw here, I don't like this.

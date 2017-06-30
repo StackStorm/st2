@@ -1,13 +1,10 @@
-# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY
-# Edit st2common/st2common/openapi.yaml.j2 and then run
-# make .generate-api-spec make target to generate the final spec file
 swagger: '2.0'
 
 info:
   version: "1.0.0"
   title: StackStorm API
   description: |
-    
+    {% raw %}
     ## Welcome
 
     Welcome to the StackStorm API Reference documentation! You can use the StackStorm API to integrate StackStorm with 3rd-party systems and custom applications. Example integrations include writing your own self-service user portal, or integrating with other orchestration systems.
@@ -196,7 +193,7 @@ info:
     Join our [Slack Community](https://stackstorm.com/community-signup) to get help from the engineering team and fellow users. You can also create issues against the main [StackStorm GitHub repo](https://github.com/StackStorm/st2/issues), or the [st2apidocs repo](https://github.com/StackStorm/st2apidocs) for documentation-specific issues.
 
     We also recommend reviewing the main [StackStorm documentation](https://docs.stackstorm.com/).
-    
+    {% endraw %}
 
 paths:
   /api/v1/:
@@ -224,7 +221,7 @@ paths:
   /api/v1/actions:
     get:
       operationId: st2api.controllers.v1.actions:actions_controller.get_all
-      x-permissions: action_list
+      x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
       description: Returns a list of all actions.
       parameters:
         - name: exclude_attributes
@@ -418,7 +415,7 @@ paths:
   /api/v1/actions/views/overview:
     get:
       operationId: st2api.controllers.v1.actionviews:overview_controller.get_all
-      x-permissions: action_list
+      x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
       description: Returns a list of all the actions with runner parameters included.
       parameters:
         - name: exclude_attributes
@@ -532,7 +529,7 @@ paths:
   /api/v1/actionalias:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_all
-      x-permissions: action_alias_list
+      x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_LIST }}
       description: |
           Get list of action-aliases.
       parameters:
@@ -676,7 +673,7 @@ paths:
   /api/v1/actionalias/match:
     post:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.match
-      x-permissions: action_alias_match
+      x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_MATCH }}
       description: |
         Match action alias based on format (representation or display).
       parameters:
@@ -701,7 +698,7 @@ paths:
   /api/v1/actionalias/help:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.help
-      x-permissions: action_alias_help
+      x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_HELP }}
       description: |
         Get available help strings for action aliases.
       parameters:
@@ -772,7 +769,7 @@ paths:
   /api/v1/executions:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_all
-      x-permissions: execution_list
+      x-permissions: {{ PERMISSION_TYPE.EXECUTION_LIST }}
       x-log-result: false
       description: Returns a list of all executions.
       parameters:
@@ -855,17 +852,17 @@ paths:
           in: query
           description: Start timestamp filter
           type: string
-          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+          pattern: {{ ISO8601_UTC_REGEX }}
         - name: timestamp_lt
           in: query
           description: Start timestamp less than filter
           type: string
-          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+          pattern: {{ ISO8601_UTC_REGEX }}
         - name: timestamp_gt
           in: query
           description: Start timestamp greater than filter
           type: string
-          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+          pattern: {{ ISO8601_UTC_REGEX }}
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -1164,7 +1161,7 @@ paths:
   /api/v1/executions/views/filters:
     get:
       operationId: st2api.controllers.v1.executionviews:filters_controller.get_all
-      x-permissions: execution_views_filters_list
+      x-permissions: {{ PERMISSION_TYPE.EXECUTION_VIEWS_FILTERS_LIST }}
       description: |
         Get a list of distinct values for the execution filters.
       parameters:
@@ -1193,7 +1190,7 @@ paths:
   /api/v1/keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
-      x-permissions: 
+      x-permissions: {{ PERMISSION_TYPE.KEY_VALUE_PAIR_LIST }}
       description: Returns a list of all key value pairs.
       parameters:
         - name: prefix
@@ -1361,7 +1358,7 @@ paths:
   /api/v1/packs:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.get_all
-      x-permissions: pack_list
+      x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
       description: Get list of installed packs.
       parameters:
         - name: limit
@@ -1436,7 +1433,7 @@ paths:
   /api/v1/packs/install:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.install.post
-      x-permissions: pack_install
+      x-permissions: {{ PERMISSION_TYPE.PACK_INSTALL }}
       description: |
         Install new packs..
       parameters:
@@ -1461,7 +1458,7 @@ paths:
   /api/v1/packs/uninstall:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.uninstall.post
-      x-permissions: pack_uninstall
+      x-permissions: {{ PERMISSION_TYPE.PACK_UNINSTALL }}
       description: |
         Uninstall packs.
       parameters:
@@ -1486,7 +1483,7 @@ paths:
   /api/v1/packs/register:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.register.post
-      x-permissions: pack_register
+      x-permissions: {{ PERMISSION_TYPE.PACK_REGISTER }}
       description: |
         Register pack(s): sync all file changes with DB.
       parameters:
@@ -1511,7 +1508,7 @@ paths:
   /api/v1/packs/index/search:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.index.search.post
-      x-permissions: pack_search
+      x-permissions: {{ PERMISSION_TYPE.PACK_SEARCH }}
       description: |
         Search the index with a query or Get information about an available pack from the index.
       parameters:
@@ -1543,7 +1540,7 @@ paths:
   /api/v1/packs/index/health:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.index.get
-      x-permissions: pack_views_index_health
+      x-permissions: {{ PERMISSION_TYPE.PACK_VIEWS_INDEX_HEALTH }}
       description: To get the state of all indexes used by your StackStorm instance.
       responses:
         '200':
@@ -1632,7 +1629,7 @@ paths:
   /api/v1/configs:
     get:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_all
-      x-permissions: pack_list
+      x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
       description: Retrieve configs for all the packs.
       parameters:
         - name: limit
@@ -1717,7 +1714,7 @@ paths:
             $ref: '#/definitions/Error'
     put:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.put
-      x-permissions: pack_config
+      x-permissions: {{ PERMISSION_TYPE.PACK_CONFIG }}
       description: Create a new config for the action.
       parameters:
         - name: pack_ref
@@ -1754,7 +1751,7 @@ paths:
   /api/v1/config_schemas:
     get:
       operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_all
-      x-permissions: pack_list
+      x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
       description: Retrieve config schema for all the packs.
       parameters:
         - name: limit
@@ -1827,7 +1824,7 @@ paths:
   /api/v1/policytypes:
     get:
       operationId: st2api.controllers.v1.policies:policy_type_controller.get_all
-      x-permissions: policy_type_list
+      x-permissions: {{ PERMISSION_TYPE.POLICY_TYPE_LIST }}
       description: Returns a list of all the policy types.
       parameters:
         - name: resource_type
@@ -1906,7 +1903,7 @@ paths:
   /api/v1/policies:
     get:
       operationId: st2api.controllers.v1.policies:policy_controller.get_all
-      x-permissions: policy_list
+      x-permissions: {{ PERMISSION_TYPE.POLICY_LIST }}
       description: |
         List of policies
       parameters:
@@ -2225,7 +2222,7 @@ paths:
   /api/v1/rules:
     get:
       operationId: st2api.controllers.v1.rules:rule_controller.get_all
-      x-permissions: rule_list
+      x-permissions: {{ PERMISSION_TYPE.RULE_LIST }}
       description: Returns a list of all rules.
       parameters:
         - name: exclude_attributes
@@ -2398,7 +2395,7 @@ paths:
   /api/v1/rules/views:
     get:
       operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_all
-      x-permissions: rule_list
+      x-permissions: {{ PERMISSION_TYPE.RULE_LIST }}
       description: Returns a list of all rules.
       parameters:
         - name: exclude_attributes
@@ -2527,7 +2524,7 @@ paths:
   /api/v1/runnertypes:
     get:
       operationId: st2api.controllers.v1.runnertypes:runner_types_controller.get_all
-      x-permissions: runner_type_list
+      x-permissions: {{ PERMISSION_TYPE.RUNNER_LIST }}
       description: Returns a list of all runner types.
       parameters:
         - name: exclude_attributes
@@ -2643,7 +2640,7 @@ paths:
   /api/v1/sensortypes:
     get:
       operationId: st2api.controllers.v1.sensors:sensor_type_controller.get_all
-      x-permissions: sensor_type_list
+      x-permissions: {{ PERMISSION_TYPE.SENSOR_LIST }}
       description: Returns a list of all sensor types.
       parameters:
         - name: exclude_attributes
@@ -2763,7 +2760,7 @@ paths:
   /api/v1/apikeys:
     get:
       operationId: st2api.controllers.v1.auth:api_key_controller.get_all
-      x-permissions: api_key_list
+      x-permissions: {{ PERMISSION_TYPE.API_KEY_LIST }}
       description: Returns a list of all actions.
       parameters:
         - name: show_secrets
@@ -2919,7 +2916,7 @@ paths:
   /api/v1/ruleenforcements:
     get:
       operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_all
-      x-permissions: rule_enforcement_list
+      x-permissions: {{ PERMISSION_TYPE.RULE_ENFORCEMENT_LIST }}
       description: Returns a list of all the rule enforcements.
       parameters:
         - name: limit
@@ -2969,13 +2966,13 @@ paths:
           description: |
               Only return enforcements with enforced_at greater than the one provided. Use time in the format.
           type: string
-          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+          pattern: {{ ISO8601_UTC_REGEX }}
         - name: enforced_at_lt
           in: query
           description: |
               Only return enforcements with enforced_at lower than the one provided. Use time in the format.
           type: string
-          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+          pattern: {{ ISO8601_UTC_REGEX }}
       responses:
         '200':
           description: List of rule enforcements
@@ -3022,7 +3019,7 @@ paths:
   /api/v1/timers:
     get:
       operationId: st2api.controllers.v1.timers:timers_controller.get_all
-      x-permissions: timer_list
+      x-permissions: {{ PERMISSION_TYPE.TIMER_LIST }}
       description: Returns a list of all the timers.
       parameters:
         - name: timer_type
@@ -3075,7 +3072,7 @@ paths:
   /api/v1/traces:
     get:
       operationId: st2api.controllers.v1.traces:traces_controller.get_all
-      x-permissions: trace_list
+      x-permissions: {{ PERMISSION_TYPE.TRACE_LIST }}
       description: Returns a list of all the traces.
       parameters:
         - name: limit
@@ -3465,12 +3462,12 @@ paths:
           in: query
           description: Start timestamp less than filter
           type: string
-          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+          pattern: {{ ISO8601_UTC_REGEX }}
         - name: timestamp_gt
           in: query
           description: Start timestamp greater than filter
           type: string
-          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+          pattern: {{ ISO8601_UTC_REGEX }}
       responses:
         '200':
           description: List of trigger instances
@@ -3537,7 +3534,7 @@ paths:
   /api/v1/webhooks:
     get:
       operationId: st2api.controllers.v1.webhooks:webhooks_controller.get_all
-      x-permissions: webhook_list
+      x-permissions: {{ PERMISSION_TYPE.WEBHOOK_LIST }}
       description: Returns a list of all webhooks.
       responses:
         '200':
@@ -3810,7 +3807,7 @@ definitions:
           pack:
             type: string
             description: The content pack this action belongs to.
-            default: 'default'
+            default: '{{ DEFAULT_PACK_NAME }}'
       - $ref: '#/definitions/Action'
       - $ref: '#/definitions/DataFilesSubSchema'
   ActionUpdateRequest:
@@ -3917,15 +3914,15 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
+        enum: {{ LIVEACTION_STATUSES }}
       start_timestamp:
         description: The start time when the action is executed.
         type: string
-        pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+        pattern: {{ ISO8601_UTC_REGEX }}
       end_timestamp:
         description: The timestamp when the action has finished.
         type: string
-        pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+        pattern: {{ ISO8601_UTC_REGEX }}
       elapsed_seconds:
         description: Time duration in seconds taken for completion of this execution.
         type: number
@@ -3973,10 +3970,10 @@ definitions:
           properties:
             timestamp:
               type: string
-              pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+              pattern: {{ ISO8601_UTC_REGEX }}
             status:
               type: string
-              enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
+              enum: {{ LIVEACTION_STATUSES }}
     required:
       - id
     additionalProperties: False
@@ -3996,7 +3993,7 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
+        enum: {{ LIVEACTION_STATUSES }}
       result:
         type: object
     additionalProperties: False
@@ -4224,15 +4221,15 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
+        enum: {{ LIVEACTION_STATUSES }}
       start_timestamp:
         description: The start time when the action is executed.
         type: string
-        pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+        pattern: {{ ISO8601_UTC_REGEX }}
       end_timestamp:
         description: The timestamp when the action has finished.
         type: string
-        pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+        pattern: {{ ISO8601_UTC_REGEX }}
       action:
         description: Reference to the action to be executed.
         type: string
@@ -4382,7 +4379,7 @@ definitions:
         type: object
       created_at:
         type: string
-        pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
+        pattern: {{ ISO8601_UTC_REGEX }}
       enabled:
         type: boolean
         default: True
