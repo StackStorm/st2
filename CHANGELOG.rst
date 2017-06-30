@@ -32,6 +32,10 @@ Changed
   published inside action-chain workflow are stored and displayed by default. #3518 #3519
 
   Reported by Jacob Floyd.
+* To reduce API service log clutter, log whole API responses (API controller response body)
+  under ``DEBUG`` log level instead of under ``INFO``. (improvement) #3539
+
+  Reported by Sibiraja L.
 
 Fixed
 ~~~~~
