@@ -73,11 +73,13 @@ class LoggingMiddleware(object):
         except NotFoundException:
             endpoint = {}
 
+        log_result = endpoint.get('x-log-result', True)
+
         if isinstance(retval, types.GeneratorType):
+            # Note: We don't log the result when return value is a generator, because this would
+            # result in calling str() on the generator and as such, exhausting it
             content_length = [float('inf')]
             log_result = False
-        else:
-            log_result = True
 
         # Log the response
         values = {
@@ -90,13 +92,11 @@ class LoggingMiddleware(object):
             'request_id': request.headers.get(REQUEST_ID_HEADER, None)
         }
 
-        controller_result = retval[0]
-
         log_msg = '%(request_id)s - %(status)s %(content_length)s %(runtime)sms' % (values)
-
         LOG.info(log_msg, extra=values)
 
         if log_result:
+            controller_result = retval[0]
             LOG.debug(controller_result, extra=values)
 
         return retval
