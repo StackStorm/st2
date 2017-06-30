@@ -1,8 +1,7 @@
 # Packages versions fixed for the whole st2 stack
 # Note: greenlet is used by eventlet
 greenlet>=0.4.10,<0.5
-# Note: Eventlet 0.20.0 removes select.poll() which we rely on
-eventlet==0.19.0
+eventlet==0.21.0
 gunicorn==19.6.0
 kombu==4.0.2
 # Note: amqp is used by kombu
