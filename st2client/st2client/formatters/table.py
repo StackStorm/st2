@@ -46,6 +46,9 @@ COLORIZED_ATTRIBUTES = {
     }
 }
 
+# Width of the final table for note
+table_width = 0
+
 
 class MultiColumnTable(formatters.Formatter):
 
@@ -71,7 +74,6 @@ class MultiColumnTable(formatters.Formatter):
             else:
                 col_width = int(math.floor((cols / len(attributes))))
                 first_col_width = col_width
-
             widths = []
             subtract = 0
             for index in range(0, len(attributes)):
@@ -149,6 +151,11 @@ class MultiColumnTable(formatters.Formatter):
                     value = strutil.unescape(value)
                     values.append(value)
             table.add_row(values)
+
+        # width for the note
+        global table_width
+        table_width = len(table.get_string().split("\n")[0])
+
         return table
 
     @staticmethod
@@ -252,10 +259,14 @@ class PropertyValueTable(formatters.Formatter):
 
 
 class SingleRowTable(object):
-
     @staticmethod
     def note_box(message):
-        note = PrettyTable([""])
+        # adding default padding
+        message_length = len(message) + 3
+        if table_width > message_length:
+            note = PrettyTable([""], right_padding_width=(table_width - message_length))
+        else:
+            note = PrettyTable([""])
         note.header = False
         note.add_row([message])
         return sys.stderr.write(str(note) + "\n")
