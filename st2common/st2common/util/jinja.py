@@ -52,6 +52,7 @@ def get_filters():
     from st2common.jinja.filters import complex_type
     from st2common.jinja.filters import time
     from st2common.jinja.filters import version
+    from st2common.jinja.filters import json_escape
 
     return {
         'decrypt_kv': crypto.decrypt_kv,
@@ -76,7 +77,9 @@ def get_filters():
         'version_bump_minor': version.version_bump_minor,
         'version_bump_patch': version.version_bump_patch,
         'version_strip_patch': version.version_strip_patch,
-        'use_none': use_none
+        'use_none': use_none,
+
+        'json_escape': json_escape.json_escape
     }
 
 

@@ -11,6 +11,9 @@ Added
   for password protected SSH key files. (improvement)
 
   Reported by Sibiraja L, Nick Maludy.
+* Add json_ecsape Jinja filter for escaping JSON strings (improvement)
+
+  Contributed by mierdin. #3480
 * Add regex_substring Jinja filter for searching for a pattern in a provided string and returning
   the result (improvement)
 
