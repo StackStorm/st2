@@ -155,12 +155,6 @@ def render_values(mapping=None, context=None, allow_undefined=False):
             e.value = v
             raise e
 
-        # 2017-06-16 23:22:55,147 INFO [-] Rendering string Random text from another action output """ which will break JSON and needs escaping
-        # . Super context={'__context': {'st2kv': {'system': <st2common.services.keyvalues.KeyValueLookup object at 0x7f15f2e59390>}}, 'st2kv': {'system': <st2common.services.keyvalues.KeyValueLookup object at 0x7f15f2e59390>}}
-        # 2017-06-16 23:22:55,147 INFO [-] POOP4 -Random text from another action output """ which will break JSON and needs escaping
-        # 2017-06-16 23:22:55,148 INFO [-] POOP4.5 -Random text from another action output """ which will break JSON and needs escaping
-        # 2017-06-16 23:22:55,148 INFO [-] POOP5 - False
-
         # no change therefore no templatization so pick params from original to retain
         # original type
         LOG.info("POOP4 -%s" % v)
