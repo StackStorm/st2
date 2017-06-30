@@ -96,7 +96,9 @@ class LoggingMiddleware(object):
         LOG.info(log_msg, extra=values)
 
         if log_result:
-            controller_result = retval[0]
-            LOG.debug(controller_result, extra=values)
+            values['result'] = retval[0]
+            log_msg = ('%(request_id)s - %(status)s %(content_length)s %(runtime)sms\n%(result)s' %
+                      (values))
+            LOG.debug(log_msg, extra=values)
 
         return retval
