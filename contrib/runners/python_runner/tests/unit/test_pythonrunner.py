@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import re
 
 import mock
 
@@ -42,6 +43,8 @@ ACTION_1_PATH = os.path.join(tests_base.get_fixtures_path(),
                              'packs/dummy_pack_9/actions/list_repos_doesnt_exist.py')
 ACTION_2_PATH = os.path.join(tests_base.get_fixtures_path(),
                              'packs/dummy_pack_9/actions/invalid_syntax.py')
+NON_SIMPLE_TYPE_ACTION = os.path.join(tests_base.get_resources_path(), 'packs',
+                                      'pythonactions/actions/non_simple_type.py')
 
 # Note: runner inherits parent args which doesn't work with tests since test pass additional
 # unrecognized args
@@ -58,6 +61,25 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner = python_runner.get_runner()
         self.assertTrue(runner is not None, 'Creation failed. No instance.')
         self.assertEqual(type(runner), python_runner.PythonRunner, 'Creation failed. No instance.')
+
+    def test_action_returns_non_serializable_result(self):
+        # Actions returns non-simple type which can't be serialized, verify result is simple str()
+        # representation of the result
+        runner = python_runner.get_runner()
+        runner.action = self._get_mock_action_obj()
+        runner.runner_parameters = {}
+        runner.entry_point = NON_SIMPLE_TYPE_ACTION
+        runner.container_service = service.RunnerContainerService()
+        runner.pre_run()
+        (status, output, _) = runner.run({})
+
+        self.assertEqual(status, LIVEACTION_STATUS_SUCCEEDED)
+        self.assertTrue(output is not None)
+
+        expected_result_re = (r"\[{'a': '1'}, {'h': 3, 'c': 2}, {'e': "
+                              "<non_simple_type.Test object at .*?>}\]")
+        match = re.match(expected_result_re, output['result'])
+        self.assertTrue(match)
 
     def test_simple_action_with_result_no_status(self):
         runner = python_runner.get_runner()
