@@ -157,12 +157,9 @@ def render_values(mapping=None, context=None, allow_undefined=False):
 
         # no change therefore no templatization so pick params from original to retain
         # original type
-        LOG.info("POOP4 -%s" % v)
-        LOG.info("POOP4.5 -%s" % rendered_v)
         if rendered_v == v:
             rendered_mapping[k] = mapping[k]
             continue
-        LOG.info("POOP5 - %s" % reverse_json_dumps)
         if reverse_json_dumps:
             rendered_v = json.loads(rendered_v)
         rendered_mapping[k] = rendered_v
