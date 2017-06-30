@@ -130,7 +130,6 @@ def render_values(mapping=None, context=None, allow_undefined=False):
     super_context.update(context)
 
     env = get_jinja_environment(allow_undefined=allow_undefined)
-    env.filters['tojson'] = json.dumps
     rendered_mapping = {}
     for k, v in six.iteritems(mapping):
         # jinja2 works with string so transform list and dict to strings.
