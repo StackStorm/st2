@@ -62,6 +62,7 @@ def setup(config, setup_db=True, register_mq_exchanges=True,
     2. Establishes DB connection
     3. Suppress DEBUG log level if --verbose flag is not used
     4. Registers RabbitMQ exchanges
+    5. Registers internal trigger types (optional, disabled by default)
 
     :param config: Config object to use to parse args.
     """
