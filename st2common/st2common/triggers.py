@@ -47,7 +47,7 @@ def _register_internal_trigger_type(trigger_definition):
 
     # trigger types with parameters do no require a shadow trigger.
     if trigger_type_db and not trigger_type_db.parameters_schema:
-        LOG.info('Registered trigger: %s.', trigger_definition['name'])
+        LOG.debug('Registered trigger: %s.', trigger_definition['name'])
         try:
             trigger_db = create_shadow_trigger(trigger_type_db)
 
