@@ -10,6 +10,8 @@ jobs:
       - DISTROS: "trusty xenial el6 el7"
       - ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
       - DEPLOY_PACKAGES: 0
+      #- DOCKER_COMPOSE_VERSION: 1.14.0
+      - DOCKER_COMPOSE_VERSION: 1.9.0
     steps:
       - checkout
       - setup_remote_docker:
@@ -21,7 +23,7 @@ jobs:
             set -x
             apt-get update
             apt-get install -y curl git bash
-            curl -L https://github.com/docker/compose/releases/download/1.14.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+            curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
             chmod +x /usr/local/bin/docker-compose
 
       - run:
