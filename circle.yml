@@ -4,7 +4,7 @@ jobs:
     parallelism: 1
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: docker/compose:1.14.0
+      - image: ubuntu:trusty
     working_directory: ~/st2
     environment:
       - DISTROS: "trusty xenial el6 el7"
@@ -14,9 +14,11 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-          name: Install dependencies - this should be done as a pre-packed Docker image later
+          name: Install dependencies - should be done as a pre-packed Docker image later
           command: |
-            apt-get install -y sudo git
+            set -x
+            curl -L https://github.com/docker/compose/releases/download/1.14.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+            chmod +x /usr/local/bin/docker-compose
 
       - run:
           name: Download st2-packages repository
