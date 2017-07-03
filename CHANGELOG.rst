@@ -11,8 +11,9 @@ Added
   for password protected SSH key files. (improvement)
 
   Reported by Sibiraja L, Nick Maludy.
-* Append note to the output, if there are more entries for the following ``list`` CLIs: ``rule``,
-  ``execution``, ``rule-enforcment``, ``trace`` and ``trigger-instance`` as they are not displayed.
+* Print a note to stderr if there are more entries / results on the server side which are displayed
+  to the user for the following ``list`` CLI commands: ``rule``, ``execution``,
+  ``rule-enforcment``, ``trace`` and ``trigger-instance``.
   Default limit is 50. (improvement)
 
   Reported by Eugen C. #3488
