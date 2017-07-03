@@ -34,10 +34,10 @@ jobs:
 
       - run:
           name: Pull the dependent build & test Docker images
-          command: docker-compose run xenial /bin/true
+          command: docker-compose run trusty /bin/true
           working_directory: ~/st2-packages
 
       - run:
           name: Build the packages
-          command: docker-compose build xenial
+          command: docker-compose run trusty build
           working_directory: ~/st2-packages
