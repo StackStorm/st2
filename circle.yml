@@ -34,3 +34,8 @@ jobs:
           name: Pull the dependent build & test Docker images
           command: docker-compose run trusty /bin/true
           working_directory: ~/st2-packages
+
+      - run:
+          name: Build the packages
+          command: docker-compose build trusty
+          working_directory: ~/st2-packages
