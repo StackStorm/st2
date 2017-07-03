@@ -23,6 +23,8 @@ from st2common import log as logging
 from st2common.constants.triggers import (INTERNAL_TRIGGER_TYPES, ACTION_SENSOR_TRIGGER)
 from st2common.exceptions.db import StackStormDBObjectConflictError
 from st2common.services.triggers import create_trigger_type_db, create_shadow_trigger
+from st2common.services.triggers import get_trigger_type_db
+from st2common.models.system.common import ResourceReference
 
 __all__ = [
     'register_internal_trigger_types'
@@ -35,19 +37,24 @@ def _register_internal_trigger_type(trigger_definition):
     try:
         trigger_type_db = create_trigger_type_db(trigger_type=trigger_definition)
     except (NotUniqueError, StackStormDBObjectConflictError):
-        # We ignore conflict error since this operation is idempodent and race is not an
-        # issue
-        LOG.debug('Trigger type "%s" already exists, ignoring...' %
+        # We ignore conflict error since this operation is idempotent and race is not an issue
+        LOG.debug('Internal trigger type "%s" already exists, ignoring...' %
                   (trigger_definition['name']), exc_info=True)
 
+        ref = ResourceReference.to_string_reference(name=trigger_definition['name'],
+                                                    pack=trigger_definition['pack'])
+        trigger_type_db = get_trigger_type_db(ref)
+
+    if trigger_type_db:
+        LOG.debug('Registered internal trigger: %s.', trigger_definition['name'])
+
     # trigger types with parameters do no require a shadow trigger.
-    if not trigger_type_db.parameters_schema:
-        LOG.info('Registered trigger: %s.', trigger_definition['name'])
+    if trigger_type_db and not trigger_type_db.parameters_schema:
         try:
             trigger_db = create_shadow_trigger(trigger_type_db)
 
             extra = {'trigger_db': trigger_db}
-            LOG.audit('Trigger created for parameter-less TriggerType. Trigger.id=%s' %
+            LOG.audit('Trigger created for parameter-less internal TriggerType. Trigger.id=%s' %
                       (trigger_db.id), extra=extra)
         except StackStormDBObjectConflictError:
             LOG.debug('Shadow trigger "%s" already exists. Ignoring.',
