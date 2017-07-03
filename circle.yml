@@ -16,7 +16,7 @@ jobs:
       - run:
           name: Install dependencies - this should be done as a pre-packed Docker image later
           command: |
-            sudo apt-get install -y git
+            apt-get install -y sudo git
 
       - run:
           name: Download st2-packages repository
