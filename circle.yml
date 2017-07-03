@@ -1,48 +1,13 @@
-notify:
-  webhooks:
-    - url: https://ci-webhooks.stackstorm.net/webhooks/build/events
-
-machine:
-  services:
-    - postgresql
-    - rabbitmq-server
-  environment:
-    # We add /tmp/mongodb/bin/ directory to PATH so the correct and latest version of mongo shell
-    # binary is used.
-    PATH: /tmp/mongodb/bin/:${PATH}
-    # Enable nose timing info so per test case test timing is printed at the end
-    NOSE_TIME: "1"
-
-dependencies:
-  cache_directories:
-    - ~/.cache/pip
-  pre:
-    - sudo .circle/configure-services.sh
-    - sudo .circle/add-itest-user.sh
-    # We install and test with all the supported MongoDB versions
-    - case $CIRCLE_NODE_INDEX in [1,2]) sudo service mongodb stop ; MONGODB_VERSION=3.2.13 sudo -E .circle/install-and-run-mongodb.sh > /tmp/mongodb-install.log 2>&1 ;; [3,4]) sudo service mongodb stop ; MONGODB_VERSION=3.4.4 sudo -E .circle/install-and-run-mongodb.sh > /tmp/mongodb-install.log 2>&1 ;; esac:
-        background: true
-    # We sleep a bit to wait for the background process to start and script to
-    # finish
-    - case $CIRCLE_NODE_INDEX in [1,2]) sleep 10 ;; esac
-    # Tail the logs so it's easier to see what is going on. Sadly when using "background: true"
-    # whole output is ignored.
-    - case $CIRCLE_NODE_INDEX in [1,2]) tail -50 /tmp/mongodb-install.log ;; [3,4]) tail -50 /tmp/mongodb-install.log ;; esac
-    - sudo pip install codecov
-  override:
-    - make compile requirements
-
-test:
-  override:
-    - case $CIRCLE_NODE_INDEX in 0) make ci-checks ci-packs-tests ;; 1) make ci-unit ;; 2) make ci-integration ;; 3) make ci-unit ;; 4) make ci-integration ;; esac:
-        parallel: true
-  post:
-    - case $CIRCLE_NODE_INDEX in 0) . virtualenv/bin/activate; st2common/bin/st2-generate-api-spec > $CIRCLE_ARTIFACTS/openapi.yaml ;; [1,2]) codecov ;; esac:
-        parallel: true
-
-experimental:
-  notify:
-    branches:
-      only:
-        - master
-        - /v[0-9]+\.[0-9]+/
+version: 2
+jobs:
+  build:
+    #working_directory: ~/st2
+    docker:
+      # The primary container is an instance of the first list image listed. Your build commands run in this container.
+      - image: docker/compose:1.14.0
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: YOLO
+          command: echo 'YOLO'
