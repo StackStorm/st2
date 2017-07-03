@@ -17,6 +17,7 @@ jobs:
           name: Install dependencies - should be done as a pre-packed Docker image later
           command: |
             set -x
+            sudo apt install -y curl
             curl -L https://github.com/docker/compose/releases/download/1.14.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
             chmod +x /usr/local/bin/docker-compose
 
