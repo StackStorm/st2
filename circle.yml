@@ -13,6 +13,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+        reusable: true
       - run:
           name: Install dependencies - should be done as a pre-packed Docker image later
           command: |
