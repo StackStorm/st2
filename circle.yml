@@ -12,9 +12,9 @@ jobs:
       - DEPLOY_PACKAGES: 0
     steps:
       - checkout
-      - setup_remote_docker
-        reusable: true
-        exclusive: false
+      - setup_remote_docker:
+          reusable: true
+          exclusive: false
       - run:
           name: Install dependencies - should be done as a pre-packed Docker image later
           command: |
