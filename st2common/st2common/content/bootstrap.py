@@ -375,7 +375,8 @@ def register_content():
 
 
 def setup(argv):
-    common_setup(config=config, setup_db=True, register_mq_exchanges=True)
+    common_setup(config=config, setup_db=True, register_mq_exchanges=True,
+                 register_internal_trigger_types=True)
 
 
 def teardown():

@@ -11,6 +11,15 @@ Added
   for password protected SSH key files. (improvement)
 
   Reported by Sibiraja L, Nick Maludy.
+* Add ``json_escape`` Jinja filter for escaping JSON strings. (improvement)
+
+  Contributed by mierdin. #3480
+* Print a note to stderr if there are more entries / results on the server side which are displayed
+  to the user for the following ``list`` CLI commands: ``rule``, ``execution``,
+  ``rule-enforcment``, ``trace`` and ``trigger-instance``.
+  Default limit is 50. (improvement)
+
+  Reported by Eugen C. #3488
 
 Changed
 ~~~~~~~
@@ -55,6 +64,8 @@ Fixed
   (``False``, ``None``, ``0``, etc.) (bug-fix) #3504 #3531
 
   Reported by Simas Čepaitis.
+* Fix ``st2ctl register`` failure to register rules in some race conditions.
+  ``st2-register-content`` will now register internal trigger types by default. (bug-fix) #3542
 
 2.3.0 - June 19, 2017
 ---------------------
@@ -183,7 +194,7 @@ Fixed
   on the action executions to ensure operations such as callback is performed. (bug fix)
 * Fix action chain runner workflows so variables (vars) and parameter values
   support non-ascii (unicode) characters. (bug fix)
-* Fix a bug in query base module when outstanding queries to mistral or other workflow engines 
+* Fix a bug in query base module when outstanding queries to mistral or other workflow engines
   could cause a tight loop without cooperative yield leading to 100% CPU usage by st2resultstracker
   process. (bug-fix)
 * Ignore unicode related encoding errors which could occur in some circumstances when
@@ -442,7 +453,7 @@ Changed
 ~~~~~~~
 
 * Improved pack validation - now when the packs are registered we check that:
-  
+
   - ``version`` attribute in the pack metadata file matches valid semver format (e.g
     ``0.1.0``, ``2.0.0``, etc.)
   - ``email`` attribute (if specified) contains a valid email address. (improvement)
@@ -507,7 +518,7 @@ Added
   of an intermediate network error or similar. (improvements)
 * Allow jinja expressions ``{{st2kv.system.foo}}`` and ``{{st2kv.user.foo}}`` to access
   datastore items from workflows, actions and rules. This is in addition to supporting
-  expressions ``{{system.foo}}`` and ``{{user.foo}}``. 
+  expressions ``{{system.foo}}`` and ``{{user.foo}}``.
 
 Changed
 ~~~~~~~
@@ -695,7 +706,7 @@ Added
 * Ability to migrate api keys to new installs. (new feature)
 * Introduce a new concept of pack config schemas. Each pack can now contain a
   ``config.schema.yaml`` file. This file can contain an optional schema for the pack config.
-  Site-specific pack configuration is then stored outside the pack directory, in 
+  Site-specific pack configuration is then stored outside the pack directory, in
   ``/opt/stackstorm/configs/<pack name>.yaml``. Those files are similar to the existing pack
   configs, but in addition to the static values they can also contain dynamic values. Dynamic value
   is a value which contains a Jinja expression which is resolved to a datastore item during
@@ -857,7 +868,7 @@ Deprecated
 * Mistral has deprecated the use of task name (i.e. ``$.task1``) to reference task result. It is
   replaced with a ``task`` function that returns attributes of the task such as id, state, result,
   and additional information (i.e. ``task(task1).result``).
- 
+
 Fixed
 ~~~~~
 
@@ -1356,7 +1367,7 @@ Changed
   date formats - previously it only worked with ISO8601 date strings. (improvement)
 * API server now gracefully shuts down on SIGINT (CTRL-C). (improvement)
 * Single sensor mode of Sensor Container uses ``--sensor-ref`` instead of ``--sensor-name``.
-* Move ``/exp/actionalias/`` and ``/exp/aliasexecution`` to ``/v1/actionalias/`` and 
+* Move ``/exp/actionalias/`` and ``/exp/aliasexecution`` to ``/v1/actionalias/`` and
   ``/v1/aliasexecution/`` respectively. (upgrade)
 * Display friendly message for error in parameters validation on action execution. (improvement)
 
