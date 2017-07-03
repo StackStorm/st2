@@ -41,6 +41,10 @@ Changed
   published inside action-chain workflow are stored and displayed by default. #3518 #3519
 
   Reported by Jacob Floyd.
+* Reduce API service (``st2api``) log clutter and log whole API response (API controller method
+  return value / response body) under ``DEBUG`` log level instead of ``INFO``. (improvement) #3539
+
+  Reported by Sibiraja L.
 
 Fixed
 ~~~~~
