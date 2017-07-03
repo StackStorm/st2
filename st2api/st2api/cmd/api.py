@@ -74,8 +74,7 @@ def main():
         return _run_server()
     except SystemExit as exit_code:
         sys.exit(exit_code)
-    except Exception as e:
-        msg = getattr(e, 'message', str(e))
+    except Exception:
         LOG.exception('(PID=%s) ST2 API quit due to exception.', os.getpid())
         return 1
     finally:
