@@ -154,7 +154,10 @@ class MultiColumnTable(formatters.Formatter):
 
         # width for the note
         global table_width
-        table_width = len(table.get_string().split("\n")[0])
+        try:
+            table_width = len(table.get_string().split("\n")[0])
+        except IndexError:
+            table_width = 0
 
         return table
 
