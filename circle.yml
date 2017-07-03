@@ -32,5 +32,5 @@ jobs:
 
       - run:
           name: Pull the dependent build & test Docker images
-          command: docker-compose run ${DISTRO} /bin/true
+          command: docker-compose run trusty /bin/true
           working_directory: ~/st2-packages
