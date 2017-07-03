@@ -11,6 +11,9 @@ Added
   for password protected SSH key files. (improvement)
 
   Reported by Sibiraja L, Nick Maludy.
+* Add json_ecsape Jinja filter for escaping JSON strings (improvement)
+
+  Contributed by mierdin. #3480
 
 Changed
 ~~~~~~~
@@ -47,7 +50,12 @@ Fixed
 * Deprecate ``results_tracker`` config group and move configuration variables to ``resultstracker``
   group instead. If you have ``results_tracker`` config group in the config, it is recommended
   to switch to ``resultstracker`` instead. (bug-fix) #3500
+* Update config loader so it correctly handles config schema default values which are falsey
+  (``False``, ``None``, ``0``, etc.) (bug-fix) #3504 #3531
 
+  Reported by Simas Čepaitis.
+* Fix ``st2ctl register`` failure to register rules in some race conditions.
+  ``st2-register-content`` will now register internal trigger types by default. (bug-fix) #3542
 
 2.3.0 - June 19, 2017
 ---------------------
