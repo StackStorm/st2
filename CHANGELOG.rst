@@ -47,7 +47,7 @@ Changed
   Reported by Sibiraja L.
 * Enforce validation on ``position`` parameter for action parameters. If position values are not
   sequential or not unique, action registration will now fail. (bug-fix)
-  (improvement) #3474
+  (improvement) #3317 #3474
 
 Fixed
 ~~~~~
