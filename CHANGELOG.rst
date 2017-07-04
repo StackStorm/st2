@@ -45,6 +45,9 @@ Changed
   return value / response body) under ``DEBUG`` log level instead of ``INFO``. (improvement) #3539
 
   Reported by Sibiraja L.
+* Enforce validation on ``position`` parameter for action parameters. If position values are not
+  sequential or not unique, action registration will now fail. (bug-fix)
+  (improvement) #3317 #3474
 
 Fixed
 ~~~~~
