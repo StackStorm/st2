@@ -274,8 +274,17 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt('thread_pool_size', default=10,
                    help='Number of threads to use to query external workflow systems.'),
         cfg.FloatOpt('query_interval', default=20,
-                   help='Time interval between subsequent queries for a context ' +
-                        'to external workflow system.')
+                     help='Time interval between subsequent queries for a context ' +
+                          'to external workflow system.')
+    ]
+    do_register_opts(query_opts, group='resultstracker', ignore_errors=ignore_errors)
+    # XXX: This is required for us to support deprecated config group results_tracker
+    query_opts = [
+        cfg.IntOpt('thread_pool_size',
+                   help='Number of threads to use to query external workflow systems.'),
+        cfg.FloatOpt('query_interval',
+                     help='Time interval between subsequent queries for a context ' +
+                          'to external workflow system.')
     ]
     do_register_opts(query_opts, group='results_tracker', ignore_errors=ignore_errors)
 

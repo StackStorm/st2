@@ -153,11 +153,15 @@ class ContentPackConfigLoader(object):
         :rtype: ``dict``
         """
         for schema_item_key, schema_item in six.iteritems(schema):
+            has_default_value = 'default' in schema_item
+            has_config_value = schema_item_key in config
+
             default_value = schema_item.get('default', None)
             is_object = schema_item.get('type', None) == 'object'
             has_properties = schema_item.get('properties', None)
 
-            if default_value and not config.get(schema_item_key, None):
+            if has_default_value and not has_config_value:
+                # Config value is not provided, but default value is, use a default value
                 config[schema_item_key] = default_value
 
             # Inspect nested object properties
