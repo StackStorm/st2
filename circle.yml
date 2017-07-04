@@ -60,16 +60,15 @@ jobs:
           command: docker-compose run trusty build
           working_directory: ~/st2-packages
 
-#      - run:
-#          name: Copy produced artifacts back
-#          command: |
-#            # once application container finishes we can copy artifacts directly from it
-#            docker cp st2packages_trusty_run_2:/root/build /tmp/st2-packages
-#            docker cp st2-packages-vol:/root/build /tmp/st2-packages
-#            docker cp st2-packages-vol:/var/log/st2 /tmp/st2-packages/log/st2
-#            docker cp st2-packages-vol:/var/log/mistral /tmp/st2-packages/log/mistral
-#
-#      - run:
-#          name: Test the packages
-#          command: docker-compose run trusty test
-#          working_directory: ~/st2-packages
+      - run:
+          name: Copy produced artifacts back
+          command: |
+            # once application container finishes we can copy artifacts directly from it
+            docker cp st2-packages-vol:/root/build /tmp/st2-packages
+            docker cp st2-packages-vol:/var/log/st2 /tmp/st2-packages/log/st2
+            docker cp st2-packages-vol:/var/log/mistral /tmp/st2-packages/log/mistral
+
+      - run:
+          name: Test the packages
+          command: docker-compose run trusty test
+          working_directory: ~/st2-packages
