@@ -12,7 +12,8 @@ jobs:
       - DEPLOY_PACKAGES: 0
       - DOCKER_VERSION: 17.03.0-ce
       - DOCKER_COMPOSE_VERSION: 1.14.0
-      - COMPOSE_FILE: docker-compose.circle2.yml
+#      - COMPOSE_FILE: docker-compose.circle2.yml
+#      - COMPOSE_FILE: docker-compose.override.yml:docker-compose.circle2.yml
     steps:
       - checkout
       - setup_remote_docker:
@@ -45,31 +46,31 @@ jobs:
           command: docker-compose run trusty /bin/true
           working_directory: ~/st2-packages
 
-      - run:
-          # Workaround for CircleCI docker-compose limtation where volumes don't work
-          # See detailed explanation: https://circleci.com/docs/2.0/building-docker-images/#mounting-folders
-          name: Copy st2-packages files to build containers
-          command: |
-            # creating dummy container which will hold a volume with data files
-            docker create -v /root/st2-packages -v /root/build -v /var/log/st2 -v /var/log/mistral --name st2-packages-vol alpine:3.4 /bin/true
-            # copy st2-packages data files into this volume
-            docker cp ~/st2-packages st2-packages-vol:/root
-
-      - run:
-          name: Build the packages
-          command: docker-compose run trusty build
-          working_directory: ~/st2-packages
-
-      - run:
-          name: Copy produced artifacts back
-          command: |
-            # once application container finishes we can copy artifacts directly from it
-            docker cp st2packages_trusty_run_2:/root/build /tmp/st2-packages
-            docker cp st2-packages-vol:/root/build /tmp/st2-packages
-            docker cp st2-packages-vol:/var/log/st2 /tmp/st2-packages/log/st2
-            docker cp st2-packages-vol:/var/log/mistral /tmp/st2-packages/log/mistral
-
-      - run:
-          name: Test the packages
-          command: docker-compose run trusty test
-          working_directory: ~/st2-packages
+#      - run:
+#          # Workaround for CircleCI docker-compose limtation where volumes don't work
+#          # See detailed explanation: https://circleci.com/docs/2.0/building-docker-images/#mounting-folders
+#          name: Copy st2-packages files to build containers
+#          command: |
+#            # creating dummy container which will hold a volume with data files
+#            docker create -v /root/st2-packages -v /root/build -v /var/log/st2 -v /var/log/mistral --name st2-packages-vol alpine:3.4 /bin/true
+#            # copy st2-packages data files into this volume
+#            docker cp ~/st2-packages st2-packages-vol:/root
+#
+#      - run:
+#          name: Build the packages
+#          command: docker-compose run trusty build
+#          working_directory: ~/st2-packages
+#
+#      - run:
+#          name: Copy produced artifacts back
+#          command: |
+#            # once application container finishes we can copy artifacts directly from it
+#            docker cp st2packages_trusty_run_2:/root/build /tmp/st2-packages
+#            docker cp st2-packages-vol:/root/build /tmp/st2-packages
+#            docker cp st2-packages-vol:/var/log/st2 /tmp/st2-packages/log/st2
+#            docker cp st2-packages-vol:/var/log/mistral /tmp/st2-packages/log/mistral
+#
+#      - run:
+#          name: Test the packages
+#          command: docker-compose run trusty test
+#          working_directory: ~/st2-packages
