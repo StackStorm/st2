@@ -13,7 +13,7 @@ jobs:
       - DOCKER_VERSION: 17.03.0-ce
       - DOCKER_COMPOSE_VERSION: 1.14.0
 #      - COMPOSE_FILE: docker-compose.circle2.yml
-#      - COMPOSE_FILE: docker-compose.override.yml:docker-compose.circle2.yml
+      - COMPOSE_FILE: docker-compose.override.yml:docker-compose.circle2.yml
     steps:
       - checkout
       - setup_remote_docker:
