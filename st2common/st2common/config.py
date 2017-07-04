@@ -210,7 +210,10 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('api_url', default=None,
                    help='Base URL to the API endpoint excluding the version'),
         cfg.BoolOpt('enable', default=True, help='Enable authentication middleware.'),
-        cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.')
+        cfg.IntOpt('token_ttl', default=(24 * 60 * 60), help='Access token ttl in seconds.'),
+        # This TTL is used for tokens which belong to StackStorm services
+        cfg.IntOpt('service_token_ttl', default=(24 * 60 * 60),
+                   help='Service token ttl in seconds.')
     ]
     do_register_opts(auth_opts, 'auth', ignore_errors)
 
@@ -273,8 +276,17 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt('thread_pool_size', default=10,
                    help='Number of threads to use to query external workflow systems.'),
         cfg.FloatOpt('query_interval', default=20,
-                   help='Time interval between subsequent queries for a context ' +
-                        'to external workflow system.')
+                     help='Time interval between subsequent queries for a context ' +
+                          'to external workflow system.')
+    ]
+    do_register_opts(query_opts, group='resultstracker', ignore_errors=ignore_errors)
+    # XXX: This is required for us to support deprecated config group results_tracker
+    query_opts = [
+        cfg.IntOpt('thread_pool_size',
+                   help='Number of threads to use to query external workflow systems.'),
+        cfg.FloatOpt('query_interval',
+                     help='Time interval between subsequent queries for a context ' +
+                          'to external workflow system.')
     ]
     do_register_opts(query_opts, group='results_tracker', ignore_errors=ignore_errors)
 

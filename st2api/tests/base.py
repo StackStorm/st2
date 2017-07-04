@@ -16,6 +16,11 @@
 import mock
 from oslo_config import cfg
 
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
 from st2api import app
 import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2common.rbac.types import SystemRole
@@ -121,3 +126,37 @@ class APIControllerWithRBACTestCase(FunctionalTest, CleanDbTestCase):
         }
         self.request_context_mock = mock.PropertyMock(return_value=mock_context)
         Router.mock_context = self.request_context_mock
+
+
+class FakeResponse(object):
+
+    def __init__(self, text, status_code, reason):
+        self.text = text
+        self.status_code = status_code
+        self.reason = reason
+
+    def json(self):
+        return json.loads(self.text)
+
+    def raise_for_status(self):
+        raise Exception(self.reason)
+
+
+class BaseActionExecutionControllerTestCase(object):
+
+    @staticmethod
+    def _get_actionexecution_id(resp):
+        return resp.json['id']
+
+    def _do_get_one(self, actionexecution_id, *args, **kwargs):
+        return self.app.get('/v1/executions/%s' % actionexecution_id, *args, **kwargs)
+
+    def _do_post(self, liveaction, *args, **kwargs):
+        return self.app.post_json('/v1/executions', liveaction, *args, **kwargs)
+
+    def _do_delete(self, actionexecution_id, expect_errors=False):
+        return self.app.delete('/v1/executions/%s' % actionexecution_id,
+                               expect_errors=expect_errors)
+
+    def _do_put(self, actionexecution_id, updates, *args, **kwargs):
+        return self.app.put_json('/v1/executions/%s' % actionexecution_id, updates, *args, **kwargs)

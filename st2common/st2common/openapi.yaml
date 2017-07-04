@@ -1,18 +1,21 @@
+# NOTE: This file is auto-generated - DO NOT EDIT MANUALLY
+# Edit st2common/st2common/openapi.yaml.j2 and then run
+# make .generate-api-spec make target to generate the final spec file
 swagger: '2.0'
 
 info:
   version: "1.0.0"
   title: StackStorm API
   description: |
-    {% raw %}
+    
     ## Welcome
 
-    Welcome to the StackStorm API Reference documentation! You can use the StackStorm API to integrate StackStorm with 3rd-party systems and custom applications. Example integrations include writing your own self-service user portal, or integrating with other orchestration systems. 
+    Welcome to the StackStorm API Reference documentation! You can use the StackStorm API to integrate StackStorm with 3rd-party systems and custom applications. Example integrations include writing your own self-service user portal, or integrating with other orchestration systems.
 
     This document provides an overview of how to use the API. Use the menu on the left to look up details of specific API endpoints. For more information about how StackStorm works, and how to use it, check out the main [StackStorm documentation](https://docs.stackstorm.com).
 
     > ### A Quick Note
-    > This API is intended for software developers, and those are who are comfortable working with RESTful APIs, and writing some code. You do not need to use this API to work with StackStorm, or to use and write integration packs for StackStorm. 
+    > This API is intended for software developers, and those are who are comfortable working with RESTful APIs, and writing some code. You do not need to use this API to work with StackStorm, or to use and write integration packs for StackStorm.
 
     ## Accessing the API
 
@@ -22,7 +25,7 @@ info:
 
     To authenticate against the StackStorm API, either an authentication token or an API key (but not both) should be provided in the HTTP request headers. The headers are named `X-Auth-Token` and `St2-Api-Key` respectively. In situation when it is impossble to provide a header to the response, query parameters `x-auth-token` and `st2-api-key` could be used instead, but would require you to weight in on security implications.
 
-    An authentication token is a time-limited access token, granted once a user authenticates, typically using a username and password. This is suitable for short-term, interactive sessions. [API Keys](https://docs.stackstorm.com/authentication.html#api-keys) do not expire, and are therefore better suited for use with integrating other applications. 
+    An authentication token is a time-limited access token, granted once a user authenticates, typically using a username and password. This is suitable for short-term, interactive sessions. [API Keys](https://docs.stackstorm.com/authentication.html#api-keys) do not expire, and are therefore better suited for use with integrating other applications.
 
     ### Authentication Tokens
 
@@ -69,13 +72,13 @@ info:
     The StackStorm API supports these HTTP methods:
 
     * **GET:** Use to retrieve data, e.g. current status of an execution. GET requests will not update or change data.
-    * **POST:** Use to create new resources. For example, make a POST request to create a new rule, or execute an action. 
+    * **POST:** Use to create new resources. For example, make a POST request to create a new rule, or execute an action.
     * **PUT:** Use to create or update a resource, e.g. to update an existing Key-Value pair.
     * **DELETE:** Remove a resource, e.g. delete an API key.
 
     There is also an implicit support of **OPTIONS** method that will return a set of CORS-related headers.
 
-    Methods **HEAD** and **PATCH** are not supported in API v1, but might be considered in future iterations. 
+    Methods **HEAD** and **PATCH** are not supported in API v1, but might be considered in future iterations.
 
     ## SSL
 
@@ -186,14 +189,14 @@ info:
     }
     ```
 
-    `4xx` codes indicate a bad request, whereas `5xx` errors indicate a server-side problem with StackStorm. 
+    `4xx` codes indicate a bad request, whereas `5xx` errors indicate a server-side problem with StackStorm.
 
     ## Support
 
     Join our [Slack Community](https://stackstorm.com/community-signup) to get help from the engineering team and fellow users. You can also create issues against the main [StackStorm GitHub repo](https://github.com/StackStorm/st2/issues), or the [st2apidocs repo](https://github.com/StackStorm/st2apidocs) for documentation-specific issues.
 
     We also recommend reviewing the main [StackStorm documentation](https://docs.stackstorm.com/).
-    {% endraw %}
+    
 
 paths:
   /api/v1/:
@@ -221,7 +224,7 @@ paths:
   /api/v1/actions:
     get:
       operationId: st2api.controllers.v1.actions:actions_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
+      x-permissions: action_list
       description: Returns a list of all actions.
       parameters:
         - name: exclude_attributes
@@ -235,6 +238,11 @@ paths:
           in: query
           description: Number of actions to get
           type: integer
+        - name: offset
+          in: query
+          description: Number of actions to offset
+          type: integer
+          default: 0
         - name: id
           in: query
           description: Action id filter
@@ -410,7 +418,7 @@ paths:
   /api/v1/actions/views/overview:
     get:
       operationId: st2api.controllers.v1.actionviews:overview_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.ACTION_LIST }}
+      x-permissions: action_list
       description: Returns a list of all the actions with runner parameters included.
       parameters:
         - name: exclude_attributes
@@ -424,6 +432,11 @@ paths:
           in: query
           description: Number of actions to get
           type: integer
+        - name: offset
+          in: query
+          description: Number of actions to offset
+          type: integer
+          default: 0
         - name: id
           in: query
           description: Action id filter
@@ -519,10 +532,14 @@ paths:
   /api/v1/actionalias:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_LIST }}
+      x-permissions: action_alias_list
       description: |
           Get list of action-aliases.
       parameters:
+        - name: name
+          in: query
+          description: Entity name filter
+          type: string
         - name: pack
           in: query
           description: Only return resources belonging to the provided pack
@@ -659,7 +676,7 @@ paths:
   /api/v1/actionalias/match:
     post:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.match
-      x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_MATCH }}
+      x-permissions: action_alias_match
       description: |
         Match action alias based on format (representation or display).
       parameters:
@@ -684,7 +701,7 @@ paths:
   /api/v1/actionalias/help:
     get:
       operationId: st2api.controllers.v1.actionalias:action_alias_controller.help
-      x-permissions: {{ PERMISSION_TYPE.ACTION_ALIAS_HELP }}
+      x-permissions: action_alias_help
       description: |
         Get available help strings for action aliases.
       parameters:
@@ -698,12 +715,12 @@ paths:
           type: string
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of actions alias to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of actions alias to offset
           type: integer
           default: 0
       responses:
@@ -755,7 +772,7 @@ paths:
   /api/v1/executions:
     get:
       operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.EXECUTION_LIST }}
+      x-permissions: execution_list
       x-log-result: false
       description: Returns a list of all executions.
       parameters:
@@ -768,12 +785,12 @@ paths:
           required: false
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of executions to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of executions to offset
           type: integer
           default: 0
         - name: sort
@@ -838,17 +855,17 @@ paths:
           in: query
           description: Start timestamp filter
           type: string
-          pattern: {{ ISO8601_UTC_REGEX }}
+          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
         - name: timestamp_lt
           in: query
           description: Start timestamp less than filter
           type: string
-          pattern: {{ ISO8601_UTC_REGEX }}
+          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
         - name: timestamp_gt
           in: query
           description: Start timestamp greater than filter
           type: string
-          pattern: {{ ISO8601_UTC_REGEX }}
+          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
         - name: show_secrets
           in: query
           description: Show secrets in plain text
@@ -950,6 +967,39 @@ paths:
               action:
                 type: object
               # and stuff
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: st2api.controllers.v1.actionexecutions:action_executions_controller.put
+      description: |
+        Update status and result for an execution.
+      parameters:
+        - name: id
+          in: path
+          description: Entity id
+          type: string
+          required: true
+        - name: liveaction_api
+          in: body
+          description: Execution update request
+          schema:
+            $ref: '#/definitions/ExecutionUpdateRequest'
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
+      responses:
+        '200':
+          description: Execution that was updated
+          schema:
+            $ref: '#/definitions/Execution'
         default:
           description: Unexpected error
           schema:
@@ -1114,7 +1164,7 @@ paths:
   /api/v1/executions/views/filters:
     get:
       operationId: st2api.controllers.v1.executionviews:filters_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.EXECUTION_VIEWS_FILTERS_LIST }}
+      x-permissions: execution_views_filters_list
       description: |
         Get a list of distinct values for the execution filters.
       parameters:
@@ -1143,7 +1193,7 @@ paths:
   /api/v1/keys:
     get:
       operationId: st2api.controllers.v1.keyvalue:key_value_pair_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.KEY_VALUE_PAIR_LIST }}
+      x-permissions: 
       description: Returns a list of all key value pairs.
       parameters:
         - name: prefix
@@ -1165,12 +1215,12 @@ paths:
           type: string
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of keys to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of keys to offset
           type: integer
           default: 0
         - name: sort
@@ -1311,17 +1361,17 @@ paths:
   /api/v1/packs:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
+      x-permissions: pack_list
       description: Get list of installed packs.
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of packs to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of packs to offset
           type: integer
           default: 0
         - name: sort
@@ -1386,7 +1436,7 @@ paths:
   /api/v1/packs/install:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.install.post
-      x-permissions: {{ PERMISSION_TYPE.PACK_INSTALL }}
+      x-permissions: pack_install
       description: |
         Install new packs..
       parameters:
@@ -1411,7 +1461,7 @@ paths:
   /api/v1/packs/uninstall:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.uninstall.post
-      x-permissions: {{ PERMISSION_TYPE.PACK_UNINSTALL }}
+      x-permissions: pack_uninstall
       description: |
         Uninstall packs.
       parameters:
@@ -1436,7 +1486,7 @@ paths:
   /api/v1/packs/register:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.register.post
-      x-permissions: {{ PERMISSION_TYPE.PACK_REGISTER }}
+      x-permissions: pack_register
       description: |
         Register pack(s): sync all file changes with DB.
       parameters:
@@ -1461,7 +1511,7 @@ paths:
   /api/v1/packs/index/search:
     post:
       operationId: st2api.controllers.v1.packs:packs_controller.index.search.post
-      x-permissions: {{ PERMISSION_TYPE.PACK_SEARCH }}
+      x-permissions: pack_search
       description: |
         Search the index with a query or Get information about an available pack from the index.
       parameters:
@@ -1493,7 +1543,7 @@ paths:
   /api/v1/packs/index/health:
     get:
       operationId: st2api.controllers.v1.packs:packs_controller.index.get
-      x-permissions: {{ PERMISSION_TYPE.PACK_VIEWS_INDEX_HEALTH }}
+      x-permissions: pack_views_index_health
       description: To get the state of all indexes used by your StackStorm instance.
       responses:
         '200':
@@ -1582,17 +1632,17 @@ paths:
   /api/v1/configs:
     get:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
+      x-permissions: pack_list
       description: Retrieve configs for all the packs.
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of configs to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of configs to offset
           type: integer
           default: 0
         - name: sort
@@ -1667,7 +1717,7 @@ paths:
             $ref: '#/definitions/Error'
     put:
       operationId: st2api.controllers.v1.pack_configs:pack_configs_controller.put
-      x-permissions: {{ PERMISSION_TYPE.PACK_CONFIG }}
+      x-permissions: pack_config
       description: Create a new config for the action.
       parameters:
         - name: pack_ref
@@ -1704,17 +1754,17 @@ paths:
   /api/v1/config_schemas:
     get:
       operationId: st2api.controllers.v1.pack_config_schemas:pack_config_schema_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.PACK_LIST }}
+      x-permissions: pack_list
       description: Retrieve config schema for all the packs.
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of config schemas to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of config schemas to offset
           type: integer
           default: 0
         - name: sort
@@ -1777,7 +1827,7 @@ paths:
   /api/v1/policytypes:
     get:
       operationId: st2api.controllers.v1.policies:policy_type_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.POLICY_TYPE_LIST }}
+      x-permissions: policy_type_list
       description: Returns a list of all the policy types.
       parameters:
         - name: resource_type
@@ -1786,12 +1836,12 @@ paths:
           type: string
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of policy types to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of policy types to offset
           type: integer
           default: 0
         - name: sort
@@ -1856,7 +1906,7 @@ paths:
   /api/v1/policies:
     get:
       operationId: st2api.controllers.v1.policies:policy_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.POLICY_LIST }}
+      x-permissions: policy_list
       description: |
         List of policies
       parameters:
@@ -1868,6 +1918,16 @@ paths:
           in: query
           description: Policies name
           type: string
+        - name: limit
+          in: query
+          description: Number of policies to get
+          type: integer
+          default: 100
+        - name: offset
+          in: query
+          description: Number of policies to offset
+          type: integer
+          default: 0
       responses:
         '200':
           description: Policy created successfully.
@@ -2165,7 +2225,7 @@ paths:
   /api/v1/rules:
     get:
       operationId: st2api.controllers.v1.rules:rule_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.RULE_LIST }}
+      x-permissions: rule_list
       description: Returns a list of all rules.
       parameters:
         - name: exclude_attributes
@@ -2338,7 +2398,7 @@ paths:
   /api/v1/rules/views:
     get:
       operationId: st2api.controllers.v1.ruleviews:rule_view_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.RULE_LIST }}
+      x-permissions: rule_list
       description: Returns a list of all rules.
       parameters:
         - name: exclude_attributes
@@ -2467,7 +2527,7 @@ paths:
   /api/v1/runnertypes:
     get:
       operationId: st2api.controllers.v1.runnertypes:runner_types_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.RUNNER_LIST }}
+      x-permissions: runner_type_list
       description: Returns a list of all runner types.
       parameters:
         - name: exclude_attributes
@@ -2479,12 +2539,12 @@ paths:
           required: false
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of runner types to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of runner types to offset
           type: integer
           default: 0
         - name: sort
@@ -2583,7 +2643,7 @@ paths:
   /api/v1/sensortypes:
     get:
       operationId: st2api.controllers.v1.sensors:sensor_type_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.SENSOR_LIST }}
+      x-permissions: sensor_type_list
       description: Returns a list of all sensor types.
       parameters:
         - name: exclude_attributes
@@ -2703,13 +2763,23 @@ paths:
   /api/v1/apikeys:
     get:
       operationId: st2api.controllers.v1.auth:api_key_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.API_KEY_LIST }}
+      x-permissions: api_key_list
       description: Returns a list of all actions.
       parameters:
         - name: show_secrets
           in: query
           description: Show secrets in plain text
           type: boolean
+        - name: limit
+          in: query
+          description: Number of API keys to get
+          type: integer
+          default: 50
+        - name: offset
+          in: query
+          description: Number of API keys to offset
+          type: integer
+          default: 0
       x-parameters:
         - name: user
           in: context
@@ -2849,7 +2919,7 @@ paths:
   /api/v1/ruleenforcements:
     get:
       operationId: st2api.controllers.v1.rule_enforcements:rule_enforcements_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.RULE_ENFORCEMENT_LIST }}
+      x-permissions: rule_enforcement_list
       description: Returns a list of all the rule enforcements.
       parameters:
         - name: limit
@@ -2859,7 +2929,7 @@ paths:
           default: 50
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of rule enforcements to offset
           type: integer
           default: 0
         - name: sort
@@ -2899,13 +2969,13 @@ paths:
           description: |
               Only return enforcements with enforced_at greater than the one provided. Use time in the format.
           type: string
-          pattern: {{ ISO8601_UTC_REGEX }}
+          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
         - name: enforced_at_lt
           in: query
           description: |
               Only return enforcements with enforced_at lower than the one provided. Use time in the format.
           type: string
-          pattern: {{ ISO8601_UTC_REGEX }}
+          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
       responses:
         '200':
           description: List of rule enforcements
@@ -2952,7 +3022,7 @@ paths:
   /api/v1/timers:
     get:
       operationId: st2api.controllers.v1.timers:timers_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.TIMER_LIST }}
+      x-permissions: timer_list
       description: Returns a list of all the timers.
       parameters:
         - name: timer_type
@@ -3005,17 +3075,17 @@ paths:
   /api/v1/traces:
     get:
       operationId: st2api.controllers.v1.traces:traces_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.TRACE_LIST }}
+      x-permissions: trace_list
       description: Returns a list of all the traces.
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of traces to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of traces to offset
           type: integer
           default: 0
         - name: sort
@@ -3110,12 +3180,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of trigger types to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of trigger types to offset
           type: integer
           default: 0
         - name: sort
@@ -3363,12 +3433,12 @@ paths:
       parameters:
         - name: limit
           in: query
-          description: Number of actions to get
+          description: Number of trigger instances to get
           type: integer
           default: 100
         - name: offset
           in: query
-          description: Number of actions offset
+          description: Number of trigger instances to offset
           type: integer
           default: 0
         - name: sort
@@ -3395,12 +3465,12 @@ paths:
           in: query
           description: Start timestamp less than filter
           type: string
-          pattern: {{ ISO8601_UTC_REGEX }}
+          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
         - name: timestamp_gt
           in: query
           description: Start timestamp greater than filter
           type: string
-          pattern: {{ ISO8601_UTC_REGEX }}
+          pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
       responses:
         '200':
           description: List of trigger instances
@@ -3467,7 +3537,7 @@ paths:
   /api/v1/webhooks:
     get:
       operationId: st2api.controllers.v1.webhooks:webhooks_controller.get_all
-      x-permissions: {{ PERMISSION_TYPE.WEBHOOK_LIST }}
+      x-permissions: webhook_list
       description: Returns a list of all webhooks.
       responses:
         '200':
@@ -3740,7 +3810,7 @@ definitions:
           pack:
             type: string
             description: The content pack this action belongs to.
-            default: '{{ DEFAULT_PACK_NAME }}'
+            default: 'default'
       - $ref: '#/definitions/Action'
       - $ref: '#/definitions/DataFilesSubSchema'
   ActionUpdateRequest:
@@ -3847,15 +3917,15 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: {{ LIVEACTION_STATUSES }}
+        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
       start_timestamp:
         description: The start time when the action is executed.
         type: string
-        pattern: {{ ISO8601_UTC_REGEX }}
+        pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
       end_timestamp:
         description: The timestamp when the action has finished.
         type: string
-        pattern: {{ ISO8601_UTC_REGEX }}
+        pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
       elapsed_seconds:
         description: Time duration in seconds taken for completion of this execution.
         type: number
@@ -3903,10 +3973,10 @@ definitions:
           properties:
             timestamp:
               type: string
-              pattern: {{ ISO8601_UTC_REGEX }}
+              pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
             status:
               type: string
-              enum: {{ LIVEACTION_STATUSES }}
+              enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
     required:
       - id
     additionalProperties: False
@@ -3920,6 +3990,16 @@ definitions:
             x-nullable: true
             description: User context under which action should run (admins only)
             default: ''
+  ExecutionUpdateRequest:
+    type: object
+    properties:
+      status:
+        description: The current status of the action execution.
+        type: string
+        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
+      result:
+        type: object
+    additionalProperties: False
   ExecutionFilters:
     type: object
   KeyValuePair:
@@ -4144,15 +4224,15 @@ definitions:
       status:
         description: The current status of the action execution.
         type: string
-        enum: {{ LIVEACTION_STATUSES }}
+        enum: ['requested', 'scheduled', 'delayed', 'running', 'succeeded', 'failed', 'timeout', 'abandoned', 'canceling', 'canceled']
       start_timestamp:
         description: The start time when the action is executed.
         type: string
-        pattern: {{ ISO8601_UTC_REGEX }}
+        pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
       end_timestamp:
         description: The timestamp when the action has finished.
         type: string
-        pattern: {{ ISO8601_UTC_REGEX }}
+        pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
       action:
         description: Reference to the action to be executed.
         type: string
@@ -4302,7 +4382,7 @@ definitions:
         type: object
       created_at:
         type: string
-        pattern: {{ ISO8601_UTC_REGEX }}
+        pattern: ^\d{4}\-\d{2}\-\d{2}(\s|T)\d{2}:\d{2}:\d{2}(\.\d{3,6})?(Z|\+00|\+0000|\+00:00)$
       enabled:
         type: boolean
         default: True

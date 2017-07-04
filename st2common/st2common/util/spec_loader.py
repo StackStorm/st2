@@ -23,6 +23,10 @@ import st2common.constants.action
 from st2common.rbac.types import PermissionType
 from st2common.util import isotime
 
+__all__ = [
+    'load_spec',
+    'generate_spec'
+]
 
 ARGUMENTS = {
     'DEFAULT_PACK_NAME': st2common.constants.pack.DEFAULT_PACK_NAME,
@@ -33,7 +37,14 @@ ARGUMENTS = {
 
 
 def load_spec(module_name, spec_file):
+    spec_string = generate_spec(module_name, spec_file)
+    spec = yaml.load(spec_string)
+
+    return spec
+
+
+def generate_spec(module_name, spec_file):
     spec_template = pkg_resources.resource_string(module_name, spec_file)
     spec_string = jinja2.Template(spec_template).render(**ARGUMENTS)
-    spec = yaml.load(spec_string)
-    return spec
+
+    return spec_string

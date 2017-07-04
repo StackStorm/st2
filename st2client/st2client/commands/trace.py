@@ -118,9 +118,10 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
+        self.default_limit = 50
         self.group = self.parser.add_mutually_exclusive_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
-                                 default=50,
+                                 default=self.default_limit,
                                  help=('List N most recent %s.' %
                                        resource.get_plural_display_name().lower()))
         self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
@@ -163,11 +164,11 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
                 kwargs['sort_asc'] = True
             elif args.sort_order in ['desc', 'descending']:
                 kwargs['sort_desc'] = True
-
-        return self.manager.query(limit=args.last, **kwargs)
+        result, count = self.manager.query(limit=args.last, **kwargs)
+        return (result, count)
 
     def run_and_print(self, args, **kwargs):
-        instances = self.run(args, **kwargs)
+        instances, count = self.run(args, **kwargs)
         if instances and len(instances) == 1:
             # For a single Trace we must include the components unless
             # user has overriden the attributes to display
@@ -175,10 +176,20 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
                 args.attr = ['all']
             self.print_trace_details(trace=instances[0], args=args)
         else:
-            self.print_output(reversed(instances), table.MultiColumnTable,
-                              attributes=args.attr, widths=args.width,
-                              json=args.json, yaml=args.yaml,
-                              attribute_transform_functions=self.attribute_transform_functions)
+            if args.json or args.yaml:
+                self.print_output(reversed(instances), table.MultiColumnTable,
+                                  attributes=args.attr, widths=args.width,
+                                  json=args.json, yaml=args.yaml,
+                                  attribute_transform_functions=self.attribute_transform_functions)
+            else:
+                self.print_output(reversed(instances), table.MultiColumnTable,
+                                  attributes=args.attr, widths=args.width,
+                                  attribute_transform_functions=self.attribute_transform_functions)
+
+                if args.last >= self.default_limit and count and int(count) > args.last:
+                    table.SingleRowTable.note_box("Note: Only first %s results are displayed. "
+                                                  "Use -n/--last flag for more results." %
+                                                  args.last)
 
 
 class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
@@ -206,13 +217,13 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
         self.display_filter_group = self.parser.add_argument_group()
 
         self.display_filter_group.add_argument('--show-executions', action='store_true',
-                                              help='Only show executions.')
+                                               help='Only show executions.')
         self.display_filter_group.add_argument('--show-rules', action='store_true',
-                                              help='Only show rules.')
+                                               help='Only show rules.')
         self.display_filter_group.add_argument('--show-trigger-instances', action='store_true',
-                                              help='Only show trigger instances.')
+                                               help='Only show trigger instances.')
         self.display_filter_group.add_argument('-n', '--hide-noop-triggers', action='store_true',
-                                              help='Hide noop trigger instances.')
+                                               help='Hide noop trigger instances.')
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
