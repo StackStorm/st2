@@ -157,6 +157,8 @@ Changed
   requests, appscheduler, gitpython, paramiko, mongoengine, tooz).
 * Update ``/v1/rbac/roles`` API endpoint so it includes corresponding permission grant objects.
   Previously it only included permission grant ids. (improvement)
+* When RBAC is enabled and action is scheduled (ran) through the API, include ``rbac`` dictionary
+  with ``user`` and ``roles`` ``action_context`` attribute. (improvement)
 * Make the query interval to third party workflow systems (including mistral) a configurable
   value. You can now set ``query_interval`` in ``[results_tracker]`` section in ``/etc/st2/st2.conf``.
   With this, the default query interval is set to 20s as opposed to 0.1s which was rather aggressive
@@ -200,8 +202,6 @@ Fixed
   on the action executions to ensure operations such as callback is performed. (bug fix)
 * Fix action chain runner workflows so variables (vars) and parameter values
   support non-ascii (unicode) characters. (bug fix)
-* When RBAC is enabled and action is scheduled (ran) through the API, include ``rbac`` dictionary
-  with ``user`` and ``roles`` ``action_context`` attribute. (improvement)
 * Fix a bug in query base module when outstanding queries to mistral or other workflow engines
   could cause a tight loop without cooperative yield leading to 100% CPU usage by st2resultstracker
   process. (bug-fix)
