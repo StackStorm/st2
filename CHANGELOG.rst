@@ -26,7 +26,7 @@ Changed
 
 * Update ``st2 run`` / ``st2 execution run`` command to display result of workflow actions when
   they finish. In the workflow case, result of the last task (action) of the workflow is used.
-  (improvement)
+  (improvement) #3481
 * Update Python runner so it mimics behavior from StackStorm pre 1.6 and returns action result as
   is (serialized as string) in case we are unable to serialize action result because it contains
   non-simple types (e.g. class instances) which can't be serialized.
@@ -47,7 +47,7 @@ Changed
   Reported by Sibiraja L.
 * Enforce validation on ``position`` parameter for action parameters. If position values are not
   sequential or not unique, action registration will now fail. (bug-fix)
-  (improvement) #3481
+  (improvement) #3474
 
 Fixed
 ~~~~~
