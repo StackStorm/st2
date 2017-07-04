@@ -52,23 +52,29 @@ jobs:
 
       - run:
           name: Pull the dependent build & test Docker images
-          command: docker-compose run trusty /bin/true
+          command: docker-compose run xenial /bin/true
           working_directory: ~/st2-packages
 
       - run:
           name: Build the packages
-          command: docker-compose run trusty build
+          command: docker-compose run xenial build
           working_directory: ~/st2-packages
 
       - run:
           name: Copy produced artifacts back
           command: |
             # once application container finishes we can copy artifacts directly from it
+            mkdir -p /tmp/st2-packages
             docker cp st2-packages-vol:/root/build /tmp/st2-packages
+            mkdir -p /tmp/st2-packages/log/st2
             docker cp st2-packages-vol:/var/log/st2 /tmp/st2-packages/log/st2
+            mkdir -p /tmp/st2-packages/log/mistral
             docker cp st2-packages-vol:/var/log/mistral /tmp/st2-packages/log/mistral
 
       - run:
           name: Test the packages
-          command: docker-compose run trusty test
+          command: docker-compose run xenial test
           working_directory: ~/st2-packages
+
+      - store_artifacts:
+          path: /tmp/st2-packages
