@@ -50,7 +50,7 @@ jobs:
             docker cp ~/st2-packages st2-packages-vol:/root
 
       - run:
-          name: Pull the dependent build & test Docker images
+          name: Pull the images
           command: docker-compose run trusty /bin/true
           working_directory: ~/st2-packages
 
@@ -60,6 +60,12 @@ jobs:
             docker-compose run trusty build
             # Once build container finishes we can copy packages directly from it
             docker cp st2-packages-vol:/root/build /tmp/st2-packages
+          working_directory: ~/st2-packages
+
+      - run:
+          name: Build the packages 2nd time (compare timing)
+          command: |
+            docker-compose run trusty build
           working_directory: ~/st2-packages
 
       - run:
