@@ -56,11 +56,11 @@ jobs:
           command: docker-compose run trusty /bin/true
           working_directory: ~/st2-packages
 
-#      - run:
-#          name: Build the packages
-#          command: docker-compose run trusty build
-#          working_directory: ~/st2-packages
-#
+      - run:
+          name: Build the packages
+          command: docker-compose run trusty build
+          working_directory: ~/st2-packages
+
 #      - run:
 #          name: Copy produced artifacts back
 #          command: |
