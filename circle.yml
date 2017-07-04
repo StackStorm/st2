@@ -17,7 +17,6 @@ jobs:
       - checkout
       - setup_remote_docker:
           reusable: true
-          exclusive: false
       - run:
           name: Install dependencies - should be done as a pre-packed Docker image later
           command: |
@@ -52,12 +51,12 @@ jobs:
 
       - run:
           name: Pull the dependent build & test Docker images
-          command: docker-compose run xenial /bin/true
+          command: docker-compose run trusty /bin/true
           working_directory: ~/st2-packages
 
       - run:
           name: Build the packages
-          command: docker-compose run xenial build
+          command: docker-compose run trusty build
           working_directory: ~/st2-packages
 
       - run:
@@ -73,7 +72,7 @@ jobs:
 
       - run:
           name: Test the packages
-          command: docker-compose run xenial test
+          command: docker-compose run trusty test
           working_directory: ~/st2-packages
 
       - store_artifacts:
