@@ -17,6 +17,8 @@ import json
 import sys
 import traceback
 
+from oslo_config import cfg
+
 from st2common import log as logging
 from st2common.util import date as date_utils
 from st2common.constants import action as action_constants
@@ -277,7 +279,9 @@ class RunnerContainer(object):
             'live_action_id': str(liveaction_db.id)
 
         }
-        token_db = access.create_token(username=user, metadata=metadata, service=True)
+
+        ttl = cfg.CONF.auth.service_token_ttl
+        token_db = access.create_token(username=user, ttl=ttl, metadata=metadata, service=True)
         return token_db
 
     def _delete_auth_token(self, auth_token):

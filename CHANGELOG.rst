@@ -66,6 +66,11 @@ Fixed
   Reported by Simas Čepaitis.
 * Fix ``st2ctl register`` failure to register rules in some race conditions.
   ``st2-register-content`` will now register internal trigger types by default. (bug-fix) #3542
+* Correctly use service token TTL when generating temporary token for datastore service. This
+  fixes a bug and allows user to set TTL value for non service tokens to less than 24 hours.
+  (bug fix) #3523 #3524
+
+  Reported by theuiz.
 
 2.3.0 - June 19, 2017
 ---------------------
