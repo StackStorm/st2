@@ -36,7 +36,7 @@ jobs:
           name: Download st2-packages repository
           command: |
             set -x
-            git clone --depth 1 ${ST2_PACKAGES_REPO} ~/st2-packages
+            git clone ${ST2_PACKAGES_REPO} ~/st2-packages
             cd ~/st2-packages
             git checkout ${CIRCLE_BRANCH} || true
 
