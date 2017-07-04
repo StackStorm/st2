@@ -45,7 +45,7 @@ jobs:
           name: Copy st2-packages files to build containers
           command: |
             # creating dummy container which will hold a volume with data files
-            docker create -v /root/st2-packages -v /root/build -v /var/log/st2 -v /var/log/mistral --name st2-packages-vol alpine:3.4 /bin/true
+            docker create -v /root/st2-packages -v /root/build -v /var/log/st2 -v /var/log/mistral -v /root/.cache/pip -v /tmp/wheelhouse --name st2-packages-vol alpine:3.4 /bin/true
             # copy st2-packages data files into this volume
             docker cp ~/st2-packages st2-packages-vol:/root
 
@@ -56,23 +56,20 @@ jobs:
 
       - run:
           name: Build the packages
-          command: docker-compose run trusty build
+          command: |
+            docker-compose run trusty build
+            # Once build container finishes we can copy packages directly from it
+            docker cp st2-packages-vol:/root/build /tmp/st2-packages
           working_directory: ~/st2-packages
 
       - run:
-          name: Copy produced artifacts back
-          command: |
-            # once application container finishes we can copy artifacts directly from it
-            mkdir -p /tmp/st2-packages
-            docker cp st2-packages-vol:/root/build /tmp/st2-packages
-            mkdir -p /tmp/st2-packages/log/st2
-            docker cp st2-packages-vol:/var/log/st2 /tmp/st2-packages/log/st2
-            mkdir -p /tmp/st2-packages/log/mistral
-            docker cp st2-packages-vol:/var/log/mistral /tmp/st2-packages/log/mistral
-
-      - run:
           name: Test the packages
-          command: docker-compose run trusty test
+          command: |
+            docker-compose run trusty test
+            # Once test container finishes we can copy logs directly from it
+            mkdir -p /tmp/st2-packages/log
+            docker cp st2-packages-vol:/var/log/st2 /tmp/st2-packages/log/st2
+            docker cp st2-packages-vol:/var/log/mistral /tmp/st2-packages/log/mistral
           working_directory: ~/st2-packages
 
       - store_artifacts:
