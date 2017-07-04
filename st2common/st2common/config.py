@@ -210,8 +210,10 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt('api_url', default=None,
                    help='Base URL to the API endpoint excluding the version'),
         cfg.BoolOpt('enable', default=True, help='Enable authentication middleware.'),
-        cfg.IntOpt('token_ttl', default=86400, help='Access token ttl in seconds.'),
-        cfg.IntOpt('service_token_ttl', default=86400, help='Service token ttl in seconds.')
+        cfg.IntOpt('token_ttl', default=(24 * 60 * 60), help='Access token ttl in seconds.'),
+        # This TTL is used for tokens which belong to StackStorm services
+        cfg.IntOpt('service_token_ttl', default=(24 * 60 * 60),
+                   help='Service token ttl in seconds.')
     ]
     do_register_opts(auth_opts, 'auth', ignore_errors)
 
