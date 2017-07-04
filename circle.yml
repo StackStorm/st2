@@ -40,6 +40,21 @@ jobs:
           working_directory: ~/st2-packages
 
       - run:
+          # Workaround for CircleCI docker-compose limtation where volumes don't work
+          # See detailed explanation: https://circleci.com/docs/2.0/building-docker-images/#mounting-folders
+          name: Copy st2-packages files to build containers
+          command: |
+            # creating dummy container which will hold a volume with data files
+            docker create -v /root/st2-packages --name st2-packages-vol alpine:3.4 /bin/true
+            # copy st2-packages data files into this volume
+            docker cp ~/st2-packages st2-packages-vol:/root
+
+      - run:
           name: Build the packages
           command: docker-compose run trusty build
+          working_directory: ~/st2-packages
+
+      - run:
+          name: Test the packages
+          command: docker-compose run trusty test
           working_directory: ~/st2-packages
