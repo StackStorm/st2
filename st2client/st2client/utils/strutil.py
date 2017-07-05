@@ -15,5 +15,10 @@
 
 
 def unescape(s):
-    return (s.replace('\r\n', '\n')
-            if isinstance(s, basestring) else s)
+    if isinstance(s, basestring):
+        s = s.replace('\\n', '\n')
+        s = s.replace('\\r', '')
+        s = s.replace('\\"', '\"')
+        s = s.replace('\r', '')
+
+    return s
