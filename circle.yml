@@ -4,7 +4,8 @@ jobs:
     parallelism: 1
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: ubuntu:trusty
+      #- image: ubuntu:trusty
+      - image: circleci/python:2.7
     working_directory: ~/st2
     environment:
       - DISTROS: "trusty xenial el6 el7"
@@ -22,14 +23,16 @@ jobs:
           command: |
             set -x
             apt-get update
-            apt-get install -y curl git bash
-            # install docker client
-            curl -L -o /tmp/docker-${DOCKER_VERSION}.tgz https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz
-            tar -xz -C /tmp -f /tmp/docker-${DOCKER_VERSION}.tgz
-            mv /tmp/docker/* /usr/bin
-            # install docker compose
-            curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-            chmod +x /usr/local/bin/docker-compose
+            docker --version
+            docker-compose --version
+#            apt-get install -y curl git bash
+#            # install docker client
+#            curl -L -o /tmp/docker-${DOCKER_VERSION}.tgz https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz
+#            tar -xz -C /tmp -f /tmp/docker-${DOCKER_VERSION}.tgz
+#            mv /tmp/docker/* /usr/bin
+#            # install docker compose
+#            curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+#            chmod +x /usr/local/bin/docker-compose
 
       - run:
           name: Download st2-packages repository
