@@ -18,21 +18,6 @@ jobs:
       - setup_remote_docker:
           reusable: true
       - run:
-          name: Initialize Build Environment
-          command: |
-            set -x
-            .circle/buildenv_st2.sh
-            .circle/buildenv_mistral.sh
-
-      - run:
-          name: Test env
-          command: export TEST_ENV=12345
-
-      - run:
-          name: Test env
-          command: echo $TEST_ENV
-
-      - run:
           name: Install dependencies - should be done as a pre-packed Docker image later
           command: |
             set -x
@@ -53,6 +38,22 @@ jobs:
             git clone ${ST2_PACKAGES_REPO} ~/st2-packages
             cd ~/st2-packages
             git checkout ${CIRCLE_BRANCH} || true
+
+      - run:
+          name: Initialize Build Environment
+          command: |
+            set -x
+            .circle/buildenv_st2.sh
+            .circle/buildenv_mistral.sh
+          working_directory: ~/st2-packages
+
+      - run:
+          name: Test env
+          command: export TEST_ENV=12345
+
+      - run:
+          name: Test env
+          command: echo $TEST_ENV
 
       - run:
           # Workaround for CircleCI docker-compose limtation where volumes don't work
