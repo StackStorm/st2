@@ -22,7 +22,7 @@ jobs:
           name: Debug
           command: |
             echo $CIRCLE_ENV
-            ls -la $CIRCLE_ENV
+            sudo ls -la $CIRCLE_ENV
       - run:
           name: Docker version
           command: |
