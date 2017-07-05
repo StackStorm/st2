@@ -18,7 +18,7 @@
 
         # Searches for pattern (first param) and replaces all matches with the provided
         # string (second param) and returns the final result
-        cmd: 'echo {{sample_str | regex_match("([0-9]{3} \w+ (?:Ave|St|Dr))", "<redacted>")}}'
+        cmd: 'echo {{sample_str | regex_replace("([0-9]{3} \w+ (?:Ave|St|Dr))", "<redacted>")}}'
       on-success: "search_for_str"
     -
       name: "search_for_str"
