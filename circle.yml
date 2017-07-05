@@ -72,6 +72,7 @@ jobs:
       - run:
           name: Build the packages
           command: |
+            docker-compose run trusty build
             .circle/docker-compose.sh build ${DISTRO}
             # Once build container finishes we can copy packages directly from it
             docker cp st2-packages-vol:/root/build /tmp/st2-packages
