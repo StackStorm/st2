@@ -43,18 +43,6 @@ jobs:
           working_directory: ~/st2-packages
 
       - run:
-          name: Test env
-          command: |
-            export TEST_ENV=12345
-            echo $TEST_ENV
-
-      - run:
-          name: Test env
-          command: |
-            echo $TEST_ENV
-            echo $DISTRO
-
-      - run:
           # Workaround for CircleCI docker-compose limtation where volumes don't work
           # See detailed explanation: https://circleci.com/docs/2.0/building-docker-images/#mounting-folders
           name: Copy st2-packages files to build containers
@@ -66,14 +54,13 @@ jobs:
 
       - run:
           name: Pull the images
-          command: .circle/docker-compose.sh pull ${DISTRO}
+          command: .circle/docker-compose2.sh pull ${DISTRO}
           working_directory: ~/st2-packages
 
       - run:
           name: Build the packages
           command: |
-            docker-compose run trusty build
-            .circle/docker-compose.sh build ${DISTRO}
+            .circle/docker-compose2.sh build ${DISTRO}
             # Once build container finishes we can copy packages directly from it
             docker cp st2-packages-vol:/root/build /tmp/st2-packages
           working_directory: ~/st2-packages
@@ -88,7 +75,7 @@ jobs:
       - run:
           name: Test the packages
           command: |
-            .circle/docker-compose.sh test ${DISTRO}
+            .circle/docker-compose2.sh test ${DISTRO}
             # Once test container finishes we can copy logs directly from it
             mkdir -p /tmp/st2-packages/log
             docker cp st2-packages-vol:/var/log/st2 /tmp/st2-packages/log/st2
