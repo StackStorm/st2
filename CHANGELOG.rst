@@ -20,6 +20,10 @@ Added
   Default limit is 50. (improvement)
 
   Reported by Eugen C. #3488
+* Add regex_substring Jinja filter for searching for a pattern in a provided string and returning
+  the result (improvement)
+
+  Contributed by mierdin. #3482
 
 Changed
 ~~~~~~~
