@@ -18,6 +18,21 @@ jobs:
       - setup_remote_docker:
           reusable: true
       - run:
+          name: Initialize Build Environment
+          command: |
+            set -x
+            .circle/buildenv_st2.sh
+            .circle/buildenv_mistral.sh
+
+      - run:
+          name: Test env
+          command: export TEST_ENV=12345
+
+      - run:
+          name: Test env
+          command: echo $TEST_ENV
+
+      - run:
           name: Install dependencies - should be done as a pre-packed Docker image later
           command: |
             set -x
@@ -62,11 +77,12 @@ jobs:
             docker cp st2-packages-vol:/root/build /tmp/st2-packages
           working_directory: ~/st2-packages
 
-      - run:
-          name: Build the packages 2nd time (compare timing)
-          command: |
-            docker-compose run trusty build
-          working_directory: ~/st2-packages
+#      - run:
+#          # TODO: It works! Enable cache for pip and wheelhouse
+#          name: Build the packages 2nd time (compare timing)
+#          command: |
+#            docker-compose run trusty build
+#          working_directory: ~/st2-packages
 
       - run:
           name: Test the packages
