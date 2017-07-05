@@ -23,6 +23,7 @@ from collections import defaultdict
 
 import eventlet
 from eventlet.support import greenlets as greenlet
+from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
@@ -290,7 +291,7 @@ class ProcessSensorContainer(object):
                                                     inherit_parent_virtualenv=True)
 
         # Include full api URL and API token specific to that sensor
-        ttl = (24 * 60 * 60)
+        ttl = cfg.CONF.auth.service_token_ttl
         metadata = {
             'service': 'sensors_container',
             'sensor_path': sensor['file_path'],

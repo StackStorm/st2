@@ -96,3 +96,29 @@ class TestActionAPIValidator(DbTestCase):
         except ValueValidationException as e:
             print(e)
             self.fail('Action validation should have passed. %s' % json.dumps(action_api_dict))
+
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(
+        return_value=True))
+    def test_validate_action_param_position_values_unique(self):
+        action_api_dict = fixture.ARTIFACTS['actions']['action-with-non-unique-positions']
+        action_api = ActionAPI(**action_api_dict)
+
+        try:
+            action_validator.validate_action(action_api)
+            self.fail('Action validation should have failed ' +
+                      'because position values are not unique.' % json.dumps(action_api_dict))
+        except ValueValidationException as e:
+            self.assertTrue('have same position' in e.message)
+
+    @mock.patch.object(action_validator, '_is_valid_pack', mock.MagicMock(
+        return_value=True))
+    def test_validate_action_param_position_values_contiguous(self):
+        action_api_dict = fixture.ARTIFACTS['actions']['action-with-non-contiguous-positions']
+        action_api = ActionAPI(**action_api_dict)
+
+        try:
+            action_validator.validate_action(action_api)
+            self.fail('Action validation should have failed ' +
+                      'because position values are not contiguous.' % json.dumps(action_api_dict))
+        except ValueValidationException as e:
+            self.assertTrue('are not contiguous' in e.message)
