@@ -22,7 +22,6 @@ jobs:
           name: Install dependencies - should be done as a pre-packed Docker image later
           command: |
             set -x
-            apt-get update
             docker --version
             docker-compose --version
 #            apt-get install -y curl git bash
