@@ -1,10 +1,9 @@
 version: 2
 jobs:
   build:
-    parallelism: 1
+    parallelism: 4
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      #- image: ubuntu:trusty
       - image: circleci/python:2.7
     working_directory: ~/st2
     environment:
