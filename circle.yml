@@ -14,7 +14,7 @@ jobs:
       - DOCKER_VERSION: 17.03.0-ce
       - DOCKER_COMPOSE_VERSION: 1.14.0
       - COMPOSE_FILE: docker-compose.circle2.yml:docker-compose.override.yml
-      - BASH_ENV: ~/.buildenv
+      - CIRCLE_ENV: ~/.buildenv
     steps:
       - checkout
       - setup_remote_docker:
