@@ -5,7 +5,7 @@
   runner_module: action_chain_runner
   runner_parameters:
     display_published:
-      default: false
+      default: True
       description: Intermediate published variables will be stored and displayed.
       type: boolean
     skip_notify:
