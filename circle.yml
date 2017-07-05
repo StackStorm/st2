@@ -19,6 +19,11 @@ jobs:
       - setup_remote_docker:
           reusable: true
       - run:
+          name: Debug
+          command: |
+            echo $CIRCLE_ENV
+            ls -la $CIRCLE_ENV
+      - run:
           name: Docker version
           command: |
             set -x
