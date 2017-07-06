@@ -233,6 +233,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         resp = self.app.get('/v1/executions')
         body = resp.json
         self.assertEqual(resp.status_int, 200)
+        self.assertEqual(resp.headers['X-Total-Count'], "2")
         self.assertEqual(len(resp.json), 2,
                          '/v1/executions did not return all '
                          'actionexecutions.')
@@ -244,6 +245,12 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
             if 'end_timestamp' in body[i]:
                 self.assertTrue('elapsed_seconds' in body[i])
 
+    def test_get_all_invalid_offset_too_large(self):
+        resp = self.app.get('/v1/executions?offset=2147483648&limit=1', expect_errors=True)
+        self.assertEqual(resp.status_int, 400)
+        self.assertEqual(resp.json['faultstring'],
+                         u'Offset "2147483648" specified is more than 32-bit int')
+
     def test_get_query(self):
         actionexecution_1_id = self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
 
@@ -253,7 +260,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
         self.assertEqual(len(list(matching_execution)), 1,
                          '/v1/executions did not return correct liveaction.')
 
-    def test_get_query_with_limit(self):
+    def test_get_query_with_limit_and_offset(self):
         self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
         self._get_actionexecution_id(self._do_post(LIVE_ACTION_1))
 
@@ -282,6 +289,11 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
                             LIVE_ACTION_1['action'])
         self.assertEqual(resp.status_int, 200)
         self.assertTrue(len(resp.json) > 1)
+        total_count = resp.headers['X-Total-Count']
+
+        resp = self.app.get('/v1/executions?offset=%s&limit=1' % total_count)
+        self.assertEqual(resp.status_int, 200)
+        self.assertTrue(len(resp.json), 0)
 
     def test_get_one_fail(self):
         resp = self.app.get('/v1/executions/100', expect_errors=True)
@@ -419,8 +431,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         # Re-run created execution (no parameters overrides)
         data = {}
-        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' %
-                (execution_id), data)
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
         self.assertEqual(re_run_resp.status_int, 201)
 
         # Re-run created execution (with parameters overrides)
@@ -635,8 +646,7 @@ class ActionExecutionControllerTestCase(BaseActionExecutionControllerTestCase, F
 
         # Re-run created execution (no parameters overrides)
         data = {}
-        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' %
-                (execution_id), data)
+        re_run_resp = self.app.post_json('/v1/executions/%s/re_run' % (execution_id), data)
         self.assertEqual(re_run_resp.status_int, 201)
 
         execution_id = self._get_actionexecution_id(re_run_resp)

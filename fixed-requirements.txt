@@ -37,3 +37,4 @@ zake==0.2.2
 routes==2.3.1
 flex==6.5.0
 webob==1.6.0
+prance==0.5.1

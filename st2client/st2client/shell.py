@@ -93,7 +93,7 @@ class Shell(BaseCLIApp):
             dest='base_url',
             default=None,
             help='Base URL for the API servers. Assumes all servers use the '
-                 'same base URL and default ports are used. Get ST2_BASE_URL'
+                 'same base URL and default ports are used. Get ST2_BASE_URL '
                  'from the environment variables by default.'
         )
 
@@ -102,7 +102,7 @@ class Shell(BaseCLIApp):
             action='store',
             dest='auth_url',
             default=None,
-            help='URL for the authentication service. Get ST2_AUTH_URL'
+            help='URL for the authentication service. Get ST2_AUTH_URL '
                  'from the environment variables by default.'
         )
 
@@ -111,7 +111,7 @@ class Shell(BaseCLIApp):
             action='store',
             dest='api_url',
             default=None,
-            help='URL for the API server. Get ST2_API_URL'
+            help='URL for the API server. Get ST2_API_URL '
                  'from the environment variables by default.'
         )
 
@@ -120,7 +120,7 @@ class Shell(BaseCLIApp):
             action='store',
             dest='api_version',
             default=None,
-            help='API version to use. Get ST2_API_VERSION'
+            help='API version to use. Get ST2_API_VERSION '
                  'from the environment variables by default.'
         )
 
@@ -224,7 +224,7 @@ class Shell(BaseCLIApp):
             self, self.subparsers, read_only=True, has_disable=True)
 
         self.commands['sensor'] = sensor.SensorBranch(
-            'An adapter which allows you to integrate StackStorm with external system ',
+            'An adapter which allows you to integrate StackStorm with external system.',
             self, self.subparsers)
 
         self.commands['trace'] = trace.TraceBranch(

@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.7
 # Licensed to the StackStorm, Inc ('StackStorm') under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,14 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pkg_resources
+import json
 
-import jinja2
+__all__ = [
+    'json_escape'
+]
 
-from st2common.util.spec_loader import ARGUMENTS
 
+def json_escape(value):
+    """ Adds escape sequences to problematic characters in the string
 
-if __name__ == '__main__':
-    spec_template = pkg_resources.resource_string('st2common', 'openapi.yaml')
-    spec_string = jinja2.Template(spec_template).render(**ARGUMENTS)
-    print(spec_string)
+    This filter simply passes the value to json.dumps
+    as a convenient way of escaping characters in it
+
+    However, before returning, we want to strip the double
+    quotes at the ends of the string, since we're not looking
+    for a valid JSON value at the end, just conveniently using
+    this function to do the escaping. The value could be any
+    arbitrary value
+    """
+
+    return json.dumps(value).strip('"')
