@@ -41,7 +41,8 @@ class ExecutionResult(formatters.Formatter):
             entry = vars(entry)
             output = ''
             for attr in attrs:
-                value = strutil.unescape(jsutil.get_value(entry, attr))
+                value = jsutil.get_value(entry, attr)
+                value = strutil.strip_carriage_returns(strutil.unescape(value))
                 if (isinstance(value, basestring) and len(value) > 0 and
                         value[0] in ['{', '['] and value[len(value) - 1] in ['}', ']']):
                     new_value = ast.literal_eval(value)
