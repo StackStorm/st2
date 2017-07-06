@@ -39,9 +39,3 @@ class StrUtilTestCase(unittest2.TestCase):
         out_str = strutil.strip_carriage_returns(in_str)
         exp_str = 'Windows editors introduce\nlike a noob in 2017.'
         self.assertEqual(out_str, exp_str)
-
-    def test_unicode_with_line_feed_like_chars(self):
-        in_str = u'€\\n€'
-        out_str = strutil.unescape(in_str).encode('utf-8').decode('string_escape').decode('utf-8')
-        exp_str = u'€\n€'
-        self.assertEqual(out_str, exp_str)
