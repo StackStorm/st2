@@ -133,7 +133,7 @@ class TriggerInstanceListCommand(resource.ResourceCommand):
             self.print_output(reversed(instances), table.MultiColumnTable,
                               attributes=args.attr, widths=args.width,
                               attribute_transform_functions=self.attribute_transform_functions)
-            if args.last >= self.default_limit and count and int(count) > args.last:
+            if args.last and count and int(count) > args.last:
                 table.SingleRowTable.note_box("Note: Only first %s results are displayed. "
                                               "Use -n/--last flag for more results." % args.last)
 
