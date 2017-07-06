@@ -7,6 +7,24 @@ in development
 Added
 ~~~~~
 
+* Add ``regex_substring`` Jinja filter for searching for a pattern in a provided string and
+  returning the result. (improvement)
+
+  Contributed by mierdin. #3482
+
+Changed
+~~~~~~~
+
+Fixed
+~~~~~
+
+
+2.3.1 - July 07, 2017
+---------------------
+
+Added
+~~~~~
+
 * Add support for ``passphrase`` parameter to ``remote-shell-script`` runner and as such, support
   for password protected SSH key files. (improvement)
 
@@ -20,10 +38,6 @@ Added
   Default limit is 50. (improvement)
 
   Reported by Eugen C. #3488
-* Add regex_substring Jinja filter for searching for a pattern in a provided string and returning
-  the result (improvement)
-
-  Contributed by mierdin. #3482
 
 Changed
 ~~~~~~~
