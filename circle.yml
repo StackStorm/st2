@@ -32,7 +32,7 @@ jobs:
             git checkout ${CIRCLE_BRANCH} || true
 
       - run:
-          name: Initialize Build Environment
+          name: Initialize packages Build Environment
           command: |
             set -x
             .circle/buildenv_st2.sh
@@ -50,12 +50,12 @@ jobs:
             docker cp ~/st2-packages st2-packages-vol:/root
 
       - run:
-          name: Pull the images
+          name: Pull dependent Docker Images
           command: .circle/docker-compose2.sh pull ${DISTRO}
           working_directory: ~/st2-packages
 
       - run:
-          name: Build the packages
+          name: Build the ${DISTRO} Packages
           command: |
             .circle/docker-compose2.sh build ${DISTRO}
             # Once build container finishes we can copy packages directly from it
@@ -70,7 +70,7 @@ jobs:
 #          working_directory: ~/st2-packages
 
       - run:
-          name: Test the packages
+          name: Test the Packages
           command: |
             .circle/docker-compose2.sh test ${DISTRO}
             # Once test container finishes we can copy logs directly from it
@@ -81,3 +81,9 @@ jobs:
 
       - store_artifacts:
           path: /tmp/st2-packages
+
+notify:
+  branches:
+    only:
+      - master
+      - /v[0-9]+\.[0-9]+/
