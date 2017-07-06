@@ -306,10 +306,10 @@ if [ "${ENABLE_COVERAGE}" = true ]; then
   # the options: --cover-package=/absolte/path OR --cover-package=./relative/path
 
   # For each of the sub-directory in the pack, excluding the "tests" directory
-  PACK_SUB_DIRS=$(find $PACK_DIR -mindepth 1 -maxdepth 1 -type d -and -not -name "tests")
+  PACK_SUB_DIRS=$(find $PACK_PATH -mindepth 1 -maxdepth 1 -type d -and -not -name "tests")
   for pack_sub_dir in $PACK_SUB_DIRS; do
     verbose_log "Enabling nosetests coverage for directory: $pack_sub_dir"
-    NOSE_OPTS+=(--cover-package=./$pack_sub_dir)
+    NOSE_OPTS+=(--cover-package=$pack_sub_dir)
   done # end for each $PACK_PYTHON_DIR
 fi # end enable test coverage
 
