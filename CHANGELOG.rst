@@ -7,11 +7,6 @@ in development
 Added
 ~~~~~
 
-* Added test coverage and test timing capabilities to ``st2-run-pack-tests``.
-  The ``-c`` option enables test coverage and the ``-t`` option enables test timings.
-  These capabilities have also been enabled in the ci pipeline for packs in the exchange.
-  (Nick Maludy)
-
 * Add support for ``passphrase`` parameter to ``remote-shell-script`` runner and as such, support
   for password protected SSH key files. (improvement)
 
@@ -29,6 +24,13 @@ Added
   the result (improvement)
 
   Contributed by mierdin. #3482
+
+  
+* Added test coverage and test timing capabilities to ``st2-run-pack-tests``.
+  The ``-c`` option enables test coverage and the ``-t`` option enables test timings.
+  These capabilities have also been enabled in the ci pipeline for packs in the exchange.
+
+  Contributed by Nick Maludy. #3508
 
 Changed
 ~~~~~~~

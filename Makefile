@@ -392,7 +392,7 @@ packs-tests: requirements .packs-tests
 	@echo
 	@echo "==================== packs-tests ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -c -t -x -v -p FILENAME
+	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -c -t -x -p FILENAME
 
 .PHONY: cli
 cli:
