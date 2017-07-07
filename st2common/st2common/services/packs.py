@@ -67,6 +67,20 @@ def _fetch_and_compile_index(index_urls, logger=None):
     status = []
     index = {}
 
+    https_proxy = cfg.CONF.pack_management.https_proxy
+    http_proxy = cfg.CONF.pack_management.http_proxy
+    ca_bundle_path = cfg.CONF.pack_management.ca_bundle_path
+
+    proxies_dict = {}
+
+    if https_proxy:
+        proxies_dict['https'] = https_proxy
+        if not ca_bundle_path:
+            raise ValueError('Specify path to ca bundle for HTTPS proxies.')
+
+    if https_proxy:
+        proxies_dict['http'] = http_proxy
+
     for index_url in index_urls:
         index_status = {
             'url': index_url,
@@ -77,7 +91,7 @@ def _fetch_and_compile_index(index_urls, logger=None):
         index_json = None
 
         try:
-            request = requests.get(index_url)
+            request = requests.get(index_url, proxies=proxies_dict, verify=ca_bundle_path)
             request.raise_for_status()
             index_json = request.json()
         except ValueError as e:

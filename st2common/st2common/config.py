@@ -290,6 +290,19 @@ def register_opts(ignore_errors=False):
     ]
     do_register_opts(query_opts, group='results_tracker', ignore_errors=ignore_errors)
 
+    pack_opts = [
+        cfg.StrOpt('https_proxy', default=None, help=(
+            'HTTPS proxy to use for pack management operations. E.g. https://proxy.server.io:port')
+        ),
+        cfg.StrOpt('http_proxy', default=None, help=(
+            'HTTP proxy to use for pack management operations. E.g. http://proxy.server.io:port')
+        ),
+        cfg.StrOpt('ca_bundle_path', default='/etc/ssl/certs/', help=(
+            'Path to proxy client SSL cert if you are using HTTPS proxy.')
+        )
+    ]
+    do_register_opts(pack_opts, group='pack_management', ignore_errors=ignore_errors)
+
     # Common CLI options
     debug = cfg.BoolOpt('debug', default=False,
         help='Enable debug mode. By default this will set all log levels to DEBUG.')
