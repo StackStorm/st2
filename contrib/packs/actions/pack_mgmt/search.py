@@ -18,10 +18,21 @@ from st2common.services.packs import search_pack_index
 
 
 class PackSearch(Action):
+    def __init__(self, config=None, action_service=None):
+        super(PackSearch, self).__init__(config=config, action_service=action_service)
+        self.https_proxy = self.config.get('https_proxy', None)
+        self.https_proxy = self.config.get('http_proxy', None)
+        self.ca_bundle_path = self.config.get('ca_bundle_path', None)
+        self.proxy_config = {
+            'https_proxy': self.https_proxy,
+            'http_proxy': self.http_proxy,
+            'ca_bundle_path': self.ca_bundle_path
+        }
+
     """"Search for packs in StackStorm Exchange and other directories."""
     def run(self, query):
         """
         :param query: A word or a phrase to search for
         :type query: ``str``
         """
-        return search_pack_index(query)
+        return search_pack_index(query, proxy_config=self.proxy_config)
