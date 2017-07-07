@@ -1,6 +1,14 @@
 Changelog
 =========
 
+2.3.2 - TBD
+-----------
+
+Added
+~~~~~
+
+* Fix st2client to display unicode characters in pack content description. (bug-fix)
+
 2.3.1 - July 07, 2017
 ---------------------
 
