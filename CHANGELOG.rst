@@ -11,6 +11,7 @@ Added
   returning the result. (improvement)
 
   Contributed by mierdin. #3482
+* Fix st2client to display unicode characters in pack content description. (bug-fix)
 
 Changed
 ~~~~~~~
