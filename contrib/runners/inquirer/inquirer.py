@@ -24,7 +24,7 @@ LOG = logging.getLogger(__name__)
 
 __all__ = [
     'get_runner',
-    'AskRunner',
+    'Inquirer',
 ]
 
 # constants to lookup in runner_parameters.
@@ -35,10 +35,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(python_action_wrapper.__file__))
 
 def get_runner():
     'RunnerTestCase',
-    return AskRunner(str(uuid.uuid4()))
+    return Inquirer(str(uuid.uuid4()))
 
 
-class AskRunner(ActionRunner):
+class Inquirer(ActionRunner):
     """ This runner is responsible for handling st2.ask actions (i.e. can return "pending" status)
 
     This approach gives safer access to setting execution status and examining data in context
@@ -48,10 +48,10 @@ class AskRunner(ActionRunner):
     """
 
     def __init__(self, runner_id):
-        super(AskRunner, self).__init__(runner_id=runner_id)
+        super(Inquirer, self).__init__(runner_id=runner_id)
 
     def pre_run(self):
-        super(AskRunner, self).pre_run()
+        super(Inquirer, self).pre_run()
 
         # TODO :This is awful, but the way "runner_parameters" and other variables get
         # assigned on the runner instance is even worse. Those arguments should
