@@ -48,15 +48,23 @@ class DownloadGitRepoAction(Action):
     def __init__(self, config=None, action_service=None):
         super(DownloadGitRepoAction, self).__init__(config=config, action_service=action_service)
         self.https_proxy = self.config.get('https_proxy', None)
+        self.http_proxy = self.config.get('http_proxy', None)
+        self.ca_bundle_path = self.config.get('ca_bundle_path', None)
+        self.proxy_config = {
+            'https_proxy': self.https_proxy,
+            'http_proxy': self.http_proxy,
+            'ca_bundle_path': self.ca_bundle_path
+        }
 
     def run(self, packs, abs_repo_base, verifyssl=True, force=False):
         result = {}
 
+        # This is needed for git binary to work with a proxy
         if self.https_proxy:
             os.environ['https_proxy'] = self.https_proxy
 
         for pack in packs:
-            pack_url, pack_version = self._get_repo_url(pack)
+            pack_url, pack_version = self._get_repo_url(pack, proxy_config=self.proxy_config)
 
             temp_dir_name = hashlib.md5(pack_url).hexdigest()
             lock_file = LockFile('/tmp/%s' % (temp_dir_name))
@@ -274,13 +282,13 @@ class DownloadGitRepoAction(Action):
         return sanitized_result
 
     @staticmethod
-    def _get_repo_url(pack):
+    def _get_repo_url(pack, proxy_config=None):
         pack_and_version = pack.split(PACK_VERSION_SEPARATOR)
         name_or_url = pack_and_version[0]
         version = pack_and_version[1] if len(pack_and_version) > 1 else None
 
         if len(name_or_url.split('/')) == 1:
-            pack = get_pack_from_index(name_or_url)
+            pack = get_pack_from_index(name_or_url, proxy_config=proxy_config)
             if not pack:
                 raise Exception('No record of the "%s" pack in the index.' % name_or_url)
             return (pack['repo_url'], version)

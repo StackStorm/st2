@@ -35,6 +35,19 @@ class SetupVirtualEnvironmentAction(Action):
     creation of the virtual environment and performs an update of the
     current dependencies as well as an installation of new dependencies
     """
+    def __init__(self, config=None, action_service=None):
+        super(SetupVirtualEnvironmentAction, self).__init__(
+            config=config,
+            action_service=action_service)
+
+        self.https_proxy = self.config.get('https_proxy', None)
+        self.http_proxy = self.config.get('http_proxy', None)
+        self.ca_bundle_path = self.config.get('ca_bundle_path', None)
+        self.proxy_config = {
+            'https_proxy': self.https_proxy,
+            'http_proxy': self.http_proxy,
+            'ca_bundle_path': self.ca_bundle_path
+        }
 
     def run(self, packs, update=False):
         """
@@ -44,8 +57,10 @@ class SetupVirtualEnvironmentAction(Action):
         :param update: True to update dependencies inside the virtual environment.
         :type update: ``bool``
         """
+
         for pack_name in packs:
-            setup_pack_virtualenv(pack_name=pack_name, update=update, logger=self.logger)
+            setup_pack_virtualenv(pack_name=pack_name, update=update, logger=self.logger,
+                                  proxy_config=self.proxy_config)
 
         message = ('Successfuly set up virtualenv for the following packs: %s' %
                    (', '.join(packs)))
