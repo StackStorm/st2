@@ -48,9 +48,6 @@ class Inquirer(ActionRunner):
     """ This runner is responsible for handling st2.ask actions (i.e. can return "pending" status)
 
     This approach gives safer access to setting execution status and examining data in context
-
-    TODO
-    - Should this runner also be written to handle an "st2.respond" action in addition to "st2.ask"?
     """
 
     def __init__(self, runner_id):
