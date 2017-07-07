@@ -17,6 +17,9 @@ import os
 import uuid
 
 from st2common import log as logging
+from st2common.constants.action import LIVEACTION_STATUS_SUCCEEDED
+from st2common.constants.action import LIVEACTION_STATUS_FAILED
+from st2common.constants.action import LIVEACTION_STATUS_PENDING  #TODO(mierdin): Need to implement this
 from st2common.runners.base import ActionRunner
 from st2common.runners import python_action_wrapper
 
@@ -29,6 +32,9 @@ __all__ = [
 
 # constants to lookup in runner_parameters.
 RUNNER_SCHEMA = 'schema'
+RUNNER_ROLES = 'roles'
+RUNNER_USERS = 'users'
+RUNNER_TAG = 'tag'
 
 BASE_DIR = os.path.dirname(os.path.abspath(python_action_wrapper.__file__))
 
@@ -57,15 +63,56 @@ class Inquirer(ActionRunner):
         # assigned on the runner instance is even worse. Those arguments should
         # be passed to the constructor.
         self._schema = self.runner_parameters.get(RUNNER_SCHEMA, self._schema)
+        self._roles_param = self.runner_parameters.get(RUNNER_ROLES, self._schema)
+        self._users_param = self.runner_parameters.get(RUNNER_USERS, self._schema)
+
+        # Probably not needed, since this isn't used in the runner or action
+        # self._tag = self.runner_parameters.get(RUNNER_TAG, self._schema)
 
     def run(self, action_parameters):
 
-        # 1 - Retrieve JSON schema from runner parameters
+        # NOTE - I am using self.context for storing the response data right now. I know there was
+        # some discussion about using response instead; I'm just not quite sure how that would work
+        # atm, and I think Lakshmi also had some concerns about this. So I can flex here, just doing
+        # this for now.
+        response_data = self.context.get("response_data")
 
-        # 2 - Retrieve response from execution context
+        # Determine if the currently authenticated user is allowed to provide a response
+        if not self.has_permission():
+            return (LIVEACTION_STATUS_FAILED, response_data)
 
-        # 3 - Use the schema to validate response data
+        # Validate response against provided schema.
+        # If valid, set status to success. If not valid, set status to pending.
+        # Return this status as well as response data
+        if self.validate_data(self.schema, response_data):
+            return (LIVEACTION_STATUS_SUCCEEDED, response_data)
+        else:
+            return (LIVEACTION_STATUS_PENDING, response_data)
 
-        # 4 - If valid, set status to success. If not valid, set status to pending.
-        # Return this status as well as the entirety of data in context. I.e:
-        return (status, context_data)
+    def has_permission(self):
+        """Determine if the current user has permission to respond to the action execution
+        """
+
+        # Grant permission if users and roles list is empty
+        if not self._users_param and not self._roles_param:
+            return True
+
+        current_user = self.get_user()
+        roles = get_roles_for_user(current_user)  # Just made this function name up for now
+
+        # Grant permission if user is in provided list
+        if current_user in self._users_param:
+            return True
+
+        # Grant permission if user is in one of the provided roles
+        for role in roles:
+            if role in self._roles_param:
+                return True
+
+        return False
+
+    def validate_data(self, schema, response_data):
+        """Perform JSONschema validation against the response data using the provided
+           schema
+        """
+        pass
