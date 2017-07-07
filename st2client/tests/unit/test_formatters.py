@@ -127,7 +127,8 @@ class TestExecutionResultFormatter(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(HAS_CARRIAGE_RETURN), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(HAS_CARRIAGE_RETURN), 200, 'OK',
+                                                      {})))
     def test_execution_get_detail_with_carriage_return(self):
         argv = ['execution', 'get', HAS_CARRIAGE_RETURN['id'], '-d']
         self.assertEqual(self.shell.run(argv), 0)
@@ -139,7 +140,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([EXECUTION]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([EXECUTION]), 200, 'OK', {})))
     def test_execution_list_attribute_provided(self):
         # Client shouldn't throw if "-a" flag is provided when listing executions
         argv = ['execution', 'list', '-a', 'start_timestamp']
@@ -153,7 +154,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps([]), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps([]), 200, 'OK', {})))
     def test_execution_list_attribute_provided_empty_response(self):
         # Client shouldn't throw if "-a" flag is provided, but there are no executions
         argv = ['execution', 'list', '-a', 'start_timestamp']
@@ -167,7 +168,7 @@ class TestExecutionResultFormatter(unittest2.TestCase):
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
-        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK')))
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps(EXECUTION), 200, 'OK', {})))
     def _get_execution(self, argv):
         self.assertEqual(self.shell.run(argv), 0)
         self._undo_console_redirect()

@@ -61,6 +61,7 @@ def _is_valid_pack(pack):
 
 
 def _validate_parameters(action_ref, action_params=None, runner_params=None):
+    position_params = {}
     for action_param, action_param_meta in six.iteritems(action_params):
         # Check if overridden runner parameters are permitted.
         if action_param in runner_params:
@@ -68,6 +69,16 @@ def _validate_parameters(action_ref, action_params=None, runner_params=None):
                 util_schema.validate_runner_parameter_attribute_override(
                     action_ref, action_param, action_param_attr,
                     value, runner_params[action_param].get(action_param_attr))
+
+        if 'position' in action_param_meta:
+            pos = action_param_meta['position']
+            param = position_params.get(pos, None)
+            if param:
+                msg = ('Parameters %s and %s have same position %d.' % (action_param, param, pos) +
+                       ' Position values have to be unique.')
+                raise ValueValidationException(msg)
+            else:
+                position_params[pos] = action_param
 
         if 'immutable' in action_param_meta:
             if action_param in runner_params:
@@ -83,3 +94,19 @@ def _validate_parameters(action_ref, action_params=None, runner_params=None):
                 if 'default' not in action_param_meta:
                     msg = 'Immutable param %s requires a default value.' % action_param
                     raise ValueValidationException(msg)
+
+    return _validate_position_values_contiguous(position_params)
+
+
+def _validate_position_values_contiguous(position_params):
+    if not position_params:
+        return True
+
+    positions = sorted(position_params.keys())
+    contiguous = (positions == range(min(positions), max(positions) + 1))
+
+    if not contiguous:
+        msg = 'Positions supplied %s for parameters are not contiguous.' % positions
+        raise ValueValidationException(msg)
+
+    return True
