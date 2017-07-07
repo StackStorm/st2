@@ -67,6 +67,17 @@ class Inquirer(ActionRunner):
         # self._tag = self.runner_parameters.get(RUNNER_TAG, self._schema)
 
     def run(self, action_parameters):
+        """This runner provides the bulk of the implementation for st2.ask.
+
+        The high-level steps are:
+
+        1. Retrieve response data and JSONschema from parameters
+        2. Ensure the current user has permission to provide a response
+           (based off of provided "users" and "roles" params)
+        3. Validate respond data against provided schema
+        4. Return appropriate status based on validation
+        """
+
 
         # NOTE - I am using self.context for storing the response data right now. I know there was
         # some discussion about using response instead; I'm just not quite sure how that would work
@@ -76,7 +87,8 @@ class Inquirer(ActionRunner):
 
         # Determine if the currently authenticated user is allowed to provide a response
         if not self.has_permission():
-            return (LIVEACTION_STATUS_FAILED, response_data)
+            LOG.debug('Current user not permitted to respond to this execution.')  #TODO(mierdin): Could probably use more detail
+            return (LIVEACTION_STATUS_PENDING, response_data)
 
         # Validate response against provided schema.
         # If valid, set status to success. If not valid, set status to pending.
