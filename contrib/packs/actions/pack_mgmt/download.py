@@ -47,9 +47,13 @@ CURRENT_STACKSTROM_VERSION = get_stackstorm_version()
 class DownloadGitRepoAction(Action):
     def __init__(self, config=None, action_service=None):
         super(DownloadGitRepoAction, self).__init__(config=config, action_service=action_service)
+        self.https_proxy = self.config.get('https_proxy', None)
 
     def run(self, packs, abs_repo_base, verifyssl=True, force=False):
         result = {}
+
+        if self.https_proxy:
+            os.environ['https_proxy'] = self.https_proxy
 
         for pack in packs:
             pack_url, pack_version = self._get_repo_url(pack)
@@ -83,6 +87,8 @@ class DownloadGitRepoAction(Action):
                     result[pack_ref] = self._move_pack(abs_repo_base, pack_ref, abs_local_path)
                 finally:
                     self._cleanup_repo(abs_local_path)
+                    if self.https_proxy:
+                        del os.environ['https_proxy']
 
         return self._validate_result(result=result, repo_url=pack_url)
 

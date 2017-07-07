@@ -1,0 +1,6 @@
+---
+  https_proxy:
+    description: "URL to https proxy. Note that HTTPS proxying requires valid certificates in client to talk to proxy."
+    type: "string"
+    required: false
+
