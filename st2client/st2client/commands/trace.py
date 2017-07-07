@@ -171,14 +171,17 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
         instances, count = self.run(args, **kwargs)
         message = "Note: Only first %s results are displayed. Use -n/--last flag for more "\
             "results." % args.last
+
         if instances and len(instances) == 1:
             # For a single Trace we must include the components unless
             # user has overriden the attributes to display
             if args.attr == self.display_attributes:
                 args.attr = ['all']
             self.print_trace_details(trace=instances[0], args=args)
-            if args.last and count and int(count) > args.last:
-                    table.SingleRowTable.note_box(message)
+
+            if not args.json and not args.yaml:
+                if args.last and count and int(count) > args.last:
+                        table.SingleRowTable.note_box(message)
         else:
             if args.json or args.yaml:
                 self.print_output(reversed(instances), table.MultiColumnTable,

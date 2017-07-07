@@ -273,10 +273,9 @@ class SingleRowTable(object):
     def note_box(message):
         # adding default padding
         message_length = len(message) + 3
-
-        if MultiColumnTable.table_width > message_length:
-            note = PrettyTable([""],
-                               right_padding_width=(MultiColumnTable.table_width - message_length))
+        m = MultiColumnTable()
+        if m.table_width > message_length:
+            note = PrettyTable([""], right_padding_width=(m.table_width - message_length))
         else:
             note = PrettyTable([""])
         note.header = False
