@@ -2,6 +2,7 @@ version: 2
 jobs:
   build:
     parallelism: 4
+    # 4CPUs & 8GB RAM CircleCI machine
     resource_class: large
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
@@ -16,7 +17,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          reusable: true
+        reusable: true    # default - false
+        exclusive: true   # default - true
       - run:
           name: Docker version
           command: |
@@ -54,7 +56,11 @@ jobs:
 
       - run:
           name: Pull dependent Docker Images
-          command: .circle/docker-compose2.sh pull ${DISTRO}
+          command: |
+            # Clean-up running containers from the previous build
+            .circle/docker-compose2.sh clean
+            # Pull Docker images
+            .circle/docker-compose2.sh pull ${DISTRO}
           working_directory: ~/st2-packages
 
       - run:
@@ -80,6 +86,8 @@ jobs:
             mkdir -p /tmp/st2-packages/log
             docker cp st2-packages-vol:/var/log/st2 /tmp/st2-packages/log/st2
             docker cp st2-packages-vol:/var/log/mistral /tmp/st2-packages/log/mistral
+            # Clean-up running containers
+            .circle/docker-compose2.sh clean
           working_directory: ~/st2-packages
 
       - store_artifacts:
