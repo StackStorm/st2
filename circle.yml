@@ -17,8 +17,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-        reusable: true    # default - false
-        exclusive: true   # default - true
+          reusable: true    # default - false
+          exclusive: true   # default - true
       - run:
           name: Docker version
           command: |
