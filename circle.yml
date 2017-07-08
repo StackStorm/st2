@@ -44,6 +44,8 @@ jobs:
           # See detailed explanation: https://circleci.com/docs/2.0/building-docker-images/#mounting-folders
           name: Copy st2-packages files to build containers
           command: |
+            # Remove st2-packages-vol container if exists in CircleCI cache
+            docker rm -f st2-packages-vol
             # creating dummy container which will hold a volume with data files
             docker create -v /root/st2-packages -v /root/build -v /var/log/st2 -v /var/log/mistral -v /root/.cache/pip -v /tmp/wheelhouse --name st2-packages-vol alpine:3.4 /bin/true
             # copy st2-packages data files into this volume
