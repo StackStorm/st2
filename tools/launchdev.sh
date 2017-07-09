@@ -65,6 +65,17 @@ function init(){
         echo "Config file $ST2_CONF does not exist."
         exit 1
     fi
+
+    if [ -z "$MISTRAL_CONF" ]; then
+        MISTRAL_CONF=${ST2_REPO}/conf/mistral/mistral.conf
+    fi
+    echo "Using mistral config file: $MISTRAL_CONF"
+
+    if [ ! -f "$MISTRAL_CONF" ]; then
+        echo "Config file $MISTRAL_CONF does not exist."
+        exit 1
+    fi
+
 }
 
 function exportsdir(){
@@ -156,6 +167,12 @@ function st2start(){
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs kill
     fi
 
+    screen -ls | grep mistral &> /dev/null
+    if [ $? == 0 ]; then
+        echo 'Killing existing mistral screen sessions...'
+        screen -ls | grep mistral | cut -d. -f1 | awk '{print $1}' | xargs kill
+    fi
+
     # Run the st2 API server
     echo 'Starting screen session st2-api...'
     if [ "${use_gunicorn}" = true ]; then
@@ -231,6 +248,7 @@ function st2start(){
             --config-file $ST2_CONF
     fi
 
+    # Start Exporter
     if [ -n "$ST2_EXPORTER" ]; then
         EXPORTS_DIR=$(exportsdir)
         sudo mkdir -p $EXPORTS_DIR
@@ -239,6 +257,27 @@ function st2start(){
         screen -d -m -S st2-exporter ./virtualenv/bin/python \
             ./st2exporter/bin/st2exporter \
             --config-file $ST2_CONF
+    fi
+
+    # Run mistral-server
+    echo 'Starting screen session mistral-server...'
+    screen -d -m -S mistral-server ./virtualenv/bin/python \
+        /home/vagrant/st2/virtualenv/bin/mistral-server \
+        --server engine,executor \
+        --config-file $MISTRAL_CONF \
+        --log-file "$LOGDIR/mistral-server.log"
+
+    # Run mistral-api
+    echo 'Starting screen session mistral-api...'
+    if [ "${use_gunicorn}" = true ]; then
+        echo '  using gunicorn to run mistral-api...'
+        screen -d -m -S mistral-api ./virtualenv/bin/gunicorn \
+            --log-file "$LOGDIR/mistral-api.log" \
+            mistral.api.wsgi --graceful-timeout 10 -k eventlet -b "$BINDING_ADDRESS:8989" --workers 1
+    # else
+    #     screen -d -m -S mistral-api ./virtualenv/bin/python \
+    #         ./st2auth/bin/st2auth \
+    #         --config-file $ST2_CONF
     fi
 
     # Check whether screen sessions are started
@@ -250,6 +289,8 @@ function st2start(){
         "st2-resultstracker"
         "st2-notifier"
         "st2-auth"
+        "mistral-server"
+        "mistral-api"
     )
 
     echo
