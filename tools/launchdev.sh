@@ -269,16 +269,11 @@ function st2start(){
 
     # Run mistral-api
     echo 'Starting screen session mistral-api...'
-    if [ "${use_gunicorn}" = true ]; then
-        echo '  using gunicorn to run mistral-api...'
-        screen -d -m -S mistral-api ./virtualenv/bin/gunicorn \
-            --log-file "$LOGDIR/mistral-api.log" \
-            mistral.api.wsgi --graceful-timeout 10 -k eventlet -b "$BINDING_ADDRESS:8989" --workers 1
-    # else
-    #     screen -d -m -S mistral-api ./virtualenv/bin/python \
-    #         ./st2auth/bin/st2auth \
-    #         --config-file $ST2_CONF
-    fi
+    screen -d -m -S mistral-api ./virtualenv/bin/python \
+        /home/vagrant/st2/virtualenv/bin/mistral-server \
+        --server api \
+        --config-file $MISTRAL_CONF \
+        --log-file "$LOGDIR/mistral-api.log"
 
     # Check whether screen sessions are started
     SCREENS=(
@@ -321,6 +316,12 @@ function st2stop(){
         screen -ls | grep st2 | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -P
     fi
 
+    screen -ls | grep st2 &> /dev/null
+    if [ $? == 0 ]; then
+        echo 'Killing existing st2 screen sessions...'
+        screen -ls | grep mistral | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -P
+    fi
+
     if [ "${use_gunicorn}" = true ]; then
         pids=`ps -ef | grep "gunicorn_config.py" | awk '{print $2}'`
         if [ -n "$pids" ]; then
@@ -333,6 +334,7 @@ function st2stop(){
             done
         fi
     fi
+
 }
 
 function st2clean(){
