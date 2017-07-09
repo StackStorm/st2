@@ -78,7 +78,6 @@ class Inquirer(ActionRunner):
         4. Return appropriate status based on validation
         """
 
-
         # NOTE - I am using self.context for storing the response data right now. I know there was
         # some discussion about using response instead; I'm just not quite sure how that would work
         # atm, and I think Lakshmi also had some concerns about this. So I can flex here, just doing
