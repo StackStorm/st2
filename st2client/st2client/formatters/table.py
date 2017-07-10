@@ -16,6 +16,7 @@
 import json
 import math
 import logging
+import sys
 
 from prettytable import PrettyTable
 from six.moves import zip
@@ -45,6 +46,9 @@ COLORIZED_ATTRIBUTES = {
     }
 }
 
+# Width of the final table for note
+table_width = 0
+
 
 class MultiColumnTable(formatters.Formatter):
 
@@ -70,7 +74,6 @@ class MultiColumnTable(formatters.Formatter):
             else:
                 col_width = int(math.floor((cols / len(attributes))))
                 first_col_width = col_width
-
             widths = []
             subtract = 0
             for index in range(0, len(attributes)):
@@ -138,16 +141,24 @@ class MultiColumnTable(formatters.Formatter):
                         value = cls._get_field_value(value, name)
                         if type(value) is str:
                             break
-                    value = strutil.unescape(value)
+                    value = strutil.strip_carriage_returns(strutil.unescape(value))
                     values.append(value)
                 else:
                     value = cls._get_simple_field_value(entry, field_name)
                     transform_function = attribute_transform_functions.get(field_name,
-                                                                          lambda value: value)
+                                                                           lambda value: value)
                     value = transform_function(value=value)
-                    value = strutil.unescape(value)
+                    value = strutil.strip_carriage_returns(strutil.unescape(value))
                     values.append(value)
             table.add_row(values)
+
+        # width for the note
+        global table_width
+        try:
+            table_width = len(table.get_string().split("\n")[0])
+        except IndexError:
+            table_width = 0
+
         return table
 
     @staticmethod
@@ -233,7 +244,7 @@ class PropertyValueTable(formatters.Formatter):
             if type(value) is dict or type(value) is list:
                 value = json.dumps(value, indent=4)
 
-            value = strutil.unescape(value)
+            value = strutil.strip_carriage_returns(strutil.unescape(value))
             table.add_row([attribute, value])
         return table
 
@@ -248,3 +259,17 @@ class PropertyValueTable(formatters.Formatter):
         if isinstance(r_val, list) or isinstance(r_val, dict):
             return r_val if len(r_val) > 0 else ''
         return r_val
+
+
+class SingleRowTable(object):
+    @staticmethod
+    def note_box(message):
+        # adding default padding
+        message_length = len(message) + 3
+        if table_width > message_length:
+            note = PrettyTable([""], right_padding_width=(table_width - message_length))
+        else:
+            note = PrettyTable([""])
+        note.header = False
+        note.add_row([message])
+        return sys.stderr.write(str(note) + "\n")

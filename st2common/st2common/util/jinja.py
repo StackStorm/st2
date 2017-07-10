@@ -64,6 +64,7 @@ def get_filters():
         'regex_match': regex.regex_match,
         'regex_replace': regex.regex_replace,
         'regex_search': regex.regex_search,
+        'regex_substring': regex.regex_substring,
 
         'to_human_time_from_seconds': time.to_human_time_from_seconds,
 
