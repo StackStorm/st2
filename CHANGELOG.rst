@@ -24,6 +24,11 @@ Changed
 Fixed
 ~~~~~
 
+* Don't automatically append ``.git`` suffix to repo URIs passed to ``packs.download`` action.
+  This fixes a bug and now action also works with repo urls which don't contain ``.git`` suffix.
+  (bug fix)
+
+  Contributed by carbineneutral. #3534 #3544
 
 2.3.1 - July 07, 2017
 ---------------------
