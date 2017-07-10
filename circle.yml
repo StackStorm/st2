@@ -4,7 +4,7 @@ jobs:
   unit:
     parallelism: 2
     docker:
-      - image: ubuntu:trusty
+      - image: buildpack-deps:trusty
       - image: mongo:3.4
       - image: rabbitmq:3
     working_directory: ~/st2
@@ -32,7 +32,7 @@ jobs:
   # Run Integration tests
   integration:
     docker:
-      - image: ubuntu:trusty
+      - image: buildpack-deps:trusty
       - image: mongo:3.4
       - image: rabbitmq:3
     working_directory: ~/st2
@@ -198,8 +198,9 @@ workflows:
                 - master
                 - /v[0-9]+\.[0-9]+/
 
-notify:
-  branches:
-    only:
-      - master
-      - /v[0-9]+\.[0-9]+/
+experimental:
+  notify:
+    branches:
+      only:
+        - master
+        - /v[0-9]+\.[0-9]+/
