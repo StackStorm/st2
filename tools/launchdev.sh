@@ -55,6 +55,7 @@ function init(){
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
 
+    MISTRAL_REPO=${ST2_REPO}/../mistral
 
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
@@ -80,17 +81,32 @@ function init(){
     # Need to fix this so this is only deleted when startclean was specified
     # Delete mistral database
     st2stop  #and evaluate if this is still needed when you do that.
-    rm $ST2_REPO/mistral.db
+    rm $MISTRAL_REPO/mistral.db
 
     # Initialize mistral database if it doesn't already exist
-    if [ ! -f "$ST2_REPO/mistral.db" ]; then
-        echo "Initializing Mistral database. Please be patient..."
-        cd /home/vagrant/mistral/
+    if [ ! -f "$MISTRAL_REPO/mistral.db" ]; then
+        echo "Initializing Mistral database. This will take some time because tox needs to download deps. Please be patient..."
+
+        # We're using the StackStorm venv for everything
+        # TODO (mierdin): Evaluate if it's worth using a separate venv for installing and running mistral
         source /home/vagrant/st2/virtualenv/bin/activate
+
         # Tox is required by Mistral database initialization (will set up mistral/.tox)
-        pip install tox
-        tools/sync_db.sh --config-file /home/vagrant/st2/conf/mistral/mistral.conf
-        mistral-db-manage --config-file /home/vagrant/st2/conf/mistral/mistral.conf populate
+        pip install tox > /dev/null
+
+        # sync_db will run Tox, so we need to be in the mistral repo for that
+        cd "${MISTRAL_REPO}"
+
+        # Using mistral-db-manage doesn't seem to work with sqlite (tries to use ALTER) so we're using mistral's
+        # sync_db.sh script to do the table creation.
+        tools/sync_db.sh --config-file /home/vagrant/st2/conf/mistral/mistral.conf > /dev/null
+        mistral-db-manage --config-file /home/vagrant/st2/conf/mistral/mistral.conf populate > /dev/null
+
+        # Using sync_db.sh means mistral.db will be created in the mistral repo,
+        # so we have to move it to the st2 repo to reflect the relative path in mistral.conf
+        mv "${MISTRAL_REPO}/mistral.db" "${ST2_REPO}"
+
+        cd "${ST2_REPO}"
         deactivate
         echo "Mistral database initialized."
     else
