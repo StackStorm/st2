@@ -320,13 +320,13 @@ if [ "${ENABLE_TIMING}" = true ]; then
 fi
 
 # Change to the pack's directory (required for test coverage reporting)
-pushd ${PACK_PATH}
+pushd ${PACK_PATH} > /dev/null
 
 # Execute the tests
 nosetests ${NOSE_OPTS[@]} ${PACK_TESTS_PATH}
 TESTS_EXIT_CODE=$?
 
-popd # ${PACK_PATH
+popd  > /dev/null # ${PACK_PATH}
 
 # Clean up and unset the variables
 if [ ${VIRTUALENV_ACTIVATED} = true ]; then
