@@ -21,7 +21,7 @@ class PackSearch(Action):
     def __init__(self, config=None, action_service=None):
         super(PackSearch, self).__init__(config=config, action_service=action_service)
         self.https_proxy = self.config.get('https_proxy', None)
-        self.https_proxy = self.config.get('http_proxy', None)
+        self.http_proxy = self.config.get('http_proxy', None)
         self.ca_bundle_path = self.config.get('ca_bundle_path', None)
         self.proxy_config = {
             'https_proxy': self.https_proxy,
