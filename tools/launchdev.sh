@@ -55,7 +55,6 @@ function init(){
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
 
-    MISTRAL_REPO=${ST2_REPO}/../mistral
 
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
@@ -67,8 +66,9 @@ function init(){
         exit 1
     fi
 
+    MISTRAL_REPO="${ST2_REPO}/../mistral"
     if [ -z "$MISTRAL_CONF" ]; then
-        MISTRAL_CONF=${ST2_REPO}/conf/mistral/mistral.conf
+        MISTRAL_CONF=${ST2_REPO}/conf/mistral/mistral.dev.conf
     fi
     echo "Using mistral config file: $MISTRAL_CONF"
 
@@ -99,8 +99,8 @@ function init(){
 
         # Using mistral-db-manage doesn't seem to work with sqlite (tries to use ALTER) so we're using mistral's
         # sync_db.sh script to do the table creation.
-        tools/sync_db.sh --config-file "${ST2_REPO}/conf/mistral/mistral.conf" > /dev/null
-        mistral-db-manage --config-file "${ST2_REPO}/conf/mistral/mistral.conf" populate > /dev/null
+        tools/sync_db.sh --config-file "${MISTRAL_CONF}" > /dev/null
+        mistral-db-manage --config-file "${MISTRAL_CONF}" populate > /dev/null
 
         # Using sync_db.sh means mistral.db will be created in the mistral repo,
         # so we have to move it to the st2 repo to reflect the relative path in mistral.conf
@@ -298,7 +298,7 @@ function st2start(){
     # Run mistral-server
     echo 'Starting screen session mistral-server...'
     screen -d -m -S mistral-server ./virtualenv/bin/python \
-        /home/vagrant/st2/virtualenv/bin/mistral-server \
+        ./virtualenv/bin/mistral-server \
         --server engine,executor \
         --config-file $MISTRAL_CONF \
         --log-file "$LOGDIR/mistral-server.log"
@@ -306,7 +306,7 @@ function st2start(){
     # Run mistral-api
     echo 'Starting screen session mistral-api...'
     screen -d -m -S mistral-api ./virtualenv/bin/python \
-        /home/vagrant/st2/virtualenv/bin/mistral-server \
+        ./virtualenv/bin/mistral-server \
         --server api \
         --config-file $MISTRAL_CONF \
         --log-file "$LOGDIR/mistral-api.log"
