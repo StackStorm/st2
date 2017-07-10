@@ -1,5 +1,35 @@
 version: 2
 jobs:
+  # Run unit tests
+  unit:
+    docker:
+      # The primary container is an instance of the first list image listed. Your build commands run in this container.
+      - image: circleci/python:2.7
+    working_directory: ~/st2
+    steps:
+      - checkout
+      - run:
+          name: Docker version
+          command: |
+            set -x
+            docker --version
+            docker-compose --version
+
+  # Run integration tests
+  integration:
+    docker:
+      # The primary container is an instance of the first list image listed. Your build commands run in this container.
+      - image: circleci/python:2.7
+    working_directory: ~/st2
+    steps:
+      - checkout
+      - run:
+          name: Docker version
+          command: |
+            set -x
+            docker --version
+            docker-compose --version
+
   # Build & Test st2 packages
   packages:
     parallelism: 4
@@ -95,36 +125,6 @@ jobs:
 
       - store_artifacts:
           path: /tmp/st2-packages
-
-  # Run unit tests
-  unit:
-    docker:
-      # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: circleci/python:2.7
-    working_directory: ~/st2
-    steps:
-      - checkout
-      - run:
-          name: Docker version
-          command: |
-            set -x
-            docker --version
-            docker-compose --version
-
-  # Run integration tests
-  integration:
-    docker:
-      # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: circleci/python:2.7
-    working_directory: ~/st2
-    steps:
-      - checkout
-      - run:
-          name: Docker version
-          command: |
-            set -x
-            docker --version
-            docker-compose --version
 
   # Trigger st2 webhook to run end2end tests
   trigger_e2etests:
