@@ -356,14 +356,15 @@ class ActionRunCommandMixin(object):
             # No child error, there might be a global error, include result in the output
             options['attributes'].append('result')
 
+        status_index = options['attributes'].index('status')
+
+        if isinstance(instance.result, dict):
+            tasks = instance.result.get('tasks', [])
+        else:
+            tasks = []
+
         # On failure we also want to include error message and traceback at the top level
         if instance.status == 'failed':
-            status_index = options['attributes'].index('status')
-            if isinstance(instance.result, dict):
-                tasks = instance.result.get('tasks', [])
-            else:
-                tasks = []
-
             top_level_error, top_level_traceback = self._get_top_level_error(live_action=instance)
 
             if len(tasks) >= 1:
@@ -387,6 +388,17 @@ class ActionRunCommandMixin(object):
                 options['attributes'].insert(status_index + 1, 'error')
                 options['attributes'].insert(status_index + 2, 'traceback')
                 options['attributes'].insert(status_index + 3, 'failed_on')
+
+        # Include result on the top-level object so user doesn't need to issue another command to
+        # see the result
+        if len(tasks) >= 1:
+            task_result = self._get_task_result(task=tasks[-1])
+
+            if task_result:
+                instance.result_task = tasks[-1].get('name', 'unknown')
+                options['attributes'].insert(status_index + 1, 'result_task')
+                options['attributes'].insert(status_index + 2, 'result')
+                instance.result = task_result
 
         # print root task
         self.print_output(instance, formatter, **options)
@@ -459,6 +471,12 @@ class ActionRunCommandMixin(object):
             traceback = None
 
         return error, traceback
+
+    def _get_task_result(self, task):
+        if not task:
+            return None
+
+        return task['result']
 
     def _get_action_parameters_from_args(self, action, runner, args):
         """
@@ -973,9 +991,10 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
             resource.get_plural_display_name().lower(),
             *args, **kwargs)
 
+        self.default_limit = 50
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
-                                 default=50,
+                                 default=self.default_limit,
                                  help=('List N most recent %s.' %
                                        resource.get_plural_display_name().lower()))
         self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
@@ -1044,20 +1063,31 @@ class ActionExecutionListCommand(ActionExecutionReadCommand):
         exclude_attributes = ','.join(exclude_attributes)
         kwargs['exclude_attributes'] = exclude_attributes
 
-        return self.manager.query(limit=args.last, **kwargs)
+        result, count = self.manager.query(limit=args.last, **kwargs)
+        return (result, count)
 
     def run_and_print(self, args, **kwargs):
-        instances = format_wf_instances(self.run(args, **kwargs))
 
-        if not args.json and not args.yaml:
+        result, count = self.run(args, **kwargs)
+        instances = format_wf_instances(result)
+
+        if args.json or args.yaml:
+            self.print_output(reversed(instances), table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              json=args.json,
+                              yaml=args.yaml,
+                              attribute_transform_functions=self.attribute_transform_functions)
+
+        else:
             # Include elapsed time for running executions
             instances = format_execution_statuses(instances)
+            self.print_output(reversed(instances), table.MultiColumnTable,
+                              attributes=args.attr, widths=args.width,
+                              attribute_transform_functions=self.attribute_transform_functions)
 
-        self.print_output(reversed(instances), table.MultiColumnTable,
-                          attributes=args.attr, widths=args.width,
-                          json=args.json,
-                          yaml=args.yaml,
-                          attribute_transform_functions=self.attribute_transform_functions)
+            if args.last >= self.default_limit and count and int(count) > args.last:
+                table.SingleRowTable.note_box("Note: Only first %s results are displayed. "
+                                              "Use -n/--last flag for more results." % args.last)
 
 
 class ActionExecutionGetCommand(ActionRunCommandMixin, ActionExecutionReadCommand):

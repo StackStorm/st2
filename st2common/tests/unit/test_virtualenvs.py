@@ -16,13 +16,20 @@
 import os
 import tempfile
 
+import mock
 from oslo_config import cfg
 
 from st2tests import config
 from st2tests.base import CleanFilesTestCase
 from st2common.util.virtualenvs import setup_pack_virtualenv
 
+__all__ = [
+    'VirtualenvUtilsTestCase'
+]
 
+
+# Note: We set base requirements to an empty list to speed up the tests
+@mock.patch('st2common.util.virtualenvs.BASE_PACK_REQUIREMENTS', [])
 class VirtualenvUtilsTestCase(CleanFilesTestCase):
     def setUp(self):
         super(VirtualenvUtilsTestCase, self).setUp()
@@ -47,7 +54,8 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
 
         # Create virtualenv
         # Note: This pack has no requirements
-        setup_pack_virtualenv(pack_name=pack_name, update=False)
+        setup_pack_virtualenv(pack_name=pack_name, update=False,
+                              include_pip=False, include_setuptools=False, include_wheel=False)
 
         # Verify that virtualenv has been created
         self.assertVirtulenvExists(pack_virtualenv_dir)
@@ -61,13 +69,15 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         self.assertFalse(os.path.exists(pack_virtualenv_dir))
 
         # Create virtualenv
-        setup_pack_virtualenv(pack_name=pack_name, update=False)
+        setup_pack_virtualenv(pack_name=pack_name, update=False,
+                              include_pip=False, include_setuptools=False, include_wheel=False)
 
         # Verify that virtualenv has been created
         self.assertVirtulenvExists(pack_virtualenv_dir)
 
         # Re-create virtualenv
-        setup_pack_virtualenv(pack_name=pack_name, update=False)
+        setup_pack_virtualenv(pack_name=pack_name, update=False,
+                              include_pip=False, include_setuptools=False, include_wheel=False)
 
         # Verify virtrualenv is still there
         self.assertVirtulenvExists(pack_virtualenv_dir)
@@ -81,13 +91,15 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         self.assertFalse(os.path.exists(pack_virtualenv_dir))
 
         # Create virtualenv
-        setup_pack_virtualenv(pack_name=pack_name, update=False)
+        setup_pack_virtualenv(pack_name=pack_name, update=False,
+                              include_setuptools=False, include_wheel=False)
 
         # Verify that virtualenv has been created
         self.assertVirtulenvExists(pack_virtualenv_dir)
 
         # Update it
-        setup_pack_virtualenv(pack_name=pack_name, update=True)
+        setup_pack_virtualenv(pack_name=pack_name, update=True,
+                              include_setuptools=False, include_wheel=False)
 
         # Verify virtrualenv is still there
         self.assertVirtulenvExists(pack_virtualenv_dir)
@@ -101,7 +113,8 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
 
         # Try to create virtualenv, assert that it fails
         try:
-            setup_pack_virtualenv(pack_name=pack_name, update=False)
+            setup_pack_virtualenv(pack_name=pack_name, update=False,
+                                  include_setuptools=False, include_wheel=False)
         except Exception as e:
             self.assertTrue('Failed to install requirements from' in str(e))
             self.assertTrue('No matching distribution found for someinvalidname' in str(e))

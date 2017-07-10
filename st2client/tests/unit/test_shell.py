@@ -267,6 +267,7 @@ class TestShell(base.BaseCLITestCase):
     def test_rule(self):
         args_list = [
             ['rule', 'list'],
+            ['rule', 'list', '-n', '1'],
             ['rule', 'get', 'abc'],
             ['rule', 'create', '/tmp/rule.json'],
             ['rule', 'update', '123', '/tmp/rule.json'],

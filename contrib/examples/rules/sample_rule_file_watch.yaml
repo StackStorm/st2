@@ -2,12 +2,12 @@
 name: sample_rule_file_watch
 pack: "examples"
 description: Sample rule custom trigger type - add a file to be watched by file_watch_sensor in linux pack.
-enabled: false
+enabled: true
 
 trigger:
   parameters:
-    file_path: /var/log/dmesg
-  type: linux.file_watch.file_path
+    file_path: /tmp/st2_test
+  type: linux.file_watch.line
 
 criteria: {}
 

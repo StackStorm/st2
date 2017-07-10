@@ -75,7 +75,8 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
             'api_secret': 'some_api_secret',
             'regions': ['us-west-1'],
             'region': 'default-region-value',
-            'private_key_path': 'some_private_key'
+            'private_key_path': 'some_private_key',
+            'non_required_with_default_value': 'config value'
         }
 
         self.assertEqual(config, expected_config)
@@ -93,6 +94,27 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         config = loader.get_config()
         self.assertEqual(config['region'], 'us-west-1')
 
+        # Config item attribute has required: false
+        # Value is provided in the config - it should be used as provided
+        pack_name = 'dummy_pack_5'
+
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+        self.assertEqual(config['non_required_with_default_value'], 'config value')
+
+        config_db = Config.get_by_pack(pack_name)
+        del config_db['values']['non_required_with_default_value']
+        Config.add_or_update(config_db)
+
+        # No value in the config - default value should be used
+        config_db = Config.get_by_pack(pack_name)
+        config_db.delete()
+
+        # No config exists for that pack - default value should be used
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+        self.assertEqual(config['non_required_with_default_value'], 'some default value')
+
     def test_default_values_from_schema_are_used_when_no_config_exists(self):
         pack_name = 'dummy_pack_5'
         config_db = Config.get_by_pack(pack_name)
@@ -107,6 +129,46 @@ class ContentPackConfigLoaderTestCase(CleanDbTestCase):
         loader = ContentPackConfigLoader(pack_name=pack_name)
         config = loader.get_config()
         self.assertEqual(config['region'], 'default-region-value')
+
+    def test_default_values_are_used_when_default_values_are_falsey(self):
+        pack_name = 'dummy_pack_17'
+
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+
+        # 1. Default values are used
+        self.assertEqual(config['key_with_default_falsy_value_1'], False)
+        self.assertEqual(config['key_with_default_falsy_value_2'], None)
+        self.assertEqual(config['key_with_default_falsy_value_3'], {})
+        self.assertEqual(config['key_with_default_falsy_value_4'], '')
+        self.assertEqual(config['key_with_default_falsy_value_5'], 0)
+        self.assertEqual(config['key_with_default_falsy_value_6']['key_1'], False)
+        self.assertEqual(config['key_with_default_falsy_value_6']['key_2'], 0)
+
+        # 2. Default values are overwrriten with config values which are also falsey
+        values = {
+            'key_with_default_falsy_value_1': 0,
+            'key_with_default_falsy_value_2': '',
+            'key_with_default_falsy_value_3': False,
+            'key_with_default_falsy_value_4': None,
+            'key_with_default_falsy_value_5': {},
+            'key_with_default_falsy_value_6': {
+                'key_2': False
+            }
+        }
+        config_db = ConfigDB(pack=pack_name, values=values)
+        config_db = Config.add_or_update(config_db)
+
+        loader = ContentPackConfigLoader(pack_name=pack_name)
+        config = loader.get_config()
+
+        self.assertEqual(config['key_with_default_falsy_value_1'], 0)
+        self.assertEqual(config['key_with_default_falsy_value_2'], '')
+        self.assertEqual(config['key_with_default_falsy_value_3'], False)
+        self.assertEqual(config['key_with_default_falsy_value_4'], None)
+        self.assertEqual(config['key_with_default_falsy_value_5'], {})
+        self.assertEqual(config['key_with_default_falsy_value_6']['key_1'], False)
+        self.assertEqual(config['key_with_default_falsy_value_6']['key_2'], False)
 
     def test_get_config_nested_schema_default_values_from_config_schema_are_used(self):
         # Special case for more complex config schemas with attributes ntesting.

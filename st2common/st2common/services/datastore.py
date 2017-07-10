@@ -14,6 +14,9 @@
 # limitations under the License.
 
 from datetime import timedelta
+
+from oslo_config import cfg
+
 from st2client.client import Client
 from st2client.models import KeyValuePair
 from st2common.services.access import create_token
@@ -211,9 +214,9 @@ class DatastoreService(object):
 
         if not self._client or token_expire:
             self._logger.audit('Creating new Client object.')
-            ttl = (24 * 60 * 60)
+            ttl = cfg.CONF.auth.service_token_ttl
             self._token_expire = get_datetime_utc_now() + timedelta(seconds=ttl)
-            temporary_token = create_token(username=self._api_username, ttl=ttl)
+            temporary_token = create_token(username=self._api_username, ttl=ttl, service=True)
             api_url = get_full_public_api_url()
             self._client = Client(api_url=api_url, token=temporary_token.token)
 
