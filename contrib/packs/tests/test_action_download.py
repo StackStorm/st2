@@ -290,6 +290,12 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         url = DownloadGitRepoAction._eval_repo_url("file:///home/vagrant/stackstorm-test")
         self.assertEqual(url, "file:///home/vagrant/stackstorm-test")
 
+        url = DownloadGitRepoAction._eval_repo_url('ssh://<user@host>/AutomationStackStorm')
+        self.assertEqual(url, 'ssh://<user@host>/AutomationStackStorm')
+
+        url = DownloadGitRepoAction._eval_repo_url('ssh://joe@local/AutomationStackStorm')
+        self.assertEqual(url, 'ssh://joe@local/AutomationStackStorm')
+
     def test_run_pack_download_edge_cases(self):
         """
         Edge cases to test:
