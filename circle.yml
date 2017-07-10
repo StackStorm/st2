@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  # Run Unit tests
+  # Run st2 Unit Tests
   unit:
     parallelism: 2
     docker:
@@ -11,11 +11,14 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Docker version
-          command: |
-            set -x
-            docker --version
-            docker-compose --version
+          name: Prepare environment like user
+          command: sudo .circle/add-itest-user.sh
+      - run:
+          name: Install the pip Requirements
+          command: make requirements
+      - run:
+          name: Run st2 Unit Tests
+          command: make ci-unit
 
   # Run Integration tests
   integration:
