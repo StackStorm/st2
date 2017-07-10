@@ -76,6 +76,26 @@ function init(){
         exit 1
     fi
 
+    # TODO because of the order of st2clean and init functions, I'm deleting here for now.
+    # Need to fix this so this is only deleted when startclean was specified
+    # Delete mistral database
+    st2stop  #and evaluate if this is still needed when you do that.
+    rm $ST2_REPO/mistral.db
+
+    # Initialize mistral database if it doesn't already exist
+    if [ ! -f "$ST2_REPO/mistral.db" ]; then
+        echo "Initializing Mistral database. Please be patient..."
+        cd /home/vagrant/mistral/
+        source /home/vagrant/st2/virtualenv/bin/activate
+        # Tox is required by Mistral database initialization (will set up mistral/.tox)
+        pip install tox
+        tools/sync_db.sh --config-file /home/vagrant/st2/conf/mistral/mistral.conf
+        mistral-db-manage --config-file /home/vagrant/st2/conf/mistral/mistral.conf populate
+        deactivate
+        echo "Mistral database initialized."
+    else
+        echo "Mistral database already initialized. Skipping."
+    fi
 }
 
 function exportsdir(){
@@ -318,7 +338,7 @@ function st2stop(){
 
     screen -ls | grep st2 &> /dev/null
     if [ $? == 0 ]; then
-        echo 'Killing existing st2 screen sessions...'
+        echo 'Killing existing mistral screen sessions...'
         screen -ls | grep mistral | cut -d. -f1 | awk '{print $1}' | xargs -L 1 pkill -P
     fi
 
