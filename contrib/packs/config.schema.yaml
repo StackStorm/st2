@@ -6,7 +6,7 @@
       valid certificates in client to talk to proxy.
     type: "string"
     required: false
-  ca_bundle_path:
+  proxy_ca_bundle_path:
     description: >
       Path to certificate bundles. If you are using full SSL MITM proxy, you should specify
       the path to the certifiate bundle for the proxy. Python requests module needs this.
