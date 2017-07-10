@@ -11,6 +11,7 @@ Added
   returning the result. (improvement)
 
   Contributed by mierdin. #3482
+* Fix st2client to display unicode characters in pack content description. (bug-fix) #3511
 * Add test coverage and test timing capabilities to ``st2-run-pack-tests``.
   The ``-c`` option enables test coverage and the ``-t`` option enables test timings.
   These capabilities have also been enabled in the ci pipeline for packs in the exchange.
