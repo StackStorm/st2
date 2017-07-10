@@ -1,6 +1,7 @@
 version: 2
 jobs:
-  build:
+  # Build & Test st2 packages
+  packages:
     parallelism: 4
     # 4CPUs & 8GB RAM CircleCI machine
     resource_class: large
@@ -94,6 +95,86 @@ jobs:
 
       - store_artifacts:
           path: /tmp/st2-packages
+
+  # Run unit tests
+  unit:
+    docker:
+      # The primary container is an instance of the first list image listed. Your build commands run in this container.
+      - image: circleci/python:2.7
+    working_directory: ~/st2
+    steps:
+      - checkout
+      - run:
+          name: Docker version
+          command: |
+            set -x
+            docker --version
+            docker-compose --version
+
+  # Run integration tests
+  integration:
+    docker:
+      # The primary container is an instance of the first list image listed. Your build commands run in this container.
+      - image: circleci/python:2.7
+    working_directory: ~/st2
+    steps:
+      - checkout
+      - run:
+          name: Docker version
+          command: |
+            set -x
+            docker --version
+            docker-compose --version
+
+  # Trigger st2 webhook to run end2end tests
+  trigger_e2etests:
+    docker:
+      # The primary container is an instance of the first list image listed. Your build commands run in this container.
+      - image: circleci/python:2.7
+    working_directory: ~
+    steps:
+      - run:
+          name: Docker version
+          command: |
+            set -x
+            docker --version
+            docker-compose --version
+
+  # Deploy produced deb/rpm packages
+  deploy:
+    docker:
+      # The primary container is an instance of the first list image listed. Your build commands run in this container.
+      - image: circleci/python:2.7
+    working_directory: ~
+    steps:
+      - run:
+          name: Docker version
+          command: |
+            set -x
+            docker --version
+            docker-compose --version
+
+# Putting everything together
+workflows:
+  version: 2
+  package-test-and-deploy:
+    jobs:
+      - unit
+      - integration
+      - packages
+      - trigger_e2etests:
+          requires:
+            - packages
+      - deploy:
+          requires:
+            - unit
+            - integration
+            - packages
+          filters:
+            branches:
+              only:
+                - master
+                - /v[0-9]+\.[0-9]+/
 
 notify:
   branches:
