@@ -269,17 +269,17 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_resolve_urls(self):
         url = DownloadGitRepoAction._eval_repo_url(
             "https://github.com/StackStorm-Exchange/stackstorm-test")
-        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
+        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test")
 
         url = DownloadGitRepoAction._eval_repo_url(
             "https://github.com/StackStorm-Exchange/stackstorm-test.git")
         self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
 
         url = DownloadGitRepoAction._eval_repo_url("StackStorm-Exchange/stackstorm-test")
-        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test.git")
+        self.assertEqual(url, "https://github.com/StackStorm-Exchange/stackstorm-test")
 
         url = DownloadGitRepoAction._eval_repo_url("git://StackStorm-Exchange/stackstorm-test")
-        self.assertEqual(url, "git://StackStorm-Exchange/stackstorm-test.git")
+        self.assertEqual(url, "git://StackStorm-Exchange/stackstorm-test")
 
         url = DownloadGitRepoAction._eval_repo_url("git://StackStorm-Exchange/stackstorm-test.git")
         self.assertEqual(url, "git://StackStorm-Exchange/stackstorm-test.git")
