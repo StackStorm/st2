@@ -71,14 +71,14 @@ jobs:
             docker cp st2-packages-vol:/root/build /tmp/st2-packages
           working_directory: ~/st2-packages
 
-      # TODO: It works! Enable cache for pip and wheelhouse
-      - run:
-          name: Build the ${DISTRO} Packages 2nd time (compare with pip/wheelhouse cached)
-          command: |
-            .circle/docker-compose2.sh build ${DISTRO}
-            # Once build container finishes we can copy packages directly from it
-            docker cp st2-packages-vol:/root/build /tmp/st2-packages
-          working_directory: ~/st2-packages
+#      # TODO: It works! (~0.5-1min speed-up) Enable CircleCI2.0 cache for pip and wheelhouse later
+#      - run:
+#          name: Build the ${DISTRO} Packages 2nd time (compare with pip/wheelhouse cached)
+#          command: |
+#            .circle/docker-compose2.sh build ${DISTRO}
+#            # Once build container finishes we can copy packages directly from it
+#            docker cp st2-packages-vol:/root/build /tmp/st2-packages
+#          working_directory: ~/st2-packages
 
       - run:
           name: Test the Packages
