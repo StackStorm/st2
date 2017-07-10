@@ -1,10 +1,12 @@
 version: 2
 jobs:
-  # Run unit tests
+  # Run Unit tests
   unit:
+    parallelism: 2
     docker:
-      # The primary container is an instance of the first list image listed. Your build commands run in this container.
       - image: circleci/python:2.7
+      - image: mongo:3.4
+      - image: rabbitmq:3
     working_directory: ~/st2
     steps:
       - checkout
@@ -15,11 +17,12 @@ jobs:
             docker --version
             docker-compose --version
 
-  # Run integration tests
+  # Run Integration tests
   integration:
     docker:
-      # The primary container is an instance of the first list image listed. Your build commands run in this container.
       - image: circleci/python:2.7
+      - image: mongo:3.4
+      - image: rabbitmq:3
     working_directory: ~/st2
     steps:
       - checkout
@@ -56,7 +59,6 @@ jobs:
             set -x
             docker --version
             docker-compose --version
-
       - run:
           name: Download st2-packages repository
           command: |
@@ -64,7 +66,6 @@ jobs:
             git clone ${ST2_PACKAGES_REPO} ~/st2-packages
             cd ~/st2-packages
             git checkout ${CIRCLE_BRANCH} || true
-
       - run:
           name: Initialize packages Build Environment
           command: |
@@ -72,7 +73,6 @@ jobs:
             .circle/buildenv_st2.sh
             .circle/buildenv_mistral.sh
           working_directory: ~/st2-packages
-
       - run:
           # Workaround for CircleCI docker-compose limtation where volumes don't work
           # See detailed explanation: https://circleci.com/docs/2.0/building-docker-images/#mounting-folders
@@ -84,7 +84,6 @@ jobs:
             docker create -v /root/st2-packages -v /root/build -v /var/log/st2 -v /var/log/mistral -v /root/.cache/pip -v /tmp/wheelhouse --name st2-packages-vol alpine:3.4 /bin/true
             # copy st2-packages data files into this volume
             docker cp ~/st2-packages st2-packages-vol:/root
-
       - run:
           name: Pull dependent Docker Images
           command: |
@@ -93,7 +92,6 @@ jobs:
             # Pull Docker images
             .circle/docker-compose2.sh pull ${DISTRO}
           working_directory: ~/st2-packages
-
       - run:
           name: Build the ${DISTRO} Packages
           command: |
@@ -101,7 +99,6 @@ jobs:
             # Once build container finishes we can copy packages directly from it
             docker cp st2-packages-vol:/root/build /tmp/st2-packages
           working_directory: ~/st2-packages
-
 #      # TODO: It works! (~0.5-1min speed-up) Enable CircleCI2.0 cache for pip and wheelhouse later
 #      - run:
 #          name: Build the ${DISTRO} Packages 2nd time (compare with pip/wheelhouse cached)
@@ -110,7 +107,6 @@ jobs:
 #            # Once build container finishes we can copy packages directly from it
 #            docker cp st2-packages-vol:/root/build /tmp/st2-packages
 #          working_directory: ~/st2-packages
-
       - run:
           name: Test the Packages
           command: |
@@ -122,7 +118,6 @@ jobs:
             # Clean-up running containers
             .circle/docker-compose2.sh clean
           working_directory: ~/st2-packages
-
       - store_artifacts:
           path: /tmp/st2-packages
 
