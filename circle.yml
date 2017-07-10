@@ -11,10 +11,19 @@ jobs:
     steps:
       - checkout
       - run:
+          # Download the mongo shell, needed to connect to Docker container + delete the DB
+          name: Install Mongo Shell
+          command: |
+            set -x
+            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+            echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+            sudo apt-get -qq -y update
+            sudo apt-get -qq -y install mongodb-org-shell
+      - run:
           name: Prepare environment like user
           command: sudo .circle/add-itest-user.sh
       - run:
-          name: Install the pip Requirements
+          name: Install pip requirements
           command: make requirements
       - run:
           name: Run st2 Unit Tests
