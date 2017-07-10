@@ -66,9 +66,12 @@ function init(){
         exit 1
     fi
 
+    # TODO(mierdin): Verify these exist
     MISTRAL_REPO="${ST2_REPO}/../mistral"
+    ST2MISTRAL_REPO="${ST2_REPO}/../st2mistral"
+
     if [ -z "$MISTRAL_CONF" ]; then
-        MISTRAL_CONF=${ST2_REPO}/conf/mistral/mistral.dev.conf
+        MISTRAL_CONF=${ST2_REPO}/conf/mistral.dev/mistral.dev.conf
     fi
     echo "Using mistral config file: $MISTRAL_CONF"
 
@@ -90,6 +93,13 @@ function init(){
         # We're using the StackStorm venv for everything
         # TODO (mierdin): Evaluate if it's worth using a separate venv for installing and running mistral
         source "${ST2_REPO}/virtualenv/bin/activate"
+
+        # Install Mistral and st2 plugins
+        pip install -r "${MISTRAL_REPO}/requirements.txt" > /dev/null
+        cd "${MISTRAL_REPO}"
+        python setup.py install > /dev/null
+        cd "${ST2MISTRAL_REPO}"
+        python setup.py install > /dev/null
 
         # Tox is required by Mistral database initialization (will set up mistral/.tox)
         pip install tox > /dev/null
