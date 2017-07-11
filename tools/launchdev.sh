@@ -76,9 +76,16 @@ function init(){
 }
 
 function init_mistral(){
-    # TODO(mierdin): Verify these exist
+
+    # Both the mistral and st2mistral repos must be present alongside the st2 repo
     MISTRAL_REPO="${ST2_REPO}/../mistral"
     ST2MISTRAL_REPO="${ST2_REPO}/../st2mistral"
+
+    if [ ! -d "$MISTRAL_REPO" ] || [ ! -d "$ST2MISTRAL_REPO" ] ; then
+        echo "You specified the Mistral option, but either the mistral or st2mistral directories were not found."
+        echo "Please place a clone of both mistral and st2mistral repositories alongside the st2 repository."
+        exit 1
+    fi
 
     if [ -z "$MISTRAL_CONF" ]; then
         MISTRAL_CONF=${ST2_REPO}/conf/mistral.dev/mistral.dev.conf
