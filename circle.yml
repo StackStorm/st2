@@ -26,7 +26,7 @@ jobs:
           name: Install pip requirements
           command: |
             set -x
-            sudo apt-get -qq -y install python-virtualenv
+            sudo apt-get -qq -y install python-virtualenv python-dev
             make requirements
       - run:
           name: Run st2 Unit Tests
@@ -57,7 +57,7 @@ jobs:
           name: Install pip requirements
           command: |
             set -x
-            sudo apt-get -qq -y install python-virtualenv
+            sudo apt-get -qq -y install python-virtualenv python-dev
             make requirements
       - run:
           name: Run st2 Integration Tests
