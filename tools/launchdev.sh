@@ -90,10 +90,12 @@ function init_mistral(){
         exit 1
     fi
 
-    # TODO because of the order of st2clean and init functions, I'm deleting here for now.
-    # Need to fix this so this is only deleted when startclean was specified
+    # TODO because of the order of st2clean and init functions, we need to run st2stop here.
+    # This will cause it to run twice for now.
+    # Should probably find a new home for this and the database removal - you may not need the stop in the new home
+    #
     # Delete mistral database
-    st2stop  #and evaluate if this is still needed when you do that.
+    st2stop
     rm "${ST2_REPO}/mistral.db"
 
     # Initialize mistral database if it doesn't already exist
@@ -395,7 +397,6 @@ function st2stop(){
             done
         fi
     fi
-
 }
 
 function st2clean(){
