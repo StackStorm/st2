@@ -2,6 +2,8 @@ version: 2
 jobs:
   # Run st2 Unit Tests
   unit:
+    # 4CPUs & 8GB RAM CircleCI machine
+    resource_class: large
     parallelism: 2
     docker:
       - image: circleci/python:2.7
