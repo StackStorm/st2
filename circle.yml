@@ -3,7 +3,7 @@ jobs:
   # Run st2 Unit Tests
   unit:
     machine: true
-    parallelism: 2
+    parallelism: 1
     working_directory: ~/st2
     steps:
       - checkout
