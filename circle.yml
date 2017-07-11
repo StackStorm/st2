@@ -11,6 +11,7 @@ jobs:
           name: Prepare the environment
           command: |
             set -x
+            .circle/install-mongo.sh
             sudo apt-get -qq -y install python-virtualenv python-dev
             sudo service rabbitmq-server start
             sudo service mongod start
@@ -34,6 +35,7 @@ jobs:
           name: Prepare the environment
           command: |
             set -x
+            .circle/install-mongo.sh
             sudo apt-get -qq -y install python-virtualenv python-dev
             sudo service rabbitmq-server start
             sudo service mongod start
