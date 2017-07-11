@@ -11,10 +11,10 @@ jobs:
           name: Prepare the environment
           command: |
             set -x
-            .circle/install-mongo.sh
+            sudo .circle/install-mongo.sh
+            sudo .circle/configure-rabbitmq.sh
             sudo apt-get -qq -y install python-virtualenv python-dev
             sudo service rabbitmq-server start
-            sudo service mongod start
       - run:
           name: Create stanley user
           command: sudo .circle/add-itest-user.sh
@@ -35,10 +35,9 @@ jobs:
           name: Prepare the environment
           command: |
             set -x
-            .circle/install-mongo.sh
+            sudo .circle/install-mongo.sh
+            sudo .circle/configure-rabbitmq.sh
             sudo apt-get -qq -y install python-virtualenv python-dev
-            sudo service rabbitmq-server start
-            sudo service mongod start
       - run:
           name: Create stanley user
           command: sudo .circle/add-itest-user.sh
