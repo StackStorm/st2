@@ -201,7 +201,7 @@ def install_requirements(virtualenv_path, requirements_file_path, proxy_config=N
 
         if https_proxy:
             if not cert:
-                raise ValueError('Specify path to CA bundle for HTTPS proxies.')
+                raise Exception('Specify path to CA bundle for HTTPS proxies.')
             cmd.extend(['--proxy', https_proxy, '--cert', cert])
 
     cmd.extend(['install', '-U', '-r', requirements_file_path])
@@ -238,7 +238,7 @@ def install_requirement(virtualenv_path, requirement, proxy_config=None):
 
         if https_proxy:
             if not cert:
-                raise ValueError('Specify path to CA bundle for HTTPS proxies.')
+                raise Exception('Specify path to CA bundle for HTTPS proxies.')
             cmd.extend(['--proxy', https_proxy, '--cert', cert])
 
     cmd.extend(['install', requirement])
