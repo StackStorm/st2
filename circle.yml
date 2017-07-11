@@ -29,7 +29,11 @@ jobs:
           command: make requirements
       - run:
           name: Run st2 Unit Tests
-          command: make ci-unit
+          command: |
+            echo $TERM
+            # Workaround for table width/height used in some tests
+            stty rows 50 cols 132
+            make ci-unit
 
   # Run Integration tests
   integration:
