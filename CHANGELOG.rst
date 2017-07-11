@@ -11,7 +11,11 @@ Added
   returning the result. (improvement)
 
   Contributed by mierdin. #3482
-* Fix st2client to display unicode characters in pack content description. (bug-fix)
+* Add test coverage and test timing capabilities to ``st2-run-pack-tests``.
+  The ``-c`` option enables test coverage and the ``-t`` option enables test timings.
+  These capabilities have also been enabled in the ci pipeline for packs in the exchange.
+
+  Contributed by Nick Maludy. #3508
 
 Changed
 ~~~~~~~
@@ -19,6 +23,12 @@ Changed
 Fixed
 ~~~~~
 
+* Fix st2client to display unicode characters in pack content description. (bug-fix) #3511
+* Don't automatically append ``.git`` suffix to repo URIs passed to ``packs.download`` action.
+  This fixes a bug and now action also works with repo urls which don't contain ``.git`` suffix.
+  (bug fix)
+
+  Contributed by carbineneutral. #3534 #3544
 
 2.3.1 - July 07, 2017
 ---------------------
