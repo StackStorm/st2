@@ -77,6 +77,7 @@ jobs:
   packages:
     parallelism: 4
     # 4CPUs & 8GB RAM CircleCI machine
+    # sadly, it doesn't work with 'setup_remote_docker'
     resource_class: large
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
