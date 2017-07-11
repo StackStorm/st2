@@ -9,6 +9,9 @@ jobs:
     working_directory: ~/st2
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - st2-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
       - run:
           name: Prepare the environment
           command: |
@@ -22,6 +25,11 @@ jobs:
       - run:
           name: Install pip requirements
           command: make requirements
+      - save_cache:
+          key: st2-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+          paths:
+            - ~/.cache/pip/
+            - virtualenv/
       - run:
           name: Run st2 Unit Tests
           command: |
