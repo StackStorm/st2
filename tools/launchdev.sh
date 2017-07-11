@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function usage() {
-    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6]" >&2
+    echo "Usage: $0 [start|stop|restart|startclean] [-r runner_count] [-g] [-x] [-c] [-6] [-m]" >&2
 }
 
 subcommand=$1; shift
@@ -10,8 +10,9 @@ use_gunicorn=true
 copy_examples=false
 load_content=true
 use_ipv6=false
+include_mistral=false
 
-while getopts ":r:gxcu6" o; do
+while getopts ":r:gxcu6m" o; do
     case "${o}" in
         r)
             runner_count=${OPTARG}
@@ -27,6 +28,9 @@ while getopts ":r:gxcu6" o; do
             ;;
         6)
             use_ipv6=true
+            ;;
+        m)
+            include_mistral=true
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -55,7 +59,6 @@ function init(){
         ST2_REPO=${CURRENT_DIR}/${COMMAND_PATH}/..
     fi
 
-
     if [ -z "$ST2_CONF" ]; then
         ST2_CONF=${ST2_REPO}/conf/st2.dev.conf
     fi
@@ -66,6 +69,13 @@ function init(){
         exit 1
     fi
 
+    # Optionally, initialize mistral
+    if [ "${include_mistral}" = true ]; then
+        init_mistral
+    fi
+}
+
+function init_mistral(){
     # TODO(mierdin): Verify these exist
     MISTRAL_REPO="${ST2_REPO}/../mistral"
     ST2MISTRAL_REPO="${ST2_REPO}/../st2mistral"
@@ -305,21 +315,23 @@ function st2start(){
             --config-file $ST2_CONF
     fi
 
-    # Run mistral-server
-    echo 'Starting screen session mistral-server...'
-    screen -d -m -S mistral-server ./virtualenv/bin/python \
-        ./virtualenv/bin/mistral-server \
-        --server engine,executor \
-        --config-file $MISTRAL_CONF \
-        --log-file "$LOGDIR/mistral-server.log"
+    if [ "${include_mistral}" = true ]; then
+        # Run mistral-server
+        echo 'Starting screen session mistral-server...'
+        screen -d -m -S mistral-server ./virtualenv/bin/python \
+            ./virtualenv/bin/mistral-server \
+            --server engine,executor \
+            --config-file $MISTRAL_CONF \
+            --log-file "$LOGDIR/mistral-server.log"
 
-    # Run mistral-api
-    echo 'Starting screen session mistral-api...'
-    screen -d -m -S mistral-api ./virtualenv/bin/python \
-        ./virtualenv/bin/mistral-server \
-        --server api \
-        --config-file $MISTRAL_CONF \
-        --log-file "$LOGDIR/mistral-api.log"
+        # Run mistral-api
+        echo 'Starting screen session mistral-api...'
+        screen -d -m -S mistral-api ./virtualenv/bin/python \
+            ./virtualenv/bin/mistral-server \
+            --server api \
+            --config-file $MISTRAL_CONF \
+            --log-file "$LOGDIR/mistral-api.log"
+    fi
 
     # Check whether screen sessions are started
     SCREENS=(
@@ -330,9 +342,12 @@ function st2start(){
         "st2-resultstracker"
         "st2-notifier"
         "st2-auth"
-        "mistral-server"
-        "mistral-api"
     )
+
+    if [ "${include_mistral}" = true ]; then
+        SCREENS+=("mistral-server")
+        SCREENS+=("mistral-api")
+    fi
 
     echo
     for s in "${SCREENS[@]}"
