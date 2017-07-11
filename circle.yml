@@ -11,7 +11,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - st2-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+            - st2-unit-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
       - run:
           name: Prepare the environment
           command: |
@@ -32,7 +32,7 @@ jobs:
             stty rows 50 cols 132
             make ci-unit
       - save_cache:
-          key: st2-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+          key: st2-unit-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
           paths:
             - ~/.cache/pip/
             - virtualenv/
@@ -48,7 +48,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - st2-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+            - st2-integration-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
       - run:
           # Download the mongo shell, needed to connect to Docker container + delete the DB
           name: Install Mongo Shell
@@ -68,7 +68,7 @@ jobs:
           name: Run st2 Integration Tests
           command: make ci-integration
       - save_cache:
-          key: st2-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+          key: st2-integration-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
           paths:
             - ~/.cache/pip/
             - virtualenv/
