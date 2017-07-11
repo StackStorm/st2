@@ -2,6 +2,8 @@ version: 2
 jobs:
   # Run st2 Unit Tests
   unit:
+    # 'machine' executor runs Unit tests ~x1.5 faster, comparing to 'docker' executor
+    # but the fastest is still ~x1.5-2 slower, comparing to Travis
     machine: true
     parallelism: 2
     working_directory: ~/st2
