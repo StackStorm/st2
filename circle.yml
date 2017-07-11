@@ -25,17 +25,17 @@ jobs:
       - run:
           name: Install pip requirements
           command: make requirements
-      - save_cache:
-          key: st2-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
-          paths:
-            - ~/.cache/pip/
-            - virtualenv/
       - run:
           name: Run st2 Unit Tests
           command: |
             # Workaround for table width/height used in some tests
             stty rows 50 cols 132
             make ci-unit
+      - save_cache:
+          key: st2-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+          paths:
+            - ~/.cache/pip/
+            - virtualenv/
 
   # Run Integration tests
   integration:
@@ -46,6 +46,9 @@ jobs:
     working_directory: ~/st2
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - st2-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
       - run:
           # Download the mongo shell, needed to connect to Docker container + delete the DB
           name: Install Mongo Shell
@@ -64,6 +67,11 @@ jobs:
       - run:
           name: Run st2 Integration Tests
           command: make ci-integration
+      - save_cache:
+          key: st2-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+          paths:
+            - ~/.cache/pip/
+            - virtualenv/
 
   # Build & Test st2 packages
   packages:
