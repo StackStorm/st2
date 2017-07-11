@@ -14,7 +14,6 @@ jobs:
             sudo .circle/install-mongo.sh
             sudo .circle/configure-rabbitmq.sh
             sudo apt-get -qq -y install python-virtualenv python-dev
-            sudo service rabbitmq-server start
       - run:
           name: Create stanley user
           command: sudo .circle/add-itest-user.sh
