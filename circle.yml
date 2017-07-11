@@ -37,7 +37,7 @@ jobs:
             - ~/.cache/pip/
             - virtualenv/
 
-  # Run Integration tests
+  # Run st2 Integration tests
   integration:
     docker:
       - image: circleci/python:2.7
