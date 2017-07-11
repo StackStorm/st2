@@ -16,3 +16,8 @@
     description: "URL to http proxy. E.g. http://192.168.1.13:8080"
     type: "string"
     required: false
+  no_proxy:
+    description: >
+      Comma separated list of domain elements or IP address elements to skip HTTP proxying for.
+    required: false
+    default: "localhost, 127.0.0.1"

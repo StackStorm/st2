@@ -28,6 +28,7 @@ class PackSearch(Action):
             'proxy_ca_bundle_path',
             self.config.get('proxy_ca_bundle_path', None)
         )
+        self.no_proxy = os.environ.get('no_proxy', self.config.get('no_proxy', None))
 
         self.proxy_config = None
 
@@ -35,8 +36,21 @@ class PackSearch(Action):
             self.proxy_config = {
                 'https_proxy': self.https_proxy,
                 'http_proxy': self.http_proxy,
-                'proxy_ca_bundle_path': self.proxy_ca_bundle_path
+                'proxy_ca_bundle_path': self.proxy_ca_bundle_path,
+                'no_proxy': self.no_proxy
             }
+
+        if self.https_proxy and not os.environ.get('https_proxy', None):
+            os.environ['https_proxy'] = self.https_proxy
+
+        if self.http_proxy and not os.environ.get('http_proxy', None):
+            os.environ['http_proxy'] = self.http_proxy
+
+        if self.no_proxy and not os.environ.get('no_proxy', None):
+            os.environ['no_proxy'] = self.no_proxy
+
+        if self.proxy_ca_bundle_path and not os.environ.get('proxy_ca_bundle_path', None):
+            os.environ['no_proxy'] = self.no_proxy
 
     """"Search for packs in StackStorm Exchange and other directories."""
     def run(self, query):
