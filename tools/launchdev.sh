@@ -76,7 +76,6 @@ function init(){
 }
 
 function init_mistral(){
-
     # Both the mistral and st2mistral repos must be present alongside the st2 repo
     MISTRAL_REPO="${ST2_REPO}/../mistral"
     ST2MISTRAL_REPO="${ST2_REPO}/../st2mistral"
@@ -97,11 +96,9 @@ function init_mistral(){
         exit 1
     fi
 
-    # TODO because of the order of st2clean and init functions, we need to run st2stop here.
-    # This will cause it to run twice for now.
-    # Should probably find a new home for this and the database removal - you may not need the stop in the new home
-    #
     # Delete mistral database
+    # (May look into doing something a bit more fancy in the future so we don't have to recreate mistral database each time,
+    # but this works for now)
     st2stop
     rm "${ST2_REPO}/mistral.db"
 
