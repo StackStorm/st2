@@ -3,8 +3,6 @@ jobs:
   # Run st2 Unit Tests
   unit:
     machine: true
-    # 4CPUs & 8GB RAM CircleCI machine
-    resource_class: large
     parallelism: 2
     environment:
       - TERM: xterm
@@ -26,11 +24,7 @@ jobs:
           command: make requirements
       - run:
           name: Run st2 Unit Tests
-          command: |
-            echo $TERM
-            # Workaround for table width/height used in some tests
-            stty rows 50 cols 132
-            make ci-unit
+          command: make ci-unit
 
   # Run Integration tests
   integration:
