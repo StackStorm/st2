@@ -73,11 +73,11 @@ class TriggerInstanceListCommand(resource.ResourceCommand):
             *args, **kwargs)
 
         self.default_limit = 50
+        self.resource_name = resource.get_plural_display_name().lower()
         self.group = self.parser.add_argument_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=self.default_limit,
-                                 help=('List N most recent %s.' %
-                                       resource.get_plural_display_name().lower()))
+                                 help=('List N most recent %s.' % self.resource_name))
 
         # Filter options
         self.group.add_argument('--trigger', help='Trigger reference to filter the list.')
@@ -134,8 +134,7 @@ class TriggerInstanceListCommand(resource.ResourceCommand):
                               attributes=args.attr, widths=args.width,
                               attribute_transform_functions=self.attribute_transform_functions)
             if args.last and count and int(count) > args.last:
-                table.SingleRowTable.note_box("Note: Only first %s results are displayed. "
-                                              "Use -n/--last flag for more results." % args.last)
+                table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
 class TriggerInstanceGetCommand(resource.ResourceGetCommand):

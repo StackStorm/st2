@@ -119,17 +119,16 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
             *args, **kwargs)
 
         self.default_limit = 50
+        self.resource_name = resource.get_plural_display_name().lower()
         self.group = self.parser.add_mutually_exclusive_group()
         self.parser.add_argument('-n', '--last', type=int, dest='last',
                                  default=self.default_limit,
-                                 help=('List N most recent %s.' %
-                                       resource.get_plural_display_name().lower()))
+                                 help=('List N most recent %s.' % self.resource_name))
         self.parser.add_argument('-s', '--sort', type=str, dest='sort_order',
                                  default='descending',
                                  help=('Sort %s by start timestamp, '
                                        'asc|ascending (earliest first) '
-                                       'or desc|descending (latest first)' %
-                                       resource.get_plural_display_name().lower()))
+                                       'or desc|descending (latest first)' % self.resource_name))
 
         # Filter options
         self.group.add_argument('-c', '--trace-tag', help='Trace-tag to filter the list.')
@@ -169,8 +168,6 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
 
     def run_and_print(self, args, **kwargs):
         instances, count = self.run(args, **kwargs)
-        message = "Note: Only first %s results are displayed. Use -n/--last flag for more "\
-            "results." % args.last
 
         if instances and len(instances) == 1:
             # For a single Trace we must include the components unless
@@ -181,7 +178,7 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
 
             if not args.json and not args.yaml:
                 if args.last and count and int(count) > args.last:
-                        table.SingleRowTable.note_box(message)
+                        table.SingleRowTable.note_box(self.resource_name, 1)
         else:
             if args.json or args.yaml:
                 self.print_output(reversed(instances), table.MultiColumnTable,
@@ -194,7 +191,7 @@ class TraceListCommand(resource.ResourceCommand, SingleTraceDisplayMixin):
                                   attribute_transform_functions=self.attribute_transform_functions)
 
                 if args.last and count and int(count) > args.last:
-                    table.SingleRowTable.note_box(message)
+                    table.SingleRowTable.note_box(self.resource_name, args.last)
 
 
 class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
