@@ -271,7 +271,9 @@ class PropertyValueTable(formatters.Formatter):
 class SingleRowTable(object):
     @staticmethod
     def note_box(entity, limit):
-        if limit == 1:
+        if limit == 0:
+            return None
+        elif limit == 1:
             message = "Note: Only one %s is displayed. Use -n/--last flag for more results." \
                 % entity[:-1]
         else:
