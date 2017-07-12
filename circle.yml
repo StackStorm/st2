@@ -77,6 +77,8 @@ jobs:
   lint:
     docker:
       - image: circleci/python:2.7
+      - image: mongo:3.4
+      - image: rabbitmq:3
     working_directory: ~/st2
     steps:
       - checkout
