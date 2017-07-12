@@ -1,0 +1,11 @@
+---
+description: Example for using the custom filter "use_none"
+enabled: true
+entry_point: workflows/mistral-customfilter-usenone.yaml
+name: mistral-customfilter-usenone
+pack: examples
+runner_type: mistral-v2
+parameters:
+  inputstr:
+    type: string
+    required: true
