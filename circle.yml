@@ -73,6 +73,30 @@ jobs:
             - ~/.cache/pip/
             - virtualenv/
 
+  # Run st2 Lint Checks
+  lint:
+    docker:
+      - image: circleci/python:2.7
+    working_directory: ~/st2
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            # we can use the same caching env as for integration
+            - st2-integration-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+      - run:
+          name: Install pip requirements
+          command: make requirements
+      - run:
+          name: Run st2 Lint Checks
+          command: make ci-checks
+      - save_cache:
+          # we can use the same caching env as for integration
+          key: st2-integration-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+          paths:
+            - ~/.cache/pip/
+            - virtualenv/
+
   # Build & Test st2 packages
   packages:
     parallelism: 4
@@ -200,6 +224,7 @@ workflows:
     jobs:
       - unit
       - integration
+      - lint
       - packages
       - trigger_e2etests:
           requires:
@@ -208,6 +233,7 @@ workflows:
           requires:
             - unit
             - integration
+            - lint
             - packages
           filters:
             branches:
