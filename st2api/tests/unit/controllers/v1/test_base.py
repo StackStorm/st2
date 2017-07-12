@@ -64,7 +64,7 @@ class TestBase(FunctionalTest):
             cfg.CONF.clear_override('allow_origin', 'api')
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.headers['Access-Control-Allow-Origin'],
-                         '*')
+                         'http://xss')
 
     def test_valid_status_code_is_returned_on_invalid_path(self):
         # TypeError: get_all() takes exactly 1 argument (2 given)

@@ -58,7 +58,7 @@ class CorsMiddleware(object):
 
             if origin:
                 if '*' in origins:
-                    origin_allowed = '*'
+                    origin_allowed = origin
                 else:
                     # See http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
                     origin_allowed = origin if origin in origins else 'null'
@@ -74,6 +74,7 @@ class CorsMiddleware(object):
             headers['Access-Control-Allow-Origin'] = origin_allowed
             headers['Access-Control-Allow-Methods'] = ','.join(methods_allowed)
             headers['Access-Control-Allow-Headers'] = ','.join(request_headers_allowed)
+            headers['Access-Control-Allow-Credentials'] = 'true'
             headers['Access-Control-Expose-Headers'] = ','.join(response_headers_allowed)
 
             return start_response(status, headers._items, exc_info)
