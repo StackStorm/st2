@@ -141,14 +141,14 @@ class MultiColumnTable(formatters.Formatter):
                         value = cls._get_field_value(value, name)
                         if type(value) is str:
                             break
-                    value = strutil.unescape(value)
+                    value = strutil.strip_carriage_returns(strutil.unescape(value))
                     values.append(value)
                 else:
                     value = cls._get_simple_field_value(entry, field_name)
                     transform_function = attribute_transform_functions.get(field_name,
                                                                            lambda value: value)
                     value = transform_function(value=value)
-                    value = strutil.unescape(value)
+                    value = strutil.strip_carriage_returns(strutil.unescape(value))
                     values.append(value)
             table.add_row(values)
 
@@ -251,7 +251,7 @@ class PropertyValueTable(formatters.Formatter):
             if type(value) is dict or type(value) is list:
                 value = json.dumps(value, indent=4)
 
-            value = strutil.unescape(value)
+            value = strutil.strip_carriage_returns(strutil.unescape(value))
             table.add_row([attribute, value])
         return table
 
