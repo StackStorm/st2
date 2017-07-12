@@ -4403,12 +4403,6 @@ definitions:
         type: string
 
 securityDefinitions:
-  auth-token-cookie:
-    description: Cookie representing user's short-lived access token.
-    type: apiKey
-    name: auth-token
-    in: cookie
-    x-operationId: st2common.util.auth:validate_token
   auth-token-header:
     description: Header representing user's short-lived access token.
     type: apiKey
@@ -4435,10 +4429,16 @@ securityDefinitions:
     name: st2-api-key
     in: query
     x-operationId: st2common.util.auth:validate_api_key
+  auth-token-cookie:
+    description: Cookie representing user's short-lived access token.
+    type: apiKey
+    name: auth-token
+    in: cookie
+    x-operationId: st2common.util.auth:validate_token
 
 security:
-  - auth-token-cookie: []
   - auth-token-header: []
   - api-key-header: []
   - auth-token-query: []
   - api-key-query: []
+  - auth-token-cookie: []
