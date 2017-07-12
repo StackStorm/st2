@@ -53,6 +53,8 @@ class SetupVirtualEnvironmentAction(Action):
         self.proxy_config = None
 
         if self.http_proxy or self.https_proxy:
+            self.logger.debug('Using proxy %s',
+                              self.http_proxy if self.http_proxy else self.https_proxy)
             self.proxy_config = {
                 'https_proxy': self.https_proxy,
                 'http_proxy': self.http_proxy,
