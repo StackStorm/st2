@@ -90,6 +90,9 @@ jobs:
       - run:
           name: Run st2 Lint Checks
           command: make ci-checks
+      - run:
+          name: Run st2 Packs Tests
+          command: make ci-packs-tests
       - save_cache:
           # we can use the same caching env as for integration
           key: st2-integration-001-{{ checksum "fixed-requirements.txt" }}-{{ checksum "test-requirements.txt" }}
