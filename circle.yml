@@ -197,7 +197,10 @@ jobs:
           root: .
           paths:
             - packages
-            - st2-packages/.circle/packagecloud.sh
+      - persist_to_workspace:
+          root: st2-packages/
+          paths:
+            - .circle/packagecloud.sh
 
   # Trigger st2 webhook to run end2end tests
   trigger_e2etests:
@@ -223,9 +226,7 @@ jobs:
       - DISTROS: "trusty xenial el6 el7"
     steps:
       - attach_workspace:
-          at:
-            - packages
-            - st2-packages/.circle/packagecloud.sh
+          at: packages
       - run:
           name: List workspace files
           command: find ~/st2/packages/ | sed 's|[^/]*/|  |g'
