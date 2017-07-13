@@ -190,6 +190,10 @@ jobs:
             # Clean-up running containers
             .circle/docker-compose2.sh clean
           working_directory: ~/st2-packages
+      - run:
+          name: Generate the report
+          command: .circle/save_payload.py ~/st2/packages
+          working_directory: ~/st2-packages
       - store_artifacts:
           path: ~/st2/packages
           destination: packages
