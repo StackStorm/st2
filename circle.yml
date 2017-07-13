@@ -196,7 +196,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - ~/st2/packages
+            - packages
 
   # Trigger st2 webhook to run end2end tests
   trigger_e2etests:
@@ -217,12 +217,12 @@ jobs:
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
       - image: circleci/ruby:2.4
-    working_directory: ~/st2
+    working_directory: ~/
     environment:
       - DISTROS: "trusty xenial el6 el7"
     steps:
       - attach_workspace:
-          at: ~/st2/packages
+          at: packages
       - run:
           name: List workspace files
           command: find ~/st2/packages/ | sed 's|[^/]*/|  |g'
@@ -235,7 +235,7 @@ jobs:
             sudo wget -O /usr/local/bin/packagecloud.sh https://raw.githubusercontent.com/StackStorm/st2-packages/master/.circle/packagecloud.sh && sudo chmod +x /usr/local/bin/packagecloud.sh
       - run:
           name: Deploy deb/rpm packages to PackageCloud
-          command: "parallel -v -j0 --line-buffer packagecloud.sh deploy {} {}/build/ ::: ${DISTROS}"
+          command: "parallel -v -j0 --line-buffer packagecloud.sh deploy {} packages/{}/build/ ::: ${DISTROS}"
           shell: /bin/bash
 
 # Putting everything together
