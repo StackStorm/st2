@@ -241,18 +241,18 @@ workflows:
   version: 2
   package-test-and-deploy:
     jobs:
-      - unit
-      - integration
-      - lint
+#      - unit
+#      - integration
+#      - lint
       - packages
       - trigger_e2etests:
           requires:
             - packages
       - deploy:
           requires:
-            - unit
-            - integration
-            - lint
+#            - unit
+#            - integration
+#            - lint
             - packages
           filters:
             branches:
