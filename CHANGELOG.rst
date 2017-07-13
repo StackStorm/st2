@@ -16,6 +16,8 @@ Added
   These capabilities have also been enabled in the ci pipeline for packs in the exchange.
 
   Contributed by Nick Maludy. #3508
+* Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
+  used and there are more items available. (improvement) #3552
 
 Fixed
 ~~~~~
