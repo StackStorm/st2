@@ -47,3 +47,10 @@ def regex_search(value, pattern='', ignorecase=False):
         value = str(value)
     flags = _get_regex_flags(ignorecase)
     return bool(re.search(pattern, value, flags))
+
+
+def regex_substring(value, pattern='', result_index=0, ignorecase=False):
+    if not isinstance(value, six.string_types):
+        value = str(value)
+    flags = _get_regex_flags(ignorecase)
+    return re.findall(pattern, value, flags)[result_index]
