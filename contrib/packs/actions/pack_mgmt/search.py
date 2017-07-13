@@ -60,4 +60,5 @@ class PackSearch(Action):
         :param query: A word or a phrase to search for
         :type query: ``str``
         """
+        self.logger.debug('Proxy config: %s', self.proxy_config)
         return search_pack_index(query, proxy_config=self.proxy_config)

@@ -190,7 +190,7 @@ def search_pack_index(query, exclude=None, priority=None, case_sensitive=True, p
     if not case_sensitive:
         query = str(query).lower()
 
-    index, _ = fetch_pack_index()
+    index, _ = fetch_pack_index(proxy_config=proxy_config)
 
     matches = [[] for i in range(len(priority) + 1)]
     for pack in six.itervalues(index):
