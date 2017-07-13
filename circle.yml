@@ -220,16 +220,14 @@ jobs:
       - image: circleci/python:2.7
     working_directory: ~/st2/packages/
     steps:
+      - attach_workspace:
+          at: ~/st2/packages/
       - run:
           name: Install dependencies
           command: |
             set -x
-            wget -O /tmp/packages/packagecloud.sh https://raw.githubusercontent.com/StackStorm/st2-packages/master/.circle/packagecloud.sh
-            sudo chmod +x /tmp/packagecloud.sh
             sudo apt-get -y install parallel jq
             gem install package_cloud
-      - attach_workspace:
-          at: ~/st2/packages/
       - run:
           name: List contents
           command: |
