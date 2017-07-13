@@ -197,10 +197,6 @@ jobs:
           root: .
           paths:
             - packages
-      - persist_to_workspace:
-          root: st2-packages/
-          paths:
-            - .circle/packagecloud.sh
 
   # Trigger st2 webhook to run end2end tests
   trigger_e2etests:
@@ -236,9 +232,10 @@ jobs:
             set -x
             sudo apt-get -y install parallel jq
             gem install package_cloud
+            sudo wget -O /usr/local/bin/packagecloud.sh https://raw.githubusercontent.com/StackStorm/st2-packages/master/.circle/packagecloud.sh && sudo chmod +x /usr/local/bin/packagecloud.sh
       - run:
           name: Deploy deb/rpm packages to PackageCloud
-          command: "parallel -v -j0 --line-buffer .circle/packagecloud.sh deploy {} {}/build/ ::: ${DISTROS}"
+          command: "parallel -v -j0 --line-buffer packagecloud.sh deploy {} {}/build/ ::: ${DISTROS}"
 
 # Putting everything together
 workflows:
