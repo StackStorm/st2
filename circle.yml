@@ -169,8 +169,7 @@ jobs:
           command: |
             .circle/docker-compose2.sh build ${DISTRO}
             # Once build container finishes we can copy packages directly from it
-            mkdir -p ~/st2/packages/${DISTRO}/log
-            docker cp st2-packages-vol:/root/build/ ~/st2/packages/${DISTRO}
+            docker cp st2-packages-vol:/root/build ~/st2/packages/${DISTRO}
           working_directory: ~/st2-packages
 #      # TODO: It works! (~0.5-1min speed-up) Enable CircleCI2.0 cache for pip and wheelhouse later
 #      - run:
@@ -223,12 +222,12 @@ jobs:
       - DISTROS: "trusty xenial el6 el7"
     steps:
       - attach_workspace:
-          at: ~/st2/packages/
+          at:
+            - packages
+            - st2-packages/.circle/packagecloud.sh
       - run:
-          name: List artifact contents
-          command: |
-            set -x
-            find ~/st2/packages/ | sed 's|[^/]*/|  |g'
+          name: List workspace files
+          command: find ~/st2/packages/ | sed 's|[^/]*/|  |g'
       - run:
           name: Install dependencies
           command: |
