@@ -47,3 +47,25 @@ local-override-runner-immutable:
       immutable: false
   ref: executions.local-override-runner-immutable
   runner_type: run-local
+action-with-non-unique-positions:
+  enabled: true
+  name: position-test
+  pack: executions
+  ref: executions.position-test
+  parameters:
+    one:
+      position: 0
+    two:
+      position: 0
+  runner_type: run-local
+action-with-non-contiguous-positions:
+  enabled: true
+  name: position-test-cont
+  pack: executions
+  ref: executions.position-test-cont
+  parameters:
+    one:
+      position: 0
+    two:
+      position: 3
+  runner_type: run-local

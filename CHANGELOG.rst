@@ -7,6 +7,37 @@ in development
 Added
 ~~~~~
 
+* Add ``regex_substring`` Jinja filter for searching for a pattern in a provided string and
+  returning the result. (improvement)
+
+  Contributed by mierdin. #3482
+* Add test coverage and test timing capabilities to ``st2-run-pack-tests``.
+  The ``-c`` option enables test coverage and the ``-t`` option enables test timings.
+  These capabilities have also been enabled in the ci pipeline for packs in the exchange.
+
+  Contributed by Nick Maludy. #3508
+* Update ``st2`` CLI so it also displays "there are more results" note when ``-n`` flag is
+  used and there are more items available. (improvement) #3552
+
+Changed
+~~~~~~~
+
+Fixed
+~~~~~
+
+* Fix st2client to display unicode characters in pack content description. (bug-fix) #3511
+* Don't automatically append ``.git`` suffix to repo URIs passed to ``packs.download`` action.
+  This fixes a bug and now action also works with repo urls which don't contain ``.git`` suffix.
+  (bug fix)
+
+  Contributed by carbineneutral. #3534 #3544
+
+2.3.1 - July 07, 2017
+---------------------
+
+Added
+~~~~~
+
 * Add support for ``passphrase`` parameter to ``remote-shell-script`` runner and as such, support
   for password protected SSH key files. (improvement)
 
@@ -45,6 +76,9 @@ Changed
   return value / response body) under ``DEBUG`` log level instead of ``INFO``. (improvement) #3539
 
   Reported by Sibiraja L.
+* Enforce validation on ``position`` parameter for action parameters. If position values are not
+  sequential or not unique, action registration will now fail. (bug-fix)
+  (improvement) #3317 #3474
 
 Fixed
 ~~~~~
@@ -66,6 +100,11 @@ Fixed
   Reported by Simas Čepaitis.
 * Fix ``st2ctl register`` failure to register rules in some race conditions.
   ``st2-register-content`` will now register internal trigger types by default. (bug-fix) #3542
+* Correctly use service token TTL when generating temporary token for datastore service. This
+  fixes a bug and allows user to set TTL value for non service tokens to less than 24 hours.
+  (bug fix) #3523 #3524
+
+  Reported by theuiz.
 
 2.3.0 - June 19, 2017
 ---------------------
