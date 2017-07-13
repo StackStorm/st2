@@ -195,7 +195,9 @@ jobs:
           path: /tmp/packages
           destination: packages
       - persist_to_workspace:
-          path: /tmp/packages
+          root: workspace
+          paths:
+            - /tmp/packages
 
   # Trigger st2 webhook to run end2end tests
   trigger_e2etests:
