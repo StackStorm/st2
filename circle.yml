@@ -222,7 +222,7 @@ jobs:
       - DISTROS: "trusty xenial el6 el7"
     steps:
       - attach_workspace:
-          at: packages
+          at: .
       - run:
           name: List workspace files
           command: find ~/st2/packages/ | sed 's|[^/]*/|  |g'
