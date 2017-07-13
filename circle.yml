@@ -119,9 +119,9 @@ jobs:
       - DEPLOY_PACKAGES: 0
       - BASH_ENV: ~/.buildenv
     steps:
-      - run:
-          name: TEMPORARY exit Here to save timing
-          command: exit 1
+#      - run:
+#          name: TEMPORARY exit Here to save timing
+#          command: exit 1
       - checkout
       - setup_remote_docker:
           reusable: true    # default - false
@@ -170,7 +170,7 @@ jobs:
           command: |
             .circle/docker-compose2.sh build ${DISTRO}
             # Once build container finishes we can copy packages directly from it
-            docker cp st2-packages-vol:/root/build /tmp/st2-packages
+            docker cp st2-packages-vol:/root/build /packages/${DISTRO}
           working_directory: ~/st2-packages
 #      # TODO: It works! (~0.5-1min speed-up) Enable CircleCI2.0 cache for pip and wheelhouse later
 #      - run:
@@ -185,14 +185,14 @@ jobs:
           command: |
             .circle/docker-compose2.sh test ${DISTRO}
             # Once test container finishes we can copy logs directly from it
-            mkdir -p /tmp/st2-packages/log
-            docker cp st2-packages-vol:/var/log/st2 /tmp/st2-packages/log/st2
-            docker cp st2-packages-vol:/var/log/mistral /tmp/st2-packages/log/mistral
+            mkdir -p /packages/${DISTRO}/log
+            docker cp st2-packages-vol:/var/log/st2 /packages/${DISTRO}/log/st2
+            docker cp st2-packages-vol:/var/log/mistral /packages/${DISTRO}/log/mistral
             # Clean-up running containers
             .circle/docker-compose2.sh clean
           working_directory: ~/st2-packages
       - store_artifacts:
-          path: /tmp/st2-packages
+          path: /packages
 
   # Trigger st2 webhook to run end2end tests
   trigger_e2etests:
@@ -208,7 +208,7 @@ jobs:
             docker --version
             docker-compose --version
 
-  # Deploy produced deb/rpm packages
+  # Deploy produced deb/rpm packages to PackageCloud staging
   deploy:
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
