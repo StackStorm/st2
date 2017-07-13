@@ -170,8 +170,8 @@ jobs:
           command: |
             .circle/docker-compose2.sh build ${DISTRO}
             # Once build container finishes we can copy packages directly from it
-            mkdir -p /tmp/packages/${DISTRO}/log
-            docker cp st2-packages-vol:/root/build /tmp/packages/${DISTRO}
+            mkdir -p ~/st2/packages/${DISTRO}/log
+            docker cp st2-packages-vol:/root/build ~/st2/packages/${DISTRO}
           working_directory: ~/st2-packages
 #      # TODO: It works! (~0.5-1min speed-up) Enable CircleCI2.0 cache for pip and wheelhouse later
 #      - run:
@@ -186,18 +186,18 @@ jobs:
           command: |
             .circle/docker-compose2.sh test ${DISTRO}
             # Once test container finishes we can copy logs directly from it
-            docker cp st2-packages-vol:/var/log/st2 /tmp/packages/${DISTRO}/log/st2
-            docker cp st2-packages-vol:/var/log/mistral /tmp/packages/${DISTRO}/log/mistral
+            docker cp st2-packages-vol:/var/log/st2 ~/st2/packages/${DISTRO}/log/st2
+            docker cp st2-packages-vol:/var/log/mistral ~/st2/packages/${DISTRO}/log/mistral
             # Clean-up running containers
             .circle/docker-compose2.sh clean
           working_directory: ~/st2-packages
       - store_artifacts:
-          path: /tmp/packages
+          path: ~/st2/packages
           destination: packages
       - persist_to_workspace:
-          root: workspace
+          root: packages
           paths:
-            - /tmp/packages
+            - ~/st2/packages/
 
   # Trigger st2 webhook to run end2end tests
   trigger_e2etests:
@@ -218,7 +218,7 @@ jobs:
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
       - image: circleci/python:2.7
-    working_directory: /tmp/packages
+    working_directory: ~/st2/packages/
     steps:
       - run:
           name: Install dependencies
@@ -229,12 +229,12 @@ jobs:
             sudo apt-get -y install parallel jq
             gem install package_cloud
       - attach_workspace:
-          at: /tmp/packages
+          at: ~/st2/packages/
       - run:
           name: List contents
           command: |
             set -x
-            find /tmp/packages/ | sed 's|[^/]*/|  |g'
+            find ~/st2/packages/ | sed 's|[^/]*/|  |g'
 
 # Putting everything together
 workflows:
