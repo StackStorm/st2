@@ -194,6 +194,8 @@ jobs:
       - store_artifacts:
           path: /tmp/packages
           destination: packages
+      - persist_to_workspace:
+          path: /tmp/packages
 
   # Trigger st2 webhook to run end2end tests
   trigger_e2etests:
@@ -214,14 +216,23 @@ jobs:
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
       - image: circleci/python:2.7
-    working_directory: ~/st2
+    working_directory: /tmp/packages
     steps:
       - run:
-          name: Docker version
+          name: Install dependencies
           command: |
             set -x
-            docker --version
-            docker-compose --version
+            wget -O /tmp/packages/packagecloud.sh https://raw.githubusercontent.com/StackStorm/st2-packages/master/.circle/packagecloud.sh
+            sudo chmod +x /tmp/packagecloud.sh
+            sudo apt-get -y install parallel jq
+            gem install package_cloud
+      - attach_workspace:
+          at: /tmp/packages
+      - run:
+          name: List contents
+          command: |
+            set -x
+            find /tmp/packages/ | sed 's|[^/]*/|  |g'
 
 # Putting everything together
 workflows:
@@ -246,6 +257,8 @@ workflows:
               only:
                 - master
                 - /v[0-9]+\.[0-9]+/
+                - feature/circleci
+                - experimental/circle-2.0-workflows
 
 experimental:
   notify:
