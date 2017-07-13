@@ -104,7 +104,9 @@ jobs:
 
   # Build & Test st2 packages
   packages:
-    parallelism: 4
+    # TODO: Revert 4 when debug is finished
+    #parallelism: 4
+    parallelism: 2
     # 4CPUs & 8GB RAM CircleCI machine
     # sadly, it doesn't work with 'setup_remote_docker'
     resource_class: large
@@ -119,9 +121,6 @@ jobs:
       - DEPLOY_PACKAGES: 0
       - BASH_ENV: ~/.buildenv
     steps:
-#      - run:
-#          name: TEMPORARY exit Here to save timing
-#          command: exit 1
       - checkout
       - setup_remote_docker:
           reusable: true    # default - false
@@ -171,7 +170,7 @@ jobs:
             .circle/docker-compose2.sh build ${DISTRO}
             # Once build container finishes we can copy packages directly from it
             mkdir -p ~/st2/packages/${DISTRO}/log
-            docker cp st2-packages-vol:/root/build ~/st2/packages/${DISTRO}
+            docker cp st2-packages-vol:/root/build/ ~/st2/packages/${DISTRO}
           working_directory: ~/st2-packages
 #      # TODO: It works! (~0.5-1min speed-up) Enable CircleCI2.0 cache for pip and wheelhouse later
 #      - run:
@@ -198,6 +197,7 @@ jobs:
           root: .
           paths:
             - packages
+            - st2-packages/.circle/packagecloud.sh
 
   # Trigger st2 webhook to run end2end tests
   trigger_e2etests:
@@ -241,6 +241,7 @@ workflows:
   version: 2
   package-test-and-deploy:
     jobs:
+# TODO: Revert when debug is finished
 #      - unit
 #      - integration
 #      - lint
@@ -250,6 +251,7 @@ workflows:
             - packages
       - deploy:
           requires:
+# TODO: Revert when debug is finished
 #            - unit
 #            - integration
 #            - lint
