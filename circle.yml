@@ -237,7 +237,7 @@ jobs:
             gem install package_cloud
       - run:
           name: Deploy deb/rpm packages to PackageCloud
-          command: parallel -v -j0 --line-buffer .circle/packagecloud.sh deploy {} {}/build/ ::: ${DISTROS}
+          command: "parallel -v -j0 --line-buffer .circle/packagecloud.sh deploy {} {}/build/ ::: ${DISTROS}"
 
 # Putting everything together
 workflows:
