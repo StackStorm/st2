@@ -225,7 +225,7 @@ jobs:
           at: .
       - run:
           name: List workspace files
-          command: find /tmp/deploy | sed 's|[^/]*/|  |g'
+          command: find . | sed 's|[^/]*/|  |g'
       - run:
           name: Install dependencies
           command: |
@@ -263,7 +263,7 @@ workflows:
                 - master
                 - /v[0-9]+\.[0-9]+/
                 - feature/circleci
-                - experimental/circle-2.0-workflows
+#                - experimental/circle-2.0-workflows
 
 experimental:
   notify:
