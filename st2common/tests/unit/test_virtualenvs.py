@@ -192,11 +192,16 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         proxy_config = {
             'https_proxy': 'https://192.168.1.5:8080',
         }
-        try:
-            install_requirement(pack_virtualenv_dir, requirement, proxy_config=proxy_config)
-            self.fail('Should have thrown an exception because https proxies also require certs.')
-        except Exception as e:
-            self.assertTrue('Specify path to CA bundle for HTTPS proxies' in e.message)
+        install_requirement(pack_virtualenv_dir, requirement, proxy_config=proxy_config)
+        expected_args = {
+            'cmd': [
+                '/opt/stackstorm/virtualenvs/dummy_pack_tests/bin/pip',
+                '--proxy', 'https://192.168.1.5:8080',
+                'install', 'six>=1.9.0'
+            ],
+            'env': {}
+        }
+        virtualenvs.run_command.assert_called_once_with(**expected_args)
 
     @mock.patch.object(virtualenvs, 'run_command', mock.MagicMock(return_value=(0, '', '')))
     @mock.patch.object(virtualenvs, 'get_env_for_subprocess_command',
@@ -270,12 +275,19 @@ class VirtualenvUtilsTestCase(CleanFilesTestCase):
         proxy_config = {
             'https_proxy': 'https://192.168.1.5:8080',
         }
-        try:
-            install_requirements(pack_virtualenv_dir, requirements_file_path,
-                                 proxy_config=proxy_config)
-            self.fail('Should have thrown an exception because https proxies also require certs.')
-        except Exception as e:
-            self.assertTrue('Specify path to CA bundle for HTTPS proxies' in e.message)
+        install_requirements(pack_virtualenv_dir, requirements_file_path,
+                             proxy_config=proxy_config)
+
+        expected_args = {
+            'cmd': [
+                '/opt/stackstorm/virtualenvs/dummy_pack_tests/bin/pip',
+                '--proxy', 'https://192.168.1.5:8080',
+                'install', '-U',
+                '-r', requirements_file_path
+            ],
+            'env': {}
+        }
+        virtualenvs.run_command.assert_called_once_with(**expected_args)
 
     def assertVirtulenvExists(self, virtualenv_dir):
         self.assertTrue(os.path.exists(virtualenv_dir))

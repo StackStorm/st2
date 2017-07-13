@@ -200,9 +200,10 @@ def install_requirements(virtualenv_path, requirements_file_path, proxy_config=N
             cmd.extend(['--proxy', http_proxy])
 
         if https_proxy:
-            if not cert:
-                raise Exception('Specify path to CA bundle for HTTPS proxies.')
-            cmd.extend(['--proxy', https_proxy, '--cert', cert])
+            cmd.extend(['--proxy', https_proxy])
+
+        if cert:
+            cmd.extend(['--cert', cert])
 
     cmd.extend(['install', '-U', '-r', requirements_file_path])
     env = get_env_for_subprocess_command()
@@ -237,9 +238,10 @@ def install_requirement(virtualenv_path, requirement, proxy_config=None):
             cmd.extend(['--proxy', http_proxy])
 
         if https_proxy:
-            if not cert:
-                raise Exception('Specify path to CA bundle for HTTPS proxies.')
-            cmd.extend(['--proxy', https_proxy, '--cert', cert])
+            cmd.extend(['--proxy', https_proxy])
+
+        if cert:
+            cmd.extend(['--cert', cert])
 
     cmd.extend(['install', requirement])
     env = get_env_for_subprocess_command()

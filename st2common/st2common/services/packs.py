@@ -77,9 +77,7 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
 
         if https_proxy:
             proxies_dict['https'] = https_proxy
-            if not ca_bundle_path:
-                raise ValueError('Specify path to CA bundle for HTTPS proxies.')
-            verify = ca_bundle_path
+            verify = ca_bundle_path or True
 
         if http_proxy:
             proxies_dict['http'] = http_proxy
