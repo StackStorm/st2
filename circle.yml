@@ -190,10 +190,6 @@ jobs:
             # Clean-up running containers
             .circle/docker-compose2.sh clean
           working_directory: ~/st2-packages
-      - run:
-          name: Generate the report
-          command: .circle/save_payload.py ~/st2/packages
-          working_directory: ~/st2-packages
       - store_artifacts:
           path: ~/st2/packages
           destination: packages
@@ -221,22 +217,22 @@ jobs:
   deploy:
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: circleci/python:2.7
+      - image: circleci/ruby:2.4
     working_directory: ~/st2/packages/
     steps:
       - attach_workspace:
           at: ~/st2/packages/
+      - run:
+          name: List artifact contents
+          command: |
+            set -x
+            find ~/st2/packages/ | sed 's|[^/]*/|  |g'
       - run:
           name: Install dependencies
           command: |
             set -x
             sudo apt-get -y install parallel jq
             gem install package_cloud
-      - run:
-          name: List contents
-          command: |
-            set -x
-            find ~/st2/packages/ | sed 's|[^/]*/|  |g'
 
 # Putting everything together
 workflows:
