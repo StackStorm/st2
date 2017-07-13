@@ -142,7 +142,7 @@ jobs:
           name: Initialize packages Build Environment
           command: |
             set -x
-            ST2_GITREV=${CIRCLE_BRANCH}
+            export ST2_GITREV=${CIRCLE_BRANCH}
             .circle/buildenv_st2.sh
           working_directory: ~/st2-packages
       - run:
