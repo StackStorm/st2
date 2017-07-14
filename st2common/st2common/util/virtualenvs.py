@@ -87,7 +87,7 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
     logger.debug('Installing base requirements')
     for requirement in BASE_PACK_REQUIREMENTS:
         install_requirement(virtualenv_path=virtualenv_path, requirement=requirement,
-                            proxy_config=proxy_config)
+                            proxy_config=proxy_config, logger=logger)
 
     # 3. Install pack-specific requirements
     requirements_file_path = os.path.join(pack_path, 'requirements.txt')
@@ -98,7 +98,8 @@ def setup_pack_virtualenv(pack_name, update=False, logger=None, include_pip=True
                      (requirements_file_path))
         install_requirements(virtualenv_path=virtualenv_path,
                              requirements_file_path=requirements_file_path,
-                             proxy_config=proxy_config)
+                             proxy_config=proxy_config,
+                             logger=logger)
     else:
         logger.debug('No pack specific requirements found')
 
@@ -184,10 +185,11 @@ def remove_virtualenv(virtualenv_path, logger=None):
     return True
 
 
-def install_requirements(virtualenv_path, requirements_file_path, proxy_config=None):
+def install_requirements(virtualenv_path, requirements_file_path, proxy_config=None, logger=None):
     """
     Install requirements from a file.
     """
+    logger = logger or LOG
     pip_path = os.path.join(virtualenv_path, 'bin/pip')
     cmd = [pip_path]
 
@@ -208,6 +210,8 @@ def install_requirements(virtualenv_path, requirements_file_path, proxy_config=N
     cmd.extend(['install', '-U', '-r', requirements_file_path])
     env = get_env_for_subprocess_command()
 
+    logger.debug('Installing requirements from file %s with command %s.',
+                 requirements_file_path, ' '.join(cmd))
     exit_code, stdout, stderr = run_command(cmd=cmd, env=env)
 
     if exit_code != 0:
@@ -220,12 +224,13 @@ def install_requirements(virtualenv_path, requirements_file_path, proxy_config=N
     return True
 
 
-def install_requirement(virtualenv_path, requirement, proxy_config=None):
+def install_requirement(virtualenv_path, requirement, proxy_config=None, logger=None):
     """
     Install a single requirement.
 
     :param requirement: Requirement specifier.
     """
+    logger = logger or LOG
     pip_path = os.path.join(virtualenv_path, 'bin/pip')
     cmd = [pip_path]
 
@@ -245,6 +250,8 @@ def install_requirement(virtualenv_path, requirement, proxy_config=None):
 
     cmd.extend(['install', requirement])
     env = get_env_for_subprocess_command()
+    logger.debug('Installing requirement %s with command %s.',
+                 requirement, ' '.join(cmd))
     exit_code, stdout, stderr = run_command(cmd=cmd, env=env)
 
     if exit_code != 0:
