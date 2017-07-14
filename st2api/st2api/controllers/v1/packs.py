@@ -198,7 +198,7 @@ class PackSearchController(object):
             LOG.debug('Loading proxy configuration from pack search HTTP request.')
             proxy_config = pack_search_request.proxy_config
         else:
-            LOG.debug('Loading proxy configuration from env variables.')
+            LOG.debug('Loading proxy configuration from env variables %s.', os.environ)
             http_proxy = os.environ.get('http_proxy', None)
             https_proxy = os.environ.get('https_proxy', None)
             no_proxy = os.environ.get('no_proxy', None)
@@ -211,7 +211,7 @@ class PackSearchController(object):
                 'no_proxy': no_proxy
             }
 
-        LOG.info('Proxy configuration: %s', proxy_config)
+        LOG.debug('Proxy configuration: %s', proxy_config)
 
         return proxy_config
 

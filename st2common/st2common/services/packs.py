@@ -101,6 +101,9 @@ def _fetch_and_compile_index(index_urls, logger=None, proxy_config=None):
         except requests.exceptions.RequestException as e:
             index_status['error'] = 'unresponsive'
             index_status['message'] = repr(e)
+        except Exception as e:
+            index_status['error'] = 'other errors'
+            index_status['message'] = repr(e)
 
         if index_json == {}:
             index_status['error'] = 'empty'
