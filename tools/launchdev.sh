@@ -76,6 +76,9 @@ function init(){
 }
 
 function init_mistral(){
+
+    echo "Initializing Mistral..."
+
     # Both the mistral and st2mistral repos must be present alongside the st2 repo
     MISTRAL_REPO="${ST2_REPO}/../mistral"
     ST2MISTRAL_REPO="${ST2_REPO}/../st2mistral"
@@ -96,9 +99,6 @@ function init_mistral(){
         exit 1
     fi
 
-    # Ensure services are stopped, so DB script will work
-    st2stop
-
     # Create mistral virtualenv if doesn't exist
     if [[ ! -d "${MISTRAL_REPO}/.venv" ]]; then
         virtualenv ${MISTRAL_REPO}/.venv > /dev/null
@@ -115,24 +115,6 @@ function init_mistral(){
     pip install -r requirements.txt
     python setup.py install
     deactivate
-
-
-    if [ -f /etc/lsb-release ]; then
-        DISTRO="ubuntu"
-    else
-        DISTRO="fedora"
-    fi
-
-    # TODO(mierdin): Only do this on startclean
-    ${ST2_REPO}/tools/setup_mistral_db.sh \
-        "${MISTRAL_REPO}" \
-        "${MISTRAL_CONF}" \
-        "${DISTRO}" \
-        postgresql \
-        mistral \
-        mistral \
-        StackStorm \
-        StackStorm
 }
 
 function exportsdir(){
@@ -318,6 +300,8 @@ function st2start(){
 
     if [ "${include_mistral}" = true ]; then
 
+        LOGDIR=${ST2_REPO}/logs
+
         # Run mistral-server
         echo 'Starting screen session mistral-server...'
         screen -d -m -S mistral-server ${MISTRAL_REPO}/.venv/bin/python \
@@ -325,11 +309,6 @@ function st2start(){
             --server engine,executor \
             --config-file $MISTRAL_CONF \
             --log-file "$LOGDIR/mistral-server.log"
-
-
-        # screen -d -m -S mistral-server /home/vagrant/mistral/.venv/bin/python /home/vagrant/mistral/.venv/bin/mistral-server --server engine,executor --config-file /home/vagrant/st2/conf/mistral.dev/mistral.dev.conf --log-file /home/vagrant/st2/logs/mistral-server.log
-        # screen -d -m -S mistral-api /home/vagrant/mistral/.venv/bin/python /home/vagrant/mistral/.venv/bin/mistral-server --server api --config-file /home/vagrant/st2/conf/mistral.dev/mistral.dev.conf --log-file /home/vagrant/st2/logs/mistral-server.log
-
 
         # Run mistral-api
         echo 'Starting screen session mistral-api...'
@@ -417,6 +396,26 @@ function st2clean(){
         echo "Removing $EXPORTS_DIR..."
         rm -rf ${EXPORTS_DIR}
     fi
+
+    # Ensure services are stopped, so DB script will work
+    st2stop
+
+    if [ -f /etc/lsb-release ]; then
+        DISTRO="ubuntu"
+    else
+        DISTRO="fedora"
+    fi
+
+    ${ST2_REPO}/tools/setup_mistral_db.sh \
+        "${MISTRAL_REPO}" \
+        "${MISTRAL_CONF}" \
+        "${DISTRO}" \
+        postgresql \
+        mistral \
+        mistral \
+        StackStorm \
+        StackStorm
+
 }
 
 case ${subcommand} in
